@@ -1,206 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:33913 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756829Ab3GWUIA (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:25993 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754524Ab3G3IPi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 16:08:00 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 22:07:52 +0200
-Message-ID: <1731726.KENstTPhkb@flatron>
-In-Reply-To: <20130723194423.GA22984@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org> <20130723193105.GP9858@sirena.org.uk> <20130723194423.GA22984@kroah.com>
+	Tue, 30 Jul 2013 04:15:38 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6U8FSug022335
+	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 08:15:34 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 FINAL 3/6] qv4l2: fix minimum size in capture win to frame size
+Date: Tue, 30 Jul 2013 10:15:21 +0200
+Message-Id: <8a77ad64c7c83b62d1f2058f57c96398f3b3271b.1375172029.git.bwinther@cisco.com>
+In-Reply-To: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
+References: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <fe355bb3e887a32d91640eb394ab9c069c8104a6.1375172029.git.bwinther@cisco.com>
+References: <fe355bb3e887a32d91640eb394ab9c069c8104a6.1375172029.git.bwinther@cisco.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 of July 2013 12:44:23 Greg KH wrote:
-> On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
-> > > You don't "know" the id of the device you are looking up, due to
-> > > multiple devices being in the system (dynamic ids, look back earlier
-> > > in
-> > > this thread for details about that.)
-> > 
-> > I got copied in very late so don't have most of the thread I'm afraid,
-> > I did try looking at web archives but didn't see a clear problem
-> > statement.  In any case this is why the APIs doing lookups do the
-> > lookups in the context of the requesting device - devices ask for
-> > whatever name they use locally.
-> 
-> What do you mean by "locally"?
-> 
-> The problem with the api was that the phy core wanted a id and a name to
-> create a phy, and then later other code was doing a "lookup" based on
-> the name and id (mushed together), because it "knew" that this device
-> was the one it wanted.
-> 
-> Just like the clock api, which, for multiple devices, has proven to
-> cause problems.  I don't want to see us accept an api that we know has
-> issues in it now, I'd rather us fix it up properly.
-> 
-> Subsystems should be able to create ids how ever they want to, and not
-> rely on the code calling them to specify the names of the devices that
-> way, otherwise the api is just too fragile.
-> 
-> I think, that if you create a device, then just carry around the pointer
-> to that device (in this case a phy) and pass it to whatever other code
-> needs it.  No need to do lookups on "known names" or anything else,
-> just normal pointers, with no problems for multiple devices, busses, or
-> naming issues.
+CaptureWin's setMinimumSize() sets the minimum size for the video frame viewport
+and not for the window itself. If the minimum size is larger than the monitor resolution,
+it will reduce the minimum size to match this.
 
-PHY object is not a device, it is something that a device driver creates 
-(one or more instances of) when it is being probed. You don't have a clean 
-way to export this PHY object to other driver, other than keeping this PHY 
-on a list inside PHY core with some well-known ID (e.g. device name + 
-consumer port name/index, like in regulator core) and then to use this 
-well-known ID inside consumer driver as a lookup key passed to phy_get();
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/capture-win.cpp | 29 +++++++++++++++++++++++++++++
+ utils/qv4l2/capture-win.h   |  1 +
+ 2 files changed, 30 insertions(+)
 
-Actually I think for PHY case, exactly the same way as used for regulators 
-might be completely fine:
-
-1. Each PHY would have some kind of platform, non-unique name, that is 
-just used to print some messages (like the platform/board name of a 
-regulator).
-2. Each PHY would have an array of consumers. Consumer specifier would 
-consist of consumer device name and consumer port name - just like in 
-regulator subsystem.
-3. PHY driver receives an array of, let's say, phy_init_data inside its 
-platform data that it would use to register its PHYs.
-4. Consumer drivers would have constant consumer port names and wouldn't 
-receive any information about PHYs from platform code.
-
-Code example:
-
-[Board file]
-
-static const struct phy_consumer_data usb_20_phy0_consumers[] = {
-	{
-		.devname = "foo-ehci",
-		.port = "usbphy",
-	},
-};
-
-static const struct phy_consumer_data usb_20_phy1_consumers[] = {
-	{
-		.devname = "foo-otg",
-		.port = "otgphy",
-	},
-};
-
-static const struct phy_init_data my_phys[] = {
-	{
-		.name = "USB 2.0 PHY 0",
-		.consumers = usb_20_phy0_consumers,
-		.num_consumers = ARRAY_SIZE(usb_20_phy0_consumers),
-	},
-	{
-		.name = "USB 2.0 PHY 1",
-		.consumers = usb_20_phy1_consumers,
-		.num_consumers = ARRAY_SIZE(usb_20_phy1_consumers),
-	},
-	{ }
-};
-
-static const struct platform_device usb_phy_pdev = {
-	.name = "foo-usbphy",
-	.id = -1,
-	.dev = {
-		.platform_data = my_phys,
-	},
-};
-
-[PHY driver]
-
-static int foo_usbphy_probe(pdev)
-{
-	struct foo_usbphy *foo;
-	struct phy_init_data *init_data = pdev->dev.platform_data;
-	/* ... */
-	// for each PHY in init_data {
-		phy_register(&foo->phy[i], &init_data[i]);
-	// }
-	/* ... */
-}
-
-[EHCI driver]
-
-static int foo_ehci_probe(pdev)
-{
-	struct phy *phy;
-	/* ... */
-	phy = phy_get(&pdev->dev, "usbphy");
-	/* ... */
-}
-
-[OTG driver]
-
-static int foo_otg_probe(pdev)
-{
-	struct phy *phy;
-	/* ... */
-	phy = phy_get(&pdev->dev, "otgphy");
-	/* ... */
-}
-
-> > > > Having to write platform data for everything gets old fast and the
-> > > > code
-> > > > duplication is pretty tedious...
-> > > 
-> > > Adding a single pointer is "tedious"?  Where is the "name" that you
-> > > are
-> > > going to lookup going to come from?  That code doesn't write
-> > > itself...
-> > 
-> > It's adding platform data in the first place that gets tedious - and
-> > of
-> > course there's also DT and ACPI to worry about, it's not just a case
-> > of
-> > platform data and then you're done.  Pushing the lookup into library
-> > code means that drivers don't have to worry about any of this stuff.
-> 
-> I agree, so just pass around the pointer to the phy and all is good.  No
-> need to worry about DT or ACPI or anything else.
-
-With Device Tree we don't have board files anymore. How would you pass any 
-pointers between provider and consumer drivers in this case?
-
-> > For most of the APIs doing this there is a clear and unambiguous name
-> > in the hardware that can be used (and for hardware process reasons is
-> > unlikely to get changed).  The major exception to this is the clock
-> > API since it is relatively rare to have clear, segregated IP level
-> > information for IPs baked into larger chips.  The other APIs tend to
-> > be establishing chip to chip links.
-> 
-> The clock api is having problems with multiple "names" due to dynamic
-> devices from what I was told.  I want to prevent the PHY interface from
-> having that same issue.
-
-Yes, the clock API has a problem related to the clock namespace being 
-global for all registered clock controllers. This is not a problem with 
-lookup in general, but with wrong lookup key chosen.
-
-Best regards,
-Tomasz
+diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
+index a94c73d..68dc9ed 100644
+--- a/utils/qv4l2/capture-win.cpp
++++ b/utils/qv4l2/capture-win.cpp
+@@ -21,6 +21,8 @@
+ #include <QImage>
+ #include <QVBoxLayout>
+ #include <QCloseEvent>
++#include <QApplication>
++#include <QDesktopWidget>
+ 
+ #include "qv4l2.h"
+ #include "capture-win.h"
+@@ -45,6 +47,33 @@ CaptureWin::~CaptureWin()
+ 	delete hotkeyClose;
+ }
+ 
++void CaptureWin::setMinimumSize(int minw, int minh)
++{
++	QDesktopWidget *screen = QApplication::desktop();
++	QRect resolution = screen->screenGeometry();
++	QSize maxSize = maximumSize();
++
++	int l, t, r, b;
++	layout()->getContentsMargins(&l, &t, &r, &b);
++	minw += l + r;
++	minh += t + b + m_msg->minimumSizeHint().height() + layout()->spacing();
++
++	if (minw > resolution.width())
++		minw = resolution.width();
++	if (minw < 150)
++		minw = 150;
++
++	if (minh > resolution.height())
++		minh = resolution.height();
++	if (minh < 100)
++		minh = 100;
++
++	QWidget::setMinimumSize(minw, minh);
++	QWidget::setMaximumSize(minw, minh);
++	updateGeometry();
++	QWidget::setMaximumSize(maxSize.width(), maxSize.height());
++}
++
+ void CaptureWin::setImage(const QImage &image, const QString &status)
+ {
+ 	m_label->setPixmap(QPixmap::fromImage(image));
+diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
+index 4115d56..3925757 100644
+--- a/utils/qv4l2/capture-win.h
++++ b/utils/qv4l2/capture-win.h
+@@ -35,6 +35,7 @@ public:
+ 	CaptureWin();
+ 	~CaptureWin();
+ 
++	void setMinimumSize(int minw, int minh);
+ 	void setImage(const QImage &image, const QString &status);
+ 
+ protected:
+-- 
+1.8.3.2
 
