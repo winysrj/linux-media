@@ -1,57 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58760 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745Ab3GYJJX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 05:09:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: =?ISO-8859-1?Q?B=E5rd?= Eirik Winther <bwinther@cisco.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: UVC and V4L2_CAP_AUDIO
-Date: Thu, 25 Jul 2013 11:10:15 +0200
-Message-ID: <1530000.NI5gtVtkJY@avalon>
-In-Reply-To: <201307251103.13456.hverkuil@xs4all.nl>
-References: <201307251103.13456.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from pequod.mess.org ([80.229.237.210]:53770 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756845Ab3G3XKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jul 2013 19:10:05 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/5] [media] winbond: wire up rc feedback led
+Date: Wed, 31 Jul 2013 00:00:03 +0100
+Message-Id: <1375225204-5082-4-git-send-email-sean@mess.org>
+In-Reply-To: <1375225204-5082-1-git-send-email-sean@mess.org>
+References: <1375225204-5082-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Note that with the rc-feedback trigger, the cir-rx trigger is now
+redundant. The cir-tx trigger is not used by default; if this
+functionality is desired then it should exist in rc-core, not in
+a driver.
 
-On Thursday 25 July 2013 11:03:13 Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> While working on adding alsa streaming support to qv4l2 we noticed that uvc
-> doesn't set this capability telling userspace that the webcam supports
-> audio.
-> 
-> Is it possible at all in the uvc driver to determine whether or not a uvc
-> webcam has a microphone?
+Also make sure that the led is suspended on suspend.
 
-Not without dirty hacks. The UVC interfaces don't report whether the device 
-has an audio function, the driver would need to look at all the interfaces of 
-the parent USB device and find out whether they match one of the USB audio 
-drivers. That's not something I would be inclined to merge in the uvcvideo 
-driver.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/Kconfig       |  1 -
+ drivers/media/rc/winbond-cir.c | 38 ++++++--------------------------------
+ 2 files changed, 6 insertions(+), 33 deletions(-)
 
-> If not, then it looks like the only way to find the associated alsa device
-> is to use libmedia_dev (or its replacement, although I wonder if anyone is
-> still working on that).
-
-I need to post the code I have. I'll try to do that next week.
-
-> And in particular, the presence of CAP_AUDIO cannot be used to determine
-> whether the device has audio capabilities, it can only be used to determine
-> if the V4L2 audio ioctls are supported. That would have to be clarified in
-> the spec.
-
-The V4L2 audio ioctls are definitely not supported by the uvcvideo driver :-)
-
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 5a79c33..7fa6b22 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -248,7 +248,6 @@ config IR_WINBOND_CIR
+ 	depends on RC_CORE
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
+-	select LEDS_TRIGGERS
+ 	select BITREVERSE
+ 	---help---
+ 	   Say Y here if you want to use the IR remote functionality found
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 87af2d3..98bd496 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -213,13 +213,11 @@ struct wbcir_data {
+ 
+ 	/* RX state */
+ 	enum wbcir_rxstate rxstate;
+-	struct led_trigger *rxtrigger;
+ 	int carrier_report_enabled;
+ 	u32 pulse_duration;
+ 
+ 	/* TX state */
+ 	enum wbcir_txstate txstate;
+-	struct led_trigger *txtrigger;
+ 	u32 txlen;
+ 	u32 txoff;
+ 	u32 *txbuf;
+@@ -366,14 +364,11 @@ wbcir_idle_rx(struct rc_dev *dev, bool idle)
+ {
+ 	struct wbcir_data *data = dev->priv;
+ 
+-	if (!idle && data->rxstate == WBCIR_RXSTATE_INACTIVE) {
++	if (!idle && data->rxstate == WBCIR_RXSTATE_INACTIVE)
+ 		data->rxstate = WBCIR_RXSTATE_ACTIVE;
+-		led_trigger_event(data->rxtrigger, LED_FULL);
+-	}
+ 
+ 	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE) {
+ 		data->rxstate = WBCIR_RXSTATE_INACTIVE;
+-		led_trigger_event(data->rxtrigger, LED_OFF);
+ 
+ 		if (data->carrier_report_enabled)
+ 			wbcir_carrier_report(data);
+@@ -425,7 +420,6 @@ wbcir_irq_tx(struct wbcir_data *data)
+ 	case WBCIR_TXSTATE_INACTIVE:
+ 		/* TX FIFO empty */
+ 		space = 16;
+-		led_trigger_event(data->txtrigger, LED_FULL);
+ 		break;
+ 	case WBCIR_TXSTATE_ACTIVE:
+ 		/* TX FIFO low (3 bytes or less) */
+@@ -464,7 +458,6 @@ wbcir_irq_tx(struct wbcir_data *data)
+ 			/* Clear TX underrun bit */
+ 			outb(WBCIR_TX_UNDERRUN, data->sbase + WBCIR_REG_SP3_ASCR);
+ 		wbcir_set_irqmask(data, WBCIR_IRQ_RX | WBCIR_IRQ_ERR);
+-		led_trigger_event(data->txtrigger, LED_OFF);
+ 		kfree(data->txbuf);
+ 		data->txbuf = NULL;
+ 		data->txstate = WBCIR_TXSTATE_INACTIVE;
+@@ -878,15 +871,13 @@ finish:
+ 	 */
+ 	wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
+ 	disable_irq(data->irq);
+-
+-	/* Disable LED */
+-	led_trigger_event(data->rxtrigger, LED_OFF);
+-	led_trigger_event(data->txtrigger, LED_OFF);
+ }
+ 
+ static int
+ wbcir_suspend(struct pnp_dev *device, pm_message_t state)
+ {
++	struct wbcir_data *data = pnp_get_drvdata(device);
++	led_classdev_suspend(&data->led);
+ 	wbcir_shutdown(device);
+ 	return 0;
+ }
+@@ -1015,6 +1006,7 @@ wbcir_resume(struct pnp_dev *device)
+ 
+ 	wbcir_init_hw(data);
+ 	enable_irq(data->irq);
++	led_classdev_resume(&data->led);
+ 
+ 	return 0;
+ }
+@@ -1058,25 +1050,13 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
+ 		data->wbase, data->ebase, data->sbase, data->irq);
+ 
+-	led_trigger_register_simple("cir-tx", &data->txtrigger);
+-	if (!data->txtrigger) {
+-		err = -ENOMEM;
+-		goto exit_free_data;
+-	}
+-
+-	led_trigger_register_simple("cir-rx", &data->rxtrigger);
+-	if (!data->rxtrigger) {
+-		err = -ENOMEM;
+-		goto exit_unregister_txtrigger;
+-	}
+-
+ 	data->led.name = "cir::activity";
+-	data->led.default_trigger = "cir-rx";
++	data->led.default_trigger = "rc-feedback";
+ 	data->led.brightness_set = wbcir_led_brightness_set;
+ 	data->led.brightness_get = wbcir_led_brightness_get;
+ 	err = led_classdev_register(&device->dev, &data->led);
+ 	if (err)
+-		goto exit_unregister_rxtrigger;
++		goto exit_free_data;
+ 
+ 	data->dev = rc_allocate_device();
+ 	if (!data->dev) {
+@@ -1156,10 +1136,6 @@ exit_free_rc:
+ 	rc_free_device(data->dev);
+ exit_unregister_led:
+ 	led_classdev_unregister(&data->led);
+-exit_unregister_rxtrigger:
+-	led_trigger_unregister_simple(data->rxtrigger);
+-exit_unregister_txtrigger:
+-	led_trigger_unregister_simple(data->txtrigger);
+ exit_free_data:
+ 	kfree(data);
+ 	pnp_set_drvdata(device, NULL);
+@@ -1187,8 +1163,6 @@ wbcir_remove(struct pnp_dev *device)
+ 
+ 	rc_unregister_device(data->dev);
+ 
+-	led_trigger_unregister_simple(data->rxtrigger);
+-	led_trigger_unregister_simple(data->txtrigger);
+ 	led_classdev_unregister(&data->led);
+ 
+ 	/* This is ok since &data->led isn't actually used */
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
