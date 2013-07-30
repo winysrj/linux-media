@@ -1,29 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.net.t-labs.tu-berlin.de ([130.149.220.252]:44682 "EHLO
-	mail.net.t-labs.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932650Ab3GLQXd (ORCPT
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:40629 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087Ab3G3NNR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 12:23:33 -0400
-Received: from fls-nb.lan.streibelt.net (91-64-122-25-dynip.superkabel.de [91.64.122.25])
-	by mail.net.t-labs.tu-berlin.de (Postfix) with ESMTPSA id 6D59C4C5FBD
-	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 18:23:28 +0200 (CEST)
-Date: Fri, 12 Jul 2013 18:23:27 +0200
-From: Florian Streibelt <florian@inet.tu-berlin.de>
+	Tue, 30 Jul 2013 09:13:17 -0400
+Received: by mail-oa0-f41.google.com with SMTP id j6so6572367oag.14
+        for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 06:13:17 -0700 (PDT)
+MIME-Version: 1.0
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 30 Jul 2013 15:12:57 +0200
+Message-ID: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
+Subject: Question about v4l2-compliance: cap->readbuffers
 To: linux-media@vger.kernel.org
-Subject: Help needed: Wrong Maintainer Contact
-Message-ID: <20130712182327.35516f33@fls-nb.lan.streibelt.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello
 
-the maintainer contact for the cx231xx driver is broken - the author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
+I am developing a driver for a camera that supports read/write and
+mmap access to the buffers.
 
-[ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
+When I am running the compliance test, I cannot pass it because of
+this test on v4l2-test-formats.cpp
 
-Is this the right place to report this?
+904                 if (!(node->caps & V4L2_CAP_READWRITE))
+905                         fail_on_test(cap->readbuffers);
+906                 else if (node->caps & V4L2_CAP_STREAMING)
+907                         fail_on_test(!cap->readbuffers);
 
-/Florian
+What should be the value of cap-readbuffers for a driver such as mine,
+that supports cap_readwrite and cap_streaming? Or I cannot support
+both, although at least this drivers do the same?
+
+
+$ git grep CAP_READWRITE *  | grep CAP_STREAMING
+pci/cx25821/cx25821-video.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+pci/cx88/cx88-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+V4L2_CAP_STREAMING;
+pci/saa7134/saa7134-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+V4L2_CAP_STREAMING;
+platform/marvell-ccic/mcam-core.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+platform/via-camera.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+usb/cx231xx/cx231xx-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+V4L2_CAP_STREAMING;
+usb/em28xx/em28xx-video.c: V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE
+| V4L2_CAP_STREAMING;
+usb/stkwebcam/stk-webcam.c: | V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+usb/tlg2300/pd-video.c: V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+
+
+Thanks!
+
+-- 
+Ricardo Ribalda
