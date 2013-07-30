@@ -1,211 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43617 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499Ab3GAFYF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 01:24:05 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-Subject: [PATCH V3 2/3] phy: Add driver for Exynos DP PHY
-Date: Mon, 01 Jul 2013 14:24:02 +0900
-Message-id: <005301ce761b$32adf960$9809ec20$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail.kapsi.fi ([217.30.184.167]:58283 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756864Ab3G3UaI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jul 2013 16:30:08 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH 1/2] lme2510: do not use bInterfaceNumber from dvb_usb_v2
+Date: Tue, 30 Jul 2013 23:29:00 +0300
+Message-Id: <1375216141-25295-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
+No need to access bInterfaceNumber via dvb_usb_v2 internals as driver
+has it already.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
+That patch is prepare for dvb_usb_v2 deferred probe hack removal. It was
+added due to udev firmware loading problems, but things are fixed after
+that and it is not needed anymore.
+
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
- drivers/phy/Kconfig                                |    5 +
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-exynos-dp-video.c                  |  118 ++++++++++++++++++++
- 4 files changed, 132 insertions(+)
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-index 5ff208c..3fb656a 100644
---- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-@@ -12,3 +12,11 @@ the PHY specifier identifies the PHY and its meaning is as follows:
-   1 - MIPI DSIM 0,
-   2 - MIPI CSIS 1,
-   3 - MIPI DSIM 1.
-+
-+Samsung EXYNOS SoC series DP PHY
-+-------------------------------------------------
-+
-+Required properties:
-+- compatible : should be "samsung,exynos5250-dp-video-phy";
-+- reg : offset and length of the DP PHY register set;
-+- #phy-cells : from the generic phy bindings, must be 0;
-\ No newline at end of file
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 6f446d0..760f55a 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -19,4 +19,9 @@ config PHY_EXYNOS_MIPI_VIDEO
- 	help
- 	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung
- 	  S5P and EXYNOS SoCs.
-+
-+config PHY_EXYNOS_DP_VIDEO
-+	tristate "EXYNOS SoC series DP PHY driver"
-+	help
-+	  Support for DP PHY found on Samsung EXYNOS SoCs.
- endif
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 71d8841..0fd1340 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -4,3 +4,4 @@
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index b3fd0ff..f674dc0 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -1225,7 +1225,7 @@ static int lme2510_identify_state(struct dvb_usb_device *d, const char **name)
+ 	usb_reset_configuration(d->udev);
  
- obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
- obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
-+obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
-new file mode 100644
-index 0000000..75e1d11
---- /dev/null
-+++ b/drivers/phy/phy-exynos-dp-video.c
-@@ -0,0 +1,118 @@
-+/*
-+ * Samsung EXYNOS SoC series DP PHY driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Jingoo Han <jg1.han@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/phy/phy.h>
-+#include <linux/platform_device.h>
-+
-+/* DPTX_PHY_CONTROL register */
-+#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
-+
-+struct exynos_dp_video_phy {
-+	void __iomem *regs;
-+};
-+
-+static int __set_phy_state(struct exynos_dp_video_phy *state, unsigned int on)
-+{
-+	void __iomem *addr;
-+	u32 reg;
-+
-+	addr = state->regs;
-+
-+	reg = readl(addr);
-+	if (on)
-+		reg |= EXYNOS_DPTX_PHY_ENABLE;
-+	else
-+		reg &= ~EXYNOS_DPTX_PHY_ENABLE;
-+	writel(reg, addr);
-+
-+	return 0;
-+}
-+
-+static int exynos_dp_video_phy_power_on(struct phy *phy)
-+{
-+	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
-+
-+	return __set_phy_state(state, 1);
-+}
-+
-+static int exynos_dp_video_phy_power_off(struct phy *phy)
-+{
-+	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
-+
-+	return __set_phy_state(state, 0);
-+}
-+
-+static struct phy_ops exynos_dp_video_phy_ops = {
-+	.power_on	= exynos_dp_video_phy_power_on,
-+	.power_off	= exynos_dp_video_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int exynos_dp_video_phy_probe(struct platform_device *pdev)
-+{
-+	struct exynos_dp_video_phy *state;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct phy_provider *phy_provider;
-+	struct phy *phy;
-+
-+	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	state->regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(state->regs))
-+		return PTR_ERR(state->regs);
-+
-+	dev_set_drvdata(dev, state);
-+
-+	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	phy = devm_phy_create(dev, 0, &exynos_dp_video_phy_ops, "dp");
-+	if (IS_ERR(phy)) {
-+		dev_err(dev, "failed to create DP PHY\n");
-+		return PTR_ERR(phy);
-+	}
-+	phy_set_drvdata(phy, state);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_dp_video_phy_of_match[] = {
-+	{ .compatible = "samsung,exynos5250-dp-video-phy" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, exynos_dp_video_phy_of_match);
-+#endif
-+
-+static struct platform_driver exynos_dp_video_phy_driver = {
-+	.probe	= exynos_dp_video_phy_probe,
-+	.driver = {
-+		.name	= "exynos-dp-video-phy",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= exynos_dp_video_phy_of_match,
-+	}
-+};
-+module_platform_driver(exynos_dp_video_phy_driver);
-+
-+MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
-+MODULE_DESCRIPTION("Samsung EXYNOS SoC DP PHY driver");
-+MODULE_LICENSE("GPL v2");
+ 	usb_set_interface(d->udev,
+-		d->intf->cur_altsetting->desc.bInterfaceNumber, 1);
++		d->props->bInterfaceNumber, 1);
+ 
+ 	st->dvb_usb_lme2510_firmware = dvb_usb_lme2510_firmware;
+ 
 -- 
-1.7.10.4
-
+1.7.11.7
 
