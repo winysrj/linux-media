@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:8370 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755331Ab3GYJ3w (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:23404 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752375Ab3G3P3z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 05:29:52 -0400
-Message-id: <51F0F00A.1040907@samsung.com>
-Date: Thu, 25 Jul 2013 11:29:46 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
- <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
-In-reply-to: <201307242032.03597.arnd@arndb.de>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 30 Jul 2013 11:29:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: Question about v4l2-compliance: cap->readbuffers
+Date: Tue, 30 Jul 2013 17:29:26 +0200
+Cc: linux-media@vger.kernel.org
+References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com> <201307301545.51529.hverkuil@xs4all.nl> <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
+In-Reply-To: <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307301729.26053.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/24/2013 08:32 PM, Arnd Bergmann wrote:
-> On Tuesday 23 July 2013, Tomasz Figa wrote:
->> On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
->>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
->>>> Where would you want to have those phy_address arrays stored? There
->>>> are no board files when booting with DT. Not even saying that you
->>>> don't need to use any hacky schemes like this when you have DT that
->>>> nicely specifies relations between devices.
->>>
->>> If everybody agrees DT has a nice scheme for specifying relations
->>> between devices, why not use that same scheme in the PHY core?
->>
->> It is already used, for cases when consumer device has a DT node attached. 
->> In non-DT case this kind lookup translates loosely to something that is 
->> being done in regulator framework - you can't bind devices by pointers, 
->> because you don't have those pointers, so you need to use device names.
->>
+On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
+> Thanks for the explanation Hans!
 > 
-> Sorry for jumping in to the middle of the discussion, but why does a *new*
-> framework even bother defining an interface for board files?
+> I finaly manage to pass that one ;)
 > 
-> Can't we just drop any interfaces for platform data passing in the phy
-> framework and put the burden of adding those to anyone who actually needs
-> them? All the platforms we are concerned with here (exynos and omap,
-> plus new platforms) can be booted using DT anyway.
+> Just one more question. Why the compliance test checks if the DISABLED
+> flag is on on for qctrls?
+> 
+> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
+> 
+>  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
+>  138                 return fail("DISABLED flag set\n");
+> 
+> Apparently that has been added on:
+> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
+> 
+> But I have failed to find a reason
 
-Indeed, I was also a bit surprised we still need non-dt support, since
-migration to this generic PHY framework in case of exynos was solely
-part of migration of the whole platform to DT.
+It shouldn't be used anymore in drivers. With the control framework there is
+no longer any reason to use the DISABLED flag.
 
-Two of the drivers that are being converted are also used on s5pv210,
-but there is currently no boards in mainline that would use devices
-covered by those drivers and s5pv210 will very likely get DT support
-in v3.13 anyway.
+If something has a valid use case for it, then I'd like to know what it is.
 
-But it seems omap still needs non-dt support in the PHY framework.
+Regards,
 
----
-Thanks,
-Sylwester
+	Hans
