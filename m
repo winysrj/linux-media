@@ -1,109 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:51315 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab3GFEsZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jul 2013 00:48:25 -0400
-Received: by mail-pb0-f44.google.com with SMTP id uo1so2657519pbc.31
-        for <linux-media@vger.kernel.org>; Fri, 05 Jul 2013 21:48:25 -0700 (PDT)
-Received: from [192.168.0.11] (203-97-162-140.cable.paradise.net.nz. [203.97.162.140])
-        by mx.google.com with ESMTPSA id we2sm11315235pab.0.2013.07.05.21.48.23
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Fri, 05 Jul 2013 21:48:24 -0700 (PDT)
-Message-ID: <51D7A194.2090200@gmail.com>
-Date: Sat, 06 Jul 2013 16:48:20 +1200
-From: p doole <pdoole@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37031 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775Ab3GaFpS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Jul 2013 01:45:18 -0400
+Message-ID: <51F8A440.8010803@ti.com>
+Date: Wed, 31 Jul 2013 11:14:32 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: EM28xx - STLabs USB video capture - almost there but no audio
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: <balbi@ti.com>
+CC: Greg KH <gregkh@linuxfoundation.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron> <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron> <20130721154653.GG16598@kroah.com> <20130730071106.GC16441@radagast>
+In-Reply-To: <20130730071106.GC16441@radagast>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi,
 
-I've been trying to get an STLabs USB video capture device working. I've 
-got the video working but am stuck on the audio.  I followed this thread 
-from the archives http://en.it-usenet.org/thread/18550/25190/ which 
-helped with the video.  As you can see below the audio isn't (or 
-possibly is?) detected properly.  Installing the device in Windows it 
-works but the provided software is rubbish and there's a lag in the 
-audio. While running the device in Linux I can see under the sound 
-settings, input, the "Line In USB 2861 Device" input level fluctuates as 
-you'd expect when there's a video being played so I figure sound is 
-coming from the device.  However I can't get any sound in the resulting 
-file using mplayer with various settings tried.  I've also tried tvtime 
-with no luck.  Hopefully I'm missing something obvious.
+On Tuesday 30 July 2013 12:41 PM, Felipe Balbi wrote:
+> On Sun, Jul 21, 2013 at 08:46:53AM -0700, Greg KH wrote:
+>> On Sun, Jul 21, 2013 at 01:12:07PM +0200, Tomasz Figa wrote:
+>>> On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
+>>>> Hi,
+>>>>
+>>>> On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
+>>>>>> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
+>>>>>>> On Sat, 20 Jul 2013, Greg KH wrote:
+>>>>>>>>>>> That should be passed using platform data.
+>>>>>>>>>>
+>>>>>>>>>> Ick, don't pass strings around, pass pointers.  If you have
+>>>>>>>>>> platform
+>>>>>>>>>> data you can get to, then put the pointer there, don't use a
+>>>>>>>>>> "name".
+>>>>>>>>>
+>>>>>>>>> I don't think I understood you here :-s We wont have phy pointer
+>>>>>>>>> when we create the device for the controller no?(it'll be done in
+>>>>>>>>> board file). Probably I'm missing something.
+>>>>>>>>
+>>>>>>>> Why will you not have that pointer?  You can't rely on the "name"
+>>>>>>>> as
+>>>>>>>> the device id will not match up, so you should be able to rely on
+>>>>>>>> the pointer being in the structure that the board sets up, right?
+>>>>>>>>
+>>>>>>>> Don't use names, especially as ids can, and will, change, that is
+>>>>>>>> going
+>>>>>>>> to cause big problems.  Use pointers, this is C, we are supposed to
+>>>>>>>> be
+>>>>>>>> doing that :)
+>>>>>>>
+>>>>>>> Kishon, I think what Greg means is this:  The name you are using
+>>>>>>> must
+>>>>>>> be stored somewhere in a data structure constructed by the board
+>>>>>>> file,
+>>>>>>> right?  Or at least, associated with some data structure somehow.
+>>>>>>> Otherwise the platform code wouldn't know which PHY hardware
+>>>>>>> corresponded to a particular name.
+>>>>>>>
+>>>>>>> Greg's suggestion is that you store the address of that data
+>>>>>>> structure
+>>>>>>> in the platform data instead of storing the name string.  Have the
+>>>>>>> consumer pass the data structure's address when it calls phy_create,
+>>>>>>> instead of passing the name.  Then you don't have to worry about two
+>>>>>>> PHYs accidentally ending up with the same name or any other similar
+>>>>>>> problems.
+>>>>>>
+>>>>>> Close, but the issue is that whatever returns from phy_create()
+>>>>>> should
+>>>>>> then be used, no need to call any "find" functions, as you can just
+>>>>>> use
+>>>>>> the pointer that phy_create() returns.  Much like all other class api
+>>>>>> functions in the kernel work.
+>>>>>
+>>>>> I think there is a confusion here about who registers the PHYs.
+>>>>>
+>>>>> All platform code does is registering a platform/i2c/whatever device,
+>>>>> which causes a driver (located in drivers/phy/) to be instantiated.
+>>>>> Such drivers call phy_create(), usually in their probe() callbacks,
+>>>>> so platform_code has no way (and should have no way, for the sake of
+>>>>> layering) to get what phy_create() returns.
+>>
+>> Why not put pointers in the platform data structure that can hold these
+>> pointers?  I thought that is why we created those structures in the
+>> first place.  If not, what are they there for?
+> 
+> heh, IMO we shouldn't pass pointers of any kind through platform_data,
+> we want to pass data :-)
+> 
+> Allowing to pass pointers through that, is one of the reasons which got
+> us in such a big mess in ARM land, well it was much easier for a
+> board-file/driver writer to pass a function pointer then to create a
+> generic framework :-)
+> 
+>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>> regulators, PWMs or even i2c busses because there are complex cases
+>>>>> when passing just a name using platform data will not work. I would
+>>>>> second what Stephen said [1] and define a structure doing things in a
+>>>>> DT-like way.
+>>>>>
+>>>>> Example;
+>>>>>
+>>>>> [platform code]
+>>>>>
+>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>
+>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>
+>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
+>>>> creating the device, the ids in the device name would change and
+>>>> PHY_LOOKUP wont be useful.
+>>>
+>>> I don't think this is a problem. All the existing lookup methods already 
+>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
+>>> can simply add a requirement that the ID must be assigned manually, 
+>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>
+>> And I'm saying that this idea, of using a specific name and id, is
+>> frought with fragility and will break in the future in various ways when
+>> devices get added to systems, making these strings constantly have to be
+>> kept up to date with different board configurations.
+>>
+>> People, NEVER, hardcode something like an id.  The fact that this
+>> happens today with the clock code, doesn't make it right, it makes the
+>> clock code wrong.  Others have already said that this is wrong there as
+>> well, as systems change and dynamic ids get used more and more.
+>>
+>> Let's not repeat the same mistakes of the past just because we refuse to
+>> learn from them...
+>>
+>> So again, the "find a phy by a string" functions should be removed, the
+>> device id should be automatically created by the phy core just to make
+>> things unique in sysfs, and no driver code should _ever_ be reliant on
+>> the number that is being created, and the pointer to the phy structure
+>> should be used everywhere instead.
+>>
+>> With those types of changes, I will consider merging this subsystem, but
+>> without them, sorry, I will not.
+> 
+> I'll agree with Greg here, the very fact that we see people trying to
+> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
+> big problem in the framework.
+> 
+> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+> adding similar infrastructure to the driver themselves to make sure we
+> don't end up with duplicate names in sysfs in case we have multiple
+> instances of the same IP in the SoC (or several of the same PCIe card).
+> I really don't want to go back to that.
 
-I'm running linux mint 15.  Any suggestions or advice gratefully received.
-Oh and 1st post so please let me know if there's anything I should do 
-differently/better
+If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give the
+correct binding information to the PHY framework. I think we can drop having
+this non-dt support in PHY framework? I see only one platform (OMAP3) going to
+be needing this non-dt support and we can use the USB PHY library for it.
 
-desktop ~ $  lsusb
-Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
-Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 003: ID eb1a:5051 eMPIA Technology, Inc.
-Bus 002 Device 004: ID 05e3:0723 Genesys Logic, Inc. GL827L SD/MMC/MS 
-Flash Card Reader
-Bus 002 Device 005: ID 046d:0802 Logitech, Inc. Webcam C200
-
-desktop ~ $ dmesg | grep em2
-[    6.202180] em28xx: New device  USB 2861 Device @ 480 Mbps 
-(eb1a:5051, interface 0, class 0)
-[    6.202184] em28xx: Video interface 0 found: isoc
-[    6.204840] em28xx: chip ID is em2860
-[    6.343008] em2860 #0: i2c eeprom 00: 1a eb 67 95 1a eb 51 50 50 00 
-20 03 6a 20 8a 04
-[    6.343016] em2860 #0: i2c eeprom 10: 00 00 24 57 06 02 00 00 00 00 
-00 00 00 00 00 00
-[    6.343022] em2860 #0: i2c eeprom 20: 02 00 01 00 f0 10 01 00 b8 00 
-00 00 5b 00 00 00
-[    6.343028] em2860 #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 
-00 00 00 00 00 00
-[    6.343034] em2860 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 c4 00 00
-[    6.343039] em2860 #0: i2c eeprom 50: 00 a2 00 87 81 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343045] em2860 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 
-20 03 55 00 53 00
-[    6.343051] em2860 #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 
-31 00 20 00 44 00
-[    6.343056] em2860 #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 
-04 03 30 00 65 00
-[    6.343062] em2860 #0: i2c eeprom 90: 65 00 65 00 65 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343068] em2860 #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343073] em2860 #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343079] em2860 #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343084] em2860 #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343090] em2860 #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343096] em2860 #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[    6.343103] em2860 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x11b79572
-[    6.343104] em2860 #0: EEPROM info:
-[    6.343105] em2860 #0:     No audio on board.
-[    6.343106] em2860 #0:     500mA max power
-[    6.343107] em2860 #0:     Table at offset 0x00, strings=0x0000, 
-0x0000, 0x0000
-[    6.343110] em2860 #0: Identified as EM2860/TVP5150 Reference Design 
-(card=29)
-[    6.543923] tvp5150 7-005c: chip found @ 0xb8 (em2860 #0)
-[    6.643904] em2860 #0: Config register raw data: 0x50
-[    6.667401] em2860 #0: AC97 vendor ID = 0x83847650
-[    6.679765] em2860 #0: AC97 features = 0x6a90
-[    6.679768] em2860 #0: Empia 202 AC97 audio processor detected
-[    9.298579] em2860 #0: v4l2 driver version 0.2.0
-[   11.210059] em2860 #0: V4L2 video device registered as video0
-[   11.210063] em2860 #0: V4L2 VBI device registered as vbi0
-[   11.210065] em2860 #0: analog set to isoc mode.
-[   11.214055] usbcore: registered new interface driver em28xx
-
-Cheers fil.
+Thanks
+Kishon
