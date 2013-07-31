@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:63590 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823Ab3GYNKj (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:40574 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760675Ab3GaSrc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:10:39 -0400
-Received: by mail-bk0-f42.google.com with SMTP id jk13so688402bkc.15
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 06:10:38 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 4/4] libdvbv5: Fix copy and paste error in parse_service()
-Date: Thu, 25 Jul 2013 15:09:34 +0200
-Message-Id: <1374757774-29051-5-git-send-email-gjasny@googlemail.com>
-In-Reply-To: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
-References: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
+	Wed, 31 Jul 2013 14:47:32 -0400
+Received: by mail-wi0-f181.google.com with SMTP id en1so1002628wid.14
+        for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 11:47:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+From: Luis Polasek <pola@sol.info.unlp.edu.ar>
+Date: Wed, 31 Jul 2013 15:47:10 -0300
+Message-ID: <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+Subject: Fwd: dib8000 scanning not working on 3.10.3
+To: linux-media@vger.kernel.org
+Cc: "jbucar@lifia.info.unlp.edu.ar" <jbucar@lifia.info.unlp.edu.ar>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Detected by Coverity.
+Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
+work anymore.
 
-Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: André Roth <neolynx@gmail.com>
----
- lib/libdvbv5/descriptors.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
+Pixelview SBTVD (dib8000 module*).This tools worked very well on
+version 3.9.9 , but now it does not produces any result, and also
+there are no error messages in the logs (dmesg).
 
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 99d8fa3..9b6b050 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -787,9 +787,9 @@ static void parse_service(struct dvb_v5_fe_parms *parms, struct service_table *s
- 	if (verbose) {
- 		if (service_table->provider_name)
- 			printf("Provider %s", service_table->provider_name);
--		if (service_table->service_alias)
-+		if (service_table->provider_alias)
- 			printf("(%s)", service_table->provider_alias);
--		if (service_table->provider_name || service_table->service_alias)
-+		if (service_table->provider_name || service_table->provider_alias)
- 			printf("\n");
- 		if (service_table->service_name)
- 			printf("Service %s", service_table->service_name);
--- 
-1.8.3.2
+Can you please point me out to what is wrong in my kernel, or tell me
+which tool did you used to test dvb scanning on this kernel version ?
 
+Thanks and regards...
+
+
+*: 9.863433] dvb-usb: Prolink Pixelview SBTVD successfully initialized
+and connected.
