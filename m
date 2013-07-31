@@ -1,67 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22364 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820Ab3G2MCX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46559 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760559Ab3GaPvi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 08:02:23 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQP007WD5FBR480@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Jul 2013 13:02:21 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MQP004ZA5FWTT10@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Jul 2013 13:02:21 +0100 (BST)
-Message-id: <51F659C9.7000208@samsung.com>
-Date: Mon, 29 Jul 2013 14:02:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] v4l2-async API updates
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 31 Jul 2013 11:51:38 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v4 0/7] Renesas VSP1 driver
+Date: Wed, 31 Jul 2013 17:52:27 +0200
+Message-Id: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello,
 
-This includes a couple updates to the v4l2-async API: an addition
-of a method of matching subdevs by device tree node pointer, some
-cleanups and a typo fix for the JPEG controls documentation.
+Here's the fourth version of the VSP1 engine (a Video Signal Processor found
+in several Renesas R-Car SoCs) driver. There has been very few comments on v3,
+this one might be final.
 
-The following changes since commit 51dd4d70fc59564454a4dcb90d6d46d39a4a97ef:
+The VSP1 is a video processing engine that includes a blender, scalers,
+filters and statistics computation. Configurable data path routing logic
+allows ordering the internal blocks in a flexible way, making this driver a
+prime candidate for the media controller API.
 
-  [media] em28xx: Fix vidioc fmt vid cap v4l2 compliance (2013-07-26 13:35:02
--0300)
+Due to the configurable nature of the pipeline the driver doesn't use the V4L2
+mem-to-mem framework, even though the device usually operates in memory to
+memory mode.
 
-are available in the git repository at:
+Only the read pixel formatters, up/down scalers, write pixel formatters and
+LCDC interface are supported at this stage.
 
-  git://linuxtv.org/snawrocki/samsung.git for-v3.12
+The patch series starts with a fix for the media controller graph traversal
+code, a documentation fix and new pixel format and media bus code definitions.
+The last three patches finally add the VSP1 driver and fix two issues (I
+haven't squashed the patches together to keep proper attribution).
 
-for you to fetch changes up to 3d7d76fe1bf5b9f64ea3f718aec51a75e856a463:
+Changes since v1:
 
-  DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY reference (2013-07-29
-13:44:54 +0200)
+- Updated to the v3.11 media controller API changes
+- Only add the LIF entity to the entities list when the LIF is present
+- Added a MODULE_ALIAS()
+- Fixed file descriptions in comment blocks
+- Removed function prototypes for the unimplemented destroy functions
+- Fixed a typo in the HST register name
+- Fixed format propagation for the UDS entities
+- Added v4l2_capability::device_caps support
+- Prefix the device name with "platform:" in bus_info
+- Zero the v4l2_pix_format priv field in the internal try format handler
+- Use vb2_is_busy() instead of vb2_is_streaming() when setting the
+  format
+- Use the vb2_ioctl_* handlers where possible
 
-----------------------------------------------------------------
-Sylwester Nawrocki (6):
-      V4L: Drop bus_type check in v4l2-async match functions
-      V4L: Rename v4l2_async_bus_* to v4l2_async_match_*
-      V4L: Add V4L2_ASYNC_MATCH_OF subdev matching type
-      V4L: Rename subdev field of struct v4l2_async_notifier
-      V4L: Merge struct v4l2_async_subdev_list with struct v4l2_subdev
-      DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY reference
+Changes since v2:
 
- .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |    4 +-
- drivers/media/platform/davinci/vpif_capture.c      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |    2 +-
- drivers/media/platform/soc_camera/soc_camera.c     |    4 +-
- drivers/media/v4l2-core/v4l2-async.c               |  106 ++++++++++----------
- include/media/v4l2-async.h                         |   36 +++----
- include/media/v4l2-subdev.h                        |   13 ++-
- 7 files changed, 78 insertions(+), 89 deletions(-)
+- Use a bitmap to track visited entities during graph traversal
+- Fixed a typo in the V4L2_MBUS_FMT_ARGB888_1X32 documentation
+- Fix register macros that were missing a n argument
+- Mask unused bits when clearing the interrupt status register
+- Explain why stride alignment to 128 bytes is needed
+- Use the aligned stride value when computing the image size
+- Assorted cosmetic changes
 
---
+Changes since v3:
+
+- Handle timeout errors when resetting WPFs
+- Use DECLARE_BITMAP
+- Update the NV16M/NV61M documentation to mention the multi-planar API for
+  NV61M
+
+Katsuya Matsubara (2):
+  vsp1: Fix lack of the sink entity registration for enabled links
+  vsp1: Use the maximum number of entities defined in platform data
+
+Laurent Pinchart (5):
+  media: Add support for circular graph traversal
+  v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
+  v4l: Add media format codes for ARGB8888 and AYUV8888 on 32-bit busses
+  v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
+  v4l: Renesas R-Car VSP1 driver
+
+ Documentation/DocBook/media/v4l/pixfmt-nv16m.xml   |  171 +++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  611 +++++------
+ Documentation/DocBook/media_api.tmpl               |    6 +
+ drivers/media/media-entity.c                       |   14 +-
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/vsp1/Makefile               |    5 +
+ drivers/media/platform/vsp1/vsp1.h                 |   73 ++
+ drivers/media/platform/vsp1/vsp1_drv.c             |  500 +++++++++
+ drivers/media/platform/vsp1/vsp1_entity.c          |  181 ++++
+ drivers/media/platform/vsp1/vsp1_entity.h          |   68 ++
+ drivers/media/platform/vsp1/vsp1_lif.c             |  238 ++++
+ drivers/media/platform/vsp1/vsp1_lif.h             |   37 +
+ drivers/media/platform/vsp1/vsp1_regs.h            |  581 ++++++++++
+ drivers/media/platform/vsp1/vsp1_rpf.c             |  209 ++++
+ drivers/media/platform/vsp1/vsp1_rwpf.c            |  124 +++
+ drivers/media/platform/vsp1/vsp1_rwpf.h            |   53 +
+ drivers/media/platform/vsp1/vsp1_uds.c             |  346 ++++++
+ drivers/media/platform/vsp1/vsp1_uds.h             |   40 +
+ drivers/media/platform/vsp1/vsp1_video.c           | 1135 ++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_video.h           |  144 +++
+ drivers/media/platform/vsp1/vsp1_wpf.c             |  233 ++++
+ include/linux/platform_data/vsp1.h                 |   25 +
+ include/media/media-entity.h                       |    4 +
+ include/uapi/linux/v4l2-mediabus.h                 |    6 +-
+ include/uapi/linux/videodev2.h                     |    2 +
+ 27 files changed, 4448 insertions(+), 371 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+ create mode 100644 drivers/media/platform/vsp1/Makefile
+ create mode 100644 drivers/media/platform/vsp1/vsp1.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
+ create mode 100644 include/linux/platform_data/vsp1.h
+
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
