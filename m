@@ -1,88 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:57538 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782Ab3GAFWH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 01:22:07 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>,
-	'Jingoo Han' <jg1.han@samsung.com>
-Subject: [PATCH V3 0/3] Generic PHY driver for the Exynos SoC DP PHY
-Date: Mon, 01 Jul 2013 14:22:04 +0900
-Message-id: <005101ce761a$ec7d6070$c5782150$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-vb0-f66.google.com ([209.85.212.66]:53661 "EHLO
+	mail-vb0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756736Ab3GaPzz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Jul 2013 11:55:55 -0400
+Received: by mail-vb0-f66.google.com with SMTP id w16so329365vbb.9
+        for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 08:55:52 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 31 Jul 2013 11:55:52 -0400
+Message-ID: <CAJHRZ=K+oFtcTd-qCQexOZkdBwoYgL6mhmoQB0fxh0Z47nbpYg@mail.gmail.com>
+Subject: 950Q CC Extraction (V4L2/VBI)
+From: Trevor Anonymous <trevor.forums@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds a simple driver for the Samsung Exynos SoC
-series DP transmitter PHY, using the generic PHY framework [1].
-Previously the DP PHY used a platform callback or internal DT node
-to control the PHY power enable bit.
-The platform callback and internal DT node can be dropped and this
-driver does not need any calls back to the platform code.
+Hi all, new to the list, hope this is an appropriate place to ask this.
 
-These patches was tested on Exynos5250.
+Quick question:
+I can extract NTSC analog closed captions with the Hauppauge 950Q as follows:
+1. Run v4l2-ctl -i 1 ## Set input to composite
+2. In a test application, open file /dev/video0
+3. Read 1 byte from the file
+** Note: This seems to be sufficient to "start" the device
+** Calling VIDIOC_STREAMON ioctl is *not* sufficient
+4. Run: zvbi-ntsc-cc -c -d /dev/vbi0 ## Prints the closed captions
+5. Close file handle to /dev/video0 when finished. Device "stops".
+My question: Is opening the device and reading 1 byte a good/ok way to
+start the device? I'm only interested in closed captions, and want
+this to be as small a footprint as possible. I'm worried that this
+method may break in future driver versions.
 
-This PATCH v3 follows:
- * PATCH v2, sent on June, 28th 2013
- * PATCH v1, sent on June, 28th 2013
+-----
 
-Changes between v2 and v3:
-  * Removed redundant spinlock
-  * Removed 'struct phy' from 'struct exynos_dp_video_phy'
-  * Updated 'samsung-phy.txt', instead of creating
-    'samsung,exynos5250-dp-video-phy.txt'.
-  * Removed unnecessary additional specifier from 'phys'
-    DT property.
-  * Added 'phys', 'phy-names' properties to 'exynos_dp.txt' file.
-  * Added Felipe Balbi's Acked-by.
 
-Changes between v1 and v2:
-  * Replaced exynos_dp_video_phy_xlate() with of_phy_simple_xlate(),
-    as Kishon Vijay Abraham I guided.
-  * Set the value of phy-cells as 0, because the phy_provider implements
-    only one PHY.
-  * Removed unnecessary header include.
-  * Added '#ifdef CONFIG_OF' and of_match_ptr macro.
+More details:
+I'm involved in an automation project where we need to extract CEA-608
+Closed Caption data (NTSC/VBI line 21) from an analog (RF and/or
+composite) input stream.
 
-This series depends on the generic PHY framework [1]. These patches
-refer to Sylwester Nawrocki's patches about Exynos MIPI [2].
+I am evaluating the Hauppauge 950Q for this purpose. The one I've
+received uses the xc5000c firmware.
 
-[1] https://lkml.org/lkml/2013/6/26/259
-[2] http://www.spinics.net/lists/linux-samsung-soc/msg20098.html
-
-Jingoo Han (3):
-  ARM: dts: Add DP PHY node to exynos5250.dtsi
-  phy: Add driver for Exynos DP PHY
-  video: exynos_dp: Use the generic PHY driver
-
- .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
- .../devicetree/bindings/video/exynos_dp.txt        |   23 +---
- arch/arm/boot/dts/exynos5250.dtsi                  |   13 ++++++++-----
- drivers/phy/Kconfig                                |    5 +
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-exynos-dp-video.c                  |  118 ++++++++++++++++++++
- drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
- drivers/video/exynos/exynos_dp_core.h              |    2 +
- include/video/exynos_dp.h                          |    6 +-
- 9 files changed, 161 insertions(+), 133 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
-
---
-1.7.10.4
-
+I've found I can use mplayer/vlc to configure and start the device,
+and zvbi-ntsc-cc to extract the data. But I need to make this as
+simple and lightweight as possible (may want this to run with multiple
+devices connected, or run on something like a Raspberry Pi). So I
+figured out that reading 1 byte works as I detailed above works, just
+not sure if this will suddenly break one day.
