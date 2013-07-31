@@ -1,31 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39360 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754240Ab3GaO3O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 10:29:14 -0400
-Received: from relay2.suse.de (unknown [195.135.220.254])
-	by mx2.suse.de (Postfix) with ESMTP id EFB28A4EB7
-	for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 16:29:12 +0200 (CEST)
-Message-ID: <1375280952.15881.2.camel@linux-fkkt.site>
-Subject: camera always setting error bits at same resolutions
-From: Oliver Neukum <oneukum@suse.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46565 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760575Ab3GaPvj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Jul 2013 11:51:39 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Date: Wed, 31 Jul 2013 16:29:12 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v4 2/7] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
+Date: Wed, 31 Jul 2013 17:52:29 +0200
+Message-Id: <1375285954-32153-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The V4L2_MBUS_FMT_YUV10_1X30 code is documented as being equal to
+0x2014, while the v4l2-mediabus.h header defines it as 0x2016. Fix the
+documentation.
 
-I've got a new camera which perfectly works at some
-resolutions (640x480, 640x360, 160x120). At all other resolutions
-I get a black screen because all frames are dropped due to
-a set error bit "Payload dropped (error bit set)"
-Any idea how to debug it?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Regards
-		Oliver
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index adc6198..0c2b1f2 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2574,7 +2574,7 @@
+ 	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
+ 	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
+-	      <entry>0x2014</entry>
++	      <entry>0x2016</entry>
+ 	      <entry></entry>
+ 	      <entry>y<subscript>9</subscript></entry>
+ 	      <entry>y<subscript>8</subscript></entry>
+-- 
+1.8.1.5
 
