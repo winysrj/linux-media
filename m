@@ -1,290 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:50643 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3GXQJH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46565 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760578Ab3GaPvk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 12:09:07 -0400
-Received: by mail-pb0-f43.google.com with SMTP id md12so9848504pbc.30
-        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 09:09:05 -0700 (PDT)
-From: Chris Lee <updatelee@gmail.com>
+	Wed, 31 Jul 2013 11:51:40 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Chris Lee <updatelee@gmail.com>
-Subject: [PATCH 2/2] stv090x: on tuning lock return correct tuned paramaters like freq/sr/fec/rolloff/etc
-Date: Wed, 24 Jul 2013 10:08:55 -0600
-Message-Id: <1374682135-26259-1-git-send-email-updatelee@gmail.com>
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v4 4/7] v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
+Date: Wed, 31 Jul 2013 17:52:31 +0200
+Message-Id: <1375285954-32153-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If you need it broken up more just let me know, I look forward to comments, thanks
+NV16M and NV61M are planar YCbCr 4:2:2 and YCrCb 4:2:2 formats with a
+luma plane followed by an interleaved chroma plane. The planes are not
+required to be contiguous in memory, and the formats can only be used
+with the multi-planar formats API.
 
-Chris
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/dvb-frontends/stv090x.c     | 182 ++++++++++++++++++++++++++++--
- drivers/media/dvb-frontends/stv090x_reg.h |   2 +
- 2 files changed, 172 insertions(+), 12 deletions(-)
+ Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 171 +++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml       |   1 +
+ include/uapi/linux/videodev2.h                   |   2 +
+ 3 files changed, 174 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
 
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 56d470a..474584f 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -1678,6 +1678,7 @@ static u32 stv090x_get_srate(struct stv090x_state *state, u32 clk)
- 		((int_1 * tmp_2) >> 16) +
- 		((int_2 * tmp_1) >> 16);
- 
-+	state->srate = srate;
- 	return srate;
- }
- 
-@@ -2592,6 +2593,94 @@ static int stv090x_get_viterbi(struct stv090x_state *state)
- static enum stv090x_signal_state stv090x_get_sig_params(struct stv090x_state *state)
- {
- 	struct dvb_frontend *fe = &state->frontend;
-+	struct dtv_frontend_properties *props = &fe->dtv_property_cache;
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+new file mode 100644
+index 0000000..afec039
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+@@ -0,0 +1,171 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_NV16M ('NM16'), V4L2_PIX_FMT_NV61M ('NM61')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-NV16M"><constant>V4L2_PIX_FMT_NV16M</constant></refname>
++	<refname id="V4L2-PIX-FMT-NV61M"><constant>V4L2_PIX_FMT_NV61M</constant></refname>
++	<refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> and <constant>V4L2_PIX_FMT_NV61</constant> with planes
++	  non contiguous in memory. </refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
 +
-+	int fe_stv0900_tracking_standard_return[] = {
-+		SYS_UNDEFINED,
-+		SYS_DVBS,
-+		SYS_DVBS2,
-+		SYS_DSS
-+	};
++	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 format.
++The three components are separated into two sub-images or planes.
++<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
++</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
++plane do not necessarily immediately follows the luma plane.
++The luminance data occupies the first plane. The Y plane has one byte per pixel.
++In the second plane there is a chrominance data with alternating chroma samples.
++The CbCr plane is the same width and height, in bytes, as the Y plane.
++Each CbCr pair belongs to four pixels. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
++Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
++<constant>V4L2_PIX_FMT_NV61M</constant> is the same as <constant>V4L2_PIX_FMT_NV16M</constant>
++except the Cb and Cr bytes are swapped, the CrCb plane starts with a Cr byte.</para>
 +
-+	int fe_stv0900_rolloff_return[] = {
-+		ROLLOFF_35,
-+		ROLLOFF_25,
-+		ROLLOFF_20,
-+		ROLLOFF_AUTO
-+	};
++	<para><constant>V4L2_PIX_FMT_NV16M</constant> and
++<constant>V4L2_PIX_FMT_NV61M</constant> are intended to be used only in drivers
++and applications that support the multi-planar API, described in
++<xref linkend="planar-apis"/>. </para>
 +
-+	int fe_stv0900_modulation_return[] = {
-+		QPSK,
-+		PSK_8,
-+		APSK_16,
-+		APSK_32
-+	};
++	<example>
++	  <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
 +
-+	int fe_stv0900_modcod_return_dvbs[] = {
-+		FEC_NONE,
-+		FEC_AUTO,
-+		FEC_AUTO,
-+		FEC_AUTO,
-+		FEC_1_2,
-+		FEC_3_5,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_6_7,
-+		FEC_7_8,
-+		FEC_3_5,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_AUTO
-+	};
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
 +
-+	int fe_stv0900_modcod_return_dvbs2[] = {
-+		FEC_NONE,
-+		FEC_AUTO,
-+		FEC_AUTO,
-+		FEC_AUTO,
-+		FEC_1_2,
-+		FEC_3_5,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_3_5,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_2_3,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_3_4,
-+		FEC_4_5,
-+		FEC_5_6,
-+		FEC_8_9,
-+		FEC_9_10,
-+		FEC_AUTO
-+	};
- 
- 	u8 tmg;
- 	u32 reg;
-@@ -2631,10 +2720,71 @@ static enum stv090x_signal_state stv090x_get_sig_params(struct stv090x_state *st
- 	state->modcod = STV090x_GETFIELD_Px(reg, DEMOD_MODCOD_FIELD);
- 	state->pilots = STV090x_GETFIELD_Px(reg, DEMOD_TYPE_FIELD) & 0x01;
- 	state->frame_len = STV090x_GETFIELD_Px(reg, DEMOD_TYPE_FIELD) >> 1;
--	reg = STV090x_READ_DEMOD(state, TMGOBS);
--	state->rolloff = STV090x_GETFIELD_Px(reg, ROLLOFF_STATUS_FIELD);
--	reg = STV090x_READ_DEMOD(state, FECM);
--	state->inversion = STV090x_GETFIELD_Px(reg, IQINV_FIELD);
-+	reg = STV090x_READ_DEMOD(state, MATSTR1);
-+	state->rolloff = STV090x_GETFIELD_Px(reg, MATYPE_ROLLOFF_FIELD);
-+
-+	switch (state->delsys) {
-+	case STV090x_DVBS2:
-+		if (state->modcod <= STV090x_QPSK_910)
-+			state->modulation = STV090x_QPSK;
-+		else if (state->modcod <= STV090x_8PSK_910)
-+			state->modulation = STV090x_8PSK;
-+		else if (state->modcod <= STV090x_16APSK_910)
-+			state->modulation = STV090x_16APSK;
-+		else if (state->modcod <= STV090x_32APSK_910)
-+			state->modulation = STV090x_32APSK;
-+		else
-+			state->modulation = STV090x_UNKNOWN;
-+		reg = STV090x_READ_DEMOD(state, PLHMODCOD);
-+		state->inversion = STV090x_GETFIELD_Px(reg, SPECINV_DEMOD_FIELD);
-+		break;
-+	case STV090x_DVBS1:
-+	case STV090x_DSS:
-+		switch(state->fec) {
-+		case STV090x_PR12:
-+			state->modcod = STV090x_QPSK_12;
-+			break;
-+		case STV090x_PR23:
-+			state->modcod = STV090x_QPSK_23;
-+			break;
-+		case STV090x_PR34:
-+			state->modcod = STV090x_QPSK_34;
-+			break;
-+		case STV090x_PR45:
-+			state->modcod = STV090x_QPSK_45;
-+			break;
-+		case STV090x_PR56:
-+			state->modcod = STV090x_QPSK_56;
-+			break;
-+		case STV090x_PR67:
-+			state->modcod = STV090x_QPSK_89;
-+			break;
-+		case STV090x_PR78:
-+			state->modcod = STV090x_QPSK_910;
-+			break;
-+		default:
-+			state->modcod = STV090x_DUMMY_PLF;
-+			break;
-+		}
-+		state->modulation = STV090x_QPSK;
-+		reg = STV090x_READ_DEMOD(state, FECM);
-+		state->inversion = STV090x_GETFIELD_Px(reg, IQINV_FIELD);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	props->frequency		= state->frequency;
-+	props->symbol_rate		= state->srate;
-+	if (state->delsys == 2)
-+		props->fec_inner	= fe_stv0900_modcod_return_dvbs2[state->modcod];
-+	else
-+		props->fec_inner	= fe_stv0900_modcod_return_dvbs[state->modcod];
-+	props->pilot            	= state->pilots;
-+	props->rolloff          	= fe_stv0900_rolloff_return[state->rolloff];
-+	props->modulation		= fe_stv0900_modulation_return[state->modulation];
-+	props->inversion		= state->inversion;
-+	props->delivery_system		= fe_stv0900_tracking_standard_return[state->delsys];
- 
- 	if ((state->algo == STV090x_BLIND_SEARCH) || (state->srate < 10000000)) {
- 
-@@ -2842,6 +2992,7 @@ static int stv090x_optimize_track(struct stv090x_state *state)
- {
- 	struct dvb_frontend *fe = &state->frontend;
- 
-+	enum stv090x_rolloff rolloff;
- 	enum stv090x_modcod modcod;
- 
- 	s32 srate, pilots, aclc, f_1, f_0, i = 0, blind_tune = 0;
-@@ -2965,6 +3116,7 @@ static int stv090x_optimize_track(struct stv090x_state *state)
- 	f_1 = STV090x_READ_DEMOD(state, CFR2);
- 	f_0 = STV090x_READ_DEMOD(state, CFR1);
- 	reg = STV090x_READ_DEMOD(state, TMGOBS);
-+	rolloff = STV090x_GETFIELD_Px(reg, ROLLOFF_STATUS_FIELD);
- 
- 	if (state->algo == STV090x_BLIND_SEARCH) {
- 		STV090x_WRITE_DEMOD(state, SFRSTEP, 0x00);
-@@ -3464,20 +3616,24 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
- 	state->frequency = props->frequency;
- 	state->srate = props->symbol_rate;
- 	state->search_mode = STV090x_SEARCH_AUTO;
--	state->algo = STV090x_COLD_SEARCH;
-+	state->algo = STV090x_BLIND_SEARCH;
- 	state->fec = STV090x_PRERR;
--	if (state->srate > 10000000) {
--		dprintk(FE_DEBUG, 1, "Search range: 10 MHz");
--		state->search_range = 10000000;
--	} else {
--		dprintk(FE_DEBUG, 1, "Search range: 5 MHz");
--		state->search_range = 5000000;
--	}
-+	state->search_range = 0;
- 
- 	stv090x_set_mis(state, props->stream_id);
- 
-+	dprintk(FE_DEBUG, 1, "Search started...");
- 	if (stv090x_algo(state) == STV090x_RANGEOK) {
-+		stv090x_get_sig_params(state);
- 		dprintk(FE_DEBUG, 1, "Search success!");
-+		dprintk(FE_DEBUG, 1, "frequency       = %d", props->frequency);
-+		dprintk(FE_DEBUG, 1, "symbol_rate     = %d", props->symbol_rate);
-+		dprintk(FE_DEBUG, 1, "fec_inner       = %d, %d", props->fec_inner, state->modcod);
-+		dprintk(FE_DEBUG, 1, "pilot           = %d", props->pilot);
-+		dprintk(FE_DEBUG, 1, "rolloff         = %d", props->rolloff);
-+		dprintk(FE_DEBUG, 1, "modulation      = %d, %d", props->modulation, state->modulation);
-+		dprintk(FE_DEBUG, 1, "inversion       = %d", props->inversion);
-+		dprintk(FE_DEBUG, 1, "delivery_system = %d, %d", props->delivery_system, state->delsys);
- 		return DVBFE_ALGO_SEARCH_SUCCESS;
- 	} else {
- 		dprintk(FE_DEBUG, 1, "Search failed!");
-@@ -3520,6 +3676,7 @@ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 					*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 			}
- 		}
-+		stv090x_get_sig_params(state);
- 		break;
- 
- 	case 3: /* DVB-S1/legacy mode */
-@@ -3533,6 +3690,7 @@ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 					*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 			}
- 		}
-+		stv090x_get_sig_params(state);
- 		break;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/stv090x_reg.h b/drivers/media/dvb-frontends/stv090x_reg.h
-index 93741ee..ac6bc30 100644
---- a/drivers/media/dvb-frontends/stv090x_reg.h
-+++ b/drivers/media/dvb-frontends/stv090x_reg.h
-@@ -1927,6 +1927,8 @@
- #define STV090x_P1_MATSTR1			STV090x_Px_MATSTRy(1, 1)
- #define STV090x_P2_MATSTR0			STV090x_Px_MATSTRy(2, 0)
- #define STV090x_P2_MATSTR1			STV090x_Px_MATSTRy(2, 1)
-+#define STV090x_OFFST_Px_MATYPE_ROLLOFF_FIELD	0
-+#define STV090x_WIDTH_Px_MATYPE_ROLLOFF_FIELD	2
- #define STV090x_OFFST_Px_MATYPE_CURRENT_FIELD	0
- #define STV090x_WIDTH_Px_MATYPE_CURRENT_FIELD	8
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 99b8d2a..16db350 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -718,6 +718,7 @@ information.</para>
+     &sub-nv12m;
+     &sub-nv12mt;
+     &sub-nv16;
++    &sub-nv16m;
+     &sub-nv24;
+     &sub-m420;
+   </section>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 95ef455..fec0c20 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -348,6 +348,8 @@ struct v4l2_pix_format {
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+ #define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
++#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
++#define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+ #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
  
 -- 
-1.8.1.2
+1.8.1.5
 
