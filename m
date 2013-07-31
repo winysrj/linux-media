@@ -1,40 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:59559 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab3G3M73 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46356 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752234Ab3GaPMV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 08:59:29 -0400
-Received: by mail-la0-f49.google.com with SMTP id ev20so1751983lab.22
-        for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 05:59:28 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] v4l2_compliance: -EINVAL is expected when ret is not 0
-Date: Tue, 30 Jul 2013 14:59:23 +0200
-Message-Id: <1375189163-32510-1-git-send-email-ricardo.ribalda@gmail.com>
+	Wed, 31 Jul 2013 11:12:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 5/5] v4l: Renesas R-Car VSP1 driver
+Date: Wed, 31 Jul 2013 17:13:23 +0200
+Message-ID: <10114832.8cJjIM5xok@avalon>
+In-Reply-To: <20130725134328.GH12281@valkosipuli.retiisi.org.uk>
+References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1833071.CAa8KOE02B@avalon> <20130725134328.GH12281@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise the driver can never return a register
+Hi Sakari,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- utils/v4l2-compliance/v4l2-test-debug.cpp |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Thursday 25 July 2013 16:43:28 Sakari Ailus wrote:
+> On Thu, Jul 25, 2013 at 01:46:54PM +0200, Laurent Pinchart wrote:
+> > > On Wed, Jul 17, 2013 at 04:54:42PM +0200, Laurent Pinchart wrote:
+> > > ...
+> > > 
+> > > > +static void vsp1_device_init(struct vsp1_device *vsp1)
+> > > > +{
+> > > > +	unsigned int i;
+> > > > +	u32 status;
+> > > > +
+> > > > +	/* Reset any channel that might be running. */
+> > > > +	status = vsp1_read(vsp1, VI6_STATUS);
+> > > > +
+> > > > +	for (i = 0; i < VPS1_MAX_WPF; ++i) {
+> > > > +		unsigned int timeout;
+> > > > +
+> > > > +		if (!(status & VI6_STATUS_SYS_ACT(i)))
+> > > > +			continue;
+> > > > +
+> > > > +		vsp1_write(vsp1, VI6_SRESET, VI6_SRESET_SRTS(i));
+> > > > +		for (timeout = 10; timeout > 0; --timeout) {
+> > > > +			status = vsp1_read(vsp1, VI6_STATUS);
+> > > > +			if (!(status & VI6_STATUS_SYS_ACT(i)))
+> > > > +				break;
+> > > > +
+> > > > +			usleep_range(1000, 2000);
+> > > > +		}
+> > > > +
+> > > > +		if (timeout)
+> > > > +			dev_err(vsp1->dev, "failed to reset wpf.%u\n", i);
+> > > 
+> > > Have you seen this happening in practice? Do you expect the device to
+> > > function if resetting it fails?
+> > 
+> > I've seen this happening during development when I had messed up register
+> > values, but not otherwise. I don't expect the deviec to still function if
+> > resetting the WPF fails, but I need to make sure that the busy loop exits.
+> 
+> Shouldn't you also return an error in this case? The function currently
+> returns void.
 
-diff --git a/utils/v4l2-compliance/v4l2-test-debug.cpp b/utils/v4l2-compliance/v4l2-test-debug.cpp
-index 90c5b90..fa42d2c 100644
---- a/utils/v4l2-compliance/v4l2-test-debug.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-debug.cpp
-@@ -49,7 +49,7 @@ int testRegister(struct node *node)
- 		return ret;
- 	// Not allowed to call VIDIOC_DBG_G_REGISTER unless root
- 	fail_on_test(uid && ret != EPERM);
--	fail_on_test(uid == 0 && ret != EINVAL);
-+	fail_on_test(uid == 0 && ret && ret != EINVAL);
- 	fail_on_test(uid == 0 && !ret && reg.size == 0);
- 	chip.match.type = V4L2_CHIP_MATCH_BRIDGE;
- 	chip.match.addr = 0;
+I will fix that.
+
+> ...
+> 
+> > > > +	/* Follow links downstream for each input and make sure the graph
+> > > > +	 * contains no loop and that all branches end at the output WPF.
+> > > > +	 */
+> > > 
+> > > I wonder if checking for loops should be done already in pipeline
+> > > validation done by the framework. That's fine to do later on IMHO, too.
+> > 
+> > It would have to be performed by the core, as the callbacks are local to
+> > links. That's feasible (but should be optional, as some devices might
+> > support circular graphs), feel free to submit a patch :-)
+> 
+> As a matter of fact I think I will. I'd like you to test it though since I
+> have no hardware with such media graph. :-)
+
+Sure :-)
+
+> But please don't expect to see that in time for your driver to get in. Let's
+> think about that later on.
+
+OK.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
