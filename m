@@ -1,65 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:49712 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029Ab3GQIfj (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2081 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752554Ab3GaSM6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 04:35:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <51E5AF35.2080301@gmail.com>
-References: <1373995163-9412-1-git-send-email-prabhakar.csengg@gmail.com> <51E5AF35.2080301@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 17 Jul 2013 14:05:18 +0530
-Message-ID: <CA+V-a8tq6CtsOOo1OsajoVp8eJYnWCqc+wysVoj2nMinoP=63g@mail.gmail.com>
-Subject: Re: [PATCH RFC v4] media: OF: add "sync-on-green-active" property
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 31 Jul 2013 14:12:58 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6VICsQU022523
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 20:12:57 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1BC3635E00D8
+	for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 20:12:49 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130731181250.1BC3635E00D8@alastor.dyndns.org>
+Date: Wed, 31 Jul 2013 20:12:49 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the review.
+Results of the daily build of media_tree:
 
-On Wed, Jul 17, 2013 at 2:08 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Prabhakar,
->
->
-[snip]
->> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
->> b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> index e022d2d..5186c7e 100644
->> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
->> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> @@ -101,6 +101,9 @@ Optional endpoint properties
->>     array contains only one entry.
->>   - clock-noncontinuous: a boolean property to allow MIPI CSI-2
->> non-continuous
->>     clock mode.
->> +- sync-on-green-active: polarity field when video synchronization is
->> +  Sync-On-Green. When set the driver determines whether it's a normal
->> operation
->> +  or inverted operation.
->
->
-> Would you mind adding this entry after pclk-sample property description ?
+date:		Wed Jul 31 19:00:22 CEST 2013
+git branch:	test
+git hash:	b43ea8068d2090cb1e44632c8a938ab40d2c7419
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-OK.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-> And how about describing it a bit more precisely and similarly to
-> VSYNC/HSYNC,
-> e.g.
->
-> - sync-on-green-active: active state of Sync-on-green (SoG) signal,
->   0/1 for LOW/HIGH respectively.
->
-OK I'll paste the above one itself :-)
+Detailed results are available here:
 
---
-Regards,
-Prabhakar Lad
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
