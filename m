@@ -1,106 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4516 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab3GBS3d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 14:29:33 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r62ITTGZ057068
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 2 Jul 2013 20:29:31 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 000C635E00F2
-	for <linux-media@vger.kernel.org>; Tue,  2 Jul 2013 20:29:27 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46563 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760564Ab3GaPvi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Jul 2013 11:51:38 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130702182928.000C635E00F2@alastor.dyndns.org>
-Date: Tue,  2 Jul 2013 20:29:27 +0200 (CEST)
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v4 1/7] media: Add support for circular graph traversal
+Date: Wed, 31 Jul 2013 17:52:28 +0200
+Message-Id: <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The graph traversal API (media_entity_graph_walk_*) doesn't support
+cyclic graphs and will fail to correctly walk a graph when circular
+links exist. Support circular graph traversal by checking whether an
+entity has already been visited before pushing it to the stack.
 
-Results of the daily build of media_tree:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/media-entity.c | 14 +++++++++++---
+ include/media/media-entity.h |  4 ++++
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-date:		Tue Jul  2 19:00:17 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index cb30ffb..2c286c3 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -20,6 +20,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
++#include <linux/bitmap.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
+@@ -121,7 +122,6 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+ 	return entity;
+ }
+ 
+-#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
+ #define link_top(en)	((en)->stack[(en)->top].link)
+ #define stack_top(en)	((en)->stack[(en)->top].entity)
+ 
+@@ -140,6 +140,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ {
+ 	graph->top = 0;
+ 	graph->stack[graph->top].entity = NULL;
++	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
++
++	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
++		return;
++
++	__set_bit(entity->id, graph->entities);
+ 	stack_push(graph, entity);
+ }
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+@@ -180,9 +186,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 
+ 		/* Get the entity in the other end of the link . */
+ 		next = media_entity_other(entity, link);
++		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
++			return NULL;
+ 
+-		/* Was it the entity we came here from? */
+-		if (next == stack_peek(graph)) {
++		/* Has the entity already been visited? */
++		if (__test_and_set_bit(next->id, graph->entities)) {
+ 			link_top(graph)++;
+ 			continue;
+ 		}
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 06bacf9..10df551 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -23,6 +23,7 @@
+ #ifndef _MEDIA_ENTITY_H
+ #define _MEDIA_ENTITY_H
+ 
++#include <linux/bitops.h>
+ #include <linux/list.h>
+ #include <linux/media.h>
+ 
+@@ -113,12 +114,15 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
+ }
+ 
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
++#define MEDIA_ENTITY_ENUM_MAX_ID	64
+ 
+ struct media_entity_graph {
+ 	struct {
+ 		struct media_entity *entity;
+ 		int link;
+ 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++
++	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+ 	int top;
+ };
+ 
+-- 
+1.8.1.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
