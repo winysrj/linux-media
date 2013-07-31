@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-d01.mx.aol.com ([205.188.252.208]:46704 "EHLO
-	omr-d01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756955Ab3GWVqo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33237 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1760813Ab3GaUlG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 17:46:44 -0400
-Message-ID: <51EEF9D3.9090309@netscape.net>
-Date: Tue, 23 Jul 2013 18:46:59 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+	Wed, 31 Jul 2013 16:41:06 -0400
+Date: Wed, 31 Jul 2013 23:40:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH v4 1/7] media: Add support for circular graph traversal
+Message-ID: <20130731204030.GQ12281@valkosipuli.retiisi.org.uk>
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: mb86a20s and cx23885
-References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net> <51E44DCA.8060702@netscape.net> <20130716053030.3fda034e.mchehab@infradead.org> <51E6A20B.8020507@netscape.net> <20130718042314.2773b7c0.mchehab@infradead.org> <51EBE721.2010204@netscape.net> <51EEEE6C.7000309@netscape.net>
-In-Reply-To: <51EEEE6C.7000309@netscape.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Wed, Jul 31, 2013 at 05:52:28PM +0200, Laurent Pinchart wrote:
+> The graph traversal API (media_entity_graph_walk_*) doesn't support
+> cyclic graphs and will fail to correctly walk a graph when circular
+> links exist. Support circular graph traversal by checking whether an
+> entity has already been visited before pushing it to the stack.
 
-I forgot, in this section I put "BAD" because not have picture or sound, 
-but if signal.
+Thanks, Laurent!
 
-alfredo@linux-puon:/usr/src/git/linux> git stash
-Saved working directory and index state WIP on (no branch): 2827e1f 
-[media] tlg2300: convert set_fontend to use DVBv5 parameters
-HEAD is now at 2827e1f [media] tlg2300: convert set_fontend to use DVBv5 
-parameters
-alfredo@linux-puon:/usr/src/git/linux> git bisect bad /*apear tunner, 
-but not tunner*/
-Bisecting: 4 revisions left to test after this (roughly 3 steps)
-[4fa102d5cc5b412fa3bc7cc8c24e4d9052e4f693] [media] vp702x-fe: convert 
-set_fontend to use DVBv5 parameters
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Is there a way to return to after with bisect without compile all?
+-- 
+Cheers,
 
-Thanks,
-
-Alfredo
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
