@@ -1,649 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:53832 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332Ab3HBPDM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 11:03:12 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: [RFC v3 06/13] [media] exynos5-fimc-is: Add isp subdev
-Date: Fri,  2 Aug 2013 20:32:35 +0530
-Message-Id: <1375455762-22071-7-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
-References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48436 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757007Ab3GaWCZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Jul 2013 18:02:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>
+Subject: Re: [PATCH v4 5/7] v4l: Renesas R-Car VSP1 driver
+Date: Thu, 01 Aug 2013 00:03:27 +0200
+Message-ID: <2229675.vM0yYbEmYz@avalon>
+In-Reply-To: <51F97B4D.70305@gmail.com>
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375285954-32153-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51F97B4D.70305@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fimc-is driver takes video data input from the ISP video node
-which is added in this patch. This node accepts Bayer input
-buffers which is given from the IS sensors.
+Hi Sylwester,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-isp.c |  509 +++++++++++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-isp.h |   93 +++++
- 2 files changed, 602 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
+Thank you for the review.
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.c b/drivers/media/platform/exynos5-is/fimc-is-isp.c
-new file mode 100644
-index 0000000..e97e473
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-isp.c
-@@ -0,0 +1,509 @@
-+/*
-+ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "fimc-is.h"
-+
-+#define ISP_DRV_NAME "fimc-is-isp"
-+
-+static const struct fimc_is_fmt formats[] = {
-+	{
-+		.name           = "Bayer GR-BG 8bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG8,
-+		.depth		= { 8 },
-+		.num_planes     = 1,
-+	},
-+	{
-+		.name           = "Bayer GR-BG 10bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG10,
-+		.depth		= { 16 },
-+		.num_planes     = 1,
-+	},
-+	{
-+		.name           = "Bayer GR-BG 12bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG12,
-+		.depth		= { 16 },
-+		.num_planes     = 1,
-+	},
-+};
-+#define NUM_FORMATS ARRAY_SIZE(formats)
-+
-+static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
-+			return &formats[i];
-+	}
-+	return NULL;
-+}
-+
-+static int isp_video_output_start_streaming(struct vb2_queue *vq,
-+					unsigned int count)
-+{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+
-+	set_bit(STATE_RUNNING, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_video_output_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+
-+	clear_bit(STATE_RUNNING, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_video_output_queue_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *pfmt,
-+			unsigned int *num_buffers, unsigned int *num_planes,
-+			unsigned int sizes[], void *allocators[])
-+{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	const struct fimc_is_fmt *fmt = isp->fmt;
-+	unsigned int wh, i;
-+
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	*num_planes = fmt->num_planes;
-+	wh = isp->width * isp->height;
-+
-+	for (i = 0; i < *num_planes; i++) {
-+		allocators[i] = isp->alloc_ctx;
-+		sizes[i] = (wh * fmt->depth[i]) / 8;
-+	}
-+	return 0;
-+}
-+
-+static int isp_video_output_buffer_init(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	struct fimc_is_buf *buf;
-+
-+	buf = &isp->output_bufs[vb->v4l2_buf.index];
-+	/* Initialize buffer */
-+	buf->vb = vb;
-+	buf->paddr[0] = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	isp->out_buf_cnt++;
-+	return 0;
-+}
-+
-+static void isp_video_output_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	struct fimc_is_buf *buf;
-+
-+	buf = &isp->output_bufs[vb->v4l2_buf.index];
-+
-+	fimc_is_pipeline_buf_lock(isp->pipeline);
-+	fimc_is_isp_wait_queue_add(isp, buf);
-+	fimc_is_pipeline_buf_unlock(isp->pipeline);
-+
-+	/* Call shot command */
-+	fimc_is_pipeline_shot(isp->pipeline);
-+}
-+
-+static const struct vb2_ops isp_video_output_qops = {
-+	.queue_setup	 = isp_video_output_queue_setup,
-+	.buf_init	 = isp_video_output_buffer_init,
-+	.buf_queue	 = isp_video_output_buffer_queue,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
-+	.start_streaming = isp_video_output_start_streaming,
-+	.stop_streaming	 = isp_video_output_stop_streaming,
-+};
-+
-+static const struct v4l2_file_operations isp_video_output_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= v4l2_fh_open,
-+	.release	= vb2_fop_release,
-+	.poll		= vb2_fop_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+	.mmap		= vb2_fop_mmap,
-+};
-+
-+/*
-+ * Video node ioctl operations
-+ */
-+static int isp_querycap_output(struct file *file, void *priv,
-+					struct v4l2_capability *cap)
-+{
-+	strncpy(cap->driver, ISP_DRV_NAME, sizeof(cap->driver) - 1);
-+	strncpy(cap->card, ISP_DRV_NAME, sizeof(cap->card) - 1);
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+			ISP_DRV_NAME);
-+	cap->device_caps = V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	return 0;
-+}
-+
-+static int isp_enum_fmt_mplane(struct file *file, void *priv,
-+				     struct v4l2_fmtdesc *f)
-+{
-+	const struct fimc_is_fmt *fmt;
-+
-+	if (f->index >= NUM_FORMATS)
-+		return -EINVAL;
-+
-+	fmt = &formats[f->index];
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+
-+static int isp_g_fmt_mplane(struct file *file, void *fh,
-+				  struct v4l2_format *f)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
-+	const struct fimc_is_fmt *fmt = isp->fmt;
-+
-+	plane_fmt->bytesperline = (isp->width * fmt->depth[0]) / 8;
-+	plane_fmt->sizeimage = plane_fmt->bytesperline * isp->height;
-+	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
-+
-+	pixm->num_planes = fmt->num_planes;
-+	pixm->pixelformat = fmt->fourcc;
-+	pixm->width = isp->width;
-+	pixm->height = isp->height;
-+	pixm->field = V4L2_FIELD_NONE;
-+	pixm->colorspace = V4L2_COLORSPACE_JPEG;
-+	memset(pixm->reserved, 0, sizeof(pixm->reserved));
-+
-+	return 0;
-+}
-+
-+static int isp_try_fmt_mplane(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	const struct fimc_is_fmt *fmt;
-+	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
-+
-+	fmt = find_format(f);
-+	if (!fmt)
-+		fmt = (struct fimc_is_fmt *) &formats[0];
-+
-+	v4l_bound_align_image(&pixm->width,
-+			ISP_MIN_WIDTH + SENSOR_WIDTH_PADDING,
-+			ISP_MAX_WIDTH + SENSOR_WIDTH_PADDING, 0,
-+			&pixm->height,
-+			ISP_MIN_HEIGHT + SENSOR_HEIGHT_PADDING,
-+			ISP_MAX_HEIGHT + SENSOR_HEIGHT_PADDING, 0,
-+			0);
-+
-+	plane_fmt->bytesperline = (pixm->width * fmt->depth[0]) / 8;
-+	plane_fmt->sizeimage = (pixm->width * pixm->height *
-+				fmt->depth[0]) / 8;
-+	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
-+
-+	pixm->num_planes = fmt->num_planes;
-+	pixm->pixelformat = fmt->fourcc;
-+	pixm->colorspace = V4L2_COLORSPACE_JPEG;
-+	pixm->field = V4L2_FIELD_NONE;
-+	memset(pixm->reserved, 0, sizeof(pixm->reserved));
-+
-+	return 0;
-+}
-+
-+static int isp_s_fmt_mplane(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	const struct fimc_is_fmt *fmt;
-+	int ret;
-+
-+	ret = isp_try_fmt_mplane(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	/* Get format type */
-+	fmt = find_format(f);
-+	if (!fmt) {
-+		fmt = (struct fimc_is_fmt *) &formats[0];
-+		f->fmt.pix_mp.pixelformat = fmt->fourcc;
-+		f->fmt.pix_mp.num_planes = fmt->num_planes;
-+	}
-+
-+	isp->fmt = fmt;
-+	isp->width = f->fmt.pix_mp.width;
-+	isp->height = f->fmt.pix_mp.height;
-+	isp->size_image = f->fmt.pix_mp.plane_fmt[0].sizeimage;
-+	set_bit(STATE_INIT, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_reqbufs(struct file *file, void *priv,
-+		struct v4l2_requestbuffers *reqbufs)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	int ret;
-+
-+	reqbufs->count = max_t(u32, FIMC_IS_ISP_REQ_BUFS_MIN, reqbufs->count);
-+	ret = vb2_reqbufs(&isp->vbq, reqbufs);
-+	if (ret) {
-+		pr_err("vb2 req buffers failed\n");
-+		return ret;
-+	}
-+
-+	isp->out_buf_cnt = 0;
-+	set_bit(STATE_BUFS_ALLOCATED, &isp->output_state);
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops isp_video_output_ioctl_ops = {
-+	.vidioc_querycap		= isp_querycap_output,
-+	.vidioc_enum_fmt_vid_out_mplane	= isp_enum_fmt_mplane,
-+	.vidioc_try_fmt_vid_out_mplane	= isp_try_fmt_mplane,
-+	.vidioc_s_fmt_vid_out_mplane	= isp_s_fmt_mplane,
-+	.vidioc_g_fmt_vid_out_mplane	= isp_g_fmt_mplane,
-+	.vidioc_reqbufs			= isp_reqbufs,
-+	.vidioc_querybuf		= vb2_ioctl_querybuf,
-+	.vidioc_qbuf			= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_streamon		= vb2_ioctl_streamon,
-+	.vidioc_streamoff		= vb2_ioctl_streamoff,
-+};
-+
-+static int isp_subdev_registered(struct v4l2_subdev *sd)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct vb2_queue *q = &isp->vbq;
-+	struct video_device *vfd = &isp->vfd;
-+	int ret;
-+
-+	mutex_init(&isp->video_lock);
-+
-+	memset(vfd, 0, sizeof(*vfd));
-+	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.output");
-+
-+	vfd->fops = &isp_video_output_fops;
-+	vfd->ioctl_ops = &isp_video_output_ioctl_ops;
-+	vfd->v4l2_dev = sd->v4l2_dev;
-+	vfd->release = video_device_release_empty;
-+	vfd->lock = &isp->video_lock;
-+	vfd->queue = q;
-+	vfd->vfl_dir = VFL_DIR_TX;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
-+
-+	memset(q, 0, sizeof(*q));
-+	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF;
-+	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->ops = &isp_video_output_qops;
-+	q->mem_ops = &vb2_dma_contig_memops;
-+	q->drv_priv = isp;
-+
-+	ret = vb2_queue_init(q);
-+	if (ret < 0)
-+		return ret;
-+
-+	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	video_set_drvdata(vfd, isp);
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
-+	if (ret < 0) {
-+		media_entity_cleanup(&vfd->entity);
-+		return ret;
-+	}
-+
-+	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
-+		  vfd->name, video_device_node_name(vfd));
-+	return 0;
-+}
-+
-+static void isp_subdev_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+
-+	if (isp && video_is_registered(&isp->vfd))
-+		video_unregister_device(&isp->vfd);
-+}
-+
-+static const struct v4l2_subdev_internal_ops isp_subdev_internal_ops = {
-+	.registered = isp_subdev_registered,
-+	.unregistered = isp_subdev_unregistered,
-+};
-+
-+static struct fimc_is_sensor *fimc_is_get_sensor(struct fimc_is *is,
-+		int sensor_id)
-+{
-+	int i;
-+
-+	for (i = 0; i < FIMC_IS_NUM_SENSORS; i++) {
-+		if (is->sensor[i].drvdata->id == sensor_id)
-+			return &is->sensor[i];
-+	}
-+	return NULL;
-+}
-+
-+static int isp_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct fimc_is *is = isp->pipeline->is;
-+	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
-+	struct fimc_is_sensor *sensor;
-+	const struct sensor_drv_data *sdata;
-+	struct media_pad *pad;
-+	struct v4l2_subdev_format fmt;
-+	int ret;
-+
-+	if (!sensor_sd)
-+		return -EINVAL;
-+
-+	if (on) {
-+		ret = pm_runtime_get_sync(&is->pdev->dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
-+		sensor = fimc_is_get_sensor(is, sdata->id);
-+		/* Retrieve the sensor format */
-+		pad = &sensor_sd->entity.pads[0];
-+		fmt.pad = 0;
-+		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		ret = v4l2_subdev_call(sensor_sd, pad, get_fmt, NULL, &fmt);
-+		if (ret)
-+			return ret;
-+
-+		sensor->width = fmt.format.width - SENSOR_WIDTH_PADDING;
-+		sensor->height = fmt.format.height - SENSOR_HEIGHT_PADDING;
-+		sensor->pixel_width = fmt.format.width;
-+		sensor->pixel_height = fmt.format.height;
-+
-+		ret = fimc_is_pipeline_open(isp->pipeline, sensor);
-+		if (ret)
-+			pr_err("Pipeline open failed\n");
-+	} else {
-+		ret = fimc_is_pipeline_close(isp->pipeline);
-+		if (ret)
-+			pr_err("Pipeline close failed\n");
-+		pm_runtime_put_sync(&is->pdev->dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static struct v4l2_subdev_core_ops isp_core_ops = {
-+	.s_power = isp_s_power,
-+};
-+
-+static int isp_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct fimc_is *is = isp->pipeline->is;
-+	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
-+	const struct sensor_drv_data *sdata;
-+	struct fimc_is_sensor *sensor;
-+	int ret;
-+
-+	if (!sensor_sd)
-+		return -EINVAL;
-+
-+	if (enable) {
-+		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
-+		sensor = fimc_is_get_sensor(is, sdata->id);
-+		/* Check sensor resolution match */
-+		if ((sensor->pixel_width != isp->width) ||
-+			(sensor->pixel_height != isp->height)) {
-+			pr_err("Resolution mismatch\n");
-+			return -EPIPE;
-+		}
-+		ret = fimc_is_pipeline_start(isp->pipeline);
-+		if (ret)
-+			pr_err("Pipeline start failed.\n");
-+	} else {
-+		ret = fimc_is_pipeline_stop(isp->pipeline);
-+		if (ret)
-+			pr_err("Pipeline stop failed.\n");
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_subdev_video_ops isp_video_ops = {
-+	.s_stream       = isp_s_stream,
-+};
-+
-+static struct v4l2_subdev_ops isp_subdev_ops = {
-+	.core = &isp_core_ops,
-+	.video = &isp_video_ops,
-+};
-+
-+int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
-+		struct vb2_alloc_ctx *alloc_ctx,
-+		struct fimc_is_pipeline *pipeline)
-+{
-+	struct v4l2_ctrl_handler *handler = &isp->ctrl_handler;
-+	struct v4l2_subdev *sd = &isp->subdev;
-+	int ret;
-+
-+	/* Init context vars */
-+	isp->alloc_ctx = alloc_ctx;
-+	isp->pipeline = pipeline;
-+	isp->fmt = &formats[1];
-+	INIT_LIST_HEAD(&isp->wait_queue);
-+	INIT_LIST_HEAD(&isp->run_queue);
-+	isp->width = ISP_DEF_WIDTH;
-+	isp->height = ISP_DEF_HEIGHT;
-+
-+	v4l2_subdev_init(sd, &isp_subdev_ops);
-+	sd->owner = THIS_MODULE;
-+	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	snprintf(sd->name, sizeof(sd->name), ISP_DRV_NAME);
-+
-+	isp->subdev_pads[ISP_SD_PAD_SINK_DMA].flags = MEDIA_PAD_FL_SINK;
-+	isp->subdev_pads[ISP_SD_PAD_SINK_OTF].flags = MEDIA_PAD_FL_SINK;
-+	isp->subdev_pads[ISP_SD_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
-+			isp->subdev_pads, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_ctrl_handler_init(handler, 1);
-+	if (handler->error)
-+		goto err_ctrl;
-+
-+	sd->ctrl_handler = handler;
-+	sd->internal_ops = &isp_subdev_internal_ops;
-+	v4l2_set_subdevdata(sd, isp);
-+
-+	return 0;
-+
-+err_ctrl:
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_ctrl_handler_free(handler);
-+	return ret;
-+}
-+
-+void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp)
-+{
-+	struct v4l2_subdev *sd = &isp->subdev;
-+
-+	v4l2_device_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_ctrl_handler_free(&isp->ctrl_handler);
-+	v4l2_set_subdevdata(sd, NULL);
-+}
-+
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.h b/drivers/media/platform/exynos5-is/fimc-is-isp.h
-new file mode 100644
-index 0000000..2d5069d
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-isp.h
-@@ -0,0 +1,93 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_ISP_H_
-+#define FIMC_IS_ISP_H_
-+
-+#include "fimc-is-core.h"
-+#include "fimc-is-pipeline.h"
-+
-+#define FIMC_IS_ISP_REQ_BUFS_MIN	2
-+
-+#define ISP_SD_PAD_SINK_DMA	0
-+#define ISP_SD_PAD_SINK_OTF	1
-+#define ISP_SD_PAD_SRC		2
-+#define ISP_SD_PADS_NUM		3
-+
-+#define ISP_DEF_WIDTH		1296
-+#define ISP_DEF_HEIGHT		732
-+
-+#define ISP_MAX_WIDTH		4808
-+#define ISP_MAX_HEIGHT		3356
-+#define ISP_MIN_WIDTH		32
-+#define ISP_MIN_HEIGHT		32
-+
-+#define ISP_MAX_BUFS		2
-+
-+/**
-+ * struct fimc_is_isp - ISP context
-+ * @vfd: video device node
-+ * @fh: v4l2 file handle
-+ * @alloc_ctx: videobuf2 memory allocator context
-+ * @subdev: fimc-is-isp subdev
-+ * @vd_pad: media pad for the output video node
-+ * @subdev_pads: the subdev media pads
-+ * @ctrl_handler: v4l2 control handler
-+ * @video_lock: video lock mutex
-+ * @sensor_sd: sensor subdev used with this isp instance
-+ * @pipeline: pipeline instance for this isp context
-+ * @vbq: vb2 buffers queue for ISP output video node
-+ * @wait_queue: list holding buffers waiting to be queued to HW
-+ * @wait_queue_cnt: wait queue number of buffers
-+ * @run_queue: list holding buffers queued to HW
-+ * @run_queue_cnt: run queue number of buffers
-+ * @output_bufs: isp output buffers array
-+ * @out_buf_cnt: number of output buffers in use
-+ * @fmt: output plane format for isp
-+ * @width: user configured input width
-+ * @height: user configured input height
-+ * @size_image: image size in bytes
-+ * @output_state: state of the output video node operations
-+ */
-+struct fimc_is_isp {
-+	struct video_device		vfd;
-+	struct v4l2_fh			fh;
-+	struct vb2_alloc_ctx		*alloc_ctx;
-+	struct v4l2_subdev		subdev;
-+	struct media_pad		vd_pad;
-+	struct media_pad		subdev_pads[ISP_SD_PADS_NUM];
-+	struct v4l2_ctrl_handler	ctrl_handler;
-+	struct mutex			video_lock;
-+
-+	struct v4l2_subdev		*sensor_sd;
-+	struct fimc_is_pipeline		*pipeline;
-+
-+	struct vb2_queue		vbq;
-+	struct list_head		wait_queue;
-+	unsigned int			wait_queue_cnt;
-+	struct list_head		run_queue;
-+	unsigned int			run_queue_cnt;
-+
-+	struct fimc_is_buf		output_bufs[ISP_MAX_BUFS];
-+	unsigned int			out_buf_cnt;
-+
-+	const struct fimc_is_fmt	*fmt;
-+	unsigned int			width;
-+	unsigned int			height;
-+	unsigned int			size_image;
-+	unsigned long			output_state;
-+};
-+
-+int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
-+		struct vb2_alloc_ctx *alloc_ctx,
-+		struct fimc_is_pipeline *pipeline);
-+void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp);
-+
-+#endif /* FIMC_IS_ISP_H_ */
+On Wednesday 31 July 2013 23:02:05 Sylwester Nawrocki wrote:
+> Hi Laurent,
+> 
+> just a few small remarks...
+> 
+> On 07/31/2013 05:52 PM, Laurent Pinchart wrote:
+> > The VSP1 is a video processing engine that includes a blender, scalers,
+> > filters and statistics computation. Configurable data path routing logic
+> > allows ordering the internal blocks in a flexible way.
+> > 
+> > Due to the configurable nature of the pipeline the driver implements the
+> > media controller API and doesn't use the V4L2 mem-to-mem framework, even
+> > though the device usually operates in memory to memory mode.
+> > 
+> > Only the read pixel formatters, up/down scalers, write pixel formatters
+> > and LCDC interface are supported at this stage.
+> > 
+> > Signed-off-by: Laurent Pinchart<laurent.pinchart+renesas@ideasonboard.com>
+> > 
+> > Changes since v1:
+> > 
+> > - Updated to the v3.11 media controller API changes
+> > - Only add the LIF entity to the entities list when the LIF is present
+> > - Added a MODULE_ALIAS()
+> > - Fixed file descriptions in comment blocks
+> > - Removed function prototypes for the unimplemented destroy functions
+> > - Fixed a typo in the HST register name
+> > - Fixed format propagation for the UDS entities
+> > - Added v4l2_capability::device_caps support
+> > - Prefix the device name with "platform:" in bus_info
+> > - Zero the v4l2_pix_format priv field in the internal try format handler
+> > - Use vb2_is_busy() instead of vb2_is_streaming() when setting the
+> >    format
+> > - Use the vb2_ioctl_* handlers where possible
+> > - Fix register macros that were missing a n argument
+> > - Mask unused bits when clearing the interrupt status register
+> > - Explain why stride alignment to 128 bytes is needed
+> > - Use the aligned stride value when computing the image size
+> > - Assorted cosmetic changes
+> > ---
+> > 
+> >   drivers/media/platform/Kconfig            |   10 +
+> >   drivers/media/platform/Makefile           |    2 +
+> >   drivers/media/platform/vsp1/Makefile      |    5 +
+> >   drivers/media/platform/vsp1/vsp1.h        |   73 ++
+> >   drivers/media/platform/vsp1/vsp1_drv.c    |  497 +++++++++++++
+> >   drivers/media/platform/vsp1/vsp1_entity.c |  181 +++++
+> >   drivers/media/platform/vsp1/vsp1_entity.h |   68 ++
+> >   drivers/media/platform/vsp1/vsp1_lif.c    |  238 ++++++
+> >   drivers/media/platform/vsp1/vsp1_lif.h    |   37 +
+> >   drivers/media/platform/vsp1/vsp1_regs.h   |  581 +++++++++++++++
+> >   drivers/media/platform/vsp1/vsp1_rpf.c    |  209 ++++++
+> >   drivers/media/platform/vsp1/vsp1_rwpf.c   |  124 ++++
+> >   drivers/media/platform/vsp1/vsp1_rwpf.h   |   53 ++
+> >   drivers/media/platform/vsp1/vsp1_uds.c    |  346 +++++++++
+> >   drivers/media/platform/vsp1/vsp1_uds.h    |   40 +
+> >   drivers/media/platform/vsp1/vsp1_video.c  | 1135 +++++++++++++++++++++++
+> >   drivers/media/platform/vsp1/vsp1_video.h  |  144 ++++
+> >   drivers/media/platform/vsp1/vsp1_wpf.c    |  233 ++++++
+> >   include/linux/platform_data/vsp1.h        |   25 +
+> >   19 files changed, 4001 insertions(+)
+> >   create mode 100644 drivers/media/platform/vsp1/Makefile
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
+> >   create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
+> >   create mode 100644 include/linux/platform_data/vsp1.h
+
+[snip]
+
+> > +/* ----------------------------------------------------------------------
+> > + * Initialization and Cleanup
+> > + */
+> > +
+> > +struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+> > +{
+> > +	struct v4l2_subdev *subdev;
+> > +	struct vsp1_lif *lif;
+> > +	int ret;
+> > +
+> > +	lif = devm_kzalloc(vsp1->dev, sizeof(*lif), GFP_KERNEL);
+> > +	if (lif == NULL)
+> > +		return ERR_PTR(-ENOMEM);
+> > +
+> > +	lif->entity.type = VSP1_ENTITY_LIF;
+> > +	lif->entity.id = VI6_DPR_NODE_LIF;
+> > +
+> > +	ret = vsp1_entity_init(vsp1,&lif->entity, 2);
+> > +	if (ret<  0)
+> > +		return ERR_PTR(ret);
+> > +
+> > +	/* Initialize the V4L2 subdev. */
+> > +	subdev =&lif->entity.subdev;
+> > +	v4l2_subdev_init(subdev,&lif_ops);
+> > +
+> > +	subdev->entity.ops =&vsp1_media_ops;
+> > +	subdev->internal_ops =&vsp1_subdev_internal_ops;
+> > +	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
+> > +		 dev_name(vsp1->dev));
+> 
+> Using dev_name() looks reasonable since it guarantees the subdev names
+> are unique. But for dt and non-dt boot you will get different device
+> names. Not sure if it would have been really an issue though.
+> 
+> > +	v4l2_set_subdevdata(subdev, lif);
+> > +	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +
+> > +	vsp1_entity_init_formats(subdev, NULL);
+> > +
+> > +	return lif;
+> > +}
+> 
+> [...]
+> 
+> > +static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
+> > +{
+> > +	struct vsp1_entity *entity;
+> > +	unsigned long flags;
+> > +	int ret;
+> > +
+> > +	spin_lock_irqsave(&pipe->irqlock, flags);
+> > +	pipe->state = VSP1_PIPELINE_STOPPING;
+> > +	spin_unlock_irqrestore(&pipe->irqlock, flags);
+> > +
+> > +	ret = wait_event_timeout(pipe->wq, pipe->state == 
+> > VSP1_PIPELINE_STOPPED,
+> > +				 msecs_to_jiffies(500));
+> > +	ret = ret == 0 ? -ETIMEDOUT : 0;
+> 
+> Wouldn't be -ETIME more appropriate ?
+> 
+> #define	ETIME		62	/* Timer expired */
+> ...
+> #define	ETIMEDOUT	110	/* Connection timed out */
+
+$ find Documentation/ -type f -exec egrep -- ETIME[^DO] {} \; | wc
+      7      45     347
+$ find Documentation/ -type f -exec egrep -- ETIMED?OUT {} \; | wc
+     22     135    1162
+
+The only two places where ETIME is used in the Documentation are USB and the 
+RxRPC network protocol.
+
+$ find drivers/ -type f -name \*.[ch] -exec grep -- -ETIME[^DO] {} \; | wc
+    295    1037    7339
+$ find drivers/ -type f -name \*.[ch] -exec grep -- -ETIMEDOUT {} \; | wc
+   1156    3769   30590
+
+According to man errno, ETIME seems to be related to XSI STREAMS. I'm fine 
+with both, but it seems the kernel is goind towards -ETIMEDOUT.
+
+> > +	list_for_each_entry(entity,&pipe->entities, list_pipe) {
+> > +		if (entity->route)
+> > +			vsp1_write(entity->vsp1, entity->route,
+> > +				   VI6_DPR_NODE_UNUSED);
+> > +
+> > +		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> 
+> [...]
+> 
+> > +/* ----------------------------------------------------------------------
+> > + * videobuf2 Queue Operations
+> > + */
+> > +
+> > +static int
+> > +vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format
+> > *fmt,
+> > +		     unsigned int *nbuffers, unsigned int *nplanes,
+> > +		     unsigned int sizes[], void *alloc_ctxs[])
+> > +{
+> > +	struct vsp1_video *video = vb2_get_drv_priv(vq);
+> > +	struct v4l2_pix_format_mplane *format =&video->format;
+> > +	unsigned int i;
+> 
+> If you don't support VIDIOC_CREATE_BUFS ioctl then there should probably
+> be at least something like:
+> 
+> 	if (fmt)
+> 		return -EINVAL;
+> 
+> But it's likely better to add proper handling of 'fmt' right away.
+
+OK, I will do so. What is the driver supposed to do when *fmt isn't supported 
+? Use the closest format as would be returned by try_format() ?
+
+I suppose this also implies that buffer_prepare() should check whether the 
+buffer matches the current format.
+
+> > +	*nplanes = format->num_planes;
+> > +
+> > +	for (i = 0; i<  format->num_planes; ++i) {
+> > +		sizes[i] = format->plane_fmt[i].sizeimage;
+> > +		alloc_ctxs[i] = video->alloc_ctx;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+
+[snip]
+
+> > +static int __vsp1_video_try_format(struct vsp1_video *video,
+> > +				   struct v4l2_pix_format_mplane *pix,
+> > +				   const struct vsp1_format_info **fmtinfo)
+> > +{
+> > +	const struct vsp1_format_info *info;
+> > +	unsigned int width = pix->width;
+> > +	unsigned int height = pix->height;
+> > +	unsigned int i;
+> > +
+> > +	/* Retrieve format information and select the default format if the
+> > +	 * requested format isn't supported.
+> > +	 */
+> 
+> Nitpicking: Isn't proper multi-line comment style
+> 
+> 	/*
+> 	 * Retrieve format information and select the default format if the
+> 	 * requested format isn't supported.
+> 	 */
+> 
+> ?
+
+Yes it is. I got used to the
+
+/* foo
+ * bar
+ */
+
+style as it's more compact.
+
+> In fact the media subsystem code is pretty messy WRT that detail.
+
+Documentation/CodingStyle mentions
+
+The preferred style for long (multi-line) comments is:
+
+        /*
+         * This is the preferred style for multi-line
+         * comments in the Linux kernel source code.
+         * Please use it consistently.
+         *
+         * Description:  A column of asterisks on the left side,
+         * with beginning and ending almost-blank lines.
+         */
+
+For files in net/ and drivers/net/ the preferred style for long (multi-line)
+comments is a little different.
+
+        /* The preferred comment style for files in net/ and drivers/net
+         * looks like this.
+         *
+         * It is nearly the same as the generally preferred comment style,
+         * but there is no initial almost-blank line.
+         */
+
+I'd love to add drivers/media/ to that list ;-)
+
+> > +	info = vsp1_get_format_info(pix->pixelformat);
+> > +	if (info == NULL)
+> > +		info = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
+> > +
+> > +	pix->pixelformat = info->fourcc;
+> > +	pix->colorspace = V4L2_COLORSPACE_SRGB;
+> > +	pix->field = V4L2_FIELD_NONE;
+> > +	memset(pix->reserved, 0, sizeof(pix->reserved));
+> > +
+> > +	/* Align the width and height for YUV 4:2:2 and 4:2:0 formats. */
+> > +	width = round_down(width, info->hsub);
+> > +	height = round_down(height, info->vsub);
+> > +
+> > +	/* Clamp the width and height. */
+> > +	pix->width = clamp(width, VSP1_VIDEO_MIN_WIDTH, 
+> > VSP1_VIDEO_MAX_WIDTH);
+> > +	pix->height = clamp(height, VSP1_VIDEO_MIN_HEIGHT,
+> > +			    VSP1_VIDEO_MAX_HEIGHT);
+> > +
+> > +	/* Compute and clamp the stride and image size. While not documented 
+> > +	 * in the datasheet, strides not aligned to a multiple of 128 bytes 
+> > +	 * result in image corruption.
+> > +	 */
+> > +	for (i = 0; i<  max(info->planes, 2U); ++i) {
+> > +		unsigned int hsub = i>  0 ? info->hsub : 1;
+> > +		unsigned int vsub = i>  0 ? info->vsub : 1;
+> > +		unsigned int align = 128;
+> > +		unsigned int bpl;
+> > +
+> > +		bpl = clamp_t(unsigned int, pix->plane_fmt[i].bytesperline,
+> > +			      pix->width / hsub * info->bpp[i] / 8,
+> > +			      round_down(65535U, align));
+> > +
+> > +		pix->plane_fmt[i].bytesperline = round_up(bpl, align);
+> > +		pix->plane_fmt[i].sizeimage = pix->plane_fmt[i].bytesperline
+> > +					    * pix->height / vsub;
+> > +	}
+> > +
+> > +	if (info->planes == 3) {
+> > +		/* The second and third planes must have the same stride. */
+> > +		pix->plane_fmt[2].bytesperline = pix->plane_fmt[1].bytesperline;
+> > +		pix->plane_fmt[2].sizeimage = pix->plane_fmt[1].sizeimage;
+> > +	}
+> > +
+> > +	pix->num_planes = info->planes;
+> > +
+> > +	if (fmtinfo)
+> > +		*fmtinfo = info;
+> > +
+> > +	return 0;
+> > +}
+
 -- 
-1.7.9.5
+Regards,
 
+Laurent Pinchart
