@@ -1,157 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3360 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3HBOkx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 10:40:53 -0400
-Message-ID: <51FBC4D7.2010802@xs4all.nl>
-Date: Fri, 02 Aug 2013 16:40:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	dagriego@biglakesoftware.com, dale@farnsworth.org,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com
-Subject: Re: [PATCH 4/6] v4l: ti-vpe: Add de-interlacer support in VPE
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-5-git-send-email-archit@ti.com>
-In-Reply-To: <1375452223-30524-5-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:45471 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753812Ab3HARhs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 13:37:48 -0400
+Date: Thu, 1 Aug 2013 14:37:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+Message-ID: <20130801143742.27fdc712@infradead.org>
+In-Reply-To: <51FA97F0.9010206@netscape.net>
+References: <51054759.7050202@netscape.net>
+	<20130127141633.5f751e5d@redhat.com>
+	<5105A0C9.6070007@netscape.net>
+	<20130128082354.607fae64@redhat.com>
+	<5106E3EA.70307@netscape.net>
+	<511264CF.3010002@netscape.net>
+	<51336331.10205@netscape.net>
+	<20130303134051.6dc038aa@redhat.com>
+	<20130304164234.18df36a7@redhat.com>
+	<51353591.4040709@netscape.net>
+	<20130304233028.7bc3c86c@redhat.com>
+	<513A6968.4070803@netscape.net>
+	<515A0D03.7040802@netscape.net>
+	<51E44DCA.8060702@netscape.net>
+	<20130716053030.3fda034e.mchehab@infradead.org>
+	<51E6A20B.8020507@netscape.net>
+	<20130718042314.2773b7c0.mchehab@infradead.org>
+	<51F40976.8090106@netscape.net>
+	<20130801090436.6dfa0f68@infradead.org>
+	<51FA97F0.9010206@netscape.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More comments...
+Em Thu, 01 Aug 2013 14:16:32 -0300
+Alfredo Jesús Delaiti  <alfredodelaiti@netscape.net> escreveu:
 
-On 08/02/2013 04:03 PM, Archit Taneja wrote:
-> Add support for the de-interlacer block in VPE.
+> Hi
 > 
-> For de-interlacer to work, we need to enable 2 more sets of VPE input ports
-> which fetch data from the 'last' and 'last to last' fields of the interlaced
-> video. Apart from that, we need to enable the Motion vector output and input
-> ports, and also allocate DMA buffers for them.
+> El 01/08/13 09:04, Mauro Carvalho Chehab escribió:
+> >>
+> >> I found the patch that affects the X8507 board is: commit
+> >> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
+> >>
+> >> --------
+> >> alfredo@linux-puon:/usr/src/git/linux> git stash
+> >> Saved working directory and index state WIP on (no branch): c6f56e7
+> >> [media] dvb: don't use DVBv3 bandwidth macros
+> >> HEAD is now at c6f56e7 [media] dvb: don't use DVBv3 bandwidth macros
+> >> alfredo@linux-puon:/usr/src/git/linux> git bisect good
+> >> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb is the first bad commit
+> >> commit a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
+> >> Author: Mauro Carvalho Chehab <mchehab  redhat.com>
+> >> Date:   Mon Dec 26 20:48:54 2011 -0300
+> >>
+> >>       [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
+> >>
+> >>       The cx23885-dvb driver has a dirty hack:
+> >>           1) it hooks the DVBv3 legacy call to FE_SET_FRONTEND;
+> >>           2) it uses internally the DVBv3 struct to decide some
+> >>              configs.
+> >>
+> >>       Replace it by a change during the gate control. This will
+> >>       likely work, but requires testing. Anyway, the current way
+> >>       will break, as soon as we stop copying data for DVBv3 for
+> >>       pure DVBv5 calls.
+> >>
+> >>       Compile-tested only.
+> >>
+> >>       Cc: Michael Krufky <mkrufky  linuxtv.org>
+> >>       Signed-off-by: Mauro Carvalho Chehab <mchehab  redhat.com>
+> >>
+> >> :040000 040000 6d0695eb9e59b837425ed64d4e2be6625864b609
+> >> 89700b867069ec0ad2713367e607763e91798e98 M      drivers
+> >> --------
+> >>
+> >>
+> >> I manually removed the patch, then the TV card works.
+> >>
+> >>
+> >> Unfortunately my lack of knowledge prevents me fix it.
+> >>
+> >> I test new code with pleasure :) !
+> > Hi Alfredo,
+> >
+> >
+> > Please send me the patches you've made to make isdb-t work on
+> > it, and I'll try to address this issue.
+> >
+> > Regards,
+> > Mauro
+> >
+> >
+> Mauro thank you very much for your interest.
 > 
-> We need to make sure that two most recent fields in the source queue are
-> available and in the 'READY' state. Once a mem2mem context gets access to the
-> VPE HW(in device_run), it extracts the addresses of the 3 buffers, and provides
-> it to the data descriptors for the 3 sets of input ports((LUMA1, CHROMA1),
-> (LUMA2, CHROMA2), and (LUMA3, CHROMA3)) respectively for the 3 consecutive
-> fields. The motion vector and output port descriptors are configured and the
-> list is submitted to VPDMA.
+> I send the patch. 3.2 is on a kernel.
 > 
-> Once the transaction is done, the v4l2 buffer corresponding to the oldest
-> field(the 3rd one) is changed to the state 'DONE', and the buffers corresponding
-> to 1st and 2nd fields become the 2nd and 3rd field for the next de-interlace
-> operation. This way, for each deinterlace operation, we have the 3 most recent
-> fields. After each transaction, we also swap the motion vector buffers, the new
-> input motion vector buffer contains the resultant motion information of all the
-> previous frames, and the new output motion vector buffer will be used to hold
-> the updated motion vector to capture the motion changes in the next field.
+> -----------------------------------------------------------------------
 > 
-> The de-interlacer is removed from bypass mode, it requires some extra default
-> configurations which are now added. The chrominance upsampler coefficients are
-> added for interlaced frames. Some VPDMA parameters like frame start event and
-> line mode are configured for the 2 extra sets of input ports.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 372 ++++++++++++++++++++++++++++++++----
->  1 file changed, 337 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 14a292b..5b1410c 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
+>   .../{ => }/media/dvb/frontends/mb86a20s.c          |  332 
+> ++++++--------------
 
-...
+Hmm... unfortunately, your emailer broke the patch. It made a total mess
+with whitespaces. Could you please resend it in a way that whitespaces 
+won't be damaged? Otherwise, patch tool won't apply it.
 
-> @@ -1035,7 +1310,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  
->  	if (pix->field == V4L2_FIELD_ANY)
->  		pix->field = V4L2_FIELD_NONE;
-> -	else if (V4L2_FIELD_NONE != pix->field)
-> +	else if (V4L2_FIELD_NONE != pix->field &&
-> +			V4L2_FIELD_ALTERNATE != pix->field)
->  		return -EINVAL;
-
-As mentioned before, this shouldn't result in an error, but map to a valid
-field format.
-
-For a deinterlacer I would expect NONE for the output of the deinterlacer (or
-capture buffer type) and ALTERNATE for the input of the deinterlacer (or output
-buffer type).
-
->  
->  	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
-> @@ -1104,6 +1380,7 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
->  	q_data->width		= pix->width;
->  	q_data->height		= pix->height;
->  	q_data->colorspace	= pix->colorspace;
-> +	q_data->field		= pix->field;
->  
->  	for (i = 0; i < pix->num_planes; i++) {
->  		plane_fmt = &pix->plane_fmt[i];
-> @@ -1117,6 +1394,11 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
->  	q_data->c_rect.width	= q_data->width;
->  	q_data->c_rect.height	= q_data->height;
->  
-> +	if (q_data->field == V4L2_FIELD_ALTERNATE)
-> +		q_data->flags |= Q_DATA_INTERLACED;
-> +	else
-> +		q_data->flags &= ~Q_DATA_INTERLACED;
-> +
->  	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
->  		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
->  		q_data->bytesperline[VPE_LUMA]);
-> @@ -1194,6 +1476,22 @@ static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
->  	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
->  }
->  
-> +static void set_dei_shadow_registers(struct vpe_ctx *ctx)
-> +{
-> +	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-> +	u32 *dei_mmr = &mmr_adb->dei_regs[0];
-> +	struct vpe_dei_regs *cur = &dei_regs;
-> +
-> +	dei_mmr[2]  = cur->mdt_spacial_freq_thr_reg;
-> +	dei_mmr[3]  = cur->edi_config_reg;
-> +	dei_mmr[4]  = cur->edi_lut_reg0;
-> +	dei_mmr[5]  = cur->edi_lut_reg1;
-> +	dei_mmr[6]  = cur->edi_lut_reg2;
-> +	dei_mmr[7]  = cur->edi_lut_reg3;
-> +
-> +	ctx->load_mmrs = true;
-> +}
-> +
->  #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE)
->  
->  static int vpe_s_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -1425,6 +1723,7 @@ static int vpe_open(struct file *file)
->  	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
->  			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
->  	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
-> +	s_q_data->field = V4L2_FIELD_NONE;
->  	s_q_data->c_rect.left = 0;
->  	s_q_data->c_rect.top = 0;
->  	s_q_data->c_rect.width = s_q_data->width;
-> @@ -1433,6 +1732,7 @@ static int vpe_open(struct file *file)
->  
->  	ctx->q_data[Q_DATA_DST] = *s_q_data;
->  
-> +	set_dei_shadow_registers(ctx);
->  	set_src_registers(ctx);
->  	set_dst_registers(ctx);
->  	ret = set_srcdst_params(ctx);
-> @@ -1487,6 +1787,8 @@ static int vpe_release(struct file *file)
->  	vpe_dbg(dev, "releasing instance %p\n", ctx);
->  
->  	mutex_lock(&dev->dev_mutex);
-> +	free_vbs(ctx);
-> +	free_mv_buffers(ctx);
->  	vpdma_free_desc_list(&ctx->desc_list);
->  	vpdma_buf_free(&ctx->mmr_adb);
->  
-> 
-
-Regards,
-
-	Hans
+Cheers,
+Mauro
