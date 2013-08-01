@@ -1,60 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:52750 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779Ab3HBIpn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 04:45:43 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQW00CIBAZI4H80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 02 Aug 2013 09:45:41 +0100 (BST)
-Message-id: <51FB71B3.5060008@samsung.com>
-Date: Fri, 02 Aug 2013 10:45:39 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, patches@linaro.org
-Subject: Re: [PATCH 3/3] [media] exynos4-is: Fix potential NULL pointer
- dereference
-References: <1375425134-17080-1-git-send-email-sachin.kamat@linaro.org>
- <1375425134-17080-3-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1375425134-17080-3-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-we0-f171.google.com ([74.125.82.171]:47337 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753801Ab3HAWbT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 18:31:19 -0400
+Message-ID: <51FAE1B3.3020603@gmail.com>
+Date: Fri, 02 Aug 2013 00:31:15 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>
+Subject: Re: [PATCH v4 5/7] v4l: Renesas R-Car VSP1 driver
+References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375285954-32153-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51F97B4D.70305@gmail.com> <2229675.vM0yYbEmYz@avalon>
+In-Reply-To: <2229675.vM0yYbEmYz@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Hi Laurent,
 
-On 08/02/2013 08:32 AM, Sachin Kamat wrote:
-> dev->of_node could be NULL. Hence check for the same and return before
-> dereferencing it in the subsequent error message.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
->  drivers/media/platform/exynos4-is/fimc-lite.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-> index 08fbfed..214bde2 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -1513,6 +1513,9 @@ static int fimc_lite_probe(struct platform_device *pdev)
->  		if (of_id)
->  			drv_data = (struct flite_drvdata *)of_id->data;
->  		fimc->index = of_alias_get_id(dev->of_node, "fimc-lite");
-> +	} else {
-> +		dev_err(dev, "device node not found\n");
-> +		return -EINVAL;
->  	}
+On 08/01/2013 12:03 AM, Laurent Pinchart wrote:
+> On Wednesday 31 July 2013 23:02:05 Sylwester Nawrocki wrote:
+>> On 07/31/2013 05:52 PM, Laurent Pinchart wrote:
+>>> The VSP1 is a video processing engine that includes a blender, scalers,
+>>> filters and statistics computation. Configurable data path routing logic
+>>> allows ordering the internal blocks in a flexible way.
+>>>
+>>> Due to the configurable nature of the pipeline the driver implements the
+>>> media controller API and doesn't use the V4L2 mem-to-mem framework, even
+>>> though the device usually operates in memory to memory mode.
+>>>
+>>> Only the read pixel formatters, up/down scalers, write pixel formatters
+>>> and LCDC interface are supported at this stage.
+>>>
+>>> Signed-off-by: Laurent Pinchart<laurent.pinchart+renesas@ideasonboard.com>
+[...]
+>>> +static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
+>>> +{
+>>> +	struct vsp1_entity *entity;
+>>> +	unsigned long flags;
+>>> +	int ret;
+>>> +
+>>> +	spin_lock_irqsave(&pipe->irqlock, flags);
+>>> +	pipe->state = VSP1_PIPELINE_STOPPING;
+>>> +	spin_unlock_irqrestore(&pipe->irqlock, flags);
+>>> +
+>>> +	ret = wait_event_timeout(pipe->wq, pipe->state ==
+>>> VSP1_PIPELINE_STOPPED,
+>>> +				 msecs_to_jiffies(500));
+>>> +	ret = ret == 0 ? -ETIMEDOUT : 0;
+>>
+>> Wouldn't be -ETIME more appropriate ?
+>>
+>> #define	ETIME		62	/* Timer expired */
+>> ...
+>> #define	ETIMEDOUT	110	/* Connection timed out */
+>
+> $ find Documentation/ -type f -exec egrep -- ETIME[^DO] {} \; | wc
+>        7      45     347
+> $ find Documentation/ -type f -exec egrep -- ETIMED?OUT {} \; | wc
+>       22     135    1162
+>
+> The only two places where ETIME is used in the Documentation are USB and the
+> RxRPC network protocol.
+>
+> $ find drivers/ -type f -name \*.[ch] -exec grep -- -ETIME[^DO] {} \; | wc
+>      295    1037    7339
+> $ find drivers/ -type f -name \*.[ch] -exec grep -- -ETIMEDOUT {} \; | wc
+>     1156    3769   30590
+>
+> According to man errno, ETIME seems to be related to XSI STREAMS. I'm fine
+> with both, but it seems the kernel is goind towards -ETIMEDOUT.
 
-Thanks for the patch. I would prefer to add a check at very beginning
-of fimc_lite_probe() like:
+Indeed, ETIMEDOUT seems to be more widely used. It's a bit strange because
+"Connection timed out" looks like a network specific error message and ETIME
+("Timer expired") appeared more suitable for cases as above.
 
-	if (!dev->of_node)
-		return -ENODEV;
+I guess it better to stay with ETIMEDOUT then.
 
-Those devices are only used on DT platforms.
+>>> +	list_for_each_entry(entity,&pipe->entities, list_pipe) {
+>>> +		if (entity->route)
+>>> +			vsp1_write(entity->vsp1, entity->route,
+>>> +				   VI6_DPR_NODE_UNUSED);
+>>> +
+>>> +		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
+>>> +	}
+>>> +
+>>> +	return ret;
+>>> +}
+>>
+>> [...]
+>>
+>>> +/* ----------------------------------------------------------------------
+>>> + * videobuf2 Queue Operations
+>>> + */
+>>> +
+>>> +static int
+>>> +vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format
+>>> *fmt,
+>>> +		     unsigned int *nbuffers, unsigned int *nplanes,
+>>> +		     unsigned int sizes[], void *alloc_ctxs[])
+>>> +{
+>>> +	struct vsp1_video *video = vb2_get_drv_priv(vq);
+>>> +	struct v4l2_pix_format_mplane *format =&video->format;
+>>> +	unsigned int i;
+>>
+>> If you don't support VIDIOC_CREATE_BUFS ioctl then there should probably
+>> be at least something like:
+>>
+>> 	if (fmt)
+>> 		return -EINVAL;
+>>
+>> But it's likely better to add proper handling of 'fmt' right away.
+>
+> OK, I will do so. What is the driver supposed to do when *fmt isn't supported
+> ? Use the closest format as would be returned by try_format() ?
+
+Normally user space should pass valid format, as returned from 
+VIDIOC_TRY_FMT
+or VIDIOC_G_FMT (this is what V4L2 spec says, as you may already know).
+
+The drivers I wrote just return -EINVAL if an unsupported fourcc is passed.
+I'm not sure if this is the behaviour we want in general. I'm inclined to
+keep VIDIOC_CREATE_BUFS simple and require user space to pass supported
+formats, otherwise the ioctl would fail. Applications anyway have to verify
+the format, e.g. with VIDIOC_TRY_FMT.
+
+In any case it would be nice to have the expected behaviour documented in
+the videobuf2-core.h header. And perhaps in the VIDIOC_CREATE_BUFS ioctl
+DocBook section.
+
+> I suppose this also implies that buffer_prepare() should check whether the
+> buffer matches the current format.
+
+Right, buffers unsuitable for the current format should be rejected in
+buffer_prepare().
+
+>>> +	*nplanes = format->num_planes;
+>>> +
+>>> +	for (i = 0; i<   format->num_planes; ++i) {
+>>> +		sizes[i] = format->plane_fmt[i].sizeimage;
+>>> +		alloc_ctxs[i] = video->alloc_ctx;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>
+> [snip]
+>
+>>> +static int __vsp1_video_try_format(struct vsp1_video *video,
+>>> +				   struct v4l2_pix_format_mplane *pix,
+>>> +				   const struct vsp1_format_info **fmtinfo)
+>>> +{
+>>> +	const struct vsp1_format_info *info;
+>>> +	unsigned int width = pix->width;
+>>> +	unsigned int height = pix->height;
+>>> +	unsigned int i;
+>>> +
+>>> +	/* Retrieve format information and select the default format if the
+>>> +	 * requested format isn't supported.
+>>> +	 */
+>>
+>> Nitpicking: Isn't proper multi-line comment style
+>>
+>> 	/*
+>> 	 * Retrieve format information and select the default format if the
+>> 	 * requested format isn't supported.
+>> 	 */
+>>
+>> ?
+>
+> Yes it is. I got used to the
+>
+> /* foo
+>   * bar
+>   */
+>
+> style as it's more compact.
+>
+>> In fact the media subsystem code is pretty messy WRT that detail.
+>
+> Documentation/CodingStyle mentions
+>
+> The preferred style for long (multi-line) comments is:
+>
+>          /*
+>           * This is the preferred style for multi-line
+>           * comments in the Linux kernel source code.
+>           * Please use it consistently.
+>           *
+>           * Description:  A column of asterisks on the left side,
+>           * with beginning and ending almost-blank lines.
+>           */
+>
+> For files in net/ and drivers/net/ the preferred style for long (multi-line)
+> comments is a little different.
+>
+>          /* The preferred comment style for files in net/ and drivers/net
+>           * looks like this.
+>           *
+>           * It is nearly the same as the generally preferred comment style,
+>           * but there is no initial almost-blank line.
+>           */
+>
+> I'd love to add drivers/media/ to that list ;-)
+
+Yup, that's one of the options ;) I personally don't mind which variant
+is used, as long as it is only one of them and used consistently.
+
+But unfortunately it looks like it's to late already and nobody is going
+to bother with patches that change comments to one style or the other.
+I guess I wanted mostly to bring some attention to the problem rather
+than raising objections to this particular patch.
 
 --
 Regards,
