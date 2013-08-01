@@ -1,47 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:20013 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab3HBMGA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 08:06:00 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r72C5nZ9017931
-	for <linux-media@vger.kernel.org>; Fri, 2 Aug 2013 12:05:57 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/5] qv4l2: fix a bug where the alsa thread never stops
-Date: Fri,  2 Aug 2013 14:05:36 +0200
-Message-Id: <dba8ec599edbf0cc9e521f1178fe1c9f54eda050.1375445112.git.bwinther@cisco.com>
-In-Reply-To: <1375445137-19443-1-git-send-email-bwinther@cisco.com>
-References: <1375445137-19443-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <1a734456df06299e284f793264ca843c98b0f18a.1375445112.git.bwinther@cisco.com>
-References: <1a734456df06299e284f793264ca843c98b0f18a.1375445112.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:62031 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886Ab3HANFF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 09:05:05 -0400
+Received: by mail-lb0-f182.google.com with SMTP id v20so1522987lbc.27
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 06:05:04 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/2] libv4lconvert: Support for Y16 pixel format
+Date: Thu,  1 Aug 2013 15:04:53 +0200
+Message-Id: <1375362294-30741-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the output audio device never read the buffer then the alsa thread
-would continue to fill it up and never stop when the capture stops.
+This patch adds support for V4L2_PIX_FMT_Y16 format.
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- utils/qv4l2/alsa_stream.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/libv4lconvert/libv4lconvert-priv.h |    6 ++++++
+ lib/libv4lconvert/libv4lconvert.c      |   19 +++++++++++++++++++
+ lib/libv4lconvert/rgbyuv.c             |   30 ++++++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+)
 
-diff --git a/utils/qv4l2/alsa_stream.c b/utils/qv4l2/alsa_stream.c
-index 90d3afb..43ecda3 100644
---- a/utils/qv4l2/alsa_stream.c
-+++ b/utils/qv4l2/alsa_stream.c
-@@ -436,7 +436,7 @@ static snd_pcm_sframes_t writebuf(snd_pcm_t *handle, char *buf, long len)
- {
-     snd_pcm_sframes_t r;
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index c37e220..6422fdd 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -152,6 +152,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+ void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 		const struct v4l2_format *src_fmt);
  
--    while (1) {
-+    while (!stop_alsa) {
- 	r = snd_pcm_writei(handle, buf, len);
- 	if (r == len)
- 	    return 0;
++void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height);
++
++void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
++		const struct v4l2_format *src_fmt);
++
+ int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
+ 	const unsigned char *src, unsigned char *dest, int width, int height);
+ 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index 60010f1..bc5e34f 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -128,6 +128,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_Y4,		 8,	20,	20,	0 },
+ 	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
+ 	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
++	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
+ };
+ 
+ static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+@@ -989,6 +990,24 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 		break;
+ 	}
+ 
++	case V4L2_PIX_FMT_Y16:
++		switch (dest_pix_fmt) {
++		case V4L2_PIX_FMT_RGB24:
++	        case V4L2_PIX_FMT_BGR24:
++			v4lconvert_y16_to_rgb24(src, dest, width, height);
++			break;
++		case V4L2_PIX_FMT_YUV420:
++		case V4L2_PIX_FMT_YVU420:
++			v4lconvert_y16_to_yuv420(src, dest, fmt);
++			break;
++		}
++		if (src_size < (width * height * 2)) {
++			V4LCONVERT_ERR("short y16 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		break;
++
+ 	case V4L2_PIX_FMT_GREY:
+ 	case V4L2_PIX_FMT_Y4:
+ 	case V4L2_PIX_FMT_Y6:
+diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+index d05abe9..bef034f 100644
+--- a/lib/libv4lconvert/rgbyuv.c
++++ b/lib/libv4lconvert/rgbyuv.c
+@@ -586,6 +586,36 @@ void v4lconvert_rgb565_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 	}
+ }
+ 
++void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height)
++{
++	int j;
++	while (--height >= 0) {
++		for (j = 0; j < width; j++) {
++			*dest++ = *src;
++			*dest++ = *src;
++			*dest++ = *src;
++			src+=2;
++		}
++	}
++}
++
++void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
++		const struct v4l2_format *src_fmt)
++{
++	int x, y;
++
++	/* Y */
++	for (y = 0; y < src_fmt->fmt.pix.height; y++)
++		for (x = 0; x < src_fmt->fmt.pix.width; x++){
++			*dest++ = *src;
++			src+=2;
++		}
++
++	/* Clear U/V */
++	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
++}
++
+ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+ 		int width, int height)
+ {
 -- 
-1.8.3.2
+1.7.10.4
 
