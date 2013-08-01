@@ -1,105 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:48673 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753019Ab3HBDxk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 23:53:40 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb10so193864pad.23
-        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 20:53:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5151790.EBRlE0cTxf@flatron>
-References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org> <5151790.EBRlE0cTxf@flatron>
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Date: Fri, 2 Aug 2013 09:23:19 +0530
-Message-ID: <CAD025yQfPxK-uGEwGWc4i8osNwY5VW4PUAQ4pD7Sy_jFfZ=LOw@mail.gmail.com>
-Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
- continous memory flag
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: "linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
-	InKi Dae <inki.dae@samsung.com>, arun.kk@samsung.com,
-	Patch Tracking <patches@linaro.org>,
-	linaro-kernel@lists.linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:19671 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752685Ab3HARPZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 13:15:25 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQV004AV3WKUY60@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Aug 2013 13:15:23 -0400 (EDT)
+Date: Thu, 01 Aug 2013 14:15:18 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Luis Polasek <pola@sol.info.unlp.edu.ar>,
+	linux-media@vger.kernel.org,
+	"jbucar@lifia.info.unlp.edu.ar" <jbucar@lifia.info.unlp.edu.ar>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: dib8000 scanning not working on 3.10.3
+Message-id: <20130801141518.258ff0a3@samsung.com>
+In-reply-to: <20130801163624.GA10498@localhost>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+ <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+ <20130801163624.GA10498@localhost>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Em Thu, 1 Aug 2013 13:36:25 -0300
+Ezequiel Garcia <ezequiel.garcia@free-electrons.com> escreveu:
 
+> Hi Luis,
+> 
+> (I'm Ccing Mauro, who mantains this driver and might know what's going on).
+> 
+> On Wed, Jul 31, 2013 at 03:47:10PM -0300, Luis Polasek wrote:
+> > Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
+> > work anymore.
+> > 
+> > I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
+> > Pixelview SBTVD (dib8000 module*).This tools worked very well on
+> > version 3.9.9 , but now it does not produces any result, and also
+> > there are no error messages in the logs (dmesg).
+> > 
+> 
+> Please run a git bisect and report your findings.
+> 
+> Note that dibcom8000 shows just a handful of commit on 2013,
+> so you could start reverting those and see what happens.
 
-On 2 August 2013 04:50, Tomasz Figa <tomasz.figa@gmail.com> wrote:
->
-> Hi Vikas,
->
-> On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
-> > While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
-> > connected with resolution 2560x1600, following error occured even with
-> > IOMMU enabled:
-> > [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
-> > buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
-> >
-> > This patch fixes the issue by adding a check for IOMMU.
-> >
-> > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> > Signed-off-by: Arun Kumar <arun.kk@samsung.com>
-> > ---
-> >  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
-> >  1 file changed, 8 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> > b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c index 8e60bd6..2a86666
-> > 100644
-> > --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> > +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> > @@ -16,6 +16,7 @@
-> >  #include <drm/drm_crtc.h>
-> >  #include <drm/drm_fb_helper.h>
-> >  #include <drm/drm_crtc_helper.h>
-> > +#include <drm/exynos_drm.h>
-> >
-> >  #include "exynos_drm_drv.h"
-> >  #include "exynos_drm_fb.h"
-> > @@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct
-> > drm_fb_helper *helper, struct platform_device *pdev = dev->platformdev;
-> >       unsigned long size;
-> >       int ret;
-> > +     unsigned int flag;
-> >
-> >       DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
-> >                       sizes->surface_width, sizes->surface_height,
-> > @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
-> > drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
-> >
-> >       /* 0 means to allocate physically continuous memory */
-> > -     exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
-> > +     if (!is_drm_iommu_supported(dev))
-> > +             flag = 0;
-> > +     else
-> > +             flag = EXYNOS_BO_NONCONTIG;
->
-> While noncontig memory might be used for devices that support IOMMU, there
-> should be no problem with using contig memory for them, so this seems more
-> like masking the original problem rather than tracking it down.
->
-> Could you check why the allocation fails when requesting contiguous
-> memory?
->
+Perhaps it is a failure at the DVBv3 emulation.
 
-It is failing if i am giving bigger resolution like 2560x1600, but if
-i try for 1280x780 resolution, it   works fine.
-Looks like arm_dma_alloc() is NOT able to allocate bigger buffer of
-size 2560 * 1600 * 4.
-Hence i used flag = EXYNOS_BO_NONCONTIG;
+Did it also break using dvbv5-scan (part of v4l-utils)?
 
-
->
-> Best regards,
-> Tomasz
->
-
-
-
+Regards,
+Mauro
 -- 
-Thanks and Regards
- Vikas Sajjan
+
+Cheers,
+Mauro
