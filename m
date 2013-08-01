@@ -1,162 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:55086 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525Ab3HBNrU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 09:47:20 -0400
-Received: by mail-ee0-f43.google.com with SMTP id e52so344903eek.30
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 06:47:19 -0700 (PDT)
-Date: Fri, 2 Aug 2013 15:47:12 +0200
-From: Andre Heider <a.heider@gmail.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as
- possible
-Message-ID: <20130802134711.GA40163@gmail.com>
-References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
- <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:56205 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756227Ab3HAXUg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 19:20:36 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, arun.kk@samsung.com, patches@linaro.org,
+	linaro-kernel@lists.linaro.org
+Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically continous memory flag
+Date: Fri, 02 Aug 2013 01:20:30 +0200
+Message-ID: <5151790.EBRlE0cTxf@flatron>
+In-Reply-To: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Hi Vikas,
 
-I messed up one thing in my initial reply, sorry :(
-
-And two additional nitpicks, while we're at it.
-
-On Fri, Jul 19, 2013 at 07:02:33PM +0200, Ricardo Ribalda Delgado wrote:
-> Most DMA engines have limitations regarding the number of DMA segments
-> (sg-buffers) that they can handle. Videobuffers can easily spread
-> through houndreds of pages.
+On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
+> While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
+> connected with resolution 2560x1600, following error occured even with
+> IOMMU enabled:
+> [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
+> buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
 > 
-> In the previous aproach, the pages were allocated individually, this
-> could led to the creation houndreds of dma segments (sg-buffers) that
-> could not be handled by some DMA engines.
-
-s/houndreds/hundreds/
-
+> This patch fixes the issue by adding a check for IOMMU.
 > 
-> This patch tries to minimize the number of DMA segments by using
-> alloc_pages. In the worst case it will behave as before, but most
-> of the times it will reduce the number of dma segments
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-
-With those changes you can add:
-
-Reviewed-by: Andre Heider <a.heider@gmail.com>
-
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> Signed-off-by: Arun Kumar <arun.kk@samsung.com>
 > ---
->  drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
->  1 file changed, 49 insertions(+), 11 deletions(-)
+>  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index 16ae3dc..c053605 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
->  
->  static void vb2_dma_sg_put(void *buf_priv);
->  
-> +static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
-> +		gfp_t gfp_flags)
-> +{
-> +	unsigned int last_page = 0;
-> +	int size = buf->sg_desc.size;
-> +
-> +	while (size > 0) {
-> +		struct page *pages;
-> +		int order;
-> +		int i;
-> +
-> +		order = get_order(size);
-> +		/* Dont over allocate*/
-> +		if ((PAGE_SIZE << order) > size)
-> +			order--;
-> +
-> +		pages = NULL;
-> +		while (!pages) {
-> +			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
-> +					__GFP_NOWARN | gfp_flags, order);
-> +			if (pages)
-> +				break;
-> +
-> +			if (order == 0)
-> +				while (last_page--) {
-> +					__free_page(buf->pages[last_page]);
-> +					return -ENOMEM;
-> +				}
-> +			order--;
-> +		}
-> +
-> +		split_page(pages, order);
-> +		for (i = 0; i < (1<<order); i++) {
-
-whitespace nit: "(1 << order)"
-
-> +			buf->pages[last_page] = pages[i];
-
-My fault, it should read:
-
-			buf->pages[last_page] = &pages[i];
-
-> +			sg_set_page(&buf->sg_desc.sglist[last_page],
-> +					buf->pages[last_page], PAGE_SIZE, 0);
-> +			last_page++;
-> +		}
-> +
-> +		size -= PAGE_SIZE << order;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
->  {
->  	struct vb2_dma_sg_buf *buf;
-> -	int i;
-> +	int ret;
->  
->  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->  	if (!buf)
-> @@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
->  	if (!buf->pages)
->  		goto fail_pages_array_alloc;
->  
-> -	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
-> -		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
-> -					   __GFP_NOWARN | gfp_flags);
-> -		if (NULL == buf->pages[i])
-> -			goto fail_pages_alloc;
-> -		sg_set_page(&buf->sg_desc.sglist[i],
-> -			    buf->pages[i], PAGE_SIZE, 0);
-> -	}
-> +	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
-> +	if (ret)
-> +		goto fail_pages_alloc;
->  
->  	buf->handler.refcount = &buf->refcount;
->  	buf->handler.put = vb2_dma_sg_put;
-> @@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
->  	return buf;
->  
->  fail_pages_alloc:
-> -	while (--i >= 0)
-> -		__free_page(buf->pages[i]);
->  	kfree(buf->pages);
->  
->  fail_pages_array_alloc:
-> -- 
-> 1.7.10.4
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c index 8e60bd6..2a86666
+> 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> @@ -16,6 +16,7 @@
+>  #include <drm/drm_crtc.h>
+>  #include <drm/drm_fb_helper.h>
+>  #include <drm/drm_crtc_helper.h>
+> +#include <drm/exynos_drm.h>
 > 
+>  #include "exynos_drm_drv.h"
+>  #include "exynos_drm_fb.h"
+> @@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct
+> drm_fb_helper *helper, struct platform_device *pdev = dev->platformdev;
+>  	unsigned long size;
+>  	int ret;
+> +	unsigned int flag;
+> 
+>  	DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
+>  			sizes->surface_width, sizes->surface_height,
+> @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
+> drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
+> 
+>  	/* 0 means to allocate physically continuous memory */
+> -	exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
+> +	if (!is_drm_iommu_supported(dev))
+> +		flag = 0;
+> +	else
+> +		flag = EXYNOS_BO_NONCONTIG;
+
+While noncontig memory might be used for devices that support IOMMU, there 
+should be no problem with using contig memory for them, so this seems more 
+like masking the original problem rather than tracking it down.
+
+Could you check why the allocation fails when requesting contiguous 
+memory?
+
+Best regards,
+Tomasz
+
