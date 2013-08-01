@@ -1,100 +1,450 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:37892 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab3HBM1o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 08:27:44 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQW0044VLA28SZ0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 02 Aug 2013 21:27:43 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-Date: Fri, 02 Aug 2013 14:27:29 +0200
-Message-id: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:35683 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751428Ab3HASJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Aug 2013 14:09:31 -0400
+Message-ID: <51FAA45A.9040209@schinagl.nl>
+Date: Thu, 01 Aug 2013 20:09:30 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Krishna Kishore <krishna.kishore@sasken.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Prof p7500 DVB-S2 USB device
+References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com> <51EF853E.2040108@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com> <51EFB4A8.2080202@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>,<51EFC5D4.6000407@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE14871DD0@exgmbxfz01.sasken.com> <51F761B3.4070905@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>,<7CC27E99F1636344B0AC7B73D5BB86DE1487ECB7@exgmbxfz01.sasken.com>,<qja5qq4ps2r6jhwrh8gljk4o.1375364689195@email.android.com> <ff91f18b-d0f7-438c-bdc9-c9cf9840650e@EXGHTSFZ01.sasken.com>,<51FA6D08.8060804@schinagl.nl> <gk41xy5bp0ibfs7helsst6kb.1375367699643@email.android.com>
+In-Reply-To: <gk41xy5bp0ibfs7helsst6kb.1375367699643@email.android.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As it currently stands this code doesn't protect against any races
-between video device open() and its unregistration. Races could be
-avoided by doing the video_is_registered() check protected by the
-core mutex, while the video device unregistration is also done with
-this mutex held.
+In theory, no, it should be identical. Hopeing you don't have any USB 
+issue, I think you should let the maintainer know that this is 
+happening. I'm sorry but I lack knowledge in this area to help you any 
+further.
 
-The history of this code is that the second video_is_registered()
-call has been added in commit ee6869afc922a9849979e49bb3bbcad7948
-"V4L/DVB: v4l2: add core serialization lock" together with addition
-of the core mutex support in fops:
+Oliver
 
-        mutex_unlock(&videodev_lock);
--       if (vdev->fops->open)
--               ret = vdev->fops->open(filp);
-+       if (vdev->fops->open) {
-+               if (vdev->lock)
-+                       mutex_lock(vdev->lock);
-+               if (video_is_registered(vdev))
-+                       ret = vdev->fops->open(filp);
-+               else
-+                       ret = -ENODEV;
-+               if (vdev->lock)
-+                       mutex_unlock(vdev->lock);
-+       }
-
-While commit cf5337358548b813479b58478539fc20ee86556c
-"[media] v4l2-dev: remove V4L2_FL_LOCK_ALL_FOPS"
-removed only code touching the mutex:
-
-        mutex_unlock(&videodev_lock);
-        if (vdev->fops->open) {
--               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags) &&
--                   mutex_lock_interruptible(vdev->lock)) {
--                       ret = -ERESTARTSYS;
--                       goto err;
--               }
-                if (video_is_registered(vdev))
-                        ret = vdev->fops->open(filp);
-                else
-                        ret = -ENODEV;
--               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
--                       mutex_unlock(vdev->lock);
-        }
-
-Remove the remaining video_is_registered() call as it doesn't provide
-any real protection and just adds unnecessary overhead.
-
-The drivers need to perform the unregistration check themselves inside
-their file operation handlers, while holding respective mutex.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/v4l2-core/v4l2-dev.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index c8859d6..1743119 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -444,13 +444,9 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
--	if (vdev->fops->open) {
--		if (video_is_registered(vdev))
--			ret = vdev->fops->open(filp);
--		else
--			ret = -ENODEV;
--	}
-
-+	if (vdev->fops->open)
-+		ret = vdev->fops->open(filp);
- 	if (vdev->debug)
- 		printk(KERN_DEBUG "%s: open (%d)\n",
- 			video_device_node_name(vdev), ret);
---
-1.7.9.5
+On 08/01/13 16:36, Krishna Kishore wrote:
+> Hi Oliver,
+>
+>       Thanks for your response. I think I confused you. Sorry! Let me
+> summarize..
+>
+>       Please ignore the crash related problem. I could get that working.
+>
+>       The status is: usb dvb device (7500) is getting enumerated. But on
+> pandaboard /dev/dvb/* gets created only after 20-25 min Whereas it works
+> fine on desktop ubuntu (kernel 3.8.0).
+>
+>       USB related drivers are fine on pandaboard. Why there is
+> difference in behaviour in dvb drivers on desktop and pandaboard?
+>
+> Regards,
+> Kishore.
+>
+> Oliver Schinagl <oliver+list@schinagl.nl> wrote:
+> You are making it very hard to troubleshoot your problem and since the
+> driver seems to work on your PC this is almost the wrong place for your
+> support questions. I suppose the panda board forums would be better?
+>
+> Anyway, if your issue on the pandaboard is that it's not showing up in
+> lsusb, you probably are missing USB drivers (i think we talked about
+> that previously)
+>
+> Those crashes you posted, I have no idea where or what they cause. If
+> this is from booting without USB stick plugged in, deffinatly ask on
+> some pandaboard list/forum. If it only happens when plugging in your
+> device, then it might be related to the dvb driver, but even there I
+> have my doubts.
+>
+> Oliver
+>
+> On 01-08-13 16:06, Krishna Kishore wrote:
+>>
+>> Krishna Kishore <krishna.kishore@sasken.com> wrote:
+>> Hi,
+>>
+>>       When I used buildroot filesystem, I am not seeing this problem.
+>> However, my device still doenot work.
+>>
+>>   Ubuntu 13.04 desktop   kernel 3.8.0  works
+>>   Pandaboard  kernel >=3.8.4   doesnot work
+>>    I am suspecting only kernel configuration.
+>>    Please provide any inputs for me to proceed. Thanks.
+>>
+>> Regards,
+>> Kishore.
+>>
+>> Krishna Kishore <krishna.kishore@sasken.com> wrote:
+>> Hi,
+>>
+>>
+>>     Does anyone know about the following error?  I am using Linux kernel
+>> 3.9.0. I am getting this error with 3.8.4 also.
+>>
+>> [  233.017242] PM: Syncing filesystems ... done.
+>> [  233.253112] Freezing user space processes ... (elapsed 0.01 seconds)
+>> done.
+>> [  233.273712] Freezing remaining freezable tasks ...
+>> [  253.291076] Freezing of tasks failed after 20.01 seconds (1 tasks
+>> refusing to freeze, wq_busy=0):
+>> [  253.300445] khubd           D c053586c     0   446      2 0x00000000
+>> [  253.307220] [<c053586c>] (__schedule+0x37c/0x7e0) from [<c053366c>]
+>> (schedule_timeout+0x124/0x220)
+>> [  253.316741] [<c053366c>] (schedule_timeout+0x124/0x220) from
+>> [<c05353a8>] (wait_for_common+0xac/0x150)
+>> [  253.326599] [<c05353a8>] (wait_for_common+0xac/0x150) from
+>> [<c03c0a68>] (usb_start_wait_urb+0x60/0x128)
+>> [  253.336547] [<c03c0a68>] (usb_start_wait_urb+0x60/0x128) from
+>> [<c03c0cec>] (usb_control_msg+0xc0/0xe4)
+>> [  253.346405] [<c03c0cec>] (usb_control_msg+0xc0/0xe4) from
+>> [<c04288a0>] (dw210x_op_rw+0x94/0x108)
+>> [  253.355712] [<c04288a0>] (dw210x_op_rw+0x94/0x108) from [<c04293a4>]
+>> (s6x0_i2c_transfer+0x3c0/0x3e0)
+>> [  253.365386] [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0) from
+>> [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0)
+>> [  253.375823] [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0) from
+>> [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0)
+>> [  253.386810] [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0) from
+>> [<c042664c>] (dvb_usb_device_init+0x444/0x608)
+>> [  253.397766] [<c042664c>] (dvb_usb_device_init+0x444/0x608) from
+>> [<c0428718>] (dw2102_probe+0x24c/0x340)
+>> [  253.407714] [<c0428718>] (dw2102_probe+0x24c/0x340) from [<c03c3da8>]
+>> (usb_probe_interface+0x1c0/0x260)
+>> [  253.417663] [<c03c3da8>] (usb_probe_interface+0x1c0/0x260) from
+>> [<c032eec4>] (driver_probe_device+0x108/0x21c)
+>> [  253.428253] [<c032eec4>] (driver_probe_device+0x108/0x21c) from
+>> [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
+>> [  253.438385] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from
+>> [<c032ed88>] (device_attach+0x78/0x90)
+>> [  253.447784] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>]
+>> (bus_probe_device+0x88/0xac)
+>> [  253.457183] [<c032e3d8>] (bus_probe_device+0x88/0xac) from
+>> [<c032cc64>] (device_add+0x4b0/0x584)
+>> [  253.466491] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03c2200>]
+>> (usb_set_configuration+0x574/0x78c)
+>> [  253.476470] [<c03c2200>] (usb_set_configuration+0x574/0x78c) from
+>> [<c03caa74>] (generic_probe+0x34/0x78)
+>> [  253.486511] [<c03caa74>] (generic_probe+0x34/0x78) from [<c03c3e84>]
+>> (usb_probe_device+0x3c/0x60)
+>> [  253.495910] [<c03c3e84>] (usb_probe_device+0x3c/0x60) from
+>> [<c032eec4>] (driver_probe_device+0x108/0x21c)
+>> [  253.506042] [<c032eec4>] (driver_probe_device+0x108/0x21c) from
+>> [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
+>> [  253.516174] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from
+>> [<c032ed88>] (device_attach+0x78/0x90)
+>> [  253.525573] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>]
+>> (bus_probe_device+0x88/0xac)
+>> [  253.534973] [<c032e3d8>] (bus_probe_device+0x88/0xac) from
+>> [<c032cc64>] (device_add+0x4b0/0x584)
+>> [  253.544281] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03b96a4>]
+>> (usb_new_device+0x1ec/0x360)
+>> [  253.553588] [<c03b96a4>] (usb_new_device+0x1ec/0x360) from
+>> [<c03bab1c>] (hub_thread+0x714/0x1360)
+>> [  253.563018] [<c03bab1c>] (hub_thread+0x714/0x1360) from [<c0062dc0>]
+>> (kthread+0xa4/0xb0)
+>> [  253.571624] [<c0062dc0>] (kthread+0xa4/0xb0) from [<c0013230>]
+>> (ret_from_fork+0x14/0x24)
+>> [  253.580169]
+>> [  253.581756] Restarting kernel threads ... done.
+>> [  253.587005] Restarting tasks ... done.
+>> [  259.016845] PM: Syncing filesystems ... done.
+>> [  259.155700] Freezing user space processes ... (elapsed 0.02 seconds)
+>> done.
+>>
+>>
+>>
+>>
+>> Regards,
+>> Kishore
+>> ________________________________________
+>> From: Krishna Kishore
+>> Sent: Wednesday, July 31, 2013 4:08 PM
+>> To: Oliver Schinagl
+>> Cc: linux-media@vger.kernel.org
+>> Subject: RE: Prof DVB-S2 USB device
+>>
+>> Hi Oliver,
+>>
+>>     I migrated to Ubuntu 13.04 on desktop and tried. It worked !
+>>     It uses linux kernel 3.8.0. If I use this version of linux kernel or
+>> greater on Pandaboard, it may work on Pandaboard also.
+>>
+>> Regards,
+>> Kishore.
+>>
+>>
+>>
+>>
+>> -----Original Message-----
+>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+>> Sent: Tuesday, July 30, 2013 12:18 PM
+>> To: Krishna Kishore
+>> Cc: linux-media@vger.kernel.org
+>> Subject: Re: Prof DVB-S2 USB device
+>>
+>> On 30-07-13 08:25, Krishna Kishore wrote:
+>>> Hi Oliver,
+>>>
+>>>       3.10.2 booted on Pandaboard. Now, I am trying to connect Prof 7500 DVB-S2 device. It does not get detected as new USB device.
+>>>
+>>>      .config file is attached to this email. Am I missing any config? Can you please let me know?
+>>   From a quick glance I noticed you are missing the CONFIG_USB_EHCI_HCD
+>> (EHCI Host controller) it appears you don't have a USB host controller
+>> enabled at all? But i'm not sure what kind of USB controller omap4 has.
+>>
+>> oliver
+>>>
+>>> Regards,
+>>> Kishore.
+>>> ________________________________________
+>>> From: Oliver Schinagl [oliver+list@schinagl.nl]
+>>> Sent: Wednesday, July 24, 2013 5:47 PM
+>>> To: Krishna Kishore
+>>> Cc: linux-media@vger.kernel.org
+>>> Subject: Re: Prof DVB-S2 USB device
+>>>
+>>> On 24-07-13 13:20, Krishna Kishore wrote:
+>>>>
+>>>> On Desktop PC (Ubuntu 12.04 which has 3.2.0 Kernel) also, I am not getting the list of channels when I scan. I am using Kaffeine.
+>>> While I understand you prefer to run a LTS distro, 3.2.0 is old!
+>>>
+>>> The reason why I keep bringing this up, media drivers are almost
+>>> updated daily. So if you want to see if your issue is fixed, the most
+>>> ideal start for this investigation is the media git kernel tree. While
+>>> I understand building your own kernel might be a little too much, try
+>>> an Ubuntu 13.04 Live cd, it should come with a 3.9 kernel, not
+>>> extremly old, but should have most of the recent media changes. Now if
+>>> it doesn't work right on that, well, then you'd have to build your own
+>>> media drivers from the git tree. If those don't work, then we can
+>>> start talking to developers. Otherwise, you are trying to troubleshoot
+>>> something, that has long been fixed.
+>>>
+>>> oliver
+>>>>
+>>>>
+>>>>
+>>>>
+>>>> -----Original Message-----
+>>>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+>>>> Sent: Wednesday, July 24, 2013 4:34 PM
+>>>> To: Krishna Kishore
+>>>> Cc: linux-media@vger.kernel.org
+>>>> Subject: Re: Prof DVB-S2 USB device
+>>>>
+>>>> On 24-07-13 10:59, Krishna Kishore wrote:
+>>>>> Dear Oliver,
+>>>>>
+>>>>>           Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
+>>>>>
+>>>>>            Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
+>>>>>
+>>>>>          I am downloading 3.4.54 and 3.10.2 now.
+>>>> What do you get when using on a regular PC? Your beagle board may (or may not) yet be supported by mainline 3.10.1 kernel.
+>>>>
+>>>> Try it in a regular PC and see what happens there with 3.10.2
+>>>>>
+>>>>> Regards,
+>>>>> Kishore.
+>>>>>
+>>>>> -----Original Message-----
+>>>>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+>>>>> Sent: Wednesday, July 24, 2013 1:12 PM
+>>>>> To: Krishna Kishore
+>>>>> Cc: linux-media@vger.kernel.org
+>>>>> Subject: Re: Prof DVB-S2 USB device
+>>>>>
+>>>>> On 24-07-13 08:56, Krishna Kishore wrote:
+>>>>>> Dear Oliver,
+>>>>>>
+>>>>>>        Thanks for your response. Here are more details. Please help me in making this work.
+>>>>>>
+>>>>>>        Linux version:
+>>>>>>
+>>>>>> -sh-4.1# uname -a
+>>>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
+>>>>>> armv7l GNU/Linux
+>>>>> Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
+>>>>>
+>>>>> So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
+>>>>>
+>>>>> Meanwhile, since this is an USB device, you could try it on a desktop.
+>>>>> Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
+>>>>>>
+>>>>>> [dotconfig is attached to this email]
+>>>>>>
+>>>>>> lsusb -t:
+>>>>>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
+>>>>>>         |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
+>>>>>>             |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
+>>>>>>             |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
+>>>>>>
+>>>>>> dmesg:
+>>>>>> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
+>>>>>> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
+>>>>>> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB
+>>>>>> device
+>>>>>> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
+>>>>>> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
+>>>>>> [  127.051177] dw2102: start downloading DW210X firmware [
+>>>>>> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
+>>>>>> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+>>>>>> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
+>>>>>> [ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [
+>>>>>> 1159.325531]
+>>>>>> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
+>>>>>> 1159.340332] Kishore stv0900_attach:
+>>>>>> [ 1159.340362] stv0900_init_internal [ 1159.340393]
+>>>>>> stv0900_init_internal: Create New Internal Structure!
+>>>>>> [ 1159.340423] stv0900_read_reg
+>>>>>> [ 1179.527770] stv0900_read_reg
+>>>>>> [ 1550.418365] stv0900_read_reg
+>>>>>> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
+>>>>>> stv0900_stop_all_s2_modcod [ 1669.340270]
+>>>>>> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
+>>>>>> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
+>>>>>> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
+>>>>>> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
+>>>>>> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
+>>>>>> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
+>>>>>> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
+>>>>>> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
+>>>>>> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
+>>>>>> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
+>>>>>> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
+>>>>>> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
+>>>>>> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
+>>>>>> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
+>>>>>> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
+>>>>>> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated
+>>>>>> Mclk = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
+>>>>>> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
+>>>>>> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
+>>>>>> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [
+>>>>>> 1891.090332] [ 1891.097442] Kishore stb6100_attach:
+>>>>>> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
+>>>>>> 1893.105957] dw2102: Attached STV0900+STB6100A!
+>>>>>> [ 1893.105957]
+>>>>>> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
+>>>>>> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
+>>>>>> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input
+>>>>>> 2 [ 1893.177368] dvb-usb: schedule remote query interval to 150
+>>>>>> msecs.
+>>>>>> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
+>>>>>> armv7l GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s
+>>>>>> S93E5 -c IN -G >> ch.conf w_scan version 20120112 (compiled for DVB
+>>>>>> API
+>>>>>> 5.4) using settings for 93.5 east Insat 3A/4B scan type SATELLITE,
+>>>>>> channellist 42 output format gstreamer
+>>>>>> WARNING: could not guess your codepage. Falling back to 'UTF-8'
+>>>>>> output charset 'UTF-8', use -C <charset> to override
+>>>>>> Info: using DVB adapter auto detection.
+>>>>>>
+>>>>>>             /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
+>>>>>> very good :-))
+>>>>>>
+>>>>>> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
+>>>>>> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
+>>>>>> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
+>>>>>> DVB-S2
+>>>>>> FREQ (0.95GHz ... 2.15GHz)
+>>>>>> SRATE (1.000MBd ... 45.000MBd)
+>>>>>> using LNB "UNIVERSAL"
+>>>>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+>>>>>> (time: 00:40)
+>>>>>>
+>>>>>> dmesg logs:
+>>>>>>
+>>>>>> [1716261.743961] stv0900_init
+>>>>>> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
+>>>>>> stv0900_read_status:
+>>>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
+>>>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
+>>>>>> [1716345.004236] stv0900_search:
+>>>>>> [1716345.004242] stv0900_read_status:
+>>>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
+>>>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
+>>>>>> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone:
+>>>>>> Off [1716307.004132] stv0900_read_status:
+>>>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
+>>>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
+>>>>>> [1716345.004236] stv0900_search:
+>>>>>> [1716345.004242] stv0900_read_status:
+>>>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
+>>>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
+>>>>>> [1716455.004184] stv0900_search:
+>>>>>> [1716455.004190] stv0900_read_status:
+>>>>>> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
+>>>>>> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315]
+>>>>>> TS bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
+>>>>>>
+>>>>>> Regards,
+>>>>>> Kishore.
+>>>>>> ________________________________________
+>>>>>> From: Oliver Schinagl [oliver+list@schinagl.nl]
+>>>>>> Sent: Wednesday, July 24, 2013 2:34 AM
+>>>>>> To: Krishna Kishore
+>>>>>> Cc: linux-media@vger.kernel.org
+>>>>>> Subject: Re: Prof DVB-S2 USB device
+>>>>>>
+>>>>>> On 23-07-13 18:52, Krishna Kishore wrote:
+>>>>>>> #Sorry for sending to individual email ids
+>>>>>>>
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>>           I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
+>>>>>> You will need to provide much more information then that. What does
+>>>>>> dmesg say? lsusb? what driver are you using, what kernel version?
+>>>>>> Are you using it as a module? Have you enabled debugging in your kernel?
+>>>>>>
+>>>>>> Those questions come to my mind.
+>>>>>>
+>>>>>>>
+>>>>>>> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
+>>>>>>> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
+>>>>>>> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
+>>>>>> Paste your logs (or if its too much, only copy/paste the relevant parts.
+>>>>>> You ask for a limb, yet offer nothing.
+>>>>>>
+>>>>>> oliver
+>>>>>>>
+>>>>>>>            Can you please help me?
+>>>>>>>
+>>>>>>>
+>>>>>>> Regards,
+>>>>>>> Kishore.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> ________________________________
+>>>>>>
+>>>>>> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print,or copy any part of this message and you are requested to delete it
+>> and inform the sender. Any views expressed in this message are those of
+>> the individual sender unless otherwise stated. Nothing contained in this
+>> message shall be construed as an offer or acceptance of any offer by
+>> Sasken Communication Technologies Limited ("Sasken") unless sent with
+>> that express intent and with due authority of Sasken. Sasken has taken
+>> enough precautions to prevent the spread of viruses. However the company
+>> accepts no liability for any damage caused by any virus transmitted by
+>> this email.
+>>>>>> Read Disclaimer at
+>>>>>>http://www.sasken.com/extras/mail_disclaimer.html
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
+>
 
