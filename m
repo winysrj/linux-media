@@ -1,59 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56339 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156Ab3HBBCb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:31 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v5 3/9] videobuf2: Clarify queue_setup() and buf_prepare() usage documentation
-Date: Fri,  2 Aug 2013 03:03:22 +0200
-Message-Id: <1375405408-17134-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:52609 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753853Ab3HAN74 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 09:59:56 -0400
+Received: by mail-ob0-f179.google.com with SMTP id fb19so3793731obc.24
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 06:59:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130731063742.GP12281@valkosipuli.retiisi.org.uk>
+References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
+ <20130719141603.16ef8f0b@lwn.net> <51F65190.9080601@samsung.com>
+ <20130729091644.4229dcf6@lwn.net> <20130731063742.GP12281@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 1 Aug 2013 15:59:35 +0200
+Message-ID: <CAPybu_36zDUc7U+8oHovW07DmHcgCuZUa5hihR2QU3NuMi-EMA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as possible
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Explain how the two operations must handle formats and validate buffer
-sizes when used with VIDIOC_CREATE_BUFS.
+Hi Sakarius
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/media/videobuf2-core.h | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+I think the whole point of the videobuf2 is sharing pages with the
+user space, so until vm_insert_page does not support high order pages
+we should split them. Unfortunately the mm is completely out of my
+topic, so I don't think that I could be very useful there.
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index d88a098..6781258 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -219,8 +219,9 @@ struct vb2_buffer {
-  *			configured format and *num_buffers is the total number
-  *			of buffers, that are being allocated. When called from
-  *			VIDIOC_CREATE_BUFS, fmt != NULL and it describes the
-- *			target frame format. In this case *num_buffers are being
-- *			allocated additionally to q->num_buffers.
-+ *			target frame format (if the format isn't valid the
-+ *			callback must return -EINVAL). In this case *num_buffers
-+ *			are being allocated additionally to q->num_buffers.
-  * @wait_prepare:	release any locks taken while calling vb2 functions;
-  *			it is called before an ioctl needs to wait for a new
-  *			buffer to arrive; required to avoid a deadlock in
-@@ -236,8 +237,10 @@ struct vb2_buffer {
-  * @buf_prepare:	called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-  *			perform any initialization required before each hardware
-- *			operation in this callback; if an error is returned, the
-- *			buffer will not be queued in driver; optional
-+ *			operation in this callback; drivers that support
-+ *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-+ *			if an error is returned, the buffer will not be queued
-+ *			in driver; optional
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; drivers may perform any operations required
-  *			before userspace accesses the buffer; optional
+With my patch, in the worst case scenario, the image is split in as
+many blocks as today, but in a normal setup the ammount of blocks is 1
+or two blocks in total!.
+
+Best regards.
+
+
+
+
+
+On Wed, Jul 31, 2013 at 8:37 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Jon and Sylwester,
+>
+> On Mon, Jul 29, 2013 at 09:16:44AM -0600, Jonathan Corbet wrote:
+>> On Mon, 29 Jul 2013 13:27:12 +0200
+>> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+>>
+>> > > You've gone to all this trouble to get a higher-order allocation so you'd
+>> > > have fewer segments, then you undo it all by splitting things apart into
+>> > > individual pages.  Why?  Clearly I'm missing something, this seems to
+>> > > defeat the purpose of the whole exercise?
+>> >
+>> > Individual zero-order pages are required to get them mapped to userspace in
+>> > mmap callback.
+>>
+>> Yeah, Ricardo explained that too.  The right solution might be to fix that
+>> problem rather than work around it, but I can see why one might shy at that
+>> task! :)
+>>
+>> I do wonder, though, if an intermediate solution using huge pages might be
+>> the best approach?  That would get the number of segments down pretty far,
+>> and using huge pages for buffers would reduce TLB pressure significantly
+>> if the CPU is working through the data at all.  Meanwhile, inserting huge
+>> pages into the process's address space should work easily.  Just a thought.
+>
+> My ack to that.
+>
+> And in the case of dma-buf the buffer doesn't need to be mapped to user
+> space. It'd be quite nice to be able to share higher order allocations even
+> if they couldn't be mapped to user space as such.
+>
+> Using 2 MiB pages would probably solve Ricardo's issue, but used alone
+> they'd waste lots of memory for small buffers. If small pages (in Ricardo's
+> case) were used when 2 MiB pages would be too big, e.g. 1 MiB buffer would
+> already have 256 pages in it. Perhaps it'd be useful to specify whether
+> large pages should be always preferred over smaller ones.
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+
+
+
 -- 
-1.8.1.5
-
+Ricardo Ribalda
