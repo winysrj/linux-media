@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4635 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758254Ab3HBJoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 05:44:54 -0400
-Message-ID: <51FB7F82.5070500@xs4all.nl>
-Date: Fri, 02 Aug 2013 11:44:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v5 1/9] media: Add support for circular graph traversal
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375405408-17134-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perches-mx.perches.com ([206.117.179.246]:33106 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753533Ab3HAXSA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Aug 2013 19:18:00 -0400
+From: Joe Perches <joe@perches.com>
+To: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org, wimax@linuxwimax.org
+Subject: [PATCH V3 0/3] networking: Use ETH_ALEN where appropriate
+Date: Thu,  1 Aug 2013 16:17:46 -0700
+Message-Id: <cover.1375398692.git.joe@perches.com>
+In-Reply-To: <20130801.143137.331385226409040561.davem@davemloft.net>
+References: <20130801.143137.331385226409040561.davem@davemloft.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Convert the uses mac addresses to ETH_ALEN so
+it's easier to find and verify where mac addresses
+need to be __aligned(2)
 
+Change in V2:
+- Remove include/acpi/actbl2.h conversion
+  It's a file copied from outside ACPI sources
 
-On 08/02/2013 03:03 AM, Laurent Pinchart wrote:
-> The graph traversal API (media_entity_graph_walk_*) doesn't support
-> cyclic graphs and will fail to correctly walk a graph when circular
-> links exist. Support circular graph traversal by checking whether an
-> entity has already been visited before pushing it to the stack.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Changes in V3:
+- Don't move the pasemi_mac.h mac address to be aligned(2)
+  Just note that it's unaligned.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Joe Perches (3):
+  uapi: Convert some uses of 6 to ETH_ALEN
+  include: Convert ethernet mac address declarations to use ETH_ALEN
+  ethernet: Convert mac address uses of 6 to ETH_ALEN
 
-Regards,
+ drivers/net/ethernet/8390/ax88796.c                |  4 +-
+ drivers/net/ethernet/amd/pcnet32.c                 |  6 +--
+ drivers/net/ethernet/broadcom/cnic_if.h            |  6 +--
+ drivers/net/ethernet/dec/tulip/tulip_core.c        |  8 +--
+ drivers/net/ethernet/i825xx/sun3_82586.h           |  4 +-
+ drivers/net/ethernet/myricom/myri10ge/myri10ge.c   |  2 +-
+ drivers/net/ethernet/nuvoton/w90p910_ether.c       |  4 +-
+ drivers/net/ethernet/pasemi/pasemi_mac.c           | 13 ++---
+ drivers/net/ethernet/pasemi/pasemi_mac.h           |  2 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_hw.c |  4 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h            |  2 +-
+ include/linux/dm9000.h                             |  4 +-
+ include/linux/fs_enet_pd.h                         |  3 +-
+ include/linux/ieee80211.h                          | 59 +++++++++++-----------
+ include/linux/mlx4/device.h                        | 11 ++--
+ include/linux/mlx4/qp.h                            |  5 +-
+ include/linux/mv643xx_eth.h                        |  3 +-
+ include/linux/sh_eth.h                             |  3 +-
+ include/linux/smsc911x.h                           |  3 +-
+ include/linux/uwb/spec.h                           |  5 +-
+ include/media/tveeprom.h                           |  4 +-
+ include/net/irda/irlan_common.h                    |  3 +-
+ include/uapi/linux/dn.h                            |  3 +-
+ include/uapi/linux/if_bridge.h                     |  3 +-
+ include/uapi/linux/netfilter_bridge/ebt_802_3.h    |  5 +-
+ include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h  |  3 +-
+ include/uapi/linux/virtio_net.h                    |  2 +-
+ include/uapi/linux/wimax/i2400m.h                  |  4 +-
+ 28 files changed, 99 insertions(+), 79 deletions(-)
 
-	Hans
+-- 
+1.8.1.2.459.gbcd45b4.dirty
+
