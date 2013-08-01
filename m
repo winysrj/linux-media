@@ -1,54 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41732 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108Ab3HAHao (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 03:30:44 -0400
-Date: Wed, 31 Jul 2013 18:40:24 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	stern@rowland.harvard.edu, broonie@kernel.org,
-	tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org,
-	tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	linux@arm.linux.org.uk, Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [RESEND PATCH v10 1/8] drivers: phy: add generic PHY framework
-Message-ID: <20130801014024.GA6941@kroah.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
- <1374842963-13545-2-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374842963-13545-2-git-send-email-kishon@ti.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:39906 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755348Ab3HANFJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 09:05:09 -0400
+Received: by mail-la0-f50.google.com with SMTP id fn20so1376739lab.23
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 06:05:07 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 2/2] libv4lconvert: Support for RGB32 and BGR32 format
+Date: Thu,  1 Aug 2013 15:04:54 +0200
+Message-Id: <1375362294-30741-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 26, 2013 at 06:19:16PM +0530, Kishon Vijay Abraham I wrote:
-> +static int phy_get_id(void)
-> +{
-> +	int ret;
-> +	int id;
-> +
-> +	ret = ida_pre_get(&phy_ida, GFP_KERNEL);
-> +	if (!ret)
-> +		return -ENOMEM;
-> +
-> +	ret = ida_get_new(&phy_ida, &id);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return id;
-> +}
+This patch adds support for V4L2_PIX_FMT_BGR32 and V4L2_PIX_FMT_BGR32
+formats.
 
-ida_simple_get() instead?  And if you do that, you can get rid of this
-function entirely.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ lib/libv4lconvert/libv4lconvert-priv.h |    5 ++-
+ lib/libv4lconvert/libv4lconvert.c      |   58 +++++++++++++++++++++++++---
+ lib/libv4lconvert/rgbyuv.c             |   66 ++++++++++++++++++++++++++------
+ 3 files changed, 111 insertions(+), 18 deletions(-)
 
-thanks,
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index 6422fdd..2f411ea 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -108,7 +108,7 @@ unsigned char *v4lconvert_alloc_buffer(int needed,
+ int v4lconvert_oom_error(struct v4lconvert_data *data);
+ 
+ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+-		const struct v4l2_format *src_fmt, int bgr, int yvu);
++		const struct v4l2_format *src_fmt, int bgr, int yvu, int rgb32);
+ 
+ void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dst,
+ 		int width, int height, int yvu);
+@@ -158,6 +158,9 @@ void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
+ void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 		const struct v4l2_format *src_fmt);
+ 
++void v4lconvert_rgb32_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height, int bgr);
++
+ int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
+ 	const unsigned char *src, unsigned char *dest, int width, int height);
+ 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index bc5e34f..a5ada5b 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -84,6 +84,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	SUPPORTED_DST_PIXFMTS,
+ 	/* packed rgb formats */
+ 	{ V4L2_PIX_FMT_RGB565,		16,	 4,	 6,	0 },
++	{ V4L2_PIX_FMT_BGR32,		32,	 4,	 6,	0 },
++	{ V4L2_PIX_FMT_RGB32,		32,	 4,	 6,	0 },
+ 	/* yuv 4:2:2 formats */
+ 	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
+ 	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
+@@ -981,10 +983,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			v4lconvert_swap_rgb(d, dest, width, height);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 0);
++			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 0, 0);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 1);
++			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 1, 0);
+ 			break;
+ 		}
+ 		break;
+@@ -1079,10 +1081,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			v4lconvert_swap_rgb(src, dest, width, height);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0, 0);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1, 0);
+ 			break;
+ 		}
+ 		if (src_size < (width * height * 3)) {
+@@ -1101,10 +1103,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			memcpy(dest, src, width * height * 3);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0, 0);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1, 0);
+ 			break;
+ 		}
+ 		if (src_size < (width * height * 3)) {
+@@ -1114,6 +1116,50 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 		}
+ 		break;
+ 
++	case V4L2_PIX_FMT_RGB32:
++		switch (dest_pix_fmt) {
++		case V4L2_PIX_FMT_RGB24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 1);
++			break;
++		case V4L2_PIX_FMT_YUV420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0, 1);
++			break;
++		case V4L2_PIX_FMT_YVU420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1, 1);
++			break;
++		}
++		if (src_size < (width * height * 4)) {
++			V4LCONVERT_ERR("short rgb32 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		break;
++
++	case V4L2_PIX_FMT_BGR32:
++		switch (dest_pix_fmt) {
++		case V4L2_PIX_FMT_RGB24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 1);
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
++			break;
++		case V4L2_PIX_FMT_YUV420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0, 1);
++			break;
++		case V4L2_PIX_FMT_YVU420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1, 1);
++			break;
++		}
++		if (src_size < (width * height * 4)) {
++			V4LCONVERT_ERR("short bgr32 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		break;
++
+ 	case V4L2_PIX_FMT_YUV420:
+ 		switch (dest_pix_fmt) {
+ 		case V4L2_PIX_FMT_RGB24:
+diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+index bef034f..7d543d6 100644
+--- a/lib/libv4lconvert/rgbyuv.c
++++ b/lib/libv4lconvert/rgbyuv.c
+@@ -35,7 +35,7 @@
+ 	} while (0)
+ 
+ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+-		const struct v4l2_format *src_fmt, int bgr, int yvu)
++		const struct v4l2_format *src_fmt, int bgr, int yvu, int rgb32)
+ {
+ 	int x, y;
+ 	unsigned char *udest, *vdest;
+@@ -47,9 +47,15 @@ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 				RGB2Y(src[2], src[1], src[0], *dest++);
+ 			else
+ 				RGB2Y(src[0], src[1], src[2], *dest++);
+-			src += 3;
++			if (rgb32)
++				src += 4;
++			else
++				src += 3;
+ 		}
+-		src += src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
++		if (rgb32)
++			src += src_fmt->fmt.pix.bytesperline - 4 * src_fmt->fmt.pix.width;
++		else
++			src += src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
+ 	}
+ 	src -= src_fmt->fmt.pix.height * src_fmt->fmt.pix.bytesperline;
+ 
+@@ -66,19 +72,35 @@ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 		for (x = 0; x < src_fmt->fmt.pix.width / 2; x++) {
+ 			int avg_src[3];
+ 
+-			avg_src[0] = (src[0] + src[3] + src[src_fmt->fmt.pix.bytesperline] +
+-					src[src_fmt->fmt.pix.bytesperline + 3]) / 4;
+-			avg_src[1] = (src[1] + src[4] + src[src_fmt->fmt.pix.bytesperline + 1] +
+-					src[src_fmt->fmt.pix.bytesperline + 4]) / 4;
+-			avg_src[2] = (src[2] + src[5] + src[src_fmt->fmt.pix.bytesperline + 2] +
+-					src[src_fmt->fmt.pix.bytesperline + 5]) / 4;
++			if (rgb32) {
++				avg_src[0] = (src[0] + src[3] + src[src_fmt->fmt.pix.bytesperline] +
++						src[src_fmt->fmt.pix.bytesperline + 3]) / 4;
++				avg_src[1] = (src[1] + src[4] + src[src_fmt->fmt.pix.bytesperline + 1] +
++						src[src_fmt->fmt.pix.bytesperline + 4]) / 4;
++				avg_src[2] = (src[2] + src[5] + src[src_fmt->fmt.pix.bytesperline + 2] +
++						src[src_fmt->fmt.pix.bytesperline + 5]) / 4;
++			}
++			else{
++				avg_src[0] = (src[0] + src[4] + src[src_fmt->fmt.pix.bytesperline] +
++						src[src_fmt->fmt.pix.bytesperline + 4]) / 4;
++				avg_src[1] = (src[1] + src[5] + src[src_fmt->fmt.pix.bytesperline + 1] +
++						src[src_fmt->fmt.pix.bytesperline + 5]) / 4;
++				avg_src[2] = (src[2] + src[6] + src[src_fmt->fmt.pix.bytesperline + 2] +
++						src[src_fmt->fmt.pix.bytesperline + 6]) / 4;
++			}
+ 			if (bgr)
+ 				RGB2UV(avg_src[2], avg_src[1], avg_src[0], *udest++, *vdest++);
+ 			else
+ 				RGB2UV(avg_src[0], avg_src[1], avg_src[2], *udest++, *vdest++);
+-			src += 6;
++			if (rgb32)
++				src += 8;
++			else
++				src += 6;
+ 		}
+-		src += 2 * src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
++		if (rgb32)
++			src += 2 * src_fmt->fmt.pix.bytesperline - 4 * src_fmt->fmt.pix.width;
++		else
++			src += 2 * src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
+ 	}
+ }
+ 
+@@ -725,3 +747,25 @@ int v4lconvert_y10b_to_yuv420(struct v4lconvert_data *data,
+ 
+ 	return 0;
+ }
++
++void v4lconvert_rgb32_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height,int bgr)
++{
++	int j;
++	while (--height >= 0) {
++		for (j = 0; j < width; j++) {
++			if (bgr){
++				*dest++ = src[2];
++				*dest++ = src[1];
++				*dest++ = src[0];
++				src+=4;
++			}
++			else{
++				*dest++ = *src++;
++				*dest++ = *src++;
++				*dest++ = *src++;
++				src+=1;
++			}
++		}
++	}
++}
+-- 
+1.7.10.4
 
-greg k-h
