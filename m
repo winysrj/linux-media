@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56338 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752890Ab3HBBCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:33 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v5 8/9] vsp1: Fix lack of the sink entity registration for enabled links
-Date: Fri,  2 Aug 2013 03:03:27 +0200
-Message-Id: <1375405408-17134-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:45096 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754426Ab3HALTn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 07:19:43 -0400
+Received: by mail-pa0-f45.google.com with SMTP id bg4so2020987pad.4
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 04:19:43 -0700 (PDT)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, arun.kk@samsung.com, patches@linaro.org,
+	linaro-kernel@lists.linaro.org
+Subject: [PATCH] drm/exynos: Add check for IOMMU while passing physically continous memory flag
+Date: Thu,  1 Aug 2013 16:49:32 +0530
+Message-Id: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Katsuya Matsubara <matsu@igel.co.jp>
+While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
+connected with resolution 2560x1600, following error occured even with
+IOMMU enabled:
+[0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate buffer.
+[0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
 
-Each source entity maintains a pointer to the counterpart sink
-entity while an enabled link connects them. It should be managed by
-the setup_link callback in the media controller framework at runtime.
-However, enabled links which connect RPFs and WPFs that have an
-equivalent index number are created during initialization.
-This registers the pointer to a sink entity from the source entity
-when an enabled link is created.
+This patch fixes the issue by adding a check for IOMMU.
 
-Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+Signed-off-by: Arun Kumar <arun.kk@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index e58e49c..41dd891 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -101,6 +101,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
- 						       entity, pad, flags);
- 			if (ret < 0)
- 				return ret;
-+
-+			if (flags & MEDIA_LNK_FL_ENABLED)
-+				source->sink = entity;
- 		}
- 	}
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index 8e60bd6..2a86666 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -16,6 +16,7 @@
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_fb_helper.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/exynos_drm.h>
  
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_fb.h"
+@@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct drm_fb_helper *helper,
+ 	struct platform_device *pdev = dev->platformdev;
+ 	unsigned long size;
+ 	int ret;
++	unsigned int flag;
+ 
+ 	DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
+ 			sizes->surface_width, sizes->surface_height,
+@@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct drm_fb_helper *helper,
+ 	size = mode_cmd.pitches[0] * mode_cmd.height;
+ 
+ 	/* 0 means to allocate physically continuous memory */
+-	exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
++	if (!is_drm_iommu_supported(dev))
++		flag = 0;
++	else
++		flag = EXYNOS_BO_NONCONTIG;
++
++	exynos_gem_obj = exynos_drm_gem_create(dev, flag, size);
+ 	if (IS_ERR(exynos_gem_obj)) {
+ 		ret = PTR_ERR(exynos_gem_obj);
+ 		goto err_release_framebuffer;
 -- 
-1.8.1.5
+1.7.9.5
 
