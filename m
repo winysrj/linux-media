@@ -1,354 +1,487 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-blr1.sasken.com ([203.200.200.72]:13055 "EHLO
-	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754563Ab3HAKMs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 06:12:48 -0400
-From: Krishna Kishore <krishna.kishore@sasken.com>
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Prof DVB-S2 USB device
-Date: Thu, 1 Aug 2013 10:12:41 +0000
-Message-ID: <7CC27E99F1636344B0AC7B73D5BB86DE1487ECB7@exgmbxfz01.sasken.com>
-References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl>
- <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
- <51EF853E.2040108@schinagl.nl>
- <7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com>
- <51EFB4A8.2080202@schinagl.nl>
- <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>,<51EFC5D4.6000407@schinagl.nl>
- <7CC27E99F1636344B0AC7B73D5BB86DE14871DD0@exgmbxfz01.sasken.com>
- <51F761B3.4070905@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>
-In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:55475 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab3HARvH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 13:51:07 -0400
+Date: Thu, 01 Aug 2013 14:50:57 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Joe Perches <joe@perches.com>
+Cc: netdev@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+	Vitaly Bordug <vbordug@ru.mvista.com>,
+	Steve Glendinning <steve.glendinning@shawell.net>,
+	Samuel Ortiz <samuel@sortiz.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] include: Convert ethernet mac address declarations to
+ use ETH_ALEN
+Message-id: <20130801145057.537508a4@samsung.com>
+In-reply-to: <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
+References: <cover.1375075325.git.joe@perches.com>
+ <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Sun, 28 Jul 2013 22:29:04 -0700
+Joe Perches <joe@perches.com> escreveu:
+
+> It's convenient to have ethernet mac addresses use
+> ETH_ALEN to be able to grep for them a bit easier and
+> also to ensure that the addresses are __aligned(2).
+> 
+> Add #include <linux/if_ether.h> as necessary.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  include/acpi/actbl2.h           |  4 ++-
+>  include/linux/dm9000.h          |  4 ++-
+>  include/linux/fs_enet_pd.h      |  3 ++-
+>  include/linux/ieee80211.h       | 59 +++++++++++++++++++++--------------------
+>  include/linux/mlx4/device.h     | 11 ++++----
+>  include/linux/mlx4/qp.h         |  5 ++--
+>  include/linux/mv643xx_eth.h     |  3 ++-
+>  include/linux/sh_eth.h          |  3 ++-
+>  include/linux/smsc911x.h        |  3 ++-
+>  include/linux/uwb/spec.h        |  5 ++--
+>  include/media/tveeprom.h        |  4 ++-
+
+I'm ok with the change at media/tveeprom.h.
+
+Please add my ack on the next version after handling Rafael's request
+on acpi.
+
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+>  include/net/irda/irlan_common.h |  3 ++-
+>  12 files changed, 61 insertions(+), 46 deletions(-)
+> 
+> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+> index ffaac0e..3f0f11c 100644
+> --- a/include/acpi/actbl2.h
+> +++ b/include/acpi/actbl2.h
+> @@ -44,6 +44,8 @@
+>  #ifndef __ACTBL2_H__
+>  #define __ACTBL2_H__
+>  
+> +#include <linux/if_ether.h>
+> +
+>  /*******************************************************************************
+>   *
+>   * Additional ACPI Tables (2)
+> @@ -605,7 +607,7 @@ struct acpi_ibft_nic {
+>  	u8 secondary_dns[16];
+>  	u8 dhcp[16];
+>  	u16 vlan;
+> -	u8 mac_address[6];
+> +	u8 mac_address[ETH_ALEN];
+>  	u16 pci_address;
+>  	u16 name_length;
+>  	u16 name_offset;
+> diff --git a/include/linux/dm9000.h b/include/linux/dm9000.h
+> index 96e8769..841925f 100644
+> --- a/include/linux/dm9000.h
+> +++ b/include/linux/dm9000.h
+> @@ -14,6 +14,8 @@
+>  #ifndef __DM9000_PLATFORM_DATA
+>  #define __DM9000_PLATFORM_DATA __FILE__
+>  
+> +#include <linux/if_ether.h>
+> +
+>  /* IO control flags */
+>  
+>  #define DM9000_PLATF_8BITONLY	(0x0001)
+> @@ -27,7 +29,7 @@
+>  
+>  struct dm9000_plat_data {
+>  	unsigned int	flags;
+> -	unsigned char	dev_addr[6];
+> +	unsigned char	dev_addr[ETH_ALEN];
+>  
+>  	/* allow replacement IO routines */
+>  
+> diff --git a/include/linux/fs_enet_pd.h b/include/linux/fs_enet_pd.h
+> index 51b7934..343d82a 100644
+> --- a/include/linux/fs_enet_pd.h
+> +++ b/include/linux/fs_enet_pd.h
+> @@ -18,6 +18,7 @@
+>  
+>  #include <linux/string.h>
+>  #include <linux/of_mdio.h>
+> +#include <linux/if_ether.h>
+>  #include <asm/types.h>
+>  
+>  #define FS_ENET_NAME	"fs_enet"
+> @@ -135,7 +136,7 @@ struct fs_platform_info {
+>  	const struct fs_mii_bus_info *bus_info;
+>  
+>  	int rx_ring, tx_ring;	/* number of buffers on rx     */
+> -	__u8 macaddr[6];	/* mac address                 */
+> +	__u8 macaddr[ETH_ALEN];	/* mac address                 */
+>  	int rx_copybreak;	/* limit we copy small frames  */
+>  	int use_napi;		/* use NAPI                    */
+>  	int napi_weight;	/* NAPI weight                 */
+> diff --git a/include/linux/ieee80211.h b/include/linux/ieee80211.h
+> index b0dc87a..4e101af 100644
+> --- a/include/linux/ieee80211.h
+> +++ b/include/linux/ieee80211.h
+> @@ -16,6 +16,7 @@
+>  #define LINUX_IEEE80211_H
+>  
+>  #include <linux/types.h>
+> +#include <linux/if_ether.h>
+>  #include <asm/byteorder.h>
+>  
+>  /*
+> @@ -209,28 +210,28 @@ static inline u16 ieee80211_sn_sub(u16 sn1, u16 sn2)
+>  struct ieee80211_hdr {
+>  	__le16 frame_control;
+>  	__le16 duration_id;
+> -	u8 addr1[6];
+> -	u8 addr2[6];
+> -	u8 addr3[6];
+> +	u8 addr1[ETH_ALEN];
+> +	u8 addr2[ETH_ALEN];
+> +	u8 addr3[ETH_ALEN];
+>  	__le16 seq_ctrl;
+> -	u8 addr4[6];
+> +	u8 addr4[ETH_ALEN];
+>  } __packed __aligned(2);
+>  
+>  struct ieee80211_hdr_3addr {
+>  	__le16 frame_control;
+>  	__le16 duration_id;
+> -	u8 addr1[6];
+> -	u8 addr2[6];
+> -	u8 addr3[6];
+> +	u8 addr1[ETH_ALEN];
+> +	u8 addr2[ETH_ALEN];
+> +	u8 addr3[ETH_ALEN];
+>  	__le16 seq_ctrl;
+>  } __packed __aligned(2);
+>  
+>  struct ieee80211_qos_hdr {
+>  	__le16 frame_control;
+>  	__le16 duration_id;
+> -	u8 addr1[6];
+> -	u8 addr2[6];
+> -	u8 addr3[6];
+> +	u8 addr1[ETH_ALEN];
+> +	u8 addr2[ETH_ALEN];
+> +	u8 addr3[ETH_ALEN];
+>  	__le16 seq_ctrl;
+>  	__le16 qos_ctrl;
+>  } __packed __aligned(2);
+> @@ -608,8 +609,8 @@ struct ieee80211s_hdr {
+>  	u8 flags;
+>  	u8 ttl;
+>  	__le32 seqnum;
+> -	u8 eaddr1[6];
+> -	u8 eaddr2[6];
+> +	u8 eaddr1[ETH_ALEN];
+> +	u8 eaddr2[ETH_ALEN];
+>  } __packed __aligned(2);
+>  
+>  /* Mesh flags */
+> @@ -758,7 +759,7 @@ struct ieee80211_rann_ie {
+>  	u8 rann_flags;
+>  	u8 rann_hopcount;
+>  	u8 rann_ttl;
+> -	u8 rann_addr[6];
+> +	u8 rann_addr[ETH_ALEN];
+>  	__le32 rann_seq;
+>  	__le32 rann_interval;
+>  	__le32 rann_metric;
+> @@ -802,9 +803,9 @@ enum ieee80211_vht_opmode_bits {
+>  struct ieee80211_mgmt {
+>  	__le16 frame_control;
+>  	__le16 duration;
+> -	u8 da[6];
+> -	u8 sa[6];
+> -	u8 bssid[6];
+> +	u8 da[ETH_ALEN];
+> +	u8 sa[ETH_ALEN];
+> +	u8 bssid[ETH_ALEN];
+>  	__le16 seq_ctrl;
+>  	union {
+>  		struct {
+> @@ -833,7 +834,7 @@ struct ieee80211_mgmt {
+>  		struct {
+>  			__le16 capab_info;
+>  			__le16 listen_interval;
+> -			u8 current_ap[6];
+> +			u8 current_ap[ETH_ALEN];
+>  			/* followed by SSID and Supported rates */
+>  			u8 variable[0];
+>  		} __packed reassoc_req;
+> @@ -966,21 +967,21 @@ struct ieee80211_vendor_ie {
+>  struct ieee80211_rts {
+>  	__le16 frame_control;
+>  	__le16 duration;
+> -	u8 ra[6];
+> -	u8 ta[6];
+> +	u8 ra[ETH_ALEN];
+> +	u8 ta[ETH_ALEN];
+>  } __packed __aligned(2);
+>  
+>  struct ieee80211_cts {
+>  	__le16 frame_control;
+>  	__le16 duration;
+> -	u8 ra[6];
+> +	u8 ra[ETH_ALEN];
+>  } __packed __aligned(2);
+>  
+>  struct ieee80211_pspoll {
+>  	__le16 frame_control;
+>  	__le16 aid;
+> -	u8 bssid[6];
+> -	u8 ta[6];
+> +	u8 bssid[ETH_ALEN];
+> +	u8 ta[ETH_ALEN];
+>  } __packed __aligned(2);
+>  
+>  /* TDLS */
+> @@ -989,14 +990,14 @@ struct ieee80211_pspoll {
+>  struct ieee80211_tdls_lnkie {
+>  	u8 ie_type; /* Link Identifier IE */
+>  	u8 ie_len;
+> -	u8 bssid[6];
+> -	u8 init_sta[6];
+> -	u8 resp_sta[6];
+> +	u8 bssid[ETH_ALEN];
+> +	u8 init_sta[ETH_ALEN];
+> +	u8 resp_sta[ETH_ALEN];
+>  } __packed;
+>  
+>  struct ieee80211_tdls_data {
+> -	u8 da[6];
+> -	u8 sa[6];
+> +	u8 da[ETH_ALEN];
+> +	u8 sa[ETH_ALEN];
+>  	__be16 ether_type;
+>  	u8 payload_type;
+>  	u8 category;
+> @@ -1090,8 +1091,8 @@ struct ieee80211_p2p_noa_attr {
+>  struct ieee80211_bar {
+>  	__le16 frame_control;
+>  	__le16 duration;
+> -	__u8 ra[6];
+> -	__u8 ta[6];
+> +	__u8 ra[ETH_ALEN];
+> +	__u8 ta[ETH_ALEN];
+>  	__le16 control;
+>  	__le16 start_seq_num;
+>  } __packed;
+> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+> index 52c23a8..e37ac2b 100644
+> --- a/include/linux/mlx4/device.h
+> +++ b/include/linux/mlx4/device.h
+> @@ -33,6 +33,7 @@
+>  #ifndef MLX4_DEVICE_H
+>  #define MLX4_DEVICE_H
+>  
+> +#include <linux/if_ether.h>
+>  #include <linux/pci.h>
+>  #include <linux/completion.h>
+>  #include <linux/radix-tree.h>
+> @@ -619,7 +620,7 @@ struct mlx4_eth_av {
+>  	u8		dgid[16];
+>  	u32		reserved4[2];
+>  	__be16		vlan;
+> -	u8		mac[6];
+> +	u8		mac[ETH_ALEN];
+>  };
+>  
+>  union mlx4_ext_av {
+> @@ -913,10 +914,10 @@ enum mlx4_net_trans_promisc_mode {
+>  };
+>  
+>  struct mlx4_spec_eth {
+> -	u8	dst_mac[6];
+> -	u8	dst_mac_msk[6];
+> -	u8	src_mac[6];
+> -	u8	src_mac_msk[6];
+> +	u8	dst_mac[ETH_ALEN];
+> +	u8	dst_mac_msk[ETH_ALEN];
+> +	u8	src_mac[ETH_ALEN];
+> +	u8	src_mac_msk[ETH_ALEN];
+>  	u8	ether_type_enable;
+>  	__be16	ether_type;
+>  	__be16	vlan_id_msk;
+> diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
+> index 262deac..6d35147 100644
+> --- a/include/linux/mlx4/qp.h
+> +++ b/include/linux/mlx4/qp.h
+> @@ -34,6 +34,7 @@
+>  #define MLX4_QP_H
+>  
+>  #include <linux/types.h>
+> +#include <linux/if_ether.h>
+>  
+>  #include <linux/mlx4/device.h>
+>  
+> @@ -143,7 +144,7 @@ struct mlx4_qp_path {
+>  	u8			feup;
+>  	u8			fvl_rx;
+>  	u8			reserved4[2];
+> -	u8			dmac[6];
+> +	u8			dmac[ETH_ALEN];
+>  };
+>  
+>  enum { /* fl */
+> @@ -318,7 +319,7 @@ struct mlx4_wqe_datagram_seg {
+>  	__be32			dqpn;
+>  	__be32			qkey;
+>  	__be16			vlan;
+> -	u8			mac[6];
+> +	u8			mac[ETH_ALEN];
+>  };
+>  
+>  struct mlx4_wqe_lso_seg {
+> diff --git a/include/linux/mv643xx_eth.h b/include/linux/mv643xx_eth.h
+> index 6e8215b..61a0da3 100644
+> --- a/include/linux/mv643xx_eth.h
+> +++ b/include/linux/mv643xx_eth.h
+> @@ -6,6 +6,7 @@
+>  #define __LINUX_MV643XX_ETH_H
+>  
+>  #include <linux/mbus.h>
+> +#include <linux/if_ether.h>
+>  
+>  #define MV643XX_ETH_SHARED_NAME		"mv643xx_eth"
+>  #define MV643XX_ETH_NAME		"mv643xx_eth_port"
+> @@ -48,7 +49,7 @@ struct mv643xx_eth_platform_data {
+>  	 * Use this MAC address if it is valid, overriding the
+>  	 * address that is already in the hardware.
+>  	 */
+> -	u8			mac_addr[6];
+> +	u8			mac_addr[ETH_ALEN];
+>  
+>  	/*
+>  	 * If speed is 0, autonegotiation is enabled.
+> diff --git a/include/linux/sh_eth.h b/include/linux/sh_eth.h
+> index fc30571..6205eeb 100644
+> --- a/include/linux/sh_eth.h
+> +++ b/include/linux/sh_eth.h
+> @@ -2,6 +2,7 @@
+>  #define __ASM_SH_ETH_H__
+>  
+>  #include <linux/phy.h>
+> +#include <linux/if_ether.h>
+>  
+>  enum {EDMAC_LITTLE_ENDIAN, EDMAC_BIG_ENDIAN};
+>  enum {
+> @@ -18,7 +19,7 @@ struct sh_eth_plat_data {
+>  	phy_interface_t phy_interface;
+>  	void (*set_mdio_gate)(void *addr);
+>  
+> -	unsigned char mac_addr[6];
+> +	unsigned char mac_addr[ETH_ALEN];
+>  	unsigned no_ether_link:1;
+>  	unsigned ether_link_active_low:1;
+>  	unsigned needs_init:1;
+> diff --git a/include/linux/smsc911x.h b/include/linux/smsc911x.h
+> index 4dde70e..eec3efd 100644
+> --- a/include/linux/smsc911x.h
+> +++ b/include/linux/smsc911x.h
+> @@ -22,6 +22,7 @@
+>  #define __LINUX_SMSC911X_H__
+>  
+>  #include <linux/phy.h>
+> +#include <linux/if_ether.h>
+>  
+>  /* platform_device configuration data, should be assigned to
+>   * the platform_device's dev.platform_data */
+> @@ -31,7 +32,7 @@ struct smsc911x_platform_config {
+>  	unsigned int flags;
+>  	unsigned int shift;
+>  	phy_interface_t phy_interface;
+> -	unsigned char mac[6];
+> +	unsigned char mac[ETH_ALEN];
+>  };
+>  
+>  /* Constants for platform_device irq polarity configuration */
+> diff --git a/include/linux/uwb/spec.h b/include/linux/uwb/spec.h
+> index b52e44f..0df24bf 100644
+> --- a/include/linux/uwb/spec.h
+> +++ b/include/linux/uwb/spec.h
+> @@ -32,6 +32,7 @@
+>  
+>  #include <linux/types.h>
+>  #include <linux/bitmap.h>
+> +#include <linux/if_ether.h>
+>  
+>  #define i1480_FW 0x00000303
+>  /* #define i1480_FW 0x00000302 */
+> @@ -130,7 +131,7 @@ enum { UWB_DRP_BACKOFF_WIN_MAX = 16 };
+>   * it is also used to define headers sent down and up the wire/radio).
+>   */
+>  struct uwb_mac_addr {
+> -	u8 data[6];
+> +	u8 data[ETH_ALEN];
+>  } __attribute__((packed));
+>  
+>  
+> @@ -568,7 +569,7 @@ struct uwb_rc_evt_confirm {
+>  /* Device Address Management event. [WHCI] section 3.1.3.2. */
+>  struct uwb_rc_evt_dev_addr_mgmt {
+>  	struct uwb_rceb rceb;
+> -	u8 baAddr[6];
+> +	u8 baAddr[ETH_ALEN];
+>  	u8 bResultCode;
+>  } __attribute__((packed));
+>  
+> diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
+> index 4a1191a..f7119ee 100644
+> --- a/include/media/tveeprom.h
+> +++ b/include/media/tveeprom.h
+> @@ -12,6 +12,8 @@ enum tveeprom_audio_processor {
+>  	TVEEPROM_AUDPROC_OTHER,
+>  };
+>  
+> +#include <linux/if_ether.h>
+> +
+>  struct tveeprom {
+>  	u32 has_radio;
+>  	/* If has_ir == 0, then it is unknown what the IR capabilities are,
+> @@ -40,7 +42,7 @@ struct tveeprom {
+>  	u32 revision;
+>  	u32 serial_number;
+>  	char rev_str[5];
+> -	u8 MAC_address[6];
+> +	u8 MAC_address[ETH_ALEN];
+>  };
+>  
+>  void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+> diff --git a/include/net/irda/irlan_common.h b/include/net/irda/irlan_common.h
+> index 0af8b8d..550c2d6 100644
+> --- a/include/net/irda/irlan_common.h
+> +++ b/include/net/irda/irlan_common.h
+> @@ -32,6 +32,7 @@
+>  #include <linux/types.h>
+>  #include <linux/skbuff.h>
+>  #include <linux/netdevice.h>
+> +#include <linux/if_ether.h>
+>  
+>  #include <net/irda/irttp.h>
+>  
+> @@ -161,7 +162,7 @@ struct irlan_provider_cb {
+>  	int access_type;     /* Access type */
+>  	__u16 send_arb_val;
+>  
+> -	__u8 mac_address[6]; /* Generated MAC address for peer device */
+> +	__u8 mac_address[ETH_ALEN]; /* Generated MAC address for peer device */
+>  };
+>  
+>  /*
 
 
-   Does anyone know about the following error?  I am using Linux kernel 3.9.0. I am getting this error with 3.8.4 also.
+-- 
 
-[  233.017242] PM: Syncing filesystems ... done.
-[  233.253112] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[  233.273712] Freezing remaining freezable tasks ... 
-[  253.291076] Freezing of tasks failed after 20.01 seconds (1 tasks refusing to freeze, wq_busy=0):
-[  253.300445] khubd           D c053586c     0   446      2 0x00000000
-[  253.307220] [<c053586c>] (__schedule+0x37c/0x7e0) from [<c053366c>] (schedule_timeout+0x124/0x220)
-[  253.316741] [<c053366c>] (schedule_timeout+0x124/0x220) from [<c05353a8>] (wait_for_common+0xac/0x150)
-[  253.326599] [<c05353a8>] (wait_for_common+0xac/0x150) from [<c03c0a68>] (usb_start_wait_urb+0x60/0x128)
-[  253.336547] [<c03c0a68>] (usb_start_wait_urb+0x60/0x128) from [<c03c0cec>] (usb_control_msg+0xc0/0xe4)
-[  253.346405] [<c03c0cec>] (usb_control_msg+0xc0/0xe4) from [<c04288a0>] (dw210x_op_rw+0x94/0x108)
-[  253.355712] [<c04288a0>] (dw210x_op_rw+0x94/0x108) from [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0)
-[  253.365386] [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0) from [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0)
-[  253.375823] [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0) from [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0)
-[  253.386810] [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0) from [<c042664c>] (dvb_usb_device_init+0x444/0x608)
-[  253.397766] [<c042664c>] (dvb_usb_device_init+0x444/0x608) from [<c0428718>] (dw2102_probe+0x24c/0x340)
-[  253.407714] [<c0428718>] (dw2102_probe+0x24c/0x340) from [<c03c3da8>] (usb_probe_interface+0x1c0/0x260)
-[  253.417663] [<c03c3da8>] (usb_probe_interface+0x1c0/0x260) from [<c032eec4>] (driver_probe_device+0x108/0x21c)
-[  253.428253] [<c032eec4>] (driver_probe_device+0x108/0x21c) from [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
-[  253.438385] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from [<c032ed88>] (device_attach+0x78/0x90)
-[  253.447784] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>] (bus_probe_device+0x88/0xac)
-[  253.457183] [<c032e3d8>] (bus_probe_device+0x88/0xac) from [<c032cc64>] (device_add+0x4b0/0x584)
-[  253.466491] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03c2200>] (usb_set_configuration+0x574/0x78c)
-[  253.476470] [<c03c2200>] (usb_set_configuration+0x574/0x78c) from [<c03caa74>] (generic_probe+0x34/0x78)
-[  253.486511] [<c03caa74>] (generic_probe+0x34/0x78) from [<c03c3e84>] (usb_probe_device+0x3c/0x60)
-[  253.495910] [<c03c3e84>] (usb_probe_device+0x3c/0x60) from [<c032eec4>] (driver_probe_device+0x108/0x21c)
-[  253.506042] [<c032eec4>] (driver_probe_device+0x108/0x21c) from [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
-[  253.516174] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from [<c032ed88>] (device_attach+0x78/0x90)
-[  253.525573] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>] (bus_probe_device+0x88/0xac)
-[  253.534973] [<c032e3d8>] (bus_probe_device+0x88/0xac) from [<c032cc64>] (device_add+0x4b0/0x584)
-[  253.544281] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03b96a4>] (usb_new_device+0x1ec/0x360)
-[  253.553588] [<c03b96a4>] (usb_new_device+0x1ec/0x360) from [<c03bab1c>] (hub_thread+0x714/0x1360)
-[  253.563018] [<c03bab1c>] (hub_thread+0x714/0x1360) from [<c0062dc0>] (kthread+0xa4/0xb0)
-[  253.571624] [<c0062dc0>] (kthread+0xa4/0xb0) from [<c0013230>] (ret_from_fork+0x14/0x24)
-[  253.580169] 
-[  253.581756] Restarting kernel threads ... done.
-[  253.587005] Restarting tasks ... done.
-[  259.016845] PM: Syncing filesystems ... done.
-[  259.155700] Freezing user space processes ... (elapsed 0.02 seconds) done.
-
-
-
-
-Regards,
-Kishore
-________________________________________
-From: Krishna Kishore
-Sent: Wednesday, July 31, 2013 4:08 PM
-To: Oliver Schinagl
-Cc: linux-media@vger.kernel.org
-Subject: RE: Prof DVB-S2 USB device
-
-Hi Oliver,
-
-   I migrated to Ubuntu 13.04 on desktop and tried. It worked !
-   It uses linux kernel 3.8.0. If I use this version of linux kernel or greater on Pandaboard, it may work on Pandaboard also.
-
-Regards,
-Kishore.
-
-
-
-
------Original Message-----
-From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
-Sent: Tuesday, July 30, 2013 12:18 PM
-To: Krishna Kishore
-Cc: linux-media@vger.kernel.org
-Subject: Re: Prof DVB-S2 USB device
-
-On 30-07-13 08:25, Krishna Kishore wrote:
-> Hi Oliver,
->
->       3.10.2 booted on Pandaboard. Now, I am trying to connect Prof 7500 DVB-S2 device. It does not get detected as new USB device.
->
->      .config file is attached to this email. Am I missing any config? Can you please let me know?
- From a quick glance I noticed you are missing the CONFIG_USB_EHCI_HCD (EHCI Host controller) it appears you don't have a USB host controller enabled at all? But i'm not sure what kind of USB controller omap4 has.
-
-oliver
->
-> Regards,
-> Kishore.
-> ________________________________________
-> From: Oliver Schinagl [oliver+list@schinagl.nl]
-> Sent: Wednesday, July 24, 2013 5:47 PM
-> To: Krishna Kishore
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Prof DVB-S2 USB device
->
-> On 24-07-13 13:20, Krishna Kishore wrote:
->>
->> On Desktop PC (Ubuntu 12.04 which has 3.2.0 Kernel) also, I am not getting the list of channels when I scan. I am using Kaffeine.
-> While I understand you prefer to run a LTS distro, 3.2.0 is old!
->
-> The reason why I keep bringing this up, media drivers are almost
-> updated daily. So if you want to see if your issue is fixed, the most
-> ideal start for this investigation is the media git kernel tree. While
-> I understand building your own kernel might be a little too much, try
-> an Ubuntu 13.04 Live cd, it should come with a 3.9 kernel, not
-> extremly old, but should have most of the recent media changes. Now if
-> it doesn't work right on that, well, then you'd have to build your own
-> media drivers from the git tree. If those don't work, then we can
-> start talking to developers. Otherwise, you are trying to troubleshoot
-> something, that has long been fixed.
->
-> oliver
->>
->>
->>
->>
->> -----Original Message-----
->> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
->> Sent: Wednesday, July 24, 2013 4:34 PM
->> To: Krishna Kishore
->> Cc: linux-media@vger.kernel.org
->> Subject: Re: Prof DVB-S2 USB device
->>
->> On 24-07-13 10:59, Krishna Kishore wrote:
->>> Dear Oliver,
->>>
->>>           Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
->>>
->>>            Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
->>>
->>>          I am downloading 3.4.54 and 3.10.2 now.
->> What do you get when using on a regular PC? Your beagle board may (or may not) yet be supported by mainline 3.10.1 kernel.
->>
->> Try it in a regular PC and see what happens there with 3.10.2
->>>
->>> Regards,
->>> Kishore.
->>>
->>> -----Original Message-----
->>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
->>> Sent: Wednesday, July 24, 2013 1:12 PM
->>> To: Krishna Kishore
->>> Cc: linux-media@vger.kernel.org
->>> Subject: Re: Prof DVB-S2 USB device
->>>
->>> On 24-07-13 08:56, Krishna Kishore wrote:
->>>> Dear Oliver,
->>>>
->>>>        Thanks for your response. Here are more details. Please help me in making this work.
->>>>
->>>>        Linux version:
->>>>
->>>> -sh-4.1# uname -a
->>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>>> armv7l GNU/Linux
->>> Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
->>>
->>> So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
->>>
->>> Meanwhile, since this is an USB device, you could try it on a desktop.
->>> Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
->>>>
->>>> [dotconfig is attached to this email]
->>>>
->>>> lsusb -t:
->>>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
->>>>         |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
->>>>             |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
->>>>             |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
->>>>
->>>> dmesg:
->>>> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
->>>> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
->>>> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB
->>>> device
->>>> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
->>>> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
->>>> [  127.051177] dw2102: start downloading DW210X firmware [
->>>> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
->>>> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
->>>> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
->>>> [ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [
->>>> 1159.325531]
->>>> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
->>>> 1159.340332] Kishore stv0900_attach:
->>>> [ 1159.340362] stv0900_init_internal [ 1159.340393]
->>>> stv0900_init_internal: Create New Internal Structure!
->>>> [ 1159.340423] stv0900_read_reg
->>>> [ 1179.527770] stv0900_read_reg
->>>> [ 1550.418365] stv0900_read_reg
->>>> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
->>>> stv0900_stop_all_s2_modcod [ 1669.340270]
->>>> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
->>>> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
->>>> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
->>>> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
->>>> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
->>>> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
->>>> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
->>>> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
->>>> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
->>>> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
->>>> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
->>>> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
->>>> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
->>>> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
->>>> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
->>>> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated
->>>> Mclk = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
->>>> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
->>>> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
->>>> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [
->>>> 1891.090332] [ 1891.097442] Kishore stb6100_attach:
->>>> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
->>>> 1893.105957] dw2102: Attached STV0900+STB6100A!
->>>> [ 1893.105957]
->>>> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
->>>> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
->>>> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input
->>>> 2 [ 1893.177368] dvb-usb: schedule remote query interval to 150
->>>> msecs.
->>>> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
->>>>
->>>>
->>>>
->>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>>> armv7l GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s
->>>> S93E5 -c IN -G >> ch.conf w_scan version 20120112 (compiled for DVB
->>>> API
->>>> 5.4) using settings for 93.5 east Insat 3A/4B scan type SATELLITE,
->>>> channellist 42 output format gstreamer
->>>> WARNING: could not guess your codepage. Falling back to 'UTF-8'
->>>> output charset 'UTF-8', use -C <charset> to override
->>>> Info: using DVB adapter auto detection.
->>>>
->>>>             /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
->>>> very good :-))
->>>>
->>>> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
->>>> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
->>>> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
->>>> DVB-S2
->>>> FREQ (0.95GHz ... 2.15GHz)
->>>> SRATE (1.000MBd ... 45.000MBd)
->>>> using LNB "UNIVERSAL"
->>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->>>> (time: 00:40)
->>>>
->>>> dmesg logs:
->>>>
->>>> [1716261.743961] stv0900_init
->>>> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
->>>> stv0900_read_status:
->>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>>> [1716345.004236] stv0900_search:
->>>> [1716345.004242] stv0900_read_status:
->>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>>> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone:
->>>> Off [1716307.004132] stv0900_read_status:
->>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>>> [1716345.004236] stv0900_search:
->>>> [1716345.004242] stv0900_read_status:
->>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>>> [1716455.004184] stv0900_search:
->>>> [1716455.004190] stv0900_read_status:
->>>> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
->>>> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315]
->>>> TS bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
->>>>
->>>> Regards,
->>>> Kishore.
->>>> ________________________________________
->>>> From: Oliver Schinagl [oliver+list@schinagl.nl]
->>>> Sent: Wednesday, July 24, 2013 2:34 AM
->>>> To: Krishna Kishore
->>>> Cc: linux-media@vger.kernel.org
->>>> Subject: Re: Prof DVB-S2 USB device
->>>>
->>>> On 23-07-13 18:52, Krishna Kishore wrote:
->>>>> #Sorry for sending to individual email ids
->>>>>
->>>>> Hi,
->>>>>
->>>>>           I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
->>>> You will need to provide much more information then that. What does
->>>> dmesg say? lsusb? what driver are you using, what kernel version?
->>>> Are you using it as a module? Have you enabled debugging in your kernel?
->>>>
->>>> Those questions come to my mind.
->>>>
->>>>>
->>>>> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
->>>>> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
->>>>> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
->>>> Paste your logs (or if its too much, only copy/paste the relevant parts.
->>>> You ask for a limb, yet offer nothing.
->>>>
->>>> oliver
->>>>>
->>>>>            Can you please help me?
->>>>>
->>>>>
->>>>> Regards,
->>>>> Kishore.
->>>>>
->>>>>
->>>>>
->>>>
->>>>
->>>>
->>>> ________________________________
->>>>
->>>> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
->>>> Read Disclaimer at
->>>> http://www.sasken.com/extras/mail_disclaimer.html
->>>>
->>>
->>
->
-
+Cheers,
+Mauro
