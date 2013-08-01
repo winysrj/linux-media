@@ -1,151 +1,444 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56332 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400Ab3HBBC3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:29 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v5 0/9] Renesas VSP1 driver
-Date: Fri,  2 Aug 2013 03:03:19 +0200
-Message-Id: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:47769 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756546Ab3HAUPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Aug 2013 16:15:09 -0400
+From: Joe Perches <joe@perches.com>
+To: netdev@vger.kernel.org
+Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+	Vitaly Bordug <vbordug@ru.mvista.com>,
+	Steve Glendinning <steve.glendinning@shawell.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Samuel Ortiz <samuel@sortiz.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH V2 2/3] include: Convert ethernet mac address declarations to use ETH_ALEN
+Date: Thu,  1 Aug 2013 13:14:36 -0700
+Message-Id: <9988b63dab92842f5fa48a5330c8187bf391fa17.1375387593.git.joe@perches.com>
+In-Reply-To: <cover.1375387593.git.joe@perches.com>
+References: <cover.1375387593.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+It's convenient to have ethernet mac addresses use
+ETH_ALEN to be able to grep for them a bit easier and
+also to ensure that the addresses are __aligned(2).
 
-Here's the fifth version of the VSP1 engine (a Video Signal Processor found
-in several Renesas R-Car SoCs) driver. This version adds two additional
-documentation clarification patches that I hope won't trigger another round of
-review :-)
+Add #include <linux/if_ether.h> as necessary.
 
-The VSP1 is a video processing engine that includes a blender, scalers,
-filters and statistics computation. Configurable data path routing logic
-allows ordering the internal blocks in a flexible way, making this driver a
-prime candidate for the media controller API.
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ include/linux/dm9000.h          |  4 ++-
+ include/linux/fs_enet_pd.h      |  3 ++-
+ include/linux/ieee80211.h       | 59 +++++++++++++++++++++--------------------
+ include/linux/mlx4/device.h     | 11 ++++----
+ include/linux/mlx4/qp.h         |  5 ++--
+ include/linux/mv643xx_eth.h     |  3 ++-
+ include/linux/sh_eth.h          |  3 ++-
+ include/linux/smsc911x.h        |  3 ++-
+ include/linux/uwb/spec.h        |  5 ++--
+ include/media/tveeprom.h        |  4 ++-
+ include/net/irda/irlan_common.h |  3 ++-
+ 11 files changed, 58 insertions(+), 45 deletions(-)
 
-Due to the configurable nature of the pipeline the driver doesn't use the V4L2
-mem-to-mem framework, even though the device usually operates in memory to
-memory mode.
-
-Only the read pixel formatters, up/down scalers, write pixel formatters and
-LCDC interface are supported at this stage.
-
-The patch series starts with a fix for the media controller graph traversal
-code, three documentation fixes and new pixel format and media bus code
-definitions. The last three patches finally add the VSP1 driver and fix two
-issues (I haven't squashed the patches together to keep proper attribution).
-
-Changes since v1:
-
-- Updated to the v3.11 media controller API changes
-- Only add the LIF entity to the entities list when the LIF is present
-- Added a MODULE_ALIAS()
-- Fixed file descriptions in comment blocks
-- Removed function prototypes for the unimplemented destroy functions
-- Fixed a typo in the HST register name
-- Fixed format propagation for the UDS entities
-- Added v4l2_capability::device_caps support
-- Prefix the device name with "platform:" in bus_info
-- Zero the v4l2_pix_format priv field in the internal try format handler
-- Use vb2_is_busy() instead of vb2_is_streaming() when setting the
-  format
-- Use the vb2_ioctl_* handlers where possible
-
-Changes since v2:
-
-- Use a bitmap to track visited entities during graph traversal
-- Fixed a typo in the V4L2_MBUS_FMT_ARGB888_1X32 documentation
-- Fix register macros that were missing a n argument
-- Mask unused bits when clearing the interrupt status register
-- Explain why stride alignment to 128 bytes is needed
-- Use the aligned stride value when computing the image size
-- Assorted cosmetic changes
-
-Changes since v3:
-
-- Handle timeout errors when resetting WPFs
-- Use DECLARE_BITMAP
-- Update the NV16M/NV61M documentation to mention the multi-planar API for
-  NV61M
-
-Changes since v4:
-
-- Clarify the VIDIOC_CREATE_BUFS format requirements in the V4L2
-  documentation
-- Clarify vb2 queue_setup() and buf_prepare() usage documentation
-- Remove duplicate printk's in devm_* error paths
-- Implement VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF support
-- Reject invalid buffers in the .buffer_queue() handler
-
-Katsuya Matsubara (2):
-  vsp1: Fix lack of the sink entity registration for enabled links
-  vsp1: Use the maximum number of entities defined in platform data
-
-Laurent Pinchart (7):
-  media: Add support for circular graph traversal
-  Documentation: media: Clarify the VIDIOC_CREATE_BUFS format
-    requirements
-  videobuf2: Clarify queue_setup() and buf_prepare() usage documentation
-  v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-  v4l: Add media format codes for ARGB8888 and AYUV8888 on 32-bit busses
-  v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-  v4l: Renesas R-Car VSP1 driver
-
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml   |  171 +++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- Documentation/DocBook/media/v4l/subdev-formats.xml |  611 ++++------
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |   15 +-
- Documentation/DocBook/media_api.tmpl               |    6 +
- drivers/media/media-entity.c                       |   14 +-
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/vsp1/Makefile               |    5 +
- drivers/media/platform/vsp1/vsp1.h                 |   73 ++
- drivers/media/platform/vsp1/vsp1_drv.c             |  495 ++++++++
- drivers/media/platform/vsp1/vsp1_entity.c          |  181 +++
- drivers/media/platform/vsp1/vsp1_entity.h          |   68 ++
- drivers/media/platform/vsp1/vsp1_lif.c             |  238 ++++
- drivers/media/platform/vsp1/vsp1_lif.h             |   37 +
- drivers/media/platform/vsp1/vsp1_regs.h            |  581 ++++++++++
- drivers/media/platform/vsp1/vsp1_rpf.c             |  209 ++++
- drivers/media/platform/vsp1/vsp1_rwpf.c            |  124 ++
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   53 +
- drivers/media/platform/vsp1/vsp1_uds.c             |  346 ++++++
- drivers/media/platform/vsp1/vsp1_uds.h             |   40 +
- drivers/media/platform/vsp1/vsp1_video.c           | 1208 ++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.h           |  144 +++
- drivers/media/platform/vsp1/vsp1_wpf.c             |  233 ++++
- include/linux/platform_data/vsp1.h                 |   25 +
- include/media/media-entity.h                       |    4 +
- include/media/videobuf2-core.h                     |   11 +-
- include/uapi/linux/v4l2-mediabus.h                 |    6 +-
- include/uapi/linux/videodev2.h                     |    2 +
- 29 files changed, 4531 insertions(+), 382 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
- create mode 100644 drivers/media/platform/vsp1/Makefile
- create mode 100644 drivers/media/platform/vsp1/vsp1.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
- create mode 100644 include/linux/platform_data/vsp1.h
-
+diff --git a/include/linux/dm9000.h b/include/linux/dm9000.h
+index 96e8769..841925f 100644
+--- a/include/linux/dm9000.h
++++ b/include/linux/dm9000.h
+@@ -14,6 +14,8 @@
+ #ifndef __DM9000_PLATFORM_DATA
+ #define __DM9000_PLATFORM_DATA __FILE__
+ 
++#include <linux/if_ether.h>
++
+ /* IO control flags */
+ 
+ #define DM9000_PLATF_8BITONLY	(0x0001)
+@@ -27,7 +29,7 @@
+ 
+ struct dm9000_plat_data {
+ 	unsigned int	flags;
+-	unsigned char	dev_addr[6];
++	unsigned char	dev_addr[ETH_ALEN];
+ 
+ 	/* allow replacement IO routines */
+ 
+diff --git a/include/linux/fs_enet_pd.h b/include/linux/fs_enet_pd.h
+index 51b7934..343d82a 100644
+--- a/include/linux/fs_enet_pd.h
++++ b/include/linux/fs_enet_pd.h
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/string.h>
+ #include <linux/of_mdio.h>
++#include <linux/if_ether.h>
+ #include <asm/types.h>
+ 
+ #define FS_ENET_NAME	"fs_enet"
+@@ -135,7 +136,7 @@ struct fs_platform_info {
+ 	const struct fs_mii_bus_info *bus_info;
+ 
+ 	int rx_ring, tx_ring;	/* number of buffers on rx     */
+-	__u8 macaddr[6];	/* mac address                 */
++	__u8 macaddr[ETH_ALEN];	/* mac address                 */
+ 	int rx_copybreak;	/* limit we copy small frames  */
+ 	int use_napi;		/* use NAPI                    */
+ 	int napi_weight;	/* NAPI weight                 */
+diff --git a/include/linux/ieee80211.h b/include/linux/ieee80211.h
+index b0dc87a..4e101af 100644
+--- a/include/linux/ieee80211.h
++++ b/include/linux/ieee80211.h
+@@ -16,6 +16,7 @@
+ #define LINUX_IEEE80211_H
+ 
+ #include <linux/types.h>
++#include <linux/if_ether.h>
+ #include <asm/byteorder.h>
+ 
+ /*
+@@ -209,28 +210,28 @@ static inline u16 ieee80211_sn_sub(u16 sn1, u16 sn2)
+ struct ieee80211_hdr {
+ 	__le16 frame_control;
+ 	__le16 duration_id;
+-	u8 addr1[6];
+-	u8 addr2[6];
+-	u8 addr3[6];
++	u8 addr1[ETH_ALEN];
++	u8 addr2[ETH_ALEN];
++	u8 addr3[ETH_ALEN];
+ 	__le16 seq_ctrl;
+-	u8 addr4[6];
++	u8 addr4[ETH_ALEN];
+ } __packed __aligned(2);
+ 
+ struct ieee80211_hdr_3addr {
+ 	__le16 frame_control;
+ 	__le16 duration_id;
+-	u8 addr1[6];
+-	u8 addr2[6];
+-	u8 addr3[6];
++	u8 addr1[ETH_ALEN];
++	u8 addr2[ETH_ALEN];
++	u8 addr3[ETH_ALEN];
+ 	__le16 seq_ctrl;
+ } __packed __aligned(2);
+ 
+ struct ieee80211_qos_hdr {
+ 	__le16 frame_control;
+ 	__le16 duration_id;
+-	u8 addr1[6];
+-	u8 addr2[6];
+-	u8 addr3[6];
++	u8 addr1[ETH_ALEN];
++	u8 addr2[ETH_ALEN];
++	u8 addr3[ETH_ALEN];
+ 	__le16 seq_ctrl;
+ 	__le16 qos_ctrl;
+ } __packed __aligned(2);
+@@ -608,8 +609,8 @@ struct ieee80211s_hdr {
+ 	u8 flags;
+ 	u8 ttl;
+ 	__le32 seqnum;
+-	u8 eaddr1[6];
+-	u8 eaddr2[6];
++	u8 eaddr1[ETH_ALEN];
++	u8 eaddr2[ETH_ALEN];
+ } __packed __aligned(2);
+ 
+ /* Mesh flags */
+@@ -758,7 +759,7 @@ struct ieee80211_rann_ie {
+ 	u8 rann_flags;
+ 	u8 rann_hopcount;
+ 	u8 rann_ttl;
+-	u8 rann_addr[6];
++	u8 rann_addr[ETH_ALEN];
+ 	__le32 rann_seq;
+ 	__le32 rann_interval;
+ 	__le32 rann_metric;
+@@ -802,9 +803,9 @@ enum ieee80211_vht_opmode_bits {
+ struct ieee80211_mgmt {
+ 	__le16 frame_control;
+ 	__le16 duration;
+-	u8 da[6];
+-	u8 sa[6];
+-	u8 bssid[6];
++	u8 da[ETH_ALEN];
++	u8 sa[ETH_ALEN];
++	u8 bssid[ETH_ALEN];
+ 	__le16 seq_ctrl;
+ 	union {
+ 		struct {
+@@ -833,7 +834,7 @@ struct ieee80211_mgmt {
+ 		struct {
+ 			__le16 capab_info;
+ 			__le16 listen_interval;
+-			u8 current_ap[6];
++			u8 current_ap[ETH_ALEN];
+ 			/* followed by SSID and Supported rates */
+ 			u8 variable[0];
+ 		} __packed reassoc_req;
+@@ -966,21 +967,21 @@ struct ieee80211_vendor_ie {
+ struct ieee80211_rts {
+ 	__le16 frame_control;
+ 	__le16 duration;
+-	u8 ra[6];
+-	u8 ta[6];
++	u8 ra[ETH_ALEN];
++	u8 ta[ETH_ALEN];
+ } __packed __aligned(2);
+ 
+ struct ieee80211_cts {
+ 	__le16 frame_control;
+ 	__le16 duration;
+-	u8 ra[6];
++	u8 ra[ETH_ALEN];
+ } __packed __aligned(2);
+ 
+ struct ieee80211_pspoll {
+ 	__le16 frame_control;
+ 	__le16 aid;
+-	u8 bssid[6];
+-	u8 ta[6];
++	u8 bssid[ETH_ALEN];
++	u8 ta[ETH_ALEN];
+ } __packed __aligned(2);
+ 
+ /* TDLS */
+@@ -989,14 +990,14 @@ struct ieee80211_pspoll {
+ struct ieee80211_tdls_lnkie {
+ 	u8 ie_type; /* Link Identifier IE */
+ 	u8 ie_len;
+-	u8 bssid[6];
+-	u8 init_sta[6];
+-	u8 resp_sta[6];
++	u8 bssid[ETH_ALEN];
++	u8 init_sta[ETH_ALEN];
++	u8 resp_sta[ETH_ALEN];
+ } __packed;
+ 
+ struct ieee80211_tdls_data {
+-	u8 da[6];
+-	u8 sa[6];
++	u8 da[ETH_ALEN];
++	u8 sa[ETH_ALEN];
+ 	__be16 ether_type;
+ 	u8 payload_type;
+ 	u8 category;
+@@ -1090,8 +1091,8 @@ struct ieee80211_p2p_noa_attr {
+ struct ieee80211_bar {
+ 	__le16 frame_control;
+ 	__le16 duration;
+-	__u8 ra[6];
+-	__u8 ta[6];
++	__u8 ra[ETH_ALEN];
++	__u8 ta[ETH_ALEN];
+ 	__le16 control;
+ 	__le16 start_seq_num;
+ } __packed;
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 6aebdfe..09ef2f4 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -33,6 +33,7 @@
+ #ifndef MLX4_DEVICE_H
+ #define MLX4_DEVICE_H
+ 
++#include <linux/if_ether.h>
+ #include <linux/pci.h>
+ #include <linux/completion.h>
+ #include <linux/radix-tree.h>
+@@ -620,7 +621,7 @@ struct mlx4_eth_av {
+ 	u8		dgid[16];
+ 	u32		reserved4[2];
+ 	__be16		vlan;
+-	u8		mac[6];
++	u8		mac[ETH_ALEN];
+ };
+ 
+ union mlx4_ext_av {
+@@ -914,10 +915,10 @@ enum mlx4_net_trans_promisc_mode {
+ };
+ 
+ struct mlx4_spec_eth {
+-	u8	dst_mac[6];
+-	u8	dst_mac_msk[6];
+-	u8	src_mac[6];
+-	u8	src_mac_msk[6];
++	u8	dst_mac[ETH_ALEN];
++	u8	dst_mac_msk[ETH_ALEN];
++	u8	src_mac[ETH_ALEN];
++	u8	src_mac_msk[ETH_ALEN];
+ 	u8	ether_type_enable;
+ 	__be16	ether_type;
+ 	__be16	vlan_id_msk;
+diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
+index 262deac..6d35147 100644
+--- a/include/linux/mlx4/qp.h
++++ b/include/linux/mlx4/qp.h
+@@ -34,6 +34,7 @@
+ #define MLX4_QP_H
+ 
+ #include <linux/types.h>
++#include <linux/if_ether.h>
+ 
+ #include <linux/mlx4/device.h>
+ 
+@@ -143,7 +144,7 @@ struct mlx4_qp_path {
+ 	u8			feup;
+ 	u8			fvl_rx;
+ 	u8			reserved4[2];
+-	u8			dmac[6];
++	u8			dmac[ETH_ALEN];
+ };
+ 
+ enum { /* fl */
+@@ -318,7 +319,7 @@ struct mlx4_wqe_datagram_seg {
+ 	__be32			dqpn;
+ 	__be32			qkey;
+ 	__be16			vlan;
+-	u8			mac[6];
++	u8			mac[ETH_ALEN];
+ };
+ 
+ struct mlx4_wqe_lso_seg {
+diff --git a/include/linux/mv643xx_eth.h b/include/linux/mv643xx_eth.h
+index 6e8215b..61a0da3 100644
+--- a/include/linux/mv643xx_eth.h
++++ b/include/linux/mv643xx_eth.h
+@@ -6,6 +6,7 @@
+ #define __LINUX_MV643XX_ETH_H
+ 
+ #include <linux/mbus.h>
++#include <linux/if_ether.h>
+ 
+ #define MV643XX_ETH_SHARED_NAME		"mv643xx_eth"
+ #define MV643XX_ETH_NAME		"mv643xx_eth_port"
+@@ -48,7 +49,7 @@ struct mv643xx_eth_platform_data {
+ 	 * Use this MAC address if it is valid, overriding the
+ 	 * address that is already in the hardware.
+ 	 */
+-	u8			mac_addr[6];
++	u8			mac_addr[ETH_ALEN];
+ 
+ 	/*
+ 	 * If speed is 0, autonegotiation is enabled.
+diff --git a/include/linux/sh_eth.h b/include/linux/sh_eth.h
+index fc30571..6205eeb 100644
+--- a/include/linux/sh_eth.h
++++ b/include/linux/sh_eth.h
+@@ -2,6 +2,7 @@
+ #define __ASM_SH_ETH_H__
+ 
+ #include <linux/phy.h>
++#include <linux/if_ether.h>
+ 
+ enum {EDMAC_LITTLE_ENDIAN, EDMAC_BIG_ENDIAN};
+ enum {
+@@ -18,7 +19,7 @@ struct sh_eth_plat_data {
+ 	phy_interface_t phy_interface;
+ 	void (*set_mdio_gate)(void *addr);
+ 
+-	unsigned char mac_addr[6];
++	unsigned char mac_addr[ETH_ALEN];
+ 	unsigned no_ether_link:1;
+ 	unsigned ether_link_active_low:1;
+ 	unsigned needs_init:1;
+diff --git a/include/linux/smsc911x.h b/include/linux/smsc911x.h
+index 4dde70e..eec3efd 100644
+--- a/include/linux/smsc911x.h
++++ b/include/linux/smsc911x.h
+@@ -22,6 +22,7 @@
+ #define __LINUX_SMSC911X_H__
+ 
+ #include <linux/phy.h>
++#include <linux/if_ether.h>
+ 
+ /* platform_device configuration data, should be assigned to
+  * the platform_device's dev.platform_data */
+@@ -31,7 +32,7 @@ struct smsc911x_platform_config {
+ 	unsigned int flags;
+ 	unsigned int shift;
+ 	phy_interface_t phy_interface;
+-	unsigned char mac[6];
++	unsigned char mac[ETH_ALEN];
+ };
+ 
+ /* Constants for platform_device irq polarity configuration */
+diff --git a/include/linux/uwb/spec.h b/include/linux/uwb/spec.h
+index b52e44f..0df24bf 100644
+--- a/include/linux/uwb/spec.h
++++ b/include/linux/uwb/spec.h
+@@ -32,6 +32,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/bitmap.h>
++#include <linux/if_ether.h>
+ 
+ #define i1480_FW 0x00000303
+ /* #define i1480_FW 0x00000302 */
+@@ -130,7 +131,7 @@ enum { UWB_DRP_BACKOFF_WIN_MAX = 16 };
+  * it is also used to define headers sent down and up the wire/radio).
+  */
+ struct uwb_mac_addr {
+-	u8 data[6];
++	u8 data[ETH_ALEN];
+ } __attribute__((packed));
+ 
+ 
+@@ -568,7 +569,7 @@ struct uwb_rc_evt_confirm {
+ /* Device Address Management event. [WHCI] section 3.1.3.2. */
+ struct uwb_rc_evt_dev_addr_mgmt {
+ 	struct uwb_rceb rceb;
+-	u8 baAddr[6];
++	u8 baAddr[ETH_ALEN];
+ 	u8 bResultCode;
+ } __attribute__((packed));
+ 
+diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
+index 4a1191a..f7119ee 100644
+--- a/include/media/tveeprom.h
++++ b/include/media/tveeprom.h
+@@ -12,6 +12,8 @@ enum tveeprom_audio_processor {
+ 	TVEEPROM_AUDPROC_OTHER,
+ };
+ 
++#include <linux/if_ether.h>
++
+ struct tveeprom {
+ 	u32 has_radio;
+ 	/* If has_ir == 0, then it is unknown what the IR capabilities are,
+@@ -40,7 +42,7 @@ struct tveeprom {
+ 	u32 revision;
+ 	u32 serial_number;
+ 	char rev_str[5];
+-	u8 MAC_address[6];
++	u8 MAC_address[ETH_ALEN];
+ };
+ 
+ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+diff --git a/include/net/irda/irlan_common.h b/include/net/irda/irlan_common.h
+index 0af8b8d..550c2d6 100644
+--- a/include/net/irda/irlan_common.h
++++ b/include/net/irda/irlan_common.h
+@@ -32,6 +32,7 @@
+ #include <linux/types.h>
+ #include <linux/skbuff.h>
+ #include <linux/netdevice.h>
++#include <linux/if_ether.h>
+ 
+ #include <net/irda/irttp.h>
+ 
+@@ -161,7 +162,7 @@ struct irlan_provider_cb {
+ 	int access_type;     /* Access type */
+ 	__u16 send_arb_val;
+ 
+-	__u8 mac_address[6]; /* Generated MAC address for peer device */
++	__u8 mac_address[ETH_ALEN]; /* Generated MAC address for peer device */
+ };
+ 
+ /*
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.2.459.gbcd45b4.dirty
 
