@@ -1,170 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59175 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755969Ab3HBKz6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 06:55:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v5 7/9] v4l: Renesas R-Car VSP1 driver
-Date: Fri, 02 Aug 2013 12:57 +0200
-Message-ID: <2025148.Pz9nW8WD9Z@avalon>
-In-Reply-To: <51FB7AA2.7080305@xs4all.nl>
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375405408-17134-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51FB7AA2.7080305@xs4all.nl>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:55446 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754754Ab3HAS2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 14:28:13 -0400
+Received: by mail-bk0-f45.google.com with SMTP id je2so791275bkc.18
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 11:28:12 -0700 (PDT)
+Received: from gjasny04.ad.corp.expertcity.com ([78.108.113.8])
+        by mx.google.com with ESMTPSA id d8sm1073201bkj.6.2013.08.01.11.28.11
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 01 Aug 2013 11:28:11 -0700 (PDT)
+Message-ID: <51FAA8BA.302@googlemail.com>
+Date: Thu, 01 Aug 2013 20:28:10 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Doing a v4l-utils-1.0.0 release
+References: <51BAC2F6.40708@redhat.com>
+In-Reply-To: <51BAC2F6.40708@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-On Friday 02 August 2013 11:23:46 Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> See my single remark below...
-> 
-> On 08/02/2013 03:03 AM, Laurent Pinchart wrote:
-> > The VSP1 is a video processing engine that includes a blender, scalers,
-> > filters and statistics computation. Configurable data path routing logic
-> > allows ordering the internal blocks in a flexible way.
-> > 
-> > Due to the configurable nature of the pipeline the driver implements the
-> > media controller API and doesn't use the V4L2 mem-to-mem framework, even
-> > though the device usually operates in memory to memory mode.
-> > 
-> > Only the read pixel formatters, up/down scalers, write pixel formatters
-> > and LCDC interface are supported at this stage.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_uds.h
-> > b/drivers/media/platform/vsp1/vsp1_uds.h new file mode 100644
-> > index 0000000..972a285
+On 6/14/13 9:15 AM, Hans de Goede wrote:
+> IIRC the 0.9.x series were meant as development releases leading up to a
+> new
+> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
+> and a lot of interesting development going on in the 0.9.x, while at the
+> same time there have been no issues reported against 0.9.x (iow it seems
+> stable).
+>
+> So how about taking current master and releasing that as a 1.0.0 release ?
 
-[snip]
+If nobody objects I'll do a 1.0.0 release this weekend.
 
-> > +int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
-> > +{
-> > +	const char *direction;
-> > +	int ret;
-> > +
-> > +	switch (video->type) {
-> > +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> > +		direction = "output";
-> > +		video->pad.flags = MEDIA_PAD_FL_SINK;
-> > +		break;
-> > +
-> > +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> > +		direction = "input";
-> > +		video->pad.flags = MEDIA_PAD_FL_SOURCE;
-> > +		video->video.vfl_dir = VFL_DIR_TX;
-> > +		break;
-> > +
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	video->rwpf = rwpf;
-> > +
-> > +	mutex_init(&video->lock);
-> > +	spin_lock_init(&video->irqlock);
-> > +	INIT_LIST_HEAD(&video->irqqueue);
-> > +
-> > +	mutex_init(&video->pipe.lock);
-> > +	spin_lock_init(&video->pipe.irqlock);
-> > +	INIT_LIST_HEAD(&video->pipe.entities);
-> > +	init_waitqueue_head(&video->pipe.wq);
-> > +	video->pipe.state = VSP1_PIPELINE_STOPPED;
-> > +
-> > +	/* Initialize the media entity... */
-> > +	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/* ... and the format ... */
-> > +	video->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
-> > +	video->format.pixelformat = video->fmtinfo->fourcc;
-> > +	video->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +	video->format.field = V4L2_FIELD_NONE;
-> > +	video->format.width = VSP1_VIDEO_DEF_WIDTH;
-> > +	video->format.height = VSP1_VIDEO_DEF_HEIGHT;
-> > +	video->format.num_planes = 1;
-> > +	video->format.plane_fmt[0].bytesperline =
-> > +		video->format.width * video->fmtinfo->bpp[0] / 8;
-> > +	video->format.plane_fmt[0].sizeimage =
-> > +		video->format.plane_fmt[0].bytesperline * video->format.height;
-> > +
-> > +	/* ... and the video node... */
-> > +	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
-> > +	video->video.fops = &vsp1_video_fops;
-> > +	snprintf(video->video.name, sizeof(video->video.name), "%s %s",
-> > +		 rwpf->subdev.name, direction);
-> > +	video->video.vfl_type = VFL_TYPE_GRABBER;
-> > +	video->video.release = video_device_release_empty;
-> > +	video->video.ioctl_ops = &vsp1_video_ioctl_ops;
-> > +
-> > +	video_set_drvdata(&video->video, video);
-> > +
-> > +	/* ... and the buffers queue... */
-> > +	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
-> > +	if (IS_ERR(video->alloc_ctx))
-> > +		goto error;
-> > +
-> > +	video->queue.type = video->type;
-> > +	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-> > +	video->queue.drv_priv = video;
-> > +	video->queue.buf_struct_size = sizeof(struct vsp1_video_buffer);
-> > +	video->queue.ops = &vsp1_video_queue_qops;
-> > +	video->queue.mem_ops = &vb2_dma_contig_memops;
-> > +	video->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> 
-> If you set video->queue.lock to &video->lock, then you can drop all the vb2
-> ioctl and fop helper functions directly without having to make your own
-> wrapper functions.
-
-Right, I'll do so. I will also drop the manual lock handling from the STREAMON 
-and STREAMOFF handlers, as the core will use the queue lock for those.
-
-> It saves a fair bit of code that way. The only place where there is a
-> difference as far as I can see is in vb2_fop_mmap: there the queue.lock
-> isn't taken whereas you do take the lock. It has never been 100% clear to
-> me whether or not that lock should be taken. However, as far as I can tell
-> vb2_mmap never calls any driver callbacks, so it seems to be me that there
-> is no need to take the lock.
-
-Couldn't mmap() race with for instance REQBUFS(0) if we don't lock it ?
-
-> > +	ret = vb2_queue_init(&video->queue);
-> > +	if (ret < 0) {
-> > +		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
-> > +		goto error;
-> > +	}
-> > +
-> > +	/* ... and register the video device. */
-> > +	video->video.queue = &video->queue;
-> > +	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
-> > +	if (ret < 0) {
-> > +		dev_err(video->vsp1->dev, "failed to register video device\n");
-> > +		goto error;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +error:
-> > +	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
-> > +	vsp1_video_cleanup(video);
-> > +	return ret;
-> > +}
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Gregor
 
