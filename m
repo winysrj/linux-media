@@ -1,94 +1,354 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4432 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758254Ab3HBJzK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 05:55:10 -0400
-Message-ID: <51FB81E9.5090704@xs4all.nl>
-Date: Fri, 02 Aug 2013 11:54:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mta-blr1.sasken.com ([203.200.200.72]:13055 "EHLO
+	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754563Ab3HAKMs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 06:12:48 -0400
+From: Krishna Kishore <krishna.kishore@sasken.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Prof DVB-S2 USB device
+Date: Thu, 1 Aug 2013 10:12:41 +0000
+Message-ID: <7CC27E99F1636344B0AC7B73D5BB86DE1487ECB7@exgmbxfz01.sasken.com>
+References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl>
+ <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
+ <51EF853E.2040108@schinagl.nl>
+ <7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com>
+ <51EFB4A8.2080202@schinagl.nl>
+ <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>,<51EFC5D4.6000407@schinagl.nl>
+ <7CC27E99F1636344B0AC7B73D5BB86DE14871DD0@exgmbxfz01.sasken.com>
+ <51F761B3.4070905@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>
+In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v5 6/9] v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M
- formats
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375405408-17134-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
 
-On 08/02/2013 03:03 AM, Laurent Pinchart wrote:
-> NV16M and NV61M are planar YCbCr 4:2:2 and YCrCb 4:2:2 formats with a
-> luma plane followed by an interleaved chroma plane. The planes are not
-> required to be contiguous in memory, and the formats can only be used
-> with the multi-planar formats API.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+   Does anyone know about the following error?  I am using Linux kernel 3.9.0. I am getting this error with 3.8.4 also.
 
-Just a few small changes below. Once that is corrected you can add my:
+[  233.017242] PM: Syncing filesystems ... done.
+[  233.253112] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[  233.273712] Freezing remaining freezable tasks ... 
+[  253.291076] Freezing of tasks failed after 20.01 seconds (1 tasks refusing to freeze, wq_busy=0):
+[  253.300445] khubd           D c053586c     0   446      2 0x00000000
+[  253.307220] [<c053586c>] (__schedule+0x37c/0x7e0) from [<c053366c>] (schedule_timeout+0x124/0x220)
+[  253.316741] [<c053366c>] (schedule_timeout+0x124/0x220) from [<c05353a8>] (wait_for_common+0xac/0x150)
+[  253.326599] [<c05353a8>] (wait_for_common+0xac/0x150) from [<c03c0a68>] (usb_start_wait_urb+0x60/0x128)
+[  253.336547] [<c03c0a68>] (usb_start_wait_urb+0x60/0x128) from [<c03c0cec>] (usb_control_msg+0xc0/0xe4)
+[  253.346405] [<c03c0cec>] (usb_control_msg+0xc0/0xe4) from [<c04288a0>] (dw210x_op_rw+0x94/0x108)
+[  253.355712] [<c04288a0>] (dw210x_op_rw+0x94/0x108) from [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0)
+[  253.365386] [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0) from [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0)
+[  253.375823] [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0) from [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0)
+[  253.386810] [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0) from [<c042664c>] (dvb_usb_device_init+0x444/0x608)
+[  253.397766] [<c042664c>] (dvb_usb_device_init+0x444/0x608) from [<c0428718>] (dw2102_probe+0x24c/0x340)
+[  253.407714] [<c0428718>] (dw2102_probe+0x24c/0x340) from [<c03c3da8>] (usb_probe_interface+0x1c0/0x260)
+[  253.417663] [<c03c3da8>] (usb_probe_interface+0x1c0/0x260) from [<c032eec4>] (driver_probe_device+0x108/0x21c)
+[  253.428253] [<c032eec4>] (driver_probe_device+0x108/0x21c) from [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
+[  253.438385] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from [<c032ed88>] (device_attach+0x78/0x90)
+[  253.447784] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>] (bus_probe_device+0x88/0xac)
+[  253.457183] [<c032e3d8>] (bus_probe_device+0x88/0xac) from [<c032cc64>] (device_add+0x4b0/0x584)
+[  253.466491] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03c2200>] (usb_set_configuration+0x574/0x78c)
+[  253.476470] [<c03c2200>] (usb_set_configuration+0x574/0x78c) from [<c03caa74>] (generic_probe+0x34/0x78)
+[  253.486511] [<c03caa74>] (generic_probe+0x34/0x78) from [<c03c3e84>] (usb_probe_device+0x3c/0x60)
+[  253.495910] [<c03c3e84>] (usb_probe_device+0x3c/0x60) from [<c032eec4>] (driver_probe_device+0x108/0x21c)
+[  253.506042] [<c032eec4>] (driver_probe_device+0x108/0x21c) from [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
+[  253.516174] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from [<c032ed88>] (device_attach+0x78/0x90)
+[  253.525573] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>] (bus_probe_device+0x88/0xac)
+[  253.534973] [<c032e3d8>] (bus_probe_device+0x88/0xac) from [<c032cc64>] (device_add+0x4b0/0x584)
+[  253.544281] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03b96a4>] (usb_new_device+0x1ec/0x360)
+[  253.553588] [<c03b96a4>] (usb_new_device+0x1ec/0x360) from [<c03bab1c>] (hub_thread+0x714/0x1360)
+[  253.563018] [<c03bab1c>] (hub_thread+0x714/0x1360) from [<c0062dc0>] (kthread+0xa4/0xb0)
+[  253.571624] [<c0062dc0>] (kthread+0xa4/0xb0) from [<c0013230>] (ret_from_fork+0x14/0x24)
+[  253.580169] 
+[  253.581756] Restarting kernel threads ... done.
+[  253.587005] Restarting tasks ... done.
+[  259.016845] PM: Syncing filesystems ... done.
+[  259.155700] Freezing user space processes ... (elapsed 0.02 seconds) done.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+
 
 Regards,
+Kishore
+________________________________________
+From: Krishna Kishore
+Sent: Wednesday, July 31, 2013 4:08 PM
+To: Oliver Schinagl
+Cc: linux-media@vger.kernel.org
+Subject: RE: Prof DVB-S2 USB device
 
-	Hans
+Hi Oliver,
 
-> ---
->  Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 171 +++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt.xml       |   1 +
->  include/uapi/linux/videodev2.h                   |   2 +
->  3 files changed, 174 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-> new file mode 100644
-> index 0000000..afec039
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-> @@ -0,0 +1,171 @@
-> +    <refentry>
-> +      <refmeta>
-> +	<refentrytitle>V4L2_PIX_FMT_NV16M ('NM16'), V4L2_PIX_FMT_NV61M ('NM61')</refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname id="V4L2-PIX-FMT-NV16M"><constant>V4L2_PIX_FMT_NV16M</constant></refname>
-> +	<refname id="V4L2-PIX-FMT-NV61M"><constant>V4L2_PIX_FMT_NV61M</constant></refname>
-> +	<refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> and <constant>V4L2_PIX_FMT_NV61</constant> with planes
-> +	  non contiguous in memory. </refpurpose>
-> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
-> +
-> +	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 format.
-> +The three components are separated into two sub-images or planes.
-> +<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
-> +</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
-> +plane do not necessarily immediately follows the luma plane.
-
-s/do/does/
-
-> +The luminance data occupies the first plane. The Y plane has one byte per pixel.
-> +In the second plane there is a chrominance data with alternating chroma samples.
-
-s/is a/is/
-
-> +The CbCr plane is the same width and height, in bytes, as the Y plane.
-> +Each CbCr pair belongs to four pixels. For example,
-> +Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-> +Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
-> +Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
-> +<constant>V4L2_PIX_FMT_NV61M</constant> is the same as <constant>V4L2_PIX_FMT_NV16M</constant>
-> +except the Cb and Cr bytes are swapped, the CrCb plane starts with a Cr byte.</para>
+   I migrated to Ubuntu 13.04 on desktop and tried. It worked !
+   It uses linux kernel 3.8.0. If I use this version of linux kernel or greater on Pandaboard, it may work on Pandaboard also.
 
 Regards,
+Kishore.
 
-	Hans
+
+
+
+-----Original Message-----
+From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+Sent: Tuesday, July 30, 2013 12:18 PM
+To: Krishna Kishore
+Cc: linux-media@vger.kernel.org
+Subject: Re: Prof DVB-S2 USB device
+
+On 30-07-13 08:25, Krishna Kishore wrote:
+> Hi Oliver,
+>
+>       3.10.2 booted on Pandaboard. Now, I am trying to connect Prof 7500 DVB-S2 device. It does not get detected as new USB device.
+>
+>      .config file is attached to this email. Am I missing any config? Can you please let me know?
+ From a quick glance I noticed you are missing the CONFIG_USB_EHCI_HCD (EHCI Host controller) it appears you don't have a USB host controller enabled at all? But i'm not sure what kind of USB controller omap4 has.
+
+oliver
+>
+> Regards,
+> Kishore.
+> ________________________________________
+> From: Oliver Schinagl [oliver+list@schinagl.nl]
+> Sent: Wednesday, July 24, 2013 5:47 PM
+> To: Krishna Kishore
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: Prof DVB-S2 USB device
+>
+> On 24-07-13 13:20, Krishna Kishore wrote:
+>>
+>> On Desktop PC (Ubuntu 12.04 which has 3.2.0 Kernel) also, I am not getting the list of channels when I scan. I am using Kaffeine.
+> While I understand you prefer to run a LTS distro, 3.2.0 is old!
+>
+> The reason why I keep bringing this up, media drivers are almost
+> updated daily. So if you want to see if your issue is fixed, the most
+> ideal start for this investigation is the media git kernel tree. While
+> I understand building your own kernel might be a little too much, try
+> an Ubuntu 13.04 Live cd, it should come with a 3.9 kernel, not
+> extremly old, but should have most of the recent media changes. Now if
+> it doesn't work right on that, well, then you'd have to build your own
+> media drivers from the git tree. If those don't work, then we can
+> start talking to developers. Otherwise, you are trying to troubleshoot
+> something, that has long been fixed.
+>
+> oliver
+>>
+>>
+>>
+>>
+>> -----Original Message-----
+>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+>> Sent: Wednesday, July 24, 2013 4:34 PM
+>> To: Krishna Kishore
+>> Cc: linux-media@vger.kernel.org
+>> Subject: Re: Prof DVB-S2 USB device
+>>
+>> On 24-07-13 10:59, Krishna Kishore wrote:
+>>> Dear Oliver,
+>>>
+>>>           Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
+>>>
+>>>            Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
+>>>
+>>>          I am downloading 3.4.54 and 3.10.2 now.
+>> What do you get when using on a regular PC? Your beagle board may (or may not) yet be supported by mainline 3.10.1 kernel.
+>>
+>> Try it in a regular PC and see what happens there with 3.10.2
+>>>
+>>> Regards,
+>>> Kishore.
+>>>
+>>> -----Original Message-----
+>>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
+>>> Sent: Wednesday, July 24, 2013 1:12 PM
+>>> To: Krishna Kishore
+>>> Cc: linux-media@vger.kernel.org
+>>> Subject: Re: Prof DVB-S2 USB device
+>>>
+>>> On 24-07-13 08:56, Krishna Kishore wrote:
+>>>> Dear Oliver,
+>>>>
+>>>>        Thanks for your response. Here are more details. Please help me in making this work.
+>>>>
+>>>>        Linux version:
+>>>>
+>>>> -sh-4.1# uname -a
+>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
+>>>> armv7l GNU/Linux
+>>> Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
+>>>
+>>> So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
+>>>
+>>> Meanwhile, since this is an USB device, you could try it on a desktop.
+>>> Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
+>>>>
+>>>> [dotconfig is attached to this email]
+>>>>
+>>>> lsusb -t:
+>>>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
+>>>>         |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
+>>>>             |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
+>>>>             |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
+>>>>
+>>>> dmesg:
+>>>> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
+>>>> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
+>>>> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB
+>>>> device
+>>>> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
+>>>> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
+>>>> [  127.051177] dw2102: start downloading DW210X firmware [
+>>>> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
+>>>> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+>>>> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
+>>>> [ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [
+>>>> 1159.325531]
+>>>> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
+>>>> 1159.340332] Kishore stv0900_attach:
+>>>> [ 1159.340362] stv0900_init_internal [ 1159.340393]
+>>>> stv0900_init_internal: Create New Internal Structure!
+>>>> [ 1159.340423] stv0900_read_reg
+>>>> [ 1179.527770] stv0900_read_reg
+>>>> [ 1550.418365] stv0900_read_reg
+>>>> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
+>>>> stv0900_stop_all_s2_modcod [ 1669.340270]
+>>>> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
+>>>> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
+>>>> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
+>>>> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
+>>>> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
+>>>> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
+>>>> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
+>>>> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
+>>>> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
+>>>> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
+>>>> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
+>>>> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
+>>>> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
+>>>> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
+>>>> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
+>>>> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated
+>>>> Mclk = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
+>>>> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
+>>>> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
+>>>> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [
+>>>> 1891.090332] [ 1891.097442] Kishore stb6100_attach:
+>>>> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
+>>>> 1893.105957] dw2102: Attached STV0900+STB6100A!
+>>>> [ 1893.105957]
+>>>> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
+>>>> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
+>>>> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input
+>>>> 2 [ 1893.177368] dvb-usb: schedule remote query interval to 150
+>>>> msecs.
+>>>> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
+>>>>
+>>>>
+>>>>
+>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
+>>>> armv7l GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s
+>>>> S93E5 -c IN -G >> ch.conf w_scan version 20120112 (compiled for DVB
+>>>> API
+>>>> 5.4) using settings for 93.5 east Insat 3A/4B scan type SATELLITE,
+>>>> channellist 42 output format gstreamer
+>>>> WARNING: could not guess your codepage. Falling back to 'UTF-8'
+>>>> output charset 'UTF-8', use -C <charset> to override
+>>>> Info: using DVB adapter auto detection.
+>>>>
+>>>>             /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
+>>>> very good :-))
+>>>>
+>>>> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
+>>>> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
+>>>> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
+>>>> DVB-S2
+>>>> FREQ (0.95GHz ... 2.15GHz)
+>>>> SRATE (1.000MBd ... 45.000MBd)
+>>>> using LNB "UNIVERSAL"
+>>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+>>>> (time: 00:40)
+>>>>
+>>>> dmesg logs:
+>>>>
+>>>> [1716261.743961] stv0900_init
+>>>> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
+>>>> stv0900_read_status:
+>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
+>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
+>>>> [1716345.004236] stv0900_search:
+>>>> [1716345.004242] stv0900_read_status:
+>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
+>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
+>>>> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone:
+>>>> Off [1716307.004132] stv0900_read_status:
+>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
+>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
+>>>> [1716345.004236] stv0900_search:
+>>>> [1716345.004242] stv0900_read_status:
+>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
+>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
+>>>> [1716455.004184] stv0900_search:
+>>>> [1716455.004190] stv0900_read_status:
+>>>> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
+>>>> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315]
+>>>> TS bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
+>>>>
+>>>> Regards,
+>>>> Kishore.
+>>>> ________________________________________
+>>>> From: Oliver Schinagl [oliver+list@schinagl.nl]
+>>>> Sent: Wednesday, July 24, 2013 2:34 AM
+>>>> To: Krishna Kishore
+>>>> Cc: linux-media@vger.kernel.org
+>>>> Subject: Re: Prof DVB-S2 USB device
+>>>>
+>>>> On 23-07-13 18:52, Krishna Kishore wrote:
+>>>>> #Sorry for sending to individual email ids
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>>           I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
+>>>> You will need to provide much more information then that. What does
+>>>> dmesg say? lsusb? what driver are you using, what kernel version?
+>>>> Are you using it as a module? Have you enabled debugging in your kernel?
+>>>>
+>>>> Those questions come to my mind.
+>>>>
+>>>>>
+>>>>> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
+>>>>> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
+>>>>> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
+>>>> Paste your logs (or if its too much, only copy/paste the relevant parts.
+>>>> You ask for a limb, yet offer nothing.
+>>>>
+>>>> oliver
+>>>>>
+>>>>>            Can you please help me?
+>>>>>
+>>>>>
+>>>>> Regards,
+>>>>> Kishore.
+>>>>>
+>>>>>
+>>>>>
+>>>>
+>>>>
+>>>>
+>>>> ________________________________
+>>>>
+>>>> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
+>>>> Read Disclaimer at
+>>>> http://www.sasken.com/extras/mail_disclaimer.html
+>>>>
+>>>
+>>
+>
+
