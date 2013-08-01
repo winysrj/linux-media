@@ -1,62 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:39714 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755010Ab3HBJEI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 05:04:08 -0400
-Received: by mail-oa0-f54.google.com with SMTP id o6so823216oag.41
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 02:04:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51FB71B3.5060008@samsung.com>
-References: <1375425134-17080-1-git-send-email-sachin.kamat@linaro.org>
-	<1375425134-17080-3-git-send-email-sachin.kamat@linaro.org>
-	<51FB71B3.5060008@samsung.com>
-Date: Fri, 2 Aug 2013 14:34:07 +0530
-Message-ID: <CAK9yfHwiF4F6edafkwtogUFwAtWm3-My=UEhgARez9eksngwuA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] exynos4-is: Fix potential NULL pointer dereference
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([198.137.202.9]:45727 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab3HASsd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 14:48:33 -0400
+Date: Thu, 1 Aug 2013 15:48:24 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+Message-ID: <20130801154824.77461147@infradead.org>
+In-Reply-To: <51FAA45F.5070100@netscape.net>
+References: <51054759.7050202@netscape.net>
+	<20130127141633.5f751e5d@redhat.com>
+	<5105A0C9.6070007@netscape.net>
+	<20130128082354.607fae64@redhat.com>
+	<5106E3EA.70307@netscape.net>
+	<511264CF.3010002@netscape.net>
+	<51336331.10205@netscape.net>
+	<20130303134051.6dc038aa@redhat.com>
+	<20130304164234.18df36a7@redhat.com>
+	<51353591.4040709@netscape.net>
+	<20130304233028.7bc3c86c@redhat.com>
+	<513A6968.4070803@netscape.net>
+	<515A0D03.7040802@netscape.net>
+	<51E44DCA.8060702@netscape.net>
+	<20130716053030.3fda034e.mchehab@infradead.org>
+	<51E6A20B.8020507@netscape.net>
+	<20130718042314.2773b7c0.mchehab@infradead.org>
+	<51F40976.8090106@netscape.net>
+	<20130801090436.6dfa0f68@infradead.org>
+	<51FA97F0.9010206@netscape.net>
+	<20130801143742.27fdc712@infradead.org>
+	<51FAA45F.5070100@netscape.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Em Thu, 01 Aug 2013 15:09:35 -0300
+Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 
-On 2 August 2013 14:15, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> Hi Sachin,
->
-> On 08/02/2013 08:32 AM, Sachin Kamat wrote:
->> dev->of_node could be NULL. Hence check for the same and return before
->> dereferencing it in the subsequent error message.
->>
->> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->> ---
->>  drivers/media/platform/exynos4-is/fimc-lite.c |    3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
->> index 08fbfed..214bde2 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
->> @@ -1513,6 +1513,9 @@ static int fimc_lite_probe(struct platform_device *pdev)
->>               if (of_id)
->>                       drv_data = (struct flite_drvdata *)of_id->data;
->>               fimc->index = of_alias_get_id(dev->of_node, "fimc-lite");
->> +     } else {
->> +             dev_err(dev, "device node not found\n");
->> +             return -EINVAL;
->>       }
->
-> Thanks for the patch. I would prefer to add a check at very beginning
-> of fimc_lite_probe() like:
->
->         if (!dev->of_node)
->                 return -ENODEV;
->
-> Those devices are only used on DT platforms.
+> Hi
+> 
+> El 01/08/13 14:37, Mauro Carvalho Chehab escribió:
+> > Em Thu, 01 Aug 2013 14:16:32 -0300
+> > Alfredo Jesús Delaiti  <alfredodelaiti@netscape.net> escreveu:
+> >
+> >> Hi
+> >>
+> >> El 01/08/13 09:04, Mauro Carvalho Chehab escribió:
+> >>>> I found the patch that affects the X8507 board is: commit
+> >>>> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
+> >>>>
+> >>>> --------
+> >>>> alfredo@linux-puon:/usr/src/git/linux> git stash
+> >>>> Saved working directory and index state WIP on (no branch): c6f56e7
+> >>>> [media] dvb: don't use DVBv3 bandwidth macros
+> >>>> HEAD is now at c6f56e7 [media] dvb: don't use DVBv3 bandwidth macros
+> >>>> alfredo@linux-puon:/usr/src/git/linux> git bisect good
+> >>>> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb is the first bad commit
+> >>>> commit a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
+> >>>> Author: Mauro Carvalho Chehab <mchehab  redhat.com>
+> >>>> Date:   Mon Dec 26 20:48:54 2011 -0300
+> >>>>
+> >>>>        [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
+> >>>>
+> >>>>        The cx23885-dvb driver has a dirty hack:
+> >>>>            1) it hooks the DVBv3 legacy call to FE_SET_FRONTEND;
+> >>>>            2) it uses internally the DVBv3 struct to decide some
+> >>>>               configs.
+> >>>>
+> >>>>        Replace it by a change during the gate control. This will
+> >>>>        likely work, but requires testing. Anyway, the current way
+> >>>>        will break, as soon as we stop copying data for DVBv3 for
+> >>>>        pure DVBv5 calls.
+> >>>>
+> >>>>        Compile-tested only.
+> >>>>
+> >>>>        Cc: Michael Krufky <mkrufky  linuxtv.org>
+> >>>>        Signed-off-by: Mauro Carvalho Chehab <mchehab  redhat.com>
+> >>>>
+> >>>> :040000 040000 6d0695eb9e59b837425ed64d4e2be6625864b609
+> >>>> 89700b867069ec0ad2713367e607763e91798e98 M      drivers
+> >>>> --------
+> >>>>
+> >>>>
+> >>>> I manually removed the patch, then the TV card works.
+> >>>>
+> >>>>
+> >>>> Unfortunately my lack of knowledge prevents me fix it.
+> >>>>
+> >>>> I test new code with pleasure :) !
+> >>> Hi Alfredo,
+> >>>
+> >>>
+> >>> Please send me the patches you've made to make isdb-t work on
+> >>> it, and I'll try to address this issue.
+> >>>
+> >>> Regards,
+> >>> Mauro
+> >>>
+> >>>
+> >> Mauro thank you very much for your interest.
+> >>
+> >> I send the patch. 3.2 is on a kernel.
+> >>
+> >> -----------------------------------------------------------------------
+> >>
+> >>    .../{ => }/media/dvb/frontends/mb86a20s.c          |  332
+> >> ++++++--------------
+> > Hmm... unfortunately, your emailer broke the patch. It made a total mess
+> > with whitespaces. Could you please resend it in a way that whitespaces
+> > won't be damaged? Otherwise, patch tool won't apply it.
+> >
+> > Cheers,
+> > Mauro
+> 
+> GRRRRRRRRR
+> 
+> I send attached, I hope it will not break this time.
 
-OK. Sounds good. I will re-spin this one.
+This time it arrived fine, thanks!
 
--- 
-With warm regards,
-Sachin
+Btw, those changes at mb86a20s are required for it to work, or just alters
+somewhat the tuning?
+
+Regards,
+Mauro
