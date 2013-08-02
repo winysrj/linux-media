@@ -1,239 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56338 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab3HBBCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:33 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v5 6/9] v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-Date: Fri,  2 Aug 2013 03:03:25 +0200
-Message-Id: <1375405408-17134-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:49070 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573Ab3HBWnF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 18:43:05 -0400
+Received: by mail-lb0-f181.google.com with SMTP id o10so826455lbi.40
+        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 15:43:03 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	Gregor Jasny <gjasny@googlemail.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 2/2] libv4lconvert: Support for RGB32 and BGR32 format
+Date: Sat,  3 Aug 2013 00:42:52 +0200
+Message-Id: <1375483372-4354-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NV16M and NV61M are planar YCbCr 4:2:2 and YCrCb 4:2:2 formats with a
-luma plane followed by an interleaved chroma plane. The planes are not
-required to be contiguous in memory, and the formats can only be used
-with the multi-planar formats API.
+This patch adds support for V4L2_PIX_FMT_BGR32 and V4L2_PIX_FMT_BGR32
+formats.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 171 +++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml       |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 3 files changed, 174 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+ lib/libv4lconvert/libv4lconvert-priv.h |    5 ++-
+ lib/libv4lconvert/libv4lconvert.c      |   58 ++++++++++++++++++++++++++++----
+ lib/libv4lconvert/rgbyuv.c             |   45 +++++++++++++++++++------
+ 3 files changed, 90 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-new file mode 100644
-index 0000000..afec039
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-@@ -0,0 +1,171 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_NV16M ('NM16'), V4L2_PIX_FMT_NV61M ('NM61')</refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-NV16M"><constant>V4L2_PIX_FMT_NV16M</constant></refname>
-+	<refname id="V4L2-PIX-FMT-NV61M"><constant>V4L2_PIX_FMT_NV61M</constant></refname>
-+	<refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> and <constant>V4L2_PIX_FMT_NV61</constant> with planes
-+	  non contiguous in memory. </refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 format.
-+The three components are separated into two sub-images or planes.
-+<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
-+</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
-+plane do not necessarily immediately follows the luma plane.
-+The luminance data occupies the first plane. The Y plane has one byte per pixel.
-+In the second plane there is a chrominance data with alternating chroma samples.
-+The CbCr plane is the same width and height, in bytes, as the Y plane.
-+Each CbCr pair belongs to four pixels. For example,
-+Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-+Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
-+Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
-+<constant>V4L2_PIX_FMT_NV61M</constant> is the same as <constant>V4L2_PIX_FMT_NV16M</constant>
-+except the Cb and Cr bytes are swapped, the CrCb plane starts with a Cr byte.</para>
-+
-+	<para><constant>V4L2_PIX_FMT_NV16M</constant> and
-+<constant>V4L2_PIX_FMT_NV61M</constant> are intended to be used only in drivers
-+and applications that support the multi-planar API, described in
-+<xref linkend="planar-apis"/>. </para>
-+
-+	<example>
-+	  <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
-+
-+	  <formalpara>
-+	    <title>Byte Order.</title>
-+	    <para>Each cell is one byte.
-+		<informaltable frame="none">
-+		<tgroup cols="5" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;0:</entry>
-+		      <entry>Y'<subscript>00</subscript></entry>
-+		      <entry>Y'<subscript>01</subscript></entry>
-+		      <entry>Y'<subscript>02</subscript></entry>
-+		      <entry>Y'<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;4:</entry>
-+		      <entry>Y'<subscript>10</subscript></entry>
-+		      <entry>Y'<subscript>11</subscript></entry>
-+		      <entry>Y'<subscript>12</subscript></entry>
-+		      <entry>Y'<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;8:</entry>
-+		      <entry>Y'<subscript>20</subscript></entry>
-+		      <entry>Y'<subscript>21</subscript></entry>
-+		      <entry>Y'<subscript>22</subscript></entry>
-+		      <entry>Y'<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;12:</entry>
-+		      <entry>Y'<subscript>30</subscript></entry>
-+		      <entry>Y'<subscript>31</subscript></entry>
-+		      <entry>Y'<subscript>32</subscript></entry>
-+		      <entry>Y'<subscript>33</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;0:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>02</subscript></entry>
-+		      <entry>Cr<subscript>02</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;4:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>12</subscript></entry>
-+		      <entry>Cr<subscript>12</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;8:</entry>
-+		      <entry>Cb<subscript>20</subscript></entry>
-+		      <entry>Cr<subscript>20</subscript></entry>
-+		      <entry>Cb<subscript>22</subscript></entry>
-+		      <entry>Cr<subscript>22</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;12:</entry>
-+		      <entry>Cb<subscript>30</subscript></entry>
-+		      <entry>Cr<subscript>30</subscript></entry>
-+		      <entry>Cb<subscript>32</subscript></entry>
-+		      <entry>Cr<subscript>32</subscript></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+
-+	  <formalpara>
-+	    <title>Color Sample Location.</title>
-+	    <para>
-+		<informaltable frame="none">
-+		<tgroup cols="7" align="center">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry></entry>
-+		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
-+		      <entry>2</entry><entry></entry><entry>3</entry>
-+		    </row>
-+		    <row>
-+		      <entry>0</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>1</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>2</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>3</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+	</example>
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 99b8d2a..16db350 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -718,6 +718,7 @@ information.</para>
-     &sub-nv12m;
-     &sub-nv12mt;
-     &sub-nv16;
-+    &sub-nv16m;
-     &sub-nv24;
-     &sub-m420;
-   </section>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 95ef455..fec0c20 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -348,6 +348,8 @@ struct v4l2_pix_format {
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
- #define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
-+#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
-+#define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
- #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
- #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index 6422fdd..ac1391e 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -108,7 +108,7 @@ unsigned char *v4lconvert_alloc_buffer(int needed,
+ int v4lconvert_oom_error(struct v4lconvert_data *data);
  
+ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+-		const struct v4l2_format *src_fmt, int bgr, int yvu);
++		const struct v4l2_format *src_fmt, int bgr, int yvu, int bpp);
+ 
+ void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dst,
+ 		int width, int height, int yvu);
+@@ -158,6 +158,9 @@ void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
+ void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 		const struct v4l2_format *src_fmt);
+ 
++void v4lconvert_rgb32_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height, int bgr);
++
+ int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
+ 	const unsigned char *src, unsigned char *dest, int width, int height);
+ 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index bc5e34f..2aec99a 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -84,6 +84,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	SUPPORTED_DST_PIXFMTS,
+ 	/* packed rgb formats */
+ 	{ V4L2_PIX_FMT_RGB565,		16,	 4,	 6,	0 },
++	{ V4L2_PIX_FMT_BGR32,		32,	 4,	 6,	0 },
++	{ V4L2_PIX_FMT_RGB32,		32,	 4,	 6,	0 },
+ 	/* yuv 4:2:2 formats */
+ 	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
+ 	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
+@@ -981,10 +983,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			v4lconvert_swap_rgb(d, dest, width, height);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 0);
++			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 0, 3);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 1);
++			v4lconvert_rgb24_to_yuv420(d, dest, fmt, 0, 1, 3);
+ 			break;
+ 		}
+ 		break;
+@@ -1079,10 +1081,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			v4lconvert_swap_rgb(src, dest, width, height);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0, 3);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1, 3);
+ 			break;
+ 		}
+ 		if (src_size < (width * height * 3)) {
+@@ -1101,10 +1103,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 			memcpy(dest, src, width * height * 3);
+ 			break;
+ 		case V4L2_PIX_FMT_YUV420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0, 3);
+ 			break;
+ 		case V4L2_PIX_FMT_YVU420:
+-			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1);
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1, 3);
+ 			break;
+ 		}
+ 		if (src_size < (width * height * 3)) {
+@@ -1114,6 +1116,50 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 		}
+ 		break;
+ 
++	case V4L2_PIX_FMT_RGB32:
++		switch (dest_pix_fmt) {
++		case V4L2_PIX_FMT_RGB24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 1);
++			break;
++		case V4L2_PIX_FMT_YUV420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0, 4);
++			break;
++		case V4L2_PIX_FMT_YVU420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1, 4);
++			break;
++		}
++		if (src_size < (width * height * 4)) {
++			V4LCONVERT_ERR("short rgb32 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		break;
++
++	case V4L2_PIX_FMT_BGR32:
++		switch (dest_pix_fmt) {
++		case V4L2_PIX_FMT_RGB24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 1);
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
++			break;
++		case V4L2_PIX_FMT_YUV420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0, 4);
++			break;
++		case V4L2_PIX_FMT_YVU420:
++			v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1, 4);
++			break;
++		}
++		if (src_size < (width * height * 4)) {
++			V4LCONVERT_ERR("short bgr32 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		break;
++
+ 	case V4L2_PIX_FMT_YUV420:
+ 		switch (dest_pix_fmt) {
+ 		case V4L2_PIX_FMT_RGB24:
+diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+index bef034f..d2f11bf 100644
+--- a/lib/libv4lconvert/rgbyuv.c
++++ b/lib/libv4lconvert/rgbyuv.c
+@@ -35,7 +35,7 @@
+ 	} while (0)
+ 
+ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+-		const struct v4l2_format *src_fmt, int bgr, int yvu)
++		const struct v4l2_format *src_fmt, int bgr, int yvu, int bpp)
+ {
+ 	int x, y;
+ 	unsigned char *udest, *vdest;
+@@ -47,9 +47,10 @@ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 				RGB2Y(src[2], src[1], src[0], *dest++);
+ 			else
+ 				RGB2Y(src[0], src[1], src[2], *dest++);
+-			src += 3;
++			src += bpp;
+ 		}
+-		src += src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
++
++		src += src_fmt->fmt.pix.bytesperline - bpp * src_fmt->fmt.pix.width;
+ 	}
+ 	src -= src_fmt->fmt.pix.height * src_fmt->fmt.pix.bytesperline;
+ 
+@@ -66,19 +67,19 @@ void v4lconvert_rgb24_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 		for (x = 0; x < src_fmt->fmt.pix.width / 2; x++) {
+ 			int avg_src[3];
+ 
+-			avg_src[0] = (src[0] + src[3] + src[src_fmt->fmt.pix.bytesperline] +
+-					src[src_fmt->fmt.pix.bytesperline + 3]) / 4;
+-			avg_src[1] = (src[1] + src[4] + src[src_fmt->fmt.pix.bytesperline + 1] +
+-					src[src_fmt->fmt.pix.bytesperline + 4]) / 4;
+-			avg_src[2] = (src[2] + src[5] + src[src_fmt->fmt.pix.bytesperline + 2] +
+-					src[src_fmt->fmt.pix.bytesperline + 5]) / 4;
++			avg_src[0] = (src[0] + src[bpp] + src[src_fmt->fmt.pix.bytesperline] +
++					src[src_fmt->fmt.pix.bytesperline + bpp]) / 4;
++			avg_src[1] = (src[1] + src[bpp + 1] + src[src_fmt->fmt.pix.bytesperline + 1] +
++					src[src_fmt->fmt.pix.bytesperline + bpp + 1]) / 4;
++			avg_src[2] = (src[2] + src[bpp + 2] + src[src_fmt->fmt.pix.bytesperline + 2] +
++					src[src_fmt->fmt.pix.bytesperline + bpp + 2]) / 4;
+ 			if (bgr)
+ 				RGB2UV(avg_src[2], avg_src[1], avg_src[0], *udest++, *vdest++);
+ 			else
+ 				RGB2UV(avg_src[0], avg_src[1], avg_src[2], *udest++, *vdest++);
+-			src += 6;
++			src += 2 * bpp;
+ 		}
+-		src += 2 * src_fmt->fmt.pix.bytesperline - 3 * src_fmt->fmt.pix.width;
++		src += 2 * src_fmt->fmt.pix.bytesperline - bpp * src_fmt->fmt.pix.width;
+ 	}
+ }
+ 
+@@ -725,3 +726,25 @@ int v4lconvert_y10b_to_yuv420(struct v4lconvert_data *data,
+ 
+ 	return 0;
+ }
++
++void v4lconvert_rgb32_to_rgb24(const unsigned char *src, unsigned char *dest,
++		int width, int height,int bgr)
++{
++	int j;
++	while (--height >= 0) {
++		for (j = 0; j < width; j++) {
++			if (bgr){
++				*dest++ = src[2];
++				*dest++ = src[1];
++				*dest++ = src[0];
++				src+=4;
++			}
++			else{
++				*dest++ = *src++;
++				*dest++ = *src++;
++				*dest++ = *src++;
++				src+=1;
++			}
++		}
++	}
++}
 -- 
-1.8.1.5
+1.7.10.4
 
