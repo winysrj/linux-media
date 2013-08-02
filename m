@@ -1,125 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:62031 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886Ab3HANFF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 09:05:05 -0400
-Received: by mail-lb0-f182.google.com with SMTP id v20so1522987lbc.27
-        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 06:05:04 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 1/2] libv4lconvert: Support for Y16 pixel format
-Date: Thu,  1 Aug 2013 15:04:53 +0200
-Message-Id: <1375362294-30741-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1375362294-30741-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15074 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754003Ab3HBPuN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 11:50:13 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQW00H71UN63X20@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Aug 2013 16:50:11 +0100 (BST)
+Message-id: <51FBD533.6000703@samsung.com>
+Date: Fri, 02 Aug 2013 17:50:11 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Cc: 'Arun Kumar K' <arun.kk@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>
+Subject: [GIT PULL FOR 3.11] Exynos/S5P fixes
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for V4L2_PIX_FMT_Y16 format.
+Mauro,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- lib/libv4lconvert/libv4lconvert-priv.h |    6 ++++++
- lib/libv4lconvert/libv4lconvert.c      |   19 +++++++++++++++++++
- lib/libv4lconvert/rgbyuv.c             |   30 ++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+)
+Here are couple critical/regression fixes for the exynos/s5p drivers.
+Please pull for v3.11.
 
-diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-index c37e220..6422fdd 100644
---- a/lib/libv4lconvert/libv4lconvert-priv.h
-+++ b/lib/libv4lconvert/libv4lconvert-priv.h
-@@ -152,6 +152,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
- void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
- 		const struct v4l2_format *src_fmt);
- 
-+void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height);
-+
-+void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt);
-+
- int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
- 	const unsigned char *src, unsigned char *dest, int width, int height);
- 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 60010f1..bc5e34f 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -128,6 +128,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_Y4,		 8,	20,	20,	0 },
- 	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
- 	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
-+	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
- };
- 
- static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
-@@ -989,6 +990,24 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 		break;
- 	}
- 
-+	case V4L2_PIX_FMT_Y16:
-+		switch (dest_pix_fmt) {
-+		case V4L2_PIX_FMT_RGB24:
-+	        case V4L2_PIX_FMT_BGR24:
-+			v4lconvert_y16_to_rgb24(src, dest, width, height);
-+			break;
-+		case V4L2_PIX_FMT_YUV420:
-+		case V4L2_PIX_FMT_YVU420:
-+			v4lconvert_y16_to_yuv420(src, dest, fmt);
-+			break;
-+		}
-+		if (src_size < (width * height * 2)) {
-+			V4LCONVERT_ERR("short y16 data frame\n");
-+			errno = EPIPE;
-+			result = -1;
-+		}
-+		break;
-+
- 	case V4L2_PIX_FMT_GREY:
- 	case V4L2_PIX_FMT_Y4:
- 	case V4L2_PIX_FMT_Y6:
-diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-index d05abe9..bef034f 100644
---- a/lib/libv4lconvert/rgbyuv.c
-+++ b/lib/libv4lconvert/rgbyuv.c
-@@ -586,6 +586,36 @@ void v4lconvert_rgb565_to_yuv420(const unsigned char *src, unsigned char *dest,
- 	}
- }
- 
-+void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height)
-+{
-+	int j;
-+	while (--height >= 0) {
-+		for (j = 0; j < width; j++) {
-+			*dest++ = *src;
-+			*dest++ = *src;
-+			*dest++ = *src;
-+			src+=2;
-+		}
-+	}
-+}
-+
-+void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt)
-+{
-+	int x, y;
-+
-+	/* Y */
-+	for (y = 0; y < src_fmt->fmt.pix.height; y++)
-+		for (x = 0; x < src_fmt->fmt.pix.width; x++){
-+			*dest++ = *src;
-+			src+=2;
-+		}
-+
-+	/* Clear U/V */
-+	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
-+}
-+
- void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
- 		int width, int height)
- {
--- 
-1.7.10.4
+The following changes since commit ad81f0545ef01ea651886dddac4bef6cec930092:
 
+  Linux 3.11-rc1 (2013-07-14 15:18:27 -0700)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git v3.11-fixes-1
+
+for you to fetch changes up to 31de1930009b91cd5f0319fb1485549914e2b153:
+
+  exynos4-is: Fix entity unregistration on error path (2013-07-29 22:04:39 +0200)
+
+----------------------------------------------------------------
+Arun Kumar K (2):
+      exynos4-is: Fix fimc-lite bayer formats
+      exynos-gsc: Register v4l2 device
+
+Sachin Kamat (1):
+      s5p-g2d: Fix registration failure
+
+Sylwester Nawrocki (1):
+      exynos4-is: Fix entity unregistration on error path
+
+ drivers/media/platform/exynos-gsc/gsc-core.c  |    9 ++++++++-
+ drivers/media/platform/exynos-gsc/gsc-core.h  |    1 +
+ drivers/media/platform/exynos-gsc/gsc-m2m.c   |    1 +
+ drivers/media/platform/exynos4-is/fimc-lite.c |    4 ++--
+ drivers/media/platform/exynos4-is/media-dev.c |    2 +-
+ drivers/media/platform/s5p-g2d/g2d.c          |    1 +
+ 6 files changed, 14 insertions(+), 4 deletions(-)
+
+--
+Thanks,
+Sylwester
