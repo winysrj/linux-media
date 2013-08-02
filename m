@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-d06.mx.aol.com ([205.188.109.203]:33220 "EHLO
-	omr-d06.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755183Ab3HBDT1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 23:19:27 -0400
-Message-ID: <51FB250A.2080404@netscape.net>
-Date: Fri, 02 Aug 2013 00:18:34 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1857 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755105Ab3HBGrA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 02:47:00 -0400
+Message-ID: <51FB55DA.6020201@xs4all.nl>
+Date: Fri, 02 Aug 2013 08:46:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: mb86a20s and cx23885
-References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net> <51E44DCA.8060702@netscape.net> <20130716053030.3fda034e.mchehab@infradead.org> <51E6A20B.8020507@netscape.net> <20130718042314.2773b7c0.mchehab@infradead.org> <51F40976.8090106@netscape.net> <20130801090436.6dfa0f68@infradead.org> <51FA97F0.9010206@netscape.net> <20130801143742.27fdc712@infradead.org> <51FAA45F.5070100@netscape.net> <20130801154824.77461147@infradead.org>
-In-Reply-To: <20130801154824.77461147@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Gregor Jasny <gjasny@googlemail.com>
+CC: =?ISO-8859-1?Q?B=E5rd_Eirik_Winther?= <bwinther@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Doing a v4l-utils-1.0.0 release
+References: <51BAC2F6.40708@redhat.com> <51FAA8BA.302@googlemail.com>
+In-Reply-To: <51FAA8BA.302@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Gregor,
 
-El 01/08/13 15:48, Mauro Carvalho Chehab escribiÃ³:
-> This time it arrived fine, thanks!
->
-> Btw, those changes at mb86a20s are required for it to work, or just alters
-> somewhat the tuning?
->
-> Regards,
-> Mauro
+Let me know when you've branched 1.0.0. I want to merge Bård's work for qv4l2
+(openGL support, upcoming audio support and other improvements), but I can't do
+that until after you made the 1.0.0 branch.
 
-Without these changes do not work.
+Thanks!
 
-With the original controller I get: mb86a20s: mb86a20s_read_status: val = 9, status = 0x1f
-but not video, not sound. That is the reason why I tested with kernel 3.2.
+	Hans
 
-Those changes I got to sniff the i2c traffic under windows.
-
-I have all traffic from i2c until obtaining image(I did it as the more repetitive than 10 samples).
-If it helps something I put on the list.
-
-Also I use "modprobe cx23885 debug = 3", but I saw nothing significant
-
-Thanks,
-
-Alfredo
-
-
-
-
-
+On 08/01/2013 08:28 PM, Gregor Jasny wrote:
+> Hello,
+> 
+> On 6/14/13 9:15 AM, Hans de Goede wrote:
+>> IIRC the 0.9.x series were meant as development releases leading up to a
+>> new
+>> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
+>> and a lot of interesting development going on in the 0.9.x, while at the
+>> same time there have been no issues reported against 0.9.x (iow it seems
+>> stable).
+>>
+>> So how about taking current master and releasing that as a 1.0.0 release ?
+> 
+> If nobody objects I'll do a 1.0.0 release this weekend.
+> 
+> Thanks,
+> Gregor
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
