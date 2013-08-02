@@ -1,173 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:9483 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755365Ab3HAP2A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 11:28:00 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQU001PCYYLLRB0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Aug 2013 16:27:58 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>
-Cc: m.chehab@samsung.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org
-References: <1374602690-12842-1-git-send-email-fabio.estevam@freescale.com>
- <1374659222.3929.4.camel@pizza.hi.pengutronix.de>
-In-reply-to: <1374659222.3929.4.camel@pizza.hi.pengutronix.de>
-Subject: RE: [PATCH v4 1/3] [media] coda: Fix error paths
-Date: Thu, 01 Aug 2013 17:27:57 +0200
-Message-id: <00a901ce8ecb$b36c0830$1a441890$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:40074 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab3HBL1J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 07:27:09 -0400
+Received: by mail-lb0-f181.google.com with SMTP id o10so356527lbi.40
+        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 04:27:06 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 0/2] videobuf2-dma-sg: Contiguos memory allocation
+Date: Fri,  2 Aug 2013 13:26:54 +0200
+Message-Id: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+Allocate memory as contiguos as possible to support dma engines with limitated amount of sg-descriptors.
 
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Wednesday, July 24, 2013 11:47 AM
-> To: Fabio Estevam
-> Cc: k.debski@samsung.com; m.chehab@samsung.com; kernel@pengutronix.de;
-> linux-media@vger.kernel.org
-> Subject: Re: [PATCH v4 1/3] [media] coda: Fix error paths
-> 
-> Hi Fabio,
-> 
-> Am Dienstag, den 23.07.2013, 15:04 -0300 schrieb Fabio Estevam:
-> > Some resources were not being released in the error path and some
-> were
-> > released in the incorrect order.
-> >
-> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> > ---
-> > Changes since v3:
-> > - Only disable the clocks after v4l2_m2m_ctx_release() Changes since
-> > v2:
-> > - Newly introduced in this series
-> >
-> >  drivers/media/platform/coda.c | 38
-> > ++++++++++++++++++++++++--------------
-> >  1 file changed, 24 insertions(+), 14 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/coda.c
-> > b/drivers/media/platform/coda.c index df4ada88..9384f02 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -1514,21 +1514,26 @@ static int coda_open(struct file *file)
-> >  	int ret = 0;
-> >  	int idx;
-> >
-> > -	idx = coda_next_free_instance(dev);
-> > -	if (idx >= CODA_MAX_INSTANCES)
-> > -		return -EBUSY;
-> > -	set_bit(idx, &dev->instance_mask);
-> > -
-> >  	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-> >  	if (!ctx)
-> >  		return -ENOMEM;
-> >
-> > +	idx = coda_next_free_instance(dev);
-> > +	if (idx >= CODA_MAX_INSTANCES) {
-> > +		ret =  -EBUSY;
-> > +		goto err_coda_max;
-> > +	}
-> > +	set_bit(idx, &dev->instance_mask);
-> > +
-> >  	v4l2_fh_init(&ctx->fh, video_devdata(file));
-> >  	file->private_data = &ctx->fh;
-> >  	v4l2_fh_add(&ctx->fh);
-> >  	ctx->dev = dev;
-> >  	ctx->idx = idx;
-> >
-> > +	clk_prepare_enable(dev->clk_per);
-> > +	clk_prepare_enable(dev->clk_ahb);
-> > +
-> >  	set_default_params(ctx);
-> >  	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-> >  					 &coda_queue_init);
-> > @@ -1537,12 +1542,12 @@ static int coda_open(struct file *file)
-> >
-> >  		v4l2_err(&dev->v4l2_dev, "%s return error (%d)\n",
-> >  			 __func__, ret);
-> > -		goto err;
-> > +		goto err_ctx_init;
-> >  	}
-> >  	ret = coda_ctrls_setup(ctx);
-> >  	if (ret) {
-> >  		v4l2_err(&dev->v4l2_dev, "failed to setup coda controls\n");
-> > -		goto err;
-> > +		goto err_ctrls_setup;
-> >  	}
-> >
-> >  	ctx->fh.ctrl_handler = &ctx->ctrls;
-> > @@ -1552,24 +1557,29 @@ static int coda_open(struct file *file)
-> >  	if (!ctx->parabuf.vaddr) {
-> >  		v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
-> >  		ret = -ENOMEM;
-> > -		goto err;
-> > +		goto err_dma_alloc;
-> >  	}
-> >
-> >  	coda_lock(ctx);
-> >  	list_add(&ctx->list, &dev->instances);
-> >  	coda_unlock(ctx);
-> >
-> > -	clk_prepare_enable(dev->clk_per);
-> > -	clk_prepare_enable(dev->clk_ahb);
-> > -
-> >  	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d
-> (%p)\n",
-> >  		 ctx->idx, ctx);
-> >
-> >  	return 0;
-> >
-> > -err:
-> > +err_dma_alloc:
-> > +	v4l2_ctrl_handler_free(&ctx->ctrls);
-> > +err_ctrls_setup:
-> > +	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-> > +err_ctx_init:
-> > +	clk_disable_unprepare(dev->clk_ahb);
-> > +	clk_disable_unprepare(dev->clk_per);
-> >  	v4l2_fh_del(&ctx->fh);
-> >  	v4l2_fh_exit(&ctx->fh);
-> > +	clear_bit(ctx->idx, &dev->instance_mask);
-> > +err_coda_max:
-> >  	kfree(ctx);
-> >  	return ret;
-> >  }
-> > @@ -1588,10 +1598,10 @@ static int coda_release(struct file *file)
-> >
-> >  	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
-> >  		ctx->parabuf.vaddr, ctx->parabuf.paddr);
-> > -	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-> >  	v4l2_ctrl_handler_free(&ctx->ctrls);
-> > -	clk_disable_unprepare(dev->clk_per);
-> > +	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-> >  	clk_disable_unprepare(dev->clk_ahb);
-> > +	clk_disable_unprepare(dev->clk_per);
-> >  	v4l2_fh_del(&ctx->fh);
-> >  	v4l2_fh_exit(&ctx->fh);
-> >  	clear_bit(ctx->idx, &dev->instance_mask);
-> 
-> this looks better, thanks. Could you rebase the patches onto Kamil's
-> http://git.linuxtv.org/kdebski/media.git/shortlog/refs/heads/new-for-
-> 3.12
-> branch?
+Replace private structer vb2_dma_sg_desc with generic struct sg_table.
 
-Could you rebase these patches onto 
-http://git.linuxtv.org/kdebski/media.git/shortlog/refs/heads/new-for-3.12-2nd
-?
+PS: This series of patches is the evolution of my previous patch for vb2-dma-sg to allocate the memory as contiguos as possible.
 
-I get some conflicts and I am not sure how to resolve them.
+v3: Constains feedback from Andre Heider
+Andre: Fix error handling (--pages) was wrongly fixed
 
-Best wishes,
+v2: Contains feedback from Andre Heider and Sylwester Nawrocki
+
+Andre: Fix error handling (--pages)
+Sylwester: Squash p3 and p4 into p2
+
+Ricardo Ribalda Delgado (2):
+  videobuf2-dma-sg: Allocate pages as contiguous as possible
+  videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
+
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         |  149 +++++++++++---------
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 +--
+ include/media/videobuf2-dma-sg.h                   |   10 +-
+ 4 files changed, 105 insertions(+), 88 deletions(-)
+
 -- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
+1.7.10.4
 
