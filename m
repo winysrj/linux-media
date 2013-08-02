@@ -1,106 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:39522 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754097Ab3HBFBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 01:01:43 -0400
-Received: by mail-oa0-f53.google.com with SMTP id k18so457053oag.40
-        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 22:01:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAD025yQfPxK-uGEwGWc4i8osNwY5VW4PUAQ4pD7Sy_jFfZ=LOw@mail.gmail.com>
-References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
-	<5151790.EBRlE0cTxf@flatron>
-	<CAD025yQfPxK-uGEwGWc4i8osNwY5VW4PUAQ4pD7Sy_jFfZ=LOw@mail.gmail.com>
-Date: Fri, 2 Aug 2013 10:31:42 +0530
-Message-ID: <CAK9yfHzski3=UcUkFPPpsRBvQshHszJAsMCs+MjshRZUiTMoWg@mail.gmail.com>
-Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
- continous memory flag
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
-	InKi Dae <inki.dae@samsung.com>, arun.kk@samsung.com,
-	Patch Tracking <patches@linaro.org>,
-	linaro-kernel@lists.linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56338 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185Ab3HBBCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:31 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v5 2/9] Documentation: media: Clarify the VIDIOC_CREATE_BUFS format requirements
+Date: Fri,  2 Aug 2013 03:03:21 +0200
+Message-Id: <1375405408-17134-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikas,
+The VIDIOC_CREATE_BUFS ioctl takes a format argument that must contain a
+valid format supported by the driver. Clarify the documentation.
 
-On 2 August 2013 09:23, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> Hi Tomasz,
->
->
-> On 2 August 2013 04:50, Tomasz Figa <tomasz.figa@gmail.com> wrote:
->>
->> Hi Vikas,
->>
->> On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
->> > While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
->> > connected with resolution 2560x1600, following error occured even with
->> > IOMMU enabled:
->> > [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
->> > buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
->> >
->> > This patch fixes the issue by adding a check for IOMMU.
->> >
->> > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->> > Signed-off-by: Arun Kumar <arun.kk@samsung.com>
->> > ---
->> >  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
->> >  1 file changed, 8 insertions(+), 1 deletion(-)
->> >
->> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
->> > b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c index 8e60bd6..2a86666
->> > 100644
->> > --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
->> > +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
->> > @@ -16,6 +16,7 @@
->> >  #include <drm/drm_crtc.h>
->> >  #include <drm/drm_fb_helper.h>
->> >  #include <drm/drm_crtc_helper.h>
->> > +#include <drm/exynos_drm.h>
->> >
->> >  #include "exynos_drm_drv.h"
->> >  #include "exynos_drm_fb.h"
->> > @@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct
->> > drm_fb_helper *helper, struct platform_device *pdev = dev->platformdev;
->> >       unsigned long size;
->> >       int ret;
->> > +     unsigned int flag;
->> >
->> >       DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
->> >                       sizes->surface_width, sizes->surface_height,
->> > @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
->> > drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
->> >
->> >       /* 0 means to allocate physically continuous memory */
->> > -     exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
->> > +     if (!is_drm_iommu_supported(dev))
->> > +             flag = 0;
->> > +     else
->> > +             flag = EXYNOS_BO_NONCONTIG;
->>
->> While noncontig memory might be used for devices that support IOMMU, there
->> should be no problem with using contig memory for them, so this seems more
->> like masking the original problem rather than tracking it down.
->>
->> Could you check why the allocation fails when requesting contiguous
->> memory?
->>
->
-> It is failing if i am giving bigger resolution like 2560x1600, but if
-> i try for 1280x780 resolution, it   works fine.
-> Looks like arm_dma_alloc() is NOT able to allocate bigger buffer of
-> size 2560 * 1600 * 4.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-You may need to increase the zoneorder (from current default 11 to say
-13) if you need large physically contiguous pages.
-However I am not sure if it is recommended.
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index cd99436..407937a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -69,10 +69,11 @@ the <structname>v4l2_create_buffers</structname> structure. They set the
+ structure, to the respective stream or buffer type.
+ <structfield>count</structfield> must be set to the number of required buffers.
+ <structfield>memory</structfield> specifies the required I/O method. The
+-<structfield>format</structfield> field shall typically be filled in using
+-either the <constant>VIDIOC_TRY_FMT</constant> or
+-<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
+-<structfield>sizeimage</structfield> fields to fit their specific needs. The
++<structfield>format</structfield> field must be a valid format supported by the
++driver. Applications shall typically fill it using either the
++<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant>
++ioctl(). Any format that would be modified by the
++<constant>VIDIOC_TRY_FMT</constant> ioctl() will be rejected with an error. The
+ <structfield>reserved</structfield> array must be zeroed.</para>
+ 
+     <para>When the ioctl is called with a pointer to this structure the driver
+@@ -144,9 +145,9 @@ mapped</link> I/O.</para>
+       <varlistentry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+-	  <para>The buffer type (<structfield>type</structfield> field) or the
+-requested I/O method (<structfield>memory</structfield>) is not
+-supported.</para>
++	  <para>The buffer type (<structfield>type</structfield> field),
++requested I/O method (<structfield>memory</structfield>) or format
++(<structfield>format</structfield> field) is not valid.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
 -- 
-With warm regards,
-Sachin
+1.8.1.5
+
