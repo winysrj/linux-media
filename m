@@ -1,48 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:57673 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751489Ab3HCNRH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Aug 2013 09:17:07 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56338 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752890Ab3HBBCd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:33 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: jonarne@jonarne.no, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
-	andriy.shevchenko@linux.intel.com,
-	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
-Subject: [RFC v4 2/3] saa7115: Do not load saa7115_init_misc for gm7113c
-Date: Sat,  3 Aug 2013 15:19:36 +0200
-Message-Id: <1375535977-28913-3-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
-References: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v5 8/9] vsp1: Fix lack of the sink entity registration for enabled links
+Date: Fri,  2 Aug 2013 03:03:27 +0200
+Message-Id: <1375405408-17134-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the registers changed in saa7115_init_misc table are out of range
-for the gm7113c chip.
-The only register that's within range, don't need to be changed here.
+From: Katsuya Matsubara <matsu@igel.co.jp>
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+Each source entity maintains a pointer to the counterpart sink
+entity while an enabled link connects them. It should be managed by
+the setup_link callback in the media controller framework at runtime.
+However, enabled links which connect RPFs and WPFs that have an
+equivalent index number are created during initialization.
+This registers the pointer to a sink entity from the source entity
+when an enabled link is created.
+
+Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/i2c/saa7115.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_drv.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 41408dd..17a464d 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1769,7 +1769,7 @@ static int saa711x_probe(struct i2c_client *client,
- 		state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
- 		saa711x_writeregs(sd, saa7115_init_auto_input);
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index e58e49c..41dd891 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -101,6 +101,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
+ 						       entity, pad, flags);
+ 			if (ret < 0)
+ 				return ret;
++
++			if (flags & MEDIA_LNK_FL_ENABLED)
++				source->sink = entity;
+ 		}
  	}
--	if (state->ident > SAA7111A)
-+	if (state->ident > SAA7111A && state->ident != GM7113C)
- 		saa711x_writeregs(sd, saa7115_init_misc);
- 	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
- 	v4l2_ctrl_handler_setup(hdl);
+ 
 -- 
-1.8.3.1
+1.8.1.5
 
