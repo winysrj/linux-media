@@ -1,126 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:41359 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573Ab3HBWnC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 18:43:02 -0400
-Received: by mail-la0-f51.google.com with SMTP id fp13so807854lab.24
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 15:43:00 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	Gregor Jasny <gjasny@googlemail.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 1/2] libv4lconvert: Support for Y16 pixel format
-Date: Sat,  3 Aug 2013 00:42:51 +0200
-Message-Id: <1375483372-4354-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56336 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab3HBBC3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v5 1/9] media: Add support for circular graph traversal
+Date: Fri,  2 Aug 2013 03:03:20 +0200
+Message-Id: <1375405408-17134-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for V4L2_PIX_FMT_Y16 format.
+The graph traversal API (media_entity_graph_walk_*) doesn't support
+cyclic graphs and will fail to correctly walk a graph when circular
+links exist. Support circular graph traversal by checking whether an
+entity has already been visited before pushing it to the stack.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- lib/libv4lconvert/libv4lconvert-priv.h |    6 ++++++
- lib/libv4lconvert/libv4lconvert.c      |   19 +++++++++++++++++++
- lib/libv4lconvert/rgbyuv.c             |   30 ++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+)
+ drivers/media/media-entity.c | 14 +++++++++++---
+ include/media/media-entity.h |  4 ++++
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-index c37e220..6422fdd 100644
---- a/lib/libv4lconvert/libv4lconvert-priv.h
-+++ b/lib/libv4lconvert/libv4lconvert-priv.h
-@@ -152,6 +152,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
- void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
- 		const struct v4l2_format *src_fmt);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index cb30ffb..2c286c3 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -20,6 +20,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
  
-+void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height);
-+
-+void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt);
-+
- int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
- 	const unsigned char *src, unsigned char *dest, int width, int height);
- 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 60010f1..bc5e34f 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -128,6 +128,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_Y4,		 8,	20,	20,	0 },
- 	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
- 	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
-+	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
- };
- 
- static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
-@@ -989,6 +990,24 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 		break;
- 	}
- 
-+	case V4L2_PIX_FMT_Y16:
-+		switch (dest_pix_fmt) {
-+		case V4L2_PIX_FMT_RGB24:
-+	        case V4L2_PIX_FMT_BGR24:
-+			v4lconvert_y16_to_rgb24(src, dest, width, height);
-+			break;
-+		case V4L2_PIX_FMT_YUV420:
-+		case V4L2_PIX_FMT_YVU420:
-+			v4lconvert_y16_to_yuv420(src, dest, fmt);
-+			break;
-+		}
-+		if (src_size < (width * height * 2)) {
-+			V4LCONVERT_ERR("short y16 data frame\n");
-+			errno = EPIPE;
-+			result = -1;
-+		}
-+		break;
-+
- 	case V4L2_PIX_FMT_GREY:
- 	case V4L2_PIX_FMT_Y4:
- 	case V4L2_PIX_FMT_Y6:
-diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-index d05abe9..bef034f 100644
---- a/lib/libv4lconvert/rgbyuv.c
-+++ b/lib/libv4lconvert/rgbyuv.c
-@@ -586,6 +586,36 @@ void v4lconvert_rgb565_to_yuv420(const unsigned char *src, unsigned char *dest,
- 	}
++#include <linux/bitmap.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
+@@ -121,7 +122,6 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+ 	return entity;
  }
  
-+void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height)
-+{
-+	int j;
-+	while (--height >= 0) {
-+		for (j = 0; j < width; j++) {
-+			*dest++ = *src;
-+			*dest++ = *src;
-+			*dest++ = *src;
-+			src+=2;
-+		}
-+	}
-+}
-+
-+void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt)
-+{
-+	int x, y;
-+
-+	/* Y */
-+	for (y = 0; y < src_fmt->fmt.pix.height; y++)
-+		for (x = 0; x < src_fmt->fmt.pix.width; x++){
-+			*dest++ = *src;
-+			src+=2;
-+		}
-+
-+	/* Clear U/V */
-+	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
-+}
-+
- void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
- 		int width, int height)
+-#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
+ #define link_top(en)	((en)->stack[(en)->top].link)
+ #define stack_top(en)	((en)->stack[(en)->top].entity)
+ 
+@@ -140,6 +140,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
  {
+ 	graph->top = 0;
+ 	graph->stack[graph->top].entity = NULL;
++	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
++
++	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
++		return;
++
++	__set_bit(entity->id, graph->entities);
+ 	stack_push(graph, entity);
+ }
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+@@ -180,9 +186,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 
+ 		/* Get the entity in the other end of the link . */
+ 		next = media_entity_other(entity, link);
++		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
++			return NULL;
+ 
+-		/* Was it the entity we came here from? */
+-		if (next == stack_peek(graph)) {
++		/* Has the entity already been visited? */
++		if (__test_and_set_bit(next->id, graph->entities)) {
+ 			link_top(graph)++;
+ 			continue;
+ 		}
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 06bacf9..10df551 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -23,6 +23,7 @@
+ #ifndef _MEDIA_ENTITY_H
+ #define _MEDIA_ENTITY_H
+ 
++#include <linux/bitops.h>
+ #include <linux/list.h>
+ #include <linux/media.h>
+ 
+@@ -113,12 +114,15 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
+ }
+ 
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
++#define MEDIA_ENTITY_ENUM_MAX_ID	64
+ 
+ struct media_entity_graph {
+ 	struct {
+ 		struct media_entity *entity;
+ 		int link;
+ 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++
++	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+ 	int top;
+ };
+ 
 -- 
-1.7.10.4
+1.8.1.5
 
