@@ -1,180 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3318 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab3HBMZX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 08:25:23 -0400
-Message-ID: <51FBA52A.6020302@xs4all.nl>
-Date: Fri, 02 Aug 2013 14:25:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:46817 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755631Ab3HBHXL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 03:23:11 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: Rob Clark <robdclark@gmail.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
+	InKi Dae <inki.dae@samsung.com>,
+	"arun.kk" <arun.kk@samsung.com>,
+	Patch Tracking <patches@linaro.org>,
+	linaro-kernel@lists.linaro.org, sunil joshi <joshi@samsung.com>
+Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically continous memory flag
+Date: Fri, 02 Aug 2013 09:23:05 +0200
+Message-ID: <1599818.BCOnEvhrJr@flatron>
+In-Reply-To: <CAD025yRZBDh6ssSUbY-mo2mo-WqrUS3R56bD-QrBvaBbWX_HMQ@mail.gmail.com>
+References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org> <CAF6AEGvmd20MJ_=69kYahkeTySVbhc2GgiUNwCDFXuDWgeGAfQ@mail.gmail.com> <CAD025yRZBDh6ssSUbY-mo2mo-WqrUS3R56bD-QrBvaBbWX_HMQ@mail.gmail.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?QsOlcmQgRWlyaWsgV2ludGhlcg==?= <bwinther@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] qv4l2: add ALSA stream to qv4l2
-References: <1375445137-19443-1-git-send-email-bwinther@cisco.com> <228d662aff38f8798b8bd23f1e8e4515b67dc03b.1375445112.git.bwinther@cisco.com>
-In-Reply-To: <228d662aff38f8798b8bd23f1e8e4515b67dc03b.1375445112.git.bwinther@cisco.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bård!
+Hi Vikas,
 
-Two small comments below...
-
-On 08/02/2013 02:05 PM, Bård Eirik Winther wrote:
-> Changes the ALSA streaming code to work with qv4l2 and allows it to
-> be compiled in. qv4l2 does not use the streaming function yet.
+On Friday 02 of August 2013 12:08:52 Vikas Sajjan wrote:
+> Hi Rob,
 > 
-> Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
-> ---
->  configure.ac              |  6 ++++++
->  utils/qv4l2/Makefile.am   |  9 ++++++++-
->  utils/qv4l2/alsa_stream.c | 21 +++++++++++++++------
->  utils/qv4l2/alsa_stream.h | 13 ++++++++++---
->  4 files changed, 39 insertions(+), 10 deletions(-)
+> On 2 August 2013 06:03, Rob Clark <robdclark@gmail.com> wrote:
+> > On Thu, Aug 1, 2013 at 7:20 PM, Tomasz Figa <tomasz.figa@gmail.com> 
+wrote:
+> >> Hi Vikas,
+> >> 
+> >> On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
+> >>> While trying to get boot-logo up on exynos5420 SMDK which has eDP
+> >>> panel
+> >>> connected with resolution 2560x1600, following error occured even
+> >>> with
+> >>> IOMMU enabled:
+> >>> [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
+> >>> buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor
+> >>> 0
+> >>> 
+> >>> This patch fixes the issue by adding a check for IOMMU.
+> >>> 
+> >>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> >>> Signed-off-by: Arun Kumar <arun.kk@samsung.com>
+> >>> ---
+> >>> 
+> >>>  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
+> >>>  1 file changed, 8 insertions(+), 1 deletion(-)
+[snip]
+> >>> @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
+> >>> drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
+> >>> 
+> >>>       /* 0 means to allocate physically continuous memory */
+> >>> 
+> >>> -     exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
+> >>> +     if (!is_drm_iommu_supported(dev))
+> >>> +             flag = 0;
+> >>> +     else
+> >>> +             flag = EXYNOS_BO_NONCONTIG;
+> >> 
+> >> While noncontig memory might be used for devices that support IOMMU,
+> >> there should be no problem with using contig memory for them, so
+> >> this seems more like masking the original problem rather than
+> >> tracking it down.> 
+> > it is probably a good idea to not require contig memory when it is not
+> > needed for performance or functionality (and if it is only
+> > performance, then fallback gracefully to non-contig).. but yeah, would
+> > be good to know if this is masking another issue all the same
 > 
-> diff --git a/configure.ac b/configure.ac
-> index d74da61..e12507e 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -136,6 +136,11 @@ if test "x$qt_pkgconfig_gl" = "xfalse"; then
->     AC_MSG_WARN(Qt4 OpenGL or higher is not available)
->  fi
->  
-> +PKG_CHECK_MODULES(ALSA, [alsa], [alsa_pkgconfig=true], [alsa_pkgconfig=false])
-> +if test "x$alsa_pkgconfig" = "xfalse"; then
-> +   AC_MSG_WARN(ALSA library not available)
-> +fi
-> +
->  AC_SUBST([JPEG_LIBS])
->  
->  # The dlopen() function is in the C library for *BSD and in
-> @@ -243,6 +248,7 @@ AM_CONDITIONAL([WITH_LIBV4L], [test x$enable_libv4l != xno])
->  AM_CONDITIONAL([WITH_V4LUTILS], [test x$enable_v4lutils != xno])
->  AM_CONDITIONAL([WITH_QV4L2], [test ${qt_pkgconfig} = true -a x$enable_qv4l2 != xno])
->  AM_CONDITIONAL([WITH_QV4L2_GL], [test WITH_QV4L2 -a ${qt_pkgconfig_gl} = true])
-> +AM_CONDITIONAL([WITH_QV4L2_ALSA], [test WITH_QV4L2 -a ${alsa_pkgconfig} = true])
->  AM_CONDITIONAL([WITH_V4L_PLUGINS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
->  AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
->  
-> diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
-> index 22d4c17..eed25b0 100644
-> --- a/utils/qv4l2/Makefile.am
-> +++ b/utils/qv4l2/Makefile.am
-> @@ -4,7 +4,8 @@ qv4l2_SOURCES = qv4l2.cpp general-tab.cpp ctrl-tab.cpp vbi-tab.cpp v4l2-api.cpp
->    capture-win-qt.cpp capture-win-qt.h capture-win-gl.cpp capture-win-gl.h \
->    raw2sliced.cpp qv4l2.h capture-win.h general-tab.h vbi-tab.h v4l2-api.h raw2sliced.h
->  nodist_qv4l2_SOURCES = moc_qv4l2.cpp moc_general-tab.cpp moc_capture-win.cpp moc_vbi-tab.cpp qrc_qv4l2.cpp
-> -qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la
-> +qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la \
-> +  ../libmedia_dev/libmedia_dev.la
->  
->  if WITH_QV4L2_GL
->  qv4l2_CPPFLAGS = $(QTGL_CFLAGS) -DENABLE_GL
-> @@ -14,6 +15,12 @@ qv4l2_CPPFLAGS = $(QT_CFLAGS)
->  qv4l2_LDFLAGS = $(QT_LIBS)
->  endif
->  
-> +if WITH_QV4L2_ALSA
-> +qv4l2_CPPFLAGS += $(ALSA_CFLAGS) -DENABLE_ALSA
-> +qv4l2_LDFLAGS += $(ALSA_LIBS) -pthread
-> +qv4l2_SOURCES += alsa_stream.c alsa_stream.h
-> +endif
-> +
->  EXTRA_DIST = exit.png fileopen.png qv4l2_24x24.png qv4l2_64x64.png qv4l2.png qv4l2.svg snapshot.png \
->    video-television.png fileclose.png qv4l2_16x16.png qv4l2_32x32.png qv4l2.desktop qv4l2.qrc record.png \
->    saveraw.png qv4l2.pro
-> diff --git a/utils/qv4l2/alsa_stream.c b/utils/qv4l2/alsa_stream.c
-> index 3e33b5e..90d3afb 100644
-> --- a/utils/qv4l2/alsa_stream.c
-> +++ b/utils/qv4l2/alsa_stream.c
-> @@ -26,9 +26,7 @@
->   *
->   */
->  
-> -#include "config.h"
-> -
-> -#ifdef HAVE_ALSA_ASOUNDLIB_H
-> +#include "alsa_stream.h"
->  
->  #include <stdio.h>
->  #include <stdlib.h>
-> @@ -40,12 +38,12 @@
->  #include <alsa/asoundlib.h>
->  #include <sys/time.h>
->  #include <math.h>
-> -#include "alsa_stream.h"
->  
->  #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*(a)))
->  
->  /* Private vars to control alsa thread status */
->  static int stop_alsa = 0;
-> +static snd_htimestamp_t timestamp;
->  
->  /* Error handlers */
->  snd_output_t *output = NULL;
-> @@ -422,7 +420,8 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
->  static snd_pcm_sframes_t readbuf(snd_pcm_t *handle, char *buf, long len)
->  {
->      snd_pcm_sframes_t r;
-> -
-> +    snd_pcm_uframes_t frames;
-> +    snd_pcm_htimestamp(handle, &frames, &timestamp);
->      r = snd_pcm_readi(handle, buf, len);
->      if (r < 0 && r != -EAGAIN) {
->  	r = snd_pcm_recover(handle, r, 0);
-> @@ -453,6 +452,7 @@ static snd_pcm_sframes_t writebuf(snd_pcm_t *handle, char *buf, long len)
->  	len -= r;
->  	snd_pcm_wait(handle, 100);
->      }
-> +    return -1;
->  }
->  
->  static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
-> @@ -642,4 +642,13 @@ int alsa_thread_is_running(void)
->      return alsa_is_running;
->  }
->  
-> -#endif
-> +void alsa_thread_timestamp(struct timeval *tv)
-> +{
-> +	if (alsa_thread_is_running()) {
-> +		tv->tv_sec = timestamp.tv_sec;
-> +		tv->tv_usec = timestamp.tv_nsec / 1000;
-> +	} else {
-> +		tv->tv_sec = 1337;
-
-Why 1337? I would expect either 0, or a bool return from this function to signify that there
-is no valid timestamp.
-
-> +		tv->tv_usec = 0;
-> +	}
-> +}
-> diff --git a/utils/qv4l2/alsa_stream.h b/utils/qv4l2/alsa_stream.h
-> index c68fd6d..b74c3aa 100644
-> --- a/utils/qv4l2/alsa_stream.h
-> +++ b/utils/qv4l2/alsa_stream.h
-> @@ -1,5 +1,12 @@
-> -int alsa_thread_startup(const char *pdevice, const char *cdevice, int latency,
-> -			FILE *__error_fp,
-> -			int __verbose);
-> +#ifndef ALSA_STRAM_H
-> +#define ALSA_STRAM_H
-
-A small typo: STRAM -> STREAM
-
-> +
-> +#include <stdio.h>
-> +#include <sys/time.h>
-> +
-> +int alsa_thread_startup(const char *pdevice, const char *cdevice,
-> +			int latency, FILE *__error_fp, int __verbose);
->  void alsa_thread_stop(void);
->  int alsa_thread_is_running(void);
-> +void alsa_thread_timestamp(struct timeval *tv);
-> +#endif
+> Whats happening with CONTIG flag and with IOMMU,  is
 > 
+>  __iommu_alloc_buffer() ---> dma_alloc_from_contiguous() and in this
+> function it fails at
+> this condition check  if (pageno >= cma->count)
+> 
+> So I tried increasing the CONFIG_CMA_SIZE_MBYTES to 24,  this check
+> succeeds and it works well without my patch.
+> 
+> But what about the case where CONFIG_CMA is disabled , yet i want
+> bigger memory for a device.
+>  I think using IOMMU we can achieve this.
+>
+>  correct me, if i am wrong.
 
-Regards,
+This is probably fine. I'm not sure about performance aspects of using 
+noncontig memory as framebuffer, though. This needs to be checked and if 
+there is some performance penalty, I would make noncontig allocation a 
+fallback case, if contig fails, as Rob has suggested.
 
-	Hans
+Also I think you should adjust the commit message to say that non-
+contiguous memory can be used when IOMMU is supported, so there is no need 
+to force contiguous allocations, since this is not a bug fix, but rather a 
+feature this patch is adding.
+
+Best regards,
+Tomasz
+ 
+> > BR,
+> > -R
+> > 
+> >> Could you check why the allocation fails when requesting contiguous
+> >> memory?
+> >> 
+> >> Best regards,
+> >> Tomasz
+> >> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe
+> >> linux-media" in the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
