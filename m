@@ -1,130 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45727 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050Ab3HASsd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 14:48:33 -0400
-Date: Thu, 1 Aug 2013 15:48:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: mb86a20s and cx23885
-Message-ID: <20130801154824.77461147@infradead.org>
-In-Reply-To: <51FAA45F.5070100@netscape.net>
-References: <51054759.7050202@netscape.net>
-	<20130127141633.5f751e5d@redhat.com>
-	<5105A0C9.6070007@netscape.net>
-	<20130128082354.607fae64@redhat.com>
-	<5106E3EA.70307@netscape.net>
-	<511264CF.3010002@netscape.net>
-	<51336331.10205@netscape.net>
-	<20130303134051.6dc038aa@redhat.com>
-	<20130304164234.18df36a7@redhat.com>
-	<51353591.4040709@netscape.net>
-	<20130304233028.7bc3c86c@redhat.com>
-	<513A6968.4070803@netscape.net>
-	<515A0D03.7040802@netscape.net>
-	<51E44DCA.8060702@netscape.net>
-	<20130716053030.3fda034e.mchehab@infradead.org>
-	<51E6A20B.8020507@netscape.net>
-	<20130718042314.2773b7c0.mchehab@infradead.org>
-	<51F40976.8090106@netscape.net>
-	<20130801090436.6dfa0f68@infradead.org>
-	<51FA97F0.9010206@netscape.net>
-	<20130801143742.27fdc712@infradead.org>
-	<51FAA45F.5070100@netscape.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:63185 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564Ab3HBOUp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 10:20:45 -0400
+Received: by mail-oa0-f44.google.com with SMTP id l20so1445931oag.31
+        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 07:20:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130802134711.GA40163@gmail.com>
+References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com> <20130802134711.GA40163@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 2 Aug 2013 16:20:25 +0200
+Message-ID: <CAPybu_3MSCtDtJiwj8XM22-+u-cvfRGZh=aWgYi5HYBMP7CENw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as possible
+To: Andre Heider <a.heider@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 01 Aug 2013 15:09:35 -0300
-Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
+Thanks, I have just send a new version.
 
-> Hi
-> 
-> El 01/08/13 14:37, Mauro Carvalho Chehab escribió:
-> > Em Thu, 01 Aug 2013 14:16:32 -0300
-> > Alfredo Jesús Delaiti  <alfredodelaiti@netscape.net> escreveu:
-> >
-> >> Hi
-> >>
-> >> El 01/08/13 09:04, Mauro Carvalho Chehab escribió:
-> >>>> I found the patch that affects the X8507 board is: commit
-> >>>> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
-> >>>>
-> >>>> --------
-> >>>> alfredo@linux-puon:/usr/src/git/linux> git stash
-> >>>> Saved working directory and index state WIP on (no branch): c6f56e7
-> >>>> [media] dvb: don't use DVBv3 bandwidth macros
-> >>>> HEAD is now at c6f56e7 [media] dvb: don't use DVBv3 bandwidth macros
-> >>>> alfredo@linux-puon:/usr/src/git/linux> git bisect good
-> >>>> a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb is the first bad commit
-> >>>> commit a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
-> >>>> Author: Mauro Carvalho Chehab <mchehab  redhat.com>
-> >>>> Date:   Mon Dec 26 20:48:54 2011 -0300
-> >>>>
-> >>>>        [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
-> >>>>
-> >>>>        The cx23885-dvb driver has a dirty hack:
-> >>>>            1) it hooks the DVBv3 legacy call to FE_SET_FRONTEND;
-> >>>>            2) it uses internally the DVBv3 struct to decide some
-> >>>>               configs.
-> >>>>
-> >>>>        Replace it by a change during the gate control. This will
-> >>>>        likely work, but requires testing. Anyway, the current way
-> >>>>        will break, as soon as we stop copying data for DVBv3 for
-> >>>>        pure DVBv5 calls.
-> >>>>
-> >>>>        Compile-tested only.
-> >>>>
-> >>>>        Cc: Michael Krufky <mkrufky  linuxtv.org>
-> >>>>        Signed-off-by: Mauro Carvalho Chehab <mchehab  redhat.com>
-> >>>>
-> >>>> :040000 040000 6d0695eb9e59b837425ed64d4e2be6625864b609
-> >>>> 89700b867069ec0ad2713367e607763e91798e98 M      drivers
-> >>>> --------
-> >>>>
-> >>>>
-> >>>> I manually removed the patch, then the TV card works.
-> >>>>
-> >>>>
-> >>>> Unfortunately my lack of knowledge prevents me fix it.
-> >>>>
-> >>>> I test new code with pleasure :) !
-> >>> Hi Alfredo,
-> >>>
-> >>>
-> >>> Please send me the patches you've made to make isdb-t work on
-> >>> it, and I'll try to address this issue.
-> >>>
-> >>> Regards,
-> >>> Mauro
-> >>>
-> >>>
-> >> Mauro thank you very much for your interest.
-> >>
-> >> I send the patch. 3.2 is on a kernel.
-> >>
-> >> -----------------------------------------------------------------------
-> >>
-> >>    .../{ => }/media/dvb/frontends/mb86a20s.c          |  332
-> >> ++++++--------------
-> > Hmm... unfortunately, your emailer broke the patch. It made a total mess
-> > with whitespaces. Could you please resend it in a way that whitespaces
-> > won't be damaged? Otherwise, patch tool won't apply it.
-> >
-> > Cheers,
-> > Mauro
-> 
-> GRRRRRRRRR
-> 
-> I send attached, I hope it will not break this time.
+Regards!
 
-This time it arrived fine, thanks!
+On Fri, Aug 2, 2013 at 3:47 PM, Andre Heider <a.heider@gmail.com> wrote:
+> Hi Ricardo,
+>
+> I messed up one thing in my initial reply, sorry :(
+>
+> And two additional nitpicks, while we're at it.
+>
+> On Fri, Jul 19, 2013 at 07:02:33PM +0200, Ricardo Ribalda Delgado wrote:
+>> Most DMA engines have limitations regarding the number of DMA segments
+>> (sg-buffers) that they can handle. Videobuffers can easily spread
+>> through houndreds of pages.
+>>
+>> In the previous aproach, the pages were allocated individually, this
+>> could led to the creation houndreds of dma segments (sg-buffers) that
+>> could not be handled by some DMA engines.
+>
+> s/houndreds/hundreds/
+>
+>>
+>> This patch tries to minimize the number of DMA segments by using
+>> alloc_pages. In the worst case it will behave as before, but most
+>> of the times it will reduce the number of dma segments
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+> With those changes you can add:
+>
+> Reviewed-by: Andre Heider <a.heider@gmail.com>
+>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
+>>  1 file changed, 49 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> index 16ae3dc..c053605 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
+>>
+>>  static void vb2_dma_sg_put(void *buf_priv);
+>>
+>> +static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+>> +             gfp_t gfp_flags)
+>> +{
+>> +     unsigned int last_page = 0;
+>> +     int size = buf->sg_desc.size;
+>> +
+>> +     while (size > 0) {
+>> +             struct page *pages;
+>> +             int order;
+>> +             int i;
+>> +
+>> +             order = get_order(size);
+>> +             /* Dont over allocate*/
+>> +             if ((PAGE_SIZE << order) > size)
+>> +                     order--;
+>> +
+>> +             pages = NULL;
+>> +             while (!pages) {
+>> +                     pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
+>> +                                     __GFP_NOWARN | gfp_flags, order);
+>> +                     if (pages)
+>> +                             break;
+>> +
+>> +                     if (order == 0)
+>> +                             while (last_page--) {
+>> +                                     __free_page(buf->pages[last_page]);
+>> +                                     return -ENOMEM;
+>> +                             }
+>> +                     order--;
+>> +             }
+>> +
+>> +             split_page(pages, order);
+>> +             for (i = 0; i < (1<<order); i++) {
+>
+> whitespace nit: "(1 << order)"
+>
+>> +                     buf->pages[last_page] = pages[i];
+>
+> My fault, it should read:
+>
+>                         buf->pages[last_page] = &pages[i];
+>
+>> +                     sg_set_page(&buf->sg_desc.sglist[last_page],
+>> +                                     buf->pages[last_page], PAGE_SIZE, 0);
+>> +                     last_page++;
+>> +             }
+>> +
+>> +             size -= PAGE_SIZE << order;
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>>  static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>>  {
+>>       struct vb2_dma_sg_buf *buf;
+>> -     int i;
+>> +     int ret;
+>>
+>>       buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>>       if (!buf)
+>> @@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>       if (!buf->pages)
+>>               goto fail_pages_array_alloc;
+>>
+>> -     for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+>> -             buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+>> -                                        __GFP_NOWARN | gfp_flags);
+>> -             if (NULL == buf->pages[i])
+>> -                     goto fail_pages_alloc;
+>> -             sg_set_page(&buf->sg_desc.sglist[i],
+>> -                         buf->pages[i], PAGE_SIZE, 0);
+>> -     }
+>> +     ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
+>> +     if (ret)
+>> +             goto fail_pages_alloc;
+>>
+>>       buf->handler.refcount = &buf->refcount;
+>>       buf->handler.put = vb2_dma_sg_put;
+>> @@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>       return buf;
+>>
+>>  fail_pages_alloc:
+>> -     while (--i >= 0)
+>> -             __free_page(buf->pages[i]);
+>>       kfree(buf->pages);
+>>
+>>  fail_pages_array_alloc:
+>> --
+>> 1.7.10.4
+>>
 
-Btw, those changes at mb86a20s are required for it to work, or just alters
-somewhat the tuning?
 
-Regards,
-Mauro
+
+-- 
+Ricardo Ribalda
