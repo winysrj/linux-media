@@ -1,423 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:34236 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755432Ab3HAOUG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Aug 2013 10:20:06 -0400
-Message-ID: <51FA6D08.8060804@schinagl.nl>
-Date: Thu, 01 Aug 2013 16:13:28 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3360 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab3HBOkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 10:40:53 -0400
+Message-ID: <51FBC4D7.2010802@xs4all.nl>
+Date: Fri, 02 Aug 2013 16:40:23 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Krishna Kishore <krishna.kishore@sasken.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Prof p7500 DVB-S2 USB device
-References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com> <51EF853E.2040108@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com> <51EFB4A8.2080202@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>,<51EFC5D4.6000407@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE14871DD0@exgmbxfz01.sasken.com> <51F761B3.4070905@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE148782EF@exgmbxfz01.sasken.com>,<7CC27E99F1636344B0AC7B73D5BB86DE1487ECB7@exgmbxfz01.sasken.com>,<qja5qq4ps2r6jhwrh8gljk4o.1375364689195@email.android.com> <ff91f18b-d0f7-438c-bdc9-c9cf9840650e@EXGHTSFZ01.sasken.com>
-In-Reply-To: <ff91f18b-d0f7-438c-bdc9-c9cf9840650e@EXGHTSFZ01.sasken.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Archit Taneja <archit@ti.com>
+CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	dagriego@biglakesoftware.com, dale@farnsworth.org,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com
+Subject: Re: [PATCH 4/6] v4l: ti-vpe: Add de-interlacer support in VPE
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-5-git-send-email-archit@ti.com>
+In-Reply-To: <1375452223-30524-5-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You are making it very hard to troubleshoot your problem and since the 
-driver seems to work on your PC this is almost the wrong place for your 
-support questions. I suppose the panda board forums would be better?
+More comments...
 
-Anyway, if your issue on the pandaboard is that it's not showing up in 
-lsusb, you probably are missing USB drivers (i think we talked about 
-that previously)
+On 08/02/2013 04:03 PM, Archit Taneja wrote:
+> Add support for the de-interlacer block in VPE.
+> 
+> For de-interlacer to work, we need to enable 2 more sets of VPE input ports
+> which fetch data from the 'last' and 'last to last' fields of the interlaced
+> video. Apart from that, we need to enable the Motion vector output and input
+> ports, and also allocate DMA buffers for them.
+> 
+> We need to make sure that two most recent fields in the source queue are
+> available and in the 'READY' state. Once a mem2mem context gets access to the
+> VPE HW(in device_run), it extracts the addresses of the 3 buffers, and provides
+> it to the data descriptors for the 3 sets of input ports((LUMA1, CHROMA1),
+> (LUMA2, CHROMA2), and (LUMA3, CHROMA3)) respectively for the 3 consecutive
+> fields. The motion vector and output port descriptors are configured and the
+> list is submitted to VPDMA.
+> 
+> Once the transaction is done, the v4l2 buffer corresponding to the oldest
+> field(the 3rd one) is changed to the state 'DONE', and the buffers corresponding
+> to 1st and 2nd fields become the 2nd and 3rd field for the next de-interlace
+> operation. This way, for each deinterlace operation, we have the 3 most recent
+> fields. After each transaction, we also swap the motion vector buffers, the new
+> input motion vector buffer contains the resultant motion information of all the
+> previous frames, and the new output motion vector buffer will be used to hold
+> the updated motion vector to capture the motion changes in the next field.
+> 
+> The de-interlacer is removed from bypass mode, it requires some extra default
+> configurations which are now added. The chrominance upsampler coefficients are
+> added for interlaced frames. Some VPDMA parameters like frame start event and
+> line mode are configured for the 2 extra sets of input ports.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 372 ++++++++++++++++++++++++++++++++----
+>  1 file changed, 337 insertions(+), 35 deletions(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 14a292b..5b1410c 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
 
-Those crashes you posted, I have no idea where or what they cause. If 
-this is from booting without USB stick plugged in, deffinatly ask on 
-some pandaboard list/forum. If it only happens when plugging in your 
-device, then it might be related to the dvb driver, but even there I 
-have my doubts.
+...
 
-Oliver
+> @@ -1035,7 +1310,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>  
+>  	if (pix->field == V4L2_FIELD_ANY)
+>  		pix->field = V4L2_FIELD_NONE;
+> -	else if (V4L2_FIELD_NONE != pix->field)
+> +	else if (V4L2_FIELD_NONE != pix->field &&
+> +			V4L2_FIELD_ALTERNATE != pix->field)
+>  		return -EINVAL;
 
-On 01-08-13 16:06, Krishna Kishore wrote:
->
-> Krishna Kishore <krishna.kishore@sasken.com> wrote:
-> Hi,
->
->       When I used buildroot filesystem, I am not seeing this problem.
-> However, my device still doenot work.
->
->   Ubuntu 13.04 desktop   kernel 3.8.0  works
->   Pandaboard  kernel >=3.8.4   doesnot work
->    I am suspecting only kernel configuration.
->    Please provide any inputs for me to proceed. Thanks.
->
-> Regards,
-> Kishore.
->
-> Krishna Kishore <krishna.kishore@sasken.com> wrote:
-> Hi,
->
->
->     Does anyone know about the following error?  I am using Linux kernel
-> 3.9.0. I am getting this error with 3.8.4 also.
->
-> [  233.017242] PM: Syncing filesystems ... done.
-> [  233.253112] Freezing user space processes ... (elapsed 0.01 seconds)
-> done.
-> [  233.273712] Freezing remaining freezable tasks ...
-> [  253.291076] Freezing of tasks failed after 20.01 seconds (1 tasks
-> refusing to freeze, wq_busy=0):
-> [  253.300445] khubd           D c053586c     0   446      2 0x00000000
-> [  253.307220] [<c053586c>] (__schedule+0x37c/0x7e0) from [<c053366c>]
-> (schedule_timeout+0x124/0x220)
-> [  253.316741] [<c053366c>] (schedule_timeout+0x124/0x220) from
-> [<c05353a8>] (wait_for_common+0xac/0x150)
-> [  253.326599] [<c05353a8>] (wait_for_common+0xac/0x150) from
-> [<c03c0a68>] (usb_start_wait_urb+0x60/0x128)
-> [  253.336547] [<c03c0a68>] (usb_start_wait_urb+0x60/0x128) from
-> [<c03c0cec>] (usb_control_msg+0xc0/0xe4)
-> [  253.346405] [<c03c0cec>] (usb_control_msg+0xc0/0xe4) from
-> [<c04288a0>] (dw210x_op_rw+0x94/0x108)
-> [  253.355712] [<c04288a0>] (dw210x_op_rw+0x94/0x108) from [<c04293a4>]
-> (s6x0_i2c_transfer+0x3c0/0x3e0)
-> [  253.365386] [<c04293a4>] (s6x0_i2c_transfer+0x3c0/0x3e0) from
-> [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0)
-> [  253.375823] [<c042aae8>] (s6x0_read_mac_address+0x70/0xc0) from
-> [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0)
-> [  253.386810] [<c0426f64>] (dvb_usb_adapter_dvb_init+0x64/0x1c0) from
-> [<c042664c>] (dvb_usb_device_init+0x444/0x608)
-> [  253.397766] [<c042664c>] (dvb_usb_device_init+0x444/0x608) from
-> [<c0428718>] (dw2102_probe+0x24c/0x340)
-> [  253.407714] [<c0428718>] (dw2102_probe+0x24c/0x340) from [<c03c3da8>]
-> (usb_probe_interface+0x1c0/0x260)
-> [  253.417663] [<c03c3da8>] (usb_probe_interface+0x1c0/0x260) from
-> [<c032eec4>] (driver_probe_device+0x108/0x21c)
-> [  253.428253] [<c032eec4>] (driver_probe_device+0x108/0x21c) from
-> [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
-> [  253.438385] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from
-> [<c032ed88>] (device_attach+0x78/0x90)
-> [  253.447784] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>]
-> (bus_probe_device+0x88/0xac)
-> [  253.457183] [<c032e3d8>] (bus_probe_device+0x88/0xac) from
-> [<c032cc64>] (device_add+0x4b0/0x584)
-> [  253.466491] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03c2200>]
-> (usb_set_configuration+0x574/0x78c)
-> [  253.476470] [<c03c2200>] (usb_set_configuration+0x574/0x78c) from
-> [<c03caa74>] (generic_probe+0x34/0x78)
-> [  253.486511] [<c03caa74>] (generic_probe+0x34/0x78) from [<c03c3e84>]
-> (usb_probe_device+0x3c/0x60)
-> [  253.495910] [<c03c3e84>] (usb_probe_device+0x3c/0x60) from
-> [<c032eec4>] (driver_probe_device+0x108/0x21c)
-> [  253.506042] [<c032eec4>] (driver_probe_device+0x108/0x21c) from
-> [<c032d69c>] (bus_for_each_drv+0x5c/0x88)
-> [  253.516174] [<c032d69c>] (bus_for_each_drv+0x5c/0x88) from
-> [<c032ed88>] (device_attach+0x78/0x90)
-> [  253.525573] [<c032ed88>] (device_attach+0x78/0x90) from [<c032e3d8>]
-> (bus_probe_device+0x88/0xac)
-> [  253.534973] [<c032e3d8>] (bus_probe_device+0x88/0xac) from
-> [<c032cc64>] (device_add+0x4b0/0x584)
-> [  253.544281] [<c032cc64>] (device_add+0x4b0/0x584) from [<c03b96a4>]
-> (usb_new_device+0x1ec/0x360)
-> [  253.553588] [<c03b96a4>] (usb_new_device+0x1ec/0x360) from
-> [<c03bab1c>] (hub_thread+0x714/0x1360)
-> [  253.563018] [<c03bab1c>] (hub_thread+0x714/0x1360) from [<c0062dc0>]
-> (kthread+0xa4/0xb0)
-> [  253.571624] [<c0062dc0>] (kthread+0xa4/0xb0) from [<c0013230>]
-> (ret_from_fork+0x14/0x24)
-> [  253.580169]
-> [  253.581756] Restarting kernel threads ... done.
-> [  253.587005] Restarting tasks ... done.
-> [  259.016845] PM: Syncing filesystems ... done.
-> [  259.155700] Freezing user space processes ... (elapsed 0.02 seconds)
-> done.
->
->
->
->
-> Regards,
-> Kishore
-> ________________________________________
-> From: Krishna Kishore
-> Sent: Wednesday, July 31, 2013 4:08 PM
-> To: Oliver Schinagl
-> Cc: linux-media@vger.kernel.org
-> Subject: RE: Prof DVB-S2 USB device
->
-> Hi Oliver,
->
->     I migrated to Ubuntu 13.04 on desktop and tried. It worked !
->     It uses linux kernel 3.8.0. If I use this version of linux kernel or
-> greater on Pandaboard, it may work on Pandaboard also.
->
-> Regards,
-> Kishore.
->
->
->
->
-> -----Original Message-----
-> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
-> Sent: Tuesday, July 30, 2013 12:18 PM
-> To: Krishna Kishore
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Prof DVB-S2 USB device
->
-> On 30-07-13 08:25, Krishna Kishore wrote:
->> Hi Oliver,
->>
->>       3.10.2 booted on Pandaboard. Now, I am trying to connect Prof 7500 DVB-S2 device. It does not get detected as new USB device.
->>
->>      .config file is attached to this email. Am I missing any config? Can you please let me know?
->   From a quick glance I noticed you are missing the CONFIG_USB_EHCI_HCD
-> (EHCI Host controller) it appears you don't have a USB host controller
-> enabled at all? But i'm not sure what kind of USB controller omap4 has.
->
-> oliver
->>
->> Regards,
->> Kishore.
->> ________________________________________
->> From: Oliver Schinagl [oliver+list@schinagl.nl]
->> Sent: Wednesday, July 24, 2013 5:47 PM
->> To: Krishna Kishore
->> Cc: linux-media@vger.kernel.org
->> Subject: Re: Prof DVB-S2 USB device
->>
->> On 24-07-13 13:20, Krishna Kishore wrote:
->>>
->>> On Desktop PC (Ubuntu 12.04 which has 3.2.0 Kernel) also, I am not getting the list of channels when I scan. I am using Kaffeine.
->> While I understand you prefer to run a LTS distro, 3.2.0 is old!
->>
->> The reason why I keep bringing this up, media drivers are almost
->> updated daily. So if you want to see if your issue is fixed, the most
->> ideal start for this investigation is the media git kernel tree. While
->> I understand building your own kernel might be a little too much, try
->> an Ubuntu 13.04 Live cd, it should come with a 3.9 kernel, not
->> extremly old, but should have most of the recent media changes. Now if
->> it doesn't work right on that, well, then you'd have to build your own
->> media drivers from the git tree. If those don't work, then we can
->> start talking to developers. Otherwise, you are trying to troubleshoot
->> something, that has long been fixed.
->>
->> oliver
->>>
->>>
->>>
->>>
->>> -----Original Message-----
->>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
->>> Sent: Wednesday, July 24, 2013 4:34 PM
->>> To: Krishna Kishore
->>> Cc: linux-media@vger.kernel.org
->>> Subject: Re: Prof DVB-S2 USB device
->>>
->>> On 24-07-13 10:59, Krishna Kishore wrote:
->>>> Dear Oliver,
->>>>
->>>>           Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
->>>>
->>>>            Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
->>>>
->>>>          I am downloading 3.4.54 and 3.10.2 now.
->>> What do you get when using on a regular PC? Your beagle board may (or may not) yet be supported by mainline 3.10.1 kernel.
->>>
->>> Try it in a regular PC and see what happens there with 3.10.2
->>>>
->>>> Regards,
->>>> Kishore.
->>>>
->>>> -----Original Message-----
->>>> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
->>>> Sent: Wednesday, July 24, 2013 1:12 PM
->>>> To: Krishna Kishore
->>>> Cc: linux-media@vger.kernel.org
->>>> Subject: Re: Prof DVB-S2 USB device
->>>>
->>>> On 24-07-13 08:56, Krishna Kishore wrote:
->>>>> Dear Oliver,
->>>>>
->>>>>        Thanks for your response. Here are more details. Please help me in making this work.
->>>>>
->>>>>        Linux version:
->>>>>
->>>>> -sh-4.1# uname -a
->>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>>>> armv7l GNU/Linux
->>>> Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
->>>>
->>>> So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
->>>>
->>>> Meanwhile, since this is an USB device, you could try it on a desktop.
->>>> Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
->>>>>
->>>>> [dotconfig is attached to this email]
->>>>>
->>>>> lsusb -t:
->>>>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
->>>>>         |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
->>>>>             |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
->>>>>             |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
->>>>>
->>>>> dmesg:
->>>>> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
->>>>> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
->>>>> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB
->>>>> device
->>>>> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
->>>>> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
->>>>> [  127.051177] dw2102: start downloading DW210X firmware [
->>>>> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
->>>>> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
->>>>> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
->>>>> [ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [
->>>>> 1159.325531]
->>>>> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
->>>>> 1159.340332] Kishore stv0900_attach:
->>>>> [ 1159.340362] stv0900_init_internal [ 1159.340393]
->>>>> stv0900_init_internal: Create New Internal Structure!
->>>>> [ 1159.340423] stv0900_read_reg
->>>>> [ 1179.527770] stv0900_read_reg
->>>>> [ 1550.418365] stv0900_read_reg
->>>>> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
->>>>> stv0900_stop_all_s2_modcod [ 1669.340270]
->>>>> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
->>>>> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
->>>>> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
->>>>> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
->>>>> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
->>>>> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
->>>>> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
->>>>> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
->>>>> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
->>>>> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
->>>>> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
->>>>> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
->>>>> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
->>>>> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
->>>>> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
->>>>> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated
->>>>> Mclk = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
->>>>> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
->>>>> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
->>>>> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [
->>>>> 1891.090332] [ 1891.097442] Kishore stb6100_attach:
->>>>> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
->>>>> 1893.105957] dw2102: Attached STV0900+STB6100A!
->>>>> [ 1893.105957]
->>>>> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
->>>>> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
->>>>> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input
->>>>> 2 [ 1893.177368] dvb-usb: schedule remote query interval to 150
->>>>> msecs.
->>>>> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
->>>>>
->>>>>
->>>>>
->>>>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>>>> armv7l GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s
->>>>> S93E5 -c IN -G >> ch.conf w_scan version 20120112 (compiled for DVB
->>>>> API
->>>>> 5.4) using settings for 93.5 east Insat 3A/4B scan type SATELLITE,
->>>>> channellist 42 output format gstreamer
->>>>> WARNING: could not guess your codepage. Falling back to 'UTF-8'
->>>>> output charset 'UTF-8', use -C <charset> to override
->>>>> Info: using DVB adapter auto detection.
->>>>>
->>>>>             /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
->>>>> very good :-))
->>>>>
->>>>> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
->>>>> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
->>>>> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
->>>>> DVB-S2
->>>>> FREQ (0.95GHz ... 2.15GHz)
->>>>> SRATE (1.000MBd ... 45.000MBd)
->>>>> using LNB "UNIVERSAL"
->>>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->>>>> (time: 00:40)
->>>>>
->>>>> dmesg logs:
->>>>>
->>>>> [1716261.743961] stv0900_init
->>>>> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
->>>>> stv0900_read_status:
->>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>>>> [1716345.004236] stv0900_search:
->>>>> [1716345.004242] stv0900_read_status:
->>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>>>> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone:
->>>>> Off [1716307.004132] stv0900_read_status:
->>>>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>>>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>>>> [1716345.004236] stv0900_search:
->>>>> [1716345.004242] stv0900_read_status:
->>>>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>>>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>>>> [1716455.004184] stv0900_search:
->>>>> [1716455.004190] stv0900_read_status:
->>>>> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
->>>>> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315]
->>>>> TS bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
->>>>>
->>>>> Regards,
->>>>> Kishore.
->>>>> ________________________________________
->>>>> From: Oliver Schinagl [oliver+list@schinagl.nl]
->>>>> Sent: Wednesday, July 24, 2013 2:34 AM
->>>>> To: Krishna Kishore
->>>>> Cc: linux-media@vger.kernel.org
->>>>> Subject: Re: Prof DVB-S2 USB device
->>>>>
->>>>> On 23-07-13 18:52, Krishna Kishore wrote:
->>>>>> #Sorry for sending to individual email ids
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>>           I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
->>>>> You will need to provide much more information then that. What does
->>>>> dmesg say? lsusb? what driver are you using, what kernel version?
->>>>> Are you using it as a module? Have you enabled debugging in your kernel?
->>>>>
->>>>> Those questions come to my mind.
->>>>>
->>>>>>
->>>>>> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
->>>>>> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
->>>>>> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
->>>>> Paste your logs (or if its too much, only copy/paste the relevant parts.
->>>>> You ask for a limb, yet offer nothing.
->>>>>
->>>>> oliver
->>>>>>
->>>>>>            Can you please help me?
->>>>>>
->>>>>>
->>>>>> Regards,
->>>>>> Kishore.
->>>>>>
->>>>>>
->>>>>>
->>>>>
->>>>>
->>>>>
->>>>> ________________________________
->>>>>
->>>>> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print,  or copy any part of this message and you are requested to delete it
-> and inform the sender. Any views expressed in this message are those of
-> the individual sender unless otherwise stated. Nothing contained in this
-> message shall be construed as an offer or acceptance of any offer by
-> Sasken Communication Technologies Limited ("Sasken") unless sent with
-> that express intent and with due authority of Sasken. Sasken has taken
-> enough precautions to prevent the spread of viruses. However the company
-> accepts no liability for any damage caused by any virus transmitted by
-> this email.
->>>>> Read Disclaimer at
->>>>>http://www.sasken.com/extras/mail_disclaimer.html
->>>>>
->>>>
->>>
->>
->
+As mentioned before, this shouldn't result in an error, but map to a valid
+field format.
 
+For a deinterlacer I would expect NONE for the output of the deinterlacer (or
+capture buffer type) and ALTERNATE for the input of the deinterlacer (or output
+buffer type).
+
+>  
+>  	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+> @@ -1104,6 +1380,7 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+>  	q_data->width		= pix->width;
+>  	q_data->height		= pix->height;
+>  	q_data->colorspace	= pix->colorspace;
+> +	q_data->field		= pix->field;
+>  
+>  	for (i = 0; i < pix->num_planes; i++) {
+>  		plane_fmt = &pix->plane_fmt[i];
+> @@ -1117,6 +1394,11 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+>  	q_data->c_rect.width	= q_data->width;
+>  	q_data->c_rect.height	= q_data->height;
+>  
+> +	if (q_data->field == V4L2_FIELD_ALTERNATE)
+> +		q_data->flags |= Q_DATA_INTERLACED;
+> +	else
+> +		q_data->flags &= ~Q_DATA_INTERLACED;
+> +
+>  	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
+>  		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
+>  		q_data->bytesperline[VPE_LUMA]);
+> @@ -1194,6 +1476,22 @@ static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
+>  	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+>  }
+>  
+> +static void set_dei_shadow_registers(struct vpe_ctx *ctx)
+> +{
+> +	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
+> +	u32 *dei_mmr = &mmr_adb->dei_regs[0];
+> +	struct vpe_dei_regs *cur = &dei_regs;
+> +
+> +	dei_mmr[2]  = cur->mdt_spacial_freq_thr_reg;
+> +	dei_mmr[3]  = cur->edi_config_reg;
+> +	dei_mmr[4]  = cur->edi_lut_reg0;
+> +	dei_mmr[5]  = cur->edi_lut_reg1;
+> +	dei_mmr[6]  = cur->edi_lut_reg2;
+> +	dei_mmr[7]  = cur->edi_lut_reg3;
+> +
+> +	ctx->load_mmrs = true;
+> +}
+> +
+>  #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE)
+>  
+>  static int vpe_s_ctrl(struct v4l2_ctrl *ctrl)
+> @@ -1425,6 +1723,7 @@ static int vpe_open(struct file *file)
+>  	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
+>  			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+>  	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
+> +	s_q_data->field = V4L2_FIELD_NONE;
+>  	s_q_data->c_rect.left = 0;
+>  	s_q_data->c_rect.top = 0;
+>  	s_q_data->c_rect.width = s_q_data->width;
+> @@ -1433,6 +1732,7 @@ static int vpe_open(struct file *file)
+>  
+>  	ctx->q_data[Q_DATA_DST] = *s_q_data;
+>  
+> +	set_dei_shadow_registers(ctx);
+>  	set_src_registers(ctx);
+>  	set_dst_registers(ctx);
+>  	ret = set_srcdst_params(ctx);
+> @@ -1487,6 +1787,8 @@ static int vpe_release(struct file *file)
+>  	vpe_dbg(dev, "releasing instance %p\n", ctx);
+>  
+>  	mutex_lock(&dev->dev_mutex);
+> +	free_vbs(ctx);
+> +	free_mv_buffers(ctx);
+>  	vpdma_free_desc_list(&ctx->desc_list);
+>  	vpdma_buf_free(&ctx->mmr_adb);
+>  
+> 
+
+Regards,
+
+	Hans
