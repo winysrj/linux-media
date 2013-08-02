@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:40074 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab3HBL1J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 07:27:09 -0400
-Received: by mail-lb0-f181.google.com with SMTP id o10so356527lbi.40
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 04:27:06 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 0/2] videobuf2-dma-sg: Contiguos memory allocation
-Date: Fri,  2 Aug 2013 13:26:54 +0200
-Message-Id: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:58995 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756039Ab3HBK6Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 06:58:16 -0400
+Message-id: <51FB90C5.9060101@samsung.com>
+Date: Fri, 02 Aug 2013 12:58:13 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: Inki Dae <inki.dae@samsung.com>, Rob Clark <robdclark@gmail.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
+	"arun.kk" <arun.kk@samsung.com>,
+	Patch Tracking <patches@linaro.org>,
+	linaro-kernel@lists.linaro.org, sunil joshi <joshi@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	m.szyprowski@samsung.com, devicetree <devicetree@vger.kernel.org>
+Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
+ continous memory flag
+References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
+ <5151790.EBRlE0cTxf@flatron>
+ <CAF6AEGvmd20MJ_=69kYahkeTySVbhc2GgiUNwCDFXuDWgeGAfQ@mail.gmail.com>
+ <CAD025yRZBDh6ssSUbY-mo2mo-WqrUS3R56bD-QrBvaBbWX_HMQ@mail.gmail.com>
+ <CAAQKjZNBPxBxR-4PXbhOdX0V1inMkauE-xZ+0kwnfVTgqpCEVg@mail.gmail.com>
+ <CAD025yR9Xd0G81WdLDxKyu-RVZPPJAUOKZ+0b5oKUxYOe7q_pQ@mail.gmail.com>
+In-reply-to: <CAD025yR9Xd0G81WdLDxKyu-RVZPPJAUOKZ+0b5oKUxYOe7q_pQ@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allocate memory as contiguos as possible to support dma engines with limitated amount of sg-descriptors.
+Hi Vikas,
 
-Replace private structer vb2_dma_sg_desc with generic struct sg_table.
+On 08/02/2013 12:10 PM, Vikas Sajjan wrote:
+> yeah, we could not allocate CMA region for FIMD, because the function
+> dma_declare_contiguous() needs "dev" as the first argument and we have
+> access to "dev" node only if it is NON-DT way of probing like the way
+> it is done in arch/arm/mach-davinci/devices-da8xx.c
+> But now, since the probing is through DT way, there is NO way ( Let me
+> know if something is newly added ) to call dma_declare_contiguous()
+> and reserve CMA region .
 
-PS: This series of patches is the evolution of my previous patch for vb2-dma-sg to allocate the memory as contiguos as possible.
+See this patch series [1]. We have have been using this kind of bindings
+for assigning physically contiguous memory regions to the Exynos 
+multimedia devices, instead of what's currently in mainline where same
+physical addresses are repeated in dts for various boards without much
+thought. And where custom device specific parsing code is required at 
+arch side.
 
-v3: Constains feedback from Andre Heider
-Andre: Fix error handling (--pages) was wrongly fixed
+$ git grep mfc\-[lr] arch/arm/boot/dts
 
-v2: Contains feedback from Andre Heider and Sylwester Nawrocki
+arch/arm/boot/dts/exynos4210-origen.dts:     samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos4210-origen.dts:     samsung,mfc-l = <0x51000000 0x800000>;
+arch/arm/boot/dts/exynos4210-smdkv310.dts:   samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos4210-smdkv310.dts:   samsung,mfc-l = <0x51000000 0x800000>;
+arch/arm/boot/dts/exynos4412-origen.dts:     samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos4412-origen.dts:     samsung,mfc-l = <0x51000000 0x800000>;
+arch/arm/boot/dts/exynos4412-smdk4412.dts:   samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos4412-smdk4412.dts:   samsung,mfc-l = <0x51000000 0x800000>;
+arch/arm/boot/dts/exynos5250-arndale.dts:    samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos5250-arndale.dts:    samsung,mfc-l = <0x51000000 0x800000>;
+arch/arm/boot/dts/exynos5250-smdk5250.dts:   samsung,mfc-r = <0x43000000 0x800000>;
+arch/arm/boot/dts/exynos5250-smdk5250.dts:   samsung,mfc-l = <0x51000000 0x800000>;
 
-Andre: Fix error handling (--pages)
-Sylwester: Squash p3 and p4 into p2
 
-Ricardo Ribalda Delgado (2):
-  videobuf2-dma-sg: Allocate pages as contiguous as possible
-  videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
+[1] http://www.spinics.net/lists/arm-kernel/msg263130.html
 
- drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +-
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  149 +++++++++++---------
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 +--
- include/media/videobuf2-dma-sg.h                   |   10 +-
- 4 files changed, 105 insertions(+), 88 deletions(-)
-
--- 
-1.7.10.4
-
+Regards,
+Sylwester
