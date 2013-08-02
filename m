@@ -1,45 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56338 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59175 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab3HBBCc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 21:02:32 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	with ESMTP id S1755969Ab3HBKz6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 06:55:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
 	Sakari Ailus <sakari.ailus@iki.fi>,
 	Katsuya MATSUBARA <matsu@igel.co.jp>,
 	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v5 4/9] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-Date: Fri,  2 Aug 2013 03:03:23 +0200
-Message-Id: <1375405408-17134-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: Re: [PATCH v5 7/9] v4l: Renesas R-Car VSP1 driver
+Date: Fri, 02 Aug 2013 12:57 +0200
+Message-ID: <2025148.Pz9nW8WD9Z@avalon>
+In-Reply-To: <51FB7AA2.7080305@xs4all.nl>
+References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375405408-17134-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51FB7AA2.7080305@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_MBUS_FMT_YUV10_1X30 code is documented as being equal to
-0x2014, while the v4l2-mediabus.h header defines it as 0x2016. Fix the
-documentation.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Friday 02 August 2013 11:23:46 Hans Verkuil wrote:
+> Hi Laurent,
+> 
+> See my single remark below...
+> 
+> On 08/02/2013 03:03 AM, Laurent Pinchart wrote:
+> > The VSP1 is a video processing engine that includes a blender, scalers,
+> > filters and statistics computation. Configurable data path routing logic
+> > allows ordering the internal blocks in a flexible way.
+> > 
+> > Due to the configurable nature of the pipeline the driver implements the
+> > media controller API and doesn't use the V4L2 mem-to-mem framework, even
+> > though the device usually operates in memory to memory mode.
+> > 
+> > Only the read pixel formatters, up/down scalers, write pixel formatters
+> > and LCDC interface are supported at this stage.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_uds.h
+> > b/drivers/media/platform/vsp1/vsp1_uds.h new file mode 100644
+> > index 0000000..972a285
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index adc6198..0c2b1f2 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2574,7 +2574,7 @@
- 	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
- 	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
--	      <entry>0x2014</entry>
-+	      <entry>0x2016</entry>
- 	      <entry></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
+[snip]
+
+> > +int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
+> > +{
+> > +	const char *direction;
+> > +	int ret;
+> > +
+> > +	switch (video->type) {
+> > +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> > +		direction = "output";
+> > +		video->pad.flags = MEDIA_PAD_FL_SINK;
+> > +		break;
+> > +
+> > +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> > +		direction = "input";
+> > +		video->pad.flags = MEDIA_PAD_FL_SOURCE;
+> > +		video->video.vfl_dir = VFL_DIR_TX;
+> > +		break;
+> > +
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	video->rwpf = rwpf;
+> > +
+> > +	mutex_init(&video->lock);
+> > +	spin_lock_init(&video->irqlock);
+> > +	INIT_LIST_HEAD(&video->irqqueue);
+> > +
+> > +	mutex_init(&video->pipe.lock);
+> > +	spin_lock_init(&video->pipe.irqlock);
+> > +	INIT_LIST_HEAD(&video->pipe.entities);
+> > +	init_waitqueue_head(&video->pipe.wq);
+> > +	video->pipe.state = VSP1_PIPELINE_STOPPED;
+> > +
+> > +	/* Initialize the media entity... */
+> > +	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	/* ... and the format ... */
+> > +	video->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
+> > +	video->format.pixelformat = video->fmtinfo->fourcc;
+> > +	video->format.colorspace = V4L2_COLORSPACE_SRGB;
+> > +	video->format.field = V4L2_FIELD_NONE;
+> > +	video->format.width = VSP1_VIDEO_DEF_WIDTH;
+> > +	video->format.height = VSP1_VIDEO_DEF_HEIGHT;
+> > +	video->format.num_planes = 1;
+> > +	video->format.plane_fmt[0].bytesperline =
+> > +		video->format.width * video->fmtinfo->bpp[0] / 8;
+> > +	video->format.plane_fmt[0].sizeimage =
+> > +		video->format.plane_fmt[0].bytesperline * video->format.height;
+> > +
+> > +	/* ... and the video node... */
+> > +	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
+> > +	video->video.fops = &vsp1_video_fops;
+> > +	snprintf(video->video.name, sizeof(video->video.name), "%s %s",
+> > +		 rwpf->subdev.name, direction);
+> > +	video->video.vfl_type = VFL_TYPE_GRABBER;
+> > +	video->video.release = video_device_release_empty;
+> > +	video->video.ioctl_ops = &vsp1_video_ioctl_ops;
+> > +
+> > +	video_set_drvdata(&video->video, video);
+> > +
+> > +	/* ... and the buffers queue... */
+> > +	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
+> > +	if (IS_ERR(video->alloc_ctx))
+> > +		goto error;
+> > +
+> > +	video->queue.type = video->type;
+> > +	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+> > +	video->queue.drv_priv = video;
+> > +	video->queue.buf_struct_size = sizeof(struct vsp1_video_buffer);
+> > +	video->queue.ops = &vsp1_video_queue_qops;
+> > +	video->queue.mem_ops = &vb2_dma_contig_memops;
+> > +	video->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> 
+> If you set video->queue.lock to &video->lock, then you can drop all the vb2
+> ioctl and fop helper functions directly without having to make your own
+> wrapper functions.
+
+Right, I'll do so. I will also drop the manual lock handling from the STREAMON 
+and STREAMOFF handlers, as the core will use the queue lock for those.
+
+> It saves a fair bit of code that way. The only place where there is a
+> difference as far as I can see is in vb2_fop_mmap: there the queue.lock
+> isn't taken whereas you do take the lock. It has never been 100% clear to
+> me whether or not that lock should be taken. However, as far as I can tell
+> vb2_mmap never calls any driver callbacks, so it seems to be me that there
+> is no need to take the lock.
+
+Couldn't mmap() race with for instance REQBUFS(0) if we don't lock it ?
+
+> > +	ret = vb2_queue_init(&video->queue);
+> > +	if (ret < 0) {
+> > +		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
+> > +		goto error;
+> > +	}
+> > +
+> > +	/* ... and register the video device. */
+> > +	video->video.queue = &video->queue;
+> > +	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
+> > +	if (ret < 0) {
+> > +		dev_err(video->vsp1->dev, "failed to register video device\n");
+> > +		goto error;
+> > +	}
+> > +
+> > +	return 0;
+> > +
+> > +error:
+> > +	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+> > +	vsp1_video_cleanup(video);
+> > +	return ret;
+> > +}
+
 -- 
-1.8.1.5
+Regards,
+
+Laurent Pinchart
 
