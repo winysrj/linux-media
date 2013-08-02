@@ -1,434 +1,969 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:53287 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab3HBL1O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 07:27:14 -0400
-Received: by mail-lb0-f180.google.com with SMTP id a16so362513lbj.11
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 04:27:12 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v3 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
-Date: Fri,  2 Aug 2013 13:26:56 +0200
-Message-Id: <1375442816-20223-3-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49475 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753179Ab3HBOE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Aug 2013 10:04:58 -0400
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, <dagriego@biglakesoftware.com>,
+	<dale@farnsworth.org>, <pawel@osciak.com>,
+	<m.szyprowski@samsung.com>, <hverkuil@xs4all.nl>,
+	<laurent.pinchart@ideasonboard.com>, <tomi.valkeinen@ti.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Fri, 2 Aug 2013 19:33:38 +0530
+Message-ID: <1375452223-30524-2-git-send-email-archit@ti.com>
+In-Reply-To: <1375452223-30524-1-git-send-email-archit@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the private struct vb2_dma_sg_desc with the struct sg_table so
-we can benefit from all the helping functions in lib/scatterlist.c for
-things like allocating the sg or compacting the descriptor
+The primary function of VPDMA is to move data between external memory and
+internal processing modules(in our case, VPE) that source or sink data. VPDMA is
+capable of buffering this data and then delivering the data as demanded to the
+modules as programmed. The modules that source or sink data are referred to as
+clients or ports. A channel is setup inside the VPDMA to connect a specific
+memory buffer to a specific client. The VPDMA centralizes the DMA control
+functions and buffering required to allow all the clients to minimize the
+effect of long latency times.
 
-marvel-ccic and solo6x10 drivers, that uses this api has been updated
+Add the following to the VPDMA helper:
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+- A data struct which describe VPDMA channels. For now, these channels are the
+  ones used only by VPE, the list of channels will increase when VIP(Video
+  Input Port) also uses the VPDMA library. This channel information will be
+  used to populate fields required by data descriptors.
+
+- Data structs which describe the different data types supported by VPDMA. This
+  data type information will be used to populate fields required by data
+  descriptors and used by the VPE driver to map a V4L2 format to the
+  corresponding VPDMA data type.
+
+- Provide VPDMA register offset definitions, functions to read, write and modify
+  VPDMA registers.
+
+- Functions to create and submit a VPDMA list. A list is a group of descriptors
+  that makes up a set of DMA transfers that need to be completed. Each
+  descriptor will either perform a DMA transaction to fetch input buffers and
+  write to output buffers(data descriptors), or configure the MMRs of sub blocks
+  of VPE(configuration descriptors), or provide control information to VPDMA
+  (control descriptors).
+
+- Functions to allocate, map and unmap buffers needed for the descriptor list,
+  payloads containing MMR values and motion vector buffers. These use the
+  DMA mapping APIs to ensure exclusive access to VPDMA.
+
+- Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on the
+  VPE interrupt line when a descriptor list is parsed completely and the DMA
+  transactions are completed. This requires masking the events in VPDMA
+  registers and configuring some top level VPE interrupt registers.
+
+- Enable some VPDMA specific parameters: frame start event(when to start DMA for
+  a client) and line mode(whether each line fetched should be mirrored or not).
+
+- Function to load firmware required by VPDMA. VPDMA requires a firmware for
+  it's internal list manager. We add the required request_firmware apis to fetch
+  this firmware from user space.
+
+- Function to dump VPDMA registers.
+
+- A function to initialize VPDMA, this will be called by the VPE driver with
+  it's platform device pointer, this function will take care of loading VPDMA
+  firmware and returning a handle back to the VPE driver. The VIP driver will
+  also call the same init function to initialize it's own VPDMA instance.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +--
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  103 ++++++++------------
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++--
- include/media/videobuf2-dma-sg.h                   |   10 +-
- 4 files changed, 63 insertions(+), 84 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c      | 589 +++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      | 154 ++++++++
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
+ 3 files changed, 862 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 64ab91e..0ac51bd 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1040,16 +1040,16 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- {
- 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
--	struct vb2_dma_sg_desc *sgd = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
- 	struct mcam_dma_desc *desc = mvb->dma_desc;
- 	struct scatterlist *sg;
- 	int i;
- 
--	mvb->dma_desc_nent = dma_map_sg(cam->dev, sgd->sglist, sgd->num_pages,
--			DMA_FROM_DEVICE);
-+	mvb->dma_desc_nent = dma_map_sg(cam->dev, sg_table->sgl,
-+			sg_table->nents, DMA_FROM_DEVICE);
- 	if (mvb->dma_desc_nent <= 0)
- 		return -EIO;  /* Not sure what's right here */
--	for_each_sg(sgd->sglist, sg, mvb->dma_desc_nent, i) {
-+	for_each_sg(sg_table->sgl, sg, mvb->dma_desc_nent, i) {
- 		desc->dma_addr = sg_dma_address(sg);
- 		desc->segment_len = sg_dma_len(sg);
- 		desc++;
-@@ -1060,9 +1060,11 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
--	struct vb2_dma_sg_desc *sgd = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
- 
--	dma_unmap_sg(cam->dev, sgd->sglist, sgd->num_pages, DMA_FROM_DEVICE);
-+	if (sg_table)
-+		dma_unmap_sg(cam->dev, sg_table->sgl,
-+				sg_table->nents, DMA_FROM_DEVICE);
- 	return 0;
- }
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 4a7b59b..0328899 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -35,7 +35,9 @@ struct vb2_dma_sg_buf {
- 	struct page			**pages;
- 	int				write;
- 	int				offset;
--	struct vb2_dma_sg_desc		sg_desc;
-+	struct sg_table			sg_table;
-+	size_t				size;
-+	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- };
-@@ -46,7 +48,7 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 		gfp_t gfp_flags)
- {
- 	unsigned int last_page = 0;
--	int size = buf->sg_desc.size;
-+	int size = buf->size;
- 
- 	while (size > 0) {
- 		struct page *pages;
-@@ -74,12 +76,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 		}
- 
- 		split_page(pages, order);
--		for (i = 0; i < (1<<order); i++) {
--			buf->pages[last_page] = pages[i];
--			sg_set_page(&buf->sg_desc.sglist[last_page],
--					buf->pages[last_page], PAGE_SIZE, 0);
--			last_page++;
--		}
-+		for (i = 0; i < (1<<order); i++)
-+			buf->pages[last_page++] = pages[i];
- 
- 		size -= PAGE_SIZE << order;
- 	}
-@@ -91,6 +89,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- {
- 	struct vb2_dma_sg_buf *buf;
- 	int ret;
-+	int num_pages;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -99,17 +98,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	buf->vaddr = NULL;
- 	buf->write = 0;
- 	buf->offset = 0;
--	buf->sg_desc.size = size;
-+	buf->size = size;
- 	/* size is already page aligned */
--	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
--
--	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
--				      sizeof(*buf->sg_desc.sglist));
--	if (!buf->sg_desc.sglist)
--		goto fail_sglist_alloc;
--	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
-+	buf->num_pages = size >> PAGE_SHIFT;
- 
--	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
-+	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
- 	if (!buf->pages)
- 		goto fail_pages_array_alloc;
-@@ -118,6 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	if (ret)
- 		goto fail_pages_alloc;
- 
-+	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+			buf->num_pages, 0, size, gfp_flags);
-+	if (ret)
-+		goto fail_table_alloc;
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+new file mode 100644
+index 0000000..b15b3dd
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -0,0 +1,589 @@
++/*
++ * VPDMA helper library
++ *
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
 +
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
- 	buf->handler.arg = buf;
-@@ -125,16 +123,16 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	atomic_inc(&buf->refcount);
- 
- 	dprintk(1, "%s: Allocated buffer of %d pages\n",
--		__func__, buf->sg_desc.num_pages);
-+		__func__, buf->num_pages);
- 	return buf;
- 
-+fail_table_alloc:
-+	num_pages = buf->num_pages;
-+	while (num_pages--)
-+		__free_page(buf->pages[num_pages]);
- fail_pages_alloc:
- 	kfree(buf->pages);
--
- fail_pages_array_alloc:
--	vfree(buf->sg_desc.sglist);
--
--fail_sglist_alloc:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -142,14 +140,14 @@ fail_sglist_alloc:
- static void vb2_dma_sg_put(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	int i = buf->sg_desc.num_pages;
-+	int i = buf->num_pages;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
- 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
--			buf->sg_desc.num_pages);
-+			buf->num_pages);
- 		if (buf->vaddr)
--			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
--		vfree(buf->sg_desc.sglist);
-+			vm_unmap_ram(buf->vaddr, buf->num_pages);
-+		sg_free_table(&buf->sg_table);
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
- 		kfree(buf->pages);
-@@ -162,7 +160,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- {
- 	struct vb2_dma_sg_buf *buf;
- 	unsigned long first, last;
--	int num_pages_from_user, i;
-+	int num_pages_from_user;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -171,56 +169,41 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->vaddr = NULL;
- 	buf->write = write;
- 	buf->offset = vaddr & ~PAGE_MASK;
--	buf->sg_desc.size = size;
-+	buf->size = size;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->sg_desc.num_pages = last - first + 1;
--
--	buf->sg_desc.sglist = vzalloc(
--		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
--	if (!buf->sg_desc.sglist)
--		goto userptr_fail_sglist_alloc;
-+	buf->num_pages = last - first + 1;
- 
--	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
--
--	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
-+	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
- 	if (!buf->pages)
--		goto userptr_fail_pages_array_alloc;
-+		return NULL;
- 
- 	num_pages_from_user = get_user_pages(current, current->mm,
- 					     vaddr & PAGE_MASK,
--					     buf->sg_desc.num_pages,
-+					     buf->num_pages,
- 					     write,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
- 
--	if (num_pages_from_user != buf->sg_desc.num_pages)
-+	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
- 
--	sg_set_page(&buf->sg_desc.sglist[0], buf->pages[0],
--		    PAGE_SIZE - buf->offset, buf->offset);
--	size -= PAGE_SIZE - buf->offset;
--	for (i = 1; i < buf->sg_desc.num_pages; ++i) {
--		sg_set_page(&buf->sg_desc.sglist[i], buf->pages[i],
--			    min_t(size_t, PAGE_SIZE, size), 0);
--		size -= min_t(size_t, PAGE_SIZE, size);
--	}
-+	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+			buf->num_pages, buf->offset, size, 0))
-+		goto userptr_fail_alloc_table_from_pages;
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/err.h>
++#include <linux/firmware.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
 +
- 	return buf;
- 
-+userptr_fail_alloc_table_from_pages:
- userptr_fail_get_user_pages:
- 	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--	       num_pages_from_user, buf->sg_desc.num_pages);
-+	       num_pages_from_user, buf->num_pages);
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
- 	kfree(buf->pages);
--
--userptr_fail_pages_array_alloc:
--	vfree(buf->sg_desc.sglist);
--
--userptr_fail_sglist_alloc:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -232,18 +215,18 @@ userptr_fail_sglist_alloc:
- static void vb2_dma_sg_put_userptr(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	int i = buf->sg_desc.num_pages;
-+	int i = buf->num_pages;
- 
- 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
--	       __func__, buf->sg_desc.num_pages);
-+	       __func__, buf->num_pages);
- 	if (buf->vaddr)
--		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
-+		vm_unmap_ram(buf->vaddr, buf->num_pages);
-+	sg_free_table(&buf->sg_table);
- 	while (--i >= 0) {
- 		if (buf->write)
- 			set_page_dirty_lock(buf->pages[i]);
- 		put_page(buf->pages[i]);
- 	}
--	vfree(buf->sg_desc.sglist);
- 	kfree(buf->pages);
- 	kfree(buf);
- }
-@@ -256,7 +239,7 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
- 
- 	if (!buf->vaddr)
- 		buf->vaddr = vm_map_ram(buf->pages,
--					buf->sg_desc.num_pages,
-+					buf->num_pages,
- 					-1,
- 					PAGE_KERNEL);
- 
-@@ -312,7 +295,7 @@ static void *vb2_dma_sg_cookie(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 
--	return &buf->sg_desc;
-+	return &buf->sg_table;
- }
- 
- const struct vb2_mem_ops vb2_dma_sg_memops = {
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 98e2902..cfa01f1 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -346,7 +346,7 @@ static int enc_get_mpeg_dma(struct solo_dev *solo_dev, dma_addr_t dma,
- /* Build a descriptor queue out of an SG list and send it to the P2M for
-  * processing. */
- static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
--			  struct vb2_dma_sg_desc *vbuf, int off, int size,
-+			  struct sg_table *vbuf, int off, int size,
- 			  unsigned int base, unsigned int base_size)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
-@@ -359,7 +359,7 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
- 
- 	solo_enc->desc_count = 1;
- 
--	for_each_sg(vbuf->sglist, sg, vbuf->num_pages, i) {
-+	for_each_sg(vbuf->sgl, sg, vbuf->nents, i) {
- 		struct solo_p2m_desc *desc;
- 		dma_addr_t dma;
- 		int len;
-@@ -434,7 +434,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 		struct vb2_buffer *vb, struct vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_size;
- 	int ret;
- 
-@@ -443,7 +443,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 	if (vb2_plane_size(vb, 0) < vh->jpeg_size + solo_enc->jpeg_len)
- 		return -EIO;
- 
--	sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
-+	sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
- 			solo_enc->jpeg_header,
- 			solo_enc->jpeg_len);
- 
-@@ -451,12 +451,12 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 		& ~(DMA_ALIGN - 1);
- 	vb2_set_plane_payload(vb, 0, vh->jpeg_size + solo_enc->jpeg_len);
- 
--	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf, vh->jpeg_off,
- 			frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
- 			SOLO_JPEG_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	return ret;
- }
-@@ -465,7 +465,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 		struct vb2_buffer *vb, struct vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_off, frame_size;
- 	int skip = 0;
- 	int ret;
-@@ -475,7 +475,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 
- 	/* If this is a key frame, add extra header */
- 	if (!vh->vop_type) {
--		sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
-+		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
- 				solo_enc->vop,
- 				solo_enc->vop_len);
- 
-@@ -494,12 +494,12 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 	frame_size = (vh->mpeg_size + skip + (DMA_ALIGN - 1))
- 		& ~(DMA_ALIGN - 1);
- 
--	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
- 			SOLO_MP4E_EXT_ADDR(solo_dev),
- 			SOLO_MP4E_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	return ret;
- }
-diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
-index 0038526..7b89852 100644
---- a/include/media/videobuf2-dma-sg.h
-+++ b/include/media/videobuf2-dma-sg.h
-@@ -15,16 +15,10 @@
- 
- #include <media/videobuf2-core.h>
- 
--struct vb2_dma_sg_desc {
--	unsigned long		size;
--	unsigned int		num_pages;
--	struct scatterlist	*sglist;
--};
--
--static inline struct vb2_dma_sg_desc *vb2_dma_sg_plane_desc(
-+static inline struct sg_table *vb2_dma_sg_plane_desc(
- 		struct vb2_buffer *vb, unsigned int plane_no)
- {
--	return (struct vb2_dma_sg_desc *)vb2_plane_cookie(vb, plane_no);
-+	return (struct sg_table *)vb2_plane_cookie(vb, plane_no);
- }
- 
- extern const struct vb2_mem_ops vb2_dma_sg_memops;
++#include "vpdma.h"
++#include "vpdma_priv.h"
++
++#define VPDMA_FIRMWARE	"vpdma-1b8.bin"
++
++struct vpdma_data_format vpdma_yuv_fmts[] = {
++	[VPDMA_DATA_FMT_Y444] = {
++		.data_type	= DATA_TYPE_Y444,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_Y422] = {
++		.data_type	= DATA_TYPE_Y422,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_Y420] = {
++		.data_type	= DATA_TYPE_Y420,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C444] = {
++		.data_type	= DATA_TYPE_C444,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C422] = {
++		.data_type	= DATA_TYPE_C422,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C420] = {
++		.data_type	= DATA_TYPE_C420,
++		.depth		= 4,
++	},
++	[VPDMA_DATA_FMT_YC422] = {
++		.data_type	= DATA_TYPE_YC422,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_YC444] = {
++		.data_type	= DATA_TYPE_YC444,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_CY422] = {
++		.data_type	= DATA_TYPE_CY422,
++		.depth		= 16,
++	},
++};
++
++struct vpdma_data_format vpdma_rgb_fmts[] = {
++	[VPDMA_DATA_FMT_RGB565] = {
++		.data_type	= DATA_TYPE_RGB16_565,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB16_1555] = {
++		.data_type	= DATA_TYPE_ARGB_1555,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB16] = {
++		.data_type	= DATA_TYPE_ARGB_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_RGBA16_5551] = {
++		.data_type	= DATA_TYPE_RGBA_5551,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_RGBA16] = {
++		.data_type	= DATA_TYPE_RGBA_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB24] = {
++		.data_type	= DATA_TYPE_ARGB24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_RGB24] = {
++		.data_type	= DATA_TYPE_RGB24_888,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_ARGB32] = {
++		.data_type	= DATA_TYPE_ARGB32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_RGBA24] = {
++		.data_type	= DATA_TYPE_RGBA24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_RGBA32] = {
++		.data_type	= DATA_TYPE_RGBA32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_BGR565] = {
++		.data_type	= DATA_TYPE_BGR16_565,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR16_1555] = {
++		.data_type	= DATA_TYPE_ABGR_1555,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR16] = {
++		.data_type	= DATA_TYPE_ABGR_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_BGRA16_5551] = {
++		.data_type	= DATA_TYPE_BGRA_5551,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_BGRA16] = {
++		.data_type	= DATA_TYPE_BGRA_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR24] = {
++		.data_type	= DATA_TYPE_ABGR24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_BGR24] = {
++		.data_type	= DATA_TYPE_BGR24_888,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_ABGR32] = {
++		.data_type	= DATA_TYPE_ABGR32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_BGRA24] = {
++		.data_type	= DATA_TYPE_BGRA24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_BGRA32] = {
++		.data_type	= DATA_TYPE_BGRA32_8888,
++		.depth		= 32,
++	},
++};
++
++struct vpdma_data_format vpdma_misc_fmts[] = {
++	[VPDMA_DATA_FMT_MV] = {
++		.data_type	= DATA_TYPE_MV,
++		.depth		= 4,
++	},
++};
++
++struct vpdma_channel_info {
++	int num;		/* VPDMA channel number */
++	int cstat_offset;	/* client CSTAT register offset */
++};
++
++static struct vpdma_channel_info chan_info[] = {
++	[VPE_CHAN_LUMA1_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA1_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA1_CSTAT,
++	},
++	[VPE_CHAN_CHROMA1_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA1_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA1_CSTAT,
++	},
++	[VPE_CHAN_LUMA2_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA2_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA2_CSTAT,
++	},
++	[VPE_CHAN_CHROMA2_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA2_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA2_CSTAT,
++	},
++	[VPE_CHAN_LUMA3_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA3_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA3_CSTAT,
++	},
++	[VPE_CHAN_CHROMA3_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA3_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA3_CSTAT,
++	},
++	[VPE_CHAN_MV_IN] = {
++		.num		= VPE_CHAN_NUM_MV_IN,
++		.cstat_offset	= VPDMA_DEI_MV_IN_CSTAT,
++	},
++	[VPE_CHAN_MV_OUT] = {
++		.num		= VPE_CHAN_NUM_MV_OUT,
++		.cstat_offset	= VPDMA_DEI_MV_OUT_CSTAT,
++	},
++	[VPE_CHAN_LUMA_OUT] = {
++		.num		= VPE_CHAN_NUM_LUMA_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
++	},
++	[VPE_CHAN_CHROMA_OUT] = {
++		.num		= VPE_CHAN_NUM_CHROMA_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_UV_CSTAT,
++	},
++	[VPE_CHAN_RGB_OUT] = {
++		.num		= VPE_CHAN_NUM_RGB_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
++	},
++};
++
++static u32 read_reg(struct vpdma_data *vpdma, int offset)
++{
++	return ioread32(vpdma->base + offset);
++}
++
++static void write_reg(struct vpdma_data *vpdma, int offset, u32 value)
++{
++	iowrite32(value, vpdma->base + offset);
++}
++
++static int get_field(u32 value, u32 mask, int shift)
++{
++	return (value & (mask << shift)) >> shift;
++}
++
++static int get_field_reg(struct vpdma_data *vpdma, int offset,
++		u32 mask, int shift)
++{
++	return get_field(read_reg(vpdma, offset), mask, shift);
++}
++
++static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
++{
++	u32 val = *valp;
++
++	val &= ~(mask << shift);
++	val |= (field & mask) << shift;
++	*valp = val;
++}
++
++static void insert_field_reg(struct vpdma_data *vpdma, int offset, u32 field,
++		u32 mask, int shift)
++{
++	u32 val = read_reg(vpdma, offset);
++
++	insert_field(&val, field, mask, shift);
++
++	write_reg(vpdma, offset, val);
++}
++
++void vpdma_dump_regs(struct vpdma_data *vpdma)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(vpdma, VPDMA_##r))
++
++	dev_dbg(dev, "VPDMA Registers:\n");
++
++	DUMPREG(PID);
++	DUMPREG(LIST_ADDR);
++	DUMPREG(LIST_ATTR);
++	DUMPREG(LIST_STAT_SYNC);
++	DUMPREG(BG_RGB);
++	DUMPREG(BG_YUV);
++	DUMPREG(SETUP);
++	DUMPREG(MAX_SIZE1);
++	DUMPREG(MAX_SIZE2);
++	DUMPREG(MAX_SIZE3);
++
++	/*
++	 * dumping registers of only group0 and group3, because VPE channels
++	 * lie within group0 and group3 registers
++	 */
++	DUMPREG(INT_CHAN_STAT(0));
++	DUMPREG(INT_CHAN_MASK(0));
++	DUMPREG(INT_CHAN_STAT(3));
++	DUMPREG(INT_CHAN_MASK(3));
++	DUMPREG(INT_CLIENT0_STAT);
++	DUMPREG(INT_CLIENT0_MASK);
++	DUMPREG(INT_CLIENT1_STAT);
++	DUMPREG(INT_CLIENT1_MASK);
++	DUMPREG(INT_LIST0_STAT);
++	DUMPREG(INT_LIST0_MASK);
++
++	/*
++	 * these are registers specific to VPE clients, we can make this
++	 * function dump client registers specific to VPE or VIP based on
++	 * who is using it
++	 */
++	DUMPREG(DEI_CHROMA1_CSTAT);
++	DUMPREG(DEI_LUMA1_CSTAT);
++	DUMPREG(DEI_CHROMA2_CSTAT);
++	DUMPREG(DEI_LUMA2_CSTAT);
++	DUMPREG(DEI_CHROMA3_CSTAT);
++	DUMPREG(DEI_LUMA3_CSTAT);
++	DUMPREG(DEI_MV_IN_CSTAT);
++	DUMPREG(DEI_MV_OUT_CSTAT);
++	DUMPREG(VIP_UP_Y_CSTAT);
++	DUMPREG(VIP_UP_UV_CSTAT);
++	DUMPREG(VPI_CTL_CSTAT);
++}
++
++/*
++ * Allocate a DMA buffer
++ */
++int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
++{
++	buf->size = size;
++	buf->mapped = 0;
++	buf->addr = kzalloc(size, GFP_KERNEL);
++	if (!buf->addr)
++		return -ENOMEM;
++
++	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
++
++	return 0;
++}
++
++void vpdma_buf_free(struct vpdma_buf *buf)
++{
++	WARN_ON(buf->mapped != 0);
++	kfree(buf->addr);
++	buf->addr = NULL;
++	buf->size = 0;
++}
++
++/*
++ * map a DMA buffer, enabling DMA access
++ */
++void vpdma_buf_map(struct vpdma_data *vpdma, struct vpdma_buf *buf)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++	WARN_ON(buf->mapped != 0);
++	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
++				DMA_TO_DEVICE);
++	buf->mapped = 1;
++	BUG_ON(dma_mapping_error(dev, buf->dma_addr));
++}
++
++/*
++ * unmap a DMA buffer, disabling DMA access and
++ * allowing the main processor to acces the data
++ */
++void vpdma_buf_unmap(struct vpdma_data *vpdma, struct vpdma_buf *buf)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++	if (buf->mapped)
++		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
++
++	buf->mapped = 0;
++}
++
++/*
++ * create a descriptor list, the user of this list will append configuration,
++ * contorl and data descriptors to this list, this list will be submitted to
++ * VPDMA. VPDMA's list parser will go through each descriptor and perform the
++ * required DMA operations
++ */
++int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type)
++{
++	int r;
++
++	r = vpdma_buf_alloc(&list->buf, size);
++	if (r)
++		return r;
++
++	list->next = list->buf.addr;
++
++	list->type = type;
++
++	return 0;
++}
++
++/*
++ * once a descriptor list is parsed by VPDMA, we reset the list by emptying it,
++ * to allow new descriptors to be added to the list.
++ */
++void vpdma_reset_desc_list(struct vpdma_desc_list *list)
++{
++	list->next = list->buf.addr;
++}
++
++/*
++ * free the buffer allocated fot the VPDMA descriptor list, this should be
++ * called when the user doesn't want to use VPDMA any more.
++ */
++void vpdma_free_desc_list(struct vpdma_desc_list *list)
++{
++	vpdma_buf_free(&list->buf);
++
++	list->next = NULL;
++}
++
++static int vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
++{
++	u32 sync_reg = read_reg(vpdma, VPDMA_LIST_STAT_SYNC);
++
++	return (sync_reg >> (list_num + 16)) & 0x01;
++}
++
++/*
++ * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
++ */
++int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
++{
++	/* we always use the first list */
++	int list_num = 0;
++	int list_size;
++
++	if (vpdma_list_busy(vpdma, list_num))
++		return -EBUSY;
++
++	/* 16-byte granularity */
++	list_size = (list->next - list->buf.addr) >> 4;
++
++	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
++	wmb();
++	write_reg(vpdma, VPDMA_LIST_ATTR,
++			(list_num << VPDMA_LIST_NUM_SHFT) |
++			(list->type << VPDMA_LIST_TYPE_SHFT) |
++			list_size);
++
++	return 0;
++}
++
++/* set or clear the mask for list complete interrupt */
++void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
++		bool enable)
++{
++	u32 val;
++
++	val = read_reg(vpdma, VPDMA_INT_LIST0_MASK);
++	if (enable)
++		val |= (1 << (list_num * 2));
++	else
++		val &= ~(1 << (list_num * 2));
++	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
++}
++
++/* clear previosuly occured list intterupts in the LIST_STAT register */
++void vpdma_clear_list_stat(struct vpdma_data *vpdma)
++{
++	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
++		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
++}
++
++/*
++ * configures the output mode of the line buffer for the given client, the
++ * line buffer content can either be mirrored(each line repeated twice) or
++ * passed to the client as is
++ */
++void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
++		enum vpdma_channel chan)
++{
++	int client_cstat = chan_info[chan].cstat_offset;
++
++	insert_field_reg(vpdma, client_cstat, line_mode,
++		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
++}
++
++/*
++ * configures the event which should trigger VPDMA transfer for the given
++ * client
++ */
++void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
++		enum vpdma_frame_start_event fs_event,
++		enum vpdma_channel chan)
++{
++	int client_cstat = chan_info[chan].cstat_offset;
++
++	insert_field_reg(vpdma, client_cstat, fs_event,
++		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
++}
++
++static void vpdma_firmware_cb(const struct firmware *f, void *context)
++{
++	struct vpdma_data *vpdma = context;
++	struct vpdma_buf fw_dma_buf;
++	int i, r;
++
++	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
++
++	if (!f || !f->data) {
++		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
++		return;
++	}
++
++	/* already initialized */
++	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
++			VPDMA_LIST_RDY_SHFT)) {
++		vpdma->ready = true;
++		return;
++	}
++
++	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
++	if (r) {
++		dev_err(&vpdma->pdev->dev,
++			"failed to allocate dma buffer for firmware\n");
++		goto rel_fw;
++	}
++
++	memcpy(fw_dma_buf.addr, f->data, f->size);
++
++	vpdma_buf_map(vpdma, &fw_dma_buf);
++
++	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
++
++	for (i = 0; i < 100; i++) {		/* max 1 second */
++		msleep_interruptible(10);
++
++		if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
++				VPDMA_LIST_RDY_SHFT))
++			break;
++	}
++
++	if (i == 100) {
++		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
++		goto free_buf;
++	}
++
++	vpdma->ready = true;
++
++free_buf:
++	vpdma_buf_unmap(vpdma, &fw_dma_buf);
++
++	vpdma_buf_free(&fw_dma_buf);
++rel_fw:
++	release_firmware(f);
++}
++
++static int vpdma_load_firmware(struct vpdma_data *vpdma)
++{
++	int r;
++	struct device *dev = &vpdma->pdev->dev;
++
++	r = request_firmware_nowait(THIS_MODULE, 1,
++		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
++		vpdma_firmware_cb);
++	if (r) {
++		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
++		return r;
++	} else {
++		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
++	}
++
++	return 0;
++}
++
++int vpdma_init(struct platform_device *pdev, struct vpdma_data **pvpdma)
++{
++	struct resource *res;
++	struct vpdma_data *vpdma;
++	int r;
++
++	dev_dbg(&pdev->dev, "vpdma_init\n");
++
++	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
++	if (!vpdma) {
++		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
++		return -ENOMEM;
++	}
++
++	vpdma->pdev = pdev;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
++	if (res == NULL) {
++		dev_err(&pdev->dev, "missing platform resources data\n");
++		return -ENODEV;
++	}
++
++	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
++	if (!vpdma->base) {
++		dev_err(&pdev->dev, "failed to ioremap\n");
++		return -ENOMEM;
++	}
++
++	r = vpdma_load_firmware(vpdma);
++	if (r) {
++		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
++		return r;
++	}
++
++	*pvpdma = vpdma;
++
++	return 0;
++}
++MODULE_FIRMWARE(VPDMA_FIRMWARE);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+new file mode 100644
+index 0000000..2ea2dd3
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef __TI_VPDMA_H_
++#define __TI_VPDMA_H_
++
++/*
++ * A vpdma_buf tracks the size, DMA address and mapping status of each
++ * driver DMA area.
++ */
++struct vpdma_buf {
++	void			*addr;
++	dma_addr_t		dma_addr;
++	size_t			size;
++	bool			mapped;
++};
++
++struct vpdma_desc_list {
++	struct vpdma_buf buf;
++	void *next;
++	int type;
++};
++
++struct vpdma_data {
++	void __iomem		*base;
++
++	struct platform_device	*pdev;
++
++	/* tells whether vpdma firmware is loaded or not */
++	bool ready;
++};
++
++struct vpdma_data_format {
++	int data_type;
++	u8 depth;
++};
++
++#define VPDMA_DESC_ALIGN		16	/* 16-byte descriptor alignment */
++
++#define VPDMA_MAX_DESC_SIZE		32	/* 8 words */
++
++#define VPDMA_LIST_TYPE_NORMAL		0
++#define VPDMA_LIST_TYPE_SELF_MODIFYING	1
++#define VPDMA_LIST_TYPE_DOORBELL	2
++
++enum vpdma_yuv_formats {
++	VPDMA_DATA_FMT_Y444 = 0,
++	VPDMA_DATA_FMT_Y422,
++	VPDMA_DATA_FMT_Y420,
++	VPDMA_DATA_FMT_C444,
++	VPDMA_DATA_FMT_C422,
++	VPDMA_DATA_FMT_C420,
++	VPDMA_DATA_FMT_YC422,
++	VPDMA_DATA_FMT_YC444,
++	VPDMA_DATA_FMT_CY422,
++};
++
++enum vpdma_rgb_formats {
++	VPDMA_DATA_FMT_RGB565 = 0,
++	VPDMA_DATA_FMT_ARGB16_1555,
++	VPDMA_DATA_FMT_ARGB16,
++	VPDMA_DATA_FMT_RGBA16_5551,
++	VPDMA_DATA_FMT_RGBA16,
++	VPDMA_DATA_FMT_ARGB24,
++	VPDMA_DATA_FMT_RGB24,
++	VPDMA_DATA_FMT_ARGB32,
++	VPDMA_DATA_FMT_RGBA24,
++	VPDMA_DATA_FMT_RGBA32,
++	VPDMA_DATA_FMT_BGR565,
++	VPDMA_DATA_FMT_ABGR16_1555,
++	VPDMA_DATA_FMT_ABGR16,
++	VPDMA_DATA_FMT_BGRA16_5551,
++	VPDMA_DATA_FMT_BGRA16,
++	VPDMA_DATA_FMT_ABGR24,
++	VPDMA_DATA_FMT_BGR24,
++	VPDMA_DATA_FMT_ABGR32,
++	VPDMA_DATA_FMT_BGRA24,
++	VPDMA_DATA_FMT_BGRA32,
++};
++
++enum vpdma_misc_formats {
++	VPDMA_DATA_FMT_MV = 0,
++};
++
++extern struct vpdma_data_format vpdma_yuv_fmts[];
++extern struct vpdma_data_format vpdma_rgb_fmts[];
++extern struct vpdma_data_format vpdma_misc_fmts[];
++
++enum vpdma_frame_start_event {
++	VPDMA_FSEVENT_HDMI_FID = 0,
++	VPDMA_FSEVENT_DVO2_FID,
++	VPDMA_FSEVENT_HDCOMP_FID,
++	VPDMA_FSEVENT_SD_FID,
++	VPDMA_FSEVENT_LM_FID0,
++	VPDMA_FSEVENT_LM_FID1,
++	VPDMA_FSEVENT_LM_FID2,
++	VPDMA_FSEVENT_CHANNEL_ACTIVE,
++};
++
++/*
++ * VPDMA channel numbers
++ */
++enum vpdma_channel {
++	VPE_CHAN_LUMA1_IN,
++	VPE_CHAN_CHROMA1_IN,
++	VPE_CHAN_LUMA2_IN,
++	VPE_CHAN_CHROMA2_IN,
++	VPE_CHAN_LUMA3_IN,
++	VPE_CHAN_CHROMA3_IN,
++	VPE_CHAN_MV_IN,
++	VPE_CHAN_MV_OUT,
++	VPE_CHAN_LUMA_OUT,
++	VPE_CHAN_CHROMA_OUT,
++	VPE_CHAN_RGB_OUT,
++};
++
++/* vpdma descriptor buffer allocation and management */
++int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size);
++void vpdma_buf_free(struct vpdma_buf *buf);
++void vpdma_buf_map(struct vpdma_data *vpdma, struct vpdma_buf *buf);
++void vpdma_buf_unmap(struct vpdma_data *vpdma, struct vpdma_buf *buf);
++
++/* vpdma descriptor list funcs */
++int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type);
++void vpdma_reset_desc_list(struct vpdma_desc_list *list);
++void vpdma_free_desc_list(struct vpdma_desc_list *list);
++int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
++
++/* vpdma list interrupt management */
++void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
++		bool enable);
++void vpdma_clear_list_stat(struct vpdma_data *vpdma);
++
++/* vpdma client configuration */
++void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
++		enum vpdma_channel chan);
++void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
++		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
++
++void vpdma_dump_regs(struct vpdma_data *vpdma);
++
++/* initialize vpdma, passed with VPE's platform device pointer */
++int vpdma_init(struct platform_device *pdev, struct vpdma_data **pvpdma);
++
++#endif
+diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
+new file mode 100644
+index 0000000..8ff51a3
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
+@@ -0,0 +1,119 @@
++/*
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _TI_VPDMA_PRIV_H_
++#define _TI_VPDMA_PRIV_H_
++
++/*
++ * VPDMA Register offsets
++ */
++
++/* Top level */
++#define VPDMA_PID		0x00
++#define VPDMA_LIST_ADDR		0x04
++#define VPDMA_LIST_ATTR		0x08
++#define VPDMA_LIST_STAT_SYNC	0x0c
++#define VPDMA_BG_RGB		0x18
++#define VPDMA_BG_YUV		0x1c
++#define VPDMA_SETUP		0x30
++#define VPDMA_MAX_SIZE1		0x34
++#define VPDMA_MAX_SIZE2		0x38
++#define VPDMA_MAX_SIZE3		0x3c
++
++/* Interrupts */
++#define VPDMA_INT_CHAN_STAT(grp)	(0x40 + grp * 8)
++#define VPDMA_INT_CHAN_MASK(grp)	(VPDMA_INT_CHAN_STAT(grp) + 4)
++#define VPDMA_INT_CLIENT0_STAT		0x78
++#define VPDMA_INT_CLIENT0_MASK		0x7c
++#define VPDMA_INT_CLIENT1_STAT		0x80
++#define VPDMA_INT_CLIENT1_MASK		0x84
++#define VPDMA_INT_LIST0_STAT		0x88
++#define VPDMA_INT_LIST0_MASK		0x8c
++
++#define VPDMA_PERFMON(i)		(0x200 + i * 4)
++
++/* VPE specific client registers */
++#define VPDMA_DEI_CHROMA1_CSTAT		0x0300
++#define VPDMA_DEI_LUMA1_CSTAT		0x0304
++#define VPDMA_DEI_LUMA2_CSTAT		0x0308
++#define VPDMA_DEI_CHROMA2_CSTAT		0x030c
++#define VPDMA_DEI_LUMA3_CSTAT		0x0310
++#define VPDMA_DEI_CHROMA3_CSTAT		0x0314
++#define VPDMA_DEI_MV_IN_CSTAT		0x0330
++#define VPDMA_DEI_MV_OUT_CSTAT		0x033c
++#define VPDMA_VIP_UP_Y_CSTAT		0x0390
++#define VPDMA_VIP_UP_UV_CSTAT		0x0394
++#define VPDMA_VPI_CTL_CSTAT		0x03d0
++
++/* Reg field info for VPDMA_CLIENT_CSTAT registers */
++#define VPDMA_CSTAT_LINE_MODE_MASK	0x03
++#define VPDMA_CSTAT_LINE_MODE_SHIFT	8
++#define VPDMA_CSTAT_FRAME_START_MASK	0xf
++#define VPDMA_CSTAT_FRAME_START_SHIFT	10
++
++#define VPDMA_LIST_NUM_MASK		0x07
++#define VPDMA_LIST_NUM_SHFT		24
++#define VPDMA_LIST_STOP_SHFT		20
++#define VPDMA_LIST_RDY_MASK		0x01
++#define VPDMA_LIST_RDY_SHFT		19
++#define VPDMA_LIST_TYPE_MASK		0x03
++#define VPDMA_LIST_TYPE_SHFT		16
++#define VPDMA_LIST_SIZE_MASK		0xffff
++
++/* VPDMA data type values for data formats */
++#define DATA_TYPE_Y444				0x0
++#define DATA_TYPE_Y422				0x1
++#define DATA_TYPE_Y420				0x2
++#define DATA_TYPE_C444				0x4
++#define DATA_TYPE_C422				0x5
++#define DATA_TYPE_C420				0x6
++#define DATA_TYPE_YC422				0x7
++#define DATA_TYPE_YC444				0x8
++#define DATA_TYPE_CY422				0x23
++
++#define DATA_TYPE_RGB16_565			0x0
++#define DATA_TYPE_ARGB_1555			0x1
++#define DATA_TYPE_ARGB_4444			0x2
++#define DATA_TYPE_RGBA_5551			0x3
++#define DATA_TYPE_RGBA_4444			0x4
++#define DATA_TYPE_ARGB24_6666			0x5
++#define DATA_TYPE_RGB24_888			0x6
++#define DATA_TYPE_ARGB32_8888			0x7
++#define DATA_TYPE_RGBA24_6666			0x8
++#define DATA_TYPE_RGBA32_8888			0x9
++#define DATA_TYPE_BGR16_565			0x10
++#define DATA_TYPE_ABGR_1555			0x11
++#define DATA_TYPE_ABGR_4444			0x12
++#define DATA_TYPE_BGRA_5551			0x13
++#define DATA_TYPE_BGRA_4444			0x14
++#define DATA_TYPE_ABGR24_6666			0x15
++#define DATA_TYPE_BGR24_888			0x16
++#define DATA_TYPE_ABGR32_8888			0x17
++#define DATA_TYPE_BGRA24_6666			0x18
++#define DATA_TYPE_BGRA32_8888			0x19
++
++#define DATA_TYPE_MV				0x3
++
++/* VPDMA channel numbers(only VPE channels for now) */
++#define	VPE_CHAN_NUM_LUMA1_IN		0
++#define	VPE_CHAN_NUM_CHROMA1_IN		1
++#define	VPE_CHAN_NUM_LUMA2_IN		2
++#define	VPE_CHAN_NUM_CHROMA2_IN		3
++#define	VPE_CHAN_NUM_LUMA3_IN		4
++#define	VPE_CHAN_NUM_CHROMA3_IN		5
++#define	VPE_CHAN_NUM_MV_IN		12
++#define	VPE_CHAN_NUM_MV_OUT		15
++#define	VPE_CHAN_NUM_LUMA_OUT		102
++#define	VPE_CHAN_NUM_CHROMA_OUT		103
++#define	VPE_CHAN_NUM_RGB_OUT		106
++
++#endif
 -- 
-1.7.10.4
+1.8.1.2
 
