@@ -1,69 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:33106 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753533Ab3HAXSA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Aug 2013 19:18:00 -0400
-From: Joe Perches <joe@perches.com>
-To: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	virtualization@lists.linux-foundation.org, wimax@linuxwimax.org
-Subject: [PATCH V3 0/3] networking: Use ETH_ALEN where appropriate
-Date: Thu,  1 Aug 2013 16:17:46 -0700
-Message-Id: <cover.1375398692.git.joe@perches.com>
-In-Reply-To: <20130801.143137.331385226409040561.davem@davemloft.net>
-References: <20130801.143137.331385226409040561.davem@davemloft.net>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4102 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753024Ab3HBSMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 14:12:07 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r72IC3im033456
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 2 Aug 2013 20:12:05 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 76D4635E0045
+	for <linux-media@vger.kernel.org>; Fri,  2 Aug 2013 20:12:03 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130802181203.76D4635E0045@alastor.dyndns.org>
+Date: Fri,  2 Aug 2013 20:12:03 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the uses mac addresses to ETH_ALEN so
-it's easier to find and verify where mac addresses
-need to be __aligned(2)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Change in V2:
-- Remove include/acpi/actbl2.h conversion
-  It's a file copied from outside ACPI sources
+Results of the daily build of media_tree:
 
-Changes in V3:
-- Don't move the pasemi_mac.h mac address to be aligned(2)
-  Just note that it's unaligned.
+date:		Fri Aug  2 19:00:23 CEST 2013
+git branch:	test
+git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-Joe Perches (3):
-  uapi: Convert some uses of 6 to ETH_ALEN
-  include: Convert ethernet mac address declarations to use ETH_ALEN
-  ethernet: Convert mac address uses of 6 to ETH_ALEN
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
- drivers/net/ethernet/8390/ax88796.c                |  4 +-
- drivers/net/ethernet/amd/pcnet32.c                 |  6 +--
- drivers/net/ethernet/broadcom/cnic_if.h            |  6 +--
- drivers/net/ethernet/dec/tulip/tulip_core.c        |  8 +--
- drivers/net/ethernet/i825xx/sun3_82586.h           |  4 +-
- drivers/net/ethernet/myricom/myri10ge/myri10ge.c   |  2 +-
- drivers/net/ethernet/nuvoton/w90p910_ether.c       |  4 +-
- drivers/net/ethernet/pasemi/pasemi_mac.c           | 13 ++---
- drivers/net/ethernet/pasemi/pasemi_mac.h           |  2 +-
- drivers/net/ethernet/qlogic/netxen/netxen_nic_hw.c |  4 +-
- drivers/net/ethernet/qlogic/qlge/qlge.h            |  2 +-
- include/linux/dm9000.h                             |  4 +-
- include/linux/fs_enet_pd.h                         |  3 +-
- include/linux/ieee80211.h                          | 59 +++++++++++-----------
- include/linux/mlx4/device.h                        | 11 ++--
- include/linux/mlx4/qp.h                            |  5 +-
- include/linux/mv643xx_eth.h                        |  3 +-
- include/linux/sh_eth.h                             |  3 +-
- include/linux/smsc911x.h                           |  3 +-
- include/linux/uwb/spec.h                           |  5 +-
- include/media/tveeprom.h                           |  4 +-
- include/net/irda/irlan_common.h                    |  3 +-
- include/uapi/linux/dn.h                            |  3 +-
- include/uapi/linux/if_bridge.h                     |  3 +-
- include/uapi/linux/netfilter_bridge/ebt_802_3.h    |  5 +-
- include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h  |  3 +-
- include/uapi/linux/virtio_net.h                    |  2 +-
- include/uapi/linux/wimax/i2400m.h                  |  4 +-
- 28 files changed, 99 insertions(+), 79 deletions(-)
+Detailed results are available here:
 
--- 
-1.8.1.2.459.gbcd45b4.dirty
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
