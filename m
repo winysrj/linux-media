@@ -1,444 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:47769 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756546Ab3HAUPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Aug 2013 16:15:09 -0400
-From: Joe Perches <joe@perches.com>
-To: netdev@vger.kernel.org
-Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>,
-	Vitaly Bordug <vbordug@ru.mvista.com>,
-	Steve Glendinning <steve.glendinning@shawell.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Samuel Ortiz <samuel@sortiz.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH V2 2/3] include: Convert ethernet mac address declarations to use ETH_ALEN
-Date: Thu,  1 Aug 2013 13:14:36 -0700
-Message-Id: <9988b63dab92842f5fa48a5330c8187bf391fa17.1375387593.git.joe@perches.com>
-In-Reply-To: <cover.1375387593.git.joe@perches.com>
-References: <cover.1375387593.git.joe@perches.com>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:33373 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030363Ab3HBKLG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 06:11:06 -0400
+Received: by mail-la0-f48.google.com with SMTP id hi8so299859lab.7
+        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 03:11:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAQKjZNBPxBxR-4PXbhOdX0V1inMkauE-xZ+0kwnfVTgqpCEVg@mail.gmail.com>
+References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
+ <5151790.EBRlE0cTxf@flatron> <CAF6AEGvmd20MJ_=69kYahkeTySVbhc2GgiUNwCDFXuDWgeGAfQ@mail.gmail.com>
+ <CAD025yRZBDh6ssSUbY-mo2mo-WqrUS3R56bD-QrBvaBbWX_HMQ@mail.gmail.com> <CAAQKjZNBPxBxR-4PXbhOdX0V1inMkauE-xZ+0kwnfVTgqpCEVg@mail.gmail.com>
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Date: Fri, 2 Aug 2013 15:40:44 +0530
+Message-ID: <CAD025yR9Xd0G81WdLDxKyu-RVZPPJAUOKZ+0b5oKUxYOe7q_pQ@mail.gmail.com>
+Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
+ continous memory flag
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Rob Clark <robdclark@gmail.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
+	"arun.kk" <arun.kk@samsung.com>,
+	Patch Tracking <patches@linaro.org>,
+	linaro-kernel@lists.linaro.org, sunil joshi <joshi@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	m.szyprowski@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's convenient to have ethernet mac addresses use
-ETH_ALEN to be able to grep for them a bit easier and
-also to ensure that the addresses are __aligned(2).
+Hi Inki Dae,
 
-Add #include <linux/if_ether.h> as necessary.
+On 2 August 2013 12:58, Inki Dae <inki.dae@samsung.com> wrote:
+>
+>
+> 2013/8/2 Vikas Sajjan <vikas.sajjan@linaro.org>
+>>
+>> Hi Rob,
+>>
+>> On 2 August 2013 06:03, Rob Clark <robdclark@gmail.com> wrote:
+>> > On Thu, Aug 1, 2013 at 7:20 PM, Tomasz Figa <tomasz.figa@gmail.com>
+>> > wrote:
+>> >> Hi Vikas,
+>> >>
+>> >> On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
+>> >>> While trying to get boot-logo up on exynos5420 SMDK which has eDP
+>> >>> panel
+>> >>> connected with resolution 2560x1600, following error occured even with
+>> >>> IOMMU enabled:
+>> >>> [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
+>> >>> buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
+>> >>>
+>> >>> This patch fixes the issue by adding a check for IOMMU.
+>> >>>
+>> >>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+>> >>> Signed-off-by: Arun Kumar <arun.kk@samsung.com>
+>> >>> ---
+>> >>>  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
+>> >>>  1 file changed, 8 insertions(+), 1 deletion(-)
+>> >>>
+>> >>> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> >>> b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c index 8e60bd6..2a86666
+>> >>> 100644
+>> >>> --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> >>> +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> >>> @@ -16,6 +16,7 @@
+>> >>>  #include <drm/drm_crtc.h>
+>> >>>  #include <drm/drm_fb_helper.h>
+>> >>>  #include <drm/drm_crtc_helper.h>
+>> >>> +#include <drm/exynos_drm.h>
+>> >>>
+>> >>>  #include "exynos_drm_drv.h"
+>> >>>  #include "exynos_drm_fb.h"
+>> >>> @@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct
+>> >>> drm_fb_helper *helper, struct platform_device *pdev =
+>> >>> dev->platformdev;
+>> >>>       unsigned long size;
+>> >>>       int ret;
+>> >>> +     unsigned int flag;
+>> >>>
+>> >>>       DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
+>> >>>                       sizes->surface_width, sizes->surface_height,
+>> >>> @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
+>> >>> drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
+>> >>>
+>> >>>       /* 0 means to allocate physically continuous memory */
+>> >>> -     exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
+>> >>> +     if (!is_drm_iommu_supported(dev))
+>> >>> +             flag = 0;
+>> >>> +     else
+>> >>> +             flag = EXYNOS_BO_NONCONTIG;
+>> >>
+>> >> While noncontig memory might be used for devices that support IOMMU,
+>> >> there
+>> >> should be no problem with using contig memory for them, so this seems
+>> >> more
+>> >> like masking the original problem rather than tracking it down.
+>> >
+>> > it is probably a good idea to not require contig memory when it is not
+>> > needed for performance or functionality (and if it is only
+>> > performance, then fallback gracefully to non-contig).. but yeah, would
+>> > be good to know if this is masking another issue all the same
+>> >
+>>
+>> Whats happening with CONTIG flag and with IOMMU,  is
+>>
+>>  __iommu_alloc_buffer() ---> dma_alloc_from_contiguous() and in this
+>> function it fails at
+>> this condition check  if (pageno >= cma->count)
+>>
+>> So I tried increasing the CONFIG_CMA_SIZE_MBYTES to 24,  this check
+>> succeeds and it works well without my patch.
+>>
+>> But what about the case where CONFIG_CMA is disabled , yet i want
+>> bigger memory for a device.
+>>  I think using IOMMU we can achieve this.
+>>
+>>  correct me, if i am wrong.
+>>
+>
+> I'm on summer vacation so I'm afraid that I cannot test and look into it but
+> I guess you guy didn't declare CMA region for Exynos drm. And in this case,
+> the size of CMA declared region is 16MB as default. That is why works well
+> after increasing default size, CONFIG_CMA_SIZE_MBYTES, to 24MB. And I
+> mentioned long time ago, we are required to use physically contiguous memory
+> in case that bootloader uses physically contiguous memory for its own
+> framebuffer, and kernel wants to share the bootloader's framebuffer region
+> to resolve flickering issue while booted; that is required for product. And
+> one question, is there any reason that you guy should use non-contiguous
+> memory for framebuffer with iommu?
+>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- include/linux/dm9000.h          |  4 ++-
- include/linux/fs_enet_pd.h      |  3 ++-
- include/linux/ieee80211.h       | 59 +++++++++++++++++++++--------------------
- include/linux/mlx4/device.h     | 11 ++++----
- include/linux/mlx4/qp.h         |  5 ++--
- include/linux/mv643xx_eth.h     |  3 ++-
- include/linux/sh_eth.h          |  3 ++-
- include/linux/smsc911x.h        |  3 ++-
- include/linux/uwb/spec.h        |  5 ++--
- include/media/tveeprom.h        |  4 ++-
- include/net/irda/irlan_common.h |  3 ++-
- 11 files changed, 58 insertions(+), 45 deletions(-)
+yeah, we could not allocate CMA region for FIMD, because the function
+dma_declare_contiguous() needs "dev" as the first argument and we have
+access to "dev" node only if it is NON-DT way of probing like the way
+it is done in arch/arm/mach-davinci/devices-da8xx.c
+But now, since the probing is through DT way, there is NO way ( Let me
+know if something is newly added ) to call dma_declare_contiguous()
+and reserve CMA region .
 
-diff --git a/include/linux/dm9000.h b/include/linux/dm9000.h
-index 96e8769..841925f 100644
---- a/include/linux/dm9000.h
-+++ b/include/linux/dm9000.h
-@@ -14,6 +14,8 @@
- #ifndef __DM9000_PLATFORM_DATA
- #define __DM9000_PLATFORM_DATA __FILE__
- 
-+#include <linux/if_ether.h>
-+
- /* IO control flags */
- 
- #define DM9000_PLATF_8BITONLY	(0x0001)
-@@ -27,7 +29,7 @@
- 
- struct dm9000_plat_data {
- 	unsigned int	flags;
--	unsigned char	dev_addr[6];
-+	unsigned char	dev_addr[ETH_ALEN];
- 
- 	/* allow replacement IO routines */
- 
-diff --git a/include/linux/fs_enet_pd.h b/include/linux/fs_enet_pd.h
-index 51b7934..343d82a 100644
---- a/include/linux/fs_enet_pd.h
-+++ b/include/linux/fs_enet_pd.h
-@@ -18,6 +18,7 @@
- 
- #include <linux/string.h>
- #include <linux/of_mdio.h>
-+#include <linux/if_ether.h>
- #include <asm/types.h>
- 
- #define FS_ENET_NAME	"fs_enet"
-@@ -135,7 +136,7 @@ struct fs_platform_info {
- 	const struct fs_mii_bus_info *bus_info;
- 
- 	int rx_ring, tx_ring;	/* number of buffers on rx     */
--	__u8 macaddr[6];	/* mac address                 */
-+	__u8 macaddr[ETH_ALEN];	/* mac address                 */
- 	int rx_copybreak;	/* limit we copy small frames  */
- 	int use_napi;		/* use NAPI                    */
- 	int napi_weight;	/* NAPI weight                 */
-diff --git a/include/linux/ieee80211.h b/include/linux/ieee80211.h
-index b0dc87a..4e101af 100644
---- a/include/linux/ieee80211.h
-+++ b/include/linux/ieee80211.h
-@@ -16,6 +16,7 @@
- #define LINUX_IEEE80211_H
- 
- #include <linux/types.h>
-+#include <linux/if_ether.h>
- #include <asm/byteorder.h>
- 
- /*
-@@ -209,28 +210,28 @@ static inline u16 ieee80211_sn_sub(u16 sn1, u16 sn2)
- struct ieee80211_hdr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
--	u8 addr4[6];
-+	u8 addr4[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_hdr_3addr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
- } __packed __aligned(2);
- 
- struct ieee80211_qos_hdr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
- 	__le16 qos_ctrl;
- } __packed __aligned(2);
-@@ -608,8 +609,8 @@ struct ieee80211s_hdr {
- 	u8 flags;
- 	u8 ttl;
- 	__le32 seqnum;
--	u8 eaddr1[6];
--	u8 eaddr2[6];
-+	u8 eaddr1[ETH_ALEN];
-+	u8 eaddr2[ETH_ALEN];
- } __packed __aligned(2);
- 
- /* Mesh flags */
-@@ -758,7 +759,7 @@ struct ieee80211_rann_ie {
- 	u8 rann_flags;
- 	u8 rann_hopcount;
- 	u8 rann_ttl;
--	u8 rann_addr[6];
-+	u8 rann_addr[ETH_ALEN];
- 	__le32 rann_seq;
- 	__le32 rann_interval;
- 	__le32 rann_metric;
-@@ -802,9 +803,9 @@ enum ieee80211_vht_opmode_bits {
- struct ieee80211_mgmt {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 da[6];
--	u8 sa[6];
--	u8 bssid[6];
-+	u8 da[ETH_ALEN];
-+	u8 sa[ETH_ALEN];
-+	u8 bssid[ETH_ALEN];
- 	__le16 seq_ctrl;
- 	union {
- 		struct {
-@@ -833,7 +834,7 @@ struct ieee80211_mgmt {
- 		struct {
- 			__le16 capab_info;
- 			__le16 listen_interval;
--			u8 current_ap[6];
-+			u8 current_ap[ETH_ALEN];
- 			/* followed by SSID and Supported rates */
- 			u8 variable[0];
- 		} __packed reassoc_req;
-@@ -966,21 +967,21 @@ struct ieee80211_vendor_ie {
- struct ieee80211_rts {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 ra[6];
--	u8 ta[6];
-+	u8 ra[ETH_ALEN];
-+	u8 ta[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_cts {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 ra[6];
-+	u8 ra[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_pspoll {
- 	__le16 frame_control;
- 	__le16 aid;
--	u8 bssid[6];
--	u8 ta[6];
-+	u8 bssid[ETH_ALEN];
-+	u8 ta[ETH_ALEN];
- } __packed __aligned(2);
- 
- /* TDLS */
-@@ -989,14 +990,14 @@ struct ieee80211_pspoll {
- struct ieee80211_tdls_lnkie {
- 	u8 ie_type; /* Link Identifier IE */
- 	u8 ie_len;
--	u8 bssid[6];
--	u8 init_sta[6];
--	u8 resp_sta[6];
-+	u8 bssid[ETH_ALEN];
-+	u8 init_sta[ETH_ALEN];
-+	u8 resp_sta[ETH_ALEN];
- } __packed;
- 
- struct ieee80211_tdls_data {
--	u8 da[6];
--	u8 sa[6];
-+	u8 da[ETH_ALEN];
-+	u8 sa[ETH_ALEN];
- 	__be16 ether_type;
- 	u8 payload_type;
- 	u8 category;
-@@ -1090,8 +1091,8 @@ struct ieee80211_p2p_noa_attr {
- struct ieee80211_bar {
- 	__le16 frame_control;
- 	__le16 duration;
--	__u8 ra[6];
--	__u8 ta[6];
-+	__u8 ra[ETH_ALEN];
-+	__u8 ta[ETH_ALEN];
- 	__le16 control;
- 	__le16 start_seq_num;
- } __packed;
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 6aebdfe..09ef2f4 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -33,6 +33,7 @@
- #ifndef MLX4_DEVICE_H
- #define MLX4_DEVICE_H
- 
-+#include <linux/if_ether.h>
- #include <linux/pci.h>
- #include <linux/completion.h>
- #include <linux/radix-tree.h>
-@@ -620,7 +621,7 @@ struct mlx4_eth_av {
- 	u8		dgid[16];
- 	u32		reserved4[2];
- 	__be16		vlan;
--	u8		mac[6];
-+	u8		mac[ETH_ALEN];
- };
- 
- union mlx4_ext_av {
-@@ -914,10 +915,10 @@ enum mlx4_net_trans_promisc_mode {
- };
- 
- struct mlx4_spec_eth {
--	u8	dst_mac[6];
--	u8	dst_mac_msk[6];
--	u8	src_mac[6];
--	u8	src_mac_msk[6];
-+	u8	dst_mac[ETH_ALEN];
-+	u8	dst_mac_msk[ETH_ALEN];
-+	u8	src_mac[ETH_ALEN];
-+	u8	src_mac_msk[ETH_ALEN];
- 	u8	ether_type_enable;
- 	__be16	ether_type;
- 	__be16	vlan_id_msk;
-diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
-index 262deac..6d35147 100644
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -34,6 +34,7 @@
- #define MLX4_QP_H
- 
- #include <linux/types.h>
-+#include <linux/if_ether.h>
- 
- #include <linux/mlx4/device.h>
- 
-@@ -143,7 +144,7 @@ struct mlx4_qp_path {
- 	u8			feup;
- 	u8			fvl_rx;
- 	u8			reserved4[2];
--	u8			dmac[6];
-+	u8			dmac[ETH_ALEN];
- };
- 
- enum { /* fl */
-@@ -318,7 +319,7 @@ struct mlx4_wqe_datagram_seg {
- 	__be32			dqpn;
- 	__be32			qkey;
- 	__be16			vlan;
--	u8			mac[6];
-+	u8			mac[ETH_ALEN];
- };
- 
- struct mlx4_wqe_lso_seg {
-diff --git a/include/linux/mv643xx_eth.h b/include/linux/mv643xx_eth.h
-index 6e8215b..61a0da3 100644
---- a/include/linux/mv643xx_eth.h
-+++ b/include/linux/mv643xx_eth.h
-@@ -6,6 +6,7 @@
- #define __LINUX_MV643XX_ETH_H
- 
- #include <linux/mbus.h>
-+#include <linux/if_ether.h>
- 
- #define MV643XX_ETH_SHARED_NAME		"mv643xx_eth"
- #define MV643XX_ETH_NAME		"mv643xx_eth_port"
-@@ -48,7 +49,7 @@ struct mv643xx_eth_platform_data {
- 	 * Use this MAC address if it is valid, overriding the
- 	 * address that is already in the hardware.
- 	 */
--	u8			mac_addr[6];
-+	u8			mac_addr[ETH_ALEN];
- 
- 	/*
- 	 * If speed is 0, autonegotiation is enabled.
-diff --git a/include/linux/sh_eth.h b/include/linux/sh_eth.h
-index fc30571..6205eeb 100644
---- a/include/linux/sh_eth.h
-+++ b/include/linux/sh_eth.h
-@@ -2,6 +2,7 @@
- #define __ASM_SH_ETH_H__
- 
- #include <linux/phy.h>
-+#include <linux/if_ether.h>
- 
- enum {EDMAC_LITTLE_ENDIAN, EDMAC_BIG_ENDIAN};
- enum {
-@@ -18,7 +19,7 @@ struct sh_eth_plat_data {
- 	phy_interface_t phy_interface;
- 	void (*set_mdio_gate)(void *addr);
- 
--	unsigned char mac_addr[6];
-+	unsigned char mac_addr[ETH_ALEN];
- 	unsigned no_ether_link:1;
- 	unsigned ether_link_active_low:1;
- 	unsigned needs_init:1;
-diff --git a/include/linux/smsc911x.h b/include/linux/smsc911x.h
-index 4dde70e..eec3efd 100644
---- a/include/linux/smsc911x.h
-+++ b/include/linux/smsc911x.h
-@@ -22,6 +22,7 @@
- #define __LINUX_SMSC911X_H__
- 
- #include <linux/phy.h>
-+#include <linux/if_ether.h>
- 
- /* platform_device configuration data, should be assigned to
-  * the platform_device's dev.platform_data */
-@@ -31,7 +32,7 @@ struct smsc911x_platform_config {
- 	unsigned int flags;
- 	unsigned int shift;
- 	phy_interface_t phy_interface;
--	unsigned char mac[6];
-+	unsigned char mac[ETH_ALEN];
- };
- 
- /* Constants for platform_device irq polarity configuration */
-diff --git a/include/linux/uwb/spec.h b/include/linux/uwb/spec.h
-index b52e44f..0df24bf 100644
---- a/include/linux/uwb/spec.h
-+++ b/include/linux/uwb/spec.h
-@@ -32,6 +32,7 @@
- 
- #include <linux/types.h>
- #include <linux/bitmap.h>
-+#include <linux/if_ether.h>
- 
- #define i1480_FW 0x00000303
- /* #define i1480_FW 0x00000302 */
-@@ -130,7 +131,7 @@ enum { UWB_DRP_BACKOFF_WIN_MAX = 16 };
-  * it is also used to define headers sent down and up the wire/radio).
-  */
- struct uwb_mac_addr {
--	u8 data[6];
-+	u8 data[ETH_ALEN];
- } __attribute__((packed));
- 
- 
-@@ -568,7 +569,7 @@ struct uwb_rc_evt_confirm {
- /* Device Address Management event. [WHCI] section 3.1.3.2. */
- struct uwb_rc_evt_dev_addr_mgmt {
- 	struct uwb_rceb rceb;
--	u8 baAddr[6];
-+	u8 baAddr[ETH_ALEN];
- 	u8 bResultCode;
- } __attribute__((packed));
- 
-diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
-index 4a1191a..f7119ee 100644
---- a/include/media/tveeprom.h
-+++ b/include/media/tveeprom.h
-@@ -12,6 +12,8 @@ enum tveeprom_audio_processor {
- 	TVEEPROM_AUDPROC_OTHER,
- };
- 
-+#include <linux/if_ether.h>
-+
- struct tveeprom {
- 	u32 has_radio;
- 	/* If has_ir == 0, then it is unknown what the IR capabilities are,
-@@ -40,7 +42,7 @@ struct tveeprom {
- 	u32 revision;
- 	u32 serial_number;
- 	char rev_str[5];
--	u8 MAC_address[6];
-+	u8 MAC_address[ETH_ALEN];
- };
- 
- void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
-diff --git a/include/net/irda/irlan_common.h b/include/net/irda/irlan_common.h
-index 0af8b8d..550c2d6 100644
---- a/include/net/irda/irlan_common.h
-+++ b/include/net/irda/irlan_common.h
-@@ -32,6 +32,7 @@
- #include <linux/types.h>
- #include <linux/skbuff.h>
- #include <linux/netdevice.h>
-+#include <linux/if_ether.h>
- 
- #include <net/irda/irttp.h>
- 
-@@ -161,7 +162,7 @@ struct irlan_provider_cb {
- 	int access_type;     /* Access type */
- 	__u16 send_arb_val;
- 
--	__u8 mac_address[6]; /* Generated MAC address for peer device */
-+	__u8 mac_address[ETH_ALEN]; /* Generated MAC address for peer device */
- };
- 
- /*
+we don't have any specific requirement for NON_CONTIG or CONTIG
+memory, but only requirement was to allocate a bigger memory like (
+2560 * 1600 * 4 ) for FB.
+
+But as Rob suggested, we should have fall-back case if CONTIG memory
+allocation fails, as below
+
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index df43fa9..15de626 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -144,7 +144,6 @@ static int exynos_drm_fbdev_create(struct
+drm_fb_helper *helper,
+        struct platform_device *pdev = dev->platformdev;
+        unsigned long size;
+        int ret;
+
+        DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
+                        sizes->surface_width, sizes->surface_height,
+@@ -167,16 +166,14 @@ static int exynos_drm_fbdev_create(struct
+drm_fb_helper *helper,
+
+        size = mode_cmd.pitches[0] * mode_cmd.height;
+
+-       /* 0 means to allocate physically continuous memory */
+-       exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
++       exynos_gem_obj = exynos_drm_gem_create(dev, EXYNOS_BO_CONTIG, size);
+        if (IS_ERR(exynos_gem_obj)) {
+-               ret = PTR_ERR(exynos_gem_obj);
+-               goto err_release_framebuffer;
++               if(is_drm_iommu_supported(dev))
++                       exynos_gem_obj = exynos_drm_gem_create(dev,
+EXYNOS_BO_NONCONTIG, size);
++               if (IS_ERR(exynos_gem_obj)) {
++                       ret = PTR_ERR(exynos_gem_obj);
++                       goto err_release_framebuffer;
++               }
++               dev_warn("\n exynos_gem_obj for FB is allocated with
+non physically continuous       +               memory \n");
+        }
+
+
+
+> Thanks,
+> Inki Dae
+>
+>>
+>>
+>> > BR,
+>> > -R
+>> >
+>> >> Could you check why the allocation fails when requesting contiguous
+>> >> memory?
+>> >>
+>> >> Best regards,
+>> >> Tomasz
+>> >>
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> >> in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>> --
+>> Thanks and Regards
+>>  Vikas Sajjan
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
+
+
 -- 
-1.8.1.2.459.gbcd45b4.dirty
-
+Thanks and Regards
+ Vikas Sajjan
