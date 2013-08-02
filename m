@@ -1,50 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:42731 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab3HDM4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Aug 2013 08:56:49 -0400
-Received: by mail-oa0-f52.google.com with SMTP id n12so4277234oag.25
-        for <linux-media@vger.kernel.org>; Sun, 04 Aug 2013 05:56:49 -0700 (PDT)
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:39522 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754097Ab3HBFBn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 01:01:43 -0400
+Received: by mail-oa0-f53.google.com with SMTP id k18so457053oag.40
+        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 22:01:42 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sun, 4 Aug 2013 13:56:49 +0100
-Message-ID: <CAFoaQoAjc-v6UiYxu8ZzaOQi4g8GurYdCB6JM8-GKQbYugJwTw@mail.gmail.com>
-Subject: mceusb Fintek ir transmitter only works when X is not running
-From: Rajil Saraswat <rajil.s@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <CAD025yQfPxK-uGEwGWc4i8osNwY5VW4PUAQ4pD7Sy_jFfZ=LOw@mail.gmail.com>
+References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
+	<5151790.EBRlE0cTxf@flatron>
+	<CAD025yQfPxK-uGEwGWc4i8osNwY5VW4PUAQ4pD7Sy_jFfZ=LOw@mail.gmail.com>
+Date: Fri, 2 Aug 2013 10:31:42 +0530
+Message-ID: <CAK9yfHzski3=UcUkFPPpsRBvQshHszJAsMCs+MjshRZUiTMoWg@mail.gmail.com>
+Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
+ continous memory flag
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
+	InKi Dae <inki.dae@samsung.com>, arun.kk@samsung.com,
+	Patch Tracking <patches@linaro.org>,
+	linaro-kernel@lists.linaro.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Vikas,
 
-I have a HP MCE ir transreceiver which is recognised as Fintek device.
-The receiver works fine, however the transmitter only works when there
-is no X session running.
+On 2 August 2013 09:23, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
+> Hi Tomasz,
+>
+>
+> On 2 August 2013 04:50, Tomasz Figa <tomasz.figa@gmail.com> wrote:
+>>
+>> Hi Vikas,
+>>
+>> On Thursday 01 of August 2013 16:49:32 Vikas Sajjan wrote:
+>> > While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
+>> > connected with resolution 2560x1600, following error occured even with
+>> > IOMMU enabled:
+>> > [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate
+>> > buffer. [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
+>> >
+>> > This patch fixes the issue by adding a check for IOMMU.
+>> >
+>> > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+>> > Signed-off-by: Arun Kumar <arun.kk@samsung.com>
+>> > ---
+>> >  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |    9 ++++++++-
+>> >  1 file changed, 8 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> > b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c index 8e60bd6..2a86666
+>> > 100644
+>> > --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> > +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+>> > @@ -16,6 +16,7 @@
+>> >  #include <drm/drm_crtc.h>
+>> >  #include <drm/drm_fb_helper.h>
+>> >  #include <drm/drm_crtc_helper.h>
+>> > +#include <drm/exynos_drm.h>
+>> >
+>> >  #include "exynos_drm_drv.h"
+>> >  #include "exynos_drm_fb.h"
+>> > @@ -143,6 +144,7 @@ static int exynos_drm_fbdev_create(struct
+>> > drm_fb_helper *helper, struct platform_device *pdev = dev->platformdev;
+>> >       unsigned long size;
+>> >       int ret;
+>> > +     unsigned int flag;
+>> >
+>> >       DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d\n",
+>> >                       sizes->surface_width, sizes->surface_height,
+>> > @@ -166,7 +168,12 @@ static int exynos_drm_fbdev_create(struct
+>> > drm_fb_helper *helper, size = mode_cmd.pitches[0] * mode_cmd.height;
+>> >
+>> >       /* 0 means to allocate physically continuous memory */
+>> > -     exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
+>> > +     if (!is_drm_iommu_supported(dev))
+>> > +             flag = 0;
+>> > +     else
+>> > +             flag = EXYNOS_BO_NONCONTIG;
+>>
+>> While noncontig memory might be used for devices that support IOMMU, there
+>> should be no problem with using contig memory for them, so this seems more
+>> like masking the original problem rather than tracking it down.
+>>
+>> Could you check why the allocation fails when requesting contiguous
+>> memory?
+>>
+>
+> It is failing if i am giving bigger resolution like 2560x1600, but if
+> i try for 1280x780 resolution, it   works fine.
+> Looks like arm_dma_alloc() is NOT able to allocate bigger buffer of
+> size 2560 * 1600 * 4.
 
+You may need to increase the zoneorder (from current default 11 to say
+13) if you need large physically contiguous pages.
+However I am not sure if it is recommended.
 
-When X is stopped and the following command is issued from the virtual
-console (tty1), then the transmitter works:
-
-irsend SEND_ONCE mceusb KEY_1
-
-
-However, as soon as X is started even though irsend goes through, the
-transmitter led's dont go through. Any idea why this may be happening?
-
-
-
-These are the system details:
-#uname -a
-Linux localhost 3.10.4-gentoo #7 SMP Sun Aug 4 12:07:08 BST 2013
-x86_64 Intel(R) Core(TM) i5 CPU M 520 @ 2.40GHz GenuineIntel GNU/Linux
-
-# lsusb
-Bus 002 Device 008: ID 1934:5168 Feature Integration Technology Inc.
-(Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
-
-#cat /etc/conf.d/lircd
-LIRCD_OPTS="-d /dev/lirc0"
-
-
-Thanks
-Rajil
+-- 
+With warm regards,
+Sachin
