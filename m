@@ -1,51 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3776 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab3HBNKt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 09:10:49 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r72DAkST049329
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 2 Aug 2013 15:10:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.61.164.124] (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 8E2B035E03C3
-	for <linux-media@vger.kernel.org>; Fri,  2 Aug 2013 15:10:45 +0200 (CEST)
-Message-ID: <51FBAFD3.1080306@xs4all.nl>
-Date: Fri, 02 Aug 2013 15:10:43 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-we0-f179.google.com ([74.125.82.179]:54645 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752491Ab3HCVpg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Aug 2013 17:45:36 -0400
+Message-ID: <51FD79FC.8090504@gmail.com>
+Date: Sat, 03 Aug 2013 23:45:32 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Just one fix
-Content-Type: text/plain; charset=ISO-8859-1
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [RFC v3 05/13] [media] exynos5-fimc-is: Add register definition
+ and context header
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com> <1375455762-22071-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1375455762-22071-6-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note: this patch is already merged in linuxtv/master, but it should also go
-to 3.11.
+On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+> This patch adds the register definition file for the fimc-is driver
+> and also the header file containing the main context for the driver.
+>
+> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+> ---
+>   drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 +++++++++++++++
+>   drivers/media/platform/exynos5-is/fimc-is.h      |  153 ++++++++++++++++++++++
+>   2 files changed, 258 insertions(+)
+>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+>
+> diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+> new file mode 100644
+> index 0000000..06aa466
+> --- /dev/null
+> +++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+> @@ -0,0 +1,105 @@
+> +/*
+> + * Samsung Exynos5 SoC series FIMC-IS driver
+> + *
+> + * Copyright (c) 2013 Samsung Electronics Co., Ltd
+> + * Arun Kumar K<arun.kk@samsung.com>
+> + * Kil-yeon Lim<kilyeon.im@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef FIMC_IS_REGS_H
+> +#define FIMC_IS_REGS_H
+> +
+> +/* WDT_ISP register */
+> +#define WDT			0x00170000
+> +/* MCUCTL register */
+> +#define MCUCTL			0x00180000
+> +/* MCU Controller Register */
+> +#define MCUCTLR				(MCUCTL+0x00)
+> +#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x)<<  16)
+> +#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x)<<  12)
+> +#define MCUCTLR_MSWRST			(1<<  0)
+> +/* Boot Base OFfset Address Register */
+> +#define BBOAR				(MCUCTL+0x04)
+> +#define BBOAR_BBOA(x)			((x)<<  0)
+> +
+> +/* Interrupt Generation Register 0 from Host CPU to VIC */
+> +#define INTGR0				(MCUCTL+0x08)
+> +#define INTGR0_INTGC(n)			(1<<  ((n) + 16))
+> +#define INTGR0_INTGD(n)			(1<<  (n))
+> +
+> +/* Interrupt Clear Register 0 from Host CPU to VIC */
+> +#define INTCR0				(MCUCTL+0x0c)
+> +#define INTCR0_INTCC(n)			(1<<  ((n) + 16))
+> +#define INTCR0_INTCD(n)			(1<<  (n))
+> +
+> +/* Interrupt Mask Register 0 from Host CPU to VIC */
+> +#define INTMR0				(MCUCTL+0x10)
+> +#define INTMR0_INTMC(n)			(1<<  ((n) + 16))
+> +#define INTMR0_INTMD(n)			(1<<  (n))
+> +
+> +/* Interrupt Status Register 0 from Host CPU to VIC */
+> +#define INTSR0				(MCUCTL+0x14)
+> +#define INTSR0_GET_INTSD(n, x)		(((x)>>  (n))&  0x1)
+> +#define INTSR0_GET_INTSC(n, x)		(((x)>>  ((n) + 16))&  0x1)
+> +
+> +/* Interrupt Mask Status Register 0 from Host CPU to VIC */
+> +#define INTMSR0				(MCUCTL+0x18)
+> +#define INTMSR0_GET_INTMSD(n, x)	(((x)>>  (n))&  0x1)
+> +#define INTMSR0_GET_INTMSC(n, x)	(((x)>>  ((n) + 16))&  0x1)
+> +
+> +/* Interrupt Generation Register 1 from ISP CPU to Host IC */
+> +#define INTGR1				(MCUCTL+0x1c)
+> +#define INTGR1_INTGC(n)			(1<<  (n))
+> +
+> +/* Interrupt Clear Register 1 from ISP CPU to Host IC */
+> +#define INTCR1				(MCUCTL+0x20)
+> +#define INTCR1_INTCC(n)			(1<<  (n))
+> +
+> +/* Interrupt Mask Register 1 from ISP CPU to Host IC */
+> +#define INTMR1				(MCUCTL+0x24)
+> +#define INTMR1_INTMC(n)			(1<<  (n))
+> +
+> +/* Interrupt Status Register 1 from ISP CPU to Host IC */
+> +#define INTSR1				(MCUCTL+0x28)
+> +/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
+> +#define INTMSR1				(MCUCTL+0x2c)
+> +/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
+> +#define INTCR2				(MCUCTL+0x30)
+> +#define INTCR2_INTCC(n)			(1<<  (n))
+> +
+> +/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
+> +#define INTMR2				(MCUCTL+0x34)
+> +#define INTMR2_INTMCIS(n)		(1<<  (n))
+> +
+> +/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
+> +#define INTSR2				(MCUCTL+0x38)
+> +/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
+> +#define INTMSR2				(MCUCTL+0x3c)
+> +/* General Purpose Output Control Register (0~17) */
+> +#define GPOCTLR				(MCUCTL+0x40)
+> +#define GPOCTLR_GPOG(n, x)		((x)<<  (n))
+> +
+> +/* General Purpose Pad Output Enable Register (0~17) */
+> +#define GPOENCTLR			(MCUCTL+0x44)
+> +#define GPOENCTLR_GPOEN0(n, x)		((x)<<  (n))
+> +
+> +/* General Purpose Input Control Register (0~17) */
+> +#define GPICTLR				(MCUCTL+0x48)
+> +
+> +/* IS Shared Registers between ISP CPU and HOST CPU */
+> +#define ISSR(n)			(MCUCTL + 0x80 + (n))
+> +
+> +/* PMU for FIMC-IS*/
+> +#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
+> +#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
+> +#define PMUREG_ISP_ARM_STATUS			0x2284
+> +#define PMUREG_ISP_ARM_OPTION			0x2288
+> +#define PMUREG_ISP_LOW_POWER_OFF		0x0004
+> +#define PMUREG_ISP_CONFIGURATION		0x4020
+> +#define PMUREG_ISP_STATUS			0x4024
+> +
+> +#endif
+> diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
+> new file mode 100644
+> index 0000000..a7379dc
+> --- /dev/null
+> +++ b/drivers/media/platform/exynos5-is/fimc-is.h
+> @@ -0,0 +1,153 @@
+> +/*
+> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
+> + *
+> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+> + *  Arun Kumar K<arun.kk@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef FIMC_IS_H_
+> +#define FIMC_IS_H_
+> +
+> +#include "fimc-is-err.h"
+> +#include "fimc-is-core.h"
+> +#include "fimc-is-param.h"
+> +#include "fimc-is-pipeline.h"
+> +#include "fimc-is-interface.h"
+> +
+> +#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
+> +#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
+> +
+> +/* Macros used by media dev to get the subdev and vfd */
+> +/* is -->  driver data from pdev
+> + * pid -->  pipeline index */
 
-Regards,
+Wrong multi-line comment style. And perhaps s/--> /- ?
 
-	Hans
+> +#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
+> +#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
+> +#define fimc_is_scc_get_sd(is, pid) \
+> +	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
+> +#define fimc_is_scc_get_vfd(is, pid) \
+> +	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
+> +#define fimc_is_scp_get_sd(is, pid) \
+> +	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
+> +#define fimc_is_scp_get_vfd(is, pid) \
+> +	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
+> +/* is -->  driver data from pdev
+> + * sid -->  sensor index */
+> +#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
+> +
+> +
+> +/**
+> + * struct fimc_is - fimc lite structure
 
-The following changes since commit 5ae90d8e467e625e447000cb4335c4db973b1095:
+s/fimc lite/fimc-is driver private data ?
 
-  Linux 3.11-rc3 (2013-07-28 20:53:33 -0700)
+> + * @pdev: pointer to FIMC-IS platform device
+> + * @pdata: platform data for FIMC-IS
+> + * @alloc_ctx: videobuf2 memory allocator context
+> + * @clk: FIMC-IS clocks
 
-are available in the git repository at:
+Actually it's 'clock'.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11b
+> + * @pmu_regs: PMU reg base address
+> + * @minfo: internal memory organization info
+> + * @sensor: FIMC-IS sensor context
+> + * @pipeline: hardware pipeline context
+> + * @interface: hardware interface context
+> + */
+> +struct fimc_is {
+> +	struct platform_device		*pdev;
+> +
+> +	struct vb2_alloc_ctx		*alloc_ctx;
+> +	struct clk			*clock[IS_CLK_MAX_NUM];
+> +	void __iomem			*pmu_regs;
+> +
+> +	struct fimc_is_meminfo		minfo;
+> +
+> +	int				num_instance;
 
-for you to fetch changes up to 08efa3ee4aac27407f0651ad781c441367f90308:
+It's undocumented, what it is really used for ?
 
-  ml86v7667: override default field interlace order (2013-07-29 16:08:52 +0200)
+> +	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
+> +	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
+> +	struct fimc_is_interface	interface;
+> +};
+> +
+> +/* Queue operations for ISP */
+> +static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
+> +		struct fimc_is_buf *buf)
+> +{
+> +	list_add_tail(&buf->list,&isp->wait_queue);
+> +	isp->wait_queue_cnt++;
+> +}
+> +
+> +static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
+> +		struct fimc_is_isp *isp)
+> +{
+> +	struct fimc_is_buf *buf;
+> +	buf = list_entry(isp->wait_queue.next,
+> +			struct fimc_is_buf, list);
+> +	list_del(&buf->list);
+> +	isp->wait_queue_cnt--;
+> +	return buf;
+> +}
+> +
+> +static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
+> +		struct fimc_is_buf *buf)
+> +{
+> +	list_add_tail(&buf->list,&isp->run_queue);
+> +	isp->run_queue_cnt++;
+> +}
+> +
+> +static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
+> +		struct fimc_is_isp *isp)
+> +{
+> +	struct fimc_is_buf *buf;
+> +	buf = list_entry(isp->run_queue.next,
+> +			struct fimc_is_buf, list);
+> +	list_del(&buf->list);
+> +	isp->run_queue_cnt--;
+> +	return buf;
+> +}
+> +
+> +/* Queue operations for SCALER */
 
-----------------------------------------------------------------
-Vladimir Barinov (1):
-      ml86v7667: override default field interlace order
+It would be much neater to define some generic data structure and have
+single queue operations for both ISP and SCALER. Maybe it would help
+rewriting those as macros ? But this is something that could be well
+done in a follow up patch(es).
 
- drivers/media/i2c/ml86v7667.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> +static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
+> +		struct fimc_is_buf *buf)
+> +{
+> +	list_add_tail(&buf->list,&scp->wait_queue);
+> +	scp->wait_queue_cnt++;
+> +}
+> +
+> +static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
+> +		struct fimc_is_scaler *scp)
+> +{
+> +	struct fimc_is_buf *buf;
+> +	buf = list_entry(scp->wait_queue.next,
+> +			struct fimc_is_buf, list);
+> +	list_del(&buf->list);
+> +	scp->wait_queue_cnt--;
+> +	return buf;
+> +}
+> +
+> +static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
+> +		struct fimc_is_buf *buf)
+> +{
+> +	list_add_tail(&buf->list,&scp->run_queue);
+> +	scp->run_queue_cnt++;
+> +}
+> +
+> +static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
+> +		struct fimc_is_scaler *scp)
+> +{
+> +	struct fimc_is_buf *buf;
+> +	buf = list_entry(scp->run_queue.next,
+> +			struct fimc_is_buf, list);
+> +	list_del(&buf->list);
+> +	scp->run_queue_cnt--;
+> +	return buf;
+> +}
+> +
+> +static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
+> +{
+> +	writel(v, is->pmu_regs + offset);
+> +}
+> +
+> +static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
+> +{
+> +	return readl(is->pmu_regs + offset);
+> +}
+> +
+> +#endif
+
+--
+Thanks,
+Sylwester
