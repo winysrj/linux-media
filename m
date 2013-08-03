@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:55446 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754Ab3HAS2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Aug 2013 14:28:13 -0400
-Received: by mail-bk0-f45.google.com with SMTP id je2so791275bkc.18
-        for <linux-media@vger.kernel.org>; Thu, 01 Aug 2013 11:28:12 -0700 (PDT)
-Received: from gjasny04.ad.corp.expertcity.com ([78.108.113.8])
-        by mx.google.com with ESMTPSA id d8sm1073201bkj.6.2013.08.01.11.28.11
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Thu, 01 Aug 2013 11:28:11 -0700 (PDT)
-Message-ID: <51FAA8BA.302@googlemail.com>
-Date: Thu, 01 Aug 2013 20:28:10 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:41674 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab3HCVkK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Aug 2013 17:40:10 -0400
+Message-ID: <51FD78B5.6080507@gmail.com>
+Date: Sat, 03 Aug 2013 23:40:05 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Doing a v4l-utils-1.0.0 release
-References: <51BAC2F6.40708@redhat.com>
-In-Reply-To: <51BAC2F6.40708@redhat.com>
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [RFC v3 00/13] Exynos5 IS driver
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Arun,
 
-On 6/14/13 9:15 AM, Hans de Goede wrote:
-> IIRC the 0.9.x series were meant as development releases leading up to a
-> new
-> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
-> and a lot of interesting development going on in the 0.9.x, while at the
-> same time there have been no issues reported against 0.9.x (iow it seems
-> stable).
+On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+> The patch series add support for Exynos5 camera subsystem. It
+> re-uses mipi-csis and fimc-lite from exynos4-is and adds a new
+> media device and fimc-is device drivers for exynos5.
+> The media device supports asynchronos subdev registration for the
+> fimc-is sensors and is based on the patch series from Sylwester
+> for exynos4-is [1].
 >
-> So how about taking current master and releasing that as a 1.0.0 release ?
+> [1]http://www.mail-archive.com/linux-media@vger.kernel.org/msg64653.html
+>
+> Changes from v2
+> ---------------
+> - Added exynos5 media device driver from Shaik to this series
+> - Added ISP pipeline support in media device driver
+> - Based on Sylwester's latest exynos4-is development
+> - Asynchronos registration of sensor subdevs
+> - Made independent IS-sensor support
+> - Add s5k4e5 sensor driver
+> - Addressed review comments from Sylwester, Hans, Andrzej, Sachin
 
-If nobody objects I'll do a 1.0.0 release this weekend.
+This is starting to look pretty good to me, I hope we can merge this
+patch set for v3.12. Let use coming two weeks for one or two review/
+corrections round.
+In the meantime I've done numerous fixes to the patch series [1],
+especially the clock provider code was pretty buggy on the clean up
+paths. Let's go through the patches and see what can be improved yet.
 
 Thanks,
-Gregor
+Sylwester
 
