@@ -1,135 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:42054 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab3HBL1K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 07:27:10 -0400
-Received: by mail-la0-f45.google.com with SMTP id fj20so351048lab.32
-        for <linux-media@vger.kernel.org>; Fri, 02 Aug 2013 04:27:09 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v3 1/2] videobuf2-dma-sg: Allocate pages as contiguous as possible
-Date: Fri,  2 Aug 2013 13:26:55 +0200
-Message-Id: <1375442816-20223-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1375442816-20223-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:57673 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751489Ab3HCNRH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Aug 2013 09:17:07 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: jonarne@jonarne.no, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com,
+	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
+Subject: [RFC v4 2/3] saa7115: Do not load saa7115_init_misc for gm7113c
+Date: Sat,  3 Aug 2013 15:19:36 +0200
+Message-Id: <1375535977-28913-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
+References: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most DMA engines have limitations regarding the number of DMA segments
-(sg-buffers) that they can handle. Videobuffers can easily spread
-through houndreds of pages.
+Most of the registers changed in saa7115_init_misc table are out of range
+for the gm7113c chip.
+The only register that's within range, don't need to be changed here.
 
-In the previous aproach, the pages were allocated individually, this
-could led to the creation houndreds of dma segments (sg-buffers) that
-could not be handled by some DMA engines.
-
-This patch tries to minimize the number of DMA segments by using
-alloc_pages. In the worst case it will behave as before, but most
-of the times it will reduce the number of dma segments
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
- 1 file changed, 49 insertions(+), 11 deletions(-)
+ drivers/media/i2c/saa7115.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 16ae3dc..4a7b59b 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
- 
- static void vb2_dma_sg_put(void *buf_priv);
- 
-+static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
-+		gfp_t gfp_flags)
-+{
-+	unsigned int last_page = 0;
-+	int size = buf->sg_desc.size;
-+
-+	while (size > 0) {
-+		struct page *pages;
-+		int order;
-+		int i;
-+
-+		order = get_order(size);
-+		/* Dont over allocate*/
-+		if ((PAGE_SIZE << order) > size)
-+			order--;
-+
-+		pages = NULL;
-+		while (!pages) {
-+			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
-+					__GFP_NOWARN | gfp_flags, order);
-+			if (pages)
-+				break;
-+
-+			if (order == 0) {
-+				while (last_page--)
-+					__free_page(buf->pages[last_page]);
-+				return -ENOMEM;
-+			}
-+			order--;
-+		}
-+
-+		split_page(pages, order);
-+		for (i = 0; i < (1<<order); i++) {
-+			buf->pages[last_page] = pages[i];
-+			sg_set_page(&buf->sg_desc.sglist[last_page],
-+					buf->pages[last_page], PAGE_SIZE, 0);
-+			last_page++;
-+		}
-+
-+		size -= PAGE_SIZE << order;
-+	}
-+
-+	return 0;
-+}
-+
- static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
- {
- 	struct vb2_dma_sg_buf *buf;
--	int i;
-+	int ret;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	if (!buf->pages)
- 		goto fail_pages_array_alloc;
- 
--	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
--		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
--					   __GFP_NOWARN | gfp_flags);
--		if (NULL == buf->pages[i])
--			goto fail_pages_alloc;
--		sg_set_page(&buf->sg_desc.sglist[i],
--			    buf->pages[i], PAGE_SIZE, 0);
--	}
-+	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
-+	if (ret)
-+		goto fail_pages_alloc;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
-@@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	return buf;
- 
- fail_pages_alloc:
--	while (--i >= 0)
--		__free_page(buf->pages[i]);
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 41408dd..17a464d 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1769,7 +1769,7 @@ static int saa711x_probe(struct i2c_client *client,
+ 		state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
+ 		saa711x_writeregs(sd, saa7115_init_auto_input);
+ 	}
+-	if (state->ident > SAA7111A)
++	if (state->ident > SAA7111A && state->ident != GM7113C)
+ 		saa711x_writeregs(sd, saa7115_init_misc);
+ 	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
+ 	v4l2_ctrl_handler_setup(hdl);
 -- 
-1.7.10.4
+1.8.3.1
 
