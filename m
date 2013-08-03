@@ -1,41 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2262 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758227Ab3HBJ4C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Aug 2013 05:56:02 -0400
-Message-ID: <51FB821F.4080504@xs4all.nl>
-Date: Fri, 02 Aug 2013 11:55:43 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:57672 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752088Ab3HCNRH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Aug 2013 09:17:07 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: jonarne@jonarne.no, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com,
+	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
+Subject: [RFC v4 1/3] saa7115: Fix saa711x_set_v4lstd for gm7113c
+Date: Sat,  3 Aug 2013 15:19:35 +0200
+Message-Id: <1375535977-28913-2-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
+References: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v5 9/9] vsp1: Use the maximum number of entities defined
- in platform data
-References: <1375405408-17134-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1375405408-17134-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375405408-17134-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+saa711x_set_v4lstd would toggle several bits that should not be touched
+when changing std. This patch fixes this.
 
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+---
+ drivers/media/i2c/saa7115.c      | 37 +++++++++++++------------------------
+ drivers/media/i2c/saa711x_regs.h |  4 ++++
+ 2 files changed, 17 insertions(+), 24 deletions(-)
 
-On 08/02/2013 03:03 AM, Laurent Pinchart wrote:
-> From: Katsuya Matsubara <matsu@igel.co.jp>
-> 
-> The VSP1 driver allows to define the maximum number of each module
-> such as RPF, WPF, and UDS in a platform data definition.
-> This suppresses operations for nonexistent or unused modules.
-> 
-> Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 7fd766e..41408dd 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -462,24 +462,6 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
+ 
+ /* ============== SAA7715 VIDEO templates (end) =======  */
+ 
+-/* ============== GM7113C VIDEO templates =============  */
+-static const unsigned char gm7113c_cfg_60hz_video[] = {
+-	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
+-	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
+-
+-	0x00, 0x00
+-};
+-
+-static const unsigned char gm7113c_cfg_50hz_video[] = {
+-	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
+-	R_0E_CHROMA_CNTL_1, 0x07,
+-
+-	0x00, 0x00
+-};
+-
+-/* ============== GM7113C VIDEO templates (end) =======  */
+-
+-
+ static const unsigned char saa7115_cfg_vbi_on[] = {
+ 	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
+ 	R_88_POWER_SAVE_ADC_PORT_CNTL, 0xd0,		/* reset scaler */
+@@ -964,17 +946,24 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
+ 	if (std & V4L2_STD_525_60) {
+ 		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
+-		if (state->ident == GM7113C)
+-			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
+-		else
++		if (state->ident == GM7113C) {
++			u8 reg = saa711x_read(sd, R_08_SYNC_CNTL);
++			reg &= ~(SAA7113_R_08_FSEL | SAA7113_R_08_AUFD);
++			reg |= SAA7113_R_08_FSEL;
++			saa711x_write(sd, R_08_SYNC_CNTL, reg);
++		} else {
+ 			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
++		}
+ 		saa711x_set_size(sd, 720, 480);
+ 	} else {
+ 		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
+-		if (state->ident == GM7113C)
+-			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
+-		else
++		if (state->ident == GM7113C) {
++			u8 reg = saa711x_read(sd, R_08_SYNC_CNTL);
++			reg &= ~(SAA7113_R_08_FSEL | SAA7113_R_08_AUFD);
++			saa711x_write(sd, R_08_SYNC_CNTL, reg);
++		} else {
+ 			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
++		}
+ 		saa711x_set_size(sd, 720, 576);
+ 	}
+ 
+diff --git a/drivers/media/i2c/saa711x_regs.h b/drivers/media/i2c/saa711x_regs.h
+index 4e5f2eb..70c56d1 100644
+--- a/drivers/media/i2c/saa711x_regs.h
++++ b/drivers/media/i2c/saa711x_regs.h
+@@ -201,6 +201,10 @@
+ #define R_FB_PULSE_C_POS_MSB                          0xfb
+ #define R_FF_S_PLL_MAX_PHASE_ERR_THRESH_NUM_LINES     0xff
+ 
++/* SAA7113 bit-masks */
++#define SAA7113_R_08_FSEL 0x40
++#define SAA7113_R_08_AUFD 0x80
++
+ #if 0
+ /* Those structs will be used in the future for debug purposes */
+ struct saa711x_reg_descr {
+-- 
+1.8.3.1
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
