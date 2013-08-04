@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60673 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752839Ab3HVL2p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 07:28:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:63371 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815Ab3HDVCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Aug 2013 17:02:45 -0400
+Date: Sun, 4 Aug 2013 23:02:40 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Su Jiaquan <jiaquan.lnx@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
-	xzhao10@marvell.com, sakari.ailus@iki.fi
+cc: linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
 Subject: Re: How to express planar formats with mediabus format code?
-Date: Thu, 22 Aug 2013 13:29:59 +0200
-Message-ID: <2368703.nsGl321KOP@avalon>
-In-Reply-To: <CALxrGmVHS2BnmyLd4EDEHJ-CB44e-AfdFqj0pVFTa_hbBhgWAA@mail.gmail.com>
-References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com> <2205654.JNC8mWJ5su@avalon> <CALxrGmVHS2BnmyLd4EDEHJ-CB44e-AfdFqj0pVFTa_hbBhgWAA@mail.gmail.com>
+In-Reply-To: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1308042252010.19244@axis700.grange>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jiaquan,
+Hi Su Jiaquan
 
-On Wednesday 21 August 2013 18:14:50 Su Jiaquan wrote:
-> On Tue, Aug 20, 2013 at 8:53 PM, Laurent Pinchart wrote:
-> > Hi Jiaquan,
-> > 
-> > I'm not sure if that's needed here. Vendor-specific formats still need to
-> > be documented, so we could just create a custom YUV format for your case.
-> > Let's start with the beginning, could you describe what gets transmitted
-> > on the bus when that special format is selected ?
+On Sun, 4 Aug 2013, Su Jiaquan wrote:
+
+> Hi,
 > 
-> For YUV420P format, the data format sent from IPC is similar to
-> V4L2_MBUS_FMT_YUYV8_1_5X8, but the content for each line is different:
-> For odd line, it's YYU YYU YYU... For even line, it's YYV YYV YYV...
-> then DMA engine send them to RAM in planar format.
+> I know the title looks crazy, but here is our problem:
 > 
-> For YUV420SP format, the data format sent from IPC is YYUV YYUV
-> YYUV(maybe called V4L2_MBUS_FMT_YYUV8_2X8?), but DMA engine drop UV
-> every other line, then send them to RAM as semi-planar.
+> In our SoC based ISP, the hardware can be divide to several blocks.
+> Some blocks can do color space conversion(raw to YUV
+> interleave/planar), others can do the pixel
+> re-order(interleave/planar/semi-planar conversion, UV planar switch).
+> We use one subdev to describe each of them, then came the problem: How
+> can we express the planar formats with mediabus format code?
 
-V4L2_MBUS_FMT_YYUV8_2X8 looks good to me.
+Could you please explain more exactly what you mean? How are those your 
+blocks connected? How do they exchange data? If they exchange data over a 
+serial bus, then I don't think planar formats make sense, right? Or do 
+your blocks really output planes one after another, reordering data 
+internally? That would be odd... If OTOH your blocks output data to RAM, 
+and the next block takes data from there, then you use V4L2_PIX_FMT_* 
+formats to describe them and any further processing block should be a 
+mem2mem device. Wouldn't this work?
 
-> Well, the first data format is too odd, I don't have a clue how to
-> call it, do you have suggestion?
+Thanks
+Guennadi
 
-Maybe V4L2_MBUS_FMT_YU8_YV8_1_5X8 ? I've CC'ed Sakari Ailus, he's often pretty 
-creative for these issues.
+> I understand at beginning, media-bus was designed to describe the data
+> link between camera sensor and camera controller, where sensor is
+> described in subdev. So interleave formats looks good enough at that
+> time. But now as Media-controller is introduced, subdev can describe a
+> much wider range of hardware, which is not limited to camera sensor.
+> So now planar formats are possible to be passed between subdevs.
+> 
+> I think the problem we meet can be very common for SoC based ISP
+> solutions, what do you think about it?
+> 
+> there are many possible solution for it:
+> 
+> 1> change the definition of v4l2_subdev_format::format, use v4l2_format;
+> 
+> 2> extend the mediabus format code, add planar format code;
+> 
+> 3> use a extra bit to tell the meaning of v4l2_mbus_framefmt::code, is
+> it in mediabus-format or in fourcc
+> 
+>  Do you have any suggestions?
+> 
+>  Thanks a lot!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
--- 
-Regards,
-
-Laurent Pinchart
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
