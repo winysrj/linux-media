@@ -1,295 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:41771 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752770Ab3H3CRi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:38 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rr4so1222326pbb.6
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:37 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 06/19] uvcvideo: Recognize UVC 1.5 encoding units.
-Date: Fri, 30 Aug 2013 11:17:05 +0900
-Message-Id: <1377829038-4726-7-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49264 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752394Ab3HEINv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Aug 2013 04:13:51 -0400
+Message-ID: <51FF5EB4.8090007@ti.com>
+Date: Mon, 5 Aug 2013 11:13:40 +0300
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
+	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
+	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com>
+In-Reply-To: <1375452223-30524-2-git-send-email-archit@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="K1spFsIeMBEIGn0cDmXurTREiLifVKnCe"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add encoding unit definitions and descriptor parsing code and allow them to
-be added to chains.
+--K1spFsIeMBEIGn0cDmXurTREiLifVKnCe
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
----
- drivers/media/usb/uvc/uvc_ctrl.c   | 37 ++++++++++++++++++---
- drivers/media/usb/uvc/uvc_driver.c | 67 +++++++++++++++++++++++++++++++++-----
- drivers/media/usb/uvc/uvcvideo.h   | 14 +++++++-
- include/uapi/linux/usb/video.h     |  1 +
- 4 files changed, 105 insertions(+), 14 deletions(-)
+Hi,
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index ba159a4..72d6724 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -777,6 +777,7 @@ static const __u8 uvc_processing_guid[16] = UVC_GUID_UVC_PROCESSING;
- static const __u8 uvc_camera_guid[16] = UVC_GUID_UVC_CAMERA;
- static const __u8 uvc_media_transport_input_guid[16] =
- 	UVC_GUID_UVC_MEDIA_TRANSPORT_INPUT;
-+static const __u8 uvc_encoding_guid[16] = UVC_GUID_UVC_ENCODING;
- 
- static int uvc_entity_match_guid(const struct uvc_entity *entity,
- 	const __u8 guid[16])
-@@ -795,6 +796,9 @@ static int uvc_entity_match_guid(const struct uvc_entity *entity,
- 		return memcmp(entity->extension.guidExtensionCode,
- 			      guid, 16) == 0;
- 
-+	case UVC_VC_ENCODING_UNIT:
-+		return memcmp(uvc_encoding_guid, guid, 16) == 0;
-+
- 	default:
- 		return 0;
- 	}
-@@ -2105,12 +2109,13 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- {
- 	struct uvc_entity *entity;
- 	unsigned int i;
-+	int num_found;
- 
- 	/* Walk the entities list and instantiate controls */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		struct uvc_control *ctrl;
--		unsigned int bControlSize = 0, ncontrols;
--		__u8 *bmControls = NULL;
-+		unsigned int bControlSize = 0, ncontrols = 0;
-+		__u8 *bmControls = NULL, *bmControlsRuntime = NULL;
- 
- 		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
- 			bmControls = entity->extension.bmControls;
-@@ -2121,13 +2126,25 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 		} else if (UVC_ENTITY_TYPE(entity) == UVC_ITT_CAMERA) {
- 			bmControls = entity->camera.bmControls;
- 			bControlSize = entity->camera.bControlSize;
-+		} else if (UVC_ENTITY_TYPE(entity) == UVC_VC_ENCODING_UNIT) {
-+			bmControls = entity->encoding.bmControls;
-+			bmControlsRuntime = entity->encoding.bmControlsRuntime;
-+			bControlSize = entity->encoding.bControlSize;
- 		}
- 
- 		/* Remove bogus/blacklisted controls */
- 		uvc_ctrl_prune_entity(dev, entity);
- 
- 		/* Count supported controls and allocate the controls array */
--		ncontrols = memweight(bmControls, bControlSize);
-+		for (i = 0; i < bControlSize; ++i) {
-+			if (bmControlsRuntime) {
-+				ncontrols += hweight8(bmControls[i]
-+						      | bmControlsRuntime[i]);
-+			} else {
-+				ncontrols += hweight8(bmControls[i]);
-+			}
-+		}
-+
- 		if (ncontrols == 0)
- 			continue;
- 
-@@ -2139,8 +2156,17 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 
- 		/* Initialize all supported controls */
- 		ctrl = entity->controls;
--		for (i = 0; i < bControlSize * 8; ++i) {
--			if (uvc_test_bit(bmControls, i) == 0)
-+		for (i = 0, num_found = 0;
-+			i < bControlSize * 8 && num_found < ncontrols; ++i) {
-+			if (uvc_test_bit(bmControls, i) == 1)
-+				ctrl->on_init = 1;
-+			if (bmControlsRuntime &&
-+				uvc_test_bit(bmControlsRuntime, i) == 1)
-+				ctrl->in_runtime = 1;
-+			else if (!bmControlsRuntime)
-+				ctrl->in_runtime = ctrl->on_init;
-+
-+			if (ctrl->on_init == 0 && ctrl->in_runtime == 0)
- 				continue;
- 
- 			ctrl->entity = entity;
-@@ -2148,6 +2174,7 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 
- 			uvc_ctrl_init_ctrl(dev, ctrl);
- 			ctrl++;
-+			num_found++;
- 		}
- 	}
- 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index d7ff707..d950b40 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1155,6 +1155,37 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 		list_add_tail(&unit->list, &dev->entities);
- 		break;
- 
-+	case UVC_VC_ENCODING_UNIT:
-+		n = buflen >= 7 ? buffer[6] : 0;
-+
-+		if (buflen < 7 + 2 * n) {
-+			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
-+				"interface %d ENCODING_UNIT error\n",
-+				udev->devnum, alts->desc.bInterfaceNumber);
-+			return -EINVAL;
-+		}
-+
-+		unit = uvc_alloc_entity(buffer[2], buffer[3], 2, 2 * n);
-+		if (unit == NULL)
-+			return -ENOMEM;
-+
-+		memcpy(unit->baSourceID, &buffer[4], 1);
-+		unit->encoding.bControlSize = buffer[6];
-+		unit->encoding.bmControls = (__u8 *)unit + sizeof(*unit);
-+		memcpy(unit->encoding.bmControls, &buffer[7], n);
-+		unit->encoding.bmControlsRuntime = unit->encoding.bmControls
-+						 + n;
-+		memcpy(unit->encoding.bmControlsRuntime, &buffer[7 + n], n);
-+
-+		if (buffer[5] != 0)
-+			usb_string(udev, buffer[5], unit->name,
-+				   sizeof(unit->name));
-+		else
-+			sprintf(unit->name, "encoding %u", buffer[3]);
-+
-+		list_add_tail(&unit->list, &dev->entities);
-+		break;
-+
- 	default:
- 		uvc_trace(UVC_TRACE_DESCR, "Found an unknown CS_INTERFACE "
- 			"descriptor (%u)\n", buffer[2]);
-@@ -1251,25 +1282,31 @@ static void uvc_delete_chain(struct uvc_video_chain *chain)
-  *
-  * - one or more Output Terminals (USB Streaming or Display)
-  * - zero or one Processing Unit
-+ * - zero or one Encoding Unit
-  * - zero, one or more single-input Selector Units
-  * - zero or one multiple-input Selector Units, provided all inputs are
-  *   connected to input terminals
-- * - zero, one or mode single-input Extension Units
-+ * - zero, one or more single-input Extension Units
-  * - one or more Input Terminals (Camera, External or USB Streaming)
-  *
-- * The terminal and units must match on of the following structures:
-+ * The terminal and units must match one of the following structures:
-  *
-- * ITT_*(0) -> +---------+    +---------+    +---------+ -> TT_STREAMING(0)
-- * ...         | SU{0,1} | -> | PU{0,1} | -> | XU{0,n} |    ...
-- * ITT_*(n) -> +---------+    +---------+    +---------+ -> TT_STREAMING(n)
-+ * ITT_*(0) -> +---------+                        -> TT_STREAMING(0)
-+ * ...         | SU{0,1} | ->        (...)           ...
-+ * ITT_*(n) -> +---------+                        -> TT_STREAMING(n)
-+ *
-+ *    Where (...), in any order:
-+ *             +---------+    +---------+    +---------+
-+ *             | PU{0,1} | -> | XU{0,n} | -> | EU{0,1} |
-+ *             +---------+    +---------+    +---------+
-  *
-  *                 +---------+    +---------+ -> OTT_*(0)
-  * TT_STREAMING -> | PU{0,1} | -> | XU{0,n} |    ...
-  *                 +---------+    +---------+ -> OTT_*(n)
-  *
-- * The Processing Unit and Extension Units can be in any order. Additional
-- * Extension Units connected to the main chain as single-unit branches are
-- * also supported. Single-input Selector Units are ignored.
-+ * The Processing Unit, the Encoding Unit and Extension Units can be in any
-+ * order. Additional Extension Units connected to the main chain as single-unit
-+ * branches are also supported. Single-input Selector Units are ignored.
-  */
- static int uvc_scan_chain_entity(struct uvc_video_chain *chain,
- 	struct uvc_entity *entity)
-@@ -1317,6 +1354,19 @@ static int uvc_scan_chain_entity(struct uvc_video_chain *chain,
- 		chain->selector = entity;
- 		break;
- 
-+	case UVC_VC_ENCODING_UNIT:
-+		if (uvc_trace_param & UVC_TRACE_PROBE)
-+			printk(" <- EU %d", entity->id);
-+
-+		if (chain->encoding != NULL) {
-+			uvc_trace(UVC_TRACE_DESCR, "Found multiple "
-+				"Encoding Units in chain.\n");
-+			return -1;
-+		}
-+
-+		chain->encoding = entity;
-+		break;
-+
- 	case UVC_ITT_VENDOR_SPECIFIC:
- 	case UVC_ITT_CAMERA:
- 	case UVC_ITT_MEDIA_TRANSPORT_INPUT:
-@@ -1364,6 +1414,7 @@ static int uvc_scan_chain_backward(struct uvc_video_chain *chain,
- 	switch (UVC_ENTITY_TYPE(entity)) {
- 	case UVC_VC_EXTENSION_UNIT:
- 	case UVC_VC_PROCESSING_UNIT:
-+	case UVC_VC_ENCODING_UNIT:
- 		id = entity->baSourceID[0];
- 		break;
- 
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 731b378..109c0a2 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -54,6 +54,9 @@
- #define UVC_GUID_UVC_SELECTOR \
- 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
- 	 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02}
-+#define UVC_GUID_UVC_ENCODING \
-+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-+	 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x03}
- 
- #define UVC_GUID_FORMAT_MJPEG \
- 	{ 'M',  'J',  'P',  'G', 0x00, 0x00, 0x10, 0x00, \
-@@ -199,7 +202,9 @@ struct uvc_control {
- 	     loaded:1,
- 	     modified:1,
- 	     cached:1,
--	     initialized:1;
-+	     initialized:1,
-+	     on_init:1, /* supported during initialization */
-+	     in_runtime:1; /* supported in runtime */
- 
- 	__u8 *uvc_data;
- };
-@@ -281,6 +286,12 @@ struct uvc_entity {
- 			__u8  *bmControls;
- 			__u8  *bmControlsType;
- 		} extension;
-+
-+		struct {
-+			__u8  bControlSize;
-+			__u8  *bmControls;
-+			__u8  *bmControlsRuntime;
-+		} encoding;
- 	};
- 
- 	__u8 bNrInPins;
-@@ -386,6 +397,7 @@ struct uvc_video_chain {
- 	struct list_head entities;		/* All entities */
- 	struct uvc_entity *processing;		/* Processing unit */
- 	struct uvc_entity *selector;		/* Selector unit */
-+	struct uvc_entity *encoding;		/* Encoding unit */
- 
- 	struct uvc_video_pipeline *pipeline;    /* Pipeline this chain
- 						   belongs to */
-diff --git a/include/uapi/linux/usb/video.h b/include/uapi/linux/usb/video.h
-index 331c071..eb48ba8 100644
---- a/include/uapi/linux/usb/video.h
-+++ b/include/uapi/linux/usb/video.h
-@@ -37,6 +37,7 @@
- #define UVC_VC_SELECTOR_UNIT				0x04
- #define UVC_VC_PROCESSING_UNIT				0x05
- #define UVC_VC_EXTENSION_UNIT				0x06
-+#define UVC_VC_ENCODING_UNIT				0x07
- 
- /* A.6. Video Class-Specific VS Interface Descriptor Subtypes */
- #define UVC_VS_UNDEFINED				0x00
--- 
-1.8.4
+On 02/08/13 17:03, Archit Taneja wrote:
 
+> +struct vpdma_data_format vpdma_yuv_fmts[] =3D {
+> +	[VPDMA_DATA_FMT_Y444] =3D {
+> +		.data_type	=3D DATA_TYPE_Y444,
+> +		.depth		=3D 8,
+> +	},
+
+This, and all the other tables, should probably be consts?
+
+> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
+> +{
+> +	u32 val =3D *valp;
+> +
+> +	val &=3D ~(mask << shift);
+> +	val |=3D (field & mask) << shift;
+> +	*valp =3D val;
+> +}
+
+I think "insert" normally means, well, inserting a thing in between
+something. What you do here is overwriting.
+
+Why not just call it "write_field"?
+
+> + * Allocate a DMA buffer
+> + */
+> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
+> +{
+> +	buf->size =3D size;
+> +	buf->mapped =3D 0;
+
+Maybe true/false is clearer here that 0/1.
+
+> +/*
+> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for =
+completion
+> + */
+> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_lis=
+t *list)
+> +{
+> +	/* we always use the first list */
+> +	int list_num =3D 0;
+> +	int list_size;
+> +
+> +	if (vpdma_list_busy(vpdma, list_num))
+> +		return -EBUSY;
+> +
+> +	/* 16-byte granularity */
+> +	list_size =3D (list->next - list->buf.addr) >> 4;
+> +
+> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
+> +	wmb();
+
+What is the wmb() for?
+
+> +	write_reg(vpdma, VPDMA_LIST_ATTR,
+> +			(list_num << VPDMA_LIST_NUM_SHFT) |
+> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
+> +			list_size);
+> +
+> +	return 0;
+> +}
+
+> +static void vpdma_firmware_cb(const struct firmware *f, void *context)=
+
+> +{
+> +	struct vpdma_data *vpdma =3D context;
+> +	struct vpdma_buf fw_dma_buf;
+> +	int i, r;
+> +
+> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
+> +
+> +	if (!f || !f->data) {
+> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
+> +		return;
+> +	}
+> +
+> +	/* already initialized */
+> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
+> +			VPDMA_LIST_RDY_SHFT)) {
+> +		vpdma->ready =3D true;
+> +		return;
+> +	}
+> +
+> +	r =3D vpdma_buf_alloc(&fw_dma_buf, f->size);
+> +	if (r) {
+> +		dev_err(&vpdma->pdev->dev,
+> +			"failed to allocate dma buffer for firmware\n");
+> +		goto rel_fw;
+> +	}
+> +
+> +	memcpy(fw_dma_buf.addr, f->data, f->size);
+> +
+> +	vpdma_buf_map(vpdma, &fw_dma_buf);
+> +
+> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
+> +
+> +	for (i =3D 0; i < 100; i++) {		/* max 1 second */
+> +		msleep_interruptible(10);
+
+You call interruptible version here, but you don't handle the
+interrupted case. I believe the loop will just continue looping, even if
+the user interrupted.
+
+> +		if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
+> +				VPDMA_LIST_RDY_SHFT))
+> +			break;
+> +	}
+> +
+> +	if (i =3D=3D 100) {
+> +		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
+> +		goto free_buf;
+> +	}
+> +
+> +	vpdma->ready =3D true;
+> +
+> +free_buf:
+> +	vpdma_buf_unmap(vpdma, &fw_dma_buf);
+> +
+> +	vpdma_buf_free(&fw_dma_buf);
+> +rel_fw:
+> +	release_firmware(f);
+> +}
+
+ Tomi
+
+
+
+--K1spFsIeMBEIGn0cDmXurTREiLifVKnCe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR/160AAoJEPo9qoy8lh71vFUQAKXy1ffTyfQ2Pa4wyFHOQWh9
+LFQBt5s2Yh38LYV2ucRSfwC2EiXV0k2N0Cp36iiNAufWejbZuyacKW9pjuDXi7ow
+jM030JnWGQ/SkrSuXUid9zqoAZKzgIkoMo/MqhipBIVV1Rg5iDtGtxaxmeF72pJY
+X9D1gcxrmMXRZ9nChfN5M7igzvu9AFdv3WFYX2su0uS+7g3Jd7cdP9Ik9+QISyTY
+lxb6eRxe3afAu54kqWTux+OBuwyBP+y00bTgDgeghZPg5Cac8yitEolb8kiL2mVr
+8EruSdnoQdFUtQhuBUOMTiJxWa+RqovgwntgMOV84INEMlG2b3sN3vfA4wd0RrJD
+fXG+/Mlm0cVs8EcY7R3rzLZWYNt2PHY7KQ3tmJ1fN1jSFkcJfCeQpBgGQ2ft0yP2
+PzlCVB+4igFt4kCrxWgmFAXalt0qeNUb/7JEYhPO1I0FSZTlFYKnhRAWea7WoMHA
+UZpGaDFMiQHI5MpTNXEJU+Jh+66Cm3ZC9miUxdA9UYmbFguNHXWZozpzeb2ckcHH
+MlVr3dktcQAa/vv5vpFsX5IRnYCcP8s+zhE0NHnCJaCpf4MXrcZ6PKigLPmBfm1u
+QoYtMYXVX27k+RdjNhN0gfRw+Z1E7KnX5+LB9r/CqjtvPVIXJZ4qrbSIqoKn3feB
+ae85BuTnIFLvHCbnzktE
+=micU
+-----END PGP SIGNATURE-----
+
+--K1spFsIeMBEIGn0cDmXurTREiLifVKnCe--
