@@ -1,129 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:39992 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755756Ab3H3Koo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 06:44:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Fri, 30 Aug 2013 12:44:26 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <522044AE.1080501@xs4all.nl> <52206E57.4080300@ti.com>
-In-Reply-To: <52206E57.4080300@ti.com>
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:48121 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab3HEKHA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 06:07:00 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308301244.26464.hverkuil@xs4all.nl>
+In-Reply-To: <51FD78F8.4080304@gmail.com>
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+	<1375455762-22071-2-git-send-email-arun.kk@samsung.com>
+	<51FD78F8.4080304@gmail.com>
+Date: Mon, 5 Aug 2013 15:36:59 +0530
+Message-ID: <CALt3h7_qHb4UqsnVo+KPtHFdL42AShkKo5-V3qPaPrMUOANpGg@mail.gmail.com>
+Subject: Re: [RFC v3 01/13] [media] exynos5-is: Adding media device driver for exynos5
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 30 August 2013 12:05:11 Archit Taneja wrote:
-> Hi,
-> 
-> On Friday 30 August 2013 12:37 PM, Hans Verkuil wrote:
-> > On 08/30/2013 08:47 AM, Archit Taneja wrote:
-> >> On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
-> >>> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
-> >>>> VPE is a block which consists of a single memory to memory path which can
-> >>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
-> >>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
-> >>>> interleaved video formats.
-> >>>>
-> >>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
-> >>>> The de-interlacer, scaler and color space converter are all bypassed for now
-> >>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
-> >>>> conversion beteen different YUV formats is possible.
-> >>>>
-> >>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
-> >>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
-> >>>> a VPDMA descriptor list to which configuration and data descriptors are added.
-> >>>>
-> >>>> Based on the information received via v4l2 ioctls for the source and
-> >>>> destination queues, the driver configures the values for the MMRs, and stores
-> >>>> them in the buffer. There are also some VPDMA parameters like frame start and
-> >>>> line mode which needs to be configured, these are configured by direct register
-> >>>> writes via the VPDMA helper functions.
-> >>>>
-> >>>> The driver's device_run() mem2mem op will add each descriptor based on how the
-> >>>> source and destination queues are set up for the given ctx, once the list is
-> >>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
-> >>>> upload MMR registers, start DMA of video buffers on the various input and output
-> >>>> clients/ports.
-> >>>>
-> <snip>
-> 
-> >>
-> >>>> +}
-> >>>> +
-> >>>> +#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1000)
-> >>>
-> >>> Reserve a control range for this driver in include/uapi/linux/v4l2-controls.h.
-> >>> Similar to the ones already defined there.
-> >>>
-> >>> That will ensure that controls for this driver have unique IDs.
-> >>
-> >> Thanks, I took this from the mem2mem-testdev driver, a test driver
-> >> doesn't need to worry about this I suppose.
-> >>
-> >> I had a query regarding this. I am planning to add a capture driver in
-> >> the future for a similar IP which can share some of the control IDs with
-> >> VPE. Is it possible for 2 different drivers to share the IDs?
-> >
-> > Certainly. There are three levels of controls:
-> >
-> > 1) Standard controls: can be used by any driver and are documented in the spec.
-> > 2) IP-specific controls: controls specific for a commonly used IP.
-> >     These can be used by any driver containing that IP and are documented as well
-> >     in the spec. Good examples are the MFC and CX2341x MPEG controls.
-> > 3) Driver-specific controls: these are specific to a driver and do not have to be
-> >     documented in the spec, only in the header/source specifying them. A range
-> >     of controls needs to be assigned to such a driver in v4l2-dv-controls.h.
-> >
-> > In your case it looks like the controls would fall into category 2.
-> 
-> For 2), by commonly used IP, do you mean a commonly used class of IPs 
-> like MPEG decoder, FM and camera? Or do you mean a specific vendor IP 
-> like say a camera subsystem found on different SoCs.
+Hi Sylwester,
 
-I mean a specific vendor IP found on different SoCs. So different drivers
-would have to support the same IP.
+Thank you for the review.
+Will address all your review comments.
+Some responses below:
 
-> I think the controls in my case are very specific to the VPE and VIP 
-> IPs. These 2 IPs have some components like scaler, color space 
-> converter, chrominance up/downsampler in common. The controls will be 
-> specific to how these components behave. For example, a control can tell 
-> what value of frequency of Luminance peaking the scaler needs to 
-> perform. I don't think all scalers would provide Luma peaking. This 
-> holds for other controls too.
-> 
-> So if I understood your explanation correctly, I think 3) might make 
-> more sense.
+[snip]
+>> +
+>> +static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+>> +{
+>> +       struct device_node *of_node = fmd->pdev->dev.of_node;
+>> +       int ret;
+>> +
+>> +       /*
+>> +        * Runtime resume one of the FIMC entities to make sure
+>> +        * the sclk_cam clocks are not globally disabled.
+>
+>
+> It's a bit mysterious to me, is this requirement still valid on Exynos5 ?
+> I glanced over the Exynos5250 datasheet and there seem to be no sclk_cam?
+> clocks dependency on any of GScaler clocks. Maybe you don't need a clock
+> provider in this driver, perhaps sensor drivers could use sclk_cam clocks
+> directly, assigned through dts ?
+>
 
-That might be a good starting point. It is not uncommon that controls
-migrate from being custom controls to more standardized controls when
-other devices appear using the same IP. Or sometimes what seemed like a
-HW specific feature turns out to be available on other hardware from
-other vendors as well.
+Yes these clocks can be directly exposed via dt.
+I will drop clock provider from this driver.
 
-> 
-> >
-> >> Also, I noticed in the header that most drivers reserve space for 16
-> >> IDs. The current driver just has one, but there will be more custom ones
-> >> in the future. Is it fine if I reserve 16 for this driver too?
-> >
-> > Sure, that's no problem. Make sure you reserve enough space for future
-> > expansion, i.e. IDs are cheap, so no need to be conservative when defining
-> > the range.
-> 
-> Thanks for the clarification.
-> 
-> Archit
-> 
-> 
+[snip]
 
-Regards,
+>> +/*
+>> + * The peripheral sensor clock management.
+>> + */
+>> +static void fimc_md_put_clocks(struct fimc_md *fmd)
+>> +{
+>> +       int i = FIMC_MAX_CAMCLKS;
+>> +
+>> +       while (--i>= 0) {
+>> +               if (IS_ERR(fmd->camclk[i].clock))
+>> +                       continue;
+>> +               clk_put(fmd->camclk[i].clock);
+>> +               fmd->camclk[i].clock = ERR_PTR(-EINVAL);
+>> +       }
+>
+>
+> Please double check if you need this sclk_cam clocks handling. We could
+> simply add a requirement that this driver supports only sensor subdevs
+> through the v4l2-async API and which controls their clock themselves.
+>
 
-	Hans
+sclk_cam* handling can be removed and be done from respective
+sensors. But I think the sclk_bayer handling needs to be retained in the
+media driver.
+
+>> +}
+>> +
+>> +static int fimc_md_get_clocks(struct fimc_md *fmd)
+>> +{
+>> +       struct device *dev = NULL;
+>> +       char clk_name[32];
+>> +       struct clk *clock;
+>> +       int i, ret = 0;
+>> +
+>> +       for (i = 0; i<  FIMC_MAX_CAMCLKS; i++)
+>> +               fmd->camclk[i].clock = ERR_PTR(-EINVAL);
+>> +
+>> +       if (fmd->pdev->dev.of_node)
+>> +               dev =&fmd->pdev->dev;
+>> +
+>> +       for (i = 0; i<  SCLK_BAYER; i++) {
+>> +               snprintf(clk_name, sizeof(clk_name), "sclk_cam%u", i);
+>> +               clock = clk_get(dev, clk_name);
+>> +
+>> +               if (IS_ERR(clock)) {
+>> +                       dev_err(&fmd->pdev->dev, "Failed to get clock:
+>> %s\n",
+>> +                                                               clk_name);
+>> +                       ret = PTR_ERR(clock);
+>> +                       break;
+>> +               }
+>> +               fmd->camclk[i].clock = clock;
+>> +       }
+>> +       if (ret)
+>> +               fimc_md_put_clocks(fmd);
+>> +
+>> +       /* Prepare bayer clk */
+>> +       clock = clk_get(dev, "sclk_bayer");
+>> +
+>> +       if (IS_ERR(clock)) {
+>> +               dev_err(&fmd->pdev->dev, "Failed to get clock: %s\n",
+>> +                                                       clk_name);
+>
+>
+> Wrong error message.
+>
+>> +               ret = PTR_ERR(clock);
+>> +               goto err_exit;
+>> +       }
+>> +       ret = clk_prepare(clock);
+>> +       if (ret<  0) {
+>> +               clk_put(clock);
+>> +               fmd->camclk[SCLK_BAYER].clock = ERR_PTR(-EINVAL);
+>> +               goto err_exit;
+>> +       }
+>> +       fmd->camclk[SCLK_BAYER].clock = clock;
+>
+>
+> Could you explain a bit how is this SCLK_BAYER clock used ? Is it routed
+> to external image sensor, or is it used only inside an SoC ?
+>
+
+It is not defined properly in the manual, but I suppose its the bus clock
+for the bayer rgb data bus. So for proper sensor functionality, we need this
+sclk_bayer in addition to the external sensor clks (sclk_cam*). Isn't
+exynos5 media driver is the best place to handle such clocks?
+
+>> +       return 0;
+>> +err_exit:
+>> +       fimc_md_put_clocks(fmd);
+>> +       return ret;
+>> +}
+>> +
+
+Regards
+Arun
