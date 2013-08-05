@@ -1,331 +1,496 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:65495 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757313Ab3HIM66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:58:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/2] media: vb2: Share code between vb2_prepare_buf and vb2_qbuf
-Date: Fri, 9 Aug 2013 14:58:26 +0200
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1376050286-8201-1-git-send-email-laurent.pinchart@ideasonboard.com> <1376050286-8201-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1376050286-8201-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:26148 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755372Ab3HEI5s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:48 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7g001512
+	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:44 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH 5/7] qv4l2: add video scaling for CaptureWin
+Date: Mon,  5 Aug 2013 10:56:55 +0200
+Message-Id: <3454d4e2556d327f89a52f30018282ec47d6d0f2.1375692973.git.bwinther@cisco.com>
+In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
+References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
+References: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308091458.26979.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 9 August 2013 14:11:26 Laurent Pinchart wrote:
-> The two operations are very similar, refactor most of the code in a
-> helper function.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/capture-win-gl.cpp |  26 ++++++++--
+ utils/qv4l2/capture-win-gl.h   |   8 ++++
+ utils/qv4l2/capture-win-qt.cpp |  24 +++++++++-
+ utils/qv4l2/capture-win-qt.h   |   5 ++
+ utils/qv4l2/capture-win.cpp    | 106 +++++++++++++++++++++++++++++++----------
+ utils/qv4l2/capture-win.h      |  18 +++++--
+ utils/qv4l2/qv4l2.cpp          |  27 +++++++++--
+ utils/qv4l2/qv4l2.h            |   4 ++
+ 8 files changed, 181 insertions(+), 37 deletions(-)
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
+index edae60f..628aaec 100644
+--- a/utils/qv4l2/capture-win-gl.cpp
++++ b/utils/qv4l2/capture-win-gl.cpp
+@@ -43,6 +43,15 @@ void CaptureWinGL::stop()
+ #endif
+ }
+ 
++void CaptureWinGL::resizeEvent(QResizeEvent *event)
++{
++	QSize margins = getMargins();
++#ifdef ENABLE_GL
++	m_videoSurface.setSize(width() - margins.width(), height() - margins.height());
++#endif
++	event->accept();
++}
++
+ void CaptureWinGL::setFrame(int width, int height, __u32 format, unsigned char *data, const QString &info)
+ {
+ #ifdef ENABLE_GL
+@@ -109,11 +118,22 @@ void CaptureWinGLEngine::initializeGL()
+ 	checkError("InitializeGL");
+ }
+ 
++void CaptureWinGLEngine::setSize(int width, int height)
++{
++	QSize sizedFrame = CaptureWin::scaleFrameSize(QSize(width, height), QSize(m_frameWidth, m_frameHeight));
++
++	width = sizedFrame.width();
++	height = sizedFrame.height();
++
++	if (width > 0 && height > 0) {
++		setMaximumSize(width, height);
++		resizeGL(width, height);
++	}
++}
+ 
+ void CaptureWinGLEngine::resizeGL(int width, int height)
+ {
+-	// Resizing is disabled by setting viewport equal to frame size
+-	glViewport(0, 0, m_frameWidth, m_frameHeight);
++	glViewport(0, 0, width, height);
+ }
+ 
+ void CaptureWinGLEngine::setFrame(int width, int height, __u32 format, unsigned char *data)
+@@ -123,8 +143,6 @@ void CaptureWinGLEngine::setFrame(int width, int height, __u32 format, unsigned
+ 		m_frameWidth = width;
+ 		m_frameHeight = height;
+ 		m_frameFormat = format;
+-
+-		QGLWidget::setMaximumSize(m_frameWidth, m_frameHeight);
+ 	}
+ 
+ 	m_frameData = data;
+diff --git a/utils/qv4l2/capture-win-gl.h b/utils/qv4l2/capture-win-gl.h
+index 08e72b2..ef06d0b 100644
+--- a/utils/qv4l2/capture-win-gl.h
++++ b/utils/qv4l2/capture-win-gl.h
+@@ -21,6 +21,9 @@
+ #include "qv4l2.h"
+ #include "capture-win.h"
+ 
++#include <QBoxLayout>
++#include <QResizeEvent>
++
+ #ifdef ENABLE_GL
+ #define GL_GLEXT_PROTOTYPES
+ #include <QGLWidget>
+@@ -40,6 +43,7 @@ public:
+ 	void stop();
+ 	void setFrame(int width, int height, __u32 format, unsigned char *data);
+ 	bool hasNativeFormat(__u32 format);
++	void setSize(int width, int height);
+ 
+ protected:
+ 	void paintGL();
+@@ -88,6 +92,10 @@ public:
+ 	bool hasNativeFormat(__u32 format);
+ 	static bool isSupported();
+ 
++ protected:
++	void resizeEvent(QResizeEvent *event);
++
++private:
+ #ifdef ENABLE_GL
+ 	CaptureWinGLEngine m_videoSurface;
+ #endif
+diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
+index 63c77d5..0f6964b 100644
+--- a/utils/qv4l2/capture-win-qt.cpp
++++ b/utils/qv4l2/capture-win-qt.cpp
+@@ -22,8 +22,9 @@
+ CaptureWinQt::CaptureWinQt() :
+ 	m_frame(new QImage(0, 0, QImage::Format_Invalid))
+ {
+-
+ 	CaptureWin::buildWindow(&m_videoSurface);
++	m_scaledFrame.setWidth(0);
++	m_scaledFrame.setHeight(0);
+ }
+ 
+ CaptureWinQt::~CaptureWinQt()
+@@ -31,6 +32,19 @@ CaptureWinQt::~CaptureWinQt()
+ 	delete m_frame;
+ }
+ 
++void CaptureWinQt::resizeEvent(QResizeEvent *event)
++{
++	if (m_frame->bits() == NULL)
++		return;
++
++	QPixmap img = QPixmap::fromImage(*m_frame);
++	m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++				       QSize(m_frame->width(), m_frame->height()));
++	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++	m_videoSurface.setPixmap(img);
++	QWidget::resizeEvent(event);
++}
++
+ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *data, const QString &info)
+ {
+ 	QImage::Format dstFmt;
+@@ -41,6 +55,8 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 	if (m_frame->width() != width || m_frame->height() != height || m_frame->format() != dstFmt) {
+ 		delete m_frame;
+ 		m_frame = new QImage(width, height, dstFmt);
++		m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++					       QSize(m_frame->width(), m_frame->height()));
+ 	}
+ 
+ 	if (data == NULL || !supported)
+@@ -49,7 +65,11 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 		memcpy(m_frame->bits(), data, m_frame->numBytes());
+ 
+ 	m_information.setText(info);
+-	m_videoSurface.setPixmap(QPixmap::fromImage(*m_frame));
++
++	QPixmap img = QPixmap::fromImage(*m_frame);
++	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++
++	m_videoSurface.setPixmap(img);
+ }
+ 
+ bool CaptureWinQt::hasNativeFormat(__u32 format)
+diff --git a/utils/qv4l2/capture-win-qt.h b/utils/qv4l2/capture-win-qt.h
+index d192045..6029109 100644
+--- a/utils/qv4l2/capture-win-qt.h
++++ b/utils/qv4l2/capture-win-qt.h
+@@ -25,6 +25,7 @@
+ 
+ #include <QLabel>
+ #include <QImage>
++#include <QResizeEvent>
+ 
+ class CaptureWinQt : public CaptureWin
+ {
+@@ -39,10 +40,14 @@ public:
+ 	bool hasNativeFormat(__u32 format);
+ 	static bool isSupported() { return true; }
+ 
++protected:
++	void resizeEvent(QResizeEvent *event);
++
+ private:
+ 	bool findNativeFormat(__u32 format, QImage::Format &dstFmt);
+ 
+ 	QImage *m_frame;
+ 	QLabel m_videoSurface;
++	QSize m_scaledFrame;
+ };
+ #endif
+diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
+index e583900..4c5dd57 100644
+--- a/utils/qv4l2/capture-win.cpp
++++ b/utils/qv4l2/capture-win.cpp
+@@ -26,11 +26,18 @@
+ #include <QApplication>
+ #include <QDesktopWidget>
+ 
+-CaptureWin::CaptureWin()
++#define MIN_WIN_SIZE_WIDTH 160
++#define MIN_WIN_SIZE_HEIGHT 120
++
++bool CaptureWin::m_enableScaling = true;
++
++CaptureWin::CaptureWin() :
++	m_curWidth(-1),
++	m_curHeight(-1)
+ {
+ 	setWindowTitle("V4L2 Capture");
+ 	m_hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
+-	QObject::connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
++	connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
+ }
+ 
+ CaptureWin::~CaptureWin()
+@@ -54,37 +61,88 @@ void CaptureWin::buildWindow(QWidget *videoSurface)
+ 	vbox->setSpacing(b);
+ }
+ 
++void CaptureWin::resetSize()
++{
++	int w = m_curWidth;
++	int h = m_curHeight;
++	m_curWidth = -1;
++	m_curHeight = -1;
++	resize(w, h);
++}
++
+ QSize CaptureWin::getMargins()
+ {
+- 	int l, t, r, b;
+- 	layout()->getContentsMargins(&l, &t, &r, &b);
++	int l, t, r, b;
++	layout()->getContentsMargins(&l, &t, &r, &b);
+ 	return QSize(l + r, t + b + m_information.minimumSizeHint().height() + layout()->spacing());
+ }
+ 
+-void CaptureWin::setMinimumSize(int minw, int minh)
++void CaptureWin::enableScaling(bool enable)
+ {
++	if (!enable) {
++		QSize margins = getMargins();
++		QWidget::setMinimumSize(m_curWidth + margins.width(), m_curHeight + margins.height());
++	} else {
++		QWidget::setMinimumSize(MIN_WIN_SIZE_WIDTH, MIN_WIN_SIZE_HEIGHT);
++	}
++	m_enableScaling = enable;
++	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
++	QCoreApplication::sendEvent(this, event);
++	delete event;
++}
++
++void CaptureWin::resize(int width, int height)
++{
++	// Dont resize window if the frame size is the same in
++	// the event the window has been paused when beeing resized.
++	if (width == m_curWidth && height == m_curHeight)
++		return;
++
++	m_curWidth = width;
++	m_curHeight = height;
++
++	QSize margins = getMargins();
++	width += margins.width();
++	height += margins.height();
++
+ 	QDesktopWidget *screen = QApplication::desktop();
+ 	QRect resolution = screen->screenGeometry();
+-	QSize maxSize = maximumSize();
+ 
+-	QSize margins = getMargins();
+-	minw += margins.width();
+-	minh += margins.height();
+-
+-	if (minw > resolution.width())
+-		minw = resolution.width();
+-	if (minw < 150)
+-		minw = 150;
+-
+-	if (minh > resolution.height())
+-		minh = resolution.height();
+-	if (minh < 100)
+-		minh = 100;
+-
+-	QWidget::setMinimumSize(minw, minh);
+-	QWidget::setMaximumSize(minw, minh);
+-	updateGeometry();
+-	QWidget::setMaximumSize(maxSize.width(), maxSize.height());
++	if (width > resolution.width())
++		width = resolution.width();
++	if (width < MIN_WIN_SIZE_WIDTH)
++		width = MIN_WIN_SIZE_WIDTH;
++
++	if (height > resolution.height())
++		height = resolution.height();
++	if (height < MIN_WIN_SIZE_HEIGHT)
++		height = MIN_WIN_SIZE_HEIGHT;
++
++	QWidget::setMinimumSize(MIN_WIN_SIZE_WIDTH, MIN_WIN_SIZE_HEIGHT);
++	QWidget::resize(width, height);
++}
++
++QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
++{
++	int actualFrameWidth = frame.width();;
++	int actualFrameHeight = frame.height();
++
++	if (!m_enableScaling) {
++		window.setWidth(frame.width());
++		window.setHeight(frame.height());
++	}
++
++	double newW, newH;
++	if (window.width() >= window.height()) {
++		newW = (double)window.width() / actualFrameWidth;
++		newH = (double)window.height() / actualFrameHeight;
++	} else {
++		newH = (double)window.width() / actualFrameWidth;
++		newW = (double)window.height() / actualFrameHeight;
++	}
++	double resized = std::min(newW, newH);
++
++	return QSize((int)(actualFrameWidth * resized), (int)(actualFrameHeight * resized));
+ }
+ 
+ void CaptureWin::closeEvent(QCloseEvent *event)
+diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
+index 6b72e00..eea0335 100644
+--- a/utils/qv4l2/capture-win.h
++++ b/utils/qv4l2/capture-win.h
+@@ -34,7 +34,7 @@ public:
+ 	CaptureWin();
+ 	~CaptureWin();
+ 
+-	void setMinimumSize(int minw, int minh);
++	void resize(int minw, int minh);
+ 
+ 	/**
+ 	 * @brief Set a frame into the capture window.
+@@ -75,12 +75,18 @@ public:
+ 	 */
+ 	static bool isSupported() { return false; }
+ 
++	void enableScaling(bool enable);
++	static QSize scaleFrameSize(QSize window, QSize frame);
++
++public slots:
++	void resetSize();
++
+ protected:
+ 	void closeEvent(QCloseEvent *event);
+ 	void buildWindow(QWidget *videoSurface);
++	static int actualFrameWidth(int width);
+ 	QSize getMargins();
+ 
+-
+ 	/**
+ 	 * @brief A label that can is used to display capture information.
+ 	 *
+@@ -88,11 +94,17 @@ protected:
+ 	 */
+ 	QLabel m_information;
+ 
++	/**
++	 * @brief Determines if scaling is to be applied to video frame.
++	 */
++	static bool m_enableScaling;
++
+ signals:
+ 	void close();
+ 
+ private:
+ 	QShortcut *m_hotkeyClose;
+-
++	int m_curWidth;
++	int m_curHeight;
+ };
+ #endif
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index fa1425d..6b64892 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -137,9 +137,20 @@ ApplicationWindow::ApplicationWindow() :
+ 	toolBar->addSeparator();
+ 	toolBar->addAction(quitAct);
+ 
++	m_scalingAct = new QAction("Enable Video Scaling", this);
++	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
++	m_scalingAct->setCheckable(true);
++	m_scalingAct->setChecked(true);
++	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
++	m_resetScalingAct = new QAction("Resize to Frame Size", this);
++	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
++
+ 	QMenu *captureMenu = menuBar()->addMenu("&Capture");
+ 	captureMenu->addAction(m_capStartAct);
+ 	captureMenu->addAction(m_showFramesAct);
++	captureMenu->addAction(m_scalingAct);
++	captureMenu->addAction(m_resetScalingAct);
++
+ 
+ 	if (CaptureWinGL::isSupported()) {
+ 		m_renderMethod = QV4L2_RENDER_GL;
+@@ -351,7 +362,9 @@ void ApplicationWindow::newCaptureWin()
+ 		break;
+ 	}
+ 
+-	connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
++	m_capture->enableScaling(m_scalingAct->isChecked());
++        connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
++	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
+ }
+ 
+ void ApplicationWindow::capVbiFrame()
+@@ -793,6 +806,12 @@ void ApplicationWindow::stopOutput()
+ {
+ }
+ 
++void ApplicationWindow::enableScaling(bool enable)
++{
++	if (m_capture != NULL)
++		m_capture->enableScaling(enable);
++}
++
+ void ApplicationWindow::startAudio()
+ {
+ #ifdef ENABLE_ALSA
+@@ -903,7 +922,7 @@ void ApplicationWindow::capStart(bool start)
+ 			m_vbiHeight = fmt.fmt.vbi.count[0] + fmt.fmt.vbi.count[1];
+ 		m_vbiSize = m_vbiWidth * m_vbiHeight;
+ 		m_frameData = new unsigned char[m_vbiSize];
+-		m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
++		m_capture->resize(m_vbiWidth, m_vbiHeight);
+ 		m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
+ 		m_capImage->fill(0);
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+@@ -933,8 +952,8 @@ void ApplicationWindow::capStart(bool start)
+ 		m_mustConvert = false;
+ 	} else {
+ 		m_mustConvert = true;
++		
+ 		v4l2_format copy = m_capSrcFormat;
+-
+ 		v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
+ 		// v4lconvert_try_format sometimes modifies the source format if it thinks
+ 		// that there is a better format available. Restore our selected source
+@@ -942,7 +961,7 @@ void ApplicationWindow::capStart(bool start)
+ 		m_capSrcFormat = copy;
+ 	}
+ 
+-	m_capture->setMinimumSize(dstPix.width, dstPix.height);
++	m_capture->resize(dstPix.width, dstPix.height);
+ 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
+ 	m_capImage->fill(0);
+ 	if (showFrames()) {
+diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
+index 92d6f25..3704ab1 100644
+--- a/utils/qv4l2/qv4l2.h
++++ b/utils/qv4l2/qv4l2.h
+@@ -130,6 +130,8 @@ private slots:
+ 	void openRawFile(const QString &s);
+ 	void rejectedRawFile();
+ 	void setAudioBufferSize();
++	void enableScaling(bool enable);
++
+ 
+ 	void about();
+ 
+@@ -183,6 +185,8 @@ private:
+ 	QAction *m_useGLAct;
+ 	QAction *m_showAllAudioAct;
+ 	QAction *m_audioBufferAct;
++	QAction *m_scalingAct;
++	QAction *m_resetScalingAct;
+ 	QString m_filename;
+ 	QSignalMapper *m_sigMapper;
+ 	QTabWidget *m_tabs;
+-- 
+1.8.3.2
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 202 ++++++++++++-------------------
->  1 file changed, 79 insertions(+), 123 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7c2a8ce..c9f8c3f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1231,42 +1231,31 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  	return ret;
->  }
->  
-> -/**
-> - * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the kernel
-> - * @q:		videobuf2 queue
-> - * @b:		buffer structure passed from userspace to vidioc_prepare_buf
-> - *		handler in driver
-> - *
-> - * Should be called from vidioc_prepare_buf ioctl handler of a driver.
-> - * This function:
-> - * 1) verifies the passed buffer,
-> - * 2) calls buf_prepare callback in the driver (if provided), in which
-> - *    driver-specific buffer initialization can be performed,
-> - *
-> - * The return values from this function are intended to be directly returned
-> - * from vidioc_prepare_buf handler in driver.
-> - */
-> -int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-> +				    const char *opname,
-> +				    int (*handler)(struct vb2_queue *,
-> +						   struct v4l2_buffer *,
-> +						   struct vb2_buffer *))
->  {
->  	struct rw_semaphore *mmap_sem = NULL;
->  	struct vb2_buffer *vb;
->  	int ret;
->  
->  	/*
-> -	 * In case of user pointer buffers vb2 allocator needs to get direct
-> -	 * access to userspace pages. This requires getting read access on
-> -	 * mmap semaphore in the current process structure. The same
-> -	 * semaphore is taken before calling mmap operation, while both mmap
-> -	 * and prepare_buf are called by the driver or v4l2 core with driver's
-> -	 * lock held. To avoid a AB-BA deadlock (mmap_sem then driver's lock in
-> -	 * mmap and driver's lock then mmap_sem in prepare_buf) the videobuf2
-> -	 * core release driver's lock, takes mmap_sem and then takes again
-> -	 * driver's lock.
-> +	 * In case of user pointer buffers vb2 allocators need to get direct
-> +	 * access to userspace pages. This requires getting the mmap semaphore
-> +	 * for read access in the current process structure. The same semaphore
-> +	 * is taken before calling mmap operation, while both qbuf/prepare_buf
-> +	 * and mmap are called by the driver or v4l2 core with the driver's lock
-> +	 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
-> +	 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
-> +	 * core releases the driver's lock, takes mmap_sem and then takes the
-> +	 * driver's lock again.
->  	 *
-> -	 * To avoid race with other vb2 calls, which might be called after
-> -	 * releasing driver's lock, this operation is performed at the
-> -	 * beggining of prepare_buf processing. This way the queue status is
-> -	 * consistent after getting driver's lock back.
-> +	 * To avoid racing with other vb2 calls, which might be called after
-> +	 * releasing the driver's lock, this operation is performed at the
-> +	 * beginning of qbuf/prepare_buf processing. This way the queue status
-> +	 * is consistent after getting the driver's lock back.
->  	 */
->  	if (q->memory == V4L2_MEMORY_USERPTR) {
->  		mmap_sem = &current->mm->mmap_sem;
-> @@ -1276,19 +1265,19 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	}
->  
->  	if (q->fileio) {
-> -		dprintk(1, "%s(): file io in progress\n", __func__);
-> +		dprintk(1, "%s(): file io in progress\n", opname);
->  		ret = -EBUSY;
->  		goto unlock;
->  	}
->  
->  	if (b->type != q->type) {
-> -		dprintk(1, "%s(): invalid buffer type\n", __func__);
-> +		dprintk(1, "%s(): invalid buffer type\n", opname);
->  		ret = -EINVAL;
->  		goto unlock;
->  	}
->  
->  	if (b->index >= q->num_buffers) {
-> -		dprintk(1, "%s(): buffer index out of range\n", __func__);
-> +		dprintk(1, "%s(): buffer index out of range\n", opname);
->  		ret = -EINVAL;
->  		goto unlock;
->  	}
-> @@ -1296,131 +1285,83 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	vb = q->bufs[b->index];
->  	if (NULL == vb) {
->  		/* Should never happen */
-> -		dprintk(1, "%s(): buffer is NULL\n", __func__);
-> +		dprintk(1, "%s(): buffer is NULL\n", opname);
->  		ret = -EINVAL;
->  		goto unlock;
->  	}
->  
->  	if (b->memory != q->memory) {
-> -		dprintk(1, "%s(): invalid memory type\n", __func__);
-> +		dprintk(1, "%s(): invalid memory type\n", opname);
->  		ret = -EINVAL;
->  		goto unlock;
->  	}
->  
-> -	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-> -		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
-> -		ret = -EINVAL;
-> -		goto unlock;
-> -	}
->  	ret = __verify_planes_array(vb, b);
-> -	if (ret < 0)
-> +	if (ret)
->  		goto unlock;
->  
-> -	ret = __buf_prepare(vb, b);
-> -	if (ret < 0)
-> +	ret = handler(q, b, vb);
-> +	if (ret)
->  		goto unlock;
->  
-> +	/* Fill buffer information for the userspace */
->  	__fill_v4l2_buffer(vb, b);
->  
-> +	dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
->  unlock:
->  	if (mmap_sem)
->  		up_read(mmap_sem);
->  	return ret;
->  }
-> -EXPORT_SYMBOL_GPL(vb2_prepare_buf);
-> +
-> +static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-> +			     struct vb2_buffer *vb)
-> +{
-> +	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-> +		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-> +			vb->state);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return __buf_prepare(vb, b);
-> +}
->  
->  /**
-> - * vb2_qbuf() - Queue a buffer from userspace
-> + * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the kernel
->   * @q:		videobuf2 queue
-> - * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-> - *		in driver
-> + * @b:		buffer structure passed from userspace to vidioc_prepare_buf
-> + *		handler in driver
->   *
-> - * Should be called from vidioc_qbuf ioctl handler of a driver.
-> + * Should be called from vidioc_prepare_buf ioctl handler of a driver.
->   * This function:
->   * 1) verifies the passed buffer,
-> - * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-> - *    which driver-specific buffer initialization can be performed,
-> - * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-> - *    callback for processing.
-> + * 2) calls buf_prepare callback in the driver (if provided), in which
-> + *    driver-specific buffer initialization can be performed,
->   *
->   * The return values from this function are intended to be directly returned
-> - * from vidioc_qbuf handler in driver.
-> + * from vidioc_prepare_buf handler in driver.
->   */
-> -int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> -	struct rw_semaphore *mmap_sem = NULL;
-> -	struct vb2_buffer *vb;
-> -	int ret = 0;
-> -
-> -	/*
-> -	 * In case of user pointer buffers vb2 allocator needs to get direct
-> -	 * access to userspace pages. This requires getting read access on
-> -	 * mmap semaphore in the current process structure. The same
-> -	 * semaphore is taken before calling mmap operation, while both mmap
-> -	 * and qbuf are called by the driver or v4l2 core with driver's lock
-> -	 * held. To avoid a AB-BA deadlock (mmap_sem then driver's lock in
-> -	 * mmap and driver's lock then mmap_sem in qbuf) the videobuf2 core
-> -	 * release driver's lock, takes mmap_sem and then takes again driver's
-> -	 * lock.
-> -	 *
-> -	 * To avoid race with other vb2 calls, which might be called after
-> -	 * releasing driver's lock, this operation is performed at the
-> -	 * beggining of qbuf processing. This way the queue status is
-> -	 * consistent after getting driver's lock back.
-> -	 */
-> -	if (q->memory == V4L2_MEMORY_USERPTR) {
-> -		mmap_sem = &current->mm->mmap_sem;
-> -		call_qop(q, wait_prepare, q);
-> -		down_read(mmap_sem);
-> -		call_qop(q, wait_finish, q);
-> -	}
-> -
-> -	if (q->fileio) {
-> -		dprintk(1, "qbuf: file io in progress\n");
-> -		ret = -EBUSY;
-> -		goto unlock;
-> -	}
-> -
-> -	if (b->type != q->type) {
-> -		dprintk(1, "qbuf: invalid buffer type\n");
-> -		ret = -EINVAL;
-> -		goto unlock;
-> -	}
-> -
-> -	if (b->index >= q->num_buffers) {
-> -		dprintk(1, "qbuf: buffer index out of range\n");
-> -		ret = -EINVAL;
-> -		goto unlock;
-> -	}
-> -
-> -	vb = q->bufs[b->index];
-> -	if (NULL == vb) {
-> -		/* Should never happen */
-> -		dprintk(1, "qbuf: buffer is NULL\n");
-> -		ret = -EINVAL;
-> -		goto unlock;
-> -	}
-> +	return vb2_queue_or_prepare_buf(q, b, "prepare_buf", __vb2_prepare_buf);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_prepare_buf);
->  
-> -	if (b->memory != q->memory) {
-> -		dprintk(1, "qbuf: invalid memory type\n");
-> -		ret = -EINVAL;
-> -		goto unlock;
-> -	}
-> -	ret = __verify_planes_array(vb, b);
-> -	if (ret)
-> -		goto unlock;
-> +static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
-> +		      struct vb2_buffer *vb)
-> +{
-> +	int ret;
->  
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_DEQUEUED:
->  		ret = __buf_prepare(vb, b);
->  		if (ret)
-> -			goto unlock;
-> +			return ret;
->  	case VB2_BUF_STATE_PREPARED:
->  		break;
->  	default:
->  		dprintk(1, "qbuf: buffer already in use\n");
-> -		ret = -EINVAL;
-> -		goto unlock;
-> +		return -EINVAL;
->  	}
->  
->  	/*
-> @@ -1437,14 +1378,29 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	if (q->streaming)
->  		__enqueue_in_driver(vb);
->  
-> -	/* Fill buffer information for the userspace */
-> -	__fill_v4l2_buffer(vb, b);
-> +	return 0;
-> +}
->  
-> -	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
-> -unlock:
-> -	if (mmap_sem)
-> -		up_read(mmap_sem);
-> -	return ret;
-> +/**
-> + * vb2_qbuf() - Queue a buffer from userspace
-> + * @q:		videobuf2 queue
-> + * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-> + *		in driver
-> + *
-> + * Should be called from vidioc_qbuf ioctl handler of a driver.
-> + * This function:
-> + * 1) verifies the passed buffer,
-> + * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-> + *    which driver-specific buffer initialization can be performed,
-> + * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-> + *    callback for processing.
-> + *
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_qbuf handler in driver.
-> + */
-> +int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +{
-> +	return vb2_queue_or_prepare_buf(q, b, "qbuf", __vb2_qbuf);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
->  
-> 
