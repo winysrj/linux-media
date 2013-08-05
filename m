@@ -1,35 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta.bitpro.no ([92.42.64.202]:36324 "EHLO mta.bitpro.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393Ab3HTGpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 02:45:41 -0400
-Message-ID: <521310DD.8060309@bitfrost.no>
-Date: Tue, 20 Aug 2013 08:46:53 +0200
-From: Hans Petter Selasky <hps@bitfrost.no>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:47209 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753673Ab3HETLi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 15:11:38 -0400
+Received: by mail-we0-f182.google.com with SMTP id u55so2798169wes.41
+        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 12:11:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-CC: Steven Toth <stoth@kernellabs.com>, Antti Palosaari <crope@iki.fi>,
-	Ulf <mopp@gmx.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <520F643C.70306@iki.fi> <5210B5F3.4040607@bitfrost.no> <CALzAhNXUKZPEyFe0eND3Lb3dQwfVaMUWS30kx0sQJj7YG2rKow@mail.gmail.com> <52127667.8050202@bitfrost.no> <CAF0Ff2mQP6+a5693kf3Vq7AHHG5--1keZMvdp-YX4o4OLk3Y-g@mail.gmail.com>
-In-Reply-To: <CAF0Ff2mQP6+a5693kf3Vq7AHHG5--1keZMvdp-YX4o4OLk3Y-g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20130801141518.258ff0a3@samsung.com>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+ <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+ <20130801163624.GA10498@localhost> <20130801141518.258ff0a3@samsung.com>
+From: Luis Polasek <lpolasek@gmail.com>
+Date: Mon, 5 Aug 2013 16:11:17 -0300
+Message-ID: <CAER7dwfhXEzNY5Ue=Rxfe3kQiigp-uyz4g0TKyBXcKYpQaru6A@mail.gmail.com>
+Subject: Re: dib8000 scanning not working on 3.10.3
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	linux-media@vger.kernel.org,
+	"jbucar@lifia.info.unlp.edu.ar" <jbucar@lifia.info.unlp.edu.ar>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/20/13 00:43, Konstantin Dimitrov wrote:
-> German-based company making DVB equipment and maybe if that's the same
-> RSD that Danny Griegs guy could be legit. however, nothing in the
+Hi Mauro, I have tested using dvb5-scan, and the results are the same
+(no results, and no error logs) :(
 
-Hi,
+ Do you have any clue why it is not working with this kernel version ?
 
-I've asked Danny to confirm his identity. The @googlemail.com e-mail 
-transcript was quite empty :-(
+Thanks and regards...
 
-According to Skype he is located in the GB. That's all I've got.
-
-Hope this matter will resolve soon.
-
---HPS
+On Thu, Aug 1, 2013 at 2:15 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> Em Thu, 1 Aug 2013 13:36:25 -0300
+> Ezequiel Garcia <ezequiel.garcia@free-electrons.com> escreveu:
+>
+>> Hi Luis,
+>>
+>> (I'm Ccing Mauro, who mantains this driver and might know what's going on).
+>>
+>> On Wed, Jul 31, 2013 at 03:47:10PM -0300, Luis Polasek wrote:
+>> > Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
+>> > work anymore.
+>> >
+>> > I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
+>> > Pixelview SBTVD (dib8000 module*).This tools worked very well on
+>> > version 3.9.9 , but now it does not produces any result, and also
+>> > there are no error messages in the logs (dmesg).
+>> >
+>>
+>> Please run a git bisect and report your findings.
+>>
+>> Note that dibcom8000 shows just a handful of commit on 2013,
+>> so you could start reverting those and see what happens.
+>
+> Perhaps it is a failure at the DVBv3 emulation.
+>
+> Did it also break using dvbv5-scan (part of v4l-utils)?
+>
+> Regards,
+> Mauro
+> --
+>
+> Cheers,
+> Mauro
