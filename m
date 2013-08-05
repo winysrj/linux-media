@@ -1,71 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:46688 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755054Ab3HWIwH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 04:52:07 -0400
-Date: Fri, 23 Aug 2013 10:52:03 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH V3] i2c: move of helpers into the core
-Message-ID: <20130823085203.GC3035@katana>
-References: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:48807 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753587Ab3HEONO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 10:13:14 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bAmEntskrkuBymla"
-Content-Disposition: inline
-In-Reply-To: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
+In-Reply-To: <1375695882-16004-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1375695882-16004-1-git-send-email-vikas.sajjan@linaro.org>
+Date: Mon, 5 Aug 2013 10:13:13 -0400
+Message-ID: <CAF6AEGt4FzWOk+8XWZfptwrNf=obCO7oCrZm0S_tUAN7kDSjTA@mail.gmail.com>
+Subject: Re: [PATCH V2] drm/exynos: Add fallback option to get non physically
+ continous memory for fb
+From: Rob Clark <robdclark@gmail.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, s.nawrocki@samsung.com,
+	m.szyprowski@samsung.com, tomasz.figa@gmail.com,
+	arun.kk@samsung.com, patches@linaro.org,
+	linaro-kernel@lists.linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Aug 5, 2013 at 5:44 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
+> While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
+> connected with resolution 2560x1600, following error occured even with
+> IOMMU enabled:
+> [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate buffer.
+> [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
+>
+> To address the case where physically continous memory MAY NOT be a
+> mandatory requirement for fb, the patch adds a feature to get non physically
+> continous memory for fb if IOMMU is supported and if CONTIG memory allocation
+> fails.
 
---bAmEntskrkuBymla
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 22, 2013 at 06:00:14PM +0200, Wolfram Sang wrote:
-> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> that it is much cleaner to have this in the core. This also removes a
-> circular dependency between the helpers and the core, and so we can
-> finally register child nodes in the core instead of doing this manually
-> in each driver. So, fix the drivers and documentation, too.
->=20
-> Acked-by: Rob Herring <rob.herring@calxeda.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Reviewed-by: Rob Clark <robdclark@gmail.com>
 
-Applied to for-next!
-
---bAmEntskrkuBymla
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSFyKzAAoJEBQN5MwUoCm2bI0QAK5awQ507hl+3+q76tlv3bM/
-+m1YNlqdEye7K3+XmB48MpCUi65bGtoITuOg+DaWYxw3+A7RhoJgwkFyMZ0gpesj
-aHkFe51yVYiU4Zx1MVSpIDo5ufAmp+8FRM3TF++IgAq62/7fLtwhTJlU2qgzShzs
-rw8UbmXg9+VjWFRfw1tAl+Vz3sWb9+vH2fmNiwXyPMglOdpClKe28rXrABJ78Gqc
-cxqgatPqfBCxyob57z/hGShtPUZkRWdpMU/hjbfemsPrysbLQzmqVyVS2idFP1ad
-T3mJ3xbKXcyJNO4NjGWazxPnpZ74RfNIJQ5nerZfqralO2gdVW8EFwCYaEy9k8YF
-/EpBpMQkHz3Pb3eb4tZJa50cVCygjuikpPoxq9Mtao6T8VG0aVNj8NuE9ros2WS8
-YWkRaVRDN8fjW98vuw7HmNuHCfFZV7QQ8uCcDtrl9k7X+fLQIvxPAVgrDs7Qmugm
-9nzR9AchLDuHuBNRM42bz/t+cILX2ExwIMC5k1YouF0Inuvfrh3LSrEyaJSD8IEF
-VeRGJPNSEP+Ww2+bGexV56ziz8JeMNLaj5rghDw9h9Jz5D4nMRjqhsRAbSfjrlMb
-YfyMTzS/tmJgt2NPj2bc2DvK4JLfrS/SR5YsdWSgR6VQ0WUvPSLJL/rY8Gn/UJ2j
-gfliuM4Sj6/OhS+bbMX3
-=pGc6
------END PGP SIGNATURE-----
-
---bAmEntskrkuBymla--
+>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> Signed-off-by: Arun Kumar <arun.kk@samsung.com>
+> ---
+> changes since v1:
+>          - Modified to add the fallback patch if CONTIG alloc fails as suggested
+>          by Rob Clark robdclark@gmail.com and Tomasz Figa <tomasz.figa@gmail.com>.
+>
+>          - changed the commit message.
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |   19 +++++++++++++++----
+>  1 file changed, 15 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> index 8e60bd6..9a4b886 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+> @@ -16,6 +16,7 @@
+>  #include <drm/drm_crtc.h>
+>  #include <drm/drm_fb_helper.h>
+>  #include <drm/drm_crtc_helper.h>
+> +#include <drm/exynos_drm.h>
+>
+>  #include "exynos_drm_drv.h"
+>  #include "exynos_drm_fb.h"
+> @@ -165,11 +166,21 @@ static int exynos_drm_fbdev_create(struct drm_fb_helper *helper,
+>
+>         size = mode_cmd.pitches[0] * mode_cmd.height;
+>
+> -       /* 0 means to allocate physically continuous memory */
+> -       exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
+> +       exynos_gem_obj = exynos_drm_gem_create(dev, EXYNOS_BO_CONTIG, size);
+>         if (IS_ERR(exynos_gem_obj)) {
+> -               ret = PTR_ERR(exynos_gem_obj);
+> -               goto err_release_framebuffer;
+> +               /*
+> +                * If IOMMU is supported then try to get buffer from
+> +                * non-continous memory area
+> +                */
+> +               if (is_drm_iommu_supported(dev))
+> +                       exynos_gem_obj = exynos_drm_gem_create(dev,
+> +                                               EXYNOS_BO_NONCONTIG, size);
+> +               if (IS_ERR(exynos_gem_obj)) {
+> +                       ret = PTR_ERR(exynos_gem_obj);
+> +                       goto err_release_framebuffer;
+> +               }
+> +               dev_warn(&pdev->dev, "exynos_gem_obj for FB is allocated with\n"
+> +                               "non physically continuous memory\n");
+>         }
+>
+>         exynos_fbdev->exynos_gem_obj = exynos_gem_obj;
+> --
+> 1.7.9.5
+>
