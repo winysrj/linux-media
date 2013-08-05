@@ -1,71 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:58482 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383Ab3HNErA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Aug 2013 00:47:00 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 12/13] V4L: s5k6a3: Change sensor min/max resolutions
-Date: Wed, 14 Aug 2013 10:16:13 +0530
-Message-Id: <1376455574-15560-13-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
-References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:41321 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432Ab3HEVUO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 17:20:14 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: Syntek webcams and out-of-tree driver
+Date: Mon, 5 Aug 2013 23:19:26 +0200
+Cc: Jaime Velasco Juan <jsagarribay@gmail.com>,
+	syntekdriver-devel@lists.sourceforge.net
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201308052319.26720.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5k6a3 sensor has actual pixel resolution of 1408x1402 against
-the active resolution 1392x1392. The real resolution is needed
-when raw sensor SRGB data is dumped to memory by fimc-lite.
+Hello,
+the in-kernel stkwebcam driver (by Jaime Velasco Juan and Nicolas VIVIEN)
+supports only two webcam types (USB IDs 0x174f:0xa311 and 0x05e1:0x0501).
+There are many other Syntek webcam types that are not supported by this
+driver (such as 0x174f:0x6a31 in Asus F5RL laptop).
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/s5k6a3.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+There is an out-of-tree GPL driver called stk11xx (by Martin Roos and also
+Nicolas VIVIEN) at http://sourceforge.net/projects/syntekdriver/ which
+supports more webcams. It can be even compiled for the latest kernels using
+the patch below and seems to work somehow (slow and buggy but better than
+nothing) with the Asus F5RL.
 
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index ccbb4fc..34c3165 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -25,10 +25,12 @@
- #include <media/v4l2-async.h>
- #include <media/v4l2-subdev.h>
+Is there any possibility that this driver could be merged into the kernel?
+The code could probably be simplified a lot and integrated into gspca.
+
+
+diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx.h syntekdriver-code-107-trunk//driver/stk11xx.h
+--- syntekdriver-code-107-trunk-orig/driver/stk11xx.h	2012-03-10 10:03:12.000000000 +0100
++++ syntekdriver-code-107-trunk//driver/stk11xx.h	2013-08-05 22:50:00.000000000 +0200
+@@ -33,6 +33,7 @@
  
--#define S5K6A3_SENSOR_MAX_WIDTH		1392
--#define S5K6A3_SENSOR_MAX_HEIGHT	1392
--#define S5K6A3_SENSOR_MIN_WIDTH		32
--#define S5K6A3_SENSOR_MIN_HEIGHT	32
-+#define S5K6A3_SENSOR_MAX_WIDTH		1408
-+#define S5K6A3_SENSOR_MAX_HEIGHT	1402
-+#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
-+#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
-+#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
-+#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
+ #ifndef STK11XX_H
+ #define STK11XX_H
++#include <media/v4l2-device.h>
  
- #define S5K6A3_DEF_PIX_WIDTH		1296
- #define S5K6A3_DEF_PIX_HEIGHT		732
-@@ -107,10 +109,11 @@ static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
+ #define DRIVER_NAME					"stk11xx"					/**< Name of this driver */
+ #define DRIVER_VERSION				"v3.0.0"					/**< Version of this driver */
+@@ -316,6 +317,7 @@ struct stk11xx_video {
+  * @struct usb_stk11xx
+  */
+ struct usb_stk11xx {
++	struct v4l2_device v4l2_dev;
+ 	struct video_device *vdev; 			/**< Pointer on a V4L2 video device */
+ 	struct usb_device *udev;			/**< Pointer on a USB device */
+ 	struct usb_interface *interface;	/**< Pointer on a USB interface */
+diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c syntekdriver-code-107-trunk//driver/stk11xx-v4l.c
+--- syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c	2012-03-10 09:54:57.000000000 +0100
++++ syntekdriver-code-107-trunk//driver/stk11xx-v4l.c	2013-08-05 22:51:12.000000000 +0200
+@@ -1498,9 +1498,17 @@ int v4l_stk11xx_register_video_device(st
+ {
+ 	int err;
  
- 	fmt = find_sensor_format(mf);
- 	mf->code = fmt->code;
--	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
--			      S5K6A3_SENSOR_MAX_WIDTH, 0,
--			      &mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
--			      S5K6A3_SENSOR_MAX_HEIGHT, 0, 0);
-+	v4l_bound_align_image(&mf->width,
-+			S5K6A3_SENSOR_MIN_WIDTH, S5K6A3_SENSOR_MAX_WIDTH, 0,
-+			&mf->height,
-+			S5K6A3_SENSOR_MIN_HEIGHT, S5K6A3_SENSOR_MAX_HEIGHT, 0,
-+			0);
++	err = v4l2_device_register(&dev->interface->dev, &dev->v4l2_dev);
++	if (err < 0) {
++		STK_ERROR("couldn't register v4l2_device\n");
++		kfree(dev);
++		return err;
++	}
++
+ 	strcpy(dev->vdev->name, DRIVER_DESC);
+ 
+-	dev->vdev->parent = &dev->interface->dev;
++//	dev->vdev->parent = &dev->interface->dev;
++	dev->vdev->v4l2_dev = &dev->v4l2_dev;
+ 	dev->vdev->fops = &v4l_stk11xx_fops;
+ 	dev->vdev->release = video_device_release;
+ 	dev->vdev->minor = -1;
+@@ -1533,6 +1541,7 @@ int v4l_stk11xx_unregister_video_device(
+ 
+ 	video_set_drvdata(dev->vdev, NULL);
+ 	video_unregister_device(dev->vdev);
++	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+ 	return 0;
  }
- 
- static struct v4l2_mbus_framefmt *__s5k6a3_get_format(
--- 
-1.7.9.5
 
+
+
+-- 
+Ondrej Zary
