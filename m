@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:32521 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab3HUO2B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 10:28:01 -0400
-Date: Wed, 21 Aug 2013 10:27:24 -0400
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-kernel@lists.linaro.org, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com
-Subject: Re: [PATCH 1/2] [RFC PATCH v6] dmabuf-sync: Add a buffer
- synchronization framework
-Message-ID: <20130821142724.GF2593@phenom.dumpdata.com>
-References: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
- <1376385576-9039-2-git-send-email-inki.dae@samsung.com>
- <20130820192228.GE12037@phenom.dumpdata.com>
- <008201ce9e4a$08d1d1a0$1a7574e0$%dae@samsung.com>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:53253 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754295Ab3HEG67 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 02:58:59 -0400
+Received: by mail-we0-f173.google.com with SMTP id x55so2150212wes.32
+        for <linux-media@vger.kernel.org>; Sun, 04 Aug 2013 23:58:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <008201ce9e4a$08d1d1a0$1a7574e0$%dae@samsung.com>
+In-Reply-To: <1375101661-6493-4-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl> <1375101661-6493-4-git-send-email-hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 5 Aug 2013 12:28:37 +0530
+Message-ID: <CA+V-a8ssiuH_cG_Bj2wjOY4zN=8th8qgT42hd93ThnAxnrbWjg@mail.gmail.com>
+Subject: Re: [RFC PATCH 3/8] v4l2: move dv-timings related code to v4l2-dv-timings.c
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > > +EXPORT_SYMBOL(is_dmabuf_sync_supported);
-> > 
-> > _GPL ?
-> > 
-> > I would also prefix it with 'dmabuf_is_sync_supported' just to make
-> > all of the libraries call start with 'dmabuf'
-> > 
-> 
-> Seems better. Will change it to dmabuf_is_sync_supported, and use
-> EXPORT_SYMBOL_GPL.
+Hi Hans,
 
-One thing thought - while I suggest that you use GPL variant
-I think you should check who the consumers are. As in, if nvidia
-wants to use it it might make their lawyers unhappy - and in turn
-means that their engineers won't be able to use these symbols.
+Thanks for the patch.
 
-So - if there is a strong argument to not have it GPL - then please
-say so. 
+On Mon, Jul 29, 2013 at 6:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> v4l2-common.c contained a bunch of dv-timings related functions.
+> Move that to the new v4l2-dv-timings.c which is a more appropriate
+> place for them.
+>
+> There aren't many drivers that do HDTV, so it is a good idea to separate
+> common code related to that into a module of its own.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Regards,
+--Prabhakar Lad
