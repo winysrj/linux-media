@@ -1,257 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53057 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab3HULWd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 07:22:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Samuel.Rasmussen@gdc4s.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: Help with omap3isp resizing from CCDC
-Date: Wed, 21 Aug 2013 13:23:46 +0200
-Message-ID: <6377810.u22nuVnQSi@avalon>
-In-Reply-To: <CC189802FB3BE84AB783196665ED67810190F67F@AZ25EXM05.gddsi.com>
-References: <20130802181203.76D4635E0045@alastor.dyndns.org> <CC189802FB3BE84AB783196665ED67810190F67F@AZ25EXM05.gddsi.com>
+Received: from mail-vb0-f51.google.com ([209.85.212.51]:38024 "EHLO
+	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724Ab3HEOW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 10:22:26 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <51FD793C.8030904@gmail.com>
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+	<1375455762-22071-4-git-send-email-arun.kk@samsung.com>
+	<51FD793C.8030904@gmail.com>
+Date: Mon, 5 Aug 2013 19:52:25 +0530
+Message-ID: <CALt3h79FxKU+CJGjAXqC+9sk-n-c2Q3v_ooRtPxKL0PFq1z6Lw@mail.gmail.com>
+Subject: Re: [RFC v3 03/13] [media] exynos5-fimc-is: Add driver core files
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Samuel,
+Hi Sylwester,
 
-On Friday 02 August 2013 13:12:24 Samuel.Rasmussen@gdc4s.com wrote:
-> Hi,
-> 
-> I've been having problems getting the resizer to take its input from the
-> CCDC. From the linux-media mail-archive, it looks like Paul Chiha ran into a
-> similar problem in Oct 2011 with his message "Help with omap3isp resizing". 
-> Paul had a patch at the end of the discussion, but even his patch hasn't
-> fixed my problem yet. I might have made a mistake porting the patch since
-> I'm on a newer kernel, or perhaps it doesn't work with my TVP5151 decoder.
-> 
-> My setup: DM 3730 board, 3.5 kernel, and TVP5151 decoder.
-> 
-> The video looks great with a 640x480 resolution, and the CCDC is de-
-> interlacing the video. However, for my needs the video must be resized to
-> 320x240 or 160x120. The video, coming from the resizer, is split into a top
-> and bottom half. Both halves are identical where everything in the video is
-> too wide and too short. The CCDC must not be de-interlacing the video going
-> to the resizer. I tried setting up the pipeline to send the CCDC to the
-> resizer, but something must have gone wrong.
+On Sun, Aug 4, 2013 at 3:12 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+>>
+>> This driver is for the FIMC-IS IP available in Samsung Exynos5
+>> SoC onwards. This patch adds the core files for the new driver.
+>>
+>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+>> ---
+>>   drivers/media/platform/exynos5-is/fimc-is-core.c |  394
+>> ++++++++++++++++++++++
+>>   drivers/media/platform/exynos5-is/fimc-is-core.h |  122 +++++++
+>>   2 files changed, 516 insertions(+)
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
+>>
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.c
+>> b/drivers/media/platform/exynos5-is/fimc-is-core.c
+>> new file mode 100644
+>> index 0000000..7b7762b
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-core.c
+>> @@ -0,0 +1,394 @@
+>> +/*
+>> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
+>> +*
+>> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+>> + * Arun Kumar K<arun.kk@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#include<linux/bug.h>
+>> +#include<linux/ctype.h>
+>> +#include<linux/device.h>
+>> +#include<linux/debugfs.h>
+>> +#include<linux/delay.h>
+>> +#include<linux/errno.h>
+>> +#include<linux/err.h>
+>> +#include<linux/firmware.h>
+>> +#include<linux/fs.h>
+>> +#include<linux/gpio.h>
+>> +#include<linux/interrupt.h>
+>> +#include<linux/kernel.h>
+>> +#include<linux/list.h>
+>> +#include<linux/module.h>
+>> +#include<linux/types.h>
+>> +#include<linux/platform_device.h>
+>> +#include<linux/pm_runtime.h>
+>> +#include<linux/slab.h>
+>> +#include<linux/videodev2.h>
+>> +#include<linux/of.h>
+>> +#include<linux/of_gpio.h>
+>> +#include<linux/of_address.h>
+>> +#include<linux/of_platform.h>
+>> +#include<linux/of_irq.h>
+>> +#include<linux/pinctrl/consumer.h>
+>> +
+>> +#include<media/v4l2-device.h>
+>> +#include<media/v4l2-ioctl.h>
+>> +#include<media/v4l2-mem2mem.h>
+>> +#include<media/v4l2-of.h>
+>> +#include<media/videobuf2-core.h>
+>> +#include<media/videobuf2-dma-contig.h>
+>> +
+>> +#include "fimc-is.h"
+>> +#include "fimc-is-i2c.h"
+>> +
+>> +#define CLK_MCU_ISP_DIV0_FREQ  (200 * 1000000)
+>> +#define CLK_MCU_ISP_DIV1_FREQ  (100 * 1000000)
+>> +#define CLK_ISP_DIV0_FREQ      (134 * 1000000)
+>> +#define CLK_ISP_DIV1_FREQ      (68 * 1000000)
+>> +#define CLK_ISP_DIVMPWM_FREQ   (34 * 1000000)
+>> +
+>> +static char *fimc_is_clock_name[] = {
+>> +       [IS_CLK_ISP]            = "isp",
+>> +       [IS_CLK_MCU_ISP]        = "mcu_isp",
+>> +       [IS_CLK_ISP_DIV0]       = "isp_div0",
+>> +       [IS_CLK_ISP_DIV1]       = "isp_div1",
+>> +       [IS_CLK_ISP_DIVMPWM]    = "isp_divmpwm",
+>> +       [IS_CLK_MCU_ISP_DIV0]   = "mcu_isp_div0",
+>> +       [IS_CLK_MCU_ISP_DIV1]   = "mcu_isp_div1",
+>> +};
+>> +
+>> +static void fimc_is_put_clocks(struct fimc_is *is)
+>> +{
+>> +       int i;
+>> +
+>> +       for (i = 0; i<  IS_CLK_MAX_NUM; i++) {
+>> +               if (IS_ERR(is->clock[i]))
+>> +                       continue;
+>> +               clk_unprepare(is->clock[i]);
+>> +               clk_put(is->clock[i]);
+>> +               is->clock[i] = NULL;
+>> +       }
+>> +}
+>> +
+>> +static int fimc_is_get_clocks(struct fimc_is *is)
+>> +{
+>> +       struct device *dev =&is->pdev->dev;
+>>
+>> +       int i, ret;
+>> +
+>> +       for (i = 0; i<  IS_CLK_MAX_NUM; i++) {
+>> +               is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
+>> +               if (IS_ERR(is->clock[i]))
+>> +                       goto err;
+>> +               ret = clk_prepare(is->clock[i]);
+>> +               if (ret<  0) {
+>> +                       clk_put(is->clock[i]);
+>> +                       is->clock[i] = ERR_PTR(-EINVAL);
+>> +                       goto err;
+>> +               }
+>> +       }
+>> +       return 0;
+>> +err:
+>> +       fimc_is_put_clocks(is);
+>> +       pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
+>> +       return -ENXIO;
+>> +}
+>> +
+>> +static int fimc_is_configure_clocks(struct fimc_is *is)
+>> +{
+>> +       int i, ret;
+>> +
+>> +       for (i = 0; i<  IS_CLK_MAX_NUM; i++)
+>> +               is->clock[i] = ERR_PTR(-EINVAL);
+>> +
+>> +       ret = fimc_is_get_clocks(is);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       /* Set rates */
+>> +       ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0],
+>> +                       CLK_MCU_ISP_DIV0_FREQ);
+>> +       if (ret)
+>> +               return ret;
+>> +       ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1],
+>> +                       CLK_MCU_ISP_DIV1_FREQ);
+>> +       if (ret)
+>> +               return ret;
+>> +       ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV0], CLK_ISP_DIV0_FREQ);
+>> +       if (ret)
+>> +               return ret;
+>> +       ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV1], CLK_ISP_DIV1_FREQ);
+>> +       if (ret)
+>> +               return ret;
+>> +       ret = clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM],
+>> +                       CLK_ISP_DIVMPWM_FREQ);
+>> +       return ret;
+>> +}
+>> +
+>> +static void fimc_is_pipelines_destroy(struct fimc_is *is)
+>> +{
+>> +       int i;
+>> +
+>> +       for (i = 0; i<  is->num_instance; i++)
+>> +               fimc_is_pipeline_destroy(&is->pipeline[i]);
+>> +}
+>> +
+>> +static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int
+>> index,
+>> +                                               struct device_node *node)
+>> +{
+>> +       struct fimc_is_sensor *sensor =&is->sensor[index];
+>>
+>> +       u32 tmp = 0;
+>> +       int ret;
+>> +
+>> +       sensor->drvdata = exynos5_is_sensor_get_drvdata(node);
+>> +       if (!sensor->drvdata) {
+>> +               dev_err(&is->pdev->dev, "no driver data found for: %s\n",
+>> +                                                        node->full_name);
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       node = v4l2_of_get_next_endpoint(node, NULL);
+>> +       if (!node)
+>> +               return -ENXIO;
+>> +
+>> +       node = v4l2_of_get_remote_port(node);
+>> +       if (!node)
+>> +               return -ENXIO;
+>> +
+>> +       /* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
+>> +       ret = of_property_read_u32(node, "reg",&tmp);
+>> +       if (ret<  0) {
+>> +               dev_err(&is->pdev->dev, "reg property not found at: %s\n",
+>> +                                                        node->full_name);
+>> +               return ret;
+>> +       }
+>> +
+>> +       sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
+>> +       return 0;
+>> +}
+>> +
+>> +static int fimc_is_parse_sensor(struct fimc_is *is)
+>> +{
+>> +       struct device_node *i2c_bus, *child;
+>> +       int ret, index = 0;
+>> +
+>> +       for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
+>> +               for_each_available_child_of_node(i2c_bus, child) {
+>> +                       ret = fimc_is_parse_sensor_config(is, index,
+>> child);
+>> +
+>> +                       if (ret<  0 || index>= FIMC_IS_NUM_SENSORS) {
+>> +                               of_node_put(child);
+>> +                               return ret;
+>> +                       }
+>> +                       index++;
+>> +               }
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +static int fimc_is_probe(struct platform_device *pdev)
+>> +{
+>> +       struct device *dev =&pdev->dev;
+>>
+>> +       struct resource *res;
+>> +       struct fimc_is *is;
+>> +       void __iomem *regs;
+>> +       struct device_node *node;
+>> +       int irq, ret;
+>> +       int i;
+>> +
+>> +       pr_debug("FIMC-IS Probe Enter\n");
+>
+>
+> dev_dbg() ?
+>
+>> +       if (!pdev->dev.of_node)
+>> +               return -ENODEV;
+>> +
+>> +       is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
+>> +       if (!is)
+>> +               return -ENOMEM;
+>> +
+>> +       is->pdev = pdev;
+>> +
+>> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +       regs = devm_ioremap_resource(dev, res);
+>> +       if (IS_ERR(regs))
+>> +               return PTR_ERR(regs);
+>> +
+>> +       /* Get the PMU base */
+>> +       node = of_get_child_by_name(dev->of_node, "pmu");
+>> +       if (!node)
+>> +               return -ENODEV;
+>> +       is->pmu_regs = of_iomap(node, 0);
+>> +       if (!is->pmu_regs)
+>> +               return -ENOMEM;
+>> +
+>> +       irq = irq_of_parse_and_map(dev->of_node, 0);
+>> +       if (irq<  0) {
+>> +               dev_err(dev, "Failed to get IRQ\n");
+>> +               return irq;
+>> +       }
+>> +
+>> +       ret = of_property_read_u32(pdev->dev.of_node, "num-instance",
+>> +                       &is->num_instance);
+>> +       if (ret&&  !is->num_instance) {
+>>
+>> +               dev_err(dev, "Error num instances\n");
+>
+>
+> Hmm, what is this property ? I can't see it listed in the binding document.
+>
 
-Unfortunately the CCDC can't deinterlace frames sent to the resizer. The 
-deinterlacing process takes place at the CCDC output DMA engine when writing 
-the frames to memory.
+It is the number of parallel instances that the IS-firmware can handle.
+For 5250, its only 1, but in future SoCs, it can handle multiple
+parallel pipelines
+for supporting multiple sensors simultaneously. I have now moved it to
+driver data instead of DT as its a firmware property.
 
-There's two solutions to resize interlaced video. The first one would be to 
-capture the deinterlaced frames at the CCDC output to memory and then use the 
-resizer in memory-to-memory mode. The second one would be to modify the driver 
-to support deinterlacing at the resizer output, by doubling the line offset 
-and computing the correct start address for each odd/even frame.
+>
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       ret = fimc_is_configure_clocks(is);
+>> +       if (ret<  0) {
+>> +               dev_err(dev, "Clock config failed\n");
+>
+>
+> s/Clock config/clocks configration ?
+>
+>
+>> +               goto err_clk;
+>> +       }
+>> +
+>> +       platform_set_drvdata(pdev, is);
+>> +       pm_runtime_enable(dev);
+>> +
+>> +       ret = pm_runtime_get_sync(dev);
+>> +       if (ret<  0)
+>> +               goto err_pm;
+>> +
+>> +       is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+>> +       if (IS_ERR(is->alloc_ctx)) {
+>> +               ret = PTR_ERR(is->alloc_ctx);
+>> +               goto err_vb;
+>> +       }
+>> +
+>> +       /* Get IS-sensor contexts */
+>> +       ret = fimc_is_parse_sensor(is);
+>> +       if (ret<  0)
+>> +               goto err_vb;
+>> +
+>> +       /* Initialize FIMC Pipeline */
+>> +       for (i = 0; i<  is->num_instance; i++) {
+>> +               ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
+>> +               if (ret<  0)
+>> +                       goto err_sd;
+>> +       }
+>> +
+>> +       /* Initialize FIMC Interface */
+>> +       ret = fimc_is_interface_init(&is->interface, regs, irq);
+>> +       if (ret<  0)
+>> +               goto err_sd;
+>> +
+>> +       pm_runtime_put(dev);
+>> +
+>> +       dev_dbg(dev, "FIMC-IS registered successfully\n");
+>> +
+>> +       return 0;
+>> +
+>> +err_sd:
+>> +       fimc_is_pipelines_destroy(is);
+>> +err_vb:
+>> +       vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+>> +err_pm:
+>> +       pm_runtime_put(dev);
+>> +err_clk:
+>> +       fimc_is_put_clocks(is);
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +int fimc_is_clk_enable(struct fimc_is *is)
+>> +{
+>> +       int ret;
+>> +
+>> +       ret = clk_enable(is->clock[IS_CLK_ISP]);
+>> +       if (ret)
+>> +               return ret;
+>> +       ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
+>> +       return ret;
+>> +}
+>> +
+>> +void fimc_is_clk_disable(struct fimc_is *is)
+>> +{
+>> +       clk_disable(is->clock[IS_CLK_ISP]);
+>> +       clk_disable(is->clock[IS_CLK_MCU_ISP]);
+>> +}
+>> +
+>> +static int fimc_is_pm_resume(struct device *dev)
+>> +{
+>> +       struct fimc_is *is = dev_get_drvdata(dev);
+>> +       int ret;
+>> +
+>> +       ret = fimc_is_clk_enable(is);
+>> +       if (ret<  0) {
+>> +               dev_err(dev, "Could not enable clocks\n");
+>> +               return ret;
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +static int fimc_is_pm_suspend(struct device *dev)
+>> +{
+>> +       struct fimc_is *is = dev_get_drvdata(dev);
+>> +
+>> +       fimc_is_clk_disable(is);
+>> +       return 0;
+>> +}
+>> +
+>> +static int fimc_is_runtime_resume(struct device *dev)
+>> +{
+>> +       return fimc_is_pm_resume(dev);
+>> +}
+>> +
+>> +static int fimc_is_runtime_suspend(struct device *dev)
+>> +{
+>> +       return fimc_is_pm_suspend(dev);
+>> +}
+>> +
+>> +#ifdef CONFIG_PM_SLEEP
+>> +static int fimc_is_resume(struct device *dev)
+>> +{
+>> +       return fimc_is_pm_resume(dev);
+>
+>
+> You're using same function for system sleep and runtime PM, fimc_is_resume()
+> should not attempt to disable the clocks if they are already disabled, i.e.
+> the device is not active.
+>
 
-As you only need to downscale by two or four, another much simpler solution 
-would be to drop every other interlaced frame. You would then get 640x240 
-frames that you could resize to 320x240 or 160x120 with the resizer.
+Ok I havent implemented system sleep functionality yet. I will keep
+it as a TODO for now. Hope its ok.
 
-> Up until this point, I was using the UYVY2X8 format.  Then I saw the
-> 
-> discussion Paul Chiha created.  In that discussion Laurent said:
-> > But the original poster wants to use the sensor -> ccdc -> resizer ->
-> > resizeroutput pipeline.
-> >
-> >> Also several sensor drivers that i have checked, usually define its
-> >> output as 2X8 output. I think is more natural to add 2X8 support to
-> >> CCDC and Resizer engines instead to modifying exiting drivers.
-> >
-> > Sure, sensor drivers should not be modified. What I was talking about
-> > was to configure the pipeline as
-> >
-> > sensor:0 [YUYV8_2X8], CCDC:0 [YUYV8_2X8], CCDC:1 [YUYV8_1X16],
-> > resizer:0 [YUYV8_1X16]
-> 
-> I wasn't sure if Laurent's advice would also apply to the TVP5151, but I
-> wanted to test it out.  I implemented Paul's patch so I could use the
-> YUYV8_2X8 and YUYV8_1X16 formats.  The 640x480 resolution looked good in
-> the YUYV8_2X8 format.  However, once again the video from the resizer
-> was not de-interlaced so it had a top and bottom half (using YUYV8_2X8
-> and YUYV8_1X16).  This time it was even worse because the video from the
-> resizer was very green.
-> 
-> Does anyone have suggestions for resizing video from the TVP5151?
-> 
-> Thanks for taking the time to read this,
-> Samuel
-> 
-> I'm adding some media-ctl details below.
-> media-ctl commands I'm using:
-> 
-> media-ctl -v -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> media-ctl -v -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP resizer":0[1]'
-> media-ctl -v -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-> media-ctl -v -f '"tvp5150 3-005c":0 [YUYV2X8 640x480]'
-> media-ctl -v -f '"OMAP3 ISP CCDC":0 [YUYV2X8 640x480]'
-> media-ctl -v -f '"OMAP3 ISP CCDC":1 [YUYV 640x480]'
-> media-ctl -v -f '"OMAP3 ISP resizer":1 [YUYV 320x240]'
-> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so mplayer tv:// -tv
-> driver=v4l2:device=/dev/video6
-> 
-> Output of medi-ctl -p:
-> 
-> Opening media device /dev/media0
-> Enumerating entities
-> Found 16 entities
-> Enumerating pads and links
-> Media controller API version 0.0.0
-> 
-> Media device information
-> ------------------------
-> driver          omap3isp
-> model           TI OMAP3 ISP
-> serial
-> bus info
-> hw revision     0xf0
-> driver version  0.0.0
-> 
-> Device topology
-> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev0
-> 	pad0: Sink
-> 		[fmt:SGRBG10/4096x4096]
-> 		<- "OMAP3 ISP CCP2 input":0 []
-> 	pad1: Source
-> 		[fmt:SGRBG10/4096x4096]
-> 		-> "OMAP3 ISP CCDC":0 []
-> 
-> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video0
-> 	pad0: Source
-> 		-> "OMAP3 ISP CCP2":0 []
-> 
-> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev1
-> 	pad0: Sink
-> 		[fmt:SGRBG10/4096x4096]
-> 	pad1: Source
-> 		[fmt:SGRBG10/4096x4096]
-> 		-> "OMAP3 ISP CSI2a output":0 []
-> 		-> "OMAP3 ISP CCDC":0 []
-> 
-> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video1
-> 	pad0: Sink
-> 		<- "OMAP3 ISP CSI2a":1 []
-> 
-> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev2
-> 	pad0: Sink
-> 		[fmt:YUYV2X8/640x480]
-> 		<- "OMAP3 ISP CCP2":1 []
-> 		<- "OMAP3 ISP CSI2a":1 []
-> 		<- "tvp5150 3-005c":0 [ENABLED]
-> 	pad1: Source
-> 		[fmt:YUYV/640x480
-> 		 crop.bounds:(0,0)/640x480
-> 		 crop:(0,0)/640x480]
-> 		-> "OMAP3 ISP CCDC output":0 []
-> 		-> "OMAP3 ISP resizer":0 [ENABLED]
-> 	pad2: Source
-> 		[fmt:unknown/640x479]
-> 		-> "OMAP3 ISP preview":0 []
-> 		-> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
-> 		-> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
-> 		-> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video2
-> 	pad0: Sink
-> 		<- "OMAP3 ISP CCDC":1 []
-> 
-> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev3
-> 	pad0: Sink
-> 		[fmt:SGRBG10/4096x4096
-> 		 crop.bounds:(8,4)/4082x4088
-> 		 crop:(8,4)/4082x4088]
-> 		<- "OMAP3 ISP CCDC":2 []
-> 		<- "OMAP3 ISP preview input":0 []
-> 	pad1: Source
-> 		[fmt:YUYV/4082x4088]
-> 		-> "OMAP3 ISP preview output":0 []
-> 		-> "OMAP3 ISP resizer":0 []
-> 
-> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video3
-> 	pad0: Source
-> 		-> "OMAP3 ISP preview":0 []
-> 
-> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video4
-> 	pad0: Sink
-> 		<- "OMAP3 ISP preview":1 []
-> 
-> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev4
-> 	pad0: Sink
-> 		[fmt:YUYV/640x480
-> 		 crop.bounds:(0,0)/640x480
-> 		 crop:(0,0)/640x480]
-> 		<- "OMAP3 ISP CCDC":1 [ENABLED]
-> 		<- "OMAP3 ISP preview":1 []
-> 		<- "OMAP3 ISP resizer input":0 []
-> 	pad1: Source
-> 		[fmt:YUYV/320x240]
-> 		-> "OMAP3 ISP resizer output":0 [ENABLED]
-> 
-> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video5
-> 	pad0: Source
-> 		-> "OMAP3 ISP resizer":0 []
-> 
-> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video6
-> 	pad0: Sink
-> 		<- "OMAP3 ISP resizer":1 [ENABLED]
-> 
-> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev5
-> 	pad0: Sink
-> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev6
-> 	pad0: Sink
-> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev7
-> 	pad0: Sink
-> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 16: tvp5150 3-005c (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev8
-> 	pad0: Source
-> 		[fmt:YUYV2X8/640x480]
-> 		-> "OMAP3 ISP CCDC":0 [ENABLED]
+>> +}
+>> +
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Regards
+Arun
