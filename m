@@ -1,328 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40203 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53135 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933398Ab3HGWPp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 18:15:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-Date: Thu, 08 Aug 2013 00:16:50 +0200
-Message-ID: <2574244.AfiCum7QAn@avalon>
-In-Reply-To: <520288C1.7040207@xs4all.nl>
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <52027AB7.5080006@samsung.com> <520288C1.7040207@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	with ESMTP id S1754207Ab3HERwh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:37 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v6 02/10] Documentation: media: Clarify the VIDIOC_CREATE_BUFS format requirements
+Date: Mon,  5 Aug 2013 19:53:21 +0200
+Message-Id: <1375725209-2674-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Sylwester,
+The VIDIOC_CREATE_BUFS ioctl takes a format argument that must contain a
+valid format supported by the driver. Clarify the documentation.
 
-On Wednesday 07 August 2013 19:49:53 Hans Verkuil wrote:
-> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
-> > On 08/02/2013 03:00 PM, Hans Verkuil wrote:
-> >> Hi Sylwester,
-> >> 
-> >> The patch is good, but I have some issues with the commit message itself.
-> > 
-> > Thanks a lot for the detailed explanation, I just wrote this a bit
-> > longish changelog to possibly get some feedback and to better understand
-> > what is exactly going on. Currently the v4l2-core looks like a racing
-> > disaster to me.
-> > 
-> >> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
-> >>> As it currently stands this code doesn't protect against any races
-> >>> between video device open() and its unregistration. Races could be
-> >>> avoided by doing the video_is_registered() check protected by the
-> >>> core mutex, while the video device unregistration is also done with
-> >>> this mutex held.
-> >> 
-> >> The video_unregister_device() is called completely asynchronously,
-> >> particularly in the case of usb drivers. So it was never the goal of
-> >> the video_is_registered() to be fool proof, since that isn't possible,
-> >> nor is that necessary.
-> >> 
-> >> The goal was that the v4l2 core would use it for the various file
-> >> operations and ioctls as a quick check whether the device was
-> >> unregistered and to return the correct error. This prevents drivers from
-> >> having to do the same thing.
-> > 
-> > OK, I think I just myself used this video_is_registered() flag for some
-> > more stuff, by surrounding it with mutex_lock/mutex_unlock and putting
-> > more stuff in between, like media_entity_cleanup().
-> 
-> You can't do that, because there are most likely still filehandles open
-> or even ioctls being executed. Cleanup happens in the release function(s)
-> when the kref goes to 0.
-> 
-> > And this probably led me astray for a while, thinking that
-> > video_is_registered() was intended to be used synchronously.
-> > For example see fimc_lite_subdev_unregistered() in drivers/media/platform/
-> > exynos4-is/fimc-lite.c.
-> > 
-> > But as you said video_is_registered() is fully asynchronous.
-> > 
-> > Actually I'm trying to fix a nasty race between deferred driver probing
-> > and video device open(). The problem is that video open() callback can
-> > be called after driver remove() callback was invoked.
-> 
-> How is that possible? The video_device_register must be the last thing in
-> the probe function. If it succeeds, then the probe must succeed as well.
-> 
-> Note that I now realize that this might fail in the case of multiple device
-> nodes being registered. We never had problems with that in the past, but in
-> theory you can the race condition you mention in that scenario. The correct
-> approach here would probably be to always return 0 in probe() if only some
-> of the video_device_register calls fail.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       | 41 ++++++++++++++--------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
 
-Hmmmm... Returning success in probe when probing partly fails doesn't sound 
-very good to me.
-
-Once you call video_device_register() you should be prepared to handle 
-userspace calls. The device node can be opened, in which case the module 
-refcount will be incremented, but probe() can still fail. However, the video 
-device becomes refcounted as soon as it's registered, so drivers should only 
-release resources in the release callback. This would unfortunately mean that 
-the devm_* helpers can't be used.
-
-I would be surprised if this problem was specific to V4L2. It might be 
-something we should try to solve with the help of the device core.
-
-> Anyway, assuming that only one device node is created, then I can't see how
-> you can get a race condition here. Any open() call will increase the
-> module's refcount, making it impossible to unload.
-> 
-> As far as I can tell, once you call rmmod it should no longer be possible to
-> open() an device node whose struct file_operations owner is that module
-> (i.e. the owner field of the file_operations struct points to that module).
-> Looking at the way fs/char_dev is implemented, that seems to be correctly
-> handled by the kernel core.
-> 
-> > This issue is actually not only related to deferred probing. It can be
-> > also triggered by driver module removal or through driver's sysfs "unbind"
-> > attribute.
-> > 
-> > Let's assume following scenario:
-> > 
-> > - a driver module is loaded
-> > - driver probe is called, it registers video device,
-> > - udev opens /dev/video
-> > - after mutex_unlock(&videodev_lock); call in v4l2_open() in v4l2-core/
-> >   v4l2-dev.c something fails in probe()
-> 
-> And that shouldn't happen. That's the crucial bit: under which scenario does
-> this happen for you? If there is a control path where you do create a
-> working device node, but the probe fails, then that will indeed cause all
-> sorts of problems. But it shouldn't get in that situation (except I think
-> in the case of multiple device nodes, which is something I need to think
-> about).
->
-> >   and it unwinds, probe callback exits and the driver code code calls
-> >   dev_set_drvdata(dev, NULL); as shown below.
-> > 
-> > static int really_probe(struct device *dev, struct device_driver *drv)
-> > {
-> > 	...
-> > 	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
-> > 		 drv->bus->name, __func__, drv->name, dev_name(dev));
-> > 	...
-> > 	if (dev->bus->probe) {
-> > 		ret = dev->bus->probe(dev);
-> > 		if (ret)
-> > 			goto probe_failed;
-> > 	
-> > 	} else if (drv->probe) {
-> > 		ret = drv->probe(dev);
-> > 		if (ret)
-> > 			goto probe_failed;
-> > 	}
-> > 	...
-> > 	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
-> > 		 drv->bus->name, __func__, dev_name(dev), drv->name);
-> > 	
-> > 	goto done;
-> > 
-> > probe_failed:
-> > 	devres_release_all(dev);
-> > 	driver_sysfs_remove(dev);
-> > 	dev->driver = NULL;
-> > 	dev_set_drvdata(dev, NULL);
-> > 	...
-> > 	ret = 0;
-> > 
-> > done:
-> > 	...
-> > 	return ret;
-> > }
-> > 
-> > Now we get to
-> > 
-> >  	ret = vdev->fops->open(filp);
-> > 
-> > in v4l2_open(). This calls some driver's callback, e.g. something
-> > like:
-> > 
-> > static int fimc_lite_open(struct file *file)
-> > {
-> > 	struct fimc_lite *fimc = video_drvdata(file);
-> > 	struct media_entity *me = &fimc->ve.vdev.entity;
-> > 	int ret;
-> > 	
-> > 	mutex_lock(&fimc->lock);
-> > 	if (!video_is_registered(&fimc->ve.vdev)) {
-> > 		ret = -ENODEV;
-> > 		goto unlock;
-> > 	}
-> > 	
-> > 	...
-> > 	
-> > 	/* Mark video pipeline ending at this video node as in use. */
-> > 	if (ret == 0)
-> > 		me->use_count++;
-> > 	
-> > 	...
-> > 
-> > unlock:
-> > 	mutex_unlock(&fimc->lock);
-> > 	return ret;
-> > }
-> > 
-> > Now what will video_drvdata(file); return ?
-> > 
-> > static inline void *video_drvdata(struct file *file)
-> > {
-> > 	return video_get_drvdata(video_devdata(file));
-> > }
-> > 
-> > static inline void *video_get_drvdata(struct video_device *vdev)
-> > {
-> > 	return dev_get_drvdata(&vdev->dev);
-> > }
-> > 
-> > Yes, so that will be just NULL o_O, due to the dev_set_drvdata(dev, NULL);
-> > in really_probe(). drvdata is cleared similarly in
-> > __device_release_driver(), right after calling driver's remove handler.
-> > 
-> > Another issue I have is that, e.g.
-> > driver/media/platform/exynos4-is/fimc-lite* driver has empty video dev
-> > release() callback. It should be implemented in the driver to kfree the
-> > whole driver's private data structure where struct video_device is
-> > embedded in (struct fimc_lite). But that freeing really needs to be
-> > synchronized with driver's remove() call, since there is e.g. freed
-> > interrupt which accesses the driver's private data. I can't use kref from
-> > struct v4l2_device as that belongs to a different driver. A driver's
-> > custom reference counting comes to mind, where vdev->release() and
-> > drv->remove() would be decrementing the reference counter. But that seems
-> > ugly as hell :/ And it predates devm_*.
-> > 
-> > This is all getting a bit depressing :/ Deferred probing and the
-> > asynchronous subdev handling just made those issues more visible, i.e.
-> > not very good design of some parts of the v4l2-core.
-> 
-> It's just not clear to me how exactly things go wrong for you. Ping me on
-> irc tomorrow and we can discuss it further. I have reworked refcounting in
-> the past (at the time it was *really* bad), so perhaps we need to rework it
-> again, particularly with video nodes associated with subdevices in the mix,
-> something that didn't exist at the time.
-> 
-> >>> The history of this code is that the second video_is_registered()
-> >>> call has been added in commit ee6869afc922a9849979e49bb3bbcad7948
-> >>> "V4L/DVB: v4l2: add core serialization lock" together with addition
-> >>> 
-> >>> of the core mutex support in fops:
-> >>>         mutex_unlock(&videodev_lock);
-> >>> 
-> >>> -       if (vdev->fops->open)
-> >>> -               ret = vdev->fops->open(filp);
-> >>> +       if (vdev->fops->open) {
-> >>> +               if (vdev->lock)
-> >>> +                       mutex_lock(vdev->lock);
-> >>> +               if (video_is_registered(vdev))
-> >>> +                       ret = vdev->fops->open(filp);
-> >>> +               else
-> >>> +                       ret = -ENODEV;
-> >>> +               if (vdev->lock)
-> >>> +                       mutex_unlock(vdev->lock);
-> >>> +       }
-> >> 
-> >> The history is slightly more complicated: this commit moved the
-> >> video_is_registered call from before the mutex_unlock(&videodev_lock);
-> >> to just before the fops->open call.
-> >> 
-> >> Commit ca9afe6f87b569cdf8e797395381f18ae23a2905 "v4l2-dev: fix race
-> >> condition" added the video_is_registered() call to where it was
-> >> originally (inside the videodev_lock critical section), but it didn't
-> >> bother to remove the duplicate second video_is_registered call.
-> >> 
-> >> So that's how v4l2_open ended up with two calls to video_is_registered.
-> > 
-> > Apologies for simplifying the history . I'll just drop it from the
-> > changelog, as it can be retrieved git. I'll try to put just concise
-> > explanation why this this video_is_registered() is not needed currently.
-> > 
-> >>> While commit cf5337358548b813479b58478539fc20ee86556c
-> >>> "[media] v4l2-dev: remove V4L2_FL_LOCK_ALL_FOPS"
-> >>> 
-> >>> removed only code touching the mutex:
-> >>>         mutex_unlock(&videodev_lock);
-> >>>         if (vdev->fops->open) {
-> >>> 
-> >>> -               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags) &&
-> >>> -                   mutex_lock_interruptible(vdev->lock)) {
-> >>> -                       ret = -ERESTARTSYS;
-> >>> -                       goto err;
-> >>> -               }
-> >>> 
-> >>>                 if (video_is_registered(vdev))
-> >>>                 
-> >>>                         ret = vdev->fops->open(filp);
-> >>>                 
-> >>>                 else
-> >>>                 
-> >>>                         ret = -ENODEV;
-> >>> 
-> >>> -               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
-> >>> -                       mutex_unlock(vdev->lock);
-> >>> 
-> >>>         }
-> >>> 
-> >>> Remove the remaining video_is_registered() call as it doesn't provide
-> >>> any real protection and just adds unnecessary overhead.
-> >> 
-> >> True.
-> >> 
-> >>> The drivers need to perform the unregistration check themselves inside
-> >>> their file operation handlers, while holding respective mutex.
-> >> 
-> >> No, drivers do not need to do the unregistration check. Since
-> >> unregistration is asynchronous it can happen at any time, so there
-> >> really is no point in checking for it other than in the core. If the
-> >> device is unregistered while in the middle of a file operation, then
-> >> that means that any USB activity will return an error, and that any
-> >> future file operations other than release() will be met by an error as
-> >> well from the v4l2 core.
-> > 
-> > Yes, so video_is_registered() seems not very useful to use in drivers.
-> 
-> That's true. The main use case for it is in the v4l2 core to stop ioctls and
-> fops from going through to the driver and return an error instead. So
-> drivers don't need to do that themselves.
-
-I'd like to add that the video_is_registered() call in v4l2_open() really 
-protects from a race condition with video_unregister_device() and makes sure 
-that either v4l2_open() gets a reference to the device before it gets 
-unregistered in video_unregister_device(), or v4l2_open() fails the registered 
-check and returns an error.
-
-> > But as I've shown above it's not even used optimally in the v4l2-core.
-> 
-> There really isn't anything else you can do with it in my view.
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index cd99436..9b700a5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -62,18 +62,29 @@ addition to the <constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter
+ control over buffers is required. This ioctl can be called multiple times to
+ create buffers of different sizes.</para>
+ 
+-    <para>To allocate device buffers applications initialize relevant fields of
+-the <structname>v4l2_create_buffers</structname> structure. They set the
+-<structfield>type</structfield> field in the
+-&v4l2-format; structure, embedded in this
+-structure, to the respective stream or buffer type.
+-<structfield>count</structfield> must be set to the number of required buffers.
+-<structfield>memory</structfield> specifies the required I/O method. The
+-<structfield>format</structfield> field shall typically be filled in using
+-either the <constant>VIDIOC_TRY_FMT</constant> or
+-<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
+-<structfield>sizeimage</structfield> fields to fit their specific needs. The
+-<structfield>reserved</structfield> array must be zeroed.</para>
++    <para>To allocate the device buffers applications must initialize the
++relevant fields of the <structname>v4l2_create_buffers</structname> structure.
++The <structfield>count</structfield> field must be set to the number of
++requested buffers, the <structfield>memory</structfield> field specifies the
++requested I/O method and the <structfield>reserved</structfield> array must be
++zeroed.</para>
++
++    <para>The <structfield>format</structfield> field specifies the image format
++that the buffers must be able to handle. The application has to fill in this
++&v4l2-format;. Usually this will be done using the
++<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant> ioctl()
++to ensure that the requested format is supported by the driver. Unsupported
++formats will result in an error.</para>
++
++    <para>The buffers created by this ioctl will have as minimum size the size
++defined by the <structfield>format.pix.sizeimage</structfield> field. If the
++<structfield>format.pix.sizeimage</structfield> field is less than the minimum
++required for the given format, then <structfield>sizeimage</structfield> will be
++increased by the driver to that minimum to allocate the buffers. If it is
++larger, then the value will be used as-is. The same applies to the
++<structfield>sizeimage</structfield> field of the
++<structname>v4l2_plane_pix_format</structname> structure in the case of
++multiplanar formats.</para>
+ 
+     <para>When the ioctl is called with a pointer to this structure the driver
+ will attempt to allocate up to the requested number of buffers and store the
+@@ -144,9 +155,9 @@ mapped</link> I/O.</para>
+       <varlistentry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+-	  <para>The buffer type (<structfield>type</structfield> field) or the
+-requested I/O method (<structfield>memory</structfield>) is not
+-supported.</para>
++	  <para>The buffer type (<structfield>format.type</structfield> field),
++requested I/O method (<structfield>memory</structfield>) or format
++(<structfield>format</structfield> field) is not valid.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.5
 
