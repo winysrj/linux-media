@@ -1,87 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:61704 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020Ab3HPJUm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 05:20:42 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v6 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
-Date: Fri, 16 Aug 2013 14:50:34 +0530
-Message-Id: <1376644845-10422-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
-References: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53141 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754231Ab3HERwi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:38 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v6 03/10] media: vb2: Clarify queue_setup() and buf_prepare() usage documentation
+Date: Mon,  5 Aug 2013 19:53:22 +0200
+Message-Id: <1375725209-2674-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the DT binding documentation for Samsung
-Exynos5 SoC series imaging subsystem (FIMC-IS).
+Explain how the two operations must handle formats and validate buffer
+sizes when used with VIDIOC_CREATE_BUFS.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47 ++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+ include/media/videobuf2-core.h | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-new file mode 100644
-index 0000000..bc279b4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-@@ -0,0 +1,47 @@
-+Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
-+------------------------------------------------------
-+
-+The camera subsystem on Samsung Exynos5 SoC has some changes relative
-+to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
-+FIMC-LITE IPs but has a much improved version of FIMC-IS which can
-+handle sensor controls and camera post-processing operations. The
-+Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
-+post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
-+dedicated scalers (SCC and SCP).
-+
-+fimc-is node
-+------------
-+
-+Required properties:
-+
-+- compatible        : must be "samsung,exynos5250-fimc-is"
-+- reg               : physical base address and size of the memory mapped
-+                      registers
-+- interrupt-parent  : parent interrupt controller
-+- interrupts        : fimc-is interrupt to the parent interrupt controller
-+- clocks            : list of clock specifiers, corresponding to entries in
-+                      clock-names property;
-+- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
-+                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
-+                      matching entries in the clocks property.
-+- samsung,pmu       : phandle to the fimc-is pmu node describing the register
-+                      base and size for FIMC-IS PMU.
-+
-+i2c-isp (ISP I2C bus controller) nodes
-+------------------------------------------
-+
-+Required properties:
-+
-+- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
-+		  Exynos4412 and Exynos5250 SoCs;
-+- reg		: physical base address and length of the registers set;
-+- clocks	: must contain gate clock specifier for this controller;
-+- clock-names	: must contain "i2c_isp" entry.
-+
-+For the i2c-isp node, it is required to specify a pinctrl state named "default",
-+according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
-+
-+Device tree nodes of the image sensors controlled directly by the FIMC-IS
-+firmware must be child nodes of their corresponding ISP I2C bus controller node.
-+The data link of these image sensors must be specified using the common video
-+interfaces bindings, defined in video-interfaces.txt.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d88a098..6781258 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -219,8 +219,9 @@ struct vb2_buffer {
+  *			configured format and *num_buffers is the total number
+  *			of buffers, that are being allocated. When called from
+  *			VIDIOC_CREATE_BUFS, fmt != NULL and it describes the
+- *			target frame format. In this case *num_buffers are being
+- *			allocated additionally to q->num_buffers.
++ *			target frame format (if the format isn't valid the
++ *			callback must return -EINVAL). In this case *num_buffers
++ *			are being allocated additionally to q->num_buffers.
+  * @wait_prepare:	release any locks taken while calling vb2 functions;
+  *			it is called before an ioctl needs to wait for a new
+  *			buffer to arrive; required to avoid a deadlock in
+@@ -236,8 +237,10 @@ struct vb2_buffer {
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+  *			perform any initialization required before each hardware
+- *			operation in this callback; if an error is returned, the
+- *			buffer will not be queued in driver; optional
++ *			operation in this callback; drivers that support
++ *			VIDIOC_CREATE_BUFS must also validate the buffer size;
++ *			if an error is returned, the buffer will not be queued
++ *			in driver; optional
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; drivers may perform any operations required
+  *			before userspace accesses the buffer; optional
 -- 
-1.7.9.5
+1.8.1.5
 
