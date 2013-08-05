@@ -1,122 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.irisys.co.uk ([195.12.16.217]:65117 "EHLO
-	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867Ab3HFPZZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 11:25:25 -0400
-From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: RE: width and height of JPEG compressed images
-Date: Tue, 6 Aug 2013 15:25:20 +0000
-Message-ID: <A683633ABCE53E43AFB0344442BF0F054C632A50@server10.irisys.local>
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
- <51D876DF.90507@gmail.com>
- <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
- <51EC46BA.4050203@gmail.com>
- <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
- <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
- <51EF92AF.7040205@samsung.com>
- <20130726090646.GJ12281@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130726090646.GJ12281@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:52293 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab3HEJo7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 05:44:59 -0400
+Received: by mail-pa0-f44.google.com with SMTP id jh10so3090540pab.3
+        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 02:44:59 -0700 (PDT)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, s.nawrocki@samsung.com,
+	m.szyprowski@samsung.com, tomasz.figa@gmail.com,
+	robdclark@gmail.com, arun.kk@samsung.com, patches@linaro.org,
+	linaro-kernel@lists.linaro.org
+Subject: [PATCH V2] drm/exynos: Add fallback option to get non physically continous memory for fb
+Date: Mon,  5 Aug 2013 15:14:42 +0530
+Message-Id: <1375695882-16004-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
+connected with resolution 2560x1600, following error occured even with
+IOMMU enabled:
+[0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate buffer.
+[0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
 
-On 26 July 2013 10:07 Sakari Ailus wrote:
-> On Wed, Jul 24, 2013 at 10:39:11AM +0200, Sylwester Nawrocki wrote:
->> On 07/24/2013 09:47 AM, Thomas Vajzovic wrote:
->>> On 23 July 2013 23:21 Sakari Ailus wrote:
->>>> On Sun, Jul 21, 2013 at 10:38:18PM +0200, Sylwester Nawrocki wrote:
->>>>> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
->>>>>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
->>>>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
->>>>>>>
->>>>>>>> The hardware reads AxB sensor pixels from its array, resamples
->>>>>>>> them to CxD image pixels, and then compresses them to ExF bytes.
->>>>>>>>
->>>>>>> sensor matrix (AxB pixels) ->  binning/skipping (CxD pixels) ->
->>>>>>> ->  JPEG compresion (width = C, height = D, sizeimage ExF bytes)
->>>>>>
->>>>>> Does the user need to specify ExF, for other purposes than
->>>>>> limiting the size of the image? I would leave this up to the
->>>>>> sensor driver (with reasonable alignment). The sensor driver
->>>>>> would tell about this to the receiver through
->>>>>
->>>>> AFAIU ExF is closely related to the memory buffer size, so the
->>>>> sensor driver itself wouldn't have enough information to fix up ExF, would it ?
->>>>
->>>> If the desired sizeimage is known, F can be calculated if E is
->>>> fixed, say
->>>> 1024 should probably work for everyone, shoulnd't it?
->>>
->>> It's a nice clean idea (and I did already consider it) but it
->>> reduces the flexibility of the system as a whole.
->>>
->>> Suppose an embedded device wants to send the compressed image over a
->>> network in packets of 1500 bytes, and they want to allow 3 packets
->>> per frame.  Your proposal limits sizeimage to a multiple of 1K, so
->>> they have to set sizeimage to 4K when they want 4.5K, meaning that
->>> they waste 500 bytes of bandwidth every frame.
->>>
->>> You could say "tough luck, extra overhead like this is something you
->>> should expect if you want to use a general purpose API like V4L2",
->>> but why make it worse if we can make it better?
->>
->> I entirely agree with that. Other issue with fixed number of samples
->> per line is that internal (FIFO) line buffer size of the transmitter
->> devices will vary, and for example some devices might have line buffer
->> smaller than the value we have arbitrarily chosen. I'd expect the
->> optimal number of samples per line to vary among different devices and
->> use cases.
->
-> I guess the sensor driver could factor the size as well (provided it
-> can choose an arbitrary size) but then to be fully generic, I think
-> alignment must also be taken care of. Many receivers might require
-> width to be even but some might have tighter requirements. They have
-> a minimum width, too.
+To address the case where physically continous memory MAY NOT be a
+mandatory requirement for fb, the patch adds a feature to get non physically
+continous memory for fb if IOMMU is supported and if CONTIG memory allocation
+fails.
 
-> To make this working in a generic case might not be worth the time
-> and effort of being able to shave up to 1 kiB off of video buffer
-> allocations.
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+Signed-off-by: Arun Kumar <arun.kk@samsung.com>
+---
+changes since v1:
+	 - Modified to add the fallback patch if CONTIG alloc fails as suggested
+	 by Rob Clark robdclark@gmail.com and Tomasz Figa <tomasz.figa@gmail.com>.
 
-I think that a good enough solution here is that the code within each
-sensor driver that does the factorization has to be written to account
-for whatever reasonable restrictions that a bridge might require.
+	 - changed the commit message.
+---
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-Eg: if the userspace requests 49 bytes, it doesn't give back 7x7,
-because it knows that some bridges don't like odd numbers.
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index 8e60bd6..9a4b886 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -16,6 +16,7 @@
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_fb_helper.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/exynos_drm.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_fb.h"
+@@ -165,11 +166,21 @@ static int exynos_drm_fbdev_create(struct drm_fb_helper *helper,
+ 
+ 	size = mode_cmd.pitches[0] * mode_cmd.height;
+ 
+-	/* 0 means to allocate physically continuous memory */
+-	exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
++	exynos_gem_obj = exynos_drm_gem_create(dev, EXYNOS_BO_CONTIG, size);
+ 	if (IS_ERR(exynos_gem_obj)) {
+-		ret = PTR_ERR(exynos_gem_obj);
+-		goto err_release_framebuffer;
++		/*
++		 * If IOMMU is supported then try to get buffer from
++		 * non-continous memory area
++		 */
++		if (is_drm_iommu_supported(dev))
++			exynos_gem_obj = exynos_drm_gem_create(dev,
++						EXYNOS_BO_NONCONTIG, size);
++		if (IS_ERR(exynos_gem_obj)) {
++			ret = PTR_ERR(exynos_gem_obj);
++			goto err_release_framebuffer;
++		}
++		dev_warn(&pdev->dev, "exynos_gem_obj for FB is allocated with\n"
++				"non physically continuous memory\n");
+ 	}
+ 
+ 	exynos_fbdev->exynos_gem_obj = exynos_gem_obj;
+-- 
+1.7.9.5
 
-A sensor driver author would have to do a quick survey of bridges to
-see what was likely to be problematic.  A bit of common sense would
-solve the vast majority of cases.  After that if the bridge didn't
-like what the sensor set, then the whole operation would fail.  The
-user would then have to make a feature request to the sensor driver
-author saying "can you please tweak it to work with such-a-bridge".
-
-This solution is only slightly more complicated than picking a fixed
-width, and I think that the advantage is worth the extra complication.
-
-> Remember v4l2_buffer.length is different from
->  v4l2_pix_format.sizeimage.
-> Hmm. Yes --- so to the sensor goes desired maximum size, and back
-> you'd get ExF (i.e. buffer length) AND the size of the image.
-
-I really don't understand this last paragraph. Try adding coffee ;-)
-
-Best regards,
-Tom
-
---
-Mr T. Vajzovic
-Software Engineer
-Infrared Integrated Systems Ltd
-Visit us at www.irisys.co.uk
-Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
