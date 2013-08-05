@@ -1,60 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53141 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754231Ab3HERwi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:38 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v6 03/10] media: vb2: Clarify queue_setup() and buf_prepare() usage documentation
-Date: Mon,  5 Aug 2013 19:53:22 +0200
-Message-Id: <1375725209-2674-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:57771 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230Ab3HEFMN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 01:12:13 -0400
+Received: by mail-ob0-f182.google.com with SMTP id wo10so4790854obc.27
+        for <linux-media@vger.kernel.org>; Sun, 04 Aug 2013 22:12:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1375425134-17080-2-git-send-email-sachin.kamat@linaro.org>
+References: <1375425134-17080-1-git-send-email-sachin.kamat@linaro.org>
+	<1375425134-17080-2-git-send-email-sachin.kamat@linaro.org>
+Date: Mon, 5 Aug 2013 10:42:12 +0530
+Message-ID: <CAK9yfHyhDyoAphFC=MtDxtCedhN8-A=+gtXKZevsFg=JYq=ZUQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] exynos4-is: Annotate unused functions
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: sachin.kamat@linaro.org, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Explain how the two operations must handle formats and validate buffer
-sizes when used with VIDIOC_CREATE_BUFS.
+Hi Sylwester,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+On 2 August 2013 12:02, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> __is_set_init_isp_aa and fimc_is_hw_set_tune currently do not have
+> any callers. However these functions may be used in the future. Hence
+> instead of deleting them, staticize and annotate them with __maybe_unused
+> flag to avoid compiler warnings.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index d88a098..6781258 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -219,8 +219,9 @@ struct vb2_buffer {
-  *			configured format and *num_buffers is the total number
-  *			of buffers, that are being allocated. When called from
-  *			VIDIOC_CREATE_BUFS, fmt != NULL and it describes the
-- *			target frame format. In this case *num_buffers are being
-- *			allocated additionally to q->num_buffers.
-+ *			target frame format (if the format isn't valid the
-+ *			callback must return -EINVAL). In this case *num_buffers
-+ *			are being allocated additionally to q->num_buffers.
-  * @wait_prepare:	release any locks taken while calling vb2 functions;
-  *			it is called before an ioctl needs to wait for a new
-  *			buffer to arrive; required to avoid a deadlock in
-@@ -236,8 +237,10 @@ struct vb2_buffer {
-  * @buf_prepare:	called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-  *			perform any initialization required before each hardware
-- *			operation in this callback; if an error is returned, the
-- *			buffer will not be queued in driver; optional
-+ *			operation in this callback; drivers that support
-+ *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-+ *			if an error is returned, the buffer will not be queued
-+ *			in driver; optional
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; drivers may perform any operations required
-  *			before userspace accesses the buffer; optional
+Thanks for applying the other 2 patches in this series. What is your
+opinion about this one?
+Does this look good or do you prefer to delete the code altogether?
+
+> ---
+>  drivers/media/platform/exynos4-is/fimc-is-param.c |    2 +-
+>  drivers/media/platform/exynos4-is/fimc-is-regs.c  |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
+> index a353be0..9bf3ddd 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-is-param.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
+> @@ -287,7 +287,7 @@ void __is_set_sensor(struct fimc_is *is, int fps)
+>         fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
+>  }
+>
+> -void __is_set_init_isp_aa(struct fimc_is *is)
+> +static void __maybe_unused __is_set_init_isp_aa(struct fimc_is *is)
+>  {
+>         struct isp_param *isp;
+>
+> diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
+> index 63c68ec..cf2e13a 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
+> @@ -96,7 +96,7 @@ int fimc_is_hw_set_param(struct fimc_is *is)
+>         return 0;
+>  }
+>
+> -int fimc_is_hw_set_tune(struct fimc_is *is)
+> +static int __maybe_unused fimc_is_hw_set_tune(struct fimc_is *is)
+>  {
+>         fimc_is_hw_wait_intmsr0_intmsd0(is);
+>
+> --
+> 1.7.9.5
+>
+
+
+
 -- 
-1.8.1.5
-
+With warm regards,
+Sachin
