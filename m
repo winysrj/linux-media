@@ -1,142 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:59754 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754471Ab3HVVZV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 17:25:21 -0400
-Received: by mail-lb0-f181.google.com with SMTP id u12so1910343lbd.40
-        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 14:25:20 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	m.chehab@samsung.com
-Subject: [PATCH v5 2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
-Date: Fri, 23 Aug 2013 01:25:25 +0400
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-References: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:48104 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670Ab3HERAQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:00:16 -0400
+Message-ID: <51FFD892.5000708@wwwdotorg.org>
+Date: Mon, 05 Aug 2013 10:53:38 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com,
+	Rob Herring <rob.herring@calxeda.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ian.campbell@citrix.com>
+Subject: Re: [RFC v3 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device
+ tree bindings documentation
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com> <1375455762-22071-3-git-send-email-arun.kk@samsung.com> <51FD7925.2010604@gmail.com>
+In-Reply-To: <51FD7925.2010604@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201308230125.26064.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+On 08/03/2013 03:41 PM, Sylwester Nawrocki wrote:
+> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+>> The patch adds the DT binding documentation for Samsung
+>> Exynos5 SoC series imaging subsystem (FIMC-IS).
 
-Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
-register VIN1/3 devices with the ADV7180 specific platform data.
+>> diff --git
+>> a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> new file mode 100644
+>> index 0000000..49a373a
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> @@ -0,0 +1,52 @@
+>> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+>> +------------------------------------------------------
+>> +
+>> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+>> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+>> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+>> +handle sensor controls and camera post-processing operations. The
+>> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+>> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+>> +dedicated scalers (SCC and SCP).
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-[Sergei: removed superfluous tabulation and inserted empty lines in the  macro
-definition, updated the copyrights, annotated VIN platform data as '__initdata']
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+So there are a lot of blocks mentioned there, yet the binding doesn't
+seem to describe most of it. Is the binding complete?
 
----
-Changes since version 3:
-- changed the VIN platform device names to be R8A7779 specific.
+>> +pmu subnode
+>> +-----------
+>> +
+>> +Required properties:
+>> + - reg : should contain PMU physical base address and size of the memory
+>> +         mapped registers.
 
-Changes since version 2:
-- annotated 'vin_platform_data' as '__initdata' since they're kmemdup()'ed while
-  registering the platform devices anyway.
+I think you need a compatible value for this. How else is the node
+identified? The node name probably should not be used for identification.
 
-Changes since the original posting:
-- used a macro to define the camera platform devices;
-- updated the copyrights;
-- refreshed the patch.
+>> +
+>> +i2c-isp (ISP I2C bus controller) nodes
+>> +------------------------------------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible    : should be "samsung,exynos4212-i2c-isp" for Exynos4212,
+>> +          Exynos4412 and Exynos5250 SoCs;
+>> +- reg        : physical base address and length of the registers set;
+>> +- clocks    : must contain gate clock specifier for this controller;
+>> +- clock-names    : must contain "i2c_isp" entry.
+>> +
+>> +For the above nodes it is required to specify a pinctrl state named "default",
 
- arch/arm/mach-shmobile/board-marzen.c |   44 +++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+Is "above nodes" both pmu, i2c-isp? It might make sense to be more
+explicit re: which nodes this comment applies to.
 
-Index: media_tree/arch/arm/mach-shmobile/board-marzen.c
-===================================================================
---- media_tree.orig/arch/arm/mach-shmobile/board-marzen.c
-+++ media_tree/arch/arm/mach-shmobile/board-marzen.c
-@@ -1,8 +1,9 @@
- /*
-  * marzen board support
-  *
-- * Copyright (C) 2011  Renesas Solutions Corp.
-+ * Copyright (C) 2011, 2013  Renesas Solutions Corp.
-  * Copyright (C) 2011  Magnus Damm
-+ * Copyright (C) 2013  Cogent Embedded, Inc.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -37,6 +38,7 @@
- #include <linux/mmc/host.h>
- #include <linux/mmc/sh_mobile_sdhi.h>
- #include <linux/mfd/tmio.h>
-+#include <media/soc_camera.h>
- #include <mach/hardware.h>
- #include <mach/r8a7779.h>
- #include <mach/common.h>
-@@ -178,12 +180,40 @@ static struct platform_device leds_devic
- 	},
- };
- 
-+static struct rcar_vin_platform_data vin_platform_data __initdata = {
-+	.flags	= RCAR_VIN_BT656,
-+};
-+
-+#define MARZEN_CAMERA(idx)					\
-+static struct i2c_board_info camera##idx##_info = {		\
-+	I2C_BOARD_INFO("adv7180", 0x20 + (idx)),		\
-+};								\
-+								\
-+static struct soc_camera_link iclink##idx##_adv7180 = {		\
-+	.bus_id		= 1 + 2 * (idx),			\
-+	.i2c_adapter_id	= 0,					\
-+	.board_info	= &camera##idx##_info,			\
-+};								\
-+								\
-+static struct platform_device camera##idx##_device = {		\
-+	.name	= "soc-camera-pdrv",				\
-+	.id	= idx,						\
-+	.dev	= {						\
-+		.platform_data	= &iclink##idx##_adv7180,	\
-+	},							\
-+};
-+
-+MARZEN_CAMERA(0);
-+MARZEN_CAMERA(1);
-+
- static struct platform_device *marzen_devices[] __initdata = {
- 	&eth_device,
- 	&sdhi0_device,
- 	&thermal_device,
- 	&hspi_device,
- 	&leds_device,
-+	&camera0_device,
-+	&camera1_device,
- };
- 
- static const struct pinctrl_map marzen_pinctrl_map[] = {
-@@ -219,6 +249,16 @@ static const struct pinctrl_map marzen_p
- 	/* USB2 */
- 	PIN_MAP_MUX_GROUP_DEFAULT("ehci-platform.1", "pfc-r8a7779",
- 				  "usb2", "usb2"),
-+	/* VIN1 */
-+	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.1", "pfc-r8a7779",
-+				  "vin1_clk", "vin1"),
-+	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.1", "pfc-r8a7779",
-+				  "vin1_data8", "vin1"),
-+	/* VIN3 */
-+	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.3", "pfc-r8a7779",
-+				  "vin3_clk", "vin3"),
-+	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.3", "pfc-r8a7779",
-+				  "vin3_data8", "vin3"),
- };
- 
- static void __init marzen_init(void)
-@@ -235,6 +275,8 @@ static void __init marzen_init(void)
- 
- 	r8a7779_add_standard_devices();
- 	r8a7779_add_usb_phy_device(&usb_phy_platform_data);
-+	r8a7779_add_vin_device(1, &vin_platform_data);
-+	r8a7779_add_vin_device(3, &vin_platform_data);
- 	platform_add_devices(marzen_devices, ARRAY_SIZE(marzen_devices));
- }
- 
+>> +according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
+>> +
+>> +Device tree nodes of the image sensors' controlled directly by the FIMC-IS
+
+s/'// ?
+
+>> +firmware must be child nodes of their corresponding ISP I2C bus controller node.
+>> +The data link of these image sensors must be specified using the common video
+>> +interfaces bindings, defined in video-interfaces.txt.
+
