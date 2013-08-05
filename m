@@ -1,45 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:2234 "EHLO
-	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab3H0Nar (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 09:30:47 -0400
-From: Tuomas Tynkkynen <ttynkkynen@nvidia.com>
-To: <sumit.semwal@linaro.org>
-CC: <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	Tuomas Tynkkynen <ttynkkynen@nvidia.com>
-Subject: [PATCH] dma-buf: Check return value of anon_inode_getfile
-Date: Tue, 27 Aug 2013 16:30:38 +0300
-Message-ID: <1377610238-2146-1-git-send-email-ttynkkynen@nvidia.com>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:60311 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747Ab3HEHDk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 03:03:40 -0400
+Received: by mail-wg0-f48.google.com with SMTP id f12so2103935wgh.27
+        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 00:03:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1375101661-6493-6-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl> <1375101661-6493-6-git-send-email-hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 5 Aug 2013 12:33:18 +0530
+Message-ID: <CA+V-a8tC-MUUW4RLf7EFzrxaLZW5jKyYKvWtbKy8s9qc5xYmGw@mail.gmail.com>
+Subject: Re: [RFC PATCH 5/8] videodev2.h: defines to calculate blanking and
+ frame sizes
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-anon_inode_getfile might fail, so check its return value.
+Hi Hans,
 
-Signed-off-by: Tuomas Tynkkynen <ttynkkynen@nvidia.com>
----
- drivers/base/dma-buf.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Thanks for the patch.
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 1219ab7..2d5ac1a 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -133,7 +133,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->exp_name = exp_name;
- 
- 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
--
-+	if (IS_ERR(file)) {
-+		kfree(dmabuf);
-+		return ERR_CAST(file);
-+	}
- 	dmabuf->file = file;
- 
- 	mutex_init(&dmabuf->lock);
--- 
-1.8.1.5
+On Mon, Jul 29, 2013 at 6:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> It is very common to have to calculate the total width and height of the
+> blanking and the full frame, so add a few defines that deal with that.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Regards,
+--Prabhakar Lad
