@@ -1,77 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36699 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757249Ab3HGKkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 06:40:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] V4L: async: Make sure subdevs are stored in a list before being moved
-Date: Wed,  7 Aug 2013 12:41:55 +0200
-Message-Id: <1375872115-32505-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx01-sz.bfs.de ([194.94.69.67]:1595 "EHLO mx01-sz.bfs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751616Ab3HEQYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Aug 2013 12:24:48 -0400
+Message-ID: <51FFD1CB.4080907@bfs.de>
+Date: Mon, 05 Aug 2013 18:24:43 +0200
+From: walter harms <wharms@bfs.de>
+Reply-To: wharms@bfs.de
+MIME-Version: 1.0
+To: Julia Lawall <julia.lawall@lip6.fr>
+CC: Dan Carpenter <dan.carpenter@oracle.com>, trivial@kernel.org,
+	kernel-janitors@vger.kernel.org, corbet@lwn.net,
+	m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] trivial: adjust code alignment
+References: <1375714059-29567-1-git-send-email-Julia.Lawall@lip6.fr> <1375714059-29567-5-git-send-email-Julia.Lawall@lip6.fr> <20130805160645.GI5051@mwanda> <alpine.DEB.2.02.1308051810360.2134@hadrien>
+In-Reply-To: <alpine.DEB.2.02.1308051810360.2134@hadrien>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Subdevices have an async_list field used to store them in the global
-list of subdevices or in the notifier done lists. List entries are moved
-from the former to the latter in v4l2_async_test_notify() using
-list_move(). However, v4l2_async_test_notify() can be called right away
-when the subdev is registered with v4l2_async_register_subdev(), in
-which case the entry is not stored in any list.
+Hello Julia,
 
-Although this behaviour is not correct, the code doesn't crash at the
-moment as the async_list field is initialized as a list head, despite
-being a list entry.
+IMHO keep the patch as it is.
+It does not change any code that is good.
+Suspicious code that comes up here can be addressed
+in a separate patch.
 
-Add the subdev to the global subdevs list a registration time before
-matching them with the notifiers to make sure the list_move() call will
-get a subdev that is stored in a list, and remove the list head
-initialization for the subdev async_list field.
+just my 2 cents,
+re,
+ wh
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index b350ab9..4485dfe 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -122,7 +122,7 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- {
- 	v4l2_device_unregister_subdev(sd);
- 	/* Subdevice driver will reprobe and put the subdev back onto the list */
--	list_del_init(&sd->async_list);
-+	list_del(&sd->async_list);
- 	sd->asd = NULL;
- 	sd->dev = NULL;
- }
-@@ -238,7 +238,11 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 
- 	mutex_lock(&list_lock);
- 
--	INIT_LIST_HEAD(&sd->async_list);
-+	/*
-+	 * Add the subdev to the global subdevs list. It will be moved to the
-+	 * notifier done list by v4l2_async_test_notify().
-+	 */
-+	list_add(&sd->async_list, &subdev_list);
- 
- 	list_for_each_entry(notifier, &notifier_list, list) {
- 		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-@@ -249,9 +253,6 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		}
- 	}
- 
--	/* None matched, wait for hot-plugging */
--	list_add(&sd->async_list, &subdev_list);
--
- 	mutex_unlock(&list_lock);
- 
- 	return 0;
--- 
-Regards,
-
-Laurent Pinchart
-
+Am 05.08.2013 18:19, schrieb Julia Lawall:
+> On Mon, 5 Aug 2013, Dan Carpenter wrote:
+> 
+>> On Mon, Aug 05, 2013 at 04:47:39PM +0200, Julia Lawall wrote:
+>>> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+>>> index e8a1ce2..4a5a5dc 100644
+>>> --- a/drivers/media/i2c/ov7670.c
+>>> +++ b/drivers/media/i2c/ov7670.c
+>>> @@ -1369,8 +1369,8 @@ static int ov7670_s_exp(struct v4l2_subdev *sd,
+>>> int value)
+>>>      unsigned char com1, com8, aech, aechh;
+>>>
+>>>      ret = ov7670_read(sd, REG_COM1, &com1) +
+>>> -        ov7670_read(sd, REG_COM8, &com8);
+>>> -        ov7670_read(sd, REG_AECHH, &aechh);
+>>> +    ov7670_read(sd, REG_COM8, &com8);
+>>> +    ov7670_read(sd, REG_AECHH, &aechh);
+>>>      if (ret)
+>>>          return ret;
+>>>
+>>
+>> The new indenting isn't correct here and anyway the intent was to
+>> combine all the error codes together and return them as an error
+>> code jumble.  I'm not a fan of error code jumbles, probably the
+>> right thing is to check each function call or, barring that, to
+>> return -EIO.
+> 
+> Oops, thanks for spotting that.  I'm not sure whether it is safe to
+> abort these calls as soon as the first one fails, but perhaps I could
+> introduce some more variables, and test them all afterwards.
+> 
+> What should I do with the big patch?  Resend it with this cut out?  Or,
+> considering that I might have overlooked something else, send 90 some
+> little ones?
+> 
+> thanks,
+> julia
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe
+> kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
