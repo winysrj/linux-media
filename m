@@ -1,105 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2147 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753459Ab3HOS3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 14:29:14 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7FITBVi002934
-	for <linux-media@vger.kernel.org>; Thu, 15 Aug 2013 20:29:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 15 Aug 2013 20:29:11 +0200 (CEST)
-Message-Id: <201308151829.r7FITBVi002934@smtp-vbr15.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 745CE2A075F
-	for <linux-media@vger.kernel.org>; Thu, 15 Aug 2013 20:29:09 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53135 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754240Ab3HERwi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:38 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v6 04/10] media: vb2: Take queue or device lock in vb2_fop_mmap()
+Date: Mon,  5 Aug 2013 19:53:23 +0200
+Message-Id: <1375725209-2674-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The vb2_fop_mmap() function is a plug-in implementation of the mmap()
+file operation that calls vb2_mmap() on the queue associated with the
+video device. Neither the vb2_fop_mmap() function nor the v4l2_mmap()
+mmap handler in the V4L2 core take any lock, leading to race conditions
+between mmap() and other buffer-related ioctls such as VIDIOC_REQBUFS.
 
-Results of the daily build of media_tree:
+Fix it by taking the queue or device lock around the vb2_mmap() call.
 
-date:		Thu Aug 15 19:00:19 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 9fc4bab..bd4bade 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2578,8 +2578,15 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_expbuf);
+ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
++	int err;
+ 
+-	return vb2_mmap(vdev->queue, vma);
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	err = vb2_mmap(vdev->queue, vma);
++	if (lock)
++		mutex_unlock(lock);
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+ 
+-- 
+1.8.1.5
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
