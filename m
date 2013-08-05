@@ -1,279 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:62862 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752086Ab3H0OJG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 10:09:06 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MS700BYD0MWU330@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Aug 2013 10:09:04 -0400 (EDT)
-Date: Tue, 27 Aug 2013 11:08:58 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Frank =?UTF-8?B?U2No?= =?UTF-8?B?w6RmZXI=?=
-	<fschaefer.oss@googlemail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-Message-id: <20130827110858.01d88513@samsung.com>
-In-reply-to: <6237856.Ni2ROBVUfl@avalon>
-References: <520E76E7.30201@googlemail.com>
- <Pine.LNX.4.64.1308261515320.1767@axis700.grange>
- <20130826110933.318f31fa@samsung.com> <6237856.Ni2ROBVUfl@avalon>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42967 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754503Ab3HEJLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Aug 2013 05:11:53 -0400
+Message-ID: <51FF6C4D.2030306@ti.com>
+Date: Mon, 5 Aug 2013 12:11:41 +0300
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
+	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
+	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/6] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-3-git-send-email-archit@ti.com>
+In-Reply-To: <1375452223-30524-3-git-send-email-archit@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="ho60lEwMK3NrTvVwHk5ed6st83R4Xniat"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Aug 2013 14:52:19 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+--ho60lEwMK3NrTvVwHk5ed6st83R4Xniat
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> Hi Mauro,
-> 
-> On Monday 26 August 2013 11:09:33 Mauro Carvalho Chehab wrote:
-> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> > > On Sat, 24 Aug 2013, Mauro Carvalho Chehab wrote:
-> > > > Em Fri, 23 Aug 2013 00:15:52 +0200
-> > > > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> > > > > Am 21.08.2013 23:42, schrieb Sylwester Nawrocki:
-> > > > > > On 08/21/2013 10:39 PM, Frank Schäfer wrote:
-> > > > > >> Am 20.08.2013 18:34, schrieb Frank Schäfer:
-> > > > > >>> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
-> > > > > >>>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
-> > > > > >>>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
-> > > > > >>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
-> > > > > >>>>>>> Hi Frank,
-> > > > > >>>>>>> As I mentioned on the list, I'm currently on a holiday, so,
-> > > > > >>>>>>> replying briefly.
-> > > > > >>>>>> 
-> > > > > >>>>>> Sorry, I missed that (can't read all mails on the list).
-> > > > > >>>>>> 
-> > > > > >>>>>>> Since em28xx is a USB device, I conclude, that it's supplying
-> > > > > >>>>>>> clock to its components including the ov2640 sensor. So, yes,
-> > > > > >>>>>>> I think the driver should export a V4L2 clock.
-> > > > > >>>>>> 
-> > > > > >>>>>> Ok, so it's mandatory on purpose ?
-> > > > > >>>>>> I'll take a deeper into the v4l2-clk code and the
-> > > > > >>>>>> em28xx/ov2640/soc-camera interaction this week.
-> > > > > >>>>>> Have a nice holiday !
-> > > 
-> > > Thanks, it was nice indeed :)
-> > > 
-> > > > > >>>> too late to fix the issue (given that 3.10 is already broken) ?
-> > > > > >>>> The fix
-> > > 
-> > > Don't think it is, "[media] soc-camera: switch I2C subdevice drivers to
-> > > use v4l2-clk" only appeared in v3.11-rc1.
-> > > 
-> > > > > >>>> shouldn't be too complex, registering a dummy V4L2 clock in the
-> > > > > >>>> em28xx driver should be enough.
-> > > > > >>> 
-> > > > > >>> I would prefer either a) making the clock optional in the senor
-> > > > > >>> driver(s) or b) implementing a real V4L2 clock.
-> > > > > >>> 
-> > > > > >>> Reading the soc-camera code, it looks like NULL-pointers for
-> > > > > >>> struct
-> > > > > >>> 
-> > > > > >>> v4l2_clk are handled correctly. so a) should be pretty simple:
-> > > > > >>>      priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> > > > > >>> 
-> > > > > >>> -   if (IS_ERR(priv->clk)) {
-> > > > > >>> -       ret = PTR_ERR(priv->clk);
-> > > > > >>> -       goto eclkget;
-> > > > > >>> -   }
-> > > > > >>> +   if (IS_ERR(priv->clk))
-> > > > > >>> +       priv->clk = NULL;
-> > > > > >>> 
-> > > > > >>> Some additional NULL-pointer checks might be necessary, e.g.
-> > > > > >>> before calling v4l2_clk_put().
-> > > > > >> 
-> > > > > >> Tested and that works.
-> > > > > >> Patch follows.
-> > > > > > 
-> > > > > > That patch breaks subdevs registration through the v4l2-async. See
-> > > > > > commit
-> > > > > > 
-> > > > > > ef6672ea35b5bb64ab42e18c1a1ffc717c31588a
-> > > > > > [media] V4L2: mt9m111: switch to asynchronous subdevice probing
-> > > > > > 
-> > > > > > Sensor probe() callback must return EPROBE_DEFER when the clock is
-> > > > > > not found. This cause the sensor's probe() callback to be called
-> > > > > > again by the driver core after some other driver has probed, e.g.
-> > > > > > the one that registers v4l2_clk. If specific error code is not
-> > > > > > returned from probe() the whole registration process breaks.
-> > > > > 
-> > > > > Urgh... great. :/
-> > > > > So the presence of a clock is used as indicator if the device is ready
-> > > > > ? Honestly, that sounds like a misuse... Is there no other way to
-> > > > > check if the device is ready ? Please don't get me wrong, I noticed
-> > > > > you've been working on the async subdevice registration patches for
-> > > > > quite a long time and I'm sure it wasn't an easy task.
-> > > > 
-> > > > The interface was written to mimic what OF does with clock.
-> > > > 
-> > > > Yeah, I agree that this sucks for non OF drivers.
-> > > > 
-> > > > > Btw: only 2 of the 14 drivers return -EPROBE_DEFER when no clock is
-> > > > > found: imx074, mt9m111m.
-> > > > > All others return the error code from v4l2_clk_get(), usually -ENODEV.
-> > > > 
-> > > > Probably because they weren't converted yet to the new way.
-> > > > 
-> > > > > >>> Concerning b): I'm not yet sure if it is really needed/makes
-> > > > > >>> sense... Who is supposed to configure/enable/disable the clock in
-> > > > > >>> a constellation like em28xx+ov2640 ?
-> > > 
-> > > Ok, let's try to summerise:
-> > > 
-> > > * background: many camera sensors do not react to I2C commands as long as
-> > > no master clock is supplied. Therefore for _those_ sensors making a clock
-> > > availability seems logical to me. And since it's the sensor driver, that
-> > > knows what that clock is used for, when it is needed and - eventually -
-> > > what rate is required - it's the sensor driver, that should manipulate it.
-> > > Example: some camera sensor drivers write sensor configuration directly to
-> > > the hardware in each ioctl() possibly without storing the state
-> > > internally. Such drivers will need a clock running all the time to keep
-> > > register values. Other drivers might only store configuration internally
-> > > and only send it to the hardware when streaming is enabled. Those drivers
-> > > can keep the clock disabled until that time then.
-> > > 
-> > > * problem: em28xx USB camera driver uses the ov2640 camera sensor driver
-> > > and doesn't supply a clock. But ov2640 sensors do need a clock, so, we
-> > > have to assume it is supplied internally in the camera. Presumably, it is
-> > > always on and its rate cannot be adjusted either.
-> > 
-> > Guennadi,
-> > 
-> > I don't have the schematics of those cameras, but I suspect that the
-> > clock for the sensor is hardwired, e. g. probably em28xx can't enable
-> > or disable it. This is the usual solution on non-embedded hardware.
-> 
-> Possibly. Or the em28xx controls the clock transparently. We will probably 
-> never know, and it doesn't matter much at the end of the day. We know that the 
-> clock is on whenever we access the sensor, so we can consider that clock as an 
-> always-on clock for all practical matters.
+On 02/08/13 17:03, Archit Taneja wrote:
+> Create functions which the VPE driver can use to create a VPDMA descrip=
+tor and
+> add it to a VPDMA descriptor list. These functions take a pointer to an=
+ existing
+> list, and append the configuration/data/control descriptor header to th=
+e list.
+>=20
+> In the case of configuration descriptors, the creation of a payload blo=
+ck may be
+> required(the payloads can hold VPE MMR values, or scaler coefficients).=
+ The
+> allocation of the payload buffer and it's content is left to the VPE dr=
+iver.
+> However, the VPDMA library provides helper macros to create payload in =
+the
+> correct format.
+>=20
+> Add debug functions to dump the descriptors in a way such that it's eas=
+y to see
+> the values of different fields in the descriptors.
 
-Yes.
+There are lots of defines and inline functions in this patch. But at
+least the ones I looked at were only used once.
 
-> > That's why, IMHO, putting anything at the USB bridge driver (em28xx) makes
-> > no sense: the bridge doesn't have any control over the clock.
-> 
-> That's where I don't agree. Here we need to think about the bridge as the 
-> combination of the bridge chip and the board on which it's soldered, as the 
-> board itself isn't modelled separately.
+For example, dtd_set_xfer_length_height() is called only in one place.
+Then dtd_set_xfer_length_height() uses DTD_W1(), and again it's the only
+place where DTD_W1() is used.
 
-Yes, we agree to disagree on this. The board layout is not the bridge. 
-> 
-> Even if the bridge doesn't control the clock, it provides a clock to the 
-> sensor.
+So instead of:
 
-That highly depends on how it is wired. The clock could be provided by some
-independent circuit, or could be driven from the bridge clock. It is
-very common on those em28xx sticks to see two or even more xtals on it.
+dtd_set_xfer_length_height(dtd, c_rect->width, height);
 
-> As such, it's the responsibility of the bridge driver to provide the 
-> clock to the sensor driver. The sensor driver knows that the sensor needs a 
-> clock, and must thus get a clock object from somewhere.
+You could as well do:
 
-"Somewhere" doesn't mean that it comes from em28xx.
+dtd->xfer_length_height =3D (c_rect->width << DTD_LINE_LENGTH_SHFT) | hei=
+ght;
 
-> This is a fundamental principle of the Linux clock framework and regulator 
-> framework. For fixed-frequency always-on clocks, as well as for fixed-voltage 
-> always-on regulators, the clock and/or regulator provider just needs to 
-> register a fixed clock or regulator, which is very easy to do.
+Now, presuming the compiler optimizes correctly, there should be no
+difference between the two options above. My only point is that I wonder
+if having multiple "layers" there improves readability at all. Some
+helper funcs are rather trivial, like:
 
-Ok, but the voltage and clock regulators are not mapped, on embedded devices,
-as part of the USB or PCI bus bridge device (except, of course, when the
-voltage/clocks are needed by the bridge device itself). It is mapped
-elsewhere, at DT.
++static inline void dtd_set_w1(struct vpdma_dtd *dtd, u32 value)
++{
++	dtd->w1 =3D value;
++}
 
-> The v4l2-clock API has been designed to mimic the clock API to ease the 
-> transition to the clock API at a later time (the v4l2-clock API is meant to be 
-> temporary only). It doesn't offer all the helper functions available in the 
-> clock API and should thus be improved, as Guennadi pointed out.
+Then there are some, like dtd_set_type_ctl_stride(), that contains lots
+of parameters. Hmm, okay, dtd_set_type_ctl_stride() is called in two
+places, so at least in that case it makes sense to have that helper
+func. But dtd_set_type_ctl_stride() uses DTD_W0(), and that's again the
+only place where it's used.
 
-That argument I understand: it should mimic the clock API, to avoid rework.
+So, I don't know. I'm not suggesting to change anything, I just started
+wondering if all those macros and helpers actually help or not.
 
-> 
-> > > * possible fixes: several fixes have been proposed, e.g.
-> > > (a) implement a V4L2 clock in em28xx.
-> > > 
-> > >     Pro: logically correct - a clock is indeed present, local - no core
-> > > 	changes are needed
-> > >     Contra: presumably relatively many devices will have such static
-> > > 	
-> > > 	always-on clocks. Implementing them in each of those drivers will
-> > > 	add copied code. Besides creating a clock name from I2C bus and
-> > > 	device numbers is ugly (a helper is needed).
-> > > 
-> > > (b) make clocks optional in all subdevice drivers
-> > > 
-> > >     Pro: host / bridge drivers or core don't have to be modified
-> > >     Contra: wrong in principle - those clocks are indeed compulsory
-> > 
-> > I don't think that (b) is wrong: it is not a matter or clocks being
-> > compulsory or not. It is a matter of being able to be controlled or not.
-> 
-> No, it's a matter of providing a clock to a chip that needs one. If the chip 
-> needs a clock, it must get one. Whether the clock can be controlled or not is 
-> not relevant. Otherwise all clock users would need to implement several code 
-> paths depending on whether the clock is controllable or not. That's something 
-> we wanted to avoid, as it would result in code bloat. We've instead pushed all 
-> that common code to the core, with a requirement for clock providers to 
-> register a clock, even if it can't be controlled.
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpdma.c      | 269 +++++++++++
+>  drivers/media/platform/ti-vpe/vpdma.h      |  48 ++
+>  drivers/media/platform/ti-vpe/vpdma_priv.h | 695 +++++++++++++++++++++=
+++++++++
+>  3 files changed, 1012 insertions(+)
+>=20
+> diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/plat=
+form/ti-vpe/vpdma.c
+> index b15b3dd..b957381 100644
+> --- a/drivers/media/platform/ti-vpe/vpdma.c
+> +++ b/drivers/media/platform/ti-vpe/vpdma.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+> +#include <linux/videodev2.h>
+> =20
+>  #include "vpdma.h"
+>  #include "vpdma_priv.h"
+> @@ -425,6 +426,274 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, =
+struct vpdma_desc_list *list)
+>  	return 0;
+>  }
+> =20
+> +static void dump_cfd(struct vpdma_cfd *cfd)
+> +{
+> +	int class;
+> +
+> +	class =3D cfd_get_class(cfd);
+> +
+> +	pr_debug("config descriptor of payload class: %s\n",
+> +		class =3D=3D CFD_CLS_BLOCK ? "simple block" :
+> +		"address data block");
+> +
+> +	if (class =3D=3D CFD_CLS_BLOCK)
+> +		pr_debug("word0: dst_addr_offset =3D 0x%08x\n",
+> +			cfd_get_dest_addr_offset(cfd));
+> +
+> +	if (class =3D=3D CFD_CLS_BLOCK)
+> +		pr_debug("word1: num_data_wrds =3D %d\n", cfd_get_block_len(cfd));
+> +
+> +	pr_debug("word2: payload_addr =3D 0x%08x\n", cfd_get_payload_addr(cfd=
+));
+> +
+> +	pr_debug("word3: pkt_type =3D %d, direct =3D %d, class =3D %d, dest =3D=
+ %d, "
+> +		"payload_len =3D %d\n", cfd_get_pkt_type(cfd),
+> +		cfd_get_direct(cfd), class, cfd_get_dest(cfd),
+> +		cfd_get_payload_len(cfd));
+> +}
 
-Software can't provide clock. Only hardware can do it. If the hardware
-already provides it, it doesn't make any sense to add an API to control
-something that can't be controlled at all.
+There's quite a bit of code in these dump functions, and they are always
+called. I'm sure getting that data is good for debugging, but I presume
+they are quite useless for normal use. So I think they should be
+compiled in only if some Kconfig option is selected.
 
-So, the only sense on having a clock API is when the hardware allows some
-control on it.
+> +/*
+> + * data transfer descriptor
+> + *
+> + * All fields are 32 bits to make them endian neutral
 
-So, if the hardware can't be controlled and it is always on, it makes no
-sense to register a clock.
+What does that mean? Why would 32bit fields make it endian neutral?
 
-The thing is that you're wanting to use the clock register as a way to
-detect that the device got initialized. 
+> + */
+> +struct vpdma_dtd {
+> +	u32			type_ctl_stride;
+> +	union {
+> +		u32		xfer_length_height;
+> +		u32		w1;
+> +	};
+> +	dma_addr_t		start_addr;
+> +	u32			pkt_ctl;
+> +	union {
+> +		u32		frame_width_height;	/* inbound */
+> +		dma_addr_t	desc_write_addr;	/* outbound */
 
-This is wrong on devices where the clock is hardwired.
+Are you sure dma_addr_t is always 32 bit?
 
-> > If the clock can't be controlled via software, there's no sense on adding
-> > control stuff for it: it will just add extra code for no good reason.
-> > 
-> > > (c) add a global flag to indicate, that the use of clocks on this device
-> > > 
-> > >     is optional
-> > >     Pro: easy to support in drivers
-> > >     Contra: as in (b) above
-> > > 
-> > > (d) a variant of (a), but with a helper function in V4L2 clock core to
-> > > 
-> > >     implement such a static always-on clock
-> > >     Pro: simple to support in host / bridge drivers
-> > >     Contra: adds bloat to V4L2 clock helper layer, which we want to keep
-> > > 	
-> > > 	small and remove eventually.
-> > > 
-> > > Have I missed anything? Of the above I would go with (d). I could try to
-> > > code the required always-on clock helpers.
-> > 
-> > I prefer to have some solution that won't add any extra code if the clock is
-> > always on and can't be controlled.
-> 
-> But that's not how the common clock framework works. Sure, we could implement 
-> that right now in the v4l2-clock API, but we will need to register a fixed-
-> clock in the em28xx driver when moving to the clock API anyway. Let's not make 
-> the transition more complex than it should be.
+> +	};
+> +	union {
+> +		u32		start_h_v;		/* inbound */
+> +		u32		max_width_height;	/* outbound */
+> +	};
+> +	u32			client_attr0;
+> +	u32			client_attr1;
+> +};
 
-Or to fix the clock API to not over-design on devices where the clock can't
-be controlled.
+I'm not sure if I understand the struct right, but presuming this one
+struct is used for both writing and reading, and certain set of fields
+is used for writes and other set for reads, would it make sense to have
+two different structs, instead of using unions? Although they do have
+many common fields, and the unions are a bit scattered there, so I don't
+know if that would be cleaner...
 
--- 
+ Tomi
 
-Cheers,
-Mauro
+
+
+--ho60lEwMK3NrTvVwHk5ed6st83R4Xniat
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR/2xNAAoJEPo9qoy8lh71f1QQAJMdHtTHIga5RXsYCT6+espc
+kfgHddoopby+RQ6NaqZY7Exuf+ImEMNpUJu3Qlgf6XYvyuzdga2Ha4i/zsOkE0ui
+pb58x6fFMXbDTn/F3NB8DNJ8bXUXi2onfDJoyo9P2B7g3iufpbGUojGgrS0X9JgN
+hinW+fs4loV2fyDUAZxKlw5g2uo2Tn3dCOajKNfx159dI9eYevIuPxmIDdca0ncx
+hhzLYZUfwzok22pxZGXb/0D3QVHHYQe6fpA+4lfzWVRCtdHwK1gOPNoWu6Y8tcwt
+iKNNm7OgipwN5PUwIM9Q8+d/K4dT94WRYn66+NolKdmDE7Pew+RSxUEvoJfDyI86
+z18h0wdezPXklfPBKMYh48Rebgc4iRaZBv3OyRRyPJo4y6rlD93meQSPc9rF/BIV
+bmGz7t6boy7XAsX2IP/tt4v86WAIumRFKVEhAI4mdtFJWNXgCHYtwSDB6ARtHe2h
+oPl1h1UroXsjLq7FSFIXwJbz5hZe0pic5Zts3BDCrTi7PrY8/PJdEpaFxx9iaiWa
+TEHa+JtLkV4noK5XwM2+GQZ6oXYt3zYLuNNSV6m4Tk/bGMlgDnVQ/+PYl+qxU1gc
+aMuyY6RoEqxRUJmp+86O77FjnCiLylu3qFk8ks7gg0w4eZVPl132TKV5zvfgWtdX
+jrJVYITVF9dvOlt06SOz
+=1oV1
+-----END PGP SIGNATURE-----
+
+--ho60lEwMK3NrTvVwHk5ed6st83R4Xniat--
