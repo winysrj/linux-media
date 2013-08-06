@@ -1,112 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:36095 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754776Ab3HFGPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 02:15:43 -0400
-Received: by mail-ob0-f176.google.com with SMTP id uz19so7505441obc.35
-        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 23:15:43 -0700 (PDT)
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:31022 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab3HFKTT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:19:19 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r76AJ9nI014605
+	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:19:15 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 3/5] qv4l2: fix a bug where the alsa thread never stops
+Date: Tue,  6 Aug 2013 12:18:44 +0200
+Message-Id: <bf5861fde6b9028e4428417089557b68a2db0399.1375784295.git.bwinther@cisco.com>
+In-Reply-To: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
+References: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
+References: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <1375766604-15455-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1375766604-15455-1-git-send-email-vikas.sajjan@linaro.org>
-Date: Tue, 6 Aug 2013 11:45:43 +0530
-Message-ID: <CAK9yfHxoWkV5qROkr+TpWA+m1-K3mEUo2sp6HbZXSRTi-v3LMA@mail.gmail.com>
-Subject: Re: [PATCH v3] drm/exynos: Add fallback option to get non physically
- continous memory for fb
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, s.nawrocki@samsung.com,
-	m.szyprowski@samsung.com, tomasz.figa@gmail.com,
-	robdclark@gmail.com, arun.kk@samsung.com, patches@linaro.org,
-	linaro-kernel@lists.linaro.org, joshi@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikas,
+If the output audio device never read the buffer then the alsa thread
+would continue to fill it up and never stop when the capture stops.
 
-On 6 August 2013 10:53, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> While trying to get boot-logo up on exynos5420 SMDK which has eDP panel
-> connected with resolution 2560x1600, following error occured even with
-> IOMMU enabled:
-> [0.880000] [drm:lowlevel_buffer_allocate] *ERROR* failed to allocate buffer.
-> [0.890000] [drm] Initialized exynos 1.0.0 20110530 on minor 0
->
-> To address the cases where physically continous memory MAY NOT be a
-> mandatory requirement for fb, the patch adds a feature to get non physically
-> continous memory for fb if IOMMU is supported and if CONTIG memory allocation
-> fails.
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/alsa_stream.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The patch looks fine. Just a small nit. Please use the word contiguous
-instead of continuous to refer to memory locations consistently in
-this patch.
-
->
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> Signed-off-by: Arun Kumar <arun.kk@samsung.com>
-> Reviewed-by: Rob Clark <robdclark@gmail.com>
-> ---
-> changes since v2:
->         - addressed comments given by Tomasz Figa <tomasz.figa@gmail.com>.
->
-> changes since v1:
->          - Modified to add the fallback patch if CONTIG alloc fails as suggested
->          by Rob Clark robdclark@gmail.com and Tomasz Figa <tomasz.figa@gmail.com>.
->
->          - changed the commit message.
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fbdev.c |   14 ++++++++++++--
->  1 file changed, 12 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> index 8e60bd6..faec77e 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
-> @@ -16,6 +16,7 @@
->  #include <drm/drm_crtc.h>
->  #include <drm/drm_fb_helper.h>
->  #include <drm/drm_crtc_helper.h>
-> +#include <drm/exynos_drm.h>
->
->  #include "exynos_drm_drv.h"
->  #include "exynos_drm_fb.h"
-> @@ -165,8 +166,17 @@ static int exynos_drm_fbdev_create(struct drm_fb_helper *helper,
->
->         size = mode_cmd.pitches[0] * mode_cmd.height;
->
-> -       /* 0 means to allocate physically continuous memory */
-> -       exynos_gem_obj = exynos_drm_gem_create(dev, 0, size);
-> +       exynos_gem_obj = exynos_drm_gem_create(dev, EXYNOS_BO_CONTIG, size);
-> +       /*
-> +        * If IOMMU is supported then try to get buffer from non physically
-> +        * continous memory area.
-> +        */
-
-To make this more clear, you could say,
-"If physically contiguous memory allocation fails and if IOMMU is
-supported, try to ....."
-
-
-> +       if (IS_ERR(exynos_gem_obj) && is_drm_iommu_supported(dev)) {
-> +               dev_warn(&pdev->dev, "contiguous FB allocation failed, falling back to non-contiguous\n");
-> +               exynos_gem_obj = exynos_drm_gem_create(dev, EXYNOS_BO_NONCONTIG,
-> +                                                       size);
-> +       }
-> +
->         if (IS_ERR(exynos_gem_obj)) {
->                 ret = PTR_ERR(exynos_gem_obj);
->                 goto err_release_framebuffer;
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/utils/qv4l2/alsa_stream.c b/utils/qv4l2/alsa_stream.c
+index 3e33b5e..fbff4cb 100644
+--- a/utils/qv4l2/alsa_stream.c
++++ b/utils/qv4l2/alsa_stream.c
+@@ -437,7 +437,7 @@ static snd_pcm_sframes_t writebuf(snd_pcm_t *handle, char *buf, long len)
+ {
+     snd_pcm_sframes_t r;
+ 
+-    while (1) {
++    while (!stop_alsa) {
+ 	r = snd_pcm_writei(handle, buf, len);
+ 	if (r == len)
+ 	    return 0;
 -- 
-With warm regards,
-Sachin
+1.8.3.2
+
