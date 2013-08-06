@@ -1,104 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38000 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374Ab3HTLCc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 07:02:32 -0400
-From: Archit Taneja <archit@ti.com>
-To: <linux-media@vger.kernel.org>, <hverkuil@xs4all.nl>,
-	<laurent.pinchart@ideasonboard.com>, <tomi.valkeinen@ti.com>
-CC: <linux-omap@vger.kernel.org>, Archit Taneja <archit@ti.com>,
-	Rajendra Nayak <rnayak@ti.com>,
-	Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH v2 5/6] arm: dra7xx: hwmod data: add VPE hwmod data and ocp_if info
-Date: Tue, 20 Aug 2013 16:30:56 +0530
-Message-ID: <1376996457-17275-6-git-send-email-archit@ti.com>
-In-Reply-To: <1376996457-17275-1-git-send-email-archit@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com>
- <1376996457-17275-1-git-send-email-archit@ti.com>
+Received: from mail-vb0-f53.google.com ([209.85.212.53]:51578 "EHLO
+	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122Ab3HFErK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 00:47:10 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <51FD7982.5080101@gmail.com>
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+	<1375455762-22071-5-git-send-email-arun.kk@samsung.com>
+	<51FD7982.5080101@gmail.com>
+Date: Tue, 6 Aug 2013 10:17:09 +0530
+Message-ID: <CALt3h7-N+79tfNb0o8bcEZRuNDLS9-wbynHFo+aErr0k_Lb6Vg@mail.gmail.com>
+Subject: Re: [RFC v3 04/13] [media] exynos5-fimc-is: Add common driver header files
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add hwmod data for the VPE IP, this is needed for the IP to be reset during
-boot, and control the functional clock when the driver needs it via
-pm_runtime apis. Add the corresponding ocp_if struct and add it DRA7XX's
-ocp interface list.
+Hi Sylwester,
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 42 +++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+On Sun, Aug 4, 2013 at 3:13 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+>>
+>> This patch adds all the common header files used by the fimc-is
+>> driver. It includes the commands for interfacing with the firmware
+>> and error codes from IS firmware, metadata and command parameter
+>> definitions.
+>>
+>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+>> ---
+>>   drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
+>>   drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++++
+>>   .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++++++
+>>   drivers/media/platform/exynos5-is/fimc-is-param.h  | 1212
+>> ++++++++++++++++++++
+>>   4 files changed, 2423 insertions(+)
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
+>>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index f647998b..181365d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1883,6 +1883,39 @@ static struct omap_hwmod dra7xx_wd_timer2_hwmod = {
- 	},
- };
- 
-+/*
-+ * 'vpe' class
-+ *
-+ */
-+
-+static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class dra7xx_vpe_hwmod_class = {
-+	.name	= "vpe",
-+	.sysc	= &dra7xx_vpe_sysc,
-+};
-+
-+/* vpe */
-+static struct omap_hwmod dra7xx_vpe_hwmod = {
-+	.name		= "vpe",
-+	.class		= &dra7xx_vpe_hwmod_class,
-+	.clkdm_name	= "vpe_clkdm",
-+	.main_clk	= "dpll_core_h23x2_ck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_VPE_VPE_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
- 
- /*
-  * Interfaces
-@@ -2636,6 +2669,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per3 -> vpe */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__vpe = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_vpe_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_2__l3_instr,
- 	&dra7xx_l4_cfg__l3_main_1,
-@@ -2714,6 +2755,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_1__vcp2,
- 	&dra7xx_l4_per2__vcp2,
- 	&dra7xx_l4_wkup__wd_timer2,
-+	&dra7xx_l4_per3__vpe,
- 	NULL,
- };
- 
--- 
-1.8.1.2
+[snip]
 
+>> +
+>> +struct camera2_tonemap_dm {
+>> +       enum tonemap_mode               mode;
+>> +       /* assuming maxCurvePoints = 64 */
+>> +       float                           curve_red[64];
+>> +       float                           curve_green[64];
+>> +       float                           curve_blue[64];
+>
+>
+> So all those floating point numbers are now not really used in
+> the driver but we need them for proper data structures/offsets
+> declarations of the firmware interface ?
+>
+
+Yes. Same floats are used in firmware internal data structures
+also and the driver should assign these values when these parameters
+are to be changed.
+
+>> +};
+>> +
+
+[snip]
+
+>> +/* --------------------------  Effect
+>> ----------------------------------- */
+>> +enum isp_imageeffect_command {
+>> +       ISP_IMAGE_EFFECT_DISABLE                = 0,
+>> +       ISP_IMAGE_EFFECT_MONOCHROME             = 1,
+>> +       ISP_IMAGE_EFFECT_NEGATIVE_MONO          = 2,
+>> +       ISP_IMAGE_EFFECT_NEGATIVE_COLOR         = 3,
+>> +       ISP_IMAGE_EFFECT_SEPIA                  = 4,
+>> +       ISP_IMAGE_EFFECT_AQUA                   = 5,
+>> +       ISP_IMAGE_EFFECT_EMBOSS                 = 6,
+>> +       ISP_IMAGE_EFFECT_EMBOSS_MONO            = 7,
+>> +       ISP_IMAGE_EFFECT_SKETCH                 = 8,
+>> +       ISP_IMAGE_EFFECT_RED_YELLOW_POINT       = 9,
+>> +       ISP_IMAGE_EFFECT_GREEN_POINT            = 10,
+>> +       ISP_IMAGE_EFFECT_BLUE_POINT             = 11,
+>> +       ISP_IMAGE_EFFECT_MAGENTA_POINT          = 12,
+>> +       ISP_IMAGE_EFFECT_WARM_VINTAGE           = 13,
+>> +       ISP_IMAGE_EFFECT_COLD_VINTAGE           = 14,
+>> +       ISP_IMAGE_EFFECT_POSTERIZE              = 15,
+>> +       ISP_IMAGE_EFFECT_SOLARIZE               = 16,
+>> +       ISP_IMAGE_EFFECT_WASHED                 = 17,
+>> +       ISP_IMAGE_EFFECT_CCM                    = 18,
+>> +};
+>
+>
+> Hmm, I guess we will need a private v4l2 control for those.
+>
+
+Yes. I am planning to add the controls after the basic support
+gets merged.
+
+Regards
+Arun
