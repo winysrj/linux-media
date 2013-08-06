@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:64589 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab3HUIaB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 04:30:01 -0400
-From: Dinesh Ram <dinram@cisco.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44034 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755593Ab3HFKKo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:10:44 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MR300FENTLQMR60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Aug 2013 11:10:42 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MR3009CSTLTX700@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Aug 2013 11:10:42 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: eduardo.valentin@nokia.com, Dinesh Ram <dinram@cisco.com>
-Subject: [RFC PATCH 4/5] si4713 : HID blacklist Si4713 USB development board
-Date: Wed, 21 Aug 2013 10:19:50 +0200
-Message-Id: <c445ba6c1a5269f45c96040263ec3b7b95c189ff.1377073025.git.dinram@cisco.com>
-In-Reply-To: <1377073191-29197-1-git-send-email-dinram@cisco.com>
-References: <1377073191-29197-1-git-send-email-dinram@cisco.com>
-In-Reply-To: <714c16de2d45c2ccfc2fc94b2770bbd00bfeb977.1377073025.git.dinram@cisco.com>
-References: <714c16de2d45c2ccfc2fc94b2770bbd00bfeb977.1377073025.git.dinram@cisco.com>
+Subject: [GIT PULL] New features for 3.12
+Date: Tue, 06 Aug 2013 12:10:41 +0200
+Message-id: <030c01ce928d$3564b700$a02e2500$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Si4713 development board contains a Si4713 FM transmitter chip
-and is handled by the radio-usb-si4713 driver.
-The board reports itself as (10c4:8244) Cygnal Integrated Products, Inc.
-and misidentifies itself as a HID device in its USB interface descriptor.
-This patch ignores this device as an HID device and hence loads the custom driver.
+The following changes since commit b43ea8068d2090cb1e44632c8a938ab40d2c7419:
 
-Signed-off-by: Dinesh Ram <dinram@cisco.com>
----
- drivers/hid/hid-core.c | 1 +
- drivers/hid/hid-ids.h  | 2 ++
- 2 files changed, 3 insertions(+)
+  [media] cx23885: Fix TeVii S471 regression since introduction of ts2020
+(2013-07-30 17:23:24 -0300)
 
-diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
-index 36668d1..109510f 100644
---- a/drivers/hid/hid-core.c
-+++ b/drivers/hid/hid-core.c
-@@ -1977,6 +1977,7 @@ static const struct hid_device_id hid_ignore_list[] = {
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_BERKSHIRE, USB_DEVICE_ID_BERKSHIRE_PCWD) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CIDC, 0x0103) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYGNAL, USB_DEVICE_ID_CYGNAL_RADIO_SI470X) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_CYGNAL, USB_DEVICE_ID_CYGNAL_RADIO_SI4713) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CMEDIA, USB_DEVICE_ID_CM109) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_HIDCOM) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_ULTRAMOUSE) },
-diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index ffe4c7a..2a38726 100644
---- a/drivers/hid/hid-ids.h
-+++ b/drivers/hid/hid-ids.h
-@@ -241,6 +241,8 @@
- #define USB_VENDOR_ID_CYGNAL		0x10c4
- #define USB_DEVICE_ID_CYGNAL_RADIO_SI470X	0x818a
- 
-+#define USB_DEVICE_ID_CYGNAL_RADIO_SI4713       0x8244
-+
- #define USB_VENDOR_ID_CYPRESS		0x04b4
- #define USB_DEVICE_ID_CYPRESS_MOUSE	0x0001
- #define USB_DEVICE_ID_CYPRESS_HIDCOM	0x5500
--- 
-1.8.4.rc2
+are available in the git repository at:
+
+  git://linuxtv.org/kdebski/media.git new-for-3.12-2nd
+
+for you to fetch changes up to 8f55301a822a27f9c30c87284ff1d9e13aa1ea31:
+
+  s5p-mfc: Add support for VP8 encoder (2013-08-01 11:57:56 +0200)
+
+----------------------------------------------------------------
+Arun Kumar K (7):
+      s5p-mfc: Update v6 encoder buffer sizes
+      s5p-mfc: Rename IS_MFCV6 macro
+      s5p-mfc: Add register definition file for MFC v7
+      s5p-mfc: Core support for MFC v7
+      s5p-mfc: Update driver for v7 firmware
+      V4L: Add VP8 encoder controls
+      s5p-mfc: Add support for VP8 encoder
+
+Sylwester Nawrocki (1):
+      V4L: Add support for integer menu controls with standard menu items
+
+ Documentation/DocBook/media/v4l/controls.xml       |  168
++++++++++++++++++++-
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ Documentation/video4linux/v4l2-controls.txt        |   21 +--
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |    4 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |   61 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |    3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   23 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   12 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   18 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  107 ++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  149 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   67 +++++++-
+ include/uapi/linux/v4l2-controls.h                 |   29 ++++
+ 16 files changed, 642 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
