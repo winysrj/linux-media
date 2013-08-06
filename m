@@ -1,95 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33532 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115Ab3HTPOr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 11:14:47 -0400
-Message-id: <521387E4.4090705@samsung.com>
-Date: Tue, 20 Aug 2013 17:14:44 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Mark Rutland <Mark.Rutland@arm.com>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Subject: Re: [PATCH RFC v5] s5k5baf: add camera sensor driver
-References: <1376918307-21490-1-git-send-email-a.hajda@samsung.com>
- <5212551F.5020301@samsung.com> <52129C95.4070809@wwwdotorg.org>
- <1532139.bytBLuCBA6@flatron> <5212A2F7.9070100@wwwdotorg.org>
-In-reply-to: <5212A2F7.9070100@wwwdotorg.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:51797 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755217Ab3HFJSQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 05:18:16 -0400
+Received: by mail-bk0-f45.google.com with SMTP id je2so54485bkc.18
+        for <linux-media@vger.kernel.org>; Tue, 06 Aug 2013 02:18:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1308042252010.19244@axis700.grange>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
+	<Pine.LNX.4.64.1308042252010.19244@axis700.grange>
+Date: Tue, 6 Aug 2013 17:18:14 +0800
+Message-ID: <CALxrGmV-SCDntaJGeaCDkuqmdzgk3VEYZG+koj9em+Z4PSG0XQ@mail.gmail.com>
+Subject: Re: How to express planar formats with mediabus format code?
+From: Su Jiaquan <jiaquan.lnx@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/20/2013 12:57 AM, Stephen Warren wrote:
-> On 08/19/2013 04:53 PM, Tomasz Figa wrote:
->> On Monday 19 of August 2013 16:30:45 Stephen Warren wrote:
->>> On 08/19/2013 11:25 AM, Sylwester Nawrocki wrote:
->>>> On 08/19/2013 03:25 PM, Pawel Moll wrote:
->>>>> On Mon, 2013-08-19 at 14:18 +0100, Andrzej Hajda wrote:
->>>>>> +++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
->>>>>> @@ -0,0 +1,51 @@
->>>>>> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC
->>>>>> ISP
->>>>>> +-------------------------------------------------------------
->>>>>> +
->>>>>> +Required properties:
->>>>>> +
->>>>>> +- compatible     : "samsung,s5k5baf";
->>>>>> +- reg            : I2C slave address of the sensor;
->>>>>> +- vdda-supply    : analog power supply 2.8V (2.6V to 3.0V);
->>>>>> +- vddreg-supply          : regulator input power supply 1.8V (1.7V
->>>>>> to 1.9V) +                    or 2.8V (2.6V to 3.0);
->>>>>> +- vddio-supply   : I/O power supply 1.8V (1.65V to 1.95V)
->>>>>> +                    or 2.8V (2.5V to 3.1V);
->>>>>> +- gpios                  : GPIOs connected to STDBYN and RSTN pins,
->>>>>> +                    in order: STBYN, RSTN;
->>>>>
->>>>> You probably want to use the "[<name>-]gpios" convention here (see
->>>>> Documentation/devicetree/bindings/gpio/gpio.txt), so something like
->>>>> stbyn-gpios and rstn-gpios.
->>>>
->>>> Unless using multiple named properties is really preferred over a
->>>> single "gpios" property I would like to keep the single property
->>>> containing a list of GPIOs. ...
->>>
->>> Yes, a separate property for each type of GPIO is typical. Multiple
->>> entries in the same property are allowed if they're used for the same
->>> purpose/type, whereas here they're clearly different things.
+Hi Guennadi,
 
-Yes, that's a good argument. Those GPIOs are pretty unrelated.
+Thanks for the reply! Please see my description inline.
 
->>> Inconsistent with (some) other properties, admittedly...
-
-It might depend on which properties we consider together.
-
->> I'm not really convinced about the superiority of named gpio properties 
->> over a single gpios property with multiple entries in this case. I'd say 
->> it's more just a matter of preference.
+On Mon, Aug 5, 2013 at 5:02 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Su Jiaquan
+>
+> On Sun, 4 Aug 2013, Su Jiaquan wrote:
+>
+>> Hi,
 >>
->> See the clock or interrupt bindings. They all specify all the clocks and 
->> interrupts in single property, without any differentiation based on their 
->> purposes. Also keep in mind that original GPIO bindings used only a single 
->> "gpios" property and was only extended to allow named ones.
-> 
-> Well, it's not so much about what's best, but just being consistent with
-> what's already there.
+>> I know the title looks crazy, but here is our problem:
+>>
+>> In our SoC based ISP, the hardware can be divide to several blocks.
+>> Some blocks can do color space conversion(raw to YUV
+>> interleave/planar), others can do the pixel
+>> re-order(interleave/planar/semi-planar conversion, UV planar switch).
+>> We use one subdev to describe each of them, then came the problem: How
+>> can we express the planar formats with mediabus format code?
+>
+> Could you please explain more exactly what you mean? How are those your
+> blocks connected? How do they exchange data? If they exchange data over a
+> serial bus, then I don't think planar formats make sense, right? Or do
+> your blocks really output planes one after another, reordering data
+> internally? That would be odd... If OTOH your blocks output data to RAM,
+> and the next block takes data from there, then you use V4L2_PIX_FMT_*
+> formats to describe them and any further processing block should be a
+> mem2mem device. Wouldn't this work?
 
-OK, thanks a lot for clarification. We'll rework this to use separate named
-properties.
+These two hardware blocks are both located inside of ISP, and is
+connected by a hardware data bus.
 
---
-Thanks,
-Sylwester
+Actually, there are three blocks inside ISP: One is close to sensor,
+and can do color space conversion(RGB->YUV), we call it IPC; The other
+two are at back end, which are basically DMA Engine, and they are
+identical. When data flow out of IPC, it can go into each one of these
+DMA Engines and finally into RAM. Whether the DMA Engine is turned
+on/off and the output format can be controlled independently. Since
+they are DMA Engines, they have some basic pixel reordering
+ability(i.e. interleave->planar/semi-planar).
+
+In our H/W design, when we want to get YUV semi-planar format, the IPC
+output should be configured to interleave, and the DMA engine will do
+the interleave->semi-planar job. If we want planar / interleave
+format, the IPC will output planar format directly, DMA engine simply
+send the data to RAM, and don't do any re-order. So in the planar
+output case, media-bus formats can't express the format of the data
+between IPC and DMA Engine, that's the problem we meet.
+
+We want to adopt a formal solution before we send our patch to the
+community, that's where our headache comes.
+>
+> Thanks
+> Guennadi
+>
+>> I understand at beginning, media-bus was designed to describe the data
+>> link between camera sensor and camera controller, where sensor is
+>> described in subdev. So interleave formats looks good enough at that
+>> time. But now as Media-controller is introduced, subdev can describe a
+>> much wider range of hardware, which is not limited to camera sensor.
+>> So now planar formats are possible to be passed between subdevs.
+>>
+>> I think the problem we meet can be very common for SoC based ISP
+>> solutions, what do you think about it?
+>>
+>> there are many possible solution for it:
+>>
+>> 1> change the definition of v4l2_subdev_format::format, use v4l2_format;
+>>
+>> 2> extend the mediabus format code, add planar format code;
+>>
+>> 3> use a extra bit to tell the meaning of v4l2_mbus_framefmt::code, is
+>> it in mediabus-format or in fourcc
+>>
+>>  Do you have any suggestions?
+>>
+>>  Thanks a lot!
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+Thanks!
+
+Jiaquan
