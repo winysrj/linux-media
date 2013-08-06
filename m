@@ -1,137 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:36039 "EHLO
-	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755895Ab3H3Uyf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 16:54:35 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] gspca-stk1135: Add variable resolution support
-Date: Fri, 30 Aug 2013 22:54:25 +0200
-Message-Id: <1377896065-29392-3-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1377896065-29392-2-git-send-email-linux@rainbow-software.org>
-References: <1377896065-29392-1-git-send-email-linux@rainbow-software.org>
- <1377896065-29392-2-git-send-email-linux@rainbow-software.org>
+Received: from mail-vb0-f41.google.com ([209.85.212.41]:64442 "EHLO
+	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753301Ab3HFNtT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 09:49:19 -0400
+MIME-Version: 1.0
+In-Reply-To: <51FE6C86.1010906@gmail.com>
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
+	<1375455762-22071-10-git-send-email-arun.kk@samsung.com>
+	<51FE6C86.1010906@gmail.com>
+Date: Tue, 6 Aug 2013 19:19:15 +0530
+Message-ID: <CALt3h7_xnYMW6-oGU0i_0c_ByUYZLYz2uK85EgiaDOebtmKazg@mail.gmail.com>
+Subject: Re: [RFC v3 09/13] [media] exynos5-fimc-is: Add the hardware pipeline control
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add variable resolution support to Syntek STK1135 subdriver.
+Hi Sylwester,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/usb/gspca/stk1135.c |   68 ++++++++++++++++++------------------
- 1 files changed, 34 insertions(+), 34 deletions(-)
+On Sun, Aug 4, 2013 at 8:30 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Arun,
+>
+> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+>>
+>> This patch adds the crucial hardware pipeline control for the
+>> fimc-is driver. All the subdev nodes will call this pipeline
+>> interfaces to reach the hardware. Responsibilities of this module
+>> involves configuring and maintaining the hardware pipeline involving
+>> multiple sub-ips like ISP, DRC, Scalers, ODC, 3DNR, FD etc.
+>>
+>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+>> ---
 
-diff --git a/drivers/media/usb/gspca/stk1135.c b/drivers/media/usb/gspca/stk1135.c
-index 5a6ed49..8add2f7 100644
---- a/drivers/media/usb/gspca/stk1135.c
-+++ b/drivers/media/usb/gspca/stk1135.c
-@@ -48,42 +48,11 @@ struct sd {
- };
- 
- static const struct v4l2_pix_format stk1135_modes[] = {
--	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 160,
--		.sizeimage = 160 * 120,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 176,
--		.sizeimage = 176 * 144,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 320,
--		.sizeimage = 320 * 240,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 352,
--		.sizeimage = 352 * 288,
--		.colorspace = V4L2_COLORSPACE_SRGB},
-+	/* default mode (this driver supports variable resolution) */
- 	{640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
- 		.bytesperline = 640,
- 		.sizeimage = 640 * 480,
- 		.colorspace = V4L2_COLORSPACE_SRGB},
--	{720, 576, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 720,
--		.sizeimage = 720 * 576,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{800, 600, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 800,
--		.sizeimage = 800 * 600,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{1024, 768, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 1024,
--		.sizeimage = 1024 * 768,
--		.colorspace = V4L2_COLORSPACE_SRGB},
--	{1280, 1024, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 1280,
--		.sizeimage = 1280 * 1024,
--		.colorspace = V4L2_COLORSPACE_SRGB},
- };
- 
- /* -- read a register -- */
-@@ -349,14 +318,14 @@ static void stk1135_configure_mt9m112(struct gspca_dev *gspca_dev)
- 	/* set output size */
- 	width = gspca_dev->pixfmt.width;
- 	height = gspca_dev->pixfmt.height;
--	if (width <= 640) { /* use context A (half readout speed by default) */
-+	if (width <= 640 && height <= 512) { /* context A (half readout speed)*/
- 		sensor_write(gspca_dev, 0x1a7, width);
- 		sensor_write(gspca_dev, 0x1aa, height);
- 		/* set read mode context A */
- 		sensor_write(gspca_dev, 0x0c8, 0x0000);
- 		/* set resize, read mode, vblank, hblank context A */
- 		sensor_write(gspca_dev, 0x2c8, 0x0000);
--	} else { /* use context B (full readout speed by default) */
-+	} else { /* context B (full readout speed) */
- 		sensor_write(gspca_dev, 0x1a1, width);
- 		sensor_write(gspca_dev, 0x1a4, height);
- 		/* set read mode context B */
-@@ -643,6 +612,35 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
- 	return 0;
- }
- 
-+void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
-+{
-+	fmt->fmt.pix.width = clamp(fmt->fmt.pix.width, 32U, 1280U);
-+	fmt->fmt.pix.height = clamp(fmt->fmt.pix.height, 32U, 1024U);
-+	/* round up to even numbers */
-+	fmt->fmt.pix.width += (fmt->fmt.pix.width & 1);
-+	fmt->fmt.pix.height += (fmt->fmt.pix.height & 1);
-+
-+	fmt->fmt.pix.bytesperline = fmt->fmt.pix.width;
-+	fmt->fmt.pix.sizeimage = fmt->fmt.pix.width * fmt->fmt.pix.height;
-+}
-+
-+int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
-+			struct v4l2_frmsizeenum *fsize)
-+{
-+	if (fsize->index != 0 || fsize->pixel_format != V4L2_PIX_FMT_SBGGR8)
-+		return -EINVAL;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-+	fsize->stepwise.min_width = 32;
-+	fsize->stepwise.min_height = 32;
-+	fsize->stepwise.max_width = 1280;
-+	fsize->stepwise.max_height = 1024;
-+	fsize->stepwise.step_width = 2;
-+	fsize->stepwise.step_height = 2;
-+
-+	return 0;
-+}
-+
- /* sub-driver description */
- static const struct sd_desc sd_desc = {
- 	.name = MODULE_NAME,
-@@ -653,6 +651,8 @@ static const struct sd_desc sd_desc = {
- 	.stopN = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
- 	.dq_callback = stk1135_dq_callback,
-+	.try_fmt = stk1135_try_fmt,
-+	.enum_framesizes = stk1135_enum_framesizes,
- };
- 
- /* -- module initialisation -- */
--- 
-Ondrej Zary
+[snip]
 
+
+>> +static int fimc_is_pipeline_isp_setparams(struct fimc_is_pipeline
+>> *pipeline,
+>> +               unsigned int enable)
+>> +{
+>> +       struct isp_param *isp_param =&pipeline->is_region->parameter.isp;
+>> +       struct fimc_is *is = pipeline->is;
+>> +       unsigned int indexes, lindex, hindex;
+>> +       unsigned int sensor_width, sensor_height, scc_width, scc_height;
+>> +       unsigned int crop_x, crop_y, isp_width, isp_height;
+>> +       unsigned int sensor_ratio, output_ratio;
+>> +       int ret;
+>> +
+>> +       /* Crop calculation */
+>> +       sensor_width = pipeline->sensor_width;
+>> +       sensor_height = pipeline->sensor_height;
+>> +       scc_width = pipeline->scaler_width[SCALER_SCC];
+>> +       scc_height = pipeline->scaler_height[SCALER_SCC];
+>> +       isp_width = sensor_width;
+>> +       isp_height = sensor_height;
+>> +       crop_x = crop_y = 0;
+>> +
+>> +       sensor_ratio = sensor_width * 1000 / sensor_height;
+>> +       output_ratio = scc_width * 1000 / scc_height;
+>> +
+>> +       if (sensor_ratio == output_ratio) {
+>> +               isp_width = sensor_width;
+>> +               isp_height = sensor_height;
+>> +       } else if (sensor_ratio<  output_ratio) {
+>> +               isp_height = (sensor_width * scc_height) / scc_width;
+>> +               isp_height = ALIGN(isp_height, 2);
+>> +               crop_y = ((sensor_height - isp_height)>>  1)&  0xFFFFFFFE;
+>
+>
+> nit: Use ~1U instead of 0xFFFFFFFE.
+>
+>
+>> +       } else {
+>> +               isp_width = (sensor_height * scc_width) / scc_height;
+>> +               isp_width = ALIGN(isp_width, 4);
+>> +               crop_x =  ((sensor_width - isp_width)>>  1)&  0xFFFFFFFE;
+>
+>
+> Ditto.
+>
+>> +       }
+>> +       pipeline->isp_width = isp_width;
+>> +       pipeline->isp_height = isp_height;
+>> +
+>> +       indexes = hindex = lindex = 0;
+>> +
+>> +       isp_param->otf_output.cmd = OTF_OUTPUT_COMMAND_ENABLE;
+>> +       isp_param->otf_output.width = pipeline->sensor_width;
+>> +       isp_param->otf_output.height = pipeline->sensor_height;
+>> +       isp_param->otf_output.format = OTF_OUTPUT_FORMAT_YUV444;
+>> +       isp_param->otf_output.bitwidth = OTF_OUTPUT_BIT_WIDTH_12BIT;
+>> +       isp_param->otf_output.order = OTF_INPUT_ORDER_BAYER_GR_BG;
+>> +       lindex |= LOWBIT_OF(PARAM_ISP_OTF_OUTPUT);
+>> +       hindex |= HIGHBIT_OF(PARAM_ISP_OTF_OUTPUT);
+>> +       indexes++;
+>
+>
+> All right, let's stop this hindex/lindex/indexes madness. I've already
+> commented on that IIRC. Nevertheless, this should be replaced with proper
+> bitmap operations. A similar issue has been fixed in commit
+>
+>
+>> +       isp_param->dma1_output.cmd = DMA_OUTPUT_COMMAND_DISABLE;
+>> +       lindex |= LOWBIT_OF(PARAM_ISP_DMA1_OUTPUT);
+>> +       hindex |= HIGHBIT_OF(PARAM_ISP_DMA1_OUTPUT);
+>> +       indexes++;
+>> +
+>> +       isp_param->dma2_output.cmd = DMA_OUTPUT_COMMAND_DISABLE;
+>> +       lindex |= LOWBIT_OF(PARAM_ISP_DMA2_OUTPUT);
+>> +       hindex |= HIGHBIT_OF(PARAM_ISP_DMA2_OUTPUT);
+>> +       indexes++;
+>> +
+>> +       if (enable)
+>> +               isp_param->control.bypass = CONTROL_BYPASS_DISABLE;
+>> +       else
+>> +               isp_param->control.bypass = CONTROL_BYPASS_ENABLE;
+>> +       isp_param->control.cmd = CONTROL_COMMAND_START;
+>> +       isp_param->control.run_mode = 1;
+>> +       lindex |= LOWBIT_OF(PARAM_ISP_CONTROL);
+>> +       hindex |= HIGHBIT_OF(PARAM_ISP_CONTROL);
+>> +       indexes++;
+>> +
+>> +       isp_param->dma1_input.cmd = DMA_INPUT_COMMAND_BUF_MNGR;
+>> +       isp_param->dma1_input.width = sensor_width;
+>> +       isp_param->dma1_input.height = sensor_height;
+>> +       isp_param->dma1_input.dma_crop_offset_x = crop_x;
+>> +       isp_param->dma1_input.dma_crop_offset_y = crop_y;
+>> +       isp_param->dma1_input.dma_crop_width = isp_width;
+>> +       isp_param->dma1_input.dma_crop_height = isp_height;
+>> +       isp_param->dma1_input.bayer_crop_offset_x = 0;
+>> +       isp_param->dma1_input.bayer_crop_offset_y = 0;
+>> +       isp_param->dma1_input.bayer_crop_width = 0;
+>> +       isp_param->dma1_input.bayer_crop_height = 0;
+>> +       isp_param->dma1_input.user_min_frametime = 0;
+>> +       isp_param->dma1_input.user_max_frametime = 66666;
+>> +       isp_param->dma1_input.wide_frame_gap = 1;
+>> +       isp_param->dma1_input.frame_gap = 4096;
+>> +       isp_param->dma1_input.line_gap = 45;
+>> +       isp_param->dma1_input.order = DMA_INPUT_ORDER_GR_BG;
+>> +       isp_param->dma1_input.plane = 1;
+>> +       isp_param->dma1_input.buffer_number = 1;
+>> +       isp_param->dma1_input.buffer_address = 0;
+>> +       isp_param->dma1_input.reserved[1] = 0;
+>> +       isp_param->dma1_input.reserved[2] = 0;
+>> +       if (pipeline->isp.fmt->fourcc == V4L2_PIX_FMT_SGRBG8)
+>> +               isp_param->dma1_input.bitwidth = DMA_INPUT_BIT_WIDTH_8BIT;
+>> +       else if (pipeline->isp.fmt->fourcc == V4L2_PIX_FMT_SGRBG10)
+>> +               isp_param->dma1_input.bitwidth =
+>> DMA_INPUT_BIT_WIDTH_10BIT;
+>> +       else
+>> +               isp_param->dma1_input.bitwidth =
+>> DMA_INPUT_BIT_WIDTH_12BIT;
+>> +       lindex |= LOWBIT_OF(PARAM_ISP_DMA1_INPUT);
+>> +       hindex |= HIGHBIT_OF(PARAM_ISP_DMA1_INPUT);
+>> +       indexes++;
+>> +
+>> +       lindex = 0xFFFFFFFF;
+>> +       hindex = 0xFFFFFFFF;
+>
+>
+> Hmm, is this a workaround for some firmware bug ? You're setting individual
+> bits of lindex, hindex only to set them all to 1 just before using those
+> variables ? WTH ? :)
+>
+
+We set this 0xffffff so that all the init params which are copied
+earlier during pipeline_open
+are set to the firmware. FW set_param cannot be done after copying of
+init params since
+FW expects isp params to be set correctly before accepting any other params.
+So this is a workaround to force all init values to go along with the
+ISP params.
+
+>
+> Anyway, instead of doing this:
+>
+>         lindex |= LOWBIT_OF(A);
+>         hindex |= HIGHBIT_OF(A);
+>         indexes++;
+>
+>         lindex |= LOWBIT_OF(B);
+>         hindex |= HIGHBIT_OF(B);
+>         indexes++;
+>
+>         ...
+>
+>         fimc_is_itf_set_param(..., indexes, lindex, hindex);
+>
+>
+> You could do:
+>
+>         u32 index[2];
+>
+>         __set_bit(A, index);
+>
+>         __set_bit(B, index);
+>
+>         ...
+>
+>         indexes = hweight32(index[0]);
+>         indexes += hweight32(index[1]);
+>
+>         fimc_is_itf_set_param(..., indexes, index[0], index[1]);
+>
+> I.e. the bit operations work well with arbitrary length bitmaps.
+>
+
+Ok I will use this method.
+
+> BTW, the firmware interface seems pretty odd with it's requirement to
+> pass bitmask and number of bits set in this bitmaks separately. Does
+> it ever allow 'indexes' to be different than number of bits set in
+> lindex, hindex ? What happens in such case ?
+
+Yes. It is working even when indexes is set as 0 !
+I will remove that indexes field and use only bitmask.
+
+Regards
+Arun
