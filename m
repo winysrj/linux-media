@@ -1,221 +1,816 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32881 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab3H0Jbo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 05:31:44 -0400
-Message-ID: <1377595851.4338.18.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH/RFC v3 06/19] video: display: OF support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Date: Tue, 27 Aug 2013 11:30:51 +0200
-In-Reply-To: <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	 <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:31022 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab3HFKTX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:19:23 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r76AJ9nK014605
+	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:19:19 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 5/5] qv4l2: add ALSA audio playback
+Date: Tue,  6 Aug 2013 12:18:46 +0200
+Message-Id: <3040d7eea90f59ef554147b8862d61b5dd437d53.1375784295.git.bwinther@cisco.com>
+In-Reply-To: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
+References: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
+References: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The qv4l2 test utility now supports ALSA playback of audio.
+This allows for PCM playback during capture for supported devices.
 
-I have another small issue with the graph helpers below:
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/general-tab.cpp | 296 +++++++++++++++++++++++++++++++++++++++++++-
+ utils/qv4l2/general-tab.h   |  38 ++++++
+ utils/qv4l2/qv4l2.cpp       | 141 ++++++++++++++++++++-
+ utils/qv4l2/qv4l2.h         |   9 ++
+ 4 files changed, 480 insertions(+), 4 deletions(-)
 
-Am Samstag, den 10.08.2013, 01:03 +0200 schrieb Laurent Pinchart:
-[...]
-> +/* -----------------------------------------------------------------------------
->   * Graph Helpers
->   */
->  
-> @@ -420,6 +599,161 @@ int display_entity_link_graph(struct device *dev, struct list_head *entities)
->  }
->  EXPORT_SYMBOL_GPL(display_entity_link_graph);
->  
-> +#ifdef CONFIG_OF
-> +
-> +static int display_of_entity_link_entity(struct device *dev,
-> +					 struct display_entity *entity,
-> +					 struct list_head *entities,
-> +					 struct display_entity *root)
-> +{
-> +	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-> +	const struct device_node *node = entity->dev->of_node;
-> +	struct media_entity *local = &entity->entity;
-> +	struct device_node *ep = NULL;
-> +	int ret = 0;
-> +
-> +	dev_dbg(dev, "creating links for entity %s\n", local->name);
-> +
-> +	while (1) {
-> +		struct media_entity *remote = NULL;
-> +		struct media_pad *remote_pad;
-> +		struct media_pad *local_pad;
-> +		struct display_of_link link;
-> +		struct display_entity *ent;
-> +		struct device_node *next;
-> +
-> +		/* Get the next endpoint and parse its link. */
-> +		next = display_of_get_next_endpoint(node, ep);
-> +		if (next == NULL)
-> +			break;
-> +
-> +		of_node_put(ep);
-> +		ep = next;
-> +
-> +		dev_dbg(dev, "processing endpoint %s\n", ep->full_name);
-> +
-> +		ret = display_of_parse_link(ep, &link);
-> +		if (ret < 0) {
-> +			dev_err(dev, "failed to parse link for %s\n",
-> +				ep->full_name);
-> +			continue;
-> +		}
-> +
-> +		/* Skip source pads, they will be processed from the other end of
-> +		 * the link.
-> +		 */
-> +		if (link.local_port >= local->num_pads) {
-> +			dev_err(dev, "invalid port number %u on %s\n",
-> +				link.local_port, link.local_node->full_name);
-> +			display_of_put_link(&link);
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +
-> +		local_pad = &local->pads[link.local_port];
-> +
-> +		if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
-> +			dev_dbg(dev, "skipping source port %s:%u\n",
-> +				link.local_node->full_name, link.local_port);
-> +			display_of_put_link(&link);
-> +			continue;
-> +		}
-> +
-> +		/* Find the remote entity. If not found, just skip the link as
-> +		 * it goes out of scope of the entities handled by the notifier.
-> +		 */
-> +		list_for_each_entry(ent, entities, list) {
-> +			if (ent->dev->of_node == link.remote_node) {
-> +				remote = &ent->entity;
-> +				break;
-> +			}
-> +		}
-> +
-> +		if (root->dev->of_node == link.remote_node)
-> +			remote = &root->entity;
-> +
-> +		if (remote == NULL) {
-> +			dev_dbg(dev, "no entity found for %s\n",
-> +				link.remote_node->full_name);
-> +			display_of_put_link(&link);
-> +			continue;
-> +		}
-> +
-> +		if (link.remote_port >= remote->num_pads) {
-> +			dev_err(dev, "invalid port number %u on %s\n",
-> +				link.remote_port, link.remote_node->full_name);
-> +			display_of_put_link(&link);
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +
-> +		remote_pad = &remote->pads[link.remote_port];
-> +
-> +		display_of_put_link(&link);
-> +
-> +		/* Create the media link. */
-> +		dev_dbg(dev, "creating %s:%u -> %s:%u link\n",
-> +			remote->name, remote_pad->index,
-> +			local->name, local_pad->index);
-> +
-> +		ret = media_entity_create_link(remote, remote_pad->index,
-> +					       local, local_pad->index,
-> +					       link_flags);
-> +		if (ret < 0) {
-> +			dev_err(dev,
-> +				"failed to create %s:%u -> %s:%u link\n",
-> +				remote->name, remote_pad->index,
-> +				local->name, local_pad->index);
-> +			break;
-> +		}
-> +	}
-> +
-> +	of_node_put(ep);
-> +	return ret;
-> +}
-> +
-> +/**
-> + * display_of_entity_link_graph - Link all entities in a graph
-> + * @dev: device used to print debugging and error messages
-> + * @root: optional root display entity
-> + * @entities: list of display entities in the graph
-> + *
-> + * This function creates media controller links for all entities in a graph
-> + * based on the device tree graph representation. It relies on all entities
-> + * having been instantiated from the device tree.
-> + *
-> + * The list of entities is typically taken directly from a display notifier
-> + * done list. It will thus not include any display entity not handled by the
-> + * notifier, such as entities directly accessible by the caller without going
-> + * through the notification process. The optional root entity parameter can be
-> + * used to pass such a display entity and include it in the graph. For all
-> + * practical purpose the root entity is handled is if it was part of the
-> + * entities list.
-> + *
-> + * Return 0 on success or a negative error code otherwise.
-> + */
-> +int display_of_entity_link_graph(struct device *dev, struct list_head *entities,
-> +				 struct display_entity *root)
-> +{
-> +	struct display_entity *entity;
-> +	int ret;
-> +
-> +	list_for_each_entry(entity, entities, list) {
-> +		if (WARN_ON(entity->match->type != DISPLAY_ENTITY_BUS_DT))
-> +			return -EINVAL;
-> +
-> +		ret = display_of_entity_link_entity(dev, entity, entities,
-> +						    root);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
-> +	return display_of_entity_link_entity(dev, root, entities, root);
-> +}
-> +EXPORT_SYMBOL_GPL(display_of_entity_link_graph);
-
-The root display entity given to display_of_entity_link_graph is documented
-to be optional. Therefore, do not try to dereference root if it is NULL:
-
-diff --git a/drivers/video/display/display-core.c b/drivers/video/display/display-core.c
-index 328ead7..6c8094f 100644
---- a/drivers/video/display/display-core.c
-+++ b/drivers/video/display/display-core.c
-@@ -669,7 +669,7 @@ static int display_of_entity_link_entity(struct device *dev,
- 			}
- 		}
+diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
+index 10b14ca..5cfaf07 100644
+--- a/utils/qv4l2/general-tab.cpp
++++ b/utils/qv4l2/general-tab.cpp
+@@ -30,6 +30,16 @@
  
--		if (root->dev->of_node == link.remote_node)
-+		if (root && root->dev->of_node == link.remote_node)
- 			remote = &root->entity;
+ #include <stdio.h>
+ #include <errno.h>
++#include <QRegExp>
++
++bool GeneralTab::m_fullAudioName = false;
++
++enum audioDeviceAdd {
++	AUDIO_ADD_NO,
++	AUDIO_ADD_READ,
++	AUDIO_ADD_WRITE,
++	AUDIO_ADD_READWRITE
++};
  
- 		if (remote == NULL) {
-@@ -748,6 +748,9 @@ int display_of_entity_link_graph(struct device *dev, struct list_head *entities,
- 			return ret;
+ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent) :
+ 	QGridLayout(parent),
+@@ -48,12 +58,16 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
+ 	m_vidCapFormats(NULL),
+ 	m_frameSize(NULL),
+ 	m_vidOutFormats(NULL),
+-	m_vbiMethods(NULL)
++	m_vbiMethods(NULL),
++	m_audioInDevice(NULL),
++	m_audioOutDevice(NULL)
+ {
++	m_device.append(device);
+ 	setSpacing(3);
+ 
+ 	setSizeConstraint(QLayout::SetMinimumSize);
+ 
++
+ 	if (querycap(m_querycap)) {
+ 		addLabel("Device:");
+ 		addLabel(device + (useWrapper() ? " (wrapped)" : ""), Qt::AlignLeft);
+@@ -132,6 +146,42 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
+ 		updateAudioOutput();
  	}
  
-+	if (!root)
-+		return 0;
++	if (hasAlsaAudio()) {
++		m_audioInDevice = new QComboBox(parent);
++		m_audioOutDevice = new QComboBox(parent);
++		m_audioInDevice->setSizeAdjustPolicy(QComboBox::AdjustToContents);
++		m_audioOutDevice->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 +
- 	return display_of_entity_link_entity(dev, root, entities, root);
++		if (createAudioDeviceList()) {
++			addLabel("Audio Input Device");
++			connect(m_audioInDevice, SIGNAL(activated(int)), SLOT(changeAudioDevice()));
++			addWidget(m_audioInDevice);
++
++			addLabel("Audio Output Device");
++			connect(m_audioOutDevice, SIGNAL(activated(int)), SLOT(changeAudioDevice()));
++			addWidget(m_audioOutDevice);
++
++			if (isRadio()) {
++				setAudioDeviceBufferSize(75);
++			} else {
++				v4l2_fract fract;
++				if (!v4l2::get_interval(fract)) {
++					// Default values are for 30 FPS
++					fract.numerator = 33;
++					fract.denominator = 1000;
++				}
++				// Standard capacity is two frames
++				setAudioDeviceBufferSize((fract.numerator * 2000) / fract.denominator);
++			}
++		} else {
++			fprintf(stderr, "BANNA\n");
++			delete m_audioInDevice;
++			delete m_audioOutDevice;
++			m_audioInDevice = NULL;
++			m_audioOutDevice = NULL;
++		}
++	}
++
+ 	if (needsStd) {
+ 		v4l2_std_id tmp;
+ 
+@@ -370,6 +420,180 @@ done:
+ 	setRowStretch(rowCount() - 1, 1);
  }
- EXPORT_SYMBOL_GPL(display_of_entity_link_graph);
+ 
++void GeneralTab::showAllAudioDevices(bool use)
++{
++	QString oldIn(m_audioInDevice->currentText());
++	QString oldOut(m_audioOutDevice->currentText());
++
++	m_fullAudioName = use;
++	if (oldIn == NULL || oldOut == NULL || !createAudioDeviceList())
++		return;
++
++	// Select a similar device as before the listings method change
++	// check by comparing old selection with any matching in the new list
++	bool setIn = false, setOut = false;
++	int listSize = std::max(m_audioInDevice->count(), m_audioOutDevice->count());
++
++	for (int i = 0; i < listSize; i++) {
++		QString oldInCmp(oldIn.left(std::min(m_audioInDevice->itemText(i).length(), oldIn.length())));
++		QString oldOutCmp(oldOut.left(std::min(m_audioOutDevice->itemText(i).length(), oldOut.length())));
++
++		if (!setIn && i < m_audioInDevice->count()
++		    && m_audioInDevice->itemText(i).startsWith(oldInCmp)) {
++			setIn = true;
++			m_audioInDevice->setCurrentIndex(i);
++		}
++
++		if (!setOut && i < m_audioOutDevice->count()
++		    && m_audioOutDevice->itemText(i).startsWith(oldOutCmp)) {
++			setOut = true;
++			m_audioOutDevice->setCurrentIndex(i);
++		}
++	}
++}
++
++bool GeneralTab::filterAudioInDevice(QString &deviceName)
++{
++	// Removes S/PDIF, front speakers and surround from input devices
++	// as they are output devices, not input
++	if (deviceName.contains("surround")
++	    || deviceName.contains("front")
++	    || deviceName.contains("iec958"))
++		return false;
++
++	// Removes sysdefault too if not full audio mode listings
++	if (!m_fullAudioName && deviceName.contains("sysdefault"))
++		return false;
++
++	return true;
++}
++
++bool GeneralTab::filterAudioOutDevice(QString &deviceName)
++{
++	// Removes advanced options if not full audio mode listings
++	if (!m_fullAudioName && (deviceName.contains("surround")
++				 || deviceName.contains("front")
++				 || deviceName.contains("iec958")
++				 || deviceName.contains("sysdefault"))) {
++		return false;
++	}
++
++	return true;
++}
++
++int GeneralTab::addAudioDevice(void *hint, int deviceNum)
++{
++	int added = 0;
++#ifdef HAVE_ALSA
++	char *name;
++	char *iotype;
++	QString deviceName;
++	QString listName;
++	QStringList deviceType;
++	iotype = snd_device_name_get_hint(hint, "IOID");
++	name = snd_device_name_get_hint(hint, "NAME");
++	deviceName.append(name);
++
++	snd_card_get_name(deviceNum, &name);
++	listName.append(name);
++
++	deviceType = deviceName.split(":");
++
++	// Add device io capability to list name
++	if (m_fullAudioName) {
++		listName.append(" ");
++
++		// Makes the surround name more readable
++		if (deviceName.contains("surround"))
++			listName.append(QString("surround %1.%2")
++					.arg(deviceType.value(0)[8]).arg(deviceType.value(0)[9]));
++		else
++			listName.append(deviceType.value(0));
++
++	} else if (!deviceType.value(0).contains("default")) {
++		listName.append(" ").append(deviceType.value(0));
++	}
++
++	// Add device number if it is not 0
++	if (deviceName.contains("DEV=")) {
++		int devNo;
++		QStringList deviceNo = deviceName.split("DEV=");
++		devNo = deviceNo.value(1).toInt();
++		if (devNo)
++			listName.append(QString(" %1").arg(devNo));
++	}
++
++	if ((iotype == NULL || strncmp(iotype, "Input", 5) == 0) && filterAudioInDevice(deviceName)) {
++		m_audioInDevice->addItem(listName);
++		m_audioInDeviceMap[listName] = snd_device_name_get_hint(hint, "NAME");
++		added += AUDIO_ADD_READ;
++	}
++
++	if ((iotype == NULL || strncmp(iotype, "Output", 6) == 0)  && filterAudioOutDevice(deviceName)) {
++		m_audioOutDevice->addItem(listName);
++		m_audioOutDeviceMap[listName] = snd_device_name_get_hint(hint, "NAME");
++		added += AUDIO_ADD_WRITE;
++	}
++#endif
++	return added;
++}
++
++bool GeneralTab::createAudioDeviceList()
++{
++#ifdef HAVE_ALSA
++	if (m_audioInDevice == NULL || m_audioOutDevice == NULL)
++		return false;
++
++	m_audioInDevice->clear();
++	m_audioOutDevice->clear();
++	m_audioInDeviceMap.clear();
++	m_audioOutDeviceMap.clear();
++
++	m_audioInDevice->addItem("None");
++	m_audioOutDevice->addItem("Default");
++	m_audioInDeviceMap["None"] = "None";
++	m_audioOutDeviceMap["Default"] = "default";
++
++	int deviceNum = -1;
++	int audioDevices = 0;
++	int matchDevice = matchAudioDevice();
++	int indexDevice = -1;
++	int indexCount = 0;
++
++	while (snd_card_next(&deviceNum) >= 0) {
++		if (deviceNum == -1)
++			break;
++
++		audioDevices++;
++		if (deviceNum == matchDevice && indexDevice == -1)
++			indexDevice = indexCount;
++
++		void **hint;
++
++		snd_device_name_hint(deviceNum, "pcm", &hint);
++		for (int i = 0; hint[i] != NULL; i++) {
++			int addAs = addAudioDevice(hint[i], deviceNum);
++			if (addAs == AUDIO_ADD_READ || addAs == AUDIO_ADD_READWRITE)
++				indexCount++;
++		}
++		snd_device_name_free_hint(hint);
++	}
++
++	snd_config_update_free_global();
++	m_audioInDevice->setCurrentIndex(indexDevice + 1);
++	changeAudioDevice();
++	return m_audioInDeviceMap.size() > 1 && m_audioOutDeviceMap.size() > 1 && audioDevices > 1;
++#else
++	return false;
++#endif
++}
++
++void GeneralTab::changeAudioDevice()
++{
++	m_audioOutDevice->setEnabled(getAudioInDevice() != NULL ? getAudioInDevice().compare("None") : false);
++	emit audioDeviceChanged();
++}
++
+ void GeneralTab::addWidget(QWidget *w, Qt::Alignment align)
+ {
+ 	QGridLayout::addWidget(w, m_row, m_col, align | Qt::AlignVCenter);
+@@ -932,3 +1156,73 @@ bool GeneralTab::get_interval(struct v4l2_fract &interval)
+ 
+ 	return m_has_interval;
+ }
++
++QString GeneralTab::getAudioInDevice()
++{
++	if (m_audioInDevice == NULL)
++		return NULL;
++
++	return m_audioInDeviceMap[m_audioInDevice->currentText()];
++}
++
++QString GeneralTab::getAudioOutDevice()
++{
++	if (m_audioOutDevice == NULL)
++		return NULL;
++
++	return m_audioOutDeviceMap[m_audioOutDevice->currentText()];
++}
++
++void GeneralTab::setAudioDeviceBufferSize(int size)
++{
++	m_audioDeviceBufferSize = size;
++}
++
++int GeneralTab::getAudioDeviceBufferSize()
++{
++	return m_audioDeviceBufferSize;
++}
++
++#ifdef HAVE_ALSA
++int GeneralTab::checkMatchAudioDevice(void *md, const char *vid, const enum device_type type)
++{
++	const char *devname = NULL;
++
++	while ((devname = get_associated_device(md, devname, type, vid, MEDIA_V4L_VIDEO)) != NULL) {
++		if (type == MEDIA_SND_CAP) {
++			QStringList devAddr = QString(devname).split(QRegExp("[:,]"));
++			return devAddr.value(1).toInt();
++		}
++	}
++	return -1;
++}
++
++int GeneralTab::matchAudioDevice()
++{
++	QStringList devPath = m_device.split("/");
++	QString curDev = devPath.value(devPath.count() - 1);
++
++	void *media;
++	const char *video = NULL;
++	int match;
++
++	media = discover_media_devices();
++
++	while ((video = get_associated_device(media, video, MEDIA_V4L_VIDEO, NULL, NONE)) != NULL)
++		if (curDev.compare(video) == 0)
++			for (int i = 0; i <= MEDIA_SND_HW; i++)
++				if ((match = checkMatchAudioDevice(media, video, static_cast<device_type>(i))) != -1)
++					return match;
++
++	return -1;
++}
++#endif
++
++bool GeneralTab::hasAlsaAudio()
++{
++#ifdef HAVE_ALSA
++	return !isVbi();
++#else
++	return false;
++#endif
++}
+diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
+index 5903ed8..6c51016 100644
+--- a/utils/qv4l2/general-tab.h
++++ b/utils/qv4l2/general-tab.h
+@@ -21,12 +21,23 @@
+ #ifndef GENERAL_TAB_H
+ #define GENERAL_TAB_H
+ 
++#include <config.h>
++
+ #include <QSpinBox>
+ #include <sys/time.h>
+ #include <linux/videodev2.h>
++#include <map>
+ #include "qv4l2.h"
+ #include "v4l2-api.h"
+ 
++#ifdef HAVE_ALSA
++extern "C" {
++#include "../libmedia_dev/get_media_devices.h"
++#include "alsa_stream.h"
++}
++#include <alsa/asoundlib.h>
++#endif
++
+ class QComboBox;
+ class QCheckBox;
+ class QSpinBox;
+@@ -41,6 +52,11 @@ public:
+ 	virtual ~GeneralTab() {}
+ 
+ 	CapMethod capMethod();
++	QString getAudioInDevice();
++	QString getAudioOutDevice();
++	void setAudioDeviceBufferSize(int size);
++	int getAudioDeviceBufferSize();
++	bool hasAlsaAudio();
+ 	bool get_interval(struct v4l2_fract &interval);
+ 	int width() const { return m_width; }
+ 	int height() const { return m_height; }
+@@ -69,6 +85,12 @@ public:
+ 	inline bool streamon() { return v4l2::streamon(m_buftype); }
+ 	inline bool streamoff() { return v4l2::streamoff(m_buftype); }
+ 
++public slots:
++	void showAllAudioDevices(bool use);
++
++signals:
++	void audioDeviceChanged();
++
+ private slots:
+ 	void inputChanged(int);
+ 	void outputChanged(int);
+@@ -92,6 +114,7 @@ private slots:
+ 	void frameIntervalChanged(int);
+ 	void vidOutFormatChanged(int);
+ 	void vbiMethodsChanged(int);
++	void changeAudioDevice();
+ 
+ private:
+ 	void updateVideoInput();
+@@ -108,6 +131,14 @@ private:
+ 	void updateFrameSize();
+ 	void updateFrameInterval();
+ 	void updateVidOutFormat();
++	int addAudioDevice(void *hint, int deviceNum);
++	bool filterAudioInDevice(QString &deviceName);
++	bool filterAudioOutDevice(QString &deviceName);
++	bool createAudioDeviceList();
++#ifdef HAVE_ALSA
++	int matchAudioDevice();
++	int checkMatchAudioDevice(void *md, const char *vid, const enum device_type type);
++#endif
+ 
+ 	void addWidget(QWidget *w, Qt::Alignment align = Qt::AlignLeft);
+ 	void addLabel(const QString &text, Qt::Alignment align = Qt::AlignRight)
+@@ -130,6 +161,7 @@ private:
+ 	bool m_isVbi;
+ 	__u32 m_buftype;
+ 	__u32 m_audioModes[5];
++	QString m_device;
+ 	struct v4l2_tuner m_tuner;
+ 	struct v4l2_modulator m_modulator;
+ 	struct v4l2_capability m_querycap;
+@@ -137,6 +169,10 @@ private:
+ 	__u32 m_width, m_height;
+ 	struct v4l2_fract m_interval;
+ 	bool m_has_interval;
++	int m_audioDeviceBufferSize;
++	static bool m_fullAudioName;
++	std::map<QString, QString> m_audioInDeviceMap;
++	std::map<QString, QString> m_audioOutDeviceMap;
+ 
+ 	// General tab
+ 	QComboBox *m_videoInput;
+@@ -163,6 +199,8 @@ private:
+ 	QComboBox *m_vidOutFormats;
+ 	QComboBox *m_capMethods;
+ 	QComboBox *m_vbiMethods;
++	QComboBox *m_audioInDevice;
++	QComboBox *m_audioOutDevice;
+ };
+ 
+ #endif
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 275b399..5510041 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -24,6 +24,12 @@
+ #include "capture-win-qt.h"
+ #include "capture-win-gl.h"
+ 
++#ifdef ENABLE_ASLA
++extern "C" {
++#include "alsa_stream.h"
++}
++#endif
++
+ #include <QToolBar>
+ #include <QToolButton>
+ #include <QMenuBar>
+@@ -45,15 +51,18 @@
+ #include <QWhatsThis>
+ #include <QThread>
+ #include <QCloseEvent>
++#include <QInputDialog>
+ 
+ #include <assert.h>
+ #include <sys/mman.h>
++#include <sys/time.h>
+ #include <errno.h>
+ #include <dirent.h>
+ #include <libv4l2.h>
+ 
+ ApplicationWindow::ApplicationWindow() :
+ 	m_capture(NULL),
++	m_genTab(NULL),
+ 	m_sigMapper(NULL)
+ {
+ 	setAttribute(Qt::WA_DeleteOnClose, true);
+@@ -76,7 +85,7 @@ ApplicationWindow::ApplicationWindow() :
+ 	openRawAct->setShortcut(Qt::CTRL+Qt::Key_R);
+ 	connect(openRawAct, SIGNAL(triggered()), this, SLOT(openrawdev()));
+ 
+-	m_capStartAct = new QAction(QIcon(":/record.png"), "&Start Capturing", this);
++	m_capStartAct = new QAction(QIcon(":/record.png"), "Start &Capturing", this);
+ 	m_capStartAct->setStatusTip("Start capturing");
+ 	m_capStartAct->setCheckable(true);
+ 	m_capStartAct->setDisabled(true);
+@@ -145,6 +154,21 @@ ApplicationWindow::ApplicationWindow() :
+ 		m_renderMethod = QV4L2_RENDER_QT;
+ 	}
+ 
++#ifdef HAVE_ALSA
++	captureMenu->addSeparator();
++
++	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
++	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
++	m_showAllAudioAct->setCheckable(true);
++	m_showAllAudioAct->setChecked(false);
++	captureMenu->addAction(m_showAllAudioAct);
++
++	m_audioBufferAct = new QAction("Set Audio Buffer Capacity...", this);
++	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
++	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
++	captureMenu->addAction(m_audioBufferAct);
++#endif
++
+ 	QMenu *helpMenu = menuBar()->addMenu("&Help");
+ 	helpMenu->addAction("&About", this, SLOT(about()), Qt::Key_F1);
+ 
+@@ -172,8 +196,11 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
+ 	m_sigMapper = new QSignalMapper(this);
+ 	connect(m_sigMapper, SIGNAL(mapped(int)), this, SLOT(ctrlAction(int)));
+ 
+-	if (!open(device, !rawOpen))
++	if (!open(device, !rawOpen)) {
++		m_showAllAudioAct->setEnabled(false);
++		m_audioBufferAct->setEnabled(false);
+ 		return;
++	}
+ 
+ 	newCaptureWin();
+ 
+@@ -181,6 +208,19 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
+ 
+ 	QWidget *w = new QWidget(m_tabs);
+ 	m_genTab = new GeneralTab(device, *this, 4, w);
++
++#ifdef HAVE_ALSA
++	if (m_genTab->hasAlsaAudio()) {
++		connect(m_showAllAudioAct, SIGNAL(toggled(bool)), m_genTab, SLOT(showAllAudioDevices(bool)));
++		connect(m_genTab, SIGNAL(audioDeviceChanged()), this, SLOT(changeAudioDevice()));
++		m_showAllAudioAct->setEnabled(true);
++		m_audioBufferAct->setEnabled(true);
++	} else {
++		m_showAllAudioAct->setEnabled(false);
++		m_audioBufferAct->setEnabled(false);
++	}
++#endif
++
+ 	m_tabs->addTab(w, "General");
+ 	addTabs();
+ 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
+@@ -195,7 +235,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
+ 	m_tabs->show();
+ 	m_tabs->setFocus();
+ 	m_convertData = v4lconvert_create(fd());
+-	m_capStartAct->setEnabled(fd() >= 0 && !m_genTab->isRadio());
++	m_capStartAct->setEnabled(fd() >= 0);
+ 	m_ctrlNotifier = new QSocketNotifier(fd(), QSocketNotifier::Exception, m_tabs);
+ 	connect(m_ctrlNotifier, SIGNAL(activated(int)), this, SLOT(ctrlEvent()));
+ }
+@@ -235,6 +275,19 @@ void ApplicationWindow::setRenderMethod()
+ 	newCaptureWin();
+ }
+ 
++void ApplicationWindow::setAudioBufferSize()
++{
++	bool ok;
++	int buffer = QInputDialog::getInt(this, "Audio Device Buffer Size", "Capacity in ms:",
++					   m_genTab->getAudioDeviceBufferSize(), 1, 65535, 1, &ok);
++
++	if (ok) {
++		m_genTab->setAudioDeviceBufferSize(buffer);
++		changeAudioDevice();
++	}
++}
++
++
+ void ApplicationWindow::ctrlEvent()
+ {
+ 	v4l2_event ev;
+@@ -413,12 +466,19 @@ void ApplicationWindow::capFrame()
+ 	int s = 0;
+ 	int err = 0;
+ 	bool again;
++#ifdef HAVE_ALSA
++	struct timeval tv_alsa;
++#endif
+ 
+ 	unsigned char *displaybuf = NULL;
+ 
+ 	switch (m_capMethod) {
+ 	case methodRead:
+ 		s = read(m_frameData, m_capSrcFormat.fmt.pix.sizeimage);
++#ifdef HAVE_ALSA
++		alsa_thread_timestamp(&tv_alsa);
++#endif
++
+ 		if (s < 0) {
+ 			if (errno != EAGAIN) {
+ 				error("read");
+@@ -449,6 +509,9 @@ void ApplicationWindow::capFrame()
+ 			m_capStartAct->setChecked(false);
+ 			return;
+ 		}
++#ifdef HAVE_ALSA
++		alsa_thread_timestamp(&tv_alsa);
++#endif
+ 		if (again)
+ 			return;
+ 
+@@ -475,6 +538,9 @@ void ApplicationWindow::capFrame()
+ 			m_capStartAct->setChecked(false);
+ 			return;
+ 		}
++#ifdef HAVE_ALSA
++		alsa_thread_timestamp(&tv_alsa);
++#endif
+ 		if (again)
+ 			return;
+ 
+@@ -511,9 +577,22 @@ void ApplicationWindow::capFrame()
+ 		m_lastFrame = m_frame;
+ 		m_tv = tv;
+ 	}
++
++
+ 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
++#ifdef HAVE_ALSA
++	if (alsa_thread_is_running()) {
++		if (tv_alsa.tv_sec || tv_alsa.tv_usec) {
++			m_totalAudioLatency.tv_sec += buf.timestamp.tv_sec - tv_alsa.tv_sec;
++			m_totalAudioLatency.tv_usec += buf.timestamp.tv_usec - tv_alsa.tv_usec;
++		}
++		status.append(QString(" Average A-V: %3 ms")
++			      .arg((m_totalAudioLatency.tv_sec * 1000 + m_totalAudioLatency.tv_usec / 1000) / m_frame));
++	}
++#endif
+ 	if (displaybuf == NULL && m_showFrames)
+ 		status.append(" Error: Unsupported format.");
++
+ 	if (m_showFrames)
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+ 				    m_capDestFormat.fmt.pix.pixelformat, displaybuf, status);
+@@ -530,6 +609,11 @@ void ApplicationWindow::capFrame()
+ 
+ bool ApplicationWindow::startCapture(unsigned buffer_size)
+ {
++	startAudio();
++
++	if (m_genTab->isRadio())
++		return true;
++
+ 	__u32 buftype = m_genTab->bufType();
+ 	v4l2_requestbuffers req;
+ 	unsigned int i;
+@@ -645,6 +729,11 @@ error:
+ 
+ void ApplicationWindow::stopCapture()
+ {
++	stopAudio();
++
++	if (m_genTab->isRadio())
++		return;
++
+ 	__u32 buftype = m_genTab->bufType();
+ 	v4l2_requestbuffers reqbufs;
+ 	v4l2_encoder_cmd cmd;
+@@ -695,6 +784,42 @@ void ApplicationWindow::stopOutput()
+ {
+ }
+ 
++void ApplicationWindow::startAudio()
++{
++#ifdef HAVE_ALSA
++	m_totalAudioLatency.tv_sec = 0;
++	m_totalAudioLatency.tv_usec = 0;
++
++	QString audIn = m_genTab->getAudioInDevice();
++	QString audOut = m_genTab->getAudioOutDevice();
++
++	if (audIn != NULL && audOut != NULL && audIn.compare("None") && audIn.compare(audOut) != 0) {
++		alsa_thread_startup(audOut.toAscii().data(), audIn.toAscii().data(),
++				    m_genTab->getAudioDeviceBufferSize(), NULL, 0);
++
++		if (m_genTab->isRadio())
++			statusBar()->showMessage("Capturing audio");
++	}
++#endif
++}
++
++void ApplicationWindow::stopAudio()
++{
++#ifdef HAVE_ALSA
++	if (m_genTab != NULL && m_genTab->isRadio())
++		statusBar()->showMessage("");
++	alsa_thread_stop();
++#endif
++}
++
++void ApplicationWindow::changeAudioDevice()
++{
++	stopAudio();
++	if (m_capStartAct->isChecked()) {
++		startAudio();
++	}
++}
++
+ void ApplicationWindow::closeCaptureWin()
+ {
+ 	m_capStartAct->setChecked(false);
+@@ -702,6 +827,15 @@ void ApplicationWindow::closeCaptureWin()
+ 
+ void ApplicationWindow::capStart(bool start)
+ {
++	if (m_genTab->isRadio()) {
++		if (start)
++			startCapture(0);
++		else
++			stopCapture();
++
++		return;
++	}
++
+ 	QImage::Format dstFmt = QImage::Format_RGB888;
+ 	struct v4l2_fract interval;
+ 	v4l2_pix_format &srcPix = m_capSrcFormat.fmt.pix;
+@@ -821,6 +955,7 @@ void ApplicationWindow::capStart(bool start)
+ 
+ void ApplicationWindow::closeDevice()
+ {
++	stopAudio();
+ 	delete m_sigMapper;
+ 	m_sigMapper = NULL;
+ 	m_capStartAct->setEnabled(false);
+diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
+index 2921b16..511a652 100644
+--- a/utils/qv4l2/qv4l2.h
++++ b/utils/qv4l2/qv4l2.h
+@@ -20,6 +20,8 @@
+ #ifndef QV4L2_H
+ #define QV4L2_H
+ 
++#include <config.h>
++
+ #include <QMainWindow>
+ #include <QTabWidget>
+ #include <QSignalMapper>
+@@ -98,6 +100,8 @@ private:
+ 	void startOutput(unsigned buffer_size);
+ 	void stopOutput();
+ 	void newCaptureWin();
++	void startAudio();
++	void stopAudio();
+ 
+ 	struct buffer *m_buffers;
+ 	struct v4l2_format m_capSrcFormat;
+@@ -118,6 +122,7 @@ private slots:
+ 	void capVbiFrame();
+ 	void saveRaw(bool);
+ 	void setRenderMethod();
++	void changeAudioDevice();
+ 
+ 	// gui
+ private slots:
+@@ -126,6 +131,7 @@ private slots:
+ 	void ctrlAction(int);
+ 	void openRawFile(const QString &s);
+ 	void rejectedRawFile();
++	void setAudioBufferSize();
+ 
+ 	void about();
+ 
+@@ -176,6 +182,8 @@ private:
+ 	QAction *m_saveRawAct;
+ 	QAction *m_showFramesAct;
+ 	QAction *m_useGLAct;
++	QAction *m_showAllAudioAct;
++	QAction *m_audioBufferAct;
+ 	QString m_filename;
+ 	QSignalMapper *m_sigMapper;
+ 	QTabWidget *m_tabs;
+@@ -196,6 +204,7 @@ private:
+ 	unsigned m_lastFrame;
+ 	unsigned m_fps;
+ 	struct timeval m_tv;
++	struct timeval m_totalAudioLatency;
+ 	QFile m_saveRaw;
+ };
+ 
 -- 
-1.8.4.rc3
-
-regards
-Philipp
+1.8.3.2
 
