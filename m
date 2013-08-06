@@ -1,128 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27389 "EHLO mx1.redhat.com"
+Received: from pequod.mess.org ([80.229.237.210]:53368 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753620Ab3HFGEA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Aug 2013 02:04:00 -0400
-Message-ID: <5200935E.8080003@redhat.com>
-Date: Tue, 06 Aug 2013 08:10:38 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752472Ab3HFIbZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Aug 2013 04:31:25 -0400
+Date: Tue, 6 Aug 2013 09:31:23 +0100
+From: Sean Young <sean@mess.org>
+To: Rajil Saraswat <rajil.s@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mceusb Fintek ir transmitter only works when X is not running
+Message-ID: <20130806083123.GA11080@pequod.mess.org>
+References: <CAFoaQoAjc-v6UiYxu8ZzaOQi4g8GurYdCB6JM8-GKQbYugJwTw@mail.gmail.com>
+ <20130805112937.GA5216@pequod.mess.org>
+ <CAFoaQoCpNxcqQjCt4KVPvSCOXKoOFeUs-qV7d04GSw0PyPcFEQ@mail.gmail.com>
+ <20130805211505.GA8094@pequod.mess.org>
+ <CAFoaQoBFVJ+pKHtJncyLxH5tjLDeR5v5fQ4VqGx0Yoko_tiN2w@mail.gmail.com>
 MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>
-CC: linux-media@vger.kernel.org,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	syntekdriver-devel@lists.sourceforge.net
-Subject: Re: Syntek webcams and out-of-tree driver
-References: <201308052319.26720.linux@rainbow-software.org>
-In-Reply-To: <201308052319.26720.linux@rainbow-software.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAFoaQoBFVJ+pKHtJncyLxH5tjLDeR5v5fQ4VqGx0Yoko_tiN2w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Aug 05, 2013 at 11:57:58PM +0100, Rajil Saraswat wrote:
+> >
+> > Why are you doing this?
+> >
+> > -snip-
+> 
+> My initial guess was that X was claiming over the ir device, so I
+> wanted to disable ir device as an input device.
 
-On 08/05/2013 11:19 PM, Ondrej Zary wrote:
-> Hello,
-> the in-kernel stkwebcam driver (by Jaime Velasco Juan and Nicolas VIVIEN)
-> supports only two webcam types (USB IDs 0x174f:0xa311 and 0x05e1:0x0501).
-> There are many other Syntek webcam types that are not supported by this
-> driver (such as 0x174f:0x6a31 in Asus F5RL laptop).
->
-> There is an out-of-tree GPL driver called stk11xx (by Martin Roos and also
-> Nicolas VIVIEN) at http://sourceforge.net/projects/syntekdriver/ which
-> supports more webcams. It can be even compiled for the latest kernels using
-> the patch below and seems to work somehow (slow and buggy but better than
-> nothing) with the Asus F5RL.
+X may open the input device, but that does not affect IR transmission.
 
-I took a quick look and there are a number of issues with this driver:
+> > X case where it does not work:
+> >
+> >> ffff880118d1f240 2548275209 S Io:2:008:1 -115:1 3 = 9f0802
+> >> ffff880118d1f240 2548275281 E Io:2:008:1 -28 0
+> >> ffff880118d1fb40 2548286204 S Io:2:008:1 -115:1 86 = 84ffb458 8b840a8b 0a8b8420 8b0a8b84 0a8b0a8b 840a8b0a 8b84208b 208b840a
+> >> ffff880118d1fb40 2548286310 E Io:2:008:1 -28 0
+> >
+> > All the urb submissions result in an error -28: ENOSPC. These errors aren't
+> > logged by default. I'm not sure about why this would happen.
+> >
+> > According to Documentation/usb/error-codes.txt:
+> >
+> > -ENOSPC         This request would overcommit the usb bandwidth reserved
+> >                 for periodic transfers (interrupt, isochronous).
+> >
+> > Could you try putting the device on its own bus (i.e root hub which does
+> > not share bus with another device, see lsusb output).
+> >
+> 
+> 
+> Unfortunately, this is a laptop with few usb ports. I have tried
+> moving devices around but still end-up on the same bus (02). I am
+> running the OS off the 1TB usb harddisk ( Western Digital
+> Technologies) connected on the same bus.
+> 
+> # lsusb
+> Bus 001 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
+> Bus 002 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 003: ID 05ca:1814 Ricoh Co., Ltd HD Webcam
+> Bus 002 Device 003: ID 046d:c00c Logitech, Inc. Optical Wheel Mouse
+> Bus 002 Device 009: ID 1934:5168 Feature Integration Technology Inc.
+> (Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
+> Bus 002 Device 005: ID 1058:0748 Western Digital Technologies, Inc. My
+> Passport 1TB USB 3.0
+> Bus 002 Device 006: ID 413c:8187 Dell Computer Corp. DW375 Bluetooth Module
+> Bus 002 Device 007: ID 0a5c:5800 Broadcom Corp. BCM5880 Secure
+> Applications Processor
 
-1) It conflicts usb-id wise with the new stk1160 driver (which supports
-usb-id 05e1:0408) so support for that usb-id, and any code only used for
-that id will need to be removed
+That is a lot devices, can you try with less devices connected? 
 
-2) "seems to work somehow (slow and buggy)" is not really the quality
-we aim for with in kernel drivers. We definitely will want to remove
-any usb-ids, and any code only used for those ids, where there is overlap
-with the existing stkwebcam driver, to avoid regressions
+> The disk is quite responsive
+> #hdparm -Tt /dev/sdb3
+> 
+> /dev/sdb3:
+>  Timing cached reads:   4896 MB in  2.00 seconds = 2449.42 MB/sec
+>  Timing buffered disk reads:  90 MB in  3.04 seconds =  29.58 MB/sec
 
-3) It does in kernel bayer decoding, this is not acceptable, it needs to
-be modified to produce buffers with raw bayer data (libv4l will take care
-of the bater decoding in userspace).
+It's not about whether there is enough bandwidth, it's about whether
+issuing more usb urbs would overflow the bandwidth allocated to other
+devices (whether in use or not). Make sure you have 
+CONFIG_USB_EHCI_TT_NEWSCHED defined in your kernel.
 
-4) It is not using any of the new kernel infrastructure we have been adding
-over time, like the control-framework, videobuf2, etc. It would be best
-to convert this to a gspca sub driver (of which there are many already,
-which can serve as examples), so that it will use all the existing framework
-code.
+> > If that does not work, could you capture the usbmon output while starting
+> > X and then irsend, to see if your X config somehow affects it.
+> 
+> The usbmon capture (Xstart.txt) is attached as requested. I ran a
+> script which rotated on channel numbers and simultaneously started X.
+> The channels initially changed but stopped when I logged into the X
+> session.
 
-As a minimum issues 1-3 needs to be addressed before this can be merged. An
-alternative /  better approach might be to simply only lift the code for your
-camera, and add a new gspca driver supporting only your camera.
-
-Either way since non of the v4l developers have a laptop which such a camera,
-you will need to do most of the work yourself, as we cannot test.
-
-So congratulations, you've just become a v4l kernel developer :)
-
-Regards,
-
-Hans
+Thanks. Only the IR transmit urb submits results in error ENOSPC.
 
 
->
-> Is there any possibility that this driver could be merged into the kernel?
-> The code could probably be simplified a lot and integrated into gspca.
->
->
-> diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx.h syntekdriver-code-107-trunk//driver/stk11xx.h
-> --- syntekdriver-code-107-trunk-orig/driver/stk11xx.h	2012-03-10 10:03:12.000000000 +0100
-> +++ syntekdriver-code-107-trunk//driver/stk11xx.h	2013-08-05 22:50:00.000000000 +0200
-> @@ -33,6 +33,7 @@
->
->   #ifndef STK11XX_H
->   #define STK11XX_H
-> +#include <media/v4l2-device.h>
->
->   #define DRIVER_NAME					"stk11xx"					/**< Name of this driver */
->   #define DRIVER_VERSION				"v3.0.0"					/**< Version of this driver */
-> @@ -316,6 +317,7 @@ struct stk11xx_video {
->    * @struct usb_stk11xx
->    */
->   struct usb_stk11xx {
-> +	struct v4l2_device v4l2_dev;
->   	struct video_device *vdev; 			/**< Pointer on a V4L2 video device */
->   	struct usb_device *udev;			/**< Pointer on a USB device */
->   	struct usb_interface *interface;	/**< Pointer on a USB interface */
-> diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c syntekdriver-code-107-trunk//driver/stk11xx-v4l.c
-> --- syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c	2012-03-10 09:54:57.000000000 +0100
-> +++ syntekdriver-code-107-trunk//driver/stk11xx-v4l.c	2013-08-05 22:51:12.000000000 +0200
-> @@ -1498,9 +1498,17 @@ int v4l_stk11xx_register_video_device(st
->   {
->   	int err;
->
-> +	err = v4l2_device_register(&dev->interface->dev, &dev->v4l2_dev);
-> +	if (err < 0) {
-> +		STK_ERROR("couldn't register v4l2_device\n");
-> +		kfree(dev);
-> +		return err;
-> +	}
-> +
->   	strcpy(dev->vdev->name, DRIVER_DESC);
->
-> -	dev->vdev->parent = &dev->interface->dev;
-> +//	dev->vdev->parent = &dev->interface->dev;
-> +	dev->vdev->v4l2_dev = &dev->v4l2_dev;
->   	dev->vdev->fops = &v4l_stk11xx_fops;
->   	dev->vdev->release = video_device_release;
->   	dev->vdev->minor = -1;
-> @@ -1533,6 +1541,7 @@ int v4l_stk11xx_unregister_video_device(
->
->   	video_set_drvdata(dev->vdev, NULL);
->   	video_unregister_device(dev->vdev);
-> +	v4l2_device_unregister(&dev->v4l2_dev);
->
->   	return 0;
->   }
->
->
->
+Sean
