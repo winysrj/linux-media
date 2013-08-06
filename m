@@ -1,108 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1030 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab3HLLDL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 07:03:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:22623 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab3HFKTN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:19:13 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r76AJ9nF014605
+	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:19:09 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/10] DocBook: add the new v4l detection class controls.
-Date: Mon, 12 Aug 2013 12:58:30 +0200
-Message-Id: <1376305113-17128-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv2 0/5] qv4l2: add ALSA audio playback
+Date: Tue,  6 Aug 2013 12:18:41 +0200
+Message-Id: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The qv4l2 test utility now supports ALSA playback of audio.
+This allows for PCM playback during capture for supported devices.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/controls.xml | 69 ++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+This requires at least the OpenGL patch series' "qv4l2: add Capture menu" patch.
+A device must be ALSA compatible in order to be used with the qv4l2.
+The ALSA implementation requires ALSA on the system. If ALSA support is not present,
+then this feature will not be compiled in.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index c2fc9ec..dabc707 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4772,4 +4772,73 @@ defines possible values for de-emphasis. Here they are:</entry>
-       </table>
- 
-       </section>
-+
-+    <section id="detect-controls">
-+      <title>Detect Control Reference</title>
-+
-+      <para>The Detect class includes controls for common features of
-+      various motion or object detection capable devices.</para>
-+
-+      <table pgwide="1" frame="none" id="detect-control-id">
-+      <title>Detect Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_DETECT_CLASS</constant>&nbsp;</entry>
-+            <entry>class</entry>
-+          </row><row><entry spanname="descr">The Detect class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+          </row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_DETECT_MOTION_MODE</constant>&nbsp;</entry>
-+            <entry>menu</entry>
-+          </row><row><entry spanname="descr">Sets the motion detection mode.</entry>
-+          </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_DISABLED</constant>
-+		  </entry><entry>Disable motion detection.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_GLOBAL</constant>
-+		  </entry><entry>Use a single motion detection threshold.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_REGIONAL</constant>
-+		  </entry><entry>The image is divided into regions, each with their own
-+		  motion detection threshold.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+          <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DETECT_MOTION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the global motion detection threshold to be
-+	  used with the <constant>V4L2_DETECT_MOTION_GLOBAL</constant> motion detection mode.</entry>
-+          </row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
- </section>
--- 
-1.8.3.2
+Changelog v2:
+- Fixed the A-V average measuring
+- ALSA is always compiled in but uses include guards from config.h instead
+
+Some of the changes/improvements:
+- Capturing will also capture audio
+- Added audio controls to the capture menu
+- Selectable audio devices (can also have no audio)
+- Automatically find corresponding audio source for a given video device if applicable
+- Supports both radio, video and audio devices that uses PCM.
+- Bug fixes
+
+Known issues:
+- Sometimes when generating the audio in and out device lists,
+  it may take some time for the combo boxes to render correctly.
+- If the audio causes underruns/overruns, try increase the audio buffer.
+- Not all audio input/output combination will work, depending on system and devices.
+- The A-V difference in ms is not always correct, but should still help as an indicator
 
