@@ -1,81 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:23517 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755385Ab3HEI5t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:49 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7h001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:46 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 6/7] qv4l2: add hotkey for reset scaling to frame size
-Date: Mon,  5 Aug 2013 10:56:56 +0200
-Message-Id: <1c4496a55011553c07c81cbe2d2d132f8ad9ddfa.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-References: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:39295 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755593Ab3HFNGe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 09:06:34 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Syntek webcams and out-of-tree driver
+Date: Tue, 6 Aug 2013 15:05:47 +0200
+Cc: linux-media@vger.kernel.org,
+	Jaime Velasco Juan <jsagarribay@gmail.com>,
+	syntekdriver-devel@lists.sourceforge.net
+References: <201308052319.26720.linux@rainbow-software.org> <5200935E.8080003@redhat.com>
+In-Reply-To: <5200935E.8080003@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201308061505.47486.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds hotkey CTRL + F for both CaptureWin and main Capture menu.
-Resets the scaling of CaptureWin to fit frame size.
+On Tuesday 06 August 2013, Hans de Goede wrote:
+> Hi,
+>
+> On 08/05/2013 11:19 PM, Ondrej Zary wrote:
+> > Hello,
+> > the in-kernel stkwebcam driver (by Jaime Velasco Juan and Nicolas VIVIEN)
+> > supports only two webcam types (USB IDs 0x174f:0xa311 and 0x05e1:0x0501).
+> > There are many other Syntek webcam types that are not supported by this
+> > driver (such as 0x174f:0x6a31 in Asus F5RL laptop).
+> >
+> > There is an out-of-tree GPL driver called stk11xx (by Martin Roos and
+> > also Nicolas VIVIEN) at http://sourceforge.net/projects/syntekdriver/
+> > which supports more webcams. It can be even compiled for the latest
+> > kernels using the patch below and seems to work somehow (slow and buggy
+> > but better than nothing) with the Asus F5RL.
+>
+> I took a quick look and there are a number of issues with this driver:
+>
+> 1) It conflicts usb-id wise with the new stk1160 driver (which supports
+> usb-id 05e1:0408) so support for that usb-id, and any code only used for
+> that id will need to be removed
+>
+> 2) "seems to work somehow (slow and buggy)" is not really the quality
+> we aim for with in kernel drivers. We definitely will want to remove
+> any usb-ids, and any code only used for those ids, where there is overlap
+> with the existing stkwebcam driver, to avoid regressions
+>
+> 3) It does in kernel bayer decoding, this is not acceptable, it needs to
+> be modified to produce buffers with raw bayer data (libv4l will take care
+> of the bater decoding in userspace).
+>
+> 4) It is not using any of the new kernel infrastructure we have been adding
+> over time, like the control-framework, videobuf2, etc. It would be best
+> to convert this to a gspca sub driver (of which there are many already,
+> which can serve as examples), so that it will use all the existing
+> framework code.
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 3 +++
- utils/qv4l2/capture-win.h   | 1 +
- utils/qv4l2/qv4l2.cpp       | 1 +
- 3 files changed, 5 insertions(+)
+Yes, this would be the best way - only extract the HW-dependent parts.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 4c5dd57..435c19b 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -38,6 +38,8 @@ CaptureWin::CaptureWin() :
- 	setWindowTitle("V4L2 Capture");
- 	m_hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
- 	connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
-+	m_hotkeyScaleReset = new QShortcut(Qt::CTRL+Qt::Key_F, this);
-+	connect(m_hotkeyScaleReset, SIGNAL(activated()), this, SLOT(resetSize()));
- }
- 
- CaptureWin::~CaptureWin()
-@@ -48,6 +50,7 @@ CaptureWin::~CaptureWin()
- 	layout()->removeWidget(this);
- 	delete layout();
- 	delete m_hotkeyClose;
-+	delete m_hotkeyScaleReset;
- }
- 
- void CaptureWin::buildWindow(QWidget *videoSurface)
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index eea0335..1bfb1e1 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -104,6 +104,7 @@ signals:
- 
- private:
- 	QShortcut *m_hotkeyClose;
-+	QShortcut *m_hotkeyScaleReset;
- 	int m_curWidth;
- 	int m_curHeight;
- };
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 6b64892..92a415f 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -144,6 +144,7 @@ ApplicationWindow::ApplicationWindow() :
- 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
- 	m_resetScalingAct = new QAction("Resize to Frame Size", this);
- 	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
-+	m_resetScalingAct->setShortcut(Qt::CTRL+Qt::Key_F);
- 
- 	QMenu *captureMenu = menuBar()->addMenu("&Capture");
- 	captureMenu->addAction(m_capStartAct);
+> As a minimum issues 1-3 needs to be addressed before this can be merged. An
+> alternative /  better approach might be to simply only lift the code for
+> your camera, and add a new gspca driver supporting only your camera.
+>
+> Either way since non of the v4l developers have a laptop which such a
+> camera, you will need to do most of the work yourself, as we cannot test.
+>
+> So congratulations, you've just become a v4l kernel developer :)
+
+Unfortunately the laptop isn't mine. I'll have it only for a while but will 
+try to do something.
+
+> Regards,
+>
+> Hans
+>
+> > Is there any possibility that this driver could be merged into the
+> > kernel? The code could probably be simplified a lot and integrated into
+> > gspca.
+> >
+> >
+> > diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx.h
+> > syntekdriver-code-107-trunk//driver/stk11xx.h ---
+> > syntekdriver-code-107-trunk-orig/driver/stk11xx.h	2012-03-10
+> > 10:03:12.000000000 +0100 +++
+> > syntekdriver-code-107-trunk//driver/stk11xx.h	2013-08-05
+> > 22:50:00.000000000 +0200 @@ -33,6 +33,7 @@
+> >
+> >   #ifndef STK11XX_H
+> >   #define STK11XX_H
+> > +#include <media/v4l2-device.h>
+> >
+> >   #define DRIVER_NAME					"stk11xx"					/**< Name of this driver */
+> >   #define DRIVER_VERSION				"v3.0.0"					/**< Version of this driver */
+> > @@ -316,6 +317,7 @@ struct stk11xx_video {
+> >    * @struct usb_stk11xx
+> >    */
+> >   struct usb_stk11xx {
+> > +	struct v4l2_device v4l2_dev;
+> >   	struct video_device *vdev; 			/**< Pointer on a V4L2 video device */
+> >   	struct usb_device *udev;			/**< Pointer on a USB device */
+> >   	struct usb_interface *interface;	/**< Pointer on a USB interface */
+> > diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c
+> > syntekdriver-code-107-trunk//driver/stk11xx-v4l.c ---
+> > syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c	2012-03-10
+> > 09:54:57.000000000 +0100 +++
+> > syntekdriver-code-107-trunk//driver/stk11xx-v4l.c	2013-08-05
+> > 22:51:12.000000000 +0200 @@ -1498,9 +1498,17 @@ int
+> > v4l_stk11xx_register_video_device(st
+> >   {
+> >   	int err;
+> >
+> > +	err = v4l2_device_register(&dev->interface->dev, &dev->v4l2_dev);
+> > +	if (err < 0) {
+> > +		STK_ERROR("couldn't register v4l2_device\n");
+> > +		kfree(dev);
+> > +		return err;
+> > +	}
+> > +
+> >   	strcpy(dev->vdev->name, DRIVER_DESC);
+> >
+> > -	dev->vdev->parent = &dev->interface->dev;
+> > +//	dev->vdev->parent = &dev->interface->dev;
+> > +	dev->vdev->v4l2_dev = &dev->v4l2_dev;
+> >   	dev->vdev->fops = &v4l_stk11xx_fops;
+> >   	dev->vdev->release = video_device_release;
+> >   	dev->vdev->minor = -1;
+> > @@ -1533,6 +1541,7 @@ int v4l_stk11xx_unregister_video_device(
+> >
+> >   	video_set_drvdata(dev->vdev, NULL);
+> >   	video_unregister_device(dev->vdev);
+> > +	v4l2_device_unregister(&dev->v4l2_dev);
+> >
+> >   	return 0;
+> >   }
+
+
+
 -- 
-1.8.3.2
-
+Ondrej Zary
