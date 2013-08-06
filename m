@@ -1,203 +1,371 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2365 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab3HEJbS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 05:31:18 -0400
-Message-ID: <51FF70DF.1010605@xs4all.nl>
-Date: Mon, 05 Aug 2013 11:31:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:45318 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab3HFKWi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:22:38 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
+	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r76AMGhO015841
+	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:22:34 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 9/9] qv4l2: add pixel aspect ratio support for CaptureWin
+Date: Tue,  6 Aug 2013 12:21:53 +0200
+Message-Id: <260f2ef6271d358ab1a0b33b206fdf2246466d55.1375784415.git.bwinther@cisco.com>
+In-Reply-To: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
+References: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
+References: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?QsOlcmQgRWlyaWsgV2ludGhlcg==?= <bwinther@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 7/7] qv4l2: add aspect ratio support
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com> <1f361d3a48848e8b4918666cf80e4745efab8c0d.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1f361d3a48848e8b4918666cf80e4745efab8c0d.1375692973.git.bwinther@cisco.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bård,
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/capture-win.cpp | 36 ++++++++++++++++++------
+ utils/qv4l2/capture-win.h   |  6 ++++
+ utils/qv4l2/general-tab.cpp | 68 +++++++++++++++++++++++++++++++++++++++++++++
+ utils/qv4l2/general-tab.h   |  4 +++
+ utils/qv4l2/qv4l2.cpp       | 21 ++++++++++----
+ utils/qv4l2/qv4l2.h         |  1 +
+ 6 files changed, 122 insertions(+), 14 deletions(-)
 
-Some comments below...
-
-On 08/05/2013 10:56 AM, Bård Eirik Winther wrote:
-> Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
-> ---
->  utils/qv4l2/capture-win.cpp | 24 ++++++++++++++++++++++--
->  utils/qv4l2/capture-win.h   |  8 +++++++-
->  utils/qv4l2/general-tab.cpp | 36 ++++++++++++++++++++++++++++++++++++
->  utils/qv4l2/general-tab.h   |  3 +++
->  utils/qv4l2/qv4l2.cpp       | 22 +++++++++++++++-------
->  utils/qv4l2/qv4l2.h         |  2 +-
->  6 files changed, 84 insertions(+), 11 deletions(-)
-> 
-> diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-> index 435c19b..415829a 100644
-> --- a/utils/qv4l2/capture-win.cpp
-> +++ b/utils/qv4l2/capture-win.cpp
-> @@ -30,6 +30,7 @@
->  #define MIN_WIN_SIZE_HEIGHT 120
->  
->  bool CaptureWin::m_enableScaling = true;
-> +double CaptureWin::m_pixelAspectRatio = 1.0;
->  
->  CaptureWin::CaptureWin() :
->  	m_curWidth(-1),
-> @@ -73,6 +74,14 @@ void CaptureWin::resetSize()
->  	resize(w, h);
->  }
->  
-> +int CaptureWin::actualFrameWidth(int width)
-> +{
-> +	if (m_enableScaling)
-> +		return (int)((double)width * m_pixelAspectRatio);
-> +	else
-
-No need for the 'else' statement.
-
-> +		return width;
-> +}
-> +
->  QSize CaptureWin::getMargins()
->  {
->  	int l, t, r, b;
-> @@ -94,6 +103,14 @@ void CaptureWin::enableScaling(bool enable)
->  	delete event;
->  }
->  
-> +void CaptureWin::setPixelAspectRatio(double ratio)
-> +{
-> +	m_pixelAspectRatio = ratio;
-> +	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
-> +	QCoreApplication::sendEvent(this, event);
-> +	delete event;
-> +}
-> +
->  void CaptureWin::resize(int width, int height)
->  {
->  	// Dont resize window if the frame size is the same in
-> @@ -105,7 +122,7 @@ void CaptureWin::resize(int width, int height)
->  	m_curHeight = height;
->  
->  	QSize margins = getMargins();
-> -	width += margins.width();
-> +	width = actualFrameWidth(width) + margins.width();
->  	height += margins.height();
->  
->  	QDesktopWidget *screen = QApplication::desktop();
-> @@ -127,12 +144,15 @@ void CaptureWin::resize(int width, int height)
->  
->  QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
->  {
-> -	int actualFrameWidth = frame.width();;
-> +	int actualFrameWidth;
->  	int actualFrameHeight = frame.height();
->  
->  	if (!m_enableScaling) {
->  		window.setWidth(frame.width());
->  		window.setHeight(frame.height());
-> +		actualFrameWidth = frame.width();
-> +	} else {
-> +		actualFrameWidth = CaptureWin::actualFrameWidth(frame.width());
->  	}
->  
->  	double newW, newH;
-> diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-> index 1bfb1e1..eded9e0 100644
-> --- a/utils/qv4l2/capture-win.h
-> +++ b/utils/qv4l2/capture-win.h
-> @@ -76,9 +76,10 @@ public:
->  	static bool isSupported() { return false; }
->  
->  	void enableScaling(bool enable);
-> +	void setPixelAspectRatio(double ratio);
->  	static QSize scaleFrameSize(QSize window, QSize frame);
->  
-> -public slots:
-> +	public slots:
->  	void resetSize();
->  
->  protected:
-> @@ -99,6 +100,11 @@ protected:
->  	 */
->  	static bool m_enableScaling;
->  
-> +	/**
-> +	 * @note Aspect ratio it taken care of by scaling, frame size is for square pixels only!
-> +	 */
-> +	static double m_pixelAspectRatio;
-> +
->  signals:
->  	void close();
->  
-> diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-> index 5996c03..53b7e36 100644
-> --- a/utils/qv4l2/general-tab.cpp
-> +++ b/utils/qv4l2/general-tab.cpp
-> @@ -53,6 +53,7 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
->  	m_tvStandard(NULL),
->  	m_qryStandard(NULL),
->  	m_videoTimings(NULL),
-> +	m_pixelAspectRatio(NULL),
->  	m_qryTimings(NULL),
->  	m_freq(NULL),
->  	m_vidCapFormats(NULL),
-> @@ -210,6 +211,20 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
->  		connect(m_qryTimings, SIGNAL(clicked()), SLOT(qryTimingsClicked()));
->  	}
->  
-> +	if (!isRadio() && !isVbi()) {
-> +		m_pixelAspectRatio = new QComboBox(parent);
-> +		m_pixelAspectRatio->addItem("Autodetect");
-> +		m_pixelAspectRatio->addItem("Square");
-> +		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60");
-> +		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60, Anamorphic");
-> +		m_pixelAspectRatio->addItem("PAL/SECAM");
-> +		m_pixelAspectRatio->addItem("PAL/SECAM, Anamorphic");
-> +
-> +		addLabel("Pixel Aspect Ratio");
-> +		addWidget(m_pixelAspectRatio);
-> +		connect(m_pixelAspectRatio, SIGNAL(activated(int)), SIGNAL(pixelAspectRatioChanged()));
-> +	}
-> +
->  	if (m_tuner.capability) {
->  		QDoubleValidator *val;
->  		double factor = (m_tuner.capability & V4L2_TUNER_CAP_LOW) ? 16 : 16000;
-> @@ -1105,6 +1120,27 @@ void GeneralTab::updateFrameSize()
->  	updateFrameInterval();
->  }
->  
-> +double GeneralTab::getPixelAspectRatio()
-> +{
-> +	if (m_pixelAspectRatio->currentText().compare("Autodetect") == 0) {
-> +		v4l2_cropcap ratio;
-> +		ratio.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +		if (ioctl(VIDIOC_CROPCAP, &ratio) < 0)
-> +			return 1.0;
-> +
-> +		return (double)ratio.pixelaspect.denominator / ratio.pixelaspect.numerator;
-> +	}
-> +	if (m_pixelAspectRatio->currentText().compare("NTSC/PAL-M/PAL-60") == 0)
-> +		return 10.0/11.0;
-> +	if (m_pixelAspectRatio->currentText().compare("NTSC/PAL-M/PAL-60, Anamorphic") == 0)
-> +		return 40.0/33.0;
-> +	if (m_pixelAspectRatio->currentText().compare("PAL/SECAM") == 0)
-> +		return 12.0/11.0;
-> +	if (m_pixelAspectRatio->currentText().compare("PAL/SECAM, Anamorphic") == 0)
-> +		return 16.0/11.0;
-
-These string compares are flaky: if someone changes the string in the GUI, then it is
-all too easy to forget about changing this.
-
-Take a look at how the audio mode (m_audioMode) is handled. You should do something
-similar.
-
-> +	return 1.0;
-> +}
-> +
-
-Regards,
-
-	Hans
+diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
+index 3abb6cb..7538756 100644
+--- a/utils/qv4l2/capture-win.cpp
++++ b/utils/qv4l2/capture-win.cpp
+@@ -30,6 +30,7 @@
+ #define MIN_WIN_SIZE_HEIGHT 120
+ 
+ bool CaptureWin::m_enableScaling = true;
++double CaptureWin::m_pixelAspectRatio = 1.0;
+ 
+ CaptureWin::CaptureWin() :
+ 	m_curWidth(-1),
+@@ -76,6 +77,14 @@ void CaptureWin::resetSize()
+ 	resize(w, h);
+ }
+ 
++int CaptureWin::actualFrameWidth(int width)
++{
++	if (m_enableScaling)
++		return (int)((double)width * m_pixelAspectRatio);
++
++	return width;
++}
++
+ QSize CaptureWin::getMargins()
+ {
+ 	int l, t, r, b;
+@@ -108,7 +117,7 @@ void CaptureWin::resize(int width, int height)
+ 	m_curHeight = height;
+ 
+ 	QSize margins = getMargins();
+-	width += margins.width();
++	width = actualFrameWidth(width) + margins.width();
+ 	height += margins.height();
+ 
+ 	QDesktopWidget *screen = QApplication::desktop();
+@@ -130,25 +139,36 @@ void CaptureWin::resize(int width, int height)
+ 
+ QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
+ {
+-	int actualFrameWidth = frame.width();;
+-	int actualFrameHeight = frame.height();
++	int actualWidth;
++	int actualHeight = frame.height();
+ 
+ 	if (!m_enableScaling) {
+ 		window.setWidth(frame.width());
+ 		window.setHeight(frame.height());
++		actualWidth = frame.width();
++	} else {
++		actualWidth = CaptureWin::actualFrameWidth(frame.width());
+ 	}
+ 
+ 	double newW, newH;
+ 	if (window.width() >= window.height()) {
+-		newW = (double)window.width() / actualFrameWidth;
+-		newH = (double)window.height() / actualFrameHeight;
++		newW = (double)window.width() / actualWidth;
++		newH = (double)window.height() / actualHeight;
+ 	} else {
+-		newH = (double)window.width() / actualFrameWidth;
+-		newW = (double)window.height() / actualFrameHeight;
++		newH = (double)window.width() / actualWidth;
++		newW = (double)window.height() / actualHeight;
+ 	}
+ 	double resized = std::min(newW, newH);
+ 
+-	return QSize((int)(actualFrameWidth * resized), (int)(actualFrameHeight * resized));
++	return QSize((int)(actualWidth * resized), (int)(actualHeight * resized));
++}
++
++void CaptureWin::setPixelAspectRatio(double ratio)
++{
++	m_pixelAspectRatio = ratio;
++	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
++	QCoreApplication::sendEvent(this, event);
++	delete event;
+ }
+ 
+ void CaptureWin::closeEvent(QCloseEvent *event)
+diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
+index 1bfb1e1..e8f0ada 100644
+--- a/utils/qv4l2/capture-win.h
++++ b/utils/qv4l2/capture-win.h
+@@ -76,6 +76,7 @@ public:
+ 	static bool isSupported() { return false; }
+ 
+ 	void enableScaling(bool enable);
++	void setPixelAspectRatio(double ratio);
+ 	static QSize scaleFrameSize(QSize window, QSize frame);
+ 
+ public slots:
+@@ -99,6 +100,11 @@ protected:
+ 	 */
+ 	static bool m_enableScaling;
+ 
++	/**
++	 * @note Aspect ratio it taken care of by scaling, frame size is for square pixels only!
++	 */
++	static double m_pixelAspectRatio;
++
+ signals:
+ 	void close();
+ 
+diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
+index 5cfaf07..c404a3b 100644
+--- a/utils/qv4l2/general-tab.cpp
++++ b/utils/qv4l2/general-tab.cpp
+@@ -53,6 +53,7 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
+ 	m_tvStandard(NULL),
+ 	m_qryStandard(NULL),
+ 	m_videoTimings(NULL),
++	m_pixelAspectRatio(NULL),
+ 	m_qryTimings(NULL),
+ 	m_freq(NULL),
+ 	m_vidCapFormats(NULL),
+@@ -210,6 +211,23 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
+ 		connect(m_qryTimings, SIGNAL(clicked()), SLOT(qryTimingsClicked()));
+ 	}
+ 
++	if (!isRadio() && !isVbi()) {
++		m_pixelAspectRatio = new QComboBox(parent);
++		m_pixelAspectRatio->addItem("Autodetect");
++		m_pixelAspectRatio->addItem("Square");
++		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60");
++		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60, Anamorphic");
++		m_pixelAspectRatio->addItem("PAL/SECAM");
++		m_pixelAspectRatio->addItem("PAL/SECAM, Anamorphic");
++
++		// Update hints by calling a get
++		getPixelAspectRatio();
++
++		addLabel("Pixel Aspect Ratio");
++		addWidget(m_pixelAspectRatio);
++		connect(m_pixelAspectRatio, SIGNAL(activated(int)), SLOT(changePixelAspectRatio()));
++	}
++
+ 	if (m_tuner.capability) {
+ 		QDoubleValidator *val;
+ 		double factor = (m_tuner.capability & V4L2_TUNER_CAP_LOW) ? 16 : 16000;
+@@ -1105,6 +1123,56 @@ void GeneralTab::updateFrameSize()
+ 	updateFrameInterval();
+ }
+ 
++void GeneralTab::changePixelAspectRatio()
++{
++	// Update hints by calling a get
++	getPixelAspectRatio();
++	info("");
++	emit pixelAspectRatioChanged();
++}
++
++double GeneralTab::getPixelAspectRatio()
++{
++	switch (m_pixelAspectRatio->currentIndex()) {
++	case 0:
++		v4l2_cropcap ratio;
++		ratio.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		if (ioctl(VIDIOC_CROPCAP, &ratio) < 0) {
++			m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
++			m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
++			return 1.0;
++		}
++
++		m_pixelAspectRatio->setStatusTip(QString("Pixel Aspect Ratio %1:%2")
++						 .arg(ratio.pixelaspect.denominator)
++						 .arg(ratio.pixelaspect.numerator));
++		m_pixelAspectRatio->setWhatsThis(QString("Pixel Aspect Ratio %1:%2")
++						 .arg(ratio.pixelaspect.denominator)
++						 .arg(ratio.pixelaspect.numerator));
++		return (double)ratio.pixelaspect.denominator / ratio.pixelaspect.numerator;
++	case 2:
++		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 10:11");
++		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 10:11");
++		return 10.0 / 11.0;
++	case 3:
++		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 40:33");
++		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 40:33");
++		return 40.0 / 33.0;
++	case 4:
++		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 12:11");
++		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 12:11");
++		return 12.0 / 11.0;
++	case 5:
++		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 16:11");
++		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 16:11");
++		return 16.0 / 11.0;
++	default:
++		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
++		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
++		return 1.0;
++	}
++}
++
+ void GeneralTab::updateFrameInterval()
+ {
+ 	v4l2_frmivalenum frmival;
+diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
+index 6c51016..4540e1f 100644
+--- a/utils/qv4l2/general-tab.h
++++ b/utils/qv4l2/general-tab.h
+@@ -57,6 +57,7 @@ public:
+ 	void setAudioDeviceBufferSize(int size);
+ 	int getAudioDeviceBufferSize();
+ 	bool hasAlsaAudio();
++	double getPixelAspectRatio();
+ 	bool get_interval(struct v4l2_fract &interval);
+ 	int width() const { return m_width; }
+ 	int height() const { return m_height; }
+@@ -90,6 +91,7 @@ public slots:
+ 
+ signals:
+ 	void audioDeviceChanged();
++	void pixelAspectRatioChanged();
+ 
+ private slots:
+ 	void inputChanged(int);
+@@ -115,6 +117,7 @@ private slots:
+ 	void vidOutFormatChanged(int);
+ 	void vbiMethodsChanged(int);
+ 	void changeAudioDevice();
++	void changePixelAspectRatio();
+ 
+ private:
+ 	void updateVideoInput();
+@@ -182,6 +185,7 @@ private:
+ 	QComboBox *m_tvStandard;
+ 	QPushButton *m_qryStandard;
+ 	QComboBox *m_videoTimings;
++	QComboBox *m_pixelAspectRatio;
+ 	QPushButton *m_qryTimings;
+ 	QLineEdit *m_freq;
+ 	QComboBox *m_freqTable;
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index c94b0a8..892d9c3 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -103,7 +103,7 @@ ApplicationWindow::ApplicationWindow() :
+ 	m_saveRawAct->setChecked(false);
+ 	connect(m_saveRawAct, SIGNAL(toggled(bool)), this, SLOT(saveRaw(bool)));
+ 
+-	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "Show &Frames", this);
++	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "&Show Frames", this);
+ 	m_showFramesAct->setStatusTip("Only show captured frames if set.");
+ 	m_showFramesAct->setCheckable(true);
+ 	m_showFramesAct->setChecked(true);
+@@ -137,12 +137,12 @@ ApplicationWindow::ApplicationWindow() :
+ 	toolBar->addSeparator();
+ 	toolBar->addAction(quitAct);
+ 
+-	m_scalingAct = new QAction("Enable Video Scaling", this);
++	m_scalingAct = new QAction("&Enable Video Scaling", this);
+ 	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
+ 	m_scalingAct->setCheckable(true);
+ 	m_scalingAct->setChecked(true);
+ 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
+-	m_resetScalingAct = new QAction("Resize to Frame Size", this);
++	m_resetScalingAct = new QAction("Resize to &Frame Size", this);
+ 	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
+ 	m_resetScalingAct->setShortcut(Qt::CTRL+Qt::Key_F);
+ 
+@@ -168,13 +168,13 @@ ApplicationWindow::ApplicationWindow() :
+ #ifdef HAVE_ALSA
+ 	captureMenu->addSeparator();
+ 
+-	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
++	m_showAllAudioAct = new QAction("Show All Audio &Devices", this);
+ 	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
+ 	m_showAllAudioAct->setCheckable(true);
+ 	m_showAllAudioAct->setChecked(false);
+ 	captureMenu->addAction(m_showAllAudioAct);
+ 
+-	m_audioBufferAct = new QAction("Set Audio Buffer Capacity...", this);
++	m_audioBufferAct = new QAction("Set Audio &Buffer Capacity...", this);
+ 	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
+ 	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
+ 	captureMenu->addAction(m_audioBufferAct);
+@@ -229,7 +229,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
+ 		m_audioBufferAct->setEnabled(false);
+ 	}
+ #endif
+-
++	connect(m_genTab, SIGNAL(pixelAspectRatioChanged()), this, SLOT(updatePixelAspectRatio()));
+ 	m_tabs->addTab(w, "General");
+ 	addTabs();
+ 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
+@@ -360,6 +360,7 @@ void ApplicationWindow::newCaptureWin()
+ 		break;
+ 	}
+ 
++	m_capture->setPixelAspectRatio(1.0);
+ 	m_capture->enableScaling(m_scalingAct->isChecked());
+         connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
+ 	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
+@@ -810,6 +811,12 @@ void ApplicationWindow::enableScaling(bool enable)
+ 		m_capture->enableScaling(enable);
+ }
+ 
++void ApplicationWindow::updatePixelAspectRatio()
++{
++	if (m_capture != NULL && m_genTab != NULL)
++		m_capture->setPixelAspectRatio(m_genTab->getPixelAspectRatio());
++}
++
+ void ApplicationWindow::startAudio()
+ {
+ #ifdef HAVE_ALSA
+@@ -891,6 +898,7 @@ void ApplicationWindow::capStart(bool start)
+ 		m_vbiTab->slicedFormat(fmt.fmt.sliced);
+ 		m_vbiSize = fmt.fmt.sliced.io_size;
+ 		m_frameData = new unsigned char[m_vbiSize];
++		updatePixelAspectRatio();
+ 		if (startCapture(m_vbiSize)) {
+ 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
+ 			connect(m_capNotifier, SIGNAL(activated(int)), this, SLOT(capVbiFrame()));
+@@ -959,6 +967,7 @@ void ApplicationWindow::capStart(bool start)
+ 		m_capSrcFormat = copy;
+ 	}
+ 
++	updatePixelAspectRatio();
+ 	m_capture->resize(dstPix.width, dstPix.height);
+ 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
+ 	m_capImage->fill(0);
+diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
+index 179cecb..970a0e1 100644
+--- a/utils/qv4l2/qv4l2.h
++++ b/utils/qv4l2/qv4l2.h
+@@ -133,6 +133,7 @@ private slots:
+ 	void rejectedRawFile();
+ 	void setAudioBufferSize();
+ 	void enableScaling(bool enable);
++	void updatePixelAspectRatio();
+ 
+ 	void about();
+ 
+-- 
+1.8.3.2
 
