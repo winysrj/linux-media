@@ -1,115 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2380 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab3HOLh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:37:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/12] v4l2-dv-timings: add v4l2_print_dv_timings helper
-Date: Thu, 15 Aug 2013 13:36:32 +0200
-Message-Id: <7632d4b5a6f448367238356bb76efc062fd89937.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:57518 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756368Ab3HFWNR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 18:13:17 -0400
+Message-ID: <520174F5.6060508@samsung.com>
+Date: Wed, 07 Aug 2013 07:13:09 +0900
+From: Kukjin Kim <kgene.kim@samsung.com>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Grant Likely' <grant.likely@secretlab.ca>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Sachin Kamat' <sachin.kamat@linaro.org>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Rob Herring' <robherring2@gmail.com>,
+	'Olof Johansson' <olof@lixom.net>,
+	'Pawel Moll' <pawel.moll@arm.com>,
+	'Mark Rutland' <mark.rutland@arm.com>,
+	'Stephen Warren' <swarren@wwwdotorg.org>,
+	'Ian Campbell' <ian.campbell@citrix.com>
+Subject: Re: [PATCH 2/2] media: s5p-mfc: remove DT hacks and simplify initialization
+ code
+References: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com> <1375705610-12724-3-git-send-email-m.szyprowski@samsung.com> <030d01ce928e$de27e190$9a77a4b0$%debski@samsung.com>
+In-Reply-To: <030d01ce928e$de27e190$9a77a4b0$%debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/06/13 19:22, Kamil Debski wrote:
+> Hi Kukjin,
+>
+> This patch looks good.
+>
+> Best wishes,
+> Kamil Debski
+>
+>> From: Marek Szyprowski [mailto:m.szyprowski@samsung.com]
+>> Sent: Monday, August 05, 2013 2:27 PM
+>>
+>> This patch removes custom initialization of reserved memory regions
+>> from s5p-mfc driver. Memory initialization can be now handled by
+>> generic code.
+>>
+>> Signed-off-by: Marek Szyprowski<m.szyprowski@samsung.com>
+>
+> Acked-by: Kamil Debski<k.debski@samsung.com>
+>
+Kamil, thanks for your ack.
 
-Drivers often have to log the contents of a dv_timings struct. Adding
-this helper will make it easier for drivers to do so.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c | 49 +++++++++++++++++++++++++++++++
- include/media/v4l2-dv-timings.h           |  9 ++++++
- 2 files changed, 58 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 72cf224..917e58c 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -223,6 +223,55 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
- }
- EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
- 
-+void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-+			   const struct v4l2_dv_timings *t, bool detailed)
-+{
-+	const struct v4l2_bt_timings *bt = &t->bt;
-+	u32 htot, vtot;
-+
-+	if (t->type != V4L2_DV_BT_656_1120)
-+		return;
-+
-+	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
-+	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
-+
-+	if (prefix == NULL)
-+		prefix = "";
-+
-+	pr_info("%s: %s%ux%u%s%u (%ux%u)\n", dev_prefix, prefix,
-+		bt->width, bt->height, bt->interlaced ? "i" : "p",
-+		(htot * vtot) > 0 ? ((u32)bt->pixelclock / (htot * vtot)) : 0,
-+		htot, vtot);
-+
-+	if (!detailed)
-+		return;
-+
-+	pr_info("%s: horizontal: fp = %u, %ssync = %u, bp = %u\n",
-+			dev_prefix, bt->hfrontporch,
-+			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
-+			bt->hsync, bt->hbackporch);
-+	pr_info("%s: vertical: fp = %u, %ssync = %u, bp = %u\n",
-+			dev_prefix, bt->vfrontporch,
-+			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
-+			bt->vsync, bt->vbackporch);
-+	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
-+	pr_info("%s: flags (0x%x):%s%s%s%s\n", dev_prefix, bt->flags,
-+			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
-+			" REDUCED_BLANKING" : "",
-+			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
-+			" CAN_REDUCE_FPS" : "",
-+			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
-+			" REDUCED_FPS" : "",
-+			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
-+			" HALF_LINE" : "");
-+	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
-+			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
-+			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
-+}
-+EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
-+
- /*
-  * CVT defines
-  * Based on Coordinated Video Timings Standard
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 4c7bb54..696e5c2 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -76,6 +76,15 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
- 			  const struct v4l2_dv_timings *standard,
- 			  unsigned pclock_delta);
- 
-+/** v4l2_print_dv_timings() - log the contents of a dv_timings struct
-+  * @dev_prefix:device prefix for each log line.
-+  * @prefix:	additional prefix for each log line, may be NULL.
-+  * @t:		the timings data.
-+  * @detailed:	if true, give a detailed log.
-+  */
-+void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-+			   const struct v4l2_dv_timings *t, bool detailed);
-+
- /** v4l2_detect_cvt - detect if the given timings follow the CVT standard
-  * @frame_height - the total height of the frame (including blanking) in lines.
-  * @hfreq - the horizontal frequency in Hz.
--- 
-1.8.3.2
-
+Applied.
+- Kukjin
