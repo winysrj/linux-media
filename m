@@ -1,286 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:35269 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757114Ab3HaLbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 07:31:01 -0400
-Received: by mail-ve0-f175.google.com with SMTP id oy10so2024549veb.34
-        for <linux-media@vger.kernel.org>; Sat, 31 Aug 2013 04:31:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
-	<1377862104-15429-1-git-send-email-dinram@cisco.com>
-	<b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
-Date: Sat, 31 Aug 2013 07:31:00 -0400
-Message-ID: <CAC-25o9OW1nmuzbmRX6dW4pLwaJHaFTxXTr_nzaGXk1HDzcdzA@mail.gmail.com>
-Subject: Re: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where
- interrupts are not used
-From: "edubezval@gmail.com" <edubezval@gmail.com>
-To: Dinesh Ram <dinram@cisco.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>, dinesh.ram@cern.ch
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:46191 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932738Ab3HGMwz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 08:52:55 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, prathyush.k@samsung.com,
+	arun.m@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH] [media] exynos-gsc: fix s2r functionality
+Date: Wed,  7 Aug 2013 18:23:04 +0530
+Message-Id: <1375879984-19052-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dinesh, Hi
+From: Prathyush K <prathyush.k@samsung.com>
 
+When gsc is in runtime suspended state, there is no need to call
+m2m_suspend during suspend and similarily, there is no need to call
+m2m_resume during resume if already in runtime suspended state. This
+patch adds the necessary conditions to achieve this.
 
-On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
->
-> Checks have been introduced at several places in the code to test if an interrupt is set or not.
-> For devices which do not use the interrupt, to get a valid response, within a specified timeout,
-> the device is polled instead.
->
-> Signed-off-by: Dinesh Ram <dinram@cisco.com>
-> ---
->  drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
->  drivers/media/radio/si4713/si4713.h |   1 +
->  2 files changed, 63 insertions(+), 48 deletions(-)
->
-> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-> index ac727e3..55c4d27 100644
-> --- a/drivers/media/radio/si4713/si4713.c
-> +++ b/drivers/media/radio/si4713/si4713.c
-> @@ -27,7 +27,6 @@
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
->  #include <linux/gpio.h>
-> -#include <linux/regulator/consumer.h>
->  #include <linux/module.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> @@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
->                                 u8 response[], const int respn, const int usecs)
->  {
->         struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-> +       unsigned long until_jiffies;
->         u8 data1[MAX_ARGS + 1];
->         int err;
->
-> @@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
->         if (err != argn + 1) {
->                 v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
->                         command);
-> -               return (err > 0) ? -EIO : err;
-> +               return err < 0 ? err : -EIO;
+Signed-off-by: Prathyush K <prathyush.k@samsung.com>
+Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-Why did you change the semantics here?
-
->         }
->
-> +       until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
-> +
->         /* Wait response from interrupt */
-> -       if (!wait_for_completion_timeout(&sdev->work,
-> +       if (client->irq) {
-> +               if (!wait_for_completion_timeout(&sdev->work,
->                                 usecs_to_jiffies(usecs) + 1))
-> -               v4l2_warn(&sdev->sd,
-> +                       v4l2_warn(&sdev->sd,
->                                 "(%s) Device took too much time to answer.\n",
->                                 __func__);
-> -
-> -       /* Then get the response */
-> -       err = i2c_master_recv(client, response, respn);
-> -       if (err != respn) {
-> -               v4l2_err(&sdev->sd,
-> -                       "Error while reading response for command 0x%02x\n",
-> -                       command);
-> -               return (err > 0) ? -EIO : err;
->         }
->
-> -       DBG_BUFFER(&sdev->sd, "Response", response, respn);
-> -       if (check_command_failed(response[0]))
-> -               return -EBUSY;
-> +       do {
-> +               err = i2c_master_recv(client, response, respn);
-> +               if (err != respn) {
-> +                       v4l2_err(&sdev->sd,
-> +                                       "Error %d while reading response for command 0x%02x\n",
-> +                                       err, command);
-> +                       return err < 0 ? err : -EIO;
-
-Again?
-
-> +               }
->
-> -       return 0;
-> +               DBG_BUFFER(&sdev->sd, "Response", response, respn);
-> +               if (!check_command_failed(response[0]))
-> +                       return 0;
-> +
-> +               if (client->irq)
-> +                       return -EBUSY;
-> +               msleep(1);
-> +       } while (jiffies <= until_jiffies);
-> +
-> +       return -EBUSY;
->  }
->
->  /*
-> @@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
->   */
->  static int si4713_powerup(struct si4713_device *sdev)
->  {
-> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
->         int err;
->         u8 resp[SI4713_PWUP_NRESP];
->         /*
->          *      .First byte = Enabled interrupts and boot function
->          *      .Second byte = Input operation mode
->          */
-> -       const u8 args[SI4713_PWUP_NARGS] = {
-> -               SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-> +       u8 args[SI4713_PWUP_NARGS] = {
-> +               SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
->                 SI4713_PWUP_OPMOD_ANALOG,
->         };
->
-> @@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
->                 gpio_set_value(sdev->gpio_reset, 1);
->         }
->
-> +       if (client->irq)
-> +               args[0] |= SI4713_PWUP_CTSIEN;
-> +
->         err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
->                                         args, ARRAY_SIZE(args),
->                                         resp, ARRAY_SIZE(resp),
->                                         TIMEOUT_POWER_UP);
-> -
-> +
-
-Please, do not insert tabulation in blank lines.
-
->         if (!err) {
->                 v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
->                                 resp[0]);
->                 v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
->                 sdev->power_state = POWER_ON;
->
-> -               err = si4713_write_property(sdev, SI4713_GPO_IEN,
-> +               if (client->irq)
-> +                       err = si4713_write_property(sdev, SI4713_GPO_IEN,
->                                                 SI4713_STC_INT | SI4713_CTS);
->         } else {
->                 if (gpio_is_valid(sdev->gpio_reset))
-> @@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
->         if (rval < 0)
->                 return rval;
->
-> -       if (resp[1] == SI4713_PRODUCT_NUMBER) {
-> +       if (resp[1] == SI4713_PRODUCT_NUMBER) {
-
-Please, do not insert spaces in the end of the line.
-
->                 v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
->                                 client->addr << 1, client->adapter->name);
->         } else {
-> @@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
->   */
->  static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
->  {
-> -       int err;
-> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
->         u8 resp[SI4713_GET_STATUS_NRESP];
-> -
-> -       /* Wait response from STC interrupt */
-> -       if (!wait_for_completion_timeout(&sdev->work,
-> -                       usecs_to_jiffies(usecs) + 1))
-> -               v4l2_warn(&sdev->sd,
-> -                       "%s: device took too much time to answer (%d usec).\n",
-> -                               __func__, usecs);
-> -
-> -       /* Clear status bits */
-> -       err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-> -                                       NULL, 0,
-> -                                       resp, ARRAY_SIZE(resp),
-> -                                       DEFAULT_TIMEOUT);
-> -
-> -       if (err < 0)
-> -               goto exit;
-> -
-> -       v4l2_dbg(1, debug, &sdev->sd,
-> -                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
-> -
-> -       if (!(resp[0] & SI4713_STC_INT))
-> -               err = -EIO;
-> -
-> -exit:
-> -       return err;
-> +       unsigned long start_jiffies = jiffies;
-> +       int err;
-> +
-> +       if (client->irq &&
-> +           !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
-> +               v4l2_warn(&sdev->sd,
-> +                       "(%s) Device took too much time to answer.\n", __func__);
-> +
-> +       for (;;) {
-> +               /* Clear status bits */
-> +               err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-> +                               NULL, 0,
-> +                               resp, ARRAY_SIZE(resp),
-> +                               DEFAULT_TIMEOUT);
-> +
-> +               if (err >= 0) {
-
-Why are you polling while the command fails? If the command fails, you
-need to stop, and propagate the error to upper layers. You shall keep
-polling only while the command succeed and (resp[0] & SI4713_STC_INT)
-== 0.
-
-> +                       v4l2_dbg(1, debug, &sdev->sd,
-> +                                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
-> +
-> +                       if (resp[0] & SI4713_STC_INT)
-> +                               return 0;
-> +               }
-> +               if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
-> +                       return -EIO;
-> +               msleep(3);
-> +       }
-
-Can you please add a comment why you chose msleep(3)? For instance,
-here you sleep for 3 ms, in send command you need only 1ms. Any
-explanation?
-
-Besides could you please move this for to another function? Something
-like si4713_poll_stc?
-
->  }
->
->  /*
-> @@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
->         if (rval < 0)
->                 return rval;
->
-> -
->         sdev->frequency = DEFAULT_FREQUENCY;
->         sdev->stereo = 1;
->         sdev->tune_rnl = DEFAULT_TUNE_RNL;
-> diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-> index c274e1f..dc0ce66 100644
-> --- a/drivers/media/radio/si4713/si4713.h
-> +++ b/drivers/media/radio/si4713/si4713.h
-> @@ -15,6 +15,7 @@
->  #ifndef SI4713_I2C_H
->  #define SI4713_I2C_H
->
-> +#include <linux/regulator/consumer.h>
->  #include <media/v4l2-subdev.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/si4713.h>
-> --
-> 1.8.4.rc2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 559fab2..fe69eae 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1210,12 +1210,12 @@ static int gsc_resume(struct device *dev)
+ 		spin_unlock_irqrestore(&gsc->slock, flags);
+ 		return 0;
+ 	}
+-	gsc_hw_set_sw_reset(gsc);
+-	gsc_wait_reset(gsc);
+-
+ 	spin_unlock_irqrestore(&gsc->slock, flags);
+ 
+-	return gsc_m2m_resume(gsc);
++	if (!pm_runtime_suspended(dev))
++		return gsc_runtime_resume(dev);
++
++	return 0;
+ }
+ 
+ static int gsc_suspend(struct device *dev)
+@@ -1227,7 +1227,10 @@ static int gsc_suspend(struct device *dev)
+ 	if (test_and_set_bit(ST_SUSPEND, &gsc->state))
+ 		return 0;
+ 
+-	return gsc_m2m_suspend(gsc);
++	if (!pm_runtime_suspended(dev))
++		return gsc_runtime_suspend(dev);
++
++	return 0;
+ }
+ 
+ static const struct dev_pm_ops gsc_pm_ops = {
 -- 
-Eduardo Bezerra Valentin
+1.7.9.5
+
