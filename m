@@ -1,201 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4422 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755582Ab3HLK66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 06:58:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58189 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932858Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 02/10] v4l2: add matrix support.
-Date: Mon, 12 Aug 2013 12:58:25 +0200
-Message-Id: <1376305113-17128-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 09/16] msi3101: correct ADC sampling rate calc a little
+Date: Wed,  7 Aug 2013 21:51:40 +0300
+Message-Id: <1375901507-26661-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
+References: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-This patch adds core support for matrices: querying, getting and setting.
-
-Two initial matrix types are defined for motion detection (defining regions
-and thresholds).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
- drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
- include/media/v4l2-ioctl.h           |  8 +++++
- include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 97 insertions(+), 1 deletion(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index c8859d6..5e58df6 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
- 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
- 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
-+	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
-+	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
-+	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
- 
- 	if (is_vid) {
- 		/* video specific ioctls */
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 68e6b5e..47debfc 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
- 	const struct v4l2_cropcap *p = arg;
- 
- 	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
--		"defrect wxh=%dx%d, x,y=%d,%d\n, "
-+		"defrect wxh=%dx%d, x,y=%d,%d, "
- 		"pixelaspect %d/%d\n",
- 		prt_names(p->type, v4l2_type_names),
- 		p->bounds.width, p->bounds.height,
-@@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
- 			p->rangehigh, p->modulation);
- }
- 
-+static void v4l_print_query_matrix(const void *arg, bool write_only)
-+{
-+	const struct v4l2_query_matrix *p = arg;
-+
-+	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
-+			p->type, p->columns, p->rows,
-+			p->elem_min.val, p->elem_max.val, p->elem_size);
-+}
-+
-+static void v4l_print_matrix(const void *arg, bool write_only)
-+{
-+	const struct v4l2_matrix *p = arg;
-+
-+	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
-+			p->type, p->rect.width, p->rect.height,
-+			p->rect.top, p->rect.left, p->matrix);
-+}
-+
- static void v4l_print_u32(const void *arg, bool write_only)
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 2b73fc1..04bbbdf 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -987,7 +987,7 @@ static int msi3101_tuner_write(struct msi3101_state *s, u32 data)
+ #define DIV_R_IN 2
+ static int msi3101_set_usb_adc(struct msi3101_state *s)
  {
- 	pr_cont("value=%u\n", *(const u32 *)arg);
-@@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
-+	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
-+	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
-+	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+-	int ret, div_n, div_m, div_r_out, f_sr, f_vco;
++	int ret, div_n, div_m, div_r_out, f_sr, f_vco, fract;
+ 	u32 reg4, reg3;
+ 	/*
+ 	 * Synthesizer config is just a educated guess...
+@@ -998,7 +998,7 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	 * [12:10] output divider
+ 	 * [13]    0 ?
+ 	 * [14]    0 ?
+-	 * [15]    increase sr by max fract
++	 * [15]    fractional MSB, bit 20
+ 	 * [16:19] N
+ 	 * [23:20] ?
+ 	 * [24:31] 0x01
+@@ -1019,6 +1019,7 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
  
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e0b74a4..7e4538e 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
- 					const struct v4l2_event_subscription *sub);
+ 	f_sr = s->ctrl_sampling_rate->val64;
+ 	reg3 = 0x01c00303;
++	reg4 = 0x00000004;
  
-+	/* Matrix ioctls */
-+	int (*vidioc_query_matrix) (struct file *file, void *fh,
-+				    struct v4l2_query_matrix *qmatrix);
-+	int (*vidioc_g_matrix) (struct file *file, void *fh,
-+				    struct v4l2_matrix *matrix);
-+	int (*vidioc_s_matrix) (struct file *file, void *fh,
-+				    struct v4l2_matrix *matrix);
-+
- 	/* For other private ioctls */
- 	long (*vidioc_default)	       (struct file *file, void *fh,
- 					bool valid_prio, unsigned int cmd, void *arg);
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 95ef455..605d295 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
- 	__u32			reserved[8];
- };
+ 	for (div_r_out = 4; div_r_out < 16; div_r_out += 2) {
+ 		f_vco = f_sr * div_r_out * 12;
+@@ -1030,24 +1031,16 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
  
-+/* Define to which motion detection region each element belongs.
-+ * Each element is a __u8. */
-+#define V4L2_MATRIX_T_MD_REGION     (1)
-+/* Define the motion detection threshold for each element.
-+ * Each element is a __u16. */
-+#define V4L2_MATRIX_T_MD_THRESHOLD  (2)
-+
-+/**
-+ * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
-+ * @type:	matrix type
-+ * @ref:	reference to some object (if any) owning the matrix
-+ * @columns:	number of columns in the matrix
-+ * @rows:	number of rows in the matrix
-+ * @elem_min:	minimum matrix element value
-+ * @elem_max:	maximum matrix element value
-+ * @elem_size:	size in bytes each matrix element
-+ * @reserved:	future extensions, applications and drivers must zero this.
-+ */
-+struct v4l2_query_matrix {
-+	__u32 type;
-+	union {
-+		__u32 raw[4];
-+	} ref;
-+	__u32 columns;
-+	__u32 rows;
-+	union {
-+		__s64 val;
-+		__u64 uval;
-+		__u32 raw[4];
-+	} elem_min;
-+	union {
-+		__s64 val;
-+		__u64 uval;
-+		__u32 raw[4];
-+	} elem_max;
-+	__u32 elem_size;
-+	__u32 reserved[12];
-+} __attribute__ ((packed));
-+
-+/**
-+ * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
-+ * @type:	matrix type
-+ * @ref:	reference to some object (if any) owning the matrix
-+ * @rect:	which part of the matrix to get/set
-+ * @matrix:	pointer to the matrix of size (in bytes):
-+ *		elem_size * rect.width * rect.height
-+ * @reserved:	future extensions, applications and drivers must zero this.
-+ */
-+struct v4l2_matrix {
-+	__u32 type;
-+	union {
-+		__u32 raw[4];
-+	} ref;
-+	struct v4l2_rect rect;
-+	void __user *matrix;
-+	__u32 reserved[12];
-+} __attribute__ ((packed));
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
-    Never use these in applications! */
- #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 	div_n = f_vco / (F_REF * DIV_R_IN);
+ 	div_m = f_vco % (F_REF * DIV_R_IN);
++	fract = 0x200000ul * div_m / (F_REF * DIV_R_IN);
  
-+/* Experimental, these three ioctls may change over the next couple of kernel
-+   versions. */
-+#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
-+#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
-+#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 	reg3 |= div_n << 16;
+ 	reg3 |= (div_r_out / 2 - 1) << 10;
+-	reg4 = 0x0ffffful * div_m / F_REF;
+-
+-	if (reg4 >= 0x0ffffful) {
+-		dev_dbg(&s->udev->dev,
+-				"%s: extending fractional part value %08x\n",
+-				__func__, reg4);
+-		reg4 -= 0x0ffffful;
+-		reg3 |= 1 << 15;
+-	}
+-
+-	reg4 = (reg4 << 8) | 0x04;
++	reg3 |= ((fract >> 20) & 0x000001) << 15; /* [20] */
++	reg4 |= ((fract >>  0) & 0x0fffff) <<  8; /* [19:0] */
  
+ 	dev_dbg(&s->udev->dev,
+-			"%s: f_sr=%d f_vco=%d div_n=%d div_m=%d div_r_out=%d reg4=%08x\n",
+-			__func__, f_sr, f_vco, div_n, div_m, div_r_out, reg4);
++			"%s: f_sr=%d f_vco=%d div_n=%d div_m=%d div_r_out=%d reg3=%08x reg4=%08x\n",
++			__func__, f_sr, f_vco, div_n, div_m, div_r_out, reg3, reg4);
+ 
+ 	ret = msi3101_ctrl_msg(s, CMD_WREG, 0x00608008);
+ 	if (ret)
 -- 
-1.8.3.2
+1.7.11.7
 
