@@ -1,95 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:63119 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752504Ab3H1NfF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:35:05 -0400
-From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-To: kyungmin.park@samsung.com
-Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
-	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
-	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
-	tomasz.figa@gmail.com, kgene.kim@samsung.com,
-	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux@arm.linux.org.uk, ben-linux@fluff.org,
-	linux-samsung-soc@vger.kernel.org,
-	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-Subject: [PATCH v2 1/5] media: s5p-tv: Restore vpll clock rate
-Date: Wed, 28 Aug 2013 15:34:28 +0200
-Message-id: <1377696872-32069-2-git-send-email-m.krawczuk@partner.samsung.com>
-In-reply-to: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
-References: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42025 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932260Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/16] msi3101: sample is correct term for sample
+Date: Wed,  7 Aug 2013 21:51:33 +0300
+Message-Id: <1375901507-26661-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
+References: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Restore vpll clock rate if start stream fail or stream is off.
-
-Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/s5p-tv/sdo_drv.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 32 ++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
-index 0afa90f..b919008 100644
---- a/drivers/media/platform/s5p-tv/sdo_drv.c
-+++ b/drivers/media/platform/s5p-tv/sdo_drv.c
-@@ -55,6 +55,8 @@ struct sdo_device {
- 	struct clk *dacphy;
- 	/** clock for control of VPLL */
- 	struct clk *fout_vpll;
-+	/** vpll rate before sdo stream was on */
-+	int vpll_rate;
- 	/** regulator for SDO IP power */
- 	struct regulator *vdac;
- 	/** regulator for SDO plug detection */
-@@ -193,17 +195,34 @@ static int sdo_s_power(struct v4l2_subdev *sd, int on)
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 46fdb6c..87896ee 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -405,8 +405,8 @@ struct msi3101_state {
+ 	struct v4l2_ctrl *ctrl_tuner_if;
+ 	struct v4l2_ctrl *ctrl_tuner_gain;
  
- static int sdo_streamon(struct sdo_device *sdev)
- {
-+	int ret;
-+
- 	/* set proper clock for Timing Generator */
--	clk_set_rate(sdev->fout_vpll, 54000000);
-+	sdev->vpll_rate = clk_get_rate(sdev->fout_vpll);
-+	ret = clk_set_rate(sdev->fout_vpll, 54000000);
-+	if (ret < 0) {
-+		dev_err(sdev->dev,
-+			"%s: Failed to set vpll rate!\n", __func__);
-+		return ret;
-+	}
- 	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
- 	clk_get_rate(sdev->fout_vpll));
- 	/* enable clock in SDO */
- 	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
--	clk_enable(sdev->dacphy);
-+	ret = clk_prepare_enable(sdev->dacphy);
-+	if (ret < 0) {
-+		dev_err(sdev->dev,
-+			"%s: Failed to prepare and enable clock !\n", __func__);
-+		goto fail;
-+	}
- 	/* enable DAC */
- 	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
- 	sdo_reg_debug(sdev);
- 	return 0;
-+fail:
-+	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
-+	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
-+	return ret;
- }
+-	u32 symbol_received; /* for track lost packets */
+-	u32 symbol; /* for symbol rate calc */
++	u32 next_sample; /* for track lost packets */
++	u32 sample; /* for sample rate calc */
+ 	unsigned long jiffies;
+ };
  
- static int sdo_streamoff(struct sdo_device *sdev)
-@@ -220,6 +239,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
+@@ -476,18 +476,18 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ 	int i, j, k, l, i_max, dst_len = 0;
+ 	u16 sample[4];
+ #ifdef MSI3101_EXTENSIVE_DEBUG
+-	u32 symbol[3];
++	u32 sample_num[3];
+ #endif
+ 	/* There could be 1-3 1024 bytes URB frames */
+ 	i_max = src_len / 1024;
+ 	for (i = 0; i < i_max; i++) {
+ #ifdef MSI3101_EXTENSIVE_DEBUG
+-		symbol[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
+-		if (i == 0 && s->symbol_received != symbol[0]) {
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
++		if (i == 0 && s->next_sample != sample_num[0]) {
+ 			dev_dbg(&s->udev->dev,
+-					"%d symbols lost, %d %08x:%08x\n",
+-					symbol[0] - s->symbol_received,
+-					src_len, s->symbol_received, symbol[0]);
++					"%d samples lost, %d %08x:%08x\n",
++					sample_num[0] - s->next_sample,
++					src_len, s->next_sample, sample_num[0]);
+ 		}
+ #endif
+ 		src += 16;
+@@ -520,21 +520,21 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
  	}
- 	if (tries == 0)
- 		dev_err(sdev->dev, "failed to stop streaming\n");
-+	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
- 	return tries ? 0 : -EIO;
- }
  
+ #ifdef MSI3101_EXTENSIVE_DEBUG
+-	/* calculate symbol rate and output it in 10 seconds intervals */
++	/* calculate samping rate and output it in 10 seconds intervals */
+ 	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
+ 		unsigned long jiffies_now = jiffies;
+ 		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
+-		unsigned int symbols = symbol[i_max - 1] - s->symbol;
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
+ 		s->jiffies = jiffies_now;
+-		s->symbol = symbol[i_max - 1];
++		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+-				"slen=%d symbols=%u msecs=%lu symbolrate=%lu\n",
+-				src_len, symbols, msecs,
+-				symbols * 1000UL / msecs);
++				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
++				src_len, samples, msecs,
++				samples * 1000UL / msecs);
+ 	}
+ 
+-	/* last received symbol (symbol = symbol + i * 384) */
+-	s->symbol_received = symbol[i_max - 1] + 384;
++	/* next sample (sample = sample + i * 384) */
++	s->next_sample = sample_num[i_max - 1] + 384;
+ #endif
+ 	return dst_len;
+ }
 -- 
-1.8.1.2
+1.7.11.7
 
