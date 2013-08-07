@@ -1,86 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab3HTNho convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 09:37:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-Date: Tue, 20 Aug 2013 15:38:57 +0200
-Message-ID: <1904390.nVVGcVBrVP@avalon>
-In-Reply-To: <20130818122008.38fac218@samsung.com>
-References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com>
-MIME-Version: 1.0
+Received: from mail.irisys.co.uk ([195.12.16.217]:52250 "EHLO
+	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932376Ab3HGRoB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 13:44:01 -0400
+From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: RE: width and height of JPEG compressed images
+Date: Wed, 7 Aug 2013 17:43:56 +0000
+Message-ID: <A683633ABCE53E43AFB0344442BF0F054C632C1D@server10.irisys.local>
+References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
+ <51D876DF.90507@gmail.com>
+ <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
+ <51EC46BA.4050203@gmail.com>
+ <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
+ <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
+ <51EF92AF.7040205@samsung.com>
+ <20130726090646.GJ12281@valkosipuli.retiisi.org.uk>
+ <A683633ABCE53E43AFB0344442BF0F054C632A50@server10.irisys.local>,<20130807093554.GE16719@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20130807093554.GE16719@valkosipuli.retiisi.org.uk>
+Content-Language: en-GB
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+It defines the exact size of the physical frame.  The JPEG data is padded to this size.  The size of the JPEG before it was padded is also written into the last word of the physical frame.
 
-On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
-> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
-> > Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
-> > > Hi Frank,
-> > > As I mentioned on the list, I'm currently on a holiday, so, replying
-> > > briefly.
-> >
-> > Sorry, I missed that (can't read all mails on the list).
-> > 
-> > > Since em28xx is a USB device, I conclude, that it's supplying clock to
-> > > its components including the ov2640 sensor. So, yes, I think the driver
-> > > should export a V4L2 clock.
-> >
-> > Ok, so it's mandatory on purpose ?
-> > I'll take a deeper into the v4l2-clk code and the
-> > em28xx/ov2640/soc-camera interaction this week.
-> > Have a nice holiday !
-> 
-> commit 9aea470b399d797e88be08985c489855759c6c60
-> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date:   Fri Dec 21 13:01:55 2012 -0300
-> 
->     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
-> 
->     Instead of centrally enabling and disabling subdevice master clocks in
->     soc-camera core, let subdevice drivers do that themselves, using the
->     V4L2 clock API and soc-camera convenience wrappers.
-> 
->     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> (c/c the ones that acked with this broken changeset)
-> 
-> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
-> cameras are currently broken on 3.10.
-> 
-> I'll also reject other ports to the async API if the drivers are
-> used outside an embedded driver, as no PC driver currently defines
-> any clock source. The same applies to regulators.
-> 
-> Guennadi,
-> 
-> Next time, please check if the i2c drivers are used outside soc_camera
-> and apply the fixes where needed, as no regressions are allowed.
 
-We definitely need to check all users of our sensor drivers when making such a 
-change. Mistakes happen, so let's fix them.
+________________________________________
+From: Sakari Ailus [sakari.ailus@iki.fi]
+Sent: 07 August 2013 10:35
+To: Thomas Vajzovic
+Cc: Sylwester Nawrocki; Sylwester Nawrocki; linux-media@vger.kernel.org; Laurent Pinchart
+Subject: Re: width and height of JPEG compressed images
 
-Guennadi is on holidays until the end of this week. Would that be too late to 
-fix the issue (given that 3.10 is already broken) ? The fix shouldn't be too 
-complex, registering a dummy V4L2 clock in the em28xx driver should be enough. 
-v4l2-clk.c should provide a helper function to do so as that will be a pretty 
-common operation.
+Hi Tom,
 
--- 
-Regards,
+Before replying the rest, let me first ask you a question. Does ExF define
+the size of the image, or does it define its maximum size? I think that may
+make a big difference here.
 
-Laurent Pinchart
+--
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
