@@ -1,593 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:52045 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757291Ab3HGJEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 05:04:07 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH v4 03/13] [media] exynos5-fimc-is: Add driver core files
-Date: Wed,  7 Aug 2013 14:33:51 +0530
-Message-Id: <1375866242-18084-4-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1375866242-18084-1-git-send-email-arun.kk@samsung.com>
-References: <1375866242-18084-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60127 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932860Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/16] msi3101: enhance sampling results
+Date: Wed,  7 Aug 2013 21:51:36 +0300
+Message-Id: <1375901507-26661-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
+References: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is for the FIMC-IS IP available in Samsung Exynos5
-SoC onwards. This patch adds the core files for the new driver.
+It looks like there is some extra data carried to enhance sampling
+results. When you tune to some some weak/empty channel those bits
+are always zeroes. When you tune to some channel where is very
+strong signals those bits are all zeroes.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Examining those 32-bits reveals shortly there is 16 pieces of 2-bit
+numbers. Number seen are 0, 1 and 3 - for some reason 2 is not used.
+
+I used that number to shift bits given amount to left, "increasing"
+sampling resolution by 3-bits. It may be wrong, but after some testing
+it still provides better signal.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/exynos5-is/fimc-is-core.c |  413 ++++++++++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-core.h |  134 +++++++
- 2 files changed, 547 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
+ drivers/staging/media/msi3101/sdr-msi3101.c | 120 ++++++++++++++++------------
+ 1 file changed, 67 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.c b/drivers/media/platform/exynos5-is/fimc-is-core.c
-new file mode 100644
-index 0000000..067dea6
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.c
-@@ -0,0 +1,413 @@
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index b6a8939..c73f1d9 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -409,6 +409,7 @@ struct msi3101_state {
+ 	u32 next_sample; /* for track lost packets */
+ 	u32 sample; /* for sample rate calc */
+ 	unsigned long jiffies;
++	unsigned int sample_ctrl_bit[4];
+ };
+ 
+ /* Private functions */
+@@ -430,6 +431,51 @@ leave:
+ }
+ 
+ /*
++ * +===========================================================================
++ * |   00-1024 | USB packet
++ * +===========================================================================
++ * |   00-  03 | sequence number of first sample in that USB packet
++ * +---------------------------------------------------------------------------
++ * |   04-  15 | garbage
++ * +---------------------------------------------------------------------------
++ * |   16- 175 | samples
++ * +---------------------------------------------------------------------------
++ * |  176- 179 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  180- 339 | samples
++ * +---------------------------------------------------------------------------
++ * |  340- 343 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  344- 503 | samples
++ * +---------------------------------------------------------------------------
++ * |  504- 507 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  508- 667 | samples
++ * +---------------------------------------------------------------------------
++ * |  668- 671 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  672- 831 | samples
++ * +---------------------------------------------------------------------------
++ * |  832- 835 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  836- 995 | samples
++ * +---------------------------------------------------------------------------
++ * |  996- 999 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * | 1000-1024 | garbage
++ * +---------------------------------------------------------------------------
++ *
++ * Bytes 4 - 7 could have some meaning?
++ *
++ * Control bits for previous samples is 32-bit field, containing 16 x 2-bit
++ * numbers. This results one 2-bit number for 8 samples. It is likely used for
++ * for bit shifting sample by given bits, increasing actual sampling resolution.
++ * Number 2 (0b10) was never seen.
++ *
++ * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
++ */
++
 +/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+*
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/bug.h>
-+#include <linux/ctype.h>
-+#include <linux/device.h>
-+#include <linux/debugfs.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/fs.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/slab.h>
-+#include <linux/videodev2.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
-+#include <linux/of_address.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_irq.h>
-+#include <linux/pinctrl/consumer.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-of.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "fimc-is.h"
-+#include "fimc-is-i2c.h"
-+
-+#define CLK_MCU_ISP_DIV0_FREQ	(200 * 1000000)
-+#define CLK_MCU_ISP_DIV1_FREQ	(100 * 1000000)
-+#define CLK_ISP_DIV0_FREQ	(134 * 1000000)
-+#define CLK_ISP_DIV1_FREQ	(68 * 1000000)
-+#define CLK_ISP_DIVMPWM_FREQ	(34 * 1000000)
-+
-+static char *fimc_is_clock_name[] = {
-+	[IS_CLK_ISP]		= "isp",
-+	[IS_CLK_MCU_ISP]	= "mcu_isp",
-+	[IS_CLK_ISP_DIV0]	= "isp_div0",
-+	[IS_CLK_ISP_DIV1]	= "isp_div1",
-+	[IS_CLK_ISP_DIVMPWM]	= "isp_divmpwm",
-+	[IS_CLK_MCU_ISP_DIV0]	= "mcu_isp_div0",
-+	[IS_CLK_MCU_ISP_DIV1]	= "mcu_isp_div1",
-+};
-+
-+static void fimc_is_put_clocks(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		if (IS_ERR(is->clock[i]))
-+			continue;
-+		clk_unprepare(is->clock[i]);
-+		clk_put(is->clock[i]);
-+		is->clock[i] = NULL;
-+	}
-+}
-+
-+static int fimc_is_get_clocks(struct fimc_is *is)
-+{
-+	struct device *dev = &is->pdev->dev;
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
-+		if (IS_ERR(is->clock[i]))
-+			goto err;
-+		ret = clk_prepare(is->clock[i]);
-+		if (ret < 0) {
-+			clk_put(is->clock[i]);
-+			is->clock[i] = ERR_PTR(-EINVAL);
-+			goto err;
-+		}
-+	}
-+	return 0;
-+err:
-+	fimc_is_put_clocks(is);
-+	pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
-+	return -ENXIO;
-+}
-+
-+static int fimc_is_configure_clocks(struct fimc_is *is)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++)
-+		is->clock[i] = ERR_PTR(-EINVAL);
-+
-+	ret = fimc_is_get_clocks(is);
-+	if (ret)
-+		return ret;
-+
-+	/* Set rates */
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0],
-+			CLK_MCU_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1],
-+			CLK_MCU_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV0], CLK_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV1], CLK_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM],
-+			CLK_ISP_DIVMPWM_FREQ);
-+	return ret;
-+}
-+
-+static void fimc_is_pipelines_destroy(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < is->drvdata->num_instance; i++)
-+		fimc_is_pipeline_destroy(&is->pipeline[i]);
-+}
-+
-+static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
-+						struct device_node *node)
-+{
-+	struct fimc_is_sensor *sensor = &is->sensor[index];
-+	u32 tmp = 0;
-+	int ret;
-+
-+	sensor->drvdata = exynos5_is_sensor_get_drvdata(node);
-+	if (!sensor->drvdata) {
-+		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-+							 node->full_name);
-+		return -EINVAL;
-+	}
-+
-+	node = v4l2_of_get_next_endpoint(node, NULL);
-+	if (!node)
-+		return -ENXIO;
-+
-+	node = v4l2_of_get_remote_port(node);
-+	if (!node)
-+		return -ENXIO;
-+
-+	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
-+	ret = of_property_read_u32(node, "reg", &tmp);
-+	if (ret < 0) {
-+		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
-+							 node->full_name);
-+		return ret;
-+	}
-+
-+	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-+	return 0;
-+}
-+
-+static int fimc_is_parse_sensor(struct fimc_is *is)
-+{
-+	struct device_node *i2c_bus, *child;
-+	int ret, index = 0;
-+
-+	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
-+		for_each_available_child_of_node(i2c_bus, child) {
-+			ret = fimc_is_parse_sensor_config(is, index, child);
-+
-+			if (ret < 0 || index >= FIMC_IS_NUM_SENSORS) {
-+				of_node_put(child);
-+				return ret;
-+			}
-+			index++;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static void *fimc_is_get_drvdata(struct platform_device *pdev);
-+
-+static int fimc_is_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct fimc_is *is;
-+	void __iomem *regs;
-+	struct device_node *node;
-+	int irq, ret;
-+	int i;
-+
-+	dev_dbg(dev, "FIMC-IS Probe Enter\n");
-+
-+	if (!pdev->dev.of_node)
-+		return -ENODEV;
-+
-+	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
-+	if (!is)
-+		return -ENOMEM;
-+
-+	is->pdev = pdev;
-+
-+	is->drvdata = fimc_is_get_drvdata(pdev);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(regs))
-+		return PTR_ERR(regs);
-+
-+	/* Get the PMU base */
-+	node = of_get_child_by_name(dev->of_node, "pmu");
-+	if (!node)
-+		return -ENODEV;
-+	is->pmu_regs = of_iomap(node, 0);
-+	if (!is->pmu_regs)
-+		return -ENOMEM;
-+
-+	irq = irq_of_parse_and_map(dev->of_node, 0);
-+	if (irq < 0) {
-+		dev_err(dev, "Failed to get IRQ\n");
-+		return irq;
-+	}
-+
-+	ret = fimc_is_configure_clocks(is);
-+	if (ret < 0) {
-+		dev_err(dev, "clocks configuration failed\n");
-+		goto err_clk;
-+	}
-+
-+	platform_set_drvdata(pdev, is);
-+	pm_runtime_enable(dev);
-+
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		goto err_pm;
-+
-+	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-+	if (IS_ERR(is->alloc_ctx)) {
-+		ret = PTR_ERR(is->alloc_ctx);
-+		goto err_vb;
-+	}
-+
-+	/* Get IS-sensor contexts */
-+	ret = fimc_is_parse_sensor(is);
-+	if (ret < 0)
-+		goto err_vb;
-+
-+	/* Initialize FIMC Pipeline */
-+	for (i = 0; i < is->drvdata->num_instance; i++) {
-+		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
-+		if (ret < 0)
-+			goto err_sd;
-+	}
-+
-+	/* Initialize FIMC Interface */
-+	ret = fimc_is_interface_init(&is->interface, regs, irq);
-+	if (ret < 0)
-+		goto err_sd;
-+
-+	pm_runtime_put(dev);
-+
-+	dev_dbg(dev, "FIMC-IS registered successfully\n");
-+
-+	return 0;
-+
-+err_sd:
-+	fimc_is_pipelines_destroy(is);
-+err_vb:
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+err_pm:
-+	pm_runtime_put(dev);
-+err_clk:
-+	fimc_is_put_clocks(is);
-+
-+	return ret;
-+}
-+
-+int fimc_is_clk_enable(struct fimc_is *is)
-+{
-+	int ret;
-+
-+	ret = clk_enable(is->clock[IS_CLK_ISP]);
-+	if (ret)
-+		return ret;
-+	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
-+	return ret;
-+}
-+
-+void fimc_is_clk_disable(struct fimc_is *is)
-+{
-+	clk_disable(is->clock[IS_CLK_ISP]);
-+	clk_disable(is->clock[IS_CLK_MCU_ISP]);
-+}
-+
-+static int fimc_is_pm_resume(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = fimc_is_clk_enable(is);
-+	if (ret < 0) {
-+		dev_err(dev, "Could not enable clocks\n");
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int fimc_is_pm_suspend(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+
-+	fimc_is_clk_disable(is);
-+	return 0;
-+}
-+
-+static int fimc_is_runtime_resume(struct device *dev)
-+{
-+	return fimc_is_pm_resume(dev);
-+}
-+
-+static int fimc_is_runtime_suspend(struct device *dev)
-+{
-+	return fimc_is_pm_suspend(dev);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int fimc_is_resume(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+
-+static int fimc_is_suspend(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+static int fimc_is_remove(struct platform_device *pdev)
-+{
-+	struct fimc_is *is = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+
-+	pm_runtime_disable(dev);
-+	pm_runtime_set_suspended(dev);
-+	fimc_is_pipelines_destroy(is);
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+	fimc_is_put_clocks(is);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops fimc_is_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_suspend, fimc_is_resume)
-+	SET_RUNTIME_PM_OPS(fimc_is_runtime_suspend, fimc_is_runtime_resume,
-+			   NULL)
-+};
-+
-+static struct fimc_is_drvdata exynos5250_drvdata = {
-+	.num_instance	= 1,
-+	.fw_name	= "exynos5_fimc_is_fw.bin",
-+};
-+
-+static const struct of_device_id exynos5_fimc_is_match[] = {
-+	{
-+		.compatible = "samsung,exynos5250-fimc-is",
-+		.data = &exynos5250_drvdata,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos5_fimc_is_match);
-+
-+static void *fimc_is_get_drvdata(struct platform_device *pdev)
-+{
-+	struct fimc_is_drvdata *driver_data = NULL;
-+
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(exynos5_fimc_is_match,
-+				pdev->dev.of_node);
-+		if (match)
-+			driver_data = (struct fimc_is_drvdata *)match->data;
-+	}
-+	return driver_data;
-+}
-+
-+static struct platform_driver fimc_is_driver = {
-+	.probe		= fimc_is_probe,
-+	.remove		= fimc_is_remove,
-+	.driver = {
-+		.name	= FIMC_IS_DRV_NAME,
-+		.owner	= THIS_MODULE,
-+		.pm	= &fimc_is_pm_ops,
-+		.of_match_table = exynos5_fimc_is_match,
-+	}
-+};
-+module_platform_driver(fimc_is_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Arun Kumar K <arun.kk@samsung.com>");
-+MODULE_DESCRIPTION("Samsung Exynos5 (FIMC-IS) Imaging Subsystem driver");
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.h b/drivers/media/platform/exynos5-is/fimc-is-core.h
-new file mode 100644
-index 0000000..a0568f1
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.h
-@@ -0,0 +1,134 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_CORE_H_
-+#define FIMC_IS_CORE_H_
-+
-+#include <linux/bug.h>
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/firmware.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/slab.h>
-+#include <linux/videodev2.h>
-+
-+#include <asm/barrier.h>
-+#include <linux/sizes.h>
-+#include <linux/io.h>
-+#include <linux/irqreturn.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <linux/spinlock.h>
-+
-+#include <media/media-entity.h>
-+#include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-mediabus.h>
-+#include <media/s5p_fimc.h>
-+
-+#define FIMC_IS_DRV_NAME		"exynos5-fimc-is"
-+
-+#define FIMC_IS_COMMAND_TIMEOUT		(3 * HZ)
-+#define FIMC_IS_STARTUP_TIMEOUT		(3 * HZ)
-+#define FIMC_IS_SHUTDOWN_TIMEOUT	(10 * HZ)
-+
-+#define FW_SHARED_OFFSET		(0x8c0000)
-+#define DEBUG_CNT			(500 * 1024)
-+#define DEBUG_OFFSET			(0x840000)
-+#define DEBUGCTL_OFFSET			(0x8bd000)
-+#define DEBUG_FCOUNT			(0x8c64c0)
-+
-+#define FIMC_IS_MAX_INSTANCES		1
-+
-+#define FIMC_IS_NUM_SENSORS		2
-+#define FIMC_IS_NUM_PIPELINES		1
-+
-+#define FIMC_IS_MAX_PLANES		3
-+#define FIMC_IS_NUM_SCALERS		2
-+
-+enum fimc_is_clks {
-+	IS_CLK_ISP,
-+	IS_CLK_MCU_ISP,
-+	IS_CLK_ISP_DIV0,
-+	IS_CLK_ISP_DIV1,
-+	IS_CLK_ISP_DIVMPWM,
-+	IS_CLK_MCU_ISP_DIV0,
-+	IS_CLK_MCU_ISP_DIV1,
-+	IS_CLK_MAX_NUM
-+};
-+
-+/* Video capture states */
-+enum fimc_is_video_state {
-+	STATE_INIT,
-+	STATE_BUFS_ALLOCATED,
-+	STATE_RUNNING,
-+};
-+
-+enum fimc_is_scaler_id {
-+	SCALER_SCC,
-+	SCALER_SCP
-+};
-+
-+enum fimc_is_sensor_pos {
-+	SENSOR_CAM0,
-+	SENSOR_CAM1
-+};
-+
-+struct fimc_is_buf {
-+	struct vb2_buffer vb;
-+	struct list_head list;
-+	unsigned int paddr[FIMC_IS_MAX_PLANES];
-+};
-+
-+struct fimc_is_memory {
-+	/* physical base address */
-+	dma_addr_t paddr;
-+	/* virtual base address */
-+	void *vaddr;
-+	/* total length */
-+	unsigned int size;
-+};
-+
-+struct fimc_is_meminfo {
-+	struct fimc_is_memory	fw;
-+	struct fimc_is_memory	shot;
-+	struct fimc_is_memory	region;
-+	struct fimc_is_memory	shared;
-+};
-+
-+struct fimc_is_drvdata {
-+	unsigned int	num_instance;
-+	char		*fw_name;
-+};
-+
-+/**
-+ * struct fimc_is_fmt - the driver's internal color format data
-+ * @name: format description
-+ * @fourcc: the fourcc code for this format
-+ * @depth: number of bytes per pixel
-+ * @num_planes: number of planes for this color format
-+ */
-+struct fimc_is_fmt {
-+	char		*name;
-+	unsigned int	fourcc;
-+	unsigned int	depth[FIMC_IS_MAX_PLANES];
-+	unsigned int	num_planes;
-+};
-+
-+#endif
+  * Converts signed 10-bit integer into 32-bit IEEE floating point
+  * representation.
+  * Will be exact from 0 to 2^24.  Above that, we round towards zero
+@@ -438,20 +484,24 @@ leave:
+  */
+ #define I2F_FRAC_BITS  23
+ #define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
+-static uint32_t msi3101_int2float(uint32_t x)
++static u32 msi3101_convert_sample(struct msi3101_state *s, u16 x, int shift)
+ {
+-	uint32_t msb, exponent, fraction, sign;
++	u32 msb, exponent, fraction, sign;
++	s->sample_ctrl_bit[shift]++;
+ 
+ 	/* Zero is special */
+ 	if (!x)
+ 		return 0;
+ 
+-	/* Negative / positive value */
+-	if (x & 0x200) {
++	/* Convert 10-bit two's complement to 13-bit */
++	if (x & (1 << 9)) {
++		x |= ~0U << 10; /* set all the rest bits to one */
++		x <<= shift;
+ 		x = -x;
+-		x &= 0x3ff;
++		x &= 0xfff; /* result is 12 bit ... + sign */
+ 		sign = 1 << 31;
+ 	} else {
++		x <<= shift;
+ 		sign = 0 << 31;
+ 	}
+ 
+@@ -476,6 +526,7 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ {
+ 	int i, j, k, l, i_max, dst_len = 0;
+ 	u16 sample[4];
++	u32 bits;
+ #ifdef MSI3101_EXTENSIVE_DEBUG
+ 	u32 sample_num[3];
+ #endif
+@@ -493,6 +544,7 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ #endif
+ 		src += 16;
+ 		for (j = 0; j < 6; j++) {
++			bits = src[160 + 3] << 24 | src[160 + 2] << 16 | src[160 + 1] << 8 | src[160 + 0] << 0;
+ 			for (k = 0; k < 16; k++) {
+ 				for (l = 0; l < 10; l += 5) {
+ 					sample[0] = (src[l + 0] & 0xff) >> 0 | (src[l + 1] & 0x03) << 8;
+@@ -500,10 +552,10 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ 					sample[2] = (src[l + 2] & 0xf0) >> 4 | (src[l + 3] & 0x3f) << 4;
+ 					sample[3] = (src[l + 3] & 0xc0) >> 6 | (src[l + 4] & 0xff) << 2;
+ 
+-					*dst++ = msi3101_int2float(sample[0]);
+-					*dst++ = msi3101_int2float(sample[1]);
+-					*dst++ = msi3101_int2float(sample[2]);
+-					*dst++ = msi3101_int2float(sample[3]);
++					*dst++ = msi3101_convert_sample(s, sample[0], (bits >> (2 * k)) & 0x3);
++					*dst++ = msi3101_convert_sample(s, sample[1], (bits >> (2 * k)) & 0x3);
++					*dst++ = msi3101_convert_sample(s, sample[2], (bits >> (2 * k)) & 0x3);
++					*dst++ = msi3101_convert_sample(s, sample[3], (bits >> (2 * k)) & 0x3);
+ 
+ 					/* 4 x 32bit float samples */
+ 					dst_len += 4 * 4;
+@@ -511,9 +563,8 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ 				src += 10;
+ 			}
+ #ifdef MSI3101_EXTENSIVE_DEBUG
+-			if (memcmp(src, "\xff\xff\xff\xff", 4) && memcmp(src, "\x00\x00\x00\x00", 4))
+-				dev_dbg_ratelimited(&s->udev->dev,
+-						"padding %*ph\n", 4, src);
++			dev_dbg_ratelimited(&s->udev->dev,
++					"sample control bits %08x\n", bits);
+ #endif
+ 			src += 4;
+ 		}
+@@ -529,9 +580,11 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
+ 		s->jiffies = jiffies_now;
+ 		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+-				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
++				"slen=%d samples=%u msecs=%lu sampling rate=%lu bits=%d.%d.%d.%d\n",
+ 				src_len, samples, msecs,
+-				samples * 1000UL / msecs);
++				samples * 1000UL / msecs,
++				s->sample_ctrl_bit[0], s->sample_ctrl_bit[1],
++				s->sample_ctrl_bit[2], s->sample_ctrl_bit[3]);
+ 	}
+ 
+ 	/* next sample (sample = sample + i * 384) */
+@@ -833,45 +886,6 @@ static int msi3101_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-/*
+- * +===========================================================================
+- * |   00-1024 | USB packet
+- * +===========================================================================
+- * |   00-  03 | packet address
+- * +---------------------------------------------------------------------------
+- * |   04-  15 | garbage
+- * +---------------------------------------------------------------------------
+- * |   16- 175 | samples
+- * +---------------------------------------------------------------------------
+- * |  176- 179 | padding
+- * +---------------------------------------------------------------------------
+- * |  180- 339 | samples
+- * +---------------------------------------------------------------------------
+- * |  340- 343 | padding
+- * +---------------------------------------------------------------------------
+- * |  344- 503 | samples
+- * +---------------------------------------------------------------------------
+- * |  504- 507 | padding
+- * +---------------------------------------------------------------------------
+- * |  508- 667 | samples
+- * +---------------------------------------------------------------------------
+- * |  668- 671 | padding
+- * +---------------------------------------------------------------------------
+- * |  672- 831 | samples
+- * +---------------------------------------------------------------------------
+- * |  832- 835 | padding
+- * +---------------------------------------------------------------------------
+- * |  836- 995 | samples
+- * +---------------------------------------------------------------------------
+- * |  996- 999 | padding
+- * +---------------------------------------------------------------------------
+- * | 1000-1024 | garbage
+- * +---------------------------------------------------------------------------
+- *
+- * bytes 4 - 7 could have some meaning?
+- * padding is "00 00 00 00" or "ff ff ff ff"
+- * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
+- */
+ #ifdef MSI3101_CONVERT_IN_URB_HANDLER
+ static int msi3101_buf_finish(struct vb2_buffer *vb)
+ {
 -- 
-1.7.9.5
+1.7.11.7
 
