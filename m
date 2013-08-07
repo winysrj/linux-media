@@ -1,142 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:45612 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855Ab3HOI1o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 04:27:44 -0400
-Received: by mail-bk0-f54.google.com with SMTP id mz12so125155bkb.41
-        for <linux-media@vger.kernel.org>; Thu, 15 Aug 2013 01:27:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
-References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
-	<Pine.LNX.4.64.1308042252010.19244@axis700.grange>
-	<CALxrGmV-SCDntaJGeaCDkuqmdzgk3VEYZG+koj9em+Z4PSG0XQ@mail.gmail.com>
-	<8999977.SY9Wm17vy3@avalon>
-	<CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
-Date: Thu, 15 Aug 2013 16:27:43 +0800
-Message-ID: <CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
-Subject: Re: How to express planar formats with mediabus format code?
-From: Su Jiaquan <jiaquan.lnx@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
-	xzhao10@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:44683 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932446Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 00/16 STAGING] Mirics MSi3101 SDR Dongle driver
+Date: Wed,  7 Aug 2013 21:51:31 +0300
+Message-Id: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent / Guennadi,
+It is driver for MSi3101 USB SDR designed by Mirics. I will pull-request
+that soon for the Kernel 3.12 staging. It is not ready for mainline as
+there is multiple issues. Biggest issues are; missing API controls and
+stream format conversions should be implemented by libv4l2.
 
-On Sat, Aug 10, 2013 at 1:06 AM, Su Jiaquan <jiaquan.lnx@gmail.com> wrote:
-> Hi Laurent / Guennadi,
->
-> On Fri, Aug 9, 2013 at 5:12 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi,
->>
->> On Tuesday 06 August 2013 17:18:14 Su Jiaquan wrote:
->>> Hi Guennadi,
->>>
->>> Thanks for the reply! Please see my description inline.
->>>
->>> On Mon, Aug 5, 2013 at 5:02 AM, Guennadi Liakhovetski wrote:
->>> > On Sun, 4 Aug 2013, Su Jiaquan wrote:
->>> >> Hi,
->>> >>
->>> >> I know the title looks crazy, but here is our problem:
->>> >>
->>> >> In our SoC based ISP, the hardware can be divide to several blocks.
->>> >> Some blocks can do color space conversion(raw to YUV interleave/planar),
->>> >> others can do the pixel re-order(interleave/planar/semi-planar
->>> >> conversion, UV planar switch). We use one subdev to describe each of
->>> >> them, then came the problem: How can we express the planar formats with
->>> >> mediabus format code?
->>> >
->>> > Could you please explain more exactly what you mean? How are those your
->>> > blocks connected? How do they exchange data? If they exchange data over a
->>> > serial bus, then I don't think planar formats make sense, right? Or do
->>> > your blocks really output planes one after another, reordering data
->>> > internally? That would be odd... If OTOH your blocks output data to RAM,
->>> > and the next block takes data from there, then you use V4L2_PIX_FMT_*
->>> > formats to describe them and any further processing block should be a
->>> > mem2mem device. Wouldn't this work?
->>>
->>> These two hardware blocks are both located inside of ISP, and is connected
->>> by a hardware data bus.
->>>
->>> Actually, there are three blocks inside ISP: One is close to sensor, and can
->>> do color space conversion(RGB->YUV), we call it IPC; The other two are at
->>> back end, which are basically DMA Engine, and they are identical. When data
->>> flow out of IPC, it can go into each one of these DMA Engines and finally
->>> into RAM. Whether the DMA Engine is turned on/off and the output format can
->>> be controlled independently. Since they are DMA Engines, they have some
->>> basic pixel reordering ability(i.e. interleave->planar/semi-planar).
->>>
->>> In our H/W design, when we want to get YUV semi-planar format, the IPC
->>> output should be configured to interleave, and the DMA engine will do the
->>> interleave->semi-planar job. If we want planar / interleave format, the IPC
->>> will output planar format directly, DMA engine simply send the data to RAM,
->>> and don't do any re-order. So in the planar output case, media-bus formats
->>> can't express the format of the data between IPC and DMA Engine, that's the
->>> problem we meet.
->>
->> If the format between the two subdevs is really planar, I don't see any
->> problem defining a media bus pixel code for it. You will have to properly
->> document the format of course.
->>
->> I'm a bit surprised that the IPC could output planar data. It would need to
->> buffer a whole image to do so, do you need to give it a temporary system RAM
->> buffer ?
->>
->>> We want to adopt a formal solution before we send our patch to the
->>> community, that's where our headache comes.
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->
-> Thanks for the reply!
->
-> Actually, we don't need to buffer the frame inside IPC, there are
-> three channels in the data bus. When transfering interleave format,
-> only one channel is used, for planar formats, three channels send one
-> planar each, and to difference address(Let me confirm this with our
-> H/W team and get back to you later). So the planars is not sent one
-> after an other, but in parallel.
->
-> This may be a bit different from the planar formats as people think it
-> should be. Can we use planar format to describe it? Since this won't
-> cause any misunderstanding given it's used in this special case.
-> Please advice.
->
-> Thanks a lot!
->
-> Jiaquan
+That driver is MSi3101 design, which consists of two chips: 1) USB ADC
+called MSi2500 and RF-tuner called MSi001. So I will split that to the
+two parts later...
 
-I have to say I'm sorry for the wrong information. I just double
-checked with hardware team, and turns out there is only one channel
-for the data bus between IPC and ispdma.
-If ispdma output planar format, the data format between IPC and ispdma
-should be configured to a special format, that is not the same with
-any know media-bus format.
-So I think what we need is to define vendor-specific media-bus code.
-Since others any want to do the same thing, shall we define a base
-address for the vendor specific formats? For example:
+USB ADC is a state of the art in the reverse-engineering as I was not
+able to get documentation or other needed info, gah :-( Anyhow, it was
+quite interesting as a point of learn the first USB ADC I have seen.
+Biggest challenge was to discover how to calculate ADC sampling rate.
+It was a typical Fractional-N PLL as all these are nowadays. First I
+calculated sampling rates by the driver, after that brute forced PLL
+registers with a different values and look what kind of data rate it is
+outputting :) Nice trick - but took a lot of time.
+Re-engineering such USB ADC is still a little bit easier than typical
+DTV demodulator in my experience.
 
-enum v4l2_mbus_pixelcode {
-    V4L2_MBUS_FMT_FIXED = 0x0001,
+Another, not so hard, issue to mention was understand different stream
+formats. Chip seems to offer multiple formats, best one I found seems to
+offer even 14-bit resolution.
 
-    ...
+Special thanks to University Oulu HAM club, Oulun Teekkarien Radiokerho,
+OH8TA, for the support I received. You rule!
 
-/* JPEG compressed formats - next is 0x4002 */
-    V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
-+   V4L2_MBUS_FMT_PRIVATE_BASE = 0xF001,
-};
+Antti Palosaari (16):
+  Mirics MSi3101 SDR Dongle driver
+  msi3101: sample is correct term for sample
+  msi3101: fix sampling rate calculation
+  msi3101: add sampling mode control
+  msi3101: enhance sampling results
+  msi3101: fix stream re-start halt
+  msi3101: add 2040:d300 Hauppauge WinTV 133559 LF
+  msi3101: add debug dump for unknown stream data
+  msi3101: correct ADC sampling rate calc a little
+  msi3101: improve tuner synth calc step size
+  msi3101: add support for stream format "252" I+Q per frame
+  msi3101: init bits 23:20 on PLL register
+  msi3101: fix overflow in freq setting
+  msi3101: add stream format 336 I+Q pairs per frame
+  msi3101: changes for tuner PLL freq limits
+  msi3101: a lot of small cleanups
 
-If you are OK with this, I'll prepare a patch to add it
+ drivers/staging/media/Kconfig               |    2 +
+ drivers/staging/media/Makefile              |    1 +
+ drivers/staging/media/msi3101/Kconfig       |    3 +
+ drivers/staging/media/msi3101/Makefile      |    1 +
+ drivers/staging/media/msi3101/sdr-msi3101.c | 1822 +++++++++++++++++++++++++++
+ 5 files changed, 1829 insertions(+)
+ create mode 100644 drivers/staging/media/msi3101/Kconfig
+ create mode 100644 drivers/staging/media/msi3101/Makefile
+ create mode 100644 drivers/staging/media/msi3101/sdr-msi3101.c
 
-Thanks!
+-- 
+1.7.11.7
 
-Jiaquan
