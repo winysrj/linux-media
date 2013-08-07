@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:60858 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752770Ab3H3CRf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:35 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so1218036pdi.5
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:34 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:48730 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932970Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 04/19] uvcvideo: Create separate debugfs entries for each streaming interface.
-Date: Fri, 30 Aug 2013 11:17:03 +0900
-Message-Id: <1377829038-4726-5-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 12/16] msi3101: init bits 23:20 on PLL register
+Date: Wed,  7 Aug 2013 21:51:43 +0300
+Message-Id: <1375901507-26661-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
+References: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add interface number to debugfs entry name to be able to create separate
-entries for each streaming interface for devices exposing more than one,
-instead of failing to create more than one.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/uvc/uvc_debugfs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_debugfs.c b/drivers/media/usb/uvc/uvc_debugfs.c
-index 14561a5..0663fbd 100644
---- a/drivers/media/usb/uvc/uvc_debugfs.c
-+++ b/drivers/media/usb/uvc/uvc_debugfs.c
-@@ -84,7 +84,8 @@ int uvc_debugfs_init_stream(struct uvc_streaming *stream)
- 	if (uvc_debugfs_root_dir == NULL)
- 		return -ENODEV;
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index a937d00..93168db 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1129,9 +1129,19 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	 *
+ 	 * VCO 202000000 - 720000000++
+ 	 */
+-	reg3 = 0x01c00303;
++	reg3 = 0x01000303;
+ 	reg4 = 0x00000004;
  
--	sprintf(dir_name, "%u-%u", udev->bus->busnum, udev->devnum);
-+	sprintf(dir_name, "%u-%u-%u", udev->bus->busnum, udev->devnum,
-+			stream->intfnum);
- 
- 	dent = debugfs_create_dir(dir_name, uvc_debugfs_root_dir);
- 	if (IS_ERR_OR_NULL(dent)) {
++	/* XXX: Filters? AGC? */
++	if (f_sr < 6000000)
++		reg3 |= 0x1 << 20;
++	else if (f_sr < 7000000)
++		reg3 |= 0x5 << 20;
++	else if (f_sr < 8500000)
++		reg3 |= 0x9 << 20;
++	else
++		reg3 |= 0xd << 20;
++
+ 	for (div_r_out = 4; div_r_out < 16; div_r_out += 2) {
+ 		f_vco = f_sr * div_r_out * 12;
+ 		dev_dbg(&s->udev->dev, "%s: div_r_out=%d f_vco=%d\n",
 -- 
-1.8.4
+1.7.11.7
 
