@@ -1,50 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51312 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:34637 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752946Ab3HWOMj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 10:12:39 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r7NECdiF029234
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 10:12:39 -0400
-Received: from shalem.localdomain (vpn1-5-68.ams2.redhat.com [10.36.5.68])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r7NECbFX007488
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 10:12:38 -0400
-Message-ID: <52176DD5.2090700@redhat.com>
-Date: Fri, 23 Aug 2013 16:12:37 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FIXES for 3.12] One small gspca ov519 driver bugfix
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1757214Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 14:53:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 15/16] msi3101: changes for tuner PLL freq limits
+Date: Wed,  7 Aug 2013 21:51:46 +0300
+Message-Id: <1375901507-26661-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
+References: <1375901507-26661-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+I made some tuner freq limit tests against RF signal generator.
+Adjust some PLL limits according to these test results.
 
-Here is one more small bugfix for 3.12:
+Here are the results, taken from two different devices.
+Numbers are RF limits and calculated and VCO limits.
 
-The following changes since commit 976f375df1730dd16aa7c101298ec47bdd338d79:
+Mirics MSi3101 SDR Dongle:
+VHF_MODE  52 - 132  1664 - 4224
+B3_MODE  103 - 263  1648 - 4208
+B45_MODE 413 - 960  1652 - 3840
 
-   [media] media/v4l2: VIDEO_SH_VEU should depend on HAS_DMA (2013-08-23 05:46:08 -0300)
+Hauppauge WinTV 133559 LF:
+VHF_MODE  49 - 130  1568 - 4160
+B3_MODE   98 - 259  1568 - 4144
+B45_MODE 391 - 960  1564 - 3840
 
-are available in the git repository at:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/sdr-msi3101.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.12
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index c4bd963..e7a21a2 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1306,11 +1306,11 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 		u8 mode;
+ 		u8 lo_div;
+ 	} band_lut[] = {
+-		{ 30000000, 0x01, 16}, /* AM_MODE1 */
++		{ 47000000, 0x01, 16}, /* AM_MODE1 */
+ 		{108000000, 0x02, 32}, /* VHF_MODE */
+-		{240000000, 0x04, 16}, /* B3_MODE */
++		{330000000, 0x04, 16}, /* B3_MODE */
+ 		{960000000, 0x08,  4}, /* B45_MODE */
+-		{167500000, 0x10,  2}, /* BL_MODE */
++		{      ~0U, 0x10,  2}, /* BL_MODE */
+ 	};
+ 	static const struct {
+ 		u32 freq;
+-- 
+1.7.11.7
 
-for you to fetch changes up to 6afea7c75d95e379019bbe68326b668bcca8f473:
-
-   gspca_ov519: Fix support for the Terratec Terracam USB Pro (2013-08-23 15:56:13 +0200)
-
-----------------------------------------------------------------
-Hans de Goede (1):
-       gspca_ov519: Fix support for the Terratec Terracam USB Pro
-
-  drivers/media/usb/gspca/ov519.c | 32 +++++++++++++++++++++++++-------
-  1 file changed, 25 insertions(+), 7 deletions(-)
-
-Thanks & Regards,
-
-Hans
