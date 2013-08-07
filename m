@@ -1,115 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53560 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148Ab3H2Mmo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 08:42:44 -0400
-Message-ID: <521F41BE.7080504@ti.com>
-Date: Thu, 29 Aug 2013 18:12:38 +0530
-From: Rajendra Nayak <rnayak@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53121 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751998Ab3HGWnT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 18:43:19 -0400
+Received: from dyn3-82-128-186-228.psoas.suomi.net ([82.128.186.228] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1V7CRp-0001oB-GK
+	for linux-media@vger.kernel.org; Thu, 08 Aug 2013 01:43:17 +0300
+Message-ID: <5202CD5D.1000509@iki.fi>
+Date: Thu, 08 Aug 2013 01:42:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: <linux-media@vger.kernel.org>, <hverkuil@xs4all.nl>,
-	<laurent.pinchart@ideasonboard.com>, <tomi.valkeinen@ti.com>,
-	<linux-omap@vger.kernel.org>, Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH v3 5/6] arm: dra7xx: hwmod data: add VPE hwmod data and
- ocp_if info
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-6-git-send-email-archit@ti.com>
-In-Reply-To: <1377779572-22624-6-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.12] e4000 fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Archit,
+The following changes since commit 1c26190a8d492adadac4711fe5762d46204b18b0:
 
-On Thursday 29 August 2013 06:02 PM, Archit Taneja wrote:
-> Add hwmod data for the VPE IP, this is needed for the IP to be reset during
-> boot, and control the functional clock when the driver needs it via
-> pm_runtime apis. Add the corresponding ocp_if struct and add it DRA7XX's
-> ocp interface list.
+   [media] exynos4-is: Correct colorspace handling at FIMC-LITE 
+(2013-06-28 15:33:27 -0300)
 
-You need to swap patches 5/6 and 6/6 to maintain git-bisect.
-Thats needed because after $subject patch, hwmod wouldn't find
-the register iospace and crash, and thats added only in patch 6/6.
+are available in the git repository at:
 
-regards,
-Rajendra
+   git://linuxtv.org/anttip/media_tree.git rtl2832u_e4000
 
-> 
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Sricharan R <r.sricharan@ti.com>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 42 +++++++++++++++++++++++++++++++
->  1 file changed, 42 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index f647998b..181365d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1883,6 +1883,39 @@ static struct omap_hwmod dra7xx_wd_timer2_hwmod = {
->  	},
->  };
->  
-> +/*
-> + * 'vpe' class
-> + *
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
-> +	.sysc_offs	= 0x0010,
-> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-> +	.sysc_fields	= &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class dra7xx_vpe_hwmod_class = {
-> +	.name	= "vpe",
-> +	.sysc	= &dra7xx_vpe_sysc,
-> +};
-> +
-> +/* vpe */
-> +static struct omap_hwmod dra7xx_vpe_hwmod = {
-> +	.name		= "vpe",
-> +	.class		= &dra7xx_vpe_hwmod_class,
-> +	.clkdm_name	= "vpe_clkdm",
-> +	.main_clk	= "dpll_core_h23x2_ck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_VPE_VPE_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
->  
->  /*
->   * Interfaces
-> @@ -2636,6 +2669,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_per3 -> vpe */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per3__vpe = {
-> +	.master		= &dra7xx_l4_per3_hwmod,
-> +	.slave		= &dra7xx_vpe_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l3_main_2__l3_instr,
->  	&dra7xx_l4_cfg__l3_main_1,
-> @@ -2714,6 +2755,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l3_main_1__vcp2,
->  	&dra7xx_l4_per2__vcp2,
->  	&dra7xx_l4_wkup__wd_timer2,
-> +	&dra7xx_l4_per3__vpe,
->  	NULL,
->  };
->  
-> 
+for you to fetch changes up to 9b3fd8a3ff7ab8b02ef29fa17744323e786b4f2f:
 
+   e4000: change remaining pr_warn to dev_warn (2013-07-26 13:00:02 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (4):
+       e4000: implement DC offset correction
+       e4000: use swap() macro
+       e4000: make checkpatch.pl happy
+       e4000: change remaining pr_warn to dev_warn
+
+  drivers/media/tuners/e4000.c | 82 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------
+  drivers/media/tuners/e4000.h |  2 +-
+  2 files changed, 61 insertions(+), 23 deletions(-)
+
+-- 
+http://palosaari.fi/
