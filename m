@@ -1,233 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60127 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932860Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 14:53:18 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 05/16] msi3101: enhance sampling results
-Date: Wed,  7 Aug 2013 21:51:36 +0300
-Message-Id: <1375901507-26661-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
-References: <1375901507-26661-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40203 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933398Ab3HGWPp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 18:15:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+Date: Thu, 08 Aug 2013 00:16:50 +0200
+Message-ID: <2574244.AfiCum7QAn@avalon>
+In-Reply-To: <520288C1.7040207@xs4all.nl>
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <52027AB7.5080006@samsung.com> <520288C1.7040207@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It looks like there is some extra data carried to enhance sampling
-results. When you tune to some some weak/empty channel those bits
-are always zeroes. When you tune to some channel where is very
-strong signals those bits are all zeroes.
+Hi Hans and Sylwester,
 
-Examining those 32-bits reveals shortly there is 16 pieces of 2-bit
-numbers. Number seen are 0, 1 and 3 - for some reason 2 is not used.
+On Wednesday 07 August 2013 19:49:53 Hans Verkuil wrote:
+> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
+> > On 08/02/2013 03:00 PM, Hans Verkuil wrote:
+> >> Hi Sylwester,
+> >> 
+> >> The patch is good, but I have some issues with the commit message itself.
+> > 
+> > Thanks a lot for the detailed explanation, I just wrote this a bit
+> > longish changelog to possibly get some feedback and to better understand
+> > what is exactly going on. Currently the v4l2-core looks like a racing
+> > disaster to me.
+> > 
+> >> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
+> >>> As it currently stands this code doesn't protect against any races
+> >>> between video device open() and its unregistration. Races could be
+> >>> avoided by doing the video_is_registered() check protected by the
+> >>> core mutex, while the video device unregistration is also done with
+> >>> this mutex held.
+> >> 
+> >> The video_unregister_device() is called completely asynchronously,
+> >> particularly in the case of usb drivers. So it was never the goal of
+> >> the video_is_registered() to be fool proof, since that isn't possible,
+> >> nor is that necessary.
+> >> 
+> >> The goal was that the v4l2 core would use it for the various file
+> >> operations and ioctls as a quick check whether the device was
+> >> unregistered and to return the correct error. This prevents drivers from
+> >> having to do the same thing.
+> > 
+> > OK, I think I just myself used this video_is_registered() flag for some
+> > more stuff, by surrounding it with mutex_lock/mutex_unlock and putting
+> > more stuff in between, like media_entity_cleanup().
+> 
+> You can't do that, because there are most likely still filehandles open
+> or even ioctls being executed. Cleanup happens in the release function(s)
+> when the kref goes to 0.
+> 
+> > And this probably led me astray for a while, thinking that
+> > video_is_registered() was intended to be used synchronously.
+> > For example see fimc_lite_subdev_unregistered() in drivers/media/platform/
+> > exynos4-is/fimc-lite.c.
+> > 
+> > But as you said video_is_registered() is fully asynchronous.
+> > 
+> > Actually I'm trying to fix a nasty race between deferred driver probing
+> > and video device open(). The problem is that video open() callback can
+> > be called after driver remove() callback was invoked.
+> 
+> How is that possible? The video_device_register must be the last thing in
+> the probe function. If it succeeds, then the probe must succeed as well.
+> 
+> Note that I now realize that this might fail in the case of multiple device
+> nodes being registered. We never had problems with that in the past, but in
+> theory you can the race condition you mention in that scenario. The correct
+> approach here would probably be to always return 0 in probe() if only some
+> of the video_device_register calls fail.
 
-I used that number to shift bits given amount to left, "increasing"
-sampling resolution by 3-bits. It may be wrong, but after some testing
-it still provides better signal.
+Hmmmm... Returning success in probe when probing partly fails doesn't sound 
+very good to me.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 120 ++++++++++++++++------------
- 1 file changed, 67 insertions(+), 53 deletions(-)
+Once you call video_device_register() you should be prepared to handle 
+userspace calls. The device node can be opened, in which case the module 
+refcount will be incremented, but probe() can still fail. However, the video 
+device becomes refcounted as soon as it's registered, so drivers should only 
+release resources in the release callback. This would unfortunately mean that 
+the devm_* helpers can't be used.
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index b6a8939..c73f1d9 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -409,6 +409,7 @@ struct msi3101_state {
- 	u32 next_sample; /* for track lost packets */
- 	u32 sample; /* for sample rate calc */
- 	unsigned long jiffies;
-+	unsigned int sample_ctrl_bit[4];
- };
- 
- /* Private functions */
-@@ -430,6 +431,51 @@ leave:
- }
- 
- /*
-+ * +===========================================================================
-+ * |   00-1024 | USB packet
-+ * +===========================================================================
-+ * |   00-  03 | sequence number of first sample in that USB packet
-+ * +---------------------------------------------------------------------------
-+ * |   04-  15 | garbage
-+ * +---------------------------------------------------------------------------
-+ * |   16- 175 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  176- 179 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * |  180- 339 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  340- 343 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * |  344- 503 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  504- 507 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * |  508- 667 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  668- 671 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * |  672- 831 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  832- 835 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * |  836- 995 | samples
-+ * +---------------------------------------------------------------------------
-+ * |  996- 999 | control bits for previous samples
-+ * +---------------------------------------------------------------------------
-+ * | 1000-1024 | garbage
-+ * +---------------------------------------------------------------------------
-+ *
-+ * Bytes 4 - 7 could have some meaning?
-+ *
-+ * Control bits for previous samples is 32-bit field, containing 16 x 2-bit
-+ * numbers. This results one 2-bit number for 8 samples. It is likely used for
-+ * for bit shifting sample by given bits, increasing actual sampling resolution.
-+ * Number 2 (0b10) was never seen.
-+ *
-+ * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
-+ */
-+
-+/*
-  * Converts signed 10-bit integer into 32-bit IEEE floating point
-  * representation.
-  * Will be exact from 0 to 2^24.  Above that, we round towards zero
-@@ -438,20 +484,24 @@ leave:
-  */
- #define I2F_FRAC_BITS  23
- #define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
--static uint32_t msi3101_int2float(uint32_t x)
-+static u32 msi3101_convert_sample(struct msi3101_state *s, u16 x, int shift)
- {
--	uint32_t msb, exponent, fraction, sign;
-+	u32 msb, exponent, fraction, sign;
-+	s->sample_ctrl_bit[shift]++;
- 
- 	/* Zero is special */
- 	if (!x)
- 		return 0;
- 
--	/* Negative / positive value */
--	if (x & 0x200) {
-+	/* Convert 10-bit two's complement to 13-bit */
-+	if (x & (1 << 9)) {
-+		x |= ~0U << 10; /* set all the rest bits to one */
-+		x <<= shift;
- 		x = -x;
--		x &= 0x3ff;
-+		x &= 0xfff; /* result is 12 bit ... + sign */
- 		sign = 1 << 31;
- 	} else {
-+		x <<= shift;
- 		sign = 0 << 31;
- 	}
- 
-@@ -476,6 +526,7 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- {
- 	int i, j, k, l, i_max, dst_len = 0;
- 	u16 sample[4];
-+	u32 bits;
- #ifdef MSI3101_EXTENSIVE_DEBUG
- 	u32 sample_num[3];
- #endif
-@@ -493,6 +544,7 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- #endif
- 		src += 16;
- 		for (j = 0; j < 6; j++) {
-+			bits = src[160 + 3] << 24 | src[160 + 2] << 16 | src[160 + 1] << 8 | src[160 + 0] << 0;
- 			for (k = 0; k < 16; k++) {
- 				for (l = 0; l < 10; l += 5) {
- 					sample[0] = (src[l + 0] & 0xff) >> 0 | (src[l + 1] & 0x03) << 8;
-@@ -500,10 +552,10 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- 					sample[2] = (src[l + 2] & 0xf0) >> 4 | (src[l + 3] & 0x3f) << 4;
- 					sample[3] = (src[l + 3] & 0xc0) >> 6 | (src[l + 4] & 0xff) << 2;
- 
--					*dst++ = msi3101_int2float(sample[0]);
--					*dst++ = msi3101_int2float(sample[1]);
--					*dst++ = msi3101_int2float(sample[2]);
--					*dst++ = msi3101_int2float(sample[3]);
-+					*dst++ = msi3101_convert_sample(s, sample[0], (bits >> (2 * k)) & 0x3);
-+					*dst++ = msi3101_convert_sample(s, sample[1], (bits >> (2 * k)) & 0x3);
-+					*dst++ = msi3101_convert_sample(s, sample[2], (bits >> (2 * k)) & 0x3);
-+					*dst++ = msi3101_convert_sample(s, sample[3], (bits >> (2 * k)) & 0x3);
- 
- 					/* 4 x 32bit float samples */
- 					dst_len += 4 * 4;
-@@ -511,9 +563,8 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- 				src += 10;
- 			}
- #ifdef MSI3101_EXTENSIVE_DEBUG
--			if (memcmp(src, "\xff\xff\xff\xff", 4) && memcmp(src, "\x00\x00\x00\x00", 4))
--				dev_dbg_ratelimited(&s->udev->dev,
--						"padding %*ph\n", 4, src);
-+			dev_dbg_ratelimited(&s->udev->dev,
-+					"sample control bits %08x\n", bits);
- #endif
- 			src += 4;
- 		}
-@@ -529,9 +580,11 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- 		s->jiffies = jiffies_now;
- 		s->sample = sample_num[i_max - 1];
- 		dev_dbg(&s->udev->dev,
--				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu bits=%d.%d.%d.%d\n",
- 				src_len, samples, msecs,
--				samples * 1000UL / msecs);
-+				samples * 1000UL / msecs,
-+				s->sample_ctrl_bit[0], s->sample_ctrl_bit[1],
-+				s->sample_ctrl_bit[2], s->sample_ctrl_bit[3]);
- 	}
- 
- 	/* next sample (sample = sample + i * 384) */
-@@ -833,45 +886,6 @@ static int msi3101_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--/*
-- * +===========================================================================
-- * |   00-1024 | USB packet
-- * +===========================================================================
-- * |   00-  03 | packet address
-- * +---------------------------------------------------------------------------
-- * |   04-  15 | garbage
-- * +---------------------------------------------------------------------------
-- * |   16- 175 | samples
-- * +---------------------------------------------------------------------------
-- * |  176- 179 | padding
-- * +---------------------------------------------------------------------------
-- * |  180- 339 | samples
-- * +---------------------------------------------------------------------------
-- * |  340- 343 | padding
-- * +---------------------------------------------------------------------------
-- * |  344- 503 | samples
-- * +---------------------------------------------------------------------------
-- * |  504- 507 | padding
-- * +---------------------------------------------------------------------------
-- * |  508- 667 | samples
-- * +---------------------------------------------------------------------------
-- * |  668- 671 | padding
-- * +---------------------------------------------------------------------------
-- * |  672- 831 | samples
-- * +---------------------------------------------------------------------------
-- * |  832- 835 | padding
-- * +---------------------------------------------------------------------------
-- * |  836- 995 | samples
-- * +---------------------------------------------------------------------------
-- * |  996- 999 | padding
-- * +---------------------------------------------------------------------------
-- * | 1000-1024 | garbage
-- * +---------------------------------------------------------------------------
-- *
-- * bytes 4 - 7 could have some meaning?
-- * padding is "00 00 00 00" or "ff ff ff ff"
-- * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
-- */
- #ifdef MSI3101_CONVERT_IN_URB_HANDLER
- static int msi3101_buf_finish(struct vb2_buffer *vb)
- {
+I would be surprised if this problem was specific to V4L2. It might be 
+something we should try to solve with the help of the device core.
+
+> Anyway, assuming that only one device node is created, then I can't see how
+> you can get a race condition here. Any open() call will increase the
+> module's refcount, making it impossible to unload.
+> 
+> As far as I can tell, once you call rmmod it should no longer be possible to
+> open() an device node whose struct file_operations owner is that module
+> (i.e. the owner field of the file_operations struct points to that module).
+> Looking at the way fs/char_dev is implemented, that seems to be correctly
+> handled by the kernel core.
+> 
+> > This issue is actually not only related to deferred probing. It can be
+> > also triggered by driver module removal or through driver's sysfs "unbind"
+> > attribute.
+> > 
+> > Let's assume following scenario:
+> > 
+> > - a driver module is loaded
+> > - driver probe is called, it registers video device,
+> > - udev opens /dev/video
+> > - after mutex_unlock(&videodev_lock); call in v4l2_open() in v4l2-core/
+> >   v4l2-dev.c something fails in probe()
+> 
+> And that shouldn't happen. That's the crucial bit: under which scenario does
+> this happen for you? If there is a control path where you do create a
+> working device node, but the probe fails, then that will indeed cause all
+> sorts of problems. But it shouldn't get in that situation (except I think
+> in the case of multiple device nodes, which is something I need to think
+> about).
+>
+> >   and it unwinds, probe callback exits and the driver code code calls
+> >   dev_set_drvdata(dev, NULL); as shown below.
+> > 
+> > static int really_probe(struct device *dev, struct device_driver *drv)
+> > {
+> > 	...
+> > 	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
+> > 		 drv->bus->name, __func__, drv->name, dev_name(dev));
+> > 	...
+> > 	if (dev->bus->probe) {
+> > 		ret = dev->bus->probe(dev);
+> > 		if (ret)
+> > 			goto probe_failed;
+> > 	
+> > 	} else if (drv->probe) {
+> > 		ret = drv->probe(dev);
+> > 		if (ret)
+> > 			goto probe_failed;
+> > 	}
+> > 	...
+> > 	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
+> > 		 drv->bus->name, __func__, dev_name(dev), drv->name);
+> > 	
+> > 	goto done;
+> > 
+> > probe_failed:
+> > 	devres_release_all(dev);
+> > 	driver_sysfs_remove(dev);
+> > 	dev->driver = NULL;
+> > 	dev_set_drvdata(dev, NULL);
+> > 	...
+> > 	ret = 0;
+> > 
+> > done:
+> > 	...
+> > 	return ret;
+> > }
+> > 
+> > Now we get to
+> > 
+> >  	ret = vdev->fops->open(filp);
+> > 
+> > in v4l2_open(). This calls some driver's callback, e.g. something
+> > like:
+> > 
+> > static int fimc_lite_open(struct file *file)
+> > {
+> > 	struct fimc_lite *fimc = video_drvdata(file);
+> > 	struct media_entity *me = &fimc->ve.vdev.entity;
+> > 	int ret;
+> > 	
+> > 	mutex_lock(&fimc->lock);
+> > 	if (!video_is_registered(&fimc->ve.vdev)) {
+> > 		ret = -ENODEV;
+> > 		goto unlock;
+> > 	}
+> > 	
+> > 	...
+> > 	
+> > 	/* Mark video pipeline ending at this video node as in use. */
+> > 	if (ret == 0)
+> > 		me->use_count++;
+> > 	
+> > 	...
+> > 
+> > unlock:
+> > 	mutex_unlock(&fimc->lock);
+> > 	return ret;
+> > }
+> > 
+> > Now what will video_drvdata(file); return ?
+> > 
+> > static inline void *video_drvdata(struct file *file)
+> > {
+> > 	return video_get_drvdata(video_devdata(file));
+> > }
+> > 
+> > static inline void *video_get_drvdata(struct video_device *vdev)
+> > {
+> > 	return dev_get_drvdata(&vdev->dev);
+> > }
+> > 
+> > Yes, so that will be just NULL o_O, due to the dev_set_drvdata(dev, NULL);
+> > in really_probe(). drvdata is cleared similarly in
+> > __device_release_driver(), right after calling driver's remove handler.
+> > 
+> > Another issue I have is that, e.g.
+> > driver/media/platform/exynos4-is/fimc-lite* driver has empty video dev
+> > release() callback. It should be implemented in the driver to kfree the
+> > whole driver's private data structure where struct video_device is
+> > embedded in (struct fimc_lite). But that freeing really needs to be
+> > synchronized with driver's remove() call, since there is e.g. freed
+> > interrupt which accesses the driver's private data. I can't use kref from
+> > struct v4l2_device as that belongs to a different driver. A driver's
+> > custom reference counting comes to mind, where vdev->release() and
+> > drv->remove() would be decrementing the reference counter. But that seems
+> > ugly as hell :/ And it predates devm_*.
+> > 
+> > This is all getting a bit depressing :/ Deferred probing and the
+> > asynchronous subdev handling just made those issues more visible, i.e.
+> > not very good design of some parts of the v4l2-core.
+> 
+> It's just not clear to me how exactly things go wrong for you. Ping me on
+> irc tomorrow and we can discuss it further. I have reworked refcounting in
+> the past (at the time it was *really* bad), so perhaps we need to rework it
+> again, particularly with video nodes associated with subdevices in the mix,
+> something that didn't exist at the time.
+> 
+> >>> The history of this code is that the second video_is_registered()
+> >>> call has been added in commit ee6869afc922a9849979e49bb3bbcad7948
+> >>> "V4L/DVB: v4l2: add core serialization lock" together with addition
+> >>> 
+> >>> of the core mutex support in fops:
+> >>>         mutex_unlock(&videodev_lock);
+> >>> 
+> >>> -       if (vdev->fops->open)
+> >>> -               ret = vdev->fops->open(filp);
+> >>> +       if (vdev->fops->open) {
+> >>> +               if (vdev->lock)
+> >>> +                       mutex_lock(vdev->lock);
+> >>> +               if (video_is_registered(vdev))
+> >>> +                       ret = vdev->fops->open(filp);
+> >>> +               else
+> >>> +                       ret = -ENODEV;
+> >>> +               if (vdev->lock)
+> >>> +                       mutex_unlock(vdev->lock);
+> >>> +       }
+> >> 
+> >> The history is slightly more complicated: this commit moved the
+> >> video_is_registered call from before the mutex_unlock(&videodev_lock);
+> >> to just before the fops->open call.
+> >> 
+> >> Commit ca9afe6f87b569cdf8e797395381f18ae23a2905 "v4l2-dev: fix race
+> >> condition" added the video_is_registered() call to where it was
+> >> originally (inside the videodev_lock critical section), but it didn't
+> >> bother to remove the duplicate second video_is_registered call.
+> >> 
+> >> So that's how v4l2_open ended up with two calls to video_is_registered.
+> > 
+> > Apologies for simplifying the history . I'll just drop it from the
+> > changelog, as it can be retrieved git. I'll try to put just concise
+> > explanation why this this video_is_registered() is not needed currently.
+> > 
+> >>> While commit cf5337358548b813479b58478539fc20ee86556c
+> >>> "[media] v4l2-dev: remove V4L2_FL_LOCK_ALL_FOPS"
+> >>> 
+> >>> removed only code touching the mutex:
+> >>>         mutex_unlock(&videodev_lock);
+> >>>         if (vdev->fops->open) {
+> >>> 
+> >>> -               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags) &&
+> >>> -                   mutex_lock_interruptible(vdev->lock)) {
+> >>> -                       ret = -ERESTARTSYS;
+> >>> -                       goto err;
+> >>> -               }
+> >>> 
+> >>>                 if (video_is_registered(vdev))
+> >>>                 
+> >>>                         ret = vdev->fops->open(filp);
+> >>>                 
+> >>>                 else
+> >>>                 
+> >>>                         ret = -ENODEV;
+> >>> 
+> >>> -               if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> >>> -                       mutex_unlock(vdev->lock);
+> >>> 
+> >>>         }
+> >>> 
+> >>> Remove the remaining video_is_registered() call as it doesn't provide
+> >>> any real protection and just adds unnecessary overhead.
+> >> 
+> >> True.
+> >> 
+> >>> The drivers need to perform the unregistration check themselves inside
+> >>> their file operation handlers, while holding respective mutex.
+> >> 
+> >> No, drivers do not need to do the unregistration check. Since
+> >> unregistration is asynchronous it can happen at any time, so there
+> >> really is no point in checking for it other than in the core. If the
+> >> device is unregistered while in the middle of a file operation, then
+> >> that means that any USB activity will return an error, and that any
+> >> future file operations other than release() will be met by an error as
+> >> well from the v4l2 core.
+> > 
+> > Yes, so video_is_registered() seems not very useful to use in drivers.
+> 
+> That's true. The main use case for it is in the v4l2 core to stop ioctls and
+> fops from going through to the driver and return an error instead. So
+> drivers don't need to do that themselves.
+
+I'd like to add that the video_is_registered() call in v4l2_open() really 
+protects from a race condition with video_unregister_device() and makes sure 
+that either v4l2_open() gets a reference to the device before it gets 
+unregistered in video_unregister_device(), or v4l2_open() fails the registered 
+check and returns an error.
+
+> > But as I've shown above it's not even used optimally in the v4l2-core.
+> 
+> There really isn't anything else you can do with it in my view.
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
