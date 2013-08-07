@@ -1,104 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3043 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab3HGS3C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 14:29:02 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r77ISrpD046768
-	for <linux-media@vger.kernel.org>; Wed, 7 Aug 2013 20:29:00 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 7 Aug 2013 20:28:53 +0200 (CEST)
-Message-Id: <201308071829.r77ISrpD046768@smtp-vbr11.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 29AE82A075D
-	for <linux-media@vger.kernel.org>; Wed,  7 Aug 2013 20:28:46 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail.kapsi.fi ([217.30.184.167]:60852 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751998Ab3HGWq2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 18:46:28 -0400
+Received: from dyn3-82-128-186-228.psoas.suomi.net ([82.128.186.228] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1V7CUt-00026Z-Kt
+	for linux-media@vger.kernel.org; Thu, 08 Aug 2013 01:46:27 +0300
+Message-ID: <5202CE1B.8050801@iki.fi>
+Date: Thu, 08 Aug 2013 01:45:47 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.12] DVB USB v2 get rid of deferred probe
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The following changes since commit 1c26190a8d492adadac4711fe5762d46204b18b0:
 
-Results of the daily build of media_tree:
+   [media] exynos4-is: Correct colorspace handling at FIMC-LITE 
+(2013-06-28 15:33:27 -0300)
 
-date:		Wed Aug  7 19:00:17 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+are available in the git repository at:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+   git://linuxtv.org/anttip/media_tree.git dvb_usb_v2
 
-Detailed results are available here:
+for you to fetch changes up to c42f1abc409a87eb7791105ba9e1125924820655:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+   dvb_usb_v2: get rid of deferred probe (2013-08-08 01:43:43 +0300)
 
-Full logs are available here:
+----------------------------------------------------------------
+Antti Palosaari (2):
+       lme2510: do not use bInterfaceNumber from dvb_usb_v2
+       dvb_usb_v2: get rid of deferred probe
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h      |   5 -----
+  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 134 
++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/lmedm04.c      |   2 +-
+  3 files changed, 46 insertions(+), 95 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
