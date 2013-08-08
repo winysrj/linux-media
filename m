@@ -1,28 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from correo.saren.gob.ve ([201.249.231.78]:32914 "EHLO
-	svmailsar00.saren.gob.ve" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754616Ab3HQABt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 20:01:49 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Business Proposal.......
-To: Recipients <info@yahoo.com>
-From: "Mr. Gordon Kumar" <info@yahoo.com>
-Date: Sat, 17 Aug 2013 00:17:24 +0530
-Reply-To: gordonkumar27@gmail.com
-Message-Id: <20130816184856.B99C01CFE0@svmailsar00.saren.gob.ve>
+Received: from moutng.kundenserver.de ([212.227.17.9]:57951 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934280Ab3HHO4R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 10:56:17 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 0/6] V4L2: soc-camera: more asynchronous conversions
+Date: Thu,  8 Aug 2013 16:52:31 +0200
+Message-Id: <1375973557-23333-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Friend,
- I must say that I have enormous respect for you considering the manner in
-which I have made contact with you. My name is Mr. Gordon Kumar, The
-financial controller at the RESERVE BANK OF INDIA (Main Branch) in New
-Delhi, INDIA, and I am getting in touch with you regarding a business deal
-worth $15,000,000.00 in my control which will be executed under a legitimate
-arrangement. Reply me immediately if interested!
-Yours Sincerely,
-Mr. Gordon Kumar.
+This patch set converts the mx3-camera host and the mt9m111 sensor drivers 
+to asynchronous probing. Also an Oops in the mt9t031 driver is fixed for 
+the case, where an asynchronous probing is attempted.
+
+Guennadi Liakhovetski (6):
+  V4L2: soc-camera: fix requesting regulators in synchronous case
+  V4L2: mx3_camera: convert to managed resource allocation
+  V4L2: mx3_camera: print V4L2_MBUS_FMT_* codes in hexadecimal format
+  V4L2: mx3_camera: add support for asynchronous subdevice registration
+  V4L2: mt9t031: don't Oops if asynchronous probing is attempted
+  V4L2: mt9m111: switch to asynchronous subdevice probing
+
+ drivers/media/i2c/soc_camera/mt9m111.c         |   38 +++++++++----
+ drivers/media/i2c/soc_camera/mt9t031.c         |    7 ++-
+ drivers/media/platform/soc_camera/mx3_camera.c |   67 +++++++++---------------
+ drivers/media/platform/soc_camera/soc_camera.c |   33 ++++++++++--
+ include/linux/platform_data/camera-mx3.h       |    4 ++
+ 5 files changed, 87 insertions(+), 62 deletions(-)
+
+-- 
+1.7.2.5
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
