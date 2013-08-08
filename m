@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4949 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab3HVKPE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:15:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 07/10] DocBook: add the new v4l detection class controls.
-Date: Thu, 22 Aug 2013 12:14:21 +0200
-Message-Id: <c5131e2768b19d8a9df23069fd66eff43eb6f276.1377166147.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47608 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966823Ab3HHW53 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:57:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: s5c73m3: Add format propagation for TRY formats
+Date: Fri, 09 Aug 2013 00:58:34 +0200
+Message-ID: <3766107.LzC3gBYZDo@avalon>
+In-Reply-To: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com>
+References: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/controls.xml | 69 ++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+On Wednesday 24 July 2013 16:57:32 Sylwester Nawrocki wrote:
+> From: Andrzej Hajda <a.hajda@samsung.com>
+> 
+> Resolution set on ISP pad of S5C73M3-OIF subdev should be
+> propagated to source pad for TRY and ACTIVE formats.
+> The patch adds missing propagation for TRY format.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index c2fc9ec..dabc707 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4772,4 +4772,73 @@ defines possible values for de-emphasis. Here they are:</entry>
-       </table>
- 
-       </section>
-+
-+    <section id="detect-controls">
-+      <title>Detect Control Reference</title>
-+
-+      <para>The Detect class includes controls for common features of
-+      various motion or object detection capable devices.</para>
-+
-+      <table pgwide="1" frame="none" id="detect-control-id">
-+      <title>Detect Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_DETECT_CLASS</constant>&nbsp;</entry>
-+            <entry>class</entry>
-+          </row><row><entry spanname="descr">The Detect class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+          </row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_DETECT_MOTION_MODE</constant>&nbsp;</entry>
-+            <entry>menu</entry>
-+          </row><row><entry spanname="descr">Sets the motion detection mode.</entry>
-+          </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_DISABLED</constant>
-+		  </entry><entry>Disable motion detection.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_GLOBAL</constant>
-+		  </entry><entry>Use a single motion detection threshold.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_DETECT_MOTION_REGIONAL</constant>
-+		  </entry><entry>The image is divided into regions, each with their own
-+		  motion detection threshold.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+          <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DETECT_MOTION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the global motion detection threshold to be
-+	  used with the <constant>V4L2_DETECT_MOTION_GLOBAL</constant> motion detection mode.</entry>
-+          </row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
- </section>
+I might be missing something, but where's the propagation for the ACTIVE 
+format ?
+
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> b/drivers/media/i2c/s5c73m3/s5c73m3-core.c index 825ea86..b76ec0e 100644
+> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> @@ -1111,6 +1111,11 @@ static int s5c73m3_oif_set_fmt(struct v4l2_subdev
+> *sd, if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+>  		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
+>  		*mf = fmt->format;
+> +		if (fmt->pad == OIF_ISP_PAD) {
+> +			mf = v4l2_subdev_get_try_format(fh, OIF_SOURCE_PAD);
+> +			mf->width = fmt->format.width;
+> +			mf->height = fmt->format.height;
+> +		}
+>  	} else {
+>  		switch (fmt->pad) {
+>  		case OIF_ISP_PAD:
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
