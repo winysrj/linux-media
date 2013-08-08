@@ -1,117 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:37356 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328Ab3HSM06 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 08:26:58 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	cpgs@samsung.com
-Cc: s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com
-References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
-In-reply-to: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
-Subject: RE: [PATCH v2 0/5] Exynos5 M-Scaler Driver
-Date: Mon, 19 Aug 2013 21:26:53 +0900
-Message-id: <032601ce9cd7$63666640$2a3332c0$%dae@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19949 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757906Ab3HHPwC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 11:52:02 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MR700F1RYQFC000@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Aug 2013 16:52:01 +0100 (BST)
+Message-id: <5203BEA0.4040208@samsung.com>
+Date: Thu, 08 Aug 2013 17:52:00 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2] v4l: async: Make it safe to unregister unregistered
+ notifier
+References: <1375974259-2807-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1375974259-2807-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=ISO-8859-1
 Content-transfer-encoding: 7bit
-Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/08/2013 05:04 PM, Laurent Pinchart wrote:
+> Calling v4l2_async_notifier_unregister() on a notifier that hasn't been
+> registered leads to a crash. To simplify drivers, make it safe to
+> unregister a notifier that has not been registered.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
-> Sent: Monday, August 19, 2013 7:59 PM
-> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
-> Cc: s.nawrocki@samsung.com; posciak@google.com; arun.kk@samsung.com;
-> shaik.ameer@samsung.com
-> Subject: [PATCH v2 0/5] Exynos5 M-Scaler Driver
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> This patch adds support for M-Scaler (M2M Scaler) device which is a
-> new device for scaling, blending, color fill  and color space
-> conversion on EXYNOS5 SoCs.
+> Compared to v1, I've modified the NULL check to match the coding style used in
+> the rest of the file (!... instead of ... != NULL).
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index b350ab9..10bb62c 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -192,6 +192,9 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  	struct device *dev[n_subdev];
+>  	int i = 0;
+>  
+> +	if (!notifier->v4l2_dev)
+> +		return;
+> +
+>  	mutex_lock(&list_lock);
+>  
+>  	list_del(&notifier->list);
+> @@ -225,6 +228,9 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  		}
+>  		put_device(d);
+>  	}
+> +
+> +	notifier->v4l2_dev = NULL;
+> +
+>  	/*
+>  	 * Don't care about the waiting list, it is initialised and populated
+>  	 * upon notifier registration.
+> 
 
-All Exynos5 SoCs really have this IP? It seems that only Exynos5420 and
-maybe Exynos5410 have this IP, NOT Exynos5250. Please check it again and
-describe it surely over the all patch series.
-
-Thanks,
-Inki Dae
-
-> 
-> This device supports the following as key features.
->     input image format
->         - YCbCr420 2P(UV/VU), 3P
->         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
->         - YCbCr444 2P(UV,VU), 3P
->         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
->         - Pre-multiplexed ARGB8888, L8A8 and L8
->     output image format
->         - YCbCr420 2P(UV/VU), 3P
->         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
->         - YCbCr444 2P(UV,VU), 3P
->         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
->         - Pre-multiplexed ARGB8888
->     input rotation
->         - 0/90/180/270 degree, X/Y/XY Flip
->     scale ratio
->         - 1/4 scale down to 16 scale up
->     color space conversion
->         - RGB to YUV / YUV to RGB
->     Size
->         - Input : 16x16 to 8192x8192
->         - Output:   4x4 to 8192x8192
->     alpha blending, color fill
-> 
-> Rebased on:
-> -----------
-> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
-> 
-> Changes from v1:
-> ---------------
-> 1] Split the previous single patch into multiple patches.
-> 2] Added DT binding documentation.
-> 3] Removed the unnecessary header file inclusions.
-> 4] Fix the condition check in mscl_prepare_address for swapping cb/cr
-> addresses.
-> 
-> Shaik Ameer Basha (5):
->   [media] exynos-mscl: Add new driver for M-Scaler
->   [media] exynos-mscl: Add core functionality for the M-Scaler driver
->   [media] exynos-mscl: Add m2m functionality for the M-Scaler driver
->   [media] exynos-mscl: Add DT bindings for M-Scaler driver
->   [media] exynos-mscl: Add Makefile for M-Scaler driver
-> 
->  .../devicetree/bindings/media/exynos5-mscl.txt     |   34 +
->  drivers/media/platform/Kconfig                     |    8 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/exynos-mscl/Makefile        |    3 +
->  drivers/media/platform/exynos-mscl/mscl-core.c     | 1312
-> ++++++++++++++++++++
->  drivers/media/platform/exynos-mscl/mscl-core.h     |  549 ++++++++
->  drivers/media/platform/exynos-mscl/mscl-m2m.c      |  763 ++++++++++++
->  drivers/media/platform/exynos-mscl/mscl-regs.c     |  318 +++++
->  drivers/media/platform/exynos-mscl/mscl-regs.h     |  282 +++++
->  9 files changed, 3270 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/exynos5-
-> mscl.txt
->  create mode 100644 drivers/media/platform/exynos-mscl/Makefile
->  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.c
->  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.h
->  create mode 100644 drivers/media/platform/exynos-mscl/mscl-m2m.c
->  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
->  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
-> 
-> --
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards,
+Sylwester
