@@ -1,154 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60932 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754056Ab3HOIXi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 04:23:38 -0400
-Date: Thu, 15 Aug 2013 11:23:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 02/10] v4l2: add matrix support.
-Message-ID: <20130815082332.GB19221@valkosipuli.retiisi.org.uk>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
- <1376305113-17128-3-git-send-email-hverkuil@xs4all.nl>
- <20130814143313.GA19221@valkosipuli.retiisi.org.uk>
- <520C7695.7020405@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47201 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966702Ab3HHVeK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 17:34:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Archit Taneja <archit@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	dagriego@biglakesoftware.com, dale@farnsworth.org,
+	pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Thu, 08 Aug 2013 23:35:15 +0200
+Message-ID: <3105630.O8pg1OPHiU@avalon>
+In-Reply-To: <51FF8BF6.3060900@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com> <51FF8BF6.3060900@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <520C7695.7020405@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Archit,
 
-On Thu, Aug 15, 2013 at 08:35:01AM +0200, Hans Verkuil wrote:
-> On 08/14/2013 04:33 PM, Sakari Ailus wrote:
-...
-> >> + * @columns:	number of columns in the matrix
-> >> + * @rows:	number of rows in the matrix
+On Monday 05 August 2013 16:56:46 Archit Taneja wrote:
+> On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
+> > On 02/08/13 17:03, Archit Taneja wrote:
+> >> +struct vpdma_data_format vpdma_yuv_fmts[] = {
+> >> +	[VPDMA_DATA_FMT_Y444] = {
+> >> +		.data_type	= DATA_TYPE_Y444,
+> >> +		.depth		= 8,
+> >> +	},
 > > 
-> > Two dimensions only? How about one or three? I could imagine use for one, at
-> > the very least.
+> > This, and all the other tables, should probably be consts?
 > 
-> For one you just set rows to 1. A vector is after all a matrix of one row.
-> Should we need a third dimension, then there are enough reserved fields to make
-> that possible. I can't think of a single use-case that would require a three
-> dimensional matrix.
-
-Fine for me.
-
-> >> + * @elem_min:	minimum matrix element value
-> >> + * @elem_max:	maximum matrix element value
-> >> + * @elem_size:	size in bytes each matrix element
-> >> + * @reserved:	future extensions, applications and drivers must zero this.
+> That's true, I'll fix those.
+> 
+> >> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
+> >> +{
+> >> +	u32 val = *valp;
+> >> +
+> >> +	val &= ~(mask << shift);
+> >> +	val |= (field & mask) << shift;
+> >> +	*valp = val;
+> >> +}
+> > 
+> > I think "insert" normally means, well, inserting a thing in between
+> > something. What you do here is overwriting.
+> > 
+> > Why not just call it "write_field"?
+> 
+> sure, will change it.
+> 
+> >> + * Allocate a DMA buffer
 > >> + */
-> >> +struct v4l2_query_matrix {
-> >> +	__u32 type;
-> >> +	union {
-> >> +		__u32 raw[4];
-> >> +	} ref;
-> >> +	__u32 columns;
-> >> +	__u32 rows;
-> >> +	union {
-> >> +		__s64 val;
-> >> +		__u64 uval;
-> >> +		__u32 raw[4];
-> >> +	} elem_min;
-> >> +	union {
-> >> +		__s64 val;
-> >> +		__u64 uval;
-> >> +		__u32 raw[4];
-> >> +	} elem_max;
+> >> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
+> >> +{
+> >> +	buf->size = size;
+> >> +	buf->mapped = 0;
 > > 
-> > How about step; do you think it'd make sense to specify that? I have to
-> > admit the step in controls hasn't been extemely useful to me: much of the
-> > time the value of the control should have just been divided by the step,
-> > with the exception of controls that have a standardised unit, but even then
-> > step won't do good on them since there's typically no 1:1 mapping between
-> > possible values and the actual values which leads the driver writer choosing
-> > step of one.
+> > Maybe true/false is clearer here that 0/1.
 > 
-> You just explained why I decided against adding a step :-)
+> okay.
 > 
-> I also can't really see a use-case for a step in a matrix.
-
-I agree --- I brought it up mostly since controls already do have step.
-
-> >> +	__u32 elem_size;
-> >> +	__u32 reserved[12];
-> >> +} __attribute__ ((packed));
+> >> +/*
+> >> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for
+> >> completion + */
+> >> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list
+> >> *list) +{
+> >> +	/* we always use the first list */
+> >> +	int list_num = 0;
+> >> +	int list_size;
 > >> +
-> >> +/**
-> >> + * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
-> >> + * @type:	matrix type
-> >> + * @ref:	reference to some object (if any) owning the matrix
-> >> + * @rect:	which part of the matrix to get/set
+> >> +	if (vpdma_list_busy(vpdma, list_num))
+> >> +		return -EBUSY;
+> >> +
+> >> +	/* 16-byte granularity */
+> >> +	list_size = (list->next - list->buf.addr) >> 4;
+> >> +
+> >> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
+> >> +	wmb();
 > > 
-> > In some cases it might be possible to choose the size of the matrix. If this
-> > isn't supported now, do you have ideas how to add it? Perhaps using rect
-> > woulnd't be possible. A new IOCTL could be one possibility as well; that'd
-> > make it quite clear and drivers not supporting it wouldn't implement it. I
-> > think it might quite well make it together with S_MATRIX, though, e.g. a
-> > flags field with a flag telling that the dimension fields are valid.
+> > What is the wmb() for?
 > 
-> Would it be an idea to add a flags field to both v4l2_matrix and v4l2_query_matrix?
-> We don't have flags yet, but that makes it easy to add. For a feature such as you
-> describe it would be easy enough to implement that by setting an e.g.
-> V4L2_MATRIX_FL_NEW_SIZE flag. In query_matrix you would than have a
-> V4L2_QMATRIX_FL_HAS_NEW_SIZE (or perhaps in query_matrix it should be called
-> 'capabilities' instead).
-> 
-> I can also just leave it out and use one of the reserved fields when such a feature
-> is needed.
+> VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise
+> VPDMA doesn't work. wmb() ensures the ordering.
 
-I propose adding the flags fields once they're actually needed.
+write_reg() calls iowrite32(), which already includes an __iowmb().
 
-> >> + * @matrix:	pointer to the matrix of size (in bytes):
-> >> + *		elem_size * rect.width * rect.height
-> >> + * @reserved:	future extensions, applications and drivers must zero this.
-> >> + */
-> >> +struct v4l2_matrix {
-> >> +	__u32 type;
-> >> +	union {
-> >> +		__u32 raw[4];
-> >> +	} ref;
-> >> +	struct v4l2_rect rect;
-> >> +	void __user *matrix;
-> >> +	__u32 reserved[12];
-> >> +} __attribute__ ((packed));
+> >> +	write_reg(vpdma, VPDMA_LIST_ATTR,
+> >> +			(list_num << VPDMA_LIST_NUM_SHFT) |
+> >> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
+> >> +			list_size);
 > >> +
-> >>  /*
-> >>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> >>   *
-> >> @@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
-> >>     Never use these in applications! */
-> >>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
-> >>  
-> >> +/* Experimental, these three ioctls may change over the next couple of kernel
-> >> +   versions. */
-> >> +#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
-> >> +#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
-> >> +#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
+> >> +	return 0;
+> >> +}
+> >> 
+> >> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
+> >> +{
+> >> +	struct vpdma_data *vpdma = context;
+> >> +	struct vpdma_buf fw_dma_buf;
+> >> +	int i, r;
 > >> +
-> >>  /* Reminder: when adding new ioctls please add support for them to
-> >>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> >>  
+> >> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
+> >> +
+> >> +	if (!f || !f->data) {
+> >> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	/* already initialized */
+> >> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
+> >> +			VPDMA_LIST_RDY_SHFT)) {
+> >> +		vpdma->ready = true;
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
+> >> +	if (r) {
+> >> +		dev_err(&vpdma->pdev->dev,
+> >> +			"failed to allocate dma buffer for firmware\n");
+> >> +		goto rel_fw;
+> >> +	}
+> >> +
+> >> +	memcpy(fw_dma_buf.addr, f->data, f->size);
+> >> +
+> >> +	vpdma_buf_map(vpdma, &fw_dma_buf);
+> >> +
+> >> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
+> >> +
+> >> +	for (i = 0; i < 100; i++) {		/* max 1 second */
+> >> +		msleep_interruptible(10);
 > > 
+> > You call interruptible version here, but you don't handle the
+> > interrupted case. I believe the loop will just continue looping, even if
+> > the user interrupted.
 > 
-> Thanks for the review!
+> Okay. I think I don't understand the interruptible version correctly. We
+> don't need to msleep_interruptible here, we aren't waiting on any wake
+> up event, we just want to wait till a bit gets set.
 > 
-> I'll prepare a new version this weekend dropping the ref fields and integrating the ID
-> space into that of the controls.
-
-Thanks! :-)
+> I am thinking of implementing something similar to wait_for_bit_change()
+> in 'drivers/video/omap2/dss/dsi.c'
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
