@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53028 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757493Ab3HIMxk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:53:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
-	<alfredodelaiti@netscape.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 0/3] Add ISDB-T support on Mygica X8502/X8507
-Date: Fri,  9 Aug 2013 09:53:24 -0300
-Message-Id: <1376052807-8215-1-git-send-email-m.chehab@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47546 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966781Ab3HHWmT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:42:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] smiapp: re-use clamp_t instead of min(..., max(...))
+Date: Fri, 09 Aug 2013 00:43:23 +0200
+Message-ID: <3251824.sEh0l6OtR8@avalon>
+In-Reply-To: <20130724155538.GF12281@valkosipuli.retiisi.org.uk>
+References: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com> <CAHp75Vdp43x=SMYwpxWLoS0f7ku+qmZoAhW8Pao1p7DDGXcCPg@mail.gmail.com> <20130724155538.GF12281@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is likely the final version of the patches that adds support
-for Mygica X8502/X8507.
+Hi Sakari,
 
-After bisecting the mb86a20s configs, I discovered that the failure
-was due to a regression on setting the frontend to parallel mode.
+On Wednesday 24 July 2013 18:55:38 Sakari Ailus wrote:
+> On Wed, Jul 24, 2013 at 06:49:24PM +0300, Andy Shevchenko wrote:
+> > On Wed, Jul 24, 2013 at 6:45 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > 
+> > []
+> > 
+> > >> +     max_m = clamp_t(u32, max_m,
+> > >> sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN], +                    
+> > >> sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+> > > 
+> > > Do you need clamp_t()? Wouldn't plain clamp() do?
+> > 
+> > The *_t variants are preferred due to they are faster (no type checking).
+> > 
+> > > I can change it if you're ok with that.
+> > 
+> > I don't know why you may choose clamp instead of clamp_t here. Are you
+> > going to change variable types?
+> 
+> Probably not. But clamp() would serve as a sanity check vs. clamp_t() which
+> just does the thing. I'd prefer clamp() --- the compiler will not spend much
+> time on it anyway.
 
-So, I removed the dirty mb86a20s from this series, and added a
-proper regression fix for mb86a20s. That probably means that the
-cx88 and saa7134 ISDB-T devices based on mb86a20s were also broken.
-
-I also addressed the issues pointed by Alfredo.
-
-So, if nobody complains, I'll merge those patches soon.
-
-The mb86a20s should be merged at the fixes tree.
-
-The two other patches will follow their normal way upstream, for their 
-addition on kernel 3.12.
-
-Mauro Carvalho Chehab (3):
-  cx23885-dvb: use a better approach to hook set_frontend
-  mb86a20s: Fix TS parallel mode
-  cx23885: Add DTV support for Mygica X8502/X8507 boards
-
- drivers/media/dvb-frontends/mb86a20s.c    | 16 +++++-----
- drivers/media/pci/cx23885/Kconfig         |  1 +
- drivers/media/pci/cx23885/cx23885-cards.c |  6 ++--
- drivers/media/pci/cx23885/cx23885-dvb.c   | 49 ++++++++++++++++++++++++++-----
- drivers/media/pci/cx23885/cx23885.h       |  2 ++
- 5 files changed, 55 insertions(+), 19 deletions(-)
+Should I take this patch in my tree ? If so, could you please repost it with 
+clamp() instead of clamp_t(), and your SoB or Acked-by ?
 
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
