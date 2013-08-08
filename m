@@ -1,87 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:38522 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030789Ab3HITZm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 15:25:42 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, arun.kk@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 07/10] exynos4-is: Simplify sclk_cam clocks handling
-Date: Fri, 09 Aug 2013 21:24:09 +0200
-Message-id: <1376076252-30150-7-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
-References: <1376076122-29963-1-git-send-email-s.nawrocki@samsung.com>
- <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:49087 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757995Ab3HHQwJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 12:52:09 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
+	<alfredodelaiti@netscape.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC 2/3] cx23885: Add DTV support for Mygica X8502/X8507 boards
+Date: Thu,  8 Aug 2013 13:51:51 -0300
+Message-Id: <1375980712-9349-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
+References: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use clk_prepare_enable()/clk_disable_unprepare() instead of
-separately prearing/unparing the clk_cam clocks. This simplifies
-the code that is now mostly not going to be used, function
-__fimc_md_set_camclk() is only left for S5PV210 platform which
-is not yet converted to Device Tree.
+Those boards were missing the ISDB-T support.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Most of the work on this patch were done by Alfredo.
+
+My work here were to port this patch from Kernel 3.2 to upstream,
+fix the issue caused by the set_frontend bad hook, and add the
+Kconfig bits.
+
+Tested on a X8502 board rebranded as:
+"Leadership - Placa PCI-e de Captura de Vídeo Híbrida" - product code 3800.
+
+Thanks-to: Alfredo Jesús Delaiti <alfredodelaiti@netscape.net>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/exynos4-is/media-dev.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/media/pci/cx23885/Kconfig         |  1 +
+ drivers/media/pci/cx23885/cx23885-cards.c |  4 +++-
+ drivers/media/pci/cx23885/cx23885-dvb.c   | 24 ++++++++++++++++++++++++
+ 3 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 0446ab3..e327f45 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1150,7 +1150,6 @@ static void fimc_md_put_clocks(struct fimc_md *fmd)
- 	while (--i >= 0) {
- 		if (IS_ERR(fmd->camclk[i].clock))
- 			continue;
--		clk_unprepare(fmd->camclk[i].clock);
- 		clk_put(fmd->camclk[i].clock);
- 		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
- 	}
-@@ -1169,7 +1168,7 @@ static int fimc_md_get_clocks(struct fimc_md *fmd)
- 	struct device *dev = NULL;
- 	char clk_name[32];
- 	struct clk *clock;
--	int ret, i;
-+	int i, ret = 0;
+diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
+index b3688aa..5104c80 100644
+--- a/drivers/media/pci/cx23885/Kconfig
++++ b/drivers/media/pci/cx23885/Kconfig
+@@ -29,6 +29,7 @@ config VIDEO_CX23885
+ 	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_TDA10071 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_A8293 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MT2063 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MT2131 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 7e923f8..6f49f99 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -528,11 +528,12 @@ struct cx23885_board cx23885_boards[] = {
+ 		} },
+ 	},
+ 	[CX23885_BOARD_MYGICA_X8507] = {
+-		.name		= "Mygica X8507",
++		.name		= "Mygica X8502/X8507 ISDB-T",
+ 		.tuner_type = TUNER_XC5000,
+ 		.tuner_addr = 0x61,
+ 		.tuner_bus	= 1,
+ 		.porta		= CX23885_ANALOG_VIDEO,
++		.portb		= CX23885_MPEG_DVB,
+ 		.input		= {
+ 			{
+ 				.type   = CX23885_VMUX_TELEVISION,
+@@ -1677,6 +1678,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8506:
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
++	case CX23885_BOARD_MYGICA_X8507:
+ 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index c0613fb..971e4ff 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -69,6 +69,7 @@
+ #include "stb6100_cfg.h"
+ #include "tda10071.h"
+ #include "a8293.h"
++#include "mb86a20s.h"
  
- 	for (i = 0; i < FIMC_MAX_CAMCLKS; i++)
- 		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
-@@ -1187,12 +1186,6 @@ static int fimc_md_get_clocks(struct fimc_md *fmd)
- 			ret = PTR_ERR(clock);
- 			break;
- 		}
--		ret = clk_prepare(clock);
--		if (ret < 0) {
--			clk_put(clock);
--			fmd->camclk[i].clock = ERR_PTR(-EINVAL);
--			break;
--		}
- 		fmd->camclk[i].clock = clock;
- 	}
- 	if (ret)
-@@ -1249,7 +1242,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 			ret = pm_runtime_get_sync(fmd->pmf);
- 			if (ret < 0)
- 				return ret;
--			ret = clk_enable(camclk->clock);
-+			ret = clk_prepare_enable(camclk->clock);
- 			dbg("Enabled camclk %d: f: %lu", si->clk_id,
- 			    clk_get_rate(camclk->clock));
- 		}
-@@ -1260,7 +1253,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 		return 0;
+ static unsigned int debug;
  
- 	if (--camclk->use_count == 0) {
--		clk_disable(camclk->clock);
-+		clk_disable_unprepare(camclk->clock);
- 		pm_runtime_put(fmd->pmf);
- 		dbg("Disabled camclk %d", si->clk_id);
- 	}
+@@ -492,6 +493,15 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
+ 	.if_khz = 5380,
+ };
+ 
++static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
++	.demod_address = 0x10,
++};
++
++static struct xc5000_config mygica_x8507_xc5000_config = {
++	.i2c_address = 0x61,
++	.if_khz = 4000,
++};
++
+ static struct stv090x_config prof_8000_stv090x_config = {
+ 	.device                 = STV0903,
+ 	.demod_mode             = STV090x_SINGLE,
+@@ -548,6 +558,7 @@ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8506:
++	case CX23885_BOARD_MYGICA_X8507:
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+ 		/* Select Digital TV */
+ 		cx23885_gpio_set(dev, GPIO_0);
+@@ -1114,6 +1125,19 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
++	case CX23885_BOARD_MYGICA_X8507:
++		i2c_bus = &dev->i2c_bus[0];
++		i2c_bus2 = &dev->i2c_bus[1];
++		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
++			&mygica_x8507_mb86a20s_config,
++			&i2c_bus->i2c_adap);
++		if (fe0->dvb.frontend != NULL) {
++			dvb_attach(xc5000_attach,
++			fe0->dvb.frontend,
++			&i2c_bus2->i2c_adap,
++			&mygica_x8507_xc5000_config);
++		}
++		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+ 		i2c_bus = &dev->i2c_bus[0];
 -- 
-1.7.9.5
+1.8.3.1
 
