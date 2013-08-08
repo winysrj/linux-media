@@ -1,138 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:57398 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752618Ab3H2LqL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 07:46:11 -0400
-Message-ID: <521F307C.9040807@st.com>
-Date: Thu, 29 Aug 2013 12:29:00 +0100
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Reply-To: srinivas.kandagatla@st.com
-MIME-Version: 1.0
-To: Sean Young <sean@mess.org>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19937 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965896Ab3HHPvt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 11:51:49 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MR700NVCYQ64TB0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Aug 2013 16:51:47 +0100 (BST)
+Message-id: <5203BE92.1020100@samsung.com>
+Date: Thu, 08 Aug 2013 17:51:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v2] media: st-rc: Add ST remote control driver
-References: <1377704030-3763-1-git-send-email-srinivas.kandagatla@st.com> <20130829091155.GA6162@pequod.mess.org>
-In-Reply-To: <20130829091155.GA6162@pequod.mess.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: async: Make sure subdevs are stored in a list before
+ being moved
+References: <1375872115-32505-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1375872115-32505-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/08/13 10:11, Sean Young wrote:
-> On Wed, Aug 28, 2013 at 04:33:50PM +0100, Srinivas KANDAGATLA wrote:
->> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
->>
->> This patch adds support to ST RC driver, which is basically a IR/UHF
->> receiver and transmitter. This IP (IRB) is common across all the ST
->> parts for settop box platforms. IRB is embedded in ST COMMS IP block.
->> It supports both Rx & Tx functionality.
->>
->> In this driver adds only Rx functionality via LIRC codec.
->>
->> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
->> ---
->> Hi Chehab,
->>
->> This is a very simple rc driver for IRB controller found in STi ARM CA9 SOCs.
->> STi ARM SOC support went in 3.11 recently.
->> This driver is a raw driver which feeds data to lirc codec for the user lircd
->> to decode the keys.
->>
->> This patch is based on git://linuxtv.org/media_tree.git master branch.
->>
->> Changes since v1:
->> 	- Device tree bindings cleaned up as suggested by Mark and Pawel
->> 	- use ir_raw_event_reset under overflow conditions as suggested by Sean.
->> 	- call ir_raw_event_handle in interrupt handler as suggested by Sean.
->> 	- correct allowed_protos flag with RC_BIT_ types as suggested by Sean.
->> 	- timeout and rx resolution added as suggested by Sean.
+Hi Laurent,
+
+On 08/07/2013 12:41 PM, Laurent Pinchart wrote:
+> Subdevices have an async_list field used to store them in the global
+> list of subdevices or in the notifier done lists. List entries are moved
+> from the former to the latter in v4l2_async_test_notify() using
+> list_move(). However, v4l2_async_test_notify() can be called right away
+> when the subdev is registered with v4l2_async_register_subdev(), in
+> which case the entry is not stored in any list.
 > 
-> Acked-by: Sean Young <sean@mess.org>
-
-Thankyou Sean for the Ack.
+> Although this behaviour is not correct, the code doesn't crash at the
+> moment as the async_list field is initialized as a list head, despite
+> being a list entry.
 > 
-> Note minor nitpicks below.
->>
->> Thanks,
->> srini
->>
->>  Documentation/devicetree/bindings/media/st-rc.txt |   24 ++
->>  drivers/media/rc/Kconfig                          |   10 +
->>  drivers/media/rc/Makefile                         |    1 +
->>  drivers/media/rc/st_rc.c                          |  392 +++++++++++++++++++++
->>  4 files changed, 427 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
->>  create mode 100644 drivers/media/rc/st_rc.c
->>
-
->> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->> index 11e84bc..bf301ed 100644
->> --- a/drivers/media/rc/Kconfig
->> +++ b/drivers/media/rc/Kconfig
->> @@ -322,4 +322,14 @@ config IR_GPIO_CIR
->>  	   To compile this driver as a module, choose M here: the module will
->>  	   be called gpio-ir-recv.
->>  
->> +config RC_ST
->> +	tristate "ST remote control receiver"
->> +	depends on ARCH_STI && LIRC && OF
+> Add the subdev to the global subdevs list a registration time before
+> matching them with the notifiers to make sure the list_move() call will
+> get a subdev that is stored in a list, and remove the list head
+> initialization for the subdev async_list field.
 > 
-> Minor nitpick, this should not depend on LIRC, it depends on RC_CORE.
-Yes, I will make it depend on RC_CORE, remove OF as suggested by Mauro
-CC and select LIRC to something like.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-depends on ARCH_STI && RC_CORE
-select LIRC
 
->> +static int st_rc_probe(struct platform_device *pdev)
->> +{
->> +	int ret = -EINVAL;
->> +	struct rc_dev *rdev;
->> +	struct device *dev = &pdev->dev;
->> +	struct resource *res;
->> +	struct st_rc_device *rc_dev;
->> +	struct device_node *np = pdev->dev.of_node;
->> +	const char *rx_mode;
->> +
->> +	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
->> +	rdev = rc_allocate_device();
->> +
->> +	if (!rc_dev || !rdev)
->> +		return -ENOMEM;
+Shouldn't we initialize the async_list field in v4l2_subdev_init() ?
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..31b2375 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -460,6 +460,7 @@ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ {
+        INIT_LIST_HEAD(&sd->list);
++       INIT_LIST_HEAD(&sd->async_list);
+        BUG_ON(!ops);
+        sd->ops = ops;
+        sd->v4l2_dev = NULL;
+
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
 > 
-> If one fails and the other succeeds you have a leak.
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index b350ab9..4485dfe 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -122,7 +122,7 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+>  {
+>  	v4l2_device_unregister_subdev(sd);
+>  	/* Subdevice driver will reprobe and put the subdev back onto the list */
+> -	list_del_init(&sd->async_list);
+> +	list_del(&sd->async_list);
 
-Yes... I will fix it in v3.
-> 
->> +
->> +	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
->> +
+It is not safe to do so, since v4l2_async_cleanup() can be called multiple
+times and list_del() leaves async_list in an undefined state. I'm actually
+observing a crash with this change.
 
-[...]
-
->> +static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
->> +#endif
->> +
->> +#ifdef CONFIG_OF
-> 
-> Since this depends on OF it will always be defined.
-Removed OF dependency in Kconfig.
->> +module_platform_driver(st_rc_driver);
->> +
->> +MODULE_DESCRIPTION("RC Transceiver driver for STMicroelectronics platforms");
->> +MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
->> +MODULE_LICENSE("GPL");
->> -- 
->> 1.7.6.5
+>  	sd->asd = NULL;
+>  	sd->dev = NULL;
+>  }
+> @@ -238,7 +238,11 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  
+>  	mutex_lock(&list_lock);
+>  
+> -	INIT_LIST_HEAD(&sd->async_list);
+> +	/*
+> +	 * Add the subdev to the global subdevs list. It will be moved to the
+> +	 * notifier done list by v4l2_async_test_notify().
+> +	 */
+> +	list_add(&sd->async_list, &subdev_list);
+>  
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+>  		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+> @@ -249,9 +253,6 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  		}
+>  	}
+>  
+> -	/* None matched, wait for hot-plugging */
+> -	list_add(&sd->async_list, &subdev_list);
+> -
+>  	mutex_unlock(&list_lock);
+>  
+>  	return 0;
 > 
 
+Regards,
+Sylwester
