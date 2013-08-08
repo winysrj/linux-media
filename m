@@ -1,105 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1146 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757039Ab3HMS3G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Aug 2013 14:29:06 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7DIT2QB076744
-	for <linux-media@vger.kernel.org>; Tue, 13 Aug 2013 20:29:04 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 13 Aug 2013 20:29:02 +0200 (CEST)
-Message-Id: <201308131829.r7DIT2QB076744@smtp-vbr8.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 945C32A075F
-	for <linux-media@vger.kernel.org>; Tue, 13 Aug 2013 20:29:01 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:6231 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965082Ab3HHNrx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 09:47:53 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
+	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r78Dlk9n032678
+	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 13:47:50 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Subject: [PATCH 2/2] qv4l2: fix input parameters
+Date: Thu,  8 Aug 2013 15:47:38 +0200
+Message-Id: <89b8944a1b449451f26951cb6961706fb0c7b0f7.1375969534.git.bwinther@cisco.com>
+In-Reply-To: <1375969658-20415-1-git-send-email-bwinther@cisco.com>
+References: <1375969658-20415-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <c45fad89698912cf93481ab0801a3445ee0ef18e.1375969534.git.bwinther@cisco.com>
+References: <c45fad89698912cf93481ab0801a3445ee0ef18e.1375969534.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/qv4l2.cpp | 112 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 96 insertions(+), 16 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 892d9c3..644abe6 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -1146,33 +1146,113 @@ void ApplicationWindow::closeEvent(QCloseEvent *event)
+ 
+ ApplicationWindow *g_mw;
+ 
++static void usage()
++{
++	printf("  Usage:\n"
++	       "  qv4l2 [-R] [-h] [-d <dev>] [-r <dev>] [-V <dev>]\n"
++	       "\n  -d, --device=<dev> use device <dev> as the video device\n"
++	       "                     if <dev> is a number, then /dev/video<dev> is used\n"
++	       "  -r, --radio-device=<dev> use device <dev> as the radio device\n"
++	       "                     if <dev> is a number, then /dev/radio<dev> is used\n"
++	       "  -V, --vbi-device=<dev> use device <dev> as the vbi device\n"
++	       "                     if <dev> is a number, then /dev/vbi<dev> is used\n"
++	       "  -h, --help         display this help message\n"
++	       "  -R, --raw          open device in raw mode.\n");
++}
++
++static void usageError(const char *msg)
++{
++	printf("Missing parameter for %s\n", msg);
++	usage();
++}
++
++static QString getDeviceName(QString dev, QString &name)
++{
++	bool ok;
++	name.toInt(&ok);
++	return ok ? QString("%1%2").arg(dev).arg(name) : name;
++}
++
+ int main(int argc, char **argv)
+ {
+ 	QApplication a(argc, argv);
+-	QString device = "/dev/video0";
+ 	bool raw = false;
+-	bool help = false;
+-	int i;
++	QString device;
++	QString video_device;
++	QString radio_device;
++	QString vbi_device;
+ 
+ 	a.setWindowIcon(QIcon(":/qv4l2.png"));
+ 	g_mw = new ApplicationWindow();
+ 	g_mw->setWindowTitle("V4L2 Test Bench");
+-	for (i = 1; i < argc; i++) {
+-		const char *arg = a.argv()[i];
+ 
+-		if (!strcmp(arg, "-r"))
++	QStringList args = a.arguments();
++	for (int i = 1; i < args.size(); i++) {
++
++		if (args[i] == "-d" || args[i] == "--device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("--device");
++				return 0;
++			}
++
++			video_device = args.at(i);
++			if (video_device.startsWith("-")) {
++				usageError("--device");
++				return 0;
++			}
++			break;
++
++		} else if (args[i] == "-r" || args[i] == "--radio-device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("--radio-device");
++				return 0;
++			}
++
++			radio_device = args.at(i);
++			if (radio_device.startsWith("-")) {
++				usageError("--radio-device");
++				return 0;
++			}
++			break;
++
++		} else if (args[i] == "-V" || args[i] == "--vbi-device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("--vbi-device");
++				return 0;
++			}
++
++			vbi_device = args.at(i);
++			if (vbi_device.startsWith("-")) {
++				usageError("--vbi-device");
++				return 0;
++			}
++			break;
++
++		} else if (args[i] == "-h" || args[i] == "--help") {
++			usage();
++			return 0;
++
++		} else if (args[i] == "-R" || args[i] == "--raw") {
+ 			raw = true;
+-		else if (!strcmp(arg, "-h"))
+-			help = true;
+-		else if (arg[0] != '-')
+-			device = arg;
+-	}
+-	if (help) {
+-		printf("qv4l2 [-r] [-h] [device node]\n\n"
+-		       "-h\tthis help message\n"
+-		       "-r\topen device node in raw mode\n");
+-		return 0;
++			break;
++		} else {
++			printf("Unknown argument %s\n", args[i].toAscii().data());
++			return 0;
++		}
+ 	}
++
++	if (video_device != NULL)
++		device = getDeviceName("/dev/video", video_device);
++	else if (radio_device != NULL)
++		device = getDeviceName("/dev/radio", radio_device);
++	else if (vbi_device != NULL)
++		device = getDeviceName("/dev/vbi", vbi_device);
++	else
++		device = "/dev/video0";
++
+ 	g_mw->setDevice(device, raw);
+ 	g_mw->show();
+ 	a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+-- 
+1.8.4.rc1
 
-date:		Tue Aug 13 19:00:18 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
