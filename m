@@ -1,39 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:55120 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757239Ab3HHBxt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 21:53:49 -0400
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4914 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964997Ab3HHKYv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 06:24:51 -0400
+Message-ID: <520371E3.2010802@xs4all.nl>
+Date: Thu, 08 Aug 2013 12:24:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-From: Bryan Wu <cooloney@gmail.com>
-Date: Wed, 7 Aug 2013 18:53:28 -0700
-Message-ID: <CAK5ve-J7Sn5wuJ_z6Lqr=_qMQRqF12Aa6GfTv4xBhh=n_28Yjg@mail.gmail.com>
-Subject: Can I put a V4L2 soc camera driver under other subsystem directory?
-To: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	dri-devel@lists.freedesktop.org
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>,
-	=?ISO-8859-1?Q?Terje_Bergstr=F6m?= <tbergstrom@nvidia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?UTF-8?B?Sm9uIEFybmUgSsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com,
+	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
+Subject: Re: [RFC v4 0/3] saa7115: Implement i2c_board_info.platform_data
+References: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi and LMML,
+On 08/03/2013 03:19 PM, Jon Arne Jørgensen wrote:
+> This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
+> The main goal of this patch is to give the different devices with the gm7113c
+> chip an opportunity to configure the chip to their needs.
+> 
+> I've only implemented the overrides I know are necessary to get the stk1160
+> and the smi2021 drivers to work.
+> 
+> This is the forth version of this patch series.
+> There are only minor changes since version 3 of this patch series.
+> I've mostly just changed some comments, and removed some debug statements
+> in the last patch in the series.
+> 
+> The third version of the RFC was posted on 2013/7/4 and can be found here:
+> http://lkml.indiana.edu/hypermail/linux/kernel/1307.0/01931.html
+> 
+> The second version of the RFC was posted on 2013/5/31 and can be found here:
+> http://lkml.indiana.edu/hypermail/linux/kernel/1305.3/03747.html
+> 
+> The first version of the RFC can be found here:
+> https://lkml.org/lkml/2013/5/29/558
+> 
+> Jon Arne Jørgensen (3):
+>   saa7115: Fix saa711x_set_v4lstd for gm7113c
+>   saa7115: Do not load saa7115_init_misc for gm7113c
+>   saa7115: Implement i2c_board_info.platform_data
+> 
+>  drivers/media/i2c/saa7115.c      | 167 +++++++++++++++++++++++++++++++--------
+>  drivers/media/i2c/saa711x_regs.h |  19 +++++
+>  include/media/saa7115.h          |  64 +++++++++++++++
+>  3 files changed, 216 insertions(+), 34 deletions(-)
+> 
 
-I'm working on a camera controller driver for Tegra, which is using
-soc_camera. But we also need to use Tegra specific host1x interface
-like syncpt APIs.
+For this patch series:
 
-Since host1x is quite Tegra specific framework which is in
-drivers/gpu/host1x and has several host1x's client driver like graphic
-2D driver, my v4l2 soc_camera driver is also a host1x client driver.
-Right now host1x does not expose any global include header files like
-API in the kernel, because no other users. So we plan to put all
-host1x related driver together, is that OK for us to put our Tegra
-soc_camera driver into drivers/gpu/host1x/camera or similar?
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I guess besides it will introduce some extra maintenance it should be OK, right?
+I'll merge this Monday at the latest.
 
-Thanks,
--Bryan
+	Hans
