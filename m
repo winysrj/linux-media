@@ -1,114 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cernmx32.cern.ch ([137.138.144.178]:30580 "EHLO
-	CERNMX32.cern.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417Ab3H3MTi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 08:19:38 -0400
-From: Dinesh Ram <Dinesh.Ram@cern.ch>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Dinesh Ram <dinram@cisco.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v2 6/6] si4713 : Added MAINTAINERS entry for
- radio-usb-si4713 driver
-Date: Fri, 30 Aug 2013 12:14:09 +0000
-Message-ID: <C40DBE54484849439FC5081A05AEF5F5979DEBB7@PLOXCHG23.cern.ch>
-Content-Language: en-GB
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from avon.wwwdotorg.org ([70.85.31.133]:50072 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966267Ab3HHUoH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 16:44:07 -0400
+Message-ID: <520400EB.7000808@wwwdotorg.org>
+Date: Thu, 08 Aug 2013 14:34:51 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com,
+	Rob Herring <rob.herring@calxeda.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ian.campbell@citrix.com>
+Subject: Re: [RFC v3 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device
+ tree bindings documentation
+References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com> <1375455762-22071-3-git-send-email-arun.kk@samsung.com> <51FD7925.2010604@gmail.com> <51FFD892.5000708@wwwdotorg.org> <5200292E.1000505@gmail.com>
+In-Reply-To: <5200292E.1000505@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> will maintain the USB driver for si4713
+On 08/05/2013 04:37 PM, Sylwester Nawrocki wrote:
+> On 08/05/2013 06:53 PM, Stephen Warren wrote:
+>> On 08/03/2013 03:41 PM, Sylwester Nawrocki wrote:
+>>> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+>>>> The patch adds the DT binding documentation for Samsung
+>>>> Exynos5 SoC series imaging subsystem (FIMC-IS).
+>>
+>>>> diff --git
+>>>> a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>>>> b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>>>> new file mode 100644
+>>>> index 0000000..49a373a
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>>>> @@ -0,0 +1,52 @@
+>>>> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+>>>> +------------------------------------------------------
+>>>> +
+>>>> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+>>>> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+>>>> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+>>>> +handle sensor controls and camera post-processing operations. The
+>>>> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+>>>> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+>>>> +dedicated scalers (SCC and SCP).
+>>
+>> So there are a lot of blocks mentioned there, yet the binding doesn't
+>> seem to describe most of it. Is the binding complete?
+> 
+> Thanks for the review Stephen.
+> 
+> No, the binding certainly isn't complete, it doesn't describe the all
+> available IP blocks. There are separate MMIO address regions for each
+...
+> So while we could list all the devices, we decided not to do so.
+> Because it is not needed by the current software and we may miss some
+> details for case where the whole subsystem is controlled by the host
+> CPU (however such scenario is extremely unlikely AFAICT) which then
+> would be impossible or hard to change.
 
-Signed-off-by: Dinesh Ram <dinram@cisco.com>
----
- MAINTAINERS | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Yes, that's probably a good approach.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b2618ce..ddd4d5f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7412,7 +7412,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
- S:	Odd Fixes
--F:	drivers/media/radio/si4713-i2c.?
-+F:	drivers/media/radio/si4713/si4713.?
- 
- SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
- M:	Eduardo Valentin <edubezval@gmail.com>
-@@ -7420,7 +7420,15 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
- S:	Odd Fixes
--F:	drivers/media/radio/radio-si4713.h
-+F:	drivers/media/radio/si4713/radio-platform-si4713.c
-+
-+SI4713 FM RADIO TRANSMITTER USB DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/radio/si4713/radio-usb-si4713.c
- 
- SIANO DVB DRIVER
- M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
--- 1.8.4.rc2 
-________________________________________
-From: Hans Verkuil [hverkuil@xs4all.nl]
-Sent: 30 August 2013 14:07
-To: Dinesh Ram
-Cc: linux-media@vger.kernel.org; Dinesh Ram
-Subject: Re: [PATCH 6/6] si4713 : Added MAINTAINERS entry for radio-usb-si4713 driver
+> I guess we should list all available devices, similarly as it's done
+> in Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt.
+> 
+> And then should they just be disabled through the status property
+> if they are not needed in the Linux driver ? I guess it is more
+> sensible than marking them as optional and then not listing them
+> in dts at all ?
 
-On Fri 30 August 2013 13:28:24 Dinesh Ram wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> will maintain the USB driver for si4713
->
-> Signed-off-by: Dinesh Ram <dinram@cisco.com>
-> ---
->  MAINTAINERS | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b2618ce..ddd4d5f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7412,7 +7412,7 @@ L:      linux-media@vger.kernel.org
->  T:   git git://linuxtv.org/media_tree.git
->  W:   http://linuxtv.org
->  S:   Odd Fixes
-> -F:   drivers/media/radio/si4713-i2c.?
-> +F:   drivers/media/radio/si4713/si4713.?
->
->  SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
->  M:   Eduardo Valentin <edubezval@gmail.com>
-> @@ -7420,7 +7420,15 @@ L:     linux-media@vger.kernel.org
->  T:   git git://linuxtv.org/media_tree.git
->  W:   http://linuxtv.org
->  S:   Odd Fixes
-> -F:   drivers/media/radio/radio-si4713.h
-> +F:   drivers/media/radio/si4713/radio-platform-si4713.c
-> +
-> +KEENE FM RADIO TRANSMITTER DRIVER
+If you can define complete bindings for those nodes, it might make sense
+to do that. If the devices are perhaps complex to represent and hence
+you might not be able to come up with complete bindings for them right
+now, it may indeed be better to simply not mention the devices you don't
+care about for now.
 
-You forgot to update the driver description! This is the SiLabs si4713 EVB
-driver, not Keene.
+>>>> +pmu subnode
+>>>> +-----------
+>>>> +
+>>>> +Required properties:
+>>>> + - reg : should contain PMU physical base address and size of the
+>>>> memory
+>>>> +         mapped registers.
+>>
+>> I think you need a compatible value for this. How else is the node
+>> identified? The node name probably should not be used for identification.
+> 
+> Of course the node name is currently used for identification. There is no
+> compatible property because this pmu node is used to get hold of only part
+> of the Power Management Unit registers, specific to the FIMC-IS.
+> The PMU has more registers that also other drivers would be interested in,
+> e.g. clocks or USB.
 
-Can you make a v2 of this patch fixing this?
+I believe the correct way to solve this is for there to be a standalone
+PMU node at the appropriate location in DT, and for the FIMC bindings to
+reference that other node by phandle.
 
-Regards,
-
-        Hans
-
-> +M:   Hans Verkuil <hverkuil@xs4all.nl>
-> +L:   linux-media@vger.kernel.org
-> +T:   git git://linuxtv.org/media_tree.git
-> +W:   http://linuxtv.org
-> +S:   Maintained
-> +F:   drivers/media/radio/si4713/radio-usb-si4713.c
->
->  SIANO DVB DRIVER
->  M:   Mauro Carvalho Chehab <m.chehab@samsung.com>
->
+Right now, the FIMC driver SW can manually follow the phandle, look at
+the reg property, and map that itself. Later down the road, you could
+instantiate a true PMU driver, and have the FIMC driver look up that
+driver, and call APIs on it. This change can be made without requiring
+any changes to the DT binding. That way, you aren't introducing a fake
+PMU node into the FIMC bindings just to satisfy internal Linux driver
+details.
