@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46313 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753043Ab3HaOkW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 10:40:22 -0400
-Date: Sat, 31 Aug 2013 17:40:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-Message-ID: <20130831144018.GK2835@valkosipuli.retiisi.org.uk>
-References: <201308301501.25164.hverkuil@xs4all.nl>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1396 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934069Ab3HHLx6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 07:53:58 -0400
+Message-ID: <520386CD.3070102@xs4all.nl>
+Date: Thu, 08 Aug 2013 13:53:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201308301501.25164.hverkuil@xs4all.nl>
+To: =?ISO-8859-1?Q?B=E5rd_Eirik_Winther?= <bwinther@cisco.com>
+CC: linux-media@vger.kernel.org, hansverk@cisco.com
+Subject: Re: [git:v4l-utils/master] qv4l2: add aspect ratio support
+References: <E1V7L76-0005aC-HM@www.linuxtv.org> <2733966.NUgGszmazj@bwinther>
+In-Reply-To: <2733966.NUgGszmazj@bwinther>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 30, 2013 at 03:01:25PM +0200, Hans Verkuil wrote:
-> OK, I know, we don't even know yet when the mini-summit will be held but I thought
-> I'd just start this thread to collect input for the agenda.
+On 08/08/2013 01:32 PM, Bård Eirik Winther wrote:
+> Hi.
 > 
-> I have these topics (and I *know* that I am forgetting a few):
-> 
-> - Discuss ideas/use-cases for a property-based API. An initial discussion
->   appeared in this thread:
-> 
->   http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
-> 
-> - What is needed to share i2c video transmitters between drm and v4l? Hopefully
->   we will know more after the upcoming LPC.
-> 
-> - Decide on how v4l2 support libraries should be organized. There is code for
->   handling raw-to-sliced VBI decoding, ALSA looping, finding associated
->   video/alsa nodes and for TV frequency tables. We should decide how that should
->   be organized into libraries and how they should be documented. The first two
->   aren't libraries at the moment, but I think they should be. The last two are
->   libraries but they aren't installed. Some work is also being done on an improved
->   version of the 'associating nodes' library that uses the MC if available.
-> 
-> - Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
->   this thread for all the nasty details:
-> 
->   http://www.spinics.net/lists/linux-media/msg65137.html
+> Bad news. While rebasing my cropping support branch I noticed that Hans has merged in the wrong patch series for the scaling.
 
-- Multi-format frames and metadata. Support would be needed on video nodes
-  and V4L2 subdev nodes. I'll prepare the RFC for the former; the latter has
-  an RFC here:
+My bad, sorry. I've reverted the changes.
 
-  <URL:http://www.spinics.net/lists/linux-media/msg67295.html>
+> The one Hans have merged is one of our internal revisions, as only v1 is present on the mailing list.
+> I sent out a full patch series on Tuesday that consists of 9 parts, wheras the part you have merged is only 7 (from YUY2 shader to aspect ratio).
 
--- 
-Kind regards,
+The reason I got confused was that the newer patch series no longer applies. Can
+you rebase it and post again?
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks!
+
+	Hans
+
+> 
+> B.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
