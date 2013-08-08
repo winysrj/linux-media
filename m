@@ -1,92 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:51037 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019Ab3HSTqJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 15:46:09 -0400
-Date: Mon, 19 Aug 2013 21:46:04 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
-Message-ID: <20130819194603.GC4961@mithrandir>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TYecfFk8j8mZq+dy"
-Content-Disposition: inline
-In-Reply-To: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+Received: from moutng.kundenserver.de ([212.227.126.186]:56382 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934262Ab3HHO4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 10:56:16 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2/6] V4L2: mx3_camera: convert to managed resource allocation
+Date: Thu,  8 Aug 2013 16:52:33 +0200
+Message-Id: <1375973557-23333-3-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1375973557-23333-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1375973557-23333-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use devm_* resource allocators to simplify the driver's probe and clean up
+paths.
 
---TYecfFk8j8mZq+dy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/mx3_camera.c |   47 +++++-------------------
+ 1 files changed, 10 insertions(+), 37 deletions(-)
 
-On Mon, Aug 19, 2013 at 07:59:40PM +0200, Wolfram Sang wrote:
-[...]
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-[...]
-> +#if IS_ENABLED(CONFIG_OF)
-> +static void of_i2c_register_devices(struct i2c_adapter *adap)
-> +{
-[...]
-> +}
-[...]
-> +#endif /* CONFIG_OF */
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 1047e3e..e526096 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -1151,23 +1151,19 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	struct soc_camera_host *soc_host;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		err = -ENODEV;
+-		goto egetres;
+-	}
++	base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
+ 
+-	mx3_cam = vzalloc(sizeof(*mx3_cam));
++	mx3_cam = devm_kzalloc(&pdev->dev, sizeof(*mx3_cam), GFP_KERNEL);
+ 	if (!mx3_cam) {
+ 		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
+-		err = -ENOMEM;
+-		goto ealloc;
++		return -ENOMEM;
+ 	}
+ 
+-	mx3_cam->clk = clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(mx3_cam->clk)) {
+-		err = PTR_ERR(mx3_cam->clk);
+-		goto eclkget;
+-	}
++	mx3_cam->clk = devm_clk_get(&pdev->dev, NULL);
++	if (IS_ERR(mx3_cam->clk))
++		return PTR_ERR(mx3_cam->clk);
+ 
+ 	mx3_cam->pdata = pdev->dev.platform_data;
+ 	mx3_cam->platform_flags = mx3_cam->pdata->flags;
+@@ -1201,13 +1197,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&mx3_cam->capture);
+ 	spin_lock_init(&mx3_cam->lock);
+ 
+-	base = ioremap(res->start, resource_size(res));
+-	if (!base) {
+-		pr_err("Couldn't map %x@%x\n", resource_size(res), res->start);
+-		err = -ENOMEM;
+-		goto eioremap;
+-	}
+-
+ 	mx3_cam->base	= base;
+ 
+ 	soc_host		= &mx3_cam->soc_host;
+@@ -1218,10 +1207,8 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	soc_host->nr		= pdev->id;
+ 
+ 	mx3_cam->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(mx3_cam->alloc_ctx)) {
+-		err = PTR_ERR(mx3_cam->alloc_ctx);
+-		goto eallocctx;
+-	}
++	if (IS_ERR(mx3_cam->alloc_ctx))
++		return PTR_ERR(mx3_cam->alloc_ctx);
+ 
+ 	err = soc_camera_host_register(soc_host);
+ 	if (err)
+@@ -1234,14 +1221,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 
+ ecamhostreg:
+ 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
+-eallocctx:
+-	iounmap(base);
+-eioremap:
+-	clk_put(mx3_cam->clk);
+-eclkget:
+-	vfree(mx3_cam);
+-ealloc:
+-egetres:
+ 	return err;
+ }
+ 
+@@ -1251,12 +1230,8 @@ static int mx3_camera_remove(struct platform_device *pdev)
+ 	struct mx3_camera_dev *mx3_cam = container_of(soc_host,
+ 					struct mx3_camera_dev, soc_host);
+ 
+-	clk_put(mx3_cam->clk);
+-
+ 	soc_camera_host_unregister(soc_host);
+ 
+-	iounmap(mx3_cam->base);
+-
+ 	/*
+ 	 * The channel has either not been allocated,
+ 	 * or should have been released
+@@ -1266,8 +1241,6 @@ static int mx3_camera_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
+ 
+-	vfree(mx3_cam);
+-
+ 	dmaengine_put();
+ 
+ 	return 0;
+-- 
+1.7.2.5
 
-Isn't this missing the dummy implementation for !OF.
-
->  static int i2c_do_add_adapter(struct i2c_driver *driver,
->  			      struct i2c_adapter *adap)
->  {
-> @@ -1058,6 +1160,8 @@ static int i2c_register_adapter(struct i2c_adapter =
-*adap)
-> =20
->  exit_recovery:
->  	/* create pre-declared device nodes */
-> +	of_i2c_register_devices(adap);
-
-Alternatively you could remove the of_i2c_register_devices() from the
-"#ifdef CONFIG_OF" block so that it will always be compiled. You could
-turn the above into
-
-	if (IS_ENABLED(CONFIG_OF))
-		of_i2c_register_devices(adap);
-
-and let the compiler throw the static function away if it sees that the
-condition is always false.
-
-Thierry
-
---TYecfFk8j8mZq+dy
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSEnX7AAoJEN0jrNd/PrOhtxEP/2Ulur33dk711CAHb3j6OaCw
-JZ633M09rA84w4ngGfFM/2IfZFUBeqoyQ7wDnrtW7N89A+COpTqCAOpqo1LQ4WdU
-aehQXm1JyGXPiKb9hvgNXfL9Xz5U1VALvivFJs4kroXVIUlceGmoBZ/ywXYp8SH3
-0C9ClEkxCyvzaIBVmuwDVYZrr42pQduXnbTa/AwwIDlYcUfhELm8a3vfxteP3d9d
-pjrqsxmhTgGHoVp2EvGKXacaf2ISiwMe/FUK1dSrbRf69TU9KTVnUh8eIPlBCJ8s
-bjolz/LfRakgSmQpnzru+3apNnpkPOqApQhWd15E2o2ZUM0XRQx1ratt+meZEbbZ
-GWZj4jPeXWSDWkxtQwFgtPlltyMzJ11AvMxpgs93hjNmdDsjH5uPbrC5Cvz2S2MC
-UB5QOBMRb+DcdQhb72cg4GSiSv08loIFwRQb3lPuDQe2CzbcinHvTUANlzQXKmnF
-R8ZZ2UL1akR3zULh7CmzvQzNHplLOuS4T/J1gu9V7EhOJs2I7xWcoHqCVsqhfIk7
-MGSyYf7te7elOJKNomD/v22ojmbcmPapAf1yn1GBr74mk2t8SdH/QszRMem27oh5
-iL1yw/CIktcr6/EhOlQjIePBum4yQNAxnbtfbFc9ZBkLpR9YsDOw/CE7gEDQargW
-H56h2el3+6kiSlao+UmT
-=ukb7
------END PGP SIGNATURE-----
-
---TYecfFk8j8mZq+dy--
