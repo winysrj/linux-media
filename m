@@ -1,112 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:50072 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966267Ab3HHUoH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 16:44:07 -0400
-Message-ID: <520400EB.7000808@wwwdotorg.org>
-Date: Thu, 08 Aug 2013 14:34:51 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:35602 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933500Ab3HHMbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:31:49 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcja014622
+	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:46 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 4/9] qv4l2: show frames option can be toggled during capture
+Date: Thu,  8 Aug 2013 14:31:22 +0200
+Message-Id: <085adf63bb06b7fd0875fd04d668d28ab1c332f4.1375964980.git.bwinther@cisco.com>
+In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
+References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
+References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com,
-	Rob Herring <rob.herring@calxeda.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Ian Campbell <ian.campbell@citrix.com>
-Subject: Re: [RFC v3 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device
- tree bindings documentation
-References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com> <1375455762-22071-3-git-send-email-arun.kk@samsung.com> <51FD7925.2010604@gmail.com> <51FFD892.5000708@wwwdotorg.org> <5200292E.1000505@gmail.com>
-In-Reply-To: <5200292E.1000505@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/2013 04:37 PM, Sylwester Nawrocki wrote:
-> On 08/05/2013 06:53 PM, Stephen Warren wrote:
->> On 08/03/2013 03:41 PM, Sylwester Nawrocki wrote:
->>> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
->>>> The patch adds the DT binding documentation for Samsung
->>>> Exynos5 SoC series imaging subsystem (FIMC-IS).
->>
->>>> diff --git
->>>> a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
->>>> b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
->>>> new file mode 100644
->>>> index 0000000..49a373a
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
->>>> @@ -0,0 +1,52 @@
->>>> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
->>>> +------------------------------------------------------
->>>> +
->>>> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
->>>> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
->>>> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
->>>> +handle sensor controls and camera post-processing operations. The
->>>> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
->>>> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
->>>> +dedicated scalers (SCC and SCP).
->>
->> So there are a lot of blocks mentioned there, yet the binding doesn't
->> seem to describe most of it. Is the binding complete?
-> 
-> Thanks for the review Stephen.
-> 
-> No, the binding certainly isn't complete, it doesn't describe the all
-> available IP blocks. There are separate MMIO address regions for each
-...
-> So while we could list all the devices, we decided not to do so.
-> Because it is not needed by the current software and we may miss some
-> details for case where the whole subsystem is controlled by the host
-> CPU (however such scenario is extremely unlikely AFAICT) which then
-> would be impossible or hard to change.
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/qv4l2.cpp | 84 +++++++++++++++++++++++++++------------------------
+ utils/qv4l2/qv4l2.h   |  2 +-
+ 2 files changed, 46 insertions(+), 40 deletions(-)
 
-Yes, that's probably a good approach.
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 6f39726..e33254d 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -404,7 +404,7 @@ void ApplicationWindow::capVbiFrame()
+ 		m_capStartAct->setChecked(false);
+ 		return;
+ 	}
+-	if (m_showFrames) {
++	if (showFrames()) {
+ 		for (unsigned y = 0; y < m_vbiHeight; y++) {
+ 			__u8 *p = data + y * m_vbiWidth;
+ 			__u8 *q = m_capImage->bits() + y * m_capImage->bytesPerLine();
+@@ -448,7 +448,7 @@ void ApplicationWindow::capVbiFrame()
+ 		m_tv = tv;
+ 	}
+ 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
+-	if (m_showFrames)
++	if (showFrames())
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+ 				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), status);
+ 
+@@ -491,7 +491,7 @@ void ApplicationWindow::capFrame()
+ 		if (m_saveRaw.openMode())
+ 			m_saveRaw.write((const char *)m_frameData, s);
+ 
+-		if (!m_showFrames)
++		if (!showFrames())
+ 			break;
+ 		if (m_mustConvert)
+ 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+@@ -515,7 +515,7 @@ void ApplicationWindow::capFrame()
+ 		if (again)
+ 			return;
+ 
+-		if (m_showFrames) {
++		if (showFrames()) {
+ 			if (m_mustConvert)
+ 				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+ 							 (unsigned char *)m_buffers[buf.index].start, buf.bytesused,
+@@ -544,7 +544,7 @@ void ApplicationWindow::capFrame()
+ 		if (again)
+ 			return;
+ 
+-		if (m_showFrames) {
++		if (showFrames()) {
+ 			if (m_mustConvert)
+ 				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+ 							 (unsigned char *)buf.m.userptr, buf.bytesused,
+@@ -590,10 +590,10 @@ void ApplicationWindow::capFrame()
+ 			      .arg((m_totalAudioLatency.tv_sec * 1000 + m_totalAudioLatency.tv_usec / 1000) / m_frame));
+ 	}
+ #endif
+-	if (displaybuf == NULL && m_showFrames)
++	if (displaybuf == NULL && showFrames())
+ 		status.append(" Error: Unsupported format.");
+ 
+-	if (m_showFrames)
++	if (showFrames())
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+ 				    m_capDestFormat.fmt.pix.pixelformat, displaybuf, status);
+ 
+@@ -776,6 +776,15 @@ void ApplicationWindow::stopCapture()
+ 	refresh();
+ }
+ 
++bool ApplicationWindow::showFrames()
++{
++	if (m_showFramesAct->isChecked() && !m_capture->isVisible())
++		m_capture->show();
++	if (!m_showFramesAct->isChecked() && m_capture->isVisible())
++		m_capture->hide();
++	return m_showFramesAct->isChecked();
++}
++
+ void ApplicationWindow::startOutput(unsigned)
+ {
+ }
+@@ -849,7 +858,6 @@ void ApplicationWindow::capStart(bool start)
+ 		m_capImage = NULL;
+ 		return;
+ 	}
+-	m_showFrames = m_showFramesAct->isChecked();
+ 	m_frame = m_lastFrame = m_fps = 0;
+ 	m_capMethod = m_genTab->capMethod();
+ 
+@@ -857,7 +865,6 @@ void ApplicationWindow::capStart(bool start)
+ 		v4l2_format fmt;
+ 		v4l2_std_id std;
+ 
+-		m_showFrames = false;
+ 		g_fmt_sliced_vbi(fmt);
+ 		g_std(std);
+ 		fmt.fmt.sliced.service_set = (std & V4L2_STD_625_50) ?
+@@ -896,14 +903,14 @@ void ApplicationWindow::capStart(bool start)
+ 			m_vbiHeight = fmt.fmt.vbi.count[0] + fmt.fmt.vbi.count[1];
+ 		m_vbiSize = m_vbiWidth * m_vbiHeight;
+ 		m_frameData = new unsigned char[m_vbiSize];
+-		if (m_showFrames) {
+-			m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
+-			m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
+-			m_capImage->fill(0);
+-			m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+-					    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
++		m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
++		m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
++		m_capImage->fill(0);
++		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
++				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
++		if (showFrames())
+ 			m_capture->show();
+-		}
++
+ 		statusBar()->showMessage("No frame");
+ 		if (startCapture(m_vbiSize)) {
+ 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
+@@ -917,33 +924,32 @@ void ApplicationWindow::capStart(bool start)
+ 	if (m_genTab->get_interval(interval))
+ 		set_interval(interval);
+ 
+-	m_mustConvert = m_showFrames;
+ 	m_frameData = new unsigned char[srcPix.sizeimage];
+-	if (m_showFrames) {
+-		m_capDestFormat = m_capSrcFormat;
+-		dstPix.pixelformat = V4L2_PIX_FMT_RGB24;
+-
+-		if (m_capture->hasNativeFormat(srcPix.pixelformat)) {
+-			dstPix.pixelformat = srcPix.pixelformat;
+-			m_mustConvert = false;
+-		}
++	m_capDestFormat = m_capSrcFormat;
++	dstPix.pixelformat = V4L2_PIX_FMT_RGB24;
+ 
+-		if (m_mustConvert) {
+-			v4l2_format copy = m_capSrcFormat;
++	if (m_capture->hasNativeFormat(srcPix.pixelformat)) {
++		dstPix.pixelformat = srcPix.pixelformat;
++		m_mustConvert = false;
++	} else {
++		m_mustConvert = true;
++		v4l2_format copy = m_capSrcFormat;
++
++		v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
++		// v4lconvert_try_format sometimes modifies the source format if it thinks
++		// that there is a better format available. Restore our selected source
++		// format since we do not want that happening.
++		m_capSrcFormat = copy;
++	}
+ 
+-			v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
+-			// v4lconvert_try_format sometimes modifies the source format if it thinks
+-			// that there is a better format available. Restore our selected source
+-			// format since we do not want that happening.
+-			m_capSrcFormat = copy;
+-		}
++	m_capture->setMinimumSize(dstPix.width, dstPix.height);
++	// Ensure that the initial image is large enough for native 32 bit per pixel formats
++	if (dstPix.pixelformat == V4L2_PIX_FMT_RGB32 || dstPix.pixelformat == V4L2_PIX_FMT_BGR32)
++		dstFmt = QImage::Format_ARGB32;
++	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
++	m_capImage->fill(0);
+ 
+-		m_capture->setMinimumSize(dstPix.width, dstPix.height);
+-		// Ensure that the initial image is large enough for native 32 bit per pixel formats
+-		if (dstPix.pixelformat == V4L2_PIX_FMT_RGB32 || dstPix.pixelformat == V4L2_PIX_FMT_BGR32)
+-			dstFmt = QImage::Format_ARGB32;
+-		m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
+-		m_capImage->fill(0);
++	if (showFrames()) {
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+ 				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
+ 		m_capture->show();
+diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
+index 511a652..dd9db44 100644
+--- a/utils/qv4l2/qv4l2.h
++++ b/utils/qv4l2/qv4l2.h
+@@ -174,6 +174,7 @@ private:
+ 	void updateStandard();
+ 	void updateFreq();
+ 	void updateFreqChannel();
++	bool showFrames();
+ 
+ 	GeneralTab *m_genTab;
+ 	VbiTab *m_vbiTab;
+@@ -195,7 +196,6 @@ private:
+ 	WidgetMap m_widgetMap;
+ 	ClassMap m_classMap;
+ 	bool m_haveExtendedUserCtrls;
+-	bool m_showFrames;
+ 	int m_vbiSize;
+ 	unsigned m_vbiWidth;
+ 	unsigned m_vbiHeight;
+-- 
+1.8.4.rc1
 
-> I guess we should list all available devices, similarly as it's done
-> in Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt.
-> 
-> And then should they just be disabled through the status property
-> if they are not needed in the Linux driver ? I guess it is more
-> sensible than marking them as optional and then not listing them
-> in dts at all ?
-
-If you can define complete bindings for those nodes, it might make sense
-to do that. If the devices are perhaps complex to represent and hence
-you might not be able to come up with complete bindings for them right
-now, it may indeed be better to simply not mention the devices you don't
-care about for now.
-
->>>> +pmu subnode
->>>> +-----------
->>>> +
->>>> +Required properties:
->>>> + - reg : should contain PMU physical base address and size of the
->>>> memory
->>>> +         mapped registers.
->>
->> I think you need a compatible value for this. How else is the node
->> identified? The node name probably should not be used for identification.
-> 
-> Of course the node name is currently used for identification. There is no
-> compatible property because this pmu node is used to get hold of only part
-> of the Power Management Unit registers, specific to the FIMC-IS.
-> The PMU has more registers that also other drivers would be interested in,
-> e.g. clocks or USB.
-
-I believe the correct way to solve this is for there to be a standalone
-PMU node at the appropriate location in DT, and for the FIMC bindings to
-reference that other node by phandle.
-
-Right now, the FIMC driver SW can manually follow the phandle, look at
-the reg property, and map that itself. Later down the road, you could
-instantiate a true PMU driver, and have the FIMC driver look up that
-driver, and call APIs on it. This change can be made without requiring
-any changes to the DT binding. That way, you aren't introducing a fake
-PMU node into the FIMC bindings just to satisfy internal Linux driver
-details.
