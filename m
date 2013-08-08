@@ -1,55 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.irisys.co.uk ([195.12.16.217]:54360 "EHLO
-	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751Ab3HVPlo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 11:41:44 -0400
-From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: width and height of JPEG compressed images
-Date: Thu, 22 Aug 2013 15:41:41 +0000
-Message-ID: <A683633ABCE53E43AFB0344442BF0F054C634E48@server10.irisys.local>
-References: <51D876DF.90507@gmail.com>
- <A683633ABCE53E43AFB0344442BF0F054C632C1D@server10.irisys.local>
- <20130821131736.GE20717@valkosipuli.retiisi.org.uk>
- <2547877.KEf7cs3vQZ@avalon>
-In-Reply-To: <2547877.KEf7cs3vQZ@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4834 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757728Ab3HHK7D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 06:59:03 -0400
+Message-ID: <520379EC.9020307@xs4all.nl>
+Date: Thu, 08 Aug 2013 12:58:52 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: pawel@osciak.com
+Subject: [PATCH] v4l2-ctrl: fix setting volatile controls
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The V4L2 specification allows setting volatile controls as that is needed
+if you want to be able to set all controls in one go using VIDIOC_S_EXT_CTRLS.
 
-On 21 August 2013 14:29, Laurent Pinchart wrote:
-> On Wednesday 21 August 2013 16:17:37 Sakari Ailus wrote:
->> On Wed, Aug 07, 2013 at 05:43:56PM +0000, Thomas Vajzovic wrote:
->>> It defines the exact size of the physical frame.  The JPEG data is
->>> padded to this size. The size of the JPEG before it was padded is
->>> also written into the last word of the physical frame.
+However, such new values should be ignored by the control framework
+since it makes no sense to set a volatile control. While the new value
+will be ignored anyway, it does generate a bogus 'change value' control event
+that should be suppressed.
 
-That would require either using a custom pixel format and have userspace
-reading the size from the buffer, or mapping the buffer in kernel space
-and reading the size there. The latter is easier for userspace, but
-might it hinder performances ?
+This patch changes the code to skip setting volatile controls, except for
+one particular case where an autocluster switches to manual mode, because
+that causes the volatile controls to become non-volatile, so the new
+specified values should be retained.
 
-I think it ought to be a custom format and handled in userspace,
-otherwise the bridge driver would have to call a subdev function
-each frame to get it to fix-up the used size each time, which is
-quite ugly.
+Note that the values returned by VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS for
+such skipped volatile controls will be the currently cached values and not
+the latest volatile value. This is something that might have to be fixed
+as well in the future should that be necessary. I think it is overkill,
+though.
 
-Regards,
-Tom
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: pawel@osciak.com
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---
-Mr T. Vajzovic
-Software Engineer
-Infrared Integrated Systems Ltd
-Visit us at www.irisys.co.uk
-Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index fccd08b..a7cd830 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2592,6 +2592,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		cs->error_idx = cs->count;
+ 	for (i = 0; !ret && i < cs->count; i++) {
+ 		struct v4l2_ctrl *master;
++		bool set_volatiles = false;
+ 		u32 idx = i;
+ 
+ 		if (helpers[i].mref == NULL)
+@@ -2627,14 +2628,24 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			} while (tmp_idx);
+ 			/* If the new value == the manual value, then copy
+ 			   the current volatile values. */
+-			if (new_auto_val == master->manual_mode_value)
++			if (new_auto_val == master->manual_mode_value) {
+ 				update_from_auto_cluster(master);
++				set_volatiles = true;
++			}
+ 		}
+ 
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			ret = user_to_new(cs->controls + idx, helpers[idx].ctrl);
++			/*
++			 * Skip attempts to set volatile controls since those are
++			 * ignored anyway. The exception is when an autocluster is
++			 * switched to manual mode, since in that case the specified
++			 * 'volatile' controls are actually the new manual
++			 * non-volatile values.
++			 */
++			if (set_volatiles || !(helpers[idx].ctrl->flags & V4L2_CTRL_FLAG_VOLATILE))
++				ret = user_to_new(cs->controls + idx, helpers[idx].ctrl);
+ 			idx = helpers[idx].next;
+ 		} while (!ret && idx);
+ 
+@@ -2697,6 +2708,9 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
+ 		return -EINVAL;
+ 
++	if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
++		return 0;
++
+ 	/* Reset the 'is_new' flags of the cluster */
+ 	for (i = 0; i < master->ncontrols; i++)
+ 		if (master->cluster[i])
+-- 
+1.8.4.rc1
+
