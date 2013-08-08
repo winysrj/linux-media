@@ -1,139 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:55072 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab3HGEX4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 00:23:56 -0400
-Received: by mail-ve0-f179.google.com with SMTP id c13so1272818vea.10
-        for <linux-media@vger.kernel.org>; Tue, 06 Aug 2013 21:23:55 -0700 (PDT)
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:39803 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966754Ab3HHWKm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:10:42 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Rob Herring <robherring2@gmail.com>,
+	Olof Johansson <olof@lixom.net>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ian.campbell@citrix.com>
+Subject: Re: [PATCH 1/2] ARM: Exynos: replace custom MFC reserved memory handling with generic code
+Date: Fri, 09 Aug 2013 00:10:33 +0200
+Message-ID: <6170882.dm214gAmhr@flatron>
+In-Reply-To: <520411E7.4070708@wwwdotorg.org>
+References: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com> <1421964.5VNJUTGkrX@flatron> <520411E7.4070708@wwwdotorg.org>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGvXcpTKrTjhvrycLqab6F9QP5fAk0ZEWxJ-WvE==PiPsA@mail.gmail.com>
-References: <1374772648-19151-1-git-send-email-tom.cooksey@arm.com>
-	<CAF6AEGtspnhSGNM4_QQubVfOkZ1Gh1-Z3iyHOLBPVWuqRy81ew@mail.gmail.com>
-	<51f29ccd.f014b40a.34cc.ffffca2aSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGvFPGueM_LHVij9KFzM6NJySHCzmaLstuzZkK5GwP+6gQ@mail.gmail.com>
-	<51ffdc7e.06b8b40a.2cc8.0fe0SMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGsyKk_G-R-OX_YcgYFDgTEmCy9Vf2LV1pAOV0452QKSww@mail.gmail.com>
-	<5200deb3.0b24b40a.3b26.ffffbadeSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGvXcpTKrTjhvrycLqab6F9QP5fAk0ZEWxJ-WvE==PiPsA@mail.gmail.com>
-Date: Tue, 6 Aug 2013 21:23:55 -0700
-Message-ID: <CALAqxLW_rjS_bbDXDrPrnBRLbegs9TVmPDnpNVYuoQjaVv3tPw@mail.gmail.com>
-Subject: Re: [RFC 0/1] drm/pl111: Initial drm/kms driver for pl111
-From: John Stultz <john.stultz@linaro.org>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Tom Cooksey <tom.cooksey@arm.com>, linux-fbdev@vger.kernel.org,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	lkml <linux-kernel@vger.kernel.org>,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Rebecca Schultz Zavin <rebecca@android.com>,
-	Erik Gilling <konkers@android.com>,
-	Ross Oldfield <ross.oldfield@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 6, 2013 at 5:15 AM, Rob Clark <robdclark@gmail.com> wrote:
-> On Tue, Aug 6, 2013 at 7:31 AM, Tom Cooksey <tom.cooksey@arm.com> wrote:
->>
->>> > So in some respects, there is a constraint on how buffers which will
->>> > be drawn to using the GPU are allocated. I don't really like the idea
->>> > of teaching the display controller DRM driver about the GPU buffer
->>> > constraints, even if they are fairly trivial like this. If the same
->>> > display HW IP is being used on several SoCs, it seems wrong somehow
->>> > to enforce those GPU constraints if some of those SoCs don't have a
->>> > GPU.
->>>
->>> Well, I suppose you could get min_pitch_alignment from devicetree, or
->>> something like this..
->>>
->>> In the end, the easy solution is just to make the display allocate to
->>> the worst-case pitch alignment.  In the early days of dma-buf
->>> discussions, we kicked around the idea of negotiating or
->>> programatically describing the constraints, but that didn't really
->>> seem like a bounded problem.
->>
->> Yeah - I was around for some of those discussions and agree it's not
->> really an easy problem to solve.
->>
->>
->>
->>> > We may also then have additional constraints when sharing buffers
->>> > between the display HW and video decode or even camera ISP HW.
->>> > Programmatically describing buffer allocation constraints is very
->>> > difficult and I'm not sure you can actually do it - there's some
->>> > pretty complex constraints out there! E.g. I believe there's a
->>> > platform where Y and UV planes of the reference frame need to be in
->>> > separate DRAM banks for real-time 1080p decode, or something like
->>> > that?
->>>
->>> yes, this was discussed.  This is different from pitch/format/size
->>> constraints.. it is really just a placement constraint (ie. where do
->>> the physical pages go).  IIRC the conclusion was to use a dummy
->>> devices with it's own CMA pool for attaching the Y vs UV buffers.
->>>
->>> > Anyway, I guess my point is that even if we solve how to allocate
->>> > buffers which will be shared between the GPU and display HW such that
->>> > both sets of constraints are satisfied, that may not be the end of
->>> > the story.
->>> >
->>>
->>> that was part of the reason to punt this problem to userspace ;-)
->>>
->>> In practice, the kernel drivers doesn't usually know too much about
->>> the dimensions/format/etc.. that is really userspace level knowledge.
->>> There are a few exceptions when the kernel needs to know how to setup
->>> GTT/etc for tiled buffers, but normally this sort of information is up
->>> at the next level up (userspace, and drm_framebuffer in case of
->>> scanout).  Userspace media frameworks like GStreamer already have a
->>> concept of format/caps negotiation.  For non-display<->gpu sharing, I
->>> think this is probably where this sort of constraint negotiation
->>> should be handled.
->>
->> I agree that user-space will know which devices will access the buffer
->> and thus can figure out at least a common pixel format. Though I'm not
->> so sure userspace can figure out more low-level details like alignment
->> and placement in physical memory, etc.
->
-> well, let's divide things up into two categories:
->
-> 1) the arrangement and format of pixels.. ie. what userspace would
-> need to know if it mmap's a buffer.  This includes pixel format,
-> stride, etc.  This should be negotiated in userspace, it would be
-> crazy to try to do this in the kernel.
->
-> 2) the physical placement of the pages.  Ie. whether it is contiguous
-> or not.  Which bank the pages in the buffer are placed in, etc.  This
-> is not visible to userspace.  This is the purpose of the attach step,
-> so you know all the devices involved in sharing up front before
-> allocating the backing pages.  (Or in the worst case, if you have a
-> "late attacher" you at least know when no device is doing dma access
-> to a buffer and can reallocate and move the buffer.)  A long time
+On Thursday 08 of August 2013 15:47:19 Stephen Warren wrote:
+> On 08/08/2013 03:19 PM, Tomasz Figa wrote:
+> > Hi Stephen,
+> > 
+> > On Thursday 08 of August 2013 15:00:52 Stephen Warren wrote:
+> >> On 08/05/2013 06:26 AM, Marek Szyprowski wrote:
+> >>> MFC driver use custom bindings for managing reserved memory. Those
+> >>> bindings are not really specific to MFC device and no even well
+> >>> discussed. They can be easily replaced with generic, platform
+> >>> independent code for handling reserved and contiguous memory.
+> >>> 
+> >>> Two additional child devices for each memory port (AXI master) are
+> >>> introduced to let one assign some properties to each of them. Later
+> >>> one
+> >>> can also use them to assign properties related to SYSMMU
+> >>> controllers,
+> >>> which can be used to manage the limited dma window provided by those
+> >>> memory ports.
+> >>> 
+> >>> diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> >>> b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> >>> 
+> >>> +The MFC device is connected to system bus with two memory ports
+> >>> (AXI
+> >>> +masters) for better performance. Those memory ports are modelled as
+> >>> +separate child devices, so one can assign some properties to them
+> >>> (like +memory region for dma buffer allocation or sysmmu
+> >>> controller).
+> >>> +
+> >>> 
+> >>>  Required properties:
+> >>>    - compatible : value should be either one among the following
+> >>>  	
+> >>>  	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
+> >>>  	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
+> >>> 
+> >>> +	and additionally "simple-bus" to correctly initialize child
+> >>> +	devices for memory ports (AXI masters)
+> >> 
+> >> simple-bus is wrong here; the child nodes aren't independent entities
+> >> that can be instantiated separately from their parent and without
+> >> depending on their parent.
+> > 
+> > I fully agree, but I can't think of anything better. Could you suggest
+> > a solution that would cover our use case:
+> > 
+> > The MFC IP has two separate bus masters (called here and there
+> > memports). On some SoCs, each master must use different memory bank
+> > to meet memory bandwidth requirements for higher bitrate video
+> > streams. This can be seen as MFC having two DMA subdevices, which
+> > have different DMA windows.
+> > 
+> > On Linux, this is handled by binding two appropriate CMA memory
+> > regions to the memports, so the driver can do DMA allocations on
+> > behalf of particular memport and get appropriate memory for it.
+> 
+> I don't see what that has to do with simple-bus.
 
-One concern I know the Android folks have expressed previously (and
-correct me if its no longer an objection), is that this attach time
-in-kernel constraint solving / moving or reallocating buffers is
-likely to hurt determinism.  If I understood, their perspective was
-that userland knows the device path the buffers will travel through,
-so why not leverage that knowledge, rather then having the kernel have
-to sort it out for itself after the fact.
+Well, this is not the first binding doing things this way, unless I don't 
+understand something. See the recently posted mvebu bindings. Using 
+simple-bus for this has the nice property of allowing both non-DT and DT 
+cases to be handled in exactly the same way in MFC driver.
 
-The concern about determinism even makes them hesitant about CMA, over
-things like carveout, as they don't want to be moving pages around at
-allocation time (which could hurt reasonable use cases like the time
-it takes to launch a camera app - which is quite important). Though
-maybe this concern will lessen as more CMA solutions ship.
+> Whatever parses the
+> node of the MFC can directly read from any contained property or child
+> node; there's no need to try and get the core DT tree parser to
+> enumerate the children.
+> 
+> If you actually need a struct platform_device for each of these child
+> nodes (which sounds wrong, but I'm not familiar with the code)
 
-I worry some of this split between fully general solutions vs
-hard-coded known constraints is somewhat intractable. But what might
-make it easier to get android folks interested in approaches like the
-attach-time allocation / relocating on late-attach you're proposing is
-if there is maybe some way, as you suggested, to hint the allocation
-when they do know the device paths, so they can provide that insight
-and can avoid *all* reallocations.
+We need struct device for each memport and CMA region bound to both of 
+them. This is a requirement of the Linux DMA mapping API, and well, it 
+represents real hardware structure anyway.
 
-Then of course, there's the question of how to consistently hint
-things for all the different driver allocation interfaces (and that,
-maybe naively, leads to the central allocator approach).
+> , then
+> simply have the driver call of_platform_populate() itself at the
+> appropriate time.
 
-thanks
--john
+This sounds fine to me. 
+
+> But that's not going to work well unless the child
+> nodes have compatible values, which doesn't seem right given their
+> purpose.
+> >>> -  - samsung,mfc-r : Base address of the first memory bank used by
+> >>> MFC
+> >>> -		    for DMA contiguous memory allocation and its size.
+> >>> -
+> >>> -  - samsung,mfc-l : Base address of the second memory bank used by
+> >>> MFC
+> >>> -		    for DMA contiguous memory allocation and its size.
+> >> 
+> >> These properties shouldn't be removed, but simply marked deprecated.
+> >> The driver will need to continue to support them so that old DTs
+> >> work with new kernels. The binding must therefore continue to
+> >> document them so that the old DT content still makes sense.
+> > 
+> > I tend to disagree on this. For Samsung platforms we've been trying to
+> > avoid DT bindings changes as much as possible, but I'd rather say that
+> > device tree was coupled with kernel version it came from, so Samsung-
+> > specific bindings haven't been fully stabilized yet, especially since
+> > we are still at discussion stage when it's about defining processes
+> > for binding staging and stabilization.
+> 
+> Well, that's why everyone is shouting at ARM for abusing DT...
+
+IMHO this is not fully fair. We have a lot of development happenning on 
+ARM. Things usually can't be done perfectly on first iteration, while we 
+often want things working reasonably ASAP.
+
+This is why I'm really all for staging/stable separation. I believe things 
+need to be tested in practice before we say that they are good already and 
+can't be redone, which is what this kind of process would allow.
+
+> > I would rather see this patch as part of work on Samsung DT binding
+> > janitoring or maybe even sanitizing in some cases, like this one, when
+> > the old (and IMHO bad) MFC binding was introduced without proper
+> > review. I don't think we want to support this kind of brokenness
+> > anymore, especially considering the hacks which would be required by
+> > such support (see original implementation of this binding and code
+> > required in board file).> 
+> >>> +Two child nodes must be defined for MFC device. Their names must be
+> >>> +following: "memport-r" and "memport-l" ("right" and "left").
+> >>> Required
+> >> 
+> >> Node names shouldn't have semantic meaning.
+> > 
+> > What about bus-master-0 and bus-master-1?
+> 
+> Just "bus-master" for each might make sense. Use reg properties to
+> differentiate the two?
+
+What this reg property would mean in this case?
+
+My understanding of reg property was that it should be used for real 
+addresses or IDs and for all other cases node names should be suffixed 
+with "-ID".
+
+Best regards,
+Tomasz
+
