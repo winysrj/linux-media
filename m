@@ -1,138 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49087 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757995Ab3HHQwJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 12:52:09 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
-	<alfredodelaiti@netscape.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 2/3] cx23885: Add DTV support for Mygica X8502/X8507 boards
-Date: Thu,  8 Aug 2013 13:51:51 -0300
-Message-Id: <1375980712-9349-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
-References: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965358Ab3HHPuT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 11:50:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	pawel@osciak.com
+Subject: Re: [PATCH] v4l2-ctrl: fix setting volatile controls
+Date: Thu, 08 Aug 2013 17:51:24 +0200
+Message-ID: <2421409.LVIZ41ySbB@avalon>
+In-Reply-To: <520379EC.9020307@xs4all.nl>
+References: <520379EC.9020307@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those boards were missing the ISDB-T support.
+Hi Hans,
 
-Most of the work on this patch were done by Alfredo.
+Thank you for the patch.
 
-My work here were to port this patch from Kernel 3.2 to upstream,
-fix the issue caused by the set_frontend bad hook, and add the
-Kconfig bits.
+On Thursday 08 August 2013 12:58:52 Hans Verkuil wrote:
+> The V4L2 specification allows setting volatile controls as that is needed
+> if you want to be able to set all controls in one go using
+> VIDIOC_S_EXT_CTRLS.
+> 
+> However, such new values should be ignored by the control framework
+> since it makes no sense to set a volatile control. While the new value
+> will be ignored anyway, it does generate a bogus 'change value' control
+> event that should be suppressed.
+> 
+> This patch changes the code to skip setting volatile controls, except for
+> one particular case where an autocluster switches to manual mode, because
+> that causes the volatile controls to become non-volatile, so the new
+> specified values should be retained.
+> 
+> Note that the values returned by VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS for
+> such skipped volatile controls will be the currently cached values and not
+> the latest volatile value. This is something that might have to be fixed
+> as well in the future should that be necessary. I think it is overkill,
+> though.
 
-Tested on a X8502 board rebranded as:
-"Leadership - Placa PCI-e de Captura de Vídeo Híbrida" - product code 3800.
+This restriction is not documented in Documentation/video4linux/v4l2-
+controls.txt. Do we really want to assume that all volatile controls are read-
+only and/or inactive ?
 
-Thanks-to: Alfredo Jesús Delaiti <alfredodelaiti@netscape.net>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/cx23885/Kconfig         |  1 +
- drivers/media/pci/cx23885/cx23885-cards.c |  4 +++-
- drivers/media/pci/cx23885/cx23885-dvb.c   | 24 ++++++++++++++++++++++++
- 3 files changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
-index b3688aa..5104c80 100644
---- a/drivers/media/pci/cx23885/Kconfig
-+++ b/drivers/media/pci/cx23885/Kconfig
-@@ -29,6 +29,7 @@ config VIDEO_CX23885
- 	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA10071 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_A8293 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2063 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2131 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 7e923f8..6f49f99 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -528,11 +528,12 @@ struct cx23885_board cx23885_boards[] = {
- 		} },
- 	},
- 	[CX23885_BOARD_MYGICA_X8507] = {
--		.name		= "Mygica X8507",
-+		.name		= "Mygica X8502/X8507 ISDB-T",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
- 		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
-+		.portb		= CX23885_MPEG_DVB,
- 		.input		= {
- 			{
- 				.type   = CX23885_VMUX_TELEVISION,
-@@ -1677,6 +1678,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		break;
- 	case CX23885_BOARD_MYGICA_X8506:
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
-+	case CX23885_BOARD_MYGICA_X8507:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index c0613fb..971e4ff 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -69,6 +69,7 @@
- #include "stb6100_cfg.h"
- #include "tda10071.h"
- #include "a8293.h"
-+#include "mb86a20s.h"
- 
- static unsigned int debug;
- 
-@@ -492,6 +493,15 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
- 	.if_khz = 5380,
- };
- 
-+static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
-+	.demod_address = 0x10,
-+};
-+
-+static struct xc5000_config mygica_x8507_xc5000_config = {
-+	.i2c_address = 0x61,
-+	.if_khz = 4000,
-+};
-+
- static struct stv090x_config prof_8000_stv090x_config = {
- 	.device                 = STV0903,
- 	.demod_mode             = STV090x_SINGLE,
-@@ -548,6 +558,7 @@ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
- 		}
- 		break;
- 	case CX23885_BOARD_MYGICA_X8506:
-+	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 		/* Select Digital TV */
- 		cx23885_gpio_set(dev, GPIO_0);
-@@ -1114,6 +1125,19 @@ static int dvb_register(struct cx23885_tsport *port)
- 		}
- 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
- 		break;
-+	case CX23885_BOARD_MYGICA_X8507:
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
-+		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
-+			&mygica_x8507_mb86a20s_config,
-+			&i2c_bus->i2c_adap);
-+		if (fe0->dvb.frontend != NULL) {
-+			dvb_attach(xc5000_attach,
-+			fe0->dvb.frontend,
-+			&i2c_bus2->i2c_adap,
-+			&mygica_x8507_xc5000_config);
-+		}
-+		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
- 		break;
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 		i2c_bus = &dev->i2c_bus[0];
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: pawel@osciak.com
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
+> b/drivers/media/v4l2-core/v4l2-ctrls.c index fccd08b..a7cd830 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -2592,6 +2592,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+> struct v4l2_ctrl_handler *hdl, cs->error_idx = cs->count;
+>  	for (i = 0; !ret && i < cs->count; i++) {
+>  		struct v4l2_ctrl *master;
+> +		bool set_volatiles = false;
+>  		u32 idx = i;
+> 
+>  		if (helpers[i].mref == NULL)
+> @@ -2627,14 +2628,24 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+> struct v4l2_ctrl_handler *hdl, } while (tmp_idx);
+>  			/* If the new value == the manual value, then copy
+>  			   the current volatile values. */
+> -			if (new_auto_val == master->manual_mode_value)
+> +			if (new_auto_val == master->manual_mode_value) {
+>  				update_from_auto_cluster(master);
+> +				set_volatiles = true;
+> +			}
+>  		}
+> 
+>  		/* Copy the new caller-supplied control values.
+>  		   user_to_new() sets 'is_new' to 1. */
+>  		do {
+> -			ret = user_to_new(cs->controls + idx, helpers[idx].ctrl);
+> +			/*
+> +			 * Skip attempts to set volatile controls since those are
+> +			 * ignored anyway. The exception is when an autocluster is
+> +			 * switched to manual mode, since in that case the specified
+> +			 * 'volatile' controls are actually the new manual
+> +			 * non-volatile values.
+> +			 */
+> +			if (set_volatiles || !(helpers[idx].ctrl->flags &
+> V4L2_CTRL_FLAG_VOLATILE)) +				ret = user_to_new(cs->controls + 
+idx,
+> helpers[idx].ctrl);
+>  			idx = helpers[idx].next;
+>  		} while (!ret && idx);
+> 
+> @@ -2697,6 +2708,9 @@ static int set_ctrl(struct v4l2_fh *fh, struct
+> v4l2_ctrl *ctrl, if (ctrl->type == V4L2_CTRL_TYPE_STRING)
+>  		return -EINVAL;
+> 
+> +	if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
+> +		return 0;
+> +
+>  	/* Reset the 'is_new' flags of the cluster */
+>  	for (i = 0; i < master->ncontrols; i++)
+>  		if (master->cluster[i])
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
