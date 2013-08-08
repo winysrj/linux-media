@@ -1,64 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53051 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715Ab3H2Md4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 08:33:56 -0400
-From: Archit Taneja <archit@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
-	<tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 0/6] v4l: VPE mem to mem driver
-Date: Thu, 29 Aug 2013 18:02:46 +0530
-Message-ID: <1377779572-22624-1-git-send-email-archit@ti.com>
-In-Reply-To: <1376996457-17275-1-git-send-email-archit@ti.com>
-References: <1376996457-17275-1-git-send-email-archit@ti.com>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:55120 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757239Ab3HHBxt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 21:53:49 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+From: Bryan Wu <cooloney@gmail.com>
+Date: Wed, 7 Aug 2013 18:53:28 -0700
+Message-ID: <CAK5ve-J7Sn5wuJ_z6Lqr=_qMQRqF12Aa6GfTv4xBhh=n_28Yjg@mail.gmail.com>
+Subject: Can I put a V4L2 soc camera driver under other subsystem directory?
+To: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	dri-devel@lists.freedesktop.org
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	linux-tegra <linux-tegra@vger.kernel.org>,
+	=?ISO-8859-1?Q?Terje_Bergstr=F6m?= <tbergstrom@nvidia.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
-mem to mem v4l2 driver, and VPDMA as a helper library.
+Hi Guennadi and LMML,
 
-The first version of the patch series described VPE in detail, you can have a
-look at it here:
+I'm working on a camera controller driver for Tegra, which is using
+soc_camera. But we also need to use Tegra specific host1x interface
+like syncpt APIs.
 
-http://www.spinics.net/lists/linux-media/msg66518.html
+Since host1x is quite Tegra specific framework which is in
+drivers/gpu/host1x and has several host1x's client driver like graphic
+2D driver, my v4l2 soc_camera driver is also a host1x client driver.
+Right now host1x does not expose any global include header files like
+API in the kernel, because no other users. So we plan to put all
+host1x related driver together, is that OK for us to put our Tegra
+soc_camera driver into drivers/gpu/host1x/camera or similar?
 
-The only change in v3 is that DMA allocation APIs for motion vector buffers
-instead of kzalloc as they can take up to 100Kb of memory. The descriptors used
-by VPDMA are still allocated via kzalloc. The allocation/mapping api for VPDMA
-was renamed such that we know it's for allocating descriptor lists and
-descriptor payloads.
+I guess besides it will introduce some extra maintenance it should be OK, right?
 
-Archit Taneja (6):
-  v4l: ti-vpe: Create a vpdma helper library
-  v4l: ti-vpe: Add helpers for creating VPDMA descriptors
-  v4l: ti-vpe: Add VPE mem to mem driver
-  v4l: ti-vpe: Add de-interlacer support in VPE
-  arm: dra7xx: hwmod data: add VPE hwmod data and ocp_if info
-  experimental: arm: dts: dra7xx: Add a DT node for VPE
-
- arch/arm/boot/dts/dra7.dtsi                |   11 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  |   42 +
- drivers/media/platform/Kconfig             |   16 +
- drivers/media/platform/Makefile            |    2 +
- drivers/media/platform/ti-vpe/Makefile     |    5 +
- drivers/media/platform/ti-vpe/vpdma.c      |  846 ++++++++++++
- drivers/media/platform/ti-vpe/vpdma.h      |  202 +++
- drivers/media/platform/ti-vpe/vpdma_priv.h |  640 +++++++++
- drivers/media/platform/ti-vpe/vpe.c        | 2050 ++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpe_regs.h   |  496 +++++++
- 10 files changed, 4310 insertions(+)
- create mode 100644 drivers/media/platform/ti-vpe/Makefile
- create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
- create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
- create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
- create mode 100644 drivers/media/platform/ti-vpe/vpe.c
- create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
-
--- 
-1.8.1.2
-
+Thanks,
+-Bryan
