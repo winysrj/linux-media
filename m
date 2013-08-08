@@ -1,265 +1,1098 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46920 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab3HUFr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 01:47:27 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [PATCH v11 3/8] usb: phy: twl4030: use the new generic PHY framework
-Date: Wed, 21 Aug 2013 11:16:08 +0530
-Message-ID: <1377063973-22044-4-git-send-email-kishon@ti.com>
-In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4236 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757715Ab3HHLk7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 07:40:59 -0400
+Message-ID: <5203838B.10601@xs4all.nl>
+Date: Thu, 08 Aug 2013 13:39:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+CC: mchehab@redhat.com, s.nawrocki@samsung.com,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH RFC v4 1/1] [media] blackfin: add video display device
+ driver
+References: <1374262068-32563-1-git-send-email-scott.jiang.linux@gmail.com>
+In-Reply-To: <1374262068-32563-1-git-send-email-scott.jiang.linux@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used the generic PHY framework API to create the PHY. For powering on
-and powering off the PHY, power_on and power_off ops are used. Once the
-MUSB OMAP glue is adapted to the new framework, the suspend and resume
-ops of usb phy library will be removed. Also twl4030-usb driver is moved
-to drivers/phy/.
+Hi Scott,
 
-However using the old usb phy library cannot be completely removed
-because otg is intertwined with phy and moving to the new
-framework completely will break otg. Once we have a separate otg state machine,
-we can get rid of the usb phy library.
+Sorry for the delayed review. Please ping me you don't see a reply from me within a
+week. I normally process patches on Monday and/or Friday, so you can keep that in mind
+when you decide it's time for a ping.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/phy/Kconfig                     |   11 ++++++
- drivers/phy/Makefile                    |    1 +
- drivers/{usb => }/phy/phy-twl4030-usb.c |   56 +++++++++++++++++++++++++++++--
- drivers/usb/phy/Kconfig                 |    9 -----
- drivers/usb/phy/Makefile                |    1 -
- include/linux/i2c/twl.h                 |    2 ++
- 6 files changed, 67 insertions(+), 13 deletions(-)
- rename drivers/{usb => }/phy/phy-twl4030-usb.c (95%)
+Thanks for posting the v4l2-compliance output. It looks like this is tested on a 3.5
+kernel, is that correct?
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 38c3477..ac239ac 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -27,4 +27,15 @@ config OMAP_USB2
- 	  The USB OTG controller communicates with the comparator using this
- 	  driver.
- 
-+config TWL4030_USB
-+	tristate "TWL4030 USB Transceiver Driver"
-+	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
-+	select GENERIC_PHY
-+	select USB_PHY
-+	help
-+	  Enable this to support the USB OTG transceiver on TWL4030
-+	  family chips (including the TWL5030 and TPS659x0 devices).
-+	  This transceiver supports high and full speed devices plus,
-+	  in host mode, low speed.
-+
- endmenu
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index ed5b088..0dd8a98 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -4,3 +4,4 @@
- 
- obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
- obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
-+obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-similarity index 95%
-rename from drivers/usb/phy/phy-twl4030-usb.c
-rename to drivers/phy/phy-twl4030-usb.c
-index 8f78d2d..494f107 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -33,6 +33,7 @@
- #include <linux/io.h>
- #include <linux/delay.h>
- #include <linux/usb/otg.h>
-+#include <linux/phy/phy.h>
- #include <linux/usb/musb-omap.h>
- #include <linux/usb/ulpi.h>
- #include <linux/i2c/twl.h>
-@@ -431,6 +432,14 @@ static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
- 	dev_dbg(twl->dev, "%s\n", __func__);
- }
- 
-+static int twl4030_phy_power_off(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	twl4030_phy_suspend(twl, 0);
-+	return 0;
-+}
-+
- static void __twl4030_phy_resume(struct twl4030_usb *twl)
- {
- 	twl4030_phy_power(twl, 1);
-@@ -459,6 +468,14 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 	}
- }
- 
-+static int twl4030_phy_power_on(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	twl4030_phy_resume(twl);
-+	return 0;
-+}
-+
- static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
- {
- 	/* Enable writing to power configuration registers */
-@@ -602,13 +619,22 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
- 	status = twl4030_usb_linkstat(twl);
- 	twl->linkstat = status;
- 
--	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
-+	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
- 		omap_musb_mailbox(twl->linkstat);
-+		twl4030_phy_resume(twl);
-+	}
- 
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 	return 0;
- }
- 
-+static int twl4030_phy_init(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	return twl4030_usb_phy_init(&twl->phy);
-+}
-+
- static int twl4030_set_suspend(struct usb_phy *x, int suspend)
- {
- 	struct twl4030_usb *twl = phy_to_twl(x);
-@@ -646,13 +672,23 @@ static int twl4030_set_host(struct usb_otg *otg, struct usb_bus *host)
- 	return 0;
- }
- 
-+static const struct phy_ops ops = {
-+	.init		= twl4030_phy_init,
-+	.power_on	= twl4030_phy_power_on,
-+	.power_off	= twl4030_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
- static int twl4030_usb_probe(struct platform_device *pdev)
- {
- 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
- 	struct twl4030_usb	*twl;
-+	struct phy		*phy;
- 	int			status, err;
- 	struct usb_otg		*otg;
- 	struct device_node	*np = pdev->dev.of_node;
-+	struct phy_provider	*phy_provider;
-+	struct phy_init_data	*init_data = NULL;
- 
- 	twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
- 	if (!twl)
-@@ -661,9 +697,10 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	if (np)
- 		of_property_read_u32(np, "usb_mode",
- 				(enum twl4030_usb_mode *)&twl->usb_mode);
--	else if (pdata)
-+	else if (pdata) {
- 		twl->usb_mode = pdata->usb_mode;
--	else {
-+		init_data = pdata->init_data;
-+	} else {
- 		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
- 		return -EINVAL;
- 	}
-@@ -689,6 +726,19 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	otg->set_host		= twl4030_set_host;
- 	otg->set_peripheral	= twl4030_set_peripheral;
- 
-+	phy_provider = devm_of_phy_provider_register(twl->dev,
-+		of_phy_simple_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	phy = devm_phy_create(twl->dev, &ops, init_data);
-+	if (IS_ERR(phy)) {
-+		dev_dbg(&pdev->dev, "Failed to create PHY\n");
-+		return PTR_ERR(phy);
-+	}
-+
-+	phy_set_drvdata(phy, twl);
-+
- 	/* init spinlock for workqueue */
- 	spin_lock_init(&twl->lock);
- 
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 7813238..1e05b1d 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -102,15 +102,6 @@ config SAMSUNG_USB3PHY
- 	  Enable this to support Samsung USB 3.0 (Super Speed) phy controller
- 	  for samsung SoCs.
- 
--config TWL4030_USB
--	tristate "TWL4030 USB Transceiver Driver"
--	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
--	help
--	  Enable this to support the USB OTG transceiver on TWL4030
--	  family chips (including the TWL5030 and TPS659x0 devices).
--	  This transceiver supports high and full speed devices plus,
--	  in host mode, low speed.
--
- config TWL6030_USB
- 	tristate "TWL6030 USB Transceiver Driver"
- 	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
-diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
-index 56d2b03..7bcc9ed0 100644
---- a/drivers/usb/phy/Makefile
-+++ b/drivers/usb/phy/Makefile
-@@ -20,7 +20,6 @@ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
- obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
- obj-$(CONFIG_SAMSUNG_USB2PHY)		+= phy-samsung-usb2.o
- obj-$(CONFIG_SAMSUNG_USB3PHY)		+= phy-samsung-usb3.o
--obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
- obj-$(CONFIG_TWL6030_USB)		+= phy-twl6030-usb.o
- obj-$(CONFIG_USB_EHCI_TEGRA)		+= phy-tegra-usb.o
- obj-$(CONFIG_USB_GPIO_VBUS)		+= phy-gpio-vbus-usb.o
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 81cbbdb..673a3ce 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -26,6 +26,7 @@
- #define __TWL_H_
- 
- #include <linux/types.h>
-+#include <linux/phy/phy.h>
- #include <linux/input/matrix_keypad.h>
- 
- /*
-@@ -615,6 +616,7 @@ enum twl4030_usb_mode {
- struct twl4030_usb_data {
- 	enum twl4030_usb_mode	usb_mode;
- 	unsigned long		features;
-+	struct phy_init_data	*init_data;
- 
- 	int		(*phy_init)(struct device *dev);
- 	int		(*phy_exit)(struct device *dev);
--- 
-1.7.10.4
+I also see that you are using an older v4l2-compliance version, please use the
+latest version from v4l-utils.git.
 
+On 07/19/2013 09:27 PM, Scott Jiang wrote:
+> This is a V4L2 driver for Blackfin video display (E)PPI interface.
+> This module is common for BF537/BF561/BF548/BF609.
+> 
+> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+> ---
+>  drivers/media/platform/blackfin/Kconfig        |   15 +-
+>  drivers/media/platform/blackfin/Makefile       |    1 +
+>  drivers/media/platform/blackfin/bfin_display.c |  929 ++++++++++++++++++++++++
+>  include/media/blackfin/bfin_display.h          |   38 +
+>  4 files changed, 981 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/media/platform/blackfin/bfin_display.c
+>  create mode 100644 include/media/blackfin/bfin_display.h
+> 
+> diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
+> index cc23997..10aa435 100644
+> --- a/drivers/media/platform/blackfin/Kconfig
+> +++ b/drivers/media/platform/blackfin/Kconfig
+> @@ -9,7 +9,18 @@ config VIDEO_BLACKFIN_CAPTURE
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called bfin_capture.
+>  
+> +config VIDEO_BLACKFIN_DISPLAY
+> +	tristate "Blackfin Video Display Driver"
+> +	depends on VIDEO_V4L2 && BLACKFIN && I2C
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	help
+> +	  V4L2 driver for Blackfin video display (E)PPI interface.
+> +	  This module is common for BF537/BF561/BF548/BF609.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called bfin_display.
+> +
+>  config VIDEO_BLACKFIN_PPI
+>  	tristate
+> -	depends on VIDEO_BLACKFIN_CAPTURE
+> -	default VIDEO_BLACKFIN_CAPTURE
+> +	depends on VIDEO_BLACKFIN_CAPTURE || VIDEO_BLACKFIN_DISPLAY
+> +	default VIDEO_BLACKFIN_CAPTURE || VIDEO_BLACKFIN_DISPLAY
+> diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
+> index 30421bc..015c8f0 100644
+> --- a/drivers/media/platform/blackfin/Makefile
+> +++ b/drivers/media/platform/blackfin/Makefile
+> @@ -1,2 +1,3 @@
+>  obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_capture.o
+> +obj-$(CONFIG_VIDEO_BLACKFIN_DISPLAY) += bfin_display.o
+>  obj-$(CONFIG_VIDEO_BLACKFIN_PPI)     += ppi.o
+> diff --git a/drivers/media/platform/blackfin/bfin_display.c b/drivers/media/platform/blackfin/bfin_display.c
+> new file mode 100644
+> index 0000000..a1e00c0
+> --- /dev/null
+> +++ b/drivers/media/platform/blackfin/bfin_display.c
+> @@ -0,0 +1,929 @@
+> +/*
+> + * Analog Devices video display driver for (E)PPI interface
+> + *
+> + * Copyright (c) 2011 - 2013 Analog Devices Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/completion.h>
+> +#include <linux/delay.h>
+> +#include <linux/errno.h>
+> +#include <linux/fs.h>
+> +#include <linux/i2c.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/mm.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/time.h>
+> +#include <linux/types.h>
+> +
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +
+> +#include <asm/dma.h>
+> +
+> +#include <media/blackfin/bfin_display.h>
+> +#include <media/blackfin/ppi.h>
+> +
+> +#define DISPLAY_DRV_NAME        "bfin_display"
+> +#define DISP_MIN_NUM_BUF        2
+> +
+> +struct bfin_disp_format {
+> +	char *desc;
+> +	u32 pixelformat;
+> +	enum v4l2_mbus_pixelcode mbus_code;
+> +	int bpp; /* bits per pixel */
+> +	int dlen; /* data length for ppi in bits */
+> +};
+> +
+> +struct bfin_disp_buffer {
+> +	struct vb2_buffer vb;
+> +	struct list_head list;
+> +};
+> +
+> +struct bfin_disp_device {
+> +	/* display device instance */
+> +	struct v4l2_device v4l2_dev;
+> +	/* v4l2 control handler */
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	/* device node data */
+> +	struct video_device video_dev;
+> +	/* sub device instance */
+> +	struct v4l2_subdev *sd;
+> +	/* display config */
+> +	struct bfin_display_config *cfg;
+> +	/* ppi interface */
+> +	struct ppi_if *ppi;
+> +	/* current output */
+> +	unsigned int cur_output;
+> +	/* current selected standard */
+> +	v4l2_std_id std;
+> +	/* current selected dv_timings */
+> +	struct v4l2_dv_timings dv_timings;
+> +	/* used to store pixel format */
+> +	struct v4l2_pix_format fmt;
+> +	/* bits per pixel*/
+> +	int bpp;
+> +	/* data length for ppi in bits */
+> +	int dlen;
+> +	/* used to store encoder supported format */
+> +	struct bfin_disp_format *enc_formats;
+> +	/* number of encoder formats array */
+> +	int num_enc_formats;
+> +	/* pointing to current video buffer */
+> +	struct bfin_disp_buffer *cur_frm;
+> +	/* buffer queue used in videobuf2 */
+> +	struct vb2_queue buffer_queue;
+> +	/* allocator-specific contexts for each plane */
+> +	struct vb2_alloc_ctx *alloc_ctx;
+> +	/* queue of filled frames */
+> +	struct list_head dma_queue;
+> +	/* used in videobuf2 callback */
+> +	spinlock_t lock;
+> +	/* used to serialize all ioctls */
+> +	struct mutex mutex;
+> +	/* used to serialize all queuing ioctls */
+> +	struct mutex qlock;
+> +};
+> +
+> +static const struct bfin_disp_format bfin_disp_formats[] = {
+> +	{
+> +		.desc        = "UYVY 4:2:2 8bits",
+> +		.pixelformat = V4L2_PIX_FMT_UYVY,
+> +		.mbus_code   = V4L2_MBUS_FMT_UYVY8_2X8,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "YUYV 4:2:2 8bits",
+> +		.pixelformat = V4L2_PIX_FMT_YUYV,
+> +		.mbus_code   = V4L2_MBUS_FMT_YUYV8_2X8,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "UYVY 4:2:2 16bits",
+> +		.pixelformat = V4L2_PIX_FMT_UYVY,
+> +		.mbus_code   = V4L2_MBUS_FMT_UYVY8_1X16,
+> +		.bpp         = 16,
+> +		.dlen        = 16,
+> +	},
+> +	{
+> +		.desc        = "RGB 565",
+> +		.pixelformat = V4L2_PIX_FMT_RGB565,
+> +		.mbus_code   = V4L2_MBUS_FMT_RGB565_2X8_LE,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "RGB 444",
+> +		.pixelformat = V4L2_PIX_FMT_RGB444,
+> +		.mbus_code   = V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +
+> +};
+> +#define DISP_MAX_FMTS ARRAY_SIZE(bfin_disp_formats)
+> +
+> +static struct bfin_disp_buffer *to_bfin_disp_vb(struct vb2_buffer *vb)
+> +{
+> +	return container_of(vb, struct bfin_disp_buffer, vb);
+> +}
+> +
+> +static int bfin_disp_init_encoder_formats(struct bfin_disp_device *disp)
+> +{
+> +	enum v4l2_mbus_pixelcode code;
+> +	struct bfin_disp_format *df;
+> +	unsigned int num_formats = 0;
+> +	int i, j;
+> +
+> +	while (!v4l2_subdev_call(disp->sd, video,
+> +				enum_mbus_fmt, num_formats, &code))
+> +		num_formats++;
+> +	if (!num_formats)
+> +		return -ENXIO;
+> +
+> +	df = kzalloc(num_formats * sizeof(*df), GFP_KERNEL);
+> +	if (!df)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < num_formats; i++) {
+> +		v4l2_subdev_call(disp->sd, video,
+> +				enum_mbus_fmt, i, &code);
+> +		for (j = 0; j < DISP_MAX_FMTS; j++)
+> +			if (code == bfin_disp_formats[j].mbus_code)
+> +				break;
+> +		if (j == DISP_MAX_FMTS) {
+> +			/* we don't allow this encoder working with our bridge */
+> +			kfree(df);
+> +			return -EINVAL;
+> +		}
+> +		df[i] = bfin_disp_formats[j];
+> +	}
+> +	disp->enc_formats = df;
+> +	disp->num_enc_formats = num_formats;
+> +	return 0;
+> +}
+> +
+> +static void bfin_disp_free_encoder_formats(struct bfin_disp_device *disp)
+> +{
+> +	disp->num_enc_formats = 0;
+> +	kfree(disp->enc_formats);
+> +	disp->enc_formats = NULL;
+> +}
+> +
+> +static int bfin_disp_queue_setup(struct vb2_queue *vq,
+> +				const struct v4l2_format *fmt,
+> +				unsigned int *nbuffers, unsigned int *nplanes,
+> +				unsigned int sizes[], void *alloc_ctxs[])
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vq);
+> +
+> +	if (*nbuffers < DISP_MIN_NUM_BUF)
+> +		*nbuffers = DISP_MIN_NUM_BUF;
+> +
+> +	*nplanes = 1;
+> +	sizes[0] = disp->fmt.sizeimage;
+> +	alloc_ctxs[0] = disp->alloc_ctx;
+> +
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_buffer_init(struct vb2_buffer *vb)
+> +{
+> +	struct bfin_disp_buffer *buf = to_bfin_disp_vb(vb);
+> +
+> +	INIT_LIST_HEAD(&buf->list);
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_buffer_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct bfin_disp_buffer *buf = to_bfin_disp_vb(vb);
+> +	unsigned long size;
+> +
+> +	size = disp->fmt.sizeimage;
+> +	if (vb2_plane_size(vb, 0) < size) {
+> +		v4l2_err(&disp->v4l2_dev, "buffer too small (%lu < %lu)\n",
+> +				vb2_plane_size(vb, 0), size);
+> +		return -EINVAL;
+> +	}
+> +	vb2_set_plane_payload(&buf->vb, 0, size);
+> +
+> +	return 0;
+> +}
+> +
+> +static void bfin_disp_buffer_queue(struct vb2_buffer *vb)
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct bfin_disp_buffer *buf = to_bfin_disp_vb(vb);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	list_add_tail(&buf->list, &disp->dma_queue);
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +}
+> +
+> +static void bfin_disp_buffer_cleanup(struct vb2_buffer *vb)
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct bfin_disp_buffer *buf = to_bfin_disp_vb(vb);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	list_del_init(&buf->list);
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +}
+> +
+> +static irqreturn_t bfin_disp_isr(int irq, void *dev_id)
+> +{
+> +	struct ppi_if *ppi = dev_id;
+> +	struct bfin_disp_device *disp = ppi->priv;
+> +	struct vb2_buffer *vb = &disp->cur_frm->vb;
+> +	dma_addr_t addr;
+> +
+> +	spin_lock(&disp->lock);
+> +
+> +	if (!list_empty(&disp->dma_queue)) {
+> +		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
+> +		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> +		disp->cur_frm = list_entry(disp->dma_queue.next,
+> +				struct bfin_disp_buffer, list);
+> +		list_del(&disp->cur_frm->list);
+> +	}
+> +
+> +	clear_dma_irqstat(ppi->info->dma_ch);
+> +
+> +	addr = vb2_dma_contig_plane_dma_addr(&disp->cur_frm->vb, 0);
+> +	ppi->ops->update_addr(ppi, (unsigned long)addr);
+> +	ppi->ops->start(ppi);
+> +
+> +	spin_unlock(&disp->lock);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int bfin_disp_start_streaming(struct vb2_queue *vq, unsigned int count)
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vq);
+> +	struct ppi_if *ppi = disp->ppi;
+> +	struct ppi_params params;
+> +	dma_addr_t addr;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	/* enable streamon on the sub device */
+> +	ret = v4l2_subdev_call(disp->sd, video, s_stream, 1);
+> +	if (ret && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "stream on failed in subdev\n");
+> +		return ret;
+> +	}
+> +
+> +	/* set ppi params */
+> +	params.width = disp->fmt.width;
+> +	params.height = disp->fmt.height;
+> +	params.bpp = disp->bpp;
+> +	params.dlen = disp->dlen;
+> +	params.ppi_control = disp->cfg->ppi_control;
+> +	params.int_mask = disp->cfg->int_mask;
+> +	if (disp->cfg->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_DV_TIMINGS) {
+> +		struct v4l2_bt_timings *bt = &disp->dv_timings.bt;
+> +
+> +		params.hdelay = bt->hsync + bt->hbackporch;
+> +		params.vdelay = bt->vsync + bt->vbackporch;
+> +		params.line = bt->hfrontporch + bt->hsync
+> +				+ bt->hbackporch + bt->width;
+> +		params.frame = bt->vfrontporch + bt->vsync
+> +				+ bt->vbackporch + bt->height;
+
+Note the new defines I've posted recently. I'll send out a pull request for them
+today, so please update your patch once they are merged.
+
+> +		if (bt->interlaced)
+> +			params.frame += bt->il_vfrontporch + bt->il_vsync
+> +					+ bt->il_vbackporch;
+> +		params.hsync = bt->hsync;
+> +		params.vsync = bt->vsync;
+> +	} else if (disp->cfg->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_STD) {
+> +		params.hdelay = 0;
+> +		params.vdelay = 0;
+> +		if (disp->std & V4L2_STD_525_60) {
+> +			params.line = 858;
+> +			params.frame = 525;
+> +		} else {
+> +			params.line = 864;
+> +			params.frame = 625;
+> +		}
+> +	} else {
+> +		params.hdelay = 0;
+> +		params.vdelay = 0;
+> +		params.line = params.width + disp->cfg->blank_pixels;
+> +		params.frame = params.height;
+> +	}
+> +	ret = ppi->ops->set_params(ppi, &params);
+> +	if (ret < 0) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"set ppi params failed\n");
+> +		return ret;
+> +	}
+> +
+> +	/* attach ppi DMA irq handler */
+> +	ret = ppi->ops->attach_irq(ppi, bfin_disp_isr);
+> +	if (ret < 0) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"attach interrupt handler failed\n");
+> +		return ret;
+> +	}
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	/* if dma queue is empty, return error */
+> +	if (list_empty(&disp->dma_queue)) {
+> +		spin_unlock_irqrestore(&disp->lock, flags);
+> +		v4l2_err(&disp->v4l2_dev, "dma queue is empty\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* get the next frame from the dma queue */
+> +	disp->cur_frm = list_entry(disp->dma_queue.next,
+> +					struct bfin_disp_buffer, list);
+> +	/* remove buffer from the dma queue */
+> +	list_del(&disp->cur_frm->list);
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +
+> +	addr = vb2_dma_contig_plane_dma_addr(&disp->cur_frm->vb, 0);
+> +	/* update DMA address */
+> +	ppi->ops->update_addr(ppi, (unsigned long)addr);
+> +	/* enable ppi */
+> +	ppi->ops->start(ppi);
+> +
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_stop_streaming(struct vb2_queue *vq)
+> +{
+> +	struct bfin_disp_device *disp = vb2_get_drv_priv(vq);
+> +	struct ppi_if *ppi = disp->ppi;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	if (!vb2_is_streaming(vq))
+> +		return 0;
+> +
+> +	ppi->ops->stop(ppi);
+> +	ppi->ops->detach_irq(ppi);
+> +	ret = v4l2_subdev_call(disp->sd, video, s_stream, 0);
+> +	if (ret && (ret != -ENOIOCTLCMD))
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"stream off failed in subdev\n");
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	/* release all active buffers */
+> +	while (!list_empty(&disp->dma_queue)) {
+> +		disp->cur_frm = list_entry(disp->dma_queue.next,
+> +						struct bfin_disp_buffer, list);
+> +		list_del(&disp->cur_frm->list);
+> +		vb2_buffer_done(&disp->cur_frm->vb, VB2_BUF_STATE_ERROR);
+> +	}
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +	return 0;
+> +}
+> +
+> +static struct vb2_ops bfin_disp_video_qops = {
+> +	.queue_setup            = bfin_disp_queue_setup,
+> +	.buf_init               = bfin_disp_buffer_init,
+> +	.buf_prepare            = bfin_disp_buffer_prepare,
+> +	.buf_cleanup            = bfin_disp_buffer_cleanup,
+> +	.buf_queue              = bfin_disp_buffer_queue,
+> +	.wait_prepare           = vb2_ops_wait_prepare,
+> +	.wait_finish            = vb2_ops_wait_finish,
+> +	.start_streaming        = bfin_disp_start_streaming,
+> +	.stop_streaming         = bfin_disp_stop_streaming,
+> +};
+> +
+> +static int bfin_disp_g_std(struct file *file, void *priv, v4l2_std_id *std)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +
+> +	if (!(config->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_STD))
+> +		return -ENODATA;
+> +
+> +	*std = disp->std;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_s_std(struct file *file, void *priv, v4l2_std_id std)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	if (!(config->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_STD))
+> +		return -ENODATA;
+
+This check should go before the vb2_is_busy check.
+
+> +
+> +	ret = v4l2_subdev_call(disp->sd, video, s_std_output, std);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->std = std;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_g_dv_timings(struct file *file, void *priv,
+> +				struct v4l2_dv_timings *timings)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +	int ret;
+> +
+> +	if (!(config->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_DV_TIMINGS))
+> +		return -ENODATA;
+> +
+> +	ret = v4l2_subdev_call(disp->sd, video,
+> +				g_dv_timings, timings);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->dv_timings = *timings;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_s_dv_timings(struct file *file, void *priv,
+> +				struct v4l2_dv_timings *timings)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	if (!(config->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_DV_TIMINGS))
+> +		return -ENODATA;
+
+Ditto.
+
+> +
+> +	ret = v4l2_subdev_call(disp->sd, video, s_dv_timings, timings);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->dv_timings = *timings;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_enum_output(struct file *file, void *priv,
+> +				struct v4l2_output *output)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +
+> +	if (output->index >= config->num_outputs)
+> +		return -EINVAL;
+> +
+> +	*output = config->outputs[output->index];
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_g_output(struct file *file, void *priv, unsigned int *index)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +
+> +	*index = disp->cur_output;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_s_output(struct file *file, void *priv, unsigned int index)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +	struct disp_route *route;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	if (index >= config->num_outputs)
+> +		return -EINVAL;
+
+Ditto.
+
+> +
+> +	route = &config->routes[index];
+> +	ret = v4l2_subdev_call(disp->sd, video, s_routing,
+> +				0, route->output, route->config);
+> +	if ((ret < 0) && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "Failed to set output\n");
+> +		return ret;
+> +	}
+> +	disp->cur_output = index;
+> +	/* update tvnorms from the subdevice */
+> +	disp->video_dev.tvnorms = config->outputs[index].std;
+> +	/* if this route has specific config, update ppi control */
+> +	if (route->ppi_control)
+> +		config->ppi_control = route->ppi_control;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_try_format(struct bfin_disp_device *disp,
+> +				struct v4l2_pix_format *pixfmt,
+> +				struct bfin_disp_format *bfin_disp_fmt)
+> +{
+> +	struct bfin_disp_format *df = disp->enc_formats;
+> +	struct bfin_disp_format *fmt = NULL;
+> +	struct v4l2_mbus_framefmt mbus_fmt;
+> +	int ret, i;
+> +
+> +	for (i = 0; i < disp->num_enc_formats; i++) {
+> +		fmt = &df[i];
+> +		if (pixfmt->pixelformat == fmt->pixelformat)
+> +			break;
+> +	}
+> +	if (i == disp->num_enc_formats)
+> +		fmt = &df[0];
+> +
+> +	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, fmt->mbus_code);
+> +	ret = v4l2_subdev_call(disp->sd, video,
+> +				try_mbus_fmt, &mbus_fmt);
+> +	if (ret < 0)
+
+Missing check against -ENOIOCTLCMD.
+
+> +		return ret;
+> +	v4l2_fill_pix_format(pixfmt, &mbus_fmt);
+> +	if (bfin_disp_fmt) {
+> +		for (i = 0; i < disp->num_enc_formats; i++) {
+> +			fmt = &df[i];
+> +			if (mbus_fmt.code == fmt->mbus_code)
+> +				break;
+> +		}
+> +		*bfin_disp_fmt = *fmt;
+> +	}
+> +	pixfmt->bytesperline = pixfmt->width * fmt->bpp / 8;
+> +	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+> +	pixfmt->priv = 0;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_enum_fmt_vid_out(struct file *file, void  *priv,
+> +					struct v4l2_fmtdesc *fmt)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct bfin_disp_format *df = disp->enc_formats;
+> +
+> +	if (fmt->index >= disp->num_enc_formats)
+> +		return -EINVAL;
+> +
+> +	strlcpy(fmt->description,
+> +		df[fmt->index].desc,
+> +		sizeof(fmt->description));
+> +	fmt->pixelformat = df[fmt->index].pixelformat;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_try_fmt_vid_out(struct file *file, void *priv,
+> +					struct v4l2_format *fmt)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+> +
+> +	return bfin_disp_try_format(disp, pixfmt, NULL);
+> +}
+> +
+> +static int bfin_disp_g_fmt_vid_out(struct file *file, void *priv,
+> +				struct v4l2_format *fmt)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +
+> +	fmt->fmt.pix = disp->fmt;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_s_fmt_vid_out(struct file *file, void *priv,
+> +				struct v4l2_format *fmt)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	struct v4l2_mbus_framefmt mbus_fmt;
+> +	struct bfin_disp_format bfin_disp_fmt;
+> +	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	/* see if format works */
+> +	ret = bfin_disp_try_format(disp, pixfmt, &bfin_disp_fmt);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, bfin_disp_fmt.mbus_code);
+> +	ret = v4l2_subdev_call(disp->sd, video, s_mbus_fmt, &mbus_fmt);
+> +	if (ret < 0)
+
+Missing check against -ENOIOCTLCMD.
+
+> +		return ret;
+> +	disp->fmt = *pixfmt;
+> +	disp->bpp = bfin_disp_fmt.bpp;
+> +	disp->dlen = bfin_disp_fmt.dlen;
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_querycap(struct file *file, void  *priv,
+> +				struct v4l2_capability *cap)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +
+> +	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +	strlcpy(cap->driver, DISPLAY_DRV_NAME, sizeof(cap->driver));
+> +	strlcpy(cap->bus_info, "platform:bfin_display", sizeof(cap->bus_info));
+> +	strlcpy(cap->card, disp->cfg->card_name, sizeof(cap->card));
+> +	return 0;
+> +}
+> +
+> +static int bfin_disp_g_parm(struct file *file, void *fh,
+> +				struct v4l2_streamparm *a)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, video, g_parm, a);
+> +}
+> +
+> +static int bfin_disp_s_parm(struct file *file, void *fh,
+> +				struct v4l2_streamparm *a)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, video, s_parm, a);
+> +}
+> +
+> +static int bfin_disp_log_status(struct file *file, void *priv)
+> +{
+> +	struct bfin_disp_device *disp = video_drvdata(file);
+> +	/* status for sub devices */
+> +	v4l2_device_call_all(&disp->v4l2_dev, 0, core, log_status);
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops bfin_disp_ioctl_ops = {
+> +	.vidioc_querycap         = bfin_disp_querycap,
+> +	.vidioc_g_fmt_vid_out    = bfin_disp_g_fmt_vid_out,
+> +	.vidioc_enum_fmt_vid_out = bfin_disp_enum_fmt_vid_out,
+> +	.vidioc_s_fmt_vid_out    = bfin_disp_s_fmt_vid_out,
+> +	.vidioc_try_fmt_vid_out  = bfin_disp_try_fmt_vid_out,
+> +	.vidioc_enum_output      = bfin_disp_enum_output,
+> +	.vidioc_g_output         = bfin_disp_g_output,
+> +	.vidioc_s_output         = bfin_disp_s_output,
+> +	.vidioc_s_std            = bfin_disp_s_std,
+> +	.vidioc_g_std            = bfin_disp_g_std,
+> +	.vidioc_s_dv_timings     = bfin_disp_s_dv_timings,
+> +	.vidioc_g_dv_timings     = bfin_disp_g_dv_timings,
+
+enum_dv_timings and dv_timings_cap are missing!
+
+> +	.vidioc_reqbufs          = vb2_ioctl_reqbufs,
+> +	.vidioc_querybuf         = vb2_ioctl_querybuf,
+> +	.vidioc_qbuf             = vb2_ioctl_qbuf,
+> +	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
+> +	.vidioc_streamon         = vb2_ioctl_streamon,
+> +	.vidioc_streamoff        = vb2_ioctl_streamoff,
+> +	.vidioc_g_parm           = bfin_disp_g_parm,
+> +	.vidioc_s_parm           = bfin_disp_s_parm,
+> +	.vidioc_log_status       = bfin_disp_log_status,
+> +};
+> +
+> +static struct v4l2_file_operations bfin_disp_fops = {
+> +	.owner = THIS_MODULE,
+> +	.open = v4l2_fh_open,
+> +	.release = vb2_fop_release,
+> +	.unlocked_ioctl = video_ioctl2,
+> +	.mmap = vb2_fop_mmap,
+> +#ifndef CONFIG_MMU
+> +	.get_unmapped_area = vb2_fop_get_unmapped_area,
+> +#endif
+> +	.poll = vb2_fop_poll,
+> +};
+> +
+> +static int bfin_disp_probe(struct platform_device *pdev)
+> +{
+> +	struct bfin_disp_device *disp;
+> +	struct video_device *vfd;
+> +	struct i2c_adapter *i2c_adap;
+> +	struct bfin_display_config *config;
+> +	struct vb2_queue *q;
+> +	struct disp_route *route;
+> +	int ret;
+> +
+> +	config = pdev->dev.platform_data;
+> +	if (!config || !config->num_outputs) {
+> +		v4l2_err(pdev->dev.driver, "Invalid board config\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	disp = devm_kzalloc(&pdev->dev, sizeof(*disp), GFP_KERNEL);
+> +	if (!disp)
+> +		return -ENOMEM;
+> +
+> +	disp->cfg = config;
+> +
+> +	disp->ppi = ppi_create_instance(config->ppi_info);
+> +	if (!disp->ppi)
+> +		return -ENODEV;
+> +	disp->ppi->priv = disp;
+> +
+> +	disp->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> +	if (IS_ERR(disp->alloc_ctx)) {
+> +		ret = PTR_ERR(disp->alloc_ctx);
+> +		goto err_free_ppi;
+> +	}
+> +
+> +	ret = v4l2_device_register(&pdev->dev, &disp->v4l2_dev);
+> +	if (ret) {
+> +		v4l2_err(pdev->dev.driver,
+> +				"Unable to register v4l2 device\n");
+> +		goto err_cleanup_ctx;
+> +	}
+> +
+> +	disp->v4l2_dev.ctrl_handler = &disp->ctrl_handler;
+> +	ret = v4l2_ctrl_handler_init(&disp->ctrl_handler, 0);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to init control handler\n");
+> +		goto err_unreg_v4l2;
+> +	}
+
+Since you support controls you should add these ioctls as well:
+
+        .vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+        .vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+
+and call v4l2_ctrl_log_status() from your log_status ioctl.
+
+The subscribe ioctls allow the application to subscribe to control events. Something
+you actually need with most HDTV transmitters.
+
+> +
+> +	spin_lock_init(&disp->lock);
+> +	mutex_init(&disp->mutex);
+> +	mutex_init(&disp->qlock);
+> +	/* init video dma queues */
+> +	INIT_LIST_HEAD(&disp->dma_queue);
+> +
+> +	/* initialize queue */
+> +	q = &disp->buffer_queue;
+> +	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +	q->io_modes = VB2_MMAP;
+> +	q->drv_priv = disp;
+> +	q->buf_struct_size = sizeof(struct bfin_disp_buffer);
+> +	q->ops = &bfin_disp_video_qops;
+> +	q->mem_ops = &vb2_dma_contig_memops;
+> +	/* provide a mutex to vb2 queue */
+> +	q->lock = &disp->qlock;
+> +	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +
+> +	ret = vb2_queue_init(q);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to init videobuf2 queue\n");
+> +		goto err_free_handler;
+> +	}
+> +
+> +	/* initialize field of video device */
+> +	vfd = &disp->video_dev;
+> +	vfd->release    = video_device_release_empty;
+> +	vfd->fops       = &bfin_disp_fops;
+> +	vfd->ioctl_ops  = &bfin_disp_ioctl_ops;
+> +	vfd->tvnorms    = V4L2_STD_UNKNOWN;
+> +	vfd->v4l2_dev   = &disp->v4l2_dev;
+> +	vfd->vfl_dir    = VFL_DIR_TX;
+> +	vfd->queue      = q;
+> +	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+> +	strncpy(vfd->name, DISPLAY_DRV_NAME, sizeof(vfd->name));
+> +	/* provide a mutex to v4l2 core */
+> +	vfd->lock = &disp->mutex;
+> +
+> +	/* load up the subdevice */
+> +	i2c_adap = i2c_get_adapter(config->i2c_adapter_id);
+> +	if (!i2c_adap) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to find i2c adapter\n");
+> +		goto err_free_handler;
+> +
+> +	}
+> +	disp->sd = v4l2_i2c_new_subdev_board(&disp->v4l2_dev,
+> +			i2c_adap, &config->board_info, NULL);
+> +	if (!disp->sd) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to register sub device\n");
+> +		goto err_put_adap;
+> +	}
+> +
+> +	/*
+> +	 * explicitly set output, otherwise some boards
+> +	 * may not work at the state as we expected
+> +	 */
+> +	route = &config->routes[0];
+> +	ret = v4l2_subdev_call(disp->sd, video, s_routing,
+> +				route->output, route->output, 0);
+> +	if ((ret < 0) && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "Unable to set output\n");
+> +		goto err_unreg_sd;
+> +	}
+> +	disp->cur_output = 0;
+> +	/* update tvnorms from the subdevice */
+> +	vfd->tvnorms = config->outputs[0].std;
+> +	/* if this route has specific config, update ppi control */
+> +	if (route->ppi_control)
+> +		config->ppi_control = route->ppi_control;
+> +
+> +	/* now we can probe the default state */
+> +	if (config->outputs[0].capabilities & V4L2_IN_CAP_STD) {
+> +		v4l2_std_id std;
+> +		ret = v4l2_subdev_call(disp->sd, core, g_std, &std);
+> +		if (ret) {
+> +			v4l2_err(&disp->v4l2_dev,
+> +					"Unable to get std\n");
+> +			goto err_unreg_sd;
+> +		}
+> +		disp->std = std;
+> +	}
+> +	if (config->outputs[0].capabilities & V4L2_IN_CAP_DV_TIMINGS) {
+> +		struct v4l2_dv_timings dv_timings;
+> +		ret = v4l2_subdev_call(disp->sd, video,
+> +				g_dv_timings, &dv_timings);
+> +		if (ret) {
+> +			v4l2_err(&disp->v4l2_dev,
+> +					"Unable to get dv timings\n");
+> +			goto err_unreg_sd;
+> +		}
+> +		disp->dv_timings = dv_timings;
+> +	}
+> +	ret = bfin_disp_init_encoder_formats(disp);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to create encoder formats table\n");
+> +		goto err_unreg_sd;
+> +	}
+> +
+> +	/* register video device */
+> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to register video device\n");
+> +		goto err_free_ef;
+> +	}
+> +	video_set_drvdata(vfd, disp);
+> +	v4l2_info(&disp->v4l2_dev, "video device registered as: %s\n",
+> +			video_device_node_name(vfd));
+> +
+> +	return 0;
+> +err_free_ef:
+> +	bfin_disp_free_encoder_formats(disp);
+> +err_unreg_sd:
+> +	v4l2_device_unregister_subdev(disp->sd);
+> +	i2c_unregister_device(v4l2_get_subdevdata(disp->sd));
+> +err_put_adap:
+> +	i2c_put_adapter(i2c_adap);
+> +err_free_handler:
+> +	v4l2_ctrl_handler_free(&disp->ctrl_handler);
+> +err_unreg_v4l2:
+> +	v4l2_device_unregister(&disp->v4l2_dev);
+> +err_cleanup_ctx:
+> +	vb2_dma_contig_cleanup_ctx(disp->alloc_ctx);
+> +err_free_ppi:
+> +	ppi_delete_instance(disp->ppi);
+> +	return ret;
+> +}
+> +
+> +static int bfin_disp_remove(struct platform_device *pdev)
+> +{
+> +	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> +	struct bfin_disp_device *disp = container_of(v4l2_dev,
+> +					struct bfin_disp_device, v4l2_dev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(disp->sd);
+> +
+> +	video_unregister_device(&disp->video_dev);
+> +	bfin_disp_free_encoder_formats(disp);
+> +	v4l2_device_unregister_subdev(disp->sd);
+> +	i2c_unregister_device(client);
+> +	i2c_put_adapter(client->adapter);
+> +	v4l2_ctrl_handler_free(&disp->ctrl_handler);
+> +	v4l2_device_unregister(v4l2_dev);
+> +	vb2_dma_contig_cleanup_ctx(disp->alloc_ctx);
+> +	ppi_delete_instance(disp->ppi);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver bfin_disp_driver = {
+> +	.driver = {
+> +		.name  = DISPLAY_DRV_NAME,
+> +		.owner = THIS_MODULE,
+> +	},
+> +	.probe = bfin_disp_probe,
+> +	.remove = bfin_disp_remove,
+> +};
+> +module_platform_driver(bfin_disp_driver);
+> +
+> +MODULE_DESCRIPTION("Analog Devices blackfin video display driver");
+> +MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/media/blackfin/bfin_display.h b/include/media/blackfin/bfin_display.h
+> new file mode 100644
+> index 0000000..6eb1d5a
+> --- /dev/null
+> +++ b/include/media/blackfin/bfin_display.h
+> @@ -0,0 +1,38 @@
+> +#ifndef _BFIN_DISPLAY_H_
+> +#define _BFIN_DISPLAY_H_
+> +
+> +#include <linux/i2c.h>
+> +
+> +struct v4l2_output;
+> +struct ppi_info;
+> +
+> +struct disp_route {
+> +	u32 output;
+> +	u32 config;
+> +	u32 ppi_control;
+> +};
+> +
+> +struct bfin_display_config {
+> +	/* card name */
+> +	char *card_name;
+> +	/* outputs available at the sub device */
+> +	struct v4l2_output *outputs;
+> +	/* number of outputs supported */
+> +	int num_outputs;
+> +	/* routing information for each output */
+> +	struct disp_route *routes;
+> +	/* i2c bus adapter no */
+> +	int i2c_adapter_id;
+> +	/* i2c subdevice board info */
+> +	struct i2c_board_info board_info;
+> +	/* ppi board info */
+> +	const struct ppi_info *ppi_info;
+> +	/* ppi control */
+> +	u32 ppi_control;
+> +	/* ppi interrupt mask */
+> +	u32 int_mask;
+> +	/* horizontal blanking pixels */
+> +	int blank_pixels;
+> +};
+> +
+> +#endif
+> 
+
+Regards,
+
+	Hans
