@@ -1,645 +1,469 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:25345 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756003Ab3H2Jgk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 05:36:40 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:45035 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933500Ab3HHMbx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:31:53 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcjc014622
+	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:50 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, t.figa@samsung.com,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RESEND PATCH v2 6/7] exynos4-is: Use external s5k6a3 sensor driver
-Date: Thu, 29 Aug 2013 11:35:41 +0200
-Message-id: <1377768941-16285-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCHv2 6/9] qv4l2: add video scaling for CaptureWin
+Date: Thu,  8 Aug 2013 14:31:24 +0200
+Message-Id: <f8508f68517bc87270a73e6cd06a29be39d493bc.1375964980.git.bwinther@cisco.com>
+In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
+References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
+References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the common fimc-is-sensor driver for image sensors
-that are normally controlled by the FIMC-IS firmware. The FIMC-IS
-driver now contains only a table of properties specific to each sensor.
-The sensor properties required for the ISP's firmware are parsed from
-device tree and retrieved from the internal table, which is selected
-based on the compatible property of an image sensor.
-
-To use the Exynos4x12 internal ISP the S5K6A3 sensor driver (drivers/
-media/i2c/s5k6a3.c) is now required.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
 ---
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +---
- drivers/media/platform/exynos4-is/fimc-is.c        |   97 +++----
- drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
- 5 files changed, 57 insertions(+), 380 deletions(-)
+ utils/qv4l2/capture-win-gl.cpp | 26 ++++++++++--
+ utils/qv4l2/capture-win-gl.h   |  7 ++++
+ utils/qv4l2/capture-win-qt.cpp | 23 ++++++++++-
+ utils/qv4l2/capture-win-qt.h   |  5 +++
+ utils/qv4l2/capture-win.cpp    | 93 ++++++++++++++++++++++++++++++++----------
+ utils/qv4l2/capture-win.h      | 14 ++++++-
+ utils/qv4l2/qv4l2.cpp          | 24 ++++++++---
+ utils/qv4l2/qv4l2.h            |  2 +
+ 8 files changed, 160 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-index f758e26..c1bc76d 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-@@ -136,7 +136,7 @@ void fimc_is_hw_set_sensor_num(struct fimc_is *is)
- 	mcuctl_write(IH_REPLY_DONE, is, MCUCTL_REG_ISSR(0));
- 	mcuctl_write(is->sensor_index, is, MCUCTL_REG_ISSR(1));
- 	mcuctl_write(IHC_GET_SENSOR_NUM, is, MCUCTL_REG_ISSR(2));
--	mcuctl_write(FIMC_IS_SENSOR_NUM, is, MCUCTL_REG_ISSR(3));
-+	mcuctl_write(FIMC_IS_SENSORS_NUM, is, MCUCTL_REG_ISSR(3));
+diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
+index c8238c5..27ff3d3 100644
+--- a/utils/qv4l2/capture-win-gl.cpp
++++ b/utils/qv4l2/capture-win-gl.cpp
+@@ -43,6 +43,15 @@ void CaptureWinGL::stop()
+ #endif
  }
  
- void fimc_is_hw_close_sensor(struct fimc_is *is, unsigned int index)
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-index 6647421..10e82e2 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-@@ -2,276 +2,21 @@
-  * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-  *
-  * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-- *
-  * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#include <linux/delay.h>
--#include <linux/device.h>
--#include <linux/errno.h>
--#include <linux/gpio.h>
--#include <linux/i2c.h>
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/of_gpio.h>
--#include <linux/pm_runtime.h>
--#include <linux/regulator/consumer.h>
--#include <linux/slab.h>
--#include <media/v4l2-subdev.h>
- 
--#include "fimc-is.h"
- #include "fimc-is-sensor.h"
- 
--#define DRIVER_NAME "FIMC-IS-SENSOR"
--
--static const char * const sensor_supply_names[] = {
--	"svdda",
--	"svddio",
--};
--
--static const struct v4l2_mbus_framefmt fimc_is_sensor_formats[] = {
--	{
--		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.field = V4L2_FIELD_NONE,
--	}
--};
--
--static const struct v4l2_mbus_framefmt *find_sensor_format(
--	struct v4l2_mbus_framefmt *mf)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(fimc_is_sensor_formats); i++)
--		if (mf->code == fimc_is_sensor_formats[i].code)
--			return &fimc_is_sensor_formats[i];
--
--	return &fimc_is_sensor_formats[0];
--}
--
--static int fimc_is_sensor_enum_mbus_code(struct v4l2_subdev *sd,
--				  struct v4l2_subdev_fh *fh,
--				  struct v4l2_subdev_mbus_code_enum *code)
--{
--	if (code->index >= ARRAY_SIZE(fimc_is_sensor_formats))
--		return -EINVAL;
--
--	code->code = fimc_is_sensor_formats[code->index].code;
--	return 0;
--}
--
--static void fimc_is_sensor_try_format(struct fimc_is_sensor *sensor,
--				      struct v4l2_mbus_framefmt *mf)
--{
--	const struct sensor_drv_data *dd = sensor->drvdata;
--	const struct v4l2_mbus_framefmt *fmt;
--
--	fmt = find_sensor_format(mf);
--	mf->code = fmt->code;
--	v4l_bound_align_image(&mf->width, 16 + 8, dd->width, 0,
--			      &mf->height, 12 + 8, dd->height, 0, 0);
--}
--
--static struct v4l2_mbus_framefmt *__fimc_is_sensor_get_format(
--		struct fimc_is_sensor *sensor, struct v4l2_subdev_fh *fh,
--		u32 pad, enum v4l2_subdev_format_whence which)
--{
--	if (which == V4L2_SUBDEV_FORMAT_TRY)
--		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
--
--	return &sensor->format;
--}
--
--static int fimc_is_sensor_set_fmt(struct v4l2_subdev *sd,
--				  struct v4l2_subdev_fh *fh,
--				  struct v4l2_subdev_format *fmt)
--{
--	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
--	struct v4l2_mbus_framefmt *mf;
--
--	fimc_is_sensor_try_format(sensor, &fmt->format);
--
--	mf = __fimc_is_sensor_get_format(sensor, fh, fmt->pad, fmt->which);
--	if (mf) {
--		mutex_lock(&sensor->lock);
--		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--			*mf = fmt->format;
--		mutex_unlock(&sensor->lock);
--	}
--	return 0;
--}
--
--static int fimc_is_sensor_get_fmt(struct v4l2_subdev *sd,
--				  struct v4l2_subdev_fh *fh,
--				  struct v4l2_subdev_format *fmt)
--{
--	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
--	struct v4l2_mbus_framefmt *mf;
--
--	mf = __fimc_is_sensor_get_format(sensor, fh, fmt->pad, fmt->which);
--
--	mutex_lock(&sensor->lock);
--	fmt->format = *mf;
--	mutex_unlock(&sensor->lock);
--	return 0;
--}
--
--static struct v4l2_subdev_pad_ops fimc_is_sensor_pad_ops = {
--	.enum_mbus_code	= fimc_is_sensor_enum_mbus_code,
--	.get_fmt	= fimc_is_sensor_get_fmt,
--	.set_fmt	= fimc_is_sensor_set_fmt,
--};
--
--static int fimc_is_sensor_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
--{
--	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
--
--	*format		= fimc_is_sensor_formats[0];
--	format->width	= FIMC_IS_SENSOR_DEF_PIX_WIDTH;
--	format->height	= FIMC_IS_SENSOR_DEF_PIX_HEIGHT;
--
--	return 0;
--}
--
--static const struct v4l2_subdev_internal_ops fimc_is_sensor_sd_internal_ops = {
--	.open = fimc_is_sensor_open,
--};
--
--static int fimc_is_sensor_s_power(struct v4l2_subdev *sd, int on)
--{
--	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
--	int gpio = sensor->gpio_reset;
--	int ret;
--
--	if (on) {
--		ret = pm_runtime_get(sensor->dev);
--		if (ret < 0)
--			return ret;
--
--		ret = regulator_bulk_enable(SENSOR_NUM_SUPPLIES,
--					    sensor->supplies);
--		if (ret < 0) {
--			pm_runtime_put(sensor->dev);
--			return ret;
--		}
--		if (gpio_is_valid(gpio)) {
--			gpio_set_value(gpio, 1);
--			usleep_range(600, 800);
--			gpio_set_value(gpio, 0);
--			usleep_range(10000, 11000);
--			gpio_set_value(gpio, 1);
--		}
--
--		/* A delay needed for the sensor initialization. */
--		msleep(20);
--	} else {
--		if (gpio_is_valid(gpio))
--			gpio_set_value(gpio, 0);
--
--		ret = regulator_bulk_disable(SENSOR_NUM_SUPPLIES,
--					     sensor->supplies);
--		if (!ret)
--			pm_runtime_put(sensor->dev);
--	}
--
--	pr_info("%s:%d: on: %d, ret: %d\n", __func__, __LINE__, on, ret);
--
--	return ret;
--}
--
--static struct v4l2_subdev_core_ops fimc_is_sensor_core_ops = {
--	.s_power = fimc_is_sensor_s_power,
--};
--
--static struct v4l2_subdev_ops fimc_is_sensor_subdev_ops = {
--	.core = &fimc_is_sensor_core_ops,
--	.pad = &fimc_is_sensor_pad_ops,
--};
--
--static const struct of_device_id fimc_is_sensor_of_match[];
--
--static int fimc_is_sensor_probe(struct i2c_client *client,
--				const struct i2c_device_id *id)
--{
--	struct device *dev = &client->dev;
--	struct fimc_is_sensor *sensor;
--	const struct of_device_id *of_id;
--	struct v4l2_subdev *sd;
--	int gpio, i, ret;
--
--	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
--	if (!sensor)
--		return -ENOMEM;
--
--	mutex_init(&sensor->lock);
--	sensor->gpio_reset = -EINVAL;
--
--	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
--	if (gpio_is_valid(gpio)) {
--		ret = devm_gpio_request_one(dev, gpio, GPIOF_OUT_INIT_LOW,
--							DRIVER_NAME);
--		if (ret < 0)
--			return ret;
--	}
--	sensor->gpio_reset = gpio;
--
--	for (i = 0; i < SENSOR_NUM_SUPPLIES; i++)
--		sensor->supplies[i].supply = sensor_supply_names[i];
--
--	ret = devm_regulator_bulk_get(&client->dev, SENSOR_NUM_SUPPLIES,
--				      sensor->supplies);
--	if (ret < 0)
--		return ret;
--
--	of_id = of_match_node(fimc_is_sensor_of_match, dev->of_node);
--	if (!of_id)
--		return -ENODEV;
--
--	sensor->drvdata = of_id->data;
--	sensor->dev = dev;
--
--	sd = &sensor->subdev;
--	v4l2_i2c_subdev_init(sd, client, &fimc_is_sensor_subdev_ops);
--	snprintf(sd->name, sizeof(sd->name), sensor->drvdata->subdev_name);
--	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--
--	sensor->format.code = fimc_is_sensor_formats[0].code;
--	sensor->format.width = FIMC_IS_SENSOR_DEF_PIX_WIDTH;
--	sensor->format.height = FIMC_IS_SENSOR_DEF_PIX_HEIGHT;
--
--	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
--	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
--	if (ret < 0)
--		return ret;
--
--	pm_runtime_no_callbacks(dev);
--	pm_runtime_enable(dev);
--
--	return ret;
--}
--
--static int fimc_is_sensor_remove(struct i2c_client *client)
--{
--	struct v4l2_subdev *sd = i2c_get_clientdata(client);
--	media_entity_cleanup(&sd->entity);
--	return 0;
--}
--
--static const struct i2c_device_id fimc_is_sensor_ids[] = {
--	{ }
--};
--
- static const struct sensor_drv_data s5k6a3_drvdata = {
- 	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
--	.subdev_name	= "S5K6A3",
--	.width		= S5K6A3_SENSOR_WIDTH,
--	.height		= S5K6A3_SENSOR_HEIGHT,
-+	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
- };
- 
--static const struct of_device_id fimc_is_sensor_of_match[] = {
-+static const struct of_device_id fimc_is_sensor_of_ids[] = {
- 	{
- 		.compatible	= "samsung,s5k6a3",
- 		.data		= &s5k6a3_drvdata,
-@@ -279,27 +24,11 @@ static const struct of_device_id fimc_is_sensor_of_match[] = {
- 	{  }
- };
- 
--static struct i2c_driver fimc_is_sensor_driver = {
--	.driver = {
--		.of_match_table	= fimc_is_sensor_of_match,
--		.name		= DRIVER_NAME,
--		.owner		= THIS_MODULE,
--	},
--	.probe		= fimc_is_sensor_probe,
--	.remove		= fimc_is_sensor_remove,
--	.id_table	= fimc_is_sensor_ids,
--};
--
--int fimc_is_register_sensor_driver(void)
-+const struct sensor_drv_data *fimc_is_sensor_get_drvdata(
-+			struct device_node *node)
++void CaptureWinGL::resizeEvent(QResizeEvent *event)
++{
++#ifdef HAVE_QTGL
++	QSize margins = getMargins();
++	m_videoSurface.setSize(width() - margins.width(), height() - margins.height());
++#endif
++	event->accept();
++}
++
+ void CaptureWinGL::setFrame(int width, int height, __u32 format, unsigned char *data, const QString &info)
  {
--	return i2c_add_driver(&fimc_is_sensor_driver);
--}
-+	const struct of_device_id *of_id;
- 
--void fimc_is_unregister_sensor_driver(void)
--{
--	i2c_del_driver(&fimc_is_sensor_driver);
-+	of_id = of_match_node(fimc_is_sensor_of_ids, node);
-+	return of_id ? of_id->data : NULL;
+ #ifdef HAVE_QTGL
+@@ -109,11 +118,22 @@ void CaptureWinGLEngine::initializeGL()
+ 	checkError("InitializeGL");
  }
+ 
++void CaptureWinGLEngine::setSize(int width, int height)
++{
++	QSize sizedFrame = CaptureWin::scaleFrameSize(QSize(width, height), QSize(m_frameWidth, m_frameHeight));
++
++	width = sizedFrame.width();
++	height = sizedFrame.height();
++
++	if (width > 0 && height > 0) {
++		setMaximumSize(width, height);
++		resizeGL(width, height);
++	}
++}
+ 
+ void CaptureWinGLEngine::resizeGL(int width, int height)
+ {
+-	// Resizing is disabled by setting viewport equal to frame size
+-	glViewport(0, 0, m_frameWidth, m_frameHeight);
++	glViewport(0, 0, width, height);
+ }
+ 
+ void CaptureWinGLEngine::setFrame(int width, int height, __u32 format, unsigned char *data)
+@@ -123,8 +143,6 @@ void CaptureWinGLEngine::setFrame(int width, int height, __u32 format, unsigned
+ 		m_frameWidth = width;
+ 		m_frameHeight = height;
+ 		m_frameFormat = format;
 -
--MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
--MODULE_DESCRIPTION("Exynos4x12 FIMC-IS image sensor subdev driver");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.h b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-index 6036d49..173ccff 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-@@ -13,24 +13,13 @@
- #ifndef FIMC_IS_SENSOR_H_
- #define FIMC_IS_SENSOR_H_
- 
--#include <linux/clk.h>
--#include <linux/device.h>
--#include <linux/kernel.h>
--#include <linux/platform_device.h>
--#include <linux/regulator/consumer.h>
--#include <linux/videodev2.h>
--#include <media/v4l2-subdev.h>
--
--#define FIMC_IS_SENSOR_OPEN_TIMEOUT	2000 /* ms */
--
--#define FIMC_IS_SENSOR_DEF_PIX_WIDTH	1296
--#define FIMC_IS_SENSOR_DEF_PIX_HEIGHT	732
-+#include <linux/of.h>
-+#include <linux/types.h>
- 
-+#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
- #define S5K6A3_SENSOR_WIDTH		1392
- #define S5K6A3_SENSOR_HEIGHT		1392
- 
--#define SENSOR_NUM_SUPPLIES		2
--
- enum fimc_is_sensor_id {
- 	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
- 	FIMC_IS_SENSOR_ID_S5K6A3,
-@@ -45,45 +34,23 @@ enum fimc_is_sensor_id {
- 
- struct sensor_drv_data {
- 	enum fimc_is_sensor_id id;
--	const char * const subdev_name;
--	unsigned int width;
--	unsigned int height;
-+	/* sensor open timeout in ms */
-+	unsigned short open_timeout;
- };
- 
- /**
-  * struct fimc_is_sensor - fimc-is sensor data structure
-- * @dev: pointer to this I2C client device structure
-- * @subdev: the image sensor's v4l2 subdev
-- * @pad: subdev media source pad
-- * @supplies: image sensor's voltage regulator supplies
-- * @gpio_reset: GPIO connected to the sensor's reset pin
-  * @drvdata: a pointer to the sensor's parameters data structure
-  * @i2c_bus: ISP I2C bus index (0...1)
-  * @test_pattern: true to enable video test pattern
-- * @lock: mutex protecting the structure's members below
-- * @format: media bus format at the sensor's source pad
-  */
- struct fimc_is_sensor {
--	struct device *dev;
--	struct v4l2_subdev subdev;
--	struct media_pad pad;
--	struct regulator_bulk_data supplies[SENSOR_NUM_SUPPLIES];
--	int gpio_reset;
- 	const struct sensor_drv_data *drvdata;
- 	unsigned int i2c_bus;
--	bool test_pattern;
--
--	struct mutex lock;
--	struct v4l2_mbus_framefmt format;
-+	u8 test_pattern;
- };
- 
--static inline
--struct fimc_is_sensor *sd_to_fimc_is_sensor(struct v4l2_subdev *sd)
--{
--	return container_of(sd, struct fimc_is_sensor, subdev);
--}
--
--int fimc_is_register_sensor_driver(void);
--void fimc_is_unregister_sensor_driver(void);
-+const struct sensor_drv_data *fimc_is_sensor_get_drvdata(
-+				struct device_node *node);
- 
- #endif /* FIMC_IS_SENSOR_H_ */
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 9b7fd1c..6743ae3 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -161,78 +161,66 @@ static void fimc_is_disable_clocks(struct fimc_is *is)
+-		QGLWidget::setMaximumSize(m_frameWidth, m_frameHeight);
  	}
+ 
+ 	m_frameData = data;
+diff --git a/utils/qv4l2/capture-win-gl.h b/utils/qv4l2/capture-win-gl.h
+index 6e64269..0c3ff8b 100644
+--- a/utils/qv4l2/capture-win-gl.h
++++ b/utils/qv4l2/capture-win-gl.h
+@@ -23,6 +23,8 @@
+ #include "qv4l2.h"
+ #include "capture-win.h"
+ 
++#include <QResizeEvent>
++
+ #ifdef HAVE_QTGL
+ #define GL_GLEXT_PROTOTYPES
+ #include <QGLWidget>
+@@ -42,6 +44,7 @@ public:
+ 	void stop();
+ 	void setFrame(int width, int height, __u32 format, unsigned char *data);
+ 	bool hasNativeFormat(__u32 format);
++	void setSize(int width, int height);
+ 
+ protected:
+ 	void paintGL();
+@@ -90,6 +93,10 @@ public:
+ 	bool hasNativeFormat(__u32 format);
+ 	static bool isSupported();
+ 
++protected:
++	void resizeEvent(QResizeEvent *event);
++
++private:
+ #ifdef HAVE_QTGL
+ 	CaptureWinGLEngine m_videoSurface;
+ #endif
+diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
+index 63c77d5..f746379 100644
+--- a/utils/qv4l2/capture-win-qt.cpp
++++ b/utils/qv4l2/capture-win-qt.cpp
+@@ -24,6 +24,8 @@ CaptureWinQt::CaptureWinQt() :
+ {
+ 
+ 	CaptureWin::buildWindow(&m_videoSurface);
++	m_scaledFrame.setWidth(0);
++	m_scaledFrame.setHeight(0);
  }
  
--static int fimc_is_parse_sensor_config(struct fimc_is_sensor *sensor,
--				       struct device_node *np)
-+static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
-+						struct device_node *node)
- {
-+	struct fimc_is_sensor *sensor = &is->sensor[index];
- 	u32 tmp = 0;
- 	int ret;
+ CaptureWinQt::~CaptureWinQt()
+@@ -31,6 +33,19 @@ CaptureWinQt::~CaptureWinQt()
+ 	delete m_frame;
+ }
  
--	np = v4l2_of_get_next_endpoint(np, NULL);
--	if (!np)
-+	sensor->drvdata = fimc_is_sensor_get_drvdata(node);
-+	if (!sensor->drvdata) {
-+		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-+							 node->full_name);
-+		return -EINVAL;
++void CaptureWinQt::resizeEvent(QResizeEvent *event)
++{
++	if (m_frame->bits() == NULL)
++		return;
++
++	QPixmap img = QPixmap::fromImage(*m_frame);
++	m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++				       QSize(m_frame->width(), m_frame->height()));
++	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++	m_videoSurface.setPixmap(img);
++	QWidget::resizeEvent(event);
++}
++
+ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *data, const QString &info)
+ {
+ 	QImage::Format dstFmt;
+@@ -41,6 +56,8 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 	if (m_frame->width() != width || m_frame->height() != height || m_frame->format() != dstFmt) {
+ 		delete m_frame;
+ 		m_frame = new QImage(width, height, dstFmt);
++		m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++					       QSize(m_frame->width(), m_frame->height()));
+ 	}
+ 
+ 	if (data == NULL || !supported)
+@@ -49,7 +66,11 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 		memcpy(m_frame->bits(), data, m_frame->numBytes());
+ 
+ 	m_information.setText(info);
+-	m_videoSurface.setPixmap(QPixmap::fromImage(*m_frame));
++
++	QPixmap img = QPixmap::fromImage(*m_frame);
++	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++
++	m_videoSurface.setPixmap(img);
+ }
+ 
+ bool CaptureWinQt::hasNativeFormat(__u32 format)
+diff --git a/utils/qv4l2/capture-win-qt.h b/utils/qv4l2/capture-win-qt.h
+index d192045..6029109 100644
+--- a/utils/qv4l2/capture-win-qt.h
++++ b/utils/qv4l2/capture-win-qt.h
+@@ -25,6 +25,7 @@
+ 
+ #include <QLabel>
+ #include <QImage>
++#include <QResizeEvent>
+ 
+ class CaptureWinQt : public CaptureWin
+ {
+@@ -39,10 +40,14 @@ public:
+ 	bool hasNativeFormat(__u32 format);
+ 	static bool isSupported() { return true; }
+ 
++protected:
++	void resizeEvent(QResizeEvent *event);
++
+ private:
+ 	bool findNativeFormat(__u32 format, QImage::Format &dstFmt);
+ 
+ 	QImage *m_frame;
+ 	QLabel m_videoSurface;
++	QSize m_scaledFrame;
+ };
+ #endif
+diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
+index 8722066..33f7084 100644
+--- a/utils/qv4l2/capture-win.cpp
++++ b/utils/qv4l2/capture-win.cpp
+@@ -26,11 +26,18 @@
+ #include <QApplication>
+ #include <QDesktopWidget>
+ 
+-CaptureWin::CaptureWin()
++#define MIN_WIN_SIZE_WIDTH 160
++#define MIN_WIN_SIZE_HEIGHT 120
++
++bool CaptureWin::m_enableScaling = true;
++
++CaptureWin::CaptureWin() :
++	m_curWidth(-1),
++	m_curHeight(-1)
+ {
+ 	setWindowTitle("V4L2 Capture");
+ 	m_hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
+-	QObject::connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
++	connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
+ }
+ 
+ CaptureWin::~CaptureWin()
+@@ -61,30 +68,72 @@ QSize CaptureWin::getMargins()
+ 	return QSize(l + r, t + b + m_information.minimumSizeHint().height() + layout()->spacing());
+ }
+ 
+-void CaptureWin::setMinimumSize(int minw, int minh)
++void CaptureWin::enableScaling(bool enable)
++{
++	if (!enable) {
++		QSize margins = getMargins();
++		QWidget::setMinimumSize(m_curWidth + margins.width(), m_curHeight + margins.height());
++	} else {
++		QWidget::setMinimumSize(MIN_WIN_SIZE_WIDTH, MIN_WIN_SIZE_HEIGHT);
++	}
++	m_enableScaling = enable;
++	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
++	QCoreApplication::sendEvent(this, event);
++	delete event;
++}
++
++void CaptureWin::resize(int width, int height)
+ {
++	// Dont resize window if the frame size is the same in
++	// the event the window has been paused when beeing resized.
++	if (width == m_curWidth && height == m_curHeight)
++		return;
++
++	m_curWidth = width;
++	m_curHeight = height;
++
++	QSize margins = getMargins();
++	width += margins.width();
++	height += margins.height();
++
+ 	QDesktopWidget *screen = QApplication::desktop();
+ 	QRect resolution = screen->screenGeometry();
+-	QSize maxSize = maximumSize();
+ 
+-	QSize margins = getMargins();
+-	minw += margins.width();
+-	minh += margins.height();
+-
+-	if (minw > resolution.width())
+-		minw = resolution.width();
+-	if (minw < 150)
+-		minw = 150;
+-
+-	if (minh > resolution.height())
+-		minh = resolution.height();
+-	if (minh < 100)
+-		minh = 100;
+-
+-	QWidget::setMinimumSize(minw, minh);
+-	QWidget::setMaximumSize(minw, minh);
+-	updateGeometry();
+-	QWidget::setMaximumSize(maxSize.width(), maxSize.height());
++	if (width > resolution.width())
++		width = resolution.width();
++	if (width < MIN_WIN_SIZE_WIDTH)
++		width = MIN_WIN_SIZE_WIDTH;
++
++	if (height > resolution.height())
++		height = resolution.height();
++	if (height < MIN_WIN_SIZE_HEIGHT)
++		height = MIN_WIN_SIZE_HEIGHT;
++
++	QWidget::setMinimumSize(MIN_WIN_SIZE_WIDTH, MIN_WIN_SIZE_HEIGHT);
++	QWidget::resize(width, height);
++}
++
++QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
++{
++	int actualFrameWidth = frame.width();;
++	int actualFrameHeight = frame.height();
++
++	if (!m_enableScaling) {
++		window.setWidth(frame.width());
++		window.setHeight(frame.height());
 +	}
 +
-+	node = v4l2_of_get_next_endpoint(node, NULL);
-+	if (!node)
- 		return -ENXIO;
--	np = v4l2_of_get_remote_port(np);
--	if (!np)
-+
-+	node = v4l2_of_get_remote_port(node);
-+	if (!node)
- 		return -ENXIO;
- 
- 	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
--	ret = of_property_read_u32(np, "reg", &tmp);
--	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-+	ret = of_property_read_u32(node, "reg", &tmp);
-+	if (ret < 0) {
-+		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
-+							 node->full_name);
-+		return ret;
++	double newW, newH;
++	if (window.width() >= window.height()) {
++		newW = (double)window.width() / actualFrameWidth;
++		newH = (double)window.height() / actualFrameHeight;
++	} else {
++		newH = (double)window.width() / actualFrameWidth;
++		newW = (double)window.height() / actualFrameHeight;
 +	}
- 
--	return ret;
-+	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-+	return 0;
- }
- 
- static int fimc_is_register_subdevs(struct fimc_is *is)
- {
--	struct device_node *adapter, *child;
--	int ret;
-+	struct device_node *i2c_bus, *child;
-+	int ret, index = 0;
- 
- 	ret = fimc_isp_subdev_create(&is->isp);
- 	if (ret < 0)
- 		return ret;
- 
--	for_each_compatible_node(adapter, NULL, FIMC_IS_I2C_COMPATIBLE) {
--		if (!of_find_device_by_node(adapter)) {
--			of_node_put(adapter);
--			return -EPROBE_DEFER;
--		}
-+	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
-+		for_each_available_child_of_node(i2c_bus, child) {
-+			ret = fimc_is_parse_sensor_config(is, index, child);
- 
--		for_each_available_child_of_node(adapter, child) {
--			struct i2c_client *client;
--			struct v4l2_subdev *sd;
--
--			client = of_find_i2c_device_by_node(child);
--			if (!client)
--				goto e_retry;
--
--			sd = i2c_get_clientdata(client);
--			if (!sd)
--				goto e_retry;
--
--			/* FIXME: Add support for multiple sensors. */
--			if (WARN_ON(is->sensor))
--				continue;
--
--			is->sensor = sd_to_fimc_is_sensor(sd);
--
--			if (fimc_is_parse_sensor_config(is->sensor, child)) {
--				dev_warn(&is->pdev->dev, "DT parse error: %s\n",
--							 child->full_name);
-+			if (ret < 0 || index >= FIMC_IS_SENSORS_NUM) {
-+				of_node_put(child);
-+				return ret;
- 			}
--			pr_debug("%s(): registered subdev: %p\n",
--				 __func__, sd->name);
-+			index++;
- 		}
- 	}
- 	return 0;
--
--e_retry:
--	of_node_put(child);
--	return -EPROBE_DEFER;
- }
- 
- static int fimc_is_unregister_subdevs(struct fimc_is *is)
- {
- 	fimc_isp_subdev_destroy(&is->isp);
--	is->sensor = NULL;
- 	return 0;
- }
- 
-@@ -647,7 +635,7 @@ static int fimc_is_hw_open_sensor(struct fimc_is *is,
- 	fimc_is_hw_set_intgr0_gd0(is);
- 
- 	return fimc_is_wait_event(is, IS_ST_OPEN_SENSOR, 1,
--				  FIMC_IS_SENSOR_OPEN_TIMEOUT);
-+				  sensor->drvdata->open_timeout);
- }
- 
- 
-@@ -661,8 +649,8 @@ int fimc_is_hw_initialize(struct fimc_is *is)
- 	u32 prev_id;
- 	int i, ret;
- 
--	/* Sensor initialization. */
--	ret = fimc_is_hw_open_sensor(is, is->sensor);
-+	/* Sensor initialization. Only one sensor is currently supported. */
-+	ret = fimc_is_hw_open_sensor(is, &is->sensor[0]);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -962,27 +950,20 @@ static int fimc_is_module_init(void)
- {
- 	int ret;
- 
--	ret = fimc_is_register_sensor_driver();
--	if (ret < 0)
--		return ret;
--
- 	ret = fimc_is_register_i2c_driver();
- 	if (ret < 0)
--		goto err_sens;
-+		return ret;
- 
- 	ret = platform_driver_register(&fimc_is_driver);
--	if (!ret)
--		return ret;
- 
--	fimc_is_unregister_i2c_driver();
--err_sens:
--	fimc_is_unregister_sensor_driver();
-+	if (ret < 0)
-+		fimc_is_unregister_i2c_driver();
++	double resized = std::min(newW, newH);
 +
- 	return ret;
++	return QSize((int)(actualFrameWidth * resized), (int)(actualFrameHeight * resized));
  }
  
- static void fimc_is_module_exit(void)
+ void CaptureWin::closeEvent(QCloseEvent *event)
+diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
+index f662bd3..dd19f2d 100644
+--- a/utils/qv4l2/capture-win.h
++++ b/utils/qv4l2/capture-win.h
+@@ -34,7 +34,7 @@ public:
+ 	CaptureWin();
+ 	~CaptureWin();
+ 
+-	void setMinimumSize(int minw, int minh);
++	void resize(int minw, int minh);
+ 
+ 	/**
+ 	 * @brief Set a frame into the capture window.
+@@ -75,9 +75,13 @@ public:
+ 	 */
+ 	static bool isSupported() { return false; }
+ 
++	void enableScaling(bool enable);
++	static QSize scaleFrameSize(QSize window, QSize frame);
++
+ protected:
+ 	void closeEvent(QCloseEvent *event);
+ 	void buildWindow(QWidget *videoSurface);
++	static int actualFrameWidth(int width);
+ 	QSize getMargins();
+ 
+ 	/**
+@@ -87,11 +91,17 @@ protected:
+ 	 */
+ 	QLabel m_information;
+ 
++	/**
++	 * @brief Determines if scaling is to be applied to video frame.
++	 */
++	static bool m_enableScaling;
++
+ signals:
+ 	void close();
+ 
+ private:
+ 	QShortcut *m_hotkeyClose;
+-
++	int m_curWidth;
++	int m_curHeight;
+ };
+ #endif
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index e33254d..6258a93 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -137,9 +137,16 @@ ApplicationWindow::ApplicationWindow() :
+ 	toolBar->addSeparator();
+ 	toolBar->addAction(quitAct);
+ 
++	m_scalingAct = new QAction("Enable Video Scaling", this);
++	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
++	m_scalingAct->setCheckable(true);
++	m_scalingAct->setChecked(true);
++	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
++
+ 	QMenu *captureMenu = menuBar()->addMenu("&Capture");
+ 	captureMenu->addAction(m_capStartAct);
+ 	captureMenu->addAction(m_showFramesAct);
++	captureMenu->addAction(m_scalingAct);
+ 
+ 	if (CaptureWinGL::isSupported()) {
+ 		m_renderMethod = QV4L2_RENDER_GL;
+@@ -351,7 +358,8 @@ void ApplicationWindow::newCaptureWin()
+ 		break;
+ 	}
+ 
+-	connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
++	m_capture->enableScaling(m_scalingAct->isChecked());
++        connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
+ }
+ 
+ void ApplicationWindow::capVbiFrame()
+@@ -793,6 +801,12 @@ void ApplicationWindow::stopOutput()
  {
--	fimc_is_unregister_sensor_driver();
- 	fimc_is_unregister_i2c_driver();
- 	platform_driver_unregister(&fimc_is_driver);
  }
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
-index 61bb012..01f802f 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is.h
-@@ -39,7 +39,7 @@
- #define FIMC_IS_FW_LOAD_TIMEOUT		1000 /* ms */
- #define FIMC_IS_POWER_ON_TIMEOUT	1000 /* us */
  
--#define FIMC_IS_SENSOR_NUM		2
-+#define FIMC_IS_SENSORS_NUM		2
++void ApplicationWindow::enableScaling(bool enable)
++{
++	if (m_capture != NULL)
++		m_capture->enableScaling(enable);
++}
++
+ void ApplicationWindow::startAudio()
+ {
+ #ifdef HAVE_ALSA
+@@ -903,7 +917,7 @@ void ApplicationWindow::capStart(bool start)
+ 			m_vbiHeight = fmt.fmt.vbi.count[0] + fmt.fmt.vbi.count[1];
+ 		m_vbiSize = m_vbiWidth * m_vbiHeight;
+ 		m_frameData = new unsigned char[m_vbiSize];
+-		m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
++		m_capture->resize(m_vbiWidth, m_vbiHeight);
+ 		m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
+ 		m_capImage->fill(0);
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+@@ -933,8 +947,8 @@ void ApplicationWindow::capStart(bool start)
+ 		m_mustConvert = false;
+ 	} else {
+ 		m_mustConvert = true;
+-		v4l2_format copy = m_capSrcFormat;
  
- /* Memory definitions */
- #define FIMC_IS_CPU_MEM_SIZE		(0xa00000)
-@@ -253,7 +253,7 @@ struct fimc_is {
- 	struct firmware			*f_w;
++		v4l2_format copy = m_capSrcFormat;
+ 		v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
+ 		// v4lconvert_try_format sometimes modifies the source format if it thinks
+ 		// that there is a better format available. Restore our selected source
+@@ -942,13 +956,13 @@ void ApplicationWindow::capStart(bool start)
+ 		m_capSrcFormat = copy;
+ 	}
  
- 	struct fimc_isp			isp;
--	struct fimc_is_sensor		*sensor;
-+	struct fimc_is_sensor		sensor[FIMC_IS_SENSORS_NUM];
- 	struct fimc_is_setfile		setfile;
+-	m_capture->setMinimumSize(dstPix.width, dstPix.height);
+ 	// Ensure that the initial image is large enough for native 32 bit per pixel formats
+ 	if (dstPix.pixelformat == V4L2_PIX_FMT_RGB32 || dstPix.pixelformat == V4L2_PIX_FMT_BGR32)
+ 		dstFmt = QImage::Format_ARGB32;
+ 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
+ 	m_capImage->fill(0);
+-
++	m_capture->resize(dstPix.width, dstPix.height);
++	
+ 	if (showFrames()) {
+ 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
+ 				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
+diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
+index dd9db44..1402673 100644
+--- a/utils/qv4l2/qv4l2.h
++++ b/utils/qv4l2/qv4l2.h
+@@ -132,6 +132,7 @@ private slots:
+ 	void openRawFile(const QString &s);
+ 	void rejectedRawFile();
+ 	void setAudioBufferSize();
++	void enableScaling(bool enable);
  
- 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	void about();
+ 
+@@ -185,6 +186,7 @@ private:
+ 	QAction *m_useGLAct;
+ 	QAction *m_showAllAudioAct;
+ 	QAction *m_audioBufferAct;
++	QAction *m_scalingAct;
+ 	QString m_filename;
+ 	QSignalMapper *m_sigMapper;
+ 	QTabWidget *m_tabs;
 -- 
-1.7.9.5
+1.8.4.rc1
 
