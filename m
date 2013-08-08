@@ -1,41 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:45441 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880Ab3HWJhV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 05:37:21 -0400
-Date: Fri, 23 Aug 2013 12:36:56 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] exynos4-is: print error message on timeout
-Message-ID: <20130823093656.GK31293@elgon.mountain>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:56045 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757841Ab3HHNrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 09:47:49 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
+	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r78Dlk9l032678
+	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 13:47:46 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/2] qv4l2: fix input parameters and missing status tips
+Date: Thu,  8 Aug 2013 15:47:36 +0200
+Message-Id: <1375969658-20415-1-git-send-email-bwinther@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a stray '!' character so the error message never gets printed.
+- Fixes some of the missing status tips in the general tab.
+- Fixes the frequency hint, now displaying correct value hints.
+- Fixes the program parameters.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-Static checker stuff.  Not tested.
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-index 63c68ec..42f2925 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-@@ -236,7 +236,7 @@ int fimc_is_itf_mode_change(struct fimc_is *is)
- 	fimc_is_hw_change_mode(is);
- 	ret = fimc_is_wait_event(is, IS_ST_CHANGE_MODE, 1,
- 				FIMC_IS_CONFIG_TIMEOUT);
--	if (!ret < 0)
-+	if (ret < 0)
- 		dev_err(&is->pdev->dev, "%s(): mode change (%d) timeout\n",
- 			__func__, is->config_index);
- 	return ret;
