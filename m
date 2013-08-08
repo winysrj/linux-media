@@ -1,70 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:39220 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab3HSKzb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 06:55:31 -0400
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com,
-	shaik.ameer@samsung.com
-Subject: [PATCH v2 4/5] [media] exynos-mscl: Add DT bindings for M-Scaler driver
-Date: Mon, 19 Aug 2013 16:28:51 +0530
-Message-Id: <1376909932-23644-5-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
-References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mout.gmx.net ([212.227.15.19]:63156 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933367Ab3HHAhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Aug 2013 20:37:03 -0400
+Received: from [192.168.1.3] ([82.101.238.214]) by mail.gmx.com (mrgmx002)
+ with ESMTPSA (Nemesis) id 0Md3ZK-1VOD8x0D8U-00IC6v for
+ <linux-media@vger.kernel.org>; Thu, 08 Aug 2013 02:37:01 +0200
+Message-ID: <5202E82E.50400@gmx.net>
+Date: Thu, 08 Aug 2013 02:37:02 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: EM28xx - MSI Digivox Trio - almost working.
+References: <51C28FA2.70004@gmx.net>
+In-Reply-To: <51C28FA2.70004@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the DT binding documentation for the exynos5
-based M-Scaler device driver.
+On 20-06-13 07:14, P. van Gaans wrote:
+> Hi all,
+>
+> (device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio)
+>
+> Thanks to the message from Philip Pemberton I was able to try loading
+> the em28xx driver myself using:
+>
+> sudo modprobe em28xx card=NUMBER
+> echo eb1a 2885 | sudo tee /sys/bus/usb/drivers/em28xx/new_id
+>
+> Here are the results for NUMBER:
+>
+> Card=79 (Terratec Cinergy H5): works, less corruption than card=87, just
+> some blocks every few seconds. Attenuators didn't help.
+> Card=81 (Hauppauge WinTV HVR 930C): doesn't work, no /dev/dvb adapter
+> Card=82 (Terratec Cinergy HTC Stick): similar to card=87
+> Card=85 (PCTV QuatroStick (510e)): constantly producing i2c read errors,
+> doesn't work
+> Card=86 (PCTV QuatroStick nano (520e): same
+> Card=87 (Terratec Cinergy HTC USB XS): stick works and scans channels,
+> but reception is bugged with corruption. It's like having a DVB-T
+> antenna that's just not good enough, except this is DVB-C and my signal
+> is excellent. Attenuators didn't help.
+> Card=88 (C3 Tech Digital Duo HDTV/SDTV USB): doesn't work, no /dev/dvb
+> adapter
+>
+> So with card=79 it's really close to working. What else can I do?
+>
+> Best regareds,
+>
+> P. van Gaans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- .../devicetree/bindings/media/exynos5-mscl.txt     |   34 ++++++++++++++++++++
- 1 file changed, 34 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-mscl.txt
+Hi all,
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5-mscl.txt b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
-new file mode 100644
-index 0000000..5c9d1b1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
-@@ -0,0 +1,34 @@
-+* Samsung Exynos5 M-Scaler device
-+
-+M-Scaler is used for scaling, blending, color fill and color space
-+conversion on EXYNOS5 SoCs.
-+
-+Required properties:
-+- compatible: should be "samsung,exynos5-mscl"
-+- reg: should contain M-Scaler physical address location and length.
-+- interrupts: should contain M-Scaler interrupt number
-+- clocks: should contain the clock number according to CCF
-+- clock-names: should be "mscl"
-+
-+Example:
-+
-+	mscl_0: mscl@0x12800000 {
-+		compatible = "samsung,exynos5-mscl";
-+		reg = <0x12800000 0x1000>;
-+		interrupts = <0 220 0>;
-+		clocks = <&clock 381>;
-+		clock-names = "mscl";
-+	};
-+
-+Aliases:
-+Each M-Scaler node should have a numbered alias in the aliases node,
-+in the form of msclN, N = 0...2. M-Scaler driver uses these aliases
-+to retrieve the device IDs using "of_alias_get_id()" call.
-+
-+Example:
-+
-+aliases {
-+	mscl0 =&mscl_0;
-+	mscl1 =&mscl_1;
-+	mscl2 =&mscl_2;
-+};
--- 
-1.7.9.5
+Success!
 
+While I never succeeded in figuring out how the sniffing is supposed to 
+be done (how to get any output from those scripts anyway? how to load 
+the debug module in such away it actually works? run on native linux, or 
+a windows VM on linux, or snoop in windows en run the script on linux? 
+you get the picture) I just noticed a little notice on the DVB-C USB 
+wiki page:
+
+"If you are experiencing problems with USB devices, it may not be the 
+fault of the tuner. For example AMD 700 series chipsets (e.g. 780G) have 
+a problem with USB ports which results in tuners working or partially 
+working or not working at all."
+
+I was actually not even testing on an AMD 700 series but on an AMD 600 
+series. And a somewhat older kernel, with latest v4l-dvb compiled.
+
+So here's what I did: I took the Digivox Trio, plugged it in an Ivy 
+Bridgy computer with Lubuntu 13.04 (stock kernel, stock v4l-dvb, Lubuntu 
+appears to come with the firmware preloaded), load the em28xx driver as 
+if the Digivox were a Terratec H5 and watched 5 minutes or so, flawless.
+
+I will continue to test and watch some longer programs, but right now it 
+appears it is safe to say the Digivox Trio can be supported by simply 
+treating as an H5.
+
+Best regards,
+
+P. van Gaans
