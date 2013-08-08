@@ -1,164 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:22359 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754540Ab3HFKWX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:22:23 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r76AMGhH015841
-	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:22:20 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/9] qv4l2: fix YUY2 shader
-Date: Tue,  6 Aug 2013 12:21:46 +0200
-Message-Id: <46f7140b645be29088978e95e8aa454c4bf164b3.1375784415.git.bwinther@cisco.com>
-In-Reply-To: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
-References: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
-References: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47072 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966666Ab3HHVLZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 17:11:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Su Jiaquan <jiaquan.lnx@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
+Subject: Re: How to express planar formats with mediabus format code?
+Date: Thu, 08 Aug 2013 23:12:30 +0200
+Message-ID: <8999977.SY9Wm17vy3@avalon>
+In-Reply-To: <CALxrGmV-SCDntaJGeaCDkuqmdzgk3VEYZG+koj9em+Z4PSG0XQ@mail.gmail.com>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com> <Pine.LNX.4.64.1308042252010.19244@axis700.grange> <CALxrGmV-SCDntaJGeaCDkuqmdzgk3VEYZG+koj9em+Z4PSG0XQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed the YUY2 shaders to support scaling.
-The new solution has cleaner shader code and texture upload
-uses a better format for OpenGL.
+Hi,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win-gl.cpp | 68 ++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 33 deletions(-)
+On Tuesday 06 August 2013 17:18:14 Su Jiaquan wrote:
+> Hi Guennadi,
+> 
+> Thanks for the reply! Please see my description inline.
+> 
+> On Mon, Aug 5, 2013 at 5:02 AM, Guennadi Liakhovetski wrote:
+> > On Sun, 4 Aug 2013, Su Jiaquan wrote:
+> >> Hi,
+> >> 
+> >> I know the title looks crazy, but here is our problem:
+> >> 
+> >> In our SoC based ISP, the hardware can be divide to several blocks.
+> >> Some blocks can do color space conversion(raw to YUV interleave/planar),
+> >> others can do the pixel re-order(interleave/planar/semi-planar
+> >> conversion, UV planar switch). We use one subdev to describe each of
+> >> them, then came the problem: How can we express the planar formats with
+> >> mediabus format code?
+> > 
+> > Could you please explain more exactly what you mean? How are those your
+> > blocks connected? How do they exchange data? If they exchange data over a
+> > serial bus, then I don't think planar formats make sense, right? Or do
+> > your blocks really output planes one after another, reordering data
+> > internally? That would be odd... If OTOH your blocks output data to RAM,
+> > and the next block takes data from there, then you use V4L2_PIX_FMT_*
+> > formats to describe them and any further processing block should be a
+> > mem2mem device. Wouldn't this work?
+> 
+> These two hardware blocks are both located inside of ISP, and is connected
+> by a hardware data bus.
+> 
+> Actually, there are three blocks inside ISP: One is close to sensor, and can
+> do color space conversion(RGB->YUV), we call it IPC; The other two are at
+> back end, which are basically DMA Engine, and they are identical. When data
+> flow out of IPC, it can go into each one of these DMA Engines and finally
+> into RAM. Whether the DMA Engine is turned on/off and the output format can
+> be controlled independently. Since they are DMA Engines, they have some
+> basic pixel reordering ability(i.e. interleave->planar/semi-planar).
+> 
+> In our H/W design, when we want to get YUV semi-planar format, the IPC
+> output should be configured to interleave, and the DMA engine will do the
+> interleave->semi-planar job. If we want planar / interleave format, the IPC
+> will output planar format directly, DMA engine simply send the data to RAM,
+> and don't do any re-order. So in the planar output case, media-bus formats
+> can't express the format of the data between IPC and DMA Engine, that's the
+> problem we meet.
 
-diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
-index c499f1f..6071410 100644
---- a/utils/qv4l2/capture-win-gl.cpp
-+++ b/utils/qv4l2/capture-win-gl.cpp
-@@ -1,5 +1,5 @@
- /*
-- * The YUY2 shader code was copied and simplified from face-responder. The code is under public domain:
-+ * The YUY2 shader code is based on face-responder. The code is under public domain:
-  * https://bitbucket.org/nateharward/face-responder/src/0c3b4b957039d9f4bf1da09b9471371942de2601/yuv42201_laplace.frag?at=master
-  *
-  * All other OpenGL code:
-@@ -446,47 +446,51 @@ QString CaptureWinGLEngine::shader_YUY2_invariant(__u32 format)
- {
- 	switch (format) {
- 	case V4L2_PIX_FMT_YUYV:
--		return QString("y = (luma_chroma.r - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   u = luma_chroma.a;"
--			       "   v = texture2D(tex, vec2(pixelx + texl_w, pixely)).a;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.r - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   v = luma_chroma.a;"
--			       "   u = texture2D(tex, vec2(pixelx - texl_w, pixely)).a;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.b - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.g - 0.5;"
-+			       "v = luma_chroma.a - 0.5;"
- 			       );
- 
- 	case V4L2_PIX_FMT_YVYU:
--		return QString("y = (luma_chroma.r - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   v = luma_chroma.a;"
--			       "   u = texture2D(tex, vec2(pixelx + texl_w, pixely)).a;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.r - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   u = luma_chroma.a;"
--			       "   v = texture2D(tex, vec2(pixelx - texl_w, pixely)).a;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.b - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.a - 0.5;"
-+			       "v = luma_chroma.g - 0.5;"
- 			       );
- 
- 	case V4L2_PIX_FMT_UYVY:
--		return QString("y = (luma_chroma.a - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   u = luma_chroma.r;"
--			       "   v = texture2D(tex, vec2(pixelx + texl_w, pixely)).r;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.g - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   v = luma_chroma.r;"
--			       "   u = texture2D(tex, vec2(pixelx - texl_w, pixely)).r;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.a - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.r - 0.5;"
-+			       "v = luma_chroma.b - 0.5;"
- 			       );
- 
- 	case V4L2_PIX_FMT_VYUY:
--		return QString("y = (luma_chroma.a - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   v = luma_chroma.r;"
--			       "   u = texture2D(tex, vec2(pixelx + texl_w, pixely)).r;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.g - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   u = luma_chroma.r;"
--			       "   v = texture2D(tex, vec2(pixelx - texl_w, pixely)).r;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.a - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.b - 0.5;"
-+			       "v = luma_chroma.r - 0.5;"
- 			       );
- 
- 	default:
-@@ -499,8 +503,8 @@ void CaptureWinGLEngine::shader_YUY2(__u32 format)
- 	m_screenTextureCount = 1;
- 	glGenTextures(m_screenTextureCount, m_screenTexture);
- 	configureTexture(0);
--	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, m_frameWidth, m_frameHeight, 0,
--		     GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
-+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_frameWidth / 2, m_frameHeight, 0,
-+		     GL_RGBA, GL_UNSIGNED_BYTE, NULL);
- 	checkError("YUY2 shader");
- 
- 	QString codeHead = QString("uniform sampler2D tex;"
-@@ -509,17 +513,15 @@ void CaptureWinGLEngine::shader_YUY2(__u32 format)
- 				   "void main()"
- 				   "{"
- 				   "   float y, u, v;"
-+				   "   vec4 luma_chroma;"
- 				   "   float pixelx = gl_TexCoord[0].x;"
- 				   "   float pixely = gl_TexCoord[0].y;"
- 				   "   float xcoord = floor(pixelx * tex_w);"
--				   "   vec4 luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
- 				   );
- 
- 	QString codeBody = shader_YUY2_invariant(format);
- 
--	QString codeTail = QString("   u = u - 0.5;"
--				   "   v = v - 0.5;"
--				   "   float r = y + 1.5958 * v;"
-+	QString codeTail = QString("   float r = y + 1.5958 * v;"
- 				   "   float g = y - 0.39173 * u - 0.81290 * v;"
- 				   "   float b = y + 2.017 * u;"
- 				   "   gl_FragColor = vec4(r, g, b, 1.0);"
-@@ -548,8 +550,8 @@ void CaptureWinGLEngine::render_YUY2()
- 	glBindTexture(GL_TEXTURE_2D, m_screenTexture[0]);
- 	GLint Y = m_glfunction.glGetUniformLocation(m_shaderProgram.programId(), "tex");
- 	glUniform1i(Y, 0);
--	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth, m_frameHeight,
--			GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_frameData);
-+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth / 2, m_frameHeight,
-+			GL_RGBA, GL_UNSIGNED_BYTE, m_frameData);
- 	checkError("YUY2 paint");
- }
- #endif
+If the format between the two subdevs is really planar, I don't see any 
+problem defining a media bus pixel code for it. You will have to properly 
+document the format of course.
+
+I'm a bit surprised that the IPC could output planar data. It would need to 
+buffer a whole image to do so, do you need to give it a temporary system RAM 
+buffer ?
+
+> We want to adopt a formal solution before we send our patch to the
+> community, that's where our headache comes.
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
