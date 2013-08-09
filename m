@@ -1,190 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:15265 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756358Ab3HYMmb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Aug 2013 08:42:31 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MS3001RW7AU0I20@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Sun, 25 Aug 2013 08:42:30 -0400 (EDT)
-Date: Sun, 25 Aug 2013 09:42:24 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Carsten Haitzler <c.haitzler@samsung.com>
-Subject: Re: [GIT PULL FOR v3.12] Matrix and Motion Detection support,
- move solo/go7007 out of staging
-Message-id: <20130825094224.2507c766@samsung.com>
-In-reply-to: <5217604B.8080600@cisco.com>
-References: <5217604B.8080600@cisco.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54863 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031460Ab3HIXC2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH/RFC v3 09/19] video: panel: Add DPI panel support
+Date: Sat, 10 Aug 2013 01:03:08 +0200
+Message-Id: <1376089398-13322-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 23 Aug 2013 15:14:51 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+The Display Pixel Interface is a configurable-width video-only
+unidirectional parallel bus standard that defines video formats and
+signaling for panel devices.
 
-> Hi Mauro,
-> 
-> This pull request adds the motion detection and matrix API, implements it in the
-> solo6x10 and go7007 drivers and moves both drivers out of staging.
-> 
-> This pull request builds on top of my v3.12 pull request:
-> 
-> https://patchwork.linuxtv.org/patch/19898/
-> 
-> The only thing missing is enabling support for the WIS-Voyager saa7134 card that uses
-> the go7007 driver. I want to test that first to make sure nothing is broken since the
-> last time I used it. That may take some time before I can get around that, but that
-> board is very rare so there is no hurry with that.
-> 
-> Whether or not this can go in for 3.12 depends on your review of the new API elements.
+This driver implements support for simple DPI panels with no runtime
+configuration capabilities (GPIOs- and/or regulators-based control can
+be implemented later when needed) and exposes it as a display entity.
+The panel native video mode is passed to the driver through platform
+data or device tree properties.
 
-Hi Hans,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/display/Kconfig     |  10 ++
+ drivers/video/display/Makefile    |   1 +
+ drivers/video/display/panel-dpi.c | 207 ++++++++++++++++++++++++++++++++++++++
+ include/video/panel-dpi.h         |  24 +++++
+ 4 files changed, 242 insertions(+)
+ create mode 100644 drivers/video/display/panel-dpi.c
+ create mode 100644 include/video/panel-dpi.h
 
-Carlsten (Enlightment maintainer) pointed me on IRC that linux evdev has a
-somewhat similar API, in order to track multi-finger position on a touchpad.
-
-In order to avoid having duplication at Kernel APIs, it makes sense to envolve
-linux-input on those API discussions, in order to be sure that we won't be
-reinventing the wheel.
-
-Regards,
-Mauro
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 72230f27e0c7668e14dbcbd8abc1ed1c08451931:
-> 
->   MAINTAINERS: add entries for adv7511 and adv7842. (2013-08-23 14:12:44 +0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git md
-> 
-> for you to fetch changes up to 342b0b7b8864b6e27cd013e94cf687649083ac33:
-> 
->   go7007: move out of staging into drivers/media/usb. (2013-08-23 14:49:57 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (12):
->       v4l2-controls: add motion detection controls.
->       v4l2: add matrix support.
->       v4l2-compat-ioctl32: add g/s_matrix support
->       solo: implement the new matrix ioctls instead of the custom ones.
->       v4l2: add a motion detection event.
->       solo6x10: implement motion detection events and controls.
->       DocBook: add the new v4l detection class controls.
->       DocBook: document new v4l motion detection event.
->       DocBook: document the new v4l2 matrix ioctls.
->       go7007: add motion detection support.
->       solo6x10: move out of staging into drivers/media/pci.
->       go7007: move out of staging into drivers/media/usb.
-> 
->  Documentation/DocBook/media/v4l/controls.xml                      |  69 +++++++++++
->  Documentation/DocBook/media/v4l/v4l2.xml                          |   2 +
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml                |  40 ++++++
->  Documentation/DocBook/media/v4l/vidioc-g-matrix.xml               | 108 ++++++++++++++++
->  Documentation/DocBook/media/v4l/vidioc-query-matrix.xml           | 180 +++++++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml        |   8 ++
->  drivers/media/pci/Kconfig                                         |   1 +
->  drivers/media/pci/Makefile                                        |   1 +
->  drivers/{staging/media => media/pci}/solo6x10/Kconfig             |   2 +-
->  drivers/{staging/media => media/pci}/solo6x10/Makefile            |   2 +-
->  drivers/{staging/media => media/pci}/solo6x10/TODO                |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c   |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c      |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c      |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h  |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c      |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c | 219 ++++++++++++++++++++++++---------
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c     |   0
->  drivers/{staging/media => media/pci}/solo6x10/solo6x10.h          |  19 +--
->  drivers/media/usb/Kconfig                                         |   1 +
->  drivers/media/usb/Makefile                                        |   1 +
->  drivers/{staging/media => media/usb}/go7007/Kconfig               |   0
->  drivers/{staging/media => media/usb}/go7007/Makefile              |   0
->  drivers/{staging/media => media/usb}/go7007/README                |   0
->  drivers/{staging/media => media/usb}/go7007/go7007-driver.c       | 119 +++++++++++++-----
->  drivers/{staging/media => media/usb}/go7007/go7007-fw.c           |  28 +++--
->  drivers/{staging/media => media/usb}/go7007/go7007-i2c.c          |   0
->  drivers/{staging/media => media/usb}/go7007/go7007-loader.c       |   0
->  drivers/{staging/media => media/usb}/go7007/go7007-priv.h         |  16 +++
->  drivers/{staging/media => media/usb}/go7007/go7007-usb.c          |   0
->  drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c         | 382 ++++++++++++++++++++++++++++++++++++++++++---------------
->  drivers/{staging/media => media/usb}/go7007/go7007.txt            |   0
->  drivers/{staging/media => media/usb}/go7007/s2250-board.c         |   0
->  drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c      |   1 -
->  drivers/{staging/media => media/usb}/go7007/snd-go7007.c          |   0
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c                     |  50 +++++++-
->  drivers/media/v4l2-core/v4l2-ctrls.c                              |  31 ++++-
->  drivers/media/v4l2-core/v4l2-dev.c                                |   3 +
->  drivers/media/v4l2-core/v4l2-ioctl.c                              |  23 +++-
->  drivers/staging/media/Kconfig                                     |   4 -
->  drivers/staging/media/Makefile                                    |   2 -
->  drivers/staging/media/go7007/go7007.h                             |  40 ------
->  include/media/v4l2-ioctl.h                                        |   8 ++
->  include/uapi/linux/v4l2-controls.h                                |  14 +++
->  include/uapi/linux/videodev2.h                                    |  73 +++++++++++
->  53 files changed, 1174 insertions(+), 273 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
->  rename drivers/{staging/media => media/pci}/solo6x10/Kconfig (93%)
->  rename drivers/{staging/media => media/pci}/solo6x10/Makefile (82%)
->  rename drivers/{staging/media => media/pci}/solo6x10/TODO (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c (88%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c (100%)
->  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10.h (93%)
->  rename drivers/{staging/media => media/usb}/go7007/Kconfig (100%)
->  rename drivers/{staging/media => media/usb}/go7007/Makefile (100%)
->  rename drivers/{staging/media => media/usb}/go7007/README (100%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-driver.c (88%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-fw.c (97%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-i2c.c (100%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-loader.c (100%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-priv.h (90%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-usb.c (100%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c (77%)
->  rename drivers/{staging/media => media/usb}/go7007/go7007.txt (100%)
->  rename drivers/{staging/media => media/usb}/go7007/s2250-board.c (100%)
->  rename drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c (99%)
->  rename drivers/{staging/media => media/usb}/go7007/snd-go7007.c (100%)
->  delete mode 100644 drivers/staging/media/go7007/go7007.h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/video/display/Kconfig b/drivers/video/display/Kconfig
+index f7532c1..bce09d6 100644
+--- a/drivers/video/display/Kconfig
++++ b/drivers/video/display/Kconfig
+@@ -9,4 +9,14 @@ config DISPLAY_MIPI_DBI
+ 	tristate
+ 	default n
+ 
++config DISPLAY_PANEL_DPI
++	tristate "DPI (Parallel) Display Panels"
++	---help---
++	  Support for simple digital (parallel) pixel interface panels. Those
++	  panels receive pixel data through a parallel bus and have no control
++	  bus.
++
++	  If you are in doubt, say N. To compile this driver as a module, choose
++	  M here; the module will be called panel-dpi.
++
+ endif # DISPLAY_CORE
+diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefile
+index 59022d2..31c017b 100644
+--- a/drivers/video/display/Makefile
++++ b/drivers/video/display/Makefile
+@@ -2,3 +2,4 @@ display-y					:= display-core.o \
+ 						   display-notifier.o
+ obj-$(CONFIG_DISPLAY_CORE)			+= display.o
+ obj-$(CONFIG_DISPLAY_MIPI_DBI)			+= mipi-dbi-bus.o
++obj-$(CONFIG_DISPLAY_PANEL_DPI)			+= panel-dpi.o
+diff --git a/drivers/video/display/panel-dpi.c b/drivers/video/display/panel-dpi.c
+new file mode 100644
+index 0000000..b1ecf6d
+--- /dev/null
++++ b/drivers/video/display/panel-dpi.c
+@@ -0,0 +1,207 @@
++/*
++ * DPI Display Panel
++ *
++ * Copyright (C) 2012 Renesas Solutions Corp.
++ *
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include <video/display.h>
++#include <video/of_display_timing.h>
++#include <video/of_videomode.h>
++#include <video/panel-dpi.h>
++#include <video/videomode.h>
++
++struct panel_dpi {
++	struct display_entity entity;
++
++	unsigned int width;
++	unsigned int height;
++	struct videomode mode;
++};
++
++static inline struct panel_dpi *to_panel_dpi(struct display_entity *e)
++{
++	return container_of(e, struct panel_dpi, entity);
++}
++
++static const struct display_entity_interface_params panel_dpi_params = {
++	.type = DISPLAY_ENTITY_INTERFACE_DPI,
++};
++
++static int panel_dpi_set_state(struct display_entity *entity,
++			       enum display_entity_state state)
++{
++	struct media_pad *source;
++
++	source = media_entity_remote_pad(&entity->entity.pads[0]);
++	if (source == NULL)
++		return -EPIPE;
++
++	switch (state) {
++	case DISPLAY_ENTITY_STATE_OFF:
++	case DISPLAY_ENTITY_STATE_STANDBY:
++		display_entity_set_stream(to_display_entity(source->entity),
++					  source->index,
++					  DISPLAY_ENTITY_STREAM_STOPPED);
++		break;
++
++	case DISPLAY_ENTITY_STATE_ON:
++		display_entity_set_stream(to_display_entity(source->entity),
++					  source->index,
++					  DISPLAY_ENTITY_STREAM_CONTINUOUS);
++		break;
++	}
++
++	return 0;
++}
++
++static int panel_dpi_get_modes(struct display_entity *entity, unsigned int port,
++			       const struct videomode **modes)
++{
++	struct panel_dpi *panel = to_panel_dpi(entity);
++
++	*modes = &panel->mode;
++	return 1;
++}
++
++static int panel_dpi_get_size(struct display_entity *entity,
++			      unsigned int *width, unsigned int *height)
++{
++	struct panel_dpi *panel = to_panel_dpi(entity);
++
++	*width = panel->width;
++	*height = panel->height;
++	return 0;
++}
++
++static int panel_dpi_get_params(struct display_entity *entity,
++				unsigned int port,
++				struct display_entity_interface_params *params)
++{
++	*params = panel_dpi_params;
++	return 0;
++}
++
++static const struct display_entity_control_ops panel_dpi_control_ops = {
++	.set_state = panel_dpi_set_state,
++	.get_modes = panel_dpi_get_modes,
++	.get_size = panel_dpi_get_size,
++	.get_params = panel_dpi_get_params,
++};
++
++static const struct display_entity_ops panel_dpi_ops = {
++	.ctrl = &panel_dpi_control_ops,
++};
++
++static int panel_dpi_remove(struct platform_device *pdev)
++{
++	struct panel_dpi *panel = platform_get_drvdata(pdev);
++
++	display_entity_remove(&panel->entity);
++	display_entity_cleanup(&panel->entity);
++
++	return 0;
++}
++
++static int panel_dpi_parse_pdata(struct panel_dpi *panel,
++				 struct platform_device *pdev)
++{
++	const struct panel_dpi_platform_data *pdata = pdev->dev.platform_data;
++	struct device_node *np = pdev->dev.of_node;
++	int ret;
++
++	if (pdata) {
++		panel->width = pdata->width;
++		panel->height = pdata->height;
++		panel->mode = *pdata->mode;
++	} else if (IS_ENABLED(CONFIG_OF) && np) {
++		/* Width and height are optional. */
++		of_property_read_u32(np, "width-mm", &panel->width);
++		of_property_read_u32(np, "height-mm", &panel->height);
++
++		ret = of_get_videomode(np, &panel->mode, OF_USE_NATIVE_MODE);
++		if (ret < 0)
++			return ret;
++	} else {
++		dev_err(&pdev->dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int panel_dpi_probe(struct platform_device *pdev)
++{
++	struct panel_dpi *panel;
++	int ret;
++
++	panel = devm_kzalloc(&pdev->dev, sizeof(*panel), GFP_KERNEL);
++	if (panel == NULL)
++		return -ENOMEM;
++
++	ret = panel_dpi_parse_pdata(panel, pdev);
++	if (ret < 0)
++		return ret;
++
++	panel->entity.dev = &pdev->dev;
++	panel->entity.ops = &panel_dpi_ops;
++	strlcpy(panel->entity.name, "panel-dpi", sizeof(panel->entity.name));
++
++	ret = display_entity_init(&panel->entity, 1, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = display_entity_add(&panel->entity);
++	if (ret < 0)
++		return ret;
++
++	platform_set_drvdata(pdev, panel);
++
++	return 0;
++}
++
++static const struct dev_pm_ops panel_dpi_dev_pm_ops = {
++};
++
++static struct platform_device_id panel_dpi_id_table[] = {
++	{ "panel-dpi", 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(platform, panel_dpi_id_table);
++
++#ifdef CONFIG_OF
++static struct of_device_id panel_dpi_of_id_table[] = {
++	{ .compatible = "panel-dpi", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, panel_dpi_of_id_table);
++#endif
++
++static struct platform_driver panel_dpi_driver = {
++	.probe = panel_dpi_probe,
++	.remove = panel_dpi_remove,
++	.id_table = panel_dpi_id_table,
++	.driver = {
++		.name = "panel-dpi",
++		.owner = THIS_MODULE,
++		.pm = &panel_dpi_dev_pm_ops,
++		.of_match_table = of_match_ptr(panel_dpi_of_id_table),
++	},
++};
++
++module_platform_driver(panel_dpi_driver);
++
++MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
++MODULE_DESCRIPTION("DPI Display Panel");
++MODULE_LICENSE("GPL");
+diff --git a/include/video/panel-dpi.h b/include/video/panel-dpi.h
+new file mode 100644
+index 0000000..af85d5b
+--- /dev/null
++++ b/include/video/panel-dpi.h
+@@ -0,0 +1,24 @@
++/*
++ * DPI Display Panel
++ *
++ * Copyright (C) 2012 Renesas Solutions Corp.
++ *
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __PANEL_DPI_H__
++#define __PANEL_DPI_H__
++
++struct videomode;
++
++struct panel_dpi_platform_data {
++	unsigned long width;		/* Panel width in mm */
++	unsigned long height;		/* Panel height in mm */
++	const struct videomode *mode;
++};
++
++#endif /* __PANEL_DPI_H__ */
 -- 
+1.8.1.5
 
-Cheers,
-Mauro
