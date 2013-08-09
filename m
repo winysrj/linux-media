@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3880 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698Ab3HVK1q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:27:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:38517 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030789Ab3HITZf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 15:25:35 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 5/5] MAINTAINERS: add entries for adv7511 and adv7842.
-Date: Thu, 22 Aug 2013 12:27:30 +0200
-Message-Id: <99e0f6dd87b4c1e1ef0503ac13db2aec0fdf24e4.1377167031.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
-References: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
+Cc: a.hajda@samsung.com, arun.kk@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 05/10] exynos4-is: Add missing MODULE_LICENSE for
+ exynos-fimc-is.ko
+Date: Fri, 09 Aug 2013 21:24:07 +0200
+Message-id: <1376076252-30150-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
+References: <1376076122-29963-1-git-send-email-s.nawrocki@samsung.com>
+ <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This fixes compilation warning:
+WARNING: modpost: missing MODULE_LICENSE() in
+drivers/media/platform/exynos4-is/exynos-fimc-is.o
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- MAINTAINERS | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/media/platform/exynos4-is/fimc-is.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bf61e04..e50819b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -580,12 +580,24 @@ L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/i2c/ad9389b*
- 
-+ANALOG DEVICES INC ADV7511 DRIVER
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/i2c/adv7511*
-+
- ANALOG DEVICES INC ADV7604 DRIVER
- M:	Hans Verkuil <hans.verkuil@cisco.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/i2c/adv7604*
- 
-+ANALOG DEVICES INC ADV7842 DRIVER
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/i2c/adv7842*
-+
- ANALOG DEVICES INC ASOC CODEC DRIVERS
- M:	Lars-Peter Clausen <lars@metafoo.de>
- L:	device-drivers-devel@blackfin.uclinux.org
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 967f6a9..9b7fd1c 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -993,3 +993,4 @@ module_exit(fimc_is_module_exit);
+ MODULE_ALIAS("platform:" FIMC_IS_DRV_NAME);
+ MODULE_AUTHOR("Younghwan Joo <yhwan.joo@samsung.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-1.8.3.2
+1.7.9.5
 
