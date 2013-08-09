@@ -1,77 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58483 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753013Ab3HVLP5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 07:15:57 -0400
-Date: Thu, 22 Aug 2013 14:15:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv3 PATCH 03/10] v4l2-compat-ioctl32: add g/s_matrix support.
-Message-ID: <20130822111522.GA21043@valkosipuli.retiisi.org.uk>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
- <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:27993 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966169Ab3HIMMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:37 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: baard.e.winther@wintherstormer.no
+Subject: [PATCH FINAL 4/6] qv4l2: fix program input parameters
+Date: Fri,  9 Aug 2013 14:12:10 +0200
+Message-Id: <d55b463020f0f7f693379043c23bcc46be9fe2d9.1376049957.git.bwinther@cisco.com>
+In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+References: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/qv4l2.cpp | 137 ++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 121 insertions(+), 16 deletions(-)
 
-On Thu, Aug 22, 2013 at 12:14:17PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 49 +++++++++++++++++++++++++++
->  1 file changed, 49 insertions(+)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 8f7a6a4..3e5a30f 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -777,6 +777,38 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
->  	return 0;
->  }
->
-> +struct v4l2_matrix32 {
-> +	__u32 type;
-> +	union {
-> +		__u32 raw[4];
-> +	} ref;
-
-I sense untested code here.
-
-> +	struct v4l2_rect rect;
-> +	compat_caddr_t matrix;
-> +	__u32 reserved[12];
-> +} __attribute__ ((packed));
-> +
-> +static int get_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32 __user *up)
-> +{
-> +	u32 tmp;
-> +
-> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_matrix32)) ||
-> +	    get_user(kp->type, &up->type) ||
-> +	    copy_from_user(&kp->rect, &up->rect, sizeof(up->rect)) ||
-> +	    get_user(tmp, &up->matrix) ||
-> +	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
-
-Is it useful to copy the reserved fields?
-
-> +		return -EFAULT;
-> +	kp->matrix = compat_ptr(tmp);
-> +	return 0;
-> +}
-
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 7e2dba0..a0f21cd 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -1158,33 +1158,138 @@ void ApplicationWindow::closeEvent(QCloseEvent *event)
+ 
+ ApplicationWindow *g_mw;
+ 
++static void usage()
++{
++	printf("  Usage:\n"
++	       "  qv4l2 [-R] [-h] [-d <dev>] [-r <dev>] [-V <dev>]\n"
++	       "\n  -d, --device=<dev> use device <dev> as the video device\n"
++	       "                     if <dev> is a number, then /dev/video<dev> is used\n"
++	       "  -r, --radio-device=<dev> use device <dev> as the radio device\n"
++	       "                     if <dev> is a number, then /dev/radio<dev> is used\n"
++	       "  -V, --vbi-device=<dev> use device <dev> as the vbi device\n"
++	       "                     if <dev> is a number, then /dev/vbi<dev> is used\n"
++	       "  -h, --help         display this help message\n"
++	       "  -R, --raw          open device in raw mode.\n");
++}
++
++static void usageError(const char *msg)
++{
++	printf("Missing parameter for %s\n", msg);
++	usage();
++}
++
++static QString getDeviceName(QString dev, QString &name)
++{
++	bool ok;
++	name.toInt(&ok);
++	return ok ? QString("%1%2").arg(dev).arg(name) : name;
++}
++
+ int main(int argc, char **argv)
+ {
+ 	QApplication a(argc, argv);
+-	QString device = "/dev/video0";
+ 	bool raw = false;
+-	bool help = false;
+-	int i;
++	QString device;
++	QString video_device;
++	QString radio_device;
++	QString vbi_device;
+ 
+ 	a.setWindowIcon(QIcon(":/qv4l2.png"));
+ 	g_mw = new ApplicationWindow();
+ 	g_mw->setWindowTitle("V4L2 Test Bench");
+-	for (i = 1; i < argc; i++) {
+-		const char *arg = a.argv()[i];
+ 
+-		if (!strcmp(arg, "-r"))
++	QStringList args = a.arguments();
++	for (int i = 1; i < args.size(); i++) {
++		if (args[i] == "-d" || args[i] == "--device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("-d");
++				return 0;
++			}
++
++			video_device = args[i];
++			if (video_device.startsWith("-")) {
++				usageError("-d");
++				return 0;
++			}
++
++		} else if (args[i] == "-r" || args[i] == "--radio-device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("-r");
++				return 0;
++			}
++
++			radio_device = args[i];
++			if (radio_device.startsWith("-")) {
++				usageError("-r");
++				return 0;
++			}
++
++		} else if (args[i] == "-V" || args[i] == "--vbi-device") {
++			++i;
++			if (i >= args.size()) {
++				usageError("-V");
++				return 0;
++			}
++
++			vbi_device = args[i];
++			if (vbi_device.startsWith("-")) {
++				usageError("-V");
++				return 0;
++			}
++
++		} else if (args[i].startsWith("--device")) {
++			QStringList param = args[i].split("=");
++			if (param.size() == 2) {
++				video_device = param[1];
++			} else {
++				usageError("--device");
++				return 0;
++			}
++
++		} else if (args[i].startsWith("--radio-device")) {
++			QStringList param = args[i].split("=");
++			if (param.size() == 2) {
++				radio_device = param[1];
++			} else {
++				usageError("--radio-device");
++				return 0;
++			}
++
++
++		} else if (args[i].startsWith("--vbi-device")) {
++			QStringList param = args[i].split("=");
++			if (param.size() == 2) {
++				vbi_device = param[1];
++			} else {
++				usageError("--vbi-device");
++				return 0;
++			}
++
++		} else if (args[i] == "-h" || args[i] == "--help") {
++			usage();
++			return 0;
++
++		} else if (args[i] == "-R" || args[i] == "--raw") {
+ 			raw = true;
+-		else if (!strcmp(arg, "-h"))
+-			help = true;
+-		else if (arg[0] != '-')
+-			device = arg;
+-	}
+-	if (help) {
+-		printf("qv4l2 [-r] [-h] [device node]\n\n"
+-		       "-h\tthis help message\n"
+-		       "-r\topen device node in raw mode\n");
+-		return 0;
++
++
++		} else {
++			printf("Invalid argument %s\n", args[i].toAscii().data());
++			return 0;
++		}
+ 	}
++
++	if (video_device != NULL)
++		device = getDeviceName("/dev/video", video_device);
++	else if (radio_device != NULL)
++		device = getDeviceName("/dev/radio", radio_device);
++	else if (vbi_device != NULL)
++		device = getDeviceName("/dev/vbi", vbi_device);
++	else
++		device = "/dev/video0";
++
+ 	g_mw->setDevice(device, raw);
+ 	g_mw->show();
+ 	a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 -- 
-Kind regards,
+1.8.4.rc1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
