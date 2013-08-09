@@ -1,121 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2982 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968Ab3H3Cyn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:54:43 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7U2serq018199
-	for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 04:54:42 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 4D82C2A0761
-	for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 04:54:32 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:57427 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966869Ab3HIMMl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:41 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130830025432.4D82C2A0761@tschai.lan>
-Date: Fri, 30 Aug 2013 04:54:32 +0200 (CEST)
+Cc: baard.e.winther@wintherstormer.no
+Subject: [PATCH FINAL 6/6] qv4l2: updated about window
+Date: Fri,  9 Aug 2013 14:12:12 +0200
+Message-Id: <c3afbe91f8b2590274fc8a6e60b065eb82c5324a.1376049957.git.bwinther@cisco.com>
+In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+References: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/qv4l2.cpp | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-Results of the daily build of media_tree:
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index a0f21cd..056e15d 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -1110,8 +1110,24 @@ void ApplicationWindow::saveRaw(bool checked)
+ 
+ void ApplicationWindow::about()
+ {
++#ifdef HAVE_ALSA
++	bool alsa = true;
++#else
++	bool alsa = false;
++#endif
++#ifdef HAVE_QTGL
++	bool gl = true;
++#else
++	bool gl = false;
++#endif
++
+ 	QMessageBox::about(this, "V4L2 Test Bench",
+-			"This program allows easy experimenting with video4linux devices.");
++			   QString("This program allows easy experimenting with video4linux devices.\n"
++				   "v. %1\n\nALSA support : %2\nOpenGL support : %3")
++			   .arg(V4L_UTILS_VERSION)
++			   .arg(alsa ? "Present" : "Not Available")
++			   .arg(gl ? "Present" : "Not Available")
++			   );
+ }
+ 
+ void ApplicationWindow::error(const QString &error)
+-- 
+1.8.4.rc1
 
-date:		Fri Aug 30 04:00:14 CEST 2013
-git branch:	test
-git hash:	26a20eb09d44dc064c4f5d1f024bd501c09edb4b
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
