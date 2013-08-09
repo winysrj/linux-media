@@ -1,52 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:30770 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466Ab3H0H0Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 03:26:16 -0400
-Message-ID: <521C5493.1050407@cisco.com>
-Date: Tue, 27 Aug 2013 09:26:11 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Knut Petersen <Knut_Petersen@t-online.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to
- register R??
-References: <521A269D.3020909@t-online.de>
-In-Reply-To: <521A269D.3020909@t-online.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966285Ab3HIMKi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:10:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/2] media: vb2: Fix potential deadlock in vb2_prepare_buffer
+Date: Fri,  9 Aug 2013 14:11:25 +0200
+Message-Id: <1376050286-8201-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1376050286-8201-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1376050286-8201-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/2013 05:45 PM, Knut Petersen wrote:
-> Booting current git kernel dmesg shows a set of new  warnings:
-> 
->     "wm8775 9-001b: I2C: cannot write ??? to register R??"
-> 
-> Nevertheless, the hardware seems to work fine.
-> 
-> This is a new problem, introduced after kernel 3.10.
-> If necessary I can bisect.
+Commit b037c0fde22b1d3cd0b3c3717d28e54619fc1592 ("media: vb2: fix
+potential deadlock in mmap vs. get_userptr handling") fixes an AB-BA
+deadlock related to the mmap_sem and driver locks. The same deadlock can
+occur in vb2_prepare_buffer(), fix it the same way.
 
-Can you try this patch? I'm pretty sure this will fix it.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 52 ++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 9 deletions(-)
 
-Regards,
-
-	Hans
-
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index afe0eae..28893a6 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -259,7 +259,7 @@ struct cx88_input {
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7f32860..7c2a8ce 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1248,50 +1248,84 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+  */
+ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct rw_semaphore *mmap_sem = NULL;
+ 	struct vb2_buffer *vb;
+ 	int ret;
  
- enum cx88_audio_chip {
--	CX88_AUDIO_WM8775,
-+	CX88_AUDIO_WM8775 = 1,
- 	CX88_AUDIO_TVAUDIO,
- };
++	/*
++	 * In case of user pointer buffers vb2 allocator needs to get direct
++	 * access to userspace pages. This requires getting read access on
++	 * mmap semaphore in the current process structure. The same
++	 * semaphore is taken before calling mmap operation, while both mmap
++	 * and prepare_buf are called by the driver or v4l2 core with driver's
++	 * lock held. To avoid a AB-BA deadlock (mmap_sem then driver's lock in
++	 * mmap and driver's lock then mmap_sem in prepare_buf) the videobuf2
++	 * core release driver's lock, takes mmap_sem and then takes again
++	 * driver's lock.
++	 *
++	 * To avoid race with other vb2 calls, which might be called after
++	 * releasing driver's lock, this operation is performed at the
++	 * beggining of prepare_buf processing. This way the queue status is
++	 * consistent after getting driver's lock back.
++	 */
++	if (q->memory == V4L2_MEMORY_USERPTR) {
++		mmap_sem = &current->mm->mmap_sem;
++		call_qop(q, wait_prepare, q);
++		down_read(mmap_sem);
++		call_qop(q, wait_finish, q);
++	}
++
+ 	if (q->fileio) {
+ 		dprintk(1, "%s(): file io in progress\n", __func__);
+-		return -EBUSY;
++		ret = -EBUSY;
++		goto unlock;
+ 	}
  
+ 	if (b->type != q->type) {
+ 		dprintk(1, "%s(): invalid buffer type\n", __func__);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	if (b->index >= q->num_buffers) {
+ 		dprintk(1, "%s(): buffer index out of range\n", __func__);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	vb = q->bufs[b->index];
+ 	if (NULL == vb) {
+ 		/* Should never happen */
+ 		dprintk(1, "%s(): buffer is NULL\n", __func__);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	if (b->memory != q->memory) {
+ 		dprintk(1, "%s(): invalid memory type\n", __func__);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+ 		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 	ret = __verify_planes_array(vb, b);
+ 	if (ret < 0)
+-		return ret;
++		goto unlock;
++
+ 	ret = __buf_prepare(vb, b);
+ 	if (ret < 0)
+-		return ret;
++		goto unlock;
+ 
+ 	__fill_v4l2_buffer(vb, b);
+ 
+-	return 0;
++unlock:
++	if (mmap_sem)
++		up_read(mmap_sem);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+ 
+-- 
+1.8.1.5
 
