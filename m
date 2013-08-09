@@ -1,87 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:40597 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301Ab3HNEqN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Aug 2013 00:46:13 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
-Date: Wed, 14 Aug 2013 10:16:03 +0530
-Message-Id: <1376455574-15560-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
-References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:23963 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030794Ab3HITWW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 15:22:22 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, arun.kk@samsung.com,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 00/10] exynos4-is: Asynchronous subdev registration support
+Date: Fri, 09 Aug 2013 21:22:02 +0200
+Message-id: <1376076122-29963-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the DT binding documentation for Samsung
-Exynos5 SoC series imaging subsystem (FIMC-IS).
+This patch series is a refactoring of the exynos4-is driver to get rid
+of the common fimc-is-sensor driver and to adapt it to use "standard"
+sensor subdev drivers, one per each image sensor type.
+Then a clock provider is added and the s5k6a3 subdev is modified to use
+one of the clocks exposed by the exynos4-is driver. Finally a v4l2-async
+notifier support is added for image sensor subdevs.
+I have also included a couple bug fixes not really related to v4l2-async.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47 ++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+This series depends on patches adding clock deregistration support at
+the common clock framework [1] and the other series those depend on [2].
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-new file mode 100644
-index 0000000..bfd36df
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-@@ -0,0 +1,47 @@
-+Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
-+------------------------------------------------------
-+
-+The camera subsystem on Samsung Exynos5 SoC has some changes relative
-+to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
-+FIMC-LITE IPs but has a much improved version of FIMC-IS which can
-+handle sensor controls and camera post-processing operations. The
-+Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
-+post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
-+dedicated scalers (SCC and SCP).
-+
-+fimc-is node
-+------------
-+
-+Required properties:
-+
-+- compatible        : must be "samsung,exynos5250-fimc-is"
-+- reg               : physical base address and size of the memory mapped
-+                      registers
-+- interrupt-parent  : parent interrupt controller
-+- interrupts        : fimc-is interrupt to the parent combiner
-+- clocks            : list of clock specifiers, corresponding to entries in
-+                      clock-names property;
-+- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
-+                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
-+                      matching entries in the clocks property.
-+- pmu               : phandle to the fimc-is pmu node describing the register
-+                      base and size for FIMC-IS PMU.
-+
-+i2c-isp (ISP I2C bus controller) nodes
-+------------------------------------------
-+
-+Required properties:
-+
-+- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
-+		  Exynos4412 and Exynos5250 SoCs;
-+- reg		: physical base address and length of the registers set;
-+- clocks	: must contain gate clock specifier for this controller;
-+- clock-names	: must contain "i2c_isp" entry.
-+
-+For the i2c-isp node, it is required to specify a pinctrl state named "default",
-+according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
-+
-+Device tree nodes of the image sensors' controlled directly by the FIMC-IS
-+firmware must be child nodes of their corresponding ISP I2C bus controller node.
-+The data link of these image sensors must be specified using the common video
-+interfaces bindings, defined in video-interfaces.txt.
--- 
+The series can be found in git repository:
+http://git.linuxtv.org/snawrocki/samsung.git/v3.11-rc2-dts-exynos4-is-clk
+
+[1] http://www.spinics.net/lists/arm-kernel/msg265989.html
+[2] http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg481861.html
+
+Sylwester Nawrocki (9):
+  V4L: Add driver for s5k6a3 image sensor
+  V4L: s5k6a3: Add support for asynchronous subdev registration
+  exynos4-is: Initialize the ISP subdev sd->owner field
+  exynos4-is: Add missing MODULE_LICENSE for exynos-fimc-is.ko
+  exynos4-is: Add missing v4l2_device_unregister() call in
+    fimc_md_remove()
+  exynos4-is: Simplify sclk_cam clocks handling
+  exynos4-is: Add clock provider for the external clocks
+  exynos4-is: Use external s5k6a3 sensor driver
+  exynos4-is: Add support for asynchronous sensor subddevs registration
+
+Tomasz Figa (1):
+  exynos4-is: Handle suspend/resume of fimc-is-i2c correctly
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |   21 +-
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5k6a3.c                         |  357 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c    |   33 +-
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +---------------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
+ drivers/media/platform/exynos4-is/fimc-is.c        |   98 +++---
+ drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
+ drivers/media/platform/exynos4-is/fimc-isp.c       |    2 +
+ drivers/media/platform/exynos4-is/media-dev.c      |  350 +++++++++++++------
+ drivers/media/platform/exynos4-is/media-dev.h      |   31 +-
+ 13 files changed, 746 insertions(+), 495 deletions(-)
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+
+--
 1.7.9.5
+
+--
+Thanks,
+Sylwester
 
