@@ -1,52 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58332 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab3HUIZW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 04:25:22 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MRV00ME2GNJ8960@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Aug 2013 09:25:19 +0100 (BST)
-Content-transfer-encoding: 8BIT
-Message-id: <5214796E.5050000@samsung.com>
-Date: Wed, 21 Aug 2013 10:25:18 +0200
+Received: from mailout2.samsung.com ([203.254.224.25]:24109 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030789Ab3HITZc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 15:25:32 -0400
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] s5p-tv: Include missing v4l2-dv-timings.h header file
-References: <1376856050-30538-1-git-send-email-s.nawrocki@samsung.com>
- <5211C608.60201@xs4all.nl>
-In-reply-to: <5211C608.60201@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, arun.kk@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 04/10] exynos4-is: Initialize the ISP subdev sd->owner field
+Date: Fri, 09 Aug 2013 21:24:06 +0200
+Message-id: <1376076252-30150-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
+References: <1376076122-29963-1-git-send-email-s.nawrocki@samsung.com>
+ <1376076252-30150-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Set the subdevs owner module so the exynos4_fimc_is module cannot
+be unloaded when the FIMC-IS driver is in use.
 
-On 08/19/2013 09:15 AM, Hans Verkuil wrote:
-> On 08/18/2013 10:00 PM, Sylwester Nawrocki wrote:
->> Include the v4l2-dv-timings.h header file which in the s5p-tv driver which
->> was supposed to be updated in commit 2576415846bcbad3c0a6885fc44f95083710
->> "[media] v4l2: move dv-timings related code to v4l2-dv-timings.c"
->>
->> This fixes following build error:
->>
->> drivers/media/platform/s5p-tv/hdmi_drv.c: In function ‘hdmi_s_dv_timings’:
->> drivers/media/platform/s5p-tv/hdmi_drv.c:628:3: error: implicit declaration of function ‘v4l_match_dv_timings’
->>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> My apologies for missing this one.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-isp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-That's all right. Shit happens. I was wondering why this error
-didn't show up in your daily builds.
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index cf520a7..d2e6cba 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -672,6 +672,8 @@ int fimc_isp_subdev_create(struct fimc_isp *isp)
+ 	mutex_init(&isp->subdev_lock);
+ 
+ 	v4l2_subdev_init(sd, &fimc_is_subdev_ops);
++
++	sd->owner = THIS_MODULE;
+ 	sd->grp_id = GRP_ID_FIMC_IS;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	snprintf(sd->name, sizeof(sd->name), "FIMC-IS-ISP");
+-- 
+1.7.9.5
 
---
-Regards,
-Sylwester
