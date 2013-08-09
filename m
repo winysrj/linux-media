@@ -1,50 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2233 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158Ab3HSOoq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:44:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:27993 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966631Ab3HIMMj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:39 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 14/20] v4l2-dv-timings: fill in type field
-Date: Mon, 19 Aug 2013 16:44:23 +0200
-Message-Id: <1376923469-30694-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+Cc: baard.e.winther@wintherstormer.no
+Subject: [PATCH FINAL 5/6] qv4l2: add manpage
+Date: Fri,  9 Aug 2013 14:12:11 +0200
+Message-Id: <b8ef6661a73f7ce65b3510826d4a74d0b76ed1af.1376049957.git.bwinther@cisco.com>
+In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+References: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-The detect_cvt/gtf functions didn't fill in the type field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 2 ++
- 1 file changed, 2 insertions(+)
+ utils/qv4l2/Makefile.am |  1 +
+ utils/qv4l2/qv4l2.1     | 58 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
+ create mode 100644 utils/qv4l2/qv4l2.1
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 1a9d393..c2f5af7 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -408,6 +408,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 		h_fp = h_blank - hsync - h_bp;
- 	}
+diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
+index 58ac097..bdc64fd 100644
+--- a/utils/qv4l2/Makefile.am
++++ b/utils/qv4l2/Makefile.am
+@@ -1,4 +1,5 @@
+ bin_PROGRAMS = qv4l2
++man_MANS = qv4l2.1
  
-+	fmt->type = V4L2_DV_BT_656_1120;
- 	fmt->bt.polarities = polarities;
- 	fmt->bt.width = image_width;
- 	fmt->bt.height = image_height;
-@@ -527,6 +528,7 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 
- 	h_fp = h_blank / 2 - hsync;
- 
-+	fmt->type = V4L2_DV_BT_656_1120;
- 	fmt->bt.polarities = polarities;
- 	fmt->bt.width = image_width;
- 	fmt->bt.height = image_height;
+ qv4l2_SOURCES = qv4l2.cpp general-tab.cpp ctrl-tab.cpp vbi-tab.cpp v4l2-api.cpp capture-win.cpp \
+   capture-win-qt.cpp capture-win-qt.h capture-win-gl.cpp capture-win-gl.h alsa_stream.c alsa_stream.h \
+diff --git a/utils/qv4l2/qv4l2.1 b/utils/qv4l2/qv4l2.1
+new file mode 100644
+index 0000000..c6abe7c
+--- /dev/null
++++ b/utils/qv4l2/qv4l2.1
+@@ -0,0 +1,58 @@
++.TH "QV4L2" "1" "August 2013" "v4l-utils" "User Commands"
++.SH NAME
++qv4l2 - A test bench application for video4linux devices
++.SH SYNOPSIS
++.B qv4l2
++[\fI-R\fR] [\fI-h\fR] [\fI-d <dev>\fR] [\fI-r <dev>\fR] [\fI-V <dev>\fR]
++.SH DESCRIPTION
++The qv4l2 tool is used to test video4linux capture devices, either video, vbi or radio.
++This application can also serve as a generic video/TV viewer application.
++.PP
++However, it does not (yet) support compressed video streams other than MJPEG
++.SH OPTIONS
++.TP
++\fB\-d\fR, \fB\-\-device\fR=\fI<dev>\fR
++Use device <dev> as the video device. If <dev> is a number, then /dev/video<dev> is used.
++.TP
++\fB\-r\fR, \fB\-\-radio-device\fR=\fI<dev>\fR
++Use device <dev> as the radio device. If <dev> is a number, then /dev/radio<dev> is used.
++.TP
++\fB\-V\fR, \fB\-\-vbi-device\fR=\fI<dev>\fR
++Use device <dev> as the vbi device. If <dev> is a number, then /dev/vbi<dev> is used.
++.TP
++\fB\-R\fR, \fB\-\-raw\fR
++Open device in raw mode, i.e. without using the libv4l2 wrapper functions.
++.TP
++\fB\-h\fR, \fB\-\-help\fR
++Prints the help message.
++.SH HOTKEYS
++.SS Main Window
++.TP
++\fICtrl + O\fR
++Open device
++.TP
++\fICtrl + R\fR
++Open device in raw mode
++.TP
++\fICtrl + W\fR
++Close the device
++.TP
++\fICtrl + V\fR
++Start capture
++.TP
++\fICtrl + F\fR
++Resize Capture Window to frame size
++.TP
++\fICtrl + Q\fR
++Exit the application
++.SS Capture Window
++.TP
++\fICtrl + W\fR
++Closes the window and stops capture
++.TP
++\fICtrl + F\fR
++Resize Capture Window to frame size
++.SH EXIT STATUS
++On success, it returns 0. Otherwise, it will return the error code.
++.SH BUGS
++Report bugs to Hans Verkuil <hverkuil@xs4all.nl>
 -- 
-1.8.3.2
+1.8.4.rc1
 
