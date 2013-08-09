@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57433 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754336Ab3H3KbD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 06:31:03 -0400
-Date: Fri, 30 Aug 2013 12:30:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-In-Reply-To: <52168D98.9060600@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1308301227230.12356@axis700.grange>
-References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com>
- <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon>
- <52139A9B.1030400@googlemail.com> <52152578.2060201@googlemail.com>
- <5215344E.2070002@gmail.com> <52168D98.9060600@googlemail.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:46609 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829Ab3HIMei (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:34:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] v4l: Fix colorspace conversion error in sample code
+Date: Fri, 9 Aug 2013 14:34:08 +0200
+Cc: linux-media@vger.kernel.org
+References: <1375974070-2392-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1375974070-2392-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201308091434.08529.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
-
-On Fri, 23 Aug 2013, Frank Schäfer wrote:
-
-> Hi Sylwester,
+On Thu 8 August 2013 17:01:10 Laurent Pinchart wrote:
+> The sample code erroneously scales the y1, pb and pr variables from the
+> [0.0 .. 1.0] and [-0.5 .. 0.5] ranges to [0 .. 255] and [-128 .. 127].
+> Fix it.
 > 
-> Am 21.08.2013 23:42, schrieb Sylwester Nawrocki:
-> > Hi Frank,
-> >
-> > On 08/21/2013 10:39 PM, Frank Schäfer wrote:
-> >> Am 20.08.2013 18:34, schrieb Frank Schäfer:
-> >>> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
-> >>>> Hi Mauro,
-> >>>>
-> >>>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
-> >>>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
-> >>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
-> >>>>>>> Hi Frank,
-> >>>>>>> As I mentioned on the list, I'm currently on a holiday, so,
-> >>>>>>> replying
-> >>>>>>> briefly.
-> >>>>>> Sorry, I missed that (can't read all mails on the list).
-> >>>>>>
-> >>>>>>> Since em28xx is a USB device, I conclude, that it's supplying
-> >>>>>>> clock to
-> >>>>>>> its components including the ov2640 sensor. So, yes, I think the
-> >>>>>>> driver
-> >>>>>>> should export a V4L2 clock.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Could you please test this patch series 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68510 
-to see whether it fixes this your problem?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+	Hans
+
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt.xml | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 99b8d2a..4babd4d 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -391,9 +391,9 @@ clamp (double x)
+>  	else               return r;
+>  }
+>  
+> -y1 = (255 / 219.0) * (Y1 - 16);
+> -pb = (255 / 224.0) * (Cb - 128);
+> -pr = (255 / 224.0) * (Cr - 128);
+> +y1 = (Y1 - 16) / 219.0;
+> +pb = (Cb - 128) / 224.0;
+> +pr = (Cr - 128) / 224.0;
+>  
+>  r = 1.0 * y1 + 0     * pb + 1.402 * pr;
+>  g = 1.0 * y1 - 0.344 * pb - 0.714 * pr;
+> 
