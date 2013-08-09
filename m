@@ -1,148 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38021 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab3HEL1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 07:27:54 -0400
-Message-ID: <51FF8BF6.3060900@ti.com>
-Date: Mon, 5 Aug 2013 16:56:46 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51623 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757076Ab3HIMvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:51:50 -0400
+Received: from avalon.localnet (unknown [109.134.65.8])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8E1CE363DA
+	for <linux-media@vger.kernel.org>; Fri,  9 Aug 2013 14:51:31 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.12] Mixed V4L2 core and vb2 patches
+Date: Fri, 09 Aug 2013 14:52:56 +0200
+Message-ID: <5985260.CIUTh5xNqB@avalon>
 MIME-Version: 1.0
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
-	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
-	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com>
-In-Reply-To: <51FF5EB4.8090007@ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
-> Hi,
->
-> On 02/08/13 17:03, Archit Taneja wrote:
->
->> +struct vpdma_data_format vpdma_yuv_fmts[] = {
->> +	[VPDMA_DATA_FMT_Y444] = {
->> +		.data_type	= DATA_TYPE_Y444,
->> +		.depth		= 8,
->> +	},
->
-> This, and all the other tables, should probably be consts?
+Hi Mauro,
 
-That's true, I'll fix those.
+The following changes since commit dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d:
 
->
->> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
->> +{
->> +	u32 val = *valp;
->> +
->> +	val &= ~(mask << shift);
->> +	val |= (field & mask) << shift;
->> +	*valp = val;
->> +}
->
-> I think "insert" normally means, well, inserting a thing in between
-> something. What you do here is overwriting.
->
-> Why not just call it "write_field"?
+  [media] stk1160: Build as a module if SND is m and audio support is selected 
+(2013-08-01 14:55:25 -0300)
 
-sure, will change it.
+are available in the git repository at:
 
->
->> + * Allocate a DMA buffer
->> + */
->> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
->> +{
->> +	buf->size = size;
->> +	buf->mapped = 0;
->
-> Maybe true/false is clearer here that 0/1.
+  git://linuxtv.org/pinchartl/media.git v4l2/core
 
-okay.
+for you to fetch changes up to c751c5876e39470dedc627349743a662108dd99d:
 
->
->> +/*
->> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
->> + */
->> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
->> +{
->> +	/* we always use the first list */
->> +	int list_num = 0;
->> +	int list_size;
->> +
->> +	if (vpdma_list_busy(vpdma, list_num))
->> +		return -EBUSY;
->> +
->> +	/* 16-byte granularity */
->> +	list_size = (list->next - list->buf.addr) >> 4;
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
->> +	wmb();
->
-> What is the wmb() for?
+  v4l: async: Make it safe to unregister unregistered notifier (2013-08-09 
+14:48:30 +0200)
 
-VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise 
-VPDMA doesn't work. wmb() ensures the ordering.
+----------------------------------------------------------------
+Laurent Pinchart (5):
+      videobuf2-core: Verify planes lengths for output buffers
+      v4l: of: Use of_get_child_by_name()
+      v4l: of: Drop acquired reference to node when getting next endpoint
+      v4l: Fix colorspace conversion error in sample code
+      v4l: async: Make it safe to unregister unregistered notifier
 
->
->> +	write_reg(vpdma, VPDMA_LIST_ATTR,
->> +			(list_num << VPDMA_LIST_NUM_SHFT) |
->> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
->> +			list_size);
->> +
->> +	return 0;
->> +}
->
->> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
->> +{
->> +	struct vpdma_data *vpdma = context;
->> +	struct vpdma_buf fw_dma_buf;
->> +	int i, r;
->> +
->> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
->> +
->> +	if (!f || !f->data) {
->> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
->> +		return;
->> +	}
->> +
->> +	/* already initialized */
->> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
->> +			VPDMA_LIST_RDY_SHFT)) {
->> +		vpdma->ready = true;
->> +		return;
->> +	}
->> +
->> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
->> +	if (r) {
->> +		dev_err(&vpdma->pdev->dev,
->> +			"failed to allocate dma buffer for firmware\n");
->> +		goto rel_fw;
->> +	}
->> +
->> +	memcpy(fw_dma_buf.addr, f->data, f->size);
->> +
->> +	vpdma_buf_map(vpdma, &fw_dma_buf);
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
->> +
->> +	for (i = 0; i < 100; i++) {		/* max 1 second */
->> +		msleep_interruptible(10);
->
-> You call interruptible version here, but you don't handle the
-> interrupted case. I believe the loop will just continue looping, even if
-> the user interrupted.
+ Documentation/DocBook/media/v4l/pixfmt.xml |  6 +++---
+ drivers/media/v4l2-core/v4l2-async.c       |  6 ++++++
+ drivers/media/v4l2-core/v4l2-of.c          |  9 +++------
+ drivers/media/v4l2-core/videobuf2-core.c   | 39 +++++++++++++++++++++++++++++
+ 4 files changed, 51 insertions(+), 9 deletions(-)
 
-Okay. I think I don't understand the interruptible version correctly. We 
-don't need to msleep_interruptible here, we aren't waiting on any wake 
-up event, we just want to wait till a bit gets set.
+-- 
+Regards,
 
-I am thinking of implementing something similar to wait_for_bit_change() 
-in 'drivers/video/omap2/dss/dsi.c'
-
-Archit
+Laurent Pinchart
 
