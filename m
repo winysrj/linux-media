@@ -1,471 +1,441 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47351 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54863 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758176Ab3HHWDk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:03:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	dagriego@biglakesoftware.com, dale@farnsworth.org,
-	pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl,
-	tomi.valkeinen@ti.com
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Fri, 09 Aug 2013 00:04:44 +0200
-Message-ID: <7062944.SGK3kvnN1v@avalon>
-In-Reply-To: <1375452223-30524-2-git-send-email-archit@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	with ESMTP id S1031434Ab3HIXCZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:25 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH/RFC v3 04/19] video: display: Add display entity notifier
+Date: Sat, 10 Aug 2013 01:03:03 +0200
+Message-Id: <1376089398-13322-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Archit,
+Display entities are initialized by they respective drivers
+asynchronously with the master display driver. The notifier
+infrastructure allows display drivers to create a list of entities they
+need (based on platform data) and be notified when those entities are
+added to or removed from the system.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/video/display/Makefile           |   3 +-
+ drivers/video/display/display-notifier.c | 304 +++++++++++++++++++++++++++++++
+ include/video/display.h                  |  66 +++++++
+ 3 files changed, 372 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/video/display/display-notifier.c
 
-On Friday 02 August 2013 19:33:38 Archit Taneja wrote:
-> The primary function of VPDMA is to move data between external memory and
-> internal processing modules(in our case, VPE) that source or sink data.
-> VPDMA is capable of buffering this data and then delivering the data as
-> demanded to the modules as programmed. The modules that source or sink data
-> are referred to as clients or ports. A channel is setup inside the VPDMA to
-> connect a specific memory buffer to a specific client. The VPDMA
-> centralizes the DMA control functions and buffering required to allow all
-> the clients to minimize the effect of long latency times.
-> 
-> Add the following to the VPDMA helper:
-> 
-> - A data struct which describe VPDMA channels. For now, these channels are
-> the ones used only by VPE, the list of channels will increase when
-> VIP(Video Input Port) also uses the VPDMA library. This channel information
-> will be used to populate fields required by data descriptors.
-> 
-> - Data structs which describe the different data types supported by VPDMA.
-> This data type information will be used to populate fields required by data
-> descriptors and used by the VPE driver to map a V4L2 format to the
-> corresponding VPDMA data type.
-> 
-> - Provide VPDMA register offset definitions, functions to read, write and
-> modify VPDMA registers.
-> 
-> - Functions to create and submit a VPDMA list. A list is a group of
-> descriptors that makes up a set of DMA transfers that need to be completed.
-> Each descriptor will either perform a DMA transaction to fetch input
-> buffers and write to output buffers(data descriptors), or configure the
-> MMRs of sub blocks of VPE(configuration descriptors), or provide control
-> information to VPDMA (control descriptors).
-> 
-> - Functions to allocate, map and unmap buffers needed for the descriptor
-> list, payloads containing MMR values and motion vector buffers. These use
-> the DMA mapping APIs to ensure exclusive access to VPDMA.
-> 
-> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on
-> the VPE interrupt line when a descriptor list is parsed completely and the
-> DMA transactions are completed. This requires masking the events in VPDMA
-> registers and configuring some top level VPE interrupt registers.
-> 
-> - Enable some VPDMA specific parameters: frame start event(when to start DMA
-> for a client) and line mode(whether each line fetched should be mirrored or
-> not).
-> 
-> - Function to load firmware required by VPDMA. VPDMA requires a firmware for
-> it's internal list manager. We add the required request_firmware apis to
-> fetch this firmware from user space.
-> 
-> - Function to dump VPDMA registers.
-> 
-> - A function to initialize VPDMA, this will be called by the VPE driver with
-> it's platform device pointer, this function will take care of loading VPDMA
-> firmware and returning a handle back to the VPE driver. The VIP driver will
-> also call the same init function to initialize it's own VPDMA instance.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpdma.c      | 589 ++++++++++++++++++++++++++
->  drivers/media/platform/ti-vpe/vpdma.h      | 154 ++++++++
->  drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
->  3 files changed, 862 insertions(+)
->  create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
->  create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
->  create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.c
-> b/drivers/media/platform/ti-vpe/vpdma.c new file mode 100644
-> index 0000000..b15b3dd
-> --- /dev/null
-> +++ b/drivers/media/platform/ti-vpe/vpdma.c
-> @@ -0,0 +1,589 @@
-
-[snip]
-
-> +static int get_field(u32 value, u32 mask, int shift)
-> +{
-> +	return (value & (mask << shift)) >> shift;
-> +}
-> +
-> +static int get_field_reg(struct vpdma_data *vpdma, int offset,
-> +		u32 mask, int shift)
-
-I would call this read_field_reg().
-
-> +{
-> +	return get_field(read_reg(vpdma, offset), mask, shift);
-> +}
-> +
-> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
-> +{
-> +	u32 val = *valp;
-> +
-> +	val &= ~(mask << shift);
-> +	val |= (field & mask) << shift;
-> +	*valp = val;
-> +}
-
-get_field() and insert_field() are used in a single location, you can manually 
-inline them.
-
-> +static void insert_field_reg(struct vpdma_data *vpdma, int offset, u32
-> field,
-> +		u32 mask, int shift)
-> +{
-> +	u32 val = read_reg(vpdma, offset);
-> +
-> +	insert_field(&val, field, mask, shift);
-> +
-> +	write_reg(vpdma, offset, val);
-> +}
-
-[snip]
-
-> +/*
-> + * Allocate a DMA buffer
-> + */
-> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
-> +{
-> +	buf->size = size;
-> +	buf->mapped = 0;
-> +	buf->addr = kzalloc(size, GFP_KERNEL);
-
-You should use the dma allocation API (depending on your needs, 
-dma_alloc_coherent for instance) to allocate DMA-able buffers.
-
-> +	if (!buf->addr)
-> +		return -ENOMEM;
-> +
-> +	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
-> +
-> +	return 0;
-> +}
-> +
-> +void vpdma_buf_free(struct vpdma_buf *buf)
-> +{
-> +	WARN_ON(buf->mapped != 0);
-> +	kfree(buf->addr);
-> +	buf->addr = NULL;
-> +	buf->size = 0;
-> +}
-> +
-> +/*
-> + * map a DMA buffer, enabling DMA access
-> + */
-> +void vpdma_buf_map(struct vpdma_data *vpdma, struct vpdma_buf *buf)
-> +{
-> +	struct device *dev = &vpdma->pdev->dev;
-> +
-> +	WARN_ON(buf->mapped != 0);
-> +	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
-> +				DMA_TO_DEVICE);
-> +	buf->mapped = 1;
-> +	BUG_ON(dma_mapping_error(dev, buf->dma_addr));
-
-BUG_ON() is too harsh, you should return a proper error instead.
-
-> +}
-> +
-> +/*
-> + * unmap a DMA buffer, disabling DMA access and
-> + * allowing the main processor to acces the data
-> + */
-> +void vpdma_buf_unmap(struct vpdma_data *vpdma, struct vpdma_buf *buf)
-> +{
-> +	struct device *dev = &vpdma->pdev->dev;
-> +
-> +	if (buf->mapped)
-> +		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
-> +
-> +	buf->mapped = 0;
-> +}
-> +
-> +/*
-> + * create a descriptor list, the user of this list will append
-> configuration,
-> + * contorl and data descriptors to this list, this list will be submitted
-
-s/contorl/control/
-
-> to
-> + * VPDMA. VPDMA's list parser will go through each descriptor and perform
-> + * the required DMA operations
-> + */
-> +int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int
-> type)
-> +{
-> +	int r;
-> +
-> +	r = vpdma_buf_alloc(&list->buf, size);
-> +	if (r)
-> +		return r;
-> +
-> +	list->next = list->buf.addr;
-> +
-> +	list->type = type;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * once a descriptor list is parsed by VPDMA, we reset the list by emptying
-> it,
-> + * to allow new descriptors to be added to the list.
-> + */
-> +void vpdma_reset_desc_list(struct vpdma_desc_list *list)
-> +{
-> +	list->next = list->buf.addr;
-> +}
-> +
-> +/*
-> + * free the buffer allocated fot the VPDMA descriptor list, this should be
-> + * called when the user doesn't want to use VPDMA any more.
-> + */
-> +void vpdma_free_desc_list(struct vpdma_desc_list *list)
-> +{
-> +	vpdma_buf_free(&list->buf);
-> +
-> +	list->next = NULL;
-> +}
-> +
-> +static int vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
-
-Should the function return a bool instead of an int ?
-
-> +{
-> +	u32 sync_reg = read_reg(vpdma, VPDMA_LIST_STAT_SYNC);
-> +
-> +	return (sync_reg >> (list_num + 16)) & 0x01;
-
-You could shorten that as
-
-	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
-
-> +}
-> +
-> +/*
-> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for
-> completion
-> + */
-> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list
-> *list)
-> +{
-> +	/* we always use the first list */
-> +	int list_num = 0;
-> +	int list_size;
-> +
-> +	if (vpdma_list_busy(vpdma, list_num))
-> +		return -EBUSY;
-> +
-> +	/* 16-byte granularity */
-> +	list_size = (list->next - list->buf.addr) >> 4;
-> +
-> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
-> +	wmb();
-> +	write_reg(vpdma, VPDMA_LIST_ATTR,
-> +			(list_num << VPDMA_LIST_NUM_SHFT) |
-> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
-> +			list_size);
-> +
-> +	return 0;
-> +}
-> +
-> +/* set or clear the mask for list complete interrupt */
-> +void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-> +		bool enable)
-> +{
-> +	u32 val;
-> +
-> +	val = read_reg(vpdma, VPDMA_INT_LIST0_MASK);
-> +	if (enable)
-> +		val |= (1 << (list_num * 2));
-> +	else
-> +		val &= ~(1 << (list_num * 2));
-> +	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
-> +}
-> +
-> +/* clear previosuly occured list intterupts in the LIST_STAT register */
-> +void vpdma_clear_list_stat(struct vpdma_data *vpdma)
-> +{
-> +	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
-> +		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
-> +}
-> +
-> +/*
-> + * configures the output mode of the line buffer for the given client, the
-> + * line buffer content can either be mirrored(each line repeated twice) or
-> + * passed to the client as is
-> + */
-> +void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
-> +		enum vpdma_channel chan)
-> +{
-> +	int client_cstat = chan_info[chan].cstat_offset;
-> +
-> +	insert_field_reg(vpdma, client_cstat, line_mode,
-> +		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
-> +}
-> +
-> +/*
-> + * configures the event which should trigger VPDMA transfer for the given
-> + * client
-> + */
-> +void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
-> +		enum vpdma_frame_start_event fs_event,
-> +		enum vpdma_channel chan)
-> +{
-> +	int client_cstat = chan_info[chan].cstat_offset;
-> +
-> +	insert_field_reg(vpdma, client_cstat, fs_event,
-> +		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
-> +}
-> +
-> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
-> +{
-> +	struct vpdma_data *vpdma = context;
-> +	struct vpdma_buf fw_dma_buf;
-> +	int i, r;
-> +
-> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
-> +
-> +	if (!f || !f->data) {
-> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
-> +		return;
-> +	}
-> +
-> +	/* already initialized */
-> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
-> +			VPDMA_LIST_RDY_SHFT)) {
-> +		vpdma->ready = true;
-> +		return;
-> +	}
-> +
-> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
-> +	if (r) {
-> +		dev_err(&vpdma->pdev->dev,
-> +			"failed to allocate dma buffer for firmware\n");
-> +		goto rel_fw;
-> +	}
-> +
-> +	memcpy(fw_dma_buf.addr, f->data, f->size);
-> +
-> +	vpdma_buf_map(vpdma, &fw_dma_buf);
-> +
-> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
-> +
-> +	for (i = 0; i < 100; i++) {		/* max 1 second */
-> +		msleep_interruptible(10);
-> +
-> +		if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
-> +				VPDMA_LIST_RDY_SHFT))
-> +			break;
-> +	}
-> +
-> +	if (i == 100) {
-> +		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
-> +		goto free_buf;
-> +	}
-> +
-> +	vpdma->ready = true;
-> +
-> +free_buf:
-> +	vpdma_buf_unmap(vpdma, &fw_dma_buf);
-> +
-> +	vpdma_buf_free(&fw_dma_buf);
-> +rel_fw:
-> +	release_firmware(f);
-> +}
-> +
-> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
-> +{
-> +	int r;
-> +	struct device *dev = &vpdma->pdev->dev;
-> +
-> +	r = request_firmware_nowait(THIS_MODULE, 1,
-> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
-> +		vpdma_firmware_cb);
-
-Is there a reason not to use the synchronous interface ? That would simplify 
-both this code and the callers, as they won't have to check whether the 
-firmware has been correctly loaded.
-> +	if (r) {
-> +		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
-> +		return r;
-> +	} else {
-> +		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int vpdma_init(struct platform_device *pdev, struct vpdma_data **pvpdma)
-
-As the function allocates the vpdma instance, I would call it vpdma_create()  
-and make it turn a struct vpdma_data *. You can then return error codes using 
-ERR_PTR().
-
-> +{
-> +	struct resource *res;
-> +	struct vpdma_data *vpdma;
-> +	int r;
-> +
-> +	dev_dbg(&pdev->dev, "vpdma_init\n");
-> +
-> +	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
-> +	if (!vpdma) {
-> +		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	vpdma->pdev = pdev;
-> +
-> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
-> +	if (res == NULL) {
-> +		dev_err(&pdev->dev, "missing platform resources data\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-
-You can use devm_ioremap_resource(). The function checks the res pointer and 
-prints error messages, so you can remove the res == NULL check above and the 
-dev_err() below.
-
-> +	if (!vpdma->base) {
-> +		dev_err(&pdev->dev, "failed to ioremap\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	r = vpdma_load_firmware(vpdma);
-> +	if (r) {
-> +		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
-> +		return r;
-> +	}
-> +
-> +	*pvpdma = vpdma;
-> +
-> +	return 0;
-> +}
-> +MODULE_FIRMWARE(VPDMA_FIRMWARE);
-
+diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefile
+index 3054adc..b907aad 100644
+--- a/drivers/video/display/Makefile
++++ b/drivers/video/display/Makefile
+@@ -1,2 +1,3 @@
+-display-y					:= display-core.o
++display-y					:= display-core.o \
++						   display-notifier.o
+ obj-$(CONFIG_DISPLAY_CORE)			+= display.o
+diff --git a/drivers/video/display/display-notifier.c b/drivers/video/display/display-notifier.c
+new file mode 100644
+index 0000000..c9210ec
+--- /dev/null
++++ b/drivers/video/display/display-notifier.c
+@@ -0,0 +1,304 @@
++/*
++ * Display Notifier
++ *
++ * Copyright (C) 2013 Renesas Solutions Corp.
++ *
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/device.h>
++#include <linux/export.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/of.h>
++
++#include <video/display.h>
++
++static LIST_HEAD(display_entity_list);
++static LIST_HEAD(display_entity_notifiers);
++static DEFINE_MUTEX(display_entity_mutex);
++
++/* -----------------------------------------------------------------------------
++ * Notifiers
++ */
++
++static bool match_platform(struct device *dev,
++			   struct display_entity_match *match)
++{
++	pr_debug("%s: matching device '%s' with name '%s'\n", __func__,
++		 dev_name(dev), match->match.platform.name);
++
++	return !strcmp(match->match.platform.name, dev_name(dev));
++}
++
++static struct display_entity_match *
++display_entity_notifier_match(struct display_entity_notifier *notifier,
++			      struct display_entity *entity)
++{
++	bool (*match_func)(struct device *, struct display_entity_match *);
++	struct display_entity_match *match;
++
++	pr_debug("%s: matching entity '%s' (ptr 0x%p dev '%s')\n", __func__,
++		 entity->name, entity, dev_name(entity->dev));
++
++	list_for_each_entry(match, &notifier->waiting, list) {
++		switch (match->type) {
++		default:
++		case DISPLAY_ENTITY_BUS_PLATFORM:
++			match_func = match_platform;
++			break;
++		}
++
++		if (match_func(entity->dev, match))
++			return match;
++	}
++
++	return NULL;
++}
++
++static void display_entity_notifier_cleanup(struct display_entity *entity)
++{
++	entity->match = NULL;
++	entity->notifier = NULL;
++}
++
++static int
++display_entity_notifier_notify(struct display_entity_notifier *notifier,
++			       struct display_entity *entity,
++			       struct display_entity_match *match)
++{
++	int ret;
++
++	pr_debug("%s: notifying device '%s' for entity '%s' (ptr 0x%p dev '%s')\n",
++		 __func__, dev_name(notifier->dev), entity->name, entity,
++		 dev_name(entity->dev));
++
++	/* Remove the match from waiting list. */
++	list_del(&match->list);
++	entity->match = match;
++	entity->notifier = notifier;
++
++	if (notifier->bound) {
++		ret = notifier->bound(notifier, entity, match);
++		if (ret < 0)
++			goto error_bound;
++	}
++
++	/* Move the entity from the global list to the notifier's done list. */
++	list_move(&entity->list, &notifier->done);
++
++	if (list_empty(&notifier->waiting) && notifier->complete) {
++		pr_debug("%s: notifying device '%s' of completion\n", __func__,
++			 dev_name(notifier->dev));
++		ret = notifier->complete(notifier);
++		if (ret < 0)
++			goto error_complete;
++	}
++
++	return 0;
++
++error_complete:
++	/* Move the entity back to the global list. */
++	list_move(&entity->list, &display_entity_list);
++	if (notifier->unbind)
++		notifier->unbind(notifier, entity, match);
++error_bound:
++	/* Put the match back to the waiting list. */
++	list_add_tail(&match->list, &notifier->waiting);
++	display_entity_notifier_cleanup(entity);
++
++	return ret;
++}
++
++/**
++ * display_entity_register_notifier - register a display entity notifier
++ * @notifier: display entity notifier structure we want to register
++ *
++ * Display entity notifiers are called to notify drivers of display
++ * entity-related events for matching display_entitys.
++ *
++ * Notifiers and display_entitys are matched through the device they correspond
++ * to. If the notifier dev field is equal to the display entity dev field the
++ * notifier will be called when an event is reported. Notifiers with a NULL dev
++ * field act as catch-all and will be called for all display_entitys.
++ *
++ * Supported events are
++ *
++ * - DISPLAY_ENTITY_NOTIFIER_CONNECT reports display entity connection and is
++ *   sent at display entity or notifier registration time
++ * - DISPLAY_ENTITY_NOTIFIER_DISCONNECT reports display entity disconnection and
++ *   is sent at display entity unregistration time
++ *
++ * Registering a notifier sends DISPLAY_ENTITY_NOTIFIER_CONNECT events for all
++ * previously registered display_entitys that match the notifiers.
++ *
++ * Return 0 on success.
++ */
++int display_entity_register_notifier(struct display_entity_notifier *notifier)
++{
++	struct display_entity_match *match;
++	struct display_entity *entity;
++	struct display_entity *next;
++	unsigned int i;
++	int ret = 0;
++
++	if (notifier->num_entities == 0)
++		return -EINVAL;
++
++	INIT_LIST_HEAD(&notifier->waiting);
++	INIT_LIST_HEAD(&notifier->done);
++
++	for (i = 0; i < notifier->num_entities; i++) {
++		match = &notifier->entities[i];
++
++		switch (match->type) {
++		case DISPLAY_ENTITY_BUS_PLATFORM:
++			break;
++		default:
++			dev_err(notifier->dev,
++				"%s: Invalid bus type %u on %p\n", __func__,
++				match->type, match);
++			return -EINVAL;
++		}
++
++		list_add_tail(&match->list, &notifier->waiting);
++	}
++
++	mutex_lock(&display_entity_mutex);
++
++	list_add_tail(&notifier->list, &display_entity_notifiers);
++
++	list_for_each_entry_safe(entity, next, &display_entity_list, list) {
++		match = display_entity_notifier_match(notifier, entity);
++		if (!match)
++			continue;
++
++		ret = display_entity_notifier_notify(notifier, entity, match);
++		if (ret)
++			break;
++	}
++
++	mutex_unlock(&display_entity_mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(display_entity_register_notifier);
++
++/**
++ * display_entity_unregister_notifier - unregister a display entity notifier
++ * @notifier: display entity notifier to be unregistered
++ *
++ * Unregistration guarantees that the notifier will never be called upon return
++ * of this function.
++ */
++void display_entity_unregister_notifier(struct display_entity_notifier *notifier)
++{
++	struct display_entity *entity;
++	struct display_entity *next;
++
++	if (notifier->num_entities == 0)
++		return;
++
++	mutex_lock(&display_entity_mutex);
++
++	list_del(&notifier->list);
++
++	list_for_each_entry_safe(entity, next, &notifier->done, list) {
++		if (notifier->unbind)
++			notifier->unbind(notifier, entity, entity->match);
++
++		/* Move the entity back to the global list. */
++		display_entity_notifier_cleanup(entity);
++		list_move(&entity->list, &display_entity_list);
++	}
++	mutex_unlock(&display_entity_mutex);
++}
++EXPORT_SYMBOL_GPL(display_entity_unregister_notifier);
++
++/* -----------------------------------------------------------------------------
++ * Entity Registration
++ */
++
++/**
++ * display_entity_add - add a display entity to the list of available entities
++ * @entity: display entity to be added
++ *
++ * Add the display entity to the list of available entities and send the
++ * DISPLAY_ENTITY_NOTIFIER_CONNECT event to all matching registered notifiers.
++ *
++ * Return 0 on success.
++ */
++int display_entity_add(struct display_entity *entity)
++{
++	struct display_entity_notifier *notifier;
++	struct display_entity_match *match = NULL;
++
++	pr_debug("%s: adding entity '%s' (ptr 0x%p dev '%s')\n", __func__,
++		 entity->name, entity, dev_name(entity->dev));
++
++	mutex_lock(&display_entity_mutex);
++
++	/* Add the entity to the global unbound entities list. It will later be
++	 * moved to the notifier done list by display_entity_notifier_notify().
++	 */
++	list_add_tail(&entity->list, &display_entity_list);
++
++	list_for_each_entry(notifier, &display_entity_notifiers, list) {
++		match = display_entity_notifier_match(notifier, entity);
++		if (match)
++			break;
++	}
++
++	if (match) {
++		/* A match has been found, notify the notifier. */
++		display_entity_notifier_notify(notifier, entity, match);
++	}
++
++	mutex_unlock(&display_entity_mutex);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(display_entity_add);
++
++/**
++ * display_entity_remove - removea display entity
++ * @entity: display entity to be removed
++ *
++ * Remove the display entity from the list of available entities and send the
++ * DISPLAY_ENTITY_NOTIFIER_DISCONNECT event to all matching registered
++ * notifiers.
++ */
++void display_entity_remove(struct display_entity *entity)
++{
++	struct display_entity_notifier *notifier = entity->notifier;
++	struct display_entity_match *match = entity->match;
++
++	pr_debug("%s: removing entity '%s' (ptr 0x%p dev '%s')\n", __func__,
++		 entity->name, entity, dev_name(entity->dev));
++
++	if (!notifier) {
++		/* Remove the entity from the global list. */
++		list_del(&entity->list);
++		return;
++	}
++
++	mutex_lock(&display_entity_mutex);
++
++	if (notifier->unbind)
++		notifier->unbind(notifier, entity, match);
++
++	/* Remove the entity from the notifier's done list. */
++	display_entity_notifier_cleanup(entity);
++	list_del(&entity->list);
++
++	/* Move the match back to the waiting list. */
++	list_add_tail(&match->list, &notifier->waiting);
++
++	mutex_unlock(&display_entity_mutex);
++}
++EXPORT_SYMBOL_GPL(display_entity_remove);
+diff --git a/include/video/display.h b/include/video/display.h
+index fef05a68..2063694 100644
+--- a/include/video/display.h
++++ b/include/video/display.h
+@@ -23,6 +23,8 @@
+  */
+ 
+ struct display_entity;
++struct display_entity_match;
++struct display_entity_notify;
+ struct videomode;
+ 
+ /**
+@@ -101,6 +103,9 @@ struct display_entity {
+ 	char name[32];
+ 	struct media_entity entity;
+ 
++	struct display_entity_match *match;
++	struct display_entity_notifier *notifier;
++
+ 	const struct display_entity_ops *ops;
+ 
+ 	void(*release)(struct display_entity *ent);
+@@ -140,4 +145,65 @@ int display_entity_get_params(struct display_entity *entity, unsigned int port,
+ int display_entity_set_stream(struct display_entity *entity, unsigned int port,
+ 			      enum display_entity_stream_state state);
+ 
++/* -----------------------------------------------------------------------------
++ * Notifier
++ */
++
++enum display_entity_bus_type {
++	DISPLAY_ENTITY_BUS_PLATFORM,
++};
++
++/**
++ * struct display_entity_match - Display entity description
++ * @type: display entity bus type
++ * @match.platform.name: platform device name
++ * @match.dt.node: DT node
++ * @list: link match objects waiting to be matched
++ */
++struct display_entity_match {
++	enum display_entity_bus_type type;
++	union {
++		struct {
++			const char *name;
++		} platform;
++	} match;
++
++	struct list_head list;
++};
++
++/**
++ * display_entity_notifier - display entity notifier
++ * @num_entities: number of display entities
++ * @entities: array of pointers to subdevice descriptors
++ * @waiting: list of struct v4l2_async_subdev, waiting for their drivers
++ * @done: list of struct v4l2_async_subdev_list, already probed
++ * @list: member in a global list of notifiers
++ * @bound: a display entity has been registered
++ * @complete: all display entities have been registered
++ * @unbind: a display entity is being unregistered
++ */
++struct display_entity_notifier {
++	struct device *dev;
++
++	unsigned int num_entities;
++	struct display_entity_match *entities;
++	struct list_head waiting;
++	struct list_head done;
++	struct list_head list;
++
++	int (*bound)(struct display_entity_notifier *notifier,
++		     struct display_entity *entity,
++		     struct display_entity_match *match);
++	int (*complete)(struct display_entity_notifier *notifier);
++	void (*unbind)(struct display_entity_notifier *notifier,
++		       struct display_entity *entity,
++		       struct display_entity_match *match);
++};
++
++int display_entity_register_notifier(struct display_entity_notifier *notifier);
++void display_entity_unregister_notifier(struct display_entity_notifier *notifier);
++
++int display_entity_add(struct display_entity *entity);
++void display_entity_remove(struct display_entity *entity);
++
+ #endif /* __DISPLAY_H__ */
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.5
 
