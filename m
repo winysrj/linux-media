@@ -1,162 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:42462 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707Ab3HSNjU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 09:39:20 -0400
-Date: Mon, 19 Aug 2013 14:39:07 +0100
-From: Mark Rutland <mark.rutland@arm.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Subject: Re: [PATCH RFC v5] s5k5baf: add camera sensor driver
-Message-ID: <20130819133907.GN3719@e106331-lin.cambridge.arm.com>
-References: <1376918307-21490-1-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1376918307-21490-1-git-send-email-a.hajda@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54860 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031447Ab3HIXCW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:22 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH/RFC v3 01/19] OMAPDSS: panels: Rename Kconfig options to OMAP2_DISPLAY_*
+Date: Sat, 10 Aug 2013 01:03:00 +0200
+Message-Id: <1376089398-13322-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 19, 2013 at 02:18:27PM +0100, Andrzej Hajda wrote:
-> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
-> with embedded SoC ISP.
-> The driver exposes the sensor as two V4L2 subdevices:
-> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
->   no controls.
-> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
->   pre/post ISP cropping, downscaling via selection API, controls.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> v5
-> - removed non-standard samsung hflip/vflip device tree bindings
-> 
-> v4
-> - GPL changed to GPLv2,
-> - bitfields replaced by u8,
-> - cosmetic changes,
-> - corrected s_stream flow,
-> - gpio pins are no longer exported,
-> - added I2C addresses to subdev names,
-> - CIS subdev registration postponed after
->   succesfull HW initialization,
-> - added enums for pads,
-> - selections are initialized only during probe,
-> - default resolution changed to 1600x1200,
-> - state->error pattern removed from few other functions,
-> - entity link creation moved to registered callback.
-> 
-> v3:
-> - narrowed state->error usage to i2c and power errors,
-> - private gain controls replaced by red/blue balance user controls,
-> - added checks to devicetree gpio node parsing
-> 
-> v2:
-> - lower-cased driver name,
-> - removed underscore from regulator names,
-> - removed platform data code,
-> - v4l controls grouped in anonymous structs,
-> - added s5k5baf_clear_error function,
-> - private controls definitions moved to uapi header file,
-> - added v4l2-controls.h reservation for private controls,
-> - corrected subdev registered/unregistered code,
-> - .log_status sudbev op set to v4l2 helper,
-> - moved entity link creation to probe routines,
-> - added cleanup on error to probe function.
-> ---
->  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   51 +
->  MAINTAINERS                                        |    7 +
->  drivers/media/i2c/Kconfig                          |    7 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/s5k5baf.c                        | 1980 ++++++++++++++++++++
->  5 files changed, 2046 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
->  create mode 100644 drivers/media/i2c/s5k5baf.c
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-> new file mode 100644
-> index 0000000..b1f2fde
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-> @@ -0,0 +1,51 @@
-> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC ISP
-> +-------------------------------------------------------------
-> +
-> +Required properties:
-> +
-> +- compatible     : "samsung,s5k5baf";
-> +- reg            : I2C slave address of the sensor;
-> +- vdda-supply    : analog power supply 2.8V (2.6V to 3.0V);
-> +- vddreg-supply          : regulator input power supply 1.8V (1.7V to 1.9V)
-> +                    or 2.8V (2.6V to 3.0);
-> +- vddio-supply   : I/O power supply 1.8V (1.65V to 1.95V)
-> +                    or 2.8V (2.5V to 3.1V);
-> +- gpios                  : GPIOs connected to STDBYN and RSTN pins,
-> +                    in order: STBYN, RSTN;
-> +- clock-frequency : master clock frequency in Hz;
+The DISPLAY_ prefix will clash with the Common Display Framework, rename
+it.
 
-Why is this necessary? Could you not just require having a clocks
-property? You could then get equivalent functionality to the
-clock-frequency property by having a fixed-clock node if you don't ahve
-a real clock specifier to wire up.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/video/omap2/displays-new/Kconfig  | 24 ++++++++++++------------
+ drivers/video/omap2/displays-new/Makefile | 24 ++++++++++++------------
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-> +
-> +Optional properties:
-> +
-> +- clocks         : contains the sensor's master clock specifier;
-> +- clock-names    : contains "mclk" entry;
-> +
-> +The device node should contain one 'port' child node with one child 'endpoint'
-> +node, according to the bindings defined in Documentation/devicetree/bindings/
-> +media/video-interfaces.txt. The following are properties specific to those nodes.
-> +
-> +endpoint node
-> +-------------
-> +
-> +- data-lanes     : (optional) an array specifying active physical MIPI-CSI2
-> +                   data output lanes and their mapping to logical lanes; the
-> +                   array's content is unused, only its length is meaningful;
+diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
+index 6c90885..2a44b41 100644
+--- a/drivers/video/omap2/displays-new/Kconfig
++++ b/drivers/video/omap2/displays-new/Kconfig
+@@ -1,68 +1,68 @@
+ menu "OMAP Display Device Drivers (new device model)"
+         depends on OMAP2_DSS
+ 
+-config DISPLAY_ENCODER_TFP410
++config OMAP2_DISPLAY_ENCODER_TFP410
+         tristate "TFP410 DPI to DVI Encoder"
+ 	help
+ 	  Driver for TFP410 DPI to DVI encoder.
+ 
+-config DISPLAY_ENCODER_TPD12S015
++config OMAP2_DISPLAY_ENCODER_TPD12S015
+         tristate "TPD12S015 HDMI ESD protection and level shifter"
+ 	help
+ 	  Driver for TPD12S015, which offers HDMI ESD protection and level
+ 	  shifting.
+ 
+-config DISPLAY_CONNECTOR_DVI
++config OMAP2_DISPLAY_CONNECTOR_DVI
+         tristate "DVI Connector"
+ 	depends on I2C
+ 	help
+ 	  Driver for a generic DVI connector.
+ 
+-config DISPLAY_CONNECTOR_HDMI
++config OMAP2_DISPLAY_CONNECTOR_HDMI
+         tristate "HDMI Connector"
+ 	help
+ 	  Driver for a generic HDMI connector.
+ 
+-config DISPLAY_CONNECTOR_ANALOG_TV
++config OMAP2_DISPLAY_CONNECTOR_ANALOG_TV
+         tristate "Analog TV Connector"
+ 	help
+ 	  Driver for a generic analog TV connector.
+ 
+-config DISPLAY_PANEL_DPI
++config OMAP2_DISPLAY_PANEL_DPI
+ 	tristate "Generic DPI panel"
+ 	help
+ 	  Driver for generic DPI panels.
+ 
+-config DISPLAY_PANEL_DSI_CM
++config OMAP2_DISPLAY_PANEL_DSI_CM
+ 	tristate "Generic DSI Command Mode Panel"
+ 	help
+ 	  Driver for generic DSI command mode panels.
+ 
+-config DISPLAY_PANEL_SONY_ACX565AKM
++config OMAP2_DISPLAY_PANEL_SONY_ACX565AKM
+ 	tristate "ACX565AKM Panel"
+ 	depends on SPI && BACKLIGHT_CLASS_DEVICE
+ 	help
+ 	  This is the LCD panel used on Nokia N900
+ 
+-config DISPLAY_PANEL_LGPHILIPS_LB035Q02
++config OMAP2_DISPLAY_PANEL_LGPHILIPS_LB035Q02
+ 	tristate "LG.Philips LB035Q02 LCD Panel"
+ 	depends on SPI
+ 	help
+ 	  LCD Panel used on the Gumstix Overo Palo35
+ 
+-config DISPLAY_PANEL_SHARP_LS037V7DW01
++config OMAP2_DISPLAY_PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on BACKLIGHT_CLASS_DEVICE
+         help
+           LCD Panel used in TI's SDP3430 and EVM boards
+ 
+-config DISPLAY_PANEL_TPO_TD043MTEA1
++config OMAP2_DISPLAY_PANEL_TPO_TD043MTEA1
+         tristate "TPO TD043MTEA1 LCD Panel"
+         depends on SPI
+         help
+           LCD Panel used in OMAP3 Pandora
+ 
+-config DISPLAY_PANEL_NEC_NL8048HL11
++config OMAP2_DISPLAY_PANEL_NEC_NL8048HL11
+ 	tristate "NEC NL8048HL11 Panel"
+ 	depends on SPI
+ 	depends on BACKLIGHT_CLASS_DEVICE
+diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
+index 5aeb11b..768ad94 100644
+--- a/drivers/video/omap2/displays-new/Makefile
++++ b/drivers/video/omap2/displays-new/Makefile
+@@ -1,12 +1,12 @@
+-obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
+-obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
+-obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
+-obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
+-obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
+-obj-$(CONFIG_DISPLAY_PANEL_DPI) += panel-dpi.o
+-obj-$(CONFIG_DISPLAY_PANEL_DSI_CM) += panel-dsi-cm.o
+-obj-$(CONFIG_DISPLAY_PANEL_SONY_ACX565AKM) += panel-sony-acx565akm.o
+-obj-$(CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
+-obj-$(CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+-obj-$(CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
+-obj-$(CONFIG_DISPLAY_PANEL_NEC_NL8048HL11) += panel-nec-nl8048hl11.o
++obj-$(CONFIG_OMAP2_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
++obj-$(CONFIG_OMAP2_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
++obj-$(CONFIG_OMAP2_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
++obj-$(CONFIG_OMAP2_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
++obj-$(CONFIG_OMAP2_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_DPI) += panel-dpi.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_DSI_CM) += panel-dsi-cm.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_SONY_ACX565AKM) += panel-sony-acx565akm.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
++obj-$(CONFIG_OMAP2_DISPLAY_PANEL_NEC_NL8048HL11) += panel-nec-nl8048hl11.o
+-- 
+1.8.1.5
 
-Is that a property of the driver, or does the design of the hardware
-mean that this can never encode useful information?
-
-What does the length of the property imply?
-
-> +
-> +Example:
-> +
-> +s5k5bafx@2d {
-> +       compatible = "samsung,s5k5baf";
-> +       reg = <0x2d>;
-> +       vdda-supply = <&cam_io_en_reg>;
-> +       vddreg-supply = <&vt_core_15v_reg>;
-> +       vddio-supply = <&vtcam_reg>;
-> +       gpios = <&gpl2 0 1>,
-> +               <&gpl2 1 1>;
-> +       clock-frequency = <24000000>;
-> +
-> +       port {
-> +               s5k5bafx_ep: endpoint {
-> +                       remote-endpoint = <&csis1_ep>;
-> +                       data-lanes = <1>;
-> +               };
-> +       };
-> +};
-
-Thanks,
-Mark.
