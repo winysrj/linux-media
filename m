@@ -1,181 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:32083 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026Ab3HZOcJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Aug 2013 10:32:09 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MS500GGI6VVSD40@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 26 Aug 2013 10:32:07 -0400 (EDT)
-Date: Mon, 26 Aug 2013 11:32:01 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2] videobuf2-core: Verify planes lengths for output buffers
-Message-id: <20130826113201.5384bb49@samsung.com>
-In-reply-to: <521B5E54.7030101@samsung.com>
-References: <1350401832-22186-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <2162328.PEQByhq36m@avalon> <52038BA6.9000409@samsung.com>
- <4398539.RWQLsyW34a@avalon> <521B5E54.7030101@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:24357 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966169Ab3HIMMb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:31 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: baard.e.winther@wintherstormer.no
+Subject: [PATCH FINAL 1/6] qv4l2: change m_scaledFrame to m_scaledSize
+Date: Fri,  9 Aug 2013 14:12:07 +0200
+Message-Id: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Aug 2013 15:55:32 +0200
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/capture-win-qt.cpp | 12 ++++++------
+ utils/qv4l2/capture-win-qt.h   |  2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-> Hi All,
-> 
-> On 08/08/2013 02:35 PM, Laurent Pinchart wrote:
-> > Hi Marek,
-> > 
-> > On Thursday 08 August 2013 14:14:30 Marek Szyprowski wrote:
-> >> On 8/7/2013 12:44 PM, Laurent Pinchart wrote:
-> >>> On Monday 12 November 2012 12:35:35 Laurent Pinchart wrote:
-> >>>> On Friday 09 November 2012 15:33:22 Pawel Osciak wrote:
-> >>>>> On Tue, Oct 16, 2012 at 8:37 AM, Laurent Pinchart wrote:
-> >>>>>> For output buffers application provide to the kernel the number of
-> >>>>>> bytes they stored in each plane of the buffer. Verify that the value
-> >>>>>> is smaller than or equal to the plane length.
-> >>>>>>
-> >>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>>> ---
-> >>>>>
-> >>>>> Acked-by: Pawel Osciak <pawel@osciak.com>
-> >>>>
-> >>>> You're listed, as well as Marek and Kyungmin, as videobuf2 maintainers.
-> >>>> When you ack a videobuf2 patch, should we assume that you will take it
-> >>>> in your git tree ?
-> >>>
-> >>> Ping ? I'd like to get this patch in v3.12, should I send a pull request ?
-> >>
-> >> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >>
-> >> Feel free to include it in your pull-request. I'm sorry for so huge
-> >> delay in my response.
-> > 
-> > No worries. I'll send a pull request to Mauro.
-> > 
-> >>>>>>  drivers/media/v4l2-core/videobuf2-core.c |   39 +++++++++++++++++++
-> >>>>>>  1 files changed, 39 insertions(+), 0 deletions(-)
-> >>>>>>
-> >>>>>> Changes compared to v1:
-> >>>>>>
-> >>>>>> - Sanity check the data_offset value for each plane.
-> >>>>>>
-> >>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>>> b/drivers/media/v4l2-core/videobuf2-core.c index 432df11..479337d
-> >>>>>> 100644
-> >>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>>> @@ -296,6 +296,41 @@ static int __verify_planes_array(struct
-> >>>>>> vb2_buffer
-> >>>>>> *vb, const struct v4l2_buffer>
-> >>>>>>
-> >>>>>>  }
-> >>>>>>  
-> >>>>>>  /**
-> >>>>>>
-> >>>>>> + * __verify_length() - Verify that the bytesused value for each
-> >>>>>> plane
-> >>>>>> fits in
-> >>>>>> + * the plane length and that the data offset doesn't exceed the
-> >>>>>> bytesused value.
-> >>>>>> + */
-> >>>>>> +static int __verify_length(struct vb2_buffer *vb, const struct
-> >>>>>> v4l2_buffer *b)
-> >>>>>> +{
-> >>>>>> +       unsigned int length;
-> >>>>>> +       unsigned int plane;
-> >>>>>> +
-> >>>>>> +       if (!V4L2_TYPE_IS_OUTPUT(b->type))
-> >>>>>> +               return 0;
-> >>>>>> +
-> >>>>>> +       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> >>>>>> +               for (plane = 0; plane < vb->num_planes; ++plane) {
-> >>>>>> +                       length = (b->memory == V4L2_MEMORY_USERPTR)
-> >>>>>> +                              ? b->m.planes[plane].length
-> >>>>>> +                              : vb->v4l2_planes[plane].length;
-> >>>>>> +
-> >>>>>> +                       if (b->m.planes[plane].bytesused > length)
-> >>>>>> +                               return -EINVAL;
-> >>>>>> +                       if (b->m.planes[plane].data_offset >=
-> >>>>>> +                           b->m.planes[plane].bytesused)
-> >>>>>> +                               return -EINVAL;
-> 
-> 
-> This patch causes regressions. After kernel upgrade applications that
-> zero the planes array and don't set bytesused will stop working.
-> We could say that these are buggy applications, but if it has been 
-> allowed for several kernel releases failing VIDIOC_QBUF on this check
-> now is plainly a regression IMO. I guess Linus wouldn't be happy about
-> a change like this.
-> 
-> With this patch it is no longer possible to queue a buffer with bytesused 
-> set to 0. I think it shouldn't be disallowed to queue a buffer with no 
-> data to be used. So the check should likely be instead:
-> 
->  if (b->m.planes[plane].bytesused > 0 &&
->      b->m.planes[plane].data_offset >=
->      b->m.planes[plane].bytesused)
-> 	return -EINVAL;
-> 
-> Sorry for the late review of this.
-
-Makes sense. Could you please send such patch?
-
-Regards,
-Mauro
-> 
-> >>>>>> +               }
-> >>>>>> +       } else {
-> >>>>>> +               length = (b->memory == V4L2_MEMORY_USERPTR)
-> >>>>>> +                      ? b->length : vb->v4l2_planes[0].length;
-> >>>>>> +
-> >>>>>> +               if (b->bytesused > length)
-> >>>>>> +                       return -EINVAL;
-> >>>>>> +       }
-> >>>>>> +
-> >>>>>> +       return 0;
-> >>>>>> +}
-> >>>>>> +
-> >>>>>> +/**
-> >>>>>>
-> >>>>>>   * __buffer_in_use() - return true if the buffer is in use and
-> >>>>>>   * the queue cannot be freed (by the means of REQBUFS(0)) call
-> >>>>>>   */
-> >>>>>>
-> >>>>>> @@ -975,6 +1010,10 @@ static int __buf_prepare(struct vb2_buffer
-> >>>>>> *vb,
-> >>>>>> const struct v4l2_buffer *b)>
-> >>>>>>
-> >>>>>>         struct vb2_queue *q = vb->vb2_queue;
-> >>>>>>         int ret;
-> >>>>>>
-> >>>>>> +       ret = __verify_length(vb, b);
-> >>>>>> +       if (ret < 0)
-> >>>>>> +               return ret;
-> >>>>>> +
-> >>>>>>
-> >>>>>>         switch (q->memory) {
-> >>>>>>         
-> >>>>>>         case V4L2_MEMORY_MMAP:
-> >>>>>>                 ret = __qbuf_mmap(vb, b);
-> > 
-> 
-> Regards,
-
-
+diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
+index f746379..82c618c 100644
+--- a/utils/qv4l2/capture-win-qt.cpp
++++ b/utils/qv4l2/capture-win-qt.cpp
+@@ -24,8 +24,8 @@ CaptureWinQt::CaptureWinQt() :
+ {
+ 
+ 	CaptureWin::buildWindow(&m_videoSurface);
+-	m_scaledFrame.setWidth(0);
+-	m_scaledFrame.setHeight(0);
++	m_scaledSize.setWidth(0);
++	m_scaledSize.setHeight(0);
+ }
+ 
+ CaptureWinQt::~CaptureWinQt()
+@@ -39,9 +39,9 @@ void CaptureWinQt::resizeEvent(QResizeEvent *event)
+ 		return;
+ 
+ 	QPixmap img = QPixmap::fromImage(*m_frame);
+-	m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++	m_scaledSize = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
+ 				       QSize(m_frame->width(), m_frame->height()));
+-	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++	img = img.scaled(m_scaledSize.width(), m_scaledSize.height(), Qt::IgnoreAspectRatio);
+ 	m_videoSurface.setPixmap(img);
+ 	QWidget::resizeEvent(event);
+ }
+@@ -56,7 +56,7 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 	if (m_frame->width() != width || m_frame->height() != height || m_frame->format() != dstFmt) {
+ 		delete m_frame;
+ 		m_frame = new QImage(width, height, dstFmt);
+-		m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
++		m_scaledSize = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
+ 					       QSize(m_frame->width(), m_frame->height()));
+ 	}
+ 
+@@ -68,7 +68,7 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
+ 	m_information.setText(info);
+ 
+ 	QPixmap img = QPixmap::fromImage(*m_frame);
+-	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
++	img = img.scaled(m_scaledSize.width(), m_scaledSize.height(), Qt::IgnoreAspectRatio);
+ 
+ 	m_videoSurface.setPixmap(img);
+ }
+diff --git a/utils/qv4l2/capture-win-qt.h b/utils/qv4l2/capture-win-qt.h
+index 6029109..9faa12f 100644
+--- a/utils/qv4l2/capture-win-qt.h
++++ b/utils/qv4l2/capture-win-qt.h
+@@ -48,6 +48,6 @@ private:
+ 
+ 	QImage *m_frame;
+ 	QLabel m_videoSurface;
+-	QSize m_scaledFrame;
++	QSize m_scaledSize;
+ };
+ #endif
 -- 
+1.8.4.rc1
 
-Cheers,
-Mauro
