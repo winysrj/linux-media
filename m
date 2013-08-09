@@ -1,81 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53613 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753512Ab3H1NmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:42:11 -0400
-Date: Wed, 28 Aug 2013 15:42:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] V4L2: add a v4l2-clk helper macro to produce an I2C
- device ID
-In-Reply-To: <14364379.DScLfzIeAP@avalon>
-Message-ID: <Pine.LNX.4.64.1308281540530.22743@axis700.grange>
-References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
- <1377696508-3190-3-git-send-email-g.liakhovetski@gmx.de> <14364379.DScLfzIeAP@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54864 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031468Ab3HIXCc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:32 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH/RFC v3 16/19] ARM: shmobile: marzen: Port DU platform data to CDF
+Date: Sat, 10 Aug 2013 01:03:15 +0200
+Message-Id: <1376089398-13322-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Aug 2013, Laurent Pinchart wrote:
-
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 28 August 2013 15:28:27 Guennadi Liakhovetski wrote:
-> > To obtain a clock reference consumers supply their device object to the
-> > V4L2 clock framework. The latter then uses the consumer device name to
-> > find a matching clock. For that to work V4L2 clock providers have to
-> > provide the same device name, when registering clocks. This patch adds
-> > a helper macro to generate a suitable device name for I2C devices.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > V4L2 clocks use device ID matching, which in case of I2C devices involves
-> > comparing a specially constructed from an I2C adapter number and a device
-> > address
-> 
-> Is this text placed below the SoB on purpose ?
-
-Errm, it should have been deleted :) sorry.
-
-Thanks
-Guennadi
-
-> 
-> > ---
-> >  include/media/v4l2-clk.h |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-> > index a354a9d..0b36cc1 100644
-> > --- a/include/media/v4l2-clk.h
-> > +++ b/include/media/v4l2-clk.h
-> > @@ -65,4 +65,7 @@ static inline struct v4l2_clk
-> > *v4l2_clk_register_fixed(const char *dev_id, return
-> > __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE); }
-> > 
-> > +#define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
-> > +			  "%d-%04x", adap, client)
-> > +
-> 
-> I would have made this a static inline but I have to confess I don't know why 
-> :-)
-> 
-> >  #endif
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ arch/arm/mach-shmobile/board-marzen.c | 77 ++++++++++++++++++++++++-----------
+ 1 file changed, 53 insertions(+), 24 deletions(-)
+
+diff --git a/arch/arm/mach-shmobile/board-marzen.c b/arch/arm/mach-shmobile/board-marzen.c
+index 6499f1a..be1b7cb 100644
+--- a/arch/arm/mach-shmobile/board-marzen.c
++++ b/arch/arm/mach-shmobile/board-marzen.c
+@@ -39,6 +39,8 @@
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/sh_mobile_sdhi.h>
+ #include <linux/mfd/tmio.h>
++#include <video/panel-dpi.h>
++#include <video/videomode.h>
+ #include <mach/r8a7779.h>
+ #include <mach/common.h>
+ #include <mach/irqs.h>
+@@ -174,35 +176,56 @@ static struct platform_device hspi_device = {
+  * The panel only specifies the [hv]display and [hv]total values. The position
+  * and width of the sync pulses don't matter, they're copied from VESA timings.
+  */
+-static struct rcar_du_encoder_data du_encoders[] = {
++static const struct videomode marzen_panel_mode = {
++	.pixelclock = 65000000,
++	.hactive = 1024,
++	.hfront_porch = 24,
++	.hback_porch = 160,
++	.hsync_len = 136,
++	.vactive = 768,
++	.vfront_porch = 3,
++	.vback_porch = 29,
++	.vsync_len = 6,
++	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW,
++};
++
++static const struct panel_dpi_platform_data marzen_panel_data = {
++	.width = 210,
++	.height = 158,
++	.mode = &marzen_panel_mode,
++};
++
++static const struct display_entity_graph_data marzen_du_entities[] = {
+ 	{
+-		.type = RCAR_DU_ENCODER_VGA,
+-		.output = RCAR_DU_OUTPUT_DPAD0,
++		.name = "adv7123",
++		.sources = (const struct display_entity_source_data[]) {
++			{
++				.name = "rcar-du",
++				.port = 0,
++			},
++		},
+ 	}, {
+-		.type = RCAR_DU_ENCODER_LVDS,
+-		.output = RCAR_DU_OUTPUT_DPAD1,
+-		.connector.lvds.panel = {
+-			.width_mm = 210,
+-			.height_mm = 158,
+-			.mode = {
+-				.clock = 65000,
+-				.hdisplay = 1024,
+-				.hsync_start = 1048,
+-				.hsync_end = 1184,
+-				.htotal = 1344,
+-				.vdisplay = 768,
+-				.vsync_start = 771,
+-				.vsync_end = 777,
+-				.vtotal = 806,
+-				.flags = 0,
++		.name = "con-vga",
++		.sources = (const struct display_entity_source_data[]) {
++			{
++				.name = "adv7123",
++				.port = 1,
+ 			},
+ 		},
++	}, {
++		.name = "panel-dpi",
++		.sources = (const struct display_entity_source_data[]) {
++			{
++				.name = "rcar-du",
++				.port = 1,
++			},
++		},
++	}, {
+ 	},
+ };
+ 
+-static const struct rcar_du_platform_data du_pdata __initconst = {
+-	.encoders = du_encoders,
+-	.num_encoders = ARRAY_SIZE(du_encoders),
++static const struct rcar_du_platform_data marzen_du_pdata __initconst = {
++	.graph = marzen_du_entities,
+ };
+ 
+ static const struct resource du_resources[] __initconst = {
+@@ -217,8 +240,8 @@ static void __init marzen_add_du_device(void)
+ 		.id = -1,
+ 		.res = du_resources,
+ 		.num_res = ARRAY_SIZE(du_resources),
+-		.data = &du_pdata,
+-		.size_data = sizeof(du_pdata),
++		.data = &marzen_du_pdata,
++		.size_data = sizeof(marzen_du_pdata),
+ 		.dma_mask = DMA_BIT_MASK(32),
+ 	};
+ 
+@@ -327,6 +350,12 @@ static void __init marzen_init(void)
+ 	r8a7779_add_standard_devices();
+ 	platform_add_devices(marzen_devices, ARRAY_SIZE(marzen_devices));
+ 	marzen_add_du_device();
++
++	platform_device_register_simple("adv7123", -1, NULL, 0);
++	platform_device_register_simple("con-vga", -1, NULL, 0);
++	platform_device_register_data(&platform_bus, "panel-dpi", -1,
++				      &marzen_panel_data,
++				      sizeof(marzen_panel_data));
+ }
+ 
+ static const char *marzen_boards_compat_dt[] __initdata = {
+-- 
+1.8.1.5
+
