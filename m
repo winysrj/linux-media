@@ -1,162 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:32970 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753985Ab3HQQbW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Aug 2013 12:31:22 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v1 37/49] media: usb: cx231xx: prepare for enabling irq in complete()
-Date: Sun, 18 Aug 2013 00:25:02 +0800
-Message-Id: <1376756714-25479-38-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
-References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:48930 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934068Ab3HIQD6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 12:03:58 -0400
+Received: by mail-ob0-f182.google.com with SMTP id wo10so6633362obc.13
+        for <linux-media@vger.kernel.org>; Fri, 09 Aug 2013 09:03:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPybu_2nzJ5YmjzMViK+bnChKdNT_XvP3KPz5JARTbQPKQugjA@mail.gmail.com>
+References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1375483372-4354-3-git-send-email-ricardo.ribalda@gmail.com>
+ <51FD32F5.40200@googlemail.com> <CAPybu_2nzJ5YmjzMViK+bnChKdNT_XvP3KPz5JARTbQPKQugjA@mail.gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 9 Aug 2013 18:03:37 +0200
+Message-ID: <CAPybu_3mE16EeEuUvbimZr2Z2a0cNfPGpWYAZ2_qHPptqXQppQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] libv4lconvert: Support for RGB32 and BGR32 format
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+ping?
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/media/usb/cx231xx/cx231xx-audio.c |   10 ++++++----
- drivers/media/usb/cx231xx/cx231xx-core.c  |   10 ++++++----
- drivers/media/usb/cx231xx/cx231xx-vbi.c   |    5 +++--
- 3 files changed, 15 insertions(+), 10 deletions(-)
+On Sun, Aug 4, 2013 at 10:05 AM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> Hello Gregor
+>
+> Thanks for your comments. I have replied inline.
+>
+> On Sat, Aug 3, 2013 at 6:42 PM, Gregor Jasny <gjasny@googlemail.com> wrote:
+>> On 8/3/13 12:42 AM, Ricardo Ribalda Delgado wrote:
+>>>
+>>> +       case V4L2_PIX_FMT_RGB32:
+>>> +               switch (dest_pix_fmt) {
+>>> +               case V4L2_PIX_FMT_RGB24:
+>>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
+>>> height, 0);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_BGR24:
+>>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
+>>> height, 1);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_YUV420:
+>>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0,
+>>> 4);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_YVU420:
+>>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1,
+>>> 4);
+>>> +                       break;
+>>> +               }
+>>> +               if (src_size < (width * height * 4)) {
+>>> +                       V4LCONVERT_ERR("short rgb32 data frame\n");
+>>> +                       errno = EPIPE;
+>>> +                       result = -1;
+>>> +               }
+>>> +               break;
+>>
+>>
+>> I have not looked at the whole function but shouldn't this sanity check
+>> happen before the actual work?
+>
+> Yes, but it is how it is done in the whole library with all the
+> formats. Please grep for "short " on libv4lconvert.c
+>
+>> Also aren't you applying the condition here
+>> also for rgb24_to_xxx which should have only three bpp?
+>>
+>
+> I have modified the function rgb24_to_yuv420 to support other bytes per pixel.
+>
+>>
+>>> +       case V4L2_PIX_FMT_BGR32:
+>>> +               switch (dest_pix_fmt) {
+>>> +               case V4L2_PIX_FMT_RGB24:
+>>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
+>>> height, 1);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_BGR24:
+>>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
+>>> height, 0);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_YUV420:
+>>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0,
+>>> 4);
+>>> +                       break;
+>>> +               case V4L2_PIX_FMT_YVU420:
+>>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1,
+>>> 4);
+>>> +                       break;
+>>> +               }
+>>> +               if (src_size < (width * height * 4)) {
+>>> +                       V4LCONVERT_ERR("short bgr32 data frame\n");
+>>> +                       errno = EPIPE;
+>>> +                       result = -1;
+>>> +               }
+>>> +               break;
+>>
+>>
+>> Same here. And also in the other patch.
+>>
+>>
+>
+> Thanks again
+>
+> --
+> Ricardo Ribalda
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
-index 81a1d97..f6fa0af 100644
---- a/drivers/media/usb/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
-@@ -136,6 +136,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 		stride = runtime->frame_bits >> 3;
- 
- 		for (i = 0; i < urb->number_of_packets; i++) {
-+			unsigned long flags;
- 			int length = urb->iso_frame_desc[i].actual_length /
- 				     stride;
- 			cp = (unsigned char *)urb->transfer_buffer +
-@@ -158,7 +159,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 				       length * stride);
- 			}
- 
--			snd_pcm_stream_lock(substream);
-+			snd_pcm_stream_lock_irqsave(substream, flags);
- 
- 			dev->adev.hwptr_done_capture += length;
- 			if (dev->adev.hwptr_done_capture >=
-@@ -173,7 +174,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 						runtime->period_size;
- 				period_elapsed = 1;
- 			}
--			snd_pcm_stream_unlock(substream);
-+			snd_pcm_stream_unlock_irqrestore(substream, flags);
- 		}
- 		if (period_elapsed)
- 			snd_pcm_period_elapsed(substream);
-@@ -224,6 +225,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 		stride = runtime->frame_bits >> 3;
- 
- 		if (1) {
-+			unsigned long flags;
- 			int length = urb->actual_length /
- 				     stride;
- 			cp = (unsigned char *)urb->transfer_buffer;
-@@ -242,7 +244,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 				       length * stride);
- 			}
- 
--			snd_pcm_stream_lock(substream);
-+			snd_pcm_stream_lock_irqsave(substream, flags);
- 
- 			dev->adev.hwptr_done_capture += length;
- 			if (dev->adev.hwptr_done_capture >=
-@@ -257,7 +259,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 						runtime->period_size;
- 				period_elapsed = 1;
- 			}
--			snd_pcm_stream_unlock(substream);
-+			snd_pcm_stream_unlock_irqrestore(substream,flags);
- 		}
- 		if (period_elapsed)
- 			snd_pcm_period_elapsed(substream);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 4ba3ce0..593b397 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -798,6 +798,7 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
- 	int i;
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -813,9 +814,9 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->video_mode.slock);
-+	spin_lock_irqsave(&dev->video_mode.slock, flags);
- 	dev->video_mode.isoc_ctl.isoc_copy(dev, urb);
--	spin_unlock(&dev->video_mode.slock);
-+	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
- 
- 	/* Reset urb buffers */
- 	for (i = 0; i < urb->number_of_packets; i++) {
-@@ -842,6 +843,7 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
- 	struct cx231xx_video_mode *vmode =
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -857,9 +859,9 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->video_mode.slock);
-+	spin_lock_irqsave(&dev->video_mode.slock, flags);
- 	dev->video_mode.bulk_ctl.bulk_copy(dev, urb);
--	spin_unlock(&dev->video_mode.slock);
-+	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
- 
- 	/* Reset urb buffers */
- 	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-index c027942..38e78f8 100644
---- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-@@ -306,6 +306,7 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
- 	struct cx231xx_video_mode *vmode =
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -322,9 +323,9 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->vbi_mode.slock);
-+	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
- 	dev->vbi_mode.bulk_ctl.bulk_copy(dev, urb);
--	spin_unlock(&dev->vbi_mode.slock);
-+	spin_unlock_irqrestore(&dev->vbi_mode.slock, flags);
- 
- 	/* Reset status */
- 	urb->status = 0;
+
+
 -- 
-1.7.9.5
-
+Ricardo Ribalda
