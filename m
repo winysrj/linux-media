@@ -1,86 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:64589 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab3HUIaA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 04:30:00 -0400
-From: Dinesh Ram <dinram@cisco.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:48114 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966169Ab3HIMM3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:29 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: eduardo.valentin@nokia.com, Dinesh Ram <dinram@cisco.com>
-Subject: [RFC PATCH 3/5] si4713 : Bug fix for si4713_tx_tune_power() method in the i2c driver
-Date: Wed, 21 Aug 2013 10:19:49 +0200
-Message-Id: <07f5f50bcdb5362cf845c974690b0ea927a94d57.1377073025.git.dinram@cisco.com>
-In-Reply-To: <1377073191-29197-1-git-send-email-dinram@cisco.com>
-References: <1377073191-29197-1-git-send-email-dinram@cisco.com>
-In-Reply-To: <714c16de2d45c2ccfc2fc94b2770bbd00bfeb977.1377073025.git.dinram@cisco.com>
-References: <714c16de2d45c2ccfc2fc94b2770bbd00bfeb977.1377073025.git.dinram@cisco.com>
+Cc: baard.e.winther@wintherstormer.no
+Subject: [PATCH FINAL 0/6] qv4l2: cropping, optimization and documentatio
+Date: Fri,  9 Aug 2013 14:12:06 +0200
+Message-Id: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the si4713_tx_tune_power() method, the args array element 'power' can take values between
-SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0 is also valid.
-All the values (0 > power < SI4713_MIN_POWER) are illegal and hence
-are all mapped to SI4713_MIN_POWER.
+qv4l2:
 
-Signed-off-by: Dinesh Ram <dinram@cisco.com>
----
- drivers/media/radio/si4713/si4713.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+Add cropping to the CaptureWin. In order to make the Qt renderer work with
+this as well, it had to be optimized to not lose framerate.
+A basic manpage is added along width fixing the input parameters.
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index c7fa896..4766467 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -550,14 +550,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
- }
- 
- /*
-- * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
-+ * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
-  * 			1 dB units. A value of 0x00 indicates off. The command
-  * 			also sets the antenna tuning capacitance. A value of 0
-  * 			indicates autotuning, and a value of 1 - 191 indicates
-  * 			a manual override, which results in a tuning
-  * 			capacitance of 0.25 pF x @antcap.
-  * @sdev: si4713_device structure for the device we are communicating
-- * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
-+ * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
-  * @antcap: value of antenna tuning capacitor (0 - 191)
-  */
- static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
-@@ -571,16 +571,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
- 	 * 	.Third byte = power
- 	 * 	.Fourth byte = antcap
- 	 */
--	const u8 args[SI4713_TXPWR_NARGS] = {
-+	u8 args[SI4713_TXPWR_NARGS] = {
- 		0x00,
- 		0x00,
- 		power,
- 		antcap,
- 	};
- 
--	if (((power > 0) && (power < SI4713_MIN_POWER)) ||
--		power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
--		return -EDOM;
-+	/* Map power values 1-87 to MIN_POWER (88) */
-+	if (power > 0 && power < SI4713_MIN_POWER)
-+		args[2] = power = SI4713_MIN_POWER;
- 
- 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
- 				  args, ARRAY_SIZE(args), val,
-@@ -1457,9 +1457,9 @@ static int si4713_probe(struct i2c_client *client,
- 			V4L2_CID_TUNE_PREEMPHASIS,
- 			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
- 	sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
--			V4L2_CID_TUNE_POWER_LEVEL, 0, 120, 1, DEFAULT_POWER_LEVEL);
-+			V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
- 	sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
--			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, 191, 1, 0);
-+			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
- 
- 	if (hdl->error) {
- 		rval = hdl->error;
--- 
-1.8.4.rc2
+New Features/Improvements:
+- Add cropping to CaptureWin
+- Qt renderer has been optimized (no longer uses memcpy!)
+- Add a basic manpage
+- About window shows version number and ALSA/OpenGL support
+- Fix program parameters
+- Fix status hints for some missing GeneralTab elements
+- Code cleanup and fixes
 
