@@ -1,79 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:33996 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966631Ab3HIMMf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:35 -0400
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: baard.e.winther@wintherstormer.no
-Subject: [PATCH FINAL 3/6] qv4l2: fix missing status tips
-Date: Fri,  9 Aug 2013 14:12:09 +0200
-Message-Id: <9c2f42eb70481244a46f779b65871743be4cd791.1376049957.git.bwinther@cisco.com>
-In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
-References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
-References: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:52585 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031614Ab3HIXhK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:37:10 -0400
+Message-ID: <52057D21.1010408@gmail.com>
+Date: Sat, 10 Aug 2013 01:37:05 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v4 12/13] V4L: s5k6a3: Change sensor min/max resolutions
+References: <1375866242-18084-1-git-send-email-arun.kk@samsung.com> <1375866242-18084-13-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1375866242-18084-13-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/general-tab.cpp | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+On 08/07/2013 11:04 AM, Arun Kumar K wrote:
+> s5k6a3 sensor has actual pixel resolution of 1408x1402 against
+> the active resolution 1392x1392. The real resolution is needed
+> when raw sensor SRGB data is dumped to memory by fimc-lite.
+>
+> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+> ---
+>   drivers/media/i2c/s5k6a3.c |   21 +++++++++++++--------
+>   1 file changed, 13 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+> index ccbb4fc..6dec2ec 100644
+> --- a/drivers/media/i2c/s5k6a3.c
+> +++ b/drivers/media/i2c/s5k6a3.c
+> @@ -25,10 +25,14 @@
+>   #include<media/v4l2-async.h>
+>   #include<media/v4l2-subdev.h>
+>
+> -#define S5K6A3_SENSOR_MAX_WIDTH		1392
+> -#define S5K6A3_SENSOR_MAX_HEIGHT	1392
+> -#define S5K6A3_SENSOR_MIN_WIDTH		32
+> -#define S5K6A3_SENSOR_MIN_HEIGHT	32
+> +#define S5K6A3_SENSOR_MAX_WIDTH		1408
+> +#define S5K6A3_SENSOR_MAX_HEIGHT	1408
 
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index 3855296..cfc6bcf 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -249,7 +249,9 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		m_freq = new QLineEdit(parent);
- 		m_freq->setValidator(val);
- 		m_freq->setWhatsThis(QString("Frequency\nLow: %1\nHigh: %2")
--				.arg(m_tuner.rangelow / factor).arg(m_tuner.rangehigh / factor));
-+				     .arg(m_tuner.rangelow / factor)
-+				     .arg((double)m_tuner.rangehigh / factor, 0, 'f', 2));
-+		m_freq->setStatusTip(m_freq->whatsThis());
- 		connect(m_freq, SIGNAL(lostFocus()), SLOT(freqChanged()));
- 		connect(m_freq, SIGNAL(returnPressed()), SLOT(freqChanged()));
- 		updateFreq();
-@@ -319,7 +321,9 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		m_freq = new QLineEdit(parent);
- 		m_freq->setValidator(val);
- 		m_freq->setWhatsThis(QString("Frequency\nLow: %1\nHigh: %2")
--				.arg(m_modulator.rangelow / factor).arg(m_modulator.rangehigh / factor));
-+				     .arg(m_tuner.rangelow / factor)
-+				     .arg((double)m_tuner.rangehigh / factor, 0, 'f', 2));
-+		m_freq->setStatusTip(m_freq->whatsThis());
- 		connect(m_freq, SIGNAL(lostFocus()), SLOT(freqChanged()));
- 		connect(m_freq, SIGNAL(returnPressed()), SLOT(freqChanged()));
- 		updateFreq();
-@@ -912,6 +916,7 @@ void GeneralTab::updateAudioInput()
- 		what += ", has AVL";
- 	if (audio.mode & V4L2_AUDMODE_AVL)
- 		what += ", AVL is on";
-+	m_audioInput->setStatusTip(what);
- 	m_audioInput->setWhatsThis(what);
- }
- 
-@@ -964,6 +969,7 @@ void GeneralTab::updateStandard()
- 		(double)vs.frameperiod.numerator / vs.frameperiod.denominator,
- 		vs.frameperiod.numerator, vs.frameperiod.denominator,
- 		vs.framelines);
-+	m_tvStandard->setStatusTip(what);
- 	m_tvStandard->setWhatsThis(what);
- 	updateVidCapFormat();
- }
-@@ -1027,6 +1033,7 @@ void GeneralTab::updateTimings()
- 	what.sprintf("Video Timings (%u)\n"
- 		"Frame %ux%u\n",
- 		p.index, p.timings.bt.width, p.timings.bt.height);
-+	m_videoTimings->setStatusTip(what);
- 	m_videoTimings->setWhatsThis(what);
- 	updateVidCapFormat();
- }
+Don't you want this to be 1402 ?
+
+> +
+
+Empty line could be removed.
+
+> +#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
+> +#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
+> +
+
+Ditto.
+
+> +#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
+> +#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
+>
+>   #define S5K6A3_DEF_PIX_WIDTH		1296
+>   #define S5K6A3_DEF_PIX_HEIGHT		732
+> @@ -107,10 +111,11 @@ static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
+>
+>   	fmt = find_sensor_format(mf);
+>   	mf->code = fmt->code;
+> -	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
+> -			      S5K6A3_SENSOR_MAX_WIDTH, 0,
+> -			&mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
+> -			      S5K6A3_SENSOR_MAX_HEIGHT, 0, 0);
+> +	v4l_bound_align_image(&mf->width,
+> +			S5K6A3_SENSOR_MIN_WIDTH, S5K6A3_SENSOR_MAX_WIDTH, 0,
+> +			&mf->height,
+> +			S5K6A3_SENSOR_MIN_HEIGHT, S5K6A3_SENSOR_MAX_HEIGHT, 0,
+> +			0);
+>   }
+>
+>   static struct v4l2_mbus_framefmt *__s5k6a3_get_format(
+
+
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
 -- 
-1.8.4.rc1
-
+Thanks,
+Sylwester
