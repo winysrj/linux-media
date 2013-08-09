@@ -1,155 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:43549 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753819Ab3HVVgc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 17:36:32 -0400
-Received: by mail-la0-f45.google.com with SMTP id eh20so1913539lab.18
-        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 14:36:31 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, m.chehab@samsung.com,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54863 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031442Ab3HIXC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:27 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
 	linux-media@vger.kernel.org
-Subject: [PATCH v6 1/3] ARM: shmobile: r8a7778: add VIN support
-Date: Fri, 23 Aug 2013 01:36:36 +0400
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-References: <201308230134.26092.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201308230134.26092.sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308230136.36947.sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH/RFC v3 07/19] video: display: Add pixel coding definitions
+Date: Sat, 10 Aug 2013 01:03:06 +0200
+Message-Id: <1376089398-13322-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Pixel codings describe how pixels are transmitted on a physical bus. The
+information can be communicated between drivers to configure devices.
 
-Add VIN clocks and platform devices on R8A7778 SoC; add function to register
-the VIN platform devices.
-
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-[Sergei: added 'id' parameter check to r8a7778_add_vin_device(), used '*pdata'
-in *sizeof* operator, and added an empty line there; renamed some variables,
-annotated 'vin[01]_info' and vin[01]_resources[] as '__initdata'.]
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Changes since version 5:
-- added an empty line in r8a7778_add_vin_device();
-- resolved reject, refreshed the patch.
+ include/video/display.h | 120 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 120 insertions(+)
 
-Changes since version 4:
-- resolved reject, refreshed the patch.
-
-Changes since version 3:
-- changed the VIN platform device names to be R8A7778 specific; 
-- resolved reject in <mach/r8a7778.h>  due to USB patch rework.
-
-Changes from version 2:
-- annotated 'vin[01]_info' and vin[01]_resources[] as '__initdata' since they're
-  kmemdup()'ed while registering the platform devices anyway;
-- refreshed the patch.
-
- arch/arm/mach-shmobile/clock-r8a7778.c        |    5 +++
- arch/arm/mach-shmobile/include/mach/r8a7778.h |    3 ++
- arch/arm/mach-shmobile/setup-r8a7778.c        |   34 ++++++++++++++++++++++++++
- 3 files changed, 42 insertions(+)
-
-Index: media_tree/arch/arm/mach-shmobile/clock-r8a7778.c
-===================================================================
---- media_tree.orig/arch/arm/mach-shmobile/clock-r8a7778.c
-+++ media_tree/arch/arm/mach-shmobile/clock-r8a7778.c
-@@ -106,6 +106,7 @@ enum {
- 	MSTP331,
- 	MSTP323, MSTP322, MSTP321,
- 	MSTP114,
-+	MSTP110, MSTP109,
- 	MSTP100,
- 	MSTP030,
- 	MSTP029, MSTP028, MSTP027, MSTP026, MSTP025, MSTP024, MSTP023, MSTP022, MSTP021,
-@@ -119,6 +120,8 @@ static struct clk mstp_clks[MSTP_NR] = {
- 	[MSTP322] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 22, 0), /* SDHI1 */
- 	[MSTP321] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 21, 0), /* SDHI2 */
- 	[MSTP114] = SH_CLK_MSTP32(&p_clk, MSTPCR1, 14, 0), /* Ether */
-+	[MSTP110] = SH_CLK_MSTP32(&s_clk, MSTPCR1, 10, 0), /* VIN0 */
-+	[MSTP109] = SH_CLK_MSTP32(&s_clk, MSTPCR1,  9, 0), /* VIN1 */
- 	[MSTP100] = SH_CLK_MSTP32(&p_clk, MSTPCR1,  0, 0), /* USB0/1 */
- 	[MSTP030] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 30, 0), /* I2C0 */
- 	[MSTP029] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 29, 0), /* I2C1 */
-@@ -146,6 +149,8 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[MSTP322]), /* SDHI1 */
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.2", &mstp_clks[MSTP321]), /* SDHI2 */
- 	CLKDEV_DEV_ID("r8a777x-ether", &mstp_clks[MSTP114]), /* Ether */
-+	CLKDEV_DEV_ID("r8a7778-vin.0", &mstp_clks[MSTP110]), /* VIN0 */
-+	CLKDEV_DEV_ID("r8a7778-vin.1", &mstp_clks[MSTP109]), /* VIN1 */
- 	CLKDEV_DEV_ID("ehci-platform", &mstp_clks[MSTP100]), /* USB EHCI port0/1 */
- 	CLKDEV_DEV_ID("ohci-platform", &mstp_clks[MSTP100]), /* USB OHCI port0/1 */
- 	CLKDEV_DEV_ID("i2c-rcar.0", &mstp_clks[MSTP030]), /* I2C0 */
-Index: media_tree/arch/arm/mach-shmobile/include/mach/r8a7778.h
-===================================================================
---- media_tree.orig/arch/arm/mach-shmobile/include/mach/r8a7778.h
-+++ media_tree/arch/arm/mach-shmobile/include/mach/r8a7778.h
-@@ -22,6 +22,7 @@
- #include <linux/mmc/sh_mobile_sdhi.h>
- #include <linux/sh_eth.h>
- #include <linux/platform_data/usb-rcar-phy.h>
-+#include <linux/platform_data/camera-rcar.h>
+diff --git a/include/video/display.h b/include/video/display.h
+index 36ff637..ba319d6 100644
+--- a/include/video/display.h
++++ b/include/video/display.h
+@@ -18,6 +18,126 @@
+ #include <linux/module.h>
+ #include <media/media-entity.h>
  
- extern void r8a7778_add_standard_devices(void);
- extern void r8a7778_add_standard_devices_dt(void);
-@@ -30,6 +31,8 @@ extern void r8a7778_add_usb_phy_device(s
- extern void r8a7778_add_i2c_device(int id);
- extern void r8a7778_add_hspi_device(int id);
- extern void r8a7778_add_mmc_device(struct sh_mmcif_plat_data *info);
-+extern void r8a7778_add_vin_device(int id,
-+				   struct rcar_vin_platform_data *pdata);
- 
- extern void r8a7778_init_late(void);
- extern void r8a7778_init_delay(void);
-Index: media_tree/arch/arm/mach-shmobile/setup-r8a7778.c
-===================================================================
---- media_tree.orig/arch/arm/mach-shmobile/setup-r8a7778.c
-+++ media_tree/arch/arm/mach-shmobile/setup-r8a7778.c
-@@ -333,6 +333,40 @@ void __init r8a7778_add_mmc_device(struc
- 		info, sizeof(*info));
- }
- 
-+/* VIN */
-+#define R8A7778_VIN(idx)						\
-+static struct resource vin##idx##_resources[] __initdata = {		\
-+	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),		\
-+	DEFINE_RES_IRQ(gic_iid(0x5a)),					\
-+};									\
-+									\
-+static struct platform_device_info vin##idx##_info __initdata = {	\
-+	.parent		= &platform_bus,				\
-+	.name		= "r8a7778-vin",				\
-+	.id		= idx,						\
-+	.res		= vin##idx##_resources,				\
-+	.num_res	= ARRAY_SIZE(vin##idx##_resources),		\
-+	.dma_mask	= DMA_BIT_MASK(32),				\
-+}
++#define DISPLAY_PIXEL_CODING(option, type, from, to, variant) \
++	(((option) << 17) | ((type) << 13) | ((variant) << 10) | \
++	 ((to) << 5) | (from))
 +
-+R8A7778_VIN(0);
-+R8A7778_VIN(1);
++#define DISPLAY_PIXEL_CODING_FROM(coding)	((coding) & 0x1f)
++#define DISPLAY_PIXEL_CODING_TO(coding)		(((coding) >> 5) & 0x1f)
++#define DISPLAY_PIXEL_CODING_VARIANT(coding)	(((coding) >> 10) & 7)
++#define DISPLAY_PIXEL_CODING_TYPE(coding)	(((coding) >> 13) & 0xf)
 +
-+static struct platform_device_info *vin_info_table[] __initdata = {
-+	&vin0_info,
-+	&vin1_info,
-+};
++#define DISPLAY_PIXEL_CODING_TYPE_DBI	0
++#define DISPLAY_PIXEL_CODING_TYPE_DPI	1
 +
-+void __init r8a7778_add_vin_device(int id, struct rcar_vin_platform_data *pdata)
-+{
-+	BUG_ON(id < 0 || id > 1);
++/* DBI pixel codings. */
++#define DISPLAY_PIXEL_CODING_DBI(from, to, variant) \
++	DISPLAY_PIXEL_CODING_TYPE(DISPLAY_PIXEL_CODING_TYPE_DBI, \
++				  from, to, variant, 0)
 +
-+	vin_info_table[id]->data = pdata;
-+	vin_info_table[id]->size_data = sizeof(*pdata);
++/* Standard DBI codings, defined in the DBI specification. */
++/*   17   16   15   14   13   12   11   10    9    8    7    6    5    4    3    2    1    0 */
++/*    -    -    -    -    -    -    -    -    -    - R0,2 R0,1 R0,0 G0,2 G0,1 G0,0 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_8TO8		DISPLAY_PIXEL_CODING_DBI(8, 8, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,3 R0,2 R0,1 R0,0 G0,3 G0,2 G0,1 G0,0 */
++/*    -    -    -    -    -    -    -    -    -    - B0,3 B0,2 B0,1 B0,0 R1,3 R1,2 R1,1 R1,0 */
++/*    -    -    -    -    -    -    -    -    -    - G1,3 G1,2 G1,1 G1,0 B1,3 B1,2 B1,1 b1,0 */
++#define DISPLAY_PIXEL_CODING_DBI_12TO8		DISPLAY_PIXEL_CODING_DBI(12, 8, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 */
++/*    -    -    -    -    -    -    -    -    -    - G0,2 G0,1 G0,0 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_16TO8		DISPLAY_PIXEL_CODING_DBI(16, 8, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0    -    - */
++/*    -    -    -    -    -    -    -    -    -    - G0,5 G0,4 G0,3 G0,2 G0,1 G0,0    -    - */
++/*    -    -    -    -    -    -    -    -    -    - B0,5 B0,4 B0,3 B0,2 B0,1 B0,0    -    - */
++#define DISPLAY_PIXEL_CODING_DBI_18TO8		DISPLAY_PIXEL_CODING_DBI(18, 8, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,7 R0,6 R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 */
++/*    -    -    -    -    -    -    -    -    -    - G0,7 G0,6 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 */
++/*    -    -    -    -    -    -    -    -    -    - B0,7 B0,6 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_24TO8		DISPLAY_PIXEL_CODING_DBI(24, 8, 0)
++/*    -    -    -    -    -    -    -    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,4 */
++/*    -    -    -    -    -    -    -    -    - G0,2 G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_18TO9		DISPLAY_PIXEL_CODING_DBI(18, 9, 0)
++/*    -    - R1,2 R1,1 R1,0 G1,2 G1,1 G1,0 B1,1 B1,0 R0,2 R0,1 R0,0 G0,2 G0,1 G0,0 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_8TO16		DISPLAY_PIXEL_CODING_DBI(8, 16, 0)
++/*    -    -    -    -    -    - R0,3 R0,2 R0,1 R0,0 G0,3 G0,2 G0,1 G0,0 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_12TO16		DISPLAY_PIXEL_CODING_DBI(12, 16, 0)
++/*    -    - R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_16TO16		DISPLAY_PIXEL_CODING_DBI(16, 16, 0)
++/*    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0    -    - G0,5 G0,4 G0,3 G0,2 G0,1 G0,0    -    - */
++/*    -    - B0,5 B0,4 B0,3 B0,2 B0,1 B0,0    -    - R1,5 R1,4 R1,3 R1,2 R1,1 R1,0    -    - */
++/*    -    - G1,5 G1,4 G1,3 G1,2 G1,1 G1,0    -    - B1,5 B1,4 B1,3 B1,2 B1,1 B1,0    -    - */
++#define DISPLAY_PIXEL_CODING_DBI_18TO16_A	DISPLAY_PIXEL_CODING_DBI(18, 16, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0    -    - */
++/*    -    - G0,5 G0,4 G0,3 G0,2 G0,1 G0,0    -    - B0,5 B0,4 B0,3 B0,2 B0,1 B0,0    -    - */
++#define DISPLAY_PIXEL_CODING_DBI_18TO16_B	DISPLAY_PIXEL_CODING_DBI(18, 16, 1)
++/*    -    - R0,7 R0,6 R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,7 G0,6 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 */
++/*    -    - B0,7 B0,6 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 R1,7 R1,6 R1,5 R1,4 R1,3 R1,2 R1,1 R1,0 */
++/*    -    - G1,7 G1,6 G1,5 G1,4 G1,3 G1,2 G1,1 G1,0 B1,7 B1,6 B1,5 B1,4 B1,3 B1,2 B1,1 B1,0 */
++#define DISPLAY_PIXEL_CODING_DBI_24TO16_A	DISPLAY_PIXEL_CODING_DBI(24, 16, 0)
++/*    -    -    -    -    -    -    -    -    -    - R0,7 R0,6 R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 */
++/*    -    - G0,7 G0,6 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 B0,7 B0,6 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_24TO16_B	DISPLAY_PIXEL_CODING_DBI(24, 16, 1)
 +
-+	platform_device_register_full(vin_info_table[id]);
-+}
++/* Non-standard DBI pixel codings. */
++/*   17   16   15   14   13   12   11   10    9    8    7    6    5    4    3    2    1    0 */
++/*    -    -    -    -    -    -    -    -    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 */
++/*    -    -    -    -    -    -    -    -    -    - G0,3 G0,2 G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 */
++/*    -    -    -    -    -    -    -    -    -    -    -    -    -    -    -    - B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_18TO8_B	DISPLAY_PIXEL_CODING_DBI(18, 8, 1)
++/*    -    -    -    -    -    -    -    -    -    -    -    -    -    -    -    - R0,5 R0,4 */
++/*    -    -    -    -    -    -    -    -    -    - R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 G0,2 */
++/*    -    -    -    -    -    -    -    -    -    - G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_18TO8_C	DISPLAY_PIXEL_CODING_DBI(18, 8, 2)
++/*    -    - R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 */
++/*    -    - B0,1 B0,0    -    -    -    -    -    -    -    -    -    -    -    -    -    - */
++#define DISPLAY_PIXEL_CODING_DBI_18TO16_C	DISPLAY_PIXEL_CODING_DBI(18, 16, 2)
++/*    -    - R0,5 R0,4    -    -    -    -    -    -    -    -    -    -    -    -    -    - */
++/*    -    - R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_18TO16_D	DISPLAY_PIXEL_CODING_DBI(18, 16, 3)
++/*    -    -    -    -    -    - R0,7 R0,6 R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,7 G0,6 G0,5 G0,4 */
++/*    -    -    -    -    -    - G0,3 G0,2 G0,1 G0,0 B0,7 B0,6 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_24TO12		DISPLAY_PIXEL_CODING_DBI(24, 12, 0)
++/* R0,5 R0,4 R0,3 R0,2 R0,1 R0,0 G0,5 G0,4 G0,3 G0,2 G0,1 G0,0 B0,5 B0,4 B0,3 B0,2 B0,1 B0,0 */
++#define DISPLAY_PIXEL_CODING_DBI_18TO18		DISPLAY_PIXEL_CODING_DBI(18, 18, 0)
 +
- void __init r8a7778_add_standard_devices(void)
- {
- 	int i;
++/* DPI pixel codings. */
++#define DISPLAY_PIXEL_CODING_DPI_RGB(from, to, variant) \
++	DISPLAY_PIXEL_CODING_TYPE(DISPLAY_PIXEL_CODING_TYPE_DPI, \
++				  from, to, variant, 0)
++#define DISPLAY_PIXEL_CODING_DPI_YUV(from, to, variant) \
++	DISPLAY_PIXEL_CODING_TYPE(DISPLAY_PIXEL_CODING_TYPE_DPI, \
++				  from, to, variant, 1)
++
++/* Standard DPI codings, defined in the DPI specification. */
++/* 23 22 21 20 19 28 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0 */
++/*  -  -  -  -  -  -  -  - R4 R3 R2 R1 R0 G5 G4 G3 G2 G1 G0 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_16TO16	DISPLAY_PIXEL_CODING_DPI_RGB(16, 16, 0)
++/*  -  -  -  -  -  - R5 R4 R3 R2 R1 R0 G5 G4 G3 G2 G1 G0 B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_18TO18	DISPLAY_PIXEL_CODING_DPI_RGB(18, 18, 0)
++/*  -  -  - R4 R3 R2 R1 R0  -  - G5 G4 G3 G2 G1 G0  -  -  - B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_16TO20	DISPLAY_PIXEL_CODING_DPI_RGB(16, 20, 0)
++/*  -  - R4 R3 R2 R1 R0  -  -  - G5 G4 G3 G2 G1 G0  -  - B4 B3 B2 B1 B0  - */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_16TO22	DISPLAY_PIXEL_CODING_DPI_RGB(16, 22, 0)
++/*  -  - R5 R4 R3 R2 R1 R0  -  - G5 G4 G3 G2 G1 G0  -  - B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_18TO22	DISPLAY_PIXEL_CODING_DPI_RGB(18, 22, 0)
++/* R7 R6 R5 R4 R3 R2 R1 R0 G7 G6 G5 G4 G3 G2 G1 G0 B7 B6 B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_24TO24	DISPLAY_PIXEL_CODING_DPI_RGB(24, 24, 0)
++
++/* Non-standard DPI pixel codings. */
++/* 23 22 21 20 19 28 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0 */
++/*  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - R7 R6 R5 R4 R3 R2 R1 R0 */
++/*  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - G7 G6 G5 G4 G3 G2 G1 G0 */
++/*  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - B7 B6 B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_24TO8	DISPLAY_PIXEL_CODING_DPI_RGB(24, 8, 0)
++/*  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - R5 R4 R3 R2 R1 R0 G5 G4 G3 */
++/*  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - G2 G1 G0 B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_18TO9	DISPLAY_PIXEL_CODING_DPI_RGB(18, 9, 0)
++/*  -  -  -  -  -  -  -  -  -  -  -  - R3 R2 R1 R0 G3 G2 G1 G0 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_12TO12	DISPLAY_PIXEL_CODING_DPI_RGB(12, 12, 0)
++/*  -  -  -  -  -  -  -  -  -  -  -  - R7 R6 R5 R4 R3 R2 R1 R0 G7 G6 G5 G4 */
++/*  -  -  -  -  -  -  -  -  -  -  -  - G3 G2 G1 G0 B7 B6 B5 B4 B3 B2 B1 B0 */
++#define DISPLAY_PIXEL_CODING_DPI_RGB_24TO12	DISPLAY_PIXEL_CODING_DPI_RGB(24, 12, 0)
++
+ /* -----------------------------------------------------------------------------
+  * Display Entity
+  */
+-- 
+1.8.1.5
+
