@@ -1,73 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57709 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680Ab3H3Ajx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 20:39:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: linux-kernel@vger.kernel.org, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH 1/1] [media] uvcvideo: quirk PROBE_DEF for Dell SP2008WFP monitor.
-Date: Fri, 30 Aug 2013 02:41:17 +0200
-Message-ID: <3172143.JtUQzMAjLG@avalon>
-In-Reply-To: <efa845fedf7b2326c7fe6e82c4f90b15055c4a1c.1377781889.git.joseph.salisbury@canonical.com>
-References: <cover.1377781889.git.joseph.salisbury@canonical.com> <efa845fedf7b2326c7fe6e82c4f90b15055c4a1c.1377781889.git.joseph.salisbury@canonical.com>
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:44199 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967910Ab3HIQEi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 12:04:38 -0400
+Received: by mail-oa0-f48.google.com with SMTP id o17so6929941oag.7
+        for <linux-media@vger.kernel.org>; Fri, 09 Aug 2013 09:04:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1375483372-4354-2-git-send-email-ricardo.ribalda@gmail.com>
+References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com> <1375483372-4354-2-git-send-email-ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 9 Aug 2013 18:04:17 +0200
+Message-ID: <CAPybu_0hKXNb=nR2EdesaPsV8kXF2A7MzKd3Zog-YMXLHgk9uw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] libv4lconvert: Support for Y16 pixel format
+To: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	Gregor Jasny <gjasny@googlemail.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joseph,
+ping?
 
-Thank you for the patch.
-
-On Thursday 29 August 2013 11:17:41 Joseph Salisbury wrote:
-> BugLink: http://bugs.launchpad.net/bugs/1217957
-> 
-> Add quirk for Dell SP2008WFP monitor: 05a9:2641
-> 
-> Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
-> Tested-by: Christopher Townsend <christopher.townsend@canonical.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: stable@vger.kernel.org
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I've applied it to my tree. Given that we're too close to the v3.12 merge 
-window I will push it for v3.13.
-
+On Sat, Aug 3, 2013 at 12:42 AM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> This patch adds support for V4L2_PIX_FMT_Y16 format.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
->  drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index ed123f4..8c1826c 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -2174,6 +2174,15 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
->  	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
-> +	/* Dell SP2008WFP Monitor */
-> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> +	  .idVendor		= 0x05a9,
-> +	  .idProduct		= 0x2641,
-> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> +	  .bInterfaceSubClass	= 1,
-> +	  .bInterfaceProtocol	= 0,
-> +	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
->  	/* Dell Alienware X51 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
+>  lib/libv4lconvert/libv4lconvert-priv.h |    6 ++++++
+>  lib/libv4lconvert/libv4lconvert.c      |   19 +++++++++++++++++++
+>  lib/libv4lconvert/rgbyuv.c             |   30 ++++++++++++++++++++++++++++++
+>  3 files changed, 55 insertions(+)
+>
+> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+> index c37e220..6422fdd 100644
+> --- a/lib/libv4lconvert/libv4lconvert-priv.h
+> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
+> @@ -152,6 +152,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+>  void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
+>                 const struct v4l2_format *src_fmt);
+>
+> +void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
+> +               int width, int height);
+> +
+> +void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
+> +               const struct v4l2_format *src_fmt);
+> +
+>  int v4lconvert_y10b_to_rgb24(struct v4lconvert_data *data,
+>         const unsigned char *src, unsigned char *dest, int width, int height);
+>
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index 60010f1..bc5e34f 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -128,6 +128,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>         { V4L2_PIX_FMT_Y4,               8,     20,     20,     0 },
+>         { V4L2_PIX_FMT_Y6,               8,     20,     20,     0 },
+>         { V4L2_PIX_FMT_Y10BPACK,        10,     20,     20,     0 },
+> +       { V4L2_PIX_FMT_Y16,             16,     20,     20,     0 },
+>  };
+>
+>  static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+> @@ -989,6 +990,24 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>                 break;
+>         }
+>
+> +       case V4L2_PIX_FMT_Y16:
+> +               switch (dest_pix_fmt) {
+> +               case V4L2_PIX_FMT_RGB24:
+> +               case V4L2_PIX_FMT_BGR24:
+> +                       v4lconvert_y16_to_rgb24(src, dest, width, height);
+> +                       break;
+> +               case V4L2_PIX_FMT_YUV420:
+> +               case V4L2_PIX_FMT_YVU420:
+> +                       v4lconvert_y16_to_yuv420(src, dest, fmt);
+> +                       break;
+> +               }
+> +               if (src_size < (width * height * 2)) {
+> +                       V4LCONVERT_ERR("short y16 data frame\n");
+> +                       errno = EPIPE;
+> +                       result = -1;
+> +               }
+> +               break;
+> +
+>         case V4L2_PIX_FMT_GREY:
+>         case V4L2_PIX_FMT_Y4:
+>         case V4L2_PIX_FMT_Y6:
+> diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+> index d05abe9..bef034f 100644
+> --- a/lib/libv4lconvert/rgbyuv.c
+> +++ b/lib/libv4lconvert/rgbyuv.c
+> @@ -586,6 +586,36 @@ void v4lconvert_rgb565_to_yuv420(const unsigned char *src, unsigned char *dest,
+>         }
+>  }
+>
+> +void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
+> +               int width, int height)
+> +{
+> +       int j;
+> +       while (--height >= 0) {
+> +               for (j = 0; j < width; j++) {
+> +                       *dest++ = *src;
+> +                       *dest++ = *src;
+> +                       *dest++ = *src;
+> +                       src+=2;
+> +               }
+> +       }
+> +}
+> +
+> +void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
+> +               const struct v4l2_format *src_fmt)
+> +{
+> +       int x, y;
+> +
+> +       /* Y */
+> +       for (y = 0; y < src_fmt->fmt.pix.height; y++)
+> +               for (x = 0; x < src_fmt->fmt.pix.width; x++){
+> +                       *dest++ = *src;
+> +                       src+=2;
+> +               }
+> +
+> +       /* Clear U/V */
+> +       memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
+> +}
+> +
+>  void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+>                 int width, int height)
+>  {
+> --
+> 1.7.10.4
+>
+
+
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ricardo Ribalda
