@@ -1,128 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51429 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966285Ab3HIMKi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:10:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44032 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752701Ab3HJRnn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Aug 2013 13:43:43 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/2] media: vb2: Fix potential deadlock in vb2_prepare_buffer
-Date: Fri,  9 Aug 2013 14:11:25 +0200
-Message-Id: <1376050286-8201-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1376050286-8201-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1376050286-8201-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: andriy.shevchenko@intel.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 3/4] smiapp: Prepare and unprepare clocks correctly
+Date: Sat, 10 Aug 2013 20:49:47 +0300
+Message-Id: <1376156988-4009-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
+References: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit b037c0fde22b1d3cd0b3c3717d28e54619fc1592 ("media: vb2: fix
-potential deadlock in mmap vs. get_userptr handling") fixes an AB-BA
-deadlock related to the mmap_sem and driver locks. The same deadlock can
-occur in vb2_prepare_buffer(), fix it the same way.
+Prepare clocks before enabling and unprepare after disabling them.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 52 ++++++++++++++++++++++++++------
- 1 file changed, 43 insertions(+), 9 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7f32860..7c2a8ce 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1248,50 +1248,84 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-  */
- int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
-+	struct rw_semaphore *mmap_sem = NULL;
- 	struct vb2_buffer *vb;
- 	int ret;
- 
-+	/*
-+	 * In case of user pointer buffers vb2 allocator needs to get direct
-+	 * access to userspace pages. This requires getting read access on
-+	 * mmap semaphore in the current process structure. The same
-+	 * semaphore is taken before calling mmap operation, while both mmap
-+	 * and prepare_buf are called by the driver or v4l2 core with driver's
-+	 * lock held. To avoid a AB-BA deadlock (mmap_sem then driver's lock in
-+	 * mmap and driver's lock then mmap_sem in prepare_buf) the videobuf2
-+	 * core release driver's lock, takes mmap_sem and then takes again
-+	 * driver's lock.
-+	 *
-+	 * To avoid race with other vb2 calls, which might be called after
-+	 * releasing driver's lock, this operation is performed at the
-+	 * beggining of prepare_buf processing. This way the queue status is
-+	 * consistent after getting driver's lock back.
-+	 */
-+	if (q->memory == V4L2_MEMORY_USERPTR) {
-+		mmap_sem = &current->mm->mmap_sem;
-+		call_qop(q, wait_prepare, q);
-+		down_read(mmap_sem);
-+		call_qop(q, wait_finish, q);
-+	}
-+
- 	if (q->fileio) {
- 		dprintk(1, "%s(): file io in progress\n", __func__);
--		return -EBUSY;
-+		ret = -EBUSY;
-+		goto unlock;
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 4d7ba54..7de9892 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1122,9 +1122,9 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+ 		rval = sensor->platform_data->set_xclk(
+ 			&sensor->src->sd, sensor->platform_data->ext_clk);
+ 	else
+-		rval = clk_enable(sensor->ext_clk);
++		rval = clk_prepare_enable(sensor->ext_clk);
+ 	if (rval < 0) {
+-		dev_dbg(&client->dev, "failed to set xclk\n");
++		dev_dbg(&client->dev, "failed to enable xclk\n");
+ 		goto out_xclk_fail;
  	}
+ 	usleep_range(1000, 1000);
+@@ -1244,7 +1244,7 @@ out_cci_addr_fail:
+ 	if (sensor->platform_data->set_xclk)
+ 		sensor->platform_data->set_xclk(&sensor->src->sd, 0);
+ 	else
+-		clk_disable(sensor->ext_clk);
++		clk_disable_unprepare(sensor->ext_clk);
  
- 	if (b->type != q->type) {
- 		dprintk(1, "%s(): invalid buffer type\n", __func__);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto unlock;
+ out_xclk_fail:
+ 	regulator_disable(sensor->vana);
+@@ -1270,7 +1270,7 @@ static void smiapp_power_off(struct smiapp_sensor *sensor)
+ 	if (sensor->platform_data->set_xclk)
+ 		sensor->platform_data->set_xclk(&sensor->src->sd, 0);
+ 	else
+-		clk_disable(sensor->ext_clk);
++		clk_disable_unprepare(sensor->ext_clk);
+ 	usleep_range(5000, 5000);
+ 	regulator_disable(sensor->vana);
+ 	sensor->streaming = 0;
+@@ -2839,7 +2839,7 @@ static int smiapp_remove(struct i2c_client *client)
+ 		if (sensor->platform_data->set_xclk)
+ 			sensor->platform_data->set_xclk(&sensor->src->sd, 0);
+ 		else
+-			clk_disable(sensor->ext_clk);
++			clk_disable_unprepare(sensor->ext_clk);
+ 		sensor->power_count = 0;
  	}
- 
- 	if (b->index >= q->num_buffers) {
- 		dprintk(1, "%s(): buffer index out of range\n", __func__);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto unlock;
- 	}
- 
- 	vb = q->bufs[b->index];
- 	if (NULL == vb) {
- 		/* Should never happen */
- 		dprintk(1, "%s(): buffer is NULL\n", __func__);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto unlock;
- 	}
- 
- 	if (b->memory != q->memory) {
- 		dprintk(1, "%s(): invalid memory type\n", __func__);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto unlock;
- 	}
- 
- 	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
- 		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto unlock;
- 	}
- 	ret = __verify_planes_array(vb, b);
- 	if (ret < 0)
--		return ret;
-+		goto unlock;
-+
- 	ret = __buf_prepare(vb, b);
- 	if (ret < 0)
--		return ret;
-+		goto unlock;
- 
- 	__fill_v4l2_buffer(vb, b);
- 
--	return 0;
-+unlock:
-+	if (mmap_sem)
-+		up_read(mmap_sem);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
  
 -- 
-1.8.1.5
+1.7.10.4
 
