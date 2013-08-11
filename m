@@ -1,107 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1710 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990Ab3HXCkr (ORCPT
+Received: from mail-1.atlantis.sk ([80.94.52.57]:39997 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754196Ab3HKQ0w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 22:40:47 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7O2ei5b099112
-	for <linux-media@vger.kernel.org>; Sat, 24 Aug 2013 04:40:46 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A454F2A0761
-	for <linux-media@vger.kernel.org>; Sat, 24 Aug 2013 04:40:39 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130824024039.A454F2A0761@tschai.lan>
-Date: Sat, 24 Aug 2013 04:40:39 +0200 (CEST)
+	Sun, 11 Aug 2013 12:26:52 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH] introduce gspca-stk1135: Syntek STK1135 driver
+Date: Sun, 11 Aug 2013 18:26:25 +0200
+Cc: linux-media@vger.kernel.org
+References: <201308110010.56508.linux@rainbow-software.org> <520758BA.8040501@redhat.com>
+In-Reply-To: <520758BA.8040501@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201308111826.26063.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Sat Aug 24 04:00:24 CEST 2013
-git branch:	test
-git hash:	976f375df1730dd16aa7c101298ec47bdd338d79
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+On Sunday 11 August 2013 11:26:18 Hans de Goede wrote:
+> Hi,
+>
+> On 08/11/2013 12:10 AM, Ondrej Zary wrote:
+> > Hello,
+> > this is a new gspca driver for Syntek STK1135 webcams. The code is
+> > completely new, but register values are based on Syntekdriver (stk11xx)
+> > by Nicolas VIVIEN (http://syntekdriver.sourceforge.net).
+> >
+> > Only one webcam type is supported now - vendor 0x174f, device 0x6a31.
+> > It's Asus F5RL laptop flippable webcam with MT9M112.
+> >
+> > The camera works better than in Windows - initializes much faster and
+> > provides more resolutions
+>
+> You've certainly done this quickly, many thanks for working on this!
+>
+> Looks good. Any reason why this is RFC, iow any reason why I should not add
+> this to my tree and include it in my next pullreq to Mauro ?
+>
+> > Autoflip works too - when the camera is flipped around, the image is
+> > flipped automatically.
+>
+> Cool, but I've some comments on the implementation:
+>
+> 1) It seems autoflip and manual flip with controls conflict, the manual
+> setting will be overwritten as soon as the switch is debounced.
+> I think it would be best to make the manual setting invert (when on) the
+> setting detected from the switch
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10.1-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.11-rc1-i686: WARNINGS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.11-rc1-x86_64: WARNINGS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Yes, that's a problem. Too bad that there's no "autorotate" control in V4L2. 
+Inverting seems like a good idea.
 
-Detailed results are available here:
+> 2) You make the switch control both hflip and vflip, but the way the
+> flipping works the sensor is not turned upside down, but rotated over its
+> x-axis, so you should only set vflip based on the switch if I'm not
+> mistaken. To verify this take a piece of paper, and write on it with large
+> letters "HELLO" then hold it in front of the camera. It should read
+> normally on the screen. I believe that in one of the 2 orientations of the
+> camera it will be mirrored now since you set hflip while it should not be
+> set
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I thought that too at first - and changed only vflip. Then noticed that the 
+image is mirrored when the camera is flipped to the back.
 
-Full logs are available here:
+When the sensor is rotated over its x-axis, the "left" side of the sensor will 
+be on the right side (when you look from the back of the laptop).
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+> 3) Once debounced is over 100, you re-set hflip and vflip every frame, this
+> causes expensive USB IO, so please cache the current setting and only
+> change it if it actually needs to change
 
-The Media Infrastructure API from this daily build is here:
+When debounce gets over 100, flip_status is inverted (so it matches the 
+current state reported by camera). Thus, debounce is not incremented in 
+sd_pkt_scan but reset to 0 instead.
+Maybe the code could be re-arranged somehow to make this more clear.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> If you can do a new version with these 3 things fixed I'll happily pull it
+> into my tree!
+
+Working on it now.
+
+
+-- 
+Ondrej Zary
