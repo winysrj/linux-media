@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outgoing.email.vodafone.de ([139.7.28.128]:52448 "EHLO
-	outgoing.email.vodafone.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822Ab3HTJwL (ORCPT
+Received: from smtp-out003.kontent.com ([81.88.40.217]:40918 "EHLO
+	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753274Ab3HLJB5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 05:52:11 -0400
-Message-ID: <52133C2A.2090200@vodafone.de>
-Date: Tue, 20 Aug 2013 11:51:38 +0200
-From: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
-MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org,
-	Alex Deucher <alexander.deucher@amd.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] drm/radeon: rework to new fence interface
-References: <20130815124308.14812.58197.stgit@patser> <5211F0C5.2040705@canonical.com> <5212112C.70808@vodafone.de> <52127411.2010106@canonical.com> <52132AE0.4010702@vodafone.de> <521338A9.4040206@canonical.com>
-In-Reply-To: <521338A9.4040206@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Mon, 12 Aug 2013 05:01:57 -0400
+Message-ID: <1376298115.2689.13.camel@linux-fkkt.site>
+Subject: Re: [PATCH] uvc: more buffers
+From: Oliver Neukum <oliver@neukum.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Date: Mon, 12 Aug 2013 11:01:55 +0200
+In-Reply-To: <2017146.oxz2IcHa3F@avalon>
+References: <1376053896-8931-1-git-send-email-oliver@neukum.org>
+	 <2017146.oxz2IcHa3F@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.08.2013 11:36, schrieb Maarten Lankhorst:
-[SNIP]
+On Fri, 2013-08-09 at 15:58 +0200, Laurent Pinchart wrote:
 
->>>>> [SNIP]
->>>>> +/**
->>>>> + * radeon_fence_enable_signaling - enable signalling on fence
->>>>> + * @fence: fence
->>>>> + *
->>>>> + * This function is called with fence_queue lock held, and adds a callback
->>>>> + * to fence_queue that checks if this fence is signaled, and if so it
->>>>> + * signals the fence and removes itself.
->>>>> + */
->>>>> +static bool radeon_fence_enable_signaling(struct fence *f)
->>>>> +{
->>>>> +    struct radeon_fence *fence = to_radeon_fence(f);
->>>>> +
->>>>> +    if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq ||
->>>>> +        !fence->rdev->ddev->irq_enabled)
->>>>> +        return false;
->>>>> +
->>>> Do I get that right that you rely on IRQs to be enabled and working here? Cause that would be a quite bad idea from the conceptual side.
->>> For cross-device synchronization it would be nice to have working irqs, it allows signalling fences faster,
->>> and it allows for callbacks on completion to be called. For internal usage it's no more required than it was before.
->> That's a big NAK.
->>
->> The fence processing is actually very fine tuned to avoid IRQs and as far as I can see you just leave them enabled by decrementing the atomic from IRQ context. Additional to that we need allot of special handling in case of a hardware lockup here, which isn't done if you abuse the fence interface like this.
-> I think it's not needed to leave the irq enabled, it's a leftover from when I was debugging the mac and no interrupt occurred at all.
->
->> Also your approach of leaking the IRQ context outside of the driver is a very bad idea from the conceptual side. Please don't modify the fence interface at all and instead use the wait functions already exposed by radeon_fence.c. If you need some kind of signaling mechanism then wait inside a workqueue instead.
-> The fence takes up the role of a single shot workqueue here. Manually resetting the counter and calling wake_up_all would end up waking all active fences, there's no special handling needed inside radeon for this.
+Hi,
 
-Yeah that's actually the point here, you NEED to activate ALL fences, 
-otherwise the fence handling inside the driver won't work.
+> > This is necessary to let the new generation of cameras from LiteOn used in
+> > Haswell ULT notebook operate. Otherwise the images will be truncated.
+> 
+> Could you please post the lsusb -v output for the device ?
 
-> The fence api does provide a synchronous wait function, but this causes a stall of whomever waits on it.
+It is attached.
 
-Which is perfectly fine. What actually is the use case of not stalling a 
-process who wants to wait for something?
+> Why does it need more buffers, is it a superspeed webcam ?
 
-> When I was testing this with intel I used the fence callback to poke a register in i915, this allowed it to not block until it hits the wait op in the command stream, and even then only if the callback was not called first.
->
-> It's documented that the callbacks can be called from any context and will be called with irqs disabled, so nothing scary should be done. The kernel provides enough debug mechanisms to find any violators.
-> PROVE_LOCKING and DEBUG_ATOMIC_SLEEP for example.
+No. It is HS.
 
-No thanks, we even abandoned that concept internal in the driver. Please 
-use the blocking wait functions instead.
+> > Signed-off-by: Oliver Neukum <oneukum@suse.de>
+> > ---
+> >  drivers/media/usb/uvc/uvcvideo.h | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> > b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..9f1930b 100644
+> > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > @@ -114,9 +114,9 @@
+> >  /* Number of isochronous URBs. */
+> >  #define UVC_URBS		5
+> >  /* Maximum number of packets per URB. */
+> > -#define UVC_MAX_PACKETS		32
+> > +#define UVC_MAX_PACKETS		128
+> 
+> That would mean up to 384KiB per URB. While not unreasonable, I'd like to know 
+> how much data your camera produces to require this.
 
-Christian.
+How to determine that?
+
+> >  /* Maximum number of video buffers. */
+> > -#define UVC_MAX_VIDEO_BUFFERS	32
+> > +#define UVC_MAX_VIDEO_BUFFERS	128
+> 
+> I don't think your camera really needs more than 32 V4L2 (full frame) buffers 
+> :-)
+
+Unfortunately, experimental evidence is that it does need them at
+resolutions above 640x480
+
+	Regards
+		Oliver
+
+
