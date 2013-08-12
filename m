@@ -1,238 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1068 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab3HSOou (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4969 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755241Ab3HLK7N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:44:50 -0400
+	Mon, 12 Aug 2013 06:59:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 17/20] v4l2-dv-timings: add callback to handle exceptions
-Date: Mon, 19 Aug 2013 16:44:26 +0200
-Message-Id: <1376923469-30694-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv2 PATCH 08/10] DocBook: document new v4l motion detection event.
+Date: Mon, 12 Aug 2013 12:58:31 +0200
+Message-Id: <1376305113-17128-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In most cases the v4l2_bt_timings_cap struct has all the information
-necessary to determine valid timings, but occasionally there are exceptions.
-
-Add a callback function to be able to test for those exceptions.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/ad9389b.c               |  7 ++++---
- drivers/media/i2c/ths8200.c               |  9 +++++---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 25 +++++++++++++++--------
- include/media/v4l2-dv-timings.h           | 34 +++++++++++++++++++++++++------
- 4 files changed, 55 insertions(+), 20 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 40 ++++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  9 +++++
+ 2 files changed, 49 insertions(+)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index fc60851..8369786 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -648,12 +648,12 @@ static int ad9389b_s_dv_timings(struct v4l2_subdev *sd,
- 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 89891ad..23ee1e3 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -94,6 +94,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>&v4l2-event-motion-det;</entry>
++            <entry><structfield>motion_det</structfield></entry>
++	    <entry>Event data for event V4L2_EVENT_MOTION_DET.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+             <entry><structfield>data</structfield>[64]</entry>
+ 	    <entry>Event data. Defined by the event type. The union
+@@ -242,6 +248,40 @@
+       </tgroup>
+     </table>
  
- 	/* quick sanity check */
--	if (!v4l2_valid_dv_timings(timings, &ad9389b_timings_cap))
-+	if (!v4l2_valid_dv_timings(timings, &ad9389b_timings_cap, NULL, NULL))
- 		return -EINVAL;
- 
- 	/* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
- 	   if the format is one of the CEA or DMT timings. */
--	v4l2_find_dv_timings_cap(timings, &ad9389b_timings_cap, 0);
-+	v4l2_find_dv_timings_cap(timings, &ad9389b_timings_cap, 0, NULL, NULL);
- 
- 	timings->bt.flags &= ~V4L2_DV_FL_REDUCED_FPS;
- 
-@@ -691,7 +691,8 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- 			struct v4l2_enum_dv_timings *timings)
- {
--	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap);
-+	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
-+			NULL, NULL);
- }
- 
- static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
-diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
-index 6abf0fb..a58a8f6 100644
---- a/drivers/media/i2c/ths8200.c
-+++ b/drivers/media/i2c/ths8200.c
-@@ -378,10 +378,12 @@ static int ths8200_s_dv_timings(struct v4l2_subdev *sd,
- 
- 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
- 
--	if (!v4l2_valid_dv_timings(timings, &ths8200_timings_cap))
-+	if (!v4l2_valid_dv_timings(timings, &ths8200_timings_cap,
-+				NULL, NULL))
- 		return -EINVAL;
- 
--	if (!v4l2_find_dv_timings_cap(timings, &ths8200_timings_cap, 10)) {
-+	if (!v4l2_find_dv_timings_cap(timings, &ths8200_timings_cap, 10,
-+				NULL, NULL)) {
- 		v4l2_dbg(1, debug, sd, "Unsupported format\n");
- 		return -EINVAL;
- 	}
-@@ -411,7 +413,8 @@ static int ths8200_g_dv_timings(struct v4l2_subdev *sd,
- static int ths8200_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
--	return v4l2_enum_dv_timings_cap(timings, &ths8200_timings_cap);
-+	return v4l2_enum_dv_timings_cap(timings, &ths8200_timings_cap,
-+			NULL, NULL);
- }
- 
- static int ths8200_dv_timings_cap(struct v4l2_subdev *sd,
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index a77f201..ee52b9f4 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -132,7 +132,9 @@ const struct v4l2_dv_timings v4l2_dv_timings_presets[] = {
- EXPORT_SYMBOL_GPL(v4l2_dv_timings_presets);
- 
- bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
--			   const struct v4l2_dv_timings_cap *dvcap)
-+			   const struct v4l2_dv_timings_cap *dvcap,
-+			   v4l2_check_dv_timings_fnc fnc,
-+			   void *fnc_handle)
- {
- 	const struct v4l2_bt_timings *bt = &t->bt;
- 	const struct v4l2_bt_timings_cap *cap = &dvcap->bt;
-@@ -151,18 +153,21 @@ bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
- 	    (bt->interlaced && !(caps & V4L2_DV_BT_CAP_INTERLACED)) ||
- 	    (!bt->interlaced && !(caps & V4L2_DV_BT_CAP_PROGRESSIVE)))
- 		return false;
--	return true;
-+	return fnc == NULL || fnc(t, fnc_handle);
- }
- EXPORT_SYMBOL_GPL(v4l2_valid_dv_timings);
- 
- int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
--			     const struct v4l2_dv_timings_cap *cap)
-+			     const struct v4l2_dv_timings_cap *cap,
-+			     v4l2_check_dv_timings_fnc fnc,
-+			     void *fnc_handle)
- {
- 	u32 i, idx;
- 
- 	memset(t->reserved, 0, sizeof(t->reserved));
- 	for (i = idx = 0; v4l2_dv_timings_presets[i].bt.width; i++) {
--		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap) &&
-+		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap,
-+					  fnc, fnc_handle) &&
- 		    idx++ == t->index) {
- 			t->timings = v4l2_dv_timings_presets[i];
- 			return 0;
-@@ -174,16 +179,20 @@ EXPORT_SYMBOL_GPL(v4l2_enum_dv_timings_cap);
- 
- bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 			      const struct v4l2_dv_timings_cap *cap,
--			      unsigned pclock_delta)
-+			      unsigned pclock_delta,
-+			      v4l2_check_dv_timings_fnc fnc,
-+			      void *fnc_handle)
- {
- 	int i;
- 
--	if (!v4l2_valid_dv_timings(t, cap))
-+	if (!v4l2_valid_dv_timings(t, cap, fnc, fnc_handle))
- 		return false;
- 
- 	for (i = 0; i < v4l2_dv_timings_presets[i].bt.width; i++) {
--		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap) &&
--		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i, pclock_delta)) {
-+		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap,
-+					  fnc, fnc_handle) &&
-+		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i,
-+					  pclock_delta)) {
- 			*t = v4l2_dv_timings_presets[i];
- 			return true;
- 		}
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index bd59df8..4becc67 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -27,46 +27,68 @@
-  */
- extern const struct v4l2_dv_timings v4l2_dv_timings_presets[];
- 
-+/** v4l2_check_dv_timings_fnc - timings check callback
-+ * @t: the v4l2_dv_timings struct.
-+ * @handle: a handle from the driver.
-+ *
-+ * Returns true if the given timings are valid.
-+ */
-+typedef bool v4l2_check_dv_timings_fnc(const struct v4l2_dv_timings *t, void *handle);
++    <table frame="none" pgwide="1" id="v4l2-event-motion-det">
++      <title>struct <structname>v4l2_event_motion_det</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry>
++	      Currently only one flag is available: if <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant>
++	      is set, then the <structfield>frame_sequence</structfield> field is valid,
++	      otherwise that field should be ignored.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>frame_sequence</structfield></entry>
++	    <entry>
++	      The sequence number of the frame being received. Only valid if the
++	      <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> flag was set.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>region_mask</structfield></entry>
++	    <entry>
++	      The bitmask of the regions that reported motion. There is at least one
++	      region. If this field is 0, then no motion was detected at all.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
 +
- /** v4l2_valid_dv_timings() - are these timings valid?
-   * @t:	  the v4l2_dv_timings struct.
-   * @cap: the v4l2_dv_timings_cap capabilities.
-+  * @fnc: callback to check if this timing is OK. May be NULL.
-+  * @fnc_handle: a handle that is passed on to @fnc.
-   *
-   * Returns true if the given dv_timings struct is supported by the
--  * hardware capabilities, returns false otherwise.
-+  * hardware capabilities and the callback function (if non-NULL), returns
-+  * false otherwise.
-   */
- bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
--			   const struct v4l2_dv_timings_cap *cap);
-+			   const struct v4l2_dv_timings_cap *cap,
-+			   v4l2_check_dv_timings_fnc fnc,
-+			   void *fnc_handle);
- 
- /** v4l2_enum_dv_timings_cap() - Helper function to enumerate possible DV timings based on capabilities
-   * @t:	  the v4l2_enum_dv_timings struct.
-   * @cap: the v4l2_dv_timings_cap capabilities.
-+  * @fnc: callback to check if this timing is OK. May be NULL.
-+  * @fnc_handle: a handle that is passed on to @fnc.
-   *
-   * This enumerates dv_timings using the full list of possible CEA-861 and DMT
-   * timings, filtering out any timings that are not supported based on the
--  * hardware capabilities.
-+  * hardware capabilities and the callback function (if non-NULL).
-   *
-   * If a valid timing for the given index is found, it will fill in @t and
-   * return 0, otherwise it returns -EINVAL.
-   */
- int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
--			     const struct v4l2_dv_timings_cap *cap);
-+			     const struct v4l2_dv_timings_cap *cap,
-+			     v4l2_check_dv_timings_fnc fnc,
-+			     void *fnc_handle);
- 
- /** v4l2_find_dv_timings_cap() - Find the closest timings struct
-   * @t:	  the v4l2_enum_dv_timings struct.
-   * @cap: the v4l2_dv_timings_cap capabilities.
-   * @pclock_delta: maximum delta between t->pixelclock and the timing struct
-   *		under consideration.
-+  * @fnc: callback to check if a given timings struct is OK. May be NULL.
-+  * @fnc_handle: a handle that is passed on to @fnc.
-   *
-   * This function tries to map the given timings to an entry in the
-   * full list of possible CEA-861 and DMT timings, filtering out any timings
--  * that are not supported based on the hardware capabilities.
-+  * that are not supported based on the hardware capabilities and the callback
-+  * function (if non-NULL).
-   *
-   * On success it will fill in @t with the found timings and it returns true.
-   * On failure it will return false.
-   */
- bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 			      const struct v4l2_dv_timings_cap *cap,
--			      unsigned pclock_delta);
-+			      unsigned pclock_delta,
-+			      v4l2_check_dv_timings_fnc fnc,
-+			      void *fnc_handle);
- 
- /** v4l2_match_dv_timings() - do two timings match?
-   * @measured:	  the measured timings data.
+     <table pgwide="1" frame="none" id="changes-flags">
+       <title>Changes</title>
+       <tgroup cols="3">
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 5c70b61..d9c3e66 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -155,6 +155,15 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
++	    <entry>5</entry>
++	    <entry>
++	      <para>Triggered whenever the motion detection state changes, i.e.
++	      whether motion is detected or not. This event has a
++	      &v4l2-event-motion-det; associated with it.</para>
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
 -- 
 1.8.3.2
 
