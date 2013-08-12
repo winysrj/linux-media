@@ -1,59 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55710 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189Ab3HXNAQ (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2267 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756011Ab3HLK7e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Aug 2013 09:00:16 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] sms: fix randconfig building error
-Date: Sat, 24 Aug 2013 06:59:37 -0300
-Message-Id: <1377338377-17410-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 12 Aug 2013 06:59:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 05/10] v4l2: add a motion detection event.
+Date: Mon, 12 Aug 2013 12:58:28 +0200
+Message-Id: <1376305113-17128-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by Jim Davis <jim.epost@gmail.com>,
-building with:
-	CONFIG_USB=m
-	CONFIG_SMS_USB_DRV=m
-	CONFIG_SMS_SDIO_DRV=y
-	CONFIG_SMS_SIANO_MDTV=y
-	CONFIG_SMS_SIANO_DEBUGFS=y
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-causes a build error:
-
-	drivers/built-in.o: In function `smsdvb_debugfs_register':
-	/home/jim/linux/drivers/media/common/siano/smsdvb-debugfs.c:537:
-	undefined reference to `usb_debug_root'
-	make: *** [vmlinux] Error 1
-
-That happens because the siano-mdtv is builtin, while USB is a
-module. As it makes not much sense to have sms-usb compiled as 'm'
-and sms-sdio compiled as 'y' (or vice-versa), only allow enabling
-debugfs if both are either 'y' or 'm'.
-
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/siano/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ include/uapi/linux/videodev2.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
-index f3f5ec4..f953d33 100644
---- a/drivers/media/common/siano/Kconfig
-+++ b/drivers/media/common/siano/Kconfig
-@@ -23,6 +23,8 @@ config SMS_SIANO_DEBUGFS
- 	depends on SMS_SIANO_MDTV
- 	depends on DEBUG_FS
- 	depends on SMS_USB_DRV
-+	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 605d295..918f397 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_MOTION_DET			5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /* Payload for V4L2_EVENT_VSYNC */
+@@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
+ 	__u32 frame_sequence;
+ };
+ 
++#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
 +
- 	---help---
- 	  Choose Y to enable visualizing a dump of the frontend
- 	  statistics response packets via debugfs. Currently, works
++/**
++ * struct v4l2_event_motion_det - motion detection event
++ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
++ *                     frame_sequence field is valid.
++ * @frame_sequence:    the frame sequence number associated with this event.
++ * @region_mask:       which regions detected motion.
++ */
++struct v4l2_event_motion_det {
++	__u32 flags;
++	__u32 frame_sequence;
++	__u32 region_mask;
++};
++
+ struct v4l2_event {
+ 	__u32				type;
+ 	union {
+ 		struct v4l2_event_vsync		vsync;
+ 		struct v4l2_event_ctrl		ctrl;
+ 		struct v4l2_event_frame_sync	frame_sync;
++		struct v4l2_event_motion_det	motion_det;
+ 		__u8				data[64];
+ 	} u;
+ 	__u32				pending;
 -- 
-1.8.3.1
+1.8.3.2
 
