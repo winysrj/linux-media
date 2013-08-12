@@ -1,88 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2563 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223Ab3HSOoq (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4837 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876Ab3HLK7W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:44:46 -0400
+	Mon, 12 Aug 2013 06:59:22 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 05/20] adv7604: print flags and standards in timing information
-Date: Mon, 19 Aug 2013 16:44:14 +0200
-Message-Id: <1376923469-30694-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv2 PATCH 04/10] solo: implement the new matrix ioctls instead of the custom ones.
+Date: Mon, 12 Aug 2013 12:58:27 +0200
+Message-Id: <1376305113-17128-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 41 ++++++++++++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 13 deletions(-)
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 102 ++++++++++++++++++---
+ drivers/staging/media/solo6x10/solo6x10.h          |  10 +-
+ 2 files changed, 89 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 34fcdf3..e732c9b 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1052,7 +1052,8 @@ static int adv7604_g_input_status(struct v4l2_subdev *sd, u32 *status)
- /* ----------------------------------------------------------------------- */
- 
- static void adv7604_print_timings(struct v4l2_subdev *sd,
--	struct v4l2_dv_timings *timings, const char *txt, bool detailed)
-+				  struct v4l2_dv_timings *timings,
-+				  const char *txt, bool detailed)
- {
- 	struct v4l2_bt_timings *bt = &timings->bt;
- 	u32 htot, vtot;
-@@ -1069,18 +1070,32 @@ static void adv7604_print_timings(struct v4l2_subdev *sd,
- 				(htot * vtot)) : 0,
- 			htot, vtot);
- 
--	if (detailed) {
--		v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
--				bt->hfrontporch,
--				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
--				bt->hsync, bt->hbackporch);
--		v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
--				bt->vfrontporch,
--				(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
--				bt->vsync, bt->vbackporch);
--		v4l2_info(sd, "    pixelclock: %lld, flags: 0x%x, standards: 0x%x\n",
--				bt->pixelclock, bt->flags, bt->standards);
--	}
-+	if (!detailed)
-+		return;
-+
-+	v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
-+			bt->hfrontporch,
-+			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
-+			bt->hsync, bt->hbackporch);
-+	v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
-+			bt->vfrontporch,
-+			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
-+			bt->vsync, bt->vbackporch);
-+	v4l2_info(sd, "    pixelclock: %lld\n", bt->pixelclock);
-+	v4l2_info(sd, "    flags (0x%x):%s%s%s%s\n", bt->flags,
-+			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
-+			" Reduced blanking," : "",
-+			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
-+			" Can reduce FPS," : "",
-+			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
-+			" Reduced FPS," : "",
-+			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
-+			" Half line," : "");
-+	v4l2_info(sd, "    standards (0x%x):%s%s%s%s\n", bt->standards,
-+			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA," : "",
-+			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT," : "",
-+			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index a4c5896..6858993 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -1033,29 +1033,98 @@ static int solo_s_parm(struct file *file, void *priv,
+ 	return solo_g_parm(file, priv, sp);
  }
  
- struct stdi_readback {
+-static long solo_enc_default(struct file *file, void *fh,
+-			bool valid_prio, unsigned int cmd, void *arg)
++static int solo_query_matrix(struct file *file, void *fh,
++			struct v4l2_query_matrix *qm)
++{
++	qm->columns = 45;
++	qm->rows = 36;
++	switch (qm->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		qm->elem_size = 1;
++		break;
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		qm->elem_max.val = 65535;
++		qm->elem_size = 2;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int solo_g_matrix(struct file *file, void *fh,
++			struct v4l2_matrix *m)
++{
++	struct solo_enc_dev *solo_enc = video_drvdata(file);
++	int w = m->rect.width;
++	int h = m->rect.height;
++	u16 *mt;
++	int y;
++
++	if (m->rect.top < 0 || m->rect.top + h > 35 || h < 0 || w < 0 ||
++	    m->rect.left < 0 || m->rect.left + w >= SOLO_MOTION_SZ)
++		return -EINVAL;
++	if (h == 0 || w == 0)
++		return 0;
++
++	switch (m->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		return clear_user(m->matrix, w * h);
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		mt = &solo_enc->motion_thresholds.thresholds[m->rect.top][m->rect.left];
++		for (y = 0; y < h; y++, mt += SOLO_MOTION_SZ)
++			if (copy_to_user(m->matrix + y * w * 2, mt, w * 2))
++				return -EFAULT;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int solo_s_matrix(struct file *file, void *fh,
++			struct v4l2_matrix *m)
+ {
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	struct solo_motion_thresholds *thresholds = arg;
++	int w = m->rect.width;
++	int h = m->rect.height;
++	u16 *mt;
++	int y;
+ 
+-	switch (cmd) {
+-	case SOLO_IOC_G_MOTION_THRESHOLDS:
+-		*thresholds = solo_enc->motion_thresholds;
++	if (m->rect.top < 0 || m->rect.top + h > 35 || h < 0 || w < 0 ||
++	    m->rect.left < 0 || m->rect.left + w >= SOLO_MOTION_SZ)
++		return -EINVAL;
++	if (h == 0 || w == 0)
+ 		return 0;
+ 
+-	case SOLO_IOC_S_MOTION_THRESHOLDS:
+-		if (!valid_prio)
+-			return -EBUSY;
+-		solo_enc->motion_thresholds = *thresholds;
+-		if (solo_enc->motion_enabled && !solo_enc->motion_global)
+-			return solo_set_motion_block(solo_dev, solo_enc->ch,
+-						&solo_enc->motion_thresholds);
++	switch (m->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		/* Check that the region matrix is all zeroes */
++		for (y = 0; y < h; y++) {
++			u8 region[SOLO_MOTION_SZ];
++			static const u8 zeroes[SOLO_MOTION_SZ];
++
++			if (copy_from_user(region, m->matrix + y * w, w))
++				return -EFAULT;
++			if (memcmp(region, zeroes, w))
++				return -EINVAL;
++		}
+ 		return 0;
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		mt = &solo_enc->motion_thresholds.thresholds[m->rect.top][m->rect.left];
++		for (y = 0; y < h; y++, mt += SOLO_MOTION_SZ)
++			if (copy_from_user(mt, m->matrix + y * w * 2, w * 2))
++				return -EFAULT;
++		break;
+ 	default:
+-		return -ENOTTY;
++		return -EINVAL;
+ 	}
++
++	if (solo_enc->motion_enabled && !solo_enc->motion_global)
++		return solo_set_motion_block(solo_dev, solo_enc->ch,
++				&solo_enc->motion_thresholds);
++	return 0;
+ }
+ 
+ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1141,11 +1210,14 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
+ 	/* Video capture parameters */
+ 	.vidioc_s_parm			= solo_s_parm,
+ 	.vidioc_g_parm			= solo_g_parm,
++	/* Motion Detection matrices */
++	.vidioc_query_matrix		= solo_query_matrix,
++	.vidioc_g_matrix		= solo_g_matrix,
++	.vidioc_s_matrix		= solo_s_matrix,
+ 	/* Logging and events */
+ 	.vidioc_log_status		= v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+-	.vidioc_default			= solo_enc_default,
+ };
+ 
+ static const struct video_device solo_enc_template = {
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index 6f91d2e..01c8655 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -114,20 +114,14 @@
+  * effect, 44x30 samples are used for NTSC, and 44x36 for PAL.
+  * The 5th sample on the 10th row is (10*64)+5 = 645.
+  *
+- * Using a 64x64 array will result in a problem on some architectures like
+- * the powerpc where the size of the argument is limited to 13 bits.
+- * Since both PAL and NTSC do not use the full table anyway I've chosen
+- * to limit the array to 45x45 (45*16 = 720, which is the maximum PAL/NTSC
+- * width).
++ * Internally it is stored as a 45x45 array (45*16 = 720, which is the
++ * maximum PAL/NTSC width).
+  */
+ #define SOLO_MOTION_SZ (45)
+ struct solo_motion_thresholds {
+ 	__u16	thresholds[SOLO_MOTION_SZ][SOLO_MOTION_SZ];
+ };
+ 
+-#define SOLO_IOC_G_MOTION_THRESHOLDS	_IOR('V', BASE_VIDIOC_PRIVATE+0, struct solo_motion_thresholds)
+-#define SOLO_IOC_S_MOTION_THRESHOLDS	_IOW('V', BASE_VIDIOC_PRIVATE+1, struct solo_motion_thresholds)
+-
+ enum SOLO_I2C_STATE {
+ 	IIC_STATE_IDLE,
+ 	IIC_STATE_START,
 -- 
 1.8.3.2
 
