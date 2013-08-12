@@ -1,200 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:27763 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755034Ab3H2Oes (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2936 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754358Ab3HLS27 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 10:34:48 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MSA00EHRR5ZBTR0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Aug 2013 23:34:47 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+	Mon, 12 Aug 2013 14:28:59 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7CISuOn060913
+	for <linux-media@vger.kernel.org>; Mon, 12 Aug 2013 20:28:58 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 12 Aug 2013 20:28:56 +0200 (CEST)
+Message-Id: <201308121828.r7CISuOn060913@smtp-vbr4.xs4all.nl>
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id E77232A075F
+	for <linux-media@vger.kernel.org>; Mon, 12 Aug 2013 20:28:55 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, sheu@google.com,
-	m.krawczuk@partner.samsung.com, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] s5p-mfc: Fix build break in s5p_mfc_dec.c and s5p_mfc_enc.c
-Date: Thu, 29 Aug 2013 16:34:31 +0200
-Message-id: <1377786871-25653-1-git-send-email-k.debski@samsung.com>
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The build break was caused by the merge conflict between the following
-patches:
-- [media] s5p-mfc: Fix input/output format reporting
-  b2634562ad90be16441cff1127136457ea619466
-- [media] s5p-mfc: Rename IS_MFCV6 macro
-  722b979e555d002ca97c9254a91ff3bc5e83763c
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Reported-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
+Results of the daily build of media_tree:
 
-Hi Mauro,
+date:		Mon Aug 12 19:00:21 CEST 2013
+git branch:	test
+git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-There is a build break in the current linux-next (20130829).
-This patch fixes the merge confilct that caused the build break.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-Best wishes,
-Kamil Debski
+Detailed results are available here:
 
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   47 +++-----------------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   44 ++++++------------------
- 2 files changed, 16 insertions(+), 75 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index c46d12c..5c764f9 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -390,7 +390,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev)) {
-+		if (!IS_MFCV6_PLUS(dev)) {
- 			if (fmt->fourcc == V4L2_PIX_FMT_VP8) {
- 				mfc_err("Not supported format.\n");
- 				return -EINVAL;
-@@ -435,31 +435,9 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		goto out;
- 	}
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
--		fmt = find_format(f, MFC_FMT_RAW);
--		if (!fmt) {
--			mfc_err("Unsupported format for source.\n");
--			return -EINVAL;
--		}
--		if (!IS_MFCV6_PLUS(dev) &&
--				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
--			mfc_err("Not supported format.\n");
--			return -EINVAL;
--		} else if (IS_MFCV6_PLUS(dev) &&
--				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
--			mfc_err("Not supported format.\n");
--			return -EINVAL;
--		}
--		ctx->dst_fmt = fmt;
--		mfc_debug_leave();
--		return ret;
--	} else if (f->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		mfc_err("Wrong type error for S_FMT : %d", f->type);
--		return -EINVAL;
--	}
--	fmt = find_format(f, MFC_FMT_DEC);
--	if (!fmt || fmt->codec_mode == S5P_MFC_CODEC_NONE) {
--		mfc_err("Unknown codec\n");
--		ret = -EINVAL;
-+		/* dst_fmt is validated by call to vidioc_try_fmt */
-+		ctx->dst_fmt = find_format(f, MFC_FMT_RAW);
-+		ret = 0;
- 		goto out;
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		/* src_fmt is validated by call to vidioc_try_fmt */
-@@ -482,22 +460,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		ret = -EINVAL;
- 		goto out;
- 	}
--	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
--		mfc_err("Not supported format.\n");
--		return -EINVAL;
--	}
--	ctx->src_fmt = fmt;
--	ctx->codec_mode = fmt->codec_mode;
--	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
--	pix_mp->height = 0;
--	pix_mp->width = 0;
--	if (pix_mp->plane_fmt[0].sizeimage)
--		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
--	else
--		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
--								DEF_CPB_SIZE;
--	pix_mp->plane_fmt[0].bytesperline = 0;
--	ctx->state = MFCINST_INIT;
-+
- out:
- 	mfc_debug_leave();
- 	return ret;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 306c72b..41f5a3c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -978,6 +978,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			return -EINVAL;
- 		}
- 
-+		if (!IS_MFCV7(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+			mfc_err("VP8 is supported only in MFC v7\n");
-+			return -EINVAL;
-+		}
-+
- 		if (pix_fmt_mp->plane_fmt[0].sizeimage == 0) {
- 			mfc_err("must be set encoding output size\n");
- 			return -EINVAL;
-@@ -992,12 +997,12 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			return -EINVAL;
- 		}
- 
--		if (!IS_MFCV6(dev)) {
-+		if (!IS_MFCV6_PLUS(dev)) {
- 			if (fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16) {
- 				mfc_err("Not supported format.\n");
- 				return -EINVAL;
- 			}
--		} else if (IS_MFCV6(dev)) {
-+		} else if (IS_MFCV6_PLUS(dev)) {
- 			if (fmt->fourcc == V4L2_PIX_FMT_NV12MT) {
- 				mfc_err("Not supported format.\n");
- 				return -EINVAL;
-@@ -1033,15 +1038,8 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		goto out;
- 	}
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
--		fmt = find_format(f, MFC_FMT_ENC);
--		if (!fmt) {
--			mfc_err("failed to set capture format\n");
--			return -EINVAL;
--		}
--		if (!IS_MFCV7(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
--			mfc_err("VP8 is supported only in MFC v7\n");
--			return -EINVAL;
--		}
-+		/* dst_fmt is validated by call to vidioc_try_fmt */
-+		ctx->dst_fmt = find_format(f, MFC_FMT_ENC);
- 		ctx->state = MFCINST_INIT;
- 		ctx->codec_mode = ctx->dst_fmt->codec_mode;
- 		ctx->enc_dst_buf_size =	pix_fmt_mp->plane_fmt[0].sizeimage;
-@@ -1063,28 +1061,8 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		}
- 		mfc_debug(2, "Got instance number: %d\n", ctx->inst_no);
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		fmt = find_format(f, MFC_FMT_RAW);
--		if (!fmt) {
--			mfc_err("failed to set output format\n");
--			return -EINVAL;
--		}
--
--		if (!IS_MFCV6_PLUS(dev) &&
--				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
--			mfc_err("Not supported format.\n");
--			return -EINVAL;
--		} else if (IS_MFCV6_PLUS(dev) &&
--				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
--			mfc_err("Not supported format.\n");
--			return -EINVAL;
--		}
--
--		if (fmt->num_planes != pix_fmt_mp->num_planes) {
--			mfc_err("failed to set output format\n");
--			ret = -EINVAL;
--			goto out;
--		}
--		ctx->src_fmt = fmt;
-+		/* src_fmt is validated by call to vidioc_try_fmt */
-+		ctx->src_fmt = find_format(f, MFC_FMT_RAW);
- 		ctx->img_width = pix_fmt_mp->width;
- 		ctx->img_height = pix_fmt_mp->height;
- 		mfc_debug(2, "codec number: %d\n", ctx->src_fmt->codec_mode);
--- 
-1.7.9.5
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
