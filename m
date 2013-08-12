@@ -1,177 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:57237 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753969Ab3HESHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 14:07:13 -0400
-MIME-Version: 1.0
-In-Reply-To: <51ffdc7e.06b8b40a.2cc8.0fe0SMTPIN_ADDED_BROKEN@mx.google.com>
-References: <1374772648-19151-1-git-send-email-tom.cooksey@arm.com>
-	<CAF6AEGtspnhSGNM4_QQubVfOkZ1Gh1-Z3iyHOLBPVWuqRy81ew@mail.gmail.com>
-	<51f29ccd.f014b40a.34cc.ffffca2aSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGvFPGueM_LHVij9KFzM6NJySHCzmaLstuzZkK5GwP+6gQ@mail.gmail.com>
-	<51ffdc7e.06b8b40a.2cc8.0fe0SMTPIN_ADDED_BROKEN@mx.google.com>
-Date: Mon, 5 Aug 2013 14:07:12 -0400
-Message-ID: <CAF6AEGsyKk_G-R-OX_YcgYFDgTEmCy9Vf2LV1pAOV0452QKSww@mail.gmail.com>
-Subject: Re: [RFC 0/1] drm/pl111: Initial drm/kms driver for pl111
-From: Rob Clark <robdclark@gmail.com>
-To: Tom Cooksey <tom.cooksey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4422 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755582Ab3HLK66 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Aug 2013 06:58:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 02/10] v4l2: add matrix support.
+Date: Mon, 12 Aug 2013 12:58:25 +0200
+Message-Id: <1376305113-17128-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 5, 2013 at 1:10 PM, Tom Cooksey <tom.cooksey@arm.com> wrote:
-> Hi Rob,
->
-> +linux-media, +linaro-mm-sig for discussion of video/camera
-> buffer constraints...
->
->
->> On Fri, Jul 26, 2013 at 11:58 AM, Tom Cooksey <tom.cooksey@arm.com>
->> wrote:
->> >> >  * It abuses flags parameter of DRM_IOCTL_MODE_CREATE_DUMB to also
->> >> >    allocate buffers for the GPU. Still not sure how to resolve
->> >> >    this as we don't use DRM for our GPU driver.
->> >>
->> >> any thoughts/plans about a DRM GPU driver?  Ideally long term (esp.
->> >> once the dma-fence stuff is in place), we'd have gpu-specific drm
->> >> (gpu-only, no kms) driver, and SoC/display specific drm/kms driver,
->> >> using prime/dmabuf to share between the two.
->> >
->> > The "extra" buffers we were allocating from armsoc DDX were really
->> > being allocated through DRM/GEM so we could get an flink name
->> > for them and pass a reference to them back to our GPU driver on
->> > the client side. If it weren't for our need to access those
->> > extra off-screen buffers with the GPU we wouldn't need to
->> > allocate them with DRM at all. So, given they are really "GPU"
->> > buffers, it does absolutely make sense to allocate them in a
->> > different driver to the display driver.
->> >
->> > However, to avoid unnecessary memcpys & related cache
->> > maintenance ops, we'd also like the GPU to render into buffers
->> > which are scanned out by the display controller. So let's say
->> > we continue using DRM_IOCTL_MODE_CREATE_DUMB to allocate scan
->> > out buffers with the display's DRM driver but a custom ioctl
->> > on the GPU's DRM driver to allocate non scanout, off-screen
->> > buffers. Sounds great, but I don't think that really works
->> > with DRI2. If we used two drivers to allocate buffers, which
->> > of those drivers do we return in DRI2ConnectReply? Even if we
->> > solve that somehow, GEM flink names are name-spaced to a
->> > single device node (AFAIK). So when we do a DRI2GetBuffers,
->> > how does the EGL in the client know which DRM device owns GEM
->> > flink name "1234"? We'd need some pretty dirty hacks.
->>
->> You would return the name of the display driver allocating the
->> buffers.  On the client side you can use generic ioctls to go from
->> flink -> handle -> dmabuf.  So the client side would end up opening
->> both the display drm device and the gpu, but without needing to know
->> too much about the display.
->
-> I think the bit I was missing was that a GEM bo for a buffer imported
-> using dma_buf/PRIME can still be flink'd. So the display controller's
-> DRM driver allocates scan-out buffers via the DUMB buffer allocate
-> ioctl. Those scan-out buffers than then be exported from the
-> dispaly's DRM driver and imported into the GPU's DRM driver using
-> PRIME. Once imported into the GPU's driver, we can use flink to get a
-> name for that buffer within the GPU DRM driver's name-space to return
-> to the DRI2 client. That same namespace is also what DRI2 back-buffers
-> are allocated from, so I think that could work... Except...
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-(and.. the general direction is that things will move more to just use
-dmabuf directly, ie. wayland or dri3)
+This patch adds core support for matrices: querying, getting and setting.
 
->
->> > Anyway, that latter case also gets quite difficult. The "GPU"
->> > DRM driver would need to know the constraints of the display
->> > controller when allocating buffers intended to be scanned out.
->> > For example, pl111 typically isn't behind an IOMMU and so
->> > requires physically contiguous memory. We'd have to teach the
->> > GPU's DRM driver about the constraints of the display HW. Not
->> > exactly a clean driver model. :-(
->> >
->> > I'm still a little stuck on how to proceed, so any ideas
->> > would greatly appreciated! My current train of thought is
->> > having a kind of SoC-specific DRM driver which allocates
->> > buffers for both display and GPU within a single GEM
->> > namespace. That SoC-specific DRM driver could then know the
->> > constraints of both the GPU and the display HW. We could then
->> > use PRIME to export buffers allocated with the SoC DRM driver
->> > and import them into the GPU and/or display DRM driver.
->>
->> Usually if the display drm driver is allocating the buffers that might
->> be scanned out, it just needs to have minimal knowledge of the GPU
->> (pitch alignment constraints).  I don't think we need a 3rd device
->> just to allocate buffers.
->
-> While Mali can render to pretty much any buffer, there is a mild
-> performance improvement to be had if the buffer stride is aligned to
-> the AXI bus's max burst length when drawing to the buffer.
+Two initial matrix types are defined for motion detection (defining regions
+and thresholds).
 
-I suspect the display controllers might frequently benefit if the
-pitch is aligned to AXI burst length too..
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
+ include/media/v4l2-ioctl.h           |  8 +++++
+ include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 97 insertions(+), 1 deletion(-)
 
-> So in some respects, there is a constraint on how buffers which will
-> be drawn to using the GPU are allocated. I don't really like the idea
-> of teaching the display controller DRM driver about the GPU buffer
-> constraints, even if they are fairly trivial like this. If the same
-> display HW IP is being used on several SoCs, it seems wrong somehow
-> to enforce those GPU constraints if some of those SoCs don't have a
-> GPU.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c8859d6..5e58df6 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+ 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+ 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
++	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
+ 
+ 	if (is_vid) {
+ 		/* video specific ioctls */
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 68e6b5e..47debfc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
+ 	const struct v4l2_cropcap *p = arg;
+ 
+ 	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
+-		"defrect wxh=%dx%d, x,y=%d,%d\n, "
++		"defrect wxh=%dx%d, x,y=%d,%d, "
+ 		"pixelaspect %d/%d\n",
+ 		prt_names(p->type, v4l2_type_names),
+ 		p->bounds.width, p->bounds.height,
+@@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
+ 			p->rangehigh, p->modulation);
+ }
+ 
++static void v4l_print_query_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_query_matrix *p = arg;
++
++	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
++			p->type, p->columns, p->rows,
++			p->elem_min.val, p->elem_max.val, p->elem_size);
++}
++
++static void v4l_print_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_matrix *p = arg;
++
++	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
++			p->type, p->rect.width, p->rect.height,
++			p->rect.top, p->rect.left, p->matrix);
++}
++
+ static void v4l_print_u32(const void *arg, bool write_only)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
++	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
++	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
++	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e0b74a4..7e4538e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+ 					const struct v4l2_event_subscription *sub);
+ 
++	/* Matrix ioctls */
++	int (*vidioc_query_matrix) (struct file *file, void *fh,
++				    struct v4l2_query_matrix *qmatrix);
++	int (*vidioc_g_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++	int (*vidioc_s_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					bool valid_prio, unsigned int cmd, void *arg);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 95ef455..605d295 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
+ 	__u32			reserved[8];
+ };
+ 
++/* Define to which motion detection region each element belongs.
++ * Each element is a __u8. */
++#define V4L2_MATRIX_T_MD_REGION     (1)
++/* Define the motion detection threshold for each element.
++ * Each element is a __u16. */
++#define V4L2_MATRIX_T_MD_THRESHOLD  (2)
++
++/**
++ * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @columns:	number of columns in the matrix
++ * @rows:	number of rows in the matrix
++ * @elem_min:	minimum matrix element value
++ * @elem_max:	maximum matrix element value
++ * @elem_size:	size in bytes each matrix element
++ * @reserved:	future extensions, applications and drivers must zero this.
++ */
++struct v4l2_query_matrix {
++	__u32 type;
++	union {
++		__u32 raw[4];
++	} ref;
++	__u32 columns;
++	__u32 rows;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 raw[4];
++	} elem_min;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 raw[4];
++	} elem_max;
++	__u32 elem_size;
++	__u32 reserved[12];
++} __attribute__ ((packed));
++
++/**
++ * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @rect:	which part of the matrix to get/set
++ * @matrix:	pointer to the matrix of size (in bytes):
++ *		elem_size * rect.width * rect.height
++ * @reserved:	future extensions, applications and drivers must zero this.
++ */
++struct v4l2_matrix {
++	__u32 type;
++	union {
++		__u32 raw[4];
++	} ref;
++	struct v4l2_rect rect;
++	void __user *matrix;
++	__u32 reserved[12];
++} __attribute__ ((packed));
++
+ /*
+  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+  *
+@@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++/* Experimental, these three ioctls may change over the next couple of kernel
++   versions. */
++#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
++#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
++#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-- 
+1.8.3.2
 
-Well, I suppose you could get min_pitch_alignment from devicetree, or
-something like this..
-
-In the end, the easy solution is just to make the display allocate to
-the worst-case pitch alignment.  In the early days of dma-buf
-discussions, we kicked around the idea of negotiating or
-programatically describing the constraints, but that didn't really
-seem like a bounded problem.
-
-> We may also then have additional constraints when sharing buffers
-> between the display HW and video decode or even camera ISP HW.
-> Programmatically describing buffer allocation constraints is very
-> difficult and I'm not sure you can actually do it - there's some
-> pretty complex constraints out there! E.g. I believe there's a
-> platform where Y and UV planes of the reference frame need to be in
-> separate DRAM banks for real-time 1080p decode, or something like
-> that?
-
-yes, this was discussed.  This is different from pitch/format/size
-constraints.. it is really just a placement constraint (ie. where do
-the physical pages go).  IIRC the conclusion was to use a dummy
-devices with it's own CMA pool for attaching the Y vs UV buffers.
-
-> Anyway, I guess my point is that even if we solve how to allocate
-> buffers which will be shared between the GPU and display HW such that
-> both sets of constraints are satisfied, that may not be the end of
-> the story.
->
-
-that was part of the reason to punt this problem to userspace ;-)
-
-In practice, the kernel drivers doesn't usually know too much about
-the dimensions/format/etc.. that is really userspace level knowledge.
-There are a few exceptions when the kernel needs to know how to setup
-GTT/etc for tiled buffers, but normally this sort of information is up
-at the next level up (userspace, and drm_framebuffer in case of
-scanout).  Userspace media frameworks like GStreamer already have a
-concept of format/caps negotiation.  For non-display<->gpu sharing, I
-think this is probably where this sort of constraint negotiation
-should be handled.
-
-BR,
--R
-
->
-> Cheers,
->
-> Tom
->
->
->
->
->
