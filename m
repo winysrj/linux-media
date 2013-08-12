@@ -1,107 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1982 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172Ab3HWCkp (ORCPT
+Received: from mail-we0-f175.google.com ([74.125.82.175]:53493 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754775Ab3HLTju (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 22:40:45 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7N2eg2u064750
-	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 04:40:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 7E1DB2A0761
-	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 04:40:38 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130823024038.7E1DB2A0761@tschai.lan>
-Date: Fri, 23 Aug 2013 04:40:38 +0200 (CEST)
+	Mon, 12 Aug 2013 15:39:50 -0400
+Received: by mail-we0-f175.google.com with SMTP id q58so5730333wes.6
+        for <linux-media@vger.kernel.org>; Mon, 12 Aug 2013 12:39:49 -0700 (PDT)
+Message-ID: <52093A03.1060904@googlemail.com>
+Date: Mon, 12 Aug 2013 21:39:47 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] libv4lconvert: Support for Y16 pixel format
+References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com> <1375483372-4354-2-git-send-email-ricardo.ribalda@gmail.com> <CAPybu_0hKXNb=nR2EdesaPsV8kXF2A7MzKd3Zog-YMXLHgk9uw@mail.gmail.com>
+In-Reply-To: <CAPybu_0hKXNb=nR2EdesaPsV8kXF2A7MzKd3Zog-YMXLHgk9uw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 8/9/13 6:04 PM, Ricardo Ribalda Delgado wrote:
+> ping?
 
-Results of the daily build of media_tree:
+Thank you for your the updated series.
 
-date:		Fri Aug 23 04:00:24 CEST 2013
-git branch:	test
-git hash:	5be789fc84a752946f6bdf263b053ed7d4a12a1c
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+Unfortunately I'm still partially busy with moving. I hoped the 
+v4lconvert maintainer Hans (de Goede) will ack these patches. If this 
+series does not get an ack by Sunday I'll double check and commit.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10.1-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.11-rc1-i686: WARNINGS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.11-rc1-x86_64: WARNINGS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+What hardware did you use to test this?
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+Gregor
