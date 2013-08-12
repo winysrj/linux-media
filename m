@@ -1,190 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38572 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752851Ab3HEND4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Aug 2013 09:03:56 -0400
-Message-ID: <51FFA2B1.1050809@ti.com>
-Date: Mon, 5 Aug 2013 16:03:45 +0300
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
-	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
-	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/6] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-3-git-send-email-archit@ti.com> <51FF6C4D.2030306@ti.com> <51FF9517.6000406@ti.com>
-In-Reply-To: <51FF9517.6000406@ti.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk"
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2670 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755433Ab3HLLKV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Aug 2013 07:10:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/10] DocBook: document the new v4l2 matrix ioctls.
+Date: Mon, 12 Aug 2013 12:58:32 +0200
+Message-Id: <1376305113-17128-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 05/08/13 15:05, Archit Taneja wrote:
-> On Monday 05 August 2013 02:41 PM, Tomi Valkeinen wrote:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/v4l2.xml           |   2 +
+ .../DocBook/media/v4l/vidioc-g-matrix.xml          | 115 +++++++++++++
+ .../DocBook/media/v4l/vidioc-query-matrix.xml      | 178 +++++++++++++++++++++
+ 3 files changed, 295 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
 
->> There's quite a bit of code in these dump functions, and they are alwa=
-ys
->> called. I'm sure getting that data is good for debugging, but I presum=
-e
->> they are quite useless for normal use. So I think they should be
->> compiled in only if some Kconfig option is selected.
->=20
-> Won't pr_debug() functions actually print something only when
-> CONFIG_DYNAMIC_DEBUG is selected or if the DEBUG is defined? They will
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 8469fe1..11687d5 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -584,6 +584,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-g-frequency;
+     &sub-g-input;
+     &sub-g-jpegcomp;
++    &sub-g-matrix;
+     &sub-g-modulator;
+     &sub-g-output;
+     &sub-g-parm;
+@@ -600,6 +601,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-querycap;
+     &sub-queryctrl;
+     &sub-query-dv-timings;
++    &sub-query-matrix;
+     &sub-querystd;
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-matrix.xml b/Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
+new file mode 100644
+index 0000000..95a3f4e
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
+@@ -0,0 +1,115 @@
++<refentry id="vidioc-g-matrix">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_G_MATRIX, VIDIOC_S_MATRIX</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_G_MATRIX</refname>
++    <refname>VIDIOC_S_MATRIX</refname>
++    <refpurpose>Get or set a matrix</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_matrix
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_G_MATRIX, VIDIOC_S_MATRIX</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Get or set the elements of a matrix. To get a matrix the application fills in the
++    <structfield>type</structfield> and optionally the <structfield>ref</structfield>
++    fields of &v4l2-matrix;. All other fields will be returned by the driver.
++    To set a matrix the application fills all the fields of the structure.
++    </para>
++
++    <table frame="none" pgwide="1" id="v4l2-matrix">
++      <title>struct <structname>v4l2_matrix</structname></title>
++      <tgroup cols="4">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++            <entry></entry>
++	    <entry>Type of the matrix, see <xref linkend="v4l2-matrix-type" />.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield>ref</structfield></entry>
++            <entry></entry>
++	    <entry>This union makes it possible to identify the object owning the
++	    matrix. Currently the only defined matrix types are identified through
++	    the filehandle used to call the ioctl, so this union isn't used (yet).</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-rect;</entry>
++	    <entry><structfield>rect</structfield></entry>
++            <entry></entry>
++	    <entry>The subset of the matrix that you want to get or set. The rectangle
++	    must fit within the total matrix dimensions, the top left element of the total
++	    matrix is always (0, 0). To get/set the full matrix <structfield>rect</structfield>
++	    should be set to (0, 0, <structfield>columns</structfield>, <structfield>rows</structfield>),
++	    where <structfield>columns</structfield> and <structfield>rows</structfield> are
++	    obtained from &VIDIOC-QUERY-MATRIX;.</entry>
++	  </row>
++	  <row>
++	    <entry>void *</entry>
++	    <entry><structfield>matrix</structfield></entry>
++            <entry></entry>
++	    <entry>A pointer to the matrix. This matrix has size <structfield>rect.width</structfield> *
++	    <structfield>rect.height</structfield> * <structfield>elem_size</structfield>.
++	    The <structfield>elem_size</structfield> can be obtained via &VIDIOC-QUERY-MATRIX;.
++	    The elements are stored row-by-row in the matrix. The first element is element
++	    (<structfield>rect.top</structfield>, <structfield>rect.left</structfield>) of the
++	    full matrix.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[12]</entry>
++            <entry></entry>
++	    <entry>Reserved for future extensions. Drivers and applications must set
++	    the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++  <refsect1>
++    &return-value;
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
+new file mode 100644
+index 0000000..c2845c7
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
+@@ -0,0 +1,178 @@
++<refentry id="vidioc-query-matrix">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_QUERY_MATRIX</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_QUERY_MATRIX</refname>
++    <refpurpose>Query the attributes of a matrix</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_query_matrix
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_QUERY_MATRIX</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Query the attributes of a matrix. The application fills in the
++    <structfield>type</structfield> and optionally the <structfield>ref</structfield>
++    fields of &v4l2-query-matrix;. All other fields will be returned by the driver.
++    </para>
++
++    <table frame="none" pgwide="1" id="v4l2-query-matrix">
++      <title>struct <structname>v4l2_query_matrix</structname></title>
++      <tgroup cols="4">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++            <entry></entry>
++	    <entry>Type of the matrix, see <xref linkend="v4l2-matrix-type" />.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield>ref</structfield></entry>
++            <entry></entry>
++	    <entry>This union makes it possible to identify the object owning the
++	    matrix. Currently the only defined matrix types are identified through
++	    the filehandle used to call the ioctl, so this union isn't used (yet).</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>columns</structfield></entry>
++            <entry></entry>
++	    <entry>Number of columns in the matrix.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>rows</structfield></entry>
++            <entry></entry>
++	    <entry>Number of rows in the matrix.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield>elem_min</structfield></entry>
++            <entry></entry>
++            <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++            <entry>__s64</entry>
++	    <entry><structfield>val</structfield></entry>
++            <entry>The minimal signed value of each matrix element.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++            <entry>__u64</entry>
++	    <entry><structfield>uval</structfield></entry>
++            <entry>The minimal unsigned value of each matrix element.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield>elem_max</structfield></entry>
++            <entry></entry>
++            <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++            <entry>__s64</entry>
++	    <entry><structfield>val</structfield></entry>
++            <entry>The maximal signed value of each matrix element.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++            <entry>__u64</entry>
++	    <entry><structfield>uval</structfield></entry>
++            <entry>The maximal unsigned value of each matrix element.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>elem_size</structfield></entry>
++            <entry></entry>
++	    <entry>The size in bytes of a single matrix element.
++	    The full matrix size will be <structfield>columns</structfield> *
++	    <structfield>rows</structfield> * <structfield>elem_size</structfield>.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[12]</entry>
++            <entry></entry>
++	    <entry>Reserved for future extensions. Drivers must set
++	    the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="v4l2-matrix-type">
++      <title>Matrix Types</title>
++      <tgroup cols="2" align="left">
++	<colspec colwidth="30*" />
++	<colspec colwidth="55*" />
++	<thead>
++	  <row>
++	    <entry>Type</entry>
++	    <entry>Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_MATRIX_T_MD_REGION</constant></entry>
++	    <entry>Hardware motion detection often divides the image into several
++	    regions, and each region can have its own motion detection thresholds.
++	    This matrix assigns a region number to each element. Each element is a __u8.
++	    Generally each element refers to a block of pixels in the image.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_MATRIX_T_MD_THRESHOLD</constant></entry>
++	    <entry>Hardware motion detection can assign motion detection threshold
++	    values to each element of an image. Each element is a __u16.
++            Generally each element refers to a block of pixels in the image.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++  <refsect1>
++    &return-value;
++  </refsect1>
++</refentry>
+-- 
+1.8.3.2
 
-If DEBUG is defined, they are always printed. If dynamic debug is in
-use, the user has to enable debug prints for VPE for the dumps to be
-printed.
-
-> still consume a lot of code, but it would just end up in dummy printk
-> calls, right?
-
-Yes.
-
-Well, I don't know VPE, so I can't really say how much those prints are
-needed or not. They just looked very verbose to me.
-
-I think we should have "normal" level debugging messages compiled in by
-default, and for "verbose" there should be a separate compile options.
-With verbose I mean something that may be useful if you are changing the
-code and want to verify it or debugging some very odd bug. I.e. for the
-developer of the driver.
-
-And with normal something that would be used when, say, somebody uses
-VPE for in his app, but things don't seem to be quite right, and there's
-need to get some info on what is going on. I.e. for "normal" user.
-
-But that's just my opinion, and it's obviously difficult to define those
-clearly =3D). To be honest, I don't know how much overhead very verbose
-kernel debug prints even cause. Maybe it's negligible.
-
->>> +/*
->>> + * data transfer descriptor
->>> + *
->>> + * All fields are 32 bits to make them endian neutral
->>
->> What does that mean? Why would 32bit fields make it endian neutral?
->=20
->=20
-> Each 32 bit field describes one word of the data descriptor. Each
-> descriptor has a number of parameters.
->=20
-> If we look at the word 'xfer_length_height'. It's composed of height
-> (from bits 15:0) and width(from bits 31:16). If the word was expressed
-> using bit fields, we can describe the word(in big endian) as:
->=20
-> struct vpdma_dtd {
->     ...
->     unsigned int    xfer_width:16;
->     unsigned int    xfer_height:16;
->     ...
->     ...
-> };
->=20
-> and in little endian as:
->=20
-> struct vpdma_dtd {
->     ...
->     unsigned int    xfer_height:16;
->     unsigned int    xfer_width:16;
->     ...
->     ...
-> };
->=20
-> So this representation makes it endian dependent. Maybe the comment
-> should be improved saying that usage of u32 words instead of bit fields=
-
-> prevents endian issues.
-
-No, I don't think that's correct. Endianness is about bytes, not 16 bit
-words. The above text doesn't make much sense to me.
-
-I haven't really worked with endiannes issues, but maybe __le32 and
-others should be used in the struct, if that struct is read by the HW.
-And use cpu_to_le32() & others to write those. But googling will
-probably give more info (I should read also =3D).
-
->>> + */
->>> +struct vpdma_dtd {
->>> +    u32            type_ctl_stride;
->>> +    union {
->>> +        u32        xfer_length_height;
->>> +        u32        w1;
->>> +    };
->>> +    dma_addr_t        start_addr;
->>> +    u32            pkt_ctl;
->>> +    union {
->>> +        u32        frame_width_height;    /* inbound */
->>> +        dma_addr_t    desc_write_addr;    /* outbound */
->>
->> Are you sure dma_addr_t is always 32 bit?
->=20
-> I am not sure about this.
-
-Is this struct directly read by the HW, or written to HW? If so, I
-believe using dma_addr_t is very wrong here. Having a typedef like
-dma_addr_t hides the actual type used for it. So even if it currently
-would always be 32bit, there's no guarantee.
-
->>
->>> +    };
->>> +    union {
->>> +        u32        start_h_v;        /* inbound */
->>> +        u32        max_width_height;    /* outbound */
->>> +    };
->>> +    u32            client_attr0;
->>> +    u32            client_attr1;
->>> +};
->>
->> I'm not sure if I understand the struct right, but presuming this one
->> struct is used for both writing and reading, and certain set of fields=
-
->> is used for writes and other set for reads, would it make sense to hav=
-e
->> two different structs, instead of using unions? Although they do have
->> many common fields, and the unions are a bit scattered there, so I don=
-'t
->> know if that would be cleaner...
->=20
-> It helps in a having a common debug function, I don't see much benefit
-> apart from that. I'll see if it's better to have them as separate struc=
-ts.
-
-Ok. Does the struct have any bit or such that tells us if the current
-data is inbound or outbound?
-
- Tomi
-
-
-
---CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJR/6KxAAoJEPo9qoy8lh71j8oP/RJg7xux9QWotOGKMl26SdOY
-aSigh6wg4HmJqWkjEZBVUf9Ey12L/yxvtSCPzDxRWNOmbmDhjCiSWMJxzx/pEDpw
-sf5Vg0z1lpqI4Pj+5zdXkeUNEFhYCnGF+8xaH0qeul5jAeE1LwvflDDP6z4PFeWA
-rCxrDOy8GpYCEhQwrWjL0XY4vysIWodXY2erru0grGrSBXhMEbWrOumuZUGt5b+X
-xwx6B62Fc0f94ajFSp6/MSEhqkdVHQeNl6gJf8gGHzCGK74fgFFDHgN3AfxZW99Z
-MDFrtlXEaPCSyNwTVRB27dML3ijc2sArY59bHaWRpy/cUDvGEz+muj/nOSLre+cK
-dZ+2gGJNwdIOjJi/NCdI1V9dkhAgmB5MQcFgPwjTnyDPr8/4xU74bUd0iTIPQ7IL
-aAwNR+W9eV9OGOiDhuBm68NANmAGcG9Ywp9o5PcCBUeZpUPvuEZX1VCo2224SCSf
-yc69gUXW3ox//gR0MsDjukaMrQeWZuDBx4ixy4Cy0DPDKivAydewyO3E5+ghM6p9
-x4lqgtZS25ml6+IltMjjKwCDPrekH3dGMC2Ot22/dZeJ7WiLfwBxPX/zCgz4TzCE
-9yowmwWj+SK2CIaCHFYrRYd5ExICvggXuSJROmmzjDRD8EVMxquVFsMeuZlXbBg1
-djalJWYNhywAqgAcaN4j
-=pNLN
------END PGP SIGNATURE-----
-
---CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk--
