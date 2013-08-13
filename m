@@ -1,69 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4910 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023Ab3HaGnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 02:43:49 -0400
-Message-ID: <52219093.7080409@xs4all.nl>
-Date: Sat, 31 Aug 2013 08:43:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:36020 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757693Ab3HMMGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Aug 2013 08:06:09 -0400
+Message-ID: <520A2100.6000709@ti.com>
+Date: Tue, 13 Aug 2013 17:35:20 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Agenda for the Edinburgh mini-summit
-References: <201308301501.25164.hverkuil@xs4all.nl>
-In-Reply-To: <201308301501.25164.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Tomasz Figa <t.figa@samsung.com>
+CC: <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <20130720220006.GA7977@kroah.com> <20130731061538.GC13289@radagast> <520A0E1C.5000306@ti.com> <2034985.S0danJZqk4@amdc1227>
+In-Reply-To: <2034985.S0danJZqk4@amdc1227>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 08/30/2013 03:01 PM, Hans Verkuil wrote:
-> OK, I know, we don't even know yet when the mini-summit will be held but I thought
-> I'd just start this thread to collect input for the agenda.
+On Tuesday 13 August 2013 05:07 PM, Tomasz Figa wrote:
+> On Tuesday 13 of August 2013 16:14:44 Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>>>>>> regulators, PWMs or even i2c busses because there are complex
+>>>>>>>>> cases
+>>>>>>>>> when passing just a name using platform data will not work. I
+>>>>>>>>> would
+>>>>>>>>> second what Stephen said [1] and define a structure doing things
+>>>>>>>>> in a
+>>>>>>>>> DT-like way.
+>>>>>>>>>
+>>>>>>>>> Example;
+>>>>>>>>>
+>>>>>>>>> [platform code]
+>>>>>>>>>
+>>>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>>>>>
+>>>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>>>>>
+>>>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used
+>>>>>>>> while
+>>>>>>>> creating the device, the ids in the device name would change and
+>>>>>>>> PHY_LOOKUP wont be useful.
+>>>>>>>
+>>>>>>> I don't think this is a problem. All the existing lookup methods
+>>>>>>> already
+>>>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c,
+>>>>>>> ...). You
+>>>>>>> can simply add a requirement that the ID must be assigned manually,
+>>>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>>>>>
+>>>>>> And I'm saying that this idea, of using a specific name and id, is
+>>>>>> frought with fragility and will break in the future in various ways
+>>>>>> when
+>>>>>> devices get added to systems, making these strings constantly have
+>>>>>> to be
+>>>>>> kept up to date with different board configurations.
+>>>>>>
+>>>>>> People, NEVER, hardcode something like an id.  The fact that this
+>>>>>> happens today with the clock code, doesn't make it right, it makes
+>>>>>> the
+>>>>>> clock code wrong.  Others have already said that this is wrong there
+>>>>>> as
+>>>>>> well, as systems change and dynamic ids get used more and more.
+>>>>>>
+>>>>>> Let's not repeat the same mistakes of the past just because we
+>>>>>> refuse to
+>>>>>> learn from them...
+>>>>>>
+>>>>>> So again, the "find a phy by a string" functions should be removed,
+>>>>>> the
+>>>>>> device id should be automatically created by the phy core just to
+>>>>>> make
+>>>>>> things unique in sysfs, and no driver code should _ever_ be reliant
+>>>>>> on
+>>>>>> the number that is being created, and the pointer to the phy
+>>>>>> structure
+>>>>>> should be used everywhere instead.
+>>>>>>
+>>>>>> With those types of changes, I will consider merging this subsystem,
+>>>>>> but
+>>>>>> without them, sorry, I will not.
+>>>>>
+>>>>> I'll agree with Greg here, the very fact that we see people trying to
+>>>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points
+>>>>> to a
+>>>>> big problem in the framework.
+>>>>>
+>>>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+>>>>> adding similar infrastructure to the driver themselves to make sure
+>>>>> we
+>>>>> don't end up with duplicate names in sysfs in case we have multiple
+>>>>> instances of the same IP in the SoC (or several of the same PCIe
+>>>>> card).
+>>>>> I really don't want to go back to that.
+>>>>
+>>>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can
+>>>> give the correct binding information to the PHY framework. I think we
+>>>> can drop having this non-dt support in PHY framework? I see only one
+>>>> platform (OMAP3) going to be needing this non-dt support and we can
+>>>> use the USB PHY library for it.> 
+>>> you shouldn't drop support for non-DT platform, in any case we lived
+>>> without DT (and still do) for years. Gotta find a better way ;-)
+>>
+>> hmm..
+>>
+>> how about passing the device names of PHY in platform data of the
+>> controller? It should be deterministic as the PHY framework assigns its
+>> own id and we *don't* want to add any requirement that the ID must be
+>> assigned manually without using PLATFORM_DEVID_AUTO. We can get rid of
+>> *phy_init_data* in the v10 patch series.
 > 
-> I have these topics (and I *know* that I am forgetting a few):
-> 
-> - Discuss ideas/use-cases for a property-based API. An initial discussion
->   appeared in this thread:
-> 
->   http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
-> 
-> - What is needed to share i2c video transmitters between drm and v4l? Hopefully
->   we will know more after the upcoming LPC.
-> 
-> - Decide on how v4l2 support libraries should be organized. There is code for
->   handling raw-to-sliced VBI decoding, ALSA looping, finding associated
->   video/alsa nodes and for TV frequency tables. We should decide how that should
->   be organized into libraries and how they should be documented. The first two
->   aren't libraries at the moment, but I think they should be. The last two are
->   libraries but they aren't installed. Some work is also being done on an improved
->   version of the 'associating nodes' library that uses the MC if available.
-> 
-> - Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
->   this thread for all the nasty details:
-> 
->   http://www.spinics.net/lists/linux-media/msg65137.html
-> 
-> Feel free to add suggestions to this list.
+> What about slightly altering the concept of v9 to pass a pointer to struct 
+> device instead of device name inside phy_init_data?
 
-I got another one:
+The problem is device might be created very late. (For example in omap4, usb2
+phy device gets created when ocp2scp bus is probed). And we have to pass the
+init data in board file.
 
-VIDIOC_TRY_FMT shouldn't return -EINVAL when an unsupported pixelformat is provided,
-but in practice video capture board tend to do that, while webcam drivers tend to map
-it silently to a valid pixelformat. Some applications rely on the -EINVAL error code.
-
-We need to decide how to adjust the spec. I propose to just say that some drivers
-will map it silently and others will return -EINVAL and that you don't know what a
-driver will do. Also specify that an unsupported pixelformat is the only reason why
-TRY_FMT might return -EINVAL.
-
-Alternatively we might want to specify explicitly that EINVAL should be returned for
-video capture devices (i.e. devices supporting S_STD or S_DV_TIMINGS) and 0 for all
-others.
-
-Regards,
-
-	Hans
+Thanks
+Kishon
