@@ -1,128 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:50501 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297Ab3H3CRn (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:62060 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756520Ab3HMJTj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:43 -0400
-Received: by mail-pd0-f172.google.com with SMTP id z10so1228841pdj.17
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:42 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 09/19] uvcvideo: Reorganize uvc_{get,set}_le_value.
-Date: Fri, 30 Aug 2013 11:17:08 +0900
-Message-Id: <1377829038-4726-10-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+	Tue, 13 Aug 2013 05:19:39 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linaro-kernel@lists.linaro.org
+Cc: maarten.lankhorst@canonical.com, sumit.semwal@linaro.org,
+	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	Inki Dae <inki.dae@samsung.com>
+Subject: [RFC PATCH v6 0/2] Introduce buffer synchronization framework
+Date: Tue, 13 Aug 2013 18:19:34 +0900
+Message-id: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
----
- drivers/media/usb/uvc/uvc_ctrl.c | 62 ++++++++++++++++++++++++----------------
- 1 file changed, 37 insertions(+), 25 deletions(-)
+Hi all,
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 72d6724..d735c88 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -707,18 +707,12 @@ static inline void uvc_clear_bit(__u8 *data, int bit)
- 	data[bit >> 3] &= ~(1 << (bit & 7));
- }
- 
--/* Extract the bit string specified by mapping->offset and mapping->size
-- * from the little-endian data stored at 'data' and return the result as
-- * a signed 32bit integer. Sign extension will be performed if the mapping
-- * references a signed data type.
-- */
--static __s32 uvc_get_le_value(struct uvc_control_mapping *mapping,
--	__u8 query, const __u8 *data)
-+static int __uvc_get_le_value(int bits, int offset, const __u8 *data,
-+				__u32 data_type)
- {
--	int bits = mapping->size;
--	int offset = mapping->offset;
- 	__s32 value = 0;
- 	__u8 mask;
-+	int size = bits;
- 
- 	data += offset / 8;
- 	offset &= 7;
-@@ -733,22 +727,49 @@ static __s32 uvc_get_le_value(struct uvc_control_mapping *mapping,
- 	}
- 
- 	/* Sign-extend the value if needed. */
--	if (mapping->data_type == UVC_CTRL_DATA_TYPE_SIGNED)
--		value |= -(value & (1 << (mapping->size - 1)));
-+	if (data_type == UVC_CTRL_DATA_TYPE_SIGNED)
-+		value |= -(value & (1 << (size - 1)));
- 
- 	return value;
- }
- 
-+/* Extract the bit string specified by mapping->offset and mapping->size
-+ * from the little-endian data stored at 'data' and return the result as
-+ * a signed 32bit integer. Sign extension will be performed if the mapping
-+ * references a signed data type.
-+ */
-+static __s32 uvc_get_le_value(struct uvc_control_mapping *mapping,
-+	__u8 query, const __u8 *data)
-+{
-+	return __uvc_get_le_value(mapping->size, mapping->offset, data,
-+					mapping->data_type);
-+}
-+
-+static void __uvc_set_le_value(int bits, int offset, __s32 value, __u8 *data,
-+				bool keep_existing)
-+{
-+	__u8 mask;
-+
-+	data += offset / 8;
-+	offset &= 7;
-+
-+	for (; bits > 0; data++) {
-+		mask = ((1LL << bits) - 1) << offset;
-+		if (!keep_existing)
-+			*data = (*data & ~mask);
-+		*data |= ((value << offset) & mask);
-+		value >>= (8 - offset);
-+		bits -= 8 - offset;
-+		offset = 0;
-+	}
-+}
-+
- /* Set the bit string specified by mapping->offset and mapping->size
-  * in the little-endian data stored at 'data' to the value 'value'.
-  */
- static void uvc_set_le_value(struct uvc_control_mapping *mapping,
- 	__s32 value, __u8 *data)
- {
--	int bits = mapping->size;
--	int offset = mapping->offset;
--	__u8 mask;
--
- 	/* According to the v4l2 spec, writing any value to a button control
- 	 * should result in the action belonging to the button control being
- 	 * triggered. UVC devices however want to see a 1 written -> override
-@@ -757,16 +778,7 @@ static void uvc_set_le_value(struct uvc_control_mapping *mapping,
- 	if (mapping->v4l2_type == V4L2_CTRL_TYPE_BUTTON)
- 		value = -1;
- 
--	data += offset / 8;
--	offset &= 7;
--
--	for (; bits > 0; data++) {
--		mask = ((1LL << bits) - 1) << offset;
--		*data = (*data & ~mask) | ((value << offset) & mask);
--		value >>= offset ? offset : 8;
--		bits -= 8 - offset;
--		offset = 0;
--	}
-+	__uvc_set_le_value(mapping->size, mapping->offset, value, data, false);
- }
- 
- /* ------------------------------------------------------------------------
+   This patch set introduces a buffer synchronization framework based
+   on DMA BUF[1] and based on ww-mutexes[2] for lock mechanism, and
+   may be final RFC.
+
+   The purpose of this framework is to provide not only buffer access
+   control to CPU and CPU, and CPU and DMA, and DMA and DMA but also
+   easy-to-use interfaces for device drivers and user application.
+   In addtion, this patch set suggests a way for enhancing performance.
+
+   For generic user mode interface, we have used fcntl and select system
+   call[3]. As you know, user application sees a buffer object as a dma-buf
+   file descriptor. So fcntl() call with the file descriptor means to lock
+   some buffer region being managed by the dma-buf object. And select() call
+   means to wait for the completion of CPU or DMA access to the dma-buf
+   without locking. For more detail, you can refer to the dma-buf-sync.txt
+   in Documentation/
+
+
+   There are some cases we should use this buffer synchronization framework.
+   One of which is to primarily enhance GPU rendering performance on Tizen
+   platform in case of 3d app with compositing mode that 3d app draws
+   something in off-screen buffer, and Web app.
+
+   In case of 3d app with compositing mode which is not a full screen mode,
+   the app calls glFlush to submit 3d commands to GPU driver instead of
+   glFinish for more performance. The reason we call glFlush is that glFinish
+   blocks caller's task until the execution of the 2d commands is completed.
+   Thus, that makes GPU and CPU more idle. As result, 3d rendering performance
+   with glFinish is quite lower than glFlush. However, the use of glFlush has
+   one issue that the a buffer shared with GPU could be broken when CPU
+   accesses the buffer at once after glFlush because CPU cannot be aware of
+   the completion of GPU access to the buffer. Of course, the app can be aware
+   of that time using eglWaitGL but this function is valid only in case of the
+   same process.
+
+   In case of Tizen, there are some applications that one process draws
+   something in its own off-screen buffer (pixmap buffer) using CPU, and other
+   process gets a off-screen buffer (window buffer) from Xorg using
+   DRI2GetBuffers, and then composites the pixmap buffer with the window buffer
+   using GPU, and finally page flip.
+
+   Web app based on HTML5 also has the same issue. Web browser and its web app
+   are different process. The web app draws something in its own pixmap buffer,
+   and then the web browser gets a window buffer from Xorg, and then composites
+   the pixmap buffer with the window buffer. And finally, page flip.
+
+   Thus, in such cases, a shared buffer could be broken as one process draws
+   something in pixmap buffer using CPU, when other process composites the
+   pixmap buffer with window buffer using GPU without any locking mechanism.
+   That is why we need user land locking interface, fcntl system call.
+
+   And last one is a deferred page flip issue. This issue is that a window
+   buffer rendered can be displayed on screen in about 32ms in worst case:
+   assume that the gpu rendering is completed within 16ms.
+   That can be incurred when compositing a pixmap buffer with a window buffer
+   using GPU and when vsync is just started. At this time, Xorg waits for
+   a vblank event to get a window buffer so 3d rendering will be delayed
+   up to about 16ms. As a result, the window buffer would be displayed in
+   about two vsyncs (about 32ms) and in turn, that would show slow
+   responsiveness.
+
+   For this, we could enhance the responsiveness with locking
+   mechanism: skipping one vblank wait. I guess in the similar reason,
+   Android, Chrome OS, and other platforms are using their own locking
+   mechanisms; Android sync driver, KDS, and DMA fence.
+
+   The below shows the deferred page flip issue in worst case,
+
+               |------------ <- vsync signal
+               |<------ DRI2GetBuffers
+               |
+               |
+               |
+               |------------ <- vsync signal
+               |<------ Request gpu rendering
+          time |
+               |
+               |<------ Request page flip (deferred)
+               |------------ <- vsync signal
+               |<------ Displayed on screen
+               |
+               |
+               |
+               |------------ <- vsync signal
+
+
+Thanks,
+Inki Dae
+
+
+References:
+[1] http://lwn.net/Articles/470339/
+[2] https://patchwork.kernel.org/patch/2625361/
+[3] http://linux.die.net/man/2/fcntl
+
+
+Inki Dae (2):
+  [RFC PATCH v6] dmabuf-sync: Add a buffer synchronization framework
+  [RFC PATCH v2] dma-buf: Add user interfaces for dmabuf sync support.
+
+ Documentation/dma-buf-sync.txt |  285 +++++++++++++++++
+ drivers/base/Kconfig           |    7 +
+ drivers/base/Makefile          |    1 +
+ drivers/base/dma-buf.c         |   85 +++++
+ drivers/base/dmabuf-sync.c     |  678 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h        |   16 +
+ include/linux/dmabuf-sync.h    |  191 +++++++++++
+ 7 files changed, 1263 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dma-buf-sync.txt
+ create mode 100644 drivers/base/dmabuf-sync.c
+ create mode 100644 include/linux/dmabuf-sync.h
+
 -- 
-1.8.4
+1.7.5.4
 
