@@ -1,142 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:39295 "EHLO
-	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab3HFNGe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 09:06:34 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Syntek webcams and out-of-tree driver
-Date: Tue, 6 Aug 2013 15:05:47 +0200
-Cc: linux-media@vger.kernel.org,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	syntekdriver-devel@lists.sourceforge.net
-References: <201308052319.26720.linux@rainbow-software.org> <5200935E.8080003@redhat.com>
-In-Reply-To: <5200935E.8080003@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201308061505.47486.linux@rainbow-software.org>
+Received: from mailout3.samsung.com ([203.254.224.33]:62060 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756513Ab3HMJTo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Aug 2013 05:19:44 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linaro-kernel@lists.linaro.org
+Cc: maarten.lankhorst@canonical.com, sumit.semwal@linaro.org,
+	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	Inki Dae <inki.dae@samsung.com>
+Subject: [PATCH 2/2] [RFC PATCH v2] dma-buf: Add user interfaces for dmabuf
+ sync support.
+Date: Tue, 13 Aug 2013 18:19:36 +0900
+Message-id: <1376385576-9039-3-git-send-email-inki.dae@samsung.com>
+In-reply-to: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
+References: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 06 August 2013, Hans de Goede wrote:
-> Hi,
->
-> On 08/05/2013 11:19 PM, Ondrej Zary wrote:
-> > Hello,
-> > the in-kernel stkwebcam driver (by Jaime Velasco Juan and Nicolas VIVIEN)
-> > supports only two webcam types (USB IDs 0x174f:0xa311 and 0x05e1:0x0501).
-> > There are many other Syntek webcam types that are not supported by this
-> > driver (such as 0x174f:0x6a31 in Asus F5RL laptop).
-> >
-> > There is an out-of-tree GPL driver called stk11xx (by Martin Roos and
-> > also Nicolas VIVIEN) at http://sourceforge.net/projects/syntekdriver/
-> > which supports more webcams. It can be even compiled for the latest
-> > kernels using the patch below and seems to work somehow (slow and buggy
-> > but better than nothing) with the Asus F5RL.
->
-> I took a quick look and there are a number of issues with this driver:
->
-> 1) It conflicts usb-id wise with the new stk1160 driver (which supports
-> usb-id 05e1:0408) so support for that usb-id, and any code only used for
-> that id will need to be removed
->
-> 2) "seems to work somehow (slow and buggy)" is not really the quality
-> we aim for with in kernel drivers. We definitely will want to remove
-> any usb-ids, and any code only used for those ids, where there is overlap
-> with the existing stkwebcam driver, to avoid regressions
->
-> 3) It does in kernel bayer decoding, this is not acceptable, it needs to
-> be modified to produce buffers with raw bayer data (libv4l will take care
-> of the bater decoding in userspace).
->
-> 4) It is not using any of the new kernel infrastructure we have been adding
-> over time, like the control-framework, videobuf2, etc. It would be best
-> to convert this to a gspca sub driver (of which there are many already,
-> which can serve as examples), so that it will use all the existing
-> framework code.
+This patch adds lock and poll callbacks to dma buf file operations,
+and these callbacks will be called by fcntl and select system calls.
 
-Yes, this would be the best way - only extract the HW-dependent parts.
+fcntl and select system calls can be used to wait for the completion
+of DMA or CPU access to a shared dmabuf. The difference of them is
+fcntl system call takes a lock after the completion but select system
+call doesn't. So in case of fcntl system call, it's useful when a task
+wants to access a shared dmabuf without any broken. On the other hand,
+it's useful when a task wants to just wait for the completion.
 
-> As a minimum issues 1-3 needs to be addressed before this can be merged. An
-> alternative /  better approach might be to simply only lift the code for
-> your camera, and add a new gspca driver supporting only your camera.
->
-> Either way since non of the v4l developers have a laptop which such a
-> camera, you will need to do most of the work yourself, as we cannot test.
->
-> So congratulations, you've just become a v4l kernel developer :)
+Changelog v2:
+- Add select system call support.
+  . The purpose of this feature is to wait for the completion of DMA or
+    CPU access to a dmabuf without that caller locks the dmabuf again
+    after the completion.
+    That is useful when caller wants to be aware of the completion of
+    DMA access to the dmabuf, and the caller doesn't use intefaces for
+    the DMA device driver.
 
-Unfortunately the laptop isn't mine. I'll have it only for a while but will 
-try to do something.
+Signed-off-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/base/dma-buf.c      |   81 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dmabuf-sync.h |    1 +
+ 2 files changed, 82 insertions(+), 0 deletions(-)
 
-> Regards,
->
-> Hans
->
-> > Is there any possibility that this driver could be merged into the
-> > kernel? The code could probably be simplified a lot and integrated into
-> > gspca.
-> >
-> >
-> > diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx.h
-> > syntekdriver-code-107-trunk//driver/stk11xx.h ---
-> > syntekdriver-code-107-trunk-orig/driver/stk11xx.h	2012-03-10
-> > 10:03:12.000000000 +0100 +++
-> > syntekdriver-code-107-trunk//driver/stk11xx.h	2013-08-05
-> > 22:50:00.000000000 +0200 @@ -33,6 +33,7 @@
-> >
-> >   #ifndef STK11XX_H
-> >   #define STK11XX_H
-> > +#include <media/v4l2-device.h>
-> >
-> >   #define DRIVER_NAME					"stk11xx"					/**< Name of this driver */
-> >   #define DRIVER_VERSION				"v3.0.0"					/**< Version of this driver */
-> > @@ -316,6 +317,7 @@ struct stk11xx_video {
-> >    * @struct usb_stk11xx
-> >    */
-> >   struct usb_stk11xx {
-> > +	struct v4l2_device v4l2_dev;
-> >   	struct video_device *vdev; 			/**< Pointer on a V4L2 video device */
-> >   	struct usb_device *udev;			/**< Pointer on a USB device */
-> >   	struct usb_interface *interface;	/**< Pointer on a USB interface */
-> > diff -urp syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c
-> > syntekdriver-code-107-trunk//driver/stk11xx-v4l.c ---
-> > syntekdriver-code-107-trunk-orig/driver/stk11xx-v4l.c	2012-03-10
-> > 09:54:57.000000000 +0100 +++
-> > syntekdriver-code-107-trunk//driver/stk11xx-v4l.c	2013-08-05
-> > 22:51:12.000000000 +0200 @@ -1498,9 +1498,17 @@ int
-> > v4l_stk11xx_register_video_device(st
-> >   {
-> >   	int err;
-> >
-> > +	err = v4l2_device_register(&dev->interface->dev, &dev->v4l2_dev);
-> > +	if (err < 0) {
-> > +		STK_ERROR("couldn't register v4l2_device\n");
-> > +		kfree(dev);
-> > +		return err;
-> > +	}
-> > +
-> >   	strcpy(dev->vdev->name, DRIVER_DESC);
-> >
-> > -	dev->vdev->parent = &dev->interface->dev;
-> > +//	dev->vdev->parent = &dev->interface->dev;
-> > +	dev->vdev->v4l2_dev = &dev->v4l2_dev;
-> >   	dev->vdev->fops = &v4l_stk11xx_fops;
-> >   	dev->vdev->release = video_device_release;
-> >   	dev->vdev->minor = -1;
-> > @@ -1533,6 +1541,7 @@ int v4l_stk11xx_unregister_video_device(
-> >
-> >   	video_set_drvdata(dev->vdev, NULL);
-> >   	video_unregister_device(dev->vdev);
-> > +	v4l2_device_unregister(&dev->v4l2_dev);
-> >
-> >   	return 0;
-> >   }
-
-
-
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 4aca57a..f16a396 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -29,6 +29,7 @@
+ #include <linux/export.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
++#include <linux/poll.h>
+ #include <linux/dmabuf-sync.h>
+ 
+ static inline int is_dma_buf_file(struct file *);
+@@ -80,9 +81,89 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
+ 	return dmabuf->ops->mmap(dmabuf, vma);
+ }
+ 
++static unsigned int dma_buf_poll(struct file *filp,
++					struct poll_table_struct *poll)
++{
++	struct dma_buf *dmabuf;
++	struct dmabuf_sync_reservation *robj;
++	int ret = 0;
++
++	if (!is_dma_buf_file(filp))
++		return POLLERR;
++
++	dmabuf = filp->private_data;
++	if (!dmabuf || !dmabuf->sync)
++		return POLLERR;
++
++	robj = dmabuf->sync;
++
++	mutex_lock(&robj->lock);
++
++	robj->polled = true;
++
++	/*
++	 * CPU or DMA access to this buffer has been completed, and
++	 * the blocked task has been waked up. Return poll event
++	 * so that the task can get out of select().
++	 */
++	if (robj->poll_event) {
++		robj->poll_event = false;
++		mutex_unlock(&robj->lock);
++		return POLLIN | POLLOUT;
++	}
++
++	/*
++	 * There is no anyone accessing this buffer so just return.
++	 */
++	if (!robj->locked) {
++		mutex_unlock(&robj->lock);
++		return POLLIN | POLLOUT;
++	}
++
++	poll_wait(filp, &robj->poll_wait, poll);
++
++	mutex_unlock(&robj->lock);
++
++	return ret;
++}
++
++static int dma_buf_lock(struct file *file, int cmd, struct file_lock *fl)
++{
++	struct dma_buf *dmabuf;
++	unsigned int type;
++	bool wait = false;
++
++	if (!is_dma_buf_file(file))
++		return -EINVAL;
++
++	dmabuf = file->private_data;
++
++	if ((fl->fl_type & F_UNLCK) == F_UNLCK) {
++		dmabuf_sync_single_unlock(dmabuf);
++		return 0;
++	}
++
++	/* convert flock type to dmabuf sync type. */
++	if ((fl->fl_type & F_WRLCK) == F_WRLCK)
++		type = DMA_BUF_ACCESS_W;
++	else if ((fl->fl_type & F_RDLCK) == F_RDLCK)
++		type = DMA_BUF_ACCESS_R;
++	else
++		return -EINVAL;
++
++	if (fl->fl_flags & FL_SLEEP)
++		wait = true;
++
++	/* TODO. the locking to certain region should also be considered. */
++
++	return dmabuf_sync_single_lock(dmabuf, type, wait);
++}
++
+ static const struct file_operations dma_buf_fops = {
+ 	.release	= dma_buf_release,
+ 	.mmap		= dma_buf_mmap_internal,
++	.poll		= dma_buf_poll,
++	.lock		= dma_buf_lock,
+ };
+ 
+ /*
+diff --git a/include/linux/dmabuf-sync.h b/include/linux/dmabuf-sync.h
+index 9a3afc4..0316f68 100644
+--- a/include/linux/dmabuf-sync.h
++++ b/include/linux/dmabuf-sync.h
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include <linux/mutex.h>
++#include <linux/ww_mutex.h>
+ #include <linux/sched.h>
+ #include <linux/dma-buf.h>
+ 
 -- 
-Ondrej Zary
+1.7.5.4
+
