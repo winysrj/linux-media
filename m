@@ -1,111 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f53.google.com ([209.85.212.53]:51578 "EHLO
-	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122Ab3HFErK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 00:47:10 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:45666 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757147Ab3HMKpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Aug 2013 06:45:31 -0400
+Message-ID: <520A0E1C.5000306@ti.com>
+Date: Tue, 13 Aug 2013 16:14:44 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <51FD7982.5080101@gmail.com>
-References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
-	<1375455762-22071-5-git-send-email-arun.kk@samsung.com>
-	<51FD7982.5080101@gmail.com>
-Date: Tue, 6 Aug 2013 10:17:09 +0530
-Message-ID: <CALt3h7-N+79tfNb0o8bcEZRuNDLS9-wbynHFo+aErr0k_Lb6Vg@mail.gmail.com>
-Subject: Re: [RFC v3 04/13] [media] exynos5-fimc-is: Add common driver header files
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: <balbi@ti.com>
+CC: Greg KH <gregkh@linuxfoundation.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron> <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron> <20130721154653.GG16598@kroah.com> <20130730071106.GC16441@radagast> <51F8A440.8010803@ti.com> <20130731061538.GC13289@radagast>
+In-Reply-To: <20130731061538.GC13289@radagast>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi,
 
-On Sun, Aug 4, 2013 at 3:13 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
+On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>>>> regulators, PWMs or even i2c busses because there are complex cases
+>>>>>>> when passing just a name using platform data will not work. I would
+>>>>>>> second what Stephen said [1] and define a structure doing things in a
+>>>>>>> DT-like way.
+>>>>>>>
+>>>>>>> Example;
+>>>>>>>
+>>>>>>> [platform code]
+>>>>>>>
+>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>>>
+>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>>>
+>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
+>>>>>> creating the device, the ids in the device name would change and
+>>>>>> PHY_LOOKUP wont be useful.
+>>>>>
+>>>>> I don't think this is a problem. All the existing lookup methods already 
+>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
+>>>>> can simply add a requirement that the ID must be assigned manually, 
+>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>>>
+>>>> And I'm saying that this idea, of using a specific name and id, is
+>>>> frought with fragility and will break in the future in various ways when
+>>>> devices get added to systems, making these strings constantly have to be
+>>>> kept up to date with different board configurations.
+>>>>
+>>>> People, NEVER, hardcode something like an id.  The fact that this
+>>>> happens today with the clock code, doesn't make it right, it makes the
+>>>> clock code wrong.  Others have already said that this is wrong there as
+>>>> well, as systems change and dynamic ids get used more and more.
+>>>>
+>>>> Let's not repeat the same mistakes of the past just because we refuse to
+>>>> learn from them...
+>>>>
+>>>> So again, the "find a phy by a string" functions should be removed, the
+>>>> device id should be automatically created by the phy core just to make
+>>>> things unique in sysfs, and no driver code should _ever_ be reliant on
+>>>> the number that is being created, and the pointer to the phy structure
+>>>> should be used everywhere instead.
+>>>>
+>>>> With those types of changes, I will consider merging this subsystem, but
+>>>> without them, sorry, I will not.
+>>>
+>>> I'll agree with Greg here, the very fact that we see people trying to
+>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
+>>> big problem in the framework.
+>>>
+>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+>>> adding similar infrastructure to the driver themselves to make sure we
+>>> don't end up with duplicate names in sysfs in case we have multiple
+>>> instances of the same IP in the SoC (or several of the same PCIe card).
+>>> I really don't want to go back to that.
 >>
->> This patch adds all the common header files used by the fimc-is
->> driver. It includes the commands for interfacing with the firmware
->> and error codes from IS firmware, metadata and command parameter
->> definitions.
->>
->> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
->> ---
->>   drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
->>   drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++++
->>   .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++++++
->>   drivers/media/platform/exynos5-is/fimc-is-param.h  | 1212
->> ++++++++++++++++++++
->>   4 files changed, 2423 insertions(+)
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
->>
+>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give the
+>> correct binding information to the PHY framework. I think we can drop having
+>> this non-dt support in PHY framework? I see only one platform (OMAP3) going to
+>> be needing this non-dt support and we can use the USB PHY library for it.
+> 
+> you shouldn't drop support for non-DT platform, in any case we lived
+> without DT (and still do) for years. Gotta find a better way ;-)
 
-[snip]
+hmm..
 
->> +
->> +struct camera2_tonemap_dm {
->> +       enum tonemap_mode               mode;
->> +       /* assuming maxCurvePoints = 64 */
->> +       float                           curve_red[64];
->> +       float                           curve_green[64];
->> +       float                           curve_blue[64];
->
->
-> So all those floating point numbers are now not really used in
-> the driver but we need them for proper data structures/offsets
-> declarations of the firmware interface ?
->
+how about passing the device names of PHY in platform data of the controller?
+It should be deterministic as the PHY framework assigns its own id and we
+*don't* want to add any requirement that the ID must be assigned manually
+without using PLATFORM_DEVID_AUTO. We can get rid of *phy_init_data* in the v10
+patch series.
 
-Yes. Same floats are used in firmware internal data structures
-also and the driver should assign these values when these parameters
-are to be changed.
+Thanks
+Kishon
+> 
 
->> +};
->> +
-
-[snip]
-
->> +/* --------------------------  Effect
->> ----------------------------------- */
->> +enum isp_imageeffect_command {
->> +       ISP_IMAGE_EFFECT_DISABLE                = 0,
->> +       ISP_IMAGE_EFFECT_MONOCHROME             = 1,
->> +       ISP_IMAGE_EFFECT_NEGATIVE_MONO          = 2,
->> +       ISP_IMAGE_EFFECT_NEGATIVE_COLOR         = 3,
->> +       ISP_IMAGE_EFFECT_SEPIA                  = 4,
->> +       ISP_IMAGE_EFFECT_AQUA                   = 5,
->> +       ISP_IMAGE_EFFECT_EMBOSS                 = 6,
->> +       ISP_IMAGE_EFFECT_EMBOSS_MONO            = 7,
->> +       ISP_IMAGE_EFFECT_SKETCH                 = 8,
->> +       ISP_IMAGE_EFFECT_RED_YELLOW_POINT       = 9,
->> +       ISP_IMAGE_EFFECT_GREEN_POINT            = 10,
->> +       ISP_IMAGE_EFFECT_BLUE_POINT             = 11,
->> +       ISP_IMAGE_EFFECT_MAGENTA_POINT          = 12,
->> +       ISP_IMAGE_EFFECT_WARM_VINTAGE           = 13,
->> +       ISP_IMAGE_EFFECT_COLD_VINTAGE           = 14,
->> +       ISP_IMAGE_EFFECT_POSTERIZE              = 15,
->> +       ISP_IMAGE_EFFECT_SOLARIZE               = 16,
->> +       ISP_IMAGE_EFFECT_WASHED                 = 17,
->> +       ISP_IMAGE_EFFECT_CCM                    = 18,
->> +};
->
->
-> Hmm, I guess we will need a private v4l2 control for those.
->
-
-Yes. I am planning to add the controls after the basic support
-gets merged.
-
-Regards
-Arun
