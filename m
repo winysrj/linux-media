@@ -1,69 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44034 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753052Ab3HJRnn (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:40597 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab3HNEqN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Aug 2013 13:43:43 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: andriy.shevchenko@intel.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 4/4] smiapp: Call the clock "ext_clk"
-Date: Sat, 10 Aug 2013 20:49:48 +0300
-Message-Id: <1376156988-4009-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
-References: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 14 Aug 2013 00:46:13 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
+Date: Wed, 14 Aug 2013 10:16:03 +0530
+Message-Id: <1376455574-15560-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the clock framework makes it possible to assign a device specific name to
-the clocks, remove the ability to use a named clock in the driver.
+The patch adds the DT binding documentation for Samsung
+Exynos5 SoC series imaging subsystem (FIMC-IS).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c |    9 +++------
- include/media/smiapp.h                 |    1 -
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47 ++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 7de9892..ae66d91 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2363,11 +2363,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	}
- 
- 	if (!sensor->platform_data->set_xclk) {
--		sensor->ext_clk = devm_clk_get(&client->dev,
--					sensor->platform_data->ext_clk_name);
-+		sensor->ext_clk = devm_clk_get(&client->dev, "ext_clk");
- 		if (IS_ERR(sensor->ext_clk)) {
--			dev_err(&client->dev, "could not get clock %s\n",
--				sensor->platform_data->ext_clk_name);
-+			dev_err(&client->dev, "could not get clock\n");
- 			return -ENODEV;
- 		}
- 
-@@ -2375,8 +2373,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 				    sensor->platform_data->ext_clk);
- 		if (rval < 0) {
- 			dev_err(&client->dev,
--				"unable to set clock %s freq to %u\n",
--				sensor->platform_data->ext_clk_name,
-+				"unable to set clock freq to %u\n",
- 				sensor->platform_data->ext_clk);
- 			return -ENODEV;
- 		}
-diff --git a/include/media/smiapp.h b/include/media/smiapp.h
-index 07f96a8..0b8f124 100644
---- a/include/media/smiapp.h
-+++ b/include/media/smiapp.h
-@@ -77,7 +77,6 @@ struct smiapp_platform_data {
- 	struct smiapp_flash_strobe_parms *strobe_setup;
- 
- 	int (*set_xclk)(struct v4l2_subdev *sd, int hz);
--	char *ext_clk_name;
- 	int xshutdown;			/* gpio or SMIAPP_NO_XSHUTDOWN */
- };
- 
+diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+new file mode 100644
+index 0000000..bfd36df
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+@@ -0,0 +1,47 @@
++Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
++------------------------------------------------------
++
++The camera subsystem on Samsung Exynos5 SoC has some changes relative
++to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
++FIMC-LITE IPs but has a much improved version of FIMC-IS which can
++handle sensor controls and camera post-processing operations. The
++Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
++post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
++dedicated scalers (SCC and SCP).
++
++fimc-is node
++------------
++
++Required properties:
++
++- compatible        : must be "samsung,exynos5250-fimc-is"
++- reg               : physical base address and size of the memory mapped
++                      registers
++- interrupt-parent  : parent interrupt controller
++- interrupts        : fimc-is interrupt to the parent combiner
++- clocks            : list of clock specifiers, corresponding to entries in
++                      clock-names property;
++- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
++                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
++                      matching entries in the clocks property.
++- pmu               : phandle to the fimc-is pmu node describing the register
++                      base and size for FIMC-IS PMU.
++
++i2c-isp (ISP I2C bus controller) nodes
++------------------------------------------
++
++Required properties:
++
++- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
++		  Exynos4412 and Exynos5250 SoCs;
++- reg		: physical base address and length of the registers set;
++- clocks	: must contain gate clock specifier for this controller;
++- clock-names	: must contain "i2c_isp" entry.
++
++For the i2c-isp node, it is required to specify a pinctrl state named "default",
++according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
++
++Device tree nodes of the image sensors' controlled directly by the FIMC-IS
++firmware must be child nodes of their corresponding ISP I2C bus controller node.
++The data link of these image sensors must be specified using the common video
++interfaces bindings, defined in video-interfaces.txt.
 -- 
-1.7.10.4
+1.7.9.5
 
