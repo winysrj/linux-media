@@ -1,121 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:3418 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab3H3LY2 (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:60554 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758463Ab3HNQEK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:24:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [RFC PATCH] adv7842: fix compilation with GCC < 4.4.6
-Date: Fri, 30 Aug 2013 13:24:11 +0200
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	hans.verkuil@cisco.com
-References: <1377856227-22601-1-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1377856227-22601-1-git-send-email-gennarone@gmail.com>
+	Wed, 14 Aug 2013 12:04:10 -0400
+Received: by mail-ea0-f182.google.com with SMTP id o10so4918009eaj.41
+        for <linux-media@vger.kernel.org>; Wed, 14 Aug 2013 09:04:08 -0700 (PDT)
+Date: Wed, 14 Aug 2013 17:04:02 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-media@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH RFC v2 1/2] max77693: added device tree support
+Message-ID: <20130814160402.GH4046@lee--X1>
+References: <1361288177-14452-1-git-send-email-a.hajda@samsung.com>
+ <1361288177-14452-2-git-send-email-a.hajda@samsung.com>
+ <20130408152122.GU24058@zurbaran>
+ <51E64BA8.30205@samsung.com>
+ <520BA3C9.8050606@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308301324.11177.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <520BA3C9.8050606@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gianluca,
+> I have no response from Samuel regarding this patch.
+> Could you take care of it, I can rebase it again if necessary.
 
-On Fri 30 August 2013 11:50:27 Gianluca Gennari wrote:
-> With GCC 4.4.3 (Ubuntu 10.04) the compilation of the new adv7842 driver
-> fails with this error:
-> 
-> CC [M]  adv7842.o
-> adv7842.c:549: error: unknown field 'bt' specified in initializer
-> adv7842.c:550: error: field name not in record or union initializer
-> adv7842.c:550: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-> adv7842.c:551: error: field name not in record or union initializer
-> adv7842.c:551: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-> adv7842.c:552: error: field name not in record or union initializer
-> adv7842.c:552: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-> adv7842.c:553: error: field name not in record or union initializer
-> adv7842.c:553: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-> adv7842.c:553: warning: excess elements in array initializer
-> ...
-> 
-> This is caused by the old GCC version, as explained in file v4l2-dv-timings.h.
-> The proposed fix uses the V4L2_INIT_BT_TIMINGS macro defined there.
-> Please note that I have also to init the reserved space as otherwise GCC fails with this error:
-> 
-> CC [M]  adv7842.o
-> adv7842.c:549: error: field name not in record or union initializer
-> adv7842.c:549: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-> adv7842.c:549: warning: braces around scalar initializer
-> adv7842.c:549: warning: (near initialization for 'adv7842_timings_cap_analog.reserved[0]')
-> ...
-> 
-> Maybe the reserved space in struct v4l2_dv_timings_cap could be moved after
-> the 'bt' field to avoid this?
+Yes, please rebase onto v3.11-rc5 and resubmit.
 
-No, it's part of the public API, so it can't be changed. It's OK to init the
-reserved space, although you should prefix it with a small comment saying that
-this is necessary when compiling with a gcc < 4.6.
+Thanks.
 
-> 
-> The same issue applies to other drivers too: ths8200, adv7511 and ad9389b.
-> If the fix is approved, I can post a patch serie fixing all of them.
-
-Other than the point I made above it all looks fine.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
-> ---
->  drivers/media/i2c/adv7842.c | 28 ++++++++++------------------
->  1 file changed, 10 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-> index d174890..c21621b 100644
-> --- a/drivers/media/i2c/adv7842.c
-> +++ b/drivers/media/i2c/adv7842.c
-> @@ -546,30 +546,22 @@ static inline bool is_digital_input(struct v4l2_subdev *sd)
->  
->  static const struct v4l2_dv_timings_cap adv7842_timings_cap_analog = {
->  	.type = V4L2_DV_BT_656_1120,
-> -	.bt = {
-> -		.max_width = 1920,
-> -		.max_height = 1200,
-> -		.min_pixelclock = 25000000,
-> -		.max_pixelclock = 170000000,
-> -		.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-> +	.reserved = { 0 },
-> +	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 170000000,
-> +		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
->  			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
-> -		.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
-> -			V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM,
-> -	},
-> +		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-> +			V4L2_DV_BT_CAP_CUSTOM)
->  };
->  
->  static const struct v4l2_dv_timings_cap adv7842_timings_cap_digital = {
->  	.type = V4L2_DV_BT_656_1120,
-> -	.bt = {
-> -		.max_width = 1920,
-> -		.max_height = 1200,
-> -		.min_pixelclock = 25000000,
-> -		.max_pixelclock = 225000000,
-> -		.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-> +	.reserved = { 0 },
-> +	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 225000000,
-> +		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
->  			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
-> -		.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
-> -			V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM,
-> -	},
-> +		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-> +			V4L2_DV_BT_CAP_CUSTOM)
->  };
->  
->  static inline const struct v4l2_dv_timings_cap *
-> 
+-- 
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
