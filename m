@@ -1,100 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:53368 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472Ab3HFIbZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Aug 2013 04:31:25 -0400
-Date: Tue, 6 Aug 2013 09:31:23 +0100
-From: Sean Young <sean@mess.org>
-To: Rajil Saraswat <rajil.s@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: mceusb Fintek ir transmitter only works when X is not running
-Message-ID: <20130806083123.GA11080@pequod.mess.org>
-References: <CAFoaQoAjc-v6UiYxu8ZzaOQi4g8GurYdCB6JM8-GKQbYugJwTw@mail.gmail.com>
- <20130805112937.GA5216@pequod.mess.org>
- <CAFoaQoCpNxcqQjCt4KVPvSCOXKoOFeUs-qV7d04GSw0PyPcFEQ@mail.gmail.com>
- <20130805211505.GA8094@pequod.mess.org>
- <CAFoaQoBFVJ+pKHtJncyLxH5tjLDeR5v5fQ4VqGx0Yoko_tiN2w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAFoaQoBFVJ+pKHtJncyLxH5tjLDeR5v5fQ4VqGx0Yoko_tiN2w@mail.gmail.com>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:60636 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab3HNEqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Aug 2013 00:46:55 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 11/13] [media] exynos5-is: Add Kconfig and Makefile
+Date: Wed, 14 Aug 2013 10:16:12 +0530
+Message-Id: <1376455574-15560-12-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 05, 2013 at 11:57:58PM +0100, Rajil Saraswat wrote:
-> >
-> > Why are you doing this?
-> >
-> > -snip-
-> 
-> My initial guess was that X was claiming over the ir device, so I
-> wanted to disable ir device as an input device.
+Adds Kconfig and Makefile for exynos5-is driver files.
 
-X may open the input device, but that does not affect IR transmission.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/Kconfig             |    1 +
+ drivers/media/platform/Makefile            |    1 +
+ drivers/media/platform/exynos5-is/Kconfig  |   20 ++++++++++++++++++++
+ drivers/media/platform/exynos5-is/Makefile |    7 +++++++
+ 4 files changed, 29 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/Kconfig
+ create mode 100644 drivers/media/platform/exynos5-is/Makefile
 
-> > X case where it does not work:
-> >
-> >> ffff880118d1f240 2548275209 S Io:2:008:1 -115:1 3 = 9f0802
-> >> ffff880118d1f240 2548275281 E Io:2:008:1 -28 0
-> >> ffff880118d1fb40 2548286204 S Io:2:008:1 -115:1 86 = 84ffb458 8b840a8b 0a8b8420 8b0a8b84 0a8b0a8b 840a8b0a 8b84208b 208b840a
-> >> ffff880118d1fb40 2548286310 E Io:2:008:1 -28 0
-> >
-> > All the urb submissions result in an error -28: ENOSPC. These errors aren't
-> > logged by default. I'm not sure about why this would happen.
-> >
-> > According to Documentation/usb/error-codes.txt:
-> >
-> > -ENOSPC         This request would overcommit the usb bandwidth reserved
-> >                 for periodic transfers (interrupt, isochronous).
-> >
-> > Could you try putting the device on its own bus (i.e root hub which does
-> > not share bus with another device, see lsusb output).
-> >
-> 
-> 
-> Unfortunately, this is a laptop with few usb ports. I have tried
-> moving devices around but still end-up on the same bus (02). I am
-> running the OS off the 1TB usb harddisk ( Western Digital
-> Technologies) connected on the same bus.
-> 
-> # lsusb
-> Bus 001 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
-> Bus 002 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
-> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> Bus 001 Device 003: ID 05ca:1814 Ricoh Co., Ltd HD Webcam
-> Bus 002 Device 003: ID 046d:c00c Logitech, Inc. Optical Wheel Mouse
-> Bus 002 Device 009: ID 1934:5168 Feature Integration Technology Inc.
-> (Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
-> Bus 002 Device 005: ID 1058:0748 Western Digital Technologies, Inc. My
-> Passport 1TB USB 3.0
-> Bus 002 Device 006: ID 413c:8187 Dell Computer Corp. DW375 Bluetooth Module
-> Bus 002 Device 007: ID 0a5c:5800 Broadcom Corp. BCM5880 Secure
-> Applications Processor
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 08de865..4b0475e 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -123,6 +123,7 @@ config VIDEO_S3C_CAMIF
+ 
+ source "drivers/media/platform/soc_camera/Kconfig"
+ source "drivers/media/platform/exynos4-is/Kconfig"
++source "drivers/media/platform/exynos5-is/Kconfig"
+ source "drivers/media/platform/s5p-tv/Kconfig"
+ 
+ endif # V4L_PLATFORM_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index eee28dd..40bf09f 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+ 
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
+ 
+ obj-$(CONFIG_BLACKFIN)                  += blackfin/
+ 
+diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
+new file mode 100644
+index 0000000..b67d11a
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/Kconfig
+@@ -0,0 +1,20 @@
++config VIDEO_SAMSUNG_EXYNOS5_CAMERA
++	bool "Samsung Exynos5 SoC Camera Media Device driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
++	depends on VIDEO_SAMSUNG_EXYNOS4_IS
++	help
++	  This is a V4L2 media device driver for Exynos5 SoC series
++	  camera subsystem.
++
++if VIDEO_SAMSUNG_EXYNOS5_CAMERA
++
++config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
++	tristate "Samsung Exynos5 SoC FIMC-IS driver"
++	depends on I2C && OF
++	depends on VIDEO_EXYNOS4_FIMC_IS
++	select VIDEOBUF2_DMA_CONTIG
++	help
++	  This is a V4L2 driver for Samsung Exynos5 SoC series Imaging
++	  Subsystem known as FIMC-IS.
++
++endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
+diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
+new file mode 100644
+index 0000000..6cdb037
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/Makefile
+@@ -0,0 +1,7 @@
++ccflags-y += -Idrivers/media/platform/exynos4-is
++exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o
++exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o fimc-is-sensor.o
++exynos-mdevice-objs := exynos5-mdev.o
++
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos-mdevice.o
+-- 
+1.7.9.5
 
-That is a lot devices, can you try with less devices connected? 
-
-> The disk is quite responsive
-> #hdparm -Tt /dev/sdb3
-> 
-> /dev/sdb3:
->  Timing cached reads:   4896 MB in  2.00 seconds = 2449.42 MB/sec
->  Timing buffered disk reads:  90 MB in  3.04 seconds =  29.58 MB/sec
-
-It's not about whether there is enough bandwidth, it's about whether
-issuing more usb urbs would overflow the bandwidth allocated to other
-devices (whether in use or not). Make sure you have 
-CONFIG_USB_EHCI_TT_NEWSCHED defined in your kernel.
-
-> > If that does not work, could you capture the usbmon output while starting
-> > X and then irsend, to see if your X config somehow affects it.
-> 
-> The usbmon capture (Xstart.txt) is attached as requested. I ran a
-> script which rotated on channel numbers and simultaneously started X.
-> The channels initially changed but stopped when I logged into the X
-> session.
-
-Thanks. Only the IR transmit urb submits results in error ENOSPC.
-
-
-Sean
