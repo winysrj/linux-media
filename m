@@ -1,104 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:17144 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754584Ab3H3IND (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 04:13:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <posciak@chromium.org>
-Subject: Re: [PATCH v1 14/19] v4l: Add v4l2_buffer flags for VP8-specific special frames.
-Date: Fri, 30 Aug 2013 10:12:45 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <52203EDB.8080308@xs4all.nl> <CACHYQ-pUhmPhMrbE8QWM+r6OWbBnOx7g6vjQvOxBSoodnPk4+Q@mail.gmail.com>
-In-Reply-To: <CACHYQ-pUhmPhMrbE8QWM+r6OWbBnOx7g6vjQvOxBSoodnPk4+Q@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55571 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759580Ab3HNKVF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Aug 2013 06:21:05 -0400
+Message-ID: <520B59C6.8060900@ti.com>
+Date: Wed, 14 Aug 2013 15:49:50 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	<linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
+	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
+	<hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com> <51FF8BF6.3060900@ti.com> <3105630.O8pg1OPHiU@avalon>
+In-Reply-To: <3105630.O8pg1OPHiU@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201308301012.46032.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 30 August 2013 09:28:36 Pawel Osciak wrote:
-> On Fri, Aug 30, 2013 at 3:42 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > On 08/30/2013 04:17 AM, Pawel Osciak wrote:
-> > > Add bits for previous, golden and altref frame types.
-> > >
-> > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> >
-> > Kamil, is this something that applies as well to your MFC driver?
-> >
-> > > ---
-> > >  include/uapi/linux/videodev2.h | 4 ++++
-> > >  1 file changed, 4 insertions(+)
-> > >
-> > > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h
-> > > index 437f1b0..c011ee0 100644
-> > > --- a/include/uapi/linux/videodev2.h
-> > > +++ b/include/uapi/linux/videodev2.h
-> > > @@ -687,6 +687,10 @@ struct v4l2_buffer {
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN              0x0000
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC    0x2000
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_COPY         0x4000
-> > > +/* VP8 special frames */
-> > > +#define V4L2_BUF_FLAG_PREV_FRAME             0x10000  /* VP8 prev frame
-> > */
-> > > +#define V4L2_BUF_FLAG_GOLDEN_FRAME           0x20000  /* VP8 golden
-> > frame */
-> > > +#define V4L2_BUF_FLAG_ALTREF_FRAME           0x40000  /* VP8 altref
-> > frame */
-> >
-> > Would it be an idea to use the same bit values as for
-> > KEYFRAME/PFRAME/BFRAME?
-> > After all, these can never be used at the same time. I'm a bit worried
-> > that the
-> > bits in this field are eventually all used up by different encoder flags.
-> >
-> 
-> VP8 also has a concept of I and P frames and they are orthogonal to the
-> concept of Prev, Golden and Alt. There is no relationship at all, i.e. we
-> can't infer I P from Prev Golden Alt and vice versa.
+On Friday 09 August 2013 03:05 AM, Laurent Pinchart wrote:
+> Hi Archit,
+>
+> On Monday 05 August 2013 16:56:46 Archit Taneja wrote:
+>> On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
+>>> On 02/08/13 17:03, Archit Taneja wrote:
+>>>> +struct vpdma_data_format vpdma_yuv_fmts[] = {
+>>>> +	[VPDMA_DATA_FMT_Y444] = {
+>>>> +		.data_type	= DATA_TYPE_Y444,
+>>>> +		.depth		= 8,
+>>>> +	},
+>>>
+>>> This, and all the other tables, should probably be consts?
+>>
+>> That's true, I'll fix those.
+>>
+>>>> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
+>>>> +{
+>>>> +	u32 val = *valp;
+>>>> +
+>>>> +	val &= ~(mask << shift);
+>>>> +	val |= (field & mask) << shift;
+>>>> +	*valp = val;
+>>>> +}
+>>>
+>>> I think "insert" normally means, well, inserting a thing in between
+>>> something. What you do here is overwriting.
+>>>
+>>> Why not just call it "write_field"?
+>>
+>> sure, will change it.
+>>
+>>>> + * Allocate a DMA buffer
+>>>> + */
+>>>> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
+>>>> +{
+>>>> +	buf->size = size;
+>>>> +	buf->mapped = 0;
+>>>
+>>> Maybe true/false is clearer here that 0/1.
+>>
+>> okay.
+>>
+>>>> +/*
+>>>> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for
+>>>> completion + */
+>>>> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list
+>>>> *list) +{
+>>>> +	/* we always use the first list */
+>>>> +	int list_num = 0;
+>>>> +	int list_size;
+>>>> +
+>>>> +	if (vpdma_list_busy(vpdma, list_num))
+>>>> +		return -EBUSY;
+>>>> +
+>>>> +	/* 16-byte granularity */
+>>>> +	list_size = (list->next - list->buf.addr) >> 4;
+>>>> +
+>>>> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
+>>>> +	wmb();
+>>>
+>>> What is the wmb() for?
+>>
+>> VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise
+>> VPDMA doesn't work. wmb() ensures the ordering.
+>
+> write_reg() calls iowrite32(), which already includes an __iowmb().
 
-Ah, OK. Me no VP8 expert :-)
+I wasn't aware of that. I'll remove the wmb() call. Thanks for sharing 
+this info.
 
-> For the I, P
-> dimension, we need one bit, but same could be said about H264, we need 2
-> bits, not 3 there (if it's not I or P, it's B), and we have 3 bits
-> nevertheless.
-> For Prev Golden Alt dimension, we do need 3 bits.
-> Now, technically, in VP8, the first bit of the frame header indicates if
-> the frame is I or P, so we could technically use that in userspace and
-> overload I P B to mean Prev Golden Alt for VP8. But while I understand the
-> problem with running out of bits very well, as I and P exist in VP8 as
-> well, it would be pretty confusing, so it's a trade-off that should be
-> carefully weighted.
+Archit
 
-Are prev/golden/altref frames mutually exclusive? If so, then perhaps we
-should use a two-bit mask instead of three bits. And those two-bits can
-later be expanded to more to support codecs that have more than four
-different frame types.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Pawel
-> 
-> 
-> > Regards,
-> >
-> >         Hans
-> >
-> > >
-> > >  /**
-> > >   * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> > descriptor
-> > >
-> >
-> >
-> 
