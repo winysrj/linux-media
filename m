@@ -1,33 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43615 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755946Ab3H2KMW (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:44583
+	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932171Ab3HNJLn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 06:12:22 -0400
-Message-id: <521F1E83.8060108@samsung.com>
-Date: Thu, 29 Aug 2013 12:12:19 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	posciak@google.com, arun.kk@samsung.com
-Subject: Re: [PATCH v2 5/5] [media] exynos-mscl: Add Makefile for M-Scaler
- driver
-References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
- <1376909932-23644-6-git-send-email-shaik.ameer@samsung.com>
-In-reply-to: <1376909932-23644-6-git-send-email-shaik.ameer@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 14 Aug 2013 05:11:43 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 11/29] marvell-ccic/mmp-driver.c: simplify use of devm_ioremap_resource
+Date: Wed, 14 Aug 2013 11:11:15 +0200
+Message-Id: <1376471493-22215-12-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shaik,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
-> This patch adds the Makefile for the M-Scaler (M2M scaler).
+Remove unneeded error handling on the result of a call to
+platform_get_resource when the value is passed to devm_ioremap_resource.
 
-Perhaps we could combine this with patch 3/5 ?
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
 
---
-Regards,
-Sylwester
+// <smpl>
+@@
+expression pdev,res,n,e,e1;
+expression ret != 0;
+identifier l;
+@@
+
+- res = platform_get_resource(pdev, IORESOURCE_MEM, n);
+  ... when != res
+- if (res == NULL) { ... \(goto l;\|return ret;\) }
+  ... when != res
++ res = platform_get_resource(pdev, IORESOURCE_MEM, n);
+  e = devm_ioremap_resource(e1, res);
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/platform/marvell-ccic/mmp-driver.c |    8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index f06daa4..b5a19af 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -396,10 +396,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 * Get our I/O memory.
+ 	 */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		dev_err(&pdev->dev, "no iomem resource!\n");
+-		return -ENODEV;
+-	}
+ 	mcam->regs = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(mcam->regs))
+ 		return PTR_ERR(mcam->regs);
+@@ -409,10 +405,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 * should really be managed outside of this driver?
+ 	 */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-	if (res == NULL) {
+-		dev_err(&pdev->dev, "no power resource!\n");
+-		return -ENODEV;
+-	}
+ 	cam->power_regs = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(cam->power_regs))
+ 		return PTR_ERR(cam->power_regs);
+
