@@ -1,105 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36767 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499Ab3HGKyB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 06:54:01 -0400
-Received: from avalon.localnet (unknown [91.178.204.6])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 960FB35A6C
-	for <linux-media@vger.kernel.org>; Wed,  7 Aug 2013 12:53:42 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1987 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932817Ab3HNS3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Aug 2013 14:29:14 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7EITBDp046442
+	for <linux-media@vger.kernel.org>; Wed, 14 Aug 2013 20:29:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 14 Aug 2013 20:29:11 +0200 (CEST)
+Message-Id: <201308141829.r7EITBDp046442@smtp-vbr5.xs4all.nl>
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 91F872A075F
+	for <linux-media@vger.kernel.org>; Wed, 14 Aug 2013 20:29:09 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.12] Renesas VSP1 driver
-Date: Wed, 07 Aug 2013 12:55:05 +0200
-Message-ID: <1733060.guP3eZqyCA@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The following changes since commit dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d:
+Results of the daily build of media_tree:
 
-  [media] stk1160: Build as a module if SND is m and audio support is selected 
-(2013-08-01 14:55:25 -0300)
+date:		Wed Aug 14 19:00:18 CEST 2013
+git branch:	test
+git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-are available in the git repository at:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-  git://linuxtv.org/pinchartl/media.git vsp1
+Detailed results are available here:
 
-for you to fetch changes up to aa41f0e9ee56108671e4af4ef075bc869c5c5746:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-  vsp1: Use the maximum number of entities defined in platform data 
-(2013-08-07 12:45:40 +0200)
+Full logs are available here:
 
-----------------------------------------------------------------
-Katsuya Matsubara (2):
-      vsp1: Fix lack of the sink entity registration for enabled links
-      vsp1: Use the maximum number of entities defined in platform data
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-Laurent Pinchart (8):
-      media: Add support for circular graph traversal
-      Documentation: media: Clarify the VIDIOC_CREATE_BUFS format requirements
-      media: vb2: Clarify queue_setup() and buf_prepare() usage documentation
-      media: vb2: Take queue or device lock in mmap-related vb2 ioctl handlers
-      v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-      v4l: Add media format codes for ARGB8888 and AYUV8888 on 32-bit busses
-      v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-      v4l: Renesas R-Car VSP1 driver
+The Media Infrastructure API from this daily build is here:
 
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml       |  171 ++++
- Documentation/DocBook/media/v4l/pixfmt.xml             |    1 +
- Documentation/DocBook/media/v4l/subdev-formats.xml     |  611 ++++++--------
- Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |   41 +-
- Documentation/DocBook/media_api.tmpl                   |    6 +
- drivers/media/media-entity.c                           |   14 +-
- drivers/media/platform/Kconfig                         |   10 +
- drivers/media/platform/Makefile                        |    2 +
- drivers/media/platform/vsp1/Makefile                   |    5 +
- drivers/media/platform/vsp1/vsp1.h                     |   73 ++
- drivers/media/platform/vsp1/vsp1_drv.c                 |  495 +++++++++++
- drivers/media/platform/vsp1/vsp1_entity.c              |  181 ++++
- drivers/media/platform/vsp1/vsp1_entity.h              |   68 ++
- drivers/media/platform/vsp1/vsp1_lif.c                 |  238 ++++++
- drivers/media/platform/vsp1/vsp1_lif.h                 |   37 +
- drivers/media/platform/vsp1/vsp1_regs.h                |  581 +++++++++++++
- drivers/media/platform/vsp1/vsp1_rpf.c                 |  209 +++++
- drivers/media/platform/vsp1/vsp1_rwpf.c                |  124 +++
- drivers/media/platform/vsp1/vsp1_rwpf.h                |   53 ++
- drivers/media/platform/vsp1/vsp1_uds.c                 |  346 ++++++++
- drivers/media/platform/vsp1/vsp1_uds.h                 |   40 +
- drivers/media/platform/vsp1/vsp1_video.c               | 1071 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.h               |  144 ++++
- drivers/media/platform/vsp1/vsp1_wpf.c                 |  233 ++++++
- drivers/media/v4l2-core/videobuf2-core.c               |   18 +-
- include/linux/platform_data/vsp1.h                     |   25 +
- include/media/media-entity.h                           |    4 +
- include/media/videobuf2-core.h                         |   11 +-
- include/uapi/linux/v4l2-mediabus.h                     |    6 +-
- include/uapi/linux/videodev2.h                         |    2 +
- 30 files changed, 4428 insertions(+), 392 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
- create mode 100644 drivers/media/platform/vsp1/Makefile
- create mode 100644 drivers/media/platform/vsp1/vsp1.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
- create mode 100644 include/linux/platform_data/vsp1.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
