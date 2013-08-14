@@ -1,42 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34366 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752423Ab3H3MRJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 08:17:09 -0400
-Message-ID: <52208D3B.1060309@redhat.com>
-Date: Fri, 30 Aug 2013 14:16:59 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Linux Media mini-summit in Edinburgh
-References: <20130830083923.52745cb8@samsung.com>
-In-Reply-To: <20130830083923.52745cb8@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:17629 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759410Ab3HNIVu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Aug 2013 04:21:50 -0400
+From: Kukjin Kim <kgene@kernel.org>
+To: 'Jingoo Han' <jg1.han@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>
+References: <003e01ce7c7a$e519a300$af4ce900$@samsung.com>
+In-reply-to: <003e01ce7c7a$e519a300$af4ce900$@samsung.com>
+Subject: RE: [PATCH V6 1/4] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Date: Wed, 14 Aug 2013 17:21:48 +0900
+Message-id: <10ab01ce98c7$522567a0$f67036e0$@org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Jingoo Han wrote:
+> 
+> Add PHY provider node for the DP PHY.
+> 
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-On 08/30/2013 01:39 PM, Mauro Carvalho Chehab wrote:
-> Hi media developers,
->
-> This year, we're planning to do a media mini-summit together with the
-> conferences that will be hosted in Edinburgh (LinuxCon EU/ELCE/KS/...),
-> at the Oct 21-25 week. We don't have the specific days for the
-> event yet (we're still closing it with Linux Foundation).
->
-> Yet, I'd like to know who is interested on participate on the event, and
-> ask for the theme proposals for the discussions.
->
-> As we're doing over the last years, we'll be using the
-> media-workshop@linuxtv.org mailing list for such discussions.
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
-I will be in Edinburgh the entire week because of kvm-forum. So I'll try
-to join the mini-summit. I don't have anything specific to discuss.
+Thanks,
+Kukjin
 
-Regards,
+> ---
+>  arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+>  1 file changed, 8 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/exynos5250.dtsi
+> b/arch/arm/boot/dts/exynos5250.dtsi
+> index fc9fb3d..c326c06 100644
+> --- a/arch/arm/boot/dts/exynos5250.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+> @@ -616,6 +616,12 @@
+>  		interrupts = <0 94 0>;
+>  	};
+> 
+> +	dp_phy: video-phy@10040720 {
+> +		compatible = "samsung,exynos5250-dp-video-phy";
+> +		reg = <0x10040720 4>;
+> +		#phy-cells = <0>;
+> +	};
+> +
+>  	dp-controller {
+>  		compatible = "samsung,exynos5-dp";
+>  		reg = <0x145b0000 0x1000>;
+> @@ -623,11 +629,8 @@
+>  		interrupt-parent = <&combiner>;
+>  		#address-cells = <1>;
+>  		#size-cells = <0>;
+> -
+> -		dptx-phy {
+> -			reg = <0x10040720>;
+> -			samsung,enable-mask = <1>;
+> -		};
+> +		phys = <&dp_phy>;
+> +		phy-names = "dp";
+>  	};
+> 
+>  	fimd {
+> --
+> 1.7.10.4
 
-Hans
+
