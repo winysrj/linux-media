@@ -1,1399 +1,875 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49213 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480Ab3HUM3f (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:52599 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752708Ab3HOMnU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 08:29:35 -0400
-Date: Wed, 21 Aug 2013 14:29:25 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Message-ID: <936351930.115960.1377088165697.open-xchange@email.1and1.fr>
-In-Reply-To: <945611328.103225.1377027103612.open-xchange@email.1and1.fr>
-References: <641271032.80124.1376921926586.open-xchange@email.1and1.fr> <52123758.4090007@iki.fi> <408826654.91086.1376994751713.open-xchange@email.1and1.fr> <1970131979.98476.1377009869066.open-xchange@email.1and1.fr> <945611328.103225.1377027103612.open-xchange@email.1and1.fr>
-Subject: Re: avermedia A306 / PCIe-minicard (laptop) / CX23885
+	Thu, 15 Aug 2013 08:43:20 -0400
+Subject: [PATCH] fence: dma-buf cross-device synchronization (v14)
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	daniel@ffwll.ch, linux-media@vger.kernel.org
+Date: Thu, 15 Aug 2013 14:43:10 +0200
+Message-ID: <20130815124308.14812.58197.stgit@patser>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_115959_5085789.1377088165620"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_Part_115959_5085789.1377088165620
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+A fence can be attached to a buffer which is being filled or consumed
+by hw, to allow userspace to pass the buffer without waiting to another
+device.  For example, userspace can call page_flip ioctl to display the
+next frame of graphics after kicking the GPU but while the GPU is still
+rendering.  The display device sharing the buffer with the GPU would
+attach a callback to get notified when the GPU's rendering-complete IRQ
+fires, to update the scan-out address of the display, without having to
+wake up userspace.
 
-Hello
+A driver must allocate a fence context for each execution ring that can
+run in parallel. The function for this takes an argument with how many
+contexts to allocate:
+  + fence_context_alloc()
 
-I suggest this patch,
+A fence is transient, one-shot deal.  It is allocated and attached
+to one or more dma-buf's.  When the one that attached it is done, with
+the pending operation, it can signal the fence:
+  + fence_signal()
 
-For v4l/cx23885.h
-=C2=A0 =C2=A0 v4l/cx23885-video.c
-and v4l/cx23885-cards.c
+To have a rough approximation whether a fence is fired, call:
+  + fence_is_signaled()
 
-Status,
+The dma-buf-mgr handles tracking, and waiting on, the fences associated
+with a dma-buf.
 
-AVerMedia A306 MiniCard Hybrid DVB-T=C2=A0 / 14f1:8852 (rev 02) Subsystem: =
-1461:c139
+The one pending on the fence can add an async callback:
+  + fence_add_callback()
 
-Is beeing regognized and loaded by the driver, by it's PCI ID ,
+The callback can optionally be cancelled with:
+  + fence_remove_callback()
 
-The correct firmwares are loaded fully notably by the Xceive 3028 .
+To wait synchronously, optionally with a timeout:
+  + fence_wait()
+  + fence_wait_timeout()
 
-I'm testing the mpeg side, not fully yet (firmware) .
+A default software-only implementation is provided, which can be used
+by drivers attaching a fence to a buffer when they have no other means
+for hw sync.  But a memory backed fence is also envisioned, because it
+is common that GPU's can write to, or poll on some memory location for
+synchronization.  For example:
 
-The full dmesg output, with all relevant drivers set debug=3D1 , is atteche=
-d to
-the email .
+  fence = custom_get_fence(...);
+  if ((seqno_fence = to_seqno_fence(fence)) != NULL) {
+    dma_buf *fence_buf = fence->sync_buf;
+    get_dma_buf(fence_buf);
 
-I do not have all the cables to test (it's a laptop ..:) )
-so testing is more than welcome.
+    ... tell the hw the memory location to wait ...
+    custom_wait_on(fence_buf, fence->seqno_ofs, fence->seqno);
+  } else {
+    /* fall-back to sw sync * /
+    fence_add_callback(fence, my_cb);
+  }
 
-Best regards
+On SoC platforms, if some other hw mechanism is provided for synchronizing
+between IP blocks, it could be supported as an alternate implementation
+with it's own fence ops in a similar way.
 
-R=C3=A9mi PUTHOMME-ESSAISSI .
+enable_signaling callback is used to provide sw signaling in case a cpu
+waiter is requested or no compatible hardware signaling could be used.
 
+The intention is to provide a userspace interface (presumably via eventfd)
+later, to be used in conjunction with dma-buf's mmap support for sw access
+to buffers (or for userspace apps that would prefer to do their own
+synchronization).
 
+v1: Original
+v2: After discussion w/ danvet and mlankhorst on #dri-devel, we decided
+    that dma-fence didn't need to care about the sw->hw signaling path
+    (it can be handled same as sw->sw case), and therefore the fence->ops
+    can be simplified and more handled in the core.  So remove the signal,
+    add_callback, cancel_callback, and wait ops, and replace with a simple
+    enable_signaling() op which can be used to inform a fence supporting
+    hw->hw signaling that one or more devices which do not support hw
+    signaling are waiting (and therefore it should enable an irq or do
+    whatever is necessary in order that the CPU is notified when the
+    fence is passed).
+v3: Fix locking fail in attach_fence() and get_fence()
+v4: Remove tie-in w/ dma-buf..  after discussion w/ danvet and mlankorst
+    we decided that we need to be able to attach one fence to N dma-buf's,
+    so using the list_head in dma-fence struct would be problematic.
+v5: [ Maarten Lankhorst ] Updated for dma-bikeshed-fence and dma-buf-manager.
+v6: [ Maarten Lankhorst ] I removed dma_fence_cancel_callback and some comments
+    about checking if fence fired or not. This is broken by design.
+    waitqueue_active during destruction is now fatal, since the signaller
+    should be holding a reference in enable_signalling until it signalled
+    the fence. Pass the original dma_fence_cb along, and call __remove_wait
+    in the dma_fence_callback handler, so that no cleanup needs to be
+    performed.
+v7: [ Maarten Lankhorst ] Set cb->func and only enable sw signaling if
+    fence wasn't signaled yet, for example for hardware fences that may
+    choose to signal blindly.
+v8: [ Maarten Lankhorst ] Tons of tiny fixes, moved __dma_fence_init to
+    header and fixed include mess. dma-fence.h now includes dma-buf.h
+    All members are now initialized, so kmalloc can be used for
+    allocating a dma-fence. More documentation added.
+v9: Change compiler bitfields to flags, change return type of
+    enable_signaling to bool. Rework dma_fence_wait. Added
+    dma_fence_is_signaled and dma_fence_wait_timeout.
+    s/dma// and change exports to non GPL. Added fence_is_signaled and
+    fence_enable_sw_signaling calls, add ability to override default
+    wait operation.
+v10: remove event_queue, use a custom list, export try_to_wake_up from
+    scheduler. Remove fence lock and use a global spinlock instead,
+    this should hopefully remove all the locking headaches I was having
+    on trying to implement this. enable_signaling is called with this
+    lock held.
+v11:
+    Use atomic ops for flags, lifting the need for some spin_lock_irqsaves.
+    However I kept the guarantee that after fence_signal returns, it is
+    guaranteed that enable_signaling has either been called to completion,
+    or will not be called any more.
 
-root@medeb:~/v4l# diff -u=C2=A0 media_build/v4l/cx23885-cards.c
-media_build.remi/v4l/cx23885-cards.c
---- media_build/v4l/cx23885-cards.c=C2=A0 =C2=A0 =C2=A02012-12-28 00:04:05.=
-000000000 +0100
-+++ media_build.remi/v4l/cx23885-cards.c=C2=A0 =C2=A0 =C2=A0 =C2=A0 2013-08=
--21 14:15:54.173195979
-+0200
-@@ -604,8 +604,39 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE0_CH3 |
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE1_CH3,
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .amux=C2=A0 =C2=A0=3D CX25840_AUDIO6,
--=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0} },
--=C2=A0 =C2=A0 =C2=A0 =C2=A0}
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}}
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 },
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0[CX23885_BOARD_AVERMEDIA_A306] =3D {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name=C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D "AVerTV Hybrid Minicard PCIe A306",
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner_type=C2=A0 =
-=C2=A0 =C2=A0=3D TUNER_XC2028,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner_addr=C2=A0 =
-=C2=A0 =C2=A0=3D 0x61, /* 0xc2 >> 1 */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner_bus=C2=A0 =
-=C2=A0 =C2=A0 =3D 1,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .porta=C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =3D CX23885_ANALOG_VIDEO,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.portb=C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =3D CX23885_MPEG_ENCODER,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .input=C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =3D {{
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .type=C2=A0 =C2=A0=3D CX23885_VMUX_TELEVISION,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .vmux=C2=A0 =C2=A0=3D CX25840_VIN2_CH1 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_VIN5_CH2 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE0_CH3 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE1_CH3,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .amux=C2=A0 =C2=A0=3D CX25840_AUDIO8,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }, {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .type=C2=A0 =C2=A0=3D CX23885_VMUX_SVIDEO,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .vmux=C2=A0 =C2=A0=3D CX25840_VIN8_CH1 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE_CH2 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_VIN7_CH3 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_SVIDEO_ON,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .amux=C2=A0 =C2=A0=3D CX25840_AUDIO6,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }, {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .type=C2=A0 =C2=A0=3D CX23885_VMUX_COMPONENT,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .vmux=C2=A0 =C2=A0=3D CX25840_VIN1_CH1 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE_CH2 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE0_CH3 |
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CX25840_NONE1_CH3,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 .amux=C2=A0 =C2=A0=3D CX25840_AUDIO6,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }},
+    Add contexts and seqno to base fence implementation. This allows you
+    to wait for less fences, by testing for seqno + signaled, and then only
+    wait on the later fence.
+
+    Add FENCE_TRACE, FENCE_WARN, and FENCE_ERR. This makes debugging easier.
+    An CONFIG_DEBUG_FENCE will be added to turn off the FENCE_TRACE
+    spam, and another runtime option can turn it off at runtime.
+v12:
+    Add CONFIG_FENCE_TRACE. Add missing documentation for the fence->context
+    and fence->seqno members.
+v13:
+    Fixup CONFIG_FENCE_TRACE kconfig description.
+    Move fence_context_alloc to fence.
+    Simplify fence_later.
+    Kill priv member to fence_cb.
+v14:
+    Remove priv argument from fence_add_callback, oops!
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ Documentation/DocBook/device-drivers.tmpl |    2 
+ drivers/base/Kconfig                      |   10 +
+ drivers/base/Makefile                     |    2 
+ drivers/base/fence.c                      |  311 ++++++++++++++++++++++++++
+ include/linux/fence.h                     |  344 +++++++++++++++++++++++++++++
+ 5 files changed, 668 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/base/fence.c
+ create mode 100644 include/linux/fence.h
+
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index fe397f9..95d0db9 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -126,6 +126,8 @@ X!Edrivers/base/interface.c
+      </sect1>
+      <sect1><title>Device Drivers DMA Management</title>
+ !Edrivers/base/dma-buf.c
++!Edrivers/base/fence.c
++!Iinclude/linux/fence.h
+ !Edrivers/base/reservation.c
+ !Iinclude/linux/reservation.h
+ !Edrivers/base/dma-coherent.c
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index 5daa259..2bf0add 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -200,6 +200,16 @@ config DMA_SHARED_BUFFER
+ 	  APIs extension; the file's descriptor can then be passed on to other
+ 	  driver.
+ 
++config FENCE_TRACE
++	bool "Enable verbose FENCE_TRACE messages"
++	default n
++	depends on DMA_SHARED_BUFFER
++	help
++	  Enable the FENCE_TRACE printks. This will add extra
++	  spam to the console log, but will make it easier to diagnose
++	  lockup related problems for dma-buffers shared across multiple
++	  devices.
 +
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0}=C2=A0 =C2=A0 =C2=A0 =C2=A0
-=C2=A0};
-=C2=A0const unsigned int cx23885_bcount =3D ARRAY_SIZE(cx23885_boards);
-=C2=A0
-@@ -841,7 +872,12 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .subvendor =3D 0x14=
-61,
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .subdevice =3D 0xd9=
-39,
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .card=C2=A0 =C2=A0 =
-=C2=A0 =3D CX23885_BOARD_AVERMEDIA_HC81R,
--=C2=A0 =C2=A0 =C2=A0 =C2=A0},
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0}, {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .subvendor =3D 0x1=
-461,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .subdevice =3D 0xc=
-139,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .card=C2=A0 =C2=A0=
- =C2=A0 =3D CX23885_BOARD_AVERMEDIA_A306,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 },
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0
-=C2=A0};
-=C2=A0const unsigned int cx23885_idcount =3D ARRAY_SIZE(cx23885_subids);
-=C2=A0
-@@ -1069,6 +1105,10 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* XC3028L Reset Co=
-mmand */
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bitmask =3D 1 << 2;
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0case CX23885_BOARD_AVERMEDIA_A306:
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* XC3028L Reset C=
-ommand */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bitmask =3D 1 << 2=
-;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 if (bitmask) {
-@@ -1394,6 +1434,34 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x00=
-040004);
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(60);
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_A306:
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_clear(MC417_CTL=
-, 1);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* GPIO-0,1,2 setu=
-p direction as output */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0070000);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* AF9013 demod re=
-set */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0010001);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_clear(GP0_IO, 0=
-x00010001);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0010001);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* demod tune? */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_clear(GP0_IO, 0=
-x00030003);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0020002);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0010001);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(10);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_clear(GP0_IO, 0=
-x00020002);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* XC3028L tuner r=
-eset */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0040004);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_clear(GP0_IO, 0=
-x00040004);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cx_set(GP0_IO, 0x0=
-0040004);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mdelay(60);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+ config CMA
+ 	bool "Contiguous Memory Allocator"
+ 	depends on HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 48029aa..8a55cb9 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
+ obj-y			+= power/
+ obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+ obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+-obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o reservation.o
++obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o fence.o reservation.o
+ obj-$(CONFIG_ISA)	+= isa.o
+ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+ obj-$(CONFIG_NUMA)	+= node.o
+diff --git a/drivers/base/fence.c b/drivers/base/fence.c
+new file mode 100644
+index 0000000..a95df7d
+--- /dev/null
++++ b/drivers/base/fence.c
+@@ -0,0 +1,311 @@
++/*
++ * Fence mechanism for dma-buf and to allow for asynchronous dma access
++ *
++ * Copyright (C) 2012 Canonical Ltd
++ * Copyright (C) 2012 Texas Instruments
++ *
++ * Authors:
++ * Rob Clark <robdclark@gmail.com>
++ * Maarten Lankhorst <maarten.lankhorst@canonical.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
++#include <linux/slab.h>
++#include <linux/export.h>
++#include <linux/fence.h>
 +
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0}
-=C2=A0
-@@ -1623,6 +1691,21 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->ts_clk_en_val =
-=3D 0x1; /* Enable TS_CLK */
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->src_sel_val=C2=
-=A0 =C2=A0 =C2=A0=3D CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
++/**
++ * fence context counter: each execution context should have its own
++ * fence context, this allows checking if fences belong to the same
++ * context or not. One device can have multiple separate contexts,
++ * and they're used if some engine can run independently of another.
++ */
++static atomic_t fence_context_counter = ATOMIC_INIT(0);
 +
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_A306:
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Defaults for VI=
-D B */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts1->gen_ctrl_val=
-=C2=A0 =3D 0x4; /* Parallel */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts1->ts_clk_en_val=
- =3D 0x1; /* Enable TS_CLK */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts1->src_sel_val=
-=C2=A0 =C2=A0=3D CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Defaults for VI=
-D C */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* DREQ_POL, SMODE=
-, PUNC_CLK, MCLK_POL Serial bus + punc clk */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->gen_ctrl_val=
-=C2=A0 =3D 0x10e;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->ts_clk_en_val=
- =3D 0x1; /* Enable TS_CLK */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->src_sel_val=
-=C2=A0 =C2=A0 =C2=A0=3D CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
++/**
++ * fence_context_alloc - allocate an array of fence contexts
++ * @num:	[in]	amount of contexts to allocate
++ *
++ * This function will return the first index of the number of fences allocated.
++ * The fence context is used for setting fence->context to a unique number.
++ */
++unsigned fence_context_alloc(unsigned num)
++{
++	BUG_ON(!num);
++	return atomic_add_return(num, &fence_context_counter) - num;
++}
++EXPORT_SYMBOL(fence_context_alloc);
 +
++int __fence_signal(struct fence *fence)
++{
++	struct fence_cb *cur, *tmp;
++	int ret = 0;
 +
++	if (WARN_ON(!fence))
++		return -EINVAL;
 +
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP:
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_=
-EXP:
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ts2->gen_ctrl_val=
-=C2=A0 =3D 0xc; /* Serial bus + punctured clock */
-@@ -1758,6 +1841,18 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
++	if (test_and_set_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
++		ret = -EINVAL;
 +
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_A306:
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev->sd_cx25840 =
-=3D v4l2_i2c_new_subdev(&dev->v4l2_dev,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 &dev->i2c_bus[2].i2c_adap,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "cx25840", 0x88 >> 1, NULL);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (dev->sd_cx2584=
-0) {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 dev->sd_cx25840->grp_id =3D CX23885_HW_AV_CORE;
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
++		/*
++		 * we might have raced with the unlocked fence_signal,
++		 * still run through all callbacks
++		 */
++	}
 +
++	list_for_each_entry_safe(cur, tmp, &fence->cb_list, node) {
++		list_del_init(&cur->node);
++		cur->func(fence, cur);
++	}
++	return ret;
++}
++EXPORT_SYMBOL(__fence_signal);
 +
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 /* AUX-PLL 27MHz CLK */
-root@medeb:~/v4l# diff -u=C2=A0 media_build/v4l/cx23885-video.c
-media_build.remi/v4l/cx23885-video.c
---- media_build/v4l/cx23885-video.c=C2=A0 =C2=A0 =C2=A02013-08-02 05:45:59.=
-000000000 +0200
-+++ media_build.remi/v4l/cx23885-video.c=C2=A0 =C2=A0 =C2=A0 =C2=A0 2013-08=
--21 13:55:20.017625046
-+0200
-@@ -511,7 +511,8 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (dev->board =3D=3D =
-CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (dev->board =3D=3D =
-CX23885_BOARD_HAUPPAUGE_HVR1850) ||
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (dev->board =3D=3D =
-CX23885_BOARD_MYGICA_X8507) ||
--=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(dev->board =3D=3D =
-CX23885_BOARD_AVERMEDIA_HC81R)) {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(dev->board =3D=3D =
-CX23885_BOARD_AVERMEDIA_HC81R)||
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(dev->board =3D=3D =
-CX23885_BOARD_AVERMEDIA_A306)) {
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Configure audio =
-routing */
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 v4l2_subdev_call(de=
-v->sd_cx25840, audio, s_routing,
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 INPUT(input)->amux, 0, 0);
-@@ -1888,6 +1889,20 @@
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 v4l2_subdev_call(sd, tuner, s_config=
-, &cfg);
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0if (dev->board =3D=3D CX23885_BOARD_AVERMEDIA_A306) {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct xc2028_ctrl ctrl =3D {
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* .fname =3D "x=
-c3028L-v36.fw", */
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.fname =
-=3D "xc3028-v27.fw",
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .max_len=
- =3D 64
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct v4l2_priv_tun_config cfg =3D =
-{
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner =
-=3D dev->tuner_type,
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .priv =
-=3D &ctrl
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 v4l2_subdev_call(sd, tuner, s_config=
-, &cfg);
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
++/**
++ * fence_signal - signal completion of a fence
++ * @fence: the fence to signal
++ *
++ * Signal completion for software callbacks on a fence, this will unblock
++ * fence_wait() calls and run all the callbacks added with
++ * fence_add_callback(). Can be called multiple times, but since a fence
++ * can only go from unsignaled to signaled state, it will only be effective
++ * the first time.
++ */
++int fence_signal(struct fence *fence)
++{
++	unsigned long flags;
 +
++	if (!fence || test_and_set_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		return -EINVAL;
 +
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-=C2=A0
-root@medeb:~/v4l# diff -u=C2=A0 media_build/v4l/cx23885.h
-media_build.remi/v4l/cx23885.h
---- media_build/v4l/cx23885.h=C2=A0 =C2=A02013-03-25 05:45:50.000000000 +01=
-00
-+++ media_build.remi/v4l/cx23885.h=C2=A0 =C2=A0 =C2=A0 2013-08-21 13:55:20.=
-010625134 +0200
-@@ -93,6 +93,7 @@
-=C2=A0#define CX23885_BOARD_PROF_8000=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 37
-=C2=A0#define CX23885_BOARD_HAUPPAUGE_HVR4400=C2=A0 =C2=A0 =C2=A0 =C2=A0 38
-=C2=A0#define CX23885_BOARD_AVERMEDIA_HC81R=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 39
-+#define CX23885_BOARD_AVERMEDIA_A306=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A040
-=C2=A0
-=C2=A0#define GPIO_0 0x00000001
-=C2=A0#define GPIO_1 0x00000002
-root@medeb:~/v4l#
++	if (test_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags)) {
++		struct fence_cb *cur, *tmp;
++
++		spin_lock_irqsave(fence->lock, flags);
++		list_for_each_entry_safe(cur, tmp, &fence->cb_list, node) {
++			list_del_init(&cur->node);
++			cur->func(fence, cur);
++		}
++		spin_unlock_irqrestore(fence->lock, flags);
++	}
++	return 0;
++}
++EXPORT_SYMBOL(fence_signal);
++
++void release_fence(struct kref *kref)
++{
++	struct fence *fence =
++			container_of(kref, struct fence, refcount);
++
++	BUG_ON(!list_empty(&fence->cb_list));
++
++	if (fence->ops->release)
++		fence->ops->release(fence);
++	else
++		kfree(fence);
++}
++EXPORT_SYMBOL(release_fence);
++
++/**
++ * fence_enable_sw_signaling - enable signaling on fence
++ * @fence:	[in]	the fence to enable
++ *
++ * this will request for sw signaling to be enabled, to make the fence
++ * complete as soon as possible
++ */
++void fence_enable_sw_signaling(struct fence *fence)
++{
++	unsigned long flags;
++
++	if (!test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags) &&
++	    !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
++		spin_lock_irqsave(fence->lock, flags);
++
++		if (!fence->ops->enable_signaling(fence))
++			__fence_signal(fence);
++
++		spin_unlock_irqrestore(fence->lock, flags);
++	}
++}
++EXPORT_SYMBOL(fence_enable_sw_signaling);
++
++/**
++ * fence_add_callback - add a callback to be called when the fence
++ * is signaled
++ * @fence:	[in]	the fence to wait on
++ * @cb:		[in]	the callback to register
++ * @func:	[in]	the function to call
++ *
++ * cb will be initialized by fence_add_callback, no initialization
++ * by the caller is required. Any number of callbacks can be registered
++ * to a fence, but a callback can only be registered to one fence at a time.
++ *
++ * Note that the callback can be called from an atomic context.  If
++ * fence is already signaled, this function will return -ENOENT (and
++ * *not* call the callback)
++ *
++ * Add a software callback to the fence. Same restrictions apply to
++ * refcount as it does to fence_wait, however the caller doesn't need to
++ * keep a refcount to fence afterwards: when software access is enabled,
++ * the creator of the fence is required to keep the fence alive until
++ * after it signals with fence_signal. The callback itself can be called
++ * from irq context.
++ *
++ */
++int fence_add_callback(struct fence *fence, struct fence_cb *cb,
++		       fence_func_t func)
++{
++	unsigned long flags;
++	int ret = 0;
++	bool was_set;
++
++	if (WARN_ON(!fence || !func))
++		return -EINVAL;
++
++	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		return -ENOENT;
++
++	spin_lock_irqsave(fence->lock, flags);
++
++	was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
++
++	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		ret = -ENOENT;
++	else if (!was_set && !fence->ops->enable_signaling(fence)) {
++		__fence_signal(fence);
++		ret = -ENOENT;
++	}
++
++	if (!ret) {
++		cb->func = func;
++		list_add_tail(&cb->node, &fence->cb_list);
++	}
++	spin_unlock_irqrestore(fence->lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL(fence_add_callback);
++
++/**
++ * fence_remove_callback - remove a callback from the signaling list
++ * @fence:	[in]	the fence to wait on
++ * @cb:		[in]	the callback to remove
++ *
++ * Remove a previously queued callback from the fence. This function returns
++ * true is the callback is succesfully removed, or false if the fence has
++ * already been signaled.
++ *
++ * *WARNING*:
++ * Cancelling a callback should only be done if you really know what you're
++ * doing, since deadlocks and race conditions could occur all too easily. For
++ * this reason, it should only ever be done on hardware lockup recovery,
++ * with a reference held to the fence.
++ */
++bool
++fence_remove_callback(struct fence *fence, struct fence_cb *cb)
++{
++	unsigned long flags;
++	bool ret;
++
++	spin_lock_irqsave(fence->lock, flags);
++
++	ret = !list_empty(&cb->node);
++	if (ret)
++		list_del_init(&cb->node);
++
++	spin_unlock_irqrestore(fence->lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL(fence_remove_callback);
++
++struct default_wait_cb {
++	struct fence_cb base;
++	struct task_struct *task;
++};
++
++static void
++fence_default_wait_cb(struct fence *fence, struct fence_cb *cb)
++{
++	struct default_wait_cb *wait =
++		container_of(cb, struct default_wait_cb, base);
++
++	try_to_wake_up(wait->task, TASK_NORMAL, 0);
++}
++
++/**
++ * fence_default_wait - default sleep until the fence gets signaled
++ * or until timeout elapses
++ * @fence:	[in]	the fence to wait on
++ * @intr:	[in]	if true, do an interruptible wait
++ * @timeout:	[in]	timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
++ *
++ * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
++ * remaining timeout in jiffies on success.
++ */
++long
++fence_default_wait(struct fence *fence, bool intr, signed long timeout)
++{
++	struct default_wait_cb cb;
++	unsigned long flags;
++	long ret = timeout;
++	bool was_set;
++
++	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		return timeout;
++
++	spin_lock_irqsave(fence->lock, flags);
++
++	if (intr && signal_pending(current)) {
++		ret = -ERESTARTSYS;
++		goto out;
++	}
++
++	was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
++
++	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		goto out;
++
++	if (!was_set && !fence->ops->enable_signaling(fence)) {
++		__fence_signal(fence);
++		goto out;
++	}
++
++	cb.base.func = fence_default_wait_cb;
++	cb.task = current;
++	list_add(&cb.base.node, &fence->cb_list);
++
++	while (!test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags) && ret > 0) {
++		if (intr)
++			__set_current_state(TASK_INTERRUPTIBLE);
++		else
++			__set_current_state(TASK_UNINTERRUPTIBLE);
++		spin_unlock_irqrestore(fence->lock, flags);
++
++		ret = schedule_timeout(ret);
++
++		spin_lock_irqsave(fence->lock, flags);
++		if (ret > 0 && intr && signal_pending(current))
++			ret = -ERESTARTSYS;
++	}
++
++	if (!list_empty(&cb.base.node))
++		list_del(&cb.base.node);
++	__set_current_state(TASK_RUNNING);
++
++out:
++	spin_unlock_irqrestore(fence->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(fence_default_wait);
+diff --git a/include/linux/fence.h b/include/linux/fence.h
+new file mode 100644
+index 0000000..3ce2155
+--- /dev/null
++++ b/include/linux/fence.h
+@@ -0,0 +1,344 @@
++/*
++ * Fence mechanism for dma-buf to allow for asynchronous dma access
++ *
++ * Copyright (C) 2012 Canonical Ltd
++ * Copyright (C) 2012 Texas Instruments
++ *
++ * Authors:
++ * Rob Clark <robdclark@gmail.com>
++ * Maarten Lankhorst <maarten.lankhorst@canonical.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __LINUX_FENCE_H
++#define __LINUX_FENCE_H
++
++#include <linux/err.h>
++#include <linux/wait.h>
++#include <linux/list.h>
++#include <linux/bitops.h>
++#include <linux/kref.h>
++#include <linux/sched.h>
++#include <linux/printk.h>
++
++struct fence;
++struct fence_ops;
++struct fence_cb;
++
++/**
++ * struct fence - software synchronization primitive
++ * @refcount: refcount for this fence
++ * @ops: fence_ops associated with this fence
++ * @cb_list: list of all callbacks to call
++ * @lock: spin_lock_irqsave used for locking
++ * @context: execution context this fence belongs to, returned by
++ *           fence_context_alloc()
++ * @seqno: the sequence number of this fence inside the execution context,
++ * can be compared to decide which fence would be signaled later.
++ * @flags: A mask of FENCE_FLAG_* defined below
++ *
++ * the flags member must be manipulated and read using the appropriate
++ * atomic ops (bit_*), so taking the spinlock will not be needed most
++ * of the time.
++ *
++ * FENCE_FLAG_SIGNALED_BIT - fence is already signaled
++ * FENCE_FLAG_ENABLE_SIGNAL_BIT - enable_signaling might have been called*
++ * FENCE_FLAG_USER_BITS - start of the unused bits, can be used by the
++ * implementer of the fence for its own purposes. Can be used in different
++ * ways by different fence implementers, so do not rely on this.
++ *
++ * *) Since atomic bitops are used, this is not guaranteed to be the case.
++ * Particularly, if the bit was set, but fence_signal was called right
++ * before this bit was set, it would have been able to set the
++ * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
++ * Adding a check for FENCE_FLAG_SIGNALED_BIT after setting
++ * FENCE_FLAG_ENABLE_SIGNAL_BIT closes this race, and makes sure that
++ * after fence_signal was called, any enable_signaling call will have either
++ * been completed, or never called at all.
++ */
++struct fence {
++	struct kref refcount;
++	const struct fence_ops *ops;
++	struct list_head cb_list;
++	spinlock_t *lock;
++	unsigned context, seqno;
++	unsigned long flags;
++};
++
++enum fence_flag_bits {
++	FENCE_FLAG_SIGNALED_BIT,
++	FENCE_FLAG_ENABLE_SIGNAL_BIT,
++	FENCE_FLAG_USER_BITS, /* must always be last member */
++};
++
++typedef void (*fence_func_t)(struct fence *fence, struct fence_cb *cb);
++
++/**
++ * struct fence_cb - callback for fence_add_callback
++ * @node: used by fence_add_callback to append this struct to fence::cb_list
++ * @func: fence_func_t to call
++ * @priv: value of priv to pass to function
++ *
++ * This struct will be initialized by fence_add_callback, additional
++ * data can be passed along by embedding fence_cb in another struct.
++ */
++struct fence_cb {
++	struct list_head node;
++	fence_func_t func;
++};
++
++/**
++ * struct fence_ops - operations implemented for fence
++ * @enable_signaling: enable software signaling of fence
++ * @signaled: [optional] peek whether the fence is signaled, can be null
++ * @wait: custom wait implementation
++ * @release: [optional] called on destruction of fence, can be null
++ *
++ * Notes on enable_signaling:
++ * For fence implementations that have the capability for hw->hw
++ * signaling, they can implement this op to enable the necessary
++ * irqs, or insert commands into cmdstream, etc.  This is called
++ * in the first wait() or add_callback() path to let the fence
++ * implementation know that there is another driver waiting on
++ * the signal (ie. hw->sw case).
++ *
++ * This function can be called called from atomic context, but not
++ * from irq context, so normal spinlocks can be used.
++ *
++ * A return value of false indicates the fence already passed,
++ * or some failure occured that made it impossible to enable
++ * signaling. True indicates succesful enabling.
++ *
++ * Calling fence_signal before enable_signaling is called allows
++ * for a tiny race window in which enable_signaling is called during,
++ * before, or after fence_signal. To fight this, it is recommended
++ * that before enable_signaling returns true an extra reference is
++ * taken on the fence, to be released when the fence is signaled.
++ * This will mean fence_signal will still be called twice, but
++ * the second time will be a noop since it was already signaled.
++ *
++ * Notes on wait:
++ * Must not be NULL, set to fence_default_wait for default implementation.
++ * the fence_default_wait implementation should work for any fence, as long
++ * as enable_signaling works correctly.
++ *
++ * Must return -ERESTARTSYS if the wait is intr = true and the wait was
++ * interrupted, and remaining jiffies if fence has signaled, or 0 if wait
++ * timed out. Can also return other error values on custom implementations,
++ * which should be treated as if the fence is signaled. For example a hardware
++ * lockup could be reported like that.
++ *
++ * Notes on release:
++ * Can be NULL, this function allows additional commands to run on
++ * destruction of the fence. Can be called from irq context.
++ * If pointer is set to NULL, kfree will get called instead.
++ */
++
++struct fence_ops {
++	bool (*enable_signaling)(struct fence *fence);
++	bool (*signaled)(struct fence *fence);
++	long (*wait)(struct fence *fence, bool intr, signed long timeout);
++	void (*release)(struct fence *fence);
++};
++
++/**
++ * __fence_init - Initialize a custom fence.
++ * @fence:	[in]	the fence to initialize
++ * @ops:	[in]	the fence_ops for operations on this fence
++ * @lock:	[in]	the irqsafe spinlock to use for locking this fence
++ * @context:	[in]	the execution context this fence is run on
++ * @seqno:	[in]	a linear increasing sequence number for this context
++ *
++ * Initializes an allocated fence, the caller doesn't have to keep its
++ * refcount after committing with this fence, but it will need to hold a
++ * refcount again if fence_ops.enable_signaling gets called. This can
++ * be used for other implementing other types of fence.
++ *
++ * context and seqno are used for easy comparison between fences, allowing
++ * to check which fence is later by simply using fence_later.
++ */
++static inline void
++__fence_init(struct fence *fence, const struct fence_ops *ops,
++	     spinlock_t *lock, unsigned context, unsigned seqno)
++{
++	BUG_ON(!ops || !lock || !ops->enable_signaling || !ops->wait);
++
++	kref_init(&fence->refcount);
++	fence->ops = ops;
++	INIT_LIST_HEAD(&fence->cb_list);
++	fence->lock = lock;
++	fence->context = context;
++	fence->seqno = seqno;
++	fence->flags = 0UL;
++}
++
++/**
++ * fence_get - increases refcount of the fence
++ * @fence:	[in]	fence to increase refcount of
++ */
++static inline void fence_get(struct fence *fence)
++{
++	if (WARN_ON(!fence))
++		return;
++	kref_get(&fence->refcount);
++}
++
++extern void release_fence(struct kref *kref);
++
++/**
++ * fence_put - decreases refcount of the fence
++ * @fence:	[in]	fence to reduce refcount of
++ */
++static inline void fence_put(struct fence *fence)
++{
++	if (WARN_ON(!fence))
++		return;
++	kref_put(&fence->refcount, release_fence);
++}
++
++int fence_signal(struct fence *fence);
++int __fence_signal(struct fence *fence);
++long fence_default_wait(struct fence *fence, bool intr, signed long timeout);
++int fence_add_callback(struct fence *fence, struct fence_cb *cb,
++		       fence_func_t func);
++bool fence_remove_callback(struct fence *fence, struct fence_cb *cb);
++void fence_enable_sw_signaling(struct fence *fence);
++
++/**
++ * fence_is_signaled - Return an indication if the fence is signaled yet.
++ * @fence:	[in]	the fence to check
++ *
++ * Returns true if the fence was already signaled, false if not. Since this
++ * function doesn't enable signaling, it is not guaranteed to ever return true
++ * If fence_add_callback, fence_wait or fence_enable_sw_signaling
++ * haven't been called before.
++ *
++ * It's recommended for seqno fences to call fence_signal when the
++ * operation is complete, it makes it possible to prevent issues from
++ * wraparound between time of issue and time of use by checking the return
++ * value of this function before calling hardware-specific wait instructions.
++ */
++static inline bool
++fence_is_signaled(struct fence *fence)
++{
++	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
++		return true;
++
++	if (fence->ops->signaled && fence->ops->signaled(fence)) {
++		fence_signal(fence);
++		return true;
++	}
++
++	return false;
++}
++
++/**
++ * fence_later - return the chronologically later fence
++ * @f1:	[in]	the first fence from the same context
++ * @f2:	[in]	the second fence from the same context
++ *
++ * Returns NULL if both fences are signaled, otherwise the fence that would be
++ * signaled last. Both fences must be from the same context, since a seqno is
++ * not re-used across contexts.
++ */
++static inline struct fence *fence_later(struct fence *f1, struct fence *f2)
++{
++	BUG_ON(f1->context != f2->context);
++
++	/*
++	 * can't check just FENCE_FLAG_SIGNALED_BIT here, it may never have been
++	 * set called if enable_signaling wasn't, and enabling that here is
++	 * overkill.
++	 */
++	if (f2->seqno - f1->seqno <= INT_MAX)
++		return fence_is_signaled(f2) ? NULL : f2;
++	else
++		return fence_is_signaled(f1) ? NULL : f1;
++}
++
++/**
++ * fence_wait_timeout - sleep until the fence gets signaled
++ * or until timeout elapses
++ * @fence:	[in]	the fence to wait on
++ * @intr:	[in]	if true, do an interruptible wait
++ * @timeout:	[in]	timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
++ *
++ * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
++ * remaining timeout in jiffies on success. Other error values may be
++ * returned on custom implementations.
++ *
++ * Performs a synchronous wait on this fence. It is assumed the caller
++ * directly or indirectly (buf-mgr between reservation and committing)
++ * holds a reference to the fence, otherwise the fence might be
++ * freed before return, resulting in undefined behavior.
++ */
++static inline long
++fence_wait_timeout(struct fence *fence, bool intr, signed long timeout)
++{
++	if (WARN_ON(timeout < 0))
++		return -EINVAL;
++
++	return fence->ops->wait(fence, intr, timeout);
++}
++
++/**
++ * fence_wait - sleep until the fence gets signaled
++ * @fence:	[in]	the fence to wait on
++ * @intr:	[in]	if true, do an interruptible wait
++ *
++ * This function will return -ERESTARTSYS if interrupted by a signal,
++ * or 0 if the fence was signaled. Other error values may be
++ * returned on custom implementations.
++ *
++ * Performs a synchronous wait on this fence. It is assumed the caller
++ * directly or indirectly (buf-mgr between reservation and committing)
++ * holds a reference to the fence, otherwise the fence might be
++ * freed before return, resulting in undefined behavior.
++ */
++static inline long fence_wait(struct fence *fence, bool intr)
++{
++	long ret;
++
++	/* Since fence_wait_timeout cannot timeout with
++	 * MAX_SCHEDULE_TIMEOUT, only valid return values are
++	 * -ERESTARTSYS and MAX_SCHEDULE_TIMEOUT.
++	 */
++	ret = fence_wait_timeout(fence, intr, MAX_SCHEDULE_TIMEOUT);
++
++	return ret < 0 ? ret : 0;
++}
++
++unsigned fence_context_alloc(unsigned num);
++
++#define FENCE_TRACE(f, fmt, args...) \
++	do {									\
++		struct fence *__ff = (f);					\
++		if (config_enabled(CONFIG_FENCE_TRACE))			\
++			pr_info("f %u#%u: " fmt,				\
++				__ff->context, __ff->seqno, ##args);		\
++	} while (0)
++
++#define FENCE_WARN(f, fmt, args...) \
++	do {									\
++		struct fence *__ff = (f);					\
++		pr_warn("f %u#%u: " fmt, __ff->context, __ff->seqno, ##args);	\
++	} while (0)
++
++#define FENCE_ERR(f, fmt, args...) \
++	do {									\
++		struct fence *__ff = (f);					\
++		pr_err("f %u#%u: " fmt, __ff->context, __ff->seqno, ##args);	\
++	} while (0)
++
++#endif /* __LINUX_FENCE_H */
 
-
-
-
-> Le 20 ao=C3=BBt 2013 =C3=A0 21:31, remi <remi@remis.cc> a =C3=A9crit=C2=
-=A0:
->
->
-> Hello
->
-> Seeing that card=3D39 worked, and, that the A306 doesnt use the LowPower =
-version
-> of the XC3028 , HC81 is an expressCard =3D=3D lowpower
->
-> A306 is the PCIe minicard version =3D=3D not LowPower ,
->
->
-> I decided to clone the HC81 entries in cx23885-video.c, cx23885.h ,
-> cx23885-cards.c
->
-> And intruct it to load then the xc3028-v27.fw instead,
->
-> Seems to me alot better , see below ,
->
-> And I added so, the card=3D40 in the definitions ...
->
-> I dont think submiting a patch for this woth it yet ...
->
-> as none of the tuners get "created" ,
->
-> For the analog video composite/s-video, i'll be able to test it when i fi=
-nd
-> the
-> right cable .
->
->
->
-> root@medeb:~/v4l/media_build/v4l# grep A306 *
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 [CX23885_BOARD_AVERMEDIA_A306=
-] =3D {
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .=
-name=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D "AVerTV Hybrid Minicard PC=
-Ie
-> A306",
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .=
-card=C2=A0 =C2=A0 =C2=A0 =3D CX23885_BOARD_AVERMEDIA_A306,
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_=
-A306:
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_=
-A306:
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_=
-A306:
-> cx23885-cards.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 case CX23885_BOARD_AVERMEDIA_=
-A306:
-> cx23885.h:#define CX23885_BOARD_AVERMEDIA_A306=C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 40
-> cx23885-video.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (=
-dev->board =3D=3D CX23885_BOARD_AVERMEDIA_A306))
-> {
-> cx23885-video.c:=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 if (dev->board =3D=3D
-> CX23885_BOARD_AVERMEDIA_A306) {
->
->
->
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if (dev->board =3D=3D CX23885_BOARD_AVERMEDIA_HC81R) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct xc2028_ctrl ctrl =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .fname =
-=3D "xc3028L-v36.fw",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .max_len=
- =3D 64
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct v4l2_priv_tun_config cfg =3D =
-{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner =
-=3D dev->tuner_type,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .priv =
-=3D &ctrl
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 v4l2_subdev_call(sd, tuner, s_config=
-, &cfg);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if (dev->board =3D=3D CX23885_BOARD_AVERMEDIA_A306) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct xc2028_ctrl ctrl =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* .fname =3D "x=
-c3028L-v36.fw", */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .fname =
-=3D "xc3028-v27.fw",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .max_len=
- =3D 64
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct v4l2_priv_tun_config cfg =3D =
-{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .tuner =
-=3D dev->tuner_type,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .priv =
-=3D &ctrl
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 v4l2_subdev_call(sd, tuner, s_config=
-, &cfg);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
->
->
->
-> [32653.087693] cx23885 driver version 0.0.3 loaded
-> [32653.088091] CORE cx23885[0]: subsystem: 1461:c139, board: AVerTV Hybri=
-d
-> Minicard PCIe A306 [card=3D40,autodetected]
-> [32653.318339] cx23885[0]: scan bus 0:
-> [32653.329792] cx23885[0]: i2c scan: found device @ 0xa0=C2=A0 [eeprom]
-> [32653.336716] cx23885[0]: scan bus 1:
-> [32653.350543] cx23885[0]: i2c scan: found device @ 0xc2=C2=A0
-> [tuner/mt2131/tda8275/xc5000/xc3028]
-> [32653.355042] cx23885[0]: scan bus 2:
-> [32653.357050] cx23885[0]: i2c scan: found device @ 0x66=C2=A0 [???]
-> [32653.357699] cx23885[0]: i2c scan: found device @ 0x88=C2=A0 [cx25837]
-> [32653.358011] cx23885[0]: i2c scan: found device @ 0x98=C2=A0 [flatiron]
-> [32653.391211] cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[=
-0])
-> [32654.031992] cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (=
-16382
-> bytes)
-> [32654.049675] tuner 2-0061: Tuner -1 found with type(s) Radio TV.
-> [32654.051827] xc2028: Xcv2028/3028 init called!
-> [32654.051830] xc2028 2-0061: creating new instance
-> [32654.051832] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-> [32654.051834] xc2028 2-0061: xc2028_set_config called
-> [32654.051963] cx23885[0]: registered device video0 [v4l2]
-> [32654.052165] cx23885[0]: registered device vbi0
-> [32654.052329] cx23885[0]: registered ALSA audio device
-> [32654.052593] xc2028 2-0061: request_firmware_nowait(): OK
-> [32654.052596] xc2028 2-0061: load_all_firmwares called
-> [32654.052598] xc2028 2-0061: Loading 80 firmware images from xc3028-v27.=
-fw,
-> type: xc2028 firmware, ver 2.7
-> [32654.052606] xc2028 2-0061: Reading firmware type BASE F8MHZ (3), id 0,
-> size=3D8718.
-> [32654.052614] xc2028 2-0061: Reading firmware type BASE F8MHZ MTS (7), i=
-d 0,
-> size=3D8712.
-> [32654.052623] xc2028 2-0061: Reading firmware type BASE FM (401), id 0,
-> size=3D8562.
-> [32654.052631] xc2028 2-0061: Reading firmware type BASE FM INPUT1 (c01),=
- id
-> 0,
-> size=3D8576.
-> [32654.052640] xc2028 2-0061: Reading firmware type BASE (1), id 0, size=
-=3D8706.
-> [32654.052647] xc2028 2-0061: Reading firmware type BASE MTS (5), id 0,
-> size=3D8682.
-> [32654.052652] xc2028 2-0061: Reading firmware type (0), id 100000007,
-> size=3D161.
-> [32654.052654] xc2028 2-0061: Reading firmware type MTS (4), id 100000007=
-,
-> size=3D169.
-> [32654.052657] xc2028 2-0061: Reading firmware type (0), id 200000007,
-> size=3D161.
-> [32654.052659] xc2028 2-0061: Reading firmware type MTS (4), id 200000007=
-,
-> size=3D169.
-> [32654.052661] xc2028 2-0061: Reading firmware type (0), id 400000007,
-> size=3D161.
-> [32654.052663] xc2028 2-0061: Reading firmware type MTS (4), id 400000007=
-,
-> size=3D169.
-> [32654.052666] xc2028 2-0061: Reading firmware type (0), id 800000007,
-> size=3D161.
-> [32654.052668] xc2028 2-0061: Reading firmware type MTS (4), id 800000007=
-,
-> size=3D169.
-> [32654.052670] xc2028 2-0061: Reading firmware type (0), id 3000000e0,
-> size=3D161.
-> [32654.052672] xc2028 2-0061: Reading firmware type MTS (4), id 3000000e0=
-,
-> size=3D169.
-> [32654.052675] xc2028 2-0061: Reading firmware type (0), id c000000e0,
-> size=3D161.
-> [32654.052677] xc2028 2-0061: Reading firmware type MTS (4), id c000000e0=
-,
-> size=3D169.
-> [32654.052679] xc2028 2-0061: Reading firmware type (0), id 200000, size=
-=3D161.
-> [32654.052681] xc2028 2-0061: Reading firmware type MTS (4), id 200000,
-> size=3D169.
-> [32654.052684] xc2028 2-0061: Reading firmware type (0), id 4000000, size=
-=3D161.
-> [32654.052686] xc2028 2-0061: Reading firmware type MTS (4), id 4000000,
-> size=3D169.
-> [32654.052688] xc2028 2-0061: Reading firmware type D2633 DTV6 ATSC (1003=
-0),
-> id
-> 0, size=3D149.
-> [32654.052691] xc2028 2-0061: Reading firmware type D2620 DTV6 QAM (68), =
-id 0,
-> size=3D149.
-> [32654.052694] xc2028 2-0061: Reading firmware type D2633 DTV6 QAM (70), =
-id 0,
-> size=3D149.
-> [32654.052698] xc2028 2-0061: Reading firmware type D2620 DTV7 (88), id 0=
-,
-> size=3D149.
-> [32654.052700] xc2028 2-0061: Reading firmware type D2633 DTV7 (90), id 0=
-,
-> size=3D149.
-> [32654.052703] xc2028 2-0061: Reading firmware type D2620 DTV78 (108), id=
- 0,
-> size=3D149.
-> [32654.052706] xc2028 2-0061: Reading firmware type D2633 DTV78 (110), id=
- 0,
-> size=3D149.
-> [32654.052708] xc2028 2-0061: Reading firmware type D2620 DTV8 (208), id =
-0,
-> size=3D149.
-> [32654.052711] xc2028 2-0061: Reading firmware type D2633 DTV8 (210), id =
-0,
-> size=3D149.
-> [32654.052714] xc2028 2-0061: Reading firmware type FM (400), id 0, size=
-=3D135.
-> [32654.052716] xc2028 2-0061: Reading firmware type (0), id 10, size=3D16=
-1.
-> [32654.052718] xc2028 2-0061: Reading firmware type MTS (4), id 10, size=
-=3D169.
-> [32654.052721] xc2028 2-0061: Reading firmware type (0), id 1000400000,
-> size=3D169.
-> [32654.052723] xc2028 2-0061: Reading firmware type (0), id c00400000,
-> size=3D161.
-> [32654.052725] xc2028 2-0061: Reading firmware type (0), id 800000, size=
-=3D161.
-> [32654.052727] xc2028 2-0061: Reading firmware type (0), id 8000, size=3D=
-161.
-> [32654.052729] xc2028 2-0061: Reading firmware type LCD (1000), id 8000,
-> size=3D161.
-> [32654.052732] xc2028 2-0061: Reading firmware type LCD NOGD (3000), id 8=
-000,
-> size=3D161.
-> [32654.052734] xc2028 2-0061: Reading firmware type MTS (4), id 8000,
-> size=3D169.
-> [32654.052737] xc2028 2-0061: Reading firmware type (0), id b700, size=3D=
-161.
-> [32654.052739] xc2028 2-0061: Reading firmware type LCD (1000), id b700,
-> size=3D161.
-> [32654.052741] xc2028 2-0061: Reading firmware type LCD NOGD (3000), id b=
-700,
-> size=3D161.
-> [32654.052744] xc2028 2-0061: Reading firmware type (0), id 2000, size=3D=
-161.
-> [32654.052745] xc2028 2-0061: Reading firmware type MTS (4), id b700,
-> size=3D169.
-> [32654.052748] xc2028 2-0061: Reading firmware type MTS LCD (1004), id b7=
-00,
-> size=3D169.
-> [32654.052750] xc2028 2-0061: Reading firmware type MTS LCD NOGD (3004), =
-id
-> b700, size=3D169.
-> [32654.052753] xc2028 2-0061: Reading firmware type SCODE HAS_IF_3280
-> (60000000), id 0, size=3D192.
-> [32654.052756] xc2028 2-0061: Reading firmware type SCODE HAS_IF_3300
-> (60000000), id 0, size=3D192.
-> [32654.052759] xc2028 2-0061: Reading firmware type SCODE HAS_IF_3440
-> (60000000), id 0, size=3D192.
-> [32654.052762] xc2028 2-0061: Reading firmware type SCODE HAS_IF_3460
-> (60000000), id 0, size=3D192.
-> [32654.052765] xc2028 2-0061: Reading firmware type DTV6 ATSC OREN36 SCOD=
-E
-> HAS_IF_3800 (60210020), id 0, size=3D192.
-> [32654.052768] xc2028 2-0061: Reading firmware type SCODE HAS_IF_4000
-> (60000000), id 0, size=3D192.
-> [32654.052771] xc2028 2-0061: Reading firmware type DTV6 ATSC TOYOTA388 S=
-CODE
-> HAS_IF_4080 (60410020), id 0, size=3D192.
-> [32654.052775] xc2028 2-0061: Reading firmware type SCODE HAS_IF_4200
-> (60000000), id 0, size=3D192.
-> [32654.052778] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_432=
-0
-> (60008000), id 8000, size=3D192.
-> [32654.052781] xc2028 2-0061: Reading firmware type SCODE HAS_IF_4450
-> (60000000), id 0, size=3D192.
-> [32654.052783] xc2028 2-0061: Reading firmware type MTS LCD NOGD MONO IF =
-SCODE
-> HAS_IF_4500 (6002b004), id b700, size=3D192.
-> [32654.052788] xc2028 2-0061: Reading firmware type LCD NOGD IF SCODE
-> HAS_IF_4600 (60023000), id 8000, size=3D192.
-> [32654.052792] xc2028 2-0061: Reading firmware type DTV6 QAM DTV7 DTV78 D=
-TV8
-> ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0, size=3D192.
-> [32654.052796] xc2028 2-0061: Reading firmware type SCODE HAS_IF_4940
-> (60000000), id 0, size=3D192.
-> [32654.052799] xc2028 2-0061: Reading firmware type SCODE HAS_IF_5260
-> (60000000), id 0, size=3D192.
-> [32654.052802] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_532=
-0
-> (60008000), id f00000007, size=3D192.
-> [32654.052805] xc2028 2-0061: Reading firmware type DTV7 DTV78 DTV8 DIBCO=
-M52
-> CHINA SCODE HAS_IF_5400 (65000380), id 0, size=3D192.
-> [32654.052809] xc2028 2-0061: Reading firmware type DTV6 ATSC OREN538 SCO=
-DE
-> HAS_IF_5580 (60110020), id 0, size=3D192.
-> [32654.052813] xc2028 2-0061: Reading firmware type SCODE HAS_IF_5640
-> (60000000), id 300000007, size=3D192.
-> [32654.052816] xc2028 2-0061: Reading firmware type SCODE HAS_IF_5740
-> (60000000), id c00000007, size=3D192.
-> [32654.052819] xc2028 2-0061: Reading firmware type SCODE HAS_IF_5900
-> (60000000), id 0, size=3D192.
-> [32654.052822] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_600=
-0
-> (60008000), id c04c000f0, size=3D192.
-> [32654.052825] xc2028 2-0061: Reading firmware type DTV6 QAM ATSC LG60 F6=
-MHZ
-> SCODE HAS_IF_6200 (68050060), id 0, size=3D192.
-> [32654.052829] xc2028 2-0061: Reading firmware type SCODE HAS_IF_6240
-> (60000000), id 10, size=3D192.
-> [32654.052834] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_632=
-0
-> (60008000), id 200000, size=3D192.
-> [32654.052837] xc2028 2-0061: Reading firmware type SCODE HAS_IF_6340
-> (60000000), id 200000, size=3D192.
-> [32654.052840] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_650=
-0
-> (60008000), id c044000e0, size=3D192.
-> [32654.052843] xc2028 2-0061: Reading firmware type DTV6 ATSC ATI638 SCOD=
-E
-> HAS_IF_6580 (60090020), id 0, size=3D192.
-> [32654.052847] xc2028 2-0061: Reading firmware type SCODE HAS_IF_6600
-> (60000000), id 3000000e0, size=3D192.
-> [32654.052850] xc2028 2-0061: Reading firmware type MONO SCODE HAS_IF_668=
-0
-> (60008000), id 3000000e0, size=3D192.
-> [32654.052853] xc2028 2-0061: Reading firmware type DTV6 ATSC TOYOTA794 S=
-CODE
-> HAS_IF_8140 (60810020), id 0, size=3D192.
-> [32654.052857] xc2028 2-0061: Reading firmware type SCODE HAS_IF_8200
-> (60000000), id 0, size=3D192.
-> [32654.052860] xc2028 2-0061: Firmware files loaded.
-> [32654.057869] xc2028 2-0061: xc2028_set_analog_freq called
-> [32654.057872] xc2028 2-0061: generic_set_freq called
-> [32654.057874] xc2028 2-0061: should set frequency 400000 kHz
-> [32654.057876] xc2028 2-0061: check_firmware called
-> [32654.057877] xc2028 2-0061: checking firmware, user requested type=3D(0=
-), id
-> 0000000c00001000, scode_tbl (0), scode_nr 0
-> [32654.257895] xc2028 2-0061: load_firmware called
-> [32654.257898] xc2028 2-0061: seek_firmware called, want type=3DBASE (1),=
- id
-> 0000000000000000.
-> [32654.257900] xc2028 2-0061: Found firmware for type=3DBASE (1), id
-> 0000000000000000.
-> [32654.257902] xc2028 2-0061: Loading firmware for type=3DBASE (1), id
-> 0000000000000000.
-> [32655.425394] xc2028 2-0061: Load init1 firmware, if exists
-> [32655.425399] xc2028 2-0061: load_firmware called
-> [32655.425402] xc2028 2-0061: seek_firmware called, want type=3DBASE INIT=
-1
-> (4001),
-> id 0000000000000000.
-> [32655.425407] xc2028 2-0061: Can't find firmware for type=3DBASE INIT1 (=
-4001),
-> id
-> 0000000000000000.
-> [32655.425412] xc2028 2-0061: load_firmware called
-> [32655.425414] xc2028 2-0061: seek_firmware called, want type=3DBASE INIT=
-1
-> (4001),
-> id 0000000000000000.
-> [32655.425418] xc2028 2-0061: Can't find firmware for type=3DBASE INIT1 (=
-4001),
-> id
-> 0000000000000000.
-> [32655.425423] xc2028 2-0061: load_firmware called
-> [32655.425425] xc2028 2-0061: seek_firmware called, want type=3D(0), id
-> 0000000c00001000.
-> [32655.425429] xc2028 2-0061: Selecting best matching firmware (2 bits) f=
-or
-> type=3D(0), id 0000000c00001000:
-> [32655.425432] xc2028 2-0061: Found firmware for type=3D(0), id
-> 0000000c000000e0.
-> [32655.425435] xc2028 2-0061: Loading firmware for type=3D(0), id
-> 0000000c000000e0.
-> [32655.440874] xc2028 2-0061: Trying to load scode 0
-> [32655.440875] xc2028 2-0061: load_scode called
-> [32655.440877] xc2028 2-0061: seek_firmware called, want type=3DSCODE
-> (20000000),
-> id 0000000c000000e0.
-> [32655.440879] xc2028 2-0061: Found firmware for type=3DSCODE (20000000),=
- id
-> 0000000c04c000f0.
-> [32655.440881] xc2028 2-0061: Loading SCODE for type=3DMONO SCODE HAS_IF_=
-6000
-> (60008000), id 0000000c04c000f0.
-> [32655.443192] xc2028 2-0061: xc2028_get_reg 0004 called
-> [32655.443855] xc2028 2-0061: xc2028_get_reg 0008 called
-> [32655.444521] xc2028 2-0061: Device is Xceive 3028 version 1.0, firmware
-> version 2.7
-> [32655.557141] xc2028 2-0061: divisor=3D 00 00 64 00 (freq=3D400.000)
-> [32655.580856] cx23885_dev_checkrevision() Hardware revision =3D 0xb0
-> [32655.580862] cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 18, late=
-ncy:
-> 0,
-> mmio: 0xd3000000
-> root@medeb:~/v4l/media_build#
->
->
->
-> Best regards
->
-> R=C3=A9mi .
->
->
-> > Le 20 ao=C3=BBt 2013 =C3=A0 16:44, remi <remi@remis.cc> a =C3=A9crit=C2=
-=A0:
-> >
-> >
-> > Hello
-> >
-> > FYI
-> >
-> > I digged into the firmware problem a little,
-> >
-> >
-> > xc3028L-v36.fw=C2=A0 gets loaded by default , and the errors are as you=
- saw
-> > earlier
-> >
-> >
-> > forcing the /lib/firmware/xc3028-v27.fw :=C2=A0
-> >
-> > [ 3569.941404] xc2028 2-0061: Could not load firmware
-> > /lib/firmware/xc3028-v27.fw
-> >
-> >
-> > So i searched the original dell/windows driver :
-> >
-> >
-> > I have these files in there :
-> >
-> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070# ls -lR
-> > .:
-> > total 5468
-> > drwxr-xr-x 2 gpunk gpunk=C2=A0 =C2=A0 4096 ao=C3=BBt=C2=A0 20 13:24 Dri=
-ver_X86
-> > -rwxr-xr-x 1 gpunk gpunk 5589827 sept. 12=C2=A0 2007 Setup.exe
-> > -rw-r--r-- 1 gpunk gpunk=C2=A0 =C2=A0 =C2=A0197 oct.=C2=A0 =C2=A09=C2=
-=A0 2007 setup.iss
-> >
-> > ./Driver_X86:
-> > total 1448
-> > -rw-r--r-- 1 gpunk gpunk 114338 sept.=C2=A0 7=C2=A0 2007 A885VCap_ASUS_=
-DELL_2.inf
-> > -rw-r--r-- 1 gpunk gpunk=C2=A0 15850 sept. 11=C2=A0 2007 a885vcap.cat
-> > -rw-r--r-- 1 gpunk gpunk 733824 sept.=C2=A0 7=C2=A0 2007 A885VCap.sys
-> > -rw-r--r-- 1 gpunk gpunk 147870 avril 20=C2=A0 2007 cpnotify.ax
-> > -rw-r--r-- 1 gpunk gpunk 376836 avril 20=C2=A0 2007 cx416enc.rom
-> > -rw-r--r-- 1 gpunk gpunk=C2=A0 65536 avril 20=C2=A0 2007 cxtvrate.dll
-> > -rw-r--r-- 1 gpunk gpunk=C2=A0 16382 avril 20=C2=A0 2007 merlinC.rom
-> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070#
-> >
-> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86# g=
-rep
-> > firmware *
-> > Fichier binaire A885VCap.sys concordant
-> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86#
-> >
-> >
-> >
-> > I'll try to find a way to extract "maybe" the right firmware for what t=
-his
-> > card
-> > ,
-> >
-> > I'd love some help :)
-> >
-> > Good news there are ALOT of infos on how to initialize the card in the =
-.INF
-> > ,
-> > so
-> >
-> > many problems, i think, are partially solved (I need to implement them =
-)
-> >
-> > I'll send a copy of theses to anyone who wishes,
-> >
-> > Or see
-> > http://www.dell.com/support/drivers/us/en/04/DriverDetails?driverId=3DR=
-169070=C2=A0
-> > =C2=A0
-> > =C2=A0
-> > =C2=A0:)
-> >
-> > Regards
-> >
-> > R=C3=A9mi
-> >
-> >
-> >
-> >
-> >
-> > > Le 20 ao=C3=BBt 2013 =C3=A0 12:32, remi <remi@remis.cc> a =C3=A9crit=
-=C2=A0:
-> > >
-> > >
-> > > Hello
-> > >
-> > > I have just putdown my screwdrivers :)
-> > >
-> > >
-> > > Yes it was three ICs
-> > >
-> > >
-> > > on the bottom-side , no heatsinks (digital reception, that's why i gu=
-ess)
-> > > ,
-> > > is
-> > > an AF9013-N1
-> > >
-> > > on the top-side, with a heatsink : CX23885-13Z , PCIe A/V controler
-> > >
-> > > on the top-side, with heat-sink + "radio-isolation" (aluminum box)
-> > > XC3028ACQ
-> > > ,
-> > > so the analog reception .
-> > >
-> > > =C2=A0
-> > > Its all on a PCIe bus, the reason why i baught it ... :)
-> > >
-> > >
-> > >
-> > > To resume :
-> > >
-> > >
-> > > AF9013-N1
-> > >
-> > > CX23885-13Z
-> > >
-> > > XC3028ACQ
-> > >
-> > >
-> > > the drivers while scanning
-> > >
-> > >
-> > > gpunk@medeb:~/Bureau$ dmesg |grep i2c
-> > > [=C2=A0 =C2=A0 2.363784] cx23885[0]: i2c scan: found device @ 0xa0=C2=
-=A0 [eeprom]
-> > > [=C2=A0 =C2=A0 2.384721] cx23885[0]: i2c scan: found device @ 0xc2=C2=
-=A0
-> > > [tuner/mt2131/tda8275/xc5000/xc3028]
-> > > [=C2=A0 =C2=A0 2.391502] cx23885[0]: i2c scan: found device @ 0x66=C2=
-=A0 [???]
-> > > [=C2=A0 =C2=A0 2.392339] cx23885[0]: i2c scan: found device @ 0x88=C2=
-=A0 [cx25837]
-> > > [=C2=A0 =C2=A0 2.392831] cx23885[0]: i2c scan: found device @ 0x98=C2=
-=A0 [flatiron]
-> > > [=C2=A0 =C2=A0 5.306751] i2c /dev entries driver
-> > > gpunk@medeb:~/Bureau$
-> > >
-> > >
-> > > =C2=A04.560428] xc2028 2-0061: xc2028_get_reg 0008 called
-> > > [=C2=A0 =C2=A0 4.560989] xc2028 2-0061: Device is Xceive 0 version 0.=
-0, firmware
-> > > version
-> > > 0.0
-> > > [=C2=A0 =C2=A0 4.560990] xc2028 2-0061: Incorrect readback of firmwar=
-e version.
-> > > [ *=C2=A0 =C2=A0 4.561184] xc2028 2-0061: Read invalid device hardwar=
-e information -
-> > > tuner
-> > > hung?
-> > > [ *=C2=A0 =C2=A0 4.561386] xc2028 2-0061: 0.0=C2=A0 =C2=A0 =C2=A0 0.0
-> > > [ *=C2=A0 =C2=A0 4.674072] xc2028 2-0061: divisor=3D 00 00 64 00 (fre=
-q=3D400.000)
-> > > [=C2=A0 =C2=A0 4.697830] cx23885_dev_checkrevision() Hardware revisio=
-n =3D 0xb0
-> > > [=C2=A0 =C2=A0 4.698029] cx23885[0]/0: found at 0000:05:00.0, rev: 2,=
- irq: 18,
-> > > latency:
-> > > 0,
-> > > mmio: 0xd3000000
-> > >
-> > > * --> I bypassed the "goto fail" to start debugging a little bit the
-> > > tuner-xc2028.c/ko ... lines 869
-> > > ...
-> > >
-> > >
-> > >
-> > > The firmware doesnt get all loaded .
-> > > gpunk@medeb:~/Bureau$=C2=A0 uname -a
-> > > Linux medeb 3.11.0-rc6remi #1 SMP PREEMPT Mon Aug 19 13:30:04 CEST 20=
-13
-> > > i686
-> > > GNU/Linux
-> > > gpunk@medeb:~/Bureau$
-> > >
-> > >
-> > > With yesterday's tarball from linuxtv.org / media-build git .
-> > >
-> > >
-> > >
-> > > Best regards
-> > >
-> > > R=C3=A9mi
-> > >
-> > >
-> > >
-> > >
-> > > > Le 19 ao=C3=BBt 2013 =C3=A0 17:18, Antti Palosaari <crope@iki.fi> a=
- =C3=A9crit=C2=A0:
-> > > >
-> > > >
-> > > > On 08/19/2013 05:18 PM, remi wrote:
-> > > > > Hello
-> > > > >
-> > > > > I have this card since months,
-> > > > >
-> > > > > http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=3D3=
-76&SI=3Dtrue
-> > > > >
-> > > > > I have finally retested it with the cx23885 driver : card=3D39
-> > > > >
-> > > > >
-> > > > >
-> > > > > If I could do anything to identify : [=C2=A0 =C2=A0 2.414734] cx2=
-3885[0]: i2c
-> > > > > scan:
-> > > > > found
-> > > > > device @ 0x66=C2=A0 [???]
-> > > > >
-> > > > > Or "hookup" the xc5000 etc
-> > > > >
-> > > > > I'll be more than glad .
-> > > > >
-> > > >
-> > > >
-> > > > >
-> > > > > ps: i opened it up a while ago,i saw an af9013 chip ? dvb-tuner l=
-ooks
-> > > > > like
-> > > > > maybe the "device @ 0x66 i2c"
-> > > > >
-> > > > > I will double check , and re-write-down all the chips , i think 3=
- .
-> > > >
-> > > > You have to identify all the chips, for DVB-T there is tuner missin=
-g.
-> > > >
-> > > > USB-interface: cx23885
-> > > > DVB-T demodulator: AF9013
-> > > > RF-tuner: ?
-> > > >
-> > > > If there is existing driver for used RF-tuner it comes nice hacking
-> > > > project for some newcomer.
-> > > >
-> > > > It is just tweaking and hacking to find out all settings. AF9013 dr=
-iver
-> > > > also needs likely some changes, currently it is used only for devic=
-es
-> > > > having AF9015 with integrated AF9013, or AF9015 dual devices having
-> > > > AF9015 + external AF9013 providing second tuner.
-> > > >
-> > > > I have bought quite similar AverMedia A301 ages back as I was looki=
-ng
-> > > > for that AF9013 model, but maybe I have bought just wrong one... :)
-> > > >
-> > > >
-> > > > regards
-> > > > Antti
-> > > >
-> > > >
-> > > > --
-> > > > http://palosaari.fi/
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-med=
-ia"
-> > > > in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.=
-html
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.ht=
-ml
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.html
-------=_Part_115959_5085789.1377088165620
-Content-Type: text/plain; charset=US-ASCII; name=dmesg.a306.cx23885.txt
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=dmesg.a306.cx23885.txt
-
-WyAzNzQ0Ljk5NzY3Ml0gbWVkaWE6IExpbnV4IG1lZGlhIGludGVyZmFjZTogdjAuMTAKWyAzNzQ1
-LjAwMDMwM10gTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwClsgMzc0NS4wMDAz
-MDhdIFdBUk5JTkc6IFlvdSBhcmUgdXNpbmcgYW4gZXhwZXJpbWVudGFsIHZlcnNpb24gb2YgdGhl
-IG1lZGlhIHN0YWNrLgpbIDM3NDUuMDAwMzA4XSAJQXMgdGhlIGRyaXZlciBpcyBiYWNrcG9ydGVk
-IHRvIGFuIG9sZGVyIGtlcm5lbCwgaXQgZG9lc24ndCBvZmZlcgpbIDM3NDUuMDAwMzA4XSAJZW5v
-dWdoIHF1YWxpdHkgZm9yIGl0cyB1c2FnZSBpbiBwcm9kdWN0aW9uLgpbIDM3NDUuMDAwMzA4XSAJ
-VXNlIGl0IHdpdGggY2FyZS4KWyAzNzQ1LjAwMDMwOF0gTGF0ZXN0IGdpdCBwYXRjaGVzIChuZWVk
-ZWQgaWYgeW91IHJlcG9ydCBhIGJ1ZyB0byBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcpOgpb
-IDM3NDUuMDAwMzA4XSAJZGZiOWY5NGU4ZTVlN2Y3M2M4ZTJiY2I3ZDRmYjFkZTU3ZTdjMzMzZCBb
-bWVkaWFdIHN0azExNjA6IEJ1aWxkIGFzIGEgbW9kdWxlIGlmIFNORCBpcyBtIGFuZCBhdWRpbyBz
-dXBwb3J0IGlzIHNlbGVjdGVkClsgMzc0NS4wMDAzMDhdIAk5ZjE1OTUyNDU1NzRhMmRjMWZiMzc1
-ZGY2NjVlNGQ5ZmUzMzZhOWM0IFttZWRpYV0gY3gyMzg4NS12aWRlbzogZml4IHR3byB3YXJuaW5n
-cwpbIDM3NDUuMDAwMzA4XSAJNWJjMDhlMTkyMWU0NjEwMTQ1N2QzYmUwOTgzNTY5NzQ5MDE3N2Zk
-ZCBbbWVkaWFdIGN4MjM4ODVbdjRdOiBGaXggaW50ZXJydXB0IHN0b3JtIHdoZW4gZW5hYmxpbmcg
-SVIgcmVjZWl2ZXIKWyAzNzQ1LjAwMTc3M10gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBl
-cmltZW50YWwgdmVyc2lvbiBvZiB0aGUgbWVkaWEgc3RhY2suClsgMzc0NS4wMDE3NzNdIAlBcyB0
-aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0IG9m
-ZmVyClsgMzc0NS4wMDE3NzNdIAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGluIHByb2R1
-Y3Rpb24uClsgMzc0NS4wMDE3NzNdIAlVc2UgaXQgd2l0aCBjYXJlLgpbIDM3NDUuMDAxNzczXSBM
-YXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVnIHRvIGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZyk6ClsgMzc0NS4wMDE3NzNdIAlkZmI5Zjk0ZThlNWU3ZjczYzhl
-MmJjYjdkNGZiMWRlNTdlN2MzMzNkIFttZWRpYV0gc3RrMTE2MDogQnVpbGQgYXMgYSBtb2R1bGUg
-aWYgU05EIGlzIG0gYW5kIGF1ZGlvIHN1cHBvcnQgaXMgc2VsZWN0ZWQKWyAzNzQ1LjAwMTc3M10g
-CTlmMTU5NTI0NTU3NGEyZGMxZmIzNzVkZjY2NWU0ZDlmZTMzNmE5YzQgW21lZGlhXSBjeDIzODg1
-LXZpZGVvOiBmaXggdHdvIHdhcm5pbmdzClsgMzc0NS4wMDE3NzNdIAk1YmMwOGUxOTIxZTQ2MTAx
-NDU3ZDNiZTA5ODM1Njk3NDkwMTc3ZmRkIFttZWRpYV0gY3gyMzg4NVt2NF06IEZpeCBpbnRlcnJ1
-cHQgc3Rvcm0gd2hlbiBlbmFibGluZyBJUiByZWNlaXZlcgpbIDM3NDUuMDAzMzQ4XSBXQVJOSU5H
-OiBZb3UgYXJlIHVzaW5nIGFuIGV4cGVyaW1lbnRhbCB2ZXJzaW9uIG9mIHRoZSBtZWRpYSBzdGFj
-ay4KWyAzNzQ1LjAwMzM0OF0gCUFzIHRoZSBkcml2ZXIgaXMgYmFja3BvcnRlZCB0byBhbiBvbGRl
-ciBrZXJuZWwsIGl0IGRvZXNuJ3Qgb2ZmZXIKWyAzNzQ1LjAwMzM0OF0gCWVub3VnaCBxdWFsaXR5
-IGZvciBpdHMgdXNhZ2UgaW4gcHJvZHVjdGlvbi4KWyAzNzQ1LjAwMzM0OF0gCVVzZSBpdCB3aXRo
-IGNhcmUuClsgMzc0NS4wMDMzNDhdIExhdGVzdCBnaXQgcGF0Y2hlcyAobmVlZGVkIGlmIHlvdSBy
-ZXBvcnQgYSBidWcgdG8gbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnKToKWyAzNzQ1LjAwMzM0
-OF0gCWRmYjlmOTRlOGU1ZTdmNzNjOGUyYmNiN2Q0ZmIxZGU1N2U3YzMzM2QgW21lZGlhXSBzdGsx
-MTYwOiBCdWlsZCBhcyBhIG1vZHVsZSBpZiBTTkQgaXMgbSBhbmQgYXVkaW8gc3VwcG9ydCBpcyBz
-ZWxlY3RlZApbIDM3NDUuMDAzMzQ4XSAJOWYxNTk1MjQ1NTc0YTJkYzFmYjM3NWRmNjY1ZTRkOWZl
-MzM2YTljNCBbbWVkaWFdIGN4MjM4ODUtdmlkZW86IGZpeCB0d28gd2FybmluZ3MKWyAzNzQ1LjAw
-MzM0OF0gCTViYzA4ZTE5MjFlNDYxMDE0NTdkM2JlMDk4MzU2OTc0OTAxNzdmZGQgW21lZGlhXSBj
-eDIzODg1W3Y0XTogRml4IGludGVycnVwdCBzdG9ybSB3aGVuIGVuYWJsaW5nIElSIHJlY2VpdmVy
-ClsgMzc0NS4wMDc3MTFdIGN4MjM4ODUgZHJpdmVyIHZlcnNpb24gMC4wLjMgbG9hZGVkClsgMzc0
-NS4wMDc4NDZdIGN4MjM4ODVbMF06IGN4MjM4ODVfZGV2X3NldHVwKCkgTWVtb3J5IGNvbmZpZ3Vy
-ZWQgZm9yIFBDSWUgYnJpZGdlIHR5cGUgODg1ClsgMzc0NS4wMDc4NTBdIGN4MjM4ODVbMF06IGN4
-MjM4ODVfaW5pdF90c3BvcnQocG9ydG5vPTEpClsgMzc0NS4wMDgxMjNdIENPUkUgY3gyMzg4NVsw
-XTogc3Vic3lzdGVtOiAxNDYxOmMxMzksIGJvYXJkOiBBVmVyVFYgSHlicmlkIE1pbmljYXJkIFBD
-SWUgQTMwNiBbY2FyZD00MCxhdXRvZGV0ZWN0ZWRdClsgMzc0NS4wMDgxMjVdIGN4MjM4ODVbMF06
-IGN4MjM4ODVfcGNpX3F1aXJrcygpClsgMzc0NS4wMDgxMzBdIGN4MjM4ODVbMF06IGN4MjM4ODVf
-ZGV2X3NldHVwKCkgdHVuZXJfdHlwZSA9IDB4NDcgdHVuZXJfYWRkciA9IDB4NjEgdHVuZXJfYnVz
-ID0gMQpbIDM3NDUuMDA4MTMzXSBjeDIzODg1WzBdOiBjeDIzODg1X2Rldl9zZXR1cCgpIHJhZGlv
-X3R5cGUgPSAweDAgcmFkaW9fYWRkciA9IDB4MApbIDM3NDUuMDA4MTM1XSBjeDIzODg1WzBdOiBj
-eDIzODg1X3Jlc2V0KCkKWyAzNzQ1LjEwODE1OF0gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFtX2No
-YW5uZWxfc2V0dXAoKSBDb25maWd1cmluZyBjaGFubmVsIFtWSUQgQV0KWyAzNzQ1LjEwODE3Ml0g
-Y3gyMzg4NVswXTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0dXAoKSBFcmFzaW5nIGNoYW5uZWwg
-W2NoMl0KWyAzNzQ1LjEwODE3M10gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0
-dXAoKSBDb25maWd1cmluZyBjaGFubmVsIFtUUzEgQl0KWyAzNzQ1LjEwODE4OF0gY3gyMzg4NVsw
-XTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0dXAoKSBFcmFzaW5nIGNoYW5uZWwgW2NoNF0KWyAz
-NzQ1LjEwODE5MF0gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0dXAoKSBFcmFz
-aW5nIGNoYW5uZWwgW2NoNV0KWyAzNzQ1LjEwODE5MV0gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFt
-X2NoYW5uZWxfc2V0dXAoKSBDb25maWd1cmluZyBjaGFubmVsIFtUUzIgQ10KWyAzNzQ1LjEwODIw
-Nl0gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0dXAoKSBDb25maWd1cmluZyBj
-aGFubmVsIFtUViBBdWRpb10KWyAzNzQ1LjEwODIyM10gY3gyMzg4NVswXTogY3gyMzg4NV9zcmFt
-X2NoYW5uZWxfc2V0dXAoKSBFcmFzaW5nIGNoYW5uZWwgW2NoOF0KWyAzNzQ1LjEwODIyNV0gY3gy
-Mzg4NVswXTogY3gyMzg4NV9zcmFtX2NoYW5uZWxfc2V0dXAoKSBFcmFzaW5nIGNoYW5uZWwgW2No
-OV0KWyAzNzQ1LjIzODQwOV0gY3gyMzg4NVswXTogc2NhbiBidXMgMDoKWyAzNzQ1LjI0OTg2OV0g
-Y3gyMzg4NVswXTogaTJjIHNjYW46IGZvdW5kIGRldmljZSBAIDB4YTAgIFtlZXByb21dClsgMzc0
-NS4yNTY3NjFdIGN4MjM4ODVbMF06IHNjYW4gYnVzIDE6ClsgMzc0NS4yNzA2MzBdIGN4MjM4ODVb
-MF06IGkyYyBzY2FuOiBmb3VuZCBkZXZpY2UgQCAweGMyICBbdHVuZXIvbXQyMTMxL3RkYTgyNzUv
-eGM1MDAwL3hjMzAyOF0KWyAzNzQ1LjI3NTExNF0gY3gyMzg4NVswXTogc2NhbiBidXMgMjoKWyAz
-NzQ1LjI3NzE0M10gY3gyMzg4NVswXTogaTJjIHNjYW46IGZvdW5kIGRldmljZSBAIDB4NjYgIFs/
-Pz9dClsgMzc0NS4yNzc3OTZdIGN4MjM4ODVbMF06IGkyYyBzY2FuOiBmb3VuZCBkZXZpY2UgQCAw
-eDg4ICBbY3gyNTgzN10KWyAzNzQ1LjI3ODEwNl0gY3gyMzg4NVswXTogaTJjIHNjYW46IGZvdW5k
-IGRldmljZSBAIDB4OTggIFtmbGF0aXJvbl0KWyAzNzQ1LjMwOTU1OV0gY3gyNTg0MCAxMy0wMDQ0
-OiBkZXRlY3RpbmcgY3gyNTg0MCBjbGllbnQgb24gYWRkcmVzcyAweDg4ClsgMzc0NS4zMDk3ODZd
-IGN4MjU4NDAgMTMtMDA0NDogZGV2aWNlX2lkID0gMHgwMDAwClsgMzc0NS4zMTA0NzJdIGN4MjU4
-NDAgMTMtMDA0NDogY3gyMzg4NSBBL1YgZGVjb2RlciBmb3VuZCBAIDB4ODggKGN4MjM4ODVbMF0p
-ClsgMzc0NS45NTY3MThdIGN4MjU4NDAgMTMtMDA0NDogbG9hZGVkIHY0bC1jeDIzODg1LWF2Y29y
-ZS0wMS5mdyBmaXJtd2FyZSAoMTYzODIgYnl0ZXMpClsgMzc0NS45NTczNTRdIGN4MjU4NDAgMTMt
-MDA0NDogUExMIHJlZ3MgPSBpbnQ6IDE1LCBmcmFjOiAyODc2MTA1LCBwb3N0OiA0ClsgMzc0NS45
-NTczNTZdIGN4MjU4NDAgMTMtMDA0NDogUExMID0gMTA3Ljk5OTk5OSBNSHoKWyAzNzQ1Ljk1NzM1
-OF0gY3gyNTg0MCAxMy0wMDQ0OiBQTEwvOCA9IDEzLjQ5OTk5OSBNSHoKWyAzNzQ1Ljk1NzM1OV0g
-Y3gyNTg0MCAxMy0wMDQ0OiBBREMgU2FtcGxpbmcgZnJlcSA9IDE0LjMxNzM4MiBNSHoKWyAzNzQ1
-Ljk1NzM2MV0gY3gyNTg0MCAxMy0wMDQ0OiBDaHJvbWEgc3ViLWNhcnJpZXIgZnJlcSA9IDMuNTc5
-NTQ1IE1IegpbIDM3NDUuOTU3MzYzXSBjeDI1ODQwIDEzLTAwNDQ6IGhibGFuayAxMjIsIGhhY3Rp
-dmUgNzIwLCB2YmxhbmsgMjYsIHZhY3RpdmUgNDg3LCB2Ymxhbms2NTYgMjYsIHNyY19kZWMgNTQz
-LCBidXJzdCAweDViLCBsdW1hX2xwZiAxLCB1dl9scGYgMSwgY29tYiAweDY2LCBzYyAweDA4N2Mx
-ZgpbIDM3NDUuOTU5MTMyXSBjeDI1ODQwIDEzLTAwNDQ6IGRlY29kZXIgc2V0IHZpZGVvIGlucHV0
-IDcsIGF1ZGlvIGlucHV0IDgKWyAzNzQ1Ljk3NTUwN10gdHVuZXIgMTItMDA2MTogU2V0dGluZyBt
-b2RlX21hc2sgdG8gMHgwNgpbIDM3NDUuOTc1NTExXSB0dW5lciAxMi0wMDYxOiB0dW5lciAweDYx
-OiBUdW5lciB0eXBlIGFic2VudApbIDM3NDUuOTc1NTE0XSB0dW5lciAxMi0wMDYxOiBUdW5lciAt
-MSBmb3VuZCB3aXRoIHR5cGUocykgUmFkaW8gVFYuClsgMzc0NS45NzU1MjNdIHR1bmVyIDEyLTAw
-NjE6IENhbGxpbmcgc2V0X3R5cGVfYWRkciBmb3IgdHlwZT03MSwgYWRkcj0weDYxLCBtb2RlPTB4
-MDQsIGNvbmZpZz0gIChudWxsKQpbIDM3NDUuOTc1NTI1XSB0dW5lciAxMi0wMDYxOiBkZWZpbmlu
-ZyBHUElPIGNhbGxiYWNrClsgMzc0NS45Nzg0OTRdIHhjMjAyODogWGN2MjAyOC8zMDI4IGluaXQg
-Y2FsbGVkIQpbIDM3NDUuOTc4NDk4XSB4YzIwMjggMTItMDA2MTogY3JlYXRpbmcgbmV3IGluc3Rh
-bmNlClsgMzc0NS45Nzg1MDFdIHhjMjAyOCAxMi0wMDYxOiB0eXBlIHNldCB0byBYQ2VpdmUgeGMy
-MDI4L3hjMzAyOCB0dW5lcgpbIDM3NDUuOTc4NTAzXSB0dW5lciAxMi0wMDYxOiB0eXBlIHNldCB0
-byBYY2VpdmUgWEMzMDI4ClsgMzc0NS45Nzg1MDddIHR1bmVyIDEyLTAwNjE6IGN4MjM4ODVbMF0g
-dHVuZXIgSTJDIGFkZHIgMHhjMiB3aXRoIHR5cGUgNzEgdXNlZCBmb3IgMHgwNApbIDM3NDUuOTc4
-NTA5XSB4YzIwMjggMTItMDA2MTogeGMyMDI4X3NldF9jb25maWcgY2FsbGVkClsgMzc0NS45Nzg1
-OTVdIGN4MjM4ODVbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZpZGVvMCBbdjRsMl0KWyAzNzQ1Ljk3
-ODYwMl0geGMyMDI4IDEyLTAwNjE6IHJlcXVlc3RfZmlybXdhcmVfbm93YWl0KCk6IE9LClsgMzc0
-NS45Nzg2MDVdIHhjMjAyOCAxMi0wMDYxOiBsb2FkX2FsbF9maXJtd2FyZXMgY2FsbGVkClsgMzc0
-NS45Nzg2MDhdIHhjMjAyOCAxMi0wMDYxOiBMb2FkaW5nIDgwIGZpcm13YXJlIGltYWdlcyBmcm9t
-IHhjMzAyOC12MjcuZncsIHR5cGU6IHhjMjAyOCBmaXJtd2FyZSwgdmVyIDIuNwpbIDM3NDUuOTc4
-NjE2XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIEJBU0UgRjhNSFogKDMp
-LCBpZCAwLCBzaXplPTg3MTguClsgMzc0NS45Nzg2MjddIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5n
-IGZpcm13YXJlIHR5cGUgQkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwLCBzaXplPTg3MTIuClsgMzc0
-NS45Nzg2MzldIGN4MjM4ODVbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKWyAzNzQ1Ljk3ODY0
-MV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBCQVNFIEZNICg0MDEpLCBp
-ZCAwLCBzaXplPTg1NjIuClsgMzc0NS45Nzg2NTVdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZp
-cm13YXJlIHR5cGUgQkFTRSBGTSBJTlBVVDEgKGMwMSksIGlkIDAsIHNpemU9ODU3Ni4KWyAzNzQ1
-Ljk3ODY2Nl0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBCQVNFICgxKSwg
-aWQgMCwgc2l6ZT04NzA2LgpbIDM3NDUuOTc4Njc3XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBm
-aXJtd2FyZSB0eXBlIEJBU0UgTVRTICg1KSwgaWQgMCwgc2l6ZT04NjgyLgpbIDM3NDUuOTc4Njg1
-XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgMTAwMDAwMDA3
-LCBzaXplPTE2MS4KWyAzNzQ1Ljk3ODY4OF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdh
-cmUgdHlwZSBNVFMgKDQpLCBpZCAxMDAwMDAwMDcsIHNpemU9MTY5LgpbIDM3NDUuOTc4NjkyXSB4
-YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgMjAwMDAwMDA3LCBz
-aXplPTE2MS4KWyAzNzQ1Ljk3ODY5NV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUg
-dHlwZSBNVFMgKDQpLCBpZCAyMDAwMDAwMDcsIHNpemU9MTY5LgpbIDM3NDUuOTc4Njk5XSB4YzIw
-MjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgNDAwMDAwMDA3LCBzaXpl
-PTE2MS4KWyAzNzQ1Ljk3ODcwMl0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlw
-ZSBNVFMgKDQpLCBpZCA0MDAwMDAwMDcsIHNpemU9MTY5LgpbIDM3NDUuOTc4NzA2XSB4YzIwMjgg
-MTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgODAwMDAwMDA3LCBzaXplPTE2
-MS4KWyAzNzQ1Ljk3ODcwOV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBN
-VFMgKDQpLCBpZCA4MDAwMDAwMDcsIHNpemU9MTY5LgpbIDM3NDUuOTc4NzEzXSB4YzIwMjggMTIt
-MDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgMzAwMDAwMGUwLCBzaXplPTE2MS4K
-WyAzNzQ1Ljk3ODcxNl0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNVFMg
-KDQpLCBpZCAzMDAwMDAwZTAsIHNpemU9MTY5LgpbIDM3NDUuOTc4NzE5XSB4YzIwMjggMTItMDA2
-MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgYzAwMDAwMGUwLCBzaXplPTE2MS4KWyAz
-NzQ1Ljk3ODcyMl0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNVFMgKDQp
-LCBpZCBjMDAwMDAwZTAsIHNpemU9MTY5LgpbIDM3NDUuOTc4NzI2XSB4YzIwMjggMTItMDA2MTog
-UmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgMjAwMDAwLCBzaXplPTE2MS4KWyAzNzQ1Ljk3
-ODcyOV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNVFMgKDQpLCBpZCAy
-MDAwMDAsIHNpemU9MTY5LgpbIDM3NDUuOTc4NzMzXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBm
-aXJtd2FyZSB0eXBlICgwKSwgaWQgNDAwMDAwMCwgc2l6ZT0xNjEuClsgMzc0NS45Nzg3MzZdIHhj
-MjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgTVRTICg0KSwgaWQgNDAwMDAwMCwg
-c2l6ZT0xNjkuClsgMzc0NS45Nzg3NDBdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJl
-IHR5cGUgRDI2MzMgRFRWNiBBVFNDICgxMDAzMCksIGlkIDAsIHNpemU9MTQ5LgpbIDM3NDUuOTc4
-NzQ0XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIEQyNjIwIERUVjYgUUFN
-ICg2OCksIGlkIDAsIHNpemU9MTQ5LgpbIDM3NDUuOTc4NzQ5XSB4YzIwMjggMTItMDA2MTogUmVh
-ZGluZyBmaXJtd2FyZSB0eXBlIEQyNjMzIERUVjYgUUFNICg3MCksIGlkIDAsIHNpemU9MTQ5Lgpb
-IDM3NDUuOTc4NzU0XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIEQyNjIw
-IERUVjcgKDg4KSwgaWQgMCwgc2l6ZT0xNDkuClsgMzc0NS45Nzg3NThdIHhjMjAyOCAxMi0wMDYx
-OiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgRDI2MzMgRFRWNyAoOTApLCBpZCAwLCBzaXplPTE0OS4K
-WyAzNzQ1Ljk3ODc2Ml0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBEMjYy
-MCBEVFY3OCAoMTA4KSwgaWQgMCwgc2l6ZT0xNDkuClsgMzc0NS45Nzg3NjZdIHhjMjAyOCAxMi0w
-MDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgRDI2MzMgRFRWNzggKDExMCksIGlkIDAsIHNpemU9
-MTQ5LgpbIDM3NDUuOTc4NzcwXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBl
-IEQyNjIwIERUVjggKDIwOCksIGlkIDAsIHNpemU9MTQ5LgpbIDM3NDUuOTc4Nzc0XSB4YzIwMjgg
-MTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIEQyNjMzIERUVjggKDIxMCksIGlkIDAsIHNp
-emU9MTQ5LgpbIDM3NDUuOTc4Nzc4XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0
-eXBlIEZNICg0MDApLCBpZCAwLCBzaXplPTEzNS4KWyAzNzQ1Ljk3ODc4Ml0geGMyMDI4IDEyLTAw
-NjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSAoMCksIGlkIDEwLCBzaXplPTE2MS4KWyAzNzQ1Ljk3
-ODc4NV0gY3gyMzg4NVswXTogcmVnaXN0ZXJlZCBBTFNBIGF1ZGlvIGRldmljZQpbIDM3NDUuOTc4
-Nzg4XSBjeDI1ODQwIDEzLTAwNDQ6IGNoYW5naW5nIHZpZGVvIHN0ZCB0byBmbXQgMQpbIDM3NDUu
-OTc4NzkwXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIE1UUyAoNCksIGlk
-IDEwLCBzaXplPTE2OS4KWyAzNzQ1Ljk3ODc5NF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmly
-bXdhcmUgdHlwZSAoMCksIGlkIDEwMDA0MDAwMDAsIHNpemU9MTY5LgpbIDM3NDUuOTc4Nzk3XSB4
-YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgYzAwNDAwMDAwLCBz
-aXplPTE2MS4KWyAzNzQ1Ljk3ODgwMF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUg
-dHlwZSAoMCksIGlkIDgwMDAwMCwgc2l6ZT0xNjEuClsgMzc0NS45Nzg4MDNdIHhjMjAyOCAxMi0w
-MDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgKDApLCBpZCA4MDAwLCBzaXplPTE2MS4KWyAzNzQ1
-Ljk3ODgwN10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBMQ0QgKDEwMDAp
-LCBpZCA4MDAwLCBzaXplPTE2MS4KWyAzNzQ1Ljk3ODgxMF0geGMyMDI4IDEyLTAwNjE6IFJlYWRp
-bmcgZmlybXdhcmUgdHlwZSBMQ0QgTk9HRCAoMzAwMCksIGlkIDgwMDAsIHNpemU9MTYxLgpbIDM3
-NDUuOTc4ODE0XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIE1UUyAoNCks
-IGlkIDgwMDAsIHNpemU9MTY5LgpbIDM3NDUuOTc4ODE4XSB4YzIwMjggMTItMDA2MTogUmVhZGlu
-ZyBmaXJtd2FyZSB0eXBlICgwKSwgaWQgYjcwMCwgc2l6ZT0xNjEuClsgMzc0NS45Nzg4MjFdIHhj
-MjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgTENEICgxMDAwKSwgaWQgYjcwMCwg
-c2l6ZT0xNjEuClsgMzc0NS45Nzg4MjVdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJl
-IHR5cGUgTENEIE5PR0QgKDMwMDApLCBpZCBiNzAwLCBzaXplPTE2MS4KWyAzNzQ1Ljk3ODgyOF0g
-eGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSAoMCksIGlkIDIwMDAsIHNpemU9
-MTYxLgpbIDM3NDUuOTc4ODMyXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBl
-IE1UUyAoNCksIGlkIGI3MDAsIHNpemU9MTY5LgpbIDM3NDUuOTc4ODM1XSB4YzIwMjggMTItMDA2
-MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIE1UUyBMQ0QgKDEwMDQpLCBpZCBiNzAwLCBzaXplPTE2
-OS4KWyAzNzQ1Ljk3ODgzOV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBN
-VFMgTENEIE5PR0QgKDMwMDQpLCBpZCBiNzAwLCBzaXplPTE2OS4KWyAzNzQ1Ljk3ODg0M10geGMy
-MDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBTQ09ERSBIQVNfSUZfMzI4MCAoNjAw
-MDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODg0OF0geGMyMDI4IDEyLTAwNjE6IFJl
-YWRpbmcgZmlybXdhcmUgdHlwZSBTQ09ERSBIQVNfSUZfMzMwMCAoNjAwMDAwMDApLCBpZCAwLCBz
-aXplPTE5Mi4KWyAzNzQ1Ljk3ODg1M10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUg
-dHlwZSBTQ09ERSBIQVNfSUZfMzQ0MCAoNjAwMDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1
-Ljk3ODg1N10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBTQ09ERSBIQVNf
-SUZfMzQ2MCAoNjAwMDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODg2MV0geGMyMDI4
-IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBEVFY2IEFUU0MgT1JFTjM2IFNDT0RFIEhB
-U19JRl8zODAwICg2MDIxMDAyMCksIGlkIDAsIHNpemU9MTkyLgpbIDM3NDUuOTc4ODY3XSB4YzIw
-MjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIFNDT0RFIEhBU19JRl80MDAwICg2MDAw
-MDAwMCksIGlkIDAsIHNpemU9MTkyLgpbIDM3NDUuOTc4ODcxXSB4YzIwMjggMTItMDA2MTogUmVh
-ZGluZyBmaXJtd2FyZSB0eXBlIERUVjYgQVRTQyBUT1lPVEEzODggU0NPREUgSEFTX0lGXzQwODAg
-KDYwNDEwMDIwKSwgaWQgMCwgc2l6ZT0xOTIuClsgMzc0NS45Nzg4NzddIHhjMjAyOCAxMi0wMDYx
-OiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgU0NPREUgSEFTX0lGXzQyMDAgKDYwMDAwMDAwKSwgaWQg
-MCwgc2l6ZT0xOTIuClsgMzc0NS45Nzg4ODJdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13
-YXJlIHR5cGUgTU9OTyBTQ09ERSBIQVNfSUZfNDMyMCAoNjAwMDgwMDApLCBpZCA4MDAwLCBzaXpl
-PTE5Mi4KWyAzNzQ1Ljk3ODg4Nl0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlw
-ZSBTQ09ERSBIQVNfSUZfNDQ1MCAoNjAwMDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3
-ODg5MV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNVFMgTENEIE5PR0Qg
-TU9OTyBJRiBTQ09ERSBIQVNfSUZfNDUwMCAoNjAwMmIwMDQpLCBpZCBiNzAwLCBzaXplPTE5Mi4K
-WyAzNzQ1Ljk3ODg5OF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBMQ0Qg
-Tk9HRCBJRiBTQ09ERSBIQVNfSUZfNDYwMCAoNjAwMjMwMDApLCBpZCA4MDAwLCBzaXplPTE5Mi4K
-WyAzNzQ1Ljk3ODkwM10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBEVFY2
-IFFBTSBEVFY3IERUVjc4IERUVjggWkFSTElOSzQ1NiBTQ09ERSBIQVNfSUZfNDc2MCAoNjIwMDAz
-ZTApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODkxMV0geGMyMDI4IDEyLTAwNjE6IFJlYWRp
-bmcgZmlybXdhcmUgdHlwZSBTQ09ERSBIQVNfSUZfNDk0MCAoNjAwMDAwMDApLCBpZCAwLCBzaXpl
-PTE5Mi4KWyAzNzQ1Ljk3ODkxNV0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlw
-ZSBTQ09ERSBIQVNfSUZfNTI2MCAoNjAwMDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3
-ODkyMF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNT05PIFNDT0RFIEhB
-U19JRl81MzIwICg2MDAwODAwMCksIGlkIGYwMDAwMDAwNywgc2l6ZT0xOTIuClsgMzc0NS45Nzg5
-MjRdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgRFRWNyBEVFY3OCBEVFY4
-IERJQkNPTTUyIENISU5BIFNDT0RFIEhBU19JRl81NDAwICg2NTAwMDM4MCksIGlkIDAsIHNpemU9
-MTkyLgpbIDM3NDUuOTc4OTMxXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBl
-IERUVjYgQVRTQyBPUkVONTM4IFNDT0RFIEhBU19JRl81NTgwICg2MDExMDAyMCksIGlkIDAsIHNp
-emU9MTkyLgpbIDM3NDUuOTc4OTM4XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0
-eXBlIFNDT0RFIEhBU19JRl81NjQwICg2MDAwMDAwMCksIGlkIDMwMDAwMDAwNywgc2l6ZT0xOTIu
-ClsgMzc0NS45Nzg5NDJdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgU0NP
-REUgSEFTX0lGXzU3NDAgKDYwMDAwMDAwKSwgaWQgYzAwMDAwMDA3LCBzaXplPTE5Mi4KWyAzNzQ1
-Ljk3ODk0N10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBTQ09ERSBIQVNf
-SUZfNTkwMCAoNjAwMDAwMDApLCBpZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODk1MV0geGMyMDI4
-IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNT05PIFNDT0RFIEhBU19JRl82MDAwICg2
-MDAwODAwMCksIGlkIGMwNGMwMDBmMCwgc2l6ZT0xOTIuClsgMzc0NS45Nzg5NTZdIHhjMjAyOCAx
-Mi0wMDYxOiBSZWFkaW5nIGZpcm13YXJlIHR5cGUgRFRWNiBRQU0gQVRTQyBMRzYwIEY2TUhaIFND
-T0RFIEhBU19JRl82MjAwICg2ODA1MDA2MCksIGlkIDAsIHNpemU9MTkyLgpbIDM3NDUuOTc4OTYz
-XSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0eXBlIFNDT0RFIEhBU19JRl82MjQw
-ICg2MDAwMDAwMCksIGlkIDEwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODk2N10geGMyMDI4IDEyLTAw
-NjE6IFJlYWRpbmcgZmlybXdhcmUgdHlwZSBNT05PIFNDT0RFIEhBU19JRl82MzIwICg2MDAwODAw
-MCksIGlkIDIwMDAwMCwgc2l6ZT0xOTIuClsgMzc0NS45Nzg5NzJdIHhjMjAyOCAxMi0wMDYxOiBS
-ZWFkaW5nIGZpcm13YXJlIHR5cGUgU0NPREUgSEFTX0lGXzYzNDAgKDYwMDAwMDAwKSwgaWQgMjAw
-MDAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODk3N10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmly
-bXdhcmUgdHlwZSBNT05PIFNDT0RFIEhBU19JRl82NTAwICg2MDAwODAwMCksIGlkIGMwNDQwMDBl
-MCwgc2l6ZT0xOTIuClsgMzc0NS45Nzg5ODJdIHhjMjAyOCAxMi0wMDYxOiBSZWFkaW5nIGZpcm13
-YXJlIHR5cGUgRFRWNiBBVFNDIEFUSTYzOCBTQ09ERSBIQVNfSUZfNjU4MCAoNjAwOTAwMjApLCBp
-ZCAwLCBzaXplPTE5Mi4KWyAzNzQ1Ljk3ODk4OF0geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmly
-bXdhcmUgdHlwZSBTQ09ERSBIQVNfSUZfNjYwMCAoNjAwMDAwMDApLCBpZCAzMDAwMDAwZTAsIHNp
-emU9MTkyLgpbIDM3NDUuOTc4OTkyXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2FyZSB0
-eXBlIE1PTk8gU0NPREUgSEFTX0lGXzY2ODAgKDYwMDA4MDAwKSwgaWQgMzAwMDAwMGUwLCBzaXpl
-PTE5Mi4KWyAzNzQ1Ljk3ODk5N10geGMyMDI4IDEyLTAwNjE6IFJlYWRpbmcgZmlybXdhcmUgdHlw
-ZSBEVFY2IEFUU0MgVE9ZT1RBNzk0IFNDT0RFIEhBU19JRl84MTQwICg2MDgxMDAyMCksIGlkIDAs
-IHNpemU9MTkyLgpbIDM3NDUuOTc5MDIxXSB4YzIwMjggMTItMDA2MTogUmVhZGluZyBmaXJtd2Fy
-ZSB0eXBlIFNDT0RFIEhBU19JRl84MjAwICg2MDAwMDAwMCksIGlkIDAsIHNpemU9MTkyLgpbIDM3
-NDUuOTc5MDI1XSB4YzIwMjggMTItMDA2MTogRmlybXdhcmUgZmlsZXMgbG9hZGVkLgpbIDM3NDUu
-OTc5ODE2XSBjeDI1ODQwIDEzLTAwNDQ6IFBMTCByZWdzID0gaW50OiAxNSwgZnJhYzogMjg3NjEw
-NSwgcG9zdDogNApbIDM3NDUuOTc5ODIwXSBjeDI1ODQwIDEzLTAwNDQ6IFBMTCA9IDEwNy45OTk5
-OTkgTUh6ClsgMzc0NS45Nzk4MjJdIGN4MjU4NDAgMTMtMDA0NDogUExMLzggPSAxMy40OTk5OTkg
-TUh6ClsgMzc0NS45Nzk4MjVdIGN4MjU4NDAgMTMtMDA0NDogQURDIFNhbXBsaW5nIGZyZXEgPSAx
-NC4zMTczODIgTUh6ClsgMzc0NS45Nzk4MjddIGN4MjU4NDAgMTMtMDA0NDogQ2hyb21hIHN1Yi1j
-YXJyaWVyIGZyZXEgPSAzLjU3OTU0NSBNSHoKWyAzNzQ1Ljk3OTgzMV0gY3gyNTg0MCAxMy0wMDQ0
-OiBoYmxhbmsgMTIyLCBoYWN0aXZlIDcyMCwgdmJsYW5rIDI2LCB2YWN0aXZlIDQ4NywgdmJsYW5r
-NjU2IDI2LCBzcmNfZGVjIDU0MywgYnVyc3QgMHg1YiwgbHVtYV9scGYgMSwgdXZfbHBmIDEsIGNv
-bWIgMHg2Niwgc2MgMHgwODdjMWYKWyAzNzQ1Ljk4Mjk2MV0gdHVuZXIgMTItMDA2MTogdHYgZnJl
-cSBzZXQgdG8gNDAwLjAwClsgMzc0NS45ODI5NjRdIHhjMjAyOCAxMi0wMDYxOiB4YzIwMjhfc2V0
-X2FuYWxvZ19mcmVxIGNhbGxlZApbIDM3NDUuOTgyOTY3XSB4YzIwMjggMTItMDA2MTogZ2VuZXJp
-Y19zZXRfZnJlcSBjYWxsZWQKWyAzNzQ1Ljk4Mjk3MF0geGMyMDI4IDEyLTAwNjE6IHNob3VsZCBz
-ZXQgZnJlcXVlbmN5IDQwMDAwMCBrSHoKWyAzNzQ1Ljk4Mjk3Ml0geGMyMDI4IDEyLTAwNjE6IGNo
-ZWNrX2Zpcm13YXJlIGNhbGxlZApbIDM3NDUuOTgyOTc0XSB4YzIwMjggMTItMDA2MTogY2hlY2tp
-bmcgZmlybXdhcmUsIHVzZXIgcmVxdWVzdGVkIHR5cGU9KDApLCBpZCAwMDAwMDAwMDAwMDAxMDAw
-LCBzY29kZV90YmwgKDApLCBzY29kZV9uciAwClsgMzc0Ni4wMjE3MzldIGN4MjM4ODVbMF06IGN4
-MjM4ODVfc3JhbV9jaGFubmVsX3NldHVwKCkgQ29uZmlndXJpbmcgY2hhbm5lbCBbVFYgQXVkaW9d
-ClsgMzc0Ni4xODUzNTRdIHhjMjAyOCAxMi0wMDYxOiBsb2FkX2Zpcm13YXJlIGNhbGxlZApbIDM3
-NDYuMTg1MzU4XSB4YzIwMjggMTItMDA2MTogc2Vla19maXJtd2FyZSBjYWxsZWQsIHdhbnQgdHlw
-ZT1CQVNFICgxKSwgaWQgMDAwMDAwMDAwMDAwMDAwMC4KWyAzNzQ2LjE4NTM2MV0geGMyMDI4IDEy
-LTAwNjE6IEZvdW5kIGZpcm13YXJlIGZvciB0eXBlPUJBU0UgKDEpLCBpZCAwMDAwMDAwMDAwMDAw
-MDAwLgpbIDM3NDYuMTg1MzYzXSB4YzIwMjggMTItMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3Ig
-dHlwZT1CQVNFICgxKSwgaWQgMDAwMDAwMDAwMDAwMDAwMC4KWyAzNzQ3LjM1NzM4NF0geGMyMDI4
-IDEyLTAwNjE6IExvYWQgaW5pdDEgZmlybXdhcmUsIGlmIGV4aXN0cwpbIDM3NDcuMzU3Mzg5XSB4
-YzIwMjggMTItMDA2MTogbG9hZF9maXJtd2FyZSBjYWxsZWQKWyAzNzQ3LjM1NzM5Ml0geGMyMDI4
-IDEyLTAwNjE6IHNlZWtfZmlybXdhcmUgY2FsbGVkLCB3YW50IHR5cGU9QkFTRSBJTklUMSAoNDAw
-MSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuClsgMzc0Ny4zNTczOTldIHhjMjAyOCAxMi0wMDYxOiBD
-YW4ndCBmaW5kIGZpcm13YXJlIGZvciB0eXBlPUJBU0UgSU5JVDEgKDQwMDEpLCBpZCAwMDAwMDAw
-MDAwMDAwMDAwLgpbIDM3NDcuMzU3NDAzXSB4YzIwMjggMTItMDA2MTogbG9hZF9maXJtd2FyZSBj
-YWxsZWQKWyAzNzQ3LjM1NzQwNV0geGMyMDI4IDEyLTAwNjE6IHNlZWtfZmlybXdhcmUgY2FsbGVk
-LCB3YW50IHR5cGU9QkFTRSBJTklUMSAoNDAwMSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuClsgMzc0
-Ny4zNTc0MTBdIHhjMjAyOCAxMi0wMDYxOiBDYW4ndCBmaW5kIGZpcm13YXJlIGZvciB0eXBlPUJB
-U0UgSU5JVDEgKDQwMDEpLCBpZCAwMDAwMDAwMDAwMDAwMDAwLgpbIDM3NDcuMzU3NDE0XSB4YzIw
-MjggMTItMDA2MTogbG9hZF9maXJtd2FyZSBjYWxsZWQKWyAzNzQ3LjM1NzQxNl0geGMyMDI4IDEy
-LTAwNjE6IHNlZWtfZmlybXdhcmUgY2FsbGVkLCB3YW50IHR5cGU9KDApLCBpZCAwMDAwMDAwMDAw
-MDAxMDAwLgpbIDM3NDcuMzU3NDIwXSB4YzIwMjggMTItMDA2MTogRm91bmQgZmlybXdhcmUgZm9y
-IHR5cGU9KDApLCBpZCAwMDAwMDAwMDAwMDBiNzAwLgpbIDM3NDcuMzU3NDIzXSB4YzIwMjggMTIt
-MDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT0oMCksIGlkIDAwMDAwMDAwMDAwMGI3MDAu
-ClsgMzc0Ny4zNzI5NDNdIHhjMjAyOCAxMi0wMDYxOiBUcnlpbmcgdG8gbG9hZCBzY29kZSAwClsg
-Mzc0Ny4zNzI5NDRdIHhjMjAyOCAxMi0wMDYxOiBsb2FkX3Njb2RlIGNhbGxlZApbIDM3NDcuMzcy
-OTQ2XSB4YzIwMjggMTItMDA2MTogc2Vla19maXJtd2FyZSBjYWxsZWQsIHdhbnQgdHlwZT1TQ09E
-RSAoMjAwMDAwMDApLCBpZCAwMDAwMDAwMDAwMDBiNzAwLgpbIDM3NDcuMzcyOTQ4XSB4YzIwMjgg
-MTItMDA2MTogU2VsZWN0aW5nIGJlc3QgbWF0Y2hpbmcgZmlybXdhcmUgKDEgYml0cykgZm9yIHR5
-cGU9U0NPREUgKDIwMDAwMDAwKSwgaWQgMDAwMDAwMDAwMDAwYjcwMDoKWyAzNzQ3LjM3Mjk1MF0g
-eGMyMDI4IDEyLTAwNjE6IEZvdW5kIGZpcm13YXJlIGZvciB0eXBlPVNDT0RFICgyMDAwMDAwMCks
-IGlkIDAwMDAwMDAwMDAwMDgwMDAuClsgMzc0Ny4zNzI5NTJdIHhjMjAyOCAxMi0wMDYxOiBMb2Fk
-aW5nIFNDT0RFIGZvciB0eXBlPU1PTk8gU0NPREUgSEFTX0lGXzQzMjAgKDYwMDA4MDAwKSwgaWQg
-MDAwMDAwMDAwMDAwODAwMC4KWyAzNzQ3LjM3NTI2OF0geGMyMDI4IDEyLTAwNjE6IHhjMjAyOF9n
-ZXRfcmVnIDAwMDQgY2FsbGVkClsgMzc0Ny4zNzU5MzJdIHhjMjAyOCAxMi0wMDYxOiB4YzIwMjhf
-Z2V0X3JlZyAwMDA4IGNhbGxlZApbIDM3NDcuMzc2NjE1XSB4YzIwMjggMTItMDA2MTogRGV2aWNl
-IGlzIFhjZWl2ZSAzMDI4IHZlcnNpb24gMS4wLCBmaXJtd2FyZSB2ZXJzaW9uIDIuNwpbIDM3NDcu
-NDg5MDUyXSB4YzIwMjggMTItMDA2MTogZGl2aXNvcj0gMDAgMDAgNjQgMDAgKGZyZXE9NDAwLjAw
-MCkKWyAzNzQ3LjQ4OTczNV0gY3gyNTg0MCAxMy0wMDQ0OiBkZWNvZGVyIHNldCB2aWRlbyBpbnB1
-dCAtMjE0NzQ4MzQzOSwgYXVkaW8gaW5wdXQgOApbIDM3NDcuNDg5NzM4XSBjeDI1ODQwIDEzLTAw
-NDQ6IHZpZF9pbnB1dCAweDgwMDAwMGQxClsgMzc0Ny40ODk3NDBdIGN4MjU4NDAgMTMtMDA0NDog
-bXV4IGNmZyAweGQxIGNvbXA9MQpbIDM3NDcuNTAxNDMwXSBjeDI1ODQwIDEzLTAwNDQ6IGRlY29k
-ZXIgc2V0IHZpZGVvIGlucHV0IC0yMTQ3NDgzNDM5LCBhdWRpbyBpbnB1dCA4ClsgMzc0Ny41MDE0
-MzNdIGN4MjU4NDAgMTMtMDA0NDogdmlkX2lucHV0IDB4ODAwMDAwZDEKWyAzNzQ3LjUwMTQzNF0g
-Y3gyNTg0MCAxMy0wMDQ0OiBtdXggY2ZnIDB4ZDEgY29tcD0xClsgMzc0Ny41MTMxNzVdIGN4MjM4
-ODVbMF06IGN4MjM4ODVfNDE3X3JlZ2lzdGVyKCkKWyAzNzQ3LjUxMzE3N10gY3gyMzg4NVswXTog
-Y3gyMzg4NV92aWRlb19kZXZfYWxsb2MoKQpbIDM3NDcuNTEzMjk2XSBjeDIzODg1WzBdOiByZWdp
-c3RlcmVkIGRldmljZSB2aWRlbzEgW21wZWddClsgMzc0Ny41MTMyOThdIGN4MjM4ODVbMF06IGN4
-MjM4ODVfaW5pdGlhbGl6ZV9jb2RlYygpClsgMzc0Ny41MTMzMThdIEZpcm13YXJlIGFuZC9vciBt
-YWlsYm94IHBvaW50ZXIgbm90IGluaXRpYWxpemVkIG9yIGNvcnJ1cHRlZCwgc2lnbmF0dXJlID0g
-MHhmZWZlZmVmZSwgY21kID0gUElOR19GVwpbIDM3NDguMTA5OTQ2XSBjeDIzODg1WzBdOiBWZXJp
-ZnlpbmcgZmlybXdhcmUgLi4uClsgMzc0OS40ODA3MTldIEVSUk9SOiBGaXJtd2FyZSBsb2FkIGZh
-aWxlZCAoY2hlY2tzdW0gbWlzbWF0Y2gpLgpbIDM3NDkuNDgwNzM0XSBjeDIzODg1X2luaXRpYWxp
-emVfY29kZWMoKSBmL3cgbG9hZCBmYWlsZWQKWyAzNzQ5LjQ4MDczOV0gY3gyMzg4NV9kZXZfY2hl
-Y2tyZXZpc2lvbigpIEhhcmR3YXJlIHJldmlzaW9uID0gMHhiMApbIDM3NDkuNDgwNzQ0XSBjeDIz
-ODg1WzBdLzA6IGZvdW5kIGF0IDAwMDA6MDU6MDAuMCwgcmV2OiAyLCBpcnE6IDE4LCBsYXRlbmN5
-OiAwLCBtbWlvOiAweGQzMDAwMDAwCnJvb3RAbWVkZWI6fi92NGwjIAo=
-------=_Part_115959_5085789.1377088165620--
