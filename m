@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47608 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966823Ab3HHW53 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:57:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: s5c73m3: Add format propagation for TRY formats
-Date: Fri, 09 Aug 2013 00:58:34 +0200
-Message-ID: <3766107.LzC3gBYZDo@avalon>
-In-Reply-To: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com>
-References: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3530 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756166Ab3HOLh2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Aug 2013 07:37:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/12] ad9389b: no monitor if EDID is wrong
+Date: Thu, 15 Aug 2013 13:36:28 +0200
+Message-Id: <ce9901a4cc81c7ff59aac7fcc0c963003c5ad84e.1376566340.git.hans.verkuil@cisco.com>
+In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Mats Randgaard <matrandg@cisco.com>
 
-On Wednesday 24 July 2013 16:57:32 Sylwester Nawrocki wrote:
-> From: Andrzej Hajda <a.hajda@samsung.com>
-> 
-> Resolution set on ISP pad of S5C73M3-OIF subdev should be
-> propagated to source pad for TRY and ACTIVE formats.
-> The patch adds missing propagation for TRY format.
+state->have_monitor is set to false if the EDID that is read from
+the monitor has too many segments or wrong CRC.
 
-I might be missing something, but where's the propagation for the ACTIVE 
-format ?
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ad9389b.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c |    5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> b/drivers/media/i2c/s5c73m3/s5c73m3-core.c index 825ea86..b76ec0e 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -1111,6 +1111,11 @@ static int s5c73m3_oif_set_fmt(struct v4l2_subdev
-> *sd, if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
->  		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
->  		*mf = fmt->format;
-> +		if (fmt->pad == OIF_ISP_PAD) {
-> +			mf = v4l2_subdev_get_try_format(fh, OIF_SOURCE_PAD);
-> +			mf->width = fmt->format.width;
-> +			mf->height = fmt->format.height;
-> +		}
->  	} else {
->  		switch (fmt->pad) {
->  		case OIF_ISP_PAD:
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 7e68d8f..52384e8 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -1019,6 +1019,7 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
+ 	segment = ad9389b_rd(sd, 0xc4);
+ 	if (segment >= EDID_MAX_SEGM) {
+ 		v4l2_err(sd, "edid segment number too big\n");
++		state->have_monitor = false;
+ 		return false;
+ 	}
+ 	v4l2_dbg(1, debug, sd, "%s: got segment %d\n", __func__, segment);
+@@ -1032,6 +1033,8 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
+ 	}
+ 	if (!edid_segment_verify_crc(sd, segment)) {
+ 		/* edid crc error, force reread of edid segment */
++		v4l2_err(sd, "%s: edid crc error\n", __func__);
++		state->have_monitor = false;
+ 		ad9389b_s_power(sd, false);
+ 		ad9389b_s_power(sd, true);
+ 		return false;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
