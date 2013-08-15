@@ -1,74 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:30101 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967319Ab3HIGYP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 02:24:15 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MR900JKF33YBL50@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 Aug 2013 07:24:12 +0100 (BST)
-Message-id: <52048B0A.7010700@samsung.com>
-Date: Fri, 09 Aug 2013 08:24:10 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: s5c73m3: Add format propagation for TRY formats
-References: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com>
- <3766107.LzC3gBYZDo@avalon>
-In-reply-to: <3766107.LzC3gBYZDo@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4494 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756661Ab3HOLhb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Aug 2013 07:37:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 05/12] adv7604: print flags and standards in timing information
+Date: Thu, 15 Aug 2013 13:36:27 +0200
+Message-Id: <ea69e04ec249413ac1f97e696522738aa4939060.1376566340.git.hans.verkuil@cisco.com>
+In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Mats Randgaard <matrandg@cisco.com>
 
-Thank you for the review.
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 41 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
-On 08/09/2013 12:58 AM, Laurent Pinchart wrote:
-> Hello,
->
-> On Wednesday 24 July 2013 16:57:32 Sylwester Nawrocki wrote:
->> From: Andrzej Hajda <a.hajda@samsung.com>
->>
->> Resolution set on ISP pad of S5C73M3-OIF subdev should be
->> propagated to source pad for TRY and ACTIVE formats.
->> The patch adds missing propagation for TRY format.
-> I might be missing something, but where's the propagation for the ACTIVE 
-> format ?
-In case of active format there are no separate containers
-for the format of each pad, instead they shares common fields,
-precisely .oif_pix_size and .mbus_code.
-This way there is no need for extra code for format propagation.
-
-Regards
-Andrzej
->
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> ---
->>  drivers/media/i2c/s5c73m3/s5c73m3-core.c |    5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
->> b/drivers/media/i2c/s5c73m3/s5c73m3-core.c index 825ea86..b76ec0e 100644
->> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
->> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
->> @@ -1111,6 +1111,11 @@ static int s5c73m3_oif_set_fmt(struct v4l2_subdev
->> *sd, if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
->>  		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
->>  		*mf = fmt->format;
->> +		if (fmt->pad == OIF_ISP_PAD) {
->> +			mf = v4l2_subdev_get_try_format(fh, OIF_SOURCE_PAD);
->> +			mf->width = fmt->format.width;
->> +			mf->height = fmt->format.height;
->> +		}
->>  	} else {
->>  		switch (fmt->pad) {
->>  		case OIF_ISP_PAD:
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 34fcdf3..e732c9b 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1052,7 +1052,8 @@ static int adv7604_g_input_status(struct v4l2_subdev *sd, u32 *status)
+ /* ----------------------------------------------------------------------- */
+ 
+ static void adv7604_print_timings(struct v4l2_subdev *sd,
+-	struct v4l2_dv_timings *timings, const char *txt, bool detailed)
++				  struct v4l2_dv_timings *timings,
++				  const char *txt, bool detailed)
+ {
+ 	struct v4l2_bt_timings *bt = &timings->bt;
+ 	u32 htot, vtot;
+@@ -1069,18 +1070,32 @@ static void adv7604_print_timings(struct v4l2_subdev *sd,
+ 				(htot * vtot)) : 0,
+ 			htot, vtot);
+ 
+-	if (detailed) {
+-		v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
+-				bt->hfrontporch,
+-				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
+-				bt->hsync, bt->hbackporch);
+-		v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
+-				bt->vfrontporch,
+-				(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+-				bt->vsync, bt->vbackporch);
+-		v4l2_info(sd, "    pixelclock: %lld, flags: 0x%x, standards: 0x%x\n",
+-				bt->pixelclock, bt->flags, bt->standards);
+-	}
++	if (!detailed)
++		return;
++
++	v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
++			bt->hfrontporch,
++			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
++			bt->hsync, bt->hbackporch);
++	v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
++			bt->vfrontporch,
++			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
++			bt->vsync, bt->vbackporch);
++	v4l2_info(sd, "    pixelclock: %lld\n", bt->pixelclock);
++	v4l2_info(sd, "    flags (0x%x):%s%s%s%s\n", bt->flags,
++			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
++			" Reduced blanking," : "",
++			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
++			" Can reduce FPS," : "",
++			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
++			" Reduced FPS," : "",
++			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
++			" Half line," : "");
++	v4l2_info(sd, "    standards (0x%x):%s%s%s%s\n", bt->standards,
++			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA," : "",
++			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT," : "",
++			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
++			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
+ }
+ 
+ struct stdi_readback {
+-- 
+1.8.3.2
 
