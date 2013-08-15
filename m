@@ -1,136 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:62060 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756520Ab3HMJTj (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2380 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab3HOLh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Aug 2013 05:19:39 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Cc: maarten.lankhorst@canonical.com, sumit.semwal@linaro.org,
-	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	Inki Dae <inki.dae@samsung.com>
-Subject: [RFC PATCH v6 0/2] Introduce buffer synchronization framework
-Date: Tue, 13 Aug 2013 18:19:34 +0900
-Message-id: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
+	Thu, 15 Aug 2013 07:37:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 10/12] v4l2-dv-timings: add v4l2_print_dv_timings helper
+Date: Thu, 15 Aug 2013 13:36:32 +0200
+Message-Id: <7632d4b5a6f448367238356bb76efc062fd89937.1376566340.git.hans.verkuil@cisco.com>
+In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-   This patch set introduces a buffer synchronization framework based
-   on DMA BUF[1] and based on ww-mutexes[2] for lock mechanism, and
-   may be final RFC.
+Drivers often have to log the contents of a dv_timings struct. Adding
+this helper will make it easier for drivers to do so.
 
-   The purpose of this framework is to provide not only buffer access
-   control to CPU and CPU, and CPU and DMA, and DMA and DMA but also
-   easy-to-use interfaces for device drivers and user application.
-   In addtion, this patch set suggests a way for enhancing performance.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 49 +++++++++++++++++++++++++++++++
+ include/media/v4l2-dv-timings.h           |  9 ++++++
+ 2 files changed, 58 insertions(+)
 
-   For generic user mode interface, we have used fcntl and select system
-   call[3]. As you know, user application sees a buffer object as a dma-buf
-   file descriptor. So fcntl() call with the file descriptor means to lock
-   some buffer region being managed by the dma-buf object. And select() call
-   means to wait for the completion of CPU or DMA access to the dma-buf
-   without locking. For more detail, you can refer to the dma-buf-sync.txt
-   in Documentation/
-
-
-   There are some cases we should use this buffer synchronization framework.
-   One of which is to primarily enhance GPU rendering performance on Tizen
-   platform in case of 3d app with compositing mode that 3d app draws
-   something in off-screen buffer, and Web app.
-
-   In case of 3d app with compositing mode which is not a full screen mode,
-   the app calls glFlush to submit 3d commands to GPU driver instead of
-   glFinish for more performance. The reason we call glFlush is that glFinish
-   blocks caller's task until the execution of the 2d commands is completed.
-   Thus, that makes GPU and CPU more idle. As result, 3d rendering performance
-   with glFinish is quite lower than glFlush. However, the use of glFlush has
-   one issue that the a buffer shared with GPU could be broken when CPU
-   accesses the buffer at once after glFlush because CPU cannot be aware of
-   the completion of GPU access to the buffer. Of course, the app can be aware
-   of that time using eglWaitGL but this function is valid only in case of the
-   same process.
-
-   In case of Tizen, there are some applications that one process draws
-   something in its own off-screen buffer (pixmap buffer) using CPU, and other
-   process gets a off-screen buffer (window buffer) from Xorg using
-   DRI2GetBuffers, and then composites the pixmap buffer with the window buffer
-   using GPU, and finally page flip.
-
-   Web app based on HTML5 also has the same issue. Web browser and its web app
-   are different process. The web app draws something in its own pixmap buffer,
-   and then the web browser gets a window buffer from Xorg, and then composites
-   the pixmap buffer with the window buffer. And finally, page flip.
-
-   Thus, in such cases, a shared buffer could be broken as one process draws
-   something in pixmap buffer using CPU, when other process composites the
-   pixmap buffer with window buffer using GPU without any locking mechanism.
-   That is why we need user land locking interface, fcntl system call.
-
-   And last one is a deferred page flip issue. This issue is that a window
-   buffer rendered can be displayed on screen in about 32ms in worst case:
-   assume that the gpu rendering is completed within 16ms.
-   That can be incurred when compositing a pixmap buffer with a window buffer
-   using GPU and when vsync is just started. At this time, Xorg waits for
-   a vblank event to get a window buffer so 3d rendering will be delayed
-   up to about 16ms. As a result, the window buffer would be displayed in
-   about two vsyncs (about 32ms) and in turn, that would show slow
-   responsiveness.
-
-   For this, we could enhance the responsiveness with locking
-   mechanism: skipping one vblank wait. I guess in the similar reason,
-   Android, Chrome OS, and other platforms are using their own locking
-   mechanisms; Android sync driver, KDS, and DMA fence.
-
-   The below shows the deferred page flip issue in worst case,
-
-               |------------ <- vsync signal
-               |<------ DRI2GetBuffers
-               |
-               |
-               |
-               |------------ <- vsync signal
-               |<------ Request gpu rendering
-          time |
-               |
-               |<------ Request page flip (deferred)
-               |------------ <- vsync signal
-               |<------ Displayed on screen
-               |
-               |
-               |
-               |------------ <- vsync signal
-
-
-Thanks,
-Inki Dae
-
-
-References:
-[1] http://lwn.net/Articles/470339/
-[2] https://patchwork.kernel.org/patch/2625361/
-[3] http://linux.die.net/man/2/fcntl
-
-
-Inki Dae (2):
-  [RFC PATCH v6] dmabuf-sync: Add a buffer synchronization framework
-  [RFC PATCH v2] dma-buf: Add user interfaces for dmabuf sync support.
-
- Documentation/dma-buf-sync.txt |  285 +++++++++++++++++
- drivers/base/Kconfig           |    7 +
- drivers/base/Makefile          |    1 +
- drivers/base/dma-buf.c         |   85 +++++
- drivers/base/dmabuf-sync.c     |  678 ++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h        |   16 +
- include/linux/dmabuf-sync.h    |  191 +++++++++++
- 7 files changed, 1263 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sync.txt
- create mode 100644 drivers/base/dmabuf-sync.c
- create mode 100644 include/linux/dmabuf-sync.h
-
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 72cf224..917e58c 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -223,6 +223,55 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+ }
+ EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
+ 
++void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
++			   const struct v4l2_dv_timings *t, bool detailed)
++{
++	const struct v4l2_bt_timings *bt = &t->bt;
++	u32 htot, vtot;
++
++	if (t->type != V4L2_DV_BT_656_1120)
++		return;
++
++	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
++	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
++
++	if (prefix == NULL)
++		prefix = "";
++
++	pr_info("%s: %s%ux%u%s%u (%ux%u)\n", dev_prefix, prefix,
++		bt->width, bt->height, bt->interlaced ? "i" : "p",
++		(htot * vtot) > 0 ? ((u32)bt->pixelclock / (htot * vtot)) : 0,
++		htot, vtot);
++
++	if (!detailed)
++		return;
++
++	pr_info("%s: horizontal: fp = %u, %ssync = %u, bp = %u\n",
++			dev_prefix, bt->hfrontporch,
++			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
++			bt->hsync, bt->hbackporch);
++	pr_info("%s: vertical: fp = %u, %ssync = %u, bp = %u\n",
++			dev_prefix, bt->vfrontporch,
++			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
++			bt->vsync, bt->vbackporch);
++	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
++	pr_info("%s: flags (0x%x):%s%s%s%s\n", dev_prefix, bt->flags,
++			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
++			" REDUCED_BLANKING" : "",
++			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
++			" CAN_REDUCE_FPS" : "",
++			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
++			" REDUCED_FPS" : "",
++			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
++			" HALF_LINE" : "");
++	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
++			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
++			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
++			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
++			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
++}
++EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
++
+ /*
+  * CVT defines
+  * Based on Coordinated Video Timings Standard
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 4c7bb54..696e5c2 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -76,6 +76,15 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
+ 			  const struct v4l2_dv_timings *standard,
+ 			  unsigned pclock_delta);
+ 
++/** v4l2_print_dv_timings() - log the contents of a dv_timings struct
++  * @dev_prefix:device prefix for each log line.
++  * @prefix:	additional prefix for each log line, may be NULL.
++  * @t:		the timings data.
++  * @detailed:	if true, give a detailed log.
++  */
++void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
++			   const struct v4l2_dv_timings *t, bool detailed);
++
+ /** v4l2_detect_cvt - detect if the given timings follow the CVT standard
+  * @frame_height - the total height of the frame (including blanking) in lines.
+  * @hfreq - the horizontal frequency in Hz.
 -- 
-1.7.5.4
+1.8.3.2
 
