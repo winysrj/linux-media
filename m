@@ -1,23 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:56045 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757841Ab3HHNrt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 09:47:49 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r78Dlk9l032678
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 13:47:46 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4819 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab3HOLrL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Aug 2013 07:47:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] qv4l2: fix input parameters and missing status tips
-Date: Thu,  8 Aug 2013 15:47:36 +0200
-Message-Id: <1375969658-20415-1-git-send-email-bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/12] v4l2-dv-timings: rename v4l_match_dv_timings to v4l2_match_dv_timings
+Date: Thu, 15 Aug 2013 13:36:34 +0200
+Message-Id: <3746a7b801e333eef93d59406450b2feb5994543.1376566340.git.hans.verkuil@cisco.com>
+In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Fixes some of the missing status tips in the general tab.
-- Fixes the frequency hint, now displaying correct value hints.
-- Fixes the program parameters.
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+It's the only function in v4l2-dv-timings.c with the v4l prefix instead
+of v4l2. Make it consistent with the other functions.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c               |  4 ++--
+ drivers/media/platform/s5p-tv/hdmi_drv.c  |  2 +-
+ drivers/media/usb/hdpvr/hdpvr-video.c     |  2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 12 ++++++------
+ include/media/v4l2-dv-timings.h           |  8 ++++----
+ 5 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index ba8602c..a1a9d1e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -763,7 +763,7 @@ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; predef_vid_timings[i].timings.bt.width; i++) {
+-		if (!v4l_match_dv_timings(timings, &predef_vid_timings[i].timings,
++		if (!v4l2_match_dv_timings(timings, &predef_vid_timings[i].timings,
+ 					DIGITAL_INPUT ? 250000 : 1000000))
+ 			continue;
+ 		io_write(sd, 0x00, predef_vid_timings[i].vid_std); /* video std */
+@@ -1183,7 +1183,7 @@ static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; adv7604_timings[i].bt.width; i++) {
+-		if (v4l_match_dv_timings(timings, &adv7604_timings[i],
++		if (v4l2_match_dv_timings(timings, &adv7604_timings[i],
+ 					DIGITAL_INPUT ? 250000 : 1000000)) {
+ 			*timings = adv7604_timings[i];
+ 			break;
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 1b34c36..4ad9374 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -625,7 +625,7 @@ static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(hdmi_timings); i++)
+-		if (v4l_match_dv_timings(&hdmi_timings[i].dv_timings,
++		if (v4l2_match_dv_timings(&hdmi_timings[i].dv_timings,
+ 					timings, 0))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdmi_timings)) {
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index e68245a..0500c417 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -642,7 +642,7 @@ static int vidioc_s_dv_timings(struct file *file, void *_fh,
+ 	if (dev->status != STATUS_IDLE)
+ 		return -EBUSY;
+ 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++)
+-		if (v4l_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
++		if (v4l2_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdpvr_dv_timings))
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 917e58c..1a9d393 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -181,7 +181,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(timings); i++) {
+ 		if (v4l2_dv_valid_timings(timings + i, cap) &&
+-		    v4l_match_dv_timings(t, timings + i, pclock_delta)) {
++		    v4l2_match_dv_timings(t, timings + i, pclock_delta)) {
+ 			*t = timings[i];
+ 			return true;
+ 		}
+@@ -191,16 +191,16 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cap);
+ 
+ /**
+- * v4l_match_dv_timings - check if two timings match
++ * v4l2_match_dv_timings - check if two timings match
+  * @t1 - compare this v4l2_dv_timings struct...
+  * @t2 - with this struct.
+  * @pclock_delta - the allowed pixelclock deviation.
+  *
+  * Compare t1 with t2 with a given margin of error for the pixelclock.
+  */
+-bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+-			  const struct v4l2_dv_timings *t2,
+-			  unsigned pclock_delta)
++bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
++			   const struct v4l2_dv_timings *t2,
++			   unsigned pclock_delta)
+ {
+ 	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
+ 		return false;
+@@ -221,7 +221,7 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 		return true;
+ 	return false;
+ }
+-EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
++EXPORT_SYMBOL_GPL(v4l2_match_dv_timings);
+ 
+ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			   const struct v4l2_dv_timings *t, bool detailed)
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 696e5c2..43f6b67 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -64,7 +64,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 			      const struct v4l2_dv_timings_cap *cap,
+ 			      unsigned pclock_delta);
+ 
+-/** v4l_match_dv_timings() - do two timings match?
++/** v4l2_match_dv_timings() - do two timings match?
+   * @measured:	  the measured timings data.
+   * @standard:	  the timings according to the standard.
+   * @pclock_delta: maximum delta in Hz between standard->pixelclock and
+@@ -72,9 +72,9 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+   *
+   * Returns true if the two timings match, returns false otherwise.
+   */
+-bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
+-			  const struct v4l2_dv_timings *standard,
+-			  unsigned pclock_delta);
++bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
++			   const struct v4l2_dv_timings *standard,
++			   unsigned pclock_delta);
+ 
+ /** v4l2_print_dv_timings() - log the contents of a dv_timings struct
+   * @dev_prefix:device prefix for each log line.
+-- 
+1.8.3.2
 
