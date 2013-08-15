@@ -1,203 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3608 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773Ab3HVKOv (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2563 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760418Ab3HOGff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:14:51 -0400
+	Thu, 15 Aug 2013 02:35:35 -0400
+Message-ID: <520C7695.7020405@xs4all.nl>
+Date: Thu, 15 Aug 2013 08:35:01 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sylvester.nawrocki@gmail.com,
 	laurent.pinchart@ideasonboard.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 01/10] v4l2-controls: add motion detection controls.
-Date: Thu, 22 Aug 2013 12:14:15 +0200
-Message-Id: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 PATCH 02/10] v4l2: add matrix support.
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl> <1376305113-17128-3-git-send-email-hverkuil@xs4all.nl> <20130814143313.GA19221@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20130814143313.GA19221@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/14/2013 04:33 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Thanks for the set!
+> 
+> On Mon, Aug 12, 2013 at 12:58:25PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> This patch adds core support for matrices: querying, getting and setting.
+>>
+>> Two initial matrix types are defined for motion detection (defining regions
+>> and thresholds).
+> 
+> I requested in the past that no new IOCTLs would be added for an essential
+> extension of V4L2 control-like functionality. I understand developing a more
+> generic framework does not answer to the problems at hand right now, so I
+> think it's certainly fine to continue with matrix IOCTLs, too. But we still
+> should think a little about extensibility a little bit.
+> 
+> How about using the same ID space as the controls do for matrices, for
+> instance, so we won't get one more? The selections and controls have no ID
+> collisions at the moment.
 
-Add support for two motion detection controls and a 'detect control class'.
+Fair enough. That certainly doesn't hurt.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 33 +++++++++++++++++++++++++++------
- include/uapi/linux/v4l2-controls.h   | 14 ++++++++++++++
- 2 files changed, 41 insertions(+), 6 deletions(-)
+> 
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+>>  drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
+>>  include/media/v4l2-ioctl.h           |  8 +++++
+>>  include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
+>>  4 files changed, 97 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>> index c8859d6..5e58df6 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>> @@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>>  	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+>>  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+>>  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+>> +	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
+>> +	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
+>> +	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
+>>  
+>>  	if (is_vid) {
+>>  		/* video specific ioctls */
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index 68e6b5e..47debfc 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
+>>  	const struct v4l2_cropcap *p = arg;
+>>  
+>>  	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
+>> -		"defrect wxh=%dx%d, x,y=%d,%d\n, "
+>> +		"defrect wxh=%dx%d, x,y=%d,%d, "
+>>  		"pixelaspect %d/%d\n",
+>>  		prt_names(p->type, v4l2_type_names),
+>>  		p->bounds.width, p->bounds.height,
+>> @@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
+>>  			p->rangehigh, p->modulation);
+>>  }
+>>  
+>> +static void v4l_print_query_matrix(const void *arg, bool write_only)
+>> +{
+>> +	const struct v4l2_query_matrix *p = arg;
+>> +
+>> +	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
+>> +			p->type, p->columns, p->rows,
+>> +			p->elem_min.val, p->elem_max.val, p->elem_size);
+>> +}
+>> +
+>> +static void v4l_print_matrix(const void *arg, bool write_only)
+>> +{
+>> +	const struct v4l2_matrix *p = arg;
+>> +
+>> +	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
+>> +			p->type, p->rect.width, p->rect.height,
+>> +			p->rect.top, p->rect.left, p->matrix);
+>> +}
+>> +
+>>  static void v4l_print_u32(const void *arg, bool write_only)
+>>  {
+>>  	pr_cont("value=%u\n", *(const u32 *)arg);
+>> @@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>>  	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+>>  	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+>>  	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
+>> +	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
+>> +	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
+>> +	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
+>>  };
+>>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+>>  
+>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+>> index e0b74a4..7e4538e 100644
+>> --- a/include/media/v4l2-ioctl.h
+>> +++ b/include/media/v4l2-ioctl.h
+>> @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+>>  	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+>>  					const struct v4l2_event_subscription *sub);
+>>  
+>> +	/* Matrix ioctls */
+>> +	int (*vidioc_query_matrix) (struct file *file, void *fh,
+>> +				    struct v4l2_query_matrix *qmatrix);
+>> +	int (*vidioc_g_matrix) (struct file *file, void *fh,
+>> +				    struct v4l2_matrix *matrix);
+>> +	int (*vidioc_s_matrix) (struct file *file, void *fh,
+>> +				    struct v4l2_matrix *matrix);
+>> +
+>>  	/* For other private ioctls */
+>>  	long (*vidioc_default)	       (struct file *file, void *fh,
+>>  					bool valid_prio, unsigned int cmd, void *arg);
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 95ef455..605d295 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
+>>  	__u32			reserved[8];
+>>  };
+>>  
+>> +/* Define to which motion detection region each element belongs.
+>> + * Each element is a __u8. */
+>> +#define V4L2_MATRIX_T_MD_REGION     (1)
+>> +/* Define the motion detection threshold for each element.
+>> + * Each element is a __u16. */
+>> +#define V4L2_MATRIX_T_MD_THRESHOLD  (2)
+>> +
+>> +/**
+>> + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
+>> + * @type:	matrix type
+>> + * @ref:	reference to some object (if any) owning the matrix
+> 
+> Is this for future extensibility only? Four __u32s don't say much to me. If
+> so, how about combining this with the reserved field below?
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fccd08b..89e7cfb 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -456,6 +456,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"RGB full range (0-255)",
- 		NULL,
- 	};
-+	static const char * const detect_motion_mode[] = {
-+		"Disabled",
-+		"Global",
-+		"Regional",
-+		NULL,
-+	};
- 
- 
- 	switch (id) {
-@@ -545,6 +551,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		return dv_rgb_range;
-+	case V4L2_CID_DETECT_MOTION_MODE:
-+		return detect_motion_mode;
- 
- 	default:
- 		return NULL;
-@@ -557,7 +565,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- {
- 	switch (id) {
- 	/* USER controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_USER_CLASS:		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS:		return "Brightness";
- 	case V4L2_CID_CONTRAST:			return "Contrast";
-@@ -601,7 +609,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_COLORFX_CBCR:		return "Color Effects, CbCr";
- 
- 	/* MPEG controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_MPEG_CLASS:		return "MPEG Encoder Controls";
- 	case V4L2_CID_MPEG_STREAM_TYPE:		return "Stream Type";
- 	case V4L2_CID_MPEG_STREAM_PID_PMT:	return "Stream PMT Program ID";
-@@ -701,7 +709,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
- 
- 	/* CAMERA controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -735,8 +743,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
- 
--	/* FM Radio Modulator control */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* FM Radio Modulator controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-@@ -759,6 +767,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
- 
- 	/* Flash controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FLASH_CLASS:		return "Flash Controls";
- 	case V4L2_CID_FLASH_LED_MODE:		return "LED Mode";
- 	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe Source";
-@@ -774,7 +783,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
- 
- 	/* JPEG encoder controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
-@@ -782,18 +791,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
- 
- 	/* Image source controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
- 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
- 
- 	/* Image processing controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
- 
- 	/* DV controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
- 	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
- 	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
-@@ -806,6 +818,12 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-+
-+	/* FM Radio Receiver controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-+	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
-+	case V4L2_CID_DETECT_MOTION_MODE:	return "Motion Detection Mode";
-+	case V4L2_CID_DETECT_MOTION_THRESHOLD:	return "Motion Detection Threshold";
- 	default:
- 		return NULL;
- 	}
-@@ -914,6 +932,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
-+	case V4L2_CID_DETECT_MOTION_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -937,6 +956,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_DETECT_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1009,6 +1029,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_DETECT_MOTION_THRESHOLD:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index e90a88a..d88eebd 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_DETECT		0x00a20000	/* Detection controls */
- 
- /* User-class control IDs */
- 
-@@ -853,4 +854,17 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
-+
-+/*  Detection-class control IDs defined by V4L2 */
-+#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
-+#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
-+
-+#define	V4L2_CID_DETECT_MOTION_MODE		(V4L2_CID_DETECT_CLASS_BASE + 1)
-+enum v4l2_detect_motion_mode {
-+	V4L2_DETECT_MOTION_DISABLED	= 0,
-+	V4L2_DETECT_MOTION_GLOBAL	= 1,
-+	V4L2_DETECT_MOTION_REGIONAL	= 2,
-+};
-+#define	V4L2_CID_DETECT_MOTION_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE + 2)
-+
- #endif
--- 
-1.8.3.2
+Yes, it's for future extensibility. It shows how a feature like that could be
+implemented, but I think you are right and that it should be dropped and
+reserved should be increased by 4 elements.
 
+>> + * @columns:	number of columns in the matrix
+>> + * @rows:	number of rows in the matrix
+> 
+> Two dimensions only? How about one or three? I could imagine use for one, at
+> the very least.
+
+For one you just set rows to 1. A vector is after all a matrix of one row.
+Should we need a third dimension, then there are enough reserved fields to make
+that possible. I can't think of a single use-case that would require a three
+dimensional matrix.
+ 
+>> + * @elem_min:	minimum matrix element value
+>> + * @elem_max:	maximum matrix element value
+>> + * @elem_size:	size in bytes each matrix element
+>> + * @reserved:	future extensions, applications and drivers must zero this.
+>> + */
+>> +struct v4l2_query_matrix {
+>> +	__u32 type;
+>> +	union {
+>> +		__u32 raw[4];
+>> +	} ref;
+>> +	__u32 columns;
+>> +	__u32 rows;
+>> +	union {
+>> +		__s64 val;
+>> +		__u64 uval;
+>> +		__u32 raw[4];
+>> +	} elem_min;
+>> +	union {
+>> +		__s64 val;
+>> +		__u64 uval;
+>> +		__u32 raw[4];
+>> +	} elem_max;
+> 
+> How about step; do you think it'd make sense to specify that? I have to
+> admit the step in controls hasn't been extemely useful to me: much of the
+> time the value of the control should have just been divided by the step,
+> with the exception of controls that have a standardised unit, but even then
+> step won't do good on them since there's typically no 1:1 mapping between
+> possible values and the actual values which leads the driver writer choosing
+> step of one.
+
+You just explained why I decided against adding a step :-)
+
+I also can't really see a use-case for a step in a matrix.
+
+>> +	__u32 elem_size;
+>> +	__u32 reserved[12];
+>> +} __attribute__ ((packed));
+>> +
+>> +/**
+>> + * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
+>> + * @type:	matrix type
+>> + * @ref:	reference to some object (if any) owning the matrix
+>> + * @rect:	which part of the matrix to get/set
+> 
+> In some cases it might be possible to choose the size of the matrix. If this
+> isn't supported now, do you have ideas how to add it? Perhaps using rect
+> woulnd't be possible. A new IOCTL could be one possibility as well; that'd
+> make it quite clear and drivers not supporting it wouldn't implement it. I
+> think it might quite well make it together with S_MATRIX, though, e.g. a
+> flags field with a flag telling that the dimension fields are valid.
+
+Would it be an idea to add a flags field to both v4l2_matrix and v4l2_query_matrix?
+We don't have flags yet, but that makes it easy to add. For a feature such as you
+describe it would be easy enough to implement that by setting an e.g.
+V4L2_MATRIX_FL_NEW_SIZE flag. In query_matrix you would than have a
+V4L2_QMATRIX_FL_HAS_NEW_SIZE (or perhaps in query_matrix it should be called
+'capabilities' instead).
+
+I can also just leave it out and use one of the reserved fields when such a feature
+is needed.
+
+>> + * @matrix:	pointer to the matrix of size (in bytes):
+>> + *		elem_size * rect.width * rect.height
+>> + * @reserved:	future extensions, applications and drivers must zero this.
+>> + */
+>> +struct v4l2_matrix {
+>> +	__u32 type;
+>> +	union {
+>> +		__u32 raw[4];
+>> +	} ref;
+>> +	struct v4l2_rect rect;
+>> +	void __user *matrix;
+>> +	__u32 reserved[12];
+>> +} __attribute__ ((packed));
+>> +
+>>  /*
+>>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>>   *
+>> @@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
+>>     Never use these in applications! */
+>>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>>  
+>> +/* Experimental, these three ioctls may change over the next couple of kernel
+>> +   versions. */
+>> +#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
+>> +#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
+>> +#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
+>> +
+>>  /* Reminder: when adding new ioctls please add support for them to
+>>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>>  
+> 
+
+Thanks for the review!
+
+I'll prepare a new version this weekend dropping the ref fields and integrating the ID
+space into that of the controls.
+
+Regards,
+
+	Hans
