@@ -1,38 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp206.alice.it ([82.57.200.102]:39944 "EHLO smtp206.alice.it"
+Received: from smtp207.alice.it ([82.57.200.103]:54451 "EHLO smtp207.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753932Ab3HDWUf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Aug 2013 18:20:35 -0400
+	id S1754078Ab3HOKaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Aug 2013 06:30:03 -0400
 From: Antonio Ospite <ospite@studenti.unina.it>
-To: Yaroslav Zakharuk <slavikz@gmail.com>
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	linux-media@vger.kernel.org, 1173723@bugs.launchpad.net
-Subject: [PATCH RFC] [media] gspca-ov534: don't call sd_start() from sd_init()
-Date: Mon,  5 Aug 2013 00:20:27 +0200
-Message-Id: <1375654827-14270-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <20130731133634.fbfe99f97026454593d3518f@studenti.unina.it>
-References: <20130731133634.fbfe99f97026454593d3518f@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Yaroslav Zakharuk <slavikz@gmail.com>,
+	1173723@bugs.launchpad.net,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	<stable@vger.kernel.org>
+Subject: [PATCH] [media] gspca-ov534: don't call sd_start() from sd_init()
+Date: Thu, 15 Aug 2013 12:29:32 +0200
+Message-Id: <1376562572-10772-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <5205D969.4040301@gmail.com>
+References: <5205D969.4040301@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+sd_start() operates on device controls but after the conversion to the
+v4l2 control framework in commits 62bba5d and 1bd7d6a controls are
+initialized in sd_init_controls() which is called _after_ sd_init():
+
+The change fixes a NULL pointer dereference for Hercules Blog Webcam;
+the problem is observable since 3.6:
+
+  gspca_main: v2.14.0 registered
+  gspca_main: ov534-2.14.0 probing 06f8:3002
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
+  IP: [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+  PGD 0
+  Oops: 0000 [#1] SMP
+  Modules linked in: gspca_ov534(+) gspca_main videodev rfcomm bnep ppdev bluetooth binfmt_misc snd_hda_codec_hdmi snd_hda_codec_realtek stir4200 irda crc_ccitt usblp snd_hda_intel snd_hda_codec snd_hwdep snd_pcm hid_generic snd_page_alloc snd_seq_midi snd_seq_midi_event usbhid snd_rawmidi snd_seq snd_seq_device snd_timer hid i915 snd psmouse drm_kms_helper serio_raw mei_me drm mei soundcore video i2c_algo_bit lpc_ich mac_hid coretemp lp parport firewire_ohci firewire_core crc_itu_t ahci libahci alx mdio r8169 mii [last unloaded: parport_pc]
+  CPU: 3 PID: 4352 Comm: modprobe Not tainted 3.11.0-031100rc2-generic #201307211535
+  Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Z77-DS3H, BIOS F9 09/19/2012
+  task: ffff8801c20f9770 ti: ffff8801ceaa0000 task.ti: ffff8801ceaa0000
+  RIP: 0010:[<ffffffffa03c1b01>]  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+  RSP: 0018:ffff8801ceaa1af8  EFLAGS: 00010292
+  RAX: 0000000000000001 RBX: 0000000000000000 RCX: 000000000001988b
+  RDX: 000000000001988a RSI: ffffffffa032745a RDI: 0000000000000000
+  RBP: ffff8801ceaa1b28 R08: 0000000000017380 R09: ffffea0008419d80
+  R10: ffffffff81538f5a R11: 0000000000000002 R12: ffffffffa03273dc
+  R13: ffffffffa03273dc R14: 0000000000000000 R15: ffffffffa03270a0
+  FS:  00007f72d564a740(0000) GS:ffff88021f380000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 0000000000000050 CR3: 00000001bd1f0000 CR4: 00000000001407e0
+  Stack:
+   ffff8801ceaa1b28 ffffffffa0325cff ffff8801000001f4 ffff8801ceb44000
+   ffffffffa03273dc ffff8801ceb44000 ffff8801ceaa1b58 ffffffffa032688e
+   ffff8801ceb44000 ffffffffa03274f0 ffffffffa03274f0 ffff8801ceb44380
+  Call Trace:
+   [<ffffffffa0325cff>] ? sccb_w_array+0x3f/0x80 [gspca_ov534]
+   [<ffffffffa032688e>] sd_start+0xce/0x2b0 [gspca_ov534]
+   [<ffffffffa0326bf9>] sd_init+0x189/0x1e8 [gspca_ov534]
+   [<ffffffffa02a0c95>] gspca_dev_probe2+0x285/0x410 [gspca_main]
+   [<ffffffffa02a0e58>] gspca_dev_probe+0x38/0x60 [gspca_main]
+   [<ffffffffa0325081>] sd_probe+0x21/0x30 [gspca_ov534]
+   [<ffffffff8153c960>] usb_probe_interface+0x1c0/0x2f0
+   [<ffffffff8148758c>] really_probe+0x6c/0x330
+   [<ffffffff814879d7>] driver_probe_device+0x47/0xa0
+   [<ffffffff81487adb>] __driver_attach+0xab/0xb0
+   [<ffffffff81487a30>] ? driver_probe_device+0xa0/0xa0
+   [<ffffffff814857be>] bus_for_each_dev+0x5e/0x90
+   [<ffffffff8148714e>] driver_attach+0x1e/0x20
+   [<ffffffff81486bdc>] bus_add_driver+0x10c/0x290
+   [<ffffffff8148805d>] driver_register+0x7d/0x160
+   [<ffffffff8153b590>] usb_register_driver+0xa0/0x160
+   [<ffffffffa0067000>] ? 0xffffffffa0066fff
+   [<ffffffffa006701e>] sd_driver_init+0x1e/0x1000 [gspca_ov534]
+   [<ffffffff8100212a>] do_one_initcall+0xfa/0x1b0
+   [<ffffffff810578c3>] ? set_memory_nx+0x43/0x50
+   [<ffffffff81712e8d>] do_init_module+0x80/0x1d1
+   [<ffffffff810d2079>] load_module+0x4c9/0x5f0
+   [<ffffffff810cf7b0>] ? add_kallsyms+0x210/0x210
+   [<ffffffff810d2254>] SyS_init_module+0xb4/0x100
+   [<ffffffff817333ef>] tracesys+0xe1/0xe6
+  Code: a0 09 00 00 48 c7 c7 30 c3 3c a0 e8 7a 38 ca e0 eb cf 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5 53 48 89 fb 48 83 ec 28 <8b> 47 50 83 e8 05 83 f8 02 77 09 80 b8 20 8c 3c a0 00 74 1d 48
+  RIP  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+   RSP <ffff8801ceaa1af8>
+  CR2: 0000000000000050
+  ---[ end trace 6786f15abfd2ac90 ]---
+
+Original bug report from:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1173723/
+
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Tested-by: Yaroslav Zakharuk <slavikz@gmail.com>
+Cc: <stable@vger.kernel.org> # 3.6+
 ---
-
-Hi Yaroslav,
-
-the patch below should fix the Oops caused by sd_start() called too early, but
-I am not sure about why sd_start() was called from sd_init() for Hercules
-webcams in the first place, maybe the snippet marked with:
-
-  /* (from ms-win trace) */
-
-in sd_start() must be moved to sd_init() too.
-
-Let me know if the change below alone is enough and the webcam keeps working,
-a test with suspend and resume would good to have too.
-
-Thanks,
-   Antonio
-
  drivers/media/usb/gspca/ov534.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
@@ -51,5 +106,5 @@ index 2e28c81..03a33c4 100644
  /*	set_frame_rate(gspca_dev);	*/
  
 -- 
-1.8.4.rc1
+1.8.4.rc2
 
