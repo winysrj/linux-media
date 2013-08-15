@@ -1,53 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55590 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754313Ab3HXL6o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Aug 2013 07:58:44 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] Fix build errors on usbtv when driver is builtin
-Date: Sat, 24 Aug 2013 05:58:02 -0300
-Message-Id: <1377334682-7753-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nm47-vm1.bullet.mail.bf1.yahoo.com ([216.109.115.124]:44751
+	"EHLO nm47-vm1.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757462Ab3HORVB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Aug 2013 13:21:01 -0400
+Message-ID: <1376586925.5384.YahooMailNeo@web140001.mail.bf1.yahoo.com>
+Date: Thu, 15 Aug 2013 10:15:25 -0700 (PDT)
+From: Jody Gugelhupf <knueffle@yahoo.com>
+Reply-To: Jody Gugelhupf <knueffle@yahoo.com>
+Subject: DVR card SAA7134/SAA7135HL unknown
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by  Fengguang Wu <fengguang.wu@intel.com>
+hi all :)
+trying to get this 8 channel dvr card to work in linux, but I get this:
 
-   drivers/built-in.o: In function `vb2_ioctl_streamon':
->> (.text+0x8d354): undefined reference to `video_devdata'
-   drivers/built-in.o: In function `vb2_ioctl_streamoff':
->> (.text+0x8d397): undefined reference to `video_devdata'
-   drivers/built-in.o: In function `vb2_ioctl_expbuf':
-...
+Board is currently unknown. You might try to use the card=<nr>
+saa7134: insmod option to specify which board do you have, but this is
+saa7134: somewhat risky, as might damage your card. It is better to ask
+saa7134: for support at linux-media@vger.kernel.org.
 
-That happens when:
-	CONFIG_VIDEO_DEV=y
-	CONFIG_VIDEO_V4L2=m
-	CONFIG_VIDEO_USBTV=y
-
-As the core is module, usbtv should also be compiled as module.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/usbtv/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/usbtv/Kconfig b/drivers/media/usb/usbtv/Kconfig
-index 8864436..7c5b860 100644
---- a/drivers/media/usb/usbtv/Kconfig
-+++ b/drivers/media/usb/usbtv/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_USBTV
-         tristate "USBTV007 video capture support"
--        depends on VIDEO_DEV
-+        depends on VIDEO_V4L2
-         select VIDEOBUF2_VMALLOC
- 
-         ---help---
--- 
-1.8.3.1
-
+so here I am. I have not tried to set the card myself as I don't know what number to use. Was hoping I could get some help here to get it working. Some info I collected so far can be found here http://pastebin.ca/2430477 any ideas what I might try next or what card to specify?
+thank you in advance for any help.
+jody
