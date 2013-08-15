@@ -1,102 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:47212 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756772Ab3HMCqx (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1620 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755519Ab3HOLh0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 22:46:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org>
-References: <1376202321-25175-1-git-send-email-prabhakar.csengg@gmail.com> <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 13 Aug 2013 08:16:31 +0530
-Message-ID: <CA+V-a8sJhe9AqXN2x3cZPcU4W7NfuqeKkZrr7SZ_wymb7JQCrQ@mail.gmail.com>
-Subject: Re: [PATCH v5] media: i2c: tvp7002: add OF support
-To: Kumar Gala <galak@codeaurora.org>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 15 Aug 2013 07:37:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/12] adv7604: pixel-clock depends on deep-color-mode
+Date: Thu, 15 Aug 2013 13:36:25 +0200
+Message-Id: <1c8942f5353ad92ec13546dda1d8880ec764cebd.1376566340.git.hans.verkuil@cisco.com>
+In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 13, 2013 at 6:30 AM, Kumar Gala <galak@codeaurora.org> wrote:
->
-> On Aug 11, 2013, at 1:25 AM, Lad, Prabhakar wrote:
->
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp7002 driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->> This patch depends on https://patchwork.kernel.org/patch/2842680/
->>
->> Changes for v5:
->> 1: Fixed review comments pointed by Hans.
->>
->> Changes for v4:
->> 1: Improved descrition of end point properties.
->>
->> Changes for v3:
->> 1: Fixed review comments pointed by Sylwester.
->>
->> .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
->> drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->> 2 files changed, 113 insertions(+), 7 deletions(-)
->> create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> new file mode 100644
->> index 0000000..5f28b5d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> @@ -0,0 +1,53 @@
->> +* Texas Instruments TV7002 video decoder
->> +
->> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
->> +YPbPr color space.
->> +
->> +Required Properties :
->> +- compatible : Must be "ti,tvp7002"
->> +
->> +Optional Properties:
->
->
->> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
->> +  this property is not specified is <0>.
->> +
->> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
->> +  this property is not specified is <0>.
->> +
->> +- pclk-sample: Clock polarity of the bus. Default value when this property is
->> +  not specified is <0>.
->> +
->> +- sync-on-green-active: Active state of Sync-on-green signal property of the
->> +  endpoint.
->> +  0 = Normal Operation (Active Low, Default)
->> +  1 = Inverted operation
->
-> These seems better than what you have in video-interfaces.txt
->
-Well it sounds the same, I would keep it as is, let me know if you still
-want me to change.
+From: Martin Bugge <marbugge@cisco.com>
 
->> +
->> +- field-even-active: Active-high Field ID output polarity control of the bus.
->> +  Under normal operation, the field ID output is set to logic 1 for an odd field
->> +  (field 1) and set to logic 0 for an even field (field 0).
->> +  0 = Normal Operation (Active Low, Default)
->> +  1 = FID output polarity inverted
->> +
->
-> Why the duplication if this is covered in video-interfaces.txt?
->
-The explanation in  video-interfaces.txt is more kind of generic and
-the explanation
-here is specific to this device.
+The frequency calculation has to take deep-color mode into account.
 
-Regards,
---Prabhakar Lad
+While we're at it, also log the deep-color mode in log_status.
+
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d093092..6ffe25a 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -992,6 +992,11 @@ static inline bool no_lock_tmds(struct v4l2_subdev *sd)
+ 	return (io_read(sd, 0x6a) & 0xe0) != 0xe0;
+ }
+ 
++static inline bool is_hdmi(struct v4l2_subdev *sd)
++{
++	return hdmi_read(sd, 0x05) & 0x80;
++}
++
+ static inline bool no_lock_sspd(struct v4l2_subdev *sd)
+ {
+ 	/* TODO channel 2 */
+@@ -1244,12 +1249,21 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
+ 
+ 	if (DIGITAL_INPUT) {
++		uint32_t freq;
++
+ 		timings->type = V4L2_DV_BT_656_1120;
+ 
+ 		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
+ 		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
+-		bt->pixelclock = (hdmi_read(sd, 0x06) * 1000000) +
++		freq = (hdmi_read(sd, 0x06) * 1000000) +
+ 			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
++		if (is_hdmi(sd)) {
++			/* adjust for deep color mode */
++			unsigned bits_per_channel = ((hdmi_read(sd, 0x0b) & 0x60) >> 4) + 8;
++
++			freq = freq * 8 / bits_per_channel;
++		}
++		bt->pixelclock = freq;
+ 		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
+ 			hdmi_read(sd, 0x21);
+ 		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
+@@ -1637,7 +1651,7 @@ static void print_avi_infoframe(struct v4l2_subdev *sd)
+ 	u8 avi_len;
+ 	u8 avi_ver;
+ 
+-	if (!(hdmi_read(sd, 0x05) & 0x80)) {
++	if (!is_hdmi(sd)) {
+ 		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
+ 		return;
+ 	}
+@@ -1698,6 +1712,12 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 		"RGB limited range (16-235)",
+ 		"RGB full range (0-255)",
+ 	};
++	char *deep_color_mode_txt[4] = {
++		"8-bits per channel",
++		"10-bits per channel",
++		"12-bits per channel",
++		"16-bits per channel (not supported)"
++	};
+ 
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
+@@ -1756,7 +1776,9 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 		v4l2_info(sd, "-----HDMI status-----\n");
+ 		v4l2_info(sd, "HDCP encrypted content: %s\n",
+ 				hdmi_read(sd, 0x05) & 0x40 ? "true" : "false");
+-
++		if (is_hdmi(sd))
++			v4l2_info(sd, "deep color mode: %s\n",
++					deep_color_mode_txt[(hdmi_read(sd, 0x0b) >> 5) & 0x3]);
+ 		print_avi_infoframe(sd);
+ 	}
+ 
+-- 
+1.8.3.2
+
