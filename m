@@ -1,56 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3530 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756166Ab3HOLh2 (ORCPT
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:45612 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754855Ab3HOI1o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:37:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/12] ad9389b: no monitor if EDID is wrong
-Date: Thu, 15 Aug 2013 13:36:28 +0200
-Message-Id: <ce9901a4cc81c7ff59aac7fcc0c963003c5ad84e.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+	Thu, 15 Aug 2013 04:27:44 -0400
+Received: by mail-bk0-f54.google.com with SMTP id mz12so125155bkb.41
+        for <linux-media@vger.kernel.org>; Thu, 15 Aug 2013 01:27:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
+	<Pine.LNX.4.64.1308042252010.19244@axis700.grange>
+	<CALxrGmV-SCDntaJGeaCDkuqmdzgk3VEYZG+koj9em+Z4PSG0XQ@mail.gmail.com>
+	<8999977.SY9Wm17vy3@avalon>
+	<CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
+Date: Thu, 15 Aug 2013 16:27:43 +0800
+Message-ID: <CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
+Subject: Re: How to express planar formats with mediabus format code?
+From: Su Jiaquan <jiaquan.lnx@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+Hi Laurent / Guennadi,
 
-state->have_monitor is set to false if the EDID that is read from
-the monitor has too many segments or wrong CRC.
+On Sat, Aug 10, 2013 at 1:06 AM, Su Jiaquan <jiaquan.lnx@gmail.com> wrote:
+> Hi Laurent / Guennadi,
+>
+> On Fri, Aug 9, 2013 at 5:12 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi,
+>>
+>> On Tuesday 06 August 2013 17:18:14 Su Jiaquan wrote:
+>>> Hi Guennadi,
+>>>
+>>> Thanks for the reply! Please see my description inline.
+>>>
+>>> On Mon, Aug 5, 2013 at 5:02 AM, Guennadi Liakhovetski wrote:
+>>> > On Sun, 4 Aug 2013, Su Jiaquan wrote:
+>>> >> Hi,
+>>> >>
+>>> >> I know the title looks crazy, but here is our problem:
+>>> >>
+>>> >> In our SoC based ISP, the hardware can be divide to several blocks.
+>>> >> Some blocks can do color space conversion(raw to YUV interleave/planar),
+>>> >> others can do the pixel re-order(interleave/planar/semi-planar
+>>> >> conversion, UV planar switch). We use one subdev to describe each of
+>>> >> them, then came the problem: How can we express the planar formats with
+>>> >> mediabus format code?
+>>> >
+>>> > Could you please explain more exactly what you mean? How are those your
+>>> > blocks connected? How do they exchange data? If they exchange data over a
+>>> > serial bus, then I don't think planar formats make sense, right? Or do
+>>> > your blocks really output planes one after another, reordering data
+>>> > internally? That would be odd... If OTOH your blocks output data to RAM,
+>>> > and the next block takes data from there, then you use V4L2_PIX_FMT_*
+>>> > formats to describe them and any further processing block should be a
+>>> > mem2mem device. Wouldn't this work?
+>>>
+>>> These two hardware blocks are both located inside of ISP, and is connected
+>>> by a hardware data bus.
+>>>
+>>> Actually, there are three blocks inside ISP: One is close to sensor, and can
+>>> do color space conversion(RGB->YUV), we call it IPC; The other two are at
+>>> back end, which are basically DMA Engine, and they are identical. When data
+>>> flow out of IPC, it can go into each one of these DMA Engines and finally
+>>> into RAM. Whether the DMA Engine is turned on/off and the output format can
+>>> be controlled independently. Since they are DMA Engines, they have some
+>>> basic pixel reordering ability(i.e. interleave->planar/semi-planar).
+>>>
+>>> In our H/W design, when we want to get YUV semi-planar format, the IPC
+>>> output should be configured to interleave, and the DMA engine will do the
+>>> interleave->semi-planar job. If we want planar / interleave format, the IPC
+>>> will output planar format directly, DMA engine simply send the data to RAM,
+>>> and don't do any re-order. So in the planar output case, media-bus formats
+>>> can't express the format of the data between IPC and DMA Engine, that's the
+>>> problem we meet.
+>>
+>> If the format between the two subdevs is really planar, I don't see any
+>> problem defining a media bus pixel code for it. You will have to properly
+>> document the format of course.
+>>
+>> I'm a bit surprised that the IPC could output planar data. It would need to
+>> buffer a whole image to do so, do you need to give it a temporary system RAM
+>> buffer ?
+>>
+>>> We want to adopt a formal solution before we send our patch to the
+>>> community, that's where our headache comes.
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>
+> Thanks for the reply!
+>
+> Actually, we don't need to buffer the frame inside IPC, there are
+> three channels in the data bus. When transfering interleave format,
+> only one channel is used, for planar formats, three channels send one
+> planar each, and to difference address(Let me confirm this with our
+> H/W team and get back to you later). So the planars is not sent one
+> after an other, but in parallel.
+>
+> This may be a bit different from the planar formats as people think it
+> should be. Can we use planar format to describe it? Since this won't
+> cause any misunderstanding given it's used in this special case.
+> Please advice.
+>
+> Thanks a lot!
+>
+> Jiaquan
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ad9389b.c | 3 +++
- 1 file changed, 3 insertions(+)
+I have to say I'm sorry for the wrong information. I just double
+checked with hardware team, and turns out there is only one channel
+for the data bus between IPC and ispdma.
+If ispdma output planar format, the data format between IPC and ispdma
+should be configured to a special format, that is not the same with
+any know media-bus format.
+So I think what we need is to define vendor-specific media-bus code.
+Since others any want to do the same thing, shall we define a base
+address for the vendor specific formats? For example:
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 7e68d8f..52384e8 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -1019,6 +1019,7 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
- 	segment = ad9389b_rd(sd, 0xc4);
- 	if (segment >= EDID_MAX_SEGM) {
- 		v4l2_err(sd, "edid segment number too big\n");
-+		state->have_monitor = false;
- 		return false;
- 	}
- 	v4l2_dbg(1, debug, sd, "%s: got segment %d\n", __func__, segment);
-@@ -1032,6 +1033,8 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
- 	}
- 	if (!edid_segment_verify_crc(sd, segment)) {
- 		/* edid crc error, force reread of edid segment */
-+		v4l2_err(sd, "%s: edid crc error\n", __func__);
-+		state->have_monitor = false;
- 		ad9389b_s_power(sd, false);
- 		ad9389b_s_power(sd, true);
- 		return false;
--- 
-1.8.3.2
+enum v4l2_mbus_pixelcode {
+    V4L2_MBUS_FMT_FIXED = 0x0001,
 
+    ...
+
+/* JPEG compressed formats - next is 0x4002 */
+    V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++   V4L2_MBUS_FMT_PRIVATE_BASE = 0xF001,
+};
+
+If you are OK with this, I'll prepare a patch to add it
+
+Thanks!
+
+Jiaquan
