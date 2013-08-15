@@ -1,70 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:38196 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754747Ab3H3MIJ (ORCPT
+Received: from mail-we0-f172.google.com ([74.125.82.172]:39868 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752860Ab3HOPJO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 08:08:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Dinesh Ram <dinram@cisco.com>
-Subject: Re: [PATCH 6/6] si4713 : Added MAINTAINERS entry for radio-usb-si4713 driver
-Date: Fri, 30 Aug 2013 14:07:52 +0200
-Cc: linux-media@vger.kernel.org, dinesh.ram@cern.ch
-References: <1377862104-15429-1-git-send-email-dinram@cisco.com> <3c4c1fcee2e6d52919548289aa87316ca1dfa8f7.1377861337.git.dinram@cisco.com>
-In-Reply-To: <3c4c1fcee2e6d52919548289aa87316ca1dfa8f7.1377861337.git.dinram@cisco.com>
+	Thu, 15 Aug 2013 11:09:14 -0400
+Message-ID: <520CEF1A.90306@gmail.com>
+Date: Thu, 15 Aug 2013 17:09:14 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, swarren@wwwdotorg.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com,
+	Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v5 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS
+ device tree bindings documentation
+References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com> <1376455574-15560-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376455574-15560-3-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201308301407.52758.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 30 August 2013 13:28:24 Dinesh Ram wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> will maintain the USB driver for si4713
-> 
-> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+W dniu 2013-08-14 06:46, Arun Kumar K pisze:
+> The patch adds the DT binding documentation for Samsung
+> Exynos5 SoC series imaging subsystem (FIMC-IS).
+>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 > ---
->  MAINTAINERS | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b2618ce..ddd4d5f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7412,7 +7412,7 @@ L:	linux-media@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  W:	http://linuxtv.org
->  S:	Odd Fixes
-> -F:	drivers/media/radio/si4713-i2c.?
-> +F:	drivers/media/radio/si4713/si4713.?
->  
->  SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
->  M:	Eduardo Valentin <edubezval@gmail.com>
-> @@ -7420,7 +7420,15 @@ L:	linux-media@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  W:	http://linuxtv.org
->  S:	Odd Fixes
-> -F:	drivers/media/radio/radio-si4713.h
-> +F:	drivers/media/radio/si4713/radio-platform-si4713.c
+>   .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47 ++++++++++++++++++++
+>   1 file changed, 47 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> new file mode 100644
+> index 0000000..bfd36df
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> @@ -0,0 +1,47 @@
+> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+> +------------------------------------------------------
 > +
-> +KEENE FM RADIO TRANSMITTER DRIVER
+> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+> +handle sensor controls and camera post-processing operations. The
+> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+> +dedicated scalers (SCC and SCP).
+> +
+> +fimc-is node
+> +------------
+> +
+> +Required properties:
+> +
+> +- compatible        : must be "samsung,exynos5250-fimc-is"
+> +- reg               : physical base address and size of the memory mapped
+> +                      registers
+> +- interrupt-parent  : parent interrupt controller
+> +- interrupts        : fimc-is interrupt to the parent combiner
 
-You forgot to update the driver description! This is the SiLabs si4713 EVB
-driver, not Keene.
+Is it really only one interrupt or two as in case of Exynos4x12 ?
+Also it's probably more appropriate to say "interrupt controller"
+instead of "combiner", not including details of the the FIMC-IS external 
+interrupt controller in this binding.
 
-Can you make a v2 of this patch fixing this?
+> +- clocks            : list of clock specifiers, corresponding to entries in
+> +                      clock-names property;
+> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
+> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
+> +                      matching entries in the clocks property.
+> +- pmu               : phandle to the fimc-is pmu node describing the register
+> +                      base and size for FIMC-IS PMU.
 
-Regards,
+This property needs to be prefixed with "samsung,".
 
-	Hans
+> +
+> +i2c-isp (ISP I2C bus controller) nodes
+> +------------------------------------------
+> +
+> +Required properties:
+> +
+> +- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
+> +		  Exynos4412 and Exynos5250 SoCs;
+> +- reg		: physical base address and length of the registers set;
+> +- clocks	: must contain gate clock specifier for this controller;
+> +- clock-names	: must contain "i2c_isp" entry.
+> +
+> +For the i2c-isp node, it is required to specify a pinctrl state named "default",
+> +according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
+> +
+> +Device tree nodes of the image sensors' controlled directly by the FIMC-IS
 
-> +M:	Hans Verkuil <hverkuil@xs4all.nl>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +W:	http://linuxtv.org
-> +S:	Maintained
-> +F:	drivers/media/radio/si4713/radio-usb-si4713.c
->  
->  SIANO DVB DRIVER
->  M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
+nit: As pointed out already there is no need for the apostrophe.
+
+> +firmware must be child nodes of their corresponding ISP I2C bus controller node.
+> +The data link of these image sensors must be specified using the common video
+> +interfaces bindings, defined in video-interfaces.txt.
+
+--
+Thanks,
+Sylwester
