@@ -1,123 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa06-07.prod.phx3.secureserver.net ([173.201.192.108]:38263
-	"EHLO p3plsmtpa06-07.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752902Ab3HMJhh (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:42614 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755797Ab3HOO1u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Aug 2013 05:37:37 -0400
-Message-ID: <5209FCF2.9050907@pabigot.com>
-Date: Tue, 13 Aug 2013 04:31:30 -0500
-From: "Peter A. Bigot" <pab@pabigot.com>
+	Thu, 15 Aug 2013 10:27:50 -0400
+Message-ID: <520CE563.8060108@canonical.com>
+Date: Thu, 15 Aug 2013 16:27:47 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [v2] mt9v032: Use the common clock framework
-References: <1376047457-11512-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1376047457-11512-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Rob Clark <robdclark@gmail.com>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] fence: dma-buf cross-device synchronization (v12)
+References: <20130729140519.25868.86479.stgit@patser> <CAF6AEGtTB05-Jf1sN9RxSak6EW77Et2HM1xr=gzLHLyc9VLYOQ@mail.gmail.com> <520CB88A.9080401@canonical.com> <CAF6AEGsNYN_tu7wvzWhjkNS5XYmet9Q7MB9fC26yrSsSDEoqHw@mail.gmail.com>
+In-Reply-To: <CAF6AEGsNYN_tu7wvzWhjkNS5XYmet9Q7MB9fC26yrSsSDEoqHw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FWIW: I found it necessary to use this along with 
-http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/board/overo/mt9v032 
-to get the Caspa to work on Gumstix under Linux 3.10.  (Without 
-configuring the clock the device won't respond to I2C operations. It 
-still doesn't work "right", but that may not be a driver problem.  It's 
-also necessary under 3.8, which has serious problems with CCDC idle 
-messages that I haven't tracked down yet.)
+Op 15-08-13 15:14, Rob Clark schreef:
+> On Thu, Aug 15, 2013 at 7:16 AM, Maarten Lankhorst
+> <maarten.lankhorst@canonical.com> wrote:
+>> Op 12-08-13 17:43, Rob Clark schreef:
+>>> On Mon, Jul 29, 2013 at 10:05 AM, Maarten Lankhorst
+>>> <maarten.lankhorst@canonical.com> wrote:
+>>>> +
+> [snip]
+>>>> +/**
+>>>> + * fence_add_callback - add a callback to be called when the fence
+>>>> + * is signaled
+>>>> + * @fence:     [in]    the fence to wait on
+>>>> + * @cb:                [in]    the callback to register
+>>>> + * @func:      [in]    the function to call
+>>>> + * @priv:      [in]    the argument to pass to function
+>>>> + *
+>>>> + * cb will be initialized by fence_add_callback, no initialization
+>>>> + * by the caller is required. Any number of callbacks can be registered
+>>>> + * to a fence, but a callback can only be registered to one fence at a time.
+>>>> + *
+>>>> + * Note that the callback can be called from an atomic context.  If
+>>>> + * fence is already signaled, this function will return -ENOENT (and
+>>>> + * *not* call the callback)
+>>>> + *
+>>>> + * Add a software callback to the fence. Same restrictions apply to
+>>>> + * refcount as it does to fence_wait, however the caller doesn't need to
+>>>> + * keep a refcount to fence afterwards: when software access is enabled,
+>>>> + * the creator of the fence is required to keep the fence alive until
+>>>> + * after it signals with fence_signal. The callback itself can be called
+>>>> + * from irq context.
+>>>> + *
+>>>> + */
+>>>> +int fence_add_callback(struct fence *fence, struct fence_cb *cb,
+>>>> +                      fence_func_t func, void *priv)
+>>>> +{
+>>>> +       unsigned long flags;
+>>>> +       int ret = 0;
+>>>> +       bool was_set;
+>>>> +
+>>>> +       if (WARN_ON(!fence || !func))
+>>>> +               return -EINVAL;
+>>>> +
+>>>> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
+>>>> +               return -ENOENT;
+>>>> +
+>>>> +       spin_lock_irqsave(fence->lock, flags);
+>>>> +
+>>>> +       was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
+>>>> +
+>>>> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
+>>>> +               ret = -ENOENT;
+>>>> +       else if (!was_set && !fence->ops->enable_signaling(fence)) {
+>>>> +               __fence_signal(fence);
+>>>> +               ret = -ENOENT;
+>>>> +       }
+>>>> +
+>>>> +       if (!ret) {
+>>>> +               cb->func = func;
+>>>> +               cb->priv = priv;
+>>>> +               list_add_tail(&cb->node, &fence->cb_list);
+>>> since the user is providing the 'struct fence_cb', why not drop the
+>>> priv & func args, and have some cb-initialize macro, ie.
+>>>
+>>> INIT_FENCE_CB(&foo->fence, cbfxn);
+>>>
+>>> and I guess we can just drop priv and let the user embed fence in
+>>> whatever structure they like.  Ie. make it look a bit how work_struct
+>>> works.
+>> I don't mind killing priv. But a INIT_FENCE_CB macro is silly, when all it would do is set cb->func.
+>> So passing it as  an argument to fence_add_callback is fine, unless you have a better reason to
+>> do so.
+>>
+>> INIT_WORK seems to have a bit more initialization than us, it seems work can be more complicated
+>> than callbacks, because the callbacks can only be called once and work can be rescheduled multiple times.
+> yeah, INIT_WORK does more.. although maybe some day we want
+> INIT_FENCE_CB to do more (ie. if we add some debug features to help
+> catch misuse of fence/fence-cb's).  And if nothing else, having it
+> look a bit like other constructs that we have in the kernel seems
+> useful.  And with my point below, you'd want INIT_FENCE_CB to do a
+> INIT_LIST_HEAD(), so it is (very) slightly more than just setting the
+> fxn ptr.
+I don't think list is a good idea for that.
+>>> maybe also, if (!list_empty(&cb->node) return -EBUSY?
+>> I think checking for list_empty(cb->node) is a terrible idea. This is no different from any other list corruption,
+>> and it's a programming error. Not a runtime error. :-)
+> I was thinking for crtc and page-flip, embed the fence_cb in the crtc.
+>  You should only use the cb once at a time, but in this case you might
+> want to re-use it for the next page flip.  Having something to catch
+> cb mis-use in this sort of scenario seems useful.
+>
+> maybe how I am thinking to use fence_cb is not quite what you had in
+> mind.  I'm not sure.  I was trying to think how I could just directly
+> use fence/fence_cb in msm for everything (imported dmabuf or just
+> regular 'ol gem buffers).
 
-Peter
 
-On 08/09/2013 05:24 AM, Laurent Pinchart wrote:
-> Configure the device external clock using the common clock framework
-> instead of a board code callback function.
+>> cb->node.next/prev may be NULL, which would fail with this check. The contents of cb->node are undefined
+>> before fence_add_callback is called. Calling fence_remove_callback on a fence that hasn't been added is
+>> undefined too. Calling fence_remove_callback works, but I'm thinking of changing the list_del_init to list_del,
+>> which would make calling fence_remove_callback twice a fatal error if CONFIG_DEBUG_LIST is enabled,
+>> and a possible memory corruption otherwise.
+>>>> ...
+>>>> +
+> [snip]
+>>>> +
+>>>> +/**
+>>>> + * fence context counter: each execution context should have its own
+>>>> + * fence context, this allows checking if fences belong to the same
+>>>> + * context or not. One device can have multiple separate contexts,
+>>>> + * and they're used if some engine can run independently of another.
+>>>> + */
+>>>> +extern atomic_t fence_context_counter;
+>>> context-alloc should not be in the critical path.. I'd think probably
+>>> drop the extern and inline, and make fence_context_counter static
+>>> inside the .c
+>> Shrug, your bikeshed. I'll fix it shortly.
+>>>> +
+>>>> +static inline unsigned fence_context_alloc(unsigned num)
+>>> well, this is actually allocating 'num' contexts, so
+>>> 'fence_context_alloc()' sounds a bit funny.. or at least to me it
+>>> sounds from the name like it allocates a single context
+>> Sorry, max number of bikesheds reached. :P
+> well, names are important to convey meaning, and not confusing users
+> of the API..  but fence_context*s*_alloc() also sounds a bit funny.
+> So I could live w/ just some kerneldoc.  Ie. move the doc about
+> fence_counter_contex down and make it doc about the function.  That
+> was a bit my point about moving the function into the .c and making
+> fence_context_counter static.. ie. I don't think it was your intention
+> that anyone accesses fence_counter_context directly, so better to
+> document the function and make fence_counter_context the internal
+> implementation detail.
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> ---
-> drivers/media/i2c/mt9v032.c | 17 +++++++++++------
->   include/media/mt9v032.h     |  4 ----
->   2 files changed, 11 insertions(+), 10 deletions(-)
->
-> Changes since v1:
->
-> - Set the pixel clock rate with clk_set_rate()
->
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 60c6f67..2c50eff 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -12,6 +12,7 @@
->    * published by the Free Software Foundation.
->    */
->   
-> +#include <linux/clk.h>
->   #include <linux/delay.h>
->   #include <linux/i2c.h>
->   #include <linux/log2.h>
-> @@ -135,6 +136,8 @@ struct mt9v032 {
->   	struct mutex power_lock;
->   	int power_count;
->   
-> +	struct clk *clk;
-> +
->   	struct mt9v032_platform_data *pdata;
->   
->   	u32 sysclk;
-> @@ -219,10 +222,9 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->   	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
->   	int ret;
->   
-> -	if (mt9v032->pdata->set_clock) {
-> -		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
-> -		udelay(1);
-> -	}
-> +	clk_set_rate(mt9v032->clk, mt9v032->sysclk);
-> +	clk_prepare_enable(mt9v032->clk);
-> +	udelay(1);
->   
->   	/* Reset the chip and stop data read out */
->   	ret = mt9v032_write(client, MT9V032_RESET, 1);
-> @@ -238,8 +240,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->   
->   static void mt9v032_power_off(struct mt9v032 *mt9v032)
->   {
-> -	if (mt9v032->pdata->set_clock)
-> -		mt9v032->pdata->set_clock(&mt9v032->subdev, 0);
-> +	clk_disable_unprepare(mt9v032->clk);
->   }
->   
->   static int __mt9v032_set_power(struct mt9v032 *mt9v032, bool on)
-> @@ -748,6 +749,10 @@ static int mt9v032_probe(struct i2c_client *client,
->   	if (!mt9v032)
->   		return -ENOMEM;
->   
-> +	mt9v032->clk = devm_clk_get(&client->dev, NULL);
-> +	if (IS_ERR(mt9v032->clk))
-> +		return PTR_ERR(mt9v032->clk);
-> +
->   	mutex_init(&mt9v032->power_lock);
->   	mt9v032->pdata = pdata;
->   
-> diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
-> index 78fd39e..12175a6 100644
-> --- a/include/media/mt9v032.h
-> +++ b/include/media/mt9v032.h
-> @@ -1,13 +1,9 @@
->   #ifndef _MEDIA_MT9V032_H
->   #define _MEDIA_MT9V032_H
->   
-> -struct v4l2_subdev;
-> -
->   struct mt9v032_platform_data {
->   	unsigned int clk_pol:1;
->   
-> -	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
-> -
->   	const s64 *link_freqs;
->   	s64 link_def_freq;
->   };
->
->
+> Anyways, some of this is a bit nit-picky, but since fence is going to
+> be something used by many different drivers/subsystems, I guess it is
+> worthwhile to nit-pick over the API.
+I guess. But I couldn't come up with a better name either. v14 has added some kernel docs for this function.
 
