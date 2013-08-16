@@ -1,136 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:31793 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755822Ab3HMLhQ (ORCPT
+Received: from mail-vc0-f176.google.com ([209.85.220.176]:59153 "EHLO
+	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab3HPIJW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Aug 2013 07:37:16 -0400
-From: Tomasz Figa <t.figa@samsung.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, Greg KH <gregkh@linuxfoundation.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	kyungmin.park@samsung.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 13 Aug 2013 13:37:07 +0200
-Message-id: <2034985.S0danJZqk4@amdc1227>
-In-reply-to: <520A0E1C.5000306@ti.com>
-References: <20130720220006.GA7977@kroah.com> <20130731061538.GC13289@radagast>
- <520A0E1C.5000306@ti.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=us-ascii
+	Fri, 16 Aug 2013 04:09:22 -0400
+MIME-Version: 1.0
+In-Reply-To: <520CEF1A.90306@gmail.com>
+References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+	<1376455574-15560-3-git-send-email-arun.kk@samsung.com>
+	<520CEF1A.90306@gmail.com>
+Date: Fri, 16 Aug 2013 13:39:20 +0530
+Message-ID: <CALt3h78hTfrVot5RMVdCJ1pPRY_D2C-Dwb-+YoPYyhCqHr+Mpg@mail.gmail.com>
+Subject: Re: [PATCH v5 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS
+ device tree bindings documentation
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	kilyeon.im@samsung.com, Mark Rutland <mark.rutland@arm.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 13 of August 2013 16:14:44 Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
-> >>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
-> >>>>>>> regulators, PWMs or even i2c busses because there are complex
-> >>>>>>> cases
-> >>>>>>> when passing just a name using platform data will not work. I
-> >>>>>>> would
-> >>>>>>> second what Stephen said [1] and define a structure doing things
-> >>>>>>> in a
-> >>>>>>> DT-like way.
-> >>>>>>> 
-> >>>>>>> Example;
-> >>>>>>> 
-> >>>>>>> [platform code]
-> >>>>>>> 
-> >>>>>>> static const struct phy_lookup my_phy_lookup[] = {
-> >>>>>>> 
-> >>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> >>>>>> 
-> >>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used
-> >>>>>> while
-> >>>>>> creating the device, the ids in the device name would change and
-> >>>>>> PHY_LOOKUP wont be useful.
-> >>>>> 
-> >>>>> I don't think this is a problem. All the existing lookup methods
-> >>>>> already
-> >>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c,
-> >>>>> ...). You
-> >>>>> can simply add a requirement that the ID must be assigned manually,
-> >>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
-> >>>> 
-> >>>> And I'm saying that this idea, of using a specific name and id, is
-> >>>> frought with fragility and will break in the future in various ways
-> >>>> when
-> >>>> devices get added to systems, making these strings constantly have
-> >>>> to be
-> >>>> kept up to date with different board configurations.
-> >>>> 
-> >>>> People, NEVER, hardcode something like an id.  The fact that this
-> >>>> happens today with the clock code, doesn't make it right, it makes
-> >>>> the
-> >>>> clock code wrong.  Others have already said that this is wrong there
-> >>>> as
-> >>>> well, as systems change and dynamic ids get used more and more.
-> >>>> 
-> >>>> Let's not repeat the same mistakes of the past just because we
-> >>>> refuse to
-> >>>> learn from them...
-> >>>> 
-> >>>> So again, the "find a phy by a string" functions should be removed,
-> >>>> the
-> >>>> device id should be automatically created by the phy core just to
-> >>>> make
-> >>>> things unique in sysfs, and no driver code should _ever_ be reliant
-> >>>> on
-> >>>> the number that is being created, and the pointer to the phy
-> >>>> structure
-> >>>> should be used everywhere instead.
-> >>>> 
-> >>>> With those types of changes, I will consider merging this subsystem,
-> >>>> but
-> >>>> without them, sorry, I will not.
-> >>> 
-> >>> I'll agree with Greg here, the very fact that we see people trying to
-> >>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points
-> >>> to a
-> >>> big problem in the framework.
-> >>> 
-> >>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
-> >>> adding similar infrastructure to the driver themselves to make sure
-> >>> we
-> >>> don't end up with duplicate names in sysfs in case we have multiple
-> >>> instances of the same IP in the SoC (or several of the same PCIe
-> >>> card).
-> >>> I really don't want to go back to that.
-> >> 
-> >> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can
-> >> give the correct binding information to the PHY framework. I think we
-> >> can drop having this non-dt support in PHY framework? I see only one
-> >> platform (OMAP3) going to be needing this non-dt support and we can
-> >> use the USB PHY library for it.> 
-> > you shouldn't drop support for non-DT platform, in any case we lived
-> > without DT (and still do) for years. Gotta find a better way ;-)
-> 
-> hmm..
-> 
-> how about passing the device names of PHY in platform data of the
-> controller? It should be deterministic as the PHY framework assigns its
-> own id and we *don't* want to add any requirement that the ID must be
-> assigned manually without using PLATFORM_DEVID_AUTO. We can get rid of
-> *phy_init_data* in the v10 patch series.
+Hi Sylwester,
 
-What about slightly altering the concept of v9 to pass a pointer to struct 
-device instead of device name inside phy_init_data?
+On Thu, Aug 15, 2013 at 8:39 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> W dniu 2013-08-14 06:46, Arun Kumar K pisze:
+>
+>> The patch adds the DT binding documentation for Samsung
+>> Exynos5 SoC series imaging subsystem (FIMC-IS).
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>   .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47
+>> ++++++++++++++++++++
+>>   1 file changed, 47 insertions(+)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> new file mode 100644
+>> index 0000000..bfd36df
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> @@ -0,0 +1,47 @@
+>> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+>> +------------------------------------------------------
+>> +
+>> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+>> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+>> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+>> +handle sensor controls and camera post-processing operations. The
+>> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+>> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+>> +dedicated scalers (SCC and SCP).
+>> +
+>> +fimc-is node
+>> +------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible        : must be "samsung,exynos5250-fimc-is"
+>> +- reg               : physical base address and size of the memory mapped
+>> +                      registers
+>> +- interrupt-parent  : parent interrupt controller
+>> +- interrupts        : fimc-is interrupt to the parent combiner
+>
+>
+> Is it really only one interrupt or two as in case of Exynos4x12 ?
+> Also it's probably more appropriate to say "interrupt controller"
+> instead of "combiner", not including details of the the FIMC-IS external
+> interrupt controller in this binding.
+>
 
-Best regards,
-Tomasz
+It needs only one interrupt and that is the one from A5 to main ARM processor.
+Will change it to controller.
 
+>
+>> +- clocks            : list of clock specifiers, corresponding to entries
+>> in
+>> +                      clock-names property;
+>> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0",
+>> "isp_div1",
+>> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1"
+>> entries,
+>> +                      matching entries in the clocks property.
+>> +- pmu               : phandle to the fimc-is pmu node describing the
+>> register
+>> +                      base and size for FIMC-IS PMU.
+>
+>
+> This property needs to be prefixed with "samsung,".
+>
+
+Ok
+
+Regards
+Arun
