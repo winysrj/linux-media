@@ -1,83 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:60219 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab3HSKzS (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:40525 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602Ab3HPMu7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 06:55:18 -0400
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com,
-	shaik.ameer@samsung.com
-Subject: [PATCH v2 0/5] Exynos5 M-Scaler Driver
-Date: Mon, 19 Aug 2013 16:28:47 +0530
-Message-Id: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+	Fri, 16 Aug 2013 08:50:59 -0400
+Received: by mail-pa0-f43.google.com with SMTP id hz10so1849198pad.16
+        for <linux-media@vger.kernel.org>; Fri, 16 Aug 2013 05:50:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <520DD27F.8020708@skyboo.net>
+References: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com>
+	<520DD27F.8020708@skyboo.net>
+Date: Fri, 16 Aug 2013 06:50:58 -0600
+Message-ID: <CAA9z4LYD-skCr82WpE5TtAREpKBvtQzD+jk30KpzSTB08dmDYA@mail.gmail.com>
+Subject: Re: stv090x vs stv0900 support
+From: Chris Lee <updatelee@gmail.com>
+To: Mariusz Bialonczyk <manio@skyboo.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for M-Scaler (M2M Scaler) device which is a
-new device for scaling, blending, color fill  and color space
-conversion on EXYNOS5 SoCs.
+Ive found a few bugs in stv090x that I want to get ironed out 100%
+before I submit the patch, dvb-s2 8psk fec2/3 for example has a
+slightly higher ber then stv0900, Got that fixed but Im still not
+happy with the patch, has a few other minor issues with low sr dvb-s
+qpsk sometimes not locking on the first attempt to tune. The Prof 7500
+also seems to have an issue with stb6100 where get_frequency() wont
+return the correct frequency when other stb6100 devices I have do.
+Once I get those figured out to the point Im happy I'll submit it for
+everyones comments.
 
-This device supports the following as key features.
-    input image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888, L8A8 and L8
-    output image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888
-    input rotation
-        - 0/90/180/270 degree, X/Y/XY Flip
-    scale ratio
-        - 1/4 scale down to 16 scale up
-    color space conversion
-        - RGB to YUV / YUV to RGB
-    Size
-        - Input : 16x16 to 8192x8192
-        - Output:   4x4 to 8192x8192
-    alpha blending, color fill
+Thanks for the link Mariusz, I'll check it out, maybe youve overcome
+some of the shortfalls Ive found
 
-Rebased on:
------------
-git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
+Chris Lee
 
-Changes from v1:
----------------
-1] Split the previous single patch into multiple patches.
-2] Added DT binding documentation.
-3] Removed the unnecessary header file inclusions.
-4] Fix the condition check in mscl_prepare_address for swapping cb/cr addresses.
-
-Shaik Ameer Basha (5):
-  [media] exynos-mscl: Add new driver for M-Scaler
-  [media] exynos-mscl: Add core functionality for the M-Scaler driver
-  [media] exynos-mscl: Add m2m functionality for the M-Scaler driver
-  [media] exynos-mscl: Add DT bindings for M-Scaler driver
-  [media] exynos-mscl: Add Makefile for M-Scaler driver
-
- .../devicetree/bindings/media/exynos5-mscl.txt     |   34 +
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos-mscl/Makefile        |    3 +
- drivers/media/platform/exynos-mscl/mscl-core.c     | 1312 ++++++++++++++++++++
- drivers/media/platform/exynos-mscl/mscl-core.h     |  549 ++++++++
- drivers/media/platform/exynos-mscl/mscl-m2m.c      |  763 ++++++++++++
- drivers/media/platform/exynos-mscl/mscl-regs.c     |  318 +++++
- drivers/media/platform/exynos-mscl/mscl-regs.h     |  282 +++++
- 9 files changed, 3270 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-mscl.txt
- create mode 100644 drivers/media/platform/exynos-mscl/Makefile
- create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.c
- create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.h
- create mode 100644 drivers/media/platform/exynos-mscl/mscl-m2m.c
- create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
- create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
-
--- 
-1.7.9.5
-
+On Fri, Aug 16, 2013 at 1:19 AM, Mariusz Bialonczyk <manio@skyboo.net> wrote:
+> On 07/24/2013 06:39 PM, Chris Lee wrote:
+>> Im looking for comments on these two modules, they overlap support for
+>> the same demods. stv0900 supporting stv0900 and stv090x supporting
+>> stv0900 and stv0903. Ive flipped a few cards from one to the other and
+>> they function fine. In some ways stv090x is better suited. Its a pain
+>> supporting two modules that are written differently but do the same
+>> thing, a fix in one almost always means it has to be implemented in
+>> the other as well.
+> I totally agree with you.
+>
+>> Im not necessarily suggesting dumping stv0900, but Id like to flip a
+>> few cards that I own over to stv090x just to standardize it. The Prof
+>> 7301 and Prof 7500.
+> I did it already for 7301, see here:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28082
+> but due to 'political' reasons it doesn't went upstream.
+> For private use i am still using this patch on recent kernels, because
+> it is working much more stable for my card comparing to stv0900.
+> I think that moving prof 7500 should be relative easy, i even prepared
+> a patch for this but I was not able to test it due to lack of hardware.
+>
+>> Whats everyones thoughts on this? It will cut the number of patch''s
+>> in half when it comes to these demods. Ive got alot more coming lol :)
+> Oh yes, you could also take into account another duplicate code:
+> stb6100_cfg.h used for stv090x
+> stb6100_proc.h used for stv0900
+> In my patch I've successfully switched to stb6100_cfg.h.
+>>
+>> Chris
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> regards,
+> --
+> Mariusz Bia³oñczyk | xmpp/e-mail: manio@skyboo.net
+> http://manio.skyboo.net | https://github.com/manio
+>
