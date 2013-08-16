@@ -1,517 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56310 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab3HUVSz convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:62648 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab3HPJU6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 17:18:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] soc_camera: sensors: make v4l2_clk optional
-Date: Wed, 21 Aug 2013 23:20:08 +0200
-Message-ID: <459042423.HtSBbTYPmb@avalon>
-In-Reply-To: <1377117917-3891-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1377117917-3891-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Fri, 16 Aug 2013 05:20:58 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v6 05/13] [media] exynos5-fimc-is: Add register definition and context header
+Date: Fri, 16 Aug 2013 14:50:37 +0530
+Message-Id: <1376644845-10422-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+References: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+This patch adds the register definition file for the fimc-is driver
+and also the header file containing the main context for the driver.
 
-On Wednesday 21 August 2013 22:45:17 Frank Schäfer wrote:
-> commit 9aea470b "soc-camera: switch I2C subdevice drivers to use v4l2-clk"
-> made a v4l2_clk mandatory for each sensor.
-> While this isn't necessary, it also broke the em28xx driver in connection
-> with ov2640 subdevices and maybe other drivers outside soc_camera as well.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is.h      |  160 ++++++++++++++++++++++
+ 2 files changed, 265 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
 
-While this probably fixes the issue, I don't think it's the way to go. The 
-em28xx driver should instead provide a clock. If we can fix that in time 
-reverting the patches until the next kernel version would have my preference.
-
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/i2c/soc_camera/imx074.c     |   12 ++++++------
->  drivers/media/i2c/soc_camera/mt9m001.c    |   13 ++++++-------
->  drivers/media/i2c/soc_camera/mt9m111.c    |    8 +++++---
->  drivers/media/i2c/soc_camera/mt9t031.c    |   13 ++++++-------
->  drivers/media/i2c/soc_camera/mt9t112.c    |    7 ++++---
->  drivers/media/i2c/soc_camera/mt9v022.c    |   13 ++++++-------
->  drivers/media/i2c/soc_camera/ov2640.c     |   13 ++++++-------
->  drivers/media/i2c/soc_camera/ov5642.c     |    7 ++++---
->  drivers/media/i2c/soc_camera/ov6650.c     |   13 ++++++-------
->  drivers/media/i2c/soc_camera/ov772x.c     |   13 ++++++-------
->  drivers/media/i2c/soc_camera/ov9640.c     |   13 ++++++-------
->  drivers/media/i2c/soc_camera/ov9740.c     |   13 ++++++-------
->  drivers/media/i2c/soc_camera/rj54n1cb0c.c |   13 ++++++-------
->  drivers/media/i2c/soc_camera/tw9910.c     |    7 ++++---
->  14 Dateien geändert, 77 Zeilen hinzugefügt(+), 81 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/imx074.c
-> b/drivers/media/i2c/soc_camera/imx074.c index 1d384a3..e7b6124 100644
-> --- a/drivers/media/i2c/soc_camera/imx074.c
-> +++ b/drivers/media/i2c/soc_camera/imx074.c
-> @@ -438,10 +438,8 @@ static int imx074_probe(struct i2c_client *client,
->  	priv->fmt	= &imx074_colour_fmts[0];
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv-
->clk));
-> -		return -EPROBE_DEFER;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = soc_camera_power_init(&client->dev, ssdd);
->  	if (ret < 0)
-> @@ -455,7 +453,8 @@ static int imx074_probe(struct i2c_client *client,
-> 
->  epwrinit:
->  eprobe:
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	return ret;
->  }
-> 
-> @@ -465,7 +464,8 @@ static int imx074_remove(struct i2c_client *client)
->  	struct imx074 *priv = to_imx074(client);
-> 
->  	v4l2_async_unregister_subdev(&priv->subdev);
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
-> 
->  	if (ssdd->free_bus)
->  		ssdd->free_bus(ssdd);
-> diff --git a/drivers/media/i2c/soc_camera/mt9m001.c
-> b/drivers/media/i2c/soc_camera/mt9m001.c index df97033..07af1bc 100644
-> --- a/drivers/media/i2c/soc_camera/mt9m001.c
-> +++ b/drivers/media/i2c/soc_camera/mt9m001.c
-> @@ -685,15 +685,13 @@ static int mt9m001_probe(struct i2c_client *client,
->  	mt9m001->rect.height	= MT9M001_MAX_HEIGHT;
-> 
->  	mt9m001->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(mt9m001->clk)) {
-> -		ret = PTR_ERR(mt9m001->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(mt9m001->clk))
-> +		mt9m001->clk = NULL;
-> 
->  	ret = mt9m001_video_probe(ssdd, client);
->  	if (ret) {
-> -		v4l2_clk_put(mt9m001->clk);
-> -eclkget:
-> +		if (mt9m001->clk)
-> +			v4l2_clk_put(mt9m001->clk);
->  		v4l2_ctrl_handler_free(&mt9m001->hdl);
->  	}
-> 
-> @@ -705,7 +703,8 @@ static int mt9m001_remove(struct i2c_client *client)
->  	struct mt9m001 *mt9m001 = to_mt9m001(client);
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> 
-> -	v4l2_clk_put(mt9m001->clk);
-> +	if (mt9m001->clk)
-> +		v4l2_clk_put(mt9m001->clk);
->  	v4l2_device_unregister_subdev(&mt9m001->subdev);
->  	v4l2_ctrl_handler_free(&mt9m001->hdl);
->  	mt9m001_video_remove(ssdd);
-> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c
-> b/drivers/media/i2c/soc_camera/mt9m111.c index 6f40566..498f22e 100644
-> --- a/drivers/media/i2c/soc_camera/mt9m111.c
-> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
-> @@ -948,7 +948,7 @@ static int mt9m111_probe(struct i2c_client *client,
-> 
->  	mt9m111->clk = v4l2_clk_get(&client->dev, "mclk");
->  	if (IS_ERR(mt9m111->clk))
-> -		return -EPROBE_DEFER;
-> +		mt9m111->clk = NULL;
-> 
->  	/* Default HIGHPOWER context */
->  	mt9m111->ctx = &context_b;
-> @@ -999,7 +999,8 @@ static int mt9m111_probe(struct i2c_client *client,
->  out_hdlfree:
->  	v4l2_ctrl_handler_free(&mt9m111->hdl);
->  out_clkput:
-> -	v4l2_clk_put(mt9m111->clk);
-> +	if (mt9m111->clk)
-> +		v4l2_clk_put(mt9m111->clk);
-> 
->  	return ret;
->  }
-> @@ -1009,7 +1010,8 @@ static int mt9m111_remove(struct i2c_client *client)
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> 
->  	v4l2_async_unregister_subdev(&mt9m111->subdev);
-> -	v4l2_clk_put(mt9m111->clk);
-> +	if (mt9m111->clk)
-> +		v4l2_clk_put(mt9m111->clk);
->  	v4l2_device_unregister_subdev(&mt9m111->subdev);
->  	v4l2_ctrl_handler_free(&mt9m111->hdl);
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9t031.c
-> b/drivers/media/i2c/soc_camera/mt9t031.c index ee7bb0f..3131d36 100644
-> --- a/drivers/media/i2c/soc_camera/mt9t031.c
-> +++ b/drivers/media/i2c/soc_camera/mt9t031.c
-> @@ -792,15 +792,13 @@ static int mt9t031_probe(struct i2c_client *client,
->  	mt9t031->yskip = 1;
-> 
->  	mt9t031->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(mt9t031->clk)) {
-> -		ret = PTR_ERR(mt9t031->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(mt9t031->clk))
-> +		mt9t031->clk = NULL;
-> 
->  	ret = mt9t031_video_probe(client);
->  	if (ret) {
-> -		v4l2_clk_put(mt9t031->clk);
-> -eclkget:
-> +		if (mt9t031->clk)
-> +			v4l2_clk_put(mt9t031->clk);
->  		v4l2_ctrl_handler_free(&mt9t031->hdl);
->  	}
-> 
-> @@ -811,7 +809,8 @@ static int mt9t031_remove(struct i2c_client *client)
->  {
->  	struct mt9t031 *mt9t031 = to_mt9t031(client);
-> 
-> -	v4l2_clk_put(mt9t031->clk);
-> +	if (mt9t031->clk)
-> +		v4l2_clk_put(mt9t031->clk);
->  	v4l2_device_unregister_subdev(&mt9t031->subdev);
->  	v4l2_ctrl_handler_free(&mt9t031->hdl);
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c
-> b/drivers/media/i2c/soc_camera/mt9t112.c index 46f431a..0a7d6e7 100644
-> --- a/drivers/media/i2c/soc_camera/mt9t112.c
-> +++ b/drivers/media/i2c/soc_camera/mt9t112.c
-> @@ -1097,14 +1097,14 @@ static int mt9t112_probe(struct i2c_client *client,
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
->  	if (IS_ERR(priv->clk))
-> -		return PTR_ERR(priv->clk);
-> +		priv->clk = NULL;
-> 
->  	ret = mt9t112_camera_probe(client);
-> 
->  	/* Cannot fail: using the default supported pixel code */
->  	if (!ret)
->  		mt9t112_set_params(priv, &rect, V4L2_MBUS_FMT_UYVY8_2X8);
-> -	else
-> +	else if (priv->clk)
->  		v4l2_clk_put(priv->clk);
-> 
->  	return ret;
-> @@ -1114,7 +1114,8 @@ static int mt9t112_remove(struct i2c_client *client)
->  {
->  	struct mt9t112_priv *priv = to_mt9t112(client);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	return 0;
->  }
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c
-> b/drivers/media/i2c/soc_camera/mt9v022.c index f9f95f8..bd0f3947 100644
-> --- a/drivers/media/i2c/soc_camera/mt9v022.c
-> +++ b/drivers/media/i2c/soc_camera/mt9v022.c
-> @@ -940,15 +940,13 @@ static int mt9v022_probe(struct i2c_client *client,
->  	mt9v022->rect.height	= MT9V022_MAX_HEIGHT;
-> 
->  	mt9v022->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(mt9v022->clk)) {
-> -		ret = PTR_ERR(mt9v022->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(mt9v022->clk))
-> +		mt9v022->clk = NULL;
-> 
->  	ret = mt9v022_video_probe(client);
->  	if (ret) {
-> -		v4l2_clk_put(mt9v022->clk);
-> -eclkget:
-> +		if (mt9v022->clk)
-> +			v4l2_clk_put(mt9v022->clk);
->  		v4l2_ctrl_handler_free(&mt9v022->hdl);
->  	}
-> 
-> @@ -960,7 +958,8 @@ static int mt9v022_remove(struct i2c_client *client)
->  	struct mt9v022 *mt9v022 = to_mt9v022(client);
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> 
-> -	v4l2_clk_put(mt9v022->clk);
-> +	if (mt9v022->clk)
-> +		v4l2_clk_put(mt9v022->clk);
->  	v4l2_device_unregister_subdev(&mt9v022->subdev);
->  	if (ssdd->free_bus)
->  		ssdd->free_bus(ssdd);
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
-> b/drivers/media/i2c/soc_camera/ov2640.c index 6c6b1c3..b015c4d 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -1101,15 +1101,13 @@ static int ov2640_probe(struct i2c_client *client,
->  		return priv->hdl.error;
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = ov2640_video_probe(client);
->  	if (ret) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> +		if (priv->clk)
-> +			v4l2_clk_put(priv->clk);
->  		v4l2_ctrl_handler_free(&priv->hdl);
->  	} else {
->  		dev_info(&adapter->dev, "OV2640 Probed\n");
-> @@ -1122,7 +1120,8 @@ static int ov2640_remove(struct i2c_client *client)
->  {
->  	struct ov2640_priv       *priv = to_ov2640(client);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> diff --git a/drivers/media/i2c/soc_camera/ov5642.c
-> b/drivers/media/i2c/soc_camera/ov5642.c index 0a5c5d4..86802c9 100644
-> --- a/drivers/media/i2c/soc_camera/ov5642.c
-> +++ b/drivers/media/i2c/soc_camera/ov5642.c
-> @@ -1029,10 +1029,10 @@ static int ov5642_probe(struct i2c_client *client,
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
->  	if (IS_ERR(priv->clk))
-> -		return PTR_ERR(priv->clk);
-> +		priv->clk = NULL;
-> 
->  	ret = ov5642_video_probe(client);
-> -	if (ret < 0)
-> +	if (ret < 0 && priv->clk)
->  		v4l2_clk_put(priv->clk);
-> 
->  	return ret;
-> @@ -1043,7 +1043,8 @@ static int ov5642_remove(struct i2c_client *client)
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->  	struct ov5642 *priv = to_ov5642(client);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	if (ssdd->free_bus)
->  		ssdd->free_bus(ssdd);
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov6650.c
-> b/drivers/media/i2c/soc_camera/ov6650.c index ab01598..2bbd82c 100644
-> --- a/drivers/media/i2c/soc_camera/ov6650.c
-> +++ b/drivers/media/i2c/soc_camera/ov6650.c
-> @@ -1017,15 +1017,13 @@ static int ov6650_probe(struct i2c_client *client,
->  	priv->colorspace  = V4L2_COLORSPACE_JPEG;
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = ov6650_video_probe(client);
->  	if (ret) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> +		if (priv->clk)
-> +			v4l2_clk_put(priv->clk);
->  		v4l2_ctrl_handler_free(&priv->hdl);
->  	}
-> 
-> @@ -1036,7 +1034,8 @@ static int ov6650_remove(struct i2c_client *client)
->  {
->  	struct ov6650 *priv = to_ov6650(client);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> diff --git a/drivers/media/i2c/soc_camera/ov772x.c
-> b/drivers/media/i2c/soc_camera/ov772x.c index 7f2b3c8..60eea93 100644
-> --- a/drivers/media/i2c/soc_camera/ov772x.c
-> +++ b/drivers/media/i2c/soc_camera/ov772x.c
-> @@ -1076,15 +1076,13 @@ static int ov772x_probe(struct i2c_client *client,
->  		return priv->hdl.error;
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = ov772x_video_probe(priv);
->  	if (ret < 0) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> +		if (priv->clk)
-> +			v4l2_clk_put(priv->clk);
->  		v4l2_ctrl_handler_free(&priv->hdl);
->  	} else {
->  		priv->cfmt = &ov772x_cfmts[0];
-> @@ -1098,7 +1096,8 @@ static int ov772x_remove(struct i2c_client *client)
->  {
->  	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> diff --git a/drivers/media/i2c/soc_camera/ov9640.c
-> b/drivers/media/i2c/soc_camera/ov9640.c index e968c3f..8a5830f 100644
-> --- a/drivers/media/i2c/soc_camera/ov9640.c
-> +++ b/drivers/media/i2c/soc_camera/ov9640.c
-> @@ -703,15 +703,13 @@ static int ov9640_probe(struct i2c_client *client,
->  		return priv->hdl.error;
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = ov9640_video_probe(client);
->  	if (ret) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> +		if (priv->clk)
-> +			v4l2_clk_put(priv->clk);
->  		v4l2_ctrl_handler_free(&priv->hdl);
->  	}
-> 
-> @@ -723,7 +721,8 @@ static int ov9640_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct ov9640_priv *priv = to_ov9640_sensor(sd);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> diff --git a/drivers/media/i2c/soc_camera/ov9740.c
-> b/drivers/media/i2c/soc_camera/ov9740.c index ea76863..3906681 100644
-> --- a/drivers/media/i2c/soc_camera/ov9740.c
-> +++ b/drivers/media/i2c/soc_camera/ov9740.c
-> @@ -961,15 +961,13 @@ static int ov9740_probe(struct i2c_client *client,
->  		return priv->hdl.error;
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(priv->clk))
-> +		priv->clk = NULL;
-> 
->  	ret = ov9740_video_probe(client);
->  	if (ret < 0) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> +		if (priv->clk)
-> +			v4l2_clk_put(priv->clk);
->  		v4l2_ctrl_handler_free(&priv->hdl);
->  	}
-> 
-> @@ -980,7 +978,8 @@ static int ov9740_remove(struct i2c_client *client)
->  {
->  	struct ov9740_priv *priv = i2c_get_clientdata(client);
-> 
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-> b/drivers/media/i2c/soc_camera/rj54n1cb0c.c index 7e6d978..47a8c76 100644
-> --- a/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-> +++ b/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-> @@ -1359,15 +1359,13 @@ static int rj54n1_probe(struct i2c_client *client,
->  		(clk_div.ratio_tg + 1) / (clk_div.ratio_t + 1);
-> 
->  	rj54n1->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(rj54n1->clk)) {
-> -		ret = PTR_ERR(rj54n1->clk);
-> -		goto eclkget;
-> -	}
-> +	if (IS_ERR(rj54n1->clk))
-> +		rj54n1->clk = NULL;
-> 
->  	ret = rj54n1_video_probe(client, rj54n1_priv);
->  	if (ret < 0) {
-> -		v4l2_clk_put(rj54n1->clk);
-> -eclkget:
-> +		if (rj54n1->clk)
-> +			v4l2_clk_put(rj54n1->clk);
->  		v4l2_ctrl_handler_free(&rj54n1->hdl);
->  	}
-> 
-> @@ -1379,7 +1377,8 @@ static int rj54n1_remove(struct i2c_client *client)
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> 
-> -	v4l2_clk_put(rj54n1->clk);
-> +	if (rj54n1->clk)
-> +		v4l2_clk_put(rj54n1->clk);
->  	v4l2_device_unregister_subdev(&rj54n1->subdev);
->  	if (ssdd->free_bus)
->  		ssdd->free_bus(ssdd);
-> diff --git a/drivers/media/i2c/soc_camera/tw9910.c
-> b/drivers/media/i2c/soc_camera/tw9910.c index ab54628..2fabae3 100644
-> --- a/drivers/media/i2c/soc_camera/tw9910.c
-> +++ b/drivers/media/i2c/soc_camera/tw9910.c
-> @@ -928,10 +928,10 @@ static int tw9910_probe(struct i2c_client *client,
-> 
->  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
->  	if (IS_ERR(priv->clk))
-> -		return PTR_ERR(priv->clk);
-> +		priv->clk = NULL;
-> 
->  	ret = tw9910_video_probe(client);
-> -	if (ret < 0)
-> +	if (ret < 0 && priv->clk)
->  		v4l2_clk_put(priv->clk);
-> 
->  	return ret;
-> @@ -940,7 +940,8 @@ static int tw9910_probe(struct i2c_client *client,
->  static int tw9910_remove(struct i2c_client *client)
->  {
->  	struct tw9910_priv *priv = to_tw9910(client);
-> -	v4l2_clk_put(priv->clk);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	return 0;
->  }
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+new file mode 100644
+index 0000000..06aa466
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+@@ -0,0 +1,105 @@
++/*
++ * Samsung Exynos5 SoC series FIMC-IS driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd
++ * Arun Kumar K <arun.kk@samsung.com>
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_IS_REGS_H
++#define FIMC_IS_REGS_H
++
++/* WDT_ISP register */
++#define WDT			0x00170000
++/* MCUCTL register */
++#define MCUCTL			0x00180000
++/* MCU Controller Register */
++#define MCUCTLR				(MCUCTL+0x00)
++#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x) << 16)
++#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x) << 12)
++#define MCUCTLR_MSWRST			(1 << 0)
++/* Boot Base OFfset Address Register */
++#define BBOAR				(MCUCTL+0x04)
++#define BBOAR_BBOA(x)			((x) << 0)
++
++/* Interrupt Generation Register 0 from Host CPU to VIC */
++#define INTGR0				(MCUCTL+0x08)
++#define INTGR0_INTGC(n)			(1 << ((n) + 16))
++#define INTGR0_INTGD(n)			(1 << (n))
++
++/* Interrupt Clear Register 0 from Host CPU to VIC */
++#define INTCR0				(MCUCTL+0x0c)
++#define INTCR0_INTCC(n)			(1 << ((n) + 16))
++#define INTCR0_INTCD(n)			(1 << (n))
++
++/* Interrupt Mask Register 0 from Host CPU to VIC */
++#define INTMR0				(MCUCTL+0x10)
++#define INTMR0_INTMC(n)			(1 << ((n) + 16))
++#define INTMR0_INTMD(n)			(1 << (n))
++
++/* Interrupt Status Register 0 from Host CPU to VIC */
++#define INTSR0				(MCUCTL+0x14)
++#define INTSR0_GET_INTSD(n, x)		(((x) >> (n)) & 0x1)
++#define INTSR0_GET_INTSC(n, x)		(((x) >> ((n) + 16)) & 0x1)
++
++/* Interrupt Mask Status Register 0 from Host CPU to VIC */
++#define INTMSR0				(MCUCTL+0x18)
++#define INTMSR0_GET_INTMSD(n, x)	(((x) >> (n)) & 0x1)
++#define INTMSR0_GET_INTMSC(n, x)	(((x) >> ((n) + 16)) & 0x1)
++
++/* Interrupt Generation Register 1 from ISP CPU to Host IC */
++#define INTGR1				(MCUCTL+0x1c)
++#define INTGR1_INTGC(n)			(1 << (n))
++
++/* Interrupt Clear Register 1 from ISP CPU to Host IC */
++#define INTCR1				(MCUCTL+0x20)
++#define INTCR1_INTCC(n)			(1 << (n))
++
++/* Interrupt Mask Register 1 from ISP CPU to Host IC */
++#define INTMR1				(MCUCTL+0x24)
++#define INTMR1_INTMC(n)			(1 << (n))
++
++/* Interrupt Status Register 1 from ISP CPU to Host IC */
++#define INTSR1				(MCUCTL+0x28)
++/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
++#define INTMSR1				(MCUCTL+0x2c)
++/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
++#define INTCR2				(MCUCTL+0x30)
++#define INTCR2_INTCC(n)			(1 << (n))
++
++/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
++#define INTMR2				(MCUCTL+0x34)
++#define INTMR2_INTMCIS(n)		(1 << (n))
++
++/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
++#define INTSR2				(MCUCTL+0x38)
++/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
++#define INTMSR2				(MCUCTL+0x3c)
++/* General Purpose Output Control Register (0~17) */
++#define GPOCTLR				(MCUCTL+0x40)
++#define GPOCTLR_GPOG(n, x)		((x) << (n))
++
++/* General Purpose Pad Output Enable Register (0~17) */
++#define GPOENCTLR			(MCUCTL+0x44)
++#define GPOENCTLR_GPOEN0(n, x)		((x) << (n))
++
++/* General Purpose Input Control Register (0~17) */
++#define GPICTLR				(MCUCTL+0x48)
++
++/* IS Shared Registers between ISP CPU and HOST CPU */
++#define ISSR(n)			(MCUCTL + 0x80 + (n))
++
++/* PMU for FIMC-IS*/
++#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
++#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
++#define PMUREG_ISP_ARM_STATUS			0x2284
++#define PMUREG_ISP_ARM_OPTION			0x2288
++#define PMUREG_ISP_LOW_POWER_OFF		0x0004
++#define PMUREG_ISP_CONFIGURATION		0x4020
++#define PMUREG_ISP_STATUS			0x4024
++
++#endif
+diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
+new file mode 100644
+index 0000000..136f367
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is.h
+@@ -0,0 +1,160 @@
++/*
++ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_IS_H_
++#define FIMC_IS_H_
++
++#include "fimc-is-err.h"
++#include "fimc-is-core.h"
++#include "fimc-is-param.h"
++#include "fimc-is-pipeline.h"
++#include "fimc-is-interface.h"
++
++#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
++#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
++
++/*
++ * Macros used by media dev to get the subdev and vfd
++ * is - driver data from pdev
++ * pid - pipeline index
++ */
++#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
++#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
++#define fimc_is_scc_get_sd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
++#define fimc_is_scc_get_vfd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
++#define fimc_is_scp_get_sd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
++#define fimc_is_scp_get_vfd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
++/*
++ * is - driver data from pdev
++ * sid - sensor index
++ */
++#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
++
++
++/**
++ * struct fimc_is - fimc-is driver private data
++ * @pdev: pointer to FIMC-IS platform device
++ * @pdata: platform data for FIMC-IS
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @clock: FIMC-IS clocks
++ * @pmu_regs: PMU reg base address
++ * @num_pipelines: number of pipelines opened
++ * @minfo: internal memory organization info
++ * @drvdata: fimc-is driver data
++ * @sensor: FIMC-IS sensor context
++ * @pipeline: hardware pipeline context
++ * @interface: hardware interface context
++ */
++struct fimc_is {
++	struct platform_device		*pdev;
++
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct clk			*clock[IS_CLK_MAX_NUM];
++	void __iomem			*pmu_regs;
++	unsigned int			num_pipelines;
++
++	struct fimc_is_meminfo		minfo;
++
++	struct fimc_is_drvdata		*drvdata;
++	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
++	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
++	struct fimc_is_interface	interface;
++};
++
++/* Queue operations for ISP */
++static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &isp->wait_queue);
++	isp->wait_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
++		struct fimc_is_isp *isp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(isp->wait_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	isp->wait_queue_cnt--;
++	return buf;
++}
++
++static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &isp->run_queue);
++	isp->run_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
++		struct fimc_is_isp *isp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(isp->run_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	isp->run_queue_cnt--;
++	return buf;
++}
++
++/* Queue operations for SCALER */
++static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &scp->wait_queue);
++	scp->wait_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
++		struct fimc_is_scaler *scp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(scp->wait_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	scp->wait_queue_cnt--;
++	return buf;
++}
++
++static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &scp->run_queue);
++	scp->run_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
++		struct fimc_is_scaler *scp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(scp->run_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	scp->run_queue_cnt--;
++	return buf;
++}
++
++static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
++{
++	writel(v, is->pmu_regs + offset);
++}
++
++static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
++{
++	return readl(is->pmu_regs + offset);
++}
++
++#endif
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
