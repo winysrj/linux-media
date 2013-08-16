@@ -1,59 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34637 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757214Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 14:53:18 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/16] msi3101: changes for tuner PLL freq limits
-Date: Wed,  7 Aug 2013 21:51:46 +0300
-Message-Id: <1375901507-26661-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
-References: <1375901507-26661-1-git-send-email-crope@iki.fi>
+Received: from mail-ve0-f178.google.com ([209.85.128.178]:61652 "EHLO
+	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753576Ab3HPKKF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 06:10:05 -0400
+Received: by mail-ve0-f178.google.com with SMTP id ox1so1281391veb.37
+        for <linux-media@vger.kernel.org>; Fri, 16 Aug 2013 03:10:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1376313239-19921-2-git-send-email-hverkuil@xs4all.nl>
+References: <1376313239-19921-1-git-send-email-hverkuil@xs4all.nl>
+	<1376313239-19921-2-git-send-email-hverkuil@xs4all.nl>
+Date: Fri, 16 Aug 2013 18:10:05 +0800
+Message-ID: <CAHG8p1CqONcw1LqTwNEZOpc_W8pL2rsH68UJRor2UbDb1fJ-Fg@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/3] adv7842: add new video decoder driver.
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I made some tuner freq limit tests against RF signal generator.
-Adjust some PLL limits according to these test results.
+> +
+> +static int adv7842_g_mbus_fmt(struct v4l2_subdev *sd,
+> +                             struct v4l2_mbus_framefmt *fmt)
+> +{
+> +       struct adv7842_state *state = to_state(sd);
+> +
+> +       fmt->width = state->timings.bt.width;
+> +       fmt->height = state->timings.bt.height;
+> +       fmt->code = V4L2_MBUS_FMT_FIXED;
+> +       fmt->field = V4L2_FIELD_NONE;
+> +
+> +       if (state->mode == ADV7842_MODE_SDP) {
+> +               /* SPD block */
+> +               if (!(sdp_read(sd, 0x5A) & 0x01))
+> +                       return -EINVAL;
+> +               fmt->width = 720;
+> +               /* valid signal */
+> +               if (state->norm & V4L2_STD_525_60)
+> +                       fmt->height = 480;
+> +               else
+> +                       fmt->height = 576;
+> +               fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +               return 0;
+> +       }
+> +
+I believe someone use SDP mode to capture 480i instead of 480p.
+I think we can add a table to map adv7842 output setting and v4l format.
 
-Here are the results, taken from two different devices.
-Numbers are RF limits and calculated and VCO limits.
+> +static int adv7842_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+> +{
+> +       struct adv7842_state *state = to_state(sd);
+> +
+> +       v4l2_dbg(1, debug, sd, "%s:\n", __func__);
+> +
+> +       if (state->mode != ADV7842_MODE_SDP)
+> +               return -ENODATA;
+> +
+> +       if (norm & V4L2_STD_ALL) {
+> +               state->norm = norm;
+> +               return 0;
+> +       }
+> +       return -EINVAL;
+> +}
+Why is there no hardware operation?
 
-Mirics MSi3101 SDR Dongle:
-VHF_MODE  52 - 132  1664 - 4224
-B3_MODE  103 - 263  1648 - 4208
-B45_MODE 413 - 960  1652 - 3840
-
-Hauppauge WinTV 133559 LF:
-VHF_MODE  49 - 130  1568 - 4160
-B3_MODE   98 - 259  1568 - 4144
-B45_MODE 391 - 960  1564 - 3840
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index c4bd963..e7a21a2 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -1306,11 +1306,11 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 		u8 mode;
- 		u8 lo_div;
- 	} band_lut[] = {
--		{ 30000000, 0x01, 16}, /* AM_MODE1 */
-+		{ 47000000, 0x01, 16}, /* AM_MODE1 */
- 		{108000000, 0x02, 32}, /* VHF_MODE */
--		{240000000, 0x04, 16}, /* B3_MODE */
-+		{330000000, 0x04, 16}, /* B3_MODE */
- 		{960000000, 0x08,  4}, /* B45_MODE */
--		{167500000, 0x10,  2}, /* BL_MODE */
-+		{      ~0U, 0x10,  2}, /* BL_MODE */
- 	};
- 	static const struct {
- 		u32 freq;
--- 
-1.7.11.7
-
+if (std == V4L2_STD_NTSC_443)
+                val = 0x20;
+else if (std == V4L2_STD_PAL_60)
+                val = 0x10;
+else if (std == V4L2_STD_PAL_Nc)
+                val = 0x08;
+else if (std == V4L2_STD_PAL_M)
+                val = 0x04;
+else if (std & V4L2_STD_NTSC)
+                val = 0x02;
+else if (std & V4L2_STD_PAL)
+                val = 0x01;
+else if (std & V4L2_STD_SECAM)
+                val = 0x40;
+else
+                return -EINVAL;
+/* force the digital core into a specific video standard */
+sdp_write(sd, 0x0, val);
+/* wait 100ms, otherwise color will be lost */
+msleep(100);
+state->std = std;
+return 0;
