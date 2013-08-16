@@ -1,113 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:38948 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755034Ab3H3CRy (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:39325 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab3HPJVc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:54 -0400
-Received: by mail-pa0-f48.google.com with SMTP id kp13so1677168pab.7
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:54 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 16/19] v4l: Add encoding camera controls.
-Date: Fri, 30 Aug 2013 11:17:15 +0900
-Message-Id: <1377829038-4726-17-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+	Fri, 16 Aug 2013 05:21:32 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v6 12/13] V4L: s5k6a3: Change sensor min/max resolutions
+Date: Fri, 16 Aug 2013 14:50:44 +0530
+Message-Id: <1376644845-10422-13-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+References: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add defines for controls found in UVC 1.5 encoding cameras.
+s5k6a3 sensor has actual pixel resolution of 1408x1402 against
+the active resolution 1392x1392. The real resolution is needed
+when raw sensor SRGB data is dumped to memory by fimc-lite.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 29 +++++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 31 +++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+ drivers/media/i2c/s5k6a3.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index c3f0803..0b3a632 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -781,6 +781,35 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
+diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+index ccbb4fc..34c3165 100644
+--- a/drivers/media/i2c/s5k6a3.c
++++ b/drivers/media/i2c/s5k6a3.c
+@@ -25,10 +25,12 @@
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-subdev.h>
  
-+	case V4L2_CID_ENCODER_MIN_FRAME_INTERVAL: return "Encoder, min. frame interval";
-+	case V4L2_CID_ENCODER_RATE_CONTROL_MODE: return "Encoder, rate control mode";
-+	case V4L2_CID_ENCODER_AVERAGE_BITRATE:	return "Encoder, average bitrate";
-+	case V4L2_CID_ENCODER_CPB_SIZE:		return "Encoder, CPB size";
-+	case V4L2_CID_ENCODER_PEAK_BIT_RATE:	return "Encoder, peak bit rate";
-+	case V4L2_CID_ENCODER_QP_PARAM_I:	return "Encoder, QP param for I frames";
-+	case V4L2_CID_ENCODER_QP_PARAM_P:	return "Encoder, QP param for P frames";
-+	case V4L2_CID_ENCODER_QP_PARAM_BG:	return "Encoder, QP param for B/G frames";
-+	case V4L2_CID_ENCODER_NUM_GDR_FRAMES:	return "Encoder, number of GDR frames";
-+	case V4L2_CID_ENCODER_LTR_BUFFER_CONTROL: return "Encoder, LTR buffer control";
-+	case V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE: return "Encoder, LTR buffer trust mode";
-+	case V4L2_CID_ENCODER_LTR_PICTURE_POSITION: return "Encoder, LTR picture position";
-+	case V4L2_CID_ENCODER_LTR_PICTURE_MODE:	return "Encoder, LTR picture mode";
-+	case V4L2_CID_ENCODER_LTR_VALIDATION:	return "Encoder, LTR validation";
-+	case V4L2_CID_ENCODER_MIN_QP:		return "Encoder, minimum QP param";
-+	case V4L2_CID_ENCODER_MAX_QP:		return "Encoder, maximum QP param";
-+	case V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL: return "Encoder, sync frame interval";
-+	case V4L2_CID_ENCODER_ERROR_RESILIENCY:	return "Encoder, error resiliency";
-+	case V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE: return "Encoder, temporal layer enable";
-+
-+	case V4L2_CID_ENCODER_VP8_SLICE_MODE:	return "Encoder, VP8 slice mode";
-+	case V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE: return "Encoder, VP8 sync frame type";
-+	case V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME: return "Encoder, VP8, DCT partitions per frame";
-+
-+	case V4L2_CID_ENCODER_H264_PROFILE_TOOLSET: return "Encoder, H.264 profile and toolset";
-+	case V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT: return "Encoder, H.264 level IDC limit";
-+	case V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE: return "Encoder, H.264 SEI payload type";
-+	case V4L2_CID_ENCODER_H264_LAYER_PRIORITY: return "Encoder, H.264 layer priority";
-+
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 083bb5a..ef3a30d 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -729,6 +729,37 @@ enum v4l2_auto_focus_range {
- 	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
- };
+-#define S5K6A3_SENSOR_MAX_WIDTH		1392
+-#define S5K6A3_SENSOR_MAX_HEIGHT	1392
+-#define S5K6A3_SENSOR_MIN_WIDTH		32
+-#define S5K6A3_SENSOR_MIN_HEIGHT	32
++#define S5K6A3_SENSOR_MAX_WIDTH		1408
++#define S5K6A3_SENSOR_MAX_HEIGHT	1402
++#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
++#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
++#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
++#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
  
-+/* Controls found in UVC 1.5 encoding cameras */
-+#define V4L2_CID_ENCODER_MIN_FRAME_INTERVAL	(V4L2_CID_CAMERA_CLASS_BASE+32)
-+#define V4L2_CID_ENCODER_RATE_CONTROL_MODE	(V4L2_CID_CAMERA_CLASS_BASE+33)
-+#define V4L2_CID_ENCODER_AVERAGE_BITRATE	(V4L2_CID_CAMERA_CLASS_BASE+34)
-+#define V4L2_CID_ENCODER_CPB_SIZE		(V4L2_CID_CAMERA_CLASS_BASE+35)
-+#define V4L2_CID_ENCODER_PEAK_BIT_RATE		(V4L2_CID_CAMERA_CLASS_BASE+36)
-+#define V4L2_CID_ENCODER_QP_PARAM_I		(V4L2_CID_CAMERA_CLASS_BASE+37)
-+#define V4L2_CID_ENCODER_QP_PARAM_P		(V4L2_CID_CAMERA_CLASS_BASE+38)
-+#define V4L2_CID_ENCODER_QP_PARAM_BG		(V4L2_CID_CAMERA_CLASS_BASE+39)
-+#define V4L2_CID_ENCODER_NUM_GDR_FRAMES		(V4L2_CID_CAMERA_CLASS_BASE+40)
-+#define V4L2_CID_ENCODER_LTR_BUFFER_CONTROL	(V4L2_CID_CAMERA_CLASS_BASE+41)
-+#define V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE	(V4L2_CID_CAMERA_CLASS_BASE+42)
-+#define V4L2_CID_ENCODER_LTR_PICTURE_POSITION	(V4L2_CID_CAMERA_CLASS_BASE+43)
-+#define V4L2_CID_ENCODER_LTR_PICTURE_MODE	(V4L2_CID_CAMERA_CLASS_BASE+44)
-+#define V4L2_CID_ENCODER_LTR_VALIDATION		(V4L2_CID_CAMERA_CLASS_BASE+45)
-+#define V4L2_CID_ENCODER_MIN_QP			(V4L2_CID_CAMERA_CLASS_BASE+46)
-+#define V4L2_CID_ENCODER_MAX_QP			(V4L2_CID_CAMERA_CLASS_BASE+47)
-+#define V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL	(V4L2_CID_CAMERA_CLASS_BASE+48)
-+#define V4L2_CID_ENCODER_ERROR_RESILIENCY	(V4L2_CID_CAMERA_CLASS_BASE+49)
-+#define V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE	(V4L2_CID_CAMERA_CLASS_BASE+50)
-+
-+/* VP8-specific controls */
-+#define V4L2_CID_ENCODER_VP8_SLICE_MODE		(V4L2_CID_CAMERA_CLASS_BASE+51)
-+#define V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME (V4L2_CID_CAMERA_CLASS_BASE+52)
-+#define V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE	(V4L2_CID_CAMERA_CLASS_BASE+53)
-+
-+/* H.264-specific controls */
-+#define V4L2_CID_ENCODER_H264_PROFILE_TOOLSET	(V4L2_CID_CAMERA_CLASS_BASE+54)
-+#define V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT	(V4L2_CID_CAMERA_CLASS_BASE+55)
-+#define V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE	(V4L2_CID_CAMERA_CLASS_BASE+56)
-+#define V4L2_CID_ENCODER_H264_LAYER_PRIORITY	(V4L2_CID_CAMERA_CLASS_BASE+57)
+ #define S5K6A3_DEF_PIX_WIDTH		1296
+ #define S5K6A3_DEF_PIX_HEIGHT		732
+@@ -107,10 +109,11 @@ static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
  
- /* FM Modulator class control IDs */
+ 	fmt = find_sensor_format(mf);
+ 	mf->code = fmt->code;
+-	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
+-			      S5K6A3_SENSOR_MAX_WIDTH, 0,
+-			      &mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
+-			      S5K6A3_SENSOR_MAX_HEIGHT, 0, 0);
++	v4l_bound_align_image(&mf->width,
++			S5K6A3_SENSOR_MIN_WIDTH, S5K6A3_SENSOR_MAX_WIDTH, 0,
++			&mf->height,
++			S5K6A3_SENSOR_MIN_HEIGHT, S5K6A3_SENSOR_MAX_HEIGHT, 0,
++			0);
+ }
  
+ static struct v4l2_mbus_framefmt *__s5k6a3_get_format(
 -- 
-1.8.4
+1.7.9.5
 
