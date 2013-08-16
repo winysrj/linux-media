@@ -1,37 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64008 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691Ab3HMI4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Aug 2013 04:56:25 -0400
-Message-ID: <5209F4B3.2010503@redhat.com>
-Date: Tue, 13 Aug 2013 10:56:19 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:64779 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751523Ab3HQAmI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 20:42:08 -0400
+Received: by mail-ea0-f178.google.com with SMTP id a15so1287736eae.37
+        for <linux-media@vger.kernel.org>; Fri, 16 Aug 2013 17:42:06 -0700 (PDT)
+Message-ID: <520E76E7.30201@googlemail.com>
+Date: Fri, 16 Aug 2013 21:00:55 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] libv4lconvert: Support for Y16 pixel format
-References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com> <1375483372-4354-2-git-send-email-ricardo.ribalda@gmail.com> <CAPybu_0hKXNb=nR2EdesaPsV8kXF2A7MzKd3Zog-YMXLHgk9uw@mail.gmail.com> <52093A03.1060904@googlemail.com>
-In-Reply-To: <52093A03.1060904@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: em28xx + ov2640 and v4l2-clk
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-On 08/12/2013 09:39 PM, Gregor Jasny wrote:
-> On 8/9/13 6:04 PM, Ricardo Ribalda Delgado wrote:
->> ping?
->
-> Thank you for your the updated series.
->
-> Unfortunately I'm still partially busy with moving. I hoped the v4lconvert maintainer Hans (de Goede) will ack these patches.
-
-Series looks good to me:
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
+switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
+to register the ov2640 subdevice (if needed).
+The reason is that v4l2_clk_get() fails in ov2640_probe().
+Does the em28xx driver have to register a (pseudo ?) clock first ?
 
 Regards,
+Frank
 
-Hans
