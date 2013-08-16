@@ -1,259 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1879 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340Ab3H3Gg3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 02:36:29 -0400
-Message-ID: <52203D59.9020605@xs4all.nl>
-Date: Fri, 30 Aug 2013 08:36:09 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from skyboo.net ([82.160.187.4]:37367 "EHLO skyboo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200Ab3HPHqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 03:46:54 -0400
+Message-ID: <520DD27F.8020708@skyboo.net>
+Date: Fri, 16 Aug 2013 09:19:27 +0200
+From: Mariusz Bialonczyk <manio@skyboo.net>
 MIME-Version: 1.0
-To: Pawel Osciak <posciak@chromium.org>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v1 10/19] uvcvideo: Support UVC 1.5 runtime control property.
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-11-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-11-git-send-email-posciak@chromium.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Chris Lee <updatelee@gmail.com>
+References: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com>
+In-Reply-To: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: stv090x vs stv0900 support
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2013 04:17 AM, Pawel Osciak wrote:
-> UVC 1.5 introduces the concept of runtime controls, which can be set during
-> streaming. Non-runtime controls can only be changed while device is idle.
+On 07/24/2013 06:39 PM, Chris Lee wrote:
+> Im looking for comments on these two modules, they overlap support for
+> the same demods. stv0900 supporting stv0900 and stv090x supporting
+> stv0900 and stv0903. Ive flipped a few cards from one to the other and
+> they function fine. In some ways stv090x is better suited. Its a pain
+> supporting two modules that are written differently but do the same
+> thing, a fix in one almost always means it has to be implemented in
+> the other as well.
+I totally agree with you.
 
-I don't know if you know this, but the V4L2_CTRL_FLAG_GRABBED flag can be set for
-controls that cannot be changed while streaming. Typically drivers will set that
-flag for the relevant controls when streaming starts and clear it when streaming
-stops.
+> Im not necessarily suggesting dumping stv0900, but Id like to flip a
+> few cards that I own over to stv090x just to standardize it. The Prof
+> 7301 and Prof 7500.
+I did it already for 7301, see here:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28082
+but due to 'political' reasons it doesn't went upstream.
+For private use i am still using this patch on recent kernels, because
+it is working much more stable for my card comparing to stv0900.
+I think that moving prof 7500 should be relative easy, i even prepared
+a patch for this but I was not able to test it due to lack of hardware.
 
-Toggling that flag also means that a control event has to be generated reporting
-a change of the control flags.
-
-Regards,
-
-	Hans
-
+> Whats everyones thoughts on this? It will cut the number of patch''s
+> in half when it comes to these demods. Ive got alot more coming lol :)
+Oh yes, you could also take into account another duplicate code:
+stb6100_cfg.h used for stv090x
+stb6100_proc.h used for stv0900
+In my patch I've successfully switched to stb6100_cfg.h.
 > 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c | 45 +++++++++++++++++++++++++++++++++-------
->  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++------
->  drivers/media/usb/uvc/uvcvideo.h | 12 +++++++----
->  3 files changed, 57 insertions(+), 18 deletions(-)
+> Chris
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-> index d735c88..b0a19b9 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -1076,8 +1076,19 @@ void __uvc_ctrl_unlock(struct uvc_video_chain *chain)
->  	mutex_unlock(&chain->pipeline->ctrl_mutex);
->  }
->  
-> +static int uvc_check_ctrl_runtime(struct uvc_control *ctrl, bool streaming)
-> +{
-> +	if (streaming && !ctrl->in_runtime) {
-> +		uvc_trace(UVC_TRACE_CONTROL,
-> +				"Control disabled while streaming\n");
-> +		return -EBUSY;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-> -	struct v4l2_queryctrl *v4l2_ctrl)
-> +			struct v4l2_queryctrl *v4l2_ctrl, bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> @@ -1093,6 +1104,10 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
->  		goto done;
->  	}
->  
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		goto done;
-> +
->  	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
->  done:
->  	__uvc_ctrl_unlock(chain);
-> @@ -1109,7 +1124,7 @@ done:
->   * manually.
->   */
->  int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> -	struct v4l2_querymenu *query_menu)
-> +	struct v4l2_querymenu *query_menu, bool streaming)
->  {
->  	struct uvc_menu_info *menu_info;
->  	struct uvc_control_mapping *mapping;
-> @@ -1132,6 +1147,10 @@ int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
->  		goto done;
->  	}
->  
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		goto done;
-> +
->  	if (query_menu->index >= mapping->menu_count) {
->  		ret = -EINVAL;
->  		goto done;
-> @@ -1436,21 +1455,26 @@ done:
->  	return ret;
->  }
->  
-> -int uvc_ctrl_get(struct uvc_video_chain *chain,
-> -	struct v4l2_ext_control *xctrl)
-> +int uvc_ctrl_get(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl,
-> +		 bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> +	int ret;
->  
->  	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
->  	if (ctrl == NULL)
->  		return -EINVAL;
->  
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
->  }
->  
-> -int uvc_ctrl_set(struct uvc_video_chain *chain,
-> -	struct v4l2_ext_control *xctrl)
-> +int uvc_ctrl_set(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl,
-> +		 bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> @@ -1466,6 +1490,10 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
->  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
->  		return -EACCES;
->  
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* Clamp out of range values. */
->  	switch (mapping->v4l2_type) {
->  	case V4L2_CTRL_TYPE_INTEGER:
-> @@ -1885,8 +1913,9 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
->  	ctrl->initialized = 1;
->  
->  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
-> -		"entity %u\n", ctrl->info.entity, ctrl->info.selector,
-> -		dev->udev->devpath, ctrl->entity->id);
-> +		"entity %u, init/runtime %d/%d\n", ctrl->info.entity,
-> +		ctrl->info.selector, dev->udev->devpath, ctrl->entity->id,
-> +		ctrl->on_init, ctrl->in_runtime);
->  
->  done:
->  	if (ret < 0)
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index a899159..decd65f 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -597,7 +597,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  
->  	/* Get, Set & Query control */
->  	case VIDIOC_QUERYCTRL:
-> -		return uvc_query_v4l2_ctrl(chain, arg);
-> +		return uvc_query_v4l2_ctrl(chain, arg,
-> +					uvc_is_stream_streaming(stream));
->  
->  	case VIDIOC_G_CTRL:
->  	{
-> @@ -611,7 +612,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		if (ret < 0)
->  			return ret;
->  
-> -		ret = uvc_ctrl_get(chain, &xctrl);
-> +		ret = uvc_ctrl_get(chain, &xctrl,
-> +					uvc_is_stream_streaming(stream));
->  		uvc_ctrl_rollback(handle);
->  		if (ret >= 0)
->  			ctrl->value = xctrl.value;
-> @@ -635,7 +637,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		if (ret < 0)
->  			return ret;
->  
-> -		ret = uvc_ctrl_set(chain, &xctrl);
-> +		ret = uvc_ctrl_set(chain, &xctrl,
-> +					uvc_is_stream_streaming(stream));
->  		if (ret < 0) {
->  			uvc_ctrl_rollback(handle);
->  			return ret;
-> @@ -647,7 +650,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  	}
->  
->  	case VIDIOC_QUERYMENU:
-> -		return uvc_query_v4l2_menu(chain, arg);
-> +		return uvc_query_v4l2_menu(chain, arg,
-> +					uvc_is_stream_streaming(stream));
->  
->  	case VIDIOC_G_EXT_CTRLS:
->  	{
-> @@ -660,7 +664,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  			return ret;
->  
->  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> -			ret = uvc_ctrl_get(chain, ctrl);
-> +			ret = uvc_ctrl_get(chain, ctrl,
-> +					uvc_is_stream_streaming(stream));
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
->  				ctrls->error_idx = i;
-> @@ -688,7 +693,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  			return ret;
->  
->  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> -			ret = uvc_ctrl_set(chain, ctrl);
-> +			ret = uvc_ctrl_set(chain, ctrl,
-> +					uvc_is_stream_streaming(stream));
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
->  				ctrls->error_idx = cmd == VIDIOC_S_EXT_CTRLS
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-> index 88f5e38..46ffd92 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -694,6 +694,10 @@ extern int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
->  void uvc_video_clock_update(struct uvc_streaming *stream,
->  			    struct v4l2_buffer *v4l2_buf,
->  			    struct uvc_buffer *buf);
-> +static inline bool uvc_is_stream_streaming(struct uvc_streaming *stream)
-> +{
-> +	return vb2_is_streaming(&stream->queue.queue);
-> +}
->  
->  /* Status */
->  extern int uvc_status_init(struct uvc_device *dev);
-> @@ -705,9 +709,9 @@ extern void uvc_status_stop(struct uvc_device *dev);
->  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
->  
->  extern int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-> -		struct v4l2_queryctrl *v4l2_ctrl);
-> +		struct v4l2_queryctrl *v4l2_ctrl, bool streaming);
->  extern int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> -		struct v4l2_querymenu *query_menu);
-> +		struct v4l2_querymenu *query_menu, bool streaming);
->  
->  extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
->  		const struct uvc_control_mapping *mapping);
-> @@ -731,9 +735,9 @@ static inline int uvc_ctrl_rollback(struct uvc_fh *handle)
->  }
->  
->  extern int uvc_ctrl_get(struct uvc_video_chain *chain,
-> -		struct v4l2_ext_control *xctrl);
-> +		struct v4l2_ext_control *xctrl, bool streaming);
->  extern int uvc_ctrl_set(struct uvc_video_chain *chain,
-> -		struct v4l2_ext_control *xctrl);
-> +		struct v4l2_ext_control *xctrl, bool streaming);
->  
->  extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
->  		struct uvc_xu_control_query *xqry);
-> 
+
+regards,
+-- 
+Mariusz Białończyk | xmpp/e-mail: manio@skyboo.net
+http://manio.skyboo.net | https://github.com/manio
 
