@@ -1,31 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from velox.its.uu.se ([130.238.7.74]:44201 "EHLO velox.its.uu.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756Ab3HENGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Aug 2013 09:06:11 -0400
-Message-ID: <20130805145631.152764rotldkpf5r@webmail.uu.se>
-Date: Mon, 05 Aug 2013 14:56:31 +0200
-From: Lisbeth Karlsson <lisbeth.karlsson@botan.uu.se>
-Reply-to: halawani.aao@ovi.com
-To: undisclosed-recipients:;
-Subject: Proposal
+Received: from mailman.olhcc.edu ([66.210.239.126]:42583 "EHLO
+	mailman.olhcc.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab3HPNuL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 09:50:11 -0400
+From: "Roussel, Daniel" <droussel@olhcc.edu>
+Subject: It is Private
+Date: Fri, 16 Aug 2013 13:44:41 +0000
+Message-ID: <5F01BFF2D455C0448CD3A8E018CC7FAFB47E8224@VSP-3.hcc.local>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I seek your consent to present you as the next of kin to the account  
-of a deceased client for claims valued at Fourteen million, three  
-hundred thousand Pounds.
+It is Private
 
-Contact me through my private email for details: halawani.aao@ovi.com
+I am George Daniels, a Banker and credit system programmer (HSBC bank).
+I saw your email address while browsing through  the bank D.T.C Screen in my office yesterday so I decided to use this very chance to know you. I believe we should use every opportunity to know each other better. However, I am contacting you for obvious reason which you will understand.
 
-Mr. Halawani, Azhar Abdulrahim.
-Solicitors Legal Services Barristers
-United Kingdom
+I am sending this mail just to know if this email address is OK,
+reply me back so that I will send  more details to you.
+I have a very important thing to discuss with you, I look forward to receiving your response at
+georgedaniels@postino.net<mailto:georgedaniels@postino.net>. Have a pleasant day.
 
+George Daniels
