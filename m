@@ -1,131 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3717 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229Ab3HTG2Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 02:28:24 -0400
-Message-ID: <52130C6D.6010601@xs4all.nl>
-Date: Tue, 20 Aug 2013 08:27:57 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from nm22-vm1.bullet.mail.bf1.yahoo.com ([98.139.212.127]:28662 "EHLO
+	nm22-vm1.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751397Ab3HPMp6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 08:45:58 -0400
+References: <1376586925.5384.YahooMailNeo@web140001.mail.bf1.yahoo.com> <1376642528.76478.YahooMailNeo@web140001.mail.bf1.yahoo.com>
+Message-ID: <1376657157.35696.YahooMailNeo@web140004.mail.bf1.yahoo.com>
+Date: Fri, 16 Aug 2013 05:45:57 -0700 (PDT)
+From: Jody Gugelhupf <knueffle@yahoo.com>
+Reply-To: Jody Gugelhupf <knueffle@yahoo.com>
+Subject: Re: DVR card SAA7134/SAA7135HL unknown
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1376642528.76478.YahooMailNeo@web140001.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.samsung@gmail.com>
-CC: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	posciak@google.com, Arun Kumar K <arun.kk@samsung.com>
-Subject: Re: [PATCH v2 2/5] [media] exynos-mscl: Add core functionality for
- the M-Scaler driver
-References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-3-git-send-email-shaik.ameer@samsung.com> <52121844.3030300@xs4all.nl> <CAOD6ATqTz+xTqwXe0PvQq43fk4AiAdcMy-RwbOczU++dXZOyyQ@mail.gmail.com>
-In-Reply-To: <CAOD6ATqTz+xTqwXe0PvQq43fk4AiAdcMy-RwbOczU++dXZOyyQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/20/2013 07:43 AM, Shaik Ameer Basha wrote:
-> + linux-media, linux-samsung-soc
-> 
-> Hi Hans,
-> 
-> Thanks for the review.
-> Will address all your comments in v3.
-> 
-> I have only one doubt regarding try_ctrl... (addressed inline)
-> 
-> 
-> On Mon, Aug 19, 2013 at 6:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
->>> This patch adds the core functionality for the M-Scaler driver.
->>
->> Some more comments below...
->>
->>>
->>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->>> ---
->>>  drivers/media/platform/exynos-mscl/mscl-core.c | 1312 ++++++++++++++++++++++++
->>>  drivers/media/platform/exynos-mscl/mscl-core.h |  549 ++++++++++
->>>  2 files changed, 1861 insertions(+)
->>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.c
->>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.h
->>>
->>> diff --git a/drivers/media/platform/exynos-mscl/mscl-core.c b/drivers/media/platform/exynos-mscl/mscl-core.c
->>> new file mode 100644
->>> index 0000000..4a3a851
->>> --- /dev/null
->>> +++ b/drivers/media/platform/exynos-mscl/mscl-core.c
->>> @@ -0,0 +1,1312 @@
->>> +/*
->>> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
->>> + *           http://www.samsung.com
->>> + *
->>> + * Samsung EXYNOS5 SoC series M-Scaler driver
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License as published
->>> + * by the Free Software Foundation, either version 2 of the License,
->>> + * or (at your option) any later version.
->>> + */
->>> +
->>> +#include <linux/clk.h>
->>> +#include <linux/interrupt.h>
-> 
-> [snip]
-> 
->>> +
->>> +static int __mscl_s_ctrl(struct mscl_ctx *ctx, struct v4l2_ctrl *ctrl)
->>> +{
->>> +     struct mscl_dev *mscl = ctx->mscl_dev;
->>> +     struct mscl_variant *variant = mscl->variant;
->>> +     unsigned int flags = MSCL_DST_FMT | MSCL_SRC_FMT;
->>> +     int ret = 0;
->>> +
->>> +     if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
->>> +             return 0;
->>
->> Why would you want to do this check?
-> 
-> Will remove this. seems no such check is required for this driver.
-> 
->>
->>> +
->>> +     switch (ctrl->id) {
->>> +     case V4L2_CID_HFLIP:
->>> +             ctx->hflip = ctrl->val;
->>> +             break;
->>> +
->>> +     case V4L2_CID_VFLIP:
->>> +             ctx->vflip = ctrl->val;
->>> +             break;
->>> +
->>> +     case V4L2_CID_ROTATE:
->>> +             if ((ctx->state & flags) == flags) {
->>> +                     ret = mscl_check_scaler_ratio(variant,
->>> +                                     ctx->s_frame.crop.width,
->>> +                                     ctx->s_frame.crop.height,
->>> +                                     ctx->d_frame.crop.width,
->>> +                                     ctx->d_frame.crop.height,
->>> +                                     ctx->ctrls_mscl.rotate->val);
->>> +
->>> +                     if (ret)
->>> +                             return -EINVAL;
->>> +             }
->>
->> I think it would be good if the try_ctrl op is implemented so you can call
->> VIDIOC_EXT_TRY_CTRLS in the application to check if the ROTATE control can be
->> set.
-> 
-> * @try_ctrl: Test whether the control's value is valid. Only relevant when
-> * the usual min/max/step checks are not sufficient.
-> 
-> As we support only 0,90,270 and the min, max and step can address these values,
-> does it really relevant to have try_ctrl op here ???
+ok, thanks to theBear on IRC i managed to get it working with mplayer, so in case someone in the future runs into the same problem i hope they will find my post.
+I connected a camera to one cable and tried all inputs and video devices:
+mplayer tv:// -tv driver=v4l2:device=/dev/video0:input=0
 
-Well, you seem to have an additional mscl_check_scaler_ratio check here that can
-make it fail, in other words: the min/max/step checks aren't sufficient.
+...
+mplayer tv:// -tv driver=v4l2:device=/dev/video7:input=8
 
-Regards,
 
-	Hans
+most resulting videos were just black, but there were also some green and some grey lines ones, then i remembered another post, namely:
+http://www.zoneminder.com/wiki/index.php/Videocards_with_Philips_saa7134_chipset) 
+So this made me add to my modprobe and rebooted:
 
+alias char-major-81 videodev
+alias char-major-81-0 saa7134
+options saa7134 card=33,33,33,33
+
+
+then tried the mplayer command again and it worked!!! :)
+
+
+
+----- Original Message -----
+From: Jody Gugelhupf <knueffle@yahoo.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: 
+Sent: Friday, August 16, 2013 10:42:08 AM
+Subject: Re: DVR card SAA7134/SAA7135HL unknown
+
+Seems like something went wrong with pastebin, here the info again, would really appreciate some help:
+http://pastebin.com/TUTpkc0F
+
+
+
+----- Original Message -----
+From: Jody Gugelhupf <knueffle@yahoo.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: 
+Sent: Thursday, August 15, 2013 7:15:25 PM
+Subject: DVR card SAA7134/SAA7135HL unknown
+
+hi all :)
+trying to get this 8 channel dvr card to work in linux, but I get this:
+
+Board is currently unknown. You might try to use the card=<nr>
+saa7134: insmod option to specify which board do you have, but this is
+saa7134: somewhat risky, as might damage your card. It is better to ask
+saa7134: for support at linux-media@vger.kernel.org.
+
+so here I am. I have not tried to set the card myself as I don't know what number to use. Was hoping I could get some help here to get it working. Some info I collected so far can be found here http://pastebin.ca/2430477 any ideas what I might try next or what card to specify?
+thank you in advance for any help.
+jody 
