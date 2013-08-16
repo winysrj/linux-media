@@ -1,241 +1,674 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:53403 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776Ab3HFTGJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 15:06:09 -0400
-MIME-Version: 1.0
-In-Reply-To: <52013482.e107c20a.27f9.ffffa718SMTPIN_ADDED_BROKEN@mx.google.com>
-References: <1374772648-19151-1-git-send-email-tom.cooksey@arm.com>
-	<CAF6AEGtspnhSGNM4_QQubVfOkZ1Gh1-Z3iyHOLBPVWuqRy81ew@mail.gmail.com>
-	<51f29ccd.f014b40a.34cc.ffffca2aSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGvFPGueM_LHVij9KFzM6NJySHCzmaLstuzZkK5GwP+6gQ@mail.gmail.com>
-	<51ffdc7e.06b8b40a.2cc8.0fe0SMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGsyKk_G-R-OX_YcgYFDgTEmCy9Vf2LV1pAOV0452QKSww@mail.gmail.com>
-	<5200deb3.0b24b40a.3b26.ffffbadeSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGvXcpTKrTjhvrycLqab6F9QP5fAk0ZEWxJ-WvE==PiPsA@mail.gmail.com>
-	<52010257.245fc20a.6ff8.1cfdSMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGsDA8qdShWdYQRqQ0Czn4mLAe-FoADjZdRFcbeWGGe8Hg@mail.gmail.com>
-	<52013482.e107c20a.27f9.ffffa718SMTPIN_ADDED_BROKEN@mx.google.com>
-Date: Tue, 6 Aug 2013 15:06:05 -0400
-Message-ID: <CAF6AEGtaYJfJ4WBddbtyE9P8odXOYvJXLsreMwXMLCBOsfXy7w@mail.gmail.com>
-Subject: Re: [RFC 0/1] drm/pl111: Initial drm/kms driver for pl111
-From: Rob Clark <robdclark@gmail.com>
-To: Tom Cooksey <tom.cooksey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:49640 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754342Ab3HPJVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Aug 2013 05:21:03 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v6 06/13] [media] exynos5-fimc-is: Add isp subdev
+Date: Fri, 16 Aug 2013 14:50:38 +0530
+Message-Id: <1376644845-10422-7-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+References: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 6, 2013 at 1:38 PM, Tom Cooksey <tom.cooksey@arm.com> wrote:
->
->> >> ... This is the purpose of the attach step,
->> >> so you know all the devices involved in sharing up front before
->> >> allocating the backing pages. (Or in the worst case, if you have a
->> >> "late attacher" you at least know when no device is doing dma access
->> >> to a buffer and can reallocate and move the buffer.)  A long time
->> >> back, I had a patch that added a field or two to 'struct
->> >> device_dma_parameters' so that it could be known if a device
->> >> required contiguous buffers.. looks like that never got merged, so
->> >> I'd need to dig that back up and resend it.  But the idea was to
->> >> have the 'struct device' encapsulate all the information that would
->> >> be needed to do-the-right-thing when it comes to placement.
->> >
->> > As I understand it, it's up to the exporting device to allocate the
->> > memory backing the dma_buf buffer. I guess the latest possible point
->> > you can allocate the backing pages is when map_dma_buf is first
->> > called? At that point the exporter can iterate over the current set
->> > of attachments, programmatically determine the all the constraints of
->> > all the attached drivers and attempt to allocate the backing pages
->> > in such a way as to satisfy all those constraints?
->>
->> yes, this is the idea..  possibly some room for some helpers to help
->> out with this, but that is all under the hood from userspace
->> perspective
->>
->> > Didn't you say that programmatically describing device placement
->> > constraints was an unbounded problem? I guess we would have to
->> > accept that it's not possible to describe all possible constraints
->> > and instead find a way to describe the common ones?
->>
->> well, the point I'm trying to make, is by dividing your constraints
->> into two groups, one that impacts and is handled by userspace, and one
->> that is in the kernel (ie. where the pages go), you cut down the
->> number of permutations that the kernel has to care about considerably.
->>  And kernel already cares about, for example, what range of addresses
->> that a device can dma to/from.  I think really the only thing missing
->> is the max # of sglist entries (contiguous or not)
->
-> I think it's more than physically contiguous or not.
->
-> For example, it can be more efficient to use large page sizes on
-> devices with IOMMUs to reduce TLB traffic. I think the size and even
-> the availability of large pages varies between different IOMMUs.
+fimc-is driver takes video data input from the ISP video node
+which is added in this patch. This node accepts Bayer input
+buffers which is given from the IS sensors.
 
-sure.. but I suppose if we can spiff out dma_params to express "I need
-contiguous", perhaps we can add some way to express "I prefer
-as-contiguous-as-possible".. either way, this is about where the pages
-are placed, and not about the layout of pixels within the page, so
-should be in kernel.  It's something that is missing, but I believe
-that it belongs in dma_params and hidden behind dma_alloc_*() for
-simple drivers.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-isp.c |  534 +++++++++++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-isp.h |   90 ++++
+ 2 files changed, 624 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
 
-> There's also the issue of buffer stride alignment. As I say, if the
-> buffer is to be written by a tile-based GPU like Mali, it's more
-> efficient if the buffer's stride is aligned to the max AXI bus burst
-> length. Though I guess a buffer stride only makes sense as a concept
-> when interpreting the data as a linear-layout 2D image, so perhaps
-> belongs in user-space along with format negotiation?
->
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.c b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+new file mode 100644
+index 0000000..882c291
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+@@ -0,0 +1,534 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++
++#include "fimc-is.h"
++
++#define ISP_DRV_NAME "fimc-is-isp"
++
++static const struct fimc_is_fmt formats[] = {
++	{
++		.name           = "Bayer GR-BG 8bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG8,
++		.depth		= { 8 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 10bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG10,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 12bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG12,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++};
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
++{
++	unsigned int i;
++
++	for (i = 0; i < NUM_FORMATS; i++)
++		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
++			return &formats[i];
++	return NULL;
++}
++
++static int isp_video_output_start_streaming(struct vb2_queue *vq,
++					unsigned int count)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++
++	set_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_stop_streaming(struct vb2_queue *vq)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf;
++
++	/* Release unused buffers */
++	while (!list_empty(&isp->wait_queue)) {
++		buf = fimc_is_isp_wait_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++	while (!list_empty(&isp->run_queue)) {
++		buf = fimc_is_isp_run_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++
++	clear_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_queue_setup(struct vb2_queue *vq,
++			const struct v4l2_format *pfmt,
++			unsigned int *num_buffers, unsigned int *num_planes,
++			unsigned int sizes[], void *allocators[])
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	const struct fimc_is_fmt *fmt = isp->fmt;
++	unsigned int wh, i;
++
++	if (!fmt)
++		return -EINVAL;
++
++	*num_planes = fmt->num_planes;
++	wh = isp->width * isp->height;
++
++	for (i = 0; i < *num_planes; i++) {
++		allocators[i] = isp->alloc_ctx;
++		sizes[i] = (wh * fmt->depth[i]) / 8;
++	}
++	return 0;
++}
++
++static int isp_video_output_buffer_init(struct vb2_buffer *vb)
++{
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	buf->paddr[0] = vb2_dma_contig_plane_dma_addr(vb, 0);
++	return 0;
++}
++
++static int isp_video_output_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	unsigned long size;
++
++	size = (isp->width * isp->height * isp->fmt->depth[0]) / 8;
++	if (vb2_plane_size(vb, 0) < size) {
++		v4l2_err(&isp->subdev, "User buffer too small (%ld < %ld)\n",
++			 vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++	vb2_set_plane_payload(vb, 0, size);
++
++	return 0;
++}
++
++static void isp_video_output_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	fimc_is_pipeline_buf_lock(isp->pipeline);
++	fimc_is_isp_wait_queue_add(isp, buf);
++	fimc_is_pipeline_buf_unlock(isp->pipeline);
++
++	/* Call shot command */
++	fimc_is_pipeline_shot(isp->pipeline);
++}
++
++static const struct vb2_ops isp_video_output_qops = {
++	.queue_setup	 = isp_video_output_queue_setup,
++	.buf_init	 = isp_video_output_buffer_init,
++	.buf_prepare	 = isp_video_output_buffer_prepare,
++	.buf_queue	 = isp_video_output_buffer_queue,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
++	.start_streaming = isp_video_output_start_streaming,
++	.stop_streaming	 = isp_video_output_stop_streaming,
++};
++
++static const struct v4l2_file_operations isp_video_output_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vb2_fop_mmap,
++};
++
++/*
++ * Video node ioctl operations
++ */
++static int isp_querycap_output(struct file *file, void *priv,
++					struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, ISP_DRV_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, ISP_DRV_NAME, sizeof(cap->card) - 1);
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++			ISP_DRV_NAME);
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int isp_enum_fmt_mplane(struct file *file, void *priv,
++				     struct v4l2_fmtdesc *f)
++{
++	const struct fimc_is_fmt *fmt;
++
++	if (f->index >= NUM_FORMATS)
++		return -EINVAL;
++
++	fmt = &formats[f->index];
++	strlcpy(f->description, fmt->name, sizeof(f->description));
++	f->pixelformat = fmt->fourcc;
++
++	return 0;
++}
++
++static int isp_g_fmt_mplane(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++	const struct fimc_is_fmt *fmt = isp->fmt;
++
++	plane_fmt->bytesperline = (isp->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = plane_fmt->bytesperline * isp->height;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->width = isp->width;
++	pixm->height = isp->height;
++	pixm->field = V4L2_FIELD_NONE;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_try_fmt_mplane(struct file *file, void *fh,
++		struct v4l2_format *f)
++{
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++
++	fmt = find_format(f);
++	if (!fmt)
++		fmt = (struct fimc_is_fmt *) &formats[0];
++
++	v4l_bound_align_image(&pixm->width,
++			ISP_MIN_WIDTH + SENSOR_WIDTH_PADDING,
++			ISP_MAX_WIDTH + SENSOR_WIDTH_PADDING, 0,
++			&pixm->height,
++			ISP_MIN_HEIGHT + SENSOR_HEIGHT_PADDING,
++			ISP_MAX_HEIGHT + SENSOR_HEIGHT_PADDING, 0,
++			0);
++
++	plane_fmt->bytesperline = (pixm->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = (pixm->width * pixm->height *
++				fmt->depth[0]) / 8;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->field = V4L2_FIELD_NONE;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_s_fmt_mplane(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	int ret;
++
++	ret = isp_try_fmt_mplane(file, priv, f);
++	if (ret)
++		return ret;
++
++	/* Get format type */
++	fmt = find_format(f);
++	if (!fmt) {
++		fmt = &formats[0];
++		pixm->pixelformat = fmt->fourcc;
++		pixm->num_planes = fmt->num_planes;
++	}
++
++	isp->fmt = fmt;
++	isp->width = pixm->width;
++	isp->height = pixm->height;
++	isp->size_image = pixm->plane_fmt[0].sizeimage;
++	set_bit(STATE_INIT, &isp->output_state);
++	return 0;
++}
++
++static int isp_reqbufs(struct file *file, void *priv,
++		struct v4l2_requestbuffers *reqbufs)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	int ret;
++
++	reqbufs->count = max_t(u32, FIMC_IS_ISP_REQ_BUFS_MIN, reqbufs->count);
++	ret = vb2_reqbufs(&isp->vbq, reqbufs);
++	if (ret) {
++		v4l2_err(&isp->subdev, "vb2 req buffers failed\n");
++		return ret;
++	}
++
++	if (reqbufs->count < FIMC_IS_ISP_REQ_BUFS_MIN) {
++		reqbufs->count = 0;
++		vb2_reqbufs(&isp->vbq, reqbufs);
++		return -ENOMEM;
++	}
++	set_bit(STATE_BUFS_ALLOCATED, &isp->output_state);
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops isp_video_output_ioctl_ops = {
++	.vidioc_querycap		= isp_querycap_output,
++	.vidioc_enum_fmt_vid_out_mplane	= isp_enum_fmt_mplane,
++	.vidioc_try_fmt_vid_out_mplane	= isp_try_fmt_mplane,
++	.vidioc_s_fmt_vid_out_mplane	= isp_s_fmt_mplane,
++	.vidioc_g_fmt_vid_out_mplane	= isp_g_fmt_mplane,
++	.vidioc_reqbufs			= isp_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static int isp_subdev_registered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct vb2_queue *q = &isp->vbq;
++	struct video_device *vfd = &isp->vfd;
++	int ret;
++
++	mutex_init(&isp->video_lock);
++
++	memset(vfd, 0, sizeof(*vfd));
++	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.output");
++
++	vfd->fops = &isp_video_output_fops;
++	vfd->ioctl_ops = &isp_video_output_ioctl_ops;
++	vfd->v4l2_dev = sd->v4l2_dev;
++	vfd->release = video_device_release_empty;
++	vfd->lock = &isp->video_lock;
++	vfd->queue = q;
++	vfd->vfl_dir = VFL_DIR_TX;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++
++	memset(q, 0, sizeof(*q));
++	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->ops = &isp_video_output_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct fimc_is_buf);
++	q->drv_priv = isp;
++
++	ret = vb2_queue_init(q);
++	if (ret < 0)
++		return ret;
++
++	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
++	if (ret < 0)
++		return ret;
++
++	video_set_drvdata(vfd, isp);
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		media_entity_cleanup(&vfd->entity);
++		return ret;
++	}
++
++	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
++		  vfd->name, video_device_node_name(vfd));
++	return 0;
++}
++
++static void isp_subdev_unregistered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++
++	if (isp && video_is_registered(&isp->vfd))
++		video_unregister_device(&isp->vfd);
++}
++
++static const struct v4l2_subdev_internal_ops isp_subdev_internal_ops = {
++	.registered = isp_subdev_registered,
++	.unregistered = isp_subdev_unregistered,
++};
++
++static struct fimc_is_sensor *fimc_is_get_sensor(struct fimc_is *is,
++		int sensor_id)
++{
++	int i;
++
++	for (i = 0; i < FIMC_IS_NUM_SENSORS; i++) {
++		if (is->sensor[i].drvdata->id == sensor_id)
++			return &is->sensor[i];
++	}
++	return NULL;
++}
++
++static int isp_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct fimc_is_sensor *sensor;
++	const struct sensor_drv_data *sdata;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (on) {
++		ret = pm_runtime_get_sync(&is->pdev->dev);
++		if (ret < 0)
++			return ret;
++
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++
++		ret = fimc_is_pipeline_open(isp->pipeline, sensor);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline open failed\n");
++	} else {
++		ret = fimc_is_pipeline_close(isp->pipeline);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline close failed\n");
++		pm_runtime_put_sync(&is->pdev->dev);
++	}
++
++	return ret;
++}
++
++static struct v4l2_subdev_core_ops isp_core_ops = {
++	.s_power = isp_s_power,
++};
++
++static int isp_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct v4l2_subdev_format fmt;
++	const struct sensor_drv_data *sdata;
++	struct fimc_is_sensor *sensor;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (enable) {
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++		/* Retrieve the sensor format */
++		fmt.pad = 0;
++		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		ret = v4l2_subdev_call(sensor_sd, pad, get_fmt, NULL, &fmt);
++		if (ret)
++			return ret;
++
++		sensor->width = fmt.format.width - SENSOR_WIDTH_PADDING;
++		sensor->height = fmt.format.height - SENSOR_HEIGHT_PADDING;
++		sensor->pixel_width = fmt.format.width;
++		sensor->pixel_height = fmt.format.height;
++
++		/* Check sensor resolution match */
++		if ((sensor->pixel_width != isp->width) ||
++			(sensor->pixel_height != isp->height)) {
++			v4l2_err(sd, "Resolution mismatch\n");
++			return -EPIPE;
++		}
++
++		ret = fimc_is_pipeline_start(isp->pipeline);
++		if (ret)
++			v4l2_err(sd, "Pipeline start failed.\n");
++	} else {
++		ret = fimc_is_pipeline_stop(isp->pipeline);
++		if (ret)
++			v4l2_err(sd, "Pipeline stop failed.\n");
++	}
++
++	return ret;
++}
++
++static const struct v4l2_subdev_video_ops isp_video_ops = {
++	.s_stream       = isp_s_stream,
++};
++
++static struct v4l2_subdev_ops isp_subdev_ops = {
++	.core = &isp_core_ops,
++	.video = &isp_video_ops,
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline)
++{
++	struct v4l2_ctrl_handler *handler = &isp->ctrl_handler;
++	struct v4l2_subdev *sd = &isp->subdev;
++	int ret;
++
++	isp->alloc_ctx = alloc_ctx;
++	isp->pipeline = pipeline;
++	isp->fmt = &formats[1];
++	INIT_LIST_HEAD(&isp->wait_queue);
++	INIT_LIST_HEAD(&isp->run_queue);
++	isp->width = ISP_DEF_WIDTH;
++	isp->height = ISP_DEF_HEIGHT;
++
++	v4l2_subdev_init(sd, &isp_subdev_ops);
++	sd->owner = THIS_MODULE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), ISP_DRV_NAME);
++
++	isp->subdev_pads[ISP_SD_PAD_SINK_DMA].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SINK_OTF].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
++			isp->subdev_pads, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_ctrl_handler_init(handler, 1);
++	if (handler->error)
++		goto err_ctrl;
++
++	sd->ctrl_handler = handler;
++	sd->internal_ops = &isp_subdev_internal_ops;
++	v4l2_set_subdevdata(sd, isp);
++
++	return 0;
++
++err_ctrl:
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(handler);
++	return ret;
++}
++
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp)
++{
++	struct v4l2_subdev *sd = &isp->subdev;
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(&isp->ctrl_handler);
++	v4l2_set_subdevdata(sd, NULL);
++}
++
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.h b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+new file mode 100644
+index 0000000..fdb6d86
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+@@ -0,0 +1,90 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_ISP_H_
++#define FIMC_IS_ISP_H_
++
++#include "fimc-is-core.h"
++#include "fimc-is-pipeline.h"
++
++#define FIMC_IS_ISP_REQ_BUFS_MIN	2
++
++#define ISP_SD_PAD_SINK_DMA	0
++#define ISP_SD_PAD_SINK_OTF	1
++#define ISP_SD_PAD_SRC		2
++#define ISP_SD_PADS_NUM		3
++
++#define ISP_DEF_WIDTH		1296
++#define ISP_DEF_HEIGHT		732
++
++#define ISP_MAX_WIDTH		4808
++#define ISP_MAX_HEIGHT		3356
++#define ISP_MIN_WIDTH		32
++#define ISP_MIN_HEIGHT		32
++
++#define ISP_MAX_BUFS		2
++
++/**
++ * struct fimc_is_isp - ISP context
++ * @vfd: video device node
++ * @fh: v4l2 file handle
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @subdev: fimc-is-isp subdev
++ * @vd_pad: media pad for the output video node
++ * @subdev_pads: the subdev media pads
++ * @ctrl_handler: v4l2 control handler
++ * @video_lock: video lock mutex
++ * @sensor_sd: sensor subdev used with this isp instance
++ * @pipeline: pipeline instance for this isp context
++ * @vbq: vb2 buffers queue for ISP output video node
++ * @wait_queue: list holding buffers waiting to be queued to HW
++ * @wait_queue_cnt: wait queue number of buffers
++ * @run_queue: list holding buffers queued to HW
++ * @run_queue_cnt: run queue number of buffers
++ * @output_bufs: isp output buffers array
++ * @out_buf_cnt: number of output buffers in use
++ * @fmt: output plane format for isp
++ * @width: user configured input width
++ * @height: user configured input height
++ * @size_image: image size in bytes
++ * @output_state: state of the output video node operations
++ */
++struct fimc_is_isp {
++	struct video_device		vfd;
++	struct v4l2_fh			fh;
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct v4l2_subdev		subdev;
++	struct media_pad		vd_pad;
++	struct media_pad		subdev_pads[ISP_SD_PADS_NUM];
++	struct v4l2_ctrl_handler	ctrl_handler;
++	struct mutex			video_lock;
++
++	struct v4l2_subdev		*sensor_sd;
++	struct fimc_is_pipeline		*pipeline;
++
++	struct vb2_queue		vbq;
++	struct list_head		wait_queue;
++	unsigned int			wait_queue_cnt;
++	struct list_head		run_queue;
++	unsigned int			run_queue_cnt;
++
++	const struct fimc_is_fmt	*fmt;
++	unsigned int			width;
++	unsigned int			height;
++	unsigned int			size_image;
++	unsigned long			output_state;
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline);
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp);
++
++#endif /* FIMC_IS_ISP_H_ */
+-- 
+1.7.9.5
 
-Yeah.. this isn't about where the pages go, but about the arrangement
-within a page.
-
-And, well, except for hw that supports the same tiling (or
-compressed-fb) in display+gpu, you probably aren't sharing tiled
-buffers.
-
->
->> > One problem with this is it duplicates a lot of logic in each
->> > driver which can export a dma_buf buffer. Each exporter will need to
->> > do pretty much the same thing: iterate over all the attachments,
->> > determine of all the constraints (assuming that can be done) and
->> > allocate pages such that the lowest-common-denominator is satisfied.
->> >
->> > Perhaps rather than duplicating that logic in every driver, we could
->> > Instead move allocation of the backing pages into dma_buf itself?
->> >
->>
->> I tend to think it is better to add helpers as we see common patterns
->> emerge, which drivers can opt-in to using.  I don't think that we
->> should move allocation into dma_buf itself, but it would perhaps be
->> useful to have dma_alloc_*() variants that could allocate for multiple
->> devices.
->
-> A helper could work I guess, though I quite like the idea of having
-> dma_alloc_*() variants which take a list of devices to allocate memory
-> for.
->
->
->> That would help for simple stuff, although I'd suspect
->> eventually a GPU driver will move away from that.  (Since you probably
->> want to play tricks w/ pools of pages that are pre-zero'd and in the
->> correct cache state, use spare cycles on the gpu or dma engine to
->> pre-zero uncached pages, and games like that.)
->
-> So presumably you're talking about a GPU driver being the exporter
-> here? If so, how could the GPU driver do these kind of tricks on
-> memory shared with another device?
->
-
-Yes, that is gpu-as-exporter.  If someone else is allocating buffers,
-it is up to them to do these tricks or not.  Probably there is a
-pretty good chance that if you aren't a GPU you don't need those sort
-of tricks for fast allocation of transient upload buffers, staging
-textures, temporary pixmaps, etc.  Ie. I don't really think a v4l
-camera or video decoder would benefit from that sort of optimization.
-
->
->> >> > Anyway, assuming user-space can figure out how a buffer should be
->> >> > stored in memory, how does it indicate this to a kernel driver and
->> >> > actually allocate it? Which ioctl on which device does user-space
->> >> > call, with what parameters? Are you suggesting using something
->> >> > like ION which exposes the low-level details of how buffers are
->> > >> laid out in physical memory to userspace? If not, what?
->> >> >
->> >>
->> >> no, userspace should not need to know this.  And having a central
->> >> driver that knows this for all the other drivers in the system
->> >> doesn't really solve anything and isn't really scalable.  At best
->> >> you might want, in some cases, a flag you can pass when allocating.
->> >> For example, some of the drivers have a 'SCANOUT' flag that can be
->> >> passed when allocating a GEM buffer, as a hint to the kernel that
->> >> 'if this hw requires contig memory for scanout, allocate this
->> >> buffer contig'. But really, when it comes to sharing buffers
->> >> between devices, we want this sort of information in dev->dma_params
->> >> of the importing device(s).
->> >
->> > If you had a single driver which knew the constraints of all devices
->> > on that particular SoC and the interface allowed user-space to
->> > specify which devices a buffer is intended to be used with, I guess
->> > it could pretty trivially allocate pages which satisfy those
-> constraints?
->>
->> keep in mind, even a number of SoC's come with pcie these days.  You
->> already have things like
->>
->>   https://developer.nvidia.com/content/kayla-platform
->>
->> You probably want to get out of the SoC mindset, otherwise you are
->> going to make bad assumptions that come back to bite you later on.
->
-> Sure - there are always going to be PC-like devices where the
-> hardware configuration isn't fixed like it is on a traditional SoC.
-> But I'd rather have a simple solution which works on traditional SoCs
-> than no solution at all. Today our solution is to over-load the dumb
-> buffer alloc functions of the display's DRM driver - For now I'm just
-> looking for the next step up from that! ;-)
->
-
-True.. the original intention, which is perhaps a bit desktop-centric,
-really was for there to be a userspace component talking to the drm
-driver for allocation, ie. xf86-video-foo and/or
-src/gallium/drivers/foo (for example) ;-)
-
-Which means for x11 having a SoC vendor specific xf86-video-foo for
-x11..  or vendor specific gbm implementation for wayland.  (Although
-at least in the latter case it is a pretty small piece of code.)  But
-that is probably what you are trying to avoid.
-
-At any rate, for both xorg and wayland/gbm, you know when a buffer is
-going to be a scanout buffer.  What I'd recommend is define a small
-userspace API that your customers (the SoC vendors) implement to
-allocate a scanout buffer and hand you back a dmabuf fd.  That could
-be used both for x11 and for gbm.  Inputs should be requested
-width/height and format.  And outputs pitch plus dmabuf fd.
-
-(Actually you might even just want to use gbm as your starting point.
-You could probably just use gbm from xf86-video-armsoc for allocation,
-to have one thing that works for both wayland and x11.  Scanout and
-cursor buffers should go to vendor/SoC specific fxn, rest can be
-allocated from mali kernel driver.)
-
->
->> > wouldn't need a way to programmatically describe the constraints
->> > either: As you say, if userspace sets the "SCANOUT" flag, it would
->> > just "know" that on this SoC, that buffer needs to be physically
->> > contiguous for example.
->>
->> not really.. it just knows it wants to scanout the buffer, and tells
->> this as a hint to the kernel.
->>
->> For example, on omapdrm, the SCANOUT flag does nothing on omap4+
->> (where phys contig is not required for scanout), but causes CMA
->> (dma_alloc_*()) to be used on omap3.  Userspace doesn't care.  It just
->> knows that it wants to be able to scanout that particular buffer.
->
-> I think that's the idea? The omap3's allocator driver would use
-> contiguous memory when it detects the SCANOUT flag whereas the omap4
-> allocator driver wouldn't have to. No complex negotiation of
-> constraints - it just "knows".
->
-
-well, it is same allocating driver in both cases (although maybe that
-is unimportant).  The "it" that just knows it wants to scanout is
-userspace.  The "it" that just knows that scanout translates to
-contiguous (or not) is the kernel.  Perhaps we are saying the same
-thing ;-)
-
-BR,
--R
-
->
-> Cheers,
->
-> Tom
->
->
->
->
