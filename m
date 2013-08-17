@@ -1,104 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3897 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965075Ab3HIS3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 14:29:12 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r79IT9DZ099129
-	for <linux-media@vger.kernel.org>; Fri, 9 Aug 2013 20:29:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 9 Aug 2013 20:29:09 +0200 (CEST)
-Message-Id: <201308091829.r79IT9DZ099129@smtp-vbr8.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 9B0592A075D
-	for <linux-media@vger.kernel.org>; Fri,  9 Aug 2013 20:29:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:45229 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753706Ab3HQQcS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Aug 2013 12:32:18 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v1 43/49] media: usb: em28xx: prepare for enabling irq in complete()
+Date: Sun, 18 Aug 2013 00:25:08 +0800
+Message-Id: <1376756714-25479-44-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
+References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Complete() will be run with interrupt enabled, so add local_irq_save()
+before acquiring the lock without irqsave().
 
-Results of the daily build of media_tree:
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-date:		Fri Aug  9 19:00:37 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 2fdb66e..7fd1b2a 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -113,6 +113,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 		stride = runtime->frame_bits >> 3;
+ 
+ 		for (i = 0; i < urb->number_of_packets; i++) {
++			unsigned long flags;
+ 			int length =
+ 			    urb->iso_frame_desc[i].actual_length / stride;
+ 			cp = (unsigned char *)urb->transfer_buffer +
+@@ -134,7 +135,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 				       length * stride);
+ 			}
+ 
+-			snd_pcm_stream_lock(substream);
++			snd_pcm_stream_lock_irqsave(substream, flags);
+ 
+ 			dev->adev.hwptr_done_capture += length;
+ 			if (dev->adev.hwptr_done_capture >=
+@@ -150,7 +151,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 				period_elapsed = 1;
+ 			}
+ 
+-			snd_pcm_stream_unlock(substream);
++			snd_pcm_stream_unlock_irqrestore(substream, flags);
+ 		}
+ 		if (period_elapsed)
+ 			snd_pcm_period_elapsed(substream);
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
