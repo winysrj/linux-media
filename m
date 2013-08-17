@@ -1,110 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53131 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753705Ab3HERwg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:36 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v6 01/10] media: Add support for circular graph traversal
-Date: Mon,  5 Aug 2013 19:53:20 +0200
-Message-Id: <1375725209-2674-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:36836 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672Ab3HQQbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Aug 2013 12:31:49 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v1 40/49] media: usb: tlg2300: prepare for enabling irq in complete()
+Date: Sun, 18 Aug 2013 00:25:05 +0800
+Message-Id: <1376756714-25479-41-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
+References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The graph traversal API (media_entity_graph_walk_*) doesn't support
-cyclic graphs and will fail to correctly walk a graph when circular
-links exist. Support circular graph traversal by checking whether an
-entity has already been visited before pushing it to the stack.
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- drivers/media/media-entity.c | 14 +++++++++++---
- include/media/media-entity.h |  4 ++++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/media/usb/tlg2300/pd-alsa.c  |    5 +++--
+ drivers/media/usb/tlg2300/pd-video.c |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index cb30ffb..2c286c3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -20,6 +20,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff --git a/drivers/media/usb/tlg2300/pd-alsa.c b/drivers/media/usb/tlg2300/pd-alsa.c
+index 3f3e141..65c46a2 100644
+--- a/drivers/media/usb/tlg2300/pd-alsa.c
++++ b/drivers/media/usb/tlg2300/pd-alsa.c
+@@ -141,6 +141,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 	int len		= urb->actual_length / stride;
+ 	unsigned char *cp	= urb->transfer_buffer;
+ 	unsigned int oldptr	= pa->rcv_position;
++	unsigned long flags;
  
-+#include <linux/bitmap.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-@@ -121,7 +122,6 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- 	return entity;
+ 	if (urb->actual_length == AUDIO_BUF_SIZE - 4)
+ 		len -= (AUDIO_TRAILER_SIZE / stride);
+@@ -156,7 +157,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
+ 
+ 	/* update the statas */
+-	snd_pcm_stream_lock(pa->capture_pcm_substream);
++	snd_pcm_stream_lock_irqsave(pa->capture_pcm_substream, flags);
+ 	pa->rcv_position	+= len;
+ 	if (pa->rcv_position >= runtime->buffer_size)
+ 		pa->rcv_position -= runtime->buffer_size;
+@@ -166,7 +167,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 		pa->copied_position -= runtime->period_size;
+ 		*period_elapsed = 1;
+ 	}
+-	snd_pcm_stream_unlock(pa->capture_pcm_substream);
++	snd_pcm_stream_unlock_irqrestore(pa->capture_pcm_substream, flags);
  }
  
--#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
- #define link_top(en)	((en)->stack[(en)->top].link)
- #define stack_top(en)	((en)->stack[(en)->top].entity)
- 
-@@ -140,6 +140,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ static void complete_handler_audio(struct urb *urb)
+diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+index 8df668d..4e5bd07 100644
+--- a/drivers/media/usb/tlg2300/pd-video.c
++++ b/drivers/media/usb/tlg2300/pd-video.c
+@@ -151,11 +151,12 @@ static void init_copy(struct video_data *video, bool index)
+ static bool get_frame(struct front_face *front, int *need_init)
  {
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
-+	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
-+
-+	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+		return;
-+
-+	__set_bit(entity->id, graph->entities);
- 	stack_push(graph, entity);
+ 	struct videobuf_buffer *vb = front->curr_frame;
++	unsigned long flags;
+ 
+ 	if (vb)
+ 		return true;
+ 
+-	spin_lock(&front->queue_lock);
++	spin_lock_irqsave(&front->queue_lock, flags);
+ 	if (!list_empty(&front->active)) {
+ 		vb = list_entry(front->active.next,
+ 			       struct videobuf_buffer, queue);
+@@ -164,7 +165,7 @@ static bool get_frame(struct front_face *front, int *need_init)
+ 		front->curr_frame = vb;
+ 		list_del_init(&vb->queue);
+ 	}
+-	spin_unlock(&front->queue_lock);
++	spin_unlock_irqrestore(&front->queue_lock, flags);
+ 
+ 	return !!vb;
  }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -180,9 +186,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
-+		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+			return NULL;
- 
--		/* Was it the entity we came here from? */
--		if (next == stack_peek(graph)) {
-+		/* Has the entity already been visited? */
-+		if (__test_and_set_bit(next->id, graph->entities)) {
- 			link_top(graph)++;
- 			continue;
- 		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 06bacf9..10df551 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_ENTITY_H
- #define _MEDIA_ENTITY_H
- 
-+#include <linux/bitops.h>
- #include <linux/list.h>
- #include <linux/media.h>
- 
-@@ -113,12 +114,15 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- }
- 
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+#define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
- struct media_entity_graph {
- 	struct {
- 		struct media_entity *entity;
- 		int link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+
-+	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
- 	int top;
- };
- 
 -- 
-1.8.1.5
+1.7.9.5
 
