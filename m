@@ -1,55 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:46497 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006Ab3HONam convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:63836 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753878Ab3HQQcJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 09:30:42 -0400
-Message-ID: <1376573438.18617.44.camel@hornet>
-Subject: Re: [PATCH] media: st-rc: Add ST remote control driver
-From: Pawel Moll <pawel.moll@arm.com>
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Mark Rutland <Mark.Rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Date: Thu, 15 Aug 2013 14:30:38 +0100
-In-Reply-To: <1376501221-22416-1-git-send-email-srinivas.kandagatla@st.com>
-References: <1376501221-22416-1-git-send-email-srinivas.kandagatla@st.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sat, 17 Aug 2013 12:32:09 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v1 42/49] media: dvb-core: prepare for enabling irq in complete()
+Date: Sun, 18 Aug 2013 00:25:07 +0800
+Message-Id: <1376756714-25479-43-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
+References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-08-14 at 18:27 +0100, Srinivas KANDAGATLA wrote:
-> +Device-Tree bindings for ST IR and UHF receiver
-> +
-> +Required properties:
-> +       - compatible: should be "st,rc".
-> +       - st,uhfmode: boolean property to indicate if reception is in UHF.
-> +       - reg: base physical address of the controller and length of memory
-> +       mapped  region.
-> +       - interrupts: interrupt number to the cpu. The interrupt specifier
-> +       format depends on the interrupt controller parent.
-> +
-> +Example node:
-> +
-> +       rc: rc@fe518000 {
-> +               compatible      = "st,rc";
-> +               reg             = <0xfe518000 0x234>;
-> +               interrupts      =  <0 203 0>;
-> +       };
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-So is "st,uhfmode" required or optional after all? If the former, the
-example is wrong (doesn't specify required property). But as far as I
-understand it's really optional...
+These functions may be called inside URB->complete(), so use
+spin_lock_irqsave().
 
-Paweł
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/dvb-core/dvb_demux.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 3485655..58de441 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -476,7 +476,9 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
+ void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
+ 			      size_t count)
+ {
+-	spin_lock(&demux->lock);
++	unsigned long flags;
++
++	spin_lock_irqsave(&demux->lock, flags);
+ 
+ 	while (count--) {
+ 		if (buf[0] == 0x47)
+@@ -484,7 +486,7 @@ void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
+ 		buf += 188;
+ 	}
+ 
+-	spin_unlock(&demux->lock);
++	spin_unlock_irqrestore(&demux->lock, flags);
+ }
+ 
+ EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
+@@ -519,8 +521,9 @@ static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf,
+ {
+ 	int p = 0, i, j;
+ 	const u8 *q;
++	unsigned long flags;
+ 
+-	spin_lock(&demux->lock);
++	spin_lock_irqsave(&demux->lock, flags);
+ 
+ 	if (demux->tsbufp) { /* tsbuf[0] is now 0x47. */
+ 		i = demux->tsbufp;
+@@ -564,7 +567,7 @@ static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf,
+ 	}
+ 
+ bailout:
+-	spin_unlock(&demux->lock);
++	spin_unlock_irqrestore(&demux->lock, flags);
+ }
+ 
+ void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
+@@ -581,11 +584,13 @@ EXPORT_SYMBOL(dvb_dmx_swfilter_204);
+ 
+ void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf, size_t count)
+ {
+-	spin_lock(&demux->lock);
++	unsigned long flags;
++
++	spin_lock_irqsave(&demux->lock, flags);
+ 
+ 	demux->feed->cb.ts(buf, count, NULL, 0, &demux->feed->feed.ts, DMX_OK);
+ 
+-	spin_unlock(&demux->lock);
++	spin_unlock_irqrestore(&demux->lock, flags);
+ }
+ EXPORT_SYMBOL(dvb_dmx_swfilter_raw);
+ 
+-- 
+1.7.9.5
 
