@@ -1,208 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37650 "EHLO bear.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:55729 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961Ab3HUFrZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 01:47:25 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [PATCH v11 2/8] usb: phy: omap-usb2: use the new generic PHY framework
-Date: Wed, 21 Aug 2013 11:16:07 +0530
-Message-ID: <1377063973-22044-3-git-send-email-kishon@ti.com>
-In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1751188Ab3HQXKn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Aug 2013 19:10:43 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH STAGING 1/3] msi3101: implement stream format 504
+Date: Sun, 18 Aug 2013 02:09:30 +0300
+Message-Id: <1376780972-8977-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1376780972-8977-1-git-send-email-crope@iki.fi>
+References: <1376780972-8977-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used the generic PHY framework API to create the PHY. Now the power off and
-power on are done in omap_usb_power_off and omap_usb_power_on respectively.
-The omap-usb2 driver is also moved to driver/phy.
+That stream format carries 504 x I+Q samples per 1024 USB frame.
+Sample resolution is 8-bit signed. Default it when sampling rate
+is 9Msps or over.
 
-However using the old USB PHY library cannot be completely removed
-because OTG is intertwined with PHY and moving to the new framework
-will break OTG. Once we have a separate OTG state machine, we
-can get rid of the USB PHY library.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/phy/Kconfig                   |   12 +++++++++
- drivers/phy/Makefile                  |    1 +
- drivers/{usb => }/phy/phy-omap-usb2.c |   45 ++++++++++++++++++++++++++++++---
- drivers/usb/phy/Kconfig               |   10 --------
- drivers/usb/phy/Makefile              |    1 -
- 5 files changed, 54 insertions(+), 15 deletions(-)
- rename drivers/{usb => }/phy/phy-omap-usb2.c (88%)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 94 ++++++++++++++++++++++++++++-
+ 1 file changed, 92 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 349bef2..38c3477 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -15,4 +15,16 @@ config GENERIC_PHY
- 	  phy users can obtain reference to the PHY. All the users of this
- 	  framework should select this config.
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index a3cc4c6..bf735f9 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -448,7 +448,7 @@ leave:
  
-+config OMAP_USB2
-+	tristate "OMAP USB2 PHY Driver"
-+	depends on ARCH_OMAP2PLUS
-+	select GENERIC_PHY
-+	select USB_PHY
-+	select OMAP_CONTROL_USB
-+	help
-+	  Enable this to support the transceiver that is part of SOC. This
-+	  driver takes care of all the PHY functionality apart from comparator.
-+	  The USB OTG controller communicates with the comparator using this
-+	  driver.
-+
- endmenu
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 9e9560f..ed5b088 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -3,3 +3,4 @@
- #
+ /*
+  * +===========================================================================
+- * |   00-1023 | USB packet
++ * |   00-1023 | USB packet type '384'
+  * +===========================================================================
+  * |   00-  03 | sequence number of first sample in that USB packet
+  * +---------------------------------------------------------------------------
+@@ -502,6 +502,93 @@ leave:
+ #define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
  
- obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
-+obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
-diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-similarity index 88%
-rename from drivers/usb/phy/phy-omap-usb2.c
-rename to drivers/phy/phy-omap-usb2.c
-index 844ab68..25e0f3c 100644
---- a/drivers/usb/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -28,6 +28,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/delay.h>
- #include <linux/usb/omap_control_usb.h>
-+#include <linux/phy/phy.h>
- 
- /**
-  * omap_usb2_set_comparator - links the comparator present in the sytem with
-@@ -119,10 +120,36 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
- 	return 0;
- }
- 
-+static int omap_usb_power_off(struct phy *x)
+ /*
++ * Converts signed 8-bit integer into 32-bit IEEE floating point
++ * representation.
++ */
++static u32 msi3101_convert_sample_504(struct msi3101_state *s, u16 x)
 +{
-+	struct omap_usb *phy = phy_get_drvdata(x);
++	u32 msb, exponent, fraction, sign;
 +
-+	omap_control_usb_phy_power(phy->control_dev, 0);
++	/* Zero is special */
++	if (!x)
++		return 0;
 +
-+	return 0;
++	/* Negative / positive value */
++	if (x & (1 << 7)) {
++		x = -x;
++		x &= 0x7f; /* result is 7 bit ... + sign */
++		sign = 1 << 31;
++	} else {
++		sign = 0 << 31;
++	}
++
++	/* Get location of the most significant bit */
++	msb = __fls(x);
++
++	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
++	exponent = (127 + msb) << I2F_FRAC_BITS;
++
++	return (fraction + exponent) | sign;
 +}
 +
-+static int omap_usb_power_on(struct phy *x)
++static int msi3101_convert_stream_504(struct msi3101_state *s, u32 *dst,
++		u8 *src, unsigned int src_len)
 +{
-+	struct omap_usb *phy = phy_get_drvdata(x);
++	int i, j, i_max, dst_len = 0;
++	u16 sample[2];
++	u32 sample_num[3];
 +
-+	omap_control_usb_phy_power(phy->control_dev, 1);
++	/* There could be 1-3 1024 bytes URB frames */
++	i_max = src_len / 1024;
 +
-+	return 0;
++	for (i = 0; i < i_max; i++) {
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
++		if (i == 0 && s->next_sample != sample_num[0]) {
++			dev_dbg_ratelimited(&s->udev->dev,
++					"%d samples lost, %d %08x:%08x\n",
++					sample_num[0] - s->next_sample,
++					src_len, s->next_sample, sample_num[0]);
++		}
++
++		/*
++		 * Dump all unknown 'garbage' data - maybe we will discover
++		 * someday if there is something rational...
++		 */
++		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
++
++		src += 16;
++		for (j = 0; j < 1008; j += 2) {
++			sample[0] = src[j + 0];
++			sample[1] = src[j + 1];
++
++			*dst++ = msi3101_convert_sample_504(s, sample[0]);
++			*dst++ = msi3101_convert_sample_504(s, sample[1]);
++		}
++		/* 504 x I+Q 32bit float samples */
++		dst_len += 504 * 2 * 4;
++		src += 1008;
++	}
++
++	/* calculate samping rate and output it in 10 seconds intervals */
++	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
++		unsigned long jiffies_now = jiffies;
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
++		s->jiffies = jiffies_now;
++		s->sample = sample_num[i_max - 1];
++		dev_dbg(&s->udev->dev,
++				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
++				src_len, samples, msecs,
++				samples * 1000UL / msecs);
++	}
++
++	/* next sample (sample = sample + i * 504) */
++	s->next_sample = sample_num[i_max - 1] + 504;
++
++	return dst_len;
 +}
 +
-+static struct phy_ops ops = {
-+	.power_on	= omap_usb_power_on,
-+	.power_off	= omap_usb_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
- static int omap_usb2_probe(struct platform_device *pdev)
- {
- 	struct omap_usb			*phy;
-+	struct phy			*generic_phy;
- 	struct usb_otg			*otg;
-+	struct phy_provider		*phy_provider;
++/*
+  * Converts signed ~10+3-bit integer into 32-bit IEEE floating point
+  * representation.
+  */
+@@ -1134,9 +1221,12 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	} else if (f_sr < 8000000) {
+ 		s->convert_stream = msi3101_convert_stream_336;
+ 		reg7 = 0x00008507;
+-	} else {
++	} else if (f_sr < 9000000) {
+ 		s->convert_stream = msi3101_convert_stream_384;
+ 		reg7 = 0x0000a507;
++	} else {
++		s->convert_stream = msi3101_convert_stream_504;
++		reg7 = 0x000c9407;
+ 	}
  
- 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy) {
-@@ -144,6 +171,11 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	phy->phy.otg		= otg;
- 	phy->phy.type		= USB_PHY_TYPE_USB2;
- 
-+	phy_provider = devm_of_phy_provider_register(phy->dev,
-+			of_phy_simple_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
- 	phy->control_dev = omap_get_control_dev();
- 	if (IS_ERR(phy->control_dev)) {
- 		dev_dbg(&pdev->dev, "Failed to get control device\n");
-@@ -159,6 +191,15 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	otg->start_srp		= omap_usb_start_srp;
- 	otg->phy		= &phy->phy;
- 
-+	platform_set_drvdata(pdev, phy);
-+	pm_runtime_enable(phy->dev);
-+
-+	generic_phy = devm_phy_create(phy->dev, &ops, NULL);
-+	if (IS_ERR(generic_phy))
-+		return PTR_ERR(generic_phy);
-+
-+	phy_set_drvdata(generic_phy, phy);
-+
- 	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
- 	if (IS_ERR(phy->wkupclk)) {
- 		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
-@@ -174,10 +215,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 
- 	usb_add_phy_dev(&phy->phy);
- 
--	platform_set_drvdata(pdev, phy);
--
--	pm_runtime_enable(phy->dev);
--
- 	return 0;
- }
- 
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 3622fff..7813238 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -72,16 +72,6 @@ config OMAP_CONTROL_USB
- 	  power on the USB2 PHY is present in OMAP4 and OMAP5. OMAP5 has an
- 	  additional register to power on USB3 PHY.
- 
--config OMAP_USB2
--	tristate "OMAP USB2 PHY Driver"
--	depends on ARCH_OMAP2PLUS
--	select OMAP_CONTROL_USB
--	help
--	  Enable this to support the transceiver that is part of SOC. This
--	  driver takes care of all the PHY functionality apart from comparator.
--	  The USB OTG controller communicates with the comparator using this
--	  driver.
--
- config OMAP_USB3
- 	tristate "OMAP USB3 PHY Driver"
- 	select OMAP_CONTROL_USB
-diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
-index 070eca3..56d2b03 100644
---- a/drivers/usb/phy/Makefile
-+++ b/drivers/usb/phy/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_ISP1301_OMAP)		+= phy-isp1301-omap.o
- obj-$(CONFIG_MV_U3D_PHY)		+= phy-mv-u3d-usb.o
- obj-$(CONFIG_NOP_USB_XCEIV)		+= phy-nop.o
- obj-$(CONFIG_OMAP_CONTROL_USB)		+= phy-omap-control.o
--obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
- obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
- obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
- obj-$(CONFIG_SAMSUNG_USB2PHY)		+= phy-samsung-usb2.o
+ 	/*
 -- 
-1.7.10.4
+1.7.11.7
 
