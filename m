@@ -1,67 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:36580 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751099Ab3HSS4f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 14:56:35 -0400
-Date: Mon, 19 Aug 2013 20:56:33 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
-Message-ID: <20130819185633.GA12011@katana>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
- <5212624D.5090708@samsung.com>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:45102 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754639Ab3HRVMs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Aug 2013 17:12:48 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <5212624D.5090708@samsung.com>
+In-Reply-To: <201307110112.57398.arnd@arndb.de>
+References: <Pine.LNX.4.44L0.1307101724430.1215-100000@iolanthe.rowland.org>
+	<201307110112.57398.arnd@arndb.de>
+Date: Sun, 18 Aug 2013 23:12:47 +0200
+Message-ID: <CAMuHMdVXeWaggY5FPKrr2fBBnKLq3Rqw9WF99N+AX5sFwBOnog@mail.gmail.com>
+Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Jul 11, 2013 at 1:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 10 July 2013, Alan Stern wrote:
+>> This isn't right.  There are USB host controllers that use PIO, not
+>> DMA.  The HAS_DMA dependency should go with the controller driver, not
+>> the USB core.
+>>
+>> On the other hand, the USB core does call various routines like
+>> dma_unmap_single.  It ought to be possible to compile these calls even
+>> when DMA isn't enabled.  That is, they should be defined as do-nothing
+>> stubs.
+>
+> The asm-generic/dma-mapping-broken.h file intentionally causes link
+> errors, but that could be changed.
+>
+> The better approach in my mind would be to replace code like
+>
+>
+>         if (hcd->self.uses_dma)
+>
+> with
+>
+>         if (IS_ENABLED(CONFIG_HAS_DMA) && hcd->self.uses_dma) {
+>
+> which will reliably cause that reference to be omitted from object code,
+> but not stop giving link errors for drivers that actually require
+> DMA.
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This can be done for drivers/usb/core/hcd.c.
 
+But I'm a bit puzzled by drivers/usb/core/buffer.c. E.g.
 
-> However this patch fails to apply onto either v3.11-rc4 or v3.11-rc6:
+void *hcd_buffer_alloc(...)
+{
+        ....
+        /* some USB hosts just use PIO */
+        if (!bus->controller->dma_mask &&
+            !(hcd->driver->flags & HCD_LOCAL_MEM)) {
+                *dma = ~(dma_addr_t) 0;
+                return kmalloc(size, mem_flags);
+        }
 
-Argh, did not drop the MPC patch before rebasing :( So either pick the
-patch "i2c: powermac: fix return path on error" before, pull the branch
-[1], or force me to resend ;)
+        for (i = 0; i < HCD_BUFFER_POOLS; i++) {
+                if (size <= pool_max[i])
+                        return dma_pool_alloc(hcd->pool[i], mem_flags, dma);
+        }
+        return dma_alloc_coherent(hcd->self.controller, size, dma, mem_flags);
+}
 
-Thanks!
+which is called from usb_hcd_map_urb_for_dma():
 
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/core-with-of
+                if (hcd->self.uses_dma) {
+                        ....
+                } else if (hcd->driver->flags & HCD_LOCAL_MEM) {
+                        ret = hcd_alloc_coherent(
+                                        urb->dev->bus, mem_flags,
+                                        &urb->setup_dma,
+                                        (void **)&urb->setup_packet,
+                                        sizeof(struct usb_ctrlrequest),
+                                        DMA_TO_DEVICE);
+                        ...
+                }
 
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+So if DMA is not used (!hcd->self.uses_dma, i.e. bus->controller->dma_mask
+is zero), and HCD_LOCAL_MEM is set, we still end up calling dma_pool_alloc()?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+(Naively, I'm not so familiar with the USB code) I'd expect it to use
+kmalloc() instead?
 
-iQIcBAEBAgAGBQJSEmphAAoJEBQN5MwUoCm2oSMQALA/vPFqMuszNie+wpNeFLTx
-ndq9K7tvwvyV6ix/QtfrneDKM17i0G/OljSqOXMuO3YddSvGKIvs956j6te7Tor0
-INyTIzc59ycgiF10Zt6egrZOa4CTwka0IyozuU9tiue9VIIL2u4SnTkS7aEOH7rI
-rSFgyaDAFjvcMLAVrw/nsTcM5GRLVsFwZJklQ4m5m6ntXOs8cVDsEhkFUbMabLEA
-ITNMspH4KtEQr3v5ij+tl6rhUGJzWu8IARf4C7f8Gxas3y8NuADXlXgFjtd5xccR
-6Qgex4Wuv9yOLK9oCiXHrg3J7iXR46po/VM5BEHxT013Wxde8784u8Hv8FaPxC9r
-r1FkkadCnWaJWe0nIq2eFTU6pECwuSBT3Bu5d4kOrhr4S3a9Z+3s4KpmWZEmaNkz
-nN5hBURGFQIdLY7BzGJWiBRLqa7kq97ATfMr9N9Pg7Rpqa9TezMDF2Sm5DP2p0Ha
-fR764qsVds2fPT8+DIEnNiwfgBFJYcXhV0yv5T5pkncE5C6x6RQoK+RmRXMPO8hx
-l3xL9yV9GHVITzzgah/uaCKHCh7dboPYlKoiEqwHb0GxGbaEq3kMqaJ0D99mIss+
-k9sAe3Nfq02mwMN+2pGEZX7Rzs3d4CD84Yi0NC/csPSzkAHuC0qD1qdEw9nGrw4v
-ptWWV5ABSl7wqbZKZ0Rc
-=96ic
------END PGP SIGNATURE-----
+So I would change it to
 
---9jxsPFA5p3P2qPhR--
+        if (!IS_ENABLED(CONFIG_HAS_DMA) ||
+            (!bus->controller->dma_mask &&
+             !(hcd->driver->flags & HCD_LOCAL_MEM))) {
+                *dma = ~(dma_addr_t) 0;
+                return kmalloc(size, mem_flags);
+        }
+
+Thanks for your clarification!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
