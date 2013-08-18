@@ -1,53 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:63024 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882Ab3H3NBx (ORCPT
+Received: from georges.telenet-ops.be ([195.130.137.68]:52449 "EHLO
+	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755093Ab3HRMQE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 09:01:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-Subject: Agenda for the Edinburgh mini-summit
-Date: Fri, 30 Aug 2013 15:01:25 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Sun, 18 Aug 2013 08:16:04 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] [media] media/v4l2: VIDEO_SH_VEU should depend on HAS_DMA
+Date: Sun, 18 Aug 2013 14:15:37 +0200
+Message-Id: <1376828137-12806-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308301501.25164.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, I know, we don't even know yet when the mini-summit will be held but I thought
-I'd just start this thread to collect input for the agenda.
+If NO_DMA=y:
 
-I have these topics (and I *know* that I am forgetting a few):
+drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
 
-- Discuss ideas/use-cases for a property-based API. An initial discussion
-  appeared in this thread:
+Commit da508f5799659241a359e2d07abb8af905f6291c ("[media] media/v4l2:
+VIDEOBUF2_DMA_CONTIG should depend on HAS_DMA") added a dependency on
+HAS_DMA to VIDEO_SH_VEU, as it selects VIDEOBUF2_DMA_CONTIG.
 
-  http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
+However, this got lost in the merge conflict resolution in commit
+df90e2258950fd631cdbf322c1ee1f22068391aa ("Merge branch 'devel-for-v3.10'
+into v4l_for_linus").
 
-- What is needed to share i2c video transmitters between drm and v4l? Hopefully
-  we will know more after the upcoming LPC.
+Re-add the dependency to fix this.
 
-- Decide on how v4l2 support libraries should be organized. There is code for
-  handling raw-to-sliced VBI decoding, ALSA looping, finding associated
-  video/alsa nodes and for TV frequency tables. We should decide how that should
-  be organized into libraries and how they should be documented. The first two
-  aren't libraries at the moment, but I think they should be. The last two are
-  libraries but they aren't installed. Some work is also being done on an improved
-  version of the 'associating nodes' library that uses the MC if available.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ drivers/media/platform/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-- Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
-  this thread for all the nasty details:
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 08de865..126d0fc 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -203,7 +203,7 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
+ 
+ config VIDEO_SH_VEU
+ 	tristate "SuperH VEU mem2mem video processing driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && GENERIC_HARDIRQS
++	depends on VIDEO_DEV && VIDEO_V4L2 && GENERIC_HARDIRQS && HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	help
+-- 
+1.7.9.5
 
-  http://www.spinics.net/lists/linux-media/msg65137.html
-
-Feel free to add suggestions to this list.
-
-Note: my email availability will be limited in the next three weeks, especially
-next week, as I am travelling a lot.
-
-Regards,
-
-	Hans
