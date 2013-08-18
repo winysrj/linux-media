@@ -1,105 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2857 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754025Ab3HQS3M (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:46499 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543Ab3HRPUO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Aug 2013 14:29:12 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7HIT9uU068154
-	for <linux-media@vger.kernel.org>; Sat, 17 Aug 2013 20:29:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 17 Aug 2013 20:29:09 +0200 (CEST)
-Message-Id: <201308171829.r7HIT9uU068154@smtp-vbr11.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 320D82A075F
-	for <linux-media@vger.kernel.org>; Sat, 17 Aug 2013 20:29:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+	Sun, 18 Aug 2013 11:20:14 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MRQ00B37FXPFM60@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 18 Aug 2013 11:20:13 -0400 (EDT)
+Date: Sun, 18 Aug 2013 12:20:08 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Message-id: <20130818122008.38fac218@samsung.com>
+In-reply-to: <5210B2A9.1030803@googlemail.com>
+References: <520E76E7.30201@googlemail.com>
+ <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost>
+ <5210B2A9.1030803@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 18 Aug 2013 13:40:25 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Results of the daily build of media_tree:
+> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+> > Hi Frank,
+> > As I mentioned on the list, I'm currently on a holiday, so, replying briefly. 
+> Sorry, I missed that (can't read all mails on the list).
+> 
+> > Since em28xx is a USB device, I conclude, that it's supplying clock to its components including the ov2640 sensor. So, yes, I think the driver should export a V4L2 clock.
+> Ok, so it's mandatory on purpose ?
+> I'll take a deeper into the v4l2-clk code and the
+> em28xx/ov2640/soc-camera interaction this week.
+> Have a nice holiday !
 
-date:		Sat Aug 17 19:00:21 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+commit 9aea470b399d797e88be08985c489855759c6c60
+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date:   Fri Dec 21 13:01:55 2012 -0300
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+    [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+    
+    Instead of centrally enabling and disabling subdevice master clocks in
+    soc-camera core, let subdevice drivers do that themselves, using the
+    V4L2 clock API and soc-camera convenience wrappers.
+    
+    Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+    Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+(c/c the ones that acked with this broken changeset)
 
-Full logs are available here:
+We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
+cameras are currently broken on 3.10.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+I'll also reject other ports to the async API if the drivers are
+used outside an embedded driver, as no PC driver currently defines 
+any clock source. The same applies to regulators.
 
-The Media Infrastructure API from this daily build is here:
+Guennadi,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Next time, please check if the i2c drivers are used outside soc_camera
+and apply the fixes where needed, as no regressions are allowed.
+
+Regards,
+Mauro
+
+> 
+> Regards,
+> Frank
+> > Thanks
+> > Guennadi
+> >
+> >
+> > -----Original Message-----
+> > From: "Frank Schäfer" <fschaefer.oss@googlemail.com>
+> > To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>
+> > Sent: Fr., 16 Aug 2013 21:03
+> > Subject: em28xx + ov2640 and v4l2-clk
+> >
+> > Hi Guennadi,
+> >
+> > since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
+> > switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
+> > to register the ov2640 subdevice (if needed).
+> > The reason is that v4l2_clk_get() fails in ov2640_probe().
+> > Does the em28xx driver have to register a (pseudo ?) clock first ?
+> >
+> > Regards,
+> > Frank
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
