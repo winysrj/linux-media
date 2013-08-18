@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1396 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934069Ab3HHLx6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 07:53:58 -0400
-Message-ID: <520386CD.3070102@xs4all.nl>
-Date: Thu, 08 Aug 2013 13:53:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:48249 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755102Ab3HRMQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Aug 2013 08:16:14 -0400
+Message-ID: <5210BAE2.6010007@iki.fi>
+Date: Sun, 18 Aug 2013 15:15:30 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?B=E5rd_Eirik_Winther?= <bwinther@cisco.com>
-CC: linux-media@vger.kernel.org, hansverk@cisco.com
-Subject: Re: [git:v4l-utils/master] qv4l2: add aspect ratio support
-References: <E1V7L76-0005aC-HM@www.linuxtv.org> <2733966.NUgGszmazj@bwinther>
-In-Reply-To: <2733966.NUgGszmazj@bwinther>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: Hans Petter Selasky <hps@bitfrost.no>
+CC: Ulf <mopp@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <520F643C.70306@iki.fi> <5210B5F3.4040607@bitfrost.no>
+In-Reply-To: <5210B5F3.4040607@bitfrost.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/08/2013 01:32 PM, Bård Eirik Winther wrote:
-> Hi.
-> 
-> Bad news. While rebasing my cropping support branch I noticed that Hans has merged in the wrong patch series for the scaling.
+On 08/18/2013 02:54 PM, Hans Petter Selasky wrote:
+> On 08/17/13 13:53, Antti Palosaari wrote:
+>> On 08/17/2013 02:30 PM, Ulf wrote:
+>>> Hi,
+>>>
+>>> I know the topic Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+>>> demodulator was already discussed
+>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/40982
+>>>
+>>> and
+>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266.
+>>>
+>>>
+>>> Just for me as a confirmation nobody plans to work on a driver for
+>>> si2165.
+>>> Is there any chance how to push the development?
+>>
+>> comment mode
+>> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266
+>>
+>>
+>>
+>> As far as I know there is none working with si2165 Linux driver.
+>>
+>> Last week I dumped out simple sniff from initial tuning to DVB-T channel
+>> and parsed log - it was 1.1 MB after parsing - wow. I haven't analyzed
+>> if it yet, but if it appears it is si2165 which generates that much
+>> control I/O it could be big task to write driver.
+>>
+>> Anyone has the idea if that amount of USB I/O traffic is caused by
+>> cx231xx ?
+>>
+>> regards
+>> Antti
+>>
+>
+> Hi,
+>
+> FYI: The Si2168 driver is available from "dvbsky-linux-3.9-hps-v2.diff"
+> inside. Maybe the Si2165 is similar?
+>
+> http://www.selasky.org/hans_petter/distfiles/webcamd-3.10.0.7.tar.bz2
 
-My bad, sorry. I've reverted the changes.
+It is DVB-S driver. HVR-900 is DVB-T and DVB-C.
 
-> The one Hans have merged is one of our internal revisions, as only v1 is present on the mailing list.
-> I sent out a full patch series on Tuesday that consists of 9 parts, wheras the part you have merged is only 7 (from YUY2 shader to aspect ratio).
+regards
+Antti
 
-The reason I got confused was that the newer patch series no longer applies. Can
-you rebase it and post again?
-
-Thanks!
-
-	Hans
-
-> 
-> B.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+-- 
+http://palosaari.fi/
