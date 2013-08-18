@@ -1,66 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:39295 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755215Ab3HGFQf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 01:16:35 -0400
-MIME-Version: 1.0
-In-Reply-To: <51FE6D38.6020208@gmail.com>
-References: <1375455762-22071-1-git-send-email-arun.kk@samsung.com>
-	<1375455762-22071-11-git-send-email-arun.kk@samsung.com>
-	<51FE6D38.6020208@gmail.com>
-Date: Wed, 7 Aug 2013 10:46:34 +0530
-Message-ID: <CALt3h7-hJtKi8p=kt719LfRRu0N4PSbju-Uh=XobZvx85gyngg@mail.gmail.com>
-Subject: Re: [RFC v3 10/13] [media] exynos5-fimc-is: Add the hardware
- interface module
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:31707 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755510Ab3HRO7O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Aug 2013 10:59:14 -0400
+Date: Sun, 18 Aug 2013 11:59:06 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v9] V4L2: soc_camera: Renesas R-Car VIN driver
+Message-id: <20130818115906.6010a695@samsung.com>
+In-reply-to: <5204063E.7050707@cogentembedded.com>
+References: <201307260023.11460.sergei.shtylyov@cogentembedded.com>
+ <5204063E.7050707@cogentembedded.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Em Fri, 09 Aug 2013 00:57:34 +0400
+Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> escreveu:
 
-On Sun, Aug 4, 2013 at 8:33 PM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Arun,
->
->
-> On 08/02/2013 05:02 PM, Arun Kumar K wrote:
->>
->> The hardware interface module finally sends the commands to the
->> FIMC-IS firmware and runs the interrupt handler for getting the
->> responses.
->>
->> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
->> ---
+> Hello.
+> 
+> On 07/26/2013 12:23 AM, Sergei Shtylyov wrote:
+> 
+> > From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> > Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> > Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> > Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> > [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+> > values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+> > to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+> > *if* statement  and used 'bool' values instead of 0/1 where necessary, removed
+> > unused macros, done some reformatting and clarified some comments.]
+> > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+>     Guennadi, Mauro, if you don't have issues with this version, perhaps we 
+> still can merge it to 3.11 using "the new drivers can't cause regressions, so 
+> mergeable any time" rule?
 
-[snip]
+AFAICT, while sometimes that happens, this is not a rule. The rule is to
+merge new drivers during the merge window. What we during -rc is to accept
+fix patches and even some updates for the new drivers merged at the very
+latest merge window, as those won't cause regressions.
 
->> +static int itf_get_state(struct fimc_is_interface *itf,
->> +               unsigned long state)
->> +{
->> +       int ret = 0;
->> +       unsigned long flags;
->> +
->> +       spin_lock_irqsave(&itf->slock_state, flags);
->> +       ret = test_bit(state,&itf->state);
->
->
-> Shouldn't it be __test_bit() ?
->
+Anyway, IMO, we're too late at -rc cycle to propose this as an exception.
 
-__test_bit() is not availble !
-In file include/asm-generic/bitops/non-atomic.h, all other ops
-are prefixed with __xxx(), but its just test_bit().
+Regards,
+Mauro
 
-Regards
-Arun
+> 
+> WBR, Sergei
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
