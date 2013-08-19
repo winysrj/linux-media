@@ -1,48 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60852 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751998Ab3HGWq2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 18:46:28 -0400
-Received: from dyn3-82-128-186-228.psoas.suomi.net ([82.128.186.228] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1V7CUt-00026Z-Kt
-	for linux-media@vger.kernel.org; Thu, 08 Aug 2013 01:46:27 +0300
-Message-ID: <5202CE1B.8050801@iki.fi>
-Date: Thu, 08 Aug 2013 01:45:47 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from outgoing.email.vodafone.de ([139.7.28.128]:61871 "EHLO
+	outgoing.email.vodafone.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751455Ab3HSMor (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 08:44:47 -0400
+Message-ID: <5212112C.70808@vodafone.de>
+Date: Mon, 19 Aug 2013 14:35:56 +0200
+From: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.12] DVB USB v2 get rid of deferred probe
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org,
+	Alex Deucher <alexander.deucher@amd.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] drm/radeon: rework to new fence interface
+References: <20130815124308.14812.58197.stgit@patser> <5211F0C5.2040705@canonical.com>
+In-Reply-To: <5211F0C5.2040705@canonical.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 1c26190a8d492adadac4711fe5762d46204b18b0:
+Am 19.08.2013 12:17, schrieb Maarten Lankhorst:
+> [SNIP]
+> @@ -190,25 +225,24 @@ void radeon_fence_process(struct radeon_device *rdev, int ring)
+>   		}
+>   	} while (atomic64_xchg(&rdev->fence_drv[ring].last_seq, seq) > seq);
+>   
+> -	if (wake) {
+> +	if (wake)
+>   		rdev->fence_drv[ring].last_activity = jiffies;
+> -		wake_up_all(&rdev->fence_queue);
+> -	}
+> +	return wake;
+>   }
 
-   [media] exynos4-is: Correct colorspace handling at FIMC-LITE 
-(2013-06-28 15:33:27 -0300)
+Very bad idea, when sequence numbers change, you always want to wake up 
+the whole fence queue here.
 
-are available in the git repository at:
+> [SNIP]
+> +/**
+> + * radeon_fence_enable_signaling - enable signalling on fence
+> + * @fence: fence
+> + *
+> + * This function is called with fence_queue lock held, and adds a callback
+> + * to fence_queue that checks if this fence is signaled, and if so it
+> + * signals the fence and removes itself.
+> + */
+> +static bool radeon_fence_enable_signaling(struct fence *f)
+> +{
+> +	struct radeon_fence *fence = to_radeon_fence(f);
+> +
+> +	if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq ||
+> +	    !fence->rdev->ddev->irq_enabled)
+> +		return false;
+> +
 
-   git://linuxtv.org/anttip/media_tree.git dvb_usb_v2
+Do I get that right that you rely on IRQs to be enabled and working 
+here? Cause that would be a quite bad idea from the conceptual side.
 
-for you to fetch changes up to c42f1abc409a87eb7791105ba9e1125924820655:
+> +	radeon_irq_kms_sw_irq_get(fence->rdev, fence->ring);
+> +
+> +	if (__radeon_fence_process(fence->rdev, fence->ring))
+> +		wake_up_all_locked(&fence->rdev->fence_queue);
+> +
+> +	/* did fence get signaled after we enabled the sw irq? */
+> +	if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq) {
+> +		radeon_irq_kms_sw_irq_put(fence->rdev, fence->ring);
+> +		return false;
+> +	}
+> +
+> +	fence->fence_wake.flags = 0;
+> +	fence->fence_wake.private = NULL;
+> +	fence->fence_wake.func = radeon_fence_check_signaled;
+> +	__add_wait_queue(&fence->rdev->fence_queue, &fence->fence_wake);
+> +	fence_get(f);
+> +
+> +	return true;
+> +}
+> +
+>   /**
+>    * radeon_fence_signaled - check if a fence has signaled
+>    *
+>
 
-   dvb_usb_v2: get rid of deferred probe (2013-08-08 01:43:43 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-       lme2510: do not use bInterfaceNumber from dvb_usb_v2
-       dvb_usb_v2: get rid of deferred probe
-
-  drivers/media/usb/dvb-usb-v2/dvb_usb.h      |   5 -----
-  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 134 
-+++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------------------
-  drivers/media/usb/dvb-usb-v2/lmedm04.c      |   2 +-
-  3 files changed, 46 insertions(+), 95 deletions(-)
-
--- 
-http://palosaari.fi/
+Christian.
