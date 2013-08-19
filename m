@@ -1,37 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:60311 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754747Ab3HEHDk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 03:03:40 -0400
-Received: by mail-wg0-f48.google.com with SMTP id f12so2103935wgh.27
-        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 00:03:38 -0700 (PDT)
+Received: from netrider.rowland.org ([192.131.102.5]:44969 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750775Ab3HSPJd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 11:09:33 -0400
+Date: Mon, 19 Aug 2013 11:09:32 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+cc: Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
+In-Reply-To: <CAMuHMdVXeWaggY5FPKrr2fBBnKLq3Rqw9WF99N+AX5sFwBOnog@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1308191106040.3616-100000@netrider.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <1375101661-6493-6-git-send-email-hverkuil@xs4all.nl>
-References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl> <1375101661-6493-6-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 5 Aug 2013 12:33:18 +0530
-Message-ID: <CA+V-a8tC-MUUW4RLf7EFzrxaLZW5jKyYKvWtbKy8s9qc5xYmGw@mail.gmail.com>
-Subject: Re: [RFC PATCH 5/8] videodev2.h: defines to calculate blanking and
- frame sizes
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Sun, 18 Aug 2013, Geert Uytterhoeven wrote:
 
-Thanks for the patch.
+> On Thu, Jul 11, 2013 at 1:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Wednesday 10 July 2013, Alan Stern wrote:
+> >> This isn't right.  There are USB host controllers that use PIO, not
+> >> DMA.  The HAS_DMA dependency should go with the controller driver, not
+> >> the USB core.
+> >>
+> >> On the other hand, the USB core does call various routines like
+> >> dma_unmap_single.  It ought to be possible to compile these calls even
+> >> when DMA isn't enabled.  That is, they should be defined as do-nothing
+> >> stubs.
+> >
+> > The asm-generic/dma-mapping-broken.h file intentionally causes link
+> > errors, but that could be changed.
+> >
+> > The better approach in my mind would be to replace code like
+> >
+> >
+> >         if (hcd->self.uses_dma)
+> >
+> > with
+> >
+> >         if (IS_ENABLED(CONFIG_HAS_DMA) && hcd->self.uses_dma) {
+> >
+> > which will reliably cause that reference to be omitted from object code,
+> > but not stop giving link errors for drivers that actually require
+> > DMA.
+> 
+> This can be done for drivers/usb/core/hcd.c.
+> 
+> But I'm a bit puzzled by drivers/usb/core/buffer.c. E.g.
+> 
+> void *hcd_buffer_alloc(...)
+> {
+>         ....
+>         /* some USB hosts just use PIO */
+>         if (!bus->controller->dma_mask &&
+>             !(hcd->driver->flags & HCD_LOCAL_MEM)) {
 
-On Mon, Jul 29, 2013 at 6:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> It is very common to have to calculate the total width and height of the
-> blanking and the full frame, so add a few defines that deal with that.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+I don't remember the full story.  You should check with the person who
+added the HCD_LOCAL_MEM flag originally.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> So if DMA is not used (!hcd->self.uses_dma, i.e. bus->controller->dma_mask
+> is zero), and HCD_LOCAL_MEM is set, we still end up calling dma_pool_alloc()?
+> 
+> (Naively, I'm not so familiar with the USB code) I'd expect it to use
+> kmalloc() instead?
 
-Regards,
---Prabhakar Lad
+Maybe what happens in this case is that some sort of hook causes the 
+allocation to be made from a special memory-mapped region on board the 
+controller.
+
+Alan Stern
+
