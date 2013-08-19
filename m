@@ -1,111 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:17882 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752996Ab3H0QAr (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4429 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243Ab3HSOor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 12:00:47 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MS700LJR5SWX150@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Aug 2013 12:00:46 -0400 (EDT)
-Date: Tue, 27 Aug 2013 13:00:41 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Frank =?UTF-8?B?U2No?= =?UTF-8?B?w6RmZXI=?=
-	<fschaefer.oss@googlemail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-Message-id: <20130827130041.15db82d5@samsung.com>
-In-reply-to: <5182139.9PqyLJNP0L@avalon>
-References: <520E76E7.30201@googlemail.com> <6237856.Ni2ROBVUfl@avalon>
- <20130827110858.01d88513@samsung.com> <5182139.9PqyLJNP0L@avalon>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Mon, 19 Aug 2013 10:44:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 12/20] v4l2-dv-timings: rename v4l_match_dv_timings to v4l2_match_dv_timings
+Date: Mon, 19 Aug 2013 16:44:21 +0200
+Message-Id: <1376923469-30694-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Aug 2013 17:27:52 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Mauro,
-> 
-> On Tuesday 27 August 2013 11:08:58 Mauro Carvalho Chehab wrote:
-> > Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > > On Monday 26 August 2013 11:09:33 Mauro Carvalho Chehab wrote:
-> > > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> 
+It's the only function in v4l2-dv-timings.c with the v4l prefix instead
+of v4l2. Make it consistent with the other functions.
 
-> > Ok, but the voltage and clock regulators are not mapped, on embedded
-> > devices, as part of the USB or PCI bus bridge device (except, of course,
-> > when the voltage/clocks are needed by the bridge device itself). It is
-> > mapped elsewhere, at DT.
-> 
-> Or in a C code board file, depending on the platform. DT or board files are 
-> more or less equivalent, both of them store information about the board. For 
-> PCI and USB devices we need to store that information somewhere as well. As 
-> the em28xx driver already stores board layout information in em28xx-cards.c, 
-> we could store clock information there as well (I haven't checked whether 
-> that's the best place to store that information in the driver). I don't see 
-> why storing board-specific clock information ("there's a fixed-frequency clock 
-> with this frequency and this name on the board") in the driver is a different 
-> issue than storing other kind of board information in the em28xx_board 
-> structure.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c               |  4 ++--
+ drivers/media/platform/s5p-tv/hdmi_drv.c  |  2 +-
+ drivers/media/usb/hdpvr/hdpvr-video.c     |  2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 12 ++++++------
+ include/media/v4l2-dv-timings.h           |  8 ++++----
+ 5 files changed, 14 insertions(+), 14 deletions(-)
 
-Yes, on PCI/USB drivers, we have a board specific setup. On em28xx, it is
-at em28xx-cards.c.
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index ba8602c..a1a9d1e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -763,7 +763,7 @@ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; predef_vid_timings[i].timings.bt.width; i++) {
+-		if (!v4l_match_dv_timings(timings, &predef_vid_timings[i].timings,
++		if (!v4l2_match_dv_timings(timings, &predef_vid_timings[i].timings,
+ 					DIGITAL_INPUT ? 250000 : 1000000))
+ 			continue;
+ 		io_write(sd, 0x00, predef_vid_timings[i].vid_std); /* video std */
+@@ -1183,7 +1183,7 @@ static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; adv7604_timings[i].bt.width; i++) {
+-		if (v4l_match_dv_timings(timings, &adv7604_timings[i],
++		if (v4l2_match_dv_timings(timings, &adv7604_timings[i],
+ 					DIGITAL_INPUT ? 250000 : 1000000)) {
+ 			*timings = adv7604_timings[i];
+ 			break;
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 1b34c36..4ad9374 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -625,7 +625,7 @@ static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(hdmi_timings); i++)
+-		if (v4l_match_dv_timings(&hdmi_timings[i].dv_timings,
++		if (v4l2_match_dv_timings(&hdmi_timings[i].dv_timings,
+ 					timings, 0))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdmi_timings)) {
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index e68245a..0500c417 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -642,7 +642,7 @@ static int vidioc_s_dv_timings(struct file *file, void *_fh,
+ 	if (dev->status != STATUS_IDLE)
+ 		return -EBUSY;
+ 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++)
+-		if (v4l_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
++		if (v4l2_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdpvr_dv_timings))
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 917e58c..1a9d393 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -181,7 +181,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(timings); i++) {
+ 		if (v4l2_dv_valid_timings(timings + i, cap) &&
+-		    v4l_match_dv_timings(t, timings + i, pclock_delta)) {
++		    v4l2_match_dv_timings(t, timings + i, pclock_delta)) {
+ 			*t = timings[i];
+ 			return true;
+ 		}
+@@ -191,16 +191,16 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cap);
+ 
+ /**
+- * v4l_match_dv_timings - check if two timings match
++ * v4l2_match_dv_timings - check if two timings match
+  * @t1 - compare this v4l2_dv_timings struct...
+  * @t2 - with this struct.
+  * @pclock_delta - the allowed pixelclock deviation.
+  *
+  * Compare t1 with t2 with a given margin of error for the pixelclock.
+  */
+-bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+-			  const struct v4l2_dv_timings *t2,
+-			  unsigned pclock_delta)
++bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
++			   const struct v4l2_dv_timings *t2,
++			   unsigned pclock_delta)
+ {
+ 	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
+ 		return false;
+@@ -221,7 +221,7 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 		return true;
+ 	return false;
+ }
+-EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
++EXPORT_SYMBOL_GPL(v4l2_match_dv_timings);
+ 
+ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			   const struct v4l2_dv_timings *t, bool detailed)
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 696e5c2..43f6b67 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -64,7 +64,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 			      const struct v4l2_dv_timings_cap *cap,
+ 			      unsigned pclock_delta);
+ 
+-/** v4l_match_dv_timings() - do two timings match?
++/** v4l2_match_dv_timings() - do two timings match?
+   * @measured:	  the measured timings data.
+   * @standard:	  the timings according to the standard.
+   * @pclock_delta: maximum delta in Hz between standard->pixelclock and
+@@ -72,9 +72,9 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+   *
+   * Returns true if the two timings match, returns false otherwise.
+   */
+-bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
+-			  const struct v4l2_dv_timings *standard,
+-			  unsigned pclock_delta);
++bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
++			   const struct v4l2_dv_timings *standard,
++			   unsigned pclock_delta);
+ 
+ /** v4l2_print_dv_timings() - log the contents of a dv_timings struct
+   * @dev_prefix:device prefix for each log line.
+-- 
+1.8.3.2
 
-Yet, there's no board-specific information in this case: em28xx doesn't
-manage clocks. It is always on. No need to add a bit there at the boards
-config file to initialize the clock before loading the subdevice, because
-the clock is already there.
-
-> The point is that the client driver knows that it needs a clock, and knows how 
-> to use it (for instance it knows that it should turn the clock on at least 
-> 100ms before sending the first I2C command). However, the client should not 
-> know how the clock is provided. That's the clock API abstraction layer. The 
-> client will request the clock and turn it on/off when it needs to, and if the 
-> clock source is a crystal it will always be on. On platforms where the clock 
-> can be controlled we will thus save power by disabling the clock when it's not 
-> used, and on other platforms the clock will just always be on, without any 
-> need to code this explictly in all client drivers.
-
-On em28xx devices, power saving is done by enabling reset pin. On several
-hardware, doing that internally disables the clock line. I'm not sure if
-ov2640 supports this mode (Frank may know better how power saving is done
-with those cameras). Other devices have an special pin for power off or
-power saving.
-
-Anyway, that rises an interesting question: on devices with wired clocks,
-the power saving mode should not be provided via clock API abstraction
-layer, but via a callback to the bridge (as the bridge knows the GPIO
-register/bit that corresponds to device reset and/or power off pin).
-
-> > So, the only sense on having a clock API is when the hardware allows some
-> > control on it.
-> > 
-> > So, if the hardware can't be controlled and it is always on, it makes no
-> > sense to register a clock.
-> 
-> Please also note that, even if the clock can't be controlled, the sensor might 
-> need to query the clock frequency for instance to adjust its PLL parameters. 
-> The clk_get_rate() call is used for such a purpose, and requires a clock 
-> object.
-
-Ok, this is a good point.
-
-> > The thing is that you're wanting to use the clock register as a way to
-> > detect that the device got initialized.
-> 
-> I'm not sure to follow you there, I don't think that's how I want to use the 
-> clock. Could you please elaborate ?
-
-As Sylwester pointed, the lack of clock register makes ov2640 to defer
-probing, as it assumes that the sensor is not ready.
-
-Cheers,
-Mauro
