@@ -1,88 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:54782 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754782Ab3HEHOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 03:14:31 -0400
-Received: by mail-la0-f50.google.com with SMTP id fn20so1754323lab.23
-        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 00:14:30 -0700 (PDT)
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2153 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751147Ab3HSOwx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 10:52:53 -0400
+Message-ID: <52123111.1050305@xs4all.nl>
+Date: Mon, 19 Aug 2013 16:52:01 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <51FB90C5.9060101@samsung.com>
-References: <1375355972-25276-1-git-send-email-vikas.sajjan@linaro.org>
- <5151790.EBRlE0cTxf@flatron> <CAF6AEGvmd20MJ_=69kYahkeTySVbhc2GgiUNwCDFXuDWgeGAfQ@mail.gmail.com>
- <CAD025yRZBDh6ssSUbY-mo2mo-WqrUS3R56bD-QrBvaBbWX_HMQ@mail.gmail.com>
- <CAAQKjZNBPxBxR-4PXbhOdX0V1inMkauE-xZ+0kwnfVTgqpCEVg@mail.gmail.com>
- <CAD025yR9Xd0G81WdLDxKyu-RVZPPJAUOKZ+0b5oKUxYOe7q_pQ@mail.gmail.com> <51FB90C5.9060101@samsung.com>
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Date: Mon, 5 Aug 2013 12:44:10 +0530
-Message-ID: <CAD025yS1Y0pqDnGJamm4y5SpL2d8LT58Kx2uh9U=NeqKDELa5w@mail.gmail.com>
-Subject: Re: [PATCH] drm/exynos: Add check for IOMMU while passing physically
- continous memory flag
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>, Rob Clark <robdclark@gmail.com>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org, "kgene.kim" <kgene.kim@samsung.com>,
-	"arun.kk" <arun.kk@samsung.com>,
-	Patch Tracking <patches@linaro.org>,
-	linaro-kernel@lists.linaro.org, sunil joshi <joshi@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"m.szyprowski" <m.szyprowski@samsung.com>,
-	devicetree <devicetree@vger.kernel.org>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	Martin Bugge <marbugge@cisco.com>
+Subject: Re: [RFC PATCH 1/3] adv7842: add new video decoder driver.
+References: <1376313239-19921-1-git-send-email-hverkuil@xs4all.nl> <1376313239-19921-2-git-send-email-hverkuil@xs4all.nl> <CAHG8p1CqONcw1LqTwNEZOpc_W8pL2rsH68UJRor2UbDb1fJ-Fg@mail.gmail.com>
+In-Reply-To: <CAHG8p1CqONcw1LqTwNEZOpc_W8pL2rsH68UJRor2UbDb1fJ-Fg@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 08/16/2013 12:10 PM, Scott Jiang wrote:
+>> +
+>> +static int adv7842_g_mbus_fmt(struct v4l2_subdev *sd,
+>> +                             struct v4l2_mbus_framefmt *fmt)
+>> +{
+>> +       struct adv7842_state *state = to_state(sd);
+>> +
+>> +       fmt->width = state->timings.bt.width;
+>> +       fmt->height = state->timings.bt.height;
+>> +       fmt->code = V4L2_MBUS_FMT_FIXED;
+>> +       fmt->field = V4L2_FIELD_NONE;
+>> +
+>> +       if (state->mode == ADV7842_MODE_SDP) {
+>> +               /* SPD block */
+>> +               if (!(sdp_read(sd, 0x5A) & 0x01))
+>> +                       return -EINVAL;
+>> +               fmt->width = 720;
+>> +               /* valid signal */
+>> +               if (state->norm & V4L2_STD_525_60)
+>> +                       fmt->height = 480;
+>> +               else
+>> +                       fmt->height = 576;
+>> +               fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>> +               return 0;
+>> +       }
+>> +
+> I believe someone use SDP mode to capture 480i instead of 480p.
+> I think we can add a table to map adv7842 output setting and v4l format.
 
-On 2 August 2013 16:28, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> Hi Vikas,
->
-> On 08/02/2013 12:10 PM, Vikas Sajjan wrote:
->> yeah, we could not allocate CMA region for FIMD, because the function
->> dma_declare_contiguous() needs "dev" as the first argument and we have
->> access to "dev" node only if it is NON-DT way of probing like the way
->> it is done in arch/arm/mach-davinci/devices-da8xx.c
->> But now, since the probing is through DT way, there is NO way ( Let me
->> know if something is newly added ) to call dma_declare_contiguous()
->> and reserve CMA region .
->
-> See this patch series [1]. We have have been using this kind of bindings
-> for assigning physically contiguous memory regions to the Exynos
-> multimedia devices, instead of what's currently in mainline where same
-> physical addresses are repeated in dts for various boards without much
-> thought. And where custom device specific parsing code is required at
-> arch side.
->
-> $ git grep mfc\-[lr] arch/arm/boot/dts
->
-> arch/arm/boot/dts/exynos4210-origen.dts:     samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos4210-origen.dts:     samsung,mfc-l = <0x51000000 0x800000>;
-> arch/arm/boot/dts/exynos4210-smdkv310.dts:   samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos4210-smdkv310.dts:   samsung,mfc-l = <0x51000000 0x800000>;
-> arch/arm/boot/dts/exynos4412-origen.dts:     samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos4412-origen.dts:     samsung,mfc-l = <0x51000000 0x800000>;
-> arch/arm/boot/dts/exynos4412-smdk4412.dts:   samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos4412-smdk4412.dts:   samsung,mfc-l = <0x51000000 0x800000>;
-> arch/arm/boot/dts/exynos5250-arndale.dts:    samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos5250-arndale.dts:    samsung,mfc-l = <0x51000000 0x800000>;
-> arch/arm/boot/dts/exynos5250-smdk5250.dts:   samsung,mfc-r = <0x43000000 0x800000>;
-> arch/arm/boot/dts/exynos5250-smdk5250.dts:   samsung,mfc-l = <0x51000000 0x800000>;
->
->
-> [1] http://www.spinics.net/lists/arm-kernel/msg263130.html
->
+The driver as it stands only supports progressive output from the chip, because
+that is all we support in our products (interlaced video conferencing? Nah, not
+a good idea...).
 
+I don't think I can easily test it (if at all!), so I leave this as an
+exercise for the reader.
 
-Thanks, its good that now we have a new way to reserve CMA region.
+>> +static int adv7842_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+>> +{
+>> +       struct adv7842_state *state = to_state(sd);
+>> +
+>> +       v4l2_dbg(1, debug, sd, "%s:\n", __func__);
+>> +
+>> +       if (state->mode != ADV7842_MODE_SDP)
+>> +               return -ENODATA;
+>> +
+>> +       if (norm & V4L2_STD_ALL) {
+>> +               state->norm = norm;
+>> +               return 0;
+>> +       }
+>> +       return -EINVAL;
+>> +}
+> Why is there no hardware operation?
+> 
+> if (std == V4L2_STD_NTSC_443)
+>                 val = 0x20;
+> else if (std == V4L2_STD_PAL_60)
+>                 val = 0x10;
+> else if (std == V4L2_STD_PAL_Nc)
+>                 val = 0x08;
+> else if (std == V4L2_STD_PAL_M)
+>                 val = 0x04;
+> else if (std & V4L2_STD_NTSC)
+>                 val = 0x02;
+> else if (std & V4L2_STD_PAL)
+>                 val = 0x01;
+> else if (std & V4L2_STD_SECAM)
+>                 val = 0x40;
+> else
+>                 return -EINVAL;
+> /* force the digital core into a specific video standard */
+> sdp_write(sd, 0x0, val);
+> /* wait 100ms, otherwise color will be lost */
+> msleep(100);
+> state->std = std;
+> return 0;
 
+I checked with Martin Bugge who wrote this and the reason is that apparently forcing
+the core to a specific standard will break the querystd functionality.
 
-> Regards,
-> Sylwester
+That said, this can definitely be improved by only forcing the standard when you start
+streaming and reverting to the autodetect mode when streaming stops. QUERYSTD can return
+-EBUSY when streaming is on.
 
+I would prefer to do this in a separate patch later, though, as this will take some
+time to implement and especially test.
 
+Regards,
 
--- 
-Thanks and Regards
- Vikas Sajjan
+	Hans
