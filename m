@@ -1,87 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4844 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab3HOLhY (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:39995 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab3HSTh5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:37:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 01/12] v4l2-dv-timings: fix CVT calculation
-Date: Thu, 15 Aug 2013 13:36:23 +0200
-Message-Id: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 19 Aug 2013 15:37:57 -0400
+Message-ID: <52127411.2010106@canonical.com>
+Date: Mon, 19 Aug 2013 21:37:53 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
+CC: dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org,
+	Alex Deucher <alexander.deucher@amd.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] drm/radeon: rework to new fence interface
+References: <20130815124308.14812.58197.stgit@patser> <5211F0C5.2040705@canonical.com> <5212112C.70808@vodafone.de>
+In-Reply-To: <5212112C.70808@vodafone.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Op 19-08-13 14:35, Christian König schreef:
+> Am 19.08.2013 12:17, schrieb Maarten Lankhorst:
+>> [SNIP]
+>> @@ -190,25 +225,24 @@ void radeon_fence_process(struct radeon_device *rdev, int ring)
+>>           }
+>>       } while (atomic64_xchg(&rdev->fence_drv[ring].last_seq, seq) > seq);
+>>   -    if (wake) {
+>> +    if (wake)
+>>           rdev->fence_drv[ring].last_activity = jiffies;
+>> -        wake_up_all(&rdev->fence_queue);
+>> -    }
+>> +    return wake;
+>>   }
+>
+> Very bad idea, when sequence numbers change, you always want to wake up the whole fence queue here.
+Yes, and the callers of this function call wake_up_all or wake_up_all_locked themselves, based on the return value..
 
-This patch fixes two errors that caused incorrect format detections:
-
-The first bug is in the calculation of the vertical backporch: the combined
-period of vsync and backporch must *exceed* a certain minimum value, and not
-be equal to it.
-
-The second bug is a rounding error in the reduced blanking calculation:
-expand the ideal_duty_cylce to be in parts per ten thousand to avoid
-rounding errors.
-
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Cc: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index f20b316..72cf224 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -286,14 +286,14 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 	/* Vertical */
- 	if (reduced_blanking) {
- 		v_fp = CVT_RB_V_FPORCH;
--		v_bp = (CVT_RB_MIN_V_BLANK * hfreq + 999999) / 1000000;
-+		v_bp = (CVT_RB_MIN_V_BLANK * hfreq + 1999999) / 1000000;
- 		v_bp -= vsync + v_fp;
- 
- 		if (v_bp < CVT_RB_MIN_V_BPORCH)
- 			v_bp = CVT_RB_MIN_V_BPORCH;
- 	} else {
- 		v_fp = CVT_MIN_V_PORCH_RND;
--		v_bp = (CVT_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
-+		v_bp = (CVT_MIN_VSYNC_BP * hfreq + 1999999) / 1000000 - vsync;
- 
- 		if (v_bp < CVT_MIN_V_BPORCH)
- 			v_bp = CVT_MIN_V_BPORCH;
-@@ -337,17 +337,16 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 
- 		frame_width = image_width + CVT_RB_H_BLANK;
- 	} else {
-+		unsigned ideal_duty_cycle_per_myriad =
-+			100 * CVT_C_PRIME - (CVT_M_PRIME * 100000) / hfreq;
- 		int h_blank;
--		unsigned ideal_duty_cycle = CVT_C_PRIME - (CVT_M_PRIME * 1000) / hfreq;
- 
--		h_blank = (image_width * ideal_duty_cycle + (100 - ideal_duty_cycle) / 2) /
--						(100 - ideal_duty_cycle);
--		h_blank = h_blank - h_blank % (2 * CVT_CELL_GRAN);
-+		if (ideal_duty_cycle_per_myriad < 2000)
-+			ideal_duty_cycle_per_myriad = 2000;
- 
--		if (h_blank * 100 / image_width < 20) {
--			h_blank = image_width / 5;
--			h_blank = (h_blank + 0x7) & ~0x7;
--		}
-+		h_blank = image_width * ideal_duty_cycle_per_myriad /
-+					(10000 - ideal_duty_cycle_per_myriad);
-+		h_blank = (h_blank / (2 * CVT_CELL_GRAN)) * 2 * CVT_CELL_GRAN;
- 
- 		pix_clk = (image_width + h_blank) * hfreq;
- 		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
--- 
-1.8.3.2
+>> [SNIP]
+>> +/**
+>> + * radeon_fence_enable_signaling - enable signalling on fence
+>> + * @fence: fence
+>> + *
+>> + * This function is called with fence_queue lock held, and adds a callback
+>> + * to fence_queue that checks if this fence is signaled, and if so it
+>> + * signals the fence and removes itself.
+>> + */
+>> +static bool radeon_fence_enable_signaling(struct fence *f)
+>> +{
+>> +    struct radeon_fence *fence = to_radeon_fence(f);
+>> +
+>> +    if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq ||
+>> +        !fence->rdev->ddev->irq_enabled)
+>> +        return false;
+>> +
+>
+> Do I get that right that you rely on IRQs to be enabled and working here? Cause that would be a quite bad idea from the conceptual side.
+For cross-device synchronization it would be nice to have working irqs, it allows signalling fences faster,
+and it allows for callbacks on completion to be called. For internal usage it's no more required than it was before.
+>> +    radeon_irq_kms_sw_irq_get(fence->rdev, fence->ring);
+>> +
+>> +    if (__radeon_fence_process(fence->rdev, fence->ring))
+>> +        wake_up_all_locked(&fence->rdev->fence_queue);
+>> +
+>> +    /* did fence get signaled after we enabled the sw irq? */
+>> +    if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq) {
+>> +        radeon_irq_kms_sw_irq_put(fence->rdev, fence->ring);
+>> +        return false;
+>> +    }
+>> +
+>> +    fence->fence_wake.flags = 0;
+>> +    fence->fence_wake.private = NULL;
+>> +    fence->fence_wake.func = radeon_fence_check_signaled;
+>> +    __add_wait_queue(&fence->rdev->fence_queue, &fence->fence_wake);
+>> +    fence_get(f);
+>> +
+>> +    return true;
+>> +}
+>> +
+>>   /**
+>>    * radeon_fence_signaled - check if a fence has signaled
+>>    *
+>>
+>
+> Christian.
+>
+~Maarten
 
