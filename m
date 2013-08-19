@@ -1,45 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:41453 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297Ab3H3CRw (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2932 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158Ab3HSOom (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:52 -0400
-Received: by mail-pa0-f54.google.com with SMTP id kx10so1703112pab.13
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:52 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
+	Mon, 19 Aug 2013 10:44:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 14/19] v4l: Add v4l2_buffer flags for VP8-specific special frames.
-Date: Fri, 30 Aug 2013 11:17:13 +0900
-Message-Id: <1377829038-4726-15-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 04/20] adv7604: improve log_status for HDMI/DVI-D signals
+Date: Mon, 19 Aug 2013 16:44:13 +0200
+Message-Id: <1376923469-30694-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bits for previous, golden and altref frame types.
+From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Don't log if there is no signal.
+
+If there is a signal, then also log HDCP and audio status.
+
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/videodev2.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/i2c/adv7604.c | 44 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 35 insertions(+), 9 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 437f1b0..c011ee0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -687,6 +687,10 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
- #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
- #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
-+/* VP8 special frames */
-+#define V4L2_BUF_FLAG_PREV_FRAME		0x10000  /* VP8 prev frame */
-+#define V4L2_BUF_FLAG_GOLDEN_FRAME		0x20000  /* VP8 golden frame */
-+#define V4L2_BUF_FLAG_ALTREF_FRAME		0x40000  /* VP8 altref frame */
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 6ffe25a..34fcdf3 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1758,6 +1758,9 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 		adv7604_print_timings(sd, &timings, "Detected format:", true);
+ 	adv7604_print_timings(sd, &state->timings, "Configured format:", true);
  
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
++	if (no_signal(sd))
++		return 0;
++
+ 	v4l2_info(sd, "-----Color space-----\n");
+ 	v4l2_info(sd, "RGB quantization range ctrl: %s\n",
+ 			rgb_quantization_range_txt[state->rgb_quantization_range]);
+@@ -1767,18 +1770,41 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
+ 			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
+ 			((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
+-					"enabled" : "disabled");
++				"enabled" : "disabled");
+ 	v4l2_info(sd, "Color space conversion: %s\n",
+ 			csc_coeff_sel_rb[cp_read(sd, 0xfc) >> 4]);
+ 
+-	/* Digital video */
+-	if (DIGITAL_INPUT) {
+-		v4l2_info(sd, "-----HDMI status-----\n");
+-		v4l2_info(sd, "HDCP encrypted content: %s\n",
+-				hdmi_read(sd, 0x05) & 0x40 ? "true" : "false");
+-		if (is_hdmi(sd))
+-			v4l2_info(sd, "deep color mode: %s\n",
+-					deep_color_mode_txt[(hdmi_read(sd, 0x0b) >> 5) & 0x3]);
++	if (!DIGITAL_INPUT)
++		return 0;
++
++	v4l2_info(sd, "-----%s status-----\n", is_hdmi(sd) ? "HDMI" : "DVI-D");
++	v4l2_info(sd, "HDCP encrypted content: %s\n", (hdmi_read(sd, 0x05) & 0x40) ? "true" : "false");
++	v4l2_info(sd, "HDCP keys read: %s%s\n",
++			(hdmi_read(sd, 0x04) & 0x20) ? "yes" : "no",
++			(hdmi_read(sd, 0x04) & 0x10) ? "ERROR" : "");
++	if (!is_hdmi(sd)) {
++		bool audio_pll_locked = hdmi_read(sd, 0x04) & 0x01;
++		bool audio_sample_packet_detect = hdmi_read(sd, 0x18) & 0x01;
++		bool audio_mute = io_read(sd, 0x65) & 0x40;
++
++		v4l2_info(sd, "Audio: pll %s, samples %s, %s\n",
++				audio_pll_locked ? "locked" : "not locked",
++				audio_sample_packet_detect ? "detected" : "not detected",
++				audio_mute ? "muted" : "enabled");
++		if (audio_pll_locked && audio_sample_packet_detect) {
++			v4l2_info(sd, "Audio format: %s\n",
++					(hdmi_read(sd, 0x07) & 0x20) ? "multi-channel" : "stereo");
++		}
++		v4l2_info(sd, "Audio CTS: %u\n", (hdmi_read(sd, 0x5b) << 12) +
++				(hdmi_read(sd, 0x5c) << 8) +
++				(hdmi_read(sd, 0x5d) & 0xf0));
++		v4l2_info(sd, "Audio N: %u\n", ((hdmi_read(sd, 0x5d) & 0x0f) << 16) +
++				(hdmi_read(sd, 0x5e) << 8) +
++				hdmi_read(sd, 0x5f));
++		v4l2_info(sd, "AV Mute: %s\n", (hdmi_read(sd, 0x04) & 0x40) ? "on" : "off");
++
++		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
++
+ 		print_avi_infoframe(sd);
+ 	}
+ 
 -- 
-1.8.4
+1.8.3.2
 
