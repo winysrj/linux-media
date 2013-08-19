@@ -1,22 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm23-vm8.access.bullet.mail.bf1.yahoo.com ([216.109.115.167]:41954
-	"EHLO nm23-vm8.access.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755517Ab3HQAY4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 20:24:56 -0400
-Message-ID: <1376688948.72628.YahooMailNeo@web182201.mail.bf1.yahoo.com>
-Date: Fri, 16 Aug 2013 14:35:48 -0700 (PDT)
-From: Aurora Cormany <igamiro@sbcglobal.net>
-Reply-To: Aurora Cormany <igamiro@sbcglobal.net>
-Subject: [BUG REPORT] build script for media_build
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:36580 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099Ab3HSS4f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 14:56:35 -0400
+Date: Mon, 19 Aug 2013 20:56:33 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
+Message-ID: <20130819185633.GA12011@katana>
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+ <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+ <5212624D.5090708@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Content-Disposition: inline
+In-Reply-To: <5212624D.5090708@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The build script for the media_build git contains hints for packages to be pre-installed before attempting to build the kernel drivers. The Ubuntu (and Debian) hints contains a recommendation for "libdigest-sha1-perl". This package is no longer available in either Ubuntu (since 10.10) or Debian Wheezy (stable). The package "libdigest-sha-perl" seems to be an acceptable substitute. I suggest the script be revised to include the available package.
 
-Thanks,
-Aurora C.
+--9jxsPFA5p3P2qPhR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+
+> However this patch fails to apply onto either v3.11-rc4 or v3.11-rc6:
+
+Argh, did not drop the MPC patch before rebasing :( So either pick the
+patch "i2c: powermac: fix return path on error" before, pull the branch
+[1], or force me to resend ;)
+
+Thanks!
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/core-with-of
+
+--9jxsPFA5p3P2qPhR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSEmphAAoJEBQN5MwUoCm2oSMQALA/vPFqMuszNie+wpNeFLTx
+ndq9K7tvwvyV6ix/QtfrneDKM17i0G/OljSqOXMuO3YddSvGKIvs956j6te7Tor0
+INyTIzc59ycgiF10Zt6egrZOa4CTwka0IyozuU9tiue9VIIL2u4SnTkS7aEOH7rI
+rSFgyaDAFjvcMLAVrw/nsTcM5GRLVsFwZJklQ4m5m6ntXOs8cVDsEhkFUbMabLEA
+ITNMspH4KtEQr3v5ij+tl6rhUGJzWu8IARf4C7f8Gxas3y8NuADXlXgFjtd5xccR
+6Qgex4Wuv9yOLK9oCiXHrg3J7iXR46po/VM5BEHxT013Wxde8784u8Hv8FaPxC9r
+r1FkkadCnWaJWe0nIq2eFTU6pECwuSBT3Bu5d4kOrhr4S3a9Z+3s4KpmWZEmaNkz
+nN5hBURGFQIdLY7BzGJWiBRLqa7kq97ATfMr9N9Pg7Rpqa9TezMDF2Sm5DP2p0Ha
+fR764qsVds2fPT8+DIEnNiwfgBFJYcXhV0yv5T5pkncE5C6x6RQoK+RmRXMPO8hx
+l3xL9yV9GHVITzzgah/uaCKHCh7dboPYlKoiEqwHb0GxGbaEq3kMqaJ0D99mIss+
+k9sAe3Nfq02mwMN+2pGEZX7Rzs3d4CD84Yi0NC/csPSzkAHuC0qD1qdEw9nGrw4v
+ptWWV5ABSl7wqbZKZ0Rc
+=96ic
+-----END PGP SIGNATURE-----
+
+--9jxsPFA5p3P2qPhR--
