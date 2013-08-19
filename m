@@ -1,53 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta.bitpro.no ([92.42.64.202]:35792 "EHLO mta.bitpro.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755538Ab3HRPVz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Aug 2013 11:21:55 -0400
-Message-ID: <5210E6DD.7090008@bitfrost.no>
-Date: Sun, 18 Aug 2013 17:23:09 +0200
-From: Hans Petter Selasky <hps@bitfrost.no>
-MIME-Version: 1.0
-To: Ulf <mopp@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-f1bb3861-097c-4a3d-a374-a999bdb0fd9d-1376838057464@3capp-gmx-bs32>
-In-Reply-To: <trinity-f1bb3861-097c-4a3d-a374-a999bdb0fd9d-1376838057464@3capp-gmx-bs32>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:39220 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751087Ab3HSKzb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 06:55:31 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com,
+	shaik.ameer@samsung.com
+Subject: [PATCH v2 4/5] [media] exynos-mscl: Add DT bindings for M-Scaler driver
+Date: Mon, 19 Aug 2013 16:28:51 +0530
+Message-Id: <1376909932-23644-5-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/13 17:00, Ulf wrote:
-> Hi,
->
->> It is DVB-S driver. HVR-900 is DVB-T and DVB-C.
-> The si2168 is a DVB-T2, DVB-T, and DVB-C demodulator http://www.silabs.com/Support%20Documents/TechnicalDocs/Si2168-A20-short.pdf.
->
-> I tried to apply the dvbsky-linux-3.9-hps-v2.diff to media_build.git (used do_patches.sh from http://www.selasky.org/hans_petter/distfiles/webcamd-3.10.0.7.tar.bz2), but I was not able to compile it. I already changed some includes, but then I got the next error.
-> I just wanted to test if the si2168 module will work with si2165, but as I don't expect it to work I stopped trying to compile the si2168.
+This patch adds the DT binding documentation for the exynos5
+based M-Scaler device driver.
 
-Hi,
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ .../devicetree/bindings/media/exynos5-mscl.txt     |   34 ++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-mscl.txt
 
-You need to replace the "media_tree" with a symbolic link to a real 
-media_tree. Then it will work! The sources provided with webcamd are 
-simply minimal.
+diff --git a/Documentation/devicetree/bindings/media/exynos5-mscl.txt b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
+new file mode 100644
+index 0000000..5c9d1b1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
+@@ -0,0 +1,34 @@
++* Samsung Exynos5 M-Scaler device
++
++M-Scaler is used for scaling, blending, color fill and color space
++conversion on EXYNOS5 SoCs.
++
++Required properties:
++- compatible: should be "samsung,exynos5-mscl"
++- reg: should contain M-Scaler physical address location and length.
++- interrupts: should contain M-Scaler interrupt number
++- clocks: should contain the clock number according to CCF
++- clock-names: should be "mscl"
++
++Example:
++
++	mscl_0: mscl@0x12800000 {
++		compatible = "samsung,exynos5-mscl";
++		reg = <0x12800000 0x1000>;
++		interrupts = <0 220 0>;
++		clocks = <&clock 381>;
++		clock-names = "mscl";
++	};
++
++Aliases:
++Each M-Scaler node should have a numbered alias in the aliases node,
++in the form of msclN, N = 0...2. M-Scaler driver uses these aliases
++to retrieve the device IDs using "of_alias_get_id()" call.
++
++Example:
++
++aliases {
++	mscl0 =&mscl_0;
++	mscl1 =&mscl_1;
++	mscl2 =&mscl_2;
++};
+-- 
+1.7.9.5
 
-There is a file called "sources.txt":
-
-Media tree sources used:
-========================
-
-git clone git://linuxtv.org/media_tree.git
-git checkout remotes/origin/master
-
-top commit dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-
-
-Else you could install FreeBSD in VirtualBox or something like that and 
-test.
-
-Package is here:
-
-http://www.freshports.org/multimedia/webcamd/
-
---HPS
