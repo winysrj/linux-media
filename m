@@ -1,127 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56382 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934262Ab3HHO4Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 10:56:16 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1787 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276Ab3HSOou (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 10:44:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 2/6] V4L2: mx3_camera: convert to managed resource allocation
-Date: Thu,  8 Aug 2013 16:52:33 +0200
-Message-Id: <1375973557-23333-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1375973557-23333-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1375973557-23333-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 16/20] v4l2-dv-timings: rename v4l2_dv_valid_timings to v4l2_valid_dv_timings
+Date: Mon, 19 Aug 2013 16:44:25 +0200
+Message-Id: <1376923469-30694-17-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use devm_* resource allocators to simplify the driver's probe and clean up
-paths.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+All other functions follow the v4l2_<foo>_dv_timings pattern, do the same for
+this function.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/mx3_camera.c |   47 +++++-------------------
- 1 files changed, 10 insertions(+), 37 deletions(-)
+ drivers/media/i2c/ad9389b.c               |  2 +-
+ drivers/media/i2c/ths8200.c               |  2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 10 +++++-----
+ include/media/v4l2-dv-timings.h           |  4 ++--
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 1047e3e..e526096 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -1151,23 +1151,19 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	struct soc_camera_host *soc_host;
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index bb74fb6..fc60851 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -648,7 +648,7 @@ static int ad9389b_s_dv_timings(struct v4l2_subdev *sd,
+ 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		err = -ENODEV;
--		goto egetres;
--	}
-+	base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
+ 	/* quick sanity check */
+-	if (!v4l2_dv_valid_timings(timings, &ad9389b_timings_cap))
++	if (!v4l2_valid_dv_timings(timings, &ad9389b_timings_cap))
+ 		return -EINVAL;
  
--	mx3_cam = vzalloc(sizeof(*mx3_cam));
-+	mx3_cam = devm_kzalloc(&pdev->dev, sizeof(*mx3_cam), GFP_KERNEL);
- 	if (!mx3_cam) {
- 		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
--		err = -ENOMEM;
--		goto ealloc;
-+		return -ENOMEM;
- 	}
+ 	/* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index 580bd1b..6abf0fb 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -378,7 +378,7 @@ static int ths8200_s_dv_timings(struct v4l2_subdev *sd,
  
--	mx3_cam->clk = clk_get(&pdev->dev, NULL);
--	if (IS_ERR(mx3_cam->clk)) {
--		err = PTR_ERR(mx3_cam->clk);
--		goto eclkget;
--	}
-+	mx3_cam->clk = devm_clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(mx3_cam->clk))
-+		return PTR_ERR(mx3_cam->clk);
+ 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
  
- 	mx3_cam->pdata = pdev->dev.platform_data;
- 	mx3_cam->platform_flags = mx3_cam->pdata->flags;
-@@ -1201,13 +1197,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&mx3_cam->capture);
- 	spin_lock_init(&mx3_cam->lock);
+-	if (!v4l2_dv_valid_timings(timings, &ths8200_timings_cap))
++	if (!v4l2_valid_dv_timings(timings, &ths8200_timings_cap))
+ 		return -EINVAL;
  
--	base = ioremap(res->start, resource_size(res));
--	if (!base) {
--		pr_err("Couldn't map %x@%x\n", resource_size(res), res->start);
--		err = -ENOMEM;
--		goto eioremap;
--	}
--
- 	mx3_cam->base	= base;
+ 	if (!v4l2_find_dv_timings_cap(timings, &ths8200_timings_cap, 10)) {
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index f515997..a77f201 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -131,7 +131,7 @@ const struct v4l2_dv_timings v4l2_dv_timings_presets[] = {
+ };
+ EXPORT_SYMBOL_GPL(v4l2_dv_timings_presets);
  
- 	soc_host		= &mx3_cam->soc_host;
-@@ -1218,10 +1207,8 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	soc_host->nr		= pdev->id;
- 
- 	mx3_cam->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(mx3_cam->alloc_ctx)) {
--		err = PTR_ERR(mx3_cam->alloc_ctx);
--		goto eallocctx;
--	}
-+	if (IS_ERR(mx3_cam->alloc_ctx))
-+		return PTR_ERR(mx3_cam->alloc_ctx);
- 
- 	err = soc_camera_host_register(soc_host);
- 	if (err)
-@@ -1234,14 +1221,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 
- ecamhostreg:
- 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
--eallocctx:
--	iounmap(base);
--eioremap:
--	clk_put(mx3_cam->clk);
--eclkget:
--	vfree(mx3_cam);
--ealloc:
--egetres:
- 	return err;
+-bool v4l2_dv_valid_timings(const struct v4l2_dv_timings *t,
++bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
+ 			   const struct v4l2_dv_timings_cap *dvcap)
+ {
+ 	const struct v4l2_bt_timings *bt = &t->bt;
+@@ -153,7 +153,7 @@ bool v4l2_dv_valid_timings(const struct v4l2_dv_timings *t,
+ 		return false;
+ 	return true;
  }
+-EXPORT_SYMBOL_GPL(v4l2_dv_valid_timings);
++EXPORT_SYMBOL_GPL(v4l2_valid_dv_timings);
  
-@@ -1251,12 +1230,8 @@ static int mx3_camera_remove(struct platform_device *pdev)
- 	struct mx3_camera_dev *mx3_cam = container_of(soc_host,
- 					struct mx3_camera_dev, soc_host);
+ int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
+ 			     const struct v4l2_dv_timings_cap *cap)
+@@ -162,7 +162,7 @@ int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
  
--	clk_put(mx3_cam->clk);
--
- 	soc_camera_host_unregister(soc_host);
+ 	memset(t->reserved, 0, sizeof(t->reserved));
+ 	for (i = idx = 0; v4l2_dv_timings_presets[i].bt.width; i++) {
+-		if (v4l2_dv_valid_timings(v4l2_dv_timings_presets + i, cap) &&
++		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap) &&
+ 		    idx++ == t->index) {
+ 			t->timings = v4l2_dv_timings_presets[i];
+ 			return 0;
+@@ -178,11 +178,11 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ {
+ 	int i;
  
--	iounmap(mx3_cam->base);
--
- 	/*
- 	 * The channel has either not been allocated,
- 	 * or should have been released
-@@ -1266,8 +1241,6 @@ static int mx3_camera_remove(struct platform_device *pdev)
+-	if (!v4l2_dv_valid_timings(t, cap))
++	if (!v4l2_valid_dv_timings(t, cap))
+ 		return false;
  
- 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
+ 	for (i = 0; i < v4l2_dv_timings_presets[i].bt.width; i++) {
+-		if (v4l2_dv_valid_timings(v4l2_dv_timings_presets + i, cap) &&
++		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap) &&
+ 		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i, pclock_delta)) {
+ 			*t = v4l2_dv_timings_presets[i];
+ 			return true;
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 0fe310b..bd59df8 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -27,14 +27,14 @@
+  */
+ extern const struct v4l2_dv_timings v4l2_dv_timings_presets[];
  
--	vfree(mx3_cam);
--
- 	dmaengine_put();
+-/** v4l2_dv_valid_timings() - are these timings valid?
++/** v4l2_valid_dv_timings() - are these timings valid?
+   * @t:	  the v4l2_dv_timings struct.
+   * @cap: the v4l2_dv_timings_cap capabilities.
+   *
+   * Returns true if the given dv_timings struct is supported by the
+   * hardware capabilities, returns false otherwise.
+   */
+-bool v4l2_dv_valid_timings(const struct v4l2_dv_timings *t,
++bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
+ 			   const struct v4l2_dv_timings_cap *cap);
  
- 	return 0;
+ /** v4l2_enum_dv_timings_cap() - Helper function to enumerate possible DV timings based on capabilities
 -- 
-1.7.2.5
+1.8.3.2
 
