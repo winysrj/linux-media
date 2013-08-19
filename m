@@ -1,104 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:42167 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab3H3Jup (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4693 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255Ab3HSOor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 05:50:45 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c1so797358eek.10
-        for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 02:50:44 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	hans.verkuil@cisco.com
-Cc: Gianluca Gennari <gennarone@gmail.com>
-Subject: [RFC PATCH] adv7842: fix compilation with GCC < 4.4.6
-Date: Fri, 30 Aug 2013 11:50:27 +0200
-Message-Id: <1377856227-22601-1-git-send-email-gennarone@gmail.com>
+	Mon, 19 Aug 2013 10:44:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/20] ad9389b: change initial register configuration in ad9389b_setup()
+Date: Mon, 19 Aug 2013 16:44:18 +0200
+Message-Id: <1376923469-30694-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With GCC 4.4.3 (Ubuntu 10.04) the compilation of the new adv7842 driver
-fails with this error:
+From: Mats Randgaard <matrandg@cisco.com>
 
-CC [M]  adv7842.o
-adv7842.c:549: error: unknown field 'bt' specified in initializer
-adv7842.c:550: error: field name not in record or union initializer
-adv7842.c:550: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-adv7842.c:551: error: field name not in record or union initializer
-adv7842.c:551: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-adv7842.c:552: error: field name not in record or union initializer
-adv7842.c:552: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-adv7842.c:553: error: field name not in record or union initializer
-adv7842.c:553: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-adv7842.c:553: warning: excess elements in array initializer
-...
+- register 0x17: CSC scaling factor was set to +/- 2.0. This register
+  is set by ad9389b_csc_conversion_mode() to the right value.
+- register 0x3b: bits for pixel repetition and CSC was set to zero,
+  but that is the default value.
 
-This is caused by the old GCC version, as explained in file v4l2-dv-timings.h.
-The proposed fix uses the V4L2_INIT_BT_TIMINGS macro defined there.
-Please note that I have also to init the reserved space as otherwise GCC fails with this error:
-
-CC [M]  adv7842.o
-adv7842.c:549: error: field name not in record or union initializer
-adv7842.c:549: error: (near initialization for 'adv7842_timings_cap_analog.reserved')
-adv7842.c:549: warning: braces around scalar initializer
-adv7842.c:549: warning: (near initialization for 'adv7842_timings_cap_analog.reserved[0]')
-...
-
-Maybe the reserved space in struct v4l2_dv_timings_cap could be moved after
-the 'bt' field to avoid this?
-
-The same issue applies to other drivers too: ths8200, adv7511 and ad9389b.
-If the fix is approved, I can post a patch serie fixing all of them.
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7842.c | 28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
+ drivers/media/i2c/ad9389b.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index d174890..c21621b 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -546,30 +546,22 @@ static inline bool is_digital_input(struct v4l2_subdev *sd)
- 
- static const struct v4l2_dv_timings_cap adv7842_timings_cap_analog = {
- 	.type = V4L2_DV_BT_656_1120,
--	.bt = {
--		.max_width = 1920,
--		.max_height = 1200,
--		.min_pixelclock = 25000000,
--		.max_pixelclock = 170000000,
--		.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-+	.reserved = { 0 },
-+	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 170000000,
-+		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
- 			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
--		.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
--			V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM,
--	},
-+		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-+			V4L2_DV_BT_CAP_CUSTOM)
- };
- 
- static const struct v4l2_dv_timings_cap adv7842_timings_cap_digital = {
- 	.type = V4L2_DV_BT_656_1120,
--	.bt = {
--		.max_width = 1920,
--		.max_height = 1200,
--		.min_pixelclock = 25000000,
--		.max_pixelclock = 225000000,
--		.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-+	.reserved = { 0 },
-+	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 225000000,
-+		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
- 			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
--		.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
--			V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM,
--	},
-+		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-+			V4L2_DV_BT_CAP_CUSTOM)
- };
- 
- static inline const struct v4l2_dv_timings_cap *
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index d78fd3d..92cdb25 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -894,11 +894,9 @@ static void ad9389b_setup(struct v4l2_subdev *sd)
+ 	ad9389b_wr_and_or(sd, 0x15, 0xf1, 0x0);
+ 	/* Output format: RGB 4:4:4 */
+ 	ad9389b_wr_and_or(sd, 0x16, 0x3f, 0x0);
+-	/* CSC fixed point: +/-2, 1st order interpolation 4:2:2 -> 4:4:4 up
+-	   conversion, Aspect ratio: 16:9 */
+-	ad9389b_wr_and_or(sd, 0x17, 0xe1, 0x0e);
+-	/* Disable pixel repetition and CSC */
+-	ad9389b_wr_and_or(sd, 0x3b, 0x9e, 0x0);
++	/* 1st order interpolation 4:2:2 -> 4:4:4 up conversion,
++	   Aspect ratio: 16:9 */
++	ad9389b_wr_and_or(sd, 0x17, 0xf9, 0x06);
+ 	/* Output format: RGB 4:4:4, Active Format Information is valid. */
+ 	ad9389b_wr_and_or(sd, 0x45, 0xc7, 0x08);
+ 	/* Underscanned */
 -- 
-1.8.4
+1.8.3.2
 
