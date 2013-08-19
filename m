@@ -1,188 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:27993 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966169Ab3HIMMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:37 -0400
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3359 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751147Ab3HSOom (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 10:44:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: baard.e.winther@wintherstormer.no
-Subject: [PATCH FINAL 4/6] qv4l2: fix program input parameters
-Date: Fri,  9 Aug 2013 14:12:10 +0200
-Message-Id: <d55b463020f0f7f693379043c23bcc46be9fe2d9.1376049957.git.bwinther@cisco.com>
-In-Reply-To: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
-References: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
-References: <42a47889f837e362abc7a527c1029329e62034b0.1376049957.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 02/20] adv7604: debounce "format change" notifications
+Date: Mon, 19 Aug 2013 16:44:11 +0200
+Message-Id: <1376923469-30694-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/qv4l2.cpp | 137 ++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 121 insertions(+), 16 deletions(-)
+From: Mats Randgaard <matrandg@cisco.com>
 
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 7e2dba0..a0f21cd 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -1158,33 +1158,138 @@ void ApplicationWindow::closeEvent(QCloseEvent *event)
+The bridge driver is only notified when the input status has changed
+since the previous interrupt.
+
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 3ec7ec0..d093092 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -77,6 +77,7 @@ struct adv7604_state {
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 	bool connector_hdmi;
+ 	bool restart_stdi_once;
++	u32 prev_input_status;
  
- ApplicationWindow *g_mw;
- 
-+static void usage()
-+{
-+	printf("  Usage:\n"
-+	       "  qv4l2 [-R] [-h] [-d <dev>] [-r <dev>] [-V <dev>]\n"
-+	       "\n  -d, --device=<dev> use device <dev> as the video device\n"
-+	       "                     if <dev> is a number, then /dev/video<dev> is used\n"
-+	       "  -r, --radio-device=<dev> use device <dev> as the radio device\n"
-+	       "                     if <dev> is a number, then /dev/radio<dev> is used\n"
-+	       "  -V, --vbi-device=<dev> use device <dev> as the vbi device\n"
-+	       "                     if <dev> is a number, then /dev/vbi<dev> is used\n"
-+	       "  -h, --help         display this help message\n"
-+	       "  -R, --raw          open device in raw mode.\n");
-+}
-+
-+static void usageError(const char *msg)
-+{
-+	printf("Missing parameter for %s\n", msg);
-+	usage();
-+}
-+
-+static QString getDeviceName(QString dev, QString &name)
-+{
-+	bool ok;
-+	name.toInt(&ok);
-+	return ok ? QString("%1%2").arg(dev).arg(name) : name;
-+}
-+
- int main(int argc, char **argv)
+ 	/* i2c clients */
+ 	struct i2c_client *i2c_avlink;
+@@ -1535,6 +1536,7 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
  {
- 	QApplication a(argc, argv);
--	QString device = "/dev/video0";
- 	bool raw = false;
--	bool help = false;
--	int i;
-+	QString device;
-+	QString video_device;
-+	QString radio_device;
-+	QString vbi_device;
+ 	struct adv7604_state *state = to_state(sd);
+ 	u8 fmt_change, fmt_change_digital, tx_5v;
++	u32 input_status;
  
- 	a.setWindowIcon(QIcon(":/qv4l2.png"));
- 	g_mw = new ApplicationWindow();
- 	g_mw->setWindowTitle("V4L2 Test Bench");
--	for (i = 1; i < argc; i++) {
--		const char *arg = a.argv()[i];
- 
--		if (!strcmp(arg, "-r"))
-+	QStringList args = a.arguments();
-+	for (int i = 1; i < args.size(); i++) {
-+		if (args[i] == "-d" || args[i] == "--device") {
-+			++i;
-+			if (i >= args.size()) {
-+				usageError("-d");
-+				return 0;
-+			}
+ 	/* format change */
+ 	fmt_change = io_read(sd, 0x43) & 0x98;
+@@ -1545,9 +1547,18 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 		io_write(sd, 0x6c, fmt_change_digital);
+ 	if (fmt_change || fmt_change_digital) {
+ 		v4l2_dbg(1, debug, sd,
+-			"%s: ADV7604_FMT_CHANGE, fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
++			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
+ 			__func__, fmt_change, fmt_change_digital);
+-		v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
 +
-+			video_device = args[i];
-+			if (video_device.startsWith("-")) {
-+				usageError("-d");
-+				return 0;
-+			}
-+
-+		} else if (args[i] == "-r" || args[i] == "--radio-device") {
-+			++i;
-+			if (i >= args.size()) {
-+				usageError("-r");
-+				return 0;
-+			}
-+
-+			radio_device = args[i];
-+			if (radio_device.startsWith("-")) {
-+				usageError("-r");
-+				return 0;
-+			}
-+
-+		} else if (args[i] == "-V" || args[i] == "--vbi-device") {
-+			++i;
-+			if (i >= args.size()) {
-+				usageError("-V");
-+				return 0;
-+			}
-+
-+			vbi_device = args[i];
-+			if (vbi_device.startsWith("-")) {
-+				usageError("-V");
-+				return 0;
-+			}
-+
-+		} else if (args[i].startsWith("--device")) {
-+			QStringList param = args[i].split("=");
-+			if (param.size() == 2) {
-+				video_device = param[1];
-+			} else {
-+				usageError("--device");
-+				return 0;
-+			}
-+
-+		} else if (args[i].startsWith("--radio-device")) {
-+			QStringList param = args[i].split("=");
-+			if (param.size() == 2) {
-+				radio_device = param[1];
-+			} else {
-+				usageError("--radio-device");
-+				return 0;
-+			}
-+
-+
-+		} else if (args[i].startsWith("--vbi-device")) {
-+			QStringList param = args[i].split("=");
-+			if (param.size() == 2) {
-+				vbi_device = param[1];
-+			} else {
-+				usageError("--vbi-device");
-+				return 0;
-+			}
-+
-+		} else if (args[i] == "-h" || args[i] == "--help") {
-+			usage();
-+			return 0;
-+
-+		} else if (args[i] == "-R" || args[i] == "--raw") {
- 			raw = true;
--		else if (!strcmp(arg, "-h"))
--			help = true;
--		else if (arg[0] != '-')
--			device = arg;
--	}
--	if (help) {
--		printf("qv4l2 [-r] [-h] [device node]\n\n"
--		       "-h\tthis help message\n"
--		       "-r\topen device node in raw mode\n");
--		return 0;
-+
-+
-+		} else {
-+			printf("Invalid argument %s\n", args[i].toAscii().data());
-+			return 0;
++		adv7604_g_input_status(sd, &input_status);
++		if (input_status != state->prev_input_status) {
++			v4l2_dbg(1, debug, sd,
++				"%s: input_status = 0x%x, prev_input_status = 0x%x\n",
++				__func__, input_status, state->prev_input_status);
++			state->prev_input_status = input_status;
++			v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
 +		}
++
+ 		if (handled)
+ 			*handled = true;
  	}
+@@ -1953,6 +1964,10 @@ static int adv7604_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
++	/* initialize variables */
++	state->restart_stdi_once = true;
++	state->prev_input_status = ~0;
 +
-+	if (video_device != NULL)
-+		device = getDeviceName("/dev/video", video_device);
-+	else if (radio_device != NULL)
-+		device = getDeviceName("/dev/radio", radio_device);
-+	else if (vbi_device != NULL)
-+		device = getDeviceName("/dev/vbi", vbi_device);
-+	else
-+		device = "/dev/video0";
-+
- 	g_mw->setDevice(device, raw);
- 	g_mw->show();
- 	a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+ 	/* platform data */
+ 	if (!pdata) {
+ 		v4l_err(client, "No platform data!\n");
+@@ -2036,7 +2051,6 @@ static int adv7604_probe(struct i2c_client *client,
+ 		v4l2_err(sd, "failed to create all i2c clients\n");
+ 		goto err_i2c;
+ 	}
+-	state->restart_stdi_once = true;
+ 
+ 	/* work queues */
+ 	state->work_queues = create_singlethread_workqueue(client->name);
 -- 
-1.8.4.rc1
+1.8.3.2
 
