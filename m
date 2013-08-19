@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:28518 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752602Ab3H3MIG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 08:08:06 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MSC005Z3F1CSP00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 30 Aug 2013 13:08:03 +0100 (BST)
-Message-id: <52208B22.4080106@samsung.com>
-Date: Fri, 30 Aug 2013 14:08:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com,
-	Patch Tracking <patches@linaro.org>
-Subject: Re: [PATCH 1/1] [media] v4l2-ctrls: Remove duplicate const
-References: <1377861082-17312-1-git-send-email-sachin.kamat@linaro.org>
- <522082D1.1080206@samsung.com>
- <CAK9yfHzthS9mcK+3CSPYcCeexxs5mCAARKvrRQJWJss47WkhDw@mail.gmail.com>
-In-reply-to: <CAK9yfHzthS9mcK+3CSPYcCeexxs5mCAARKvrRQJWJss47WkhDw@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from comal.ext.ti.com ([198.47.26.152]:41765 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751078Ab3HSULA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 16:11:00 -0400
+Date: Mon, 19 Aug 2013 15:10:05 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+CC: <linux-i2c@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linuxppc-dev@lists.ozlabs.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-omap@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+	<linux-tegra@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
+Message-ID: <20130819201005.GM26587@radagast>
+Reply-To: <balbi@ti.com>
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+ <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="McpcKDxJRrEJVmOH"
+Content-Disposition: inline
+In-Reply-To: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2013 01:42 PM, Sachin Kamat wrote:
-> On 30 August 2013 17:02, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
->> Hi Sachin,
->>
->> On 08/30/2013 01:11 PM, Sachin Kamat wrote:
->>> The function returns a pointer to a const array. Duplicate use of const
->>> led to the following warning.
->>> drivers/media/v4l2-core/v4l2-ctrls.c:574:32: warning: duplicate const
->>>
->>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>
->> Thanks for the patch. I have already submitted a fix for this:
->> https://patchwork.linuxtv.org/patch/19902/
-> 
-> Oops.. missed out on that. Looks like it is not yet applied to your
-> for-3.12-3 branch?
+--McpcKDxJRrEJVmOH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yup, I didn't apply it since it touches the control framework. Thus
-I assumed Hans will want to pick it up to his tree.
+On Mon, Aug 19, 2013 at 07:59:40PM +0200, Wolfram Sang wrote:
+> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
+> that it is much cleaner to have this in the core. This also removes a
+> circular dependency between the helpers and the core, and so we can
+> finally register child nodes in the core instead of doing this manually
+> in each driver. So, fix the drivers and documentation, too.
+>=20
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 
-Regards,
-Sylwester
+for i2c-omap.c:
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--McpcKDxJRrEJVmOH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSEnudAAoJEIaOsuA1yqREcNkP/0LKPk4o7wCnJXxOqAyLoeZd
+WwCRafc7R0Ls3S5M28xTpxPm+34Ol7FOt8tezKWc1s6G6WCLxEo84glBf4gAWKhf
+KaVC35hyoh1tibIeUZR4QfXYKn+UVxu6lMeEwJaC8+yMhuMjq0SLXBHkAUwsLCiN
+q3/Unq+bsuNgup5HnIJ6aAOZfbYj047leZF/cnfqup3epSxcZDsU/1lVj+I19rL3
+pTYeZ6WECWwhmxHj0rjEf3mgeqCaMwW8XCsRKDoDTOd/sTcvWsAooC53h2ygYe2b
+tS9zeeNW9uIlZSmtR1yNBgr59PP1ykf0zp9jGOY0r8u/oP6HG5h/bAjLMN58dXwt
+WWLYYJgj3mrXA2EtXoSKQnDNmJl7tLOJu3oxMpQfBbKlrCECgyvxp54xSQpUd+yB
+0kT8QEY/wQXCLjlLJWuPWqHkHw+YNCTap//XQYEfPyubucT27Zxa8wz4vhmkjWdH
+Cp1VEWD2O5sWpfwdyS7w54GgAOfkNyuF+FWus8zd7PN1hMxNKui2Tw8n4glmC2Ql
+LljlBN9YZUvz9ETmJTFuGFGLnX3PZO/zWeF7JkXbEDjYV4tAlKYo0pW8SeTSnY6v
+M3I3C6h4TFKDYmctFDbEJnZl8NBmBImV3Zhh+eRohrhimEtscvyoYAiFXtK3tgWN
+ojVKmnuVliAHBulFgZbj
+=wjr2
+-----END PGP SIGNATURE-----
+
+--McpcKDxJRrEJVmOH--
