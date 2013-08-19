@@ -1,56 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:59769 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966555Ab3HHVPX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 17:15:23 -0400
+Received: from avon.wwwdotorg.org ([70.85.31.133]:40855 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab3HSW6D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 18:58:03 -0400
+Message-ID: <5212A2F7.9070100@wwwdotorg.org>
+Date: Mon, 19 Aug 2013 16:57:59 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1308082225150.29611@axis700.grange>
-References: <CAK5ve-J7Sn5wuJ_z6Lqr=_qMQRqF12Aa6GfTv4xBhh=n_28Yjg@mail.gmail.com>
- <Pine.LNX.4.64.1308082225150.29611@axis700.grange>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Thu, 8 Aug 2013 14:15:01 -0700
-Message-ID: <CAK5ve-KU7Kem91oN=6h5pJ7K8=PXfrBOq2njYzGxubugiLMZJA@mail.gmail.com>
-Subject: Re: Can I put a V4L2 soc camera driver under other subsystem directory?
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>,
-	=?ISO-8859-1?Q?Terje_Bergstr=F6m?= <tbergstrom@nvidia.com>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Mark Rutland <Mark.Rutland@arm.com>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	"grant.likely@linaro.org" <grant.likely@linaro.org>
+Subject: Re: [PATCH RFC v5] s5k5baf: add camera sensor driver
+References: <1376918307-21490-1-git-send-email-a.hajda@samsung.com> <5212551F.5020301@samsung.com> <52129C95.4070809@wwwdotorg.org> <1532139.bytBLuCBA6@flatron>
+In-Reply-To: <1532139.bytBLuCBA6@flatron>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 8, 2013 at 1:52 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Bryan,
->
-> On Wed, 7 Aug 2013, Bryan Wu wrote:
->
->> Hi Guennadi and LMML,
+On 08/19/2013 04:53 PM, Tomasz Figa wrote:
+> On Monday 19 of August 2013 16:30:45 Stephen Warren wrote:
+>> On 08/19/2013 11:25 AM, Sylwester Nawrocki wrote:
+>>> On 08/19/2013 03:25 PM, Pawel Moll wrote:
+>>>> On Mon, 2013-08-19 at 14:18 +0100, Andrzej Hajda wrote:
+>>>>> +++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+>>>>> @@ -0,0 +1,51 @@
+>>>>> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC
+>>>>> ISP
+>>>>> +-------------------------------------------------------------
+>>>>> +
+>>>>> +Required properties:
+>>>>> +
+>>>>> +- compatible     : "samsung,s5k5baf";
+>>>>> +- reg            : I2C slave address of the sensor;
+>>>>> +- vdda-supply    : analog power supply 2.8V (2.6V to 3.0V);
+>>>>> +- vddreg-supply          : regulator input power supply 1.8V (1.7V
+>>>>> to 1.9V) +                    or 2.8V (2.6V to 3.0);
+>>>>> +- vddio-supply   : I/O power supply 1.8V (1.65V to 1.95V)
+>>>>> +                    or 2.8V (2.5V to 3.1V);
+>>>>> +- gpios                  : GPIOs connected to STDBYN and RSTN pins,
+>>>>> +                    in order: STBYN, RSTN;
+>>>>
+>>>> You probably want to use the "[<name>-]gpios" convention here (see
+>>>> Documentation/devicetree/bindings/gpio/gpio.txt), so something like
+>>>> stbyn-gpios and rstn-gpios.
+>>>
+>>> Unless using multiple named properties is really preferred over a
+>>> single "gpios" property I would like to keep the single property
+>>> containing a list of GPIOs. ...
 >>
->> I'm working on a camera controller driver for Tegra, which is using
->> soc_camera. But we also need to use Tegra specific host1x interface
->> like syncpt APIs.
->>
->> Since host1x is quite Tegra specific framework which is in
->> drivers/gpu/host1x and has several host1x's client driver like graphic
->> 2D driver, my v4l2 soc_camera driver is also a host1x client driver.
->> Right now host1x does not expose any global include header files like
->> API in the kernel, because no other users. So we plan to put all
->> host1x related driver together, is that OK for us to put our Tegra
->> soc_camera driver into drivers/gpu/host1x/camera or similar?
->>
->> I guess besides it will introduce some extra maintenance it should be OK, right?
->
-> Exactly, there's already been a precedent:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56213.html
->
-> It hasn't been finalised yet though.
->
+>> Yes, a separate property for each type of GPIO is typical. Multiple
+>> entries in the same property are allowed if they're used for the same
+>> purpose/type, whereas here they're clearly different things.
+>> Inconsistent with (some) other properties, admittedly...
+> 
+> I'm not really convinced about the superiority of named gpio properties 
+> over a single gpios property with multiple entries in this case. I'd say 
+> it's more just a matter of preference.
+> 
+> See the clock or interrupt bindings. They all specify all the clocks and 
+> interrupts in single property, without any differentiation based on their 
+> purposes. Also keep in mind that original GPIO bindings used only a single 
+> "gpios" property and was only extended to allow named ones.
 
-OK, cool. I will try to provide the first version soon.
-
-Thanks a lot,
--Bryan
+Well, it's not so much about what's best, but just being consistent with
+what's already there.
