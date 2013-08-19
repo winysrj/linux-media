@@ -1,86 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:44571 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab3HTNVz (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2032 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466Ab3HSNIJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 09:21:55 -0400
-Message-ID: <52136D6F.6090408@canonical.com>
-Date: Tue, 20 Aug 2013 15:21:51 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Mon, 19 Aug 2013 09:08:09 -0400
+Message-ID: <521218A9.3070107@xs4all.nl>
+Date: Mon, 19 Aug 2013 15:07:53 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
-CC: dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org,
-	Alex Deucher <alexander.deucher@amd.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] drm/radeon: rework to new fence interface
-References: <20130815124308.14812.58197.stgit@patser> <5211F0C5.2040705@canonical.com> <5212112C.70808@vodafone.de> <52127411.2010106@canonical.com> <52132AE0.4010702@vodafone.de> <521338A9.4040206@canonical.com> <52133C2A.2090200@vodafone.de>
-In-Reply-To: <52133C2A.2090200@vodafone.de>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com
+Subject: Re: [PATCH v2 3/5] [media] exynos-mscl: Add m2m functionality for
+ the M-Scaler driver
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-4-git-send-email-shaik.ameer@samsung.com> <5212165D.4010002@xs4all.nl>
+In-Reply-To: <5212165D.4010002@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 20-08-13 11:51, Christian König schreef:
-> Am 20.08.2013 11:36, schrieb Maarten Lankhorst:
-> [SNIP]
->
->>>>>> [SNIP]
->>>>>> +/**
->>>>>> + * radeon_fence_enable_signaling - enable signalling on fence
->>>>>> + * @fence: fence
->>>>>> + *
->>>>>> + * This function is called with fence_queue lock held, and adds a callback
->>>>>> + * to fence_queue that checks if this fence is signaled, and if so it
->>>>>> + * signals the fence and removes itself.
->>>>>> + */
->>>>>> +static bool radeon_fence_enable_signaling(struct fence *f)
->>>>>> +{
->>>>>> +    struct radeon_fence *fence = to_radeon_fence(f);
->>>>>> +
->>>>>> +    if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq ||
->>>>>> +        !fence->rdev->ddev->irq_enabled)
->>>>>> +        return false;
->>>>>> +
->>>>> Do I get that right that you rely on IRQs to be enabled and working here? Cause that would be a quite bad idea from the conceptual side.
->>>> For cross-device synchronization it would be nice to have working irqs, it allows signalling fences faster,
->>>> and it allows for callbacks on completion to be called. For internal usage it's no more required than it was before.
->>> That's a big NAK.
->>>
->>> The fence processing is actually very fine tuned to avoid IRQs and as far as I can see you just leave them enabled by decrementing the atomic from IRQ context. Additional to that we need allot of special handling in case of a hardware lockup here, which isn't done if you abuse the fence interface like this.
->> I think it's not needed to leave the irq enabled, it's a leftover from when I was debugging the mac and no interrupt occurred at all.
+On 08/19/2013 02:58 PM, Hans Verkuil wrote:
+> On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
+>> This patch adds the memory to memory (m2m) interface functionality
+>> for the M-Scaler driver.
+> 
+> Just one small comment below...
+> 
 >>
->>> Also your approach of leaking the IRQ context outside of the driver is a very bad idea from the conceptual side. Please don't modify the fence interface at all and instead use the wait functions already exposed by radeon_fence.c. If you need some kind of signaling mechanism then wait inside a workqueue instead.
->> The fence takes up the role of a single shot workqueue here. Manually resetting the counter and calling wake_up_all would end up waking all active fences, there's no special handling needed inside radeon for this.
->
-> Yeah that's actually the point here, you NEED to activate ALL fences, otherwise the fence handling inside the driver won't work.
-It's done in a lazy fashion. If there's no need for an activated fence the interrupt will not be enabled.
->> The fence api does provide a synchronous wait function, but this causes a stall of whomever waits on it.
->
-> Which is perfectly fine. What actually is the use case of not stalling a process who wants to wait for something?
-Does radeon call ttm_bo_wait on all bo's before doing a command submission? No? Why should other drivers do that..
-
->> When I was testing this with intel I used the fence callback to poke a register in i915, this allowed it to not block until it hits the wait op in the command stream, and even then only if the callback was not called first.
+>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> ---
+>>  drivers/media/platform/exynos-mscl/mscl-m2m.c |  763 +++++++++++++++++++++++++
+>>  1 file changed, 763 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-m2m.c
 >>
->> It's documented that the callbacks can be called from any context and will be called with irqs disabled, so nothing scary should be done. The kernel provides enough debug mechanisms to find any violators.
->> PROVE_LOCKING and DEBUG_ATOMIC_SLEEP for example.
->
-> No thanks, we even abandoned that concept internal in the driver. Please use the blocking wait functions instead.
-No, this just stalls all gpu's that share a bo.
+>> diff --git a/drivers/media/platform/exynos-mscl/mscl-m2m.c b/drivers/media/platform/exynos-mscl/mscl-m2m.c
+>> new file mode 100644
+>> index 0000000..fecbb57
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos-mscl/mscl-m2m.c
+>> @@ -0,0 +1,763 @@
+>> +/*
+>> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+>> + *		http://www.samsung.com
+>> + *
+>> + * Samsung EXYNOS5 SoC series M-Scaler driver
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published
+>> + * by the Free Software Foundation, either version 2 of the License,
+>> + * or (at your option) any later version.
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/pm_runtime.h>
+>> +#include <linux/slab.h>
+>> +
+>> +#include <media/v4l2-ioctl.h>
+>> +
+>> +#include "mscl-core.h"
+>> +
+>> +static int mscl_m2m_ctx_stop_req(struct mscl_ctx *ctx)
+>> +{
+>> +	struct mscl_ctx *curr_ctx;
+>> +	struct mscl_dev *mscl = ctx->mscl_dev;
+>> +	int ret;
+>> +
+>> +	curr_ctx = v4l2_m2m_get_curr_priv(mscl->m2m.m2m_dev);
+>> +	if (!mscl_m2m_pending(mscl) || (curr_ctx != ctx))
+>> +		return 0;
+>> +
+>> +	mscl_ctx_state_lock_set(MSCL_CTX_STOP_REQ, ctx);
+>> +	ret = wait_event_timeout(mscl->irq_queue,
+>> +			!mscl_ctx_state_is_set(MSCL_CTX_STOP_REQ, ctx),
+>> +			MSCL_SHUTDOWN_TIMEOUT);
+>> +
+>> +	return ret == 0 ? -ETIMEDOUT : ret;
+>> +}
+>> +
+>> +static int mscl_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
+>> +{
+>> +	struct mscl_ctx *ctx = q->drv_priv;
+>> +	int ret;
+>> +
+>> +	ret = pm_runtime_get_sync(&ctx->mscl_dev->pdev->dev);
+>> +
+>> +	return ret > 0 ? 0 : ret;
+>> +}
+>> +
+>> +static int mscl_m2m_stop_streaming(struct vb2_queue *q)
+>> +{
+>> +	struct mscl_ctx *ctx = q->drv_priv;
+>> +	int ret;
+>> +
+>> +	ret = mscl_m2m_ctx_stop_req(ctx);
+>> +	if (ret == -ETIMEDOUT)
+>> +		mscl_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+>> +
+>> +	pm_runtime_put(&ctx->mscl_dev->pdev->dev);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +void mscl_m2m_job_finish(struct mscl_ctx *ctx, int vb_state)
+>> +{
+>> +	struct vb2_buffer *src_vb, *dst_vb;
+>> +
+>> +	if (!ctx || !ctx->m2m_ctx)
+>> +		return;
+>> +
+>> +	src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+>> +	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+>> +
+>> +	if (src_vb && dst_vb) {
+>> +		v4l2_m2m_buf_done(src_vb, vb_state);
+>> +		v4l2_m2m_buf_done(dst_vb, vb_state);
+>> +
+>> +		v4l2_m2m_job_finish(ctx->mscl_dev->m2m.m2m_dev,
+>> +							ctx->m2m_ctx);
+>> +	}
+>> +}
+>> +
+>> +
+>> +static void mscl_m2m_job_abort(void *priv)
+>> +{
+>> +	struct mscl_ctx *ctx = priv;
+>> +	int ret;
+>> +
+>> +	ret = mscl_m2m_ctx_stop_req(ctx);
+>> +	if (ret == -ETIMEDOUT)
+>> +		mscl_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+>> +}
+>> +
+>> +static int mscl_get_bufs(struct mscl_ctx *ctx)
+>> +{
+>> +	struct mscl_frame *s_frame, *d_frame;
+>> +	struct vb2_buffer *src_vb, *dst_vb;
+>> +	int ret;
+>> +
+>> +	s_frame = &ctx->s_frame;
+>> +	d_frame = &ctx->d_frame;
+>> +
+>> +	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+>> +	ret = mscl_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+>> +	ret = mscl_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void mscl_m2m_device_run(void *priv)
+>> +{
+>> +	struct mscl_ctx *ctx = priv;
+>> +	struct mscl_dev *mscl;
+>> +	unsigned long flags;
+>> +	int ret;
+>> +	bool is_set = false;
+>> +
+>> +	if (WARN(!ctx, "null hardware context\n"))
+>> +		return;
+>> +
+>> +	mscl = ctx->mscl_dev;
+>> +	spin_lock_irqsave(&mscl->slock, flags);
+>> +
+>> +	set_bit(ST_M2M_PEND, &mscl->state);
+>> +
+>> +	/* Reconfigure hardware if the context has changed. */
+>> +	if (mscl->m2m.ctx != ctx) {
+>> +		dev_dbg(&mscl->pdev->dev,
+>> +			"mscl->m2m.ctx = 0x%p, current_ctx = 0x%p",
+>> +			mscl->m2m.ctx, ctx);
+>> +		ctx->state |= MSCL_PARAMS;
+>> +		mscl->m2m.ctx = ctx;
+>> +	}
+>> +
+>> +	is_set = (ctx->state & MSCL_CTX_STOP_REQ) ? 1 : 0;
+>> +	ctx->state &= ~MSCL_CTX_STOP_REQ;
+>> +	if (is_set) {
+>> +		wake_up(&mscl->irq_queue);
+>> +		goto put_device;
+>> +	}
+>> +
+>> +	ret = mscl_get_bufs(ctx);
+>> +	if (ret) {
+>> +		dev_dbg(&mscl->pdev->dev, "Wrong address");
+>> +		goto put_device;
+>> +	}
+>> +
+>> +	mscl_hw_address_queue_reset(ctx);
+>> +	mscl_set_prefbuf(mscl, &ctx->s_frame);
+>> +	mscl_hw_set_input_addr(mscl, &ctx->s_frame.addr);
+>> +	mscl_hw_set_output_addr(mscl, &ctx->d_frame.addr);
+>> +	mscl_hw_set_csc_coeff(ctx);
+>> +
+>> +	if (ctx->state & MSCL_PARAMS) {
+>> +		mscl_hw_set_irq_mask(mscl, MSCL_INT_FRAME_END, false);
+>> +		if (mscl_set_scaler_info(ctx)) {
+>> +			dev_dbg(&mscl->pdev->dev, "Scaler setup error");
+>> +			goto put_device;
+>> +		}
+>> +
+>> +		mscl_hw_set_in_size(ctx);
+>> +		mscl_hw_set_in_image_format(ctx);
+>> +
+>> +		mscl_hw_set_out_size(ctx);
+>> +		mscl_hw_set_out_image_format(ctx);
+>> +
+>> +		mscl_hw_set_scaler_ratio(ctx);
+>> +		mscl_hw_set_rotation(ctx);
+>> +	}
+>> +
+>> +	ctx->state &= ~MSCL_PARAMS;
+>> +	mscl_hw_enable_control(mscl, true);
+>> +
+>> +	spin_unlock_irqrestore(&mscl->slock, flags);
+>> +	return;
+>> +
+>> +put_device:
+>> +	ctx->state &= ~MSCL_PARAMS;
+>> +	spin_unlock_irqrestore(&mscl->slock, flags);
+>> +}
+>> +
+>> +static int mscl_m2m_queue_setup(struct vb2_queue *vq,
+>> +			const struct v4l2_format *fmt,
+>> +			unsigned int *num_buffers, unsigned int *num_planes,
+>> +			unsigned int sizes[], void *allocators[])
+>> +{
+>> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vq);
+>> +	struct mscl_frame *frame;
+>> +	int i;
+>> +
+>> +	frame = ctx_get_frame(ctx, vq->type);
+>> +	if (IS_ERR(frame))
+>> +		return PTR_ERR(frame);
+>> +
+>> +	if (!frame->fmt)
+>> +		return -EINVAL;
+>> +
+>> +	*num_planes = frame->fmt->num_planes;
+>> +	for (i = 0; i < frame->fmt->num_planes; i++) {
+>> +		sizes[i] = frame->payload[i];
+>> +		allocators[i] = ctx->mscl_dev->alloc_ctx;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static int mscl_m2m_buf_prepare(struct vb2_buffer *vb)
+>> +{
+>> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+>> +	struct mscl_frame *frame;
+>> +	int i;
+>> +
+>> +	frame = ctx_get_frame(ctx, vb->vb2_queue->type);
+>> +	if (IS_ERR(frame))
+>> +		return PTR_ERR(frame);
+>> +
+>> +	if (!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+>> +		for (i = 0; i < frame->fmt->num_planes; i++)
+>> +			vb2_set_plane_payload(vb, i, frame->payload[i]);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void mscl_m2m_buf_queue(struct vb2_buffer *vb)
+>> +{
+>> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+>> +
+>> +	dev_dbg(&ctx->mscl_dev->pdev->dev,
+>> +		"ctx: %p, ctx->state: 0x%x", ctx, ctx->state);
+>> +
+>> +	if (ctx->m2m_ctx)
+>> +		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+>> +}
+>> +
+>> +static struct vb2_ops mscl_m2m_qops = {
+>> +	.queue_setup	 = mscl_m2m_queue_setup,
+>> +	.buf_prepare	 = mscl_m2m_buf_prepare,
+>> +	.buf_queue	 = mscl_m2m_buf_queue,
+>> +	.wait_prepare	 = mscl_unlock,
+>> +	.wait_finish	 = mscl_lock,
+>> +	.stop_streaming	 = mscl_m2m_stop_streaming,
+>> +	.start_streaming = mscl_m2m_start_streaming,
+>> +};
+>> +
+>> +static int mscl_m2m_querycap(struct file *file, void *fh,
+>> +			   struct v4l2_capability *cap)
+>> +{
+>> +	struct mscl_ctx *ctx = fh_to_ctx(fh);
+>> +	struct mscl_dev *mscl = ctx->mscl_dev;
+>> +
+>> +	strlcpy(cap->driver, mscl->pdev->name, sizeof(cap->driver));
+>> +	strlcpy(cap->card, mscl->pdev->name, sizeof(cap->card));
+>> +	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
 
-The idea is to provide a standardized api so bo's can be synchronized without stalling. The first step to this is ww_mutex.
-If this lock is shared between multiple gpu's the same object can be reserved between multiple devices without causing
-a deadlock with circular dependencies. With some small patches it's possible to do this already between multiple drivers
-that use ttm. ttm_bo_reserve, ttm_bo_unreserve and all the other code dealing with ttm reservations have been converted
-to use ww_mutex locking.
+I forgot to mention that the bus_info should be renamed as well to something
+like: "platform:exynos-mscl".
 
-Fencing is the next step. When all buffers are locked a callback should be added to any previous fence, and a single new fence
-signaling completion of the command submission should be placed on all locked objects. Because the common path is that no
-objects are shared, the callback and FIFO stalling will only be needed for dma-bufs. When all callbacks have fired the FIFO can be
-unblocked. This prevents having to sync the gpu to the cpu. If a bo is submitted to 1 gpu, and then immediately to another it will not
-stall unless needed. For example in a optimus configuration an application could copy a rendered frame from VRAM to a shared
-dma-buf (xorg's buffer), then have Xorg copying it again (on intel's gpu) from the dma-buf to a framebuffer .
+Regards,
 
-~Maarten
+	Hans
 
+>> +	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
+>> +		V4L2_CAP_VIDEO_CAPTURE_MPLANE |	V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+> 
+> No V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE, it should just be
+> V4L2_CAP_VIDEO_M2M_MPLANE.
+> 
+>> +
+>> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>> +
+>> +	return 0;
+>> +}
+>> +
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
