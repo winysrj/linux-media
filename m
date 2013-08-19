@@ -1,101 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:60636 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab3HNEqz (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1702 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108Ab3HSOok (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Aug 2013 00:46:55 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 11/13] [media] exynos5-is: Add Kconfig and Makefile
-Date: Wed, 14 Aug 2013 10:16:12 +0530
-Message-Id: <1376455574-15560-12-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
-References: <1376455574-15560-1-git-send-email-arun.kk@samsung.com>
+	Mon, 19 Aug 2013 10:44:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com
+Subject: [RFCv2 PATCH 00/20] dv-timings/adv7604/ad9389b fixes and new adv7511/adv7842 drivers
+Date: Mon, 19 Aug 2013 16:44:09 +0200
+Message-Id: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds Kconfig and Makefile for exynos5-is driver files.
+This second patch series combines these two earlier patch series:
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/Kconfig             |    1 +
- drivers/media/platform/Makefile            |    1 +
- drivers/media/platform/exynos5-is/Kconfig  |   20 ++++++++++++++++++++
- drivers/media/platform/exynos5-is/Makefile |    7 +++++++
- 4 files changed, 29 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65582.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65510.html
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 08de865..4b0475e 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -123,6 +123,7 @@ config VIDEO_S3C_CAMIF
- 
- source "drivers/media/platform/soc_camera/Kconfig"
- source "drivers/media/platform/exynos4-is/Kconfig"
-+source "drivers/media/platform/exynos5-is/Kconfig"
- source "drivers/media/platform/s5p-tv/Kconfig"
- 
- endif # V4L_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index eee28dd..40bf09f 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
- 
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
-diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
-new file mode 100644
-index 0000000..b67d11a
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Kconfig
-@@ -0,0 +1,20 @@
-+config VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+	bool "Samsung Exynos5 SoC Camera Media Device driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
-+	depends on VIDEO_SAMSUNG_EXYNOS4_IS
-+	help
-+	  This is a V4L2 media device driver for Exynos5 SoC series
-+	  camera subsystem.
-+
-+if VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+
-+config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
-+	tristate "Samsung Exynos5 SoC FIMC-IS driver"
-+	depends on I2C && OF
-+	depends on VIDEO_EXYNOS4_FIMC_IS
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  This is a V4L2 driver for Samsung Exynos5 SoC series Imaging
-+	  Subsystem known as FIMC-IS.
-+
-+endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
-diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
-new file mode 100644
-index 0000000..6cdb037
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Makefile
-@@ -0,0 +1,7 @@
-+ccflags-y += -Idrivers/media/platform/exynos4-is
-+exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o
-+exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o fimc-is-sensor.o
-+exynos-mdevice-objs := exynos5-mdev.o
-+
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos-mdevice.o
--- 
-1.7.9.5
+While rebasing the new drivers on the latest code I realized that it made more
+sense to combine the two and to improve the v4l2-dv-timings functions a bit.
+
+The first 17 patches apply a bunch of fixes from the internal Cisco tree and
+it adds a number of improvements to v4l2-dv-timings. If there are no comments
+regarding those patches, then I intend to make a pull request for them later
+this week.
+
+The final three patches add the new adv7842 and adv7511 drivers.
+
+Changes since RFCv1 for those last three:
+
+- use the new v4l2_*_dv_timings helpers
+- use devm_kzalloc
+
+TODO:
+
+- adv7604 needs to use the new dv-timings helpers as well. It's done for
+  the adv7842, but not yet for the adv7604.
+
+- STD handling in adv7842 can be improved: at the moment the s_std value
+  does not set the hardware correctly (the hardware is always set to
+  autodetect).
+
+- the advxxxx internal IP blocks are quite similar and parts of it can be
+  refactored. In particular notifier, control and event IDs can easily be
+  shared.
+
+- the adv7xxx_check_dv_timings callback should notify the v4l2_device as
+  well in case there are additional constraints in the bridge driver.
+
+These TODOs do not block merging these new drivers IMHO and can be done
+later.
+
+Regards,
+
+	Hans
 
