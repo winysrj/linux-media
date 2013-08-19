@@ -1,816 +1,736 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:31022 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194Ab3HFKTX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:19:23 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r76AJ9nK014605
-	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:19:19 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 5/5] qv4l2: add ALSA audio playback
-Date: Tue,  6 Aug 2013 12:18:46 +0200
-Message-Id: <3040d7eea90f59ef554147b8862d61b5dd437d53.1375784295.git.bwinther@cisco.com>
-In-Reply-To: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
-References: <1375784326-18572-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
-References: <1a734456df06299e284f793264ca843c98b0f18a.1375784295.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.samsung.com ([203.254.224.33]:30664 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751234Ab3HSMsM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 08:48:12 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	cpgs@samsung.com
+Cc: s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+ <1376909932-23644-2-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1376909932-23644-2-git-send-email-shaik.ameer@samsung.com>
+Subject: RE: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-Scaler
+Date: Mon, 19 Aug 2013 21:48:09 +0900
+Message-id: <032701ce9cda$5c0e55d0$142b0170$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The qv4l2 test utility now supports ALSA playback of audio.
-This allows for PCM playback during capture for supported devices.
+Just quick review.
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/general-tab.cpp | 296 +++++++++++++++++++++++++++++++++++++++++++-
- utils/qv4l2/general-tab.h   |  38 ++++++
- utils/qv4l2/qv4l2.cpp       | 141 ++++++++++++++++++++-
- utils/qv4l2/qv4l2.h         |   9 ++
- 4 files changed, 480 insertions(+), 4 deletions(-)
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
+> Sent: Monday, August 19, 2013 7:59 PM
+> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+> Cc: s.nawrocki@samsung.com; posciak@google.com; arun.kk@samsung.com;
+> shaik.ameer@samsung.com
+> Subject: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-Scaler
+> 
+> This patch adds support for M-Scaler (M2M Scaler) device which is a
+> new device for scaling, blending, color fill  and color space
+> conversion on EXYNOS5 SoCs.
+> 
+> This device supports the followings as key feature.
+>     input image format
+>         - YCbCr420 2P(UV/VU), 3P
+>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>         - YCbCr444 2P(UV,VU), 3P
+>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>         - Pre-multiplexed ARGB8888, L8A8 and L8
+>     output image format
+>         - YCbCr420 2P(UV/VU), 3P
+>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>         - YCbCr444 2P(UV,VU), 3P
+>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>         - Pre-multiplexed ARGB8888
+>     input rotation
+>         - 0/90/180/270 degree, X/Y/XY Flip
+>     scale ratio
+>         - 1/4 scale down to 16 scale up
+>     color space conversion
+>         - RGB to YUV / YUV to RGB
+>     Size
+>         - Input : 16x16 to 8192x8192
+>         - Output:   4x4 to 8192x8192
+>     alpha blending, color fill
+> 
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+> ---
+>  drivers/media/platform/exynos-mscl/mscl-regs.c |  318
+> ++++++++++++++++++++++++
+>  drivers/media/platform/exynos-mscl/mscl-regs.h |  282
+> +++++++++++++++++++++
+>  2 files changed, 600 insertions(+)
+>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
+>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
+> 
+> diff --git a/drivers/media/platform/exynos-mscl/mscl-regs.c
+> b/drivers/media/platform/exynos-mscl/mscl-regs.c
+> new file mode 100644
+> index 0000000..9354afc
+> --- /dev/null
+> +++ b/drivers/media/platform/exynos-mscl/mscl-regs.c
+> @@ -0,0 +1,318 @@
+> +/*
+> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+> + *		http://www.samsung.com
+> + *
+> + * Samsung EXYNOS5 SoC series M-Scaler driver
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published
+> + * by the Free Software Foundation, either version 2 of the License,
+> + * or (at your option) any later version.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +
+> +#include "mscl-core.h"
+> +
+> +void mscl_hw_set_sw_reset(struct mscl_dev *dev)
+> +{
+> +	u32 cfg;
+> +
+> +	cfg = readl(dev->regs + MSCL_CFG);
+> +	cfg |= MSCL_CFG_SOFT_RESET;
+> +
+> +	writel(cfg, dev->regs + MSCL_CFG);
+> +}
+> +
+> +int mscl_wait_reset(struct mscl_dev *dev)
+> +{
+> +	unsigned long end = jiffies + msecs_to_jiffies(50);
 
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index 10b14ca..5cfaf07 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -30,6 +30,16 @@
- 
- #include <stdio.h>
- #include <errno.h>
-+#include <QRegExp>
-+
-+bool GeneralTab::m_fullAudioName = false;
-+
-+enum audioDeviceAdd {
-+	AUDIO_ADD_NO,
-+	AUDIO_ADD_READ,
-+	AUDIO_ADD_WRITE,
-+	AUDIO_ADD_READWRITE
-+};
- 
- GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent) :
- 	QGridLayout(parent),
-@@ -48,12 +58,16 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 	m_vidCapFormats(NULL),
- 	m_frameSize(NULL),
- 	m_vidOutFormats(NULL),
--	m_vbiMethods(NULL)
-+	m_vbiMethods(NULL),
-+	m_audioInDevice(NULL),
-+	m_audioOutDevice(NULL)
- {
-+	m_device.append(device);
- 	setSpacing(3);
- 
- 	setSizeConstraint(QLayout::SetMinimumSize);
- 
-+
- 	if (querycap(m_querycap)) {
- 		addLabel("Device:");
- 		addLabel(device + (useWrapper() ? " (wrapped)" : ""), Qt::AlignLeft);
-@@ -132,6 +146,42 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		updateAudioOutput();
- 	}
- 
-+	if (hasAlsaAudio()) {
-+		m_audioInDevice = new QComboBox(parent);
-+		m_audioOutDevice = new QComboBox(parent);
-+		m_audioInDevice->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-+		m_audioOutDevice->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-+
-+		if (createAudioDeviceList()) {
-+			addLabel("Audio Input Device");
-+			connect(m_audioInDevice, SIGNAL(activated(int)), SLOT(changeAudioDevice()));
-+			addWidget(m_audioInDevice);
-+
-+			addLabel("Audio Output Device");
-+			connect(m_audioOutDevice, SIGNAL(activated(int)), SLOT(changeAudioDevice()));
-+			addWidget(m_audioOutDevice);
-+
-+			if (isRadio()) {
-+				setAudioDeviceBufferSize(75);
-+			} else {
-+				v4l2_fract fract;
-+				if (!v4l2::get_interval(fract)) {
-+					// Default values are for 30 FPS
-+					fract.numerator = 33;
-+					fract.denominator = 1000;
-+				}
-+				// Standard capacity is two frames
-+				setAudioDeviceBufferSize((fract.numerator * 2000) / fract.denominator);
-+			}
-+		} else {
-+			fprintf(stderr, "BANNA\n");
-+			delete m_audioInDevice;
-+			delete m_audioOutDevice;
-+			m_audioInDevice = NULL;
-+			m_audioOutDevice = NULL;
-+		}
-+	}
-+
- 	if (needsStd) {
- 		v4l2_std_id tmp;
- 
-@@ -370,6 +420,180 @@ done:
- 	setRowStretch(rowCount() - 1, 1);
- }
- 
-+void GeneralTab::showAllAudioDevices(bool use)
-+{
-+	QString oldIn(m_audioInDevice->currentText());
-+	QString oldOut(m_audioOutDevice->currentText());
-+
-+	m_fullAudioName = use;
-+	if (oldIn == NULL || oldOut == NULL || !createAudioDeviceList())
-+		return;
-+
-+	// Select a similar device as before the listings method change
-+	// check by comparing old selection with any matching in the new list
-+	bool setIn = false, setOut = false;
-+	int listSize = std::max(m_audioInDevice->count(), m_audioOutDevice->count());
-+
-+	for (int i = 0; i < listSize; i++) {
-+		QString oldInCmp(oldIn.left(std::min(m_audioInDevice->itemText(i).length(), oldIn.length())));
-+		QString oldOutCmp(oldOut.left(std::min(m_audioOutDevice->itemText(i).length(), oldOut.length())));
-+
-+		if (!setIn && i < m_audioInDevice->count()
-+		    && m_audioInDevice->itemText(i).startsWith(oldInCmp)) {
-+			setIn = true;
-+			m_audioInDevice->setCurrentIndex(i);
-+		}
-+
-+		if (!setOut && i < m_audioOutDevice->count()
-+		    && m_audioOutDevice->itemText(i).startsWith(oldOutCmp)) {
-+			setOut = true;
-+			m_audioOutDevice->setCurrentIndex(i);
-+		}
-+	}
-+}
-+
-+bool GeneralTab::filterAudioInDevice(QString &deviceName)
-+{
-+	// Removes S/PDIF, front speakers and surround from input devices
-+	// as they are output devices, not input
-+	if (deviceName.contains("surround")
-+	    || deviceName.contains("front")
-+	    || deviceName.contains("iec958"))
-+		return false;
-+
-+	// Removes sysdefault too if not full audio mode listings
-+	if (!m_fullAudioName && deviceName.contains("sysdefault"))
-+		return false;
-+
-+	return true;
-+}
-+
-+bool GeneralTab::filterAudioOutDevice(QString &deviceName)
-+{
-+	// Removes advanced options if not full audio mode listings
-+	if (!m_fullAudioName && (deviceName.contains("surround")
-+				 || deviceName.contains("front")
-+				 || deviceName.contains("iec958")
-+				 || deviceName.contains("sysdefault"))) {
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+int GeneralTab::addAudioDevice(void *hint, int deviceNum)
-+{
-+	int added = 0;
-+#ifdef HAVE_ALSA
-+	char *name;
-+	char *iotype;
-+	QString deviceName;
-+	QString listName;
-+	QStringList deviceType;
-+	iotype = snd_device_name_get_hint(hint, "IOID");
-+	name = snd_device_name_get_hint(hint, "NAME");
-+	deviceName.append(name);
-+
-+	snd_card_get_name(deviceNum, &name);
-+	listName.append(name);
-+
-+	deviceType = deviceName.split(":");
-+
-+	// Add device io capability to list name
-+	if (m_fullAudioName) {
-+		listName.append(" ");
-+
-+		// Makes the surround name more readable
-+		if (deviceName.contains("surround"))
-+			listName.append(QString("surround %1.%2")
-+					.arg(deviceType.value(0)[8]).arg(deviceType.value(0)[9]));
-+		else
-+			listName.append(deviceType.value(0));
-+
-+	} else if (!deviceType.value(0).contains("default")) {
-+		listName.append(" ").append(deviceType.value(0));
-+	}
-+
-+	// Add device number if it is not 0
-+	if (deviceName.contains("DEV=")) {
-+		int devNo;
-+		QStringList deviceNo = deviceName.split("DEV=");
-+		devNo = deviceNo.value(1).toInt();
-+		if (devNo)
-+			listName.append(QString(" %1").arg(devNo));
-+	}
-+
-+	if ((iotype == NULL || strncmp(iotype, "Input", 5) == 0) && filterAudioInDevice(deviceName)) {
-+		m_audioInDevice->addItem(listName);
-+		m_audioInDeviceMap[listName] = snd_device_name_get_hint(hint, "NAME");
-+		added += AUDIO_ADD_READ;
-+	}
-+
-+	if ((iotype == NULL || strncmp(iotype, "Output", 6) == 0)  && filterAudioOutDevice(deviceName)) {
-+		m_audioOutDevice->addItem(listName);
-+		m_audioOutDeviceMap[listName] = snd_device_name_get_hint(hint, "NAME");
-+		added += AUDIO_ADD_WRITE;
-+	}
-+#endif
-+	return added;
-+}
-+
-+bool GeneralTab::createAudioDeviceList()
-+{
-+#ifdef HAVE_ALSA
-+	if (m_audioInDevice == NULL || m_audioOutDevice == NULL)
-+		return false;
-+
-+	m_audioInDevice->clear();
-+	m_audioOutDevice->clear();
-+	m_audioInDeviceMap.clear();
-+	m_audioOutDeviceMap.clear();
-+
-+	m_audioInDevice->addItem("None");
-+	m_audioOutDevice->addItem("Default");
-+	m_audioInDeviceMap["None"] = "None";
-+	m_audioOutDeviceMap["Default"] = "default";
-+
-+	int deviceNum = -1;
-+	int audioDevices = 0;
-+	int matchDevice = matchAudioDevice();
-+	int indexDevice = -1;
-+	int indexCount = 0;
-+
-+	while (snd_card_next(&deviceNum) >= 0) {
-+		if (deviceNum == -1)
-+			break;
-+
-+		audioDevices++;
-+		if (deviceNum == matchDevice && indexDevice == -1)
-+			indexDevice = indexCount;
-+
-+		void **hint;
-+
-+		snd_device_name_hint(deviceNum, "pcm", &hint);
-+		for (int i = 0; hint[i] != NULL; i++) {
-+			int addAs = addAudioDevice(hint[i], deviceNum);
-+			if (addAs == AUDIO_ADD_READ || addAs == AUDIO_ADD_READWRITE)
-+				indexCount++;
-+		}
-+		snd_device_name_free_hint(hint);
-+	}
-+
-+	snd_config_update_free_global();
-+	m_audioInDevice->setCurrentIndex(indexDevice + 1);
-+	changeAudioDevice();
-+	return m_audioInDeviceMap.size() > 1 && m_audioOutDeviceMap.size() > 1 && audioDevices > 1;
-+#else
-+	return false;
-+#endif
-+}
-+
-+void GeneralTab::changeAudioDevice()
-+{
-+	m_audioOutDevice->setEnabled(getAudioInDevice() != NULL ? getAudioInDevice().compare("None") : false);
-+	emit audioDeviceChanged();
-+}
-+
- void GeneralTab::addWidget(QWidget *w, Qt::Alignment align)
- {
- 	QGridLayout::addWidget(w, m_row, m_col, align | Qt::AlignVCenter);
-@@ -932,3 +1156,73 @@ bool GeneralTab::get_interval(struct v4l2_fract &interval)
- 
- 	return m_has_interval;
- }
-+
-+QString GeneralTab::getAudioInDevice()
-+{
-+	if (m_audioInDevice == NULL)
-+		return NULL;
-+
-+	return m_audioInDeviceMap[m_audioInDevice->currentText()];
-+}
-+
-+QString GeneralTab::getAudioOutDevice()
-+{
-+	if (m_audioOutDevice == NULL)
-+		return NULL;
-+
-+	return m_audioOutDeviceMap[m_audioOutDevice->currentText()];
-+}
-+
-+void GeneralTab::setAudioDeviceBufferSize(int size)
-+{
-+	m_audioDeviceBufferSize = size;
-+}
-+
-+int GeneralTab::getAudioDeviceBufferSize()
-+{
-+	return m_audioDeviceBufferSize;
-+}
-+
-+#ifdef HAVE_ALSA
-+int GeneralTab::checkMatchAudioDevice(void *md, const char *vid, const enum device_type type)
-+{
-+	const char *devname = NULL;
-+
-+	while ((devname = get_associated_device(md, devname, type, vid, MEDIA_V4L_VIDEO)) != NULL) {
-+		if (type == MEDIA_SND_CAP) {
-+			QStringList devAddr = QString(devname).split(QRegExp("[:,]"));
-+			return devAddr.value(1).toInt();
-+		}
-+	}
-+	return -1;
-+}
-+
-+int GeneralTab::matchAudioDevice()
-+{
-+	QStringList devPath = m_device.split("/");
-+	QString curDev = devPath.value(devPath.count() - 1);
-+
-+	void *media;
-+	const char *video = NULL;
-+	int match;
-+
-+	media = discover_media_devices();
-+
-+	while ((video = get_associated_device(media, video, MEDIA_V4L_VIDEO, NULL, NONE)) != NULL)
-+		if (curDev.compare(video) == 0)
-+			for (int i = 0; i <= MEDIA_SND_HW; i++)
-+				if ((match = checkMatchAudioDevice(media, video, static_cast<device_type>(i))) != -1)
-+					return match;
-+
-+	return -1;
-+}
-+#endif
-+
-+bool GeneralTab::hasAlsaAudio()
-+{
-+#ifdef HAVE_ALSA
-+	return !isVbi();
-+#else
-+	return false;
-+#endif
-+}
-diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
-index 5903ed8..6c51016 100644
---- a/utils/qv4l2/general-tab.h
-+++ b/utils/qv4l2/general-tab.h
-@@ -21,12 +21,23 @@
- #ifndef GENERAL_TAB_H
- #define GENERAL_TAB_H
- 
-+#include <config.h>
-+
- #include <QSpinBox>
- #include <sys/time.h>
- #include <linux/videodev2.h>
-+#include <map>
- #include "qv4l2.h"
- #include "v4l2-api.h"
- 
-+#ifdef HAVE_ALSA
-+extern "C" {
-+#include "../libmedia_dev/get_media_devices.h"
-+#include "alsa_stream.h"
-+}
-+#include <alsa/asoundlib.h>
-+#endif
-+
- class QComboBox;
- class QCheckBox;
- class QSpinBox;
-@@ -41,6 +52,11 @@ public:
- 	virtual ~GeneralTab() {}
- 
- 	CapMethod capMethod();
-+	QString getAudioInDevice();
-+	QString getAudioOutDevice();
-+	void setAudioDeviceBufferSize(int size);
-+	int getAudioDeviceBufferSize();
-+	bool hasAlsaAudio();
- 	bool get_interval(struct v4l2_fract &interval);
- 	int width() const { return m_width; }
- 	int height() const { return m_height; }
-@@ -69,6 +85,12 @@ public:
- 	inline bool streamon() { return v4l2::streamon(m_buftype); }
- 	inline bool streamoff() { return v4l2::streamoff(m_buftype); }
- 
-+public slots:
-+	void showAllAudioDevices(bool use);
-+
-+signals:
-+	void audioDeviceChanged();
-+
- private slots:
- 	void inputChanged(int);
- 	void outputChanged(int);
-@@ -92,6 +114,7 @@ private slots:
- 	void frameIntervalChanged(int);
- 	void vidOutFormatChanged(int);
- 	void vbiMethodsChanged(int);
-+	void changeAudioDevice();
- 
- private:
- 	void updateVideoInput();
-@@ -108,6 +131,14 @@ private:
- 	void updateFrameSize();
- 	void updateFrameInterval();
- 	void updateVidOutFormat();
-+	int addAudioDevice(void *hint, int deviceNum);
-+	bool filterAudioInDevice(QString &deviceName);
-+	bool filterAudioOutDevice(QString &deviceName);
-+	bool createAudioDeviceList();
-+#ifdef HAVE_ALSA
-+	int matchAudioDevice();
-+	int checkMatchAudioDevice(void *md, const char *vid, const enum device_type type);
-+#endif
- 
- 	void addWidget(QWidget *w, Qt::Alignment align = Qt::AlignLeft);
- 	void addLabel(const QString &text, Qt::Alignment align = Qt::AlignRight)
-@@ -130,6 +161,7 @@ private:
- 	bool m_isVbi;
- 	__u32 m_buftype;
- 	__u32 m_audioModes[5];
-+	QString m_device;
- 	struct v4l2_tuner m_tuner;
- 	struct v4l2_modulator m_modulator;
- 	struct v4l2_capability m_querycap;
-@@ -137,6 +169,10 @@ private:
- 	__u32 m_width, m_height;
- 	struct v4l2_fract m_interval;
- 	bool m_has_interval;
-+	int m_audioDeviceBufferSize;
-+	static bool m_fullAudioName;
-+	std::map<QString, QString> m_audioInDeviceMap;
-+	std::map<QString, QString> m_audioOutDeviceMap;
- 
- 	// General tab
- 	QComboBox *m_videoInput;
-@@ -163,6 +199,8 @@ private:
- 	QComboBox *m_vidOutFormats;
- 	QComboBox *m_capMethods;
- 	QComboBox *m_vbiMethods;
-+	QComboBox *m_audioInDevice;
-+	QComboBox *m_audioOutDevice;
- };
- 
- #endif
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 275b399..5510041 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -24,6 +24,12 @@
- #include "capture-win-qt.h"
- #include "capture-win-gl.h"
- 
-+#ifdef ENABLE_ASLA
-+extern "C" {
-+#include "alsa_stream.h"
-+}
-+#endif
-+
- #include <QToolBar>
- #include <QToolButton>
- #include <QMenuBar>
-@@ -45,15 +51,18 @@
- #include <QWhatsThis>
- #include <QThread>
- #include <QCloseEvent>
-+#include <QInputDialog>
- 
- #include <assert.h>
- #include <sys/mman.h>
-+#include <sys/time.h>
- #include <errno.h>
- #include <dirent.h>
- #include <libv4l2.h>
- 
- ApplicationWindow::ApplicationWindow() :
- 	m_capture(NULL),
-+	m_genTab(NULL),
- 	m_sigMapper(NULL)
- {
- 	setAttribute(Qt::WA_DeleteOnClose, true);
-@@ -76,7 +85,7 @@ ApplicationWindow::ApplicationWindow() :
- 	openRawAct->setShortcut(Qt::CTRL+Qt::Key_R);
- 	connect(openRawAct, SIGNAL(triggered()), this, SLOT(openrawdev()));
- 
--	m_capStartAct = new QAction(QIcon(":/record.png"), "&Start Capturing", this);
-+	m_capStartAct = new QAction(QIcon(":/record.png"), "Start &Capturing", this);
- 	m_capStartAct->setStatusTip("Start capturing");
- 	m_capStartAct->setCheckable(true);
- 	m_capStartAct->setDisabled(true);
-@@ -145,6 +154,21 @@ ApplicationWindow::ApplicationWindow() :
- 		m_renderMethod = QV4L2_RENDER_QT;
- 	}
- 
-+#ifdef HAVE_ALSA
-+	captureMenu->addSeparator();
-+
-+	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
-+	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
-+	m_showAllAudioAct->setCheckable(true);
-+	m_showAllAudioAct->setChecked(false);
-+	captureMenu->addAction(m_showAllAudioAct);
-+
-+	m_audioBufferAct = new QAction("Set Audio Buffer Capacity...", this);
-+	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
-+	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
-+	captureMenu->addAction(m_audioBufferAct);
-+#endif
-+
- 	QMenu *helpMenu = menuBar()->addMenu("&Help");
- 	helpMenu->addAction("&About", this, SLOT(about()), Qt::Key_F1);
- 
-@@ -172,8 +196,11 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 	m_sigMapper = new QSignalMapper(this);
- 	connect(m_sigMapper, SIGNAL(mapped(int)), this, SLOT(ctrlAction(int)));
- 
--	if (!open(device, !rawOpen))
-+	if (!open(device, !rawOpen)) {
-+		m_showAllAudioAct->setEnabled(false);
-+		m_audioBufferAct->setEnabled(false);
- 		return;
-+	}
- 
- 	newCaptureWin();
- 
-@@ -181,6 +208,19 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 
- 	QWidget *w = new QWidget(m_tabs);
- 	m_genTab = new GeneralTab(device, *this, 4, w);
-+
-+#ifdef HAVE_ALSA
-+	if (m_genTab->hasAlsaAudio()) {
-+		connect(m_showAllAudioAct, SIGNAL(toggled(bool)), m_genTab, SLOT(showAllAudioDevices(bool)));
-+		connect(m_genTab, SIGNAL(audioDeviceChanged()), this, SLOT(changeAudioDevice()));
-+		m_showAllAudioAct->setEnabled(true);
-+		m_audioBufferAct->setEnabled(true);
-+	} else {
-+		m_showAllAudioAct->setEnabled(false);
-+		m_audioBufferAct->setEnabled(false);
-+	}
-+#endif
-+
- 	m_tabs->addTab(w, "General");
- 	addTabs();
- 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
-@@ -195,7 +235,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 	m_tabs->show();
- 	m_tabs->setFocus();
- 	m_convertData = v4lconvert_create(fd());
--	m_capStartAct->setEnabled(fd() >= 0 && !m_genTab->isRadio());
-+	m_capStartAct->setEnabled(fd() >= 0);
- 	m_ctrlNotifier = new QSocketNotifier(fd(), QSocketNotifier::Exception, m_tabs);
- 	connect(m_ctrlNotifier, SIGNAL(activated(int)), this, SLOT(ctrlEvent()));
- }
-@@ -235,6 +275,19 @@ void ApplicationWindow::setRenderMethod()
- 	newCaptureWin();
- }
- 
-+void ApplicationWindow::setAudioBufferSize()
-+{
-+	bool ok;
-+	int buffer = QInputDialog::getInt(this, "Audio Device Buffer Size", "Capacity in ms:",
-+					   m_genTab->getAudioDeviceBufferSize(), 1, 65535, 1, &ok);
-+
-+	if (ok) {
-+		m_genTab->setAudioDeviceBufferSize(buffer);
-+		changeAudioDevice();
-+	}
-+}
-+
-+
- void ApplicationWindow::ctrlEvent()
- {
- 	v4l2_event ev;
-@@ -413,12 +466,19 @@ void ApplicationWindow::capFrame()
- 	int s = 0;
- 	int err = 0;
- 	bool again;
-+#ifdef HAVE_ALSA
-+	struct timeval tv_alsa;
-+#endif
- 
- 	unsigned char *displaybuf = NULL;
- 
- 	switch (m_capMethod) {
- 	case methodRead:
- 		s = read(m_frameData, m_capSrcFormat.fmt.pix.sizeimage);
-+#ifdef HAVE_ALSA
-+		alsa_thread_timestamp(&tv_alsa);
-+#endif
-+
- 		if (s < 0) {
- 			if (errno != EAGAIN) {
- 				error("read");
-@@ -449,6 +509,9 @@ void ApplicationWindow::capFrame()
- 			m_capStartAct->setChecked(false);
- 			return;
- 		}
-+#ifdef HAVE_ALSA
-+		alsa_thread_timestamp(&tv_alsa);
-+#endif
- 		if (again)
- 			return;
- 
-@@ -475,6 +538,9 @@ void ApplicationWindow::capFrame()
- 			m_capStartAct->setChecked(false);
- 			return;
- 		}
-+#ifdef HAVE_ALSA
-+		alsa_thread_timestamp(&tv_alsa);
-+#endif
- 		if (again)
- 			return;
- 
-@@ -511,9 +577,22 @@ void ApplicationWindow::capFrame()
- 		m_lastFrame = m_frame;
- 		m_tv = tv;
- 	}
-+
-+
- 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
-+#ifdef HAVE_ALSA
-+	if (alsa_thread_is_running()) {
-+		if (tv_alsa.tv_sec || tv_alsa.tv_usec) {
-+			m_totalAudioLatency.tv_sec += buf.timestamp.tv_sec - tv_alsa.tv_sec;
-+			m_totalAudioLatency.tv_usec += buf.timestamp.tv_usec - tv_alsa.tv_usec;
-+		}
-+		status.append(QString(" Average A-V: %3 ms")
-+			      .arg((m_totalAudioLatency.tv_sec * 1000 + m_totalAudioLatency.tv_usec / 1000) / m_frame));
-+	}
-+#endif
- 	if (displaybuf == NULL && m_showFrames)
- 		status.append(" Error: Unsupported format.");
-+
- 	if (m_showFrames)
- 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
- 				    m_capDestFormat.fmt.pix.pixelformat, displaybuf, status);
-@@ -530,6 +609,11 @@ void ApplicationWindow::capFrame()
- 
- bool ApplicationWindow::startCapture(unsigned buffer_size)
- {
-+	startAudio();
-+
-+	if (m_genTab->isRadio())
-+		return true;
-+
- 	__u32 buftype = m_genTab->bufType();
- 	v4l2_requestbuffers req;
- 	unsigned int i;
-@@ -645,6 +729,11 @@ error:
- 
- void ApplicationWindow::stopCapture()
- {
-+	stopAudio();
-+
-+	if (m_genTab->isRadio())
-+		return;
-+
- 	__u32 buftype = m_genTab->bufType();
- 	v4l2_requestbuffers reqbufs;
- 	v4l2_encoder_cmd cmd;
-@@ -695,6 +784,42 @@ void ApplicationWindow::stopOutput()
- {
- }
- 
-+void ApplicationWindow::startAudio()
-+{
-+#ifdef HAVE_ALSA
-+	m_totalAudioLatency.tv_sec = 0;
-+	m_totalAudioLatency.tv_usec = 0;
-+
-+	QString audIn = m_genTab->getAudioInDevice();
-+	QString audOut = m_genTab->getAudioOutDevice();
-+
-+	if (audIn != NULL && audOut != NULL && audIn.compare("None") && audIn.compare(audOut) != 0) {
-+		alsa_thread_startup(audOut.toAscii().data(), audIn.toAscii().data(),
-+				    m_genTab->getAudioDeviceBufferSize(), NULL, 0);
-+
-+		if (m_genTab->isRadio())
-+			statusBar()->showMessage("Capturing audio");
-+	}
-+#endif
-+}
-+
-+void ApplicationWindow::stopAudio()
-+{
-+#ifdef HAVE_ALSA
-+	if (m_genTab != NULL && m_genTab->isRadio())
-+		statusBar()->showMessage("");
-+	alsa_thread_stop();
-+#endif
-+}
-+
-+void ApplicationWindow::changeAudioDevice()
-+{
-+	stopAudio();
-+	if (m_capStartAct->isChecked()) {
-+		startAudio();
-+	}
-+}
-+
- void ApplicationWindow::closeCaptureWin()
- {
- 	m_capStartAct->setChecked(false);
-@@ -702,6 +827,15 @@ void ApplicationWindow::closeCaptureWin()
- 
- void ApplicationWindow::capStart(bool start)
- {
-+	if (m_genTab->isRadio()) {
-+		if (start)
-+			startCapture(0);
-+		else
-+			stopCapture();
-+
-+		return;
-+	}
-+
- 	QImage::Format dstFmt = QImage::Format_RGB888;
- 	struct v4l2_fract interval;
- 	v4l2_pix_format &srcPix = m_capSrcFormat.fmt.pix;
-@@ -821,6 +955,7 @@ void ApplicationWindow::capStart(bool start)
- 
- void ApplicationWindow::closeDevice()
- {
-+	stopAudio();
- 	delete m_sigMapper;
- 	m_sigMapper = NULL;
- 	m_capStartAct->setEnabled(false);
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 2921b16..511a652 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -20,6 +20,8 @@
- #ifndef QV4L2_H
- #define QV4L2_H
- 
-+#include <config.h>
-+
- #include <QMainWindow>
- #include <QTabWidget>
- #include <QSignalMapper>
-@@ -98,6 +100,8 @@ private:
- 	void startOutput(unsigned buffer_size);
- 	void stopOutput();
- 	void newCaptureWin();
-+	void startAudio();
-+	void stopAudio();
- 
- 	struct buffer *m_buffers;
- 	struct v4l2_format m_capSrcFormat;
-@@ -118,6 +122,7 @@ private slots:
- 	void capVbiFrame();
- 	void saveRaw(bool);
- 	void setRenderMethod();
-+	void changeAudioDevice();
- 
- 	// gui
- private slots:
-@@ -126,6 +131,7 @@ private slots:
- 	void ctrlAction(int);
- 	void openRawFile(const QString &s);
- 	void rejectedRawFile();
-+	void setAudioBufferSize();
- 
- 	void about();
- 
-@@ -176,6 +182,8 @@ private:
- 	QAction *m_saveRawAct;
- 	QAction *m_showFramesAct;
- 	QAction *m_useGLAct;
-+	QAction *m_showAllAudioAct;
-+	QAction *m_audioBufferAct;
- 	QString m_filename;
- 	QSignalMapper *m_sigMapper;
- 	QTabWidget *m_tabs;
-@@ -196,6 +204,7 @@ private:
- 	unsigned m_lastFrame;
- 	unsigned m_fps;
- 	struct timeval m_tv;
-+	struct timeval m_totalAudioLatency;
- 	QFile m_saveRaw;
- };
- 
--- 
-1.8.3.2
+What does 50 mean?
+
+> +	u32 cfg, reset_done = 0;
+> +
+
+Please describe why the below codes are needed.
+
+> +	while (time_before(jiffies, end)) {
+> +		cfg = readl(dev->regs + MSCL_CFG);
+> +		if (!(cfg & MSCL_CFG_SOFT_RESET)) {
+> +			reset_done = 1;
+> +			break;
+> +		}
+> +		usleep_range(10, 20);
+> +	}
+> +
+> +	/* write any value to r/w reg and read it back */
+> +	while (reset_done) {
+> +
+> +		/* [TBD] need to define number of tries before returning
+> +		 * -EBUSY to the caller
+> +		 */
+> +
+> +		writel(MSCL_CFG_SOFT_RESET_CHECK_VAL,
+> +				dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG);
+> +		if (MSCL_CFG_SOFT_RESET_CHECK_VAL ==
+> +			readl(dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG))
+> +			return 0;
+> +	}
+> +
+> +	return -EBUSY;
+> +}
+> +
+> +void mscl_hw_set_irq_mask(struct mscl_dev *dev, int interrupt, bool mask)
+> +{
+> +	u32 cfg;
+> +
+> +	switch (interrupt) {
+> +	case MSCL_INT_TIMEOUT:
+> +	case MSCL_INT_ILLEGAL_BLEND:
+> +	case MSCL_INT_ILLEGAL_RATIO:
+> +	case MSCL_INT_ILLEGAL_DST_HEIGHT:
+> +	case MSCL_INT_ILLEGAL_DST_WIDTH:
+> +	case MSCL_INT_ILLEGAL_DST_V_POS:
+> +	case MSCL_INT_ILLEGAL_DST_H_POS:
+> +	case MSCL_INT_ILLEGAL_DST_C_SPAN:
+> +	case MSCL_INT_ILLEGAL_DST_Y_SPAN:
+> +	case MSCL_INT_ILLEGAL_DST_CR_BASE:
+> +	case MSCL_INT_ILLEGAL_DST_CB_BASE:
+> +	case MSCL_INT_ILLEGAL_DST_Y_BASE:
+> +	case MSCL_INT_ILLEGAL_DST_COLOR:
+> +	case MSCL_INT_ILLEGAL_SRC_HEIGHT:
+> +	case MSCL_INT_ILLEGAL_SRC_WIDTH:
+> +	case MSCL_INT_ILLEGAL_SRC_CV_POS:
+> +	case MSCL_INT_ILLEGAL_SRC_CH_POS:
+> +	case MSCL_INT_ILLEGAL_SRC_YV_POS:
+> +	case MSCL_INT_ILLEGAL_SRC_YH_POS:
+> +	case MSCL_INT_ILLEGAL_SRC_C_SPAN:
+> +	case MSCL_INT_ILLEGAL_SRC_Y_SPAN:
+> +	case MSCL_INT_ILLEGAL_SRC_CR_BASE:
+> +	case MSCL_INT_ILLEGAL_SRC_CB_BASE:
+> +	case MSCL_INT_ILLEGAL_SRC_Y_BASE:
+> +	case MSCL_INT_ILLEGAL_SRC_COLOR:
+> +	case MSCL_INT_FRAME_END:
+> +		break;
+> +	default:
+> +		return;
+> +	}
+
+It seems that the above codes could be more simple,
+
+
+> +	cfg = readl(dev->regs + MSCL_INT_EN);
+> +	if (mask)
+> +		cfg |= interrupt;
+> +	else
+> +		cfg &= ~interrupt;
+> +	writel(cfg, dev->regs + MSCL_INT_EN);
+> +}
+> +
+> +void mscl_hw_set_input_addr(struct mscl_dev *dev, struct mscl_addr *addr)
+> +{
+> +	dev_dbg(&dev->pdev->dev, "src_buf: 0x%X, cb: 0x%X, cr: 0x%X",
+> +				addr->y, addr->cb, addr->cr);
+> +	writel(addr->y, dev->regs + MSCL_SRC_Y_BASE);
+> +	writel(addr->cb, dev->regs + MSCL_SRC_CB_BASE);
+> +	writel(addr->cr, dev->regs + MSCL_SRC_CR_BASE);
+> +}
+> +
+> +void mscl_hw_set_output_addr(struct mscl_dev *dev,
+> +			     struct mscl_addr *addr)
+> +{
+> +	dev_dbg(&dev->pdev->dev, "dst_buf: 0x%X, cb: 0x%X, cr: 0x%X",
+> +				addr->y, addr->cb, addr->cr);
+> +	writel(addr->y, dev->regs + MSCL_DST_Y_BASE);
+> +	writel(addr->cb, dev->regs + MSCL_DST_CB_BASE);
+> +	writel(addr->cr, dev->regs + MSCL_DST_CR_BASE);
+> +}
+> +
+> +void mscl_hw_set_in_size(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	struct mscl_frame *frame = &ctx->s_frame;
+> +	u32 cfg;
+> +
+> +	/* set input pixel offset */
+> +	cfg = MSCL_SRC_YH_POS(frame->crop.left);
+> +	cfg |= MSCL_SRC_YV_POS(frame->crop.top);
+
+Where are the limitations to left and top checked?.
+
+> +	writel(cfg, dev->regs + MSCL_SRC_Y_POS);
+> +
+> +	/* [TBD] calculate 'C' plane h/v offset using 'Y' plane h/v offset
+> */
+> +
+> +	/* set input span */
+> +	cfg = MSCL_SRC_Y_SPAN(frame->f_width);
+> +	if (is_yuv420_2p(frame->fmt))
+> +		cfg |= MSCL_SRC_C_SPAN(frame->f_width);
+> +	else
+> +		cfg |= MSCL_SRC_C_SPAN(frame->f_width); /* [TBD] Verify */
+> +
+> +	writel(cfg, dev->regs + MSCL_SRC_SPAN);
+> +
+> +	/* Set input cropped size */
+> +	cfg = MSCL_SRC_WIDTH(frame->crop.width);
+> +	cfg |= MSCL_SRC_HEIGHT(frame->crop.height);
+> +	writel(cfg, dev->regs + MSCL_SRC_WH);
+> +
+> +	dev_dbg(&dev->pdev->dev,
+> +		"src: posx: %d, posY: %d, spanY: %d, spanC: %d, "
+> +		"cropX: %d, cropY: %d\n",
+> +		frame->crop.left, frame->crop.top, frame->f_width,
+> +		frame->f_width, frame->crop.width, frame->crop.height);
+> +}
+> +
+> +void mscl_hw_set_in_image_format(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	struct mscl_frame *frame = &ctx->s_frame;
+> +	u32 cfg;
+> +
+> +	cfg = readl(dev->regs + MSCL_SRC_CFG);
+> +	cfg &= ~MSCL_SRC_COLOR_FORMAT_MASK;
+> +	cfg |= MSCL_SRC_COLOR_FORMAT(frame->fmt->mscl_color);
+> +
+> +	/* setting tile/linear format */
+> +	if (frame->fmt->is_tiled)
+> +		cfg |= MSCL_SRC_TILE_EN;
+> +	else
+> +		cfg &= ~MSCL_SRC_TILE_EN;
+> +
+> +	writel(cfg, dev->regs + MSCL_SRC_CFG);
+> +}
+> +
+> +void mscl_hw_set_out_size(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	struct mscl_frame *frame = &ctx->d_frame;
+> +	u32 cfg;
+> +
+> +	/* set output pixel offset */
+> +	cfg = MSCL_DST_H_POS(frame->crop.left);
+> +	cfg |= MSCL_DST_V_POS(frame->crop.top);
+
+Ditto.
+
+> +	writel(cfg, dev->regs + MSCL_DST_POS);
+> +
+> +	/* set output span */
+> +	cfg = MSCL_DST_Y_SPAN(frame->f_width);
+> +	if (is_yuv420_2p(frame->fmt))
+> +		cfg |= MSCL_DST_C_SPAN(frame->f_width/2);
+> +	else
+> +		cfg |= MSCL_DST_C_SPAN(frame->f_width);
+> +	writel(cfg, dev->regs + MSCL_DST_SPAN);
+> +
+> +	/* set output scaled size */
+> +	cfg = MSCL_DST_WIDTH(frame->crop.width);
+> +	cfg |= MSCL_DST_HEIGHT(frame->crop.height);
+> +	writel(cfg, dev->regs + MSCL_DST_WH);
+> +
+> +	dev_dbg(&dev->pdev->dev,
+> +		"dst: posx: %d, posY: %d, spanY: %d, spanC: %d, "
+> +		"cropX: %d, cropY: %d\n",
+> +		frame->crop.left, frame->crop.top, frame->f_width,
+> +		frame->f_width, frame->crop.width, frame->crop.height);
+> +}
+> +
+> +void mscl_hw_set_out_image_format(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	struct mscl_frame *frame = &ctx->d_frame;
+> +	u32 cfg;
+> +
+> +	cfg = readl(dev->regs + MSCL_DST_CFG);
+> +	cfg &= ~MSCL_DST_COLOR_FORMAT_MASK;
+> +	cfg |= MSCL_DST_COLOR_FORMAT(frame->fmt->mscl_color);
+> +
+> +	writel(cfg, dev->regs + MSCL_DST_CFG);
+> +}
+> +
+> +void mscl_hw_set_scaler_ratio(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	struct mscl_scaler *sc = &ctx->scaler;
+> +	u32 cfg;
+> +
+> +	cfg = MSCL_H_RATIO_VALUE(sc->hratio);
+> +	writel(cfg, dev->regs + MSCL_H_RATIO);
+> +
+> +	cfg = MSCL_V_RATIO_VALUE(sc->vratio);
+> +	writel(cfg, dev->regs + MSCL_V_RATIO);
+> +}
+> +
+> +void mscl_hw_set_rotation(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	u32 cfg = 0;
+> +
+> +	cfg = MSCL_ROTMODE(ctx->ctrls_mscl.rotate->val/90);
+> +
+> +	if (ctx->ctrls_mscl.hflip->val)
+> +		cfg |= MSCL_FLIP_X_EN;
+> +
+> +	if (ctx->ctrls_mscl.vflip->val)
+> +		cfg |= MSCL_FLIP_Y_EN;
+> +
+> +	writel(cfg, dev->regs + MSCL_ROT_CFG);
+> +}
+> +
+> +void mscl_hw_address_queue_reset(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +
+> +	writel(MSCL_ADDR_QUEUE_RST, dev->regs + MSCL_ADDR_QUEUE_CONFIG);
+> +}
+> +
+> +void mscl_hw_set_csc_coeff(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_dev *dev = ctx->mscl_dev;
+> +	enum mscl_csc_coeff type;
+> +	u32 cfg = 0;
+> +	int i, j;
+> +	static const u32 csc_coeff[MSCL_CSC_COEFF_MAX][3][3] = {
+> +		{ /* YCbCr to RGB */
+> +			{0x200, 0x000, 0x2be},
+> +			{0x200, 0xeac, 0x165},
+> +			{0x200, 0x377, 0x000}
+> +		},
+> +		{ /* YCbCr to RGB with -16 offset */
+> +			{0x254, 0x000, 0x331},
+> +			{0x254, 0xec8, 0xFA0},
+> +			{0x254, 0x409, 0x000}
+> +		},
+> +		{ /* RGB to YCbCr */
+> +			{0x099, 0x12d, 0x03a},
+> +			{0xe58, 0xeae, 0x106},
+> +			{0x106, 0xedb, 0xe2a}
+> +		},
+> +		{ /* RGB to YCbCr with -16 offset */
+> +			{0x084, 0x102, 0x032},
+> +			{0xe4c, 0xe95, 0x0e1},
+> +			{0x0e1, 0xebc, 0xe24}
+> +		} };
+> +
+> +	if (is_rgb(ctx->s_frame.fmt) == is_rgb(ctx->d_frame.fmt))
+> +		type = MSCL_CSC_COEFF_NONE;
+> +	else if (is_rgb(ctx->d_frame.fmt))
+> +		type = MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16;
+> +	else
+> +		type = MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16;
+> +
+> +	if ((type == ctx->mscl_dev->coeff_type) || (type >=
+> MSCL_CSC_COEFF_MAX))
+> +		return;
+> +
+> +	for (i = 0; i < 3; i++) {
+> +		for (j = 0; j < 3; j++) {
+> +			cfg = csc_coeff[type][i][j];
+> +			writel(cfg, dev->regs + MSCL_CSC_COEF(i, j));
+> +		}
+> +	}
+> +
+> +	switch (type) {
+> +	case MSCL_CSC_COEFF_YCBCR_TO_RGB:
+
+Is there this case?
+
+> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
+
+And this switch-case could be removed if you move the above line to the
+above if-sentence.
+
+
+> +		break;
+> +	case MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16:
+> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
+
+Ditto.
+
+> +		break;
+> +	case MSCL_CSC_COEFF_RGB_TO_YCBCR:
+
+Seems no case.
+
+> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
+
+Could be moved to the above if-sentence.
+
+> +		break;
+> +	case MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16:
+> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
+
+Ditto.
+
+> +		break;
+> +	default:
+> +		return;
+> +	}
+> +
+> +	ctx->mscl_dev->coeff_type = type;
+> +	return;
+> +}
+> diff --git a/drivers/media/platform/exynos-mscl/mscl-regs.h
+> b/drivers/media/platform/exynos-mscl/mscl-regs.h
+> new file mode 100644
+> index 0000000..02e2294d
+> --- /dev/null
+> +++ b/drivers/media/platform/exynos-mscl/mscl-regs.h
+> @@ -0,0 +1,282 @@
+> +/*
+> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+> + *		http://www.samsung.com
+> + *
+> + * Register definition file for Samsung M-Scaler driver
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef REGS_MSCL_H_
+> +#define REGS_MSCL_H_
+> +
+> +/* m2m-scaler status */
+> +#define MSCL_STATUS				0x00
+> +#define MSCL_STATUS_RUNNING			(1 << 1)
+> +#define MSCL_STATUS_READY_CLK_DOWN		(1 << 0)
+> +
+> +/* m2m-scaler config */
+> +#define MSCL_CFG				0x04
+> +#define MSCL_CFG_FILL_EN			(1 << 24)
+> +#define MSCL_CFG_BLEND_CLR_DIV_ALPHA_EN		(1 << 17)
+> +#define MSCL_CFG_BLEND_EN			(1 << 16)
+> +#define MSCL_CFG_CSC_Y_OFFSET_SRC_EN		(1 << 10)
+> +#define MSCL_CFG_CSC_Y_OFFSET_DST_EN		(1 << 9)
+> +#define MSCL_CFG_16_BURST_MODE			(1 << 8)
+> +#define MSCL_CFG_SOFT_RESET			(1 << 1)
+> +#define MSCL_CFG_START_CMD			(1 << 0)
+> +
+> +/* m2m-scaler interrupt enable */
+> +#define MSCL_INT_EN				0x08
+> +#define MSCL_INT_EN_DEFAULT			0x81ffffff
+> +#define MSCL_INT_EN_TIMEOUT			(1 << 31)
+> +#define MSCL_INT_EN_ILLEGAL_BLEND		(1 << 24)
+> +#define MSCL_INT_EN_ILLEGAL_RATIO		(1 << 23)
+> +#define MSCL_INT_EN_ILLEGAL_DST_HEIGHT		(1 << 22)
+> +#define MSCL_INT_EN_ILLEGAL_DST_WIDTH		(1 << 21)
+> +#define MSCL_INT_EN_ILLEGAL_DST_V_POS		(1 << 20)
+> +#define MSCL_INT_EN_ILLEGAL_DST_H_POS		(1 << 19)
+> +#define MSCL_INT_EN_ILLEGAL_DST_C_SPAN		(1 << 18)
+> +#define MSCL_INT_EN_ILLEGAL_DST_Y_SPAN		(1 << 17)
+> +#define MSCL_INT_EN_ILLEGAL_DST_CR_BASE		(1 << 16)
+> +#define MSCL_INT_EN_ILLEGAL_DST_CB_BASE		(1 << 15)
+> +#define MSCL_INT_EN_ILLEGAL_DST_Y_BASE		(1 << 14)
+> +#define MSCL_INT_EN_ILLEGAL_DST_COLOR		(1 << 13)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_HEIGHT		(1 << 12)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_WIDTH		(1 << 11)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_CV_POS		(1 << 10)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_CH_POS		(1 << 9)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_YV_POS		(1 << 8)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_YH_POS		(1 << 7)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_C_SPAN		(1 << 6)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_Y_SPAN		(1 << 5)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_CR_BASE		(1 << 4)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_CB_BASE		(1 << 3)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_Y_BASE		(1 << 2)
+> +#define MSCL_INT_EN_ILLEGAL_SRC_COLOR		(1 << 1)
+> +#define MSCL_INT_EN_FRAME_END			(1 << 0)
+> +
+> +/* m2m-scaler interrupt status */
+> +#define MSCL_INT_STATUS				0x0c
+> +#define MSCL_INT_STATUS_CLEAR			(0xffffffff)
+> +#define MSCL_INT_STATUS_ERROR			(0x81fffffe)
+> +#define MSCL_INT_STATUS_TIMEOUT			(1 << 31)
+> +#define MSCL_INT_STATUS_ILLEGAL_BLEND		(1 << 24)
+> +#define MSCL_INT_STATUS_ILLEGAL_RATIO		(1 << 23)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_HEIGHT	(1 << 22)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_WIDTH	(1 << 21)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_V_POS	(1 << 20)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_H_POS	(1 << 19)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_C_SPAN	(1 << 18)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_Y_SPAN	(1 << 17)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_CR_BASE	(1 << 16)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_CB_BASE	(1 << 15)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_Y_BASE	(1 << 14)
+> +#define MSCL_INT_STATUS_ILLEGAL_DST_COLOR	(1 << 13)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_HEIGHT	(1 << 12)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_WIDTH	(1 << 11)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CV_POS	(1 << 10)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CH_POS	(1 << 9)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_YV_POS	(1 << 8)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_YH_POS	(1 << 7)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_C_SPAN	(1 << 6)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_Y_SPAN	(1 << 5)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CR_BASE	(1 << 4)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CB_BASE	(1 << 3)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_Y_BASE	(1 << 2)
+> +#define MSCL_INT_STATUS_ILLEGAL_SRC_COLOR	(1 << 1)
+> +#define MSCL_INT_STATUS_FRAME_END		(1 << 0)
+> +
+> +/* m2m-scaler source format configuration */
+> +#define MSCL_SRC_CFG				0x10
+> +#define MSCL_SRC_TILE_EN			(0x1 << 10)
+> +#define MSCL_SRC_BYTE_SWAP_MASK			(0x3 << 5)
+> +#define MSCL_SRC_BYTE_SWAP(x)			(((x) & 0x3) << 5)
+> +#define MSCL_SRC_COLOR_FORMAT_MASK		(0xf << 0)
+> +#define MSCL_SRC_COLOR_FORMAT(x)		(((x) & 0xf) << 0)
+> +
+> +/* m2m-scaler source y-base */
+> +#define MSCL_SRC_Y_BASE				0x14
+> +
+> +/* m2m-scaler source cb-base */
+> +#define MSCL_SRC_CB_BASE			0x18
+> +
+> +/* m2m-scaler source cr-base */
+> +#define MSCL_SRC_CR_BASE			0x294
+> +
+> +/* m2m-scaler source span */
+> +#define MSCL_SRC_SPAN				0x1c
+> +#define MSCL_SRC_C_SPAN_MASK			(0x3fff << 16)
+> +#define MSCL_SRC_C_SPAN(x)			(((x) & 0x3fff) << 16)
+> +#define MSCL_SRC_Y_SPAN_MASK			(0x3fff << 0)
+> +#define MSCL_SRC_Y_SPAN(x)			(((x) & 0x3fff) << 0)
+> +
+> +/* m2m-scaler source y-position */
+> +#define MSCL_SRC_Y_POS				0x20
+> +#define MSCL_SRC_YH_POS_MASK			(0xffff << (16 + 2))
+> +#define MSCL_SRC_YH_POS(x)			(((x) & 0xffff) << (16 + 2))
+> +#define MSCL_SRC_YV_POS_MASK			(0xffff << (0 + 2))
+> +#define MSCL_SRC_YV_POS(x)			(((x) & 0xffff) << (0 + 2))
+> +
+> +/* m2m-scaler source width/height */
+> +#define MSCL_SRC_WH				0x24
+> +#define MSCL_SRC_WIDTH_MASK			(0x3fff << 16)
+> +#define MSCL_SRC_WIDTH(x)			(((x) & 0x3fff) << 16)
+> +#define MSCL_SRC_HEIGHT_MASK			(0x3fff << 0)
+> +#define MSCL_SRC_HEIGHT(x)			(((x) & 0x3fff) << 0)
+> +
+> +/* m2m-scaler source c-position */
+> +#define MSCL_SRC_C_POS				0x28
+> +#define MSCL_SRC_CH_POS_MASK			(0xffff << (16 + 2))
+> +#define MSCL_SRC_CH_POS(x)			(((x) & 0xffff) << (16 + 2))
+> +#define MSCL_SRC_CV_POS_MASK			(0xffff << (0 + 2))
+> +#define MSCL_SRC_CV_POS(x)			(((x) & 0xffff) << (0 + 2))
+> +
+> +/* m2m-scaler destination format configuration */
+> +#define MSCL_DST_CFG				0x30
+> +#define MSCL_DST_BYTE_SWAP_MASK			(0x3 << 5)
+> +#define MSCL_DST_BYTE_SWAP(x)			(((x) & 0x3) << 5)
+> +#define MSCL_DST_COLOR_FORMAT_MASK		(0xf << 0)
+> +#define MSCL_DST_COLOR_FORMAT(x)		(((x) & 0xf) << 0)
+> +
+> +/* m2m-scaler destination y-base */
+> +#define MSCL_DST_Y_BASE				0x34
+> +
+> +/* m2m-scaler destination cb-base */
+> +#define MSCL_DST_CB_BASE			0x38
+> +
+> +/* m2m-scaler destination cr-base */
+> +#define MSCL_DST_CR_BASE			0x298
+> +
+> +/* m2m-scaler destination span */
+> +#define MSCL_DST_SPAN				0x3c
+> +#define MSCL_DST_C_SPAN_MASK			(0x3fff << 16)
+> +#define MSCL_DST_C_SPAN(x)			(((x) & 0x3fff) << 16)
+> +#define MSCL_DST_Y_SPAN_MASK			(0x3fff << 0)
+> +#define MSCL_DST_Y_SPAN(x)			(((x) & 0x3fff) << 0)
+> +
+> +/* m2m-scaler destination width/height */
+> +#define MSCL_DST_WH				0x40
+> +#define MSCL_DST_WIDTH_MASK			(0x3fff << 16)
+> +#define MSCL_DST_WIDTH(x)			(((x) & 0x3fff) << 16)
+> +#define MSCL_DST_HEIGHT_MASK			(0x3fff << 0)
+> +#define MSCL_DST_HEIGHT(x)			(((x) & 0x3fff) << 0)
+> +
+> +/* m2m-scaler destination position */
+> +#define MSCL_DST_POS				0x44
+> +#define MSCL_DST_H_POS_MASK			(0x3fff << 16)
+> +#define MSCL_DST_H_POS(x)			(((x) & 0x3fff) << 16)
+> +#define MSCL_DST_V_POS_MASK			(0x3fff << 0)
+> +#define MSCL_DST_V_POS(x)			(((x) & 0x3fff) << 0)
+> +
+> +/* m2m-scaler horizontal scale ratio */
+> +#define MSCL_H_RATIO				0x50
+> +#define MSCL_H_RATIO_VALUE(x)			(((x) & 0x7ffff) <<
+0)
+> +
+> +/* m2m-scaler vertical scale ratio */
+> +#define MSCL_V_RATIO				0x54
+> +#define MSCL_V_RATIO_VALUE(x)			(((x) & 0x7ffff) <<
+0)
+> +
+> +/* m2m-scaler rotation config */
+> +#define MSCL_ROT_CFG				0x58
+> +#define MSCL_FLIP_X_EN				(1 << 3)
+> +#define MSCL_FLIP_Y_EN				(1 << 2)
+> +#define MSCL_ROTMODE_MASK			(0x3 << 0)
+> +#define MSCL_ROTMODE(x)				(((x) & 0x3) << 0)
+> +
+> +/* m2m-scaler csc coefficients */
+> +#define MSCL_CSC_COEF_00			0x220
+> +#define MSCL_CSC_COEF_10			0x224
+> +#define MSCL_CSC_COEF_20			0x228
+> +#define MSCL_CSC_COEF_01			0x22C
+> +#define MSCL_CSC_COEF_11			0x230
+> +#define MSCL_CSC_COEF_21			0x234
+> +#define MSCL_CSC_COEF_02			0x238
+> +#define MSCL_CSC_COEF_12			0x23C
+> +#define MSCL_CSC_COEF_22			0x240
+> +
+> +#define MSCL_CSC_COEF(x, y)			(0x220 + ((x * 12) + (y *
+> 4)))
+> +
+> +/* m2m-scaler dither config */
+> +#define MSCL_DITH_CFG				0x250
+> +#define MSCL_DITHER_R_TYPE_MASK			(0x7 << 6)
+> +#define MSCL_DITHER_R_TYPE(x)			(((x) & 0x7) << 6)
+> +#define MSCL_DITHER_G_TYPE_MASK			(0x7 << 3)
+> +#define MSCL_DITHER_G_TYPE(x)			(((x) & 0x7) << 3)
+> +#define MSCL_DITHER_B_TYPE_MASK			(0x7 << 0)
+> +#define MSCL_DITHER_B_TYPE(x)			(((x) & 0x7) << 0)
+> +
+> +/* m2m-scaler src blend color */
+> +#define MSCL_SRC_BLEND_COLOR			0x280
+> +#define MSCL_SRC_COLOR_SEL_INV			(1 << 31)
+> +#define MSCL_SRC_COLOR_SEL_MASK			(0x3 << 29)
+> +#define MSCL_SRC_COLOR_SEL(x)			(((x) & 0x3) << 29)
+> +#define MSCL_SRC_COLOR_OP_SEL_INV		(1 << 28)
+> +#define MSCL_SRC_COLOR_OP_SEL_MASK		(0xf << 24)
+> +#define MSCL_SRC_COLOR_OP_SEL(x)		(((x) & 0xf) << 24)
+> +#define MSCL_SRC_GLOBAL_COLOR0_MASK		(0xff << 16)
+> +#define MSCL_SRC_GLOBAL_COLOR0(x)		(((x) & 0xff) << 16)
+> +#define MSCL_SRC_GLOBAL_COLOR1_MASK		(0xff << 8)
+> +#define MSCL_SRC_GLOBAL_COLOR1(x)		(((x) & 0xff) << 8)
+> +#define MSCL_SRC_GLOBAL_COLOR2_MASK		(0xff << 0)
+> +#define MSCL_SRC_GLOBAL_COLOR2(x)		(((x) & 0xff) << 0)
+> +
+> +/* m2m-scaler src blend alpha */
+> +#define MSCL_SRC_BLEND_ALPHA			0x284
+> +#define MSCL_SRC_ALPHA_SEL_INV			(1 << 31)
+> +#define MSCL_SRC_ALPHA_SEL_MASK			(0x3 << 29)
+> +#define MSCL_SRC_ALPHA_SEL(x)			(((x) & 0x3) << 29)
+> +#define MSCL_SRC_ALPHA_OP_SEL_INV		(1 << 28)
+> +#define MSCL_SRC_ALPHA_OP_SEL_MASK		(0xf << 24)
+> +#define MSCL_SRC_ALPHA_OP_SEL(x)		(((x) & 0xf) << 24)
+> +#define MSCL_SRC_GLOBAL_ALPHA_MASK		(0xff << 0)
+> +#define MSCL_SRC_GLOBAL_ALPHA(x)		(((x) & 0xff) << 0)
+> +
+> +/* m2m-scaler dst blend color */
+> +#define MSCL_DST_BLEND_COLOR			0x288
+> +#define MSCL_DST_COLOR_SEL_INV			(1 << 31)
+> +#define MSCL_DST_COLOR_SEL_MASK			(0x3 << 29)
+> +#define MSCL_DST_COLOR_SEL(x)			(((x) & 0x3) << 29)
+> +#define MSCL_DST_COLOR_OP_SEL_INV		(1 << 28)
+> +#define MSCL_DST_COLOR_OP_SEL_MASK		(0xf << 24)
+> +#define MSCL_DST_COLOR_OP_SEL(x)		(((x) & 0xf) << 24)
+> +#define MSCL_DST_GLOBAL_COLOR0_MASK		(0xff << 16)
+> +#define MSCL_DST_GLOBAL_COLOR0(x)		(((x) & 0xff) << 16)
+> +#define MSCL_DST_GLOBAL_COLOR1_MASK		(0xff << 8)
+> +#define MSCL_DST_GLOBAL_COLOR1(x)		(((x) & 0xff) << 8)
+> +#define MSCL_DST_GLOBAL_COLOR2_MASK		(0xff << 0)
+> +#define MSCL_DST_GLOBAL_COLOR2(x)		(((x) & 0xff) << 0)
+> +
+> +/* m2m-scaler dst blend alpha */
+> +#define MSCL_DST_BLEND_ALPHA			0x28C
+> +#define MSCL_DST_ALPHA_SEL_INV			(1 << 31)
+> +#define MSCL_DST_ALPHA_SEL_MASK			(0x3 << 29)
+> +#define MSCL_DST_ALPHA_SEL(x)			(((x) & 0x3) << 29)
+> +#define MSCL_DST_ALPHA_OP_SEL_INV		(1 << 28)
+> +#define MSCL_DST_ALPHA_OP_SEL_MASK		(0xf << 24)
+> +#define MSCL_DST_ALPHA_OP_SEL(x)		(((x) & 0xf) << 24)
+> +#define MSCL_DST_GLOBAL_ALPHA_MASK		(0xff << 0)
+> +#define MSCL_DST_GLOBAL_ALPHA(x)		(((x) & 0xff) << 0)
+> +
+> +/* m2m-scaler fill color */
+> +#define MSCL_FILL_COLOR				0x290
+> +#define MSCL_FILL_ALPHA_MASK			(0xff << 24)
+> +#define MSCL_FILL_ALPHA(x)			(((x) & 0xff) << 24)
+> +#define MSCL_FILL_COLOR0_MASK			(0xff << 16)
+> +#define MSCL_FILL_COLOR0(x)			(((x) & 0xff) << 16)
+> +#define MSCL_FILL_COLOR1_MASK			(0xff << 8)
+> +#define MSCL_FILL_COLOR1(x)			(((x) & 0xff) << 8)
+> +#define MSCL_FILL_COLOR2_MASK			(0xff << 0)
+> +#define MSCL_FILL_COLOR2(x)			(((x) & 0xff) << 0)
+> +
+> +/* m2m-scaler address queue config */
+> +#define MSCL_ADDR_QUEUE_CONFIG			0x2a0
+> +#define MSCL_ADDR_QUEUE_RST			(1 << 0)
+> +
+> +/* arbitrary r/w register and reg-value to check soft reset is success */
+> +#define MSCL_CFG_SOFT_RESET_CHECK_REG		MSCL_SRC_CFG
+> +#define MSCL_CFG_SOFT_RESET_CHECK_VAL		0x3
+> +
+> +#endif /* REGS_MSCL_H_ */
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
