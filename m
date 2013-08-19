@@ -1,521 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog121.obsmtp.com ([207.126.144.151]:46103 "EHLO
-	eu1sys200aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753175Ab3H1Pun (ORCPT
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:42528 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751571Ab3HSWnH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 11:50:43 -0400
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	Grant Likely <grant.likely@linaro.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@st.com>
-Subject: [PATCH v2] media: st-rc: Add ST remote control driver
-Date: Wed, 28 Aug 2013 16:33:50 +0100
-Message-Id: <1377704030-3763-1-git-send-email-srinivas.kandagatla@st.com>
+	Mon, 19 Aug 2013 18:43:07 -0400
+Received: by mail-ob0-f178.google.com with SMTP id ef5so6187707obb.23
+        for <linux-media@vger.kernel.org>; Mon, 19 Aug 2013 15:43:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <52127667.8050202@bitfrost.no>
+References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54>
+	<520F643C.70306@iki.fi>
+	<5210B5F3.4040607@bitfrost.no>
+	<CALzAhNXUKZPEyFe0eND3Lb3dQwfVaMUWS30kx0sQJj7YG2rKow@mail.gmail.com>
+	<52127667.8050202@bitfrost.no>
+Date: Tue, 20 Aug 2013 01:43:04 +0300
+Message-ID: <CAF0Ff2mQP6+a5693kf3Vq7AHHG5--1keZMvdp-YX4o4OLk3Y-g@mail.gmail.com>
+Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Hans Petter Selasky <hps@bitfrost.no>
+Cc: Steven Toth <stoth@kernellabs.com>, Antti Palosaari <crope@iki.fi>,
+	Ulf <mopp@gmx.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+hi Hans,
 
-This patch adds support to ST RC driver, which is basically a IR/UHF
-receiver and transmitter. This IP (IRB) is common across all the ST
-parts for settop box platforms. IRB is embedded in ST COMMS IP block.
-It supports both Rx & Tx functionality.
+On Mon, Aug 19, 2013 at 10:47 PM, Hans Petter Selasky <hps@bitfrost.no> wrote:
+> On 08/18/13 21:02, Steven Toth wrote:
+>>>
+>>> FYI: The Si2168 driver is available from "dvbsky-linux-3.9-hps-v2.diff"
+>>> inside. Maybe the Si2165 is similar?
+>>
+>>
+>> Excellent.
+>>
+>
+> Hi Guys,
+>
+> I was contacted by someone claiming to be from "RSD" ??, named Danny Griegs,
+> off-list, claiming I have the source code for sit2.c and cannot distribute
+> it.
+>
 
-In this driver adds only Rx functionality via LIRC codec.
+there is www.rsd.de, which is abbreviation for rohde-schwarz-something
+and to where that side is actually redirecting. so, they are
+German-based company making DVB equipment and maybe if that's the same
+RSD that Danny Griegs guy could be legit. however, nothing in the
+binary you used proves they have any ownership over the binary or the
+code compiled in it. so, you can ask them to show you their NDA with
+Silicon Labs - after all they can't have access to that information in
+the code without valid NDA with Silicon Labs.
 
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
----
-Hi Chehab,
+> I want to make clear to everyone that the tarball I've provided only
+> contains the C-equivalent of the "objdump -dx" output from the
+> media_build-bst/v4l/sit2.o.x86 which is distributed officially by DVBSKY.
+>
 
-This is a very simple rc driver for IRB controller found in STi ARM CA9 SOCs.
-STi ARM SOC support went in 3.11 recently.
-This driver is a raw driver which feeds data to lirc codec for the user lircd
-to decode the keys.
+so, there is no any guarantee that the code Max Nibble packed in that
+binary is really his creation - he had a history of copy-left
+practices - for example some time ago he tried to change the copyright
+notice of code i released under GPL:
 
-This patch is based on git://linuxtv.org/media_tree.git master branch.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg41135.html
 
-Changes since v1:
-	- Device tree bindings cleaned up as suggested by Mark and Pawel
-	- use ir_raw_event_reset under overflow conditions as suggested by Sean.
-	- call ir_raw_event_handle in interrupt handler as suggested by Sean.
-	- correct allowed_protos flag with RC_BIT_ types as suggested by Sean.
-	- timeout and rx resolution added as suggested by Sean.
+as its main architecture was based on 'cx24116.c' made by Steven Toth
+and others, even the work of 'ds3000' demodulator is quite different
+and i made a lot of changes in the code leaving almost no resemblance
+with 'cx24116.c'.
 
-Thanks,
-srini
+so, if you search the list there are few discussions about 'ds3000',
+which i made and what Max Nibble did with it. also, Max Nibble is most
+likely not his real name - those DVBsky-brand products are made by
+Chinese company with the notorious name of "BestTunar" (yes, i didn't
+make spelling error here). in any case that's issue between RSD/Danny
+Griegs and Max Nibble, not between you and them. also, you can check
+the originating IP of the email from RSD/Danny Griegs and ensure it's
+not some of the many personalities of Max Nibble - he writes from IP
+addresses located at Shenzhen, China.
 
- Documentation/devicetree/bindings/media/st-rc.txt |   24 ++
- drivers/media/rc/Kconfig                          |   10 +
- drivers/media/rc/Makefile                         |    1 +
- drivers/media/rc/st_rc.c                          |  392 +++++++++++++++++++++
- 4 files changed, 427 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
- create mode 100644 drivers/media/rc/st_rc.c
+> He claimed I had to pull the tarball off my site right away or face legal
+> actions. I cannot understand this, and would like to ask you guys what you
+> think. Obviously my sit2.c is too similar to their "licensed" sit2.c. And
+> now these guys want to send a lawyer after me. What a mess. Should I laugh
+> or cry. Any advice from you guys about this?
+>
+> BTW: The hexdump of the sit2.o.x86 contains the string "license=GPL". Does
+> that give me any rights to redistribute the re-assembled C-code ?
+>
 
-diff --git a/Documentation/devicetree/bindings/media/st-rc.txt b/Documentation/devicetree/bindings/media/st-rc.txt
-new file mode 100644
-index 0000000..20fe264
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st-rc.txt
-@@ -0,0 +1,24 @@
-+Device-Tree bindings for ST IRB IP
-+
-+Required properties:
-+	- compatible: should be "st,comms-irb".
-+	- reg: base physical address of the controller and length of memory
-+	mapped  region.
-+	- interrupts: interrupt number to the cpu. The interrupt specifier
-+	format depends on the interrupt controller parent.
-+
-+Optional properties:
-+	- rx-mode: can be "infrared" or "uhf".
-+	- tx-mode: should be "infrared".
-+	- pinctrl-names, pinctrl-0: the pincontrol settings to configure
-+	muxing properly for IRB pins.
-+	- clocks : phandle of clock.
-+
-+Example node:
-+
-+	rc: rc@fe518000 {
-+		compatible	= "st,comms-irb";
-+		reg		= <0xfe518000 0x234>;
-+		interrupts	=  <0 203 0>;
-+		rx-mode		= "infrared";
-+	};
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 11e84bc..bf301ed 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -322,4 +322,14 @@ config IR_GPIO_CIR
- 	   To compile this driver as a module, choose M here: the module will
- 	   be called gpio-ir-recv.
- 
-+config RC_ST
-+	tristate "ST remote control receiver"
-+	depends on ARCH_STI && LIRC && OF
-+	help
-+	 Say Y here if you want support for ST remote control driver
-+	 which allows both IR and UHF RX.
-+	 The driver passes raw pluse and space information to the LIRC decoder.
-+
-+	 If you're not sure, select N here.
-+
- endif #RC_DEVICES
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 56bacf0..f4eb32c 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -30,3 +30,4 @@ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
- obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
- obj-$(CONFIG_IR_IGUANA) += iguanair.o
- obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
-+obj-$(CONFIG_RC_ST) += st_rc.o
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-new file mode 100644
-index 0000000..5caa6c5
---- /dev/null
-+++ b/drivers/media/rc/st_rc.c
-@@ -0,0 +1,392 @@
-+/*
-+ * Copyright (C) 2013 STMicroelectronics Limited
-+ * Author: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <media/rc-core.h>
-+#include <linux/pinctrl/consumer.h>
-+
-+struct st_rc_device {
-+	struct device			*dev;
-+	int				irq;
-+	int				irq_wake;
-+	struct clk			*sys_clock;
-+	void				*base;	/* Register base address */
-+	void				*rx_base;/* RX Register base address */
-+	struct rc_dev			*rdev;
-+	bool				overclocking;
-+	int				sample_mult;
-+	int				sample_div;
-+	bool				rxuhfmode;
-+};
-+
-+/* Registers */
-+#define IRB_SAMPLE_RATE_COMM	0x64	/* sample freq divisor*/
-+#define IRB_CLOCK_SEL		0x70	/* clock select       */
-+#define IRB_CLOCK_SEL_STATUS	0x74	/* clock status       */
-+/* IRB IR/UHF receiver registers */
-+#define IRB_RX_ON               0x40	/* pulse time capture */
-+#define IRB_RX_SYS              0X44	/* sym period capture */
-+#define IRB_RX_INT_EN           0x48	/* IRQ enable (R/W)   */
-+#define IRB_RX_INT_STATUS       0x4C	/* IRQ status (R/W)   */
-+#define IRB_RX_EN               0x50	/* Receive enablei    */
-+#define IRB_MAX_SYM_PERIOD      0x54	/* max sym value      */
-+#define IRB_RX_INT_CLEAR        0x58	/* overrun status     */
-+#define IRB_RX_STATUS           0x6C	/* receive status     */
-+#define IRB_RX_NOISE_SUPPR      0x5C	/* noise suppression  */
-+#define IRB_RX_POLARITY_INV     0x68	/* polarity inverter  */
-+
-+/**
-+ * IRQ set: Enable full FIFO                 1  -> bit  3;
-+ *          Enable overrun IRQ               1  -> bit  2;
-+ *          Enable last symbol IRQ           1  -> bit  1:
-+ *          Enable RX interrupt              1  -> bit  0;
-+ */
-+#define IRB_RX_INTS		0x0f
-+#define IRB_RX_OVERRUN_INT	0x04
-+ /* maximum symbol period (microsecs),timeout to detect end of symbol train */
-+#define MAX_SYMB_TIME		0x5000
-+#define IRB_SAMPLE_FREQ		10000000
-+#define	IRB_FIFO_NOT_EMPTY	0xff00
-+#define IRB_OVERFLOW		0x4
-+#define IRB_TIMEOUT		0xffff
-+#define IR_ST_NAME "st-rc"
-+
-+static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
-+{
-+	DEFINE_IR_RAW_EVENT(ev);
-+	ev.timeout = true;
-+	ir_raw_event_store(rdev, &ev);
-+}
-+
-+/**
-+ * RX graphical example to better understand the difference between ST IR block
-+ * output and standard definition used by LIRC (and most of the world!)
-+ *
-+ *           mark                                     mark
-+ *      |-IRB_RX_ON-|                            |-IRB_RX_ON-|
-+ *      ___  ___  ___                            ___  ___  ___             _
-+ *      | |  | |  | |                            | |  | |  | |             |
-+ *      | |  | |  | |         space 0            | |  | |  | |   space 1   |
-+ * _____| |__| |__| |____________________________| |__| |__| |_____________|
-+ *
-+ *      |--------------- IRB_RX_SYS -------------|------ IRB_RX_SYS -------|
-+ *
-+ *      |------------- encoding bit 0 -----------|---- encoding bit 1 -----|
-+ *
-+ * ST hardware returns mark (IRB_RX_ON) and total symbol time (IRB_RX_SYS), so
-+ * convert to standard mark/space we have to calculate space=(IRB_RX_SYS-mark)
-+ * The mark time represents the amount of time the carrier (usually 36-40kHz)
-+ * is detected.The above examples shows Pulse Width Modulation encoding where
-+ * bit 0 is represented by space>mark.
-+ */
-+
-+static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
-+{
-+	unsigned int symbol, mark = 0;
-+	struct st_rc_device *dev = data;
-+	int last_symbol = 0;
-+	u32 status;
-+	DEFINE_IR_RAW_EVENT(ev);
-+
-+	if (dev->irq_wake)
-+		pm_wakeup_event(dev->dev, 0);
-+
-+	status  = readl(dev->rx_base + IRB_RX_STATUS);
-+
-+	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
-+		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
-+		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
-+			/* discard the entire collection in case of errors!  */
-+			ir_raw_event_reset(dev->rdev);
-+			dev_info(dev->dev, "IR RX overrun\n");
-+			writel(IRB_RX_OVERRUN_INT,
-+					dev->rx_base + IRB_RX_INT_CLEAR);
-+			continue;
-+		}
-+
-+		symbol = readl(dev->rx_base + IRB_RX_SYS);
-+		mark = readl(dev->rx_base + IRB_RX_ON);
-+
-+		if (symbol == IRB_TIMEOUT)
-+			last_symbol = 1;
-+
-+		 /* Ignore any noise */
-+		if ((mark > 2) && (symbol > 1)) {
-+			symbol -= mark;
-+			if (dev->overclocking) { /* adjustments to timings */
-+				symbol *= dev->sample_mult;
-+				symbol /= dev->sample_div;
-+				mark *= dev->sample_mult;
-+				mark /= dev->sample_div;
-+			}
-+
-+			ev.duration = US_TO_NS(mark);
-+			ev.pulse = true;
-+			ir_raw_event_store(dev->rdev, &ev);
-+
-+			if (!last_symbol) {
-+				ev.duration = US_TO_NS(symbol);
-+				ev.pulse = false;
-+				ir_raw_event_store(dev->rdev, &ev);
-+			} else  {
-+				st_rc_send_lirc_timeout(dev->rdev);
-+			}
-+
-+		}
-+		last_symbol = 0;
-+		status  = readl(dev->rx_base + IRB_RX_STATUS);
-+	}
-+
-+	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
-+
-+	/* Empty software fifo */
-+	ir_raw_event_handle(dev->rdev);
-+	return IRQ_HANDLED;
-+}
-+
-+static void st_rc_hardware_init(struct st_rc_device *dev)
-+{
-+	int baseclock, freqdiff;
-+	unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
-+	unsigned int rx_sampling_freq_div;
-+
-+	clk_prepare_enable(dev->sys_clock);
-+	baseclock = clk_get_rate(dev->sys_clock);
-+
-+	/* IRB input pins are inverted internally from high to low. */
-+	writel(1, dev->rx_base + IRB_RX_POLARITY_INV);
-+
-+	rx_sampling_freq_div = baseclock / IRB_SAMPLE_FREQ;
-+	writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
-+
-+	freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
-+	if (freqdiff) { /* over clocking, workout the adjustment factors */
-+		dev->overclocking = true;
-+		dev->sample_mult = 1000;
-+		dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
-+		rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
-+	}
-+
-+	writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
-+}
-+
-+static int st_rc_remove(struct platform_device *pdev)
-+{
-+	struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
-+	clk_disable_unprepare(rc_dev->sys_clock);
-+	rc_unregister_device(rc_dev->rdev);
-+	return 0;
-+}
-+
-+static int st_rc_open(struct rc_dev *rdev)
-+{
-+	struct st_rc_device *dev = rdev->priv;
-+	unsigned long flags;
-+	local_irq_save(flags);
-+	/* enable interrupts and receiver */
-+	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_EN);
-+	writel(0x01, dev->rx_base + IRB_RX_EN);
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+
-+static void st_rc_close(struct rc_dev *rdev)
-+{
-+	struct st_rc_device *dev = rdev->priv;
-+	/* disable interrupts and receiver */
-+	writel(0x00, dev->rx_base + IRB_RX_EN);
-+	writel(0x00, dev->rx_base + IRB_RX_INT_EN);
-+}
-+
-+static int st_rc_probe(struct platform_device *pdev)
-+{
-+	int ret = -EINVAL;
-+	struct rc_dev *rdev;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct st_rc_device *rc_dev;
-+	struct device_node *np = pdev->dev.of_node;
-+	const char *rx_mode;
-+
-+	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
-+	rdev = rc_allocate_device();
-+
-+	if (!rc_dev || !rdev)
-+		return -ENOMEM;
-+
-+	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
-+
-+		if (!strcmp(rx_mode, "uhf")) {
-+			rc_dev->rxuhfmode = true;
-+		} else if (!strcmp(rx_mode, "infrared")) {
-+			rc_dev->rxuhfmode = false;
-+		} else {
-+			dev_err(dev, "Unsupported rx mode [%s]\n", rx_mode);
-+			goto err;
-+		}
-+
-+	} else {
-+		goto err;
-+	}
-+
-+	rc_dev->sys_clock = devm_clk_get(dev, NULL);
-+	if (IS_ERR(rc_dev->sys_clock)) {
-+		dev_err(dev, "System clock not found\n");
-+		ret = PTR_ERR(rc_dev->sys_clock);
-+		goto err;
-+	}
-+
-+	rc_dev->irq = platform_get_irq(pdev, 0);
-+	if (rc_dev->irq < 0) {
-+		ret = rc_dev->irq;
-+		goto clkerr;
-+	}
-+
-+	ret = -ENODEV;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		goto clkerr;
-+
-+	rc_dev->base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(rc_dev->base))
-+		goto clkerr;
-+
-+	if (rc_dev->rxuhfmode)
-+		rc_dev->rx_base = rc_dev->base + 0x40;
-+	else
-+		rc_dev->rx_base = rc_dev->base;
-+
-+	rc_dev->dev = dev;
-+	platform_set_drvdata(pdev, rc_dev);
-+	st_rc_hardware_init(rc_dev);
-+
-+	rdev->driver_type = RC_DRIVER_IR_RAW;
-+	rdev->allowed_protos = RC_BIT_ALL;
-+	/* rx sampling rate is 10Mhz */
-+	rdev->rx_resolution = 100;
-+	rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
-+	rdev->priv = rc_dev;
-+	rdev->open = st_rc_open;
-+	rdev->close = st_rc_close;
-+	rdev->driver_name = IR_ST_NAME;
-+	rdev->map_name = RC_MAP_LIRC;
-+	rdev->input_name = "ST Remote Control Receiver";
-+
-+	/* enable wake via this device */
-+	device_set_wakeup_capable(dev, true);
-+	device_set_wakeup_enable(dev, true);
-+
-+	ret = rc_register_device(rdev);
-+	if (ret < 0)
-+		goto clkerr;
-+
-+	rc_dev->rdev = rdev;
-+	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
-+			IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
-+		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
-+		ret = -EINVAL;
-+		goto rcerr;
-+	}
-+
-+	/**
-+	 * for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
-+	 * lircd expects a long space first before a signal train to sync.
-+	 */
-+	st_rc_send_lirc_timeout(rdev);
-+
-+	dev_info(dev, "setup in %s mode\n", rc_dev->rxuhfmode ? "UHF" : "IR");
-+
-+	return ret;
-+rcerr:
-+	rc_unregister_device(rdev);
-+	rdev = NULL;
-+clkerr:
-+	clk_disable_unprepare(rc_dev->sys_clock);
-+err:
-+	rc_free_device(rdev);
-+	dev_err(dev, "Unable to register device (%d)\n", ret);
-+	return ret;
-+}
-+
-+#ifdef CONFIG_PM
-+static int st_rc_suspend(struct device *dev)
-+{
-+	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev)) {
-+		if (!enable_irq_wake(rc_dev->irq))
-+			rc_dev->irq_wake = 1;
-+		else
-+			return -EINVAL;
-+	} else {
-+		pinctrl_pm_select_sleep_state(dev);
-+		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
-+		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
-+		clk_disable_unprepare(rc_dev->sys_clock);
-+	}
-+
-+	return 0;
-+}
-+
-+static int st_rc_resume(struct device *dev)
-+{
-+	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
-+	struct rc_dev	*rdev = rc_dev->rdev;
-+
-+	if (rc_dev->irq_wake) {
-+		disable_irq_wake(rc_dev->irq);
-+		rc_dev->irq_wake = 0;
-+	} else {
-+		pinctrl_pm_select_default_state(dev);
-+		st_rc_hardware_init(rc_dev);
-+		if (rdev->users) {
-+			writel(IRB_RX_INTS, rc_dev->rx_base + IRB_RX_INT_EN);
-+			writel(0x01, rc_dev->rx_base + IRB_RX_EN);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
-+#endif
-+
-+#ifdef CONFIG_OF
-+static struct of_device_id st_rc_match[] = {
-+	{ .compatible = "st,comms-irb", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, st_rc_match);
-+#endif
-+
-+static struct platform_driver st_rc_driver = {
-+	.driver = {
-+		.name = IR_ST_NAME,
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(st_rc_match),
-+#ifdef CONFIG_PM
-+		.pm     = &st_rc_pm_ops,
-+#endif
-+	},
-+	.probe = st_rc_probe,
-+	.remove = st_rc_remove,
-+};
-+
-+module_platform_driver(st_rc_driver);
-+
-+MODULE_DESCRIPTION("RC Transceiver driver for STMicroelectronics platforms");
-+MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
-+MODULE_LICENSE("GPL");
--- 
-1.7.6.5
+i'm not an intellectual property lawyer, but what you did is at least
+honest, i mean add notice:
 
+"Max Nibble wrote the initial code, but only released it in binary
+form. Assembly to C conversion done by HP Selasky."
+
+and as far as you can tell the license of the code in the binary
+module is GPL, because recently similar as what you did with that
+driver happened with close-source driver made by me - that driver
+included both open-source patches to GPL code and thus GPL and not
+open-source module - all the code for it was submitted as several
+patches to V4L and the submitter when i confronted:
+
+http://www.spinics.net/lists/linux-media/msg65888.html
+
+just said - i didn't know you made that:
+
+http://www.spinics.net/lists/linux-media/msg65889.html
+
+how convenient even thought 'modinfo' of the not-open-source module of
+the initial driver lists the license as not-GPL and my name and email
+as author and thus all changes that are made as part of that driver
+are clearly why and who made them. anyway, i just move one, because it
+seems even open-source community like V4L is no longer supportive of
+the real authorship and don't care the things to be open-sourced in
+some proper way, which is damaging for the community if you ask me.
+
+so, as i mentioned on one of the links above, i don't see anything
+wrong with clean-room reverse-engineering, even if that includes
+disassembling of some binary as you did (a lot of open-source drivers
+are made that way, when there is no publicly available datasheets), as
+far as that is mentioned as note, which you did - i mean if you have
+full understanding of the driver work then it's fine and you can even
+maintain it and make no any notes, but otherwise it's just a bunch of
+magic numbers that are reversed from the binary and nothing more, i.e.
+you can't maintain and extent its functionality beyond what's in the
+binary and totally ignore and give no credit to the one that made the
+binary - let's say some of the chip initialization values needs to be
+changed due to a bug. so, in the last case i guess that has more
+negative impact than it helps, because even like my case that NDAs are
+preventing the driver to become open-source that doesn't mean at some
+point it wouldn't be open-sourced in a proper way, i.e. with
+permission from those which intellectual property prevents being
+open-sourced. however, net results of the whole story i told is that i
+can't commit and contribute even to the code that was open-sourced
+based on my work. so, anyway, what i'm saying is that your case is not
+precedent for V4L and so even for my case if some of the parties
+decides i guess have grounds for that and can take legal actions, but
+that didn't stop anyone and the code to be submitted to V4L.
+
+best regards,
+konstantin
+
+>>
+>>> 00002460  63 28 29 20 66 61 69 6c  65 64 0a 00 01 36 73 69  |c()
+>>> failed...6si|
+>>> 00002470  74 32 3a 20 25 73 2c 20  70 6f 77 65 72 20 75 70  |t2: %s,
+>>> power up|
+>>> 00002480  0a 00 01 36 73 69 74 32  3a 20 25 73 2c 20 70 6f  |...6sit2:
+>>> %s, po|
+>>> 00002490  77 65 72 20 75 70 5b 25  64 5d 0a 00 76 65 72 73  |wer
+>>> up[%d]..vers|
+>>> 000024a0  69 6f 6e 3d 31 2e 30 30  00 6c 69 63 65 6e 73 65
+>>> |ion=1.00.license|
+>>> 000024b0  3d 47 50 4c 00 61 75 74  68 6f 72 3d 4d 61 78 20
+>>> |=GPL.author=Max |
+>>> 000024c0  4e 69 62 62 6c 65 20 3c  6e 69 62 62 6c 65 2e 6d  |Nibble
+>>> <nibble.m|
+>>> 000024d0  61 78 40 67 6d 61 69 6c  2e 63 6f 6d 3e 00 64 65
+>>> |ax@gmail.com>.de|
+>>> 000024e0  73 63 72 69 70 74 69 6f  6e 3d 73 69 74 32 20 64
+>>> |scription=sit2 d|
+>>> 000024f0  65 6d 6f 64 75 6c 61 74  6f 72 20 64 72 69 76 65  |emodulator
+>>> drive|
+>>> 00002500  72 00 70 61 72 6d 3d 73  69 74 32 5f 64 65 62 75
+>>> |r.parm=sit2_debu|
+>>> 00002510  67 3a 41 63 74 69 76 61  74 65 73 20 66 72 6f 6e  |g:Activates
+>>> fron|
+>>> 00002520  74 65 6e 64 20 64 65 62  75 67 67 69 6e 67 20 28  |tend
+>>> debugging (|
+>>> 00002530  64 65 66 61 75 6c 74 3a  30 29 00 70 61 72 6d 74
+>>> |default:0).parmt|
+>>> 00002540  79 70 65 3d 73 69 74 32  5f 64 65 62 75 67 3a 69
+>>> |ype=sit2_debug:i|
+>
+>
+> Thank you.
+>
+> --HPS
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
