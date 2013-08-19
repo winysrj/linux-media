@@ -1,107 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4496 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab3H0XGd (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38664 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336Ab3HSMW1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 19:06:33 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7RN6U5C048279
-	for <linux-media@vger.kernel.org>; Wed, 28 Aug 2013 01:06:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 021DA2A0767
-	for <linux-media@vger.kernel.org>; Mon, 26 Aug 2013 04:40:11 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130826024011.021DA2A0767@tschai.lan>
-Date: Mon, 26 Aug 2013 04:40:11 +0200 (CEST)
+	Mon, 19 Aug 2013 08:22:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Peter A. Bigot" <pab@pabigot.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [v2] mt9v032: Use the common clock framework
+Date: Mon, 19 Aug 2013 14:23:37 +0200
+Message-ID: <1530924.fdkyRj1ebt@avalon>
+In-Reply-To: <5209FCF2.9050907@pabigot.com>
+References: <1376047457-11512-1-git-send-email-laurent.pinchart@ideasonboard.com> <5209FCF2.9050907@pabigot.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Peter,
 
-Results of the daily build of media_tree:
+On Tuesday 13 August 2013 04:31:30 Peter A. Bigot wrote:
+> FWIW: I found it necessary to use this along with
+> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/board/overo/
+> mt9v032 to get the Caspa to work on Gumstix under Linux 3.10.
 
-date:		Mon Aug 26 04:00:08 CEST 2013
-git branch:	test
-git hash:	976f375df1730dd16aa7c101298ec47bdd338d79
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+That's expected :-) Work is still needed to implement device tree support in 
+the OMAP3 ISP driver, after that we shouldn't need any board code modification 
+anymore.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10.1-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.11-rc1-i686: WARNINGS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.11-rc1-x86_64: WARNINGS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+> (Without configuring the clock the device won't respond to I2C operations.
+> It still doesn't work "right", but that may not be a driver problem. It's
+> also necessary under 3.8, which has serious problems with CCDC idle messages
+> that I haven't tracked down yet.)
 
-Detailed results are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Laurent Pinchart
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
