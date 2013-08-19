@@ -1,320 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:52886 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031204Ab3HIWWF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 18:22:05 -0400
-Message-ID: <52056B87.40504@gmail.com>
-Date: Sat, 10 Aug 2013 00:21:59 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4205 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614Ab3HSM6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 08:58:21 -0400
+Message-ID: <5212165D.4010002@xs4all.nl>
+Date: Mon, 19 Aug 2013 14:58:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
 CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v4 05/13] [media] exynos5-fimc-is: Add register definition
- and context header
-References: <1375866242-18084-1-git-send-email-arun.kk@samsung.com> <1375866242-18084-6-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1375866242-18084-6-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com
+Subject: Re: [PATCH v2 3/5] [media] exynos-mscl: Add m2m functionality for
+ the M-Scaler driver
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-4-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1376909932-23644-4-git-send-email-shaik.ameer@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/2013 11:03 AM, Arun Kumar K wrote:
-> This patch adds the register definition file for the fimc-is driver
-> and also the header file containing the main context for the driver.
->
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
-> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
+> This patch adds the memory to memory (m2m) interface functionality
+> for the M-Scaler driver.
+
+Just one small comment below...
+
+> 
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 > ---
->   drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 ++++++++++++++
->   drivers/media/platform/exynos5-is/fimc-is.h      |  160 ++++++++++++++++++++++
->   2 files changed, 265 insertions(+)
->   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
->   create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
->
-> diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+>  drivers/media/platform/exynos-mscl/mscl-m2m.c |  763 +++++++++++++++++++++++++
+>  1 file changed, 763 insertions(+)
+>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-m2m.c
+> 
+> diff --git a/drivers/media/platform/exynos-mscl/mscl-m2m.c b/drivers/media/platform/exynos-mscl/mscl-m2m.c
 > new file mode 100644
-> index 0000000..06aa466
+> index 0000000..fecbb57
 > --- /dev/null
-> +++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
-> @@ -0,0 +1,105 @@
+> +++ b/drivers/media/platform/exynos-mscl/mscl-m2m.c
+> @@ -0,0 +1,763 @@
 > +/*
-> + * Samsung Exynos5 SoC series FIMC-IS driver
+> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+> + *		http://www.samsung.com
 > + *
-> + * Copyright (c) 2013 Samsung Electronics Co., Ltd
-> + * Arun Kumar K<arun.kk@samsung.com>
-> + * Kil-yeon Lim<kilyeon.im@samsung.com>
+> + * Samsung EXYNOS5 SoC series M-Scaler driver
 > + *
 > + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
+> + * it under the terms of the GNU General Public License as published
+> + * by the Free Software Foundation, either version 2 of the License,
+> + * or (at your option) any later version.
 > + */
 > +
-> +#ifndef FIMC_IS_REGS_H
-> +#define FIMC_IS_REGS_H
+> +#include <linux/module.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/slab.h>
 > +
-> +/* WDT_ISP register */
-> +#define WDT			0x00170000
-> +/* MCUCTL register */
-> +#define MCUCTL			0x00180000
-> +/* MCU Controller Register */
-> +#define MCUCTLR				(MCUCTL+0x00)
-> +#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x)<<  16)
-> +#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x)<<  12)
-> +#define MCUCTLR_MSWRST			(1<<  0)
-> +/* Boot Base OFfset Address Register */
-> +#define BBOAR				(MCUCTL+0x04)
-> +#define BBOAR_BBOA(x)			((x)<<  0)
+> +#include <media/v4l2-ioctl.h>
 > +
-> +/* Interrupt Generation Register 0 from Host CPU to VIC */
-> +#define INTGR0				(MCUCTL+0x08)
-> +#define INTGR0_INTGC(n)			(1<<  ((n) + 16))
-> +#define INTGR0_INTGD(n)			(1<<  (n))
+> +#include "mscl-core.h"
 > +
-> +/* Interrupt Clear Register 0 from Host CPU to VIC */
-> +#define INTCR0				(MCUCTL+0x0c)
-> +#define INTCR0_INTCC(n)			(1<<  ((n) + 16))
-> +#define INTCR0_INTCD(n)			(1<<  (n))
+> +static int mscl_m2m_ctx_stop_req(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_ctx *curr_ctx;
+> +	struct mscl_dev *mscl = ctx->mscl_dev;
+> +	int ret;
 > +
-> +/* Interrupt Mask Register 0 from Host CPU to VIC */
-> +#define INTMR0				(MCUCTL+0x10)
-> +#define INTMR0_INTMC(n)			(1<<  ((n) + 16))
-> +#define INTMR0_INTMD(n)			(1<<  (n))
+> +	curr_ctx = v4l2_m2m_get_curr_priv(mscl->m2m.m2m_dev);
+> +	if (!mscl_m2m_pending(mscl) || (curr_ctx != ctx))
+> +		return 0;
 > +
-> +/* Interrupt Status Register 0 from Host CPU to VIC */
-> +#define INTSR0				(MCUCTL+0x14)
-> +#define INTSR0_GET_INTSD(n, x)		(((x)>>  (n))&  0x1)
-> +#define INTSR0_GET_INTSC(n, x)		(((x)>>  ((n) + 16))&  0x1)
+> +	mscl_ctx_state_lock_set(MSCL_CTX_STOP_REQ, ctx);
+> +	ret = wait_event_timeout(mscl->irq_queue,
+> +			!mscl_ctx_state_is_set(MSCL_CTX_STOP_REQ, ctx),
+> +			MSCL_SHUTDOWN_TIMEOUT);
 > +
-> +/* Interrupt Mask Status Register 0 from Host CPU to VIC */
-> +#define INTMSR0				(MCUCTL+0x18)
-> +#define INTMSR0_GET_INTMSD(n, x)	(((x)>>  (n))&  0x1)
-> +#define INTMSR0_GET_INTMSC(n, x)	(((x)>>  ((n) + 16))&  0x1)
+> +	return ret == 0 ? -ETIMEDOUT : ret;
+> +}
 > +
-> +/* Interrupt Generation Register 1 from ISP CPU to Host IC */
-> +#define INTGR1				(MCUCTL+0x1c)
-> +#define INTGR1_INTGC(n)			(1<<  (n))
+> +static int mscl_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct mscl_ctx *ctx = q->drv_priv;
+> +	int ret;
 > +
-> +/* Interrupt Clear Register 1 from ISP CPU to Host IC */
-> +#define INTCR1				(MCUCTL+0x20)
-> +#define INTCR1_INTCC(n)			(1<<  (n))
+> +	ret = pm_runtime_get_sync(&ctx->mscl_dev->pdev->dev);
 > +
-> +/* Interrupt Mask Register 1 from ISP CPU to Host IC */
-> +#define INTMR1				(MCUCTL+0x24)
-> +#define INTMR1_INTMC(n)			(1<<  (n))
+> +	return ret > 0 ? 0 : ret;
+> +}
 > +
-> +/* Interrupt Status Register 1 from ISP CPU to Host IC */
-> +#define INTSR1				(MCUCTL+0x28)
-> +/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
-> +#define INTMSR1				(MCUCTL+0x2c)
-> +/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
-> +#define INTCR2				(MCUCTL+0x30)
-> +#define INTCR2_INTCC(n)			(1<<  (n))
+> +static int mscl_m2m_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct mscl_ctx *ctx = q->drv_priv;
+> +	int ret;
 > +
-> +/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
-> +#define INTMR2				(MCUCTL+0x34)
-> +#define INTMR2_INTMCIS(n)		(1<<  (n))
+> +	ret = mscl_m2m_ctx_stop_req(ctx);
+> +	if (ret == -ETIMEDOUT)
+> +		mscl_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
 > +
-> +/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
-> +#define INTSR2				(MCUCTL+0x38)
-> +/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
-> +#define INTMSR2				(MCUCTL+0x3c)
-> +/* General Purpose Output Control Register (0~17) */
-> +#define GPOCTLR				(MCUCTL+0x40)
-> +#define GPOCTLR_GPOG(n, x)		((x)<<  (n))
+> +	pm_runtime_put(&ctx->mscl_dev->pdev->dev);
 > +
-> +/* General Purpose Pad Output Enable Register (0~17) */
-> +#define GPOENCTLR			(MCUCTL+0x44)
-> +#define GPOENCTLR_GPOEN0(n, x)		((x)<<  (n))
+> +	return 0;
+> +}
 > +
-> +/* General Purpose Input Control Register (0~17) */
-> +#define GPICTLR				(MCUCTL+0x48)
+> +void mscl_m2m_job_finish(struct mscl_ctx *ctx, int vb_state)
+> +{
+> +	struct vb2_buffer *src_vb, *dst_vb;
 > +
-> +/* IS Shared Registers between ISP CPU and HOST CPU */
-> +#define ISSR(n)			(MCUCTL + 0x80 + (n))
+> +	if (!ctx || !ctx->m2m_ctx)
+> +		return;
 > +
-> +/* PMU for FIMC-IS*/
-> +#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
-> +#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
-> +#define PMUREG_ISP_ARM_STATUS			0x2284
-> +#define PMUREG_ISP_ARM_OPTION			0x2288
-> +#define PMUREG_ISP_LOW_POWER_OFF		0x0004
-> +#define PMUREG_ISP_CONFIGURATION		0x4020
-> +#define PMUREG_ISP_STATUS			0x4024
+> +	src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+> +	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
 > +
-> +#endif
-> diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
-> new file mode 100644
-> index 0000000..136f367
-> --- /dev/null
-> +++ b/drivers/media/platform/exynos5-is/fimc-is.h
-> @@ -0,0 +1,160 @@
-> +/*
-> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-> + *
-> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> + *  Arun Kumar K<arun.kk@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
+> +	if (src_vb && dst_vb) {
+> +		v4l2_m2m_buf_done(src_vb, vb_state);
+> +		v4l2_m2m_buf_done(dst_vb, vb_state);
 > +
-> +#ifndef FIMC_IS_H_
-> +#define FIMC_IS_H_
-> +
-> +#include "fimc-is-err.h"
-> +#include "fimc-is-core.h"
-> +#include "fimc-is-param.h"
-> +#include "fimc-is-pipeline.h"
-> +#include "fimc-is-interface.h"
-> +
-> +#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
-> +#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
-> +
-> +/*
-> + * Macros used by media dev to get the subdev and vfd
-> + * is - driver data from pdev
-> + * pid - pipeline index
-> + */
-> +#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
-> +#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
-> +#define fimc_is_scc_get_sd(is, pid) \
-> +	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
-> +#define fimc_is_scc_get_vfd(is, pid) \
-> +	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
-> +#define fimc_is_scp_get_sd(is, pid) \
-> +	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
-> +#define fimc_is_scp_get_vfd(is, pid) \
-> +	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
-> +/*
-> + * is - driver data from pdev
-> + * sid - sensor index
-> + */
-> +#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
+> +		v4l2_m2m_job_finish(ctx->mscl_dev->m2m.m2m_dev,
+> +							ctx->m2m_ctx);
+> +	}
+> +}
 > +
 > +
-> +/**
-> + * struct fimc_is - fimc-is driver private data
-> + * @pdev: pointer to FIMC-IS platform device
-> + * @pdata: platform data for FIMC-IS
-> + * @alloc_ctx: videobuf2 memory allocator context
-> + * @clock: FIMC-IS clocks
-> + * @pmu_regs: PMU reg base address
-> + * @num_pipelines: number of pipelines opened
-> + * @minfo: internal memory organization info
-> + * @drvdata: fimc-is driver data
-> + * @sensor: FIMC-IS sensor context
-> + * @pipeline: hardware pipeline context
-> + * @interface: hardware interface context
-> + */
-> +struct fimc_is {
-> +	struct platform_device		*pdev;
+> +static void mscl_m2m_job_abort(void *priv)
+> +{
+> +	struct mscl_ctx *ctx = priv;
+> +	int ret;
 > +
-> +	struct vb2_alloc_ctx		*alloc_ctx;
-> +	struct clk			*clock[IS_CLK_MAX_NUM];
-> +	void __iomem			*pmu_regs;
-> +	unsigned int			num_pipelines;
+> +	ret = mscl_m2m_ctx_stop_req(ctx);
+> +	if (ret == -ETIMEDOUT)
+> +		mscl_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+> +}
 > +
-> +	struct fimc_is_meminfo		minfo;
+> +static int mscl_get_bufs(struct mscl_ctx *ctx)
+> +{
+> +	struct mscl_frame *s_frame, *d_frame;
+> +	struct vb2_buffer *src_vb, *dst_vb;
+> +	int ret;
 > +
-> +	struct fimc_is_drvdata		*drvdata;
-> +	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
-> +	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
-> +	struct fimc_is_interface	interface;
+> +	s_frame = &ctx->s_frame;
+> +	d_frame = &ctx->d_frame;
+> +
+> +	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+> +	ret = mscl_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
+> +	if (ret)
+> +		return ret;
+> +
+> +	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+> +	ret = mscl_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
+> +	if (ret)
+> +		return ret;
+> +
+> +	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
+> +
+> +	return 0;
+> +}
+> +
+> +static void mscl_m2m_device_run(void *priv)
+> +{
+> +	struct mscl_ctx *ctx = priv;
+> +	struct mscl_dev *mscl;
+> +	unsigned long flags;
+> +	int ret;
+> +	bool is_set = false;
+> +
+> +	if (WARN(!ctx, "null hardware context\n"))
+> +		return;
+> +
+> +	mscl = ctx->mscl_dev;
+> +	spin_lock_irqsave(&mscl->slock, flags);
+> +
+> +	set_bit(ST_M2M_PEND, &mscl->state);
+> +
+> +	/* Reconfigure hardware if the context has changed. */
+> +	if (mscl->m2m.ctx != ctx) {
+> +		dev_dbg(&mscl->pdev->dev,
+> +			"mscl->m2m.ctx = 0x%p, current_ctx = 0x%p",
+> +			mscl->m2m.ctx, ctx);
+> +		ctx->state |= MSCL_PARAMS;
+> +		mscl->m2m.ctx = ctx;
+> +	}
+> +
+> +	is_set = (ctx->state & MSCL_CTX_STOP_REQ) ? 1 : 0;
+> +	ctx->state &= ~MSCL_CTX_STOP_REQ;
+> +	if (is_set) {
+> +		wake_up(&mscl->irq_queue);
+> +		goto put_device;
+> +	}
+> +
+> +	ret = mscl_get_bufs(ctx);
+> +	if (ret) {
+> +		dev_dbg(&mscl->pdev->dev, "Wrong address");
+> +		goto put_device;
+> +	}
+> +
+> +	mscl_hw_address_queue_reset(ctx);
+> +	mscl_set_prefbuf(mscl, &ctx->s_frame);
+> +	mscl_hw_set_input_addr(mscl, &ctx->s_frame.addr);
+> +	mscl_hw_set_output_addr(mscl, &ctx->d_frame.addr);
+> +	mscl_hw_set_csc_coeff(ctx);
+> +
+> +	if (ctx->state & MSCL_PARAMS) {
+> +		mscl_hw_set_irq_mask(mscl, MSCL_INT_FRAME_END, false);
+> +		if (mscl_set_scaler_info(ctx)) {
+> +			dev_dbg(&mscl->pdev->dev, "Scaler setup error");
+> +			goto put_device;
+> +		}
+> +
+> +		mscl_hw_set_in_size(ctx);
+> +		mscl_hw_set_in_image_format(ctx);
+> +
+> +		mscl_hw_set_out_size(ctx);
+> +		mscl_hw_set_out_image_format(ctx);
+> +
+> +		mscl_hw_set_scaler_ratio(ctx);
+> +		mscl_hw_set_rotation(ctx);
+> +	}
+> +
+> +	ctx->state &= ~MSCL_PARAMS;
+> +	mscl_hw_enable_control(mscl, true);
+> +
+> +	spin_unlock_irqrestore(&mscl->slock, flags);
+> +	return;
+> +
+> +put_device:
+> +	ctx->state &= ~MSCL_PARAMS;
+> +	spin_unlock_irqrestore(&mscl->slock, flags);
+> +}
+> +
+> +static int mscl_m2m_queue_setup(struct vb2_queue *vq,
+> +			const struct v4l2_format *fmt,
+> +			unsigned int *num_buffers, unsigned int *num_planes,
+> +			unsigned int sizes[], void *allocators[])
+> +{
+> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vq);
+> +	struct mscl_frame *frame;
+> +	int i;
+> +
+> +	frame = ctx_get_frame(ctx, vq->type);
+> +	if (IS_ERR(frame))
+> +		return PTR_ERR(frame);
+> +
+> +	if (!frame->fmt)
+> +		return -EINVAL;
+> +
+> +	*num_planes = frame->fmt->num_planes;
+> +	for (i = 0; i < frame->fmt->num_planes; i++) {
+> +		sizes[i] = frame->payload[i];
+> +		allocators[i] = ctx->mscl_dev->alloc_ctx;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int mscl_m2m_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct mscl_frame *frame;
+> +	int i;
+> +
+> +	frame = ctx_get_frame(ctx, vb->vb2_queue->type);
+> +	if (IS_ERR(frame))
+> +		return PTR_ERR(frame);
+> +
+> +	if (!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+> +		for (i = 0; i < frame->fmt->num_planes; i++)
+> +			vb2_set_plane_payload(vb, i, frame->payload[i]);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void mscl_m2m_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct mscl_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> +
+> +	dev_dbg(&ctx->mscl_dev->pdev->dev,
+> +		"ctx: %p, ctx->state: 0x%x", ctx, ctx->state);
+> +
+> +	if (ctx->m2m_ctx)
+> +		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+> +}
+> +
+> +static struct vb2_ops mscl_m2m_qops = {
+> +	.queue_setup	 = mscl_m2m_queue_setup,
+> +	.buf_prepare	 = mscl_m2m_buf_prepare,
+> +	.buf_queue	 = mscl_m2m_buf_queue,
+> +	.wait_prepare	 = mscl_unlock,
+> +	.wait_finish	 = mscl_lock,
+> +	.stop_streaming	 = mscl_m2m_stop_streaming,
+> +	.start_streaming = mscl_m2m_start_streaming,
 > +};
 > +
-> +/* Queue operations for ISP */
-> +static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
-> +		struct fimc_is_buf *buf)
+> +static int mscl_m2m_querycap(struct file *file, void *fh,
+> +			   struct v4l2_capability *cap)
 > +{
-> +	list_add_tail(&buf->list,&isp->wait_queue);
-> +	isp->wait_queue_cnt++;
-> +}
+> +	struct mscl_ctx *ctx = fh_to_ctx(fh);
+> +	struct mscl_dev *mscl = ctx->mscl_dev;
 > +
-> +static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
-> +		struct fimc_is_isp *isp)
-> +{
-> +	struct fimc_is_buf *buf;
-> +	buf = list_entry(isp->wait_queue.next,
-> +			struct fimc_is_buf, list);
-> +	list_del(&buf->list);
-> +	isp->wait_queue_cnt--;
-> +	return buf;
-> +}
-> +
-> +static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
-> +		struct fimc_is_buf *buf)
-> +{
-> +	list_add_tail(&buf->list,&isp->run_queue);
-> +	isp->run_queue_cnt++;
-> +}
-> +
-> +static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
-> +		struct fimc_is_isp *isp)
-> +{
-> +	struct fimc_is_buf *buf;
-> +	buf = list_entry(isp->run_queue.next,
-> +			struct fimc_is_buf, list);
-> +	list_del(&buf->list);
-> +	isp->run_queue_cnt--;
-> +	return buf;
-> +}
-> +
-> +/* Queue operations for SCALER */
-> +static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
-> +		struct fimc_is_buf *buf)
-> +{
-> +	list_add_tail(&buf->list,&scp->wait_queue);
-> +	scp->wait_queue_cnt++;
-> +}
-> +
-> +static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
-> +		struct fimc_is_scaler *scp)
-> +{
-> +	struct fimc_is_buf *buf;
-> +	buf = list_entry(scp->wait_queue.next,
-> +			struct fimc_is_buf, list);
-> +	list_del(&buf->list);
-> +	scp->wait_queue_cnt--;
-> +	return buf;
-> +}
-> +
-> +static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
-> +		struct fimc_is_buf *buf)
-> +{
-> +	list_add_tail(&buf->list,&scp->run_queue);
-> +	scp->run_queue_cnt++;
-> +}
-> +
-> +static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
-> +		struct fimc_is_scaler *scp)
-> +{
-> +	struct fimc_is_buf *buf;
-> +	buf = list_entry(scp->run_queue.next,
-> +			struct fimc_is_buf, list);
-> +	list_del(&buf->list);
-> +	scp->run_queue_cnt--;
-> +	return buf;
-> +}
-> +
-> +static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
-> +{
-> +	writel(v, is->pmu_regs + offset);
-> +}
-> +
-> +static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
-> +{
-> +	return readl(is->pmu_regs + offset);
-> +}
-> +
-> +#endif
+> +	strlcpy(cap->driver, mscl->pdev->name, sizeof(cap->driver));
+> +	strlcpy(cap->card, mscl->pdev->name, sizeof(cap->card));
+> +	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+> +	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
+> +		V4L2_CAP_VIDEO_CAPTURE_MPLANE |	V4L2_CAP_VIDEO_OUTPUT_MPLANE;
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+No V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE, it should just be
+V4L2_CAP_VIDEO_M2M_MPLANE.
 
---
+> +
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +
+> +	return 0;
+> +}
+> +
+
 Regards,
-Sylwester
+
+	Hans
