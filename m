@@ -1,24 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.mrl.gob.ec ([190.152.249.215]:16333 "EHLO
-	webmail.mrl.gob.ec" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753274Ab3HLJnU convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2476 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751259Ab3HSOor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 05:43:20 -0400
-Date: Mon, 12 Aug 2013 04:25:34 -0500 (ECT)
-From: WEBMAIL <gabriela_balcazar@mrl.gob.ec>
-Reply-To: WEBMAIL <upgrade.dept@careceo.com>
-Message-ID: <1958601797.44.1376299534942.JavaMail.root@webmail.mrl.gob.ec>
-Subject: Alerta final
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+	Mon, 19 Aug 2013 10:44:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 08/20] adv7604: corrected edid crc-calculation
+Date: Mon, 19 Aug 2013 16:44:17 +0200
+Message-Id: <1376923469-30694-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Su contraseña caducará en 3 días formulario llenar y enviar de inmediato para validar su dirección de e-mail.
-Nombre de Usuario: .................
-Contraseña anterior: .................
-Nueva Contraseña: ................
-gracias
-administrador del sistema
+From: Martin Bugge <marbugge@cisco.com>
+
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Reviewed-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ad9389b.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 545aabb..d78fd3d 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -983,12 +983,12 @@ static void ad9389b_check_monitor_present_status(struct v4l2_subdev *sd)
+ 
+ static bool edid_block_verify_crc(u8 *edid_block)
+ {
+-	int i;
+ 	u8 sum = 0;
++	int i;
+ 
+-	for (i = 0; i < 127; i++)
+-		sum += *(edid_block + i);
+-	return ((255 - sum + 1) == edid_block[127]);
++	for (i = 0; i < 128; i++)
++		sum += edid_block[i];
++	return sum == 0;
+ }
+ 
+ static bool edid_segment_verify_crc(struct v4l2_subdev *sd, u32 segment)
+-- 
+1.8.3.2
+
