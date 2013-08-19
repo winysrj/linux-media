@@ -1,372 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:20237 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934234Ab3HHMcA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:32:00 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcjf014622
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:56 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 9/9] qv4l2: add pixel aspect ratio support for CaptureWin
-Date: Thu,  8 Aug 2013 14:31:27 +0200
-Message-Id: <0a5b1843424fa14c0ec30b8ed86da271f752101b.1375964980.git.bwinther@cisco.com>
-In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:56849 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750900Ab3HSVDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 17:03:49 -0400
+Message-ID: <5212882F.6020702@gmail.com>
+Date: Mon, 19 Aug 2013 23:03:43 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mark Rutland <mark.rutland@arm.com>
+CC: Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	"grant.likely@linaro.org" <grant.likely@linaro.org>
+Subject: Re: [PATCH RFC v5] s5k5baf: add camera sensor driver
+References: <1376918307-21490-1-git-send-email-a.hajda@samsung.com> <20130819133907.GN3719@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20130819133907.GN3719@e106331-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 36 ++++++++++++++++++------
- utils/qv4l2/capture-win.h   |  6 ++++
- utils/qv4l2/general-tab.cpp | 68 +++++++++++++++++++++++++++++++++++++++++++++
- utils/qv4l2/general-tab.h   |  4 +++
- utils/qv4l2/qv4l2.cpp       | 22 +++++++++++----
- utils/qv4l2/qv4l2.h         |  1 +
- 6 files changed, 123 insertions(+), 14 deletions(-)
+On 08/19/2013 03:39 PM, Mark Rutland wrote:
+> On Mon, Aug 19, 2013 at 02:18:27PM +0100, Andrzej Hajda wrote:
+>> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
+>> with embedded SoC ISP.
+>> The driver exposes the sensor as two V4L2 subdevices:
+>> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
+>>    no controls.
+>> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
+>>    pre/post ISP cropping, downscaling via selection API, controls.
+>>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Andrzej Hajda<a.hajda@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>> v5
+>> - removed non-standard samsung hflip/vflip device tree bindings
+>>
+>> v4
+>> - GPL changed to GPLv2,
+>> - bitfields replaced by u8,
+>> - cosmetic changes,
+>> - corrected s_stream flow,
+>> - gpio pins are no longer exported,
+>> - added I2C addresses to subdev names,
+>> - CIS subdev registration postponed after
+>>    succesfull HW initialization,
+>> - added enums for pads,
+>> - selections are initialized only during probe,
+>> - default resolution changed to 1600x1200,
+>> - state->error pattern removed from few other functions,
+>> - entity link creation moved to registered callback.
+[...]
+>> ---
+>>   .../devicetree/bindings/media/samsung-s5k5baf.txt  |   51 +
+>>   MAINTAINERS                                        |    7 +
+>>   drivers/media/i2c/Kconfig                          |    7 +
+>>   drivers/media/i2c/Makefile                         |    1 +
+>>   drivers/media/i2c/s5k5baf.c                        | 1980 ++++++++++++++++++++
+>>   5 files changed, 2046 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+>>   create mode 100644 drivers/media/i2c/s5k5baf.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+>> new file mode 100644
+>> index 0000000..b1f2fde
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+>> @@ -0,0 +1,51 @@
+>> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC ISP
+>> +-------------------------------------------------------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible     : "samsung,s5k5baf";
+>> +- reg            : I2C slave address of the sensor;
+>> +- vdda-supply    : analog power supply 2.8V (2.6V to 3.0V);
+>> +- vddreg-supply          : regulator input power supply 1.8V (1.7V to 1.9V)
+>> +                    or 2.8V (2.6V to 3.0);
+>> +- vddio-supply   : I/O power supply 1.8V (1.65V to 1.95V)
+>> +                    or 2.8V (2.5V to 3.1V);
+>> +- gpios                  : GPIOs connected to STDBYN and RSTN pins,
+>> +                    in order: STBYN, RSTN;
+>> +- clock-frequency : master clock frequency in Hz;
+>
+> Why is this necessary? Could you not just require having a clocks
+> property? You could then get equivalent functionality to the
+> clock-frequency property by having a fixed-clock node if you don't ahve
+> a real clock specifier to wire up.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 3abb6cb..7538756 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -30,6 +30,7 @@
- #define MIN_WIN_SIZE_HEIGHT 120
- 
- bool CaptureWin::m_enableScaling = true;
-+double CaptureWin::m_pixelAspectRatio = 1.0;
- 
- CaptureWin::CaptureWin() :
- 	m_curWidth(-1),
-@@ -76,6 +77,14 @@ void CaptureWin::resetSize()
- 	resize(w, h);
- }
- 
-+int CaptureWin::actualFrameWidth(int width)
-+{
-+	if (m_enableScaling)
-+		return (int)((double)width * m_pixelAspectRatio);
-+
-+	return width;
-+}
-+
- QSize CaptureWin::getMargins()
- {
- 	int l, t, r, b;
-@@ -108,7 +117,7 @@ void CaptureWin::resize(int width, int height)
- 	m_curHeight = height;
- 
- 	QSize margins = getMargins();
--	width += margins.width();
-+	width = actualFrameWidth(width) + margins.width();
- 	height += margins.height();
- 
- 	QDesktopWidget *screen = QApplication::desktop();
-@@ -130,25 +139,36 @@ void CaptureWin::resize(int width, int height)
- 
- QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
- {
--	int actualFrameWidth = frame.width();;
--	int actualFrameHeight = frame.height();
-+	int actualWidth;
-+	int actualHeight = frame.height();
- 
- 	if (!m_enableScaling) {
- 		window.setWidth(frame.width());
- 		window.setHeight(frame.height());
-+		actualWidth = frame.width();
-+	} else {
-+		actualWidth = CaptureWin::actualFrameWidth(frame.width());
- 	}
- 
- 	double newW, newH;
- 	if (window.width() >= window.height()) {
--		newW = (double)window.width() / actualFrameWidth;
--		newH = (double)window.height() / actualFrameHeight;
-+		newW = (double)window.width() / actualWidth;
-+		newH = (double)window.height() / actualHeight;
- 	} else {
--		newH = (double)window.width() / actualFrameWidth;
--		newW = (double)window.height() / actualFrameHeight;
-+		newH = (double)window.width() / actualWidth;
-+		newW = (double)window.height() / actualHeight;
- 	}
- 	double resized = std::min(newW, newH);
- 
--	return QSize((int)(actualFrameWidth * resized), (int)(actualFrameHeight * resized));
-+	return QSize((int)(actualWidth * resized), (int)(actualHeight * resized));
-+}
-+
-+void CaptureWin::setPixelAspectRatio(double ratio)
-+{
-+	m_pixelAspectRatio = ratio;
-+	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
-+	QCoreApplication::sendEvent(this, event);
-+	delete event;
- }
- 
- void CaptureWin::closeEvent(QCloseEvent *event)
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 1bfb1e1..e8f0ada 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -76,6 +76,7 @@ public:
- 	static bool isSupported() { return false; }
- 
- 	void enableScaling(bool enable);
-+	void setPixelAspectRatio(double ratio);
- 	static QSize scaleFrameSize(QSize window, QSize frame);
- 
- public slots:
-@@ -99,6 +100,11 @@ protected:
- 	 */
- 	static bool m_enableScaling;
- 
-+	/**
-+	 * @note Aspect ratio it taken care of by scaling, frame size is for square pixels only!
-+	 */
-+	static double m_pixelAspectRatio;
-+
- signals:
- 	void close();
- 
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index 5cfaf07..c404a3b 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -53,6 +53,7 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 	m_tvStandard(NULL),
- 	m_qryStandard(NULL),
- 	m_videoTimings(NULL),
-+	m_pixelAspectRatio(NULL),
- 	m_qryTimings(NULL),
- 	m_freq(NULL),
- 	m_vidCapFormats(NULL),
-@@ -210,6 +211,23 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		connect(m_qryTimings, SIGNAL(clicked()), SLOT(qryTimingsClicked()));
- 	}
- 
-+	if (!isRadio() && !isVbi()) {
-+		m_pixelAspectRatio = new QComboBox(parent);
-+		m_pixelAspectRatio->addItem("Autodetect");
-+		m_pixelAspectRatio->addItem("Square");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60, Anamorphic");
-+		m_pixelAspectRatio->addItem("PAL/SECAM");
-+		m_pixelAspectRatio->addItem("PAL/SECAM, Anamorphic");
-+
-+		// Update hints by calling a get
-+		getPixelAspectRatio();
-+
-+		addLabel("Pixel Aspect Ratio");
-+		addWidget(m_pixelAspectRatio);
-+		connect(m_pixelAspectRatio, SIGNAL(activated(int)), SLOT(changePixelAspectRatio()));
-+	}
-+
- 	if (m_tuner.capability) {
- 		QDoubleValidator *val;
- 		double factor = (m_tuner.capability & V4L2_TUNER_CAP_LOW) ? 16 : 16000;
-@@ -1105,6 +1123,56 @@ void GeneralTab::updateFrameSize()
- 	updateFrameInterval();
- }
- 
-+void GeneralTab::changePixelAspectRatio()
-+{
-+	// Update hints by calling a get
-+	getPixelAspectRatio();
-+	info("");
-+	emit pixelAspectRatioChanged();
-+}
-+
-+double GeneralTab::getPixelAspectRatio()
-+{
-+	switch (m_pixelAspectRatio->currentIndex()) {
-+	case 0:
-+		v4l2_cropcap ratio;
-+		ratio.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		if (ioctl(VIDIOC_CROPCAP, &ratio) < 0) {
-+			m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
-+			m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
-+			return 1.0;
-+		}
-+
-+		m_pixelAspectRatio->setStatusTip(QString("Pixel Aspect Ratio %1:%2")
-+						 .arg(ratio.pixelaspect.denominator)
-+						 .arg(ratio.pixelaspect.numerator));
-+		m_pixelAspectRatio->setWhatsThis(QString("Pixel Aspect Ratio %1:%2")
-+						 .arg(ratio.pixelaspect.denominator)
-+						 .arg(ratio.pixelaspect.numerator));
-+		return (double)ratio.pixelaspect.denominator / ratio.pixelaspect.numerator;
-+	case 2:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 10:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 10:11");
-+		return 10.0 / 11.0;
-+	case 3:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 40:33");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 40:33");
-+		return 40.0 / 33.0;
-+	case 4:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 12:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 12:11");
-+		return 12.0 / 11.0;
-+	case 5:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 16:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 16:11");
-+		return 16.0 / 11.0;
-+	default:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
-+		return 1.0;
-+	}
-+}
-+
- void GeneralTab::updateFrameInterval()
- {
- 	v4l2_frmivalenum frmival;
-diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
-index 6c51016..4540e1f 100644
---- a/utils/qv4l2/general-tab.h
-+++ b/utils/qv4l2/general-tab.h
-@@ -57,6 +57,7 @@ public:
- 	void setAudioDeviceBufferSize(int size);
- 	int getAudioDeviceBufferSize();
- 	bool hasAlsaAudio();
-+	double getPixelAspectRatio();
- 	bool get_interval(struct v4l2_fract &interval);
- 	int width() const { return m_width; }
- 	int height() const { return m_height; }
-@@ -90,6 +91,7 @@ public slots:
- 
- signals:
- 	void audioDeviceChanged();
-+	void pixelAspectRatioChanged();
- 
- private slots:
- 	void inputChanged(int);
-@@ -115,6 +117,7 @@ private slots:
- 	void vidOutFormatChanged(int);
- 	void vbiMethodsChanged(int);
- 	void changeAudioDevice();
-+	void changePixelAspectRatio();
- 
- private:
- 	void updateVideoInput();
-@@ -182,6 +185,7 @@ private:
- 	QComboBox *m_tvStandard;
- 	QPushButton *m_qryStandard;
- 	QComboBox *m_videoTimings;
-+	QComboBox *m_pixelAspectRatio;
- 	QPushButton *m_qryTimings;
- 	QLineEdit *m_freq;
- 	QComboBox *m_freqTable;
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 7be9f1a..fa4c3d5 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -103,7 +103,7 @@ ApplicationWindow::ApplicationWindow() :
- 	m_saveRawAct->setChecked(false);
- 	connect(m_saveRawAct, SIGNAL(toggled(bool)), this, SLOT(saveRaw(bool)));
- 
--	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "Show &Frames", this);
-+	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "&Show Frames", this);
- 	m_showFramesAct->setStatusTip("Only show captured frames if set.");
- 	m_showFramesAct->setCheckable(true);
- 	m_showFramesAct->setChecked(true);
-@@ -137,12 +137,12 @@ ApplicationWindow::ApplicationWindow() :
- 	toolBar->addSeparator();
- 	toolBar->addAction(quitAct);
- 
--	m_scalingAct = new QAction("Enable Video Scaling", this);
-+	m_scalingAct = new QAction("&Enable Video Scaling", this);
- 	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
- 	m_scalingAct->setCheckable(true);
- 	m_scalingAct->setChecked(true);
- 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
--	m_resetScalingAct = new QAction("Resize to Frame Size", this);
-+	m_resetScalingAct = new QAction("Resize to &Frame Size", this);
- 	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
- 	m_resetScalingAct->setShortcut(Qt::CTRL+Qt::Key_F);
- 
-@@ -168,13 +168,13 @@ ApplicationWindow::ApplicationWindow() :
- #ifdef HAVE_ALSA
- 	captureMenu->addSeparator();
- 
--	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
-+	m_showAllAudioAct = new QAction("Show All Audio &Devices", this);
- 	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
- 	m_showAllAudioAct->setCheckable(true);
- 	m_showAllAudioAct->setChecked(false);
- 	captureMenu->addAction(m_showAllAudioAct);
- 
--	m_audioBufferAct = new QAction("Set Audio Buffer Capacity...", this);
-+	m_audioBufferAct = new QAction("Set Audio &Buffer Capacity...", this);
- 	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
- 	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
- 	captureMenu->addAction(m_audioBufferAct);
-@@ -229,7 +229,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 		m_audioBufferAct->setEnabled(false);
- 	}
- #endif
--
-+	connect(m_genTab, SIGNAL(pixelAspectRatioChanged()), this, SLOT(updatePixelAspectRatio()));
- 	m_tabs->addTab(w, "General");
- 	addTabs();
- 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
-@@ -360,6 +360,7 @@ void ApplicationWindow::newCaptureWin()
- 		break;
- 	}
- 
-+	m_capture->setPixelAspectRatio(1.0);
- 	m_capture->enableScaling(m_scalingAct->isChecked());
-         connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
- 	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
-@@ -810,6 +811,12 @@ void ApplicationWindow::enableScaling(bool enable)
- 		m_capture->enableScaling(enable);
- }
- 
-+void ApplicationWindow::updatePixelAspectRatio()
-+{
-+	if (m_capture != NULL && m_genTab != NULL)
-+		m_capture->setPixelAspectRatio(m_genTab->getPixelAspectRatio());
-+}
-+
- void ApplicationWindow::startAudio()
- {
- #ifdef HAVE_ALSA
-@@ -891,6 +898,7 @@ void ApplicationWindow::capStart(bool start)
- 		m_vbiTab->slicedFormat(fmt.fmt.sliced);
- 		m_vbiSize = fmt.fmt.sliced.io_size;
- 		m_frameData = new unsigned char[m_vbiSize];
-+		updatePixelAspectRatio();
- 		if (startCapture(m_vbiSize)) {
- 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
- 			connect(m_capNotifier, SIGNAL(activated(int)), this, SLOT(capVbiFrame()));
-@@ -964,6 +972,8 @@ void ApplicationWindow::capStart(bool start)
- 		dstFmt = QImage::Format_ARGB32;
- 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
- 	m_capImage->fill(0);
-+	
-+	updatePixelAspectRatio();
- 	m_capture->resize(dstPix.width, dstPix.height);
- 	
- 	if (showFrames()) {
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 179cecb..970a0e1 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -133,6 +133,7 @@ private slots:
- 	void rejectedRawFile();
- 	void setAudioBufferSize();
- 	void enableScaling(bool enable);
-+	void updatePixelAspectRatio();
- 
- 	void about();
- 
--- 
-1.8.4.rc1
+Oops, looks like we didn't consolidate all the changes that were present in
+v4 [1]. clock, clock-names should be required properties and 
+clock-frequency
+should be optional.
 
+Yes, fixed clock could be used when, e.g. the sensor feeds its master clock
+from a separate external oscillator.
+
+The clock-frequency property is there to _set_ a board specific master 
+clock
+frequency of the sensor at the driver. I hope it doesn't fall into category
+"doesn't describe hardware", because the optimal frequency often needs to be
+specified per board and some common denominator value or range might not
+work well, leading to video signal distortions, etc.
+
+>> +
+>> +Optional properties:
+>> +
+>> +- clocks         : contains the sensor's master clock specifier;
+>> +- clock-names    : contains "mclk" entry;
+>> +
+>> +The device node should contain one 'port' child node with one child 'endpoint'
+>> +node, according to the bindings defined in Documentation/devicetree/bindings/
+>> +media/video-interfaces.txt. The following are properties specific to those nodes.
+>> +
+>> +endpoint node
+>> +-------------
+>> +
+>> +- data-lanes     : (optional) an array specifying active physical MIPI-CSI2
+>> +                   data output lanes and their mapping to logical lanes; the
+>> +                   array's content is unused, only its length is meaningful;
+>
+> Is that a property of the driver, or does the design of the hardware
+> mean that this can never encode useful information?
+
+This sensor doesn't support the data lanes re-routing at the MIPI CSI-2
+transmitter [2]. The data/clock lanes just appear on fixed physical pins,
+thus there is nothing that could be done with data in the array. The number
+of entries determines how many lanes are wired between the transmitter and
+the receiver and this is configurable for that particular device in range
+<1, 2> - it can transmit data on either 1 or 2 lanes.
+
+Presumably an important detail missing here is that this is the common
+property from video-interfaces.txt and what we mention here is only some
+device-specific constraints.
+
+> What does the length of the property imply?
+
+The description of this property should really be as in v4 of the patch:
+
+"- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+   video-interfaces.txt.  This property can be only used to specify number
+   of data lanes, i.e. the array's content is unused, only its length is
+   meaningful.  When this property is not specified default value of 1 lane
+   will be used."
+
+
+[1] http://www.spinics.net/lists/linux-media/msg66152.html
+[2] http://www.mipi.org/specifications/camera-interface#CSI2
+
+--
+Thanks,
+Sylwester
