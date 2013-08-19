@@ -1,79 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:23962 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372Ab3HEI5p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:45 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7f001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:42 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 4/7] qv4l2: add function getMargins
-Date: Mon,  5 Aug 2013 10:56:54 +0200
-Message-Id: <3286fb62051d996612608c660c909fd3e4127dc1.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-References: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:59585 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750864Ab3HSSWJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Aug 2013 14:22:09 -0400
+Message-id: <5212624D.5090708@samsung.com>
+Date: Mon, 19 Aug 2013 20:22:05 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+ <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+In-reply-to: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Created a function to get the total margins (window frame) in pixels
-outside the actual video frame beeing displayed.
+On 08/19/2013 07:59 PM, Wolfram Sang wrote:
+> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
+> that it is much cleaner to have this in the core. This also removes a
+> circular dependency between the helpers and the core, and so we can
+> finally register child nodes in the core instead of doing this manually
+> in each driver. So, fix the drivers and documentation, too.
+> 
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+> ---
+> 
+> Sigh, hitting the CC threshold on vger again. So resending to the lists only.
+> BTW this patch is based on -rc4 and was tested on an AT91 board. More tests
+> very welcome. Thanks!
+> 
+> 
+>  drivers/i2c/busses/i2c-s3c2410.c                |    2 -
+>  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    3 -
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 14 ++++++++++----
- utils/qv4l2/capture-win.h   |  2 ++
- 2 files changed, 12 insertions(+), 4 deletions(-)
+For these:
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 2d57909..e583900 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -54,16 +54,22 @@ void CaptureWin::buildWindow(QWidget *videoSurface)
- 	vbox->setSpacing(b);
- }
- 
-+QSize CaptureWin::getMargins()
-+{
-+ 	int l, t, r, b;
-+ 	layout()->getContentsMargins(&l, &t, &r, &b);
-+	return QSize(l + r, t + b + m_information.minimumSizeHint().height() + layout()->spacing());
-+}
-+
- void CaptureWin::setMinimumSize(int minw, int minh)
- {
- 	QDesktopWidget *screen = QApplication::desktop();
- 	QRect resolution = screen->screenGeometry();
- 	QSize maxSize = maximumSize();
- 
--	int l, t, r, b;
--	layout()->getContentsMargins(&l, &t, &r, &b);
--	minw += l + r;
--	minh += t + b + m_information.minimumSizeHint().height() + layout()->spacing();
-+	QSize margins = getMargins();
-+	minw += margins.width();
-+	minh += margins.height();
- 
- 	if (minw > resolution.width())
- 		minw = resolution.width();
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index ca60244..6b72e00 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -78,6 +78,8 @@ public:
- protected:
- 	void closeEvent(QCloseEvent *event);
- 	void buildWindow(QWidget *videoSurface);
-+	QSize getMargins();
-+
- 
- 	/**
- 	 * @brief A label that can is used to display capture information.
--- 
-1.8.3.2
+Acked-by: Sylwester Nawrocki <s.nawrocki@amsung.com>
 
+However this patch fails to apply onto either v3.11-rc4 or v3.11-rc6:
+
+Applying: i2c: move of helpers into the core
+fatal: sha1 information is lacking or useless (drivers/i2c/busses/i2c-powermac.c).
+Repository lacks necessary blobs to fall back on 3-way merge.
+Cannot fall back to three-way merge.
+Patch failed at 0001 i2c: move of helpers into the core
+
+
+One nitpick below..
+
+[...]
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index f32ca29..321b7ca 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -23,7 +23,11 @@
+>     SMBus 2.0 support by Mark Studebaker <mdsxyz123@yahoo.com> and
+>     Jean Delvare <khali@linux-fr.org>
+>     Mux support by Rodolfo Giometti <giometti@enneenne.com> and
+> -   Michael Lawnick <michael.lawnick.ext@nsn.com> */
+> +   Michael Lawnick <michael.lawnick.ext@nsn.com>
+> +   OF support is copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
+> +   (based on a previous patch from Jon Smirl <jonsmirl@gmail.com>) and
+> +   (c) 2013  Wolfram Sang <wsa@the-dreams.de>
+> + */
+>  
+>  #include <linux/module.h>
+>  #include <linux/kernel.h>
+> @@ -35,7 +39,9 @@
+>  #include <linux/init.h>
+>  #include <linux/idr.h>
+>  #include <linux/mutex.h>
+> +#include <linux/of.h>
+>  #include <linux/of_device.h>
+> +#include <linux/of_irq.h>
+>  #include <linux/completion.h>
+>  #include <linux/hardirq.h>
+>  #include <linux/irqflags.h>
+> @@ -954,6 +960,102 @@ static void i2c_scan_static_board_info(struct i2c_adapter *adapter)
+>  	up_read(&__i2c_board_lock);
+>  }
+>  
+> +/* of support code */
+
+/* OF support code */
+
+or
+
+/*
+ * Device Tree support code.
+ */
+
+?
+> +#if IS_ENABLED(CONFIG_OF)
+> +static void of_i2c_register_devices(struct i2c_adapter *adap)
+> +{
+> +	void *result;
+> +	struct device_node *node;
+> +
+> +	/* Only register child devices if the adapter has a node pointer set */
+> +	if (!adap->dev.of_node)
+> +		return;
+> +
+> +	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
+> +
+> +	for_each_available_child_of_node(adap->dev.of_node, node) {
+> +		struct i2c_board_info info = {};
+> +		struct dev_archdata dev_ad = {};
+> +		const __be32 *addr;
+> +		int len;
+> +
+> +		dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
+> +
+> +		if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
+> +			dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
+> +				node->full_name);
+> +			continue;
+> +		}
+> +
+> +		addr = of_get_property(node, "reg", &len);
+> +		if (!addr || (len < sizeof(int))) {
+> +			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
+> +				node->full_name);
+> +			continue;
+> +		}
+> +
+> +		info.addr = be32_to_cpup(addr);
+> +		if (info.addr > (1 << 10) - 1) {
+> +			dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
+> +				info.addr, node->full_name);
+> +			continue;
+> +		}
+> +
+> +		info.irq = irq_of_parse_and_map(node, 0);
+> +		info.of_node = of_node_get(node);
+> +		info.archdata = &dev_ad;
+> +
+> +		if (of_get_property(node, "wakeup-source", NULL))
+> +			info.flags |= I2C_CLIENT_WAKE;
+> +
+> +		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
+> +
+> +		result = i2c_new_device(adap, &info);
+> +		if (result == NULL) {
+> +			dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
+> +				node->full_name);
+> +			of_node_put(node);
+> +			irq_dispose_mapping(info.irq);
+> +			continue;
+> +		}
+> +	}
+> +}
+> +
+> +static int of_dev_node_match(struct device *dev, void *data)
+> +{
+> +	return dev->of_node == data;
+> +}
+> +
+> +/* must call put_device() when done with returned i2c_client device */
+> +struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
+> +{
+> +	struct device *dev;
+> +
+> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
+> +					 of_dev_node_match);
+> +	if (!dev)
+> +		return NULL;
+> +
+> +	return i2c_verify_client(dev);
+> +}
+> +EXPORT_SYMBOL(of_find_i2c_adapter_by_node);
+> +
+> +/* must call put_device() when done with returned i2c_adapter device */
+> +struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
+> +{
+> +	struct device *dev;
+> +
+> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
+> +					 of_dev_node_match);
+> +	if (!dev)
+> +		return NULL;
+> +
+> +	return i2c_verify_adapter(dev);
+> +}
+> +EXPORT_SYMBOL(of_find_i2c_device_by_node);
+> +#endif /* CONFIG_OF */
+
+Thanks,
+Sylwester
