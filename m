@@ -1,125 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47403 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721Ab3H1Nca (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:32:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] V4L2: add v4l2-clock helpers to register and unregister a fixed-rate clock
-Date: Wed, 28 Aug 2013 15:33:52 +0200
-Message-ID: <1634189.nIXkBbvd1k@avalon>
-In-Reply-To: <1377696508-3190-2-git-send-email-g.liakhovetski@gmx.de>
-References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de> <1377696508-3190-2-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:58482 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013Ab3HTOrN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 10:47:13 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VBnDC-0002x5-T2
+	for linux-media@vger.kernel.org; Tue, 20 Aug 2013 16:47:10 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 16:47:10 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 16:47:10 +0200
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: OMAP3 ISP change image format 
+Date: Tue, 20 Aug 2013 14:46:49 +0000 (UTC)
+Message-ID: <loom.20130820T114431-434@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hello,
 
-Thank you for the patch.
+I try from my own application out to grab an image with a ov3640 sensor. For
+this I need to understand the media-api and the isp pipeline correctly.
 
-On Wednesday 28 August 2013 15:28:26 Guennadi Liakhovetski wrote:
-> Many bridges and video host controllers supply fixed rate always on clocks
-> to their I2C devices. This patch adds two simple helpers to register and
-> unregister such a clock.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/v4l2-core/v4l2-clk.c |   39 +++++++++++++++++++++++++++++++++
->  include/media/v4l2-clk.h           |   14 ++++++++++++
->  2 files changed, 53 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
-> b/drivers/media/v4l2-core/v4l2-clk.c index b67de86..e18cc04 100644
-> --- a/drivers/media/v4l2-core/v4l2-clk.c
-> +++ b/drivers/media/v4l2-core/v4l2-clk.c
-> @@ -240,3 +240,42 @@ void v4l2_clk_unregister(struct v4l2_clk *clk)
->  	kfree(clk);
->  }
->  EXPORT_SYMBOL(v4l2_clk_unregister);
-> +
-> +struct v4l2_clk_fixed {
-> +	unsigned long rate;
-> +	struct v4l2_clk_ops ops;
-> +};
-> +
-> +static unsigned long fixed_get_rate(struct v4l2_clk *clk)
-> +{
-> +	struct v4l2_clk_fixed *priv = clk->priv;
-> +	return priv->rate;
-> +}
-> +
-> +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
-> +		const char *id, unsigned long rate, struct module *owner)
-> +{
-> +	struct v4l2_clk *clk;
-> +	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-> +
-> +	if (!priv)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	priv->rate = rate;
-> +	priv->ops.get_rate = fixed_get_rate;
-> +	priv->ops.owner = owner;
+I had problems with the use of media-ctl so I implemented the functionality
+into my application and it seems to work fine. Without an error I grabbed an
+image, but it was black.
 
-The ops owner is v4l2-clk.c, shouldn't you use THIS_MODULE here instead of the 
-caller's THIS_MODULE ?
+So maybe my format settings are not correctly set. My Question is:
 
-> +
-> +	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
-> +	if (IS_ERR(clk))
-> +		kfree(priv);
-> +
-> +	return clk;
-> +}
-> +EXPORT_SYMBOL(__v4l2_clk_register_fixed);
-> +
-> +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk)
-> +{
-> +	kfree(clk->priv);
-> +	v4l2_clk_unregister(clk);
-> +}
-> +EXPORT_SYMBOL(v4l2_clk_unregister_fixed);
-> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-> index 0503a90..a354a9d 100644
-> --- a/include/media/v4l2-clk.h
-> +++ b/include/media/v4l2-clk.h
-> @@ -15,6 +15,7 @@
->  #define MEDIA_V4L2_CLK_H
-> 
->  #include <linux/atomic.h>
-> +#include <linux/export.h>
->  #include <linux/list.h>
->  #include <linux/mutex.h>
-> 
-> @@ -51,4 +52,17 @@ void v4l2_clk_disable(struct v4l2_clk *clk);
->  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
->  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
-> 
-> +struct module;
-> +
-> +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
-> +		const char *id, unsigned long rate, struct module *owner);
-> +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
-> +
-> +static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
-> +							const char *id,
-> +							unsigned long rate)
-> +{
-> +	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
-> +}
-> +
->  #endif
--- 
-Regards,
+For example I want to grab a rgb565 image from my camera sensor and display
+it on a webpage. my pipeline looks like this:
 
-Laurent Pinchart
+ov3640->ccdc->memory
+
+Would it be enough to just set a raw bayer format on the source and sink
+pads and just the format of the video device (/dev/video2) as rgb565?
+
+Regards, Tom
+
+
+
+
 
