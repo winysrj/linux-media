@@ -1,60 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:4574 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754940Ab3HEHpN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 03:45:13 -0400
-From: =?ISO-8859-1?Q?B=E5rd?= Eirik Winther <bwinther@cisco.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH 3/5] qv4l2: add ALSA stream to qv4l2
-Date: Mon, 05 Aug 2013 09:45:09 +0200
-Message-ID: <7603707.i76nSb2kXK@bwinther>
-In-Reply-To: <51FC308A.1080406@googlemail.com>
-References: <1375445137-19443-1-git-send-email-bwinther@cisco.com> <228d662aff38f8798b8bd23f1e8e4515b67dc03b.1375445112.git.bwinther@cisco.com> <51FC308A.1080406@googlemail.com>
+Received: from mail-qe0-f41.google.com ([209.85.128.41]:54641 "EHLO
+	mail-qe0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162Ab3HTFp2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 01:45:28 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <032601ce9cd7$63666640$2a3332c0$%dae@samsung.com>
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+	<032601ce9cd7$63666640$2a3332c0$%dae@samsung.com>
+Date: Tue, 20 Aug 2013 11:15:28 +0530
+Message-ID: <CAOD6ATpvMcqQKuX1DHuNgNn0QD9QPxWM39iLRzM41r0J74oYLA@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] Exynos5 M-Scaler Driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, cpgs@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Arun Kumar K <arun.kk@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, August 03, 2013 12:19:54 AM you wrote:
-> Hello,
-> 
-> > diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
-> > index 22d4c17..eed25b0 100644
-> > --- a/utils/qv4l2/Makefile.am
-> > +++ b/utils/qv4l2/Makefile.am
-> > @@ -4,7 +4,8 @@ qv4l2_SOURCES = qv4l2.cpp general-tab.cpp ctrl-tab.cpp vbi-tab.cpp v4l2-api.cpp
-> >     capture-win-qt.cpp capture-win-qt.h capture-win-gl.cpp capture-win-gl.h \
-> >     raw2sliced.cpp qv4l2.h capture-win.h general-tab.h vbi-tab.h v4l2-api.h raw2sliced.h
-> >   nodist_qv4l2_SOURCES = moc_qv4l2.cpp moc_general-tab.cpp moc_capture-win.cpp moc_vbi-tab.cpp qrc_qv4l2.cpp
-> > -qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la
-> > +qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la \
-> > +  ../libmedia_dev/libmedia_dev.la
-> >
-> >   if WITH_QV4L2_GL
-> >   qv4l2_CPPFLAGS = $(QTGL_CFLAGS) -DENABLE_GL
-> > @@ -14,6 +15,12 @@ qv4l2_CPPFLAGS = $(QT_CFLAGS)
-> >   qv4l2_LDFLAGS = $(QT_LIBS)
-> >   endif
-> >
-> > +if WITH_QV4L2_ALSA
-> > +qv4l2_CPPFLAGS += $(ALSA_CFLAGS) -DENABLE_ALSA
-> 
-> I would prefer if you don't add another define to the command line. To 
-> check for ALSA support please include config.h and use the flag provided 
-> there.
+Hi Inki Dae,
 
-That is fine for me. However, this design was to make the alsa code not compile in when not required.
+Thanks for the review.
 
-While I am at it, should I do the same for OpenGL, that is, remove WITH_QV4L2_GL with a config.h define)? The patch series has already been patched in, but I do have another series that adds features and fixes to the first OpenGL patches. It should not be a problem to change OpenGL accordingly as well.
-
-B.
-
-> 
+On Mon, Aug 19, 2013 at 5:56 PM, Inki Dae <inki.dae@samsung.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
+>> Sent: Monday, August 19, 2013 7:59 PM
+>> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+>> Cc: s.nawrocki@samsung.com; posciak@google.com; arun.kk@samsung.com;
+>> shaik.ameer@samsung.com
+>> Subject: [PATCH v2 0/5] Exynos5 M-Scaler Driver
+>>
+>> This patch adds support for M-Scaler (M2M Scaler) device which is a
+>> new device for scaling, blending, color fill  and color space
+>> conversion on EXYNOS5 SoCs.
+>
+> All Exynos5 SoCs really have this IP? It seems that only Exynos5420 and
+> maybe Exynos5410 have this IP, NOT Exynos5250. Please check it again and
+> describe it surely over the all patch series.
+>
 > Thanks,
-> Gregor
-> 
+> Inki Dae
+
+True, not all exynos5 series SoCs has this IP.
+Will change the description and the binding accordingly.
+
+Regards,
+Shaik Ameer Basha
+>
+>>
+>> This device supports the following as key features.
+>>     input image format
+>>         - YCbCr420 2P(UV/VU), 3P
+>>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>>         - YCbCr444 2P(UV,VU), 3P
+>>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>>         - Pre-multiplexed ARGB8888, L8A8 and L8
+>>     output image format
+>>         - YCbCr420 2P(UV/VU), 3P
+>>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>>         - YCbCr444 2P(UV,VU), 3P
+>>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>>         - Pre-multiplexed ARGB8888
+>>     input rotation
+>>         - 0/90/180/270 degree, X/Y/XY Flip
+>>     scale ratio
+>>         - 1/4 scale down to 16 scale up
+>>     color space conversion
+>>         - RGB to YUV / YUV to RGB
+>>     Size
+>>         - Input : 16x16 to 8192x8192
+>>         - Output:   4x4 to 8192x8192
+>>     alpha blending, color fill
+>>
+>> Rebased on:
+>> -----------
+>> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
+>>
+>> Changes from v1:
+>> ---------------
+>> 1] Split the previous single patch into multiple patches.
+>> 2] Added DT binding documentation.
+>> 3] Removed the unnecessary header file inclusions.
+>> 4] Fix the condition check in mscl_prepare_address for swapping cb/cr
+>> addresses.
+>>
+>> Shaik Ameer Basha (5):
+>>   [media] exynos-mscl: Add new driver for M-Scaler
+>>   [media] exynos-mscl: Add core functionality for the M-Scaler driver
+>>   [media] exynos-mscl: Add m2m functionality for the M-Scaler driver
+>>   [media] exynos-mscl: Add DT bindings for M-Scaler driver
+>>   [media] exynos-mscl: Add Makefile for M-Scaler driver
+>>
+>>  .../devicetree/bindings/media/exynos5-mscl.txt     |   34 +
+>>  drivers/media/platform/Kconfig                     |    8 +
+>>  drivers/media/platform/Makefile                    |    1 +
+>>  drivers/media/platform/exynos-mscl/Makefile        |    3 +
+>>  drivers/media/platform/exynos-mscl/mscl-core.c     | 1312
+>> ++++++++++++++++++++
+>>  drivers/media/platform/exynos-mscl/mscl-core.h     |  549 ++++++++
+>>  drivers/media/platform/exynos-mscl/mscl-m2m.c      |  763 ++++++++++++
+>>  drivers/media/platform/exynos-mscl/mscl-regs.c     |  318 +++++
+>>  drivers/media/platform/exynos-mscl/mscl-regs.h     |  282 +++++
+>>  9 files changed, 3270 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/exynos5-
+>> mscl.txt
+>>  create mode 100644 drivers/media/platform/exynos-mscl/Makefile
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.c
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.h
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-m2m.c
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
+>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
+>>
+>> --
+>> 1.7.9.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
