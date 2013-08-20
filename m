@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752321Ab3H0Mcp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 08:32:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Fix typo in v4l2_subdev_get_try_crop()
-Date: Tue, 27 Aug 2013 14:34:05 +0200
-Message-ID: <6073088.jjl5NmzUoe@avalon>
-In-Reply-To: <20130826095346.GB2835@valkosipuli.retiisi.org.uk>
-References: <1377508671-13188-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130826095346.GB2835@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp206.alice.it ([82.57.200.102]:45060 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998Ab3HTNNX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 09:13:23 -0400
+Date: Tue, 20 Aug 2013 15:13:16 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Yaroslav Zakharuk <slavikz@gmail.com>,
+	1173723@bugs.launchpad.net, stable@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca-ov534: don't call sd_start() from
+ sd_init()
+Message-Id: <20130820151316.08617248d480ab5464ffde47@studenti.unina.it>
+In-Reply-To: <52135F42.1070707@redhat.com>
+References: <5205D969.4040301@gmail.com>
+	<1376562572-10772-1-git-send-email-ospite@studenti.unina.it>
+	<52135F42.1070707@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 26 August 2013 12:53:46 Sakari Ailus wrote:
-> On Mon, Aug 26, 2013 at 11:17:51AM +0200, Laurent Pinchart wrote:
-> > The helper function is defined by a macro that is erroneously called
-> > with the compose rectangle instead of the crop rectangle. Fix it.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  include/media/v4l2-subdev.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index bfda0fe..34d9219 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -628,7 +628,7 @@ struct v4l2_subdev_fh {
-> > 
-> >  	}
-> >  
-> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-> > -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
-> > +__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
-> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
-> >  #endif
-> 
-> Oops. My bad I guess... it's a surprise to me this one slipped through.
-> Excellent find!
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+On Tue, 20 Aug 2013 14:21:22 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Thank you.
+> Hi,
+> 
+> Thanks for the patch I've added this to my "gspca" tree, and this
+> will be included in my next pull-request to Mauro for 3.12
+> 
 
-Mauro, could you please pick this patch up, for v3.12 if still possible ?
+Thanks HdG.
+
+It's fine with me to have the patch in 3.12 and then have it picked up
+for inclusion in stable releases, I was just wondering why you didn't
+consider it as a fix for 3.11, the patch fixes an actual crash
+experienced by a user.
+
+Regards,
+   Antonio
 
 -- 
-Regards,
+Antonio Ospite
+http://ao2.it
 
-Laurent Pinchart
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
