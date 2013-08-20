@@ -1,199 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:59585 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab3HSSWJ (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:48563 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129Ab3HTQcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 14:22:09 -0400
-Message-id: <5212624D.5090708@samsung.com>
-Date: Mon, 19 Aug 2013 20:22:05 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
-In-reply-to: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 20 Aug 2013 12:32:12 -0400
+Received: by mail-ee0-f51.google.com with SMTP id c1so306493eek.38
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 09:32:10 -0700 (PDT)
+Message-ID: <52139A9B.1030400@googlemail.com>
+Date: Tue, 20 Aug 2013 18:34:35 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon>
+In-Reply-To: <1904390.nVVGcVBrVP@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2013 07:59 PM, Wolfram Sang wrote:
-> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> that it is much cleaner to have this in the core. This also removes a
-> circular dependency between the helpers and the core, and so we can
-> finally register child nodes in the core instead of doing this manually
-> in each driver. So, fix the drivers and documentation, too.
-> 
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
-> 
-> Sigh, hitting the CC threshold on vger again. So resending to the lists only.
-> BTW this patch is based on -rc4 and was tested on an AT91 board. More tests
-> very welcome. Thanks!
-> 
-> 
->  drivers/i2c/busses/i2c-s3c2410.c                |    2 -
->  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    3 -
+Am 20.08.2013 15:38, schrieb Laurent Pinchart:
+> Hi Mauro,
+>
+> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+>>>> Hi Frank,
+>>>> As I mentioned on the list, I'm currently on a holiday, so, replying
+>>>> briefly.
+>>> Sorry, I missed that (can't read all mails on the list).
+>>>
+>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to
+>>>> its components including the ov2640 sensor. So, yes, I think the driver
+>>>> should export a V4L2 clock.
+>>> Ok, so it's mandatory on purpose ?
+>>> I'll take a deeper into the v4l2-clk code and the
+>>> em28xx/ov2640/soc-camera interaction this week.
+>>> Have a nice holiday !
+>> commit 9aea470b399d797e88be08985c489855759c6c60
+>> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Date:   Fri Dec 21 13:01:55 2012 -0300
+>>
+>>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+>>
+>>     Instead of centrally enabling and disabling subdevice master clocks in
+>>     soc-camera core, let subdevice drivers do that themselves, using the
+>>     V4L2 clock API and soc-camera convenience wrappers.
+>>
+>>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> (c/c the ones that acked with this broken changeset)
+>>
+>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
+>> cameras are currently broken on 3.10.
+>>
+>> I'll also reject other ports to the async API if the drivers are
+>> used outside an embedded driver, as no PC driver currently defines
+>> any clock source. The same applies to regulators.
+>>
+>> Guennadi,
+>>
+>> Next time, please check if the i2c drivers are used outside soc_camera
+>> and apply the fixes where needed, as no regressions are allowed.
+> We definitely need to check all users of our sensor drivers when making such a 
+> change. Mistakes happen, so let's fix them.
+>
+> Guennadi is on holidays until the end of this week. Would that be too late to 
+> fix the issue (given that 3.10 is already broken) ? The fix shouldn't be too 
+> complex, registering a dummy V4L2 clock in the em28xx driver should be enough.
 
-For these:
+I would prefer either a) making the clock optional in the senor
+driver(s) or b) implementing a real V4L2 clock.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@amsung.com>
+Reading the soc-camera code, it looks like NULL-pointers for struct
+v4l2_clk are handled correctly. so a) should be pretty simple:
 
-However this patch fails to apply onto either v3.11-rc4 or v3.11-rc6:
+    priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-   if (IS_ERR(priv->clk)) {
+-       ret = PTR_ERR(priv->clk);
+-       goto eclkget;
+-   }
++   if (IS_ERR(priv->clk))
++       priv->clk = NULL;
 
-Applying: i2c: move of helpers into the core
-fatal: sha1 information is lacking or useless (drivers/i2c/busses/i2c-powermac.c).
-Repository lacks necessary blobs to fall back on 3-way merge.
-Cannot fall back to three-way merge.
-Patch failed at 0001 i2c: move of helpers into the core
+Some additional NULL-pointer checks might be necessary, e.g. before
+calling v4l2_clk_put().
 
+Concerning b): I'm not yet sure if it is really needed/makes sense...
+Who is supposed to configure/enable/disable the clock in a constellation
+like em28xx+ov2640 ?
+For UXGA for example, the clock needs to be switched to 12MHz, while
+24MHz is used for smaller reolutions.
+But I'm not sure if it is a good idea to let the sensor driver do the
+switch (to define fixed bindings between resoultions and clock frequencies).
+Btw, what if a frequency is requested which isn't supported ? Set the
+clock to the next nearest supported frequency ?
 
-One nitpick below..
+Regards,
+Frank
 
-[...]
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index f32ca29..321b7ca 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -23,7 +23,11 @@
->     SMBus 2.0 support by Mark Studebaker <mdsxyz123@yahoo.com> and
->     Jean Delvare <khali@linux-fr.org>
->     Mux support by Rodolfo Giometti <giometti@enneenne.com> and
-> -   Michael Lawnick <michael.lawnick.ext@nsn.com> */
-> +   Michael Lawnick <michael.lawnick.ext@nsn.com>
-> +   OF support is copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
-> +   (based on a previous patch from Jon Smirl <jonsmirl@gmail.com>) and
-> +   (c) 2013  Wolfram Sang <wsa@the-dreams.de>
-> + */
 >  
->  #include <linux/module.h>
->  #include <linux/kernel.h>
-> @@ -35,7 +39,9 @@
->  #include <linux/init.h>
->  #include <linux/idr.h>
->  #include <linux/mutex.h>
-> +#include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/of_irq.h>
->  #include <linux/completion.h>
->  #include <linux/hardirq.h>
->  #include <linux/irqflags.h>
-> @@ -954,6 +960,102 @@ static void i2c_scan_static_board_info(struct i2c_adapter *adapter)
->  	up_read(&__i2c_board_lock);
->  }
->  
-> +/* of support code */
+> v4l2-clk.c should provide a helper function to do so as that will be a pretty 
+> common operation.
+>
 
-/* OF support code */
-
-or
-
-/*
- * Device Tree support code.
- */
-
-?
-> +#if IS_ENABLED(CONFIG_OF)
-> +static void of_i2c_register_devices(struct i2c_adapter *adap)
-> +{
-> +	void *result;
-> +	struct device_node *node;
-> +
-> +	/* Only register child devices if the adapter has a node pointer set */
-> +	if (!adap->dev.of_node)
-> +		return;
-> +
-> +	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
-> +
-> +	for_each_available_child_of_node(adap->dev.of_node, node) {
-> +		struct i2c_board_info info = {};
-> +		struct dev_archdata dev_ad = {};
-> +		const __be32 *addr;
-> +		int len;
-> +
-> +		dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
-> +
-> +		if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
-> +			dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
-> +				node->full_name);
-> +			continue;
-> +		}
-> +
-> +		addr = of_get_property(node, "reg", &len);
-> +		if (!addr || (len < sizeof(int))) {
-> +			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
-> +				node->full_name);
-> +			continue;
-> +		}
-> +
-> +		info.addr = be32_to_cpup(addr);
-> +		if (info.addr > (1 << 10) - 1) {
-> +			dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
-> +				info.addr, node->full_name);
-> +			continue;
-> +		}
-> +
-> +		info.irq = irq_of_parse_and_map(node, 0);
-> +		info.of_node = of_node_get(node);
-> +		info.archdata = &dev_ad;
-> +
-> +		if (of_get_property(node, "wakeup-source", NULL))
-> +			info.flags |= I2C_CLIENT_WAKE;
-> +
-> +		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
-> +
-> +		result = i2c_new_device(adap, &info);
-> +		if (result == NULL) {
-> +			dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
-> +				node->full_name);
-> +			of_node_put(node);
-> +			irq_dispose_mapping(info.irq);
-> +			continue;
-> +		}
-> +	}
-> +}
-> +
-> +static int of_dev_node_match(struct device *dev, void *data)
-> +{
-> +	return dev->of_node == data;
-> +}
-> +
-> +/* must call put_device() when done with returned i2c_client device */
-> +struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
-> +{
-> +	struct device *dev;
-> +
-> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> +					 of_dev_node_match);
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	return i2c_verify_client(dev);
-> +}
-> +EXPORT_SYMBOL(of_find_i2c_adapter_by_node);
-> +
-> +/* must call put_device() when done with returned i2c_adapter device */
-> +struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
-> +{
-> +	struct device *dev;
-> +
-> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> +					 of_dev_node_match);
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	return i2c_verify_adapter(dev);
-> +}
-> +EXPORT_SYMBOL(of_find_i2c_device_by_node);
-> +#endif /* CONFIG_OF */
-
-Thanks,
-Sylwester
