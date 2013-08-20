@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3066 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278Ab3HLNOu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 09:14:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: scott.jiang.linux@gmail.com,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: [RFC PATCH 0/3] Add adv7842 and adv7511 drivers.
-Date: Mon, 12 Aug 2013 15:13:56 +0200
-Message-Id: <1376313239-19921-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:9635 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976Ab3HTMUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 08:20:37 -0400
+Message-ID: <52135F04.80700@redhat.com>
+Date: Tue, 20 Aug 2013 14:20:20 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: Re: [PATCH] [media] gspca: fix dev_open() error path
+References: <1375733797-7002-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <1375733797-7002-1-git-send-email-khoroshilov@ispras.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for the adv7842 video receiver and for the
-adv7511 video transmitter.
+Hi,
 
-These drivers have been in the cisco internal repository for way too long, and
-it is time to get them merged.
-
-A note regarding the adv7511 driver: there is also a drm driver floating around,
-but the driver in this patch series is a v4l driver. As of today it is not
-possible to have one driver that can be used by both v4l and drm subsystems. The
-hope is that the work done by Laurent Pinchart on the Common Display Framework
-will actually make this possible. When that happens the driver will have to be
-adapted for that.
-
-The two drivers in this patch series have been in use for some time now in
-our products, so they have been tested.
-
-This is an RFC since the driver code will change once a pending pull request has
-been merged. That pull request simplifies DV_TIMINGS handling by adding
-additional helper functions and moving all DV_TIMINGS support to a new
-v4l2-dv-timings module.
-
-See this branch for those upcoming features:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12
+Thanks for the patch I've added this to my "gspca" tree, and this
+will be included in my next pull-request to Mauro for 3.12
 
 Regards,
 
-	Hans
+Hans
 
+On 08/05/2013 10:16 PM, Alexey Khoroshilov wrote:
+> If v4l2_fh_open() fails in dev_open(), gspca_dev->module left locked.
+> The patch adds module_put(gspca_dev->module) on this path.
+>
+> Found by Linux Driver Verification project (linuxtesting.org).
+>
+> Signed-off-by: Alexey Khoroshilov<khoroshilov@ispras.ru>
+> ---
+>   drivers/media/usb/gspca/gspca.c | 6 +++++-
+>   1 file changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+> index b7ae872..048507b 100644
+> --- a/drivers/media/usb/gspca/gspca.c
+> +++ b/drivers/media/usb/gspca/gspca.c
+> @@ -1266,6 +1266,7 @@ static void gspca_release(struct v4l2_device *v4l2_device)
+>   static int dev_open(struct file *file)
+>   {
+>   	struct gspca_dev *gspca_dev = video_drvdata(file);
+> +	int ret;
+>
+>   	PDEBUG(D_STREAM, "[%s] open", current->comm);
+>
+> @@ -1273,7 +1274,10 @@ static int dev_open(struct file *file)
+>   	if (!try_module_get(gspca_dev->module))
+>   		return -ENODEV;
+>
+> -	return v4l2_fh_open(file);
+> +	ret = v4l2_fh_open(file);
+> +	if (ret)
+> +		module_put(gspca_dev->module);
+> +	return ret;
+>   }
+>
+>   static int dev_close(struct file *file)
+> -- 1.8.1.2
+>
