@@ -1,371 +1,527 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:45318 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755870Ab3HFKWi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 06:22:38 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-83.cisco.com [10.54.92.83])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r76AMGhO015841
-	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 10:22:34 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 9/9] qv4l2: add pixel aspect ratio support for CaptureWin
-Date: Tue,  6 Aug 2013 12:21:53 +0200
-Message-Id: <260f2ef6271d358ab1a0b33b206fdf2246466d55.1375784415.git.bwinther@cisco.com>
-In-Reply-To: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
-References: <1375784513-18701-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
-References: <f8457ccfdceb6e73b7990efe95f9e3b61d973747.1375784415.git.bwinther@cisco.com>
+Received: from mail-qe0-f45.google.com ([209.85.128.45]:55848 "EHLO
+	mail-qe0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608Ab3HTItf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 04:49:35 -0400
 MIME-Version: 1.0
+In-Reply-To: <016f01ce9d81$6306b8d0$29142a70$%dae@samsung.com>
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+	<1376909932-23644-2-git-send-email-shaik.ameer@samsung.com>
+	<032701ce9cda$5c0e55d0$142b0170$%dae@samsung.com>
+	<CAOD6ATqdW4zqaKNrWtJ9x+fR_TW2hHYMt27wAHB3py4=8G2Rww@mail.gmail.com>
+	<016f01ce9d81$6306b8d0$29142a70$%dae@samsung.com>
+Date: Tue, 20 Aug 2013 14:19:34 +0530
+Message-ID: <CAOD6ATrLp0RZZMuEE-yknk__5gz8iXKsG=Ae_10nRJSLPdkKyQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-Scaler
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, cpgs@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Arun Kumar K <arun.kk@samsung.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 36 ++++++++++++++++++------
- utils/qv4l2/capture-win.h   |  6 ++++
- utils/qv4l2/general-tab.cpp | 68 +++++++++++++++++++++++++++++++++++++++++++++
- utils/qv4l2/general-tab.h   |  4 +++
- utils/qv4l2/qv4l2.cpp       | 21 ++++++++++----
- utils/qv4l2/qv4l2.h         |  1 +
- 6 files changed, 122 insertions(+), 14 deletions(-)
+On Tue, Aug 20, 2013 at 2:13 PM, Inki Dae <inki.dae@samsung.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
+>> Sent: Tuesday, August 20, 2013 5:07 PM
+>> To: Inki Dae
+>> Cc: Shaik Ameer Basha; LMML; linux-samsung-soc@vger.kernel.org;
+>> cpgs@samsung.com; Sylwester Nawrocki; posciak@google.com; Arun Kumar K
+>> Subject: Re: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-
+>> Scaler
+>>
+>> Hi Inki Dae,
+>>
+>> Thanks for the review.
+>>
+>>
+>> On Mon, Aug 19, 2013 at 6:18 PM, Inki Dae <inki.dae@samsung.com> wrote:
+>> > Just quick review.
+>> >
+>> >> -----Original Message-----
+>> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> >> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
+>> >> Sent: Monday, August 19, 2013 7:59 PM
+>> >> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+>> >> Cc: s.nawrocki@samsung.com; posciak@google.com; arun.kk@samsung.com;
+>> >> shaik.ameer@samsung.com
+>> >> Subject: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-
+>> Scaler
+>> >>
+>> >> This patch adds support for M-Scaler (M2M Scaler) device which is a
+>> >> new device for scaling, blending, color fill  and color space
+>> >> conversion on EXYNOS5 SoCs.
+>> >>
+>> >> This device supports the followings as key feature.
+>> >>     input image format
+>> >>         - YCbCr420 2P(UV/VU), 3P
+>> >>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>> >>         - YCbCr444 2P(UV,VU), 3P
+>> >>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>> >>         - Pre-multiplexed ARGB8888, L8A8 and L8
+>> >>     output image format
+>> >>         - YCbCr420 2P(UV/VU), 3P
+>> >>         - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+>> >>         - YCbCr444 2P(UV,VU), 3P
+>> >>         - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+>> >>         - Pre-multiplexed ARGB8888
+>> >>     input rotation
+>> >>         - 0/90/180/270 degree, X/Y/XY Flip
+>> >>     scale ratio
+>> >>         - 1/4 scale down to 16 scale up
+>> >>     color space conversion
+>> >>         - RGB to YUV / YUV to RGB
+>> >>     Size
+>> >>         - Input : 16x16 to 8192x8192
+>> >>         - Output:   4x4 to 8192x8192
+>> >>     alpha blending, color fill
+>> >>
+>> >> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> >> ---
+>> >>  drivers/media/platform/exynos-mscl/mscl-regs.c |  318
+>> >> ++++++++++++++++++++++++
+>> >>  drivers/media/platform/exynos-mscl/mscl-regs.h |  282
+>> >> +++++++++++++++++++++
+>> >>  2 files changed, 600 insertions(+)
+>> >>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
+>> >>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
+>> >>
+>> >> diff --git a/drivers/media/platform/exynos-mscl/mscl-regs.c
+>> >> b/drivers/media/platform/exynos-mscl/mscl-regs.c
+>> >> new file mode 100644
+>> >> index 0000000..9354afc
+>> >> --- /dev/null
+>> >> +++ b/drivers/media/platform/exynos-mscl/mscl-regs.c
+>> >> @@ -0,0 +1,318 @@
+>> >> +/*
+>> >> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+>> >> + *           http://www.samsung.com
+>> >> + *
+>> >> + * Samsung EXYNOS5 SoC series M-Scaler driver
+>> >> + *
+>> >> + * This program is free software; you can redistribute it and/or
+>> modify
+>> >> + * it under the terms of the GNU General Public License as published
+>> >> + * by the Free Software Foundation, either version 2 of the License,
+>> >> + * or (at your option) any later version.
+>> >> + */
+>> >> +
+>> >> +#include <linux/delay.h>
+>> >> +#include <linux/platform_device.h>
+>> >> +
+>> >> +#include "mscl-core.h"
+>> >> +
+>> >> +void mscl_hw_set_sw_reset(struct mscl_dev *dev)
+>> >> +{
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     cfg = readl(dev->regs + MSCL_CFG);
+>> >> +     cfg |= MSCL_CFG_SOFT_RESET;
+>> >> +
+>> >> +     writel(cfg, dev->regs + MSCL_CFG);
+>> >> +}
+>> >> +
+>> >> +int mscl_wait_reset(struct mscl_dev *dev)
+>> >> +{
+>> >> +     unsigned long end = jiffies + msecs_to_jiffies(50);
+>> >
+>> > What does 50 mean?
+>> >
+>> >> +     u32 cfg, reset_done = 0;
+>> >> +
+>> >
+>> > Please describe why the below codes are needed.
+>>
+>>
+>> As per the Documentation,
+>>
+>> " SOFT RESET: Writing "1" to this bit generates software reset. To
+>> check the completion of the reset, wait until this
+>> field becomes zero, then wrie an arbitrary value to any of RW
+>> registers and read it. If the read data matches the written data,
+>>  it means SW reset succeeded. Otherwise, repeat write & read until
+>> matched."
+>>
+>>
+>> Thie below code tries to do the same (as per user manual). and in the
+>> above msec_to_jiffies(50), 50 is the 50msec wait. before
+>> checking the SOFT RESET is really done.
+>>
+>> Is it good to ignore this checks?
+>>
+>
+> No, I mean that someone may want to understand your codes so leave comments enough for them.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 3abb6cb..7538756 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -30,6 +30,7 @@
- #define MIN_WIN_SIZE_HEIGHT 120
- 
- bool CaptureWin::m_enableScaling = true;
-+double CaptureWin::m_pixelAspectRatio = 1.0;
- 
- CaptureWin::CaptureWin() :
- 	m_curWidth(-1),
-@@ -76,6 +77,14 @@ void CaptureWin::resetSize()
- 	resize(w, h);
- }
- 
-+int CaptureWin::actualFrameWidth(int width)
-+{
-+	if (m_enableScaling)
-+		return (int)((double)width * m_pixelAspectRatio);
-+
-+	return width;
-+}
-+
- QSize CaptureWin::getMargins()
- {
- 	int l, t, r, b;
-@@ -108,7 +117,7 @@ void CaptureWin::resize(int width, int height)
- 	m_curHeight = height;
- 
- 	QSize margins = getMargins();
--	width += margins.width();
-+	width = actualFrameWidth(width) + margins.width();
- 	height += margins.height();
- 
- 	QDesktopWidget *screen = QApplication::desktop();
-@@ -130,25 +139,36 @@ void CaptureWin::resize(int width, int height)
- 
- QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
- {
--	int actualFrameWidth = frame.width();;
--	int actualFrameHeight = frame.height();
-+	int actualWidth;
-+	int actualHeight = frame.height();
- 
- 	if (!m_enableScaling) {
- 		window.setWidth(frame.width());
- 		window.setHeight(frame.height());
-+		actualWidth = frame.width();
-+	} else {
-+		actualWidth = CaptureWin::actualFrameWidth(frame.width());
- 	}
- 
- 	double newW, newH;
- 	if (window.width() >= window.height()) {
--		newW = (double)window.width() / actualFrameWidth;
--		newH = (double)window.height() / actualFrameHeight;
-+		newW = (double)window.width() / actualWidth;
-+		newH = (double)window.height() / actualHeight;
- 	} else {
--		newH = (double)window.width() / actualFrameWidth;
--		newW = (double)window.height() / actualFrameHeight;
-+		newH = (double)window.width() / actualWidth;
-+		newW = (double)window.height() / actualHeight;
- 	}
- 	double resized = std::min(newW, newH);
- 
--	return QSize((int)(actualFrameWidth * resized), (int)(actualFrameHeight * resized));
-+	return QSize((int)(actualWidth * resized), (int)(actualHeight * resized));
-+}
-+
-+void CaptureWin::setPixelAspectRatio(double ratio)
-+{
-+	m_pixelAspectRatio = ratio;
-+	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
-+	QCoreApplication::sendEvent(this, event);
-+	delete event;
- }
- 
- void CaptureWin::closeEvent(QCloseEvent *event)
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 1bfb1e1..e8f0ada 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -76,6 +76,7 @@ public:
- 	static bool isSupported() { return false; }
- 
- 	void enableScaling(bool enable);
-+	void setPixelAspectRatio(double ratio);
- 	static QSize scaleFrameSize(QSize window, QSize frame);
- 
- public slots:
-@@ -99,6 +100,11 @@ protected:
- 	 */
- 	static bool m_enableScaling;
- 
-+	/**
-+	 * @note Aspect ratio it taken care of by scaling, frame size is for square pixels only!
-+	 */
-+	static double m_pixelAspectRatio;
-+
- signals:
- 	void close();
- 
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index 5cfaf07..c404a3b 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -53,6 +53,7 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 	m_tvStandard(NULL),
- 	m_qryStandard(NULL),
- 	m_videoTimings(NULL),
-+	m_pixelAspectRatio(NULL),
- 	m_qryTimings(NULL),
- 	m_freq(NULL),
- 	m_vidCapFormats(NULL),
-@@ -210,6 +211,23 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		connect(m_qryTimings, SIGNAL(clicked()), SLOT(qryTimingsClicked()));
- 	}
- 
-+	if (!isRadio() && !isVbi()) {
-+		m_pixelAspectRatio = new QComboBox(parent);
-+		m_pixelAspectRatio->addItem("Autodetect");
-+		m_pixelAspectRatio->addItem("Square");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60, Anamorphic");
-+		m_pixelAspectRatio->addItem("PAL/SECAM");
-+		m_pixelAspectRatio->addItem("PAL/SECAM, Anamorphic");
-+
-+		// Update hints by calling a get
-+		getPixelAspectRatio();
-+
-+		addLabel("Pixel Aspect Ratio");
-+		addWidget(m_pixelAspectRatio);
-+		connect(m_pixelAspectRatio, SIGNAL(activated(int)), SLOT(changePixelAspectRatio()));
-+	}
-+
- 	if (m_tuner.capability) {
- 		QDoubleValidator *val;
- 		double factor = (m_tuner.capability & V4L2_TUNER_CAP_LOW) ? 16 : 16000;
-@@ -1105,6 +1123,56 @@ void GeneralTab::updateFrameSize()
- 	updateFrameInterval();
- }
- 
-+void GeneralTab::changePixelAspectRatio()
-+{
-+	// Update hints by calling a get
-+	getPixelAspectRatio();
-+	info("");
-+	emit pixelAspectRatioChanged();
-+}
-+
-+double GeneralTab::getPixelAspectRatio()
-+{
-+	switch (m_pixelAspectRatio->currentIndex()) {
-+	case 0:
-+		v4l2_cropcap ratio;
-+		ratio.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		if (ioctl(VIDIOC_CROPCAP, &ratio) < 0) {
-+			m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
-+			m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
-+			return 1.0;
-+		}
-+
-+		m_pixelAspectRatio->setStatusTip(QString("Pixel Aspect Ratio %1:%2")
-+						 .arg(ratio.pixelaspect.denominator)
-+						 .arg(ratio.pixelaspect.numerator));
-+		m_pixelAspectRatio->setWhatsThis(QString("Pixel Aspect Ratio %1:%2")
-+						 .arg(ratio.pixelaspect.denominator)
-+						 .arg(ratio.pixelaspect.numerator));
-+		return (double)ratio.pixelaspect.denominator / ratio.pixelaspect.numerator;
-+	case 2:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 10:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 10:11");
-+		return 10.0 / 11.0;
-+	case 3:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 40:33");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 40:33");
-+		return 40.0 / 33.0;
-+	case 4:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 12:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 12:11");
-+		return 12.0 / 11.0;
-+	case 5:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 16:11");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 16:11");
-+		return 16.0 / 11.0;
-+	default:
-+		m_pixelAspectRatio->setStatusTip("Pixel Aspect Ratio 1:1");
-+		m_pixelAspectRatio->setWhatsThis("Pixel Aspect Ratio 1:1");
-+		return 1.0;
-+	}
-+}
-+
- void GeneralTab::updateFrameInterval()
- {
- 	v4l2_frmivalenum frmival;
-diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
-index 6c51016..4540e1f 100644
---- a/utils/qv4l2/general-tab.h
-+++ b/utils/qv4l2/general-tab.h
-@@ -57,6 +57,7 @@ public:
- 	void setAudioDeviceBufferSize(int size);
- 	int getAudioDeviceBufferSize();
- 	bool hasAlsaAudio();
-+	double getPixelAspectRatio();
- 	bool get_interval(struct v4l2_fract &interval);
- 	int width() const { return m_width; }
- 	int height() const { return m_height; }
-@@ -90,6 +91,7 @@ public slots:
- 
- signals:
- 	void audioDeviceChanged();
-+	void pixelAspectRatioChanged();
- 
- private slots:
- 	void inputChanged(int);
-@@ -115,6 +117,7 @@ private slots:
- 	void vidOutFormatChanged(int);
- 	void vbiMethodsChanged(int);
- 	void changeAudioDevice();
-+	void changePixelAspectRatio();
- 
- private:
- 	void updateVideoInput();
-@@ -182,6 +185,7 @@ private:
- 	QComboBox *m_tvStandard;
- 	QPushButton *m_qryStandard;
- 	QComboBox *m_videoTimings;
-+	QComboBox *m_pixelAspectRatio;
- 	QPushButton *m_qryTimings;
- 	QLineEdit *m_freq;
- 	QComboBox *m_freqTable;
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index c94b0a8..892d9c3 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -103,7 +103,7 @@ ApplicationWindow::ApplicationWindow() :
- 	m_saveRawAct->setChecked(false);
- 	connect(m_saveRawAct, SIGNAL(toggled(bool)), this, SLOT(saveRaw(bool)));
- 
--	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "Show &Frames", this);
-+	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "&Show Frames", this);
- 	m_showFramesAct->setStatusTip("Only show captured frames if set.");
- 	m_showFramesAct->setCheckable(true);
- 	m_showFramesAct->setChecked(true);
-@@ -137,12 +137,12 @@ ApplicationWindow::ApplicationWindow() :
- 	toolBar->addSeparator();
- 	toolBar->addAction(quitAct);
- 
--	m_scalingAct = new QAction("Enable Video Scaling", this);
-+	m_scalingAct = new QAction("&Enable Video Scaling", this);
- 	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
- 	m_scalingAct->setCheckable(true);
- 	m_scalingAct->setChecked(true);
- 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
--	m_resetScalingAct = new QAction("Resize to Frame Size", this);
-+	m_resetScalingAct = new QAction("Resize to &Frame Size", this);
- 	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
- 	m_resetScalingAct->setShortcut(Qt::CTRL+Qt::Key_F);
- 
-@@ -168,13 +168,13 @@ ApplicationWindow::ApplicationWindow() :
- #ifdef HAVE_ALSA
- 	captureMenu->addSeparator();
- 
--	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
-+	m_showAllAudioAct = new QAction("Show All Audio &Devices", this);
- 	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
- 	m_showAllAudioAct->setCheckable(true);
- 	m_showAllAudioAct->setChecked(false);
- 	captureMenu->addAction(m_showAllAudioAct);
- 
--	m_audioBufferAct = new QAction("Set Audio Buffer Capacity...", this);
-+	m_audioBufferAct = new QAction("Set Audio &Buffer Capacity...", this);
- 	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
- 	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
- 	captureMenu->addAction(m_audioBufferAct);
-@@ -229,7 +229,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 		m_audioBufferAct->setEnabled(false);
- 	}
- #endif
--
-+	connect(m_genTab, SIGNAL(pixelAspectRatioChanged()), this, SLOT(updatePixelAspectRatio()));
- 	m_tabs->addTab(w, "General");
- 	addTabs();
- 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
-@@ -360,6 +360,7 @@ void ApplicationWindow::newCaptureWin()
- 		break;
- 	}
- 
-+	m_capture->setPixelAspectRatio(1.0);
- 	m_capture->enableScaling(m_scalingAct->isChecked());
-         connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
- 	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
-@@ -810,6 +811,12 @@ void ApplicationWindow::enableScaling(bool enable)
- 		m_capture->enableScaling(enable);
- }
- 
-+void ApplicationWindow::updatePixelAspectRatio()
-+{
-+	if (m_capture != NULL && m_genTab != NULL)
-+		m_capture->setPixelAspectRatio(m_genTab->getPixelAspectRatio());
-+}
-+
- void ApplicationWindow::startAudio()
- {
- #ifdef HAVE_ALSA
-@@ -891,6 +898,7 @@ void ApplicationWindow::capStart(bool start)
- 		m_vbiTab->slicedFormat(fmt.fmt.sliced);
- 		m_vbiSize = fmt.fmt.sliced.io_size;
- 		m_frameData = new unsigned char[m_vbiSize];
-+		updatePixelAspectRatio();
- 		if (startCapture(m_vbiSize)) {
- 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
- 			connect(m_capNotifier, SIGNAL(activated(int)), this, SLOT(capVbiFrame()));
-@@ -959,6 +967,7 @@ void ApplicationWindow::capStart(bool start)
- 		m_capSrcFormat = copy;
- 	}
- 
-+	updatePixelAspectRatio();
- 	m_capture->resize(dstPix.width, dstPix.height);
- 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
- 	m_capImage->fill(0);
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 179cecb..970a0e1 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -133,6 +133,7 @@ private slots:
- 	void rejectedRawFile();
- 	void setAudioBufferSize();
- 	void enableScaling(bool enable);
-+	void updatePixelAspectRatio();
- 
- 	void about();
- 
--- 
-1.8.3.2
 
+Ok. thanks. I will add more comments. :)
+
+Regards,
+Shaik Ameer Basha
+
+>
+> Thanks,
+> Inki Dae
+>
+>>
+>>
+>> >
+>> >> +     while (time_before(jiffies, end)) {
+>> >> +             cfg = readl(dev->regs + MSCL_CFG);
+>> >> +             if (!(cfg & MSCL_CFG_SOFT_RESET)) {
+>> >> +                     reset_done = 1;
+>> >> +                     break;
+>> >> +             }
+>> >> +             usleep_range(10, 20);
+>> >> +     }
+>> >> +
+>> >> +     /* write any value to r/w reg and read it back */
+>> >> +     while (reset_done) {
+>> >> +
+>> >> +             /* [TBD] need to define number of tries before returning
+>> >> +              * -EBUSY to the caller
+>> >> +              */
+>> >> +
+>> >> +             writel(MSCL_CFG_SOFT_RESET_CHECK_VAL,
+>> >> +                             dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG);
+>> >> +             if (MSCL_CFG_SOFT_RESET_CHECK_VAL ==
+>> >> +                     readl(dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG))
+>> >> +                     return 0;
+>> >> +     }
+>> >> +
+>> >> +     return -EBUSY;
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_irq_mask(struct mscl_dev *dev, int interrupt, bool
+>> mask)
+>> >> +{
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     switch (interrupt) {
+>> >> +     case MSCL_INT_TIMEOUT:
+>> >> +     case MSCL_INT_ILLEGAL_BLEND:
+>> >> +     case MSCL_INT_ILLEGAL_RATIO:
+>> >> +     case MSCL_INT_ILLEGAL_DST_HEIGHT:
+>> >> +     case MSCL_INT_ILLEGAL_DST_WIDTH:
+>> >> +     case MSCL_INT_ILLEGAL_DST_V_POS:
+>> >> +     case MSCL_INT_ILLEGAL_DST_H_POS:
+>> >> +     case MSCL_INT_ILLEGAL_DST_C_SPAN:
+>> >> +     case MSCL_INT_ILLEGAL_DST_Y_SPAN:
+>> >> +     case MSCL_INT_ILLEGAL_DST_CR_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_DST_CB_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_DST_Y_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_DST_COLOR:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_HEIGHT:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_WIDTH:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_CV_POS:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_CH_POS:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_YV_POS:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_YH_POS:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_C_SPAN:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_Y_SPAN:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_CR_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_CB_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_Y_BASE:
+>> >> +     case MSCL_INT_ILLEGAL_SRC_COLOR:
+>> >> +     case MSCL_INT_FRAME_END:
+>> >> +             break;
+>> >> +     default:
+>> >> +             return;
+>> >> +     }
+>> >
+>> > It seems that the above codes could be more simple,
+>>
+>>
+>> ok. will change this.
+>>
+>>
+>> >
+>> >
+>> >> +     cfg = readl(dev->regs + MSCL_INT_EN);
+>> >> +     if (mask)
+>> >> +             cfg |= interrupt;
+>> >> +     else
+>> >> +             cfg &= ~interrupt;
+>> >> +     writel(cfg, dev->regs + MSCL_INT_EN);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_input_addr(struct mscl_dev *dev, struct mscl_addr
+>> *addr)
+>> >> +{
+>> >> +     dev_dbg(&dev->pdev->dev, "src_buf: 0x%X, cb: 0x%X, cr: 0x%X",
+>> >> +                             addr->y, addr->cb, addr->cr);
+>> >> +     writel(addr->y, dev->regs + MSCL_SRC_Y_BASE);
+>> >> +     writel(addr->cb, dev->regs + MSCL_SRC_CB_BASE);
+>> >> +     writel(addr->cr, dev->regs + MSCL_SRC_CR_BASE);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_output_addr(struct mscl_dev *dev,
+>> >> +                          struct mscl_addr *addr)
+>> >> +{
+>> >> +     dev_dbg(&dev->pdev->dev, "dst_buf: 0x%X, cb: 0x%X, cr: 0x%X",
+>> >> +                             addr->y, addr->cb, addr->cr);
+>> >> +     writel(addr->y, dev->regs + MSCL_DST_Y_BASE);
+>> >> +     writel(addr->cb, dev->regs + MSCL_DST_CB_BASE);
+>> >> +     writel(addr->cr, dev->regs + MSCL_DST_CR_BASE);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_in_size(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     struct mscl_frame *frame = &ctx->s_frame;
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     /* set input pixel offset */
+>> >> +     cfg = MSCL_SRC_YH_POS(frame->crop.left);
+>> >> +     cfg |= MSCL_SRC_YV_POS(frame->crop.top);
+>> >
+>> > Where are the limitations to left and top checked?.
+>>
+>>
+>>
+>> mscl_try_crop() does this checking.
+>>
+>>
+>>
+>> >
+>> >> +     writel(cfg, dev->regs + MSCL_SRC_Y_POS);
+>> >> +
+>> >> +     /* [TBD] calculate 'C' plane h/v offset using 'Y' plane h/v offset
+>> >> */
+>> >> +
+>> >> +     /* set input span */
+>> >> +     cfg = MSCL_SRC_Y_SPAN(frame->f_width);
+>> >> +     if (is_yuv420_2p(frame->fmt))
+>> >> +             cfg |= MSCL_SRC_C_SPAN(frame->f_width);
+>> >> +     else
+>> >> +             cfg |= MSCL_SRC_C_SPAN(frame->f_width); /* [TBD] Verify */
+>> >> +
+>> >> +     writel(cfg, dev->regs + MSCL_SRC_SPAN);
+>> >> +
+>> >> +     /* Set input cropped size */
+>> >> +     cfg = MSCL_SRC_WIDTH(frame->crop.width);
+>> >> +     cfg |= MSCL_SRC_HEIGHT(frame->crop.height);
+>> >> +     writel(cfg, dev->regs + MSCL_SRC_WH);
+>> >> +
+>> >> +     dev_dbg(&dev->pdev->dev,
+>> >> +             "src: posx: %d, posY: %d, spanY: %d, spanC: %d, "
+>> >> +             "cropX: %d, cropY: %d\n",
+>> >> +             frame->crop.left, frame->crop.top, frame->f_width,
+>> >> +             frame->f_width, frame->crop.width, frame->crop.height);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_in_image_format(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     struct mscl_frame *frame = &ctx->s_frame;
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     cfg = readl(dev->regs + MSCL_SRC_CFG);
+>> >> +     cfg &= ~MSCL_SRC_COLOR_FORMAT_MASK;
+>> >> +     cfg |= MSCL_SRC_COLOR_FORMAT(frame->fmt->mscl_color);
+>> >> +
+>> >> +     /* setting tile/linear format */
+>> >> +     if (frame->fmt->is_tiled)
+>> >> +             cfg |= MSCL_SRC_TILE_EN;
+>> >> +     else
+>> >> +             cfg &= ~MSCL_SRC_TILE_EN;
+>> >> +
+>> >> +     writel(cfg, dev->regs + MSCL_SRC_CFG);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_out_size(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     struct mscl_frame *frame = &ctx->d_frame;
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     /* set output pixel offset */
+>> >> +     cfg = MSCL_DST_H_POS(frame->crop.left);
+>> >> +     cfg |= MSCL_DST_V_POS(frame->crop.top);
+>> >
+>> > Ditto.
+>> >
+>> >> +     writel(cfg, dev->regs + MSCL_DST_POS);
+>> >> +
+>> >> +     /* set output span */
+>> >> +     cfg = MSCL_DST_Y_SPAN(frame->f_width);
+>> >> +     if (is_yuv420_2p(frame->fmt))
+>> >> +             cfg |= MSCL_DST_C_SPAN(frame->f_width/2);
+>> >> +     else
+>> >> +             cfg |= MSCL_DST_C_SPAN(frame->f_width);
+>> >> +     writel(cfg, dev->regs + MSCL_DST_SPAN);
+>> >> +
+>> >> +     /* set output scaled size */
+>> >> +     cfg = MSCL_DST_WIDTH(frame->crop.width);
+>> >> +     cfg |= MSCL_DST_HEIGHT(frame->crop.height);
+>> >> +     writel(cfg, dev->regs + MSCL_DST_WH);
+>> >> +
+>> >> +     dev_dbg(&dev->pdev->dev,
+>> >> +             "dst: posx: %d, posY: %d, spanY: %d, spanC: %d, "
+>> >> +             "cropX: %d, cropY: %d\n",
+>> >> +             frame->crop.left, frame->crop.top, frame->f_width,
+>> >> +             frame->f_width, frame->crop.width, frame->crop.height);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_out_image_format(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     struct mscl_frame *frame = &ctx->d_frame;
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     cfg = readl(dev->regs + MSCL_DST_CFG);
+>> >> +     cfg &= ~MSCL_DST_COLOR_FORMAT_MASK;
+>> >> +     cfg |= MSCL_DST_COLOR_FORMAT(frame->fmt->mscl_color);
+>> >> +
+>> >> +     writel(cfg, dev->regs + MSCL_DST_CFG);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_scaler_ratio(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     struct mscl_scaler *sc = &ctx->scaler;
+>> >> +     u32 cfg;
+>> >> +
+>> >> +     cfg = MSCL_H_RATIO_VALUE(sc->hratio);
+>> >> +     writel(cfg, dev->regs + MSCL_H_RATIO);
+>> >> +
+>> >> +     cfg = MSCL_V_RATIO_VALUE(sc->vratio);
+>> >> +     writel(cfg, dev->regs + MSCL_V_RATIO);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_rotation(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     u32 cfg = 0;
+>> >> +
+>> >> +     cfg = MSCL_ROTMODE(ctx->ctrls_mscl.rotate->val/90);
+>> >> +
+>> >> +     if (ctx->ctrls_mscl.hflip->val)
+>> >> +             cfg |= MSCL_FLIP_X_EN;
+>> >> +
+>> >> +     if (ctx->ctrls_mscl.vflip->val)
+>> >> +             cfg |= MSCL_FLIP_Y_EN;
+>> >> +
+>> >> +     writel(cfg, dev->regs + MSCL_ROT_CFG);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_address_queue_reset(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +
+>> >> +     writel(MSCL_ADDR_QUEUE_RST, dev->regs + MSCL_ADDR_QUEUE_CONFIG);
+>> >> +}
+>> >> +
+>> >> +void mscl_hw_set_csc_coeff(struct mscl_ctx *ctx)
+>> >> +{
+>> >> +     struct mscl_dev *dev = ctx->mscl_dev;
+>> >> +     enum mscl_csc_coeff type;
+>> >> +     u32 cfg = 0;
+>> >> +     int i, j;
+>> >> +     static const u32 csc_coeff[MSCL_CSC_COEFF_MAX][3][3] = {
+>> >> +             { /* YCbCr to RGB */
+>> >> +                     {0x200, 0x000, 0x2be},
+>> >> +                     {0x200, 0xeac, 0x165},
+>> >> +                     {0x200, 0x377, 0x000}
+>> >> +             },
+>> >> +             { /* YCbCr to RGB with -16 offset */
+>> >> +                     {0x254, 0x000, 0x331},
+>> >> +                     {0x254, 0xec8, 0xFA0},
+>> >> +                     {0x254, 0x409, 0x000}
+>> >> +             },
+>> >> +             { /* RGB to YCbCr */
+>> >> +                     {0x099, 0x12d, 0x03a},
+>> >> +                     {0xe58, 0xeae, 0x106},
+>> >> +                     {0x106, 0xedb, 0xe2a}
+>> >> +             },
+>> >> +             { /* RGB to YCbCr with -16 offset */
+>> >> +                     {0x084, 0x102, 0x032},
+>> >> +                     {0xe4c, 0xe95, 0x0e1},
+>> >> +                     {0x0e1, 0xebc, 0xe24}
+>> >> +             } };
+>> >> +
+>> >> +     if (is_rgb(ctx->s_frame.fmt) == is_rgb(ctx->d_frame.fmt))
+>> >> +             type = MSCL_CSC_COEFF_NONE;
+>> >> +     else if (is_rgb(ctx->d_frame.fmt))
+>> >> +             type = MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16;
+>> >> +     else
+>> >> +             type = MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16;
+>> >> +
+>> >> +     if ((type == ctx->mscl_dev->coeff_type) || (type >=
+>> >> MSCL_CSC_COEFF_MAX))
+>> >> +             return;
+>> >> +
+>> >> +     for (i = 0; i < 3; i++) {
+>> >> +             for (j = 0; j < 3; j++) {
+>> >> +                     cfg = csc_coeff[type][i][j];
+>> >> +                     writel(cfg, dev->regs + MSCL_CSC_COEF(i, j));
+>> >> +             }
+>> >> +     }
+>> >> +
+>> >> +     switch (type) {
+>> >> +     case MSCL_CSC_COEFF_YCBCR_TO_RGB:
+>> >
+>> > Is there this case?
+>> >
+>> >> +             mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
+>> >
+>> > And this switch-case could be removed if you move the above line to the
+>> > above if-sentence.
+>> >
+>> >
+>> >> +             break;
+>> >> +     case MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16:
+>> >> +             mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
+>> >
+>> > Ditto.
+>> >
+>> >> +             break;
+>> >> +     case MSCL_CSC_COEFF_RGB_TO_YCBCR:
+>> >
+>> > Seems no case.
+>> >
+>> >> +             mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
+>> >
+>> > Could be moved to the above if-sentence.
+>>
+>>
+>>
+>> I think MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16, MSCL_CSC_COEFF_YCBCR_TO_RGB
+>> belongs to different color spaces.
+>> Anyways, will remove the unused cases and will reorganize the code as
+>> per your comments.
+>>
+>> Regards,
+>> Shaik Ameer Basha
+>>
+>>
+>>
+>> >
+>> >> +             break;
+>> >> +     case MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16:
+>> >> +             mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
+>> >
+>> > Ditto.
+>> >
+>> >> +             break;
+>> >> +     default:
+>> >> +             return;
+>> >> +     }
+>> >> +
+>> >> +     ctx->mscl_dev->coeff_type = type;
+>> >> +     return;
+>> >> +}
+>>
+>> [snip]
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
