@@ -1,103 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:23520 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab3H2J2D (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45743 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab3HTLiW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 05:28:03 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, t.figa@samsung.com,
-	linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com,
-	swarren@wwwdotorg.org, pawel.moll@arm.com, rob.herring@calxeda.com,
-	galak@codeaurora.org, devicetree@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RESEND PATCH v2 2/7] V4L: s5k6a3: Add DT binding documentation
-Date: Thu, 29 Aug 2013 11:24:33 +0200
-Message-id: <1377768278-15391-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
-References: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 20 Aug 2013 07:38:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	dagriego@biglakesoftware.com, dale@farnsworth.org,
+	pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl,
+	tomi.valkeinen@ti.com
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Tue, 20 Aug 2013 13:39:34 +0200
+Message-ID: <1436822.NCo0PqzB8p@avalon>
+In-Reply-To: <520B62B5.8080000@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon> <520B62B5.8080000@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds binding documentation for the Samsung S5K6A3(YX)
-raw image sensor.
+Hi Archit,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
+On Wednesday 14 August 2013 16:27:57 Archit Taneja wrote:
+> On Friday 09 August 2013 03:34 AM, Laurent Pinchart wrote:
+> > On Friday 02 August 2013 19:33:38 Archit Taneja wrote:
+> >> The primary function of VPDMA is to move data between external memory and
+> >> internal processing modules(in our case, VPE) that source or sink data.
+> >> VPDMA is capable of buffering this data and then delivering the data as
+> >> demanded to the modules as programmed. The modules that source or sink
+> >> data are referred to as clients or ports. A channel is setup inside the
+> >> VPDMA to connect a specific memory buffer to a specific client. The VPDMA
+> >> centralizes the DMA control functions and buffering required to allow all
+> >> the clients to minimize the effect of long latency times.
+> >> 
+> >> Add the following to the VPDMA helper:
+> >> 
+> >> - A data struct which describe VPDMA channels. For now, these channels
+> >> are the ones used only by VPE, the list of channels will increase when
+> >> VIP(Video Input Port) also uses the VPDMA library. This channel
+> >> information will be used to populate fields required by data descriptors.
+> >> 
+> >> - Data structs which describe the different data types supported by
+> >> VPDMA. This data type information will be used to populate fields
+> >> required by data descriptors and used by the VPE driver to map a V4L2
+> >> format to the corresponding VPDMA data type.
+> >> 
+> >> - Provide VPDMA register offset definitions, functions to read, write and
+> >> modify VPDMA registers.
+> >> 
+> >> - Functions to create and submit a VPDMA list. A list is a group of
+> >> descriptors that makes up a set of DMA transfers that need to be
+> >> completed. Each descriptor will either perform a DMA transaction to fetch
+> >> input buffers and write to output buffers(data descriptors), or configure
+> >> the MMRs of sub blocks of VPE(configuration descriptors), or provide
+> >> control information to VPDMA (control descriptors).
+> >> 
+> >> - Functions to allocate, map and unmap buffers needed for the descriptor
+> >> list, payloads containing MMR values and motion vector buffers. These use
+> >> the DMA mapping APIs to ensure exclusive access to VPDMA.
+> >> 
+> >> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on
+> >> the VPE interrupt line when a descriptor list is parsed completely and
+> >> the DMA transactions are completed. This requires masking the events in
+> >> VPDMA registers and configuring some top level VPE interrupt registers.
+> >> 
+> >> - Enable some VPDMA specific parameters: frame start event(when to start
+> >> DMA for a client) and line mode(whether each line fetched should be
+> >> mirrored or not).
+> >> 
+> >> - Function to load firmware required by VPDMA. VPDMA requires a firmware
+> >> for it's internal list manager. We add the required request_firmware
+> >> apis to fetch this firmware from user space.
+> >> 
+> >> - Function to dump VPDMA registers.
+> >> 
+> >> - A function to initialize VPDMA, this will be called by the VPE driver
+> >> with it's platform device pointer, this function will take care of
+> >> loading VPDMA firmware and returning a handle back to the VPE driver.
+> >> The VIP driver will also call the same init function to initialize it's
+> >> own VPDMA instance.
+> >> 
+> >> Signed-off-by: Archit Taneja <archit@ti.com>
 
-The binding of this sensors shows some issue in the generic video-interfaces
-binding. Namely The video bus type (serial MIPI CSI-2, parallel ITU-R BT.656,
-etc.) is being determined by the binding parser (v4l2-of.c) depending on what
-properties are found in an enddpoint node.
+[snip]
 
-Please have a look at the data-lanes property description. The sensor supports
-MIPI CSI-2 and SMIA CCP2 interfaces which both use one data lane. One data lane
-is everything this sensors supports. During our discussions on the generic
-bidings in the past I proposed to introduce a property in the endpoint node
-that would indicate what bus type (standard/protocol) is used, e.g. MIPI CSI-2,
-ITU-R BT.656, SMIA CCP2, etc. It was argued though that we can well determine
-bus type based on properties found in the endpoint node.
+> >> +/*
+> >> + * Allocate a DMA buffer
+> >> + */
+> >> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
+> >> +{
+> >> +	buf->size = size;
+> >> +	buf->mapped = 0;
+> >> +	buf->addr = kzalloc(size, GFP_KERNEL);
+> > 
+> > You should use the dma allocation API (depending on your needs,
+> > dma_alloc_coherent for instance) to allocate DMA-able buffers.
+> 
+> I'm not sure about this, dma_map_single() api works fine on kzalloc'd
+> buffers. The above function is used to allocate small contiguous buffers
+> (never more than 1024 bytes) needed for descriptors for the DMA IP. I
+> thought of using DMA pool, but that creates small buffers of the same size.
+> So I finally went with kzalloc.
 
-So now in case of this sensor I'm not sure how it can be differentiated
-whether MIPI CSI-2 or CCP2 bus is used. There is no CCP2 specific generic
-properties yet. Anyway I'm not really happy there is no property like bus_type
-that would clearly indicate what data bus type is used. Then would would for
-instance not specify "data-lanes" in endpoint node just to differentiate
-between MIPI CSI-2 and the parallel busses.
+OK, I mistakenly thought it would allocate larger buffers as well. If it's 
+used to allocate descriptors only, would it be better to rename it to 
+vpdma_desc_alloc() (or something similar) ?
 
-The main issue for this particular binding is that even with data-lanes = <1>;
-it is still impossible to figure out whether MIPI CSI-2 or SMIA CCP2 data bus
-is used.
+> >> +	if (!buf->addr)
+> >> +		return -ENOMEM;
+> >> +
+> >> +	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
+> >> +
+> >> +	return 0;
+> >> +}
 
-So how about introducing, e.g. a string type "bus_type" common property ?
-I'm considering starting a separate thread for discussing this.
----
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   31 ++++++++++++++++++++
- 1 file changed, 31 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+[snip]
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-new file mode 100644
-index 0000000..a51fbe8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-@@ -0,0 +1,31 @@
-+Samsung S5K6A3(YX) raw image sensor
-+---------------------------------
-+
-+S5K6A3YX is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible	: "samsung,s5k6a3yx";
-+- reg		: I2C slave address of the sensor;
-+- svdda-supply	: core voltage supply;
-+- svddio-supply	: I/O voltage supply;
-+- gpios		: specifier of a GPIO connected to the RESET pin;
-+- clocks	: should contain the sensor's EXTCLK clock specifier, from
-+		  the common clock bindings.
-+- clock-names	: should contain "extclk" entry;
-+
-+Optional properties:
-+
-+- clock-frequency : the frequency at which the "extclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The S5K6A3(YX) device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Following properties are valid for the endpoint node:
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+  video-interfaces.txt.  The sensor supports only one data lane.
---
-1.7.9.5
+> >> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
+> >> +{
+> >> +	int r;
+> >> +	struct device *dev = &vpdma->pdev->dev;
+> >> +
+> >> +	r = request_firmware_nowait(THIS_MODULE, 1,
+> >> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
+> >> +		vpdma_firmware_cb);
+> > 
+> > Is there a reason not to use the synchronous interface ? That would
+> > simplify both this code and the callers, as they won't have to check
+> > whether the firmware has been correctly loaded.
+> 
+> I'm not clear what you mean by that, the firmware would be stored in the
+> filesystem. If the driver is built-in, then the synchronous interface
+> wouldn't work unless the firmware is appended to the kernel image. Am I
+> missing something here? I'm not very aware of the firmware api.
+
+request_firmware() would just sleep (with a 30 seconds timeout if I'm not 
+mistaken) until userspace provides the firmware. As devices are probed 
+asynchronously (in kernel threads) the system will just boot normally, and the 
+request_firmware() call will return when the firmware is available.
+
+> >> +	if (r) {
+> >> +		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
+> >> +		return r;
+> >> +	} else {
+> >> +		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
 
