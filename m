@@ -1,104 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4833 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756371Ab3HFS2z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 14:28:55 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r76ISq2I023518
-	for <linux-media@vger.kernel.org>; Tue, 6 Aug 2013 20:28:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 6 Aug 2013 20:28:52 +0200 (CEST)
-Message-Id: <201308061828.r76ISq2I023518@smtp-vbr11.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 5BBCB2A075D
-	for <linux-media@vger.kernel.org>; Tue,  6 Aug 2013 20:28:50 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3717 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229Ab3HTG2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 02:28:24 -0400
+Message-ID: <52130C6D.6010601@xs4all.nl>
+Date: Tue, 20 Aug 2013 08:27:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Shaik Ameer Basha <shaik.samsung@gmail.com>
+CC: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Arun Kumar K <arun.kk@samsung.com>
+Subject: Re: [PATCH v2 2/5] [media] exynos-mscl: Add core functionality for
+ the M-Scaler driver
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-3-git-send-email-shaik.ameer@samsung.com> <52121844.3030300@xs4all.nl> <CAOD6ATqTz+xTqwXe0PvQq43fk4AiAdcMy-RwbOczU++dXZOyyQ@mail.gmail.com>
+In-Reply-To: <CAOD6ATqTz+xTqwXe0PvQq43fk4AiAdcMy-RwbOczU++dXZOyyQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 08/20/2013 07:43 AM, Shaik Ameer Basha wrote:
+> + linux-media, linux-samsung-soc
+> 
+> Hi Hans,
+> 
+> Thanks for the review.
+> Will address all your comments in v3.
+> 
+> I have only one doubt regarding try_ctrl... (addressed inline)
+> 
+> 
+> On Mon, Aug 19, 2013 at 6:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
+>>> This patch adds the core functionality for the M-Scaler driver.
+>>
+>> Some more comments below...
+>>
+>>>
+>>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>>> ---
+>>>  drivers/media/platform/exynos-mscl/mscl-core.c | 1312 ++++++++++++++++++++++++
+>>>  drivers/media/platform/exynos-mscl/mscl-core.h |  549 ++++++++++
+>>>  2 files changed, 1861 insertions(+)
+>>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.c
+>>>  create mode 100644 drivers/media/platform/exynos-mscl/mscl-core.h
+>>>
+>>> diff --git a/drivers/media/platform/exynos-mscl/mscl-core.c b/drivers/media/platform/exynos-mscl/mscl-core.c
+>>> new file mode 100644
+>>> index 0000000..4a3a851
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/exynos-mscl/mscl-core.c
+>>> @@ -0,0 +1,1312 @@
+>>> +/*
+>>> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
+>>> + *           http://www.samsung.com
+>>> + *
+>>> + * Samsung EXYNOS5 SoC series M-Scaler driver
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License as published
+>>> + * by the Free Software Foundation, either version 2 of the License,
+>>> + * or (at your option) any later version.
+>>> + */
+>>> +
+>>> +#include <linux/clk.h>
+>>> +#include <linux/interrupt.h>
+> 
+> [snip]
+> 
+>>> +
+>>> +static int __mscl_s_ctrl(struct mscl_ctx *ctx, struct v4l2_ctrl *ctrl)
+>>> +{
+>>> +     struct mscl_dev *mscl = ctx->mscl_dev;
+>>> +     struct mscl_variant *variant = mscl->variant;
+>>> +     unsigned int flags = MSCL_DST_FMT | MSCL_SRC_FMT;
+>>> +     int ret = 0;
+>>> +
+>>> +     if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
+>>> +             return 0;
+>>
+>> Why would you want to do this check?
+> 
+> Will remove this. seems no such check is required for this driver.
+> 
+>>
+>>> +
+>>> +     switch (ctrl->id) {
+>>> +     case V4L2_CID_HFLIP:
+>>> +             ctx->hflip = ctrl->val;
+>>> +             break;
+>>> +
+>>> +     case V4L2_CID_VFLIP:
+>>> +             ctx->vflip = ctrl->val;
+>>> +             break;
+>>> +
+>>> +     case V4L2_CID_ROTATE:
+>>> +             if ((ctx->state & flags) == flags) {
+>>> +                     ret = mscl_check_scaler_ratio(variant,
+>>> +                                     ctx->s_frame.crop.width,
+>>> +                                     ctx->s_frame.crop.height,
+>>> +                                     ctx->d_frame.crop.width,
+>>> +                                     ctx->d_frame.crop.height,
+>>> +                                     ctx->ctrls_mscl.rotate->val);
+>>> +
+>>> +                     if (ret)
+>>> +                             return -EINVAL;
+>>> +             }
+>>
+>> I think it would be good if the try_ctrl op is implemented so you can call
+>> VIDIOC_EXT_TRY_CTRLS in the application to check if the ROTATE control can be
+>> set.
+> 
+> * @try_ctrl: Test whether the control's value is valid. Only relevant when
+> * the usual min/max/step checks are not sufficient.
+> 
+> As we support only 0,90,270 and the min, max and step can address these values,
+> does it really relevant to have try_ctrl op here ???
 
-Results of the daily build of media_tree:
+Well, you seem to have an additional mscl_check_scaler_ratio check here that can
+make it fail, in other words: the min/max/step checks aren't sufficient.
 
-date:		Tue Aug  6 19:00:17 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-i686: OK
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
