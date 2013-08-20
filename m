@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:45682 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753932Ab3HVSGJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 14:06:09 -0400
-Date: Thu, 22 Aug 2013 15:06:04 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Javier =?utf-8?B?QsO6Y2Fy?= <jbucar@lifia.info.unlp.edu.ar>
-Cc: Luis Polasek <lpolasek@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Olivier GRENIE <olivier.grenie@parrot.com>,
-	Patrick BOETTCHER <patrick.boettcher@parrot.com>
-Subject: Re: dib8000 scanning not working on 3.10.3
-Message-ID: <20130822180603.GA14784@localhost>
-References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
- <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
- <20130801163624.GA10498@localhost>
- <20130801141518.258ff0a3@samsung.com>
- <CAER7dwe9biLNZKtW6xQmD8J0Qmh4dMTi=chpUuQ_Dq5KKxJ5UQ@mail.gmail.com>
- <20130805172605.1ba32958@samsung.com>
- <CAER7dwcDxa4=i453tOU21ZJP9Opd01mZ-QYrLpQTcgB_yU4B+Q@mail.gmail.com>
- <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11397 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751049Ab3HTOll (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 10:41:41 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r7KEffYe030819
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 10:41:41 -0400
+Received: from shalem.localdomain (vpn1-5-160.ams2.redhat.com [10.36.5.160])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id r7KEfdbH019811
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 10:41:40 -0400
+Message-ID: <52138023.2090205@redhat.com>
+Date: Tue, 20 Aug 2013 16:41:39 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL for 3.12] New gspca webcam driver + misc fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, Javier,
+Hi Mauro,
 
-On Thu, Aug 22, 2013 at 02:47:33PM -0300, Javier Búcar wrote:
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=173a64cb3fcff1993b2aa8113e53fd379f6a968f
-> 
-> This is a very big commit. I don't known where to fix it. Can you help
+Please pull from my gspca tree for a new webcam driver + misc fixes.
 
-That's not a commit: that's a monster :-(
+The following changes since commit bfd22c490bc74f9603ea90c37823036660a313e2:
 
-That should have been heavily splitted. Now a user (Javier and Luis)
-is allegedly reporting a regression, but that commit is almost
-impossible to understand, and probably very difficult to revert.
+   v4l2-common: warning fix (W=1): add a missed function prototype (2013-08-18 10:18:30 -0300)
 
-I hate to get grumpy, but this does not look nice!
-Even the commit log sucks: what does ""dib8000: enhancement"" suppose to mean?
+are available in the git repository at:
 
-Javier/Luis: (for the second time) please try to avoid top-posting
-in the future, it breaks the thread discussion.
--- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.12
+
+for you to fetch changes up to b5ad203a7dc1546a20e615504621adcb0124a9b4:
+
+   introduce gspca-stk1135: Syntek STK1135 driver (2013-08-20 15:35:16 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+       gspca: fix dev_open() error path
+
+Antonio Ospite (1):
+       gspca-ov534: don't call sd_start() from sd_init()
+
+Hans de Goede (1):
+       radio-si470x-usb: Remove software version check
+
+Ondrej Zary (1):
+       introduce gspca-stk1135: Syntek STK1135 driver
+
+  drivers/media/radio/si470x/radio-si470x-usb.c |  11 -
+  drivers/media/usb/gspca/Kconfig               |   9 +
+  drivers/media/usb/gspca/Makefile              |   2 +
+  drivers/media/usb/gspca/gspca.c               |   6 +-
+  drivers/media/usb/gspca/ov534.c               |   3 +-
+  drivers/media/usb/gspca/stk1135.c             | 685 ++++++++++++++++++++++++++
+  drivers/media/usb/gspca/stk1135.h             |  57 +++
+  7 files changed, 759 insertions(+), 14 deletions(-)
+  create mode 100644 drivers/media/usb/gspca/stk1135.c
+  create mode 100644 drivers/media/usb/gspca/stk1135.h
+
+Thanks & Regards,
+
+Hans
