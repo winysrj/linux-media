@@ -1,151 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48319 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751641Ab3HUKdl (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47719 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751226Ab3HTRda (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 06:33:41 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Cc: maarten.lankhorst@canonical.com, sumit.semwal@linaro.org,
-	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH v2 2/2] dma-buf: Add user interfaces for dmabuf sync support
-Date: Wed, 21 Aug 2013 19:33:35 +0900
-Message-id: <1377081215-5948-3-git-send-email-inki.dae@samsung.com>
-In-reply-to: <1377081215-5948-1-git-send-email-inki.dae@samsung.com>
-References: <1377081215-5948-1-git-send-email-inki.dae@samsung.com>
+	Tue, 20 Aug 2013 13:33:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oliver Neukum <oliver@neukum.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvc: more buffers
+Date: Tue, 20 Aug 2013 19:34:43 +0200
+Message-ID: <12081572.xS4pFlgJZG@avalon>
+In-Reply-To: <1376298115.2689.13.camel@linux-fkkt.site>
+References: <1376053896-8931-1-git-send-email-oliver@neukum.org> <2017146.oxz2IcHa3F@avalon> <1376298115.2689.13.camel@linux-fkkt.site>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds lock and poll callbacks to dma buf file operations,
-and these callbacks will be called by fcntl and select system calls.
+Hi Oliver,
 
-fcntl and select system calls can be used to wait for the completion
-of DMA or CPU access to a shared dmabuf. The difference of them is
-fcntl system call takes a lock after the completion but select system
-call doesn't. So in case of fcntl system call, it's useful when a task
-wants to access a shared dmabuf without any broken. On the other hand,
-it's useful when a task wants to just wait for the completion.
+On Monday 12 August 2013 11:01:55 Oliver Neukum wrote:
+> On Fri, 2013-08-09 at 15:58 +0200, Laurent Pinchart wrote:
+> > > This is necessary to let the new generation of cameras from LiteOn used
+> > > in Haswell ULT notebook operate. Otherwise the images will be truncated.
+> > 
+> > Could you please post the lsusb -v output for the device ?
+> 
+> It is attached.
 
-Changelog v2:
-- Add select system call support.
-  . The purpose of this feature is to wait for the completion of DMA or
-    CPU access to a dmabuf without that caller locks the dmabuf again
-    after the completion.
-    That is useful when caller wants to be aware of the completion of
-    DMA access to the dmabuf, and the caller doesn't use intefaces for
-    the DMA device driver.
+No it isn't :-)
 
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/base/dma-buf.c |   81 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 81 insertions(+), 0 deletions(-)
+> > Why does it need more buffers, is it a superspeed webcam ?
+> 
+> No. It is HS.
+> 
+> > > Signed-off-by: Oliver Neukum <oneukum@suse.de>
+> > > ---
+> > > 
+> > >  drivers/media/usb/uvc/uvcvideo.h | 4 ++--
+> > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> > > b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..9f1930b 100644
+> > > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > > @@ -114,9 +114,9 @@
+> > > 
+> > >  /* Number of isochronous URBs. */
+> > >  #define UVC_URBS		5
+> > >  /* Maximum number of packets per URB. */
+> > > 
+> > > -#define UVC_MAX_PACKETS		32
+> > > +#define UVC_MAX_PACKETS		128
+> > 
+> > That would mean up to 384KiB per URB. While not unreasonable, I'd like to
+> > know how much data your camera produces to require this.
+> 
+> How to determine that?
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 4aca57a..f16a396 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -29,6 +29,7 @@
- #include <linux/export.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/poll.h>
- #include <linux/dmabuf-sync.h>
- 
- static inline int is_dma_buf_file(struct file *);
-@@ -80,9 +81,89 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
- 	return dmabuf->ops->mmap(dmabuf, vma);
- }
- 
-+static unsigned int dma_buf_poll(struct file *filp,
-+					struct poll_table_struct *poll)
-+{
-+	struct dma_buf *dmabuf;
-+	struct dmabuf_sync_reservation *robj;
-+	int ret = 0;
-+
-+	if (!is_dma_buf_file(filp))
-+		return POLLERR;
-+
-+	dmabuf = filp->private_data;
-+	if (!dmabuf || !dmabuf->sync)
-+		return POLLERR;
-+
-+	robj = dmabuf->sync;
-+
-+	mutex_lock(&robj->lock);
-+
-+	robj->polled = true;
-+
-+	/*
-+	 * CPU or DMA access to this buffer has been completed, and
-+	 * the blocked task has been waked up. Return poll event
-+	 * so that the task can get out of select().
-+	 */
-+	if (robj->poll_event) {
-+		robj->poll_event = false;
-+		mutex_unlock(&robj->lock);
-+		return POLLIN | POLLOUT;
-+	}
-+
-+	/*
-+	 * There is no anyone accessing this buffer so just return.
-+	 */
-+	if (!robj->locked) {
-+		mutex_unlock(&robj->lock);
-+		return POLLIN | POLLOUT;
-+	}
-+
-+	poll_wait(filp, &robj->poll_wait, poll);
-+
-+	mutex_unlock(&robj->lock);
-+
-+	return ret;
-+}
-+
-+static int dma_buf_lock(struct file *file, int cmd, struct file_lock *fl)
-+{
-+	struct dma_buf *dmabuf;
-+	unsigned int type;
-+	bool wait = false;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
-+
-+	dmabuf = file->private_data;
-+
-+	if ((fl->fl_type & F_UNLCK) == F_UNLCK) {
-+		dmabuf_sync_single_unlock(dmabuf);
-+		return 0;
-+	}
-+
-+	/* convert flock type to dmabuf sync type. */
-+	if ((fl->fl_type & F_WRLCK) == F_WRLCK)
-+		type = DMA_BUF_ACCESS_W;
-+	else if ((fl->fl_type & F_RDLCK) == F_RDLCK)
-+		type = DMA_BUF_ACCESS_R;
-+	else
-+		return -EINVAL;
-+
-+	if (fl->fl_flags & FL_SLEEP)
-+		wait = true;
-+
-+	/* TODO. the locking to certain region should also be considered. */
-+
-+	return dmabuf_sync_single_lock(dmabuf, type, wait);
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
-+	.poll		= dma_buf_poll,
-+	.lock		= dma_buf_lock,
- };
- 
- /*
+The UVC descriptors might provide some information.
+
+Do you get errors in the kernel log with UVC_MAX_PACKETS set to 32 ?
+
+> > >  /* Maximum number of video buffers. */
+> > > 
+> > > -#define UVC_MAX_VIDEO_BUFFERS	32
+> > > +#define UVC_MAX_VIDEO_BUFFERS	128
+> > 
+> > I don't think your camera really needs more than 32 V4L2 (full frame)
+> > buffers :-)
+> 
+> Unfortunately, experimental evidence is that it does need them at
+> resolutions above 640x480
+
+Could you please test it again with UVC_MAX_PACKETS set to 128 and 
+UVC_MAX_VIDEO_BUFFERS set to 32 ? UVC_MAX_VIDEO_BUFFERS sets the maximum 
+number of V4L2 full frame buffers, even 32 is probably way too high.
+
 -- 
-1.7.5.4
+Regards,
+
+Laurent Pinchart
 
