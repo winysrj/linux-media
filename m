@@ -1,104 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3192 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966076Ab3HHS2x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 14:28:53 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r78ISom7076600
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 20:28:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 8 Aug 2013 20:28:50 +0200 (CEST)
-Message-Id: <201308081828.r78ISom7076600@smtp-vbr2.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id D275D2A075D
-	for <linux-media@vger.kernel.org>; Thu,  8 Aug 2013 20:28:44 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:39923 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751012Ab3HTMxP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 08:53:15 -0400
+MIME-Version: 1.0
+In-Reply-To: <52135A29.80203@samsung.com>
+References: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+	<1376644845-10422-2-git-send-email-arun.kk@samsung.com>
+	<52135A29.80203@samsung.com>
+Date: Tue, 20 Aug 2013 18:23:14 +0530
+Message-ID: <CALt3h78N=BA1_6LmuYkrpKBWwEMx_6hWUftXrKKT0+FFGn-7_g@mail.gmail.com>
+Subject: Re: [PATCH v6 01/13] [media] exynos5-is: Adding media device driver
+ for exynos5
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	kilyeon.im@samsung.com, Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sylwester,
 
-Results of the daily build of media_tree:
+On Tue, Aug 20, 2013 at 5:29 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Cc: Pawel, Kumar
+>
+> On 08/16/2013 11:20 AM, Arun Kumar K wrote:
+>> From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>>
+>> This patch adds support for media device for EXYNOS5 SoCs.
+>> The current media device supports the following ips to connect
+>> through the media controller framework.
+>>
+>> * MIPI-CSIS
+>>   Support interconnection(subdev interface) between devices
+>>
+>> * FIMC-LITE
+>>   Support capture interface from device(Sensor, MIPI-CSIS) to memory
+>>   Support interconnection(subdev interface) between devices
+>>
+>> * FIMC-IS
+>>   Camera post-processing IP having multiple sub-nodes.
+>>
+>> G-Scaler will be added later to the current media device.
+>>
+>> The media device creates two kinds of pipelines for connecting
+>> the above mentioned IPs.
+>> The pipeline0 is uses Sensor, MIPI-CSIS and FIMC-LITE which captures
+>> image data and dumps to memory.
+>> Pipeline1 uses FIMC-IS components for doing post-processing
+>> operations on the captured image and give scaled YUV output.
+>>
+>> Pipeline0
+>>   +--------+     +-----------+     +-----------+     +--------+
+>>   | Sensor | --> | MIPI-CSIS | --> | FIMC-LITE | --> | Memory |
+>>   +--------+     +-----------+     +-----------+     +--------+
+>>
+>> Pipeline1
+>>  +--------+      +--------+     +-----------+     +-----------+
+>>  | Memory | -->  |  ISP   | --> |    SCC    | --> |    SCP    |
+>>  +--------+      +--------+     +-----------+     +-----------+
+>>
+>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> ---
+>>  .../devicetree/bindings/media/exynos5-mdev.txt     |  126 ++
+>>  drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1210 ++++++++++++++++++++
+>>  drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
+>>  3 files changed, 1462 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/exynos5-mdev.txt
+>>  create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
+>>  create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-mdev.txt b/Documentation/devicetree/bindings/media/exynos5-mdev.txt
+>> new file mode 100644
+>> index 0000000..b1299e2
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-mdev.txt
+>
+> Sorry, I missed this previously. How about renaming this file to something
+> more specific to the subsystem it describes, e.g. exynos5250-camera.txt ?
+>
+>> @@ -0,0 +1,126 @@
+>> +Samsung EXYNOS5 SoC Camera Subsystem
+>> +------------------------------------
+>> +
+>> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
+>> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
+>> +MIPI CSIS and FIMC-IS.
+>> +
+>> +The sub-device nodes are referenced using phandles in the common 'camera' node
+>> +which also includes common properties of the whole subsystem not really
+>> +specific to any single sub-device, like common camera port pins or the common
+>> +camera bus clocks.
+>> +
+>> +Common 'camera' node
+>> +--------------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible         : must be "samsung,exynos5250-fimc"
+>> +- clocks             : list of clock specifiers, corresponding to entries in
+>> +                          the clock-names property;
+>> +- clock-names                : must contain "sclk_bayer" entry
+>> +- samsung,csis               : list of phandles to the mipi-csis device nodes
+>> +- samsung,fimc-lite  : list of phandles to the fimc-lite device nodes
+>> +- samsung,fimc-is    : phandle to the fimc-is device node
+>> +
+>> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+>> +to define a required pinctrl state named "default".
+>> +
+>> +'parallel-ports' node
+>> +---------------------
+>> +
+>> +This node should contain child 'port' nodes specifying active parallel video
+>> +input ports. It includes camera A, camera B and RGB bay inputs.
+>> +'reg' property in the port nodes specifies the input type:
+>> + 1 - parallel camport A
+>> + 2 - parallel camport B
+>> + 5 - RGB camera bay
+>> +
+>> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
+>> +
+>> +Image sensor nodes
+>> +------------------
+>> +
+>> +The sensor device nodes should be added to their control bus controller (e.g.
+>> +I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
+>> +using the common video interfaces bindings, defined in video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +     aliases {
+>> +             fimc-lite0 = &fimc_lite_0
+>> +     };
+>> +
+>> +     /* Parallel bus IF sensor */
+>> +     i2c_0: i2c@13860000 {
+>> +             s5k6aa: sensor@3c {
+>> +                     compatible = "samsung,s5k6aafx";
+>> +                     reg = <0x3c>;
+>> +                     vddio-supply = <...>;
+>> +
+>> +                     clock-frequency = <24000000>;
+>> +                     clocks = <...>;
+>> +                     clock-names = "mclk";
+>> +
+>> +                     port {
+>> +                             s5k6aa_ep: endpoint {
+>> +                                     remote-endpoint = <&fimc0_ep>;
+>> +                                     bus-width = <8>;
+>> +                                     hsync-active = <0>;
+>> +                                     vsync-active = <1>;
+>> +                                     pclk-sample = <1>;
+>> +                             };
+>> +                     };
+>> +             };
+>> +     };
+>> +
+>> +     /* MIPI CSI-2 bus IF sensor */
+>> +     s5c73m3: sensor@1a {
+>> +             compatible = "samsung,s5c73m3";
+>> +             reg = <0x1a>;
+>> +             vddio-supply = <...>;
+>> +
+>> +             clock-frequency = <24000000>;
+>> +             clocks = <...>;
+>> +             clock-names = "mclk";
+>> +
+>> +             port {
+>> +                     s5c73m3_1: endpoint {
+>> +                             data-lanes = <1 2 3 4>;
+>> +                             remote-endpoint = <&csis0_ep>;
+>> +                     };
+>> +             };
+>> +     };
+>> +
+>> +     camera {
+>> +             compatible = "samsung,exynos5250-fimc";
+>> +             #address-cells = <1>;
+>> +             #size-cells = <1>;
+>> +             status = "okay";
+>> +
+>> +             pinctrl-names = "default";
+>> +             pinctrl-0 = <&cam_port_a_clk_active>;
+>> +
+>> +             samsung,csis = <&csis_0>, <&csis_1>;
+>> +             samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
+>> +             samsung,fimc-is = <&fimc_is>;
+>> +
+>> +             /* parallel camera ports */
+>> +             parallel-ports {
+>> +                     /* camera A input */
+>> +                     port@0 {
+>
+> This should be port@1
+>
+>> +                             reg = <0>;
+>
+> and reg = <1>;
+>
+>> +                             camport_a_ep: endpoint {
+>> +                                     remote-endpoint = <&s5k6aa_ep>;
+>> +                                     bus-width = <8>;
+>> +                                     hsync-active = <0>;
+>> +                                     vsync-active = <1>;
+>> +                                     pclk-sample = <1>;
+>> +                             };
+>> +                     };
+>> +             };
+>> +     };
+>> +
+>> +MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
+>> +device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
+>> +is defined in exynos5-fimc-is.txt.
+>
+> Otherwise looks good to me. I think we now need an Ack from the DT
+> maintainers. If they are OK with the binding I could queue this whole
+> series for v3.12 this week, once you resend patches #1, #2.
+>
 
-date:		Thu Aug  8 19:00:17 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+Will resend the patch series with your comments incorporated.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards
+Arun
