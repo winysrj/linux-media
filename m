@@ -1,218 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51208 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756377Ab3HYWzx (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46157 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751012Ab3HTMwh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Aug 2013 18:55:53 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
-	hverkuil@xs4all.nl
-Subject: [PATCH v4 2/3] v4l: Use full 32 bits for buffer flags
-Date: Mon, 26 Aug 2013 02:02:02 +0300
-Message-Id: <1377471723-22341-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
-References: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 20 Aug 2013 08:52:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Su Jiaquan <jiaquan.lnx@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
+Subject: Re: How to express planar formats with mediabus format code?
+Date: Tue, 20 Aug 2013 14:53:48 +0200
+Message-ID: <2205654.JNC8mWJ5su@avalon>
+In-Reply-To: <CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com> <CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com> <CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer flags field is 32 bits but the defined only used 16. This is
-fine, but as more than 16 bits will be used in the very near future, define
-them as 32-bit numbers for consistency.
+Hi Jiaquan,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
- include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++-------------
- 2 files changed, 38 insertions(+), 30 deletions(-)
+On Thursday 15 August 2013 16:27:43 Su Jiaquan wrote:
+> On Sat, Aug 10, 2013 at 1:06 AM, Su Jiaquan <jiaquan.lnx@gmail.com> wrote:
+> > On Fri, Aug 9, 2013 at 5:12 AM, Laurent Pinchart wrote:
+> >> On Tuesday 06 August 2013 17:18:14 Su Jiaquan wrote:
+> >>> On Mon, Aug 5, 2013 at 5:02 AM, Guennadi Liakhovetski wrote:
+> >>> > On Sun, 4 Aug 2013, Su Jiaquan wrote:
+> >>> >> Hi,
+> >>> >> 
+> >>> >> I know the title looks crazy, but here is our problem:
+> >>> >> 
+> >>> >> In our SoC based ISP, the hardware can be divide to several blocks.
+> >>> >> Some blocks can do color space conversion(raw to YUV
+> >>> >> interleave/planar), others can do the pixel re-
+> >>> >> order(interleave/planar/semi-planar conversion, UV planar switch). We
+> >>> >> use one subdev to describe each of them, then came the problem: How
+> >>> >> can we express the planar formats with mediabus format code?
+> >>> > 
+> >>> > Could you please explain more exactly what you mean? How are those
+> >>> > your blocks connected? How do they exchange data? If they exchange
+> >>> > data over a serial bus, then I don't think planar formats make sense,
+> >>> > right? Or do your blocks really output planes one after another,
+> >>> > reordering data internally? That would be odd... If OTOH your blocks
+> >>> > output data to RAM, and the next block takes data from there, then you
+> >>> > use V4L2_PIX_FMT_* formats to describe them and any further processing
+> >>> > block should be a mem2mem device. Wouldn't this work?
+> >>> 
+> >>> These two hardware blocks are both located inside of ISP, and is
+> >>> connected by a hardware data bus.
+> >>> 
+> >>> Actually, there are three blocks inside ISP: One is close to sensor, and
+> >>> can do color space conversion(RGB->YUV), we call it IPC; The other two
+> >>> are at back end, which are basically DMA Engine, and they are
+> >>> identical. When data flow out of IPC, it can go into each one of these
+> >>> DMA Engines and finally into RAM. Whether the DMA Engine is turned
+> >>> on/off and the output format can be controlled independently. Since
+> >>> they are DMA Engines, they have some basic pixel reordering
+> >>> ability(i.e. interleave->planar/semi-planar).
+> >>> 
+> >>> In our H/W design, when we want to get YUV semi-planar format, the IPC
+> >>> output should be configured to interleave, and the DMA engine will do
+> >>> the interleave->semi-planar job. If we want planar / interleave format,
+> >>> the IPC will output planar format directly, DMA engine simply send the
+> >>> data to RAM, and don't do any re-order. So in the planar output case,
+> >>> media-bus formats can't express the format of the data between IPC and
+> >>> DMA Engine, that's the problem we meet.
+> >> 
+> >> If the format between the two subdevs is really planar, I don't see any
+> >> problem defining a media bus pixel code for it. You will have to properly
+> >> document the format of course.
+> >> 
+> >> I'm a bit surprised that the IPC could output planar data. It would need
+> >> to buffer a whole image to do so, do you need to give it a temporary
+> >> system RAM buffer ?
+> >> 
+> >>> We want to adopt a formal solution before we send our patch to the
+> >>> community, that's where our headache comes.
+> > 
+> > Thanks for the reply!
+> > 
+> > Actually, we don't need to buffer the frame inside IPC, there are
+> > three channels in the data bus. When transfering interleave format,
+> > only one channel is used, for planar formats, three channels send one
+> > planar each, and to difference address(Let me confirm this with our
+> > H/W team and get back to you later). So the planars is not sent one
+> > after an other, but in parallel.
+> > 
+> > This may be a bit different from the planar formats as people think it
+> > should be. Can we use planar format to describe it? Since this won't
+> > cause any misunderstanding given it's used in this special case.
+> > Please advice.
+> > 
+> 
+> I have to say I'm sorry for the wrong information. I just double checked
+> with hardware team, and turns out there is only one channel for the data bus
+> between IPC and ispdma.
+> If ispdma output planar format, the data format between IPC and ispdma
+> should be configured to a special format, that is not the same with any know
+> media-bus format.
+> So I think what we need is to define vendor-specific media-bus code.
+> Since others any want to do the same thing, shall we define a base address
+> for the vendor specific formats? For example:
+> 
+> enum v4l2_mbus_pixelcode {
+>     V4L2_MBUS_FMT_FIXED = 0x0001,
+> 
+>     ...
+> 
+> /* JPEG compressed formats - next is 0x4002 */
+>     V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+> +   V4L2_MBUS_FMT_PRIVATE_BASE = 0xF001,
+> };
+> 
+> If you are OK with this, I'll prepare a patch to add it
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index cd5f9de..b9a83bc 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -985,7 +985,7 @@ should set this to 0.</entry>
- 	<tbody valign="top">
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_MAPPED</constant></entry>
--	    <entry>0x0001</entry>
-+	    <entry>0x00000001</entry>
- 	    <entry>The buffer resides in device memory and has been mapped
- into the application's address space, see <xref linkend="mmap" /> for details.
- Drivers set or clear this flag when the
-@@ -995,7 +995,7 @@ Drivers set or clear this flag when the
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_QUEUED</constant></entry>
--	    <entry>0x0002</entry>
-+	    <entry>0x00000002</entry>
- 	  <entry>Internally drivers maintain two buffer queues, an
- incoming and outgoing queue. When this flag is set, the buffer is
- currently on the incoming queue. It automatically moves to the
-@@ -1008,7 +1008,7 @@ cleared.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_DONE</constant></entry>
--	    <entry>0x0004</entry>
-+	    <entry>0x00000004</entry>
- 	    <entry>When this flag is set, the buffer is currently on
- the outgoing queue, ready to be dequeued from the driver. Drivers set
- or clear this flag when the <constant>VIDIOC_QUERYBUF</constant> ioctl
-@@ -1022,7 +1022,7 @@ state, in the application domain to say so.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_ERROR</constant></entry>
--	    <entry>0x0040</entry>
-+	    <entry>0x00000040</entry>
- 	    <entry>When this flag is set, the buffer has been dequeued
- 	    successfully, although the data might have been corrupted.
- 	    This is recoverable, streaming may continue as normal and
-@@ -1032,7 +1032,7 @@ state, in the application domain to say so.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_KEYFRAME</constant></entry>
--	    <entry>0x0008</entry>
-+	    <entry>0x00000008</entry>
- 	  <entry>Drivers set or clear this flag when calling the
- <constant>VIDIOC_DQBUF</constant> ioctl. It may be set by video
- capture devices when the buffer contains a compressed image which is a
-@@ -1040,27 +1040,27 @@ key frame (or field), &ie; can be decompressed on its own.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_PFRAME</constant></entry>
--	    <entry>0x0010</entry>
-+	    <entry>0x00000010</entry>
- 	    <entry>Similar to <constant>V4L2_BUF_FLAG_KEYFRAME</constant>
- this flags predicted frames or fields which contain only differences to a
- previous key frame.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_BFRAME</constant></entry>
--	    <entry>0x0020</entry>
-+	    <entry>0x00000020</entry>
- 	    <entry>Similar to <constant>V4L2_BUF_FLAG_PFRAME</constant>
- 	this is a bidirectional predicted frame or field. [ooc tbd]</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMECODE</constant></entry>
--	    <entry>0x0100</entry>
-+	    <entry>0x00000100</entry>
- 	    <entry>The <structfield>timecode</structfield> field is valid.
- Drivers set or clear this flag when the <constant>VIDIOC_DQBUF</constant>
- ioctl is called.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
--	    <entry>0x0400</entry>
-+	    <entry>0x00000400</entry>
- 	    <entry>The buffer has been prepared for I/O and can be queued by the
- application. Drivers set or clear this flag when the
- <link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
-@@ -1070,7 +1070,7 @@ application. Drivers set or clear this flag when the
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
--	    <entry>0x0800</entry>
-+	    <entry>0x00000800</entry>
- 	    <entry>Caches do not have to be invalidated for this buffer.
- Typically applications shall use this flag if the data captured in the buffer
- is not going to be touched by the CPU, instead the buffer will, probably, be
-@@ -1079,7 +1079,7 @@ passed on to a DMA-capable hardware unit for further processing or output.
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
--	    <entry>0x1000</entry>
-+	    <entry>0x00001000</entry>
- 	    <entry>Caches do not have to be cleaned for this buffer.
- Typically applications shall use this flag for output buffers if the data
- in this buffer has not been created by the CPU but by some DMA-capable unit,
-@@ -1087,7 +1087,7 @@ in which case caches have not been used.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
--	    <entry>0xe000</entry>
-+	    <entry>0x0000e000</entry>
- 	    <entry>Mask for timestamp types below. To test the
- 	    timestamp type, mask out bits not belonging to timestamp
- 	    type by performing a logical and operation with buffer
-@@ -1095,7 +1095,7 @@ in which case caches have not been used.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
--	    <entry>0x0000</entry>
-+	    <entry>0x00000000</entry>
- 	    <entry>Unknown timestamp type. This type is used by
- 	    drivers before Linux 3.9 and may be either monotonic (see
- 	    below) or realtime (wall clock). Monotonic clock has been
-@@ -1108,7 +1108,7 @@ in which case caches have not been used.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
--	    <entry>0x2000</entry>
-+	    <entry>0x00002000</entry>
- 	    <entry>The buffer timestamp has been taken from the
- 	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
- 	    same clock outside V4L2, use
-@@ -1116,7 +1116,7 @@ in which case caches have not been used.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
--	    <entry>0x4000</entry>
-+	    <entry>0x00004000</entry>
- 	    <entry>The CAPTURE buffer timestamp has been taken from the
- 	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
- 	  </row>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 437f1b0..691077d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -669,24 +669,32 @@ struct v4l2_buffer {
- };
- 
- /*  Flags for 'flags' field */
--#define V4L2_BUF_FLAG_MAPPED	0x0001  /* Buffer is mapped (flag) */
--#define V4L2_BUF_FLAG_QUEUED	0x0002	/* Buffer is queued for processing */
--#define V4L2_BUF_FLAG_DONE	0x0004	/* Buffer is ready */
--#define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
--#define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
--#define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
-+/* Buffer is mapped (flag) */
-+#define V4L2_BUF_FLAG_MAPPED			0x00000001
-+/* Buffer is queued for processing */
-+#define V4L2_BUF_FLAG_QUEUED			0x00000002
-+/* Buffer is ready */
-+#define V4L2_BUF_FLAG_DONE			0x00000004
-+/* Image is a keyframe (I-frame) */
-+#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
-+/* Image is a P-frame */
-+#define V4L2_BUF_FLAG_PFRAME			0x00000010
-+/* Image is a B-frame */
-+#define V4L2_BUF_FLAG_BFRAME			0x00000020
- /* Buffer is ready, but the data contained within is corrupted. */
--#define V4L2_BUF_FLAG_ERROR	0x0040
--#define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
--#define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
-+#define V4L2_BUF_FLAG_ERROR			0x00000040
-+/* timecode field is valid */
-+#define V4L2_BUF_FLAG_TIMECODE			0x00000100
-+/* Buffer is prepared for queuing */
-+#define V4L2_BUF_FLAG_PREPARED			0x00000400
- /* Cache handling flags */
--#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
--#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
-+#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
- /* Timestamp type */
--#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
--#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
--#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
--#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
-+#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
-+#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
-+#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
-+#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+I'm not sure if that's needed here. Vendor-specific formats still need to be 
+documented, so we could just create a custom YUV format for your case. Let's 
+start with the beginning, could you describe what gets transmitted on the bus 
+when that special format is selected ?
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
