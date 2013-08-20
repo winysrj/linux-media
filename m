@@ -1,77 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:37047 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208Ab3H0JPF (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:51192 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab3HTQhJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 05:15:05 -0400
-Date: Tue, 27 Aug 2013 10:14:48 +0100
-From: Mark Rutland <mark.rutland@arm.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
-Message-ID: <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
-References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+	Tue, 20 Aug 2013 12:37:09 -0400
+Received: by mail-ee0-f50.google.com with SMTP id d51so309196eek.23
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 09:37:08 -0700 (PDT)
+Message-ID: <52139BC5.8060501@googlemail.com>
+Date: Tue, 20 Aug 2013 18:39:33 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
-Content-Language: en-US
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon> <20130820123102.2aa7c54f@samsung.com>
+In-Reply-To: <20130820123102.2aa7c54f@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am 20.08.2013 17:31, schrieb Mauro Carvalho Chehab:
+> Em Tue, 20 Aug 2013 15:38:57 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+>
+>> Hi Mauro,
+>>
+>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+>>>>> Hi Frank,
+>>>>> As I mentioned on the list, I'm currently on a holiday, so, replying
+>>>>> briefly.
+>>>> Sorry, I missed that (can't read all mails on the list).
+>>>>
+>>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to
+>>>>> its components including the ov2640 sensor. So, yes, I think the driver
+>>>>> should export a V4L2 clock.
+>>>> Ok, so it's mandatory on purpose ?
+>>>> I'll take a deeper into the v4l2-clk code and the
+>>>> em28xx/ov2640/soc-camera interaction this week.
+>>>> Have a nice holiday !
+>>> commit 9aea470b399d797e88be08985c489855759c6c60
+>>> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>> Date:   Fri Dec 21 13:01:55 2012 -0300
+>>>
+>>>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+>>>
+>>>     Instead of centrally enabling and disabling subdevice master clocks in
+>>>     soc-camera core, let subdevice drivers do that themselves, using the
+>>>     V4L2 clock API and soc-camera convenience wrappers.
+>>>
+>>>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> (c/c the ones that acked with this broken changeset)
+>>>
+>>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
+>>> cameras are currently broken on 3.10.
+>>>
+>>> I'll also reject other ports to the async API if the drivers are
+>>> used outside an embedded driver, as no PC driver currently defines
+>>> any clock source. The same applies to regulators.
+>>>
+>>> Guennadi,
+>>>
+>>> Next time, please check if the i2c drivers are used outside soc_camera
+>>> and apply the fixes where needed, as no regressions are allowed.
+>> We definitely need to check all users of our sensor drivers when making such a 
+>> change. Mistakes happen, so let's fix them.
+>>
+>> Guennadi is on holidays until the end of this week. Would that be too late to 
+>> fix the issue (given that 3.10 is already broken) ?
+> Well, it is simple: we should either revert the patch(es) that broke it or
+> someone should fix it at em28xx. If nobody could fix it, I'll just revert
+> the patches that broke it and ask -stable to do the same.
+>
+> Btw, 3.10 is a long term stable, so, it is not too late for fixes there.
+AFAICS, 3.10 should be fine.
+It should be possible to fix em28xx before Linus releases 3.11, but what
+about other drivers ?
+It seems like a v4l2-clock has been made mandatory for all sensor
+drivers (not only ov2640).
+I don't know if there are any other users of these drivers apart from
+soc_camera and em28xx... ?
 
-[trimming down to relevant context]
+>> The fix shouldn't be too 
+>> complex, registering a dummy V4L2 clock in the em28xx driver should be enough. 
+>> v4l2-clk.c should provide a helper function to do so as that will be a pretty 
+>> common operation.
+> Ok, but this doesn't solve one issue: who would do it and when.
+I can spend some time on em28xx tomorrow evening.
 
-> +endpoint node
-> +-------------
-> +
-> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-> +  video-interfaces.txt. This property can be only used to specify number
-> +  of data lanes, i.e. the array's content is unused, only its length is
-> +  meaningful. When this property is not specified default value of 1 lane
-> +  will be used.
+Regards,
+Frank
 
-Apologies for having not replied to the last posting, but having looked
-at the documentation I was provided last time [1], I don't think the
-values in the data-lanes property should be described as unused. That
-may be the way the Linux driver functions at present, but it's not how
-the generic video-interfaces binding documentation describes the
-property.
+>
+> Cheers,
+> Mauro
 
-If the CSI transmitter hardware doesn't support logical remapping of
-lanes, then the only valid values for data-lanes would be a contiguous
-list of lane IDs starting at 1, ending at 4 at most. Valid values for
-the property would be one of:
-
-data-lanes = <1>;
-data-lanes = <1>, <2>;
-data-lanes = <1>, <2>, <3>;
-data-lanes = <1>, <2>, <3>, <4>;
-
-We can mention the fact the hardware doesn't support remapping of lanes,
-and therefore the list must start with lane 1 and end with (at most)
-lane 4. That way a dts will match the generic binding and actually
-describe the hardware, and it's possible for Linux (or any other OS) to
-factor out the parsing of data-lanes later as desired.
-
-I don't think we should offer freedom to encode garbage in the dt when
-we can just as easily encourage more standard use of bindings that will
-make our lives easier in the long-term.
-
-Thanks,
-Mark.
-
-[1] http://www.mipi.org/specifications/camera-interface#CSI2
