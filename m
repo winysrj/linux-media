@@ -1,256 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42472 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756840Ab3HON5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 09:57:55 -0400
-Message-ID: <520CDE61.5080106@canonical.com>
-Date: Thu, 15 Aug 2013 15:57:53 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:65389 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751039Ab3HTMVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 08:21:31 -0400
+Message-ID: <52135F42.1070707@redhat.com>
+Date: Tue, 20 Aug 2013 14:21:22 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?TWFyY2luIMWabHVzYXJ6?= <marcin.slusarz@gmail.com>
-CC: LKML <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robdclark@gmail.com, daniel@ffwll.ch, linux-media@vger.kernel.org
-Subject: Re: [PATCH] fence: dma-buf cross-device synchronization (v13)
-References: <20130815111630.3926.28372.stgit@patser> <CA+GA0_ucAAa0RLSL-QpUsX8QPQ=5PvqHkS4EUb3zTfCtYo9xqA@mail.gmail.com>
-In-Reply-To: <CA+GA0_ucAAa0RLSL-QpUsX8QPQ=5PvqHkS4EUb3zTfCtYo9xqA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: linux-media@vger.kernel.org, Yaroslav Zakharuk <slavikz@gmail.com>,
+	1173723@bugs.launchpad.net, stable@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca-ov534: don't call sd_start() from sd_init()
+References: <5205D969.4040301@gmail.com> <1376562572-10772-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1376562572-10772-1-git-send-email-ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 15-08-13 14:45, Marcin Ślusarz schreef:
-> 2013/8/15 Maarten Lankhorst <maarten.lankhorst@canonical.com>:
->> A fence can be attached to a buffer which is being filled or consumed
->> by hw, to allow userspace to pass the buffer without waiting to another
->> device.  For example, userspace can call page_flip ioctl to display the
->> next frame of graphics after kicking the GPU but while the GPU is still
->> rendering.  The display device sharing the buffer with the GPU would
->> attach a callback to get notified when the GPU's rendering-complete IRQ
->> fires, to update the scan-out address of the display, without having to
->> wake up userspace.
->>
->> A driver must allocate a fence context for each execution ring that can
->> run in parallel. The function for this takes an argument with how many
->> contexts to allocate:
->>   + fence_context_alloc()
->>
->> A fence is transient, one-shot deal.  It is allocated and attached
->> to one or more dma-buf's.  When the one that attached it is done, with
->> the pending operation, it can signal the fence:
->>   + fence_signal()
->>
->> To have a rough approximation whether a fence is fired, call:
->>   + fence_is_signaled()
->>
->> The dma-buf-mgr handles tracking, and waiting on, the fences associated
->> with a dma-buf.
->>
->> The one pending on the fence can add an async callback:
->>   + fence_add_callback()
->>
->> The callback can optionally be cancelled with:
->>   + fence_remove_callback()
->>
->> To wait synchronously, optionally with a timeout:
->>   + fence_wait()
->>   + fence_wait_timeout()
->>
->> A default software-only implementation is provided, which can be used
->> by drivers attaching a fence to a buffer when they have no other means
->> for hw sync.  But a memory backed fence is also envisioned, because it
->> is common that GPU's can write to, or poll on some memory location for
->> synchronization.  For example:
->>
->>   fence = custom_get_fence(...);
->>   if ((seqno_fence = to_seqno_fence(fence)) != NULL) {
->>     dma_buf *fence_buf = fence->sync_buf;
->>     get_dma_buf(fence_buf);
->>
->>     ... tell the hw the memory location to wait ...
->>     custom_wait_on(fence_buf, fence->seqno_ofs, fence->seqno);
->>   } else {
->>     /* fall-back to sw sync * /
->>     fence_add_callback(fence, my_cb);
->>   }
->>
->> On SoC platforms, if some other hw mechanism is provided for synchronizing
->> between IP blocks, it could be supported as an alternate implementation
->> with it's own fence ops in a similar way.
->>
->> enable_signaling callback is used to provide sw signaling in case a cpu
->> waiter is requested or no compatible hardware signaling could be used.
->>
->> The intention is to provide a userspace interface (presumably via eventfd)
->> later, to be used in conjunction with dma-buf's mmap support for sw access
->> to buffers (or for userspace apps that would prefer to do their own
->> synchronization).
->>
->> v1: Original
->> v2: After discussion w/ danvet and mlankhorst on #dri-devel, we decided
->>     that dma-fence didn't need to care about the sw->hw signaling path
->>     (it can be handled same as sw->sw case), and therefore the fence->ops
->>     can be simplified and more handled in the core.  So remove the signal,
->>     add_callback, cancel_callback, and wait ops, and replace with a simple
->>     enable_signaling() op which can be used to inform a fence supporting
->>     hw->hw signaling that one or more devices which do not support hw
->>     signaling are waiting (and therefore it should enable an irq or do
->>     whatever is necessary in order that the CPU is notified when the
->>     fence is passed).
->> v3: Fix locking fail in attach_fence() and get_fence()
->> v4: Remove tie-in w/ dma-buf..  after discussion w/ danvet and mlankorst
->>     we decided that we need to be able to attach one fence to N dma-buf's,
->>     so using the list_head in dma-fence struct would be problematic.
->> v5: [ Maarten Lankhorst ] Updated for dma-bikeshed-fence and dma-buf-manager.
->> v6: [ Maarten Lankhorst ] I removed dma_fence_cancel_callback and some comments
->>     about checking if fence fired or not. This is broken by design.
->>     waitqueue_active during destruction is now fatal, since the signaller
->>     should be holding a reference in enable_signalling until it signalled
->>     the fence. Pass the original dma_fence_cb along, and call __remove_wait
->>     in the dma_fence_callback handler, so that no cleanup needs to be
->>     performed.
->> v7: [ Maarten Lankhorst ] Set cb->func and only enable sw signaling if
->>     fence wasn't signaled yet, for example for hardware fences that may
->>     choose to signal blindly.
->> v8: [ Maarten Lankhorst ] Tons of tiny fixes, moved __dma_fence_init to
->>     header and fixed include mess. dma-fence.h now includes dma-buf.h
->>     All members are now initialized, so kmalloc can be used for
->>     allocating a dma-fence. More documentation added.
->> v9: Change compiler bitfields to flags, change return type of
->>     enable_signaling to bool. Rework dma_fence_wait. Added
->>     dma_fence_is_signaled and dma_fence_wait_timeout.
->>     s/dma// and change exports to non GPL. Added fence_is_signaled and
->>     fence_enable_sw_signaling calls, add ability to override default
->>     wait operation.
->> v10: remove event_queue, use a custom list, export try_to_wake_up from
->>     scheduler. Remove fence lock and use a global spinlock instead,
->>     this should hopefully remove all the locking headaches I was having
->>     on trying to implement this. enable_signaling is called with this
->>     lock held.
->> v11:
->>     Use atomic ops for flags, lifting the need for some spin_lock_irqsaves.
->>     However I kept the guarantee that after fence_signal returns, it is
->>     guaranteed that enable_signaling has either been called to completion,
->>     or will not be called any more.
->>
->>     Add contexts and seqno to base fence implementation. This allows you
->>     to wait for less fences, by testing for seqno + signaled, and then only
->>     wait on the later fence.
->>
->>     Add FENCE_TRACE, FENCE_WARN, and FENCE_ERR. This makes debugging easier.
->>     An CONFIG_DEBUG_FENCE will be added to turn off the FENCE_TRACE
->>     spam, and another runtime option can turn it off at runtime.
->> v12:
->>     Add CONFIG_FENCE_TRACE. Add missing documentation for the fence->context
->>     and fence->seqno members.
->> v13:
->>     Fixup CONFIG_FENCE_TRACE kconfig description.
->>     Move fence_context_alloc to fence.
->>     Simplify fence_later.
->>     Kill priv member to fence_cb.
->> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->> ---
->>  Documentation/DocBook/device-drivers.tmpl |    2
->>  drivers/base/Kconfig                      |   10 +
->>  drivers/base/Makefile                     |    2
->>  drivers/base/fence.c                      |  312 ++++++++++++++++++++++++++
->>  include/linux/fence.h                     |  344 +++++++++++++++++++++++++++++
->>  5 files changed, 669 insertions(+), 1 deletion(-)
->>  create mode 100644 drivers/base/fence.c
->>  create mode 100644 include/linux/fence.h
->>
->> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
->> index fe397f9..95d0db9 100644
->> --- a/Documentation/DocBook/device-drivers.tmpl
->> +++ b/Documentation/DocBook/device-drivers.tmpl
->> @@ -126,6 +126,8 @@ X!Edrivers/base/interface.c
->>       </sect1>
->>       <sect1><title>Device Drivers DMA Management</title>
->>  !Edrivers/base/dma-buf.c
->> +!Edrivers/base/fence.c
->> +!Iinclude/linux/fence.h
->>  !Edrivers/base/reservation.c
->>  !Iinclude/linux/reservation.h
->>  !Edrivers/base/dma-coherent.c
->> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
->> index 5daa259..2bf0add 100644
->> --- a/drivers/base/Kconfig
->> +++ b/drivers/base/Kconfig
->> @@ -200,6 +200,16 @@ config DMA_SHARED_BUFFER
->>           APIs extension; the file's descriptor can then be passed on to other
->>           driver.
->>
->> +config FENCE_TRACE
->> +       bool "Enable verbose FENCE_TRACE messages"
->> +       default n
-> "default n" is superfluous
-But it's used a lot in the kernel:
+Hi,
 
-~/linux$ git grep default.y\$ | wc -l
-1292
-~/linux$ git grep default.n\$ | wc -l
-697
+Thanks for the patch I've added this to my "gspca" tree, and this
+will be included in my next pull-request to Mauro for 3.12
 
->> ...
->> +void release_fence(struct kref *kref)
-> All functions, except this one, follow "fence_$something" pattern.
-> Passing kref is a bit odd.
-This function is not intended to be called directly. It's used by fence_put.
->> ....
->> +/**
->> + * fence_remove_callback - remove a callback from the signaling list
->> + * @fence:     [in]    the fence to wait on
->> + * @cb:                [in]    the callback to remove
->> + *
->> + * Remove a previously queued callback from the fence. This function returns
->> + * true is the callback is succesfully removed, or false if the fence has
-> true _if_ the callback is...
-Oh wow, I had to read that 3 times to spot that typo after you pointed it out. :P
->> ...
->> +
->> +extern void release_fence(struct kref *kref);
->> +
->> +/**
->> + * fence_put - decreases refcount of the fence
->> + * @fence:     [in]    fence to reduce refcount of
->> + */
->> +static inline void fence_put(struct fence *fence)
->> +{
->> +       if (WARN_ON(!fence))
->> +               return;
->> +       kref_put(&fence->refcount, release_fence);
->> +}
->> +
->> +int fence_signal(struct fence *fence);
->> +int __fence_signal(struct fence *fence);
->> +long fence_default_wait(struct fence *fence, bool intr, signed long timeout);
->> +int fence_add_callback(struct fence *fence, struct fence_cb *cb,
->> +                      fence_func_t func, void *priv);
->> +bool fence_remove_callback(struct fence *fence, struct fence_cb *cb);
->> +void fence_enable_sw_signaling(struct fence *fence);
-> Some functions are documented in the header and some only in the source file.
-> Why not move all API docs into the header?
-The declarations are put next to the code. The inlines are defined in the headers,
-so they get documented there.
->> +
->> +/**
->> + * fence_is_signaled - Return an indication if the fence is signaled yet.
->> + * @fence:     [in]    the fence to check
->> + *
->> + * Returns true if the fence was already signaled, false if not. Since this
->> + * function doesn't enable signaling, it is not guaranteed to ever return true
->> + * If fence_add_callback, fence_wait or fence_enable_sw_signaling
->> + * haven't been called before.
->> + *
->> + * It's recommended for seqno fences to call fence_signal when the
->> + * operation is complete, it makes it possible to prevent issues from
->> + * wraparound between time of issue and time of use by checking the return
->> + * value of this function before calling hardware-specific wait instructions.
->> + */
->> +static inline bool
->> +fence_is_signaled(struct fence *fence)
-> Shouldn't it be "fence_was_signaled"?
-No, unless you believe the fence ended up in a state where it is signaled, and now no longer is. ;)
+Regards,
 
-~Maarten
+Hans
+
+
+
+On 08/15/2013 12:29 PM, Antonio Ospite wrote:
+> sd_start() operates on device controls but after the conversion to the
+> v4l2 control framework in commits 62bba5d and 1bd7d6a controls are
+> initialized in sd_init_controls() which is called _after_ sd_init():
+>
+> The change fixes a NULL pointer dereference for Hercules Blog Webcam;
+> the problem is observable since 3.6:
+>
+>    gspca_main: v2.14.0 registered
+>    gspca_main: ov534-2.14.0 probing 06f8:3002
+>    BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
+>    IP: [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+>    PGD 0
+>    Oops: 0000 [#1] SMP
+>    Modules linked in: gspca_ov534(+) gspca_main videodev rfcomm bnep ppdev bluetooth binfmt_misc snd_hda_codec_hdmi snd_hda_codec_realtek stir4200 irda crc_ccitt usblp snd_hda_intel snd_hda_codec snd_hwdep snd_pcm hid_generic snd_page_alloc snd_seq_midi snd_seq_midi_event usbhid snd_rawmidi snd_seq snd_seq_device snd_timer hid i915 snd psmouse drm_kms_helper serio_raw mei_me drm mei soundcore video i2c_algo_bit lpc_ich mac_hid coretemp lp parport firewire_ohci firewire_core crc_itu_t ahci libahci alx mdio r8169 mii [last unloaded: parport_pc]
+>    CPU: 3 PID: 4352 Comm: modprobe Not tainted 3.11.0-031100rc2-generic #201307211535
+>    Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Z77-DS3H, BIOS F9 09/19/2012
+>    task: ffff8801c20f9770 ti: ffff8801ceaa0000 task.ti: ffff8801ceaa0000
+>    RIP: 0010:[<ffffffffa03c1b01>]  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+>    RSP: 0018:ffff8801ceaa1af8  EFLAGS: 00010292
+>    RAX: 0000000000000001 RBX: 0000000000000000 RCX: 000000000001988b
+>    RDX: 000000000001988a RSI: ffffffffa032745a RDI: 0000000000000000
+>    RBP: ffff8801ceaa1b28 R08: 0000000000017380 R09: ffffea0008419d80
+>    R10: ffffffff81538f5a R11: 0000000000000002 R12: ffffffffa03273dc
+>    R13: ffffffffa03273dc R14: 0000000000000000 R15: ffffffffa03270a0
+>    FS:  00007f72d564a740(0000) GS:ffff88021f380000(0000) knlGS:0000000000000000
+>    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>    CR2: 0000000000000050 CR3: 00000001bd1f0000 CR4: 00000000001407e0
+>    Stack:
+>     ffff8801ceaa1b28 ffffffffa0325cff ffff8801000001f4 ffff8801ceb44000
+>     ffffffffa03273dc ffff8801ceb44000 ffff8801ceaa1b58 ffffffffa032688e
+>     ffff8801ceb44000 ffffffffa03274f0 ffffffffa03274f0 ffff8801ceb44380
+>    Call Trace:
+>     [<ffffffffa0325cff>] ? sccb_w_array+0x3f/0x80 [gspca_ov534]
+>     [<ffffffffa032688e>] sd_start+0xce/0x2b0 [gspca_ov534]
+>     [<ffffffffa0326bf9>] sd_init+0x189/0x1e8 [gspca_ov534]
+>     [<ffffffffa02a0c95>] gspca_dev_probe2+0x285/0x410 [gspca_main]
+>     [<ffffffffa02a0e58>] gspca_dev_probe+0x38/0x60 [gspca_main]
+>     [<ffffffffa0325081>] sd_probe+0x21/0x30 [gspca_ov534]
+>     [<ffffffff8153c960>] usb_probe_interface+0x1c0/0x2f0
+>     [<ffffffff8148758c>] really_probe+0x6c/0x330
+>     [<ffffffff814879d7>] driver_probe_device+0x47/0xa0
+>     [<ffffffff81487adb>] __driver_attach+0xab/0xb0
+>     [<ffffffff81487a30>] ? driver_probe_device+0xa0/0xa0
+>     [<ffffffff814857be>] bus_for_each_dev+0x5e/0x90
+>     [<ffffffff8148714e>] driver_attach+0x1e/0x20
+>     [<ffffffff81486bdc>] bus_add_driver+0x10c/0x290
+>     [<ffffffff8148805d>] driver_register+0x7d/0x160
+>     [<ffffffff8153b590>] usb_register_driver+0xa0/0x160
+>     [<ffffffffa0067000>] ? 0xffffffffa0066fff
+>     [<ffffffffa006701e>] sd_driver_init+0x1e/0x1000 [gspca_ov534]
+>     [<ffffffff8100212a>] do_one_initcall+0xfa/0x1b0
+>     [<ffffffff810578c3>] ? set_memory_nx+0x43/0x50
+>     [<ffffffff81712e8d>] do_init_module+0x80/0x1d1
+>     [<ffffffff810d2079>] load_module+0x4c9/0x5f0
+>     [<ffffffff810cf7b0>] ? add_kallsyms+0x210/0x210
+>     [<ffffffff810d2254>] SyS_init_module+0xb4/0x100
+>     [<ffffffff817333ef>] tracesys+0xe1/0xe6
+>    Code: a0 09 00 00 48 c7 c7 30 c3 3c a0 e8 7a 38 ca e0 eb cf 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5 53 48 89 fb 48 83 ec 28 <8b> 47 50 83 e8 05 83 f8 02 77 09 80 b8 20 8c 3c a0 00 74 1d 48
+>    RIP  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
+>     RSP <ffff8801ceaa1af8>
+>    CR2: 0000000000000050
+>    ---[ end trace 6786f15abfd2ac90 ]---
+>
+> Original bug report from:
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1173723/
+>
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> Tested-by: Yaroslav Zakharuk <slavikz@gmail.com>
+> Cc: <stable@vger.kernel.org> # 3.6+
+> ---
+>   drivers/media/usb/gspca/ov534.c | 3 +--
+>   1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+> index 2e28c81..03a33c4 100644
+> --- a/drivers/media/usb/gspca/ov534.c
+> +++ b/drivers/media/usb/gspca/ov534.c
+> @@ -1305,8 +1305,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
+>   	ov534_set_led(gspca_dev, 1);
+>   	sccb_w_array(gspca_dev, sensor_init[sd->sensor].val,
+>   			sensor_init[sd->sensor].len);
+> -	if (sd->sensor == SENSOR_OV767x)
+> -		sd_start(gspca_dev);
+> +
+>   	sd_stopN(gspca_dev);
+>   /*	set_frame_rate(gspca_dev);	*/
+>
+>
