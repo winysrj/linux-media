@@ -1,44 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54864 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031436Ab3HIXCb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:31 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH/RFC v3 14/19] ARM: shmobile: r8a7790: Add DU clocks for DT
-Date: Sat, 10 Aug 2013 01:03:13 +0200
-Message-Id: <1376089398-13322-15-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from plane.gmane.org ([80.91.229.3]:57217 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750804Ab3HTJjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 05:39:01 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VBiOx-00069P-HN
+	for linux-media@vger.kernel.org; Tue, 20 Aug 2013 11:38:59 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 11:38:59 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 11:38:59 +0200
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: Re: OMAP3 ISP DQBUF hangs
+Date: Tue, 20 Aug 2013 09:38:41 +0000 (UTC)
+Message-ID: <loom.20130820T113209-509@post.gmane.org>
+References: <loom.20130815T161444-925@post.gmane.org> <CALxrGmX2aZsTGG_gM6EECLa1Y9vWgWNqEg_TFoXFr=gVmsJnvw@mail.gmail.com> <loom.20130819T160758-83@post.gmane.org> <CALxrGmWE0G91KSwUysZ+Vz4807ihc9hbPDJqbjoPE4z2YEAN_g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- arch/arm/mach-shmobile/clock-r8a7790.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Su Jiaquan <jiaquan.lnx <at> gmail.com> writes:
 
-diff --git a/arch/arm/mach-shmobile/clock-r8a7790.c b/arch/arm/mach-shmobile/clock-r8a7790.c
-index d99b87b..7229f96 100644
---- a/arch/arm/mach-shmobile/clock-r8a7790.c
-+++ b/arch/arm/mach-shmobile/clock-r8a7790.c
-@@ -257,10 +257,15 @@ static struct clk_lookup lookups[] = {
- 
- 	/* MSTP */
- 	CLKDEV_ICK_ID("lvds.0", "rcar-du-r8a7790", &mstp_clks[MSTP726]),
-+	CLKDEV_ICK_ID("lvds.0", "feb00000.display", &mstp_clks[MSTP726]),
- 	CLKDEV_ICK_ID("lvds.1", "rcar-du-r8a7790", &mstp_clks[MSTP725]),
-+	CLKDEV_ICK_ID("lvds.1", "feb00000.display", &mstp_clks[MSTP725]),
- 	CLKDEV_ICK_ID("du.0", "rcar-du-r8a7790", &mstp_clks[MSTP724]),
-+	CLKDEV_ICK_ID("du.0", "feb00000.display", &mstp_clks[MSTP724]),
- 	CLKDEV_ICK_ID("du.1", "rcar-du-r8a7790", &mstp_clks[MSTP723]),
-+	CLKDEV_ICK_ID("du.1", "feb00000.display", &mstp_clks[MSTP723]),
- 	CLKDEV_ICK_ID("du.2", "rcar-du-r8a7790", &mstp_clks[MSTP722]),
-+	CLKDEV_ICK_ID("du.2", "feb00000.display", &mstp_clks[MSTP722]),
- 	CLKDEV_DEV_ID("sh-sci.0", &mstp_clks[MSTP204]),
- 	CLKDEV_DEV_ID("sh-sci.1", &mstp_clks[MSTP203]),
- 	CLKDEV_DEV_ID("sh-sci.2", &mstp_clks[MSTP206]),
--- 
-1.8.1.5
+Hello,
+
+> 
+> Hi Tom
+> 
+> 
+> Well, for our practice, we QBUF before STREAMON (not on omap3 isp).
+> You can try that and see what happens.
+> 
+> As I check the omap3 code, you sequence maybe OK. Coz there is a
+> restart mechanism in the code to restart CCDC hardware after buffer
+> underrun. But for you sequence, if the interrupt comes before you
+> QBUF, then the hardware is running in underrun state ever from the
+> STREAMON. Not sure the restart mechanism works in this scenario. Let's
+> wait for answers from the professional 
+> 
+> Jiaquan
+> 
+
+Thanks for your reply. The hang is solved. You were right. Now I do QBUF ->
+STREAMON -> DQBUF -> STREAMOFF.
+
+My new Problem is that I receive a black image, but I think I do a new post
+with the appropriate subject.
+
+Best Regrads, Tom 
 
