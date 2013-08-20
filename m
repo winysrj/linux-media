@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:58182 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779Ab3HUPOa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 11:14:30 -0400
-Received: by mail-yh0-f47.google.com with SMTP id 29so129852yhl.34
-        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 08:14:29 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: k.debski@samsung.com
-Cc: p.zabel@pengutronix.de, linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v7 3/3] [media] coda: No need to check the return value of platform_get_resource()
-Date: Wed, 21 Aug 2013 12:14:18 -0300
-Message-Id: <1377098058-12566-3-git-send-email-festevam@gmail.com>
-In-Reply-To: <1377098058-12566-1-git-send-email-festevam@gmail.com>
-References: <1377098058-12566-1-git-send-email-festevam@gmail.com>
+Received: from mta.bitpro.no ([92.42.64.202]:46954 "EHLO mta.bitpro.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751365Ab3HTImO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Aug 2013 04:42:14 -0400
+Message-ID: <52132C2D.5030002@bitfrost.no>
+Date: Tue, 20 Aug 2013 10:43:25 +0200
+From: Hans Petter Selasky <hps@bitfrost.no>
+MIME-Version: 1.0
+To: "nibble.max" <nibble.max@gmail.com>
+CC: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>, Ulf <mopp@gmx.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54>, <520F643C.70306@iki.fi>, <5210B5F3.4040607@bitfrost.no>, <CALzAhNXUKZPEyFe0eND3Lb3dQwfVaMUWS30kx0sQJj7YG2rKow@mail.gmail.com>, <52127667.8050202@bitfrost.no>, <CAF0Ff2mQP6+a5693kf3Vq7AHHG5--1keZMvdp-YX4o4OLk3Y-g@mail.gmail.com> <201308201626317340537@gmail.com>
+In-Reply-To: <201308201626317340537@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+On 08/20/13 10:26, nibble.max wrote:
+> Hello Hans,
+>
+> I am the original author of sit2 source code based on the reference code from silabs.
+> And we have signed NDA with silabs, it does not allow us to release the source code to the public.
+> I donot know it is permited or not when you do decompiling the binary code.
+>
 
-When using devm_ioremap_resource(), we do not need to check the return value of
-platform_get_resource(), so just remove it.
+Thank you Max for clearing this up a bit,
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v6:
-- Rebased against correct branch
+I can tell you that the decompiled driver works like expected with the 
+product I bought and lets me use this product under FreeBSD like I was 
+expecting after reading the Linux-commercial's from the Vendor.
 
- drivers/media/platform/coda.c | 5 -----
- 1 file changed, 5 deletions(-)
+Maybe an idea for the future. Abstract binaries a bit more so that they 
+are independent of the Linux header files and other kernel functions. 
+Then I wouldn't have to do the decompile.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 04ced56..999f9dc 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -3154,11 +3154,6 @@ static int coda_probe(struct platform_device *pdev)
- 
- 	/* Get  memory for physical registers */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL) {
--		dev_err(&pdev->dev, "failed to get memory region resource\n");
--		return -ENOENT;
--	}
--
- 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(dev->regs_base))
- 		return PTR_ERR(dev->regs_base);
--- 
-1.8.1.2
+The other DVB-T adapter I had before outputted somtimes corrupted or too 
+long USB packets on the isochronous endpoint when the bitrate was going 
+too high. I do no longer see this problem with the adapter supported by 
+Max's driver. And I am satisfied. Regarding you and "Konstantin 
+Dimitrov" I don't want to have any opinion about what product is best.
+
+--HPS
 
