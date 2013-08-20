@@ -1,145 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:36741 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020Ab3HPJUc (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46433 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab3HTNho convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 05:20:32 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v6 00/13] Exynos5 IS driver
-Date: Fri, 16 Aug 2013 14:50:32 +0530
-Message-Id: <1376644845-10422-1-git-send-email-arun.kk@samsung.com>
+	Tue, 20 Aug 2013 09:37:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Date: Tue, 20 Aug 2013 15:38:57 +0200
+Message-ID: <1904390.nVVGcVBrVP@avalon>
+In-Reply-To: <20130818122008.38fac218@samsung.com>
+References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch series add support for Exynos5 camera subsystem. It
-re-uses mipi-csis and fimc-lite from exynos4-is and adds a new
-media device and fimc-is device drivers for exynos5.
-The media device supports asynchronos subdev registration for the
-fimc-is sensors and is tested on top of the patch series from Sylwester
-for exynos4-is [1].
+Hi Mauro,
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg64653.html
+On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+> > Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+> > > Hi Frank,
+> > > As I mentioned on the list, I'm currently on a holiday, so, replying
+> > > briefly.
+> >
+> > Sorry, I missed that (can't read all mails on the list).
+> > 
+> > > Since em28xx is a USB device, I conclude, that it's supplying clock to
+> > > its components including the ov2640 sensor. So, yes, I think the driver
+> > > should export a V4L2 clock.
+> >
+> > Ok, so it's mandatory on purpose ?
+> > I'll take a deeper into the v4l2-clk code and the
+> > em28xx/ov2640/soc-camera interaction this week.
+> > Have a nice holiday !
+> 
+> commit 9aea470b399d797e88be08985c489855759c6c60
+> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Date:   Fri Dec 21 13:01:55 2012 -0300
+> 
+>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+> 
+>     Instead of centrally enabling and disabling subdevice master clocks in
+>     soc-camera core, let subdevice drivers do that themselves, using the
+>     V4L2 clock API and soc-camera convenience wrappers.
+> 
+>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> (c/c the ones that acked with this broken changeset)
+> 
+> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
+> cameras are currently broken on 3.10.
+> 
+> I'll also reject other ports to the async API if the drivers are
+> used outside an embedded driver, as no PC driver currently defines
+> any clock source. The same applies to regulators.
+> 
+> Guennadi,
+> 
+> Next time, please check if the i2c drivers are used outside soc_camera
+> and apply the fixes where needed, as no regressions are allowed.
 
-Changes from v5
----------------
-- Addressed review comments from Sylwester
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65578.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65605.html
+We definitely need to check all users of our sensor drivers when making such a 
+change. Mistakes happen, so let's fix them.
 
-Changes from v4
----------------
-- Addressed all review comments from Sylwester
-- Added separate PMU node as suggested by Stephen Warren
-- Added phandle based discovery of subdevs instead of node name
-
-Changes from v3
----------------
-- Dropped the RFC tag
-- Addressed all review comments from Sylwester and Sachin
-- Removed clock provider for media dev
-- Added s5k4e5 sensor devicetree binding doc
-
-Changes from v2
----------------
-- Added exynos5 media device driver from Shaik to this series
-- Added ISP pipeline support in media device driver
-- Based on Sylwester's latest exynos4-is development
-- Asynchronos registration of sensor subdevs
-- Made independent IS-sensor support
-- Add s5k4e5 sensor driver
-- Addressed review comments from Sylwester, Hans, Andrzej, Sachin
-
-Changes from v1
----------------
-- Addressed all review comments from Sylwester
-- Made sensor subdevs as independent i2c devices
-- Lots of cleanup
-- Debugfs support added
-- Removed PMU global register access
-
-Arun Kumar K (12):
-  [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings
-    documentation
-  [media] exynos5-fimc-is: Add driver core files
-  [media] exynos5-fimc-is: Add common driver header files
-  [media] exynos5-fimc-is: Add register definition and context header
-  [media] exynos5-fimc-is: Add isp subdev
-  [media] exynos5-fimc-is: Add scaler subdev
-  [media] exynos5-fimc-is: Add sensor interface
-  [media] exynos5-fimc-is: Add the hardware pipeline control
-  [media] exynos5-fimc-is: Add the hardware interface module
-  [media] exynos5-is: Add Kconfig and Makefile
-  V4L: s5k6a3: Change sensor min/max resolutions
-  V4L: Add driver for s5k4e5 image sensor
-
-Shaik Ameer Basha (1):
-  [media] exynos5-is: Adding media device driver for exynos5
-
- .../devicetree/bindings/media/exynos5-fimc-is.txt  |   47 +
- .../devicetree/bindings/media/exynos5-mdev.txt     |  126 ++
- .../devicetree/bindings/media/i2c/s5k4e5.txt       |   43 +
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/s5k4e5.c                         |  361 +++++
- drivers/media/i2c/s5k6a3.c                         |   19 +-
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos5-is/Kconfig          |   20 +
- drivers/media/platform/exynos5-is/Makefile         |    7 +
- drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1210 ++++++++++++++
- drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
- drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
- drivers/media/platform/exynos5-is/fimc-is-core.c   |  413 +++++
- drivers/media/platform/exynos5-is/fimc-is-core.h   |  132 ++
- drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++
- .../media/platform/exynos5-is/fimc-is-interface.c  |  810 ++++++++++
- .../media/platform/exynos5-is/fimc-is-interface.h  |  125 ++
- drivers/media/platform/exynos5-is/fimc-is-isp.c    |  534 ++++++
- drivers/media/platform/exynos5-is/fimc-is-isp.h    |   90 ++
- .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++
- drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 ++++++++++++++
- .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1692 ++++++++++++++++++++
- .../media/platform/exynos5-is/fimc-is-pipeline.h   |  128 ++
- drivers/media/platform/exynos5-is/fimc-is-regs.h   |  105 ++
- drivers/media/platform/exynos5-is/fimc-is-scaler.c |  472 ++++++
- drivers/media/platform/exynos5-is/fimc-is-scaler.h |  106 ++
- drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 +
- drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 +
- drivers/media/platform/exynos5-is/fimc-is.h        |  160 ++
- 31 files changed, 9209 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-mdev.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
- create mode 100644 drivers/media/i2c/s5k4e5.c
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+Guennadi is on holidays until the end of this week. Would that be too late to 
+fix the issue (given that 3.10 is already broken) ? The fix shouldn't be too 
+complex, registering a dummy V4L2 clock in the em28xx driver should be enough. 
+v4l2-clk.c should provide a helper function to do so as that will be a pretty 
+common operation.
 
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
