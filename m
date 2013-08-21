@@ -1,632 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:43473 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031204Ab3HIWOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 18:14:24 -0400
-Message-ID: <520569B9.1030901@gmail.com>
-Date: Sat, 10 Aug 2013 00:14:17 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55080 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751557Ab3HUOjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 10:39:49 -0400
+Date: Wed, 21 Aug 2013 17:39:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	thomas.vajzovic@irisys.co.uk
+Subject: [RFC v2] Frame format descriptors
+Message-ID: <20130821143944.GG20717@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v4 03/13] [media] exynos5-fimc-is: Add driver core files
-References: <1375866242-18084-1-git-send-email-arun.kk@samsung.com> <1375866242-18084-4-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1375866242-18084-4-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-On 08/07/2013 11:03 AM, Arun Kumar K wrote:
-> This driver is for the FIMC-IS IP available in Samsung Exynos5
-> SoC onwards. This patch adds the core files for the new driver.
->
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
-> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
-> ---
->   drivers/media/platform/exynos5-is/fimc-is-core.c |  413 ++++++++++++++++++++++
->   drivers/media/platform/exynos5-is/fimc-is-core.h |  134 +++++++
->   2 files changed, 547 insertions(+)
->   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
->   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
->
-> diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.c b/drivers/media/platform/exynos5-is/fimc-is-core.c
-> new file mode 100644
-> index 0000000..067dea6
-> --- /dev/null
-> +++ b/drivers/media/platform/exynos5-is/fimc-is-core.c
-> @@ -0,0 +1,413 @@
-> +/*
-> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-> +*
-> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> + * Arun Kumar K<arun.kk@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include<linux/bug.h>
-> +#include<linux/ctype.h>
-> +#include<linux/device.h>
-> +#include<linux/debugfs.h>
-> +#include<linux/delay.h>
-> +#include<linux/errno.h>
-> +#include<linux/err.h>
-> +#include<linux/firmware.h>
-> +#include<linux/fs.h>
-> +#include<linux/gpio.h>
-> +#include<linux/interrupt.h>
-> +#include<linux/kernel.h>
-> +#include<linux/list.h>
-> +#include<linux/module.h>
-> +#include<linux/types.h>
-> +#include<linux/platform_device.h>
-> +#include<linux/pm_runtime.h>
-> +#include<linux/slab.h>
-> +#include<linux/videodev2.h>
-> +#include<linux/of.h>
-> +#include<linux/of_gpio.h>
-> +#include<linux/of_address.h>
-> +#include<linux/of_platform.h>
-> +#include<linux/of_irq.h>
-> +#include<linux/pinctrl/consumer.h>
+This is an update to the original Frame format descriptors RFC I posted 
+back in February last year:
 
-nit: some entries are not in alphabetical order
+<URL:http://www.spinics.net/lists/linux-media/msg44629.html>
 
-> +#include<media/v4l2-device.h>
-> +#include<media/v4l2-ioctl.h>
-> +#include<media/v4l2-mem2mem.h>
-> +#include<media/v4l2-of.h>
-> +#include<media/videobuf2-core.h>
-> +#include<media/videobuf2-dma-contig.h>
-> +
-> +#include "fimc-is.h"
-> +#include "fimc-is-i2c.h"
-> +
-> +#define CLK_MCU_ISP_DIV0_FREQ	(200 * 1000000)
-> +#define CLK_MCU_ISP_DIV1_FREQ	(100 * 1000000)
-> +#define CLK_ISP_DIV0_FREQ	(134 * 1000000)
-> +#define CLK_ISP_DIV1_FREQ	(68 * 1000000)
-> +#define CLK_ISP_DIVMPWM_FREQ	(34 * 1000000)
-> +
-> +static char *fimc_is_clock_name[] = {
+Since that limited frame format descriptor support has been added to
+mainline, supporting a subset of potential use cases:
 
-static const * char const fimc_is_clock_name[] ?
+<URL:http://www.spinics.net/lists/linux-media/msg53790.html>
 
-> +	[IS_CLK_ISP]		= "isp",
-> +	[IS_CLK_MCU_ISP]	= "mcu_isp",
-> +	[IS_CLK_ISP_DIV0]	= "isp_div0",
-> +	[IS_CLK_ISP_DIV1]	= "isp_div1",
-> +	[IS_CLK_ISP_DIVMPWM]	= "isp_divmpwm",
-> +	[IS_CLK_MCU_ISP_DIV0]	= "mcu_isp_div0",
-> +	[IS_CLK_MCU_ISP_DIV1]	= "mcu_isp_div1",
-> +};
-> +
-> +static void fimc_is_put_clocks(struct fimc_is *is)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i<  IS_CLK_MAX_NUM; i++) {
-> +		if (IS_ERR(is->clock[i]))
-> +			continue;
-> +		clk_unprepare(is->clock[i]);
-> +		clk_put(is->clock[i]);
-> +		is->clock[i] = NULL;
+I believe that such a simple get/set-type type interface isn't generic 
+enough for manipulating frame descriptors; a more expressive interface 
+is required. This RFC does not address does not address setting frame 
+descriptors: most devices still do not allow changing the frame 
+descriptor and the behaviour of the get operation should not be 
+dependent on how the descriptor is constructed.
 
-is->clock[i] = ERR_PTR(-EINVAL);
 
-> +	}
-> +}
-> +
-> +static int fimc_is_get_clocks(struct fimc_is *is)
-> +{
-> +	struct device *dev =&is->pdev->dev;
-> +	int i, ret;
-> +
-> +	for (i = 0; i<  IS_CLK_MAX_NUM; i++) {
-> +		is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
-> +		if (IS_ERR(is->clock[i]))
-> +			goto err;
-> +		ret = clk_prepare(is->clock[i]);
-> +		if (ret<  0) {
-> +			clk_put(is->clock[i]);
-> +			is->clock[i] = ERR_PTR(-EINVAL);
-> +			goto err;
-> +		}
-> +	}
-> +	return 0;
-> +err:
-> +	fimc_is_put_clocks(is);
-> +	pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
+Background
+==========
 
-	dev_err(dev, "...
+I want to first begin by listing known use cases. There are a number of
+variations of these use cases that would be nice to be supported. It 
+depends not only on the sensor but also on the receiver driver i.e. how 
+it is able to handle the data it receives.
 
-> +	return -ENXIO;
-> +}
-> +
-> +static int fimc_is_configure_clocks(struct fimc_is *is)
-> +{
-> +	int i, ret;
-> +
-> +	for (i = 0; i<  IS_CLK_MAX_NUM; i++)
-> +		is->clock[i] = ERR_PTR(-EINVAL);
-> +
-> +	ret = fimc_is_get_clocks(is);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Set rates */
-> +	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0],
-> +			CLK_MCU_ISP_DIV0_FREQ);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1],
-> +			CLK_MCU_ISP_DIV1_FREQ);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV0], CLK_ISP_DIV0_FREQ);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV1], CLK_ISP_DIV1_FREQ);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM],
-> +			CLK_ISP_DIVMPWM_FREQ);
-> +	return ret;
-> +}
-> +
-> +static void fimc_is_pipelines_destroy(struct fimc_is *is)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i<  is->drvdata->num_instance; i++)
-> +		fimc_is_pipeline_destroy(&is->pipeline[i]);
-> +}
-> +
-> +static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
-> +						struct device_node *node)
-> +{
-> +	struct fimc_is_sensor *sensor =&is->sensor[index];
-> +	u32 tmp = 0;
-> +	int ret;
-> +
-> +	sensor->drvdata = exynos5_is_sensor_get_drvdata(node);
-> +	if (!sensor->drvdata) {
-> +		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-> +							 node->full_name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	node = v4l2_of_get_next_endpoint(node, NULL);
-> +	if (!node)
-> +		return -ENXIO;
-> +
-> +	node = v4l2_of_get_remote_port(node);
-> +	if (!node)
-> +		return -ENXIO;
-> +
-> +	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
-> +	ret = of_property_read_u32(node, "reg",&tmp);
-> +	if (ret<  0) {
-> +		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
-> +							 node->full_name);
-> +		return ret;
-> +	}
-> +
-> +	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-> +	return 0;
-> +}
-> +
-> +static int fimc_is_parse_sensor(struct fimc_is *is)
-> +{
-> +	struct device_node *i2c_bus, *child;
-> +	int ret, index = 0;
-> +
-> +	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
-> +		for_each_available_child_of_node(i2c_bus, child) {
-> +			ret = fimc_is_parse_sensor_config(is, index, child);
-> +
-> +			if (ret<  0 || index>= FIMC_IS_NUM_SENSORS) {
-> +				of_node_put(child);
-> +				return ret;
-> +			}
-> +			index++;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static void *fimc_is_get_drvdata(struct platform_device *pdev);
-> +
-> +static int fimc_is_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev =&pdev->dev;
-> +	struct resource *res;
-> +	struct fimc_is *is;
-> +	void __iomem *regs;
-> +	struct device_node *node;
-> +	int irq, ret;
-> +	int i;
-> +
-> +	dev_dbg(dev, "FIMC-IS Probe Enter\n");
-> +
-> +	if (!pdev->dev.of_node)
-> +		return -ENODEV;
-> +
-> +	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
-> +	if (!is)
-> +		return -ENOMEM;
-> +
-> +	is->pdev = pdev;
-> +
-> +	is->drvdata = fimc_is_get_drvdata(pdev);
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	regs = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(regs))
-> +		return PTR_ERR(regs);
-> +
-> +	/* Get the PMU base */
-> +	node = of_get_child_by_name(dev->of_node, "pmu");
+1. Sensor metadata. Sensors produce interesting kinds of metadata. 
+Typically the metadata format is very hardware specific. It is known the 
+metadata can consist e.g. register values or floating point numbers 
+describing sensor state. The metadata may have certain length or it can 
+span a few lines at the beginning or the end of the frame, or both.
 
-I think we should, as Stephen suggested, add the PMU device node and 
-reference
-it here through a phandle instead.
+2. JPEG images or other compressed data. JPEG images are produced by 
+some sensors either separately or combined with the regular image data 
+frame. The data type is always octets for these formats.
 
-> +	if (!node)
-> +		return -ENODEV;
-> +	is->pmu_regs = of_iomap(node, 0);
-> +	if (!is->pmu_regs)
-> +		return -ENOMEM;
-> +
-> +	irq = irq_of_parse_and_map(dev->of_node, 0);
-> +	if (irq<  0) {
-> +		dev_err(dev, "Failed to get IRQ\n");
-> +		return irq;
-> +	}
-> +
-> +	ret = fimc_is_configure_clocks(is);
-> +	if (ret<  0) {
-> +		dev_err(dev, "clocks configuration failed\n");
-> +		goto err_clk;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, is);
-> +	pm_runtime_enable(dev);
-> +
-> +	ret = pm_runtime_get_sync(dev);
-> +	if (ret<  0)
-> +		goto err_pm;
-> +
-> +	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-> +	if (IS_ERR(is->alloc_ctx)) {
-> +		ret = PTR_ERR(is->alloc_ctx);
-> +		goto err_vb;
-> +	}
-> +
-> +	/* Get IS-sensor contexts */
-> +	ret = fimc_is_parse_sensor(is);
-> +	if (ret<  0)
-> +		goto err_vb;
-> +
-> +	/* Initialize FIMC Pipeline */
-> +	for (i = 0; i<  is->drvdata->num_instance; i++) {
-> +		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
-> +		if (ret<  0)
-> +			goto err_sd;
-> +	}
-> +
-> +	/* Initialize FIMC Interface */
-> +	ret = fimc_is_interface_init(&is->interface, regs, irq);
-> +	if (ret<  0)
-> +		goto err_sd;
-> +
-> +	pm_runtime_put(dev);
-> +
-> +	dev_dbg(dev, "FIMC-IS registered successfully\n");
-> +
-> +	return 0;
-> +
-> +err_sd:
-> +	fimc_is_pipelines_destroy(is);
-> +err_vb:
-> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-> +err_pm:
-> +	pm_runtime_put(dev);
-> +err_clk:
-> +	fimc_is_put_clocks(is);
-> +
-> +	return ret;
-> +}
-> +
-> +int fimc_is_clk_enable(struct fimc_is *is)
-> +{
-> +	int ret;
-> +
-> +	ret = clk_enable(is->clock[IS_CLK_ISP]);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
-> +	return ret;
+2.1. Compressed image with defined width and height for the benefit of
+receivers that do not support variable size (or JPEG) images.
 
-	return clk_enable(is->clock[IS_CLK_MCU_ISP]);
+3. Interleaved YUV and JPEG data. Separating the two may only done in
+software, so the driver has no option but to consider both as blobs.
 
-> +}
-> +
-> +void fimc_is_clk_disable(struct fimc_is *is)
-> +{
-> +	clk_disable(is->clock[IS_CLK_ISP]);
-> +	clk_disable(is->clock[IS_CLK_MCU_ISP]);
-> +}
-> +
-> +static int fimc_is_pm_resume(struct device *dev)
-> +{
-> +	struct fimc_is *is = dev_get_drvdata(dev);
-> +	int ret;
-> +
-> +	ret = fimc_is_clk_enable(is);
-> +	if (ret<  0) {
-> +		dev_err(dev, "Could not enable clocks\n");
-> +		return ret;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int fimc_is_pm_suspend(struct device *dev)
-> +{
-> +	struct fimc_is *is = dev_get_drvdata(dev);
-> +
-> +	fimc_is_clk_disable(is);
-> +	return 0;
-> +}
-> +
-> +static int fimc_is_runtime_resume(struct device *dev)
-> +{
-> +	return fimc_is_pm_resume(dev);
-> +}
-> +
-> +static int fimc_is_runtime_suspend(struct device *dev)
-> +{
-> +	return fimc_is_pm_suspend(dev);
-> +}
-> +
-> +#ifdef CONFIG_PM_SLEEP
-> +static int fimc_is_resume(struct device *dev)
-> +{
-> +	/* TODO */
-> +	return 0;
-> +}
-> +
-> +static int fimc_is_suspend(struct device *dev)
-> +{
-> +	/* TODO */
-> +	return 0;
-> +}
-> +#endif /* CONFIG_PM_SLEEP */
-> +
-> +static int fimc_is_remove(struct platform_device *pdev)
-> +{
-> +	struct fimc_is *is = platform_get_drvdata(pdev);
-> +	struct device *dev =&pdev->dev;
-> +
-> +	pm_runtime_disable(dev);
-> +	pm_runtime_set_suspended(dev);
-> +	fimc_is_pipelines_destroy(is);
-> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-> +	fimc_is_put_clocks(is);
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops fimc_is_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_suspend, fimc_is_resume)
-> +	SET_RUNTIME_PM_OPS(fimc_is_runtime_suspend, fimc_is_runtime_resume,
-> +			   NULL)
-> +};
-> +
-> +static struct fimc_is_drvdata exynos5250_drvdata = {
-> +	.num_instance	= 1,
+4. Regular image data frames. Described by struct v4l2_mbus_framefmt
+already.
 
-nit: s/num_instance/num_instances ?
+5. Multi-format images. See the end of the message for more information.
 
-> +	.fw_name	= "exynos5_fimc_is_fw.bin",
-> +};
-> +
-> +static const struct of_device_id exynos5_fimc_is_match[] = {
-> +	{
-> +		.compatible = "samsung,exynos5250-fimc-is",
-> +		.data =&exynos5250_drvdata,
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, exynos5_fimc_is_match);
-> +
-> +static void *fimc_is_get_drvdata(struct platform_device *pdev)
-> +{
-> +	struct fimc_is_drvdata *driver_data = NULL;
-> +
-> +	if (pdev->dev.of_node) {
-> +		const struct of_device_id *match;
-> +		match = of_match_node(exynos5_fimc_is_match,
-> +				pdev->dev.of_node);
-> +		if (match)
-> +			driver_data = (struct fimc_is_drvdata *)match->data;
-> +	}
-> +	return driver_data;
-> +}
-> +
-> +static struct platform_driver fimc_is_driver = {
-> +	.probe		= fimc_is_probe,
-> +	.remove		= fimc_is_remove,
-> +	.driver = {
-> +		.name	= FIMC_IS_DRV_NAME,
-> +		.owner	= THIS_MODULE,
-> +		.pm	=&fimc_is_pm_ops,
-> +		.of_match_table = exynos5_fimc_is_match,
-> +	}
-> +};
-> +module_platform_driver(fimc_is_driver);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Arun Kumar K<arun.kk@samsung.com>");
-> +MODULE_DESCRIPTION("Samsung Exynos5 (FIMC-IS) Imaging Subsystem driver");
-> diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.h b/drivers/media/platform/exynos5-is/fimc-is-core.h
-> new file mode 100644
-> index 0000000..a0568f1
-> --- /dev/null
-> +++ b/drivers/media/platform/exynos5-is/fimc-is-core.h
-> @@ -0,0 +1,134 @@
-> +/*
-> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-> + *
-> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> + *  Arun Kumar K<arun.kk@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef FIMC_IS_CORE_H_
-> +#define FIMC_IS_CORE_H_
-> +
-> +#include<linux/bug.h>
-> +#include<linux/clk.h>
-> +#include<linux/device.h>
-> +#include<linux/errno.h>
-> +#include<linux/firmware.h>
-> +#include<linux/interrupt.h>
-> +#include<linux/kernel.h>
-> +#include<linux/list.h>
-> +#include<linux/module.h>
-> +#include<linux/types.h>
-> +#include<linux/platform_device.h>
-> +#include<linux/pm_runtime.h>
-> +#include<linux/slab.h>
-> +#include<linux/videodev2.h>
-> +
+Some busses such as the CSI-2 are able to transport some of this on 
+separate channels. This provides logical separation of different parts 
+of the frame while still sharing the same physical bus. However most 
+sensors are known to send the metadata on the same channel as the 
+regular image data frame; this could be related to limitations on some 
+CSI-2 receiver implementations.
 
-nit: unnecessary empty line
+It should be thus not assumed that even if a given bus provides logical 
+separation between different parts of the image that feature was 
+actually used: instead, the width and height fields are to be used for 
+this purpose: the entries are in the structure in the same order as sent 
+by the sensor. There must be no overlap or redundancy in the descriptors.
 
-> +#include<asm/barrier.h>
-> +#include<linux/sizes.h>
-> +#include<linux/io.h>
-> +#include<linux/irqreturn.h>
-> +#include<linux/platform_device.h>
-> +#include<linux/sched.h>
-> +#include<linux/spinlock.h>
-> +
-> +#include<media/media-entity.h>
-> +#include<media/videobuf2-core.h>
-> +#include<media/v4l2-ctrls.h>
-> +#include<media/v4l2-device.h>
-> +#include<media/v4l2-mem2mem.h>
-> +#include<media/v4l2-mediabus.h>
-> +#include<media/s5p_fimc.h>
+The frame descriptor may change as a result of an action performed by 
+the user, such as changing the pad format from the user space. The frame 
+format must be thus queried from the transmitting device before starting 
+streamin. Changing frame descriptor while streaming is not allowed.
 
-nit: some entries are not in alphabetical order
+This leads me to think we need two relatively independent things: to 
+describe frame format and provide ways to provide the non-image part of 
+the frame to user space.
 
-> +#define FIMC_IS_DRV_NAME		"exynos5-fimc-is"
-> +
-> +#define FIMC_IS_COMMAND_TIMEOUT		(3 * HZ)
-> +#define FIMC_IS_STARTUP_TIMEOUT		(3 * HZ)
-> +#define FIMC_IS_SHUTDOWN_TIMEOUT	(10 * HZ)
-> +
-> +#define FW_SHARED_OFFSET		(0x8c0000)
-> +#define DEBUG_CNT			(500 * 1024)
-> +#define DEBUG_OFFSET			(0x840000)
-> +#define DEBUGCTL_OFFSET			(0x8bd000)
-> +#define DEBUG_FCOUNT			(0x8c64c0)
-> +
-> +#define FIMC_IS_MAX_INSTANCES		1
-> +
-> +#define FIMC_IS_NUM_SENSORS		2
-> +#define FIMC_IS_NUM_PIPELINES		1
-> +
-> +#define FIMC_IS_MAX_PLANES		3
-> +#define FIMC_IS_NUM_SCALERS		2
-> +
-> +enum fimc_is_clks {
-> +	IS_CLK_ISP,
-> +	IS_CLK_MCU_ISP,
-> +	IS_CLK_ISP_DIV0,
-> +	IS_CLK_ISP_DIV1,
-> +	IS_CLK_ISP_DIVMPWM,
-> +	IS_CLK_MCU_ISP_DIV0,
-> +	IS_CLK_MCU_ISP_DIV1,
-> +	IS_CLK_MAX_NUM
-> +};
-> +
-> +/* Video capture states */
-> +enum fimc_is_video_state {
-> +	STATE_INIT,
-> +	STATE_BUFS_ALLOCATED,
-> +	STATE_RUNNING,
-> +};
-> +
-> +enum fimc_is_scaler_id {
-> +	SCALER_SCC,
-> +	SCALER_SCP
-> +};
-> +
-> +enum fimc_is_sensor_pos {
-> +	SENSOR_CAM0,
-> +	SENSOR_CAM1
-> +};
-> +
-> +struct fimc_is_buf {
-> +	struct vb2_buffer vb;
-> +	struct list_head list;
-> +	unsigned int paddr[FIMC_IS_MAX_PLANES];
-> +};
-> +
-> +struct fimc_is_memory {
-> +	/* physical base address */
-> +	dma_addr_t paddr;
-> +	/* virtual base address */
-> +	void *vaddr;
-> +	/* total length */
-> +	unsigned int size;
-> +};
-> +
-> +struct fimc_is_meminfo {
-> +	struct fimc_is_memory	fw;
-> +	struct fimc_is_memory	shot;
-> +	struct fimc_is_memory	region;
-> +	struct fimc_is_memory	shared;
-> +};
-> +
-> +struct fimc_is_drvdata {
-> +	unsigned int	num_instance;
-> +	char		*fw_name;
-> +};
-> +
-> +/**
-> + * struct fimc_is_fmt - the driver's internal color format data
-> + * @name: format description
-> + * @fourcc: the fourcc code for this format
-> + * @depth: number of bytes per pixel
-> + * @num_planes: number of planes for this color format
-> + */
-> +struct fimc_is_fmt {
-> +	char		*name;
-> +	unsigned int	fourcc;
-> +	unsigned int	depth[FIMC_IS_MAX_PLANES];
-> +	unsigned int	num_planes;
-> +};
-> +
-> +#endif
+Most of the time it's possible to use the hardware to separate the 
+different parts of the buffer e.g. into separate memory areas or into 
+separate planes of a multi-plane buffer, but not quite always (the case 
+we don't care about).
 
-Otherwise looks good.
+There are currently two ways to do this: either a separate video node or 
+a multi-plane buffer. Neither seems entirely satisfactory: the 
+multi-plane buffer is only available to the user space once the last 
+part of it is done. On the other hand, separate video nodes cause the 
+need to create new video nodes based on what kind of data is produced by 
+a sensor, possibly relating to its configuration.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
---
-Thanks,
-Sylwester
+Frame format descriptor
+=======================
+
+The frame format descriptor describes the layout of the frame, not only 
+the image data but also other parts of it. What struct 
+v4l2_mbus_framefmt describes is part of it. Changes to 
+v4l2_mbus_framefmt affect the frame format descriptor rather than the 
+other way around.
+
+struct v4l2_mbus_frame_desc {
+	struct v4l2_mbus_frame_desc_entry \
+		entry[V4L2_MBUS_FRAME_DESC_ENTRY_MAX];
+	unsigned short num_entries;
+};
+
+#define V4L2_MBUS_FRAME_DESC_ENTRY_FLAG_BLOB		(1 << 0)
+#define V4L2_MBUS_FRAME_DESC_ENTRY_FLAG_LEN_IS_MAX	(1 << 1)
+
+enum {
+	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
+	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
+	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
+};
+
+struct v4l2_mbus_frame_desc_entry {
+	u8 bpp;
+	u16 flags;
+	u32 pixelcode;
+	union {
+		struct {
+			u16 width;
+			u16 height;
+			u16 start_line;
+		};
+		u32 length; /* if BLOB flag is set */
+	};
+	unsigned int type;
+	union {
+		struct v4l2_mbus_frame_desc_entry_csi2 csi2;
+		struct v4l2_mbus_frame_desc_entry_ccp2 ccp2;
+		struct v4l2_mbus_frame_desc_entry_parallel par;
+	};
+};
+
+struct v4l2_mbus_frame_desc_entry_csi2 {
+	u8 channel;
+};
+
+struct v4l2_mbus_frame_desc_entry_ccp2 {
+};
+
+struct v4l2_mbus_frame_desc_entry_parallel {
+};
+
+The frame format is defined by the sensor, and the sensor provides a 
+subdev pad op to obtain the frame format. This op is used by the csi-2 
+receiver driver.
+
+Width and height are the width and height of the actual raw data sent over
+the bus. Compressed formats that are transferred as a raw 8-bit image have
+width and height that are different from the actual width and height of the
+image.
+
+
+Non-image data (metadata or other blobs)
+========================================
+
+There are several ways to pass non-image data to user space. Often the
+receiver is able to write the metadata to a different memory location 
+than the image data whereas sometimes the receiver isn't able to 
+separate the two. Separating the two has one important benefit: the 
+metadata is available for the user space automatic exposure algorithm as 
+soon as it has been written to system memory. We have two cases:
+
+1. Metadata part of the same buffer (receiver unable to separate the 
+two). The receiver uses multi-plane buffer type. Multi-plane buffer's 
+each plane should have independent pixelcode field: the sensor metadata 
+formats are highly sensor dependent whereas the image formats are not.
+
+2. Non-videodata arrives through a separate buffer queue. The user may
+activate the link to second video node to activate metadata capture.
+Multiple buffer queues should be supported in this case per video node for
+capture, a topic for another RFC.
+
+Then, how does the user decide which one to choose when the sensor 
+driver would be able to separate the two but the user might not want 
+that? The user might also want to just not capture the metadata in the 
+first place, even if the sensor produced it.
+
+
+Multi-format image frames
+=========================
+
+This is actually another use case. I separated the further description 
+from the others since this topic could warrant an RFC on its own.
+
+Some sensors are able to produce snapshots (downscaled versions of the 
+same frames) when capturing still photos. This kind of sensors are 
+typically used in conjunction with simple receivers without ISP.
+
+How to control this feeature? The link between the sensor and the 
+receiver models both the physical connection and the properties of the 
+images produced at one end and consumed in the other.
+
+One option would be to add one layer of abstraction and provide multiple
+v4l2_mbus_framefmt's in user space. It'd also be necessary to provide
+enumeration support for them as well as a way to enable and disable them
+should the hardware allow it. An alternative idea could be to use multiple
+links for the purpose, but that would not match with the idea of a link as
+as a physical connection.
+
+
+Questions and comments are most welcome.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
