@@ -1,90 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:63156 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933367Ab3HHAhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 20:37:03 -0400
-Received: from [192.168.1.3] ([82.101.238.214]) by mail.gmx.com (mrgmx002)
- with ESMTPSA (Nemesis) id 0Md3ZK-1VOD8x0D8U-00IC6v for
- <linux-media@vger.kernel.org>; Thu, 08 Aug 2013 02:37:01 +0200
-Message-ID: <5202E82E.50400@gmx.net>
-Date: Thu, 08 Aug 2013 02:37:02 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: EM28xx - MSI Digivox Trio - almost working.
-References: <51C28FA2.70004@gmx.net>
-In-Reply-To: <51C28FA2.70004@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-ye0-f171.google.com ([209.85.213.171]:64830 "EHLO
+	mail-ye0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751588Ab3HUPO0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 11:14:26 -0400
+Received: by mail-ye0-f171.google.com with SMTP id m3so112174yen.16
+        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 08:14:26 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: k.debski@samsung.com
+Cc: p.zabel@pengutronix.de, linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH v7 1/3] [media] coda: Fix error paths
+Date: Wed, 21 Aug 2013 12:14:16 -0300
+Message-Id: <1377098058-12566-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20-06-13 07:14, P. van Gaans wrote:
-> Hi all,
->
-> (device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio)
->
-> Thanks to the message from Philip Pemberton I was able to try loading
-> the em28xx driver myself using:
->
-> sudo modprobe em28xx card=NUMBER
-> echo eb1a 2885 | sudo tee /sys/bus/usb/drivers/em28xx/new_id
->
-> Here are the results for NUMBER:
->
-> Card=79 (Terratec Cinergy H5): works, less corruption than card=87, just
-> some blocks every few seconds. Attenuators didn't help.
-> Card=81 (Hauppauge WinTV HVR 930C): doesn't work, no /dev/dvb adapter
-> Card=82 (Terratec Cinergy HTC Stick): similar to card=87
-> Card=85 (PCTV QuatroStick (510e)): constantly producing i2c read errors,
-> doesn't work
-> Card=86 (PCTV QuatroStick nano (520e): same
-> Card=87 (Terratec Cinergy HTC USB XS): stick works and scans channels,
-> but reception is bugged with corruption. It's like having a DVB-T
-> antenna that's just not good enough, except this is DVB-C and my signal
-> is excellent. Attenuators didn't help.
-> Card=88 (C3 Tech Digital Duo HDTV/SDTV USB): doesn't work, no /dev/dvb
-> adapter
->
-> So with card=79 it's really close to working. What else can I do?
->
-> Best regareds,
->
-> P. van Gaans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-Hi all,
+Some resources were not being released in the error path and some were released
+in the incorrect order.
 
-Success!
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+Changes since v6:
+- Rebased against correct branch
 
-While I never succeeded in figuring out how the sniffing is supposed to 
-be done (how to get any output from those scripts anyway? how to load 
-the debug module in such away it actually works? run on native linux, or 
-a windows VM on linux, or snoop in windows en run the script on linux? 
-you get the picture) I just noticed a little notice on the DVB-C USB 
-wiki page:
+ drivers/media/platform/coda.c | 43 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 29 insertions(+), 14 deletions(-)
 
-"If you are experiencing problems with USB devices, it may not be the 
-fault of the tuner. For example AMD 700 series chipsets (e.g. 780G) have 
-a problem with USB ports which results in tuners working or partially 
-working or not working at all."
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 73460de..0894d80 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -2381,15 +2381,17 @@ static int coda_open(struct file *file)
+ 	int ret;
+ 	int idx;
+ 
+-	idx = coda_next_free_instance(dev);
+-	if (idx >= CODA_MAX_INSTANCES)
+-		return -EBUSY;
+-	set_bit(idx, &dev->instance_mask);
+-
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 
++	idx = coda_next_free_instance(dev);
++	if (idx >= CODA_MAX_INSTANCES) {
++		ret = -EBUSY;
++		goto err_coda_max;
++	}
++	set_bit(idx, &dev->instance_mask);
++
+ 	INIT_WORK(&ctx->skip_run, coda_skip_run);
+ 	v4l2_fh_init(&ctx->fh, video_devdata(file));
+ 	file->private_data = &ctx->fh;
+@@ -2403,6 +2405,9 @@ static int coda_open(struct file *file)
+ 	default:
+ 		ctx->reg_idx = idx;
+ 	}
++
++	clk_prepare_enable(dev->clk_per);
++	clk_prepare_enable(dev->clk_ahb);
+ 	set_default_params(ctx);
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
+ 					 &coda_queue_init);
+@@ -2411,12 +2416,12 @@ static int coda_open(struct file *file)
+ 
+ 		v4l2_err(&dev->v4l2_dev, "%s return error (%d)\n",
+ 			 __func__, ret);
+-		goto err;
++		goto err_ctx_init;
+ 	}
+ 	ret = coda_ctrls_setup(ctx);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "failed to setup coda controls\n");
+-		goto err;
++		goto err_ctrls_setup;
+ 	}
+ 
+ 	ctx->fh.ctrl_handler = &ctx->ctrls;
+@@ -2424,7 +2429,7 @@ static int coda_open(struct file *file)
+ 	ret = coda_alloc_context_buf(ctx, &ctx->parabuf, CODA_PARA_BUF_SIZE);
+ 	if (ret < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
+-		goto err;
++		goto err_dma_alloc;
+ 	}
+ 
+ 	ctx->bitstream.size = CODA_MAX_FRAME_SIZE;
+@@ -2433,7 +2438,7 @@ static int coda_open(struct file *file)
+ 	if (!ctx->bitstream.vaddr) {
+ 		v4l2_err(&dev->v4l2_dev, "failed to allocate bitstream ringbuffer");
+ 		ret = -ENOMEM;
+-		goto err;
++		goto err_dma_writecombine;
+ 	}
+ 	kfifo_init(&ctx->bitstream_fifo,
+ 		ctx->bitstream.vaddr, ctx->bitstream.size);
+@@ -2444,17 +2449,27 @@ static int coda_open(struct file *file)
+ 	list_add(&ctx->list, &dev->instances);
+ 	coda_unlock(ctx);
+ 
+-	clk_prepare_enable(dev->clk_per);
+-	clk_prepare_enable(dev->clk_ahb);
+-
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
+ 		 ctx->idx, ctx);
+ 
+ 	return 0;
+ 
+-err:
++err_dma_writecombine:
++	coda_free_context_buffers(ctx);
++	if (ctx->dev->devtype->product == CODA_DX6)
++		coda_free_aux_buf(dev, &ctx->workbuf);
++	coda_free_aux_buf(dev, &ctx->parabuf);
++err_dma_alloc:
++	v4l2_ctrl_handler_free(&ctx->ctrls);
++err_ctrls_setup:
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++err_ctx_init:
++	clk_disable_unprepare(dev->clk_ahb);
++	clk_disable_unprepare(dev->clk_per);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
++	clear_bit(ctx->idx, &dev->instance_mask);
++err_coda_max:
+ 	kfree(ctx);
+ 	return ret;
+ }
+@@ -2496,8 +2511,8 @@ static int coda_release(struct file *file)
+ 
+ 	coda_free_aux_buf(dev, &ctx->parabuf);
+ 	v4l2_ctrl_handler_free(&ctx->ctrls);
+-	clk_disable_unprepare(dev->clk_per);
+ 	clk_disable_unprepare(dev->clk_ahb);
++	clk_disable_unprepare(dev->clk_per);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 	clear_bit(ctx->idx, &dev->instance_mask);
+-- 
+1.8.1.2
 
-I was actually not even testing on an AMD 700 series but on an AMD 600 
-series. And a somewhat older kernel, with latest v4l-dvb compiled.
-
-So here's what I did: I took the Digivox Trio, plugged it in an Ivy 
-Bridgy computer with Lubuntu 13.04 (stock kernel, stock v4l-dvb, Lubuntu 
-appears to come with the firmware preloaded), load the em28xx driver as 
-if the Digivox were a Terratec H5 and watched 5 minutes or so, flawless.
-
-I will continue to test and watch some longer programs, but right now it 
-appears it is safe to say the Digivox Trio can be supported by simply 
-treating as an H5.
-
-Best regards,
-
-P. van Gaans
