@@ -1,87 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:28093 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967262Ab3HIHn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 03:43:59 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r797hsLl003492
-	for <linux-media@vger.kernel.org>; Fri, 9 Aug 2013 07:43:56 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] qv4l2: change m_scaledFrame to m_scaledSize
-Date: Fri,  9 Aug 2013 09:43:48 +0200
-Message-Id: <8efec2abeb1ed5f2447041aa5909da4a0c501d3c.1376034197.git.bwinther@cisco.com>
-In-Reply-To: <1376034229-26693-1-git-send-email-bwinther@cisco.com>
-References: <1376034229-26693-1-git-send-email-bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:17631 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752599Ab3HUOqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 10:46:52 -0400
+Message-id: <5214D2D8.7010106@samsung.com>
+Date: Wed, 21 Aug 2013 16:46:48 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH V2] i2c: move of helpers into the core
+References: <1377092832-3417-1-git-send-email-wsa@the-dreams.de>
+In-reply-to: <1377092832-3417-1-git-send-email-wsa@the-dreams.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win-qt.cpp | 12 ++++++------
- utils/qv4l2/capture-win-qt.h   |  2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+On 08/21/2013 03:47 PM, Wolfram Sang wrote:
+> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
+> that it is much cleaner to have this in the core. This also removes a
+> circular dependency between the helpers and the core, and so we can
+> finally register child nodes in the core instead of doing this manually
+> in each driver. So, fix the drivers and documentation, too.
+> 
+> Acked-by: Sylwester Nawrocki <s.nawrocki@amsung.com>
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 
-diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
-index f746379..82c618c 100644
---- a/utils/qv4l2/capture-win-qt.cpp
-+++ b/utils/qv4l2/capture-win-qt.cpp
-@@ -24,8 +24,8 @@ CaptureWinQt::CaptureWinQt() :
- {
- 
- 	CaptureWin::buildWindow(&m_videoSurface);
--	m_scaledFrame.setWidth(0);
--	m_scaledFrame.setHeight(0);
-+	m_scaledSize.setWidth(0);
-+	m_scaledSize.setHeight(0);
- }
- 
- CaptureWinQt::~CaptureWinQt()
-@@ -39,9 +39,9 @@ void CaptureWinQt::resizeEvent(QResizeEvent *event)
- 		return;
- 
- 	QPixmap img = QPixmap::fromImage(*m_frame);
--	m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
-+	m_scaledSize = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
- 				       QSize(m_frame->width(), m_frame->height()));
--	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
-+	img = img.scaled(m_scaledSize.width(), m_scaledSize.height(), Qt::IgnoreAspectRatio);
- 	m_videoSurface.setPixmap(img);
- 	QWidget::resizeEvent(event);
- }
-@@ -56,7 +56,7 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
- 	if (m_frame->width() != width || m_frame->height() != height || m_frame->format() != dstFmt) {
- 		delete m_frame;
- 		m_frame = new QImage(width, height, dstFmt);
--		m_scaledFrame = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
-+		m_scaledSize = scaleFrameSize(QSize(m_videoSurface.width(), m_videoSurface.height()),
- 					       QSize(m_frame->width(), m_frame->height()));
- 	}
- 
-@@ -68,7 +68,7 @@ void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *
- 	m_information.setText(info);
- 
- 	QPixmap img = QPixmap::fromImage(*m_frame);
--	img = img.scaled(m_scaledFrame.width(), m_scaledFrame.height(), Qt::IgnoreAspectRatio);
-+	img = img.scaled(m_scaledSize.width(), m_scaledSize.height(), Qt::IgnoreAspectRatio);
- 
- 	m_videoSurface.setPixmap(img);
- }
-diff --git a/utils/qv4l2/capture-win-qt.h b/utils/qv4l2/capture-win-qt.h
-index 6029109..9faa12f 100644
---- a/utils/qv4l2/capture-win-qt.h
-+++ b/utils/qv4l2/capture-win-qt.h
-@@ -48,6 +48,6 @@ private:
- 
- 	QImage *m_frame;
- 	QLabel m_videoSurface;
--	QSize m_scaledFrame;
-+	QSize m_scaledSize;
- };
- #endif
--- 
-1.8.4.rc1
+With this patch there are still couple of of_i2c.h header file
+inclusions:
+
+$ git grep of_i2c.h
+arch/powerpc/platforms/44x/warp.c:#include <linux/of_i2c.h>
+drivers/gpu/drm/tilcdc/tilcdc_slave.c:#include <linux/of_i2c.h>
+drivers/gpu/drm/tilcdc/tilcdc_tfp410.c:#include <linux/of_i2c.h>
+drivers/gpu/host1x/drm/output.c:#include <linux/of_i2c.h>
+drivers/media/platform/exynos4-is/fimc-is.c:#include <linux/of_i2c.h>
+drivers/media/platform/exynos4-is/media-dev.c:#include <linux/of_i2c.h>
+drivers/staging/imx-drm/imx-tve.c:#include <linux/of_i2c.h>
+sound/soc/fsl/imx-sgtl5000.c:#include <linux/of_i2c.h>
+sound/soc/fsl/imx-wm8962.c:#include <linux/of_i2c.h>
+
+
+Please include also this chunk, without it I'm getting build errors.
+
+--------------8<---------------------
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+index ca07b48..e38e9dc 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -11,6 +11,7 @@
+  */
+
+ #include <linux/clk.h>
++#include <linux/i2c.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c
+b/drivers/media/platform/exynos4-is/fimc-is.c
+index 6743ae3..63e4f1d 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -21,7 +21,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/of_i2c.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_address.h>
+ #include <linux/of_platform.h>
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+b/drivers/media/platform/exynos4-is/media-dev.c
+index c10dee2..00e5f91 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -22,7 +22,6 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
+-#include <linux/of_i2c.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/types.h>
+--------------8<---------------------
+
+> ---
+> 
+> V1 -> V2: * Add #else branch to #if CONFIG_OF
+> 	  * EXPORT_SYMBOLs got attached to wrong functions
+> 	  * cosmetic change (of -> OF)
+> 	  * properly based on 3.11-rc4
+> 
+>  Documentation/acpi/enumeration.txt              |    1 -
+>  drivers/i2c/busses/i2c-at91.c                   |    3 -
+>  drivers/i2c/busses/i2c-cpm.c                    |    6 --
+>  drivers/i2c/busses/i2c-davinci.c                |    2 -
+>  drivers/i2c/busses/i2c-designware-platdrv.c     |    2 -
+>  drivers/i2c/busses/i2c-gpio.c                   |    3 -
+>  drivers/i2c/busses/i2c-i801.c                   |    2 -
+>  drivers/i2c/busses/i2c-ibm_iic.c                |    4 -
+>  drivers/i2c/busses/i2c-imx.c                    |    3 -
+>  drivers/i2c/busses/i2c-mpc.c                    |    2 -
+>  drivers/i2c/busses/i2c-mv64xxx.c                |    3 -
+>  drivers/i2c/busses/i2c-mxs.c                    |    3 -
+>  drivers/i2c/busses/i2c-nomadik.c                |    3 -
+>  drivers/i2c/busses/i2c-ocores.c                 |    3 -
+>  drivers/i2c/busses/i2c-octeon.c                 |    3 -
+>  drivers/i2c/busses/i2c-omap.c                   |    3 -
+>  drivers/i2c/busses/i2c-pnx.c                    |    3 -
+>  drivers/i2c/busses/i2c-powermac.c               |    9 +-
+>  drivers/i2c/busses/i2c-pxa.c                    |    2 -
+>  drivers/i2c/busses/i2c-s3c2410.c                |    2 -
+>  drivers/i2c/busses/i2c-sh_mobile.c              |    2 -
+>  drivers/i2c/busses/i2c-sirf.c                   |    3 -
+>  drivers/i2c/busses/i2c-stu300.c                 |    2 -
+>  drivers/i2c/busses/i2c-tegra.c                  |    3 -
+>  drivers/i2c/busses/i2c-versatile.c              |    2 -
+>  drivers/i2c/busses/i2c-wmt.c                    |    3 -
+>  drivers/i2c/busses/i2c-xiic.c                   |    3 -
+>  drivers/i2c/i2c-core.c                          |  109 +++++++++++++++++++++-
+>  drivers/i2c/i2c-mux.c                           |    3 -
+>  drivers/i2c/muxes/i2c-arb-gpio-challenge.c      |    1 -
+>  drivers/i2c/muxes/i2c-mux-gpio.c                |    1 -
+>  drivers/i2c/muxes/i2c-mux-pinctrl.c             |    1 -
+>  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    3 -
+>  drivers/of/Kconfig                              |    6 --
+>  drivers/of/Makefile                             |    1 -
+>  drivers/of/of_i2c.c                             |  114 -----------------------
+>  include/linux/i2c.h                             |   20 ++++
+>  include/linux/of_i2c.h                          |   46 ---------
+>  38 files changed, 132 insertions(+), 253 deletions(-)
+>  delete mode 100644 drivers/of/of_i2c.c
+>  delete mode 100644 include/linux/of_i2c.h
+
+I've tested this patch on Exynos4412 SoC based board, so this covers
+i2c-s3c2410 and fimc-is-i2c. Compiled with CONFIG_OF enabled.
+
+I guess after removing all remaining occurrences of
+#include <linux/of_i2c.h> you could add:
+
+Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+--
+Thanks,
+Sylwester
 
