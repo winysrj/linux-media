@@ -1,112 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3622 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232Ab3HSOoq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:44:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 10/20] v4l2-dv-timings: add v4l2_print_dv_timings helper
-Date: Mon, 19 Aug 2013 16:44:19 +0200
-Message-Id: <1376923469-30694-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53413 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752266Ab3HUFrq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 01:47:46 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: [PATCH v11 6/8] usb: musb: omap2430: use the new generic PHY framework
+Date: Wed, 21 Aug 2013 11:16:11 +0530
+Message-ID: <1377063973-22044-7-git-send-email-kishon@ti.com>
+In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
+and usb_phy_set_suspend is replaced with power_on and
+power_off to align with the new PHY framework.
 
-Drivers often have to log the contents of a dv_timings struct. Adding
-this helper will make it easier for drivers to do so.
+musb->xceiv can't be removed as of now because musb core uses xceiv.state and
+xceiv.otg. Once there is a separate state machine to handle otg, these can be
+moved out of xceiv and then we can start using the generic PHY framework.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 49 +++++++++++++++++++++++++++++++
- include/media/v4l2-dv-timings.h           |  9 ++++++
- 2 files changed, 58 insertions(+)
+ drivers/usb/musb/Kconfig     |    1 +
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 72cf224..917e58c 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -223,6 +223,55 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 797e3fd..25e2e57 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -76,6 +76,7 @@ config USB_MUSB_TUSB6010
+ config USB_MUSB_OMAP2PLUS
+ 	tristate "OMAP2430 and onwards"
+ 	depends on ARCH_OMAP2PLUS
++	select GENERIC_PHY
+ 
+ config USB_MUSB_AM35X
+ 	tristate "AM35x"
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 7d341c3..6e567bd 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -46,6 +46,7 @@
+ #include <linux/usb.h>
+ #include <linux/usb/otg.h>
+ #include <linux/usb/musb.h>
++#include <linux/phy/phy.h>
+ 
+ struct musb;
+ struct musb_hw_ep;
+@@ -346,6 +347,7 @@ struct musb {
+ 	u16			int_tx;
+ 
+ 	struct usb_phy		*xceiv;
++	struct phy		*phy;
+ 
+ 	int nIrq;
+ 	unsigned		irq_wake:1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index f44e8b5..063773a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -348,11 +348,21 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	if (dev->parent->of_node)
++	if (dev->parent->of_node) {
++		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
++
++		/* We can't totally remove musb->xceiv as of now because
++		 * musb core uses xceiv.state and xceiv.otg. Once we have
++		 * a separate state machine to handle otg, these can be moved
++		 * out of xceiv and then we can start using the generic PHY
++		 * framework
++		 */
+ 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+ 		    "usb-phy", 0);
+-	else
++	} else {
+ 		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++		musb->phy = devm_phy_get(dev, "usb");
++	}
+ 
+ 	if (IS_ERR(musb->xceiv)) {
+ 		status = PTR_ERR(musb->xceiv);
+@@ -364,6 +374,10 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -EPROBE_DEFER;
+ 	}
+ 
++	if (IS_ERR(musb->phy)) {
++		pr_err("HS USB OTG: no PHY configured\n");
++		return PTR_ERR(musb->phy);
++	}
+ 	musb->isr = omap2430_musb_interrupt;
+ 
+ 	status = pm_runtime_get_sync(dev);
+@@ -397,7 +411,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != OMAP_MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
+ 
+-	usb_phy_init(musb->xceiv);
++	phy_init(musb->phy);
+ 
+ 	pm_runtime_put_noidle(musb->controller);
+ 	return 0;
+@@ -460,6 +474,7 @@ static int omap2430_musb_exit(struct musb *musb)
+ 	del_timer_sync(&musb_idle_timer);
+ 
+ 	omap2430_low_level_exit(musb);
++	phy_exit(musb->phy);
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
+@@ -638,7 +653,7 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 				OTG_INTERFSEL);
  
-+void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-+			   const struct v4l2_dv_timings *t, bool detailed)
-+{
-+	const struct v4l2_bt_timings *bt = &t->bt;
-+	u32 htot, vtot;
-+
-+	if (t->type != V4L2_DV_BT_656_1120)
-+		return;
-+
-+	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
-+	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
-+
-+	if (prefix == NULL)
-+		prefix = "";
-+
-+	pr_info("%s: %s%ux%u%s%u (%ux%u)\n", dev_prefix, prefix,
-+		bt->width, bt->height, bt->interlaced ? "i" : "p",
-+		(htot * vtot) > 0 ? ((u32)bt->pixelclock / (htot * vtot)) : 0,
-+		htot, vtot);
-+
-+	if (!detailed)
-+		return;
-+
-+	pr_info("%s: horizontal: fp = %u, %ssync = %u, bp = %u\n",
-+			dev_prefix, bt->hfrontporch,
-+			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
-+			bt->hsync, bt->hbackporch);
-+	pr_info("%s: vertical: fp = %u, %ssync = %u, bp = %u\n",
-+			dev_prefix, bt->vfrontporch,
-+			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
-+			bt->vsync, bt->vbackporch);
-+	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
-+	pr_info("%s: flags (0x%x):%s%s%s%s\n", dev_prefix, bt->flags,
-+			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
-+			" REDUCED_BLANKING" : "",
-+			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
-+			" CAN_REDUCE_FPS" : "",
-+			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
-+			" REDUCED_FPS" : "",
-+			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
-+			" HALF_LINE" : "");
-+	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
-+			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
-+			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
-+}
-+EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
-+
- /*
-  * CVT defines
-  * Based on Coordinated Video Timings Standard
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 4c7bb54..696e5c2 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -76,6 +76,15 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
- 			  const struct v4l2_dv_timings *standard,
- 			  unsigned pclock_delta);
+ 		omap2430_low_level_exit(musb);
+-		usb_phy_set_suspend(musb->xceiv, 1);
++		phy_power_off(musb->phy);
+ 	}
  
-+/** v4l2_print_dv_timings() - log the contents of a dv_timings struct
-+  * @dev_prefix:device prefix for each log line.
-+  * @prefix:	additional prefix for each log line, may be NULL.
-+  * @t:		the timings data.
-+  * @detailed:	if true, give a detailed log.
-+  */
-+void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-+			   const struct v4l2_dv_timings *t, bool detailed);
-+
- /** v4l2_detect_cvt - detect if the given timings follow the CVT standard
-  * @frame_height - the total height of the frame (including blanking) in lines.
-  * @hfreq - the horizontal frequency in Hz.
+ 	return 0;
+@@ -653,8 +668,7 @@ static int omap2430_runtime_resume(struct device *dev)
+ 		omap2430_low_level_init(musb);
+ 		musb_writel(musb->mregs, OTG_INTERFSEL,
+ 				musb->context.otg_interfsel);
+-
+-		usb_phy_set_suspend(musb->xceiv, 0);
++		phy_power_on(musb->phy);
+ 	}
+ 
+ 	return 0;
 -- 
-1.8.3.2
+1.7.10.4
 
