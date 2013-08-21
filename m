@@ -1,796 +1,1551 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:44938 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751725Ab3HZUqB (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:36395 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752222Ab3HUGef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Aug 2013 16:46:01 -0400
-Message-ID: <521BBE84.4030206@gmail.com>
-Date: Mon, 26 Aug 2013 22:45:56 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	s.nawrocki@samsung.com, posciak@google.com, arun.kk@samsung.com
-Subject: Re: [PATCH v2 1/5] [media] exynos-mscl: Add new driver for M-Scaler
-References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-2-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1376909932-23644-2-git-send-email-shaik.ameer@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 21 Aug 2013 02:34:35 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v7 01/13] [media] exynos5-is: Adding media device driver for exynos5
+Date: Wed, 21 Aug 2013 12:04:28 +0530
+Message-Id: <1377066881-5423-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
-> This patch adds support for M-Scaler (M2M Scaler) device which is a
-> new device for scaling, blending, color fill  and color space
-> conversion on EXYNOS5 SoCs.
->
-> This device supports the followings as key feature.
->      input image format
->          - YCbCr420 2P(UV/VU), 3P
->          - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
->          - YCbCr444 2P(UV,VU), 3P
->          - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
->          - Pre-multiplexed ARGB8888, L8A8 and L8
->      output image format
->          - YCbCr420 2P(UV/VU), 3P
->          - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
->          - YCbCr444 2P(UV,VU), 3P
->          - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
->          - Pre-multiplexed ARGB8888
->      input rotation
->          - 0/90/180/270 degree, X/Y/XY Flip
->      scale ratio
->          - 1/4 scale down to 16 scale up
->      color space conversion
->          - RGB to YUV / YUV to RGB
->      Size
->          - Input : 16x16 to 8192x8192
->          - Output:   4x4 to 8192x8192
->      alpha blending, color fill
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+
+This patch adds support for media device for EXYNOS5 SoCs.
+The current media device supports the following ips to connect
+through the media controller framework.
+
+* MIPI-CSIS
+  Support interconnection(subdev interface) between devices
+
+* FIMC-LITE
+  Support capture interface from device(Sensor, MIPI-CSIS) to memory
+  Support interconnection(subdev interface) between devices
+
+* FIMC-IS
+  Camera post-processing IP having multiple sub-nodes.
+
+G-Scaler will be added later to the current media device.
+
+The media device creates two kinds of pipelines for connecting
+the above mentioned IPs.
+The pipeline0 is uses Sensor, MIPI-CSIS and FIMC-LITE which captures
+image data and dumps to memory.
+Pipeline1 uses FIMC-IS components for doing post-processing
+operations on the captured image and give scaled YUV output.
+
+Pipeline0
+  +--------+     +-----------+     +-----------+     +--------+
+  | Sensor | --> | MIPI-CSIS | --> | FIMC-LITE | --> | Memory |
+  +--------+     +-----------+     +-----------+     +--------+
+
+Pipeline1
+ +--------+      +--------+     +-----------+     +-----------+
+ | Memory | -->  |  ISP   | --> |    SCC    | --> |    SCP    |
+ +--------+      +--------+     +-----------+     +-----------+
+
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ .../bindings/media/exynos5250-camera.txt           |  126 ++
+ drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1210 ++++++++++++++++++++
+ drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
+ 3 files changed, 1462 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
+
+diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+new file mode 100644
+index 0000000..09420ba
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+@@ -0,0 +1,126 @@
++Samsung EXYNOS5 SoC Camera Subsystem
++------------------------------------
++
++The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
++represented by separate device tree nodes. Currently this includes: FIMC-LITE,
++MIPI CSIS and FIMC-IS.
++
++The sub-device nodes are referenced using phandles in the common 'camera' node
++which also includes common properties of the whole subsystem not really
++specific to any single sub-device, like common camera port pins or the common
++camera bus clocks.
++
++Common 'camera' node
++--------------------
++
++Required properties:
++
++- compatible		: must be "samsung,exynos5250-fimc"
++- clocks		: list of clock specifiers, corresponding to entries in
++                          the clock-names property
++- clock-names		: must contain "sclk_bayer" entry
++- samsung,csis		: list of phandles to the mipi-csis device nodes
++- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
++- samsung,fimc-is	: phandle to the fimc-is device node
++
++The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
++to define a required pinctrl state named "default".
++
++'parallel-ports' node
++---------------------
++
++This node should contain child 'port' nodes specifying active parallel video
++input ports. It includes camera A, camera B and RGB bay inputs.
++'reg' property in the port nodes specifies the input type:
++ 1 - parallel camport A
++ 2 - parallel camport B
++ 5 - RGB camera bay
++
++3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
++
++Image sensor nodes
++------------------
++
++The sensor device nodes should be added to their control bus controller (e.g.
++I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
++using the common video interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	aliases {
++		fimc-lite0 = &fimc_lite_0
++	};
++
++	/* Parallel bus IF sensor */
++	i2c_0: i2c@13860000 {
++		s5k6aa: sensor@3c {
++			compatible = "samsung,s5k6aafx";
++			reg = <0x3c>;
++			vddio-supply = <...>;
++
++			clock-frequency = <24000000>;
++			clocks = <...>;
++			clock-names = "mclk";
++
++			port {
++				s5k6aa_ep: endpoint {
++					remote-endpoint = <&fimc0_ep>;
++					bus-width = <8>;
++					hsync-active = <0>;
++					vsync-active = <1>;
++					pclk-sample = <1>;
++				};
++			};
++		};
++	};
++
++	/* MIPI CSI-2 bus IF sensor */
++	s5c73m3: sensor@1a {
++		compatible = "samsung,s5c73m3";
++		reg = <0x1a>;
++		vddio-supply = <...>;
++
++		clock-frequency = <24000000>;
++		clocks = <...>;
++		clock-names = "mclk";
++
++		port {
++			s5c73m3_1: endpoint {
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&csis0_ep>;
++			};
++		};
++	};
++
++	camera {
++		compatible = "samsung,exynos5250-fimc";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		status = "okay";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++
++		samsung,csis = <&csis_0>, <&csis_1>;
++		samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
++		samsung,fimc-is = <&fimc_is>;
++
++		/* parallel camera ports */
++		parallel-ports {
++			/* camera A input */
++			port@1 {
++				reg = <1>;
++				camport_a_ep: endpoint {
++					remote-endpoint = <&s5k6aa_ep>;
++					bus-width = <8>;
++					hsync-active = <0>;
++					vsync-active = <1>;
++					pclk-sample = <1>;
++				};
++			};
++		};
++	};
++
++MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
++device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
++is defined in exynos5-fimc-is.txt.
+diff --git a/drivers/media/platform/exynos5-is/exynos5-mdev.c b/drivers/media/platform/exynos5-is/exynos5-mdev.c
+new file mode 100644
+index 0000000..7faa587
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/exynos5-mdev.c
+@@ -0,0 +1,1210 @@
++/*
++ * EXYNOS5 SoC series camera host interface media device driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Shaik Ameer Basha <shaik.ameer@samsung.com>
++ * Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This driver is based on exynos4-is media device driver written by
++ * Sylwester Nawrocki <s.nawrocki@samsung.com>.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation, either version 2 of the License,
++ * or (at your option) any later version.
++ */
++
++#include <linux/bug.h>
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/of_device.h>
++#include <linux/of_i2c.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <linux/types.h>
++#include <media/media-device.h>
++#include <media/s5p_fimc.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
++
++#include "exynos5-mdev.h"
++#include "fimc-is.h"
++
++#define BAYER_CLK_NAME "sclk_bayer"
++
++/**
++ * fimc_pipeline_prepare - update pipeline information with subdevice pointers
++ * @me: media entity terminating the pipeline
++ *
++ * Caller holds the graph mutex.
++ */
++static void fimc_pipeline_prepare(struct fimc_pipeline *p,
++				  struct media_entity *me)
++{
++	struct v4l2_subdev *sd;
++	int i;
++
++	for (i = 0; i < IDX_MAX; i++)
++		p->subdevs[i] = NULL;
++
++	while (1) {
++		struct media_pad *pad = NULL;
++
++		/* Find remote source pad */
++		for (i = 0; i < me->num_pads; i++) {
++			struct media_pad *spad = &me->pads[i];
++			if (!(spad->flags & MEDIA_PAD_FL_SINK))
++				continue;
++			pad = media_entity_remote_pad(spad);
++			if (pad)
++				break;
++		}
++
++		if (pad == NULL ||
++		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
++			break;
++		}
++		sd = media_entity_to_v4l2_subdev(pad->entity);
++
++		switch (sd->grp_id) {
++		case GRP_ID_FIMC_IS_SENSOR:
++		case GRP_ID_SENSOR:
++			p->subdevs[IDX_SENSOR] = sd;
++			break;
++		case GRP_ID_CSIS:
++			p->subdevs[IDX_CSIS] = sd;
++			break;
++		case GRP_ID_FLITE:
++			p->subdevs[IDX_FLITE] = sd;
++			break;
++		default:
++			pr_warn("%s: Unknown subdev grp_id: %#x\n",
++				__func__, sd->grp_id);
++		}
++		me = &sd->entity;
++		if (me->num_pads == 1)
++			break;
++	}
++
++	/*
++	 * For using FIMC-IS firmware controlled sensors, ISP subdev
++	 * has to be initialized along with pipeline0 devices.
++	 * So an ISP subdev from a free ISP pipeline is assigned to
++	 * this pipeline.
++	 */
++	if (p->subdevs[IDX_SENSOR]->grp_id == GRP_ID_FIMC_IS_SENSOR) {
++		struct fimc_pipeline_isp *p_isp;
++
++		list_for_each_entry(p_isp, p->isp_pipelines, list) {
++			if (!p_isp->in_use) {
++				p->subdevs[IDX_FIMC_IS] =
++					p_isp->subdevs[IDX_ISP];
++				p_isp->in_use = true;
++				break;
++			}
++		}
++	}
++}
++
++/**
++ * __subdev_set_power - change power state of a single subdev
++ * @sd: subdevice to change power state for
++ * @on: 1 to enable power or 0 to disable
++ *
++ * Return result of s_power subdev operation or -ENXIO if sd argument
++ * is NULL. Return 0 if the subdevice does not implement s_power.
++ */
++static int __subdev_set_power(struct v4l2_subdev *sd, int on)
++{
++	int *use_count;
++	int ret;
++
++	if (sd == NULL)
++		return -ENXIO;
++
++	use_count = &sd->entity.use_count;
++	if (on && (*use_count)++ > 0)
++		return 0;
++	else if (!on && (*use_count == 0 || --(*use_count) > 0))
++		return 0;
++	ret = v4l2_subdev_call(sd, core, s_power, on);
++
++	return ret != -ENOIOCTLCMD ? ret : 0;
++}
++
++/**
++ * fimc_pipeline_s_power - change power state of all pipeline subdevs
++ * @fimc: fimc device terminating the pipeline
++ * @state: true to power on, false to power off
++ *
++ * Needs to be called with the graph mutex held.
++ */
++static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
++{
++	unsigned int i;
++	int ret;
++	struct fimc_is_isp *isp_dev;
++
++	if (p->subdevs[IDX_SENSOR] == NULL)
++		return -ENXIO;
++
++	/*
++	 * If sensor is firmware controlled IS-sensor,
++	 * set sensor sd to isp context.
++	 */
++	if (p->subdevs[IDX_FIMC_IS]) {
++		isp_dev = v4l2_get_subdevdata(p->subdevs[IDX_FIMC_IS]);
++		isp_dev->sensor_sd = p->subdevs[IDX_SENSOR];
++	}
++
++	for (i = 0; i < IDX_MAX; i++) {
++		unsigned int idx = state ? i : (IDX_MAX - 1) - i;
++
++		ret = __subdev_set_power(p->subdevs[idx], state);
++		if (ret < 0 && ret != -ENXIO)
++			return ret;
++	}
++
++	return 0;
++}
++
++/**
++ * __fimc_pipeline_open - update the pipeline information, enable power
++ *                        of all pipeline subdevs and the sensor clock
++ * @me: media entity to start graph walk with
++ * @prepare: true to walk the current pipeline and acquire all subdevs
++ *
++ * Called with the graph mutex held.
++ */
++static int __fimc_pipeline_open(struct exynos_media_pipeline *ep,
++				struct media_entity *me, bool prepare)
++{
++	struct fimc_pipeline *p = to_fimc_pipeline(ep);
++	struct v4l2_subdev *sd;
++	struct fimc_source_info *si;
++	struct fimc_md *fmd;
++	int ret;
++
++	if (WARN_ON(p == NULL || me == NULL))
++		return -EINVAL;
++
++	if (prepare)
++		fimc_pipeline_prepare(p, me);
++
++	sd = p->subdevs[IDX_SENSOR];
++	if (sd == NULL)
++		return -EINVAL;
++
++	si = v4l2_get_subdev_hostdata(sd);
++	fmd = entity_to_fimc_mdev(&sd->entity);
++	ret = clk_prepare_enable(fmd->clk_bayer);
++	if (ret < 0)
++		return ret;
++
++	ret = fimc_pipeline_s_power(p, 1);
++	if (!ret)
++		return 0;
++
++	return ret;
++}
++
++/**
++ * __fimc_pipeline_close - disable the sensor clock and pipeline power
++ * @fimc: fimc device terminating the pipeline
++ *
++ * Disable power of all subdevs and turn the external sensor clock off.
++ */
++static int __fimc_pipeline_close(struct exynos_media_pipeline *ep)
++{
++	struct fimc_pipeline *p = to_fimc_pipeline(ep);
++	struct v4l2_subdev *sd = p ? p->subdevs[IDX_SENSOR] : NULL;
++	struct fimc_source_info *si;
++	struct fimc_md *fmd;
++	int ret = 0;
++
++	if (WARN_ON(sd == NULL))
++		return -EINVAL;
++
++	if (p->subdevs[IDX_SENSOR])
++		ret = fimc_pipeline_s_power(p, 0);
++
++	si = v4l2_get_subdev_hostdata(sd);
++	fmd = entity_to_fimc_mdev(&sd->entity);
++	clk_disable_unprepare(fmd->clk_bayer);
++
++	if (p->subdevs[IDX_SENSOR]->grp_id == GRP_ID_FIMC_IS_SENSOR) {
++		struct fimc_pipeline_isp *p_isp;
++
++		list_for_each_entry(p_isp, p->isp_pipelines, list) {
++			if (p_isp->subdevs[IDX_ISP] ==
++					p->subdevs[IDX_FIMC_IS]) {
++				p->subdevs[IDX_FIMC_IS] = NULL;
++				p_isp->in_use = false;
++				break;
++			}
++		}
++	}
++	return ret == -ENXIO ? 0 : ret;
++}
++
++/**
++ * __fimc_pipeline_s_stream - call s_stream() on pipeline subdevs
++ * @pipeline: video pipeline structure
++ * @on: passed as the s_stream() callback argument
++ */
++static int __fimc_pipeline_s_stream(struct exynos_media_pipeline *ep, bool on)
++{
++	struct fimc_pipeline *p = to_fimc_pipeline(ep);
++	int i, ret;
++
++	if (p->subdevs[IDX_SENSOR] == NULL)
++		return -ENODEV;
++
++	for (i = 0; i < IDX_MAX; i++) {
++		unsigned int idx = on ? i : (IDX_MAX - 1) - i;
++
++		ret = v4l2_subdev_call(p->subdevs[idx], video, s_stream, on);
++
++		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++			return ret;
++	}
++	return 0;
++}
++
++/* Media pipeline operations for the FIMC/FIMC-LITE video device driver */
++static const struct exynos_media_pipeline_ops exynos5_pipeline0_ops = {
++	.open		= __fimc_pipeline_open,
++	.close		= __fimc_pipeline_close,
++	.set_stream	= __fimc_pipeline_s_stream,
++};
++
++static struct exynos_media_pipeline *fimc_md_pipeline_create(
++						struct fimc_md *fmd)
++{
++	struct fimc_pipeline *p;
++
++	p = kzalloc(sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return NULL;
++
++	list_add_tail(&p->list, &fmd->pipelines);
++
++	p->isp_pipelines = &fmd->isp_pipelines;
++	p->ep.ops = &exynos5_pipeline0_ops;
++	return &p->ep;
++}
++
++static struct exynos_media_pipeline *fimc_md_isp_pipeline_create(
++						struct fimc_md *fmd)
++{
++	struct fimc_pipeline_isp *p;
++
++	p = kzalloc(sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return NULL;
++
++	list_add_tail(&p->list, &fmd->isp_pipelines);
++
++	p->in_use = false;
++	return &p->ep;
++}
++
++static void fimc_md_pipelines_free(struct fimc_md *fmd)
++{
++	while (!list_empty(&fmd->pipelines)) {
++		struct fimc_pipeline *p;
++
++		p = list_entry(fmd->pipelines.next, typeof(*p), list);
++		list_del(&p->list);
++		kfree(p);
++	}
++	while (!list_empty(&fmd->isp_pipelines)) {
++		struct fimc_pipeline_isp *p;
++
++		p = list_entry(fmd->isp_pipelines.next, typeof(*p), list);
++		list_del(&p->list);
++		kfree(p);
++	}
++}
++
++/* Parse port node and register as a sub-device any sensor specified there. */
++static int fimc_md_parse_port_node(struct fimc_md *fmd,
++				   struct device_node *port,
++				   unsigned int index)
++{
++	struct device_node *rem, *ep, *np;
++	struct fimc_source_info *pd;
++	struct v4l2_of_endpoint endpoint;
++
++	pd = &fmd->sensor[index].pdata;
++
++	/* Assume here a port node can have only one endpoint node. */
++	ep = of_get_next_child(port, NULL);
++	if (!ep)
++		return 0;
++
++	v4l2_of_parse_endpoint(ep, &endpoint);
++	if (WARN_ON(endpoint.port == 0) || index >= FIMC_MAX_SENSORS)
++		return -EINVAL;
++
++	pd->mux_id = (endpoint.port - 1) & 0x1;
++
++	rem = v4l2_of_get_remote_port_parent(ep);
++	of_node_put(ep);
++	if (rem == NULL) {
++		v4l2_info(&fmd->v4l2_dev, "Remote device at %s not found\n",
++							ep->full_name);
++		return 0;
++	}
++
++	if (fimc_input_is_parallel(endpoint.port)) {
++		if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
++			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
++		else
++			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_656;
++		pd->flags = endpoint.bus.parallel.flags;
++	} else if (fimc_input_is_mipi_csi(endpoint.port)) {
++		/*
++		 * MIPI CSI-2: only input mux selection and
++		 * the sensor's clock frequency is needed.
++		 */
++		pd->sensor_bus_type = FIMC_BUS_TYPE_MIPI_CSI2;
++	} else {
++		v4l2_err(&fmd->v4l2_dev, "Wrong port id (%u) at node %s\n",
++			 endpoint.port, rem->full_name);
++	}
++
++	np = of_get_parent(rem);
++
++	if (np && !of_node_cmp(np->name, "i2c-isp"))
++		pd->fimc_bus_type = FIMC_BUS_TYPE_ISP_WRITEBACK;
++	else
++		pd->fimc_bus_type = pd->sensor_bus_type;
++
++	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
++		return -EINVAL;
++
++	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
++	fmd->sensor[index].asd.match.of.node = rem;
++	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
++
++	fmd->num_sensors++;
++
++	of_node_put(rem);
++	return 0;
++}
++
++/* Register all SoC external sub-devices */
++static int fimc_md_of_sensors_register(struct fimc_md *fmd,
++				       struct device_node *np)
++{
++	struct device_node *parent = fmd->pdev->dev.of_node;
++	struct device_node *node, *ports;
++	int index;
++	int ret;
++
++	/* Attach sensors linked to MIPI CSI-2 receivers */
++	for (index = 0; index < FIMC_NUM_MIPI_CSIS; index++) {
++		struct device_node *port;
++
++		node = of_parse_phandle(parent, "samsung,csis", index);
++		if (!node || !of_device_is_available(node))
++			continue;
++		/* The csis node can have only port subnode. */
++		port = of_get_next_child(node, NULL);
++		if (!port)
++			continue;
++
++		ret = fimc_md_parse_port_node(fmd, port, index);
++		if (ret < 0)
++			return ret;
++	}
++
++	/* Attach sensors listed in the parallel-ports node */
++	ports = of_get_child_by_name(parent, "parallel-ports");
++	if (!ports)
++		return 0;
++
++	for_each_child_of_node(ports, node) {
++		ret = fimc_md_parse_port_node(fmd, node, index);
++		if (ret < 0)
++			break;
++		index++;
++	}
++
++	return 0;
++}
++
++static int __of_get_csis_id(struct device_node *np)
++{
++	u32 reg = 0;
++
++	np = of_get_child_by_name(np, "port");
++	if (!np)
++		return -EINVAL;
++	of_property_read_u32(np, "reg", &reg);
++	return reg - FIMC_INPUT_MIPI_CSI2_0;
++}
++
++/*
++ * MIPI-CSIS, FIMC-IS and FIMC-LITE platform devices registration.
++ */
++
++static int register_fimc_lite_entity(struct fimc_md *fmd,
++				     struct fimc_lite *fimc_lite)
++{
++	struct v4l2_subdev *sd;
++	struct exynos_media_pipeline *ep;
++	int ret;
++
++	if (WARN_ON(fimc_lite->index >= FIMC_LITE_MAX_DEVS ||
++		    fmd->fimc_lite[fimc_lite->index]))
++		return -EBUSY;
++
++	sd = &fimc_lite->subdev;
++	sd->grp_id = GRP_ID_FLITE;
++
++	ep = fimc_md_pipeline_create(fmd);
++	if (!ep)
++		return -ENOMEM;
++
++	v4l2_set_subdev_hostdata(sd, ep);
++
++	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
++	if (!ret)
++		fmd->fimc_lite[fimc_lite->index] = fimc_lite;
++	else
++		v4l2_err(&fmd->v4l2_dev, "Failed to register FIMC.LITE%d\n",
++			 fimc_lite->index);
++	return ret;
++}
++
++static int register_csis_entity(struct fimc_md *fmd,
++				struct platform_device *pdev,
++				struct v4l2_subdev *sd)
++{
++	struct device_node *node = pdev->dev.of_node;
++	int id, ret;
++
++	id = node ? __of_get_csis_id(node) : max(0, pdev->id);
++
++	if (WARN_ON(id < 0 || id >= CSIS_MAX_ENTITIES))
++		return -ENOENT;
++
++	if (WARN_ON(fmd->csis[id].sd))
++		return -EBUSY;
++
++	sd->grp_id = GRP_ID_CSIS;
++	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
++	if (!ret)
++		fmd->csis[id].sd = sd;
++	else
++		v4l2_err(&fmd->v4l2_dev,
++			 "Failed to register MIPI-CSIS.%d (%d)\n", id, ret);
++	return ret;
++}
++
++static int register_fimc_is_entity(struct fimc_md *fmd,
++				     struct fimc_is *is)
++{
++	struct v4l2_subdev *isp, *scc, *scp;
++	struct exynos_media_pipeline *ep;
++	struct fimc_pipeline_isp *p;
++	struct video_device *vdev;
++	int ret, i;
++
++	for (i = 0; i < is->drvdata->num_instances; i++) {
++		isp = fimc_is_isp_get_sd(is, i);
++		scc = fimc_is_scc_get_sd(is, i);
++		scp = fimc_is_scp_get_sd(is, i);
++		isp->grp_id = GRP_ID_FIMC_IS;
++		scc->grp_id = GRP_ID_FIMC_IS;
++		scp->grp_id = GRP_ID_FIMC_IS;
++
++		ep = fimc_md_isp_pipeline_create(fmd);
++		if (!ep)
++			return -ENOMEM;
++
++		v4l2_set_subdev_hostdata(isp, ep);
++		v4l2_set_subdev_hostdata(scc, ep);
++		v4l2_set_subdev_hostdata(scp, ep);
++
++		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, isp);
++		if (ret)
++			v4l2_err(&fmd->v4l2_dev,
++					"Failed to register ISP subdev\n");
++
++		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, scc);
++		if (ret)
++			v4l2_err(&fmd->v4l2_dev,
++					"Failed to register SCC subdev\n");
++
++		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, scp);
++		if (ret)
++			v4l2_err(&fmd->v4l2_dev,
++					"Failed to register SCP subdev\n");
++
++		p = to_fimc_isp_pipeline(ep);
++		p->subdevs[IDX_ISP] = isp;
++		p->subdevs[IDX_SCC] = scc;
++		p->subdevs[IDX_SCP] = scp;
++
++		/* Create default links */
++		/* vdev -> ISP */
++		vdev = fimc_is_isp_get_vfd(is, i);
++		ret = media_entity_create_link(&isp->entity,
++					ISP_SD_PAD_SINK_DMA,
++					&vdev->entity, 0,
++					MEDIA_LNK_FL_IMMUTABLE |
++					MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++
++		/* ISP -> SCC */
++		ret = media_entity_create_link(&isp->entity,
++					ISP_SD_PAD_SRC,
++					&scc->entity, SCALER_SD_PAD_SINK,
++					MEDIA_LNK_FL_IMMUTABLE |
++					MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++
++		/* SCC -> SCP */
++		ret = media_entity_create_link(&scc->entity,
++					SCALER_SD_PAD_SRC_FIFO,
++					&scp->entity, SCALER_SD_PAD_SINK,
++					MEDIA_LNK_FL_IMMUTABLE |
++					MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++
++		/* SCC -> vdev */
++		vdev = fimc_is_scc_get_vfd(is, i);
++		ret = media_entity_create_link(&scc->entity,
++					SCALER_SD_PAD_SRC_DMA,
++					&vdev->entity, 0,
++					MEDIA_LNK_FL_IMMUTABLE |
++					MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++
++		/* SCP -> vdev */
++		vdev = fimc_is_scp_get_vfd(is, i);
++		ret = media_entity_create_link(&scp->entity,
++					SCALER_SD_PAD_SRC_DMA,
++					&vdev->entity, 0,
++					MEDIA_LNK_FL_IMMUTABLE |
++					MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++	}
++	fmd->is = is;
++
++	return ret;
++}
++
++static int fimc_md_register_platform_entity(struct fimc_md *fmd,
++					    struct platform_device *pdev,
++					    int plat_entity)
++{
++	struct device *dev = &pdev->dev;
++	int ret = -EPROBE_DEFER;
++	void *drvdata;
++
++	/* Lock to ensure dev->driver won't change. */
++	device_lock(dev);
++
++	if (!dev->driver || !try_module_get(dev->driver->owner))
++		goto dev_unlock;
++
++	drvdata = dev_get_drvdata(dev);
++	/* Some subdev didn't probe succesfully id drvdata is NULL */
++	if (drvdata) {
++		switch (plat_entity) {
++		case IDX_FLITE:
++			ret = register_fimc_lite_entity(fmd, drvdata);
++			break;
++		case IDX_CSIS:
++			ret = register_csis_entity(fmd, pdev, drvdata);
++			break;
++		case IDX_FIMC_IS:
++			ret = register_fimc_is_entity(fmd, drvdata);
++			break;
++		default:
++			ret = -ENODEV;
++		}
++	}
++
++	module_put(dev->driver->owner);
++dev_unlock:
++	device_unlock(dev);
++	if (ret == -EPROBE_DEFER)
++		dev_info(&fmd->pdev->dev, "deferring %s device registration\n",
++			dev_name(dev));
++	else if (ret < 0)
++		dev_err(&fmd->pdev->dev, "%s device registration failed (%d)\n",
++			dev_name(dev), ret);
++	return ret;
++}
++
++/* Register FIMC-LITE, CSIS and FIMC-IS media entities */
++static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
++						struct device_node *camera)
++{
++	struct device_node *node;
++	struct platform_device *pdev;
++	int ret = 0;
++	int i;
++
++	/* Register MIPI-CSIS entities */
++	for (i = 0; i < FIMC_NUM_MIPI_CSIS; i++) {
++
++		node = of_parse_phandle(camera, "samsung,csis", i);
++		if (!node || !of_device_is_available(node))
++			continue;
++
++		pdev = of_find_device_by_node(node);
++		if (!pdev)
++			continue;
++
++		ret = fimc_md_register_platform_entity(fmd, pdev, IDX_CSIS);
++		put_device(&pdev->dev);
++		if (ret < 0)
++			break;
++	}
++
++	/* Register FIMC-LITE entities */
++	for (i = 0; i < FIMC_NUM_FIMC_LITE; i++) {
++
++		node = of_parse_phandle(camera, "samsung,fimc-lite", i);
++		if (!node || !of_device_is_available(node))
++			continue;
++
++		pdev = of_find_device_by_node(node);
++		if (!pdev)
++			continue;
++
++		ret = fimc_md_register_platform_entity(fmd, pdev, IDX_FLITE);
++		put_device(&pdev->dev);
++		if (ret < 0)
++			break;
++	}
++
++	/* Register fimc-is entity */
++	node = of_parse_phandle(camera, "samsung,fimc-is", 0);
++	if (!node || !of_device_is_available(node))
++		goto exit;
++
++	pdev = of_find_device_by_node(node);
++	if (!pdev)
++		goto exit;
++
++	ret = fimc_md_register_platform_entity(fmd, pdev, IDX_FIMC_IS);
++
++	put_device(&pdev->dev);
++exit:
++	return ret;
++}
++
++static void fimc_md_unregister_entities(struct fimc_md *fmd)
++{
++	int i;
++	struct fimc_is *is;
++
++	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
++		if (fmd->fimc_lite[i] == NULL)
++			continue;
++		v4l2_device_unregister_subdev(&fmd->fimc_lite[i]->subdev);
++		fmd->fimc_lite[i] = NULL;
++	}
++	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
++		if (fmd->csis[i].sd == NULL)
++			continue;
++		v4l2_device_unregister_subdev(fmd->csis[i].sd);
++		module_put(fmd->csis[i].sd->owner);
++		fmd->csis[i].sd = NULL;
++	}
++	for (i = 0; i < fmd->num_sensors; i++)
++		fmd->sensor[i].subdev = NULL;
++
++	if (!fmd->is)
++		return;
++	/* Unregistering FIMC-IS entities */
++	is = fmd->is;
++	for (i = 0; i < is->drvdata->num_instances; i++) {
++		struct v4l2_subdev *isp, *scc, *scp;
++
++		isp = fimc_is_isp_get_sd(is, i);
++		scc = fimc_is_scc_get_sd(is, i);
++		scp = fimc_is_scp_get_sd(is, i);
++		v4l2_device_unregister_subdev(isp);
++		v4l2_device_unregister_subdev(scc);
++		v4l2_device_unregister_subdev(scp);
++	}
++
++	v4l2_info(&fmd->v4l2_dev, "Unregistered all entities\n");
++}
++
++/**
++ * __fimc_md_create_fimc_links - create links to all FIMC entities
++ * @fmd: fimc media device
++ * @source: the source entity to create links to all fimc entities from
++ * @sensor: sensor subdev linked to FIMC[fimc_id] entity, may be null
++ * @pad: the source entity pad index
++ * @link_mask: bitmask of the fimc devices for which link should be enabled
++ */
++static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
++					    struct media_entity *source,
++					    struct v4l2_subdev *sensor,
++					    int pad, int link_mask)
++{
++	struct fimc_source_info *si = NULL;
++	struct media_entity *sink;
++	unsigned int flags = 0;
++	int i, ret = 0;
++
++	if (sensor) {
++		si = v4l2_get_subdev_hostdata(sensor);
++		/* Skip direct FIMC links in the logical FIMC-IS sensor path */
++		if (si && si->fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++			ret = 1;
++	}
++
++	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
++		if (!fmd->fimc_lite[i])
++			continue;
++
++		flags = ((1 << i) & link_mask) ? MEDIA_LNK_FL_ENABLED : 0;
++
++		sink = &fmd->fimc_lite[i]->subdev.entity;
++		ret = media_entity_create_link(source, pad, sink,
++					       FLITE_SD_PAD_SINK, flags);
++		if (ret)
++			return ret;
++
++		/* Notify FIMC-LITE subdev entity */
++		ret = media_entity_call(sink, link_setup, &sink->pads[0],
++					&source->pads[pad], flags);
++		if (ret)
++			break;
++
++		v4l2_info(&fmd->v4l2_dev, "created link [%s] -> [%s]\n",
++			  source->name, sink->name);
++	}
++	return 0;
++}
++
++/* Create links from FIMC-LITE source pads to other entities */
++static int __fimc_md_create_flite_source_links(struct fimc_md *fmd)
++{
++	struct media_entity *source, *sink;
++	int i, ret = 0;
++
++	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
++		struct fimc_lite *fimc = fmd->fimc_lite[i];
++
++		if (fimc == NULL)
++			continue;
++
++		source = &fimc->subdev.entity;
++		sink = &fimc->ve.vdev.entity;
++		/* FIMC-LITE's subdev and video node */
++		ret = media_entity_create_link(source, FLITE_SD_PAD_SOURCE_DMA,
++					       sink, 0,
++					       MEDIA_LNK_FL_IMMUTABLE |
++					       MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++/**
++ * fimc_md_create_links - create default links between registered entities
++ *
++ * Parallel interface sensor entities are connected directly to FIMC capture
++ * entities. The sensors using MIPI CSIS bus are connected through immutable
++ * link with CSI receiver entity specified by mux_id. Any registered CSIS
++ * entity has a link to each registered FIMC capture entity. Enabled links
++ * are created by default between each subsequent registered sensor and
++ * subsequent FIMC capture entity. The number of default active links is
++ * determined by the number of available sensors or FIMC entities,
++ * whichever is less.
++ */
++static int fimc_md_create_links(struct fimc_md *fmd)
++{
++	struct v4l2_subdev *csi_sensors[CSIS_MAX_ENTITIES] = { NULL };
++	struct v4l2_subdev *sensor, *csis;
++	struct fimc_source_info *pdata;
++	struct media_entity *source;
++	int i, pad, fimc_id = 0, ret = 0;
++	u32 flags, link_mask = 0;
++
++	for (i = 0; i < fmd->num_sensors; i++) {
++		if (fmd->sensor[i].subdev == NULL)
++			continue;
++
++		sensor = fmd->sensor[i].subdev;
++		pdata = v4l2_get_subdev_hostdata(sensor);
++		if (!pdata)
++			continue;
++
++		source = NULL;
++
++		switch (pdata->sensor_bus_type) {
++		case FIMC_BUS_TYPE_MIPI_CSI2:
++			if (WARN(pdata->mux_id >= CSIS_MAX_ENTITIES,
++				"Wrong CSI channel id: %d\n", pdata->mux_id))
++				return -EINVAL;
++
++			csis = fmd->csis[pdata->mux_id].sd;
++			if (WARN(csis == NULL,
++				 "MIPI-CSI interface specified "
++				 "but s5p-csis module is not loaded!\n"))
++				return -EINVAL;
++
++			pad = sensor->entity.num_pads - 1;
++			ret = media_entity_create_link(&sensor->entity, pad,
++					      &csis->entity, CSIS_PAD_SINK,
++					      MEDIA_LNK_FL_IMMUTABLE |
++					      MEDIA_LNK_FL_ENABLED);
++			if (ret)
++				return ret;
++
++			v4l2_info(&fmd->v4l2_dev, "created link [%s] => [%s]\n",
++				  sensor->entity.name, csis->entity.name);
++
++			source = NULL;
++			csi_sensors[pdata->mux_id] = sensor;
++			break;
++
++		case FIMC_BUS_TYPE_ITU_601...FIMC_BUS_TYPE_ITU_656:
++			source = &sensor->entity;
++			pad = 0;
++			break;
++
++		default:
++			v4l2_err(&fmd->v4l2_dev, "Wrong bus_type: %x\n",
++				 pdata->sensor_bus_type);
++			return -EINVAL;
++		}
++		if (source == NULL)
++			continue;
++
++		link_mask = 1 << fimc_id++;
++		ret = __fimc_md_create_fimc_sink_links(fmd, source, sensor,
++						       pad, link_mask);
++	}
++
++	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
++		if (fmd->csis[i].sd == NULL)
++			continue;
++
++		source = &fmd->csis[i].sd->entity;
++		pad = CSIS_PAD_SOURCE;
++		sensor = csi_sensors[i];
++
++		link_mask = 1 << fimc_id++;
++		ret = __fimc_md_create_fimc_sink_links(fmd, source, sensor,
++						       pad, link_mask);
++	}
++
++	/*
++	 * Create immutable links between each FIMC-LITE's subdev
++	 * and video node
++	 */
++	flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
++
++	ret = __fimc_md_create_flite_source_links(fmd);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
++{
++	struct exynos_video_entity *ve;
++	struct fimc_pipeline *p;
++	struct video_device *vdev;
++	int ret;
++
++	vdev = media_entity_to_video_device(entity);
++	if (vdev->entity.use_count == 0)
++		return 0;
++
++	ve = vdev_to_exynos_video_entity(vdev);
++	p = to_fimc_pipeline(ve->pipe);
++	/*
++	 * Nothing to do if we are disabling the pipeline, some link
++	 * has been disconnected and p->subdevs array is cleared now.
++	 */
++	if (!enable && p->subdevs[IDX_SENSOR] == NULL)
++		return 0;
++
++	if (enable)
++		ret = __fimc_pipeline_open(ve->pipe, entity, true);
++	else
++		ret = __fimc_pipeline_close(ve->pipe);
++
++	if (ret == 0 && !enable)
++		memset(p->subdevs, 0, sizeof(p->subdevs));
++
++	return ret;
++}
++
++/* Locking: called with entity->parent->graph_mutex mutex held. */
++static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
++{
++	struct media_entity *entity_err = entity;
++	struct media_entity_graph graph;
++	int ret;
++
++	/*
++	 * Walk current graph and call the pipeline open/close routine for each
++	 * opened video node that belongs to the graph of entities connected
++	 * through active links. This is needed as we cannot power on/off the
++	 * subdevs in random order.
++	 */
++	media_entity_graph_walk_start(&graph, entity);
++
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
++			continue;
++
++		ret  = __fimc_md_modify_pipeline(entity, enable);
++
++		if (ret < 0)
++			goto err;
++	}
++
++	return 0;
++ err:
++	media_entity_graph_walk_start(&graph, entity_err);
++
++	while ((entity_err = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
++			continue;
++
++		__fimc_md_modify_pipeline(entity_err, !enable);
++
++		if (entity_err == entity)
++			break;
++	}
++
++	return ret;
++}
++
++static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
++				unsigned int notification)
++{
++	struct media_entity *sink = link->sink->entity;
++	int ret = 0;
++
++	/* Before link disconnection */
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
++		if (!(flags & MEDIA_LNK_FL_ENABLED))
++			ret = __fimc_md_modify_pipelines(sink, false);
++		else
++			; /* TODO: Link state change validation */
++	/* After link activation */
++	} else if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
++		   (link->flags & MEDIA_LNK_FL_ENABLED)) {
++		ret = __fimc_md_modify_pipelines(sink, true);
++	}
++
++	return ret ? -EPIPE : 0;
++}
++
++static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
++				 struct v4l2_subdev *subdev,
++				 struct v4l2_async_subdev *asd)
++{
++	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
++	struct fimc_sensor_info *si = NULL;
++	int i;
++
++	/* Find platform data for this sensor subdev */
++	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++) {
++		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
++			si = &fmd->sensor[i];
++	}
++
++	if (si == NULL)
++		return -EINVAL;
++
++	v4l2_set_subdev_hostdata(subdev, &si->pdata);
++
++	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++		subdev->grp_id = GRP_ID_FIMC_IS_SENSOR;
++	else
++		subdev->grp_id = GRP_ID_SENSOR;
++
++	si->subdev = subdev;
++
++	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
++		  subdev->name, fmd->num_sensors);
++
++	fmd->num_sensors++;
++
++	return 0;
++}
++
++static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
++{
++	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
++	int ret;
++
++	mutex_lock(&fmd->media_dev.graph_mutex);
++
++	ret = fimc_md_create_links(fmd);
++	if (ret < 0)
++		goto unlock;
++
++	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
++unlock:
++	mutex_unlock(&fmd->media_dev.graph_mutex);
++	return ret;
++}
++
++static int fimc_md_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct v4l2_device *v4l2_dev;
++	struct fimc_md *fmd;
++	int ret;
++
++	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
++	if (!fmd)
++		return -ENOMEM;
++
++	spin_lock_init(&fmd->slock);
++	fmd->pdev = pdev;
++	INIT_LIST_HEAD(&fmd->pipelines);
++	INIT_LIST_HEAD(&fmd->isp_pipelines);
++
++	strlcpy(fmd->media_dev.model, "SAMSUNG EXYNOS5 IS",
++		sizeof(fmd->media_dev.model));
++	fmd->media_dev.link_notify = fimc_md_link_notify;
++	fmd->media_dev.dev = dev;
++
++	v4l2_dev = &fmd->v4l2_dev;
++	v4l2_dev->mdev = &fmd->media_dev;
++	strlcpy(v4l2_dev->name, "exynos5-fimc-md", sizeof(v4l2_dev->name));
++
++	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
++		return ret;
++	}
++
++	ret = media_device_register(&fmd->media_dev);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "Failed to register media dev: %d\n", ret);
++		goto err_md;
++	}
++
++	fmd->clk_bayer = clk_get(dev, BAYER_CLK_NAME);
++	if (IS_ERR(fmd->clk_bayer)) {
++		v4l2_err(v4l2_dev, "Failed to get clk: %s\n", BAYER_CLK_NAME);
++		goto err_md;
++	}
++
++	platform_set_drvdata(pdev, fmd);
++
++	/* Protect the media graph while we're registering entities */
++	mutex_lock(&fmd->media_dev.graph_mutex);
++
++	ret = fimc_md_register_of_platform_entities(fmd, dev->of_node);
++	if (ret)
++		goto err_unlock;
++
++	fmd->num_sensors = 0;
++	ret = fimc_md_of_sensors_register(fmd, dev->of_node);
++	if (ret)
++		goto err_unlock;
++
++	mutex_unlock(&fmd->media_dev.graph_mutex);
++
++	fmd->subdev_notifier.subdevs = fmd->async_subdevs;
++	fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
++	fmd->subdev_notifier.bound = subdev_notifier_bound;
++	fmd->subdev_notifier.complete = subdev_notifier_complete;
++	fmd->num_sensors = 0;
++
++	ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
++					   &fmd->subdev_notifier);
++	if (ret)
++		goto err_clk;
++
++	return 0;
++
++err_unlock:
++	mutex_unlock(&fmd->media_dev.graph_mutex);
++err_clk:
++	clk_put(fmd->clk_bayer);
++	fimc_md_unregister_entities(fmd);
++	media_device_unregister(&fmd->media_dev);
++err_md:
++	v4l2_device_unregister(&fmd->v4l2_dev);
++	return ret;
++}
++
++static int fimc_md_remove(struct platform_device *pdev)
++{
++	struct fimc_md *fmd = platform_get_drvdata(pdev);
++
++	v4l2_async_notifier_unregister(&fmd->subdev_notifier);
++
++	fimc_md_unregister_entities(fmd);
++	fimc_md_pipelines_free(fmd);
++	media_device_unregister(&fmd->media_dev);
++	clk_put(fmd->clk_bayer);
++
++	return 0;
++}
++
++static const struct of_device_id fimc_md_of_match[] = {
++	{ .compatible = "samsung,exynos5250-fimc" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, fimc_md_of_match);
++
++static struct platform_driver fimc_md_driver = {
++	.probe		= fimc_md_probe,
++	.remove		= fimc_md_remove,
++	.driver = {
++		.of_match_table = fimc_md_of_match,
++		.name		= "exynos5-fimc-md",
++		.owner		= THIS_MODULE,
++	}
++};
++
++static int __init fimc_md_init(void)
++{
++	request_module("s5p-csis");
++	return platform_driver_register(&fimc_md_driver);
++}
++
++static void __exit fimc_md_exit(void)
++{
++	platform_driver_unregister(&fimc_md_driver);
++}
++
++module_init(fimc_md_init);
++module_exit(fimc_md_exit);
++
++MODULE_AUTHOR("Shaik Ameer Basha <shaik.ameer@samsung.com>");
++MODULE_DESCRIPTION("EXYNOS5 camera subsystem media device driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/exynos5-is/exynos5-mdev.h b/drivers/media/platform/exynos5-is/exynos5-mdev.h
+new file mode 100644
+index 0000000..44e57a2
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/exynos5-mdev.h
+@@ -0,0 +1,126 @@
++/*
++ * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef EXYNOS5_MDEVICE_H_
++#define EXYNOS5_MDEVICE_H_
++
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
++#include <media/media-device.h>
++#include <media/media-entity.h>
++#include <media/s5p_fimc.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++
++#include "fimc-lite.h"
++#include "mipi-csis.h"
++
++#define FIMC_MAX_SENSORS	4
++#define FIMC_NUM_MIPI_CSIS	2
++#define FIMC_NUM_FIMC_LITE	3
++
++enum fimc_subdev_index {
++	IDX_SENSOR,
++	IDX_CSIS,
++	IDX_FLITE,
++	IDX_FIMC_IS,
++	IDX_MAX,
++};
++
++enum fimc_isp_subdev_index {
++	IDX_ISP,
++	IDX_SCC,
++	IDX_SCP,
++	IDX_IS_MAX,
++};
++
++struct fimc_pipeline {
++	struct exynos_media_pipeline ep;
++	struct list_head list;
++	struct media_entity *vdev_entity;
++	struct v4l2_subdev *subdevs[IDX_MAX];
++	struct list_head *isp_pipelines;
++};
++
++struct fimc_pipeline_isp {
++	struct exynos_media_pipeline ep;
++	struct list_head list;
++	struct v4l2_subdev *subdevs[IDX_IS_MAX];
++	bool in_use;
++};
++
++struct fimc_csis_info {
++	struct v4l2_subdev *sd;
++	int id;
++};
++
++/**
++ * struct fimc_sensor_info - image data source subdev information
++ * @pdata: sensor's atrributes passed as media device's platform data
++ * @asd: asynchronous subdev registration data structure
++ * @subdev: image sensor v4l2 subdev
++ * @host: fimc device the sensor is currently linked to
++ *
++ * This data structure applies to image sensor and the writeback subdevs.
++ */
++struct fimc_sensor_info {
++	struct fimc_source_info pdata;
++	struct v4l2_async_subdev asd;
++	struct v4l2_subdev *subdev;
++	struct fimc_dev *host;
++};
++
++/**
++ * struct fimc_md - fimc media device information
++ * @csis: MIPI CSIS subdevs data
++ * @sensor: array of registered sensor subdevs
++ * @num_sensors: actual number of registered sensors
++ * @clk_bayer: bus clk for external sensors
++ * @fimc_lite: array of registered fimc-lite devices
++ * @is: fimc-is data structure
++ * @media_dev: top level media device
++ * @v4l2_dev: top level v4l2_device holding up the subdevs
++ * @pdev: platform device this media device is hooked up into
++ * @slock: spinlock protecting @sensor array
++ * @pipelines: list holding pipeline0 (sensor-mipi-flite) instances
++ * @isp_pipelines: list holding pipeline1 (isp-scc-scp) instances
++ */
++struct fimc_md {
++	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
++	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
++	int num_sensors;
++	struct clk *clk_bayer;
++	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
++	struct fimc_is *is;
++	struct media_device media_dev;
++	struct v4l2_device v4l2_dev;
++	struct platform_device *pdev;
++	struct v4l2_async_notifier subdev_notifier;
++	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
++
++	spinlock_t slock;
++	struct list_head pipelines;
++	struct list_head isp_pipelines;
++};
++
++#define to_fimc_pipeline(_ep) container_of(_ep, struct fimc_pipeline, ep)
++#define to_fimc_isp_pipeline(_ep) \
++	container_of(_ep, struct fimc_pipeline_isp, ep)
++
++static inline struct fimc_md *entity_to_fimc_mdev(struct media_entity *me)
++{
++	return me->parent == NULL ? NULL :
++		container_of(me->parent, struct fimc_md, media_dev);
++}
++
++static inline struct fimc_md *notifier_to_fimc_md(struct v4l2_async_notifier *n)
++{
++	return container_of(n, struct fimc_md, subdev_notifier);
++}
++#endif
+-- 
+1.7.9.5
 
-We don't have good support for alpha blending in v4l2. For example, the
-s5p-g2d v4l2 driver only supports a subset of features of the device.
-The G2D IP is probably better utilized through the exynos drm driver.
-
-It might be a matter of designing proper controls though for such devices
-that generate image by blending data from the output and capture buffers.
-
-> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
-> ---
->   drivers/media/platform/exynos-mscl/mscl-regs.c |  318 ++++++++++++++++++++++++
->   drivers/media/platform/exynos-mscl/mscl-regs.h |  282 +++++++++++++++++++++
-
-Shouldn't we call this driver exynos5-scaler and this files would be
-renamed to drivers/media/platform/exynos5-scaler/scaler-regs.[ch].
-
-Or maybe put maybe put the SCALER, G-SCALER drivers into common exynos5-is
-directory ? I don't have strong preference. But we planned gscaler to be
-moved into the exynos5-is directory.
-
->   2 files changed, 600 insertions(+)
->   create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.c
->   create mode 100644 drivers/media/platform/exynos-mscl/mscl-regs.h
->
-> diff --git a/drivers/media/platform/exynos-mscl/mscl-regs.c b/drivers/media/platform/exynos-mscl/mscl-regs.c
-> new file mode 100644
-> index 0000000..9354afc
-> --- /dev/null
-> +++ b/drivers/media/platform/exynos-mscl/mscl-regs.c
-> @@ -0,0 +1,318 @@
-> +/*
-> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
-
-Just make it 2013 ? I think we can manage to merge this diver this year :)
-
-> + *		http://www.samsung.com
-> + *
-> + * Samsung EXYNOS5 SoC series M-Scaler driver
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published
-> + * by the Free Software Foundation, either version 2 of the License,
-> + * or (at your option) any later version.
-
-Are you sure you want to have this "or (at your option) any later version"
-clause ?
-
-> + */
-> +
-> +#include<linux/delay.h>
-> +#include<linux/platform_device.h>
-> +
-> +#include "mscl-core.h"
-
-How about defining register access helpers like:
-
-u32 mscl_read(struct mscl_dev *dev, u32 offset)
-{
-	readl(dev->regs + offset);
-}
-
-void mscl_write(struct mscl_dev *dev, u32 offset, u32 value)
-{
-	writel(value, dev->regs + offset);
-}
-
-perhaps as static inline in mscl-regs.h ?
-
-> +void mscl_hw_set_sw_reset(struct mscl_dev *dev)
-> +{
-> +	u32 cfg;
-> +
-> +	cfg = readl(dev->regs + MSCL_CFG);
-> +	cfg |= MSCL_CFG_SOFT_RESET;
-> +
-> +	writel(cfg, dev->regs + MSCL_CFG);
-> +}
-> +
-> +int mscl_wait_reset(struct mscl_dev *dev)
-> +{
-> +	unsigned long end = jiffies + msecs_to_jiffies(50);
-
-Don't you want a #define for this timeout ?
-
-> +	u32 cfg, reset_done = 0;
-> +
-> +	while (time_before(jiffies, end)) {
-> +		cfg = readl(dev->regs + MSCL_CFG);
-> +		if (!(cfg&  MSCL_CFG_SOFT_RESET)) {
-> +			reset_done = 1;
-> +			break;
-> +		}
-> +		usleep_range(10, 20);
-> +	}
-> +
-> +	/* write any value to r/w reg and read it back */
-> +	while (reset_done) {
-> +
-> +		/* [TBD] need to define number of tries before returning
-> +		 * -EBUSY to the caller
-> +		 */
-
-CodingStyle: wrong multi-line comment style
-
-> +		writel(MSCL_CFG_SOFT_RESET_CHECK_VAL,
-> +				dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG);
-> +		if (MSCL_CFG_SOFT_RESET_CHECK_VAL ==
-> +			readl(dev->regs + MSCL_CFG_SOFT_RESET_CHECK_REG))
-> +			return 0;
-> +	}
-> +
-> +	return -EBUSY;
-> +}
-> +
-> +void mscl_hw_set_irq_mask(struct mscl_dev *dev, int interrupt, bool mask)
-> +{
-> +	u32 cfg;
-> +
-> +	switch (interrupt) {
-> +	case MSCL_INT_TIMEOUT:
-> +	case MSCL_INT_ILLEGAL_BLEND:
-> +	case MSCL_INT_ILLEGAL_RATIO:
-> +	case MSCL_INT_ILLEGAL_DST_HEIGHT:
-> +	case MSCL_INT_ILLEGAL_DST_WIDTH:
-> +	case MSCL_INT_ILLEGAL_DST_V_POS:
-> +	case MSCL_INT_ILLEGAL_DST_H_POS:
-> +	case MSCL_INT_ILLEGAL_DST_C_SPAN:
-> +	case MSCL_INT_ILLEGAL_DST_Y_SPAN:
-> +	case MSCL_INT_ILLEGAL_DST_CR_BASE:
-> +	case MSCL_INT_ILLEGAL_DST_CB_BASE:
-> +	case MSCL_INT_ILLEGAL_DST_Y_BASE:
-> +	case MSCL_INT_ILLEGAL_DST_COLOR:
-> +	case MSCL_INT_ILLEGAL_SRC_HEIGHT:
-> +	case MSCL_INT_ILLEGAL_SRC_WIDTH:
-> +	case MSCL_INT_ILLEGAL_SRC_CV_POS:
-> +	case MSCL_INT_ILLEGAL_SRC_CH_POS:
-> +	case MSCL_INT_ILLEGAL_SRC_YV_POS:
-> +	case MSCL_INT_ILLEGAL_SRC_YH_POS:
-> +	case MSCL_INT_ILLEGAL_SRC_C_SPAN:
-> +	case MSCL_INT_ILLEGAL_SRC_Y_SPAN:
-> +	case MSCL_INT_ILLEGAL_SRC_CR_BASE:
-> +	case MSCL_INT_ILLEGAL_SRC_CB_BASE:
-> +	case MSCL_INT_ILLEGAL_SRC_Y_BASE:
-> +	case MSCL_INT_ILLEGAL_SRC_COLOR:
-> +	case MSCL_INT_FRAME_END:
-
-What if more than one of those flag is set in 'interrupt' argument ?
-You probably want to add a single macro definition for all the above
-bits.
-
-> +		break;
-> +	default:
-> +		return;
-> +	}
-> +	cfg = readl(dev->regs + MSCL_INT_EN);
-> +	if (mask)
-> +		cfg |= interrupt;
-> +	else
-> +		cfg&= ~interrupt;
-> +	writel(cfg, dev->regs + MSCL_INT_EN);
-> +}
-> +
-> +void mscl_hw_set_input_addr(struct mscl_dev *dev, struct mscl_addr *addr)
-> +{
-> +	dev_dbg(&dev->pdev->dev, "src_buf: 0x%X, cb: 0x%X, cr: 0x%X",
-> +				addr->y, addr->cb, addr->cr);
-
-Hmm, perhaps add a macro to simply these dev_dbg() calls, e.g.
-
-#define mscl_dbg(_dev, fmt, args...) dev_dbg(&_dev->pdev->dev, fmt, ##args)
-
-?
-> +	writel(addr->y, dev->regs + MSCL_SRC_Y_BASE);
-> +	writel(addr->cb, dev->regs + MSCL_SRC_CB_BASE);
-> +	writel(addr->cr, dev->regs + MSCL_SRC_CR_BASE);
-> +}
-> +
-> +void mscl_hw_set_output_addr(struct mscl_dev *dev,
-> +			     struct mscl_addr *addr)
-> +{
-> +	dev_dbg(&dev->pdev->dev, "dst_buf: 0x%X, cb: 0x%X, cr: 0x%X",
-> +				addr->y, addr->cb, addr->cr);
-> +	writel(addr->y, dev->regs + MSCL_DST_Y_BASE);
-> +	writel(addr->cb, dev->regs + MSCL_DST_CB_BASE);
-> +	writel(addr->cr, dev->regs + MSCL_DST_CR_BASE);
-> +}
-> +
-> +void mscl_hw_set_in_size(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	struct mscl_frame *frame =&ctx->s_frame;
-> +	u32 cfg;
-> +
-> +	/* set input pixel offset */
-> +	cfg = MSCL_SRC_YH_POS(frame->crop.left);
-> +	cfg |= MSCL_SRC_YV_POS(frame->crop.top);
-> +	writel(cfg, dev->regs + MSCL_SRC_Y_POS);
-> +
-> +	/* [TBD] calculate 'C' plane h/v offset using 'Y' plane h/v offset */
-> +
-> +	/* set input span */
-> +	cfg = MSCL_SRC_Y_SPAN(frame->f_width);
-> +	if (is_yuv420_2p(frame->fmt))
-> +		cfg |= MSCL_SRC_C_SPAN(frame->f_width);
-> +	else
-> +		cfg |= MSCL_SRC_C_SPAN(frame->f_width); /* [TBD] Verify */
-
-s/[TBD]/TODO: ?
-
-> +	writel(cfg, dev->regs + MSCL_SRC_SPAN);
-> +
-> +	/* Set input cropped size */
-> +	cfg = MSCL_SRC_WIDTH(frame->crop.width);
-> +	cfg |= MSCL_SRC_HEIGHT(frame->crop.height);
-> +	writel(cfg, dev->regs + MSCL_SRC_WH);
-> +
-> +	dev_dbg(&dev->pdev->dev,
-> +		"src: posx: %d, posY: %d, spanY: %d, spanC: %d, "
-> +		"cropX: %d, cropY: %d\n",
-> +		frame->crop.left, frame->crop.top, frame->f_width,
-> +		frame->f_width, frame->crop.width, frame->crop.height);
-> +}
-> +
-> +void mscl_hw_set_in_image_format(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	struct mscl_frame *frame =&ctx->s_frame;
-> +	u32 cfg;
-> +
-> +	cfg = readl(dev->regs + MSCL_SRC_CFG);
-> +	cfg&= ~MSCL_SRC_COLOR_FORMAT_MASK;
-> +	cfg |= MSCL_SRC_COLOR_FORMAT(frame->fmt->mscl_color);
-> +
-> +	/* setting tile/linear format */
-
-s/tile/tiled ?
-
-> +	if (frame->fmt->is_tiled)
-> +		cfg |= MSCL_SRC_TILE_EN;
-> +	else
-> +		cfg&= ~MSCL_SRC_TILE_EN;
-> +
-> +	writel(cfg, dev->regs + MSCL_SRC_CFG);
-> +}
-> +
-> +void mscl_hw_set_out_size(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	struct mscl_frame *frame =&ctx->d_frame;
-> +	u32 cfg;
-> +
-> +	/* set output pixel offset */
-> +	cfg = MSCL_DST_H_POS(frame->crop.left);
-> +	cfg |= MSCL_DST_V_POS(frame->crop.top);
-
-I personally find this kind of macros rather confusing - it's not clear
-whether they prepare a value to be applied to a register or extract some
-property from a value read from the register. I would suggest open coding
-this with proper shifts and only #defined masks. But it's up to you,
-I personally find such a coding style a bit disturbing :)
-
-> +	writel(cfg, dev->regs + MSCL_DST_POS);
-> +
-> +	/* set output span */
-> +	cfg = MSCL_DST_Y_SPAN(frame->f_width);
-> +	if (is_yuv420_2p(frame->fmt))
-> +		cfg |= MSCL_DST_C_SPAN(frame->f_width/2);
-> +	else
-> +		cfg |= MSCL_DST_C_SPAN(frame->f_width);
-> +	writel(cfg, dev->regs + MSCL_DST_SPAN);
-> +
-> +	/* set output scaled size */
-> +	cfg = MSCL_DST_WIDTH(frame->crop.width);
-> +	cfg |= MSCL_DST_HEIGHT(frame->crop.height);
-> +	writel(cfg, dev->regs + MSCL_DST_WH);
-> +
-> +	dev_dbg(&dev->pdev->dev,
-> +		"dst: posx: %d, posY: %d, spanY: %d, spanC: %d, "
-> +		"cropX: %d, cropY: %d\n",
-
-		"DST: pos X: %d, pos Y: %d, span Y: %d, span C: %d, "
-		"crop X: %d, crop Y: %d\n",
-
-?
-> +		frame->crop.left, frame->crop.top, frame->f_width,
-> +		frame->f_width, frame->crop.width, frame->crop.height);
-> +}
-> +
-> +void mscl_hw_set_out_image_format(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	struct mscl_frame *frame =&ctx->d_frame;
-> +	u32 cfg;
-> +
-> +	cfg = readl(dev->regs + MSCL_DST_CFG);
-> +	cfg&= ~MSCL_DST_COLOR_FORMAT_MASK;
-> +	cfg |= MSCL_DST_COLOR_FORMAT(frame->fmt->mscl_color);
-
-This kind of macros really obfuscate code, this could be simply written as:
-
-	cfg |= (frame->fmt->mscl_color & MSCL_DST_COLOR_FORMAT_MASK);
-
-And these macros are usually used only in single place and IMHO they
-aren't horribly helpful.
-
-> +
-> +	writel(cfg, dev->regs + MSCL_DST_CFG);
-> +}
-> +
-> +void mscl_hw_set_scaler_ratio(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	struct mscl_scaler *sc =&ctx->scaler;
-> +	u32 cfg;
-> +
-> +	cfg = MSCL_H_RATIO_VALUE(sc->hratio);
-> +	writel(cfg, dev->regs + MSCL_H_RATIO);
-> +
-> +	cfg = MSCL_V_RATIO_VALUE(sc->vratio);
-> +	writel(cfg, dev->regs + MSCL_V_RATIO);
-> +}
-> +
-> +void mscl_hw_set_rotation(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	u32 cfg = 0;
-> +
-> +	cfg = MSCL_ROTMODE(ctx->ctrls_mscl.rotate->val/90);
-
-nit: missing spaces around '/'
-
-> +	if (ctx->ctrls_mscl.hflip->val)
-> +		cfg |= MSCL_FLIP_X_EN;
-> +
-> +	if (ctx->ctrls_mscl.vflip->val)
-> +		cfg |= MSCL_FLIP_Y_EN;
-> +
-> +	writel(cfg, dev->regs + MSCL_ROT_CFG);
-> +}
-> +
-> +void mscl_hw_address_queue_reset(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +
-> +	writel(MSCL_ADDR_QUEUE_RST, dev->regs + MSCL_ADDR_QUEUE_CONFIG);
-
-With mscl_write() (or scaler_write()) this would become a one-liner
-and could be moved to the .h file.
-
-> +}
-> +
-> +void mscl_hw_set_csc_coeff(struct mscl_ctx *ctx)
-> +{
-> +	struct mscl_dev *dev = ctx->mscl_dev;
-> +	enum mscl_csc_coeff type;
-> +	u32 cfg = 0;
-> +	int i, j;
-> +	static const u32 csc_coeff[MSCL_CSC_COEFF_MAX][3][3] = {
-> +		{ /* YCbCr to RGB */
-> +			{0x200, 0x000, 0x2be},
-> +			{0x200, 0xeac, 0x165},
-> +			{0x200, 0x377, 0x000}
-> +		},
-> +		{ /* YCbCr to RGB with -16 offset */
-> +			{0x254, 0x000, 0x331},
-> +			{0x254, 0xec8, 0xFA0},
-
-nit: please use lower case for hexadecimal numbers consistently.
-
-> +			{0x254, 0x409, 0x000}
-> +		},
-> +		{ /* RGB to YCbCr */
-> +			{0x099, 0x12d, 0x03a},
-> +			{0xe58, 0xeae, 0x106},
-> +			{0x106, 0xedb, 0xe2a}
-> +		},
-> +		{ /* RGB to YCbCr with -16 offset */
-> +			{0x084, 0x102, 0x032},
-> +			{0xe4c, 0xe95, 0x0e1},
-> +			{0x0e1, 0xebc, 0xe24}
-> +		} };
-> +
-> +	if (is_rgb(ctx->s_frame.fmt) == is_rgb(ctx->d_frame.fmt))
-> +		type = MSCL_CSC_COEFF_NONE;
-> +	else if (is_rgb(ctx->d_frame.fmt))
-> +		type = MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16;
-> +	else
-> +		type = MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16;
-> +
-> +	if ((type == ctx->mscl_dev->coeff_type) || (type>= MSCL_CSC_COEFF_MAX))
-
-nit: superfluous braces
-
-> +		return;
-> +
-> +	for (i = 0; i<  3; i++) {
-> +		for (j = 0; j<  3; j++) {
-> +			cfg = csc_coeff[type][i][j];
-> +			writel(cfg, dev->regs + MSCL_CSC_COEF(i, j));
-> +		}
-> +	}
-> +
-> +	switch (type) {
-> +	case MSCL_CSC_COEFF_YCBCR_TO_RGB:
-> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
-> +		break;
-> +	case MSCL_CSC_COEFF_YCBCR_TO_RGB_OFF16:
-> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
-> +		break;
-> +	case MSCL_CSC_COEFF_RGB_TO_YCBCR:
-> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, false);
-> +		break;
-> +	case MSCL_CSC_COEFF_RGB_TO_YCBCR_OFF16:
-> +		mscl_hw_src_y_offset_en(ctx->mscl_dev, true);
-> +		break;
-> +	default:
-> +		return;
-> +	}
-> +
-> +	ctx->mscl_dev->coeff_type = type;
-> +	return;
-
-This could be removed.
-
-> +}
-> diff --git a/drivers/media/platform/exynos-mscl/mscl-regs.h b/drivers/media/platform/exynos-mscl/mscl-regs.h
-> new file mode 100644
-> index 0000000..02e2294d
-> --- /dev/null
-> +++ b/drivers/media/platform/exynos-mscl/mscl-regs.h
-> @@ -0,0 +1,282 @@
-> +/*
-> + * Copyright (c) 2013 - 2014 Samsung Electronics Co., Ltd.
-> + *		http://www.samsung.com
-> + *
-> + * Register definition file for Samsung M-Scaler driver
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef REGS_MSCL_H_
-> +#define REGS_MSCL_H_
-> +
-> +/* m2m-scaler status */
-
-nit: perhaps use M-Scaler (or SCALER) name consistently, or omit m2m-scaler
-since all these registers are for the SCALER only ?
-
-> +#define MSCL_STATUS				0x00
-> +#define MSCL_STATUS_RUNNING			(1<<  1)
-> +#define MSCL_STATUS_READY_CLK_DOWN		(1<<  0)
-> +
-> +/* m2m-scaler config */
-> +#define MSCL_CFG				0x04
-> +#define MSCL_CFG_FILL_EN			(1<<  24)
-> +#define MSCL_CFG_BLEND_CLR_DIV_ALPHA_EN		(1<<  17)
-> +#define MSCL_CFG_BLEND_EN			(1<<  16)
-> +#define MSCL_CFG_CSC_Y_OFFSET_SRC_EN		(1<<  10)
-> +#define MSCL_CFG_CSC_Y_OFFSET_DST_EN		(1<<  9)
-> +#define MSCL_CFG_16_BURST_MODE			(1<<  8)
-> +#define MSCL_CFG_SOFT_RESET			(1<<  1)
-> +#define MSCL_CFG_START_CMD			(1<<  0)
-> +
-> +/* m2m-scaler interrupt enable */
-> +#define MSCL_INT_EN				0x08
-> +#define MSCL_INT_EN_DEFAULT			0x81ffffff
-> +#define MSCL_INT_EN_TIMEOUT			(1<<  31)
-> +#define MSCL_INT_EN_ILLEGAL_BLEND		(1<<  24)
-> +#define MSCL_INT_EN_ILLEGAL_RATIO		(1<<  23)
-> +#define MSCL_INT_EN_ILLEGAL_DST_HEIGHT		(1<<  22)
-> +#define MSCL_INT_EN_ILLEGAL_DST_WIDTH		(1<<  21)
-> +#define MSCL_INT_EN_ILLEGAL_DST_V_POS		(1<<  20)
-> +#define MSCL_INT_EN_ILLEGAL_DST_H_POS		(1<<  19)
-> +#define MSCL_INT_EN_ILLEGAL_DST_C_SPAN		(1<<  18)
-> +#define MSCL_INT_EN_ILLEGAL_DST_Y_SPAN		(1<<  17)
-> +#define MSCL_INT_EN_ILLEGAL_DST_CR_BASE		(1<<  16)
-> +#define MSCL_INT_EN_ILLEGAL_DST_CB_BASE		(1<<  15)
-> +#define MSCL_INT_EN_ILLEGAL_DST_Y_BASE		(1<<  14)
-> +#define MSCL_INT_EN_ILLEGAL_DST_COLOR		(1<<  13)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_HEIGHT		(1<<  12)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_WIDTH		(1<<  11)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_CV_POS		(1<<  10)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_CH_POS		(1<<  9)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_YV_POS		(1<<  8)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_YH_POS		(1<<  7)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_C_SPAN		(1<<  6)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_Y_SPAN		(1<<  5)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_CR_BASE		(1<<  4)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_CB_BASE		(1<<  3)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_Y_BASE		(1<<  2)
-> +#define MSCL_INT_EN_ILLEGAL_SRC_COLOR		(1<<  1)
-> +#define MSCL_INT_EN_FRAME_END			(1<<  0)
-> +
-> +/* m2m-scaler interrupt status */
-> +#define MSCL_INT_STATUS				0x0c
-
-> +#define MSCL_INT_STATUS_CLEAR			(0xffffffff)
-> +#define MSCL_INT_STATUS_ERROR			(0x81fffffe)
-
-nit: Superfluous braces
-
-> +#define MSCL_INT_STATUS_TIMEOUT			(1<<  31)
-> +#define MSCL_INT_STATUS_ILLEGAL_BLEND		(1<<  24)
-> +#define MSCL_INT_STATUS_ILLEGAL_RATIO		(1<<  23)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_HEIGHT	(1<<  22)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_WIDTH	(1<<  21)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_V_POS	(1<<  20)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_H_POS	(1<<  19)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_C_SPAN	(1<<  18)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_Y_SPAN	(1<<  17)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_CR_BASE	(1<<  16)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_CB_BASE	(1<<  15)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_Y_BASE	(1<<  14)
-> +#define MSCL_INT_STATUS_ILLEGAL_DST_COLOR	(1<<  13)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_HEIGHT	(1<<  12)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_WIDTH	(1<<  11)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CV_POS	(1<<  10)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CH_POS	(1<<  9)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_YV_POS	(1<<  8)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_YH_POS	(1<<  7)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_C_SPAN	(1<<  6)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_Y_SPAN	(1<<  5)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CR_BASE	(1<<  4)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_CB_BASE	(1<<  3)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_Y_BASE	(1<<  2)
-> +#define MSCL_INT_STATUS_ILLEGAL_SRC_COLOR	(1<<  1)
-> +#define MSCL_INT_STATUS_FRAME_END		(1<<  0)
-> +
-> +/* m2m-scaler source format configuration */
-> +#define MSCL_SRC_CFG				0x10
-> +#define MSCL_SRC_TILE_EN			(0x1<<  10)
-> +#define MSCL_SRC_BYTE_SWAP_MASK			(0x3<<  5)
-> +#define MSCL_SRC_BYTE_SWAP(x)			(((x)&  0x3)<<  5)
-> +#define MSCL_SRC_COLOR_FORMAT_MASK		(0xf<<  0)
-> +#define MSCL_SRC_COLOR_FORMAT(x)		(((x)&  0xf)<<  0)
-
-((x) & 0xf) ?
-
-> +
-> +/* m2m-scaler source y-base */
-> +#define MSCL_SRC_Y_BASE				0x14
-> +
-> +/* m2m-scaler source cb-base */
-> +#define MSCL_SRC_CB_BASE			0x18
-> +
-> +/* m2m-scaler source cr-base */
-> +#define MSCL_SRC_CR_BASE			0x294
-> +
-> +/* m2m-scaler source span */
-> +#define MSCL_SRC_SPAN				0x1c
-> +#define MSCL_SRC_C_SPAN_MASK			(0x3fff<<  16)
-> +#define MSCL_SRC_C_SPAN(x)			(((x)&  0x3fff)<<  16)
-> +#define MSCL_SRC_Y_SPAN_MASK			(0x3fff<<  0)
-> +#define MSCL_SRC_Y_SPAN(x)			(((x)&  0x3fff)<<  0)
-
-((x) & 0x3fff) ? And there is couple more occurences like this.
-
-> +/* m2m-scaler source y-position */
-> +#define MSCL_SRC_Y_POS				0x20
-> +#define MSCL_SRC_YH_POS_MASK			(0xffff<<  (16 + 2))
-> +#define MSCL_SRC_YH_POS(x)			(((x)&  0xffff)<<  (16 + 2))
-> +#define MSCL_SRC_YV_POS_MASK			(0xffff<<  (0 + 2))
-> +#define MSCL_SRC_YV_POS(x)			(((x)&  0xffff)<<  (0 + 2))
-> +
-> +/* m2m-scaler source width/height */
-> +#define MSCL_SRC_WH				0x24
-> +#define MSCL_SRC_WIDTH_MASK			(0x3fff<<  16)
-> +#define MSCL_SRC_WIDTH(x)			(((x)&  0x3fff)<<  16)
-> +#define MSCL_SRC_HEIGHT_MASK			(0x3fff<<  0)
-> +#define MSCL_SRC_HEIGHT(x)			(((x)&  0x3fff)<<  0)
-
-> +/* m2m-scaler source c-position */
-> +#define MSCL_SRC_C_POS				0x28
-> +#define MSCL_SRC_CH_POS_MASK			(0xffff<<  (16 + 2))
-> +#define MSCL_SRC_CH_POS(x)			(((x)&  0xffff)<<  (16 + 2))
-> +#define MSCL_SRC_CV_POS_MASK			(0xffff<<  (0 + 2))
-> +#define MSCL_SRC_CV_POS(x)			(((x)&  0xffff)<<  (0 + 2))
-> +
-> +/* m2m-scaler destination format configuration */
-> +#define MSCL_DST_CFG				0x30
-> +#define MSCL_DST_BYTE_SWAP_MASK			(0x3<<  5)
-> +#define MSCL_DST_BYTE_SWAP(x)			(((x)&  0x3)<<  5)
-> +#define MSCL_DST_COLOR_FORMAT_MASK		(0xf<<  0)
-
-Is just 0xf, using zero shits like this for me just makes it harder
-to read.
-
-> +#define MSCL_DST_COLOR_FORMAT(x)		(((x)&  0xf)<<  0)
-> +
-> +/* m2m-scaler destination y-base */
-> +#define MSCL_DST_Y_BASE				0x34
-> +
-> +/* m2m-scaler destination cb-base */
-> +#define MSCL_DST_CB_BASE			0x38
-> +
-> +/* m2m-scaler destination cr-base */
-> +#define MSCL_DST_CR_BASE			0x298
-> +
-> +/* m2m-scaler destination span */
-> +#define MSCL_DST_SPAN				0x3c
-> +#define MSCL_DST_C_SPAN_MASK			(0x3fff<<  16)
-> +#define MSCL_DST_C_SPAN(x)			(((x)&  0x3fff)<<  16)
-> +#define MSCL_DST_Y_SPAN_MASK			(0x3fff<<  0)
-> +#define MSCL_DST_Y_SPAN(x)			(((x)&  0x3fff)<<  0)
-> +
-> +/* m2m-scaler destination width/height */
-> +#define MSCL_DST_WH				0x40
-> +#define MSCL_DST_WIDTH_MASK			(0x3fff<<  16)
-> +#define MSCL_DST_WIDTH(x)			(((x)&  0x3fff)<<  16)
-> +#define MSCL_DST_HEIGHT_MASK			(0x3fff<<  0)
-> +#define MSCL_DST_HEIGHT(x)			(((x)&  0x3fff)<<  0)
-> +
-> +/* m2m-scaler destination position */
-> +#define MSCL_DST_POS				0x44
-> +#define MSCL_DST_H_POS_MASK			(0x3fff<<  16)
-> +#define MSCL_DST_H_POS(x)			(((x)&  0x3fff)<<  16)
-> +#define MSCL_DST_V_POS_MASK			(0x3fff<<  0)
-> +#define MSCL_DST_V_POS(x)			(((x)&  0x3fff)<<  0)
-> +
-> +/* m2m-scaler horizontal scale ratio */
-> +#define MSCL_H_RATIO				0x50
-> +#define MSCL_H_RATIO_VALUE(x)			(((x)&  0x7ffff)<<  0)
-> +
-> +/* m2m-scaler vertical scale ratio */
-> +#define MSCL_V_RATIO				0x54
-> +#define MSCL_V_RATIO_VALUE(x)			(((x)&  0x7ffff)<<  0)
-> +
-> +/* m2m-scaler rotation config */
-> +#define MSCL_ROT_CFG				0x58
-> +#define MSCL_FLIP_X_EN				(1<<  3)
-> +#define MSCL_FLIP_Y_EN				(1<<  2)
-> +#define MSCL_ROTMODE_MASK			(0x3<<  0)
-> +#define MSCL_ROTMODE(x)				(((x)&  0x3)<<  0)
-> +
-> +/* m2m-scaler csc coefficients */
-
-> +#define MSCL_CSC_COEF_00			0x220
-> +#define MSCL_CSC_COEF_10			0x224
-> +#define MSCL_CSC_COEF_20			0x228
-> +#define MSCL_CSC_COEF_01			0x22C
-> +#define MSCL_CSC_COEF_11			0x230
-> +#define MSCL_CSC_COEF_21			0x234
-> +#define MSCL_CSC_COEF_02			0x238
-> +#define MSCL_CSC_COEF_12			0x23C
-> +#define MSCL_CSC_COEF_22			0x240
-
-Why are these needed when below there is a common macro ?
-
-> +#define MSCL_CSC_COEF(x, y)			(0x220 + ((x * 12) + (y * 4)))
-
-> +/* m2m-scaler dither config */
-> +#define MSCL_DITH_CFG				0x250
-> +#define MSCL_DITHER_R_TYPE_MASK			(0x7<<  6)
-> +#define MSCL_DITHER_R_TYPE(x)			(((x)&  0x7)<<  6)
-> +#define MSCL_DITHER_G_TYPE_MASK			(0x7<<  3)
-> +#define MSCL_DITHER_G_TYPE(x)			(((x)&  0x7)<<  3)
-> +#define MSCL_DITHER_B_TYPE_MASK			(0x7<<  0)
-> +#define MSCL_DITHER_B_TYPE(x)			(((x)&  0x7)<<  0)
-> +
-> +/* m2m-scaler src blend color */
-> +#define MSCL_SRC_BLEND_COLOR			0x280
-> +#define MSCL_SRC_COLOR_SEL_INV			(1<<  31)
-> +#define MSCL_SRC_COLOR_SEL_MASK			(0x3<<  29)
-> +#define MSCL_SRC_COLOR_SEL(x)			(((x)&  0x3)<<  29)
-> +#define MSCL_SRC_COLOR_OP_SEL_INV		(1<<  28)
-> +#define MSCL_SRC_COLOR_OP_SEL_MASK		(0xf<<  24)
-> +#define MSCL_SRC_COLOR_OP_SEL(x)		(((x)&  0xf)<<  24)
-> +#define MSCL_SRC_GLOBAL_COLOR0_MASK		(0xff<<  16)
-> +#define MSCL_SRC_GLOBAL_COLOR0(x)		(((x)&  0xff)<<  16)
-> +#define MSCL_SRC_GLOBAL_COLOR1_MASK		(0xff<<  8)
-> +#define MSCL_SRC_GLOBAL_COLOR1(x)		(((x)&  0xff)<<  8)
-> +#define MSCL_SRC_GLOBAL_COLOR2_MASK		(0xff<<  0)
-> +#define MSCL_SRC_GLOBAL_COLOR2(x)		(((x)&  0xff)<<  0)
-> +
-> +/* m2m-scaler src blend alpha */
-> +#define MSCL_SRC_BLEND_ALPHA			0x284
-> +#define MSCL_SRC_ALPHA_SEL_INV			(1<<  31)
-> +#define MSCL_SRC_ALPHA_SEL_MASK			(0x3<<  29)
-> +#define MSCL_SRC_ALPHA_SEL(x)			(((x)&  0x3)<<  29)
-> +#define MSCL_SRC_ALPHA_OP_SEL_INV		(1<<  28)
-> +#define MSCL_SRC_ALPHA_OP_SEL_MASK		(0xf<<  24)
-> +#define MSCL_SRC_ALPHA_OP_SEL(x)		(((x)&  0xf)<<  24)
-> +#define MSCL_SRC_GLOBAL_ALPHA_MASK		(0xff<<  0)
-> +#define MSCL_SRC_GLOBAL_ALPHA(x)		(((x)&  0xff)<<  0)
-> +
-> +/* m2m-scaler dst blend color */
-> +#define MSCL_DST_BLEND_COLOR			0x288
-> +#define MSCL_DST_COLOR_SEL_INV			(1<<  31)
-> +#define MSCL_DST_COLOR_SEL_MASK			(0x3<<  29)
-> +#define MSCL_DST_COLOR_SEL(x)			(((x)&  0x3)<<  29)
-> +#define MSCL_DST_COLOR_OP_SEL_INV		(1<<  28)
-> +#define MSCL_DST_COLOR_OP_SEL_MASK		(0xf<<  24)
-> +#define MSCL_DST_COLOR_OP_SEL(x)		(((x)&  0xf)<<  24)
-> +#define MSCL_DST_GLOBAL_COLOR0_MASK		(0xff<<  16)
-> +#define MSCL_DST_GLOBAL_COLOR0(x)		(((x)&  0xff)<<  16)
-> +#define MSCL_DST_GLOBAL_COLOR1_MASK		(0xff<<  8)
-> +#define MSCL_DST_GLOBAL_COLOR1(x)		(((x)&  0xff)<<  8)
-> +#define MSCL_DST_GLOBAL_COLOR2_MASK		(0xff<<  0)
-> +#define MSCL_DST_GLOBAL_COLOR2(x)		(((x)&  0xff)<<  0)
-> +
-> +/* m2m-scaler dst blend alpha */
-> +#define MSCL_DST_BLEND_ALPHA			0x28C
-> +#define MSCL_DST_ALPHA_SEL_INV			(1<<  31)
-> +#define MSCL_DST_ALPHA_SEL_MASK			(0x3<<  29)
-> +#define MSCL_DST_ALPHA_SEL(x)			(((x)&  0x3)<<  29)
-> +#define MSCL_DST_ALPHA_OP_SEL_INV		(1<<  28)
-> +#define MSCL_DST_ALPHA_OP_SEL_MASK		(0xf<<  24)
-> +#define MSCL_DST_ALPHA_OP_SEL(x)		(((x)&  0xf)<<  24)
-> +#define MSCL_DST_GLOBAL_ALPHA_MASK		(0xff<<  0)
-> +#define MSCL_DST_GLOBAL_ALPHA(x)		(((x)&  0xff)<<  0)
-> +
-> +/* m2m-scaler fill color */
-> +#define MSCL_FILL_COLOR				0x290
-> +#define MSCL_FILL_ALPHA_MASK			(0xff<<  24)
-> +#define MSCL_FILL_ALPHA(x)			(((x)&  0xff)<<  24)
-> +#define MSCL_FILL_COLOR0_MASK			(0xff<<  16)
-> +#define MSCL_FILL_COLOR0(x)			(((x)&  0xff)<<  16)
-> +#define MSCL_FILL_COLOR1_MASK			(0xff<<  8)
-> +#define MSCL_FILL_COLOR1(x)			(((x)&  0xff)<<  8)
-> +#define MSCL_FILL_COLOR2_MASK			(0xff<<  0)
-> +#define MSCL_FILL_COLOR2(x)			(((x)&  0xff)<<  0)
-
-Seems like there is no user interface exposed for the blending control
-in this driver yet.
-
-> +/* m2m-scaler address queue config */
-> +#define MSCL_ADDR_QUEUE_CONFIG			0x2a0
-> +#define MSCL_ADDR_QUEUE_RST			(1<<  0)
-> +
-> +/* arbitrary r/w register and reg-value to check soft reset is success */
-
-How about:
-
-  /* Arbitrary R/W register address and value to check if soft reset 
-succeeded */
-
-?
-> +#define MSCL_CFG_SOFT_RESET_CHECK_REG		MSCL_SRC_CFG
-> +#define MSCL_CFG_SOFT_RESET_CHECK_VAL		0x3
-> +
-> +#endif /* REGS_MSCL_H_ */
-
---
-Thanks,
-Sylwester
