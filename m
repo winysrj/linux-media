@@ -1,32 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:48114 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966169Ab3HIMM3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:12:29 -0400
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: baard.e.winther@wintherstormer.no
-Subject: [PATCH FINAL 0/6] qv4l2: cropping, optimization and documentatio
-Date: Fri,  9 Aug 2013 14:12:06 +0200
-Message-Id: <1376050332-27290-1-git-send-email-bwinther@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53262 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751273Ab3HUL6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 07:58:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, andriy.shevchenko@intel.com
+Subject: Re: [PATCH 0/4] smiapp: Small cleanup; clock framework fixes and clock tree comments
+Date: Wed, 21 Aug 2013 13:59:31 +0200
+Message-ID: <2340428.qnAPLruAaP@avalon>
+In-Reply-To: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
+References: <1376156988-4009-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-qv4l2:
+Hi Sakari,
 
-Add cropping to the CaptureWin. In order to make the Qt renderer work with
-this as well, it had to be optimized to not lose framerate.
-A basic manpage is added along width fixing the input parameters.
+Thank you for the patches.
 
-New Features/Improvements:
-- Add cropping to CaptureWin
-- Qt renderer has been optimized (no longer uses memcpy!)
-- Add a basic manpage
-- About window shows version number and ALSA/OpenGL support
-- Fix program parameters
-- Fix status hints for some missing GeneralTab elements
-- Code cleanup and fixes
+On Saturday 10 August 2013 20:49:44 Sakari Ailus wrote:
+> Hi,
+> 
+> This patchset contains Andy's cleanup patch (with clamp_t replaced with
+> clamp) and a few clock tree interface related fixes and a few comments to
+> PLL calculation.
+
+There's a trailing white space in patch 2/4. Appart from that, for the whole 
+set,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I've taken the patches in my tree (with the trailing white space removed) and 
+will send a pull request.
+
+-- 
+Regards,
+
+Laurent Pinchart
 
