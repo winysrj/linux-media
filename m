@@ -1,77 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50858 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966223Ab3HIKSh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 06:18:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: s5c73m3: Add format propagation for TRY formats
-Date: Fri, 09 Aug 2013 12:19:36 +0200
-Message-ID: <6649975.HfKdDgB88q@avalon>
-In-Reply-To: <52048B0A.7010700@samsung.com>
-References: <1374677852-2006-1-git-send-email-s.nawrocki@samsung.com> <3766107.LzC3gBYZDo@avalon> <52048B0A.7010700@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:47441 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196Ab3HUGfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 02:35:46 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v7 11/13] [media] exynos5-is: Add Kconfig and Makefile
+Date: Wed, 21 Aug 2013 12:04:38 +0530
+Message-Id: <1377066881-5423-12-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Adds Kconfig and Makefile for exynos5-is driver files.
 
-On Friday 09 August 2013 08:24:10 Andrzej Hajda wrote:
-> On 08/09/2013 12:58 AM, Laurent Pinchart wrote:
-> > On Wednesday 24 July 2013 16:57:32 Sylwester Nawrocki wrote:
-> >> From: Andrzej Hajda <a.hajda@samsung.com>
-> >> 
-> >> Resolution set on ISP pad of S5C73M3-OIF subdev should be
-> >> propagated to source pad for TRY and ACTIVE formats.
-> >> The patch adds missing propagation for TRY format.
-> > 
-> > I might be missing something, but where's the propagation for the ACTIVE
-> > format ?
-> 
-> In case of active format there are no separate containers
-> for the format of each pad, instead they shares common fields,
-> precisely .oif_pix_size and .mbus_code.
-> This way there is no need for extra code for format propagation.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/Kconfig             |    1 +
+ drivers/media/platform/Makefile            |    1 +
+ drivers/media/platform/exynos5-is/Kconfig  |   20 ++++++++++++++++++++
+ drivers/media/platform/exynos5-is/Makefile |    7 +++++++
+ 4 files changed, 29 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/Kconfig
+ create mode 100644 drivers/media/platform/exynos5-is/Makefile
 
-I got confused by the s5c73m3_oif_get_fmt() implementation that retrieves the 
-pixel code and frame size from different internal state fields for the soruce 
-pad. The code looks correct.
-
-> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> ---
-> >> 
-> >>  drivers/media/i2c/s5c73m3/s5c73m3-core.c |    5 +++++
-> >>  1 file changed, 5 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> >> b/drivers/media/i2c/s5c73m3/s5c73m3-core.c index 825ea86..b76ec0e 100644
-> >> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> >> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> >> @@ -1111,6 +1111,11 @@ static int s5c73m3_oif_set_fmt(struct v4l2_subdev
-> >> *sd, if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> >> 
-> >>  		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
-> >>  		*mf = fmt->format;
-> >> 
-> >> +		if (fmt->pad == OIF_ISP_PAD) {
-> >> +			mf = v4l2_subdev_get_try_format(fh, OIF_SOURCE_PAD);
-> >> +			mf->width = fmt->format.width;
-> >> +			mf->height = fmt->format.height;
-> >> +		}
-> >> 
-> >>  	} else {
-> >>  	
-> >>  		switch (fmt->pad) {
-> >>  		case OIF_ISP_PAD:
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 08de865..4b0475e 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -123,6 +123,7 @@ config VIDEO_S3C_CAMIF
+ 
+ source "drivers/media/platform/soc_camera/Kconfig"
+ source "drivers/media/platform/exynos4-is/Kconfig"
++source "drivers/media/platform/exynos5-is/Kconfig"
+ source "drivers/media/platform/s5p-tv/Kconfig"
+ 
+ endif # V4L_PLATFORM_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index eee28dd..40bf09f 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+ 
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
+ 
+ obj-$(CONFIG_BLACKFIN)                  += blackfin/
+ 
+diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
+new file mode 100644
+index 0000000..b67d11a
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/Kconfig
+@@ -0,0 +1,20 @@
++config VIDEO_SAMSUNG_EXYNOS5_CAMERA
++	bool "Samsung Exynos5 SoC Camera Media Device driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
++	depends on VIDEO_SAMSUNG_EXYNOS4_IS
++	help
++	  This is a V4L2 media device driver for Exynos5 SoC series
++	  camera subsystem.
++
++if VIDEO_SAMSUNG_EXYNOS5_CAMERA
++
++config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
++	tristate "Samsung Exynos5 SoC FIMC-IS driver"
++	depends on I2C && OF
++	depends on VIDEO_EXYNOS4_FIMC_IS
++	select VIDEOBUF2_DMA_CONTIG
++	help
++	  This is a V4L2 driver for Samsung Exynos5 SoC series Imaging
++	  Subsystem known as FIMC-IS.
++
++endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
+diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
+new file mode 100644
+index 0000000..6cdb037
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/Makefile
+@@ -0,0 +1,7 @@
++ccflags-y += -Idrivers/media/platform/exynos4-is
++exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o
++exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o fimc-is-sensor.o
++exynos-mdevice-objs := exynos5-mdev.o
++
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos-mdevice.o
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
