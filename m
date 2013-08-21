@@ -1,55 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout02.t-online.de ([194.25.134.17]:54023 "EHLO
-	mailout02.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab3H1FfB (ORCPT
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:42873 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159Ab3HUH6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 01:35:01 -0400
-Message-ID: <521D8BF9.7070704@t-online.de>
-Date: Wed, 28 Aug 2013 07:34:49 +0200
-From: Knut Petersen <Knut_Petersen@t-online.de>
+	Wed, 21 Aug 2013 03:58:35 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	s.nawrocki@samsung.com, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v7 13/13] V4L: Add driver for s5k4e5 image sensor
+Date: Wed, 21 Aug 2013 09:58:28 +0200
+Message-ID: <4486068.1NMnLxuSKb@flatron>
+In-Reply-To: <52146403.9050702@xs4all.nl>
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-14-git-send-email-arun.kk@samsung.com> <52146403.9050702@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hansverk@cisco.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to
- register R??
-References: <521A269D.3020909@t-online.de> <521C5493.1050407@cisco.com> <521C72FF.5070902@t-online.de> <521C7697.6070809@cisco.com>
-In-Reply-To: <521C7697.6070809@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.08.2013 11:51, Hans Verkuil wrote:
-> On 08/27/2013 11:35 AM, Knut Petersen wrote:
->> On 27.08.2013 09:26, Hans Verkuil wrote:
->>> On 08/25/2013 05:45 PM, Knut Petersen wrote:
->>>> Booting current git kernel dmesg shows a set of new  warnings:
->>>>
->>>>       "wm8775 9-001b: I2C: cannot write ??? to register R??"
->>>>
->>>> Nevertheless, the hardware seems to work fine.
->>>>
->>>> This is a new problem, introduced after kernel 3.10.
->>>> If necessary I can bisect.
->>> Can you try this patch? I'm pretty sure this will fix it.
->> Indeed, it does cure the problem. Thanks.
->>
->> Tested-by: Knut Petersen <Knut_Petersen@t-online.de>
-> Thanks for testing this! I've posted the pull request for this.
-> Hopefully it will make 3.11 before it is released.
+Hi Hans,
 
-As I wrote in the initial bug report, the problem has been introduced _after_ kernel 3.10,
-facd23664f1d63c33fbc6da52261c8548ed3fbd4 is _not_ part of kernel 3.10.x
+On Wednesday 21 of August 2013 08:53:55 Hans Verkuil wrote:
+> On 08/21/2013 08:34 AM, Arun Kumar K wrote:
+> > This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
+> > Like s5k6a3, it is also another fimc-is firmware controlled
+> > sensor. This minimal sensor driver doesn't do any I2C communications
+> > as its done by ISP firmware. It can be updated if needed to a
+> > regular sensor driver by adding the I2C communication.
+> > 
+> > Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> > Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/i2c/s5k4e5.txt       |   43 +++
+> >  drivers/media/i2c/Kconfig                          |    8 +
+> >  drivers/media/i2c/Makefile                         |    1 +
+> >  drivers/media/i2c/s5k4e5.c                         |  361
+> >  ++++++++++++++++++++ 4 files changed, 413 insertions(+)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/media/i2c/s5k4e5.txt create mode
+> >  100644 drivers/media/i2c/s5k4e5.c
+> 
+> ...
+> 
+> > diff --git a/drivers/media/i2c/s5k4e5.c b/drivers/media/i2c/s5k4e5.c
+> > new file mode 100644
+> > index 0000000..0a6ece6
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/s5k4e5.c
+> > @@ -0,0 +1,361 @@
+> > +/*
+> > + * Samsung S5K4E5 image sensor driver
+> > + *
+> > + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+> > + * Author: Arun Kumar K <arun.kk@samsung.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > modify + * it under the terms of the GNU General Public License
+> > version 2 as + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/clk.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/device.h>
+> > +#include <linux/errno.h>
+> > +#include <linux/gpio.h>
+> > +#include <linux/i2c.h>
+> > +#include <linux/kernel.h>
+> > +#include <linux/module.h>
+> > +#include <linux/of_gpio.h>
+> > +#include <linux/pm_runtime.h>
+> > +#include <linux/regulator/consumer.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/videodev2.h>
+> > +#include <media/v4l2-async.h>
+> > +#include <media/v4l2-subdev.h>
+> > +
+> > +#define S5K4E5_SENSOR_MAX_WIDTH		2576
+> > +#define S5K4E5_SENSOR_MAX_HEIGHT	1930
+> > +
+> > +#define S5K4E5_SENSOR_ACTIVE_WIDTH	2560
+> > +#define S5K4E5_SENSOR_ACTIVE_HEIGHT	1920
+> > +
+> > +#define S5K4E5_SENSOR_MIN_WIDTH		(32 + 16)
+> > +#define S5K4E5_SENSOR_MIN_HEIGHT	(32 + 10)
+> > +
+> > +#define S5K4E5_DEF_WIDTH		1296
+> > +#define S5K4E5_DEF_HEIGHT		732
+> > +
+> > +#define S5K4E5_DRV_NAME			"S5K4E5"
+> > +#define S5K4E5_CLK_NAME			"mclk"
+> > +
+> > +#define S5K4E5_NUM_SUPPLIES		2
+> > +
+> > +#define S5K4E5_DEF_CLK_FREQ		24000000
+> > +
+> > +/**
+> > + * struct s5k4e5 - s5k4e5 sensor data structure
+> > + * @dev: pointer to this I2C client device structure
+> > + * @subdev: the image sensor's v4l2 subdev
+> > + * @pad: subdev media source pad
+> > + * @supplies: image sensor's voltage regulator supplies
+> > + * @gpio_reset: GPIO connected to the sensor's reset pin
+> > + * @lock: mutex protecting the structure's members below
+> > + * @format: media bus format at the sensor's source pad
+> > + */
+> > +struct s5k4e5 {
+> > +	struct device *dev;
+> > +	struct v4l2_subdev subdev;
+> > +	struct media_pad pad;
+> > +	struct regulator_bulk_data supplies[S5K4E5_NUM_SUPPLIES];
+> > +	int gpio_reset;
+> > +	struct mutex lock;
+> > +	struct v4l2_mbus_framefmt format;
+> > +	struct clk *clock;
+> > +	u32 clock_frequency;
+> > +};
+> > +
+> > +static const char * const s5k4e5_supply_names[] = {
+> > +	"svdda",
+> > +	"svddio"
+> > +};
+> 
+> I'm no regulator expert, but shouldn't this list come from the DT or
+> platform_data? Or are these names specific to this sensor?
 
-Therefore the CC to stable@vger.kernel.org for v3.10 in
-b9a1dfd3ba3ae00b0c1d1a396ed43fac85a32990 is wrong.
+This is a list of regulator input (aka supply) names. In other words those 
+are usually names of pins of the consumer device (s5k4e5 chip in this 
+case) to which the regulators are connected. They are used as lookup keys 
+when looking up regulators, either from device tree or lookup tables.
 
-cu,
-  Knut
-> Regards,
->
-> 	Hans
->
->
+Best regards,
+Tomasz
 
