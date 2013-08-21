@@ -1,90 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:43317 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717Ab3HOL7Z (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20216 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525Ab3HUOpR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:59:25 -0400
-Received: by mail-ee0-f50.google.com with SMTP id d51so318862eek.37
-        for <linux-media@vger.kernel.org>; Thu, 15 Aug 2013 04:59:24 -0700 (PDT)
-Date: Thu, 15 Aug 2013 13:59:32 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christopher James Halse Rogers
-	<christopher.halse.rogers@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace
-Message-ID: <20130815115932.GC776@phenom.ffwll.local>
-References: <1375683720-4748-1-git-send-email-christopher.halse.rogers@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1375683720-4748-1-git-send-email-christopher.halse.rogers@canonical.com>
+	Wed, 21 Aug 2013 10:45:17 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MRV00IA1YA91QC0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Aug 2013 15:45:15 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Fabio Estevam' <fabio.estevam@freescale.com>
+Cc: p.zabel@pengutronix.de, linux-media@vger.kernel.org
+References: <1377026978-23322-1-git-send-email-fabio.estevam@freescale.com>
+ <1377026978-23322-2-git-send-email-fabio.estevam@freescale.com>
+In-reply-to: <1377026978-23322-2-git-send-email-fabio.estevam@freescale.com>
+Subject: RE: [PATCH v6 2/3] [media] coda: Check the return value from
+ clk_prepare_enable()
+Date: Wed, 21 Aug 2013 16:45:14 +0200
+Message-id: <000401ce9e7d$0c1ef8a0$245ce9e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 05, 2013 at 04:22:00PM +1000, Christopher James Halse Rogers wrote:
-> Each dma-buf has an associated size and it's reasonable for userspace
-> to want to know what it is.
-> 
-> Since userspace already has an fd, expose the size using the
-> size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
-> idiom.
-> 
-> Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+Hi Fabio,
 
-Yeah, loosk good to me and rather useful, so (with the dma-buf docs
-improved as suggested below):
+I still cannot apply this patch. There is something wrong.
+Could you rebase this patch (or even better all 3 patches) to:
+http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/master ?
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+I really want to send the pull request before the end of the week. 
 
-I've also written some small prime tests in igt, so also:
-
-Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
-> ---
-> 
-> I've run into a point in the radeon DRM userspace where I need the
-> size of a dma-buf. I could add a radeon-specific mechanism to get that,
-> but this seems like something that would be more generally useful.
-> 
-> I'm not entirely sure about supporting both SEEK_END and SEEK_CUR; this
-> is somewhat of an abuse of lseek, as seeking obviously doesn't make sense.
-> It's the obivous idiom for getting the size of what's on the other end of a
-> file descriptor, though.
-> 
-> I didn't notice anywhere to document this; Documentation/dma-buf-api didn't
-> seem like the right place. Is there somewhere I've overlooked?
-
-I think adding a section about various other userspace interfaces exposed
-below the mmap support section would be good. Feel free to squash in the
-belo diff for v2.
-
-Cheers, Daniel
-
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 0b23261..b3a8aa2 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
-    interesting ways depending upong the exporter (if userspace starts depending
-    upon this implicit synchronization).
- 
-+Other Interfaces Exposed to Userspace on the dma-buf FD
-+------------------------------------------------------
-+
-+- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
-+  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allowe
-+  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
-+  llseek operation will report -EINVAL.
-+
-+  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
-+  cases. Userspace can use this to detect support for discovering the dma-buf
-+  size using llsee.
-+
- Miscellaneous notes
- -------------------
+Best wishes,
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Kamil Debski
+Linux Kernel Developer
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Fabio Estevam
+> Sent: Tuesday, August 20, 2013 9:30 PM
+> To: k.debski@samsung.com
+> Cc: p.zabel@pengutronix.de; linux-media@vger.kernel.org; Fabio Estevam
+> Subject: [PATCH v6 2/3] [media] coda: Check the return value from
+> clk_prepare_enable()
+> 
+> clk_prepare_enable() may fail, so let's check its return value and
+> propagate it in the case of error.
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+> Changes since v5:
+> - Rebased against latest Kamil's tree
+> 
+>  drivers/media/platform/coda.c | 27 ++++++++++++++++++++++-----
+>  1 file changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c
+> b/drivers/media/platform/coda.c index b5d48b7..a68379c 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -2406,8 +2406,14 @@ static int coda_open(struct file *file)
+>  		ctx->reg_idx = idx;
+>  	}
+> 
+> -	clk_prepare_enable(dev->clk_per);
+> -	clk_prepare_enable(dev->clk_ahb);
+> +	ret = clk_prepare_enable(dev->clk_per);
+> +	if (ret)
+> +		goto err_clk_per;
+> +
+> +	ret = clk_prepare_enable(dev->clk_ahb);
+> +	if (ret)
+> +		goto err_clk_ahb;
+> +
+>  	set_default_params(ctx);
+>  	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
+>  					 &coda_queue_init);
+> @@ -2465,7 +2471,9 @@ err_ctrls_setup:
+>         v4l2_m2m_ctx_release(ctx->m2m_ctx);
+>  err_ctx_init:
+>  	clk_disable_unprepare(dev->clk_ahb);
+> +err_clk_ahb:
+>  	clk_disable_unprepare(dev->clk_per);
+> +err_clk_per:
+>  	v4l2_fh_del(&ctx->fh);
+>  	v4l2_fh_exit(&ctx->fh);
+>  	clear_bit(ctx->idx, &dev->instance_mask); @@ -2873,10 +2881,15 @@
+> static int coda_hw_init(struct coda_dev *dev)
+>  	u16 product, major, minor, release;
+>  	u32 data;
+>  	u16 *p;
+> -	int i;
+> +	int i, ret;
+> +
+> +	ret = clk_prepare_enable(dev->clk_per);
+> +	if (ret)
+> +		return ret;
+> 
+> -	clk_prepare_enable(dev->clk_per);
+> -	clk_prepare_enable(dev->clk_ahb);
+> +	ret = clk_prepare_enable(dev->clk_ahb);
+> +	if (ret)
+> +		goto err_clk_ahb;
+> 
+>  	/*
+>  	 * Copy the first CODA_ISRAM_SIZE in the internal SRAM.
+> @@ -2985,6 +2998,10 @@ static int coda_hw_init(struct coda_dev *dev)
+>  	}
+> 
+>  	return 0;
+> +
+> +err_clk_ahb:
+> +	clk_disable_unprepare(dev->clk_per);
+> +	return ret;
+>  }
+> 
+>  static void coda_fw_callback(const struct firmware *fw, void *context)
+> --
+> 1.8.1.2
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
