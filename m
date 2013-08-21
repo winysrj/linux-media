@@ -1,113 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:48563 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129Ab3HTQcM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 12:32:12 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c1so306493eek.38
-        for <linux-media@vger.kernel.org>; Tue, 20 Aug 2013 09:32:10 -0700 (PDT)
-Message-ID: <52139A9B.1030400@googlemail.com>
-Date: Tue, 20 Aug 2013 18:34:35 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon>
-In-Reply-To: <1904390.nVVGcVBrVP@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from plane.gmane.org ([80.91.229.3]:52305 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751495Ab3HUMlD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 08:41:03 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VC7if-0000QJ-RD
+	for linux-media@vger.kernel.org; Wed, 21 Aug 2013 14:41:01 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 14:41:01 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 14:41:01 +0200
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: media-ctl: line 1: syntax error: "(" unexpected
+Date: Wed, 21 Aug 2013 12:40:42 +0000 (UTC)
+Message-ID: <loom.20130821T143312-331@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.08.2013 15:38, schrieb Laurent Pinchart:
-> Hi Mauro,
->
-> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
->> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
->>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
->>>> Hi Frank,
->>>> As I mentioned on the list, I'm currently on a holiday, so, replying
->>>> briefly.
->>> Sorry, I missed that (can't read all mails on the list).
->>>
->>>> Since em28xx is a USB device, I conclude, that it's supplying clock to
->>>> its components including the ov2640 sensor. So, yes, I think the driver
->>>> should export a V4L2 clock.
->>> Ok, so it's mandatory on purpose ?
->>> I'll take a deeper into the v4l2-clk code and the
->>> em28xx/ov2640/soc-camera interaction this week.
->>> Have a nice holiday !
->> commit 9aea470b399d797e88be08985c489855759c6c60
->> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Date:   Fri Dec 21 13:01:55 2012 -0300
->>
->>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
->>
->>     Instead of centrally enabling and disabling subdevice master clocks in
->>     soc-camera core, let subdevice drivers do that themselves, using the
->>     V4L2 clock API and soc-camera convenience wrappers.
->>
->>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> (c/c the ones that acked with this broken changeset)
->>
->> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
->> cameras are currently broken on 3.10.
->>
->> I'll also reject other ports to the async API if the drivers are
->> used outside an embedded driver, as no PC driver currently defines
->> any clock source. The same applies to regulators.
->>
->> Guennadi,
->>
->> Next time, please check if the i2c drivers are used outside soc_camera
->> and apply the fixes where needed, as no regressions are allowed.
-> We definitely need to check all users of our sensor drivers when making such a 
-> change. Mistakes happen, so let's fix them.
->
-> Guennadi is on holidays until the end of this week. Would that be too late to 
-> fix the issue (given that 3.10 is already broken) ? The fix shouldn't be too 
-> complex, registering a dummy V4L2 clock in the em28xx driver should be enough.
+Hello,
 
-I would prefer either a) making the clock optional in the senor
-driver(s) or b) implementing a real V4L2 clock.
+I got the media-ctl tool from http://git.ideasonboard.org/git/media-ctl.git
+and compiled and build it successfully. But when try to run it I get this error:
 
-Reading the soc-camera code, it looks like NULL-pointers for struct
-v4l2_clk are handled correctly. so a) should be pretty simple:
+sudo ./media-ctl -r -l "ov3640 3-003c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+CCDC":1->"OMAP3 ISP CCDC output":0[1]
 
-    priv->clk = v4l2_clk_get(&client->dev, "mclk");
--   if (IS_ERR(priv->clk)) {
--       ret = PTR_ERR(priv->clk);
--       goto eclkget;
--   }
-+   if (IS_ERR(priv->clk))
-+       priv->clk = NULL;
+./media-ctl: line 1: syntax error: "(" unexpected
 
-Some additional NULL-pointer checks might be necessary, e.g. before
-calling v4l2_clk_put().
+Does anyone know how I can solve that problem?
 
-Concerning b): I'm not yet sure if it is really needed/makes sense...
-Who is supposed to configure/enable/disable the clock in a constellation
-like em28xx+ov2640 ?
-For UXGA for example, the clock needs to be switched to 12MHz, while
-24MHz is used for smaller reolutions.
-But I'm not sure if it is a good idea to let the sensor driver do the
-switch (to define fixed bindings between resoultions and clock frequencies).
-Btw, what if a frequency is requested which isn't supported ? Set the
-clock to the next nearest supported frequency ?
-
-Regards,
-Frank
-
->  
-> v4l2-clk.c should provide a helper function to do so as that will be a pretty 
-> common operation.
->
+Best Regards, Tom
 
