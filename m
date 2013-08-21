@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:63938 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753066Ab3HVMY5 (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:57752 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab3HUKOv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 08:24:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH v1 43/49] media: usb: em28xx: prepare for enabling irq in complete()
-Date: Thu, 22 Aug 2013 14:24:53 +0200
-Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com> <1376756714-25479-44-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1376756714-25479-44-git-send-email-ming.lei@canonical.com>
+	Wed, 21 Aug 2013 06:14:51 -0400
+Received: by mail-bk0-f52.google.com with SMTP id e11so87914bkh.11
+        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 03:14:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308221424.53696.hverkuil@xs4all.nl>
+In-Reply-To: <2205654.JNC8mWJ5su@avalon>
+References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
+	<CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
+	<CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
+	<2205654.JNC8mWJ5su@avalon>
+Date: Wed, 21 Aug 2013 18:14:50 +0800
+Message-ID: <CALxrGmVHS2BnmyLd4EDEHJ-CB44e-AfdFqj0pVFTa_hbBhgWAA@mail.gmail.com>
+Subject: Re: How to express planar formats with mediabus format code?
+From: Su Jiaquan <jiaquan.lnx@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
+	xzhao10@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat 17 August 2013 18:25:08 Ming Lei wrote:
-> Complete() will be run with interrupt enabled, so add local_irq_save()
-> before acquiring the lock without irqsave().
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Hi Laurent,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks for the replay, I've removed earlier mail content and only keep
+you question:
 
-Regards,
+On Tue, Aug 20, 2013 at 8:53 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Jiaquan,
+>
+> I'm not sure if that's needed here. Vendor-specific formats still need to be
+> documented, so we could just create a custom YUV format for your case. Let's
+> start with the beginning, could you describe what gets transmitted on the bus
+> when that special format is selected ?
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-	Hans
+For YUV420P format, the data format sent from IPC is similar to
+V4L2_MBUS_FMT_YUYV8_1_5X8, but the content for each line is different:
+For odd line, it's YYU YYU YYU... For even line, it's YYV YYV YYV...
+then DMA engine send them to RAM in planar format.
 
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 2fdb66e..7fd1b2a 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -113,6 +113,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
->  		stride = runtime->frame_bits >> 3;
->  
->  		for (i = 0; i < urb->number_of_packets; i++) {
-> +			unsigned long flags;
->  			int length =
->  			    urb->iso_frame_desc[i].actual_length / stride;
->  			cp = (unsigned char *)urb->transfer_buffer +
-> @@ -134,7 +135,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
->  				       length * stride);
->  			}
->  
-> -			snd_pcm_stream_lock(substream);
-> +			snd_pcm_stream_lock_irqsave(substream, flags);
->  
->  			dev->adev.hwptr_done_capture += length;
->  			if (dev->adev.hwptr_done_capture >=
-> @@ -150,7 +151,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
->  				period_elapsed = 1;
->  			}
->  
-> -			snd_pcm_stream_unlock(substream);
-> +			snd_pcm_stream_unlock_irqrestore(substream, flags);
->  		}
->  		if (period_elapsed)
->  			snd_pcm_period_elapsed(substream);
-> 
+For YUV420SP format, the data format sent from IPC is YYUV YYUV
+YYUV(maybe called V4L2_MBUS_FMT_YYUV8_2X8?), but DMA engine drop UV
+every other line, then send them to RAM as semi-planar.
+
+Well, the first data format is too odd, I don't have a clue how to
+call it, do you have suggestion?
+
+Thanks a lot!
+
+Jiaquan
