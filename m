@@ -1,80 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:38939 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246Ab3HTUss (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50614 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032Ab3HUDVd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 16:48:48 -0400
-Message-ID: <5213D62C.6020205@wwwdotorg.org>
-Date: Tue, 20 Aug 2013 14:48:44 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+	Tue, 20 Aug 2013 23:21:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 2/4] media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
+Date: Wed, 21 Aug 2013 05:22:45 +0200
+Message-ID: <1611138.kmhZXgyzhc@avalon>
+In-Reply-To: <20130810121629.GF16719@valkosipuli.retiisi.org.uk>
+References: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi> <32006650.7k13BkzS1n@avalon> <20130810121629.GF16719@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6] s5k5baf: add camera sensor driver
-References: <1377014619-5349-1-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1377014619-5349-1-git-send-email-a.hajda@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/20/2013 10:03 AM, Andrzej Hajda wrote:
-> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
-> with embedded SoC ISP.
-> The driver exposes the sensor as two V4L2 subdevices:
-> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
->   no controls.
-> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
->   pre/post ISP cropping, downscaling via selection API, controls.
+Hi Sakari,
 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+On Saturday 10 August 2013 15:16:29 Sakari Ailus wrote:
+> On Fri, Aug 09, 2013 at 01:34:46AM +0200, Laurent Pinchart wrote:
+> > On Friday 19 July 2013 20:55:07 Sakari Ailus wrote:
+> > > Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is
+> > > not connected by an active link.
+> > > 
+> > > This patch makes it possible to avoid drivers having to check for the
+> > > most common case of link state validation: a sink pad that must be
+> > > connected.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  drivers/media/media-entity.c |   34 +++++++++++++++++++++++++++-------
+> > >  1 file changed, 27 insertions(+), 7 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > > index cb30ffb..4e58f8a 100644
+> > > --- a/drivers/media/media-entity.c
+> > > +++ b/drivers/media/media-entity.c
+> > > @@ -20,6 +20,7 @@
+> > >   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+> > > USA */
+> > > 
+> > > +#include <linux/bitmap.h>
+> > >  #include <linux/module.h>
+> > >  #include <linux/slab.h>
+> > >  #include <media/media-entity.h>
+> > > @@ -227,6 +228,7 @@ __must_check int media_entity_pipeline_start(struct
+> > > media_entity *entity,
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > > 
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > +		DECLARE_BITMAP(active, entity->num_pads);
+> > >  		unsigned int i;
+> > >  		
+> > >  		entity->stream_count++;
+> > > 
+> > > @@ -240,21 +242,39 @@ __must_check int
+> > > media_entity_pipeline_start(struct media_entity *entity,
+> > >  		if (!entity->ops || !entity->ops->link_validate)
+> > >  			continue;
+> > > 
+> > > +		bitmap_zero(active, entity->num_pads);
+> > > +
+> > >  		for (i = 0; i < entity->num_links; i++) {
+> > >  			struct media_link *link = &entity->links[i];
+> > > -
+> > > -			/* Is this pad part of an enabled link? */
+> > > -			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+> > > -				continue;
+> > > -
+> > > -			/* Are we the sink or not? */
+> > > -			if (link->sink->entity != entity)
+> > > +			struct media_pad *pad = link->sink->entity == entity
+> > > +				? link->sink : link->source;
+> > > +
+> > > +			/*
+> > > +			 * Pads that either do not need to connect or
+> > > +			 * are connected through an enabled link are
+> > > +			 * fine.
+> > > +			 */
+> > > +			if (!(pad->flags & MEDIA_PAD_FL_MUST_CONNECT)
+> > > +			    || link->flags & MEDIA_LNK_FL_ENABLED)
+> > > +				bitmap_set(active, pad->index, 1);
+> > > +
+> > > +			/*
+> > > +			 * Link validation will only take place for
+> > > +			 * sink ends of the link that are enabled.
+> > > +			 */
+> > > +			if (link->sink != pad
+> > > +			    || !(link->flags & MEDIA_LNK_FL_ENABLED))
+> > >  				continue;
+> > >  			
+> > >  			ret = entity->ops->link_validate(link);
+> > >  			if (ret < 0 && ret != -ENOIOCTLCMD)
+> > >  				goto error;
+> > >  		}
+> > > +
+> > > +		if (!bitmap_full(active, entity->num_pads)) {
+> > > +			ret = -EPIPE;
+> > > +			goto error;
+> > > +		}
+> > 
+> > I'm afraid that won't work if one of the pads has no links. In that case
+> > the bitmap won't be full. I think you will have to iterate separately on
+> > the links to validate them, and on the pads to check the flags.
+> 
+> Good point.
+> 
+> I could as well add another bitmap or perhaps rather keep the information in
+> struct media_pad, separately from flags since this is something the user can
+> find through other means --- that way we don't add practically any runtime
+> overhead.
+> 
+> What do you think?
 
-> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC ISP
-> +--------------------------------------------------------------------
-> +
-> +Required properties:
-> +
-> +- compatible	  : "samsung,s5k5baf";
-> +- reg		  : I2C slave address of the sensor;
-> +- vdda-supply	  : analog power supply 2.8V (2.6V to 3.0V);
-> +- vddreg-supply	  : regulator input power supply 1.8V (1.7V to 1.9V)
-> +		    or 2.8V (2.6V to 3.0);
-> +- vddio-supply	  : I/O power supply 1.8V (1.65V to 1.95V)
-> +		    or 2.8V (2.5V to 3.1V);
-> +- stbyn-gpios	  : GPIO connected to STDBYN pin;
-> +- rstn-gpios	  : GPIO connected to RSTN pin;
-> +- clocks	  : the sensor's master clock specifier (from the common
-> +		    clock bindings);
-> +- clock-names	  : must be "mclk";
+Given the number of pads we expect on an entity, is it really worth the micro-
+optimization ? I think I would just loop over the links and pads separately, 
+especially given that you need to validate pads even if the entity has no 
+link_validate operation, which is checked before the for loop over the links.
 
-That all looks sane.
+-- 
+Regards,
 
-> +Optional properties:
-> +
-> +- clock-frequency : master clock frequency in Hz; if this property is
-> +		    not specified default 24 MHz value will be used.
+Laurent Pinchart
 
-I /think/ the explanation you gave Mark on this property makes sense.
-However, it's not clear from the description what this does; in many
-other cases a clock-frequency describes a fixed/actual input clock rate
-to a device, rather than a frequency which the device believes it should
-operate at, and hence the driver should request. Perhaps the following
-would describe this:
-
-- clock-frequency : The frequency at which the "mclk" clock should be
-		configured to operate, in Hz. If this property is not
-		specified default 24 MHz value will be used.
-
-To me, this more strongly implies that the user of the node should
-configure the clock, rather than the property reporting the rate at
-which the clock is already configured to operate.
-
-I think the rest of the binding doc (below this point) seems reasonable too.
