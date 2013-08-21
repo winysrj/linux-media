@@ -1,137 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:36222 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457Ab3HVKmi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:42:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 PATCH 09/10] DocBook: document the new v4l2 matrix ioctls.
-Date: Thu, 22 Aug 2013 12:42:34 +0200
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sylvester.nawrocki@gmail.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl> <5215B600.8000009@xs4all.nl> <2389202.KPmZT6iCB5@avalon>
-In-Reply-To: <2389202.KPmZT6iCB5@avalon>
+Received: from bear.ext.ti.com ([192.94.94.41]:37650 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961Ab3HUFrZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 01:47:25 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: [PATCH v11 2/8] usb: phy: omap-usb2: use the new generic PHY framework
+Date: Wed, 21 Aug 2013 11:16:07 +0530
+Message-ID: <1377063973-22044-3-git-send-email-kishon@ti.com>
+In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308221242.34086.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 22 August 2013 12:34:56 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday 22 August 2013 08:56:00 Hans Verkuil wrote:
-> > On 08/21/2013 11:58 PM, Laurent Pinchart wrote:
-> > > On Monday 12 August 2013 12:58:32 Hans Verkuil wrote:
-> > >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >> 
-> > >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >> ---
-> > >> 
-> > >>  Documentation/DocBook/media/v4l/v4l2.xml           |   2 +
-> > >>  .../DocBook/media/v4l/vidioc-g-matrix.xml          | 115 +++++++++++++
-> > >>  .../DocBook/media/v4l/vidioc-query-matrix.xml      | 178 +++++++++++++++
-> > >>  3 files changed, 295 insertions(+)
-> > >>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
-> > >>  create mode 100644
-> > >>  Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
-> > > 
-> > > [snip]
-> > > 
-> > >> diff --git a/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
-> > >> b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml new file mode
-> > >> 100644
-> > >> index 0000000..c2845c7
-> > >> --- /dev/null
-> > >> +++ b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
-> 
-> [snip]
-> 
-> > >> +    <table pgwide="1" frame="none" id="v4l2-matrix-type">
-> > >> +      <title>Matrix Types</title>
-> > >> +      <tgroup cols="2" align="left">
-> > >> +	<colspec colwidth="30*" />
-> > >> +	<colspec colwidth="55*" />
-> > >> +	<thead>
-> > >> +	  <row>
-> > >> +	    <entry>Type</entry>
-> > >> +	    <entry>Description</entry>
-> > >> +	  </row>
-> > >> +	</thead>
-> > >> +	<tbody valign="top">
-> > >> +	  <row>
-> > >> +	    <entry><constant>V4L2_MATRIX_T_MD_REGION</constant></entry>
-> > >> +	    <entry>Hardware motion detection often divides the image into
-> > >> several
-> > >> +	    regions, and each region can have its own motion detection
-> > >> thresholds.
-> > >> +	    This matrix assigns a region number to each element. Each element
-> > >> is
-> > >> a __u8.
-> > >> +	    Generally each element refers to a block of pixels in the image.
-> > > 
-> > > From the description I have trouble understanding what the matrix type is
-> > > for. Do you think we could make the explanation more detailed ?
-> > 
-> > How about this:
-> > 
-> > Hardware motion detection divides the image up into cells. If the image
-> > resolution is WxH and the matrix size is COLSxROWS, then each cell is a
-> > rectangle of (W/COLS)x(H/ROWS) pixels (approximately as there may be some
-> > rounding involved). Depending on the hardware each cell can have its own
-> > properties. This matrix type sets the 'region' property which is a __u8.
-> > Each region will typically have its own set of motion detection parameters
-> > such as a threshold that determines the motion detection sensitivity. By
-> > assigning each cell a region you can create regions with lower and regions
-> > with higher motion sensitivity.
-> 
-> That sounds good to me. One more question, however: if the hardware divides 
-> the sub-sampled image into regions, how do you configure per-region thresholds 
-> ? The V4L2_MATRIX_T_MD_THRESHOLD matrix only configures per-cell thresholds.
+Used the generic PHY framework API to create the PHY. Now the power off and
+power on are done in omap_usb_power_off and omap_usb_power_on respectively.
+The omap-usb2 driver is also moved to driver/phy.
 
-That's hardware dependent. The go7007 has four different threshold parameters
-per region, so that's a total of 16 controls for all four regions.
+However using the old USB PHY library cannot be completely removed
+because OTG is intertwined with PHY and moving to the new framework
+will break OTG. Once we have a separate OTG state machine, we
+can get rid of the USB PHY library.
 
-If we get more drivers doing motion detection in the future, then some of those
-parameters might become standardized, but at the moment I have only one driver
-and I don't want to standardize that as long as I don't know if it can be
-standardized in the first place.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/phy/Kconfig                   |   12 +++++++++
+ drivers/phy/Makefile                  |    1 +
+ drivers/{usb => }/phy/phy-omap-usb2.c |   45 ++++++++++++++++++++++++++++++---
+ drivers/usb/phy/Kconfig               |   10 --------
+ drivers/usb/phy/Makefile              |    1 -
+ 5 files changed, 54 insertions(+), 15 deletions(-)
+ rename drivers/{usb => }/phy/phy-omap-usb2.c (88%)
 
-Regards,
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 349bef2..38c3477 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -15,4 +15,16 @@ config GENERIC_PHY
+ 	  phy users can obtain reference to the PHY. All the users of this
+ 	  framework should select this config.
+ 
++config OMAP_USB2
++	tristate "OMAP USB2 PHY Driver"
++	depends on ARCH_OMAP2PLUS
++	select GENERIC_PHY
++	select USB_PHY
++	select OMAP_CONTROL_USB
++	help
++	  Enable this to support the transceiver that is part of SOC. This
++	  driver takes care of all the PHY functionality apart from comparator.
++	  The USB OTG controller communicates with the comparator using this
++	  driver.
++
+ endmenu
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 9e9560f..ed5b088 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -3,3 +3,4 @@
+ #
+ 
+ obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
++obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
+diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+similarity index 88%
+rename from drivers/usb/phy/phy-omap-usb2.c
+rename to drivers/phy/phy-omap-usb2.c
+index 844ab68..25e0f3c 100644
+--- a/drivers/usb/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -28,6 +28,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+ #include <linux/usb/omap_control_usb.h>
++#include <linux/phy/phy.h>
+ 
+ /**
+  * omap_usb2_set_comparator - links the comparator present in the sytem with
+@@ -119,10 +120,36 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+ 	return 0;
+ }
+ 
++static int omap_usb_power_off(struct phy *x)
++{
++	struct omap_usb *phy = phy_get_drvdata(x);
++
++	omap_control_usb_phy_power(phy->control_dev, 0);
++
++	return 0;
++}
++
++static int omap_usb_power_on(struct phy *x)
++{
++	struct omap_usb *phy = phy_get_drvdata(x);
++
++	omap_control_usb_phy_power(phy->control_dev, 1);
++
++	return 0;
++}
++
++static struct phy_ops ops = {
++	.power_on	= omap_usb_power_on,
++	.power_off	= omap_usb_power_off,
++	.owner		= THIS_MODULE,
++};
++
+ static int omap_usb2_probe(struct platform_device *pdev)
+ {
+ 	struct omap_usb			*phy;
++	struct phy			*generic_phy;
+ 	struct usb_otg			*otg;
++	struct phy_provider		*phy_provider;
+ 
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+ 	if (!phy) {
+@@ -144,6 +171,11 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	phy->phy.otg		= otg;
+ 	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 
++	phy_provider = devm_of_phy_provider_register(phy->dev,
++			of_phy_simple_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
+ 	phy->control_dev = omap_get_control_dev();
+ 	if (IS_ERR(phy->control_dev)) {
+ 		dev_dbg(&pdev->dev, "Failed to get control device\n");
+@@ -159,6 +191,15 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	otg->start_srp		= omap_usb_start_srp;
+ 	otg->phy		= &phy->phy;
+ 
++	platform_set_drvdata(pdev, phy);
++	pm_runtime_enable(phy->dev);
++
++	generic_phy = devm_phy_create(phy->dev, &ops, NULL);
++	if (IS_ERR(generic_phy))
++		return PTR_ERR(generic_phy);
++
++	phy_set_drvdata(generic_phy, phy);
++
+ 	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+ 	if (IS_ERR(phy->wkupclk)) {
+ 		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
+@@ -174,10 +215,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 
+ 	usb_add_phy_dev(&phy->phy);
+ 
+-	platform_set_drvdata(pdev, phy);
+-
+-	pm_runtime_enable(phy->dev);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 3622fff..7813238 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -72,16 +72,6 @@ config OMAP_CONTROL_USB
+ 	  power on the USB2 PHY is present in OMAP4 and OMAP5. OMAP5 has an
+ 	  additional register to power on USB3 PHY.
+ 
+-config OMAP_USB2
+-	tristate "OMAP USB2 PHY Driver"
+-	depends on ARCH_OMAP2PLUS
+-	select OMAP_CONTROL_USB
+-	help
+-	  Enable this to support the transceiver that is part of SOC. This
+-	  driver takes care of all the PHY functionality apart from comparator.
+-	  The USB OTG controller communicates with the comparator using this
+-	  driver.
+-
+ config OMAP_USB3
+ 	tristate "OMAP USB3 PHY Driver"
+ 	select OMAP_CONTROL_USB
+diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
+index 070eca3..56d2b03 100644
+--- a/drivers/usb/phy/Makefile
++++ b/drivers/usb/phy/Makefile
+@@ -16,7 +16,6 @@ obj-$(CONFIG_ISP1301_OMAP)		+= phy-isp1301-omap.o
+ obj-$(CONFIG_MV_U3D_PHY)		+= phy-mv-u3d-usb.o
+ obj-$(CONFIG_NOP_USB_XCEIV)		+= phy-nop.o
+ obj-$(CONFIG_OMAP_CONTROL_USB)		+= phy-omap-control.o
+-obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
+ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
+ obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
+ obj-$(CONFIG_SAMSUNG_USB2PHY)		+= phy-samsung-usb2.o
+-- 
+1.7.10.4
 
-	Hans
-
-> 
-> > > > +	    </entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry><constant>V4L2_MATRIX_T_MD_THRESHOLD</constant></entry>
-> > > > +	    <entry>Hardware motion detection can assign motion detection
-> > > > threshold +	    values to each element of an image. Each element is a
-> > > > __u16. +       Generally each element refers to a block of pixels in
-> > > > the image.
-> > This would be improved as well along the same lines:
-> > 
-> > Hardware motion detection divides the image up into cells. If the image
-> > resolution is WxH and the matrix size is COLSxROWS, then each cell is a
-> > rectangle of (W/COLS)x(H/ROWS) pixels (approximately as there may be some
-> > rounding involved). Depending on the hardware each cell can have its own
-> > motion detection sensitivity threshold. This matrix type sets the motion
-> > detection threshold property which is a __u16.
-> > > > +	    </entry>
-> > > > +	  </row>
-> > > > +	</tbody>
-> > > > +      </tgroup>
-> > > > +    </table>
-> > > > +
-> > > > +  </refsect1>
-> > > > +  <refsect1>
-> > > > +    &return-value;
-> > > > +  </refsect1>
-> > > > +</refentry>
-> 
-> 
