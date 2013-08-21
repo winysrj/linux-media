@@ -1,40 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34418 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53057 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138Ab3HVRzs (ORCPT
+	with ESMTP id S1751417Ab3HULWd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 13:55:48 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 1/2] v4l: vsp1: Initialize media device bus_info field
-Date: Thu, 22 Aug 2013 19:56:56 +0200
-Message-Id: <1377194217-24235-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1377194217-24235-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1377194217-24235-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 21 Aug 2013 07:22:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Samuel.Rasmussen@gdc4s.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: Help with omap3isp resizing from CCDC
+Date: Wed, 21 Aug 2013 13:23:46 +0200
+Message-ID: <6377810.u22nuVnQSi@avalon>
+In-Reply-To: <CC189802FB3BE84AB783196665ED67810190F67F@AZ25EXM05.gddsi.com>
+References: <20130802181203.76D4635E0045@alastor.dyndns.org> <CC189802FB3BE84AB783196665ED67810190F67F@AZ25EXM05.gddsi.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fill bus_info with the VSP1 platform device name
+Hi Samuel,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Friday 02 August 2013 13:12:24 Samuel.Rasmussen@gdc4s.com wrote:
+> Hi,
+> 
+> I've been having problems getting the resizer to take its input from the
+> CCDC. From the linux-media mail-archive, it looks like Paul Chiha ran into a
+> similar problem in Oct 2011 with his message "Help with omap3isp resizing". 
+> Paul had a patch at the end of the discussion, but even his patch hasn't
+> fixed my problem yet. I might have made a mistake porting the patch since
+> I'm on a newer kernel, or perhaps it doesn't work with my TVP5151 decoder.
+> 
+> My setup: DM 3730 board, 3.5 kernel, and TVP5151 decoder.
+> 
+> The video looks great with a 640x480 resolution, and the CCDC is de-
+> interlacing the video. However, for my needs the video must be resized to
+> 320x240 or 160x120. The video, coming from the resizer, is split into a top
+> and bottom half. Both halves are identical where everything in the video is
+> too wide and too short. The CCDC must not be de-interlacing the video going
+> to the resizer. I tried setting up the pipeline to send the CCDC to the
+> resizer, but something must have gone wrong.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 8700842..291d20f 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -134,6 +134,8 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 
- 	mdev->dev = vsp1->dev;
- 	strlcpy(mdev->model, "VSP1", sizeof(mdev->model));
-+	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
-+		 dev_name(mdev->dev));
- 	ret = media_device_register(mdev);
- 	if (ret < 0) {
- 		dev_err(vsp1->dev, "media device registration failed (%d)\n",
+Unfortunately the CCDC can't deinterlace frames sent to the resizer. The 
+deinterlacing process takes place at the CCDC output DMA engine when writing 
+the frames to memory.
+
+There's two solutions to resize interlaced video. The first one would be to 
+capture the deinterlaced frames at the CCDC output to memory and then use the 
+resizer in memory-to-memory mode. The second one would be to modify the driver 
+to support deinterlacing at the resizer output, by doubling the line offset 
+and computing the correct start address for each odd/even frame.
+
+As you only need to downscale by two or four, another much simpler solution 
+would be to drop every other interlaced frame. You would then get 640x240 
+frames that you could resize to 320x240 or 160x120 with the resizer.
+
+> Up until this point, I was using the UYVY2X8 format.  Then I saw the
+> 
+> discussion Paul Chiha created.  In that discussion Laurent said:
+> > But the original poster wants to use the sensor -> ccdc -> resizer ->
+> > resizeroutput pipeline.
+> >
+> >> Also several sensor drivers that i have checked, usually define its
+> >> output as 2X8 output. I think is more natural to add 2X8 support to
+> >> CCDC and Resizer engines instead to modifying exiting drivers.
+> >
+> > Sure, sensor drivers should not be modified. What I was talking about
+> > was to configure the pipeline as
+> >
+> > sensor:0 [YUYV8_2X8], CCDC:0 [YUYV8_2X8], CCDC:1 [YUYV8_1X16],
+> > resizer:0 [YUYV8_1X16]
+> 
+> I wasn't sure if Laurent's advice would also apply to the TVP5151, but I
+> wanted to test it out.  I implemented Paul's patch so I could use the
+> YUYV8_2X8 and YUYV8_1X16 formats.  The 640x480 resolution looked good in
+> the YUYV8_2X8 format.  However, once again the video from the resizer
+> was not de-interlaced so it had a top and bottom half (using YUYV8_2X8
+> and YUYV8_1X16).  This time it was even worse because the video from the
+> resizer was very green.
+> 
+> Does anyone have suggestions for resizing video from the TVP5151?
+> 
+> Thanks for taking the time to read this,
+> Samuel
+> 
+> I'm adding some media-ctl details below.
+> media-ctl commands I'm using:
+> 
+> media-ctl -v -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+> media-ctl -v -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP resizer":0[1]'
+> media-ctl -v -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+> media-ctl -v -f '"tvp5150 3-005c":0 [YUYV2X8 640x480]'
+> media-ctl -v -f '"OMAP3 ISP CCDC":0 [YUYV2X8 640x480]'
+> media-ctl -v -f '"OMAP3 ISP CCDC":1 [YUYV 640x480]'
+> media-ctl -v -f '"OMAP3 ISP resizer":1 [YUYV 320x240]'
+> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so mplayer tv:// -tv
+> driver=v4l2:device=/dev/video6
+> 
+> Output of medi-ctl -p:
+> 
+> Opening media device /dev/media0
+> Enumerating entities
+> Found 16 entities
+> Enumerating pads and links
+> Media controller API version 0.0.0
+> 
+> Media device information
+> ------------------------
+> driver          omap3isp
+> model           TI OMAP3 ISP
+> serial
+> bus info
+> hw revision     0xf0
+> driver version  0.0.0
+> 
+> Device topology
+> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev0
+> 	pad0: Sink
+> 		[fmt:SGRBG10/4096x4096]
+> 		<- "OMAP3 ISP CCP2 input":0 []
+> 	pad1: Source
+> 		[fmt:SGRBG10/4096x4096]
+> 		-> "OMAP3 ISP CCDC":0 []
+> 
+> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video0
+> 	pad0: Source
+> 		-> "OMAP3 ISP CCP2":0 []
+> 
+> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev1
+> 	pad0: Sink
+> 		[fmt:SGRBG10/4096x4096]
+> 	pad1: Source
+> 		[fmt:SGRBG10/4096x4096]
+> 		-> "OMAP3 ISP CSI2a output":0 []
+> 		-> "OMAP3 ISP CCDC":0 []
+> 
+> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video1
+> 	pad0: Sink
+> 		<- "OMAP3 ISP CSI2a":1 []
+> 
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev2
+> 	pad0: Sink
+> 		[fmt:YUYV2X8/640x480]
+> 		<- "OMAP3 ISP CCP2":1 []
+> 		<- "OMAP3 ISP CSI2a":1 []
+> 		<- "tvp5150 3-005c":0 [ENABLED]
+> 	pad1: Source
+> 		[fmt:YUYV/640x480
+> 		 crop.bounds:(0,0)/640x480
+> 		 crop:(0,0)/640x480]
+> 		-> "OMAP3 ISP CCDC output":0 []
+> 		-> "OMAP3 ISP resizer":0 [ENABLED]
+> 	pad2: Source
+> 		[fmt:unknown/640x479]
+> 		-> "OMAP3 ISP preview":0 []
+> 		-> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+> 		-> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+> 		-> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
+> 
+> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video2
+> 	pad0: Sink
+> 		<- "OMAP3 ISP CCDC":1 []
+> 
+> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev3
+> 	pad0: Sink
+> 		[fmt:SGRBG10/4096x4096
+> 		 crop.bounds:(8,4)/4082x4088
+> 		 crop:(8,4)/4082x4088]
+> 		<- "OMAP3 ISP CCDC":2 []
+> 		<- "OMAP3 ISP preview input":0 []
+> 	pad1: Source
+> 		[fmt:YUYV/4082x4088]
+> 		-> "OMAP3 ISP preview output":0 []
+> 		-> "OMAP3 ISP resizer":0 []
+> 
+> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video3
+> 	pad0: Source
+> 		-> "OMAP3 ISP preview":0 []
+> 
+> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video4
+> 	pad0: Sink
+> 		<- "OMAP3 ISP preview":1 []
+> 
+> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev4
+> 	pad0: Sink
+> 		[fmt:YUYV/640x480
+> 		 crop.bounds:(0,0)/640x480
+> 		 crop:(0,0)/640x480]
+> 		<- "OMAP3 ISP CCDC":1 [ENABLED]
+> 		<- "OMAP3 ISP preview":1 []
+> 		<- "OMAP3 ISP resizer input":0 []
+> 	pad1: Source
+> 		[fmt:YUYV/320x240]
+> 		-> "OMAP3 ISP resizer output":0 [ENABLED]
+> 
+> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video5
+> 	pad0: Source
+> 		-> "OMAP3 ISP resizer":0 []
+> 
+> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video6
+> 	pad0: Sink
+> 		<- "OMAP3 ISP resizer":1 [ENABLED]
+> 
+> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev5
+> 	pad0: Sink
+> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev6
+> 	pad0: Sink
+> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev7
+> 	pad0: Sink
+> 		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 16: tvp5150 3-005c (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev8
+> 	pad0: Source
+> 		[fmt:YUYV2X8/640x480]
+> 		-> "OMAP3 ISP CCDC":0 [ENABLED]
+
 -- 
-1.8.1.5
+Regards,
+
+Laurent Pinchart
 
