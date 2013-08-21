@@ -1,111 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:42550 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756470Ab3HYPdL convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:49216 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752329Ab3HUGfE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Aug 2013 11:33:11 -0400
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: Re: [PATCH v5] media: i2c: tvp7002: add OF support
-References: <1376202321-25175-1-git-send-email-prabhakar.csengg@gmail.com> <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org> <52179B03.8090402@samsung.com>
-From: naim.dahnoun@googlemail.com
-Mime-Version: 1.0 (1.0)
-In-Reply-To: <52179B03.8090402@samsung.com>
-Message-Id: <07E2F059-EB81-47F7-814E-C55073144FD2@gmail.com>
-Date: Sun, 25 Aug 2013 16:23:41 +0100
-Cc: Kumar Gala <galak@codeaurora.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"<linux-doc@vger.kernel.org>" <linux-doc@vger.kernel.org>,
-	"<devicetree-discuss@lists.ozlabs.org>"
-	<devicetree-discuss@lists.ozlabs.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Wed, 21 Aug 2013 02:35:04 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v7 05/13] [media] exynos5-fimc-is: Add register definition and context header
+Date: Wed, 21 Aug 2013 12:04:32 +0530
+Message-Id: <1377066881-5423-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds the register definition file for the fimc-is driver
+and also the header file containing the main context for the driver.
 
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is.h      |  160 ++++++++++++++++++++++
+ 2 files changed, 265 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
 
-Sent from my iPhone
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+new file mode 100644
+index 0000000..06aa466
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+@@ -0,0 +1,105 @@
++/*
++ * Samsung Exynos5 SoC series FIMC-IS driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd
++ * Arun Kumar K <arun.kk@samsung.com>
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_IS_REGS_H
++#define FIMC_IS_REGS_H
++
++/* WDT_ISP register */
++#define WDT			0x00170000
++/* MCUCTL register */
++#define MCUCTL			0x00180000
++/* MCU Controller Register */
++#define MCUCTLR				(MCUCTL+0x00)
++#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x) << 16)
++#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x) << 12)
++#define MCUCTLR_MSWRST			(1 << 0)
++/* Boot Base OFfset Address Register */
++#define BBOAR				(MCUCTL+0x04)
++#define BBOAR_BBOA(x)			((x) << 0)
++
++/* Interrupt Generation Register 0 from Host CPU to VIC */
++#define INTGR0				(MCUCTL+0x08)
++#define INTGR0_INTGC(n)			(1 << ((n) + 16))
++#define INTGR0_INTGD(n)			(1 << (n))
++
++/* Interrupt Clear Register 0 from Host CPU to VIC */
++#define INTCR0				(MCUCTL+0x0c)
++#define INTCR0_INTCC(n)			(1 << ((n) + 16))
++#define INTCR0_INTCD(n)			(1 << (n))
++
++/* Interrupt Mask Register 0 from Host CPU to VIC */
++#define INTMR0				(MCUCTL+0x10)
++#define INTMR0_INTMC(n)			(1 << ((n) + 16))
++#define INTMR0_INTMD(n)			(1 << (n))
++
++/* Interrupt Status Register 0 from Host CPU to VIC */
++#define INTSR0				(MCUCTL+0x14)
++#define INTSR0_GET_INTSD(n, x)		(((x) >> (n)) & 0x1)
++#define INTSR0_GET_INTSC(n, x)		(((x) >> ((n) + 16)) & 0x1)
++
++/* Interrupt Mask Status Register 0 from Host CPU to VIC */
++#define INTMSR0				(MCUCTL+0x18)
++#define INTMSR0_GET_INTMSD(n, x)	(((x) >> (n)) & 0x1)
++#define INTMSR0_GET_INTMSC(n, x)	(((x) >> ((n) + 16)) & 0x1)
++
++/* Interrupt Generation Register 1 from ISP CPU to Host IC */
++#define INTGR1				(MCUCTL+0x1c)
++#define INTGR1_INTGC(n)			(1 << (n))
++
++/* Interrupt Clear Register 1 from ISP CPU to Host IC */
++#define INTCR1				(MCUCTL+0x20)
++#define INTCR1_INTCC(n)			(1 << (n))
++
++/* Interrupt Mask Register 1 from ISP CPU to Host IC */
++#define INTMR1				(MCUCTL+0x24)
++#define INTMR1_INTMC(n)			(1 << (n))
++
++/* Interrupt Status Register 1 from ISP CPU to Host IC */
++#define INTSR1				(MCUCTL+0x28)
++/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
++#define INTMSR1				(MCUCTL+0x2c)
++/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
++#define INTCR2				(MCUCTL+0x30)
++#define INTCR2_INTCC(n)			(1 << (n))
++
++/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
++#define INTMR2				(MCUCTL+0x34)
++#define INTMR2_INTMCIS(n)		(1 << (n))
++
++/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
++#define INTSR2				(MCUCTL+0x38)
++/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
++#define INTMSR2				(MCUCTL+0x3c)
++/* General Purpose Output Control Register (0~17) */
++#define GPOCTLR				(MCUCTL+0x40)
++#define GPOCTLR_GPOG(n, x)		((x) << (n))
++
++/* General Purpose Pad Output Enable Register (0~17) */
++#define GPOENCTLR			(MCUCTL+0x44)
++#define GPOENCTLR_GPOEN0(n, x)		((x) << (n))
++
++/* General Purpose Input Control Register (0~17) */
++#define GPICTLR				(MCUCTL+0x48)
++
++/* IS Shared Registers between ISP CPU and HOST CPU */
++#define ISSR(n)			(MCUCTL + 0x80 + (n))
++
++/* PMU for FIMC-IS*/
++#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
++#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
++#define PMUREG_ISP_ARM_STATUS			0x2284
++#define PMUREG_ISP_ARM_OPTION			0x2288
++#define PMUREG_ISP_LOW_POWER_OFF		0x0004
++#define PMUREG_ISP_CONFIGURATION		0x4020
++#define PMUREG_ISP_STATUS			0x4024
++
++#endif
+diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
+new file mode 100644
+index 0000000..136f367
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is.h
+@@ -0,0 +1,160 @@
++/*
++ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_IS_H_
++#define FIMC_IS_H_
++
++#include "fimc-is-err.h"
++#include "fimc-is-core.h"
++#include "fimc-is-param.h"
++#include "fimc-is-pipeline.h"
++#include "fimc-is-interface.h"
++
++#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
++#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
++
++/*
++ * Macros used by media dev to get the subdev and vfd
++ * is - driver data from pdev
++ * pid - pipeline index
++ */
++#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
++#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
++#define fimc_is_scc_get_sd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
++#define fimc_is_scc_get_vfd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
++#define fimc_is_scp_get_sd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
++#define fimc_is_scp_get_vfd(is, pid) \
++	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
++/*
++ * is - driver data from pdev
++ * sid - sensor index
++ */
++#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
++
++
++/**
++ * struct fimc_is - fimc-is driver private data
++ * @pdev: pointer to FIMC-IS platform device
++ * @pdata: platform data for FIMC-IS
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @clock: FIMC-IS clocks
++ * @pmu_regs: PMU reg base address
++ * @num_pipelines: number of pipelines opened
++ * @minfo: internal memory organization info
++ * @drvdata: fimc-is driver data
++ * @sensor: FIMC-IS sensor context
++ * @pipeline: hardware pipeline context
++ * @interface: hardware interface context
++ */
++struct fimc_is {
++	struct platform_device		*pdev;
++
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct clk			*clock[IS_CLK_MAX_NUM];
++	void __iomem			*pmu_regs;
++	unsigned int			num_pipelines;
++
++	struct fimc_is_meminfo		minfo;
++
++	struct fimc_is_drvdata		*drvdata;
++	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
++	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
++	struct fimc_is_interface	interface;
++};
++
++/* Queue operations for ISP */
++static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &isp->wait_queue);
++	isp->wait_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
++		struct fimc_is_isp *isp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(isp->wait_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	isp->wait_queue_cnt--;
++	return buf;
++}
++
++static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &isp->run_queue);
++	isp->run_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
++		struct fimc_is_isp *isp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(isp->run_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	isp->run_queue_cnt--;
++	return buf;
++}
++
++/* Queue operations for SCALER */
++static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &scp->wait_queue);
++	scp->wait_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
++		struct fimc_is_scaler *scp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(scp->wait_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	scp->wait_queue_cnt--;
++	return buf;
++}
++
++static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
++		struct fimc_is_buf *buf)
++{
++	list_add_tail(&buf->list, &scp->run_queue);
++	scp->run_queue_cnt++;
++}
++
++static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
++		struct fimc_is_scaler *scp)
++{
++	struct fimc_is_buf *buf;
++	buf = list_entry(scp->run_queue.next,
++			struct fimc_is_buf, list);
++	list_del(&buf->list);
++	scp->run_queue_cnt--;
++	return buf;
++}
++
++static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
++{
++	writel(v, is->pmu_regs + offset);
++}
++
++static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
++{
++	return readl(is->pmu_regs + offset);
++}
++
++#endif
+-- 
+1.7.9.5
 
-On 23 Aug 2013, at 18:25, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-
-> On 08/13/2013 03:00 AM, Kumar Gala wrote:
->> On Aug 11, 2013, at 1:25 AM, Lad, Prabhakar wrote:
->> 
->>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>> 
->>> add OF support for the tvp7002 driver.
->>> 
->>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>> ---
-> [...]
->>> .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
->>> drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->>> 2 files changed, 113 insertions(+), 7 deletions(-)
->>> create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> 
->>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> new file mode 100644
->>> index 0000000..5f28b5d
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> @@ -0,0 +1,53 @@
->>> +* Texas Instruments TV7002 video decoder
->>> +
->>> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
->>> +YPbPr color space.
->>> +
->>> +Required Properties :
->>> +- compatible : Must be "ti,tvp7002"
->>> +
->>> +Optional Properties:
->> 
->> 
->>> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
->>> +  this property is not specified is <0>.
->>> +
->>> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
->>> +  this property is not specified is <0>.
->>> +
->>> +- pclk-sample: Clock polarity of the bus. Default value when this property is
->>> +  not specified is <0>.
->>> +
->>> +- sync-on-green-active: Active state of Sync-on-green signal property of the
->>> +  endpoint.
->>> +  0 = Normal Operation (Active Low, Default)
->>> +  1 = Inverted operation
->> 
->> These seems better than what you have in video-interfaces.txt
-> 
-> We probably should specify default values in in the common binding description.
-> Then duplication could be avoided. Not sure if it's not too late for this, all
-> drivers would need to have same default values.
-> 
-> What's normal and what's inverted depends on a particular device.
-> 
->>> +- field-even-active: Active-high Field ID output polarity control of the bus.
->>> +  Under normal operation, the field ID output is set to logic 1 for an odd field
->>> +  (field 1) and set to logic 0 for an even field (field 0).
->>> +  0 = Normal Operation (Active Low, Default)
->>> +  1 = FID output polarity inverted
->>> +
->> 
->> Why the duplication if this is covered in video-interfaces.txt?
-> 
-> Yes, it would be better to avoid redefining these properties in each specific 
-> device's binding. Presumably, for easier matching of DT properties with the
-> hardware's description, we could only say in device specific document which
-> value of a property corresponds to "normal" and which to "inverted" operation ?
-> 
->>> +For further reading of port node refer Documentation/devicetree/bindings/media/
->>> +video-interfaces.txt.
-> 
-> -- 
-> Sylwester Nawrocki
-> Samsung R&D Institute Poland
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
