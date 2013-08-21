@@ -1,73 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1389 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab3HVKPA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54168 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751487Ab3HUKqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:15:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 05/10] v4l2: add a motion detection event.
-Date: Thu, 22 Aug 2013 12:14:19 +0200
-Message-Id: <e470878aa076008c21a179959498ea3927fa4b36.1377166147.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+	Wed, 21 Aug 2013 06:46:22 -0400
+Date: Wed, 21 Aug 2013 13:45:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [RFC] Motion Detection API
+Message-ID: <20130821104547.GB20717@valkosipuli.retiisi.org.uk>
+References: <201305061541.41204.hverkuil@xs4all.nl>
+ <2428502.07isB1rKTR@avalon>
+ <201305071435.30062.hverkuil@xs4all.nl>
+ <518909DA.8000407@samsung.com>
+ <20130508162648.GG1075@valkosipuli.retiisi.org.uk>
+ <518ACDDA.3080908@gmail.com>
+ <20130521173037.GD2041@valkosipuli.retiisi.org.uk>
+ <519D3B9E.4090800@gmail.com>
+ <20130603012559.GA2075@valkosipuli.retiisi.org.uk>
+ <51B4C1C7.7050002@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51B4C1C7.7050002@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+My apologies for the delayed answer.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index cf13339..52e5606 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_MOTION_DET			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
-+
-+/**
-+ * struct v4l2_event_motion_det - motion detection event
-+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-+ *                     frame_sequence field is valid.
-+ * @frame_sequence:    the frame sequence number associated with this event.
-+ * @region_mask:       which regions detected motion.
-+ */
-+struct v4l2_event_motion_det {
-+	__u32 flags;
-+	__u32 frame_sequence;
-+	__u32 region_mask;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_motion_det	motion_det;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
+On Sun, Jun 09, 2013 at 07:56:23PM +0200, Sylwester Nawrocki wrote:
+> On 06/03/2013 03:25 AM, Sakari Ailus wrote:
+> >On Wed, May 22, 2013 at 11:41:50PM +0200, Sylwester Nawrocki wrote:
+> >>[...]
+> >>>>>I'm in favour of using a separate video buffer queue for passing
+> >>>>>low-level
+> >>>>>metadata to user space.
+> >>>>
+> >>>>Sure. I certainly see a need for such an interface. I wouldn't like to
+> >>>>see it
+> >>>>as the only option, however. One of the main reasons of introducing
+> >>>>MPLANE
+> >>>>API was to allow capture of meta-data. We are going to finally prepare
+> >>>>some
+> >>>>RFC regarding usage of a separate plane for meta-data capture. I'm not
+> >>>>sure
+> >>>>yet how it would look exactly in detail, we've just discussed this topic
+> >>>>roughly with Andrzej.
+> >>>
+> >>>I'm fine that being not the only option; however it's unbeatable when it
+> >>>comes to latencies. So perhaps we should allow using multi-plane buffers
+> >>>for the same purpose as well.
+> >>>
+> >>>But how to choose between the two?
+> >>
+> >>I think we need some example implementation for metadata capture over
+> >>multi-plane interface and with a separate video node. Without such
+> >>implementation/API draft it is a bit difficult to discuss this further.
+> >
+> >Yes, that'd be quite nice.
+> 
+> I still haven't found time to look into that, got stuck with debugging some
+> hardware related issues which took much longer than expected..
+
+Any better luck now? :-) :-)
+
+> >There are actually a number of things that I think would be needed to
+> >support what's discussed above. Extended frame descriptors (I'm preparing
+> >RFC v2 --- yes, really!) are one.
+> 
+> Sounds great, I'm really looking forward to improving this part and
+> having it
+> used in more drivers.
+> 
+> >Also creating video nodes based on how many different content streams there
+> >are doesn't make much sense to me. A quick and dirty solution would be to
+> >create a low level metadata queue type to avoid having to create more video
+> >nodes. I think I'd prefer a more generic solution though.
+> 
+> Hmm, does it mean having multiple buffer queues on a video device node,
+> similarly to, e.g. the M2M interface ? Not sure if it would have been a bad
+
+Yes; the metadata and the images would arrive through the same video node
+but a different buffer queue. This way creating new video nodes based on
+whether metadata exists or not can be avoided.
+
+But just creating a single separate metadata queue type is slightly hackish:
+there can be multiple metadata regions in the frame and the sensor can also
+produce a JPEG image (albeit I'd like to consider them rare; I've never
+worked on one myself).
+
+> idea at all. The number of video/subdev nodes can get ridiculously high in
+> case of more complex devices. For example in case of the Samsung Exynos
+> SoC imaging subsystem the total number of various device nodes is getting
+> near *30*, and it is going to be at least that many for sure once all
+> functionality is covered.
+> 
+> So one video node per a DMA engine is probably fair rule, but there might
+> be reasons to avoid adding more device nodes for covering "logical" streams.
+
+The number in my opinion isn't an issue, but it would be an issue if devices
+appear and disappear dynamically based on e.g. sensor configuration.
+
 -- 
-1.8.3.2
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
