@@ -1,107 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1815 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752381Ab3H0Wgd (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:32521 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906Ab3HUO2B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 18:36:33 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7RMaUkh092969
-	for <linux-media@vger.kernel.org>; Wed, 28 Aug 2013 00:36:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 8BD482A0769
-	for <linux-media@vger.kernel.org>; Tue, 27 Aug 2013 04:40:10 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130827024010.8BD482A0769@tschai.lan>
-Date: Tue, 27 Aug 2013 04:40:10 +0200 (CEST)
+	Wed, 21 Aug 2013 10:28:01 -0400
+Date: Wed, 21 Aug 2013 10:27:24 -0400
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linaro-kernel@lists.linaro.org, kyungmin.park@samsung.com,
+	myungjoo.ham@samsung.com
+Subject: Re: [PATCH 1/2] [RFC PATCH v6] dmabuf-sync: Add a buffer
+ synchronization framework
+Message-ID: <20130821142724.GF2593@phenom.dumpdata.com>
+References: <1376385576-9039-1-git-send-email-inki.dae@samsung.com>
+ <1376385576-9039-2-git-send-email-inki.dae@samsung.com>
+ <20130820192228.GE12037@phenom.dumpdata.com>
+ <008201ce9e4a$08d1d1a0$1a7574e0$%dae@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <008201ce9e4a$08d1d1a0$1a7574e0$%dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+> > > +EXPORT_SYMBOL(is_dmabuf_sync_supported);
+> > 
+> > _GPL ?
+> > 
+> > I would also prefix it with 'dmabuf_is_sync_supported' just to make
+> > all of the libraries call start with 'dmabuf'
+> > 
+> 
+> Seems better. Will change it to dmabuf_is_sync_supported, and use
+> EXPORT_SYMBOL_GPL.
 
-Results of the daily build of media_tree:
+One thing thought - while I suggest that you use GPL variant
+I think you should check who the consumers are. As in, if nvidia
+wants to use it it might make their lawyers unhappy - and in turn
+means that their engineers won't be able to use these symbols.
 
-date:		Tue Aug 27 04:00:08 CEST 2013
-git branch:	test
-git hash:	976f375df1730dd16aa7c101298ec47bdd338d79
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10.1-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.11-rc1-i686: WARNINGS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.11-rc1-x86_64: WARNINGS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+So - if there is a strong argument to not have it GPL - then please
+say so. 
