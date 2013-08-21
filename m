@@ -1,122 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:45035 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934211Ab3HHMbz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:31:55 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcjd014622
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:52 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 7/9] qv4l2: added resize to frame size in Capture menu
-Date: Thu,  8 Aug 2013 14:31:25 +0200
-Message-Id: <c6245e219edbf5b812ccec0eb6a16170f0bd0a47.1375964980.git.bwinther@cisco.com>
-In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:56856 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374Ab3HUJ2V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Aug 2013 05:28:21 -0400
+To: undisclosed-recipients:;
+Message-id: <52148830.5040209@samsung.com>
+Date: Wed, 21 Aug 2013 11:28:16 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v7 13/13] V4L: Add driver for s5k4e5 image sensor
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+ <52146403.9050702@xs4all.nl> <4486068.1NMnLxuSKb@flatron>
+ <201308211024.58303.hverkuil@xs4all.nl> <521484BD.1070005@samsung.com>
+In-reply-to: <521484BD.1070005@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will resize the CaptureWin to the original frame size.
-It also works with maximized windows.
+On 08/21/2013 11:13 AM, Sylwester Nawrocki wrote:
+> On 08/21/2013 10:24 AM, Hans Verkuil wrote:
+>>>>> +static const char * const s5k4e5_supply_names[] = {
+>>>>> +	"svdda",
+>>>>> +	"svddio"
+>>>>> +};
+>>>>
+>>>> I'm no regulator expert, but shouldn't this list come from the DT or
+>>>> platform_data? Or are these names specific to this sensor?
+>>>
+>>> This is a list of regulator input (aka supply) names. In other words those 
+>>> are usually names of pins of the consumer device (s5k4e5 chip in this 
+>>> case) to which the regulators are connected. They are used as lookup keys 
+>>> when looking up regulators, either from device tree or lookup tables.
+>>
+>> How does that work if you have two of these sensors? E.g. in a stereo-camera?
+>> Can the regulator subsystem map those pins to the correct regulators?
+>>
+>> Again, sorry for my ignorance in this area as I've never used it. I just
+>> want to make sure this information is stored in the right place.
+> 
+> The _voltage regulator supply names_ are fixed but _voltage regulator_
+> is matched with a consumer device based on the supply name and name of
+> the consumer device. See usage of struct regulator_consumer_supply, e.g.
+> in arch/arm/mach-s5pv210/mach-goni.c board file. This is an example of
+> non-dt system, and something that would presumably be created by a driver
+> like em28xx if it wanted to use that sensor. I.e. em28xx would first
+> need to create a voltage regulator device and then pass in a
+> struct regulator_init_data the list of voltage supply definitions for
+> the consumers to be able to use this regulator.
+> 
+> 
+> In case of device tree the voltage supplies are specified in 
+> a DT node, which can be referenced by subsystems/drivers through 
+> struct device::of_node.
+> 
+> 	reg_a: voltage-regulator-a {
+> 		compatible = "regulator-fixed";
+> 		regulator-name = "REG_5V_A";
+> 		regulator-min-microvolt = <5000000>;
+> 		regulator-max-microvolt = <5000000>;
+> 		gpio = <...>;
+> 		...
+> 	};
+> 
+> 	reg_b: voltage-regulator-b {
+> 		compatible = "regulator-fixed";
+> 		regulator-name = "REG_3.3V_B";
+> 		regulator-min-microvolt = <3300000>;
+> 		regulator-max-microvolt = <3300000>;
+> 		gpio = <...>;
+> 		...
+> 	};
+> 
+> 	s5k4e5@20 {
+> 		compatible = "samsung,s5k4e5";
+> 		reg = <0x20>;
+> 		...
+> 		svdda-supply = <&reg_a>;
+> 		svddio-supply = <&reg_b>;
+> 		...
+> 	};
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 12 ++++++++++++
- utils/qv4l2/capture-win.h   |  3 +++
- utils/qv4l2/qv4l2.cpp       |  6 ++++--
- utils/qv4l2/qv4l2.h         |  1 +
- 4 files changed, 20 insertions(+), 2 deletions(-)
+I forgot to mention that each of the two sensors would of course have
+its corresponding DT node, but since they both have same slave address
+would likely be attached to separate I2C bus controllers, e.g.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 33f7084..3bd6549 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -61,6 +61,18 @@ void CaptureWin::buildWindow(QWidget *videoSurface)
- 	vbox->setSpacing(b);
- }
- 
-+void CaptureWin::resetSize()
-+{
-+	if (isMaximized())
-+		showNormal();
-+
-+	int w = m_curWidth;
-+	int h = m_curHeight;
-+	m_curWidth = -1;
-+	m_curHeight = -1;
-+	resize(w, h);
-+}
-+
- QSize CaptureWin::getMargins()
- {
- 	int l, t, r, b;
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index dd19f2d..eea0335 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -78,6 +78,9 @@ public:
- 	void enableScaling(bool enable);
- 	static QSize scaleFrameSize(QSize window, QSize frame);
- 
-+public slots:
-+	void resetSize();
-+
- protected:
- 	void closeEvent(QCloseEvent *event);
- 	void buildWindow(QWidget *videoSurface);
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 6258a93..3da99da 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -142,11 +142,14 @@ ApplicationWindow::ApplicationWindow() :
- 	m_scalingAct->setCheckable(true);
- 	m_scalingAct->setChecked(true);
- 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
-+	m_resetScalingAct = new QAction("Resize to Frame Size", this);
-+	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
- 
- 	QMenu *captureMenu = menuBar()->addMenu("&Capture");
- 	captureMenu->addAction(m_capStartAct);
- 	captureMenu->addAction(m_showFramesAct);
- 	captureMenu->addAction(m_scalingAct);
-+	captureMenu->addAction(m_resetScalingAct);
- 
- 	if (CaptureWinGL::isSupported()) {
- 		m_renderMethod = QV4L2_RENDER_GL;
-@@ -211,8 +214,6 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 
- 	newCaptureWin();
- 
--	m_capture->setMinimumSize(150, 50);
--
- 	QWidget *w = new QWidget(m_tabs);
- 	m_genTab = new GeneralTab(device, *this, 4, w);
- 
-@@ -360,6 +361,7 @@ void ApplicationWindow::newCaptureWin()
- 
- 	m_capture->enableScaling(m_scalingAct->isChecked());
-         connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
-+	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
- }
- 
- void ApplicationWindow::capVbiFrame()
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 1402673..179cecb 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -187,6 +187,7 @@ private:
- 	QAction *m_showAllAudioAct;
- 	QAction *m_audioBufferAct;
- 	QAction *m_scalingAct;
-+	QAction *m_resetScalingAct;
- 	QString m_filename;
- 	QSignalMapper *m_sigMapper;
- 	QTabWidget *m_tabs;
--- 
-1.8.4.rc1
+/* I2C bus controller node */
+i2c-gpio-0 {
+	compatible = "i2c-gpio";
+	gpios = <...>;
+	...
+ 	s5k4e5@20 {
+ 		compatible = "samsung,s5k4e5";
+ 		reg = <0x20>;
+ 		...
+ 		svdda-supply = <&reg_a>;
+ 		svddio-supply = <&reg_b>;
+ 		...
+ 	};
+};
 
+i2c-gpio-1 {
+	compatible = "i2c-gpio";
+	gpios = <...>;
+	...
+ 	s5k4e5@20 {
+ 		compatible = "samsung,s5k4e5";
+ 		reg = <0x20>;
+ 		...
+ 		svdda-supply = <&reg_a>;
+ 		svddio-supply = <&reg_b>;
+ 		...
+ 	};
+};
+
+So these sensors have same regulator supply names but different i2c_client
+(device) names, since they are children of different I2C bus adapters.
+
+> The regulator supply names are part of name of the property defining
+> a voltage regulator for a device. Properties in form of 
+> [supply_name]-supply are parsed by the regulator core when consumer
+> device driver calls regulator_get(). This way drivers don't need to
+> care whether the system is booted from Device Tree or not. They just
+> keep using the regulator API and the regulator supply lookup is done
+> the the core based on data in a board file or in device tree blob.
+> 
+> This is similar to the clock API operation, except that clkdev entries 
+> are usually defined per SOC/MCU rather than per board.
+> 
+> I hope it helps. I looked yesterday at the em28xx driver. Do you happen
+> to know if there is a schematic for one of devices this driver supports ?
+> Sorry, I didn't dig to hard yet.
+> At first sight I thought it may look a bit problematic and require 
+> significant amount of code to define regulators for the all supported 
+> sensors by this driver, should it be made to work with sensors that 
+> are currently known to be used only in embedded systems and use the 
+> regulators API. However it should be as simple as defining at least one 
+> regulator device and attaching regulator supply list definition for all 
+> supported sensors. Thus not that scary at all. And the subdev drivers 
+> can continue to use regulator API, without a need for any hacks making 
+> it optional through e.g. platform_data flag. And IMO if the regulator 
+> API is disabled currently by some x86 distros it should be enabled,
+> as long as some drivers need it.
+> 
+> --
+> Regards,
+> Sylwester
