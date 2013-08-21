@@ -1,301 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39595 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56396 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908Ab3H0Lun (ORCPT
+	with ESMTP id S1752226Ab3HUVfd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 07:50:43 -0400
+	Wed, 21 Aug 2013 17:35:33 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>
-Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
-Date: Tue, 27 Aug 2013 13:52:04 +0200
-Message-ID: <1424546.lJXUZLPMUj@avalon>
-In-Reply-To: <521B4B4D.50209@samsung.com>
-References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com> <1544715.uKei6kdjbJ@avalon> <521B4B4D.50209@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sylvester.nawrocki@gmail.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 01/10] v4l2-controls: add motion detection controls.
+Date: Wed, 21 Aug 2013 23:36:46 +0200
+Message-ID: <11019389.cBtBtvX3qR@avalon>
+In-Reply-To: <1376305113-17128-2-git-send-email-hverkuil@xs4all.nl>
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl> <1376305113-17128-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrejz,
+Hi Hans,
 
-On Monday 26 August 2013 14:34:21 Andrzej Hajda wrote:
-> On 08/23/2013 02:53 PM, Laurent Pinchart wrote:
-> > On Wednesday 21 August 2013 16:41:31 Andrzej Hajda wrote:
-> >> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
-> >> with embedded SoC ISP.
-> >> The driver exposes the sensor as two V4L2 subdevices:
-> >> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
-> >>   no controls.
-> >> 
-> >> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
-> >>   pre/post ISP cropping, downscaling via selection API, controls.
-> >> 
-> >> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> ---
-> >> Hi,
-> >> 
-> >> This patch incorporates Stephen's suggestions, thanks.
-> >> 
-> >> Regards
-> >> Andrzej
-> >> 
-> >> v7
-> >> - changed description of 'clock-frequency' DT property
-> >> 
-> >> v6
-> >> - endpoint node presence is now optional,
-> >> - added asynchronous subdev registration support and clock
-> >> 
-> >>   handling,
-> >> 
-> >> - use named gpios in DT bindings
-> >> 
-> >> v5
-> >> - removed hflip/vflip device tree properties
-> >> 
-> >> v4
-> >> - GPL changed to GPLv2,
-> >> - bitfields replaced by u8,
-> >> - cosmetic changes,
-> >> - corrected s_stream flow,
-> >> - gpio pins are no longer exported,
-> >> - added I2C addresses to subdev names,
-> >> - CIS subdev registration postponed after
-> >> 
-> >>   succesfull HW initialization,
-> >> 
-> >> - added enums for pads,
-> >> - selections are initialized only during probe,
-> >> - default resolution changed to 1600x1200,
-> >> - state->error pattern removed from few other functions,
-> >> - entity link creation moved to registered callback.
-> >> 
-> >> v3:
-> >> - narrowed state->error usage to i2c and power errors,
-> >> - private gain controls replaced by red/blue balance user controls,
-> >> - added checks to devicetree gpio node parsing
-> >> 
-> >> v2:
-> >> - lower-cased driver name,
-> >> - removed underscore from regulator names,
-> >> - removed platform data code,
-> >> - v4l controls grouped in anonymous structs,
-> >> - added s5k5baf_clear_error function,
-> >> - private controls definitions moved to uapi header file,
-> >> - added v4l2-controls.h reservation for private controls,
-> >> - corrected subdev registered/unregistered code,
-> >> - .log_status sudbev op set to v4l2 helper,
-> >> - moved entity link creation to probe routines,
-> >> - added cleanup on error to probe function.
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   59 +
-> >>  MAINTAINERS                                        |    7 +
-> >>  drivers/media/i2c/Kconfig                          |    7 +
-> >>  drivers/media/i2c/Makefile                         |    1 +
-> >>  drivers/media/i2c/s5k5baf.c                        | 2045 ++++++++++++++
-> >>  5 files changed, 2119 insertions(+)
-> >>  create mode 100644
-> >> 
-> >> Documentation/devicetree/bindings/media/samsung-s5k5baf.txt create mode
-> >> 100644 drivers/media/i2c/s5k5baf.c
-> > 
-> > [snip]
-> > 
-> >> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-> >> new file mode 100644
-> >> index 0000000..f21d9f1
-> >> --- /dev/null
-> >> +++ b/drivers/media/i2c/s5k5baf.c
+Thank you for the patch.
 
-[snip]
-
-> >> +static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
-> >> +				  u16 count, const u16 *seq)
-> >> +{
-> >> +	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
-> >> +	u16 buf[count + 1];
-> >> +	int ret, n;
-> >> +
-> >> +	s5k5baf_i2c_write(state, REG_CMDWR_ADDR, addr);
-> >> +	if (state->error)
-> >> +		return;
-> > 
-> > I would have a preference for returning an error directly from the write
-> > function instead of storing it in state->error, that would be more
-> > explicit. The same is true for all read/write functions.
+On Monday 12 August 2013 12:58:24 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> I have introduced state->error to avoid code bloat. With this 'pattern'
-> error is checked in about 10 places in the code, of course without
-> scarifying code correctness.
-> Replacing this pattern with classic 'return error directly from function'
-> would result with adding error checks after all calls to i2c i/o functions
-> and after calls to many functions which those i2c i/o calls contains.
-> According to my rough estimates it is about 70 places.
+> Add support for two motion detection controls and a 'detect control class'.
 > 
-> Similar pattern is used already in v4l2_ctrl_handler::error.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 33 +++++++++++++++++++++++++++------
+> include/uapi/linux/v4l2-controls.h   | 14 ++++++++++++++
+>  2 files changed, 41 insertions(+), 6 deletions(-)
 > 
-> >> +	buf[0] = __constant_htons(REG_CMD_BUF);
-> >> +	for (n = 1; n <= count; ++n)
-> >> +		buf[n] = htons(*seq++);
-> > 
-> > cpu_to_be16()/be16_to_cpu() here as well ?
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
+> b/drivers/media/v4l2-core/v4l2-ctrls.c index fccd08b..89e7cfb 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -456,6 +456,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"RGB full range (0-255)",
+>  		NULL,
+>  	};
+> +	static const char * const detect_motion_mode[] = {
+> +		"Disabled",
+> +		"Global",
+> +		"Regional",
+> +		NULL,
+> +	};
 > 
-> OK
 > 
-> >> +
-> >> +	n *= 2;
-> >> +	ret = i2c_master_send(c, (char *)buf, n);
-> >> +	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
-> >> +		 min(2 * count, 64), seq - count);
-> >> +
-> >> +	if (ret != n) {
-> >> +		v4l2_err(c, "i2c_write_seq: error during transfer (%d)\n", ret);
-> >> +		state->error = ret;
-> >> +	}
-> >> +}
-
-[snip]
-
-> >> +static int s5k5baf_hw_set_video_bus(struct s5k5baf *state)
-> >> +{
-> >> +	u16 en_packets;
-> >> +
-> >> +	switch (state->bus_type) {
-> >> +	case V4L2_MBUS_CSI2:
-> >> +		en_packets = EN_PACKETS_CSI2;
-> >> +		break;
-> >> +	case V4L2_MBUS_PARALLEL:
-> >> +		en_packets = 0;
-> >> +		break;
-> >> +	default:
-> >> +		v4l2_err(&state->sd, "unknown video bus: %d\n",
-> >> +			 state->bus_type);
-> >> +		return -EINVAL;
-> > 
-> > Can this happen ?
+>  	switch (id) {
+> @@ -545,6 +551,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  	case V4L2_CID_DV_TX_RGB_RANGE:
+>  	case V4L2_CID_DV_RX_RGB_RANGE:
+>  		return dv_rgb_range;
+> +	case V4L2_CID_DETECT_MOTION_MODE:
+> +		return detect_motion_mode;
 > 
-> Yes, in case of incorrect DT bindings.
+>  	default:
+>  		return NULL;
+> @@ -557,7 +565,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  {
+>  	switch (id) {
+>  	/* USER controls */
+> -	/* Keep the order of the 'case's the same as in videodev2.h! */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
 
-Shouldn't it be caught at probe time instead then ?
+Maybe we could replace all the individual occurences of that comment with a 
+single one at the beginning of the switch ?
 
-> >> +	};
-> >> +
-> >> +	s5k5baf_write_seq(state, REG_OIF_EN_MIPI_LANES,
-> >> +			  state->nlanes, en_packets, 1);
-> >> +
-> >> +	return s5k5baf_clear_error(state);
-> >> +}
-> > 
-> > [snip]
-> > 
-> >> +static int s5k5baf_s_stream(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	struct s5k5baf *state = to_s5k5baf(sd);
-> >> +	int ret;
-> >> +
-> >> +	if (state->streaming == !!on)
-> >> +		return 0;
-> >> +
-> >> +	mutex_lock(&state->lock);
-> > 
-> > Shouldn't the lock protect the state->streaming check above ?
+>  	case V4L2_CID_USER_CLASS:		return "User Controls";
+>  	case V4L2_CID_BRIGHTNESS:		return "Brightness";
+>  	case V4L2_CID_CONTRAST:			return "Contrast";
+> @@ -601,7 +609,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_COLORFX_CBCR:		return "Color Effects, CbCr";
 > 
-> Yes, will be corrected.
+>  	/* MPEG controls */
+> -	/* Keep the order of the 'case's the same as in videodev2.h! */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_MPEG_CLASS:		return "MPEG Encoder Controls";
+>  	case V4L2_CID_MPEG_STREAM_TYPE:		return "Stream Type";
+>  	case V4L2_CID_MPEG_STREAM_PID_PMT:	return "Stream PMT Program ID";
+> @@ -701,7 +709,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence
+> Header";
 > 
-> >> +	if (on) {
-> >> +		s5k5baf_hw_set_config(state);
-> >> +		ret = s5k5baf_hw_set_crop_rects(state);
-> >> +		if (ret < 0)
-> >> +			goto out;
-> >> +		s5k5baf_hw_set_stream(state, 1);
-> >> +		s5k5baf_i2c_write(state, 0xb0cc, 0x000b);
-> >> +	} else {
-> >> +		s5k5baf_hw_set_stream(state, 0);
-> >> +	}
-> >> +	ret = s5k5baf_clear_error(state);
-> >> +	if (!ret)
-> >> +		state->streaming = !state->streaming;
-> >> +
-> >> +out:
-> >> +	mutex_unlock(&state->lock);
-> >> +
-> >> +	return ret;
-> >> +}
-
-[snip]
-
-> >> +static int s5k5baf_registered(struct v4l2_subdev *sd)
-> >> +{
-> >> +	struct s5k5baf *state = to_s5k5baf(sd);
-> >> +	int ret;
-> >> +
-> >> +	ret = v4l2_device_register_subdev(sd->v4l2_dev, &state->cis_sd);
-> >> +	if (ret < 0)
-> >> +		v4l2_err(sd, "failed to register subdev %s\n",
-> >> +			 state->cis_sd.name);
-> >> +	else
-> >> +		ret = media_entity_create_link(&state->cis_sd.entity, PAD_CIS,
-> >> +					       &state->sd.entity, PAD_CIS,
-> >> +					       MEDIA_LNK_FL_IMMUTABLE |
-> >> +					       MEDIA_LNK_FL_ENABLED);
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static void s5k5baf_unregistered(struct v4l2_subdev *sd)
-> >> +{
-> >> +	struct s5k5baf *state = to_s5k5baf(sd);
-> >> +	v4l2_device_unregister_subdev(&state->cis_sd);
-> > 
-> > The unregistered operation is called from v4l2_device_unregister_subdev().
-> > Calling it again will be a no-op, the function will return immediately.
-> > You can thus get rid of the unregistered operation completely.
-> > 
-> > Similarly, the registered operation is called from
-> > v4l2_device_register_subdev(). You can get rid of it as well and just
-> > create the link in the probe function.
+>  	/* CAMERA controls */
+> -	/* Keep the order of the 'case's the same as in videodev2.h! */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+>  	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
+>  	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
+> @@ -735,8 +743,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
+>  	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
 > 
-> The sensor exposes two subdevs: s5k5baf_cis and s5k5baf_isp.
-> v4l2_device is not aware of it - he registers only the subdev bound to
-> i2c client - isp.
-> The registration of cis subdev is performed by the sensor in .registered
-> callback. Without .registered callback cis subdev will not be registered.
-
-You're right, my bad. I had overlooked that, I thought you were registering 
-the ISP subdev. Could you please add a comment to the .registered() handler to 
-document this ?
-
-> This is similar solution to smiapp and s5c73m3 drivers.
+> -	/* FM Radio Modulator control */
+> -	/* Keep the order of the 'case's the same as in videodev2.h! */
+> +	/* FM Radio Modulator controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+>  	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
+>  	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+> @@ -759,6 +767,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
 > 
-> Regarding .unregistered callback, it seems that removing it would not harm -
-> there should be added only check in .registered to avoid its re-
-> registration. On the other hand IMO if sensor driver is responsible for
-> registration it should be responsible for unregistration of subdev, what do
-> you think about it?
-
-I agree.
-
-> And about links: v4l2_device_unregister_subdev calls
-> media_entity_remove_links,
-> so in case device is re-registered driver should re-create them.
+>  	/* Flash controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_FLASH_CLASS:		return "Flash Controls";
+>  	case V4L2_CID_FLASH_LED_MODE:		return "LED Mode";
+>  	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe Source";
+> @@ -774,7 +783,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
 > 
-> >> +}
+>  	/* JPEG encoder controls */
+> -	/* Keep the order of the 'case's the same as in videodev2.h! */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
+>  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
+>  	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
+> @@ -782,18 +791,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+> 
+>  	/* Image source controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
+>  	case V4L2_CID_VBLANK:			return "Vertical Blanking";
+>  	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
+>  	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
+> 
+>  	/* Image processing controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
+>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+> 
+>  	/* DV controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
+>  	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
+>  	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
+> @@ -806,6 +818,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+>  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+>  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+> +
+> +	/* FM Radio Receiver controls */
+> +	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> +	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
+> +	case V4L2_CID_DETECT_MOTION_MODE:	return "Motion Detection Mode";
+> +	case V4L2_CID_DETECT_MOTION_THRESHOLD:	return "Motion Detection
+> Threshold"; default:
+>  		return NULL;
+>  	}
+> @@ -914,6 +932,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_DV_RX_RGB_RANGE:
+>  	case V4L2_CID_TEST_PATTERN:
+>  	case V4L2_CID_TUNE_DEEMPHASIS:
+> +	case V4L2_CID_DETECT_MOTION_MODE:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> @@ -937,6 +956,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_IMAGE_PROC_CLASS:
+>  	case V4L2_CID_DV_CLASS:
+>  	case V4L2_CID_FM_RX_CLASS:
+> +	case V4L2_CID_DETECT_CLASS:
+>  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+>  		/* You can neither read not write these */
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+> @@ -1009,6 +1029,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_PILOT_TONE_FREQUENCY:
+>  	case V4L2_CID_TUNE_POWER_LEVEL:
+>  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+> +	case V4L2_CID_DETECT_MOTION_THRESHOLD:
+>  		*flags |= V4L2_CTRL_FLAG_SLIDER;
+>  		break;
+>  	case V4L2_CID_PAN_RELATIVE:
+> diff --git a/include/uapi/linux/v4l2-controls.h
+> b/include/uapi/linux/v4l2-controls.h index e90a88a..d88eebd 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -60,6 +60,7 @@
+>  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing 
+controls
+> */ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+> #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+> +#define V4L2_CTRL_CLASS_DETECT		0x00a20000	/* Detection controls */
+> 
+>  /* User-class control IDs */
+> 
+> @@ -853,4 +854,17 @@ enum v4l2_deemphasis {
+> 
+>  #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+> 
+> +
+> +/*  Detection-class control IDs defined by V4L2 */
+> +#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
+> +#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
+> +
+> +#define	V4L2_CID_DETECT_MOTION_MODE		(V4L2_CID_DETECT_CLASS_BASE + 1)
+> +enum v4l2_detect_motion_mode {
+> +	V4L2_DETECT_MOTION_DISABLED	= 0,
+> +	V4L2_DETECT_MOTION_GLOBAL	= 1,
+> +	V4L2_DETECT_MOTION_REGIONAL	= 2,
+> +};
+> +#define	V4L2_CID_DETECT_MOTION_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE 
++ 2)
+> +
 
-[snip]
+How many more controls do you expect in this class ? Maybe we should make it a 
+bit generic, by creating an EVENT class that would contain controls pertaining 
+to event generation ?
+
+>  #endif
 
 -- 
 Regards,
 
 Laurent Pinchart
+
