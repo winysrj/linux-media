@@ -1,315 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:49216 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329Ab3HUGfE (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:51420 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753794Ab3HVWN2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:35:04 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v7 05/13] [media] exynos5-fimc-is: Add register definition and context header
-Date: Wed, 21 Aug 2013 12:04:32 +0530
-Message-Id: <1377066881-5423-6-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+	Thu, 22 Aug 2013 18:13:28 -0400
+Received: by mail-ea0-f181.google.com with SMTP id d10so1163608eaj.12
+        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 15:13:26 -0700 (PDT)
+Message-ID: <52168D98.9060600@googlemail.com>
+Date: Fri, 23 Aug 2013 00:15:52 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon> <52139A9B.1030400@googlemail.com> <52152578.2060201@googlemail.com> <5215344E.2070002@gmail.com>
+In-Reply-To: <5215344E.2070002@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the register definition file for the fimc-is driver
-and also the header file containing the main context for the driver.
+Hi Sylwester,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 ++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is.h      |  160 ++++++++++++++++++++++
- 2 files changed, 265 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+Am 21.08.2013 23:42, schrieb Sylwester Nawrocki:
+> Hi Frank,
+>
+> On 08/21/2013 10:39 PM, Frank Schäfer wrote:
+>> Am 20.08.2013 18:34, schrieb Frank Schäfer:
+>>> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
+>>>> Hi Mauro,
+>>>>
+>>>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+>>>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+>>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+>>>>>>> Hi Frank,
+>>>>>>> As I mentioned on the list, I'm currently on a holiday, so,
+>>>>>>> replying
+>>>>>>> briefly.
+>>>>>> Sorry, I missed that (can't read all mails on the list).
+>>>>>>
+>>>>>>> Since em28xx is a USB device, I conclude, that it's supplying
+>>>>>>> clock to
+>>>>>>> its components including the ov2640 sensor. So, yes, I think the
+>>>>>>> driver
+>>>>>>> should export a V4L2 clock.
+>>>>>> Ok, so it's mandatory on purpose ?
+>>>>>> I'll take a deeper into the v4l2-clk code and the
+>>>>>> em28xx/ov2640/soc-camera interaction this week.
+>>>>>> Have a nice holiday !
+>>>>> commit 9aea470b399d797e88be08985c489855759c6c60
+>>>>> Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>>>>> Date:   Fri Dec 21 13:01:55 2012 -0300
+>>>>>
+>>>>>      [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+>>>>>
+>>>>>      Instead of centrally enabling and disabling subdevice master
+>>>>> clocks in
+>>>>>      soc-camera core, let subdevice drivers do that themselves,
+>>>>> using the
+>>>>>      V4L2 clock API and soc-camera convenience wrappers.
+>>>>>
+>>>>>      Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>>>>>      Acked-by: Hans Verkuil<hans.verkuil@cisco.com>
+>>>>>      Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>>>>>      Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>>>>>
+>>>>> (c/c the ones that acked with this broken changeset)
+>>>>>
+>>>>> We need to fix it ASAP or to revert the ov2640 changes, as some
+>>>>> em28xx
+>>>>> cameras are currently broken on 3.10.
+>>>>>
+>>>>> I'll also reject other ports to the async API if the drivers are
+>>>>> used outside an embedded driver, as no PC driver currently defines
+>>>>> any clock source. The same applies to regulators.
+>>>>>
+>>>>> Guennadi,
+>>>>>
+>>>>> Next time, please check if the i2c drivers are used outside
+>>>>> soc_camera
+>>>>> and apply the fixes where needed, as no regressions are allowed.
+>>>> We definitely need to check all users of our sensor drivers when
+>>>> making such a
+>>>> change. Mistakes happen, so let's fix them.
+>>>>
+>>>> Guennadi is on holidays until the end of this week. Would that be
+>>>> too late to
+>>>> fix the issue (given that 3.10 is already broken) ? The fix
+>>>> shouldn't be too
+>>>> complex, registering a dummy V4L2 clock in the em28xx driver should
+>>>> be enough.
+>>> I would prefer either a) making the clock optional in the senor
+>>> driver(s) or b) implementing a real V4L2 clock.
+>>>
+>>> Reading the soc-camera code, it looks like NULL-pointers for struct
+>>> v4l2_clk are handled correctly. so a) should be pretty simple:
+>>>
+>>>      priv->clk = v4l2_clk_get(&client->dev, "mclk");
+>>> -   if (IS_ERR(priv->clk)) {
+>>> -       ret = PTR_ERR(priv->clk);
+>>> -       goto eclkget;
+>>> -   }
+>>> +   if (IS_ERR(priv->clk))
+>>> +       priv->clk = NULL;
+>>>
+>>> Some additional NULL-pointer checks might be necessary, e.g. before
+>>> calling v4l2_clk_put().
+>>
+>> Tested and that works.
+>> Patch follows.
+>
+> That patch breaks subdevs registration through the v4l2-async. See commit
+>
+> ef6672ea35b5bb64ab42e18c1a1ffc717c31588a
+> [media] V4L2: mt9m111: switch to asynchronous subdevice probing
+>
+> Sensor probe() callback must return EPROBE_DEFER when the clock is not
+> found. This cause the sensor's probe() callback to be called again by
+> the driver core after some other driver has probed, e.g. the one that
+> registers v4l2_clk. If specific error code is not returned from probe()
+> the whole registration process breaks.
+Urgh... great. :/
+So the presence of a clock is used as indicator if the device is ready ?
+Honestly, that sounds like a misuse... Is there no other way to check if
+the device is ready ?
+Please don't get me wrong, I noticed you've been working on the async
+subdevice registration patches for quite a long time and I'm sure it
+wasn't an easy task.
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
-new file mode 100644
-index 0000000..06aa466
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
-@@ -0,0 +1,105 @@
-+/*
-+ * Samsung Exynos5 SoC series FIMC-IS driver
-+ *
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ * Kil-yeon Lim <kilyeon.im@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_IS_REGS_H
-+#define FIMC_IS_REGS_H
-+
-+/* WDT_ISP register */
-+#define WDT			0x00170000
-+/* MCUCTL register */
-+#define MCUCTL			0x00180000
-+/* MCU Controller Register */
-+#define MCUCTLR				(MCUCTL+0x00)
-+#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x) << 16)
-+#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x) << 12)
-+#define MCUCTLR_MSWRST			(1 << 0)
-+/* Boot Base OFfset Address Register */
-+#define BBOAR				(MCUCTL+0x04)
-+#define BBOAR_BBOA(x)			((x) << 0)
-+
-+/* Interrupt Generation Register 0 from Host CPU to VIC */
-+#define INTGR0				(MCUCTL+0x08)
-+#define INTGR0_INTGC(n)			(1 << ((n) + 16))
-+#define INTGR0_INTGD(n)			(1 << (n))
-+
-+/* Interrupt Clear Register 0 from Host CPU to VIC */
-+#define INTCR0				(MCUCTL+0x0c)
-+#define INTCR0_INTCC(n)			(1 << ((n) + 16))
-+#define INTCR0_INTCD(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 0 from Host CPU to VIC */
-+#define INTMR0				(MCUCTL+0x10)
-+#define INTMR0_INTMC(n)			(1 << ((n) + 16))
-+#define INTMR0_INTMD(n)			(1 << (n))
-+
-+/* Interrupt Status Register 0 from Host CPU to VIC */
-+#define INTSR0				(MCUCTL+0x14)
-+#define INTSR0_GET_INTSD(n, x)		(((x) >> (n)) & 0x1)
-+#define INTSR0_GET_INTSC(n, x)		(((x) >> ((n) + 16)) & 0x1)
-+
-+/* Interrupt Mask Status Register 0 from Host CPU to VIC */
-+#define INTMSR0				(MCUCTL+0x18)
-+#define INTMSR0_GET_INTMSD(n, x)	(((x) >> (n)) & 0x1)
-+#define INTMSR0_GET_INTMSC(n, x)	(((x) >> ((n) + 16)) & 0x1)
-+
-+/* Interrupt Generation Register 1 from ISP CPU to Host IC */
-+#define INTGR1				(MCUCTL+0x1c)
-+#define INTGR1_INTGC(n)			(1 << (n))
-+
-+/* Interrupt Clear Register 1 from ISP CPU to Host IC */
-+#define INTCR1				(MCUCTL+0x20)
-+#define INTCR1_INTCC(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 1 from ISP CPU to Host IC */
-+#define INTMR1				(MCUCTL+0x24)
-+#define INTMR1_INTMC(n)			(1 << (n))
-+
-+/* Interrupt Status Register 1 from ISP CPU to Host IC */
-+#define INTSR1				(MCUCTL+0x28)
-+/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
-+#define INTMSR1				(MCUCTL+0x2c)
-+/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTCR2				(MCUCTL+0x30)
-+#define INTCR2_INTCC(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTMR2				(MCUCTL+0x34)
-+#define INTMR2_INTMCIS(n)		(1 << (n))
-+
-+/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTSR2				(MCUCTL+0x38)
-+/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTMSR2				(MCUCTL+0x3c)
-+/* General Purpose Output Control Register (0~17) */
-+#define GPOCTLR				(MCUCTL+0x40)
-+#define GPOCTLR_GPOG(n, x)		((x) << (n))
-+
-+/* General Purpose Pad Output Enable Register (0~17) */
-+#define GPOENCTLR			(MCUCTL+0x44)
-+#define GPOENCTLR_GPOEN0(n, x)		((x) << (n))
-+
-+/* General Purpose Input Control Register (0~17) */
-+#define GPICTLR				(MCUCTL+0x48)
-+
-+/* IS Shared Registers between ISP CPU and HOST CPU */
-+#define ISSR(n)			(MCUCTL + 0x80 + (n))
-+
-+/* PMU for FIMC-IS*/
-+#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
-+#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
-+#define PMUREG_ISP_ARM_STATUS			0x2284
-+#define PMUREG_ISP_ARM_OPTION			0x2288
-+#define PMUREG_ISP_LOW_POWER_OFF		0x0004
-+#define PMUREG_ISP_CONFIGURATION		0x4020
-+#define PMUREG_ISP_STATUS			0x4024
-+
-+#endif
-diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
-new file mode 100644
-index 0000000..136f367
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is.h
-@@ -0,0 +1,160 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_IS_H_
-+#define FIMC_IS_H_
-+
-+#include "fimc-is-err.h"
-+#include "fimc-is-core.h"
-+#include "fimc-is-param.h"
-+#include "fimc-is-pipeline.h"
-+#include "fimc-is-interface.h"
-+
-+#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
-+#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
-+
-+/*
-+ * Macros used by media dev to get the subdev and vfd
-+ * is - driver data from pdev
-+ * pid - pipeline index
-+ */
-+#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
-+#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
-+#define fimc_is_scc_get_sd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
-+#define fimc_is_scc_get_vfd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
-+#define fimc_is_scp_get_sd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
-+#define fimc_is_scp_get_vfd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
-+/*
-+ * is - driver data from pdev
-+ * sid - sensor index
-+ */
-+#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
-+
-+
-+/**
-+ * struct fimc_is - fimc-is driver private data
-+ * @pdev: pointer to FIMC-IS platform device
-+ * @pdata: platform data for FIMC-IS
-+ * @alloc_ctx: videobuf2 memory allocator context
-+ * @clock: FIMC-IS clocks
-+ * @pmu_regs: PMU reg base address
-+ * @num_pipelines: number of pipelines opened
-+ * @minfo: internal memory organization info
-+ * @drvdata: fimc-is driver data
-+ * @sensor: FIMC-IS sensor context
-+ * @pipeline: hardware pipeline context
-+ * @interface: hardware interface context
-+ */
-+struct fimc_is {
-+	struct platform_device		*pdev;
-+
-+	struct vb2_alloc_ctx		*alloc_ctx;
-+	struct clk			*clock[IS_CLK_MAX_NUM];
-+	void __iomem			*pmu_regs;
-+	unsigned int			num_pipelines;
-+
-+	struct fimc_is_meminfo		minfo;
-+
-+	struct fimc_is_drvdata		*drvdata;
-+	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
-+	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
-+	struct fimc_is_interface	interface;
-+};
-+
-+/* Queue operations for ISP */
-+static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &isp->wait_queue);
-+	isp->wait_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
-+		struct fimc_is_isp *isp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(isp->wait_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	isp->wait_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &isp->run_queue);
-+	isp->run_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
-+		struct fimc_is_isp *isp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(isp->run_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	isp->run_queue_cnt--;
-+	return buf;
-+}
-+
-+/* Queue operations for SCALER */
-+static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &scp->wait_queue);
-+	scp->wait_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
-+		struct fimc_is_scaler *scp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(scp->wait_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	scp->wait_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &scp->run_queue);
-+	scp->run_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
-+		struct fimc_is_scaler *scp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(scp->run_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	scp->run_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
-+{
-+	writel(v, is->pmu_regs + offset);
-+}
-+
-+static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
-+{
-+	return readl(is->pmu_regs + offset);
-+}
-+
-+#endif
--- 
-1.7.9.5
+Btw: only 2 of the 14 drivers return -EPROBE_DEFER when no clock is
+found: imx074, mt9m111m.
+All others return the error code from v4l2_clk_get(), usually -ENODEV.
+
+>
+>>> Concerning b): I'm not yet sure if it is really needed/makes sense...
+>>> Who is supposed to configure/enable/disable the clock in a
+>>> constellation
+>>> like em28xx+ov2640 ?
+>>> For UXGA for example, the clock needs to be switched to 12MHz, while
+>>> 24MHz is used for smaller reolutions.
+>>> But I'm not sure if it is a good idea to let the sensor driver do the
+>>> switch (to define fixed bindings between resoultions and clock
+>>> frequencies).
+>>> Btw, what if a frequency is requested which isn't supported ? Set the
+>>> clock to the next nearest supported frequency ?
+>>>
+>>> Regards,
+>>> Frank
+>>
+>> I tried to implement a v4l2_clk for the em28xx driver (not yet beeing
+>> sure if it really makes sense) and I noticed the following problem:
+>> The ov2640 driver (as well as all other sensor drivers) seems to have
+>> specific expectations for the names of the clock.
+>> The name must me "mclk" and dev_name must be the device name of the i2c
+>> client device.
+>> Is "mclk" supposed to be a clock type ? Wouldn't an enum be a better
+>> choice in this case ?
+>
+> This is made similar to the common clock API, a string is an identifier
+> of a clock for the device. I can't see anything unusual in that, it will
+> also make it easier to phase out the v4l2-clk API and replace it with
+> the common clock API once that is more widely available.
+>
+> The name is supposed to come from the datasheet and usually be different
+> for each sensor, but since we mostly deal with just one clock a common
+> "mclk" name was chosen for simplicity.
+Hmm... the common clock API probably needs to be more flexible.
+An enum would be safer to use, that's my though.
+Anyway, let's focus on the main issue.
+
+>
+>> Anyway, the sensor subdevices are registered using
+>> v4l2_i2c_new_subdev_board(), which sets up an i2c client, loads the
+>> module and returns v4l2_subdev.
+>> The v4l2_clock needs to be registered before (otherwise no clock is
+>> found during sensor probing), but at this point the device name of the
+>> i2c_client isn't known yet...
+>
+[...]
+>
+>     snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+>          dev->i2c_adap[dev->def_i2c_bus].nr, ov2640_info.addr);
+That's a joke, isn't it ? ;)
+So people have to grub through half of the kernel to figure out which
+specific string the subdev driver expects and duplicate the code that
+creates this compound string to be able to use the driver ?
+
+>
+>     clk = v4l2_clk_register(&em28xx_sensor_clk_ops, clk_name, "mclk",
+> icd);
+>     if (IS_ERR(icd->clk)) {
+>         ...
+>     }
+>     //////////////////////////////////////////////////////
+>
+>     subdev =
+>          v4l2_i2c_new_subdev_board(&dev->v4l2_dev,
+>                        &dev->i2c_adap[dev->def_i2c_bus],
+>                        &ov2640_info, NULL);
+>     ...
+>
+> Alternatively all sensors modified by changeset 9aea470b399d797e88be
+> "[media] soc-camera: switch I2C subdevice drivers to use v4l2-clk" could
+> receive a platform data flag that would be set for drivers like em28xx,
+> and which would be indicating if the clock should be used or not. It
+> probably should has been done originally if it wasn't clear which bridge
+> drivers use that modified sensors and that regressions were possible.
+Yes, but not using a clock would still break the async subdevice
+registration (although drivers like the em28xx likely don't need/use it
+at the moment).
+
+Regards,
+Frank
+
+>
+> -- 
+> Regards,
+> Sylwester
 
