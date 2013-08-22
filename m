@@ -1,159 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42614 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755797Ab3HOO1u (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:61796 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753037Ab3HVLKn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 10:27:50 -0400
-Message-ID: <520CE563.8060108@canonical.com>
-Date: Thu, 15 Aug 2013 16:27:47 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Thu, 22 Aug 2013 07:10:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: laurent.pinchart@ideasonboard.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH RFC v4] media: added managed v4l2/i2c subdevice initialization
+Date: Thu, 22 Aug 2013 13:10:39 +0200
+Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+References: <4084534.7DE24ipEqE@avalon> <1371651054-28684-1-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <1371651054-28684-1-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
-To: Rob Clark <robdclark@gmail.com>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] fence: dma-buf cross-device synchronization (v12)
-References: <20130729140519.25868.86479.stgit@patser> <CAF6AEGtTB05-Jf1sN9RxSak6EW77Et2HM1xr=gzLHLyc9VLYOQ@mail.gmail.com> <520CB88A.9080401@canonical.com> <CAF6AEGsNYN_tu7wvzWhjkNS5XYmet9Q7MB9fC26yrSsSDEoqHw@mail.gmail.com>
-In-Reply-To: <CAF6AEGsNYN_tu7wvzWhjkNS5XYmet9Q7MB9fC26yrSsSDEoqHw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201308221310.39358.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 15-08-13 15:14, Rob Clark schreef:
-> On Thu, Aug 15, 2013 at 7:16 AM, Maarten Lankhorst
-> <maarten.lankhorst@canonical.com> wrote:
->> Op 12-08-13 17:43, Rob Clark schreef:
->>> On Mon, Jul 29, 2013 at 10:05 AM, Maarten Lankhorst
->>> <maarten.lankhorst@canonical.com> wrote:
->>>> +
-> [snip]
->>>> +/**
->>>> + * fence_add_callback - add a callback to be called when the fence
->>>> + * is signaled
->>>> + * @fence:     [in]    the fence to wait on
->>>> + * @cb:                [in]    the callback to register
->>>> + * @func:      [in]    the function to call
->>>> + * @priv:      [in]    the argument to pass to function
->>>> + *
->>>> + * cb will be initialized by fence_add_callback, no initialization
->>>> + * by the caller is required. Any number of callbacks can be registered
->>>> + * to a fence, but a callback can only be registered to one fence at a time.
->>>> + *
->>>> + * Note that the callback can be called from an atomic context.  If
->>>> + * fence is already signaled, this function will return -ENOENT (and
->>>> + * *not* call the callback)
->>>> + *
->>>> + * Add a software callback to the fence. Same restrictions apply to
->>>> + * refcount as it does to fence_wait, however the caller doesn't need to
->>>> + * keep a refcount to fence afterwards: when software access is enabled,
->>>> + * the creator of the fence is required to keep the fence alive until
->>>> + * after it signals with fence_signal. The callback itself can be called
->>>> + * from irq context.
->>>> + *
->>>> + */
->>>> +int fence_add_callback(struct fence *fence, struct fence_cb *cb,
->>>> +                      fence_func_t func, void *priv)
->>>> +{
->>>> +       unsigned long flags;
->>>> +       int ret = 0;
->>>> +       bool was_set;
->>>> +
->>>> +       if (WARN_ON(!fence || !func))
->>>> +               return -EINVAL;
->>>> +
->>>> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
->>>> +               return -ENOENT;
->>>> +
->>>> +       spin_lock_irqsave(fence->lock, flags);
->>>> +
->>>> +       was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
->>>> +
->>>> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
->>>> +               ret = -ENOENT;
->>>> +       else if (!was_set && !fence->ops->enable_signaling(fence)) {
->>>> +               __fence_signal(fence);
->>>> +               ret = -ENOENT;
->>>> +       }
->>>> +
->>>> +       if (!ret) {
->>>> +               cb->func = func;
->>>> +               cb->priv = priv;
->>>> +               list_add_tail(&cb->node, &fence->cb_list);
->>> since the user is providing the 'struct fence_cb', why not drop the
->>> priv & func args, and have some cb-initialize macro, ie.
->>>
->>> INIT_FENCE_CB(&foo->fence, cbfxn);
->>>
->>> and I guess we can just drop priv and let the user embed fence in
->>> whatever structure they like.  Ie. make it look a bit how work_struct
->>> works.
->> I don't mind killing priv. But a INIT_FENCE_CB macro is silly, when all it would do is set cb->func.
->> So passing it as  an argument to fence_add_callback is fine, unless you have a better reason to
->> do so.
->>
->> INIT_WORK seems to have a bit more initialization than us, it seems work can be more complicated
->> than callbacks, because the callbacks can only be called once and work can be rescheduled multiple times.
-> yeah, INIT_WORK does more.. although maybe some day we want
-> INIT_FENCE_CB to do more (ie. if we add some debug features to help
-> catch misuse of fence/fence-cb's).  And if nothing else, having it
-> look a bit like other constructs that we have in the kernel seems
-> useful.  And with my point below, you'd want INIT_FENCE_CB to do a
-> INIT_LIST_HEAD(), so it is (very) slightly more than just setting the
-> fxn ptr.
-I don't think list is a good idea for that.
->>> maybe also, if (!list_empty(&cb->node) return -EBUSY?
->> I think checking for list_empty(cb->node) is a terrible idea. This is no different from any other list corruption,
->> and it's a programming error. Not a runtime error. :-)
-> I was thinking for crtc and page-flip, embed the fence_cb in the crtc.
->  You should only use the cb once at a time, but in this case you might
-> want to re-use it for the next page flip.  Having something to catch
-> cb mis-use in this sort of scenario seems useful.
->
-> maybe how I am thinking to use fence_cb is not quite what you had in
-> mind.  I'm not sure.  I was trying to think how I could just directly
-> use fence/fence_cb in msm for everything (imported dmabuf or just
-> regular 'ol gem buffers).
+This patch has been sitting around for quite some time now. Is there any reason
+not to apply it?
 
+Laurent, I see that these patches (part of the same patch set) are still pending
+for you:
 
->> cb->node.next/prev may be NULL, which would fail with this check. The contents of cb->node are undefined
->> before fence_add_callback is called. Calling fence_remove_callback on a fence that hasn't been added is
->> undefined too. Calling fence_remove_callback works, but I'm thinking of changing the list_del_init to list_del,
->> which would make calling fence_remove_callback twice a fatal error if CONFIG_DEBUG_LIST is enabled,
->> and a possible memory corruption otherwise.
->>>> ...
->>>> +
-> [snip]
->>>> +
->>>> +/**
->>>> + * fence context counter: each execution context should have its own
->>>> + * fence context, this allows checking if fences belong to the same
->>>> + * context or not. One device can have multiple separate contexts,
->>>> + * and they're used if some engine can run independently of another.
->>>> + */
->>>> +extern atomic_t fence_context_counter;
->>> context-alloc should not be in the critical path.. I'd think probably
->>> drop the extern and inline, and make fence_context_counter static
->>> inside the .c
->> Shrug, your bikeshed. I'll fix it shortly.
->>>> +
->>>> +static inline unsigned fence_context_alloc(unsigned num)
->>> well, this is actually allocating 'num' contexts, so
->>> 'fence_context_alloc()' sounds a bit funny.. or at least to me it
->>> sounds from the name like it allocates a single context
->> Sorry, max number of bikesheds reached. :P
-> well, names are important to convey meaning, and not confusing users
-> of the API..  but fence_context*s*_alloc() also sounds a bit funny.
-> So I could live w/ just some kerneldoc.  Ie. move the doc about
-> fence_counter_contex down and make it doc about the function.  That
-> was a bit my point about moving the function into the .c and making
-> fence_context_counter static.. ie. I don't think it was your intention
-> that anyone accesses fence_counter_context directly, so better to
-> document the function and make fence_counter_context the internal
-> implementation detail.
->
-> Anyways, some of this is a bit nit-picky, but since fence is going to
-> be something used by many different drivers/subsystems, I guess it is
-> worthwhile to nit-pick over the API.
-I guess. But I couldn't come up with a better name either. v14 has added some kernel docs for this function.
+https://patchwork.linuxtv.org/patch/18447/
+https://patchwork.linuxtv.org/patch/18449/
 
+If you plan to apply those for 3.12, then it would make sense to apply this one
+at the same time.
+
+For this patch:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+On Wed 19 June 2013 16:10:54 Andrzej Hajda wrote:
+> This patch adds managed version of initialization
+> function for v4l2 i2c subdevices.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> v4:
+> 	- added description to devm_v4l2_subdev_bind
+> v3:
+> 	- removed devm_v4l2_subdev_(init|free),
+> v2:
+> 	- changes of v4l2-ctrls.h moved to proper patch
+> ---
+>  drivers/media/v4l2-core/v4l2-common.c | 10 ++++++++++
+>  drivers/media/v4l2-core/v4l2-subdev.c | 35 +++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-common.h           |  2 ++
+>  include/media/v4l2-subdev.h           |  2 ++
+>  4 files changed, 49 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 3fed63f..96aac931 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+>  
+> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> +			      const struct v4l2_subdev_ops *ops)
+> +{
+> +	int ret;
+>  
+> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
+> +	if (!ret)
+> +		v4l2_i2c_subdev_init(sd, client, ops);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
+>  
+>  /* Load an i2c sub-device. */
+>  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 996c248..2242962 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -474,3 +474,38 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>  #endif
+>  }
+>  EXPORT_SYMBOL(v4l2_subdev_init);
+> +
+> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
+> +{
+> +	struct v4l2_subdev **sd = res;
+> +
+> +	v4l2_device_unregister_subdev(*sd);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&(*sd)->entity);
+> +#endif
+> +}
+> +
+> +/**
+> + * devm_v4l2_subdev_bind - Add subdevice to device managed resource list
+> + * @dev: Device to bind subdev to
+> + * @sd:  Subdevice to bind
+> + *
+> + * Function adds device managed release code to the subdev.
+> + * If the function succeedes then on driver detach subdev will be automatically
+> + * unregistered and the media entity will be cleaned up. Function can be used
+> + * with subdevs not initialized by devm_v4l2_i2c_subdev_init.
+> + */
+> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_subdev **dr;
+> +
+> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
+> +	if (!dr)
+> +		return -ENOMEM;
+> +
+> +	*dr = sd;
+> +	devres_add(dev, dr);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 1d93c48..da62e2b 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+>  /* Initialize a v4l2_subdev with data from an i2c_client struct */
+>  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>  		const struct v4l2_subdev_ops *ops);
+> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> +		const struct v4l2_subdev_ops *ops);
+>  /* Return i2c client address of v4l2_subdev. */
+>  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
+>  
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 5298d67..e086cfe 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -657,6 +657,8 @@ int v4l2_subdev_link_validate(struct media_link *link);
+>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  		      const struct v4l2_subdev_ops *ops);
+>  
+> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
+> +
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>     NULL pointers.
+>  
+> 
