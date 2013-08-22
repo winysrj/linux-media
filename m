@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:44666 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752133Ab3H0Ju1 (ORCPT
+Received: from mail.irisys.co.uk ([195.12.16.217]:54360 "EHLO
+	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753751Ab3HVPlo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 05:50:27 -0400
-Received: from [10.61.81.153] (ams3-vpn-dhcp4506.cisco.com [10.61.81.153])
-	(authenticated bits=0)
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r7R9oNju003461
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 27 Aug 2013 09:50:24 GMT
-Message-ID: <521C765F.8010508@cisco.com>
-Date: Tue, 27 Aug 2013 11:50:23 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+	Thu, 22 Aug 2013 11:41:44 -0400
+From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: width and height of JPEG compressed images
+Date: Thu, 22 Aug 2013 15:41:41 +0000
+Message-ID: <A683633ABCE53E43AFB0344442BF0F054C634E48@server10.irisys.local>
+References: <51D876DF.90507@gmail.com>
+ <A683633ABCE53E43AFB0344442BF0F054C632C1D@server10.irisys.local>
+ <20130821131736.GE20717@valkosipuli.retiisi.org.uk>
+ <2547877.KEf7cs3vQZ@avalon>
+In-Reply-To: <2547877.KEf7cs3vQZ@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.11] cx88 regression fix
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi,
 
-Here is a fix for a cx88 regression introduced in 3.10.
+On 21 August 2013 14:29, Laurent Pinchart wrote:
+> On Wednesday 21 August 2013 16:17:37 Sakari Ailus wrote:
+>> On Wed, Aug 07, 2013 at 05:43:56PM +0000, Thomas Vajzovic wrote:
+>>> It defines the exact size of the physical frame.  The JPEG data is
+>>> padded to this size. The size of the JPEG before it was padded is
+>>> also written into the last word of the physical frame.
+
+That would require either using a custom pixel format and have userspace
+reading the size from the buffer, or mapping the buffer in kernel space
+and reading the size there. The latter is easier for userspace, but
+might it hinder performances ?
+
+I think it ought to be a custom format and handled in userspace,
+otherwise the bridge driver would have to call a subdev function
+each frame to get it to fix-up the used size each time, which is
+quite ugly.
 
 Regards,
+Tom
 
-	Hans
-
-The following changes since commit 43054ecced8ae77c805470447d72da4fdc276e02:
-
-  [media] davinci: vpif_capture: fix error return code in vpif_probe() (2013-08-26 07:54:47 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cx88fix
-
-for you to fetch changes up to b9a1dfd3ba3ae00b0c1d1a396ed43fac85a32990:
-
-  cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0. (2013-08-27 11:49:36 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0.
-
- drivers/media/pci/cx88/cx88.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--
+Mr T. Vajzovic
+Software Engineer
+Infrared Integrated Systems Ltd
+Visit us at www.irisys.co.uk
+Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
