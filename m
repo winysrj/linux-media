@@ -1,317 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:34150 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754504Ab3H1P5O (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2359 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773Ab3HVKOy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 11:57:14 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MS9004EV0AX0NN0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Aug 2013 00:57:12 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Thu, 22 Aug 2013 06:14:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, t.figa@samsung.com,
-	linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 5/7] exynos4-is: Add clock provider for the external clocks
-Date: Wed, 28 Aug 2013 17:55:58 +0200
-Message-id: <1377705360-12197-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
-References: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 04/10] solo: implement the new matrix ioctls instead of the custom ones.
+Date: Thu, 22 Aug 2013 12:14:18 +0200
+Message-Id: <df3d53bb35d220ae139fe955f5ec69fdd75624ff.1377166147.git.hans.verkuil@cisco.com>
+In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
+References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds clock provider to expose the sclk_cam0/1 clocks
-for image sensor subdevs.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/samsung-fimc.txt     |   17 ++-
- drivers/media/platform/exynos4-is/media-dev.c      |  115 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/media-dev.h      |   18 ++-
- 3 files changed, 147 insertions(+), 3 deletions(-)
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 102 ++++++++++++++++++---
+ drivers/staging/media/solo6x10/solo6x10.h          |  10 +-
+ 2 files changed, 89 insertions(+), 23 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 96312f6..9f4d295 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -91,6 +91,15 @@ Optional properties
- - samsung,camclk-out : specifies clock output for remote sensor,
- 		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
- 
-+'clock-controller' node (optional)
-+----------------------------------
-+
-+The purpose of this node is to define a clock provider for external image
-+sensors and link any of the CAM_?_CLKOUT clock outputs with related external
-+clock consumer device. Properties specific to this node are described in
-+../clock/clock-bindings.txt.
-+
-+
- Image sensor nodes
- ------------------
- 
-@@ -114,7 +123,7 @@ Example:
- 			vddio-supply = <...>;
- 
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camclk 1>;
- 			clock-names = "mclk";
- 
- 			port {
-@@ -135,7 +144,7 @@ Example:
- 			vddio-supply = <...>;
- 
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camclk 0>;
- 			clock-names = "mclk";
- 
- 			port {
-@@ -156,6 +165,10 @@ Example:
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
- 
-+		camclk: clock-controller {
-+		       #clock-cells = <1>;
-+		};
-+
- 		/* parallel camera ports */
- 		parallel-ports {
- 			/* camera A input */
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index e327f45..6fba5f6 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -11,6 +11,8 @@
-  */
- 
- #include <linux/bug.h>
-+#include <linux/clk.h>
-+#include <linux/clk-provider.h>
- #include <linux/device.h>
- #include <linux/errno.h>
- #include <linux/i2c.h>
-@@ -1438,6 +1440,108 @@ static int fimc_md_get_pinctrl(struct fimc_md *fmd)
- 	return 0;
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index a4c5896..6858993 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -1033,29 +1033,98 @@ static int solo_s_parm(struct file *file, void *priv,
+ 	return solo_g_parm(file, priv, sp);
  }
  
-+#ifdef CONFIG_OF
-+static int cam_clk_prepare(struct clk_hw *hw)
+-static long solo_enc_default(struct file *file, void *fh,
+-			bool valid_prio, unsigned int cmd, void *arg)
++static int solo_query_matrix(struct file *file, void *fh,
++			struct v4l2_query_matrix *qm)
 +{
-+	struct cam_clk *camclk = to_cam_clk(hw);
-+	int ret;
-+
-+	if (camclk->fmd->pmf == NULL)
-+		return -ENODEV;
-+
-+	ret = pm_runtime_get_sync(camclk->fmd->pmf);
-+	return ret < 0 ? ret : 0;
-+}
-+
-+static void cam_clk_unprepare(struct clk_hw *hw)
-+{
-+	struct cam_clk *camclk = to_cam_clk(hw);
-+
-+	if (camclk->fmd->pmf == NULL)
-+		return;
-+
-+	pm_runtime_put_sync(camclk->fmd->pmf);
-+}
-+
-+static const struct clk_ops cam_clk_ops = {
-+	.prepare = cam_clk_prepare,
-+	.unprepare = cam_clk_unprepare,
-+};
-+
-+static const char *cam_clk_p_names[] = { "sclk_cam0", "sclk_cam1" };
-+
-+static void fimc_md_unregister_clk_provider(struct fimc_md *fmd)
-+{
-+	struct cam_clk_provider *cp = &fmd->clk_provider;
-+	unsigned int i;
-+
-+	if (cp->of_node)
-+		of_clk_del_provider(cp->of_node);
-+
-+	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
-+		if (!IS_ERR(cp->clks[i]))
-+			clk_unregister(cp->clks[i]);
-+}
-+
-+static int fimc_md_register_clk_provider(struct fimc_md *fmd)
-+{
-+	struct cam_clk_provider *cp = &fmd->clk_provider;
-+	struct device *dev = &fmd->pdev->dev;
-+	struct device_node *node;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
-+		cp->clks[i] = ERR_PTR(-EINVAL);
-+
-+	node = of_get_child_by_name(dev->of_node, "clock-controller");
-+	if (!node) {
-+		dev_warn(dev, "clock-controller node at %s not found\n",
-+					dev->of_node->full_name);
-+		return 0;
++	qm->columns = 45;
++	qm->rows = 36;
++	switch (qm->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		qm->elem_size = 1;
++		break;
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		qm->elem_max.val = 65535;
++		qm->elem_size = 2;
++		break;
++	default:
++		return -EINVAL;
 +	}
-+	for (i = 0; i < FIMC_MAX_CAMCLKS; i++) {
-+		struct cam_clk *camclk = &cp->camclk[i];
-+		struct clk_init_data init;
-+		char clk_name[16];
-+		struct clk *clk;
-+
-+		snprintf(clk_name, sizeof(clk_name), "cam_clkout%d", i);
-+
-+		init.name = clk_name;
-+		init.ops = &cam_clk_ops;
-+		init.flags = CLK_SET_RATE_PARENT;
-+		init.parent_names = &cam_clk_p_names[i];
-+		init.num_parents = 1;
-+		camclk->hw.init = &init;
-+		camclk->fmd = fmd;
-+
-+		clk = clk_register(dev, &camclk->hw);
-+		if (IS_ERR(clk)) {
-+			dev_err(dev, "failed to register clock: %s (%ld)\n",
-+						clk_name, PTR_ERR(clk));
-+			ret = PTR_ERR(clk);
-+			goto err;
-+		}
-+		cp->clks[i] = clk;
-+	}
-+
-+	cp->clk_data.clks = cp->clks;
-+	cp->clk_data.clk_num = i;
-+	cp->of_node = node;
-+
-+	ret = of_clk_add_provider(node, of_clk_src_onecell_get,
-+						&cp->clk_data);
-+	if (!ret)
-+		return 0;
-+err:
-+	fimc_md_unregister_clk_provider(fmd);
-+	return ret;
++	return 0;
 +}
-+#else
-+#define fimc_md_register_clk_provider(fmd) (0)
-+#define fimc_md_unregister_clk_provider(fmd) (0)
-+#endif
 +
- static int fimc_md_probe(struct platform_device *pdev)
++static int solo_g_matrix(struct file *file, void *fh,
++			struct v4l2_matrix *m)
++{
++	struct solo_enc_dev *solo_enc = video_drvdata(file);
++	int w = m->rect.width;
++	int h = m->rect.height;
++	u16 *mt;
++	int y;
++
++	if (m->rect.top < 0 || m->rect.top + h > 35 || h < 0 || w < 0 ||
++	    m->rect.left < 0 || m->rect.left + w >= SOLO_MOTION_SZ)
++		return -EINVAL;
++	if (h == 0 || w == 0)
++		return 0;
++
++	switch (m->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		return clear_user(m->matrix, w * h);
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		mt = &solo_enc->motion_thresholds.thresholds[m->rect.top][m->rect.left];
++		for (y = 0; y < h; y++, mt += SOLO_MOTION_SZ)
++			if (copy_to_user(m->matrix + y * w * 2, mt, w * 2))
++				return -EFAULT;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int solo_s_matrix(struct file *file, void *fh,
++			struct v4l2_matrix *m)
  {
- 	struct device *dev = &pdev->dev;
-@@ -1465,16 +1569,24 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	struct solo_motion_thresholds *thresholds = arg;
++	int w = m->rect.width;
++	int h = m->rect.height;
++	u16 *mt;
++	int y;
  
- 	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
- 
-+	ret = fimc_md_register_clk_provider(fmd);
-+	if (ret < 0) {
-+		v4l2_err(v4l2_dev, "clock provider registration failed\n");
-+		return ret;
-+	}
-+
- 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
- 		return ret;
- 	}
-+
- 	ret = media_device_register(&fmd->media_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
- 		goto err_md;
- 	}
-+
- 	ret = fimc_md_get_clocks(fmd);
- 	if (ret)
- 		goto err_clk;
-@@ -1508,6 +1620,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	ret = fimc_md_create_links(fmd);
- 	if (ret)
- 		goto err_unlock;
-+
- 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
- 	if (ret)
- 		goto err_unlock;
-@@ -1528,6 +1641,7 @@ err_clk:
- 	media_device_unregister(&fmd->media_dev);
- err_md:
- 	v4l2_device_unregister(&fmd->v4l2_dev);
-+	fimc_md_unregister_clk_provider(fmd);
- 	return ret;
- }
- 
-@@ -1538,6 +1652,7 @@ static int fimc_md_remove(struct platform_device *pdev)
- 	if (!fmd)
+-	switch (cmd) {
+-	case SOLO_IOC_G_MOTION_THRESHOLDS:
+-		*thresholds = solo_enc->motion_thresholds;
++	if (m->rect.top < 0 || m->rect.top + h > 35 || h < 0 || w < 0 ||
++	    m->rect.left < 0 || m->rect.left + w >= SOLO_MOTION_SZ)
++		return -EINVAL;
++	if (h == 0 || w == 0)
  		return 0;
  
-+	fimc_md_unregister_clk_provider(fmd);
- 	v4l2_device_unregister(&fmd->v4l2_dev);
- 	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
- 	fimc_md_unregister_entities(fmd);
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index 62599fd..240ca71 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -10,6 +10,7 @@
- #define FIMC_MDEVICE_H_
+-	case SOLO_IOC_S_MOTION_THRESHOLDS:
+-		if (!valid_prio)
+-			return -EBUSY;
+-		solo_enc->motion_thresholds = *thresholds;
+-		if (solo_enc->motion_enabled && !solo_enc->motion_global)
+-			return solo_set_motion_block(solo_dev, solo_enc->ch,
+-						&solo_enc->motion_thresholds);
++	switch (m->type) {
++	case V4L2_MATRIX_T_MD_REGION:
++		/* Check that the region matrix is all zeroes */
++		for (y = 0; y < h; y++) {
++			u8 region[SOLO_MOTION_SZ];
++			static const u8 zeroes[SOLO_MOTION_SZ];
++
++			if (copy_from_user(region, m->matrix + y * w, w))
++				return -EFAULT;
++			if (memcmp(region, zeroes, w))
++				return -EINVAL;
++		}
+ 		return 0;
++	case V4L2_MATRIX_T_MD_THRESHOLD:
++		mt = &solo_enc->motion_thresholds.thresholds[m->rect.top][m->rect.left];
++		for (y = 0; y < h; y++, mt += SOLO_MOTION_SZ)
++			if (copy_from_user(mt, m->matrix + y * w * 2, w * 2))
++				return -EFAULT;
++		break;
+ 	default:
+-		return -ENOTTY;
++		return -EINVAL;
+ 	}
++
++	if (solo_enc->motion_enabled && !solo_enc->motion_global)
++		return solo_set_motion_block(solo_dev, solo_enc->ch,
++				&solo_enc->motion_thresholds);
++	return 0;
+ }
  
- #include <linux/clk.h>
-+#include <linux/clk-provider.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-@@ -89,6 +90,12 @@ struct fimc_sensor_info {
- 	struct fimc_dev *host;
+ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1141,11 +1210,14 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
+ 	/* Video capture parameters */
+ 	.vidioc_s_parm			= solo_s_parm,
+ 	.vidioc_g_parm			= solo_g_parm,
++	/* Motion Detection matrices */
++	.vidioc_query_matrix		= solo_query_matrix,
++	.vidioc_g_matrix		= solo_g_matrix,
++	.vidioc_s_matrix		= solo_s_matrix,
+ 	/* Logging and events */
+ 	.vidioc_log_status		= v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+-	.vidioc_default			= solo_enc_default,
  };
  
-+struct cam_clk {
-+	struct clk_hw hw;
-+	struct fimc_md *fmd;
-+};
-+#define to_cam_clk(_hw) container_of(_hw, struct cam_clk, hw)
-+
- /**
-  * struct fimc_md - fimc media device information
-  * @csis: MIPI CSIS subdevs data
-@@ -105,6 +112,7 @@ struct fimc_sensor_info {
-  * @pinctrl: camera port pinctrl handle
-  * @state_default: pinctrl default state handle
-  * @state_idle: pinctrl idle state handle
-+ * @cam_clk_provider: CAMCLK clock provider structure
-  * @user_subdev_api: true if subdevs are not configured by the host driver
-  * @slock: spinlock protecting @sensor array
+ static const struct video_device solo_enc_template = {
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index 6f91d2e..01c8655 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -114,20 +114,14 @@
+  * effect, 44x30 samples are used for NTSC, and 44x36 for PAL.
+  * The 5th sample on the 10th row is (10*64)+5 = 645.
+  *
+- * Using a 64x64 array will result in a problem on some architectures like
+- * the powerpc where the size of the argument is limited to 13 bits.
+- * Since both PAL and NTSC do not use the full table anyway I've chosen
+- * to limit the array to 45x45 (45*16 = 720, which is the maximum PAL/NTSC
+- * width).
++ * Internally it is stored as a 45x45 array (45*16 = 720, which is the
++ * maximum PAL/NTSC width).
   */
-@@ -122,13 +130,21 @@ struct fimc_md {
- 	struct media_device media_dev;
- 	struct v4l2_device v4l2_dev;
- 	struct platform_device *pdev;
-+
- 	struct fimc_pinctrl {
- 		struct pinctrl *pinctrl;
- 		struct pinctrl_state *state_default;
- 		struct pinctrl_state *state_idle;
- 	} pinctl;
--	bool user_subdev_api;
- 
-+	struct cam_clk_provider {
-+		struct clk *clks[FIMC_MAX_CAMCLKS];
-+		struct clk_onecell_data clk_data;
-+		struct device_node *of_node;
-+		struct cam_clk camclk[FIMC_MAX_CAMCLKS];
-+	} clk_provider;
-+
-+	bool user_subdev_api;
- 	spinlock_t slock;
- 	struct list_head pipelines;
+ #define SOLO_MOTION_SZ (45)
+ struct solo_motion_thresholds {
+ 	__u16	thresholds[SOLO_MOTION_SZ][SOLO_MOTION_SZ];
  };
+ 
+-#define SOLO_IOC_G_MOTION_THRESHOLDS	_IOR('V', BASE_VIDIOC_PRIVATE+0, struct solo_motion_thresholds)
+-#define SOLO_IOC_S_MOTION_THRESHOLDS	_IOW('V', BASE_VIDIOC_PRIVATE+1, struct solo_motion_thresholds)
+-
+ enum SOLO_I2C_STATE {
+ 	IIC_STATE_IDLE,
+ 	IIC_STATE_START,
 -- 
-1.7.9.5
+1.8.3.2
 
