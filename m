@@ -1,67 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:58938 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690Ab3HIRRy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 13:17:54 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MR900CRZXDSAC10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 Aug 2013 18:17:52 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MR9000RJXDSA400@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 Aug 2013 18:17:52 +0100 (BST)
-Message-id: <52052440.6070704@samsung.com>
-Date: Fri, 09 Aug 2013 19:17:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.12] v4l2-async and Samsung driver fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1226 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752316Ab3HVK1m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 06:27:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 2/5] ad9389b: set is_private only after successfully creating all controls
+Date: Thu, 22 Aug 2013 12:27:27 +0200
+Message-Id: <51abd61e57d6a0b2c756dac3c3a96c5638a1d041.1377167031.git.hans.verkuil@cisco.com>
+In-Reply-To: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
+References: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
+References: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This includes v4l2-async regression fix introduced in my previous patch
-series - sorry about that omission, and couple Samsung SoC driver fixes.
+is_private was set right after creating each control, but the control pointer
+might be NULL in case of an error. Set it after all controls were successfully
+created, since that guarantees that all control pointers are non-NULL.
 
-The following changes since commit dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ad9389b.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-  [media] stk1160: Build as a module if SND is m and audio support is selected
-(2013-08-01 14:55:25 -0300)
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 8369786..bb0c99d 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -1109,27 +1109,27 @@ static int ad9389b_probe(struct i2c_client *client, const struct i2c_device_id *
+ 	state->hdmi_mode_ctrl = v4l2_ctrl_new_std_menu(hdl, &ad9389b_ctrl_ops,
+ 			V4L2_CID_DV_TX_MODE, V4L2_DV_TX_MODE_HDMI,
+ 			0, V4L2_DV_TX_MODE_DVI_D);
+-	state->hdmi_mode_ctrl->is_private = true;
+ 	state->hotplug_ctrl = v4l2_ctrl_new_std(hdl, NULL,
+ 			V4L2_CID_DV_TX_HOTPLUG, 0, 1, 0, 0);
+-	state->hotplug_ctrl->is_private = true;
+ 	state->rx_sense_ctrl = v4l2_ctrl_new_std(hdl, NULL,
+ 			V4L2_CID_DV_TX_RXSENSE, 0, 1, 0, 0);
+-	state->rx_sense_ctrl->is_private = true;
+ 	state->have_edid0_ctrl = v4l2_ctrl_new_std(hdl, NULL,
+ 			V4L2_CID_DV_TX_EDID_PRESENT, 0, 1, 0, 0);
+-	state->have_edid0_ctrl->is_private = true;
+ 	state->rgb_quantization_range_ctrl =
+ 		v4l2_ctrl_new_std_menu(hdl, &ad9389b_ctrl_ops,
+ 			V4L2_CID_DV_TX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
+ 			0, V4L2_DV_RGB_RANGE_AUTO);
+-	state->rgb_quantization_range_ctrl->is_private = true;
+ 	sd->ctrl_handler = hdl;
+ 	if (hdl->error) {
+ 		err = hdl->error;
+ 
+ 		goto err_hdl;
+ 	}
++	state->hdmi_mode_ctrl->is_private = true;
++	state->hotplug_ctrl->is_private = true;
++	state->rx_sense_ctrl->is_private = true;
++	state->have_edid0_ctrl->is_private = true;
++	state->rgb_quantization_range_ctrl->is_private = true;
+ 
+ 	state->pad.flags = MEDIA_PAD_FL_SINK;
+ 	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
+-- 
+1.8.3.2
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v3.12-2
-
-for you to fetch changes up to 886976a6db6c7bf1aaeb181e2b5fafb7e0d0e5d4:
-
-  exynos-gsc: fix s2r functionality (2013-08-09 18:54:41 +0200)
-
-----------------------------------------------------------------
-Andrzej Hajda (1):
-      V4L: s5c73m3: Add format propagation for TRY formats
-
-Prathyush K (1):
-      exynos-gsc: fix s2r functionality
-
-Sachin Kamat (2):
-      exynos4-is: Fix potential NULL pointer dereference
-      exynos4-is: Staticize local symbol
-
-Sylwester Nawrocki (1):
-      v4l2-async: Use proper list head for iteration over registered subdevs
-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c          |    5 +++++
- drivers/media/platform/exynos-gsc/gsc-core.c      |   13 ++++++++-----
- drivers/media/platform/exynos4-is/fimc-is-param.c |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c     |   13 +++++++------
- drivers/media/v4l2-core/v4l2-async.c              |    2 +-
- 5 files changed, 22 insertions(+), 13 deletions(-)
-
---
-Regards,
-Sylwester
