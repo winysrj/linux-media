@@ -1,455 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54864 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031457Ab3HIXC2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH/RFC v3 08/19] video: display: Add MIPI DBI bus support
-Date: Sat, 10 Aug 2013 01:03:07 +0200
-Message-Id: <1376089398-13322-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2362 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783Ab3HVKO5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 06:14:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 02/10] v4l2: add matrix support.
+Date: Thu, 22 Aug 2013 12:14:16 +0200
+Message-Id: <bf522c1bf85e48ce9bb9e070043cd3f52bbfebfe.1377166147.git.hans.verkuil@cisco.com>
+In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
+References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MIPI DBI is a configurable-width parallel display bus that transmits
-commands and data.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a new DBI Linux bus type that implements the usual bus
-infrastructure (including devices and drivers (un)registration and
-matching, and bus configuration and access functions).
+This patch adds core support for matrices: querying, getting and setting.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Two initial matrix types are defined for motion detection (defining regions
+and thresholds).
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/video/display/Kconfig        |   8 ++
- drivers/video/display/Makefile       |   1 +
- drivers/video/display/mipi-dbi-bus.c | 234 +++++++++++++++++++++++++++++++++++
- include/video/display.h              |   4 +
- include/video/mipi-dbi-bus.h         | 125 +++++++++++++++++++
- 5 files changed, 372 insertions(+)
- create mode 100644 drivers/video/display/mipi-dbi-bus.c
- create mode 100644 include/video/mipi-dbi-bus.h
+ drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c | 23 +++++++++++++-
+ include/media/v4l2-ioctl.h           |  8 +++++
+ include/uapi/linux/videodev2.h       | 58 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/display/Kconfig b/drivers/video/display/Kconfig
-index 1d533e7..f7532c1 100644
---- a/drivers/video/display/Kconfig
-+++ b/drivers/video/display/Kconfig
-@@ -2,3 +2,11 @@ menuconfig DISPLAY_CORE
- 	tristate "Display Core"
- 	---help---
- 	  Support common display framework for graphics devices.
-+
-+if DISPLAY_CORE
-+
-+config DISPLAY_MIPI_DBI
-+	tristate
-+	default n
-+
-+endif # DISPLAY_CORE
-diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefile
-index b907aad..59022d2 100644
---- a/drivers/video/display/Makefile
-+++ b/drivers/video/display/Makefile
-@@ -1,3 +1,4 @@
- display-y					:= display-core.o \
- 						   display-notifier.o
- obj-$(CONFIG_DISPLAY_CORE)			+= display.o
-+obj-$(CONFIG_DISPLAY_MIPI_DBI)			+= mipi-dbi-bus.o
-diff --git a/drivers/video/display/mipi-dbi-bus.c b/drivers/video/display/mipi-dbi-bus.c
-new file mode 100644
-index 0000000..791fb4d
---- /dev/null
-+++ b/drivers/video/display/mipi-dbi-bus.c
-@@ -0,0 +1,234 @@
-+/*
-+ * MIPI DBI Bus
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/pm.h>
-+#include <linux/pm_runtime.h>
-+
-+#include <video/mipi-dbi-bus.h>
-+
-+/* -----------------------------------------------------------------------------
-+ * Bus operations
-+ */
-+
-+int mipi_dbi_set_data_width(struct mipi_dbi_device *dev, unsigned int width)
-+{
-+	if (width != 8 && width != 16)
-+		return -EINVAL;
-+
-+	dev->data_width = width;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_set_data_width);
-+
-+int mipi_dbi_write_command(struct mipi_dbi_device *dev, u16 cmd)
-+{
-+	return dev->bus->ops->write_command(dev->bus, dev, cmd);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_write_command);
-+
-+int mipi_dbi_write_data(struct mipi_dbi_device *dev, const u8 *data,
-+			size_t len)
-+{
-+	return dev->bus->ops->write_data(dev->bus, dev, data, len);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_write_data);
-+
-+int mipi_dbi_read_data(struct mipi_dbi_device *dev, u8 *data, size_t len)
-+{
-+	return dev->bus->ops->read_data(dev->bus, dev, data, len);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_read_data);
-+
-+/* -----------------------------------------------------------------------------
-+ * Bus type
-+ */
-+
-+static const struct mipi_dbi_device_id *
-+mipi_dbi_match_id(const struct mipi_dbi_device_id *id,
-+		  struct mipi_dbi_device *dev)
-+{
-+	while (id->name[0]) {
-+		if (strcmp(dev->name, id->name) == 0) {
-+			dev->id_entry = id;
-+			return id;
-+		}
-+		id++;
-+	}
-+	return NULL;
-+}
-+
-+static int mipi_dbi_match(struct device *_dev, struct device_driver *_drv)
-+{
-+	struct mipi_dbi_device *dev = to_mipi_dbi_device(_dev);
-+	struct mipi_dbi_driver *drv = to_mipi_dbi_driver(_drv);
-+
-+	if (drv->id_table)
-+		return mipi_dbi_match_id(drv->id_table, dev) != NULL;
-+
-+	return (strcmp(dev->name, _drv->name) == 0);
-+}
-+
-+static ssize_t modalias_show(struct device *_dev, struct device_attribute *a,
-+			     char *buf)
-+{
-+	struct mipi_dbi_device *dev = to_mipi_dbi_device(_dev);
-+	int len = snprintf(buf, PAGE_SIZE, MIPI_DBI_MODULE_PREFIX "%s\n",
-+			   dev->name);
-+
-+	return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
-+}
-+
-+static struct device_attribute mipi_dbi_dev_attrs[] = {
-+	__ATTR_RO(modalias),
-+	__ATTR_NULL,
-+};
-+
-+static int mipi_dbi_uevent(struct device *_dev, struct kobj_uevent_env *env)
-+{
-+	struct mipi_dbi_device *dev = to_mipi_dbi_device(_dev);
-+
-+	add_uevent_var(env, "MODALIAS=%s%s", MIPI_DBI_MODULE_PREFIX,
-+		       dev->name);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops mipi_dbi_dev_pm_ops = {
-+	.runtime_suspend = pm_generic_runtime_suspend,
-+	.runtime_resume = pm_generic_runtime_resume,
-+	.suspend = pm_generic_suspend,
-+	.resume = pm_generic_resume,
-+	.freeze = pm_generic_freeze,
-+	.thaw = pm_generic_thaw,
-+	.poweroff = pm_generic_poweroff,
-+	.restore = pm_generic_restore,
-+};
-+
-+static struct bus_type mipi_dbi_bus_type = {
-+	.name		= "mipi-dbi",
-+	.dev_attrs	= mipi_dbi_dev_attrs,
-+	.match		= mipi_dbi_match,
-+	.uevent		= mipi_dbi_uevent,
-+	.pm		= &mipi_dbi_dev_pm_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Device and driver (un)registration
-+ */
-+
-+/**
-+ * mipi_dbi_device_register - register a DBI device
-+ * @dev: DBI device we're registering
-+ */
-+int mipi_dbi_device_register(struct mipi_dbi_device *dev,
-+			      struct mipi_dbi_bus *bus)
-+{
-+	device_initialize(&dev->dev);
-+
-+	dev->bus = bus;
-+	dev->dev.bus = &mipi_dbi_bus_type;
-+	dev->dev.parent = bus->dev;
-+
-+	if (dev->id != -1)
-+		dev_set_name(&dev->dev, "%s.%d", dev->name,  dev->id);
-+	else
-+		dev_set_name(&dev->dev, "%s", dev->name);
-+
-+	return device_add(&dev->dev);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_device_register);
-+
-+/**
-+ * mipi_dbi_device_unregister - unregister a DBI device
-+ * @dev: DBI device we're unregistering
-+ */
-+void mipi_dbi_device_unregister(struct mipi_dbi_device *dev)
-+{
-+	device_del(&dev->dev);
-+	put_device(&dev->dev);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_device_unregister);
-+
-+static int mipi_dbi_drv_probe(struct device *_dev)
-+{
-+	struct mipi_dbi_driver *drv = to_mipi_dbi_driver(_dev->driver);
-+	struct mipi_dbi_device *dev = to_mipi_dbi_device(_dev);
-+
-+	return drv->probe(dev);
-+}
-+
-+static int mipi_dbi_drv_remove(struct device *_dev)
-+{
-+	struct mipi_dbi_driver *drv = to_mipi_dbi_driver(_dev->driver);
-+	struct mipi_dbi_device *dev = to_mipi_dbi_device(_dev);
-+	int ret;
-+
-+	ret = drv->remove(dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	mipi_dbi_set_drvdata(dev, NULL);
-+
-+	return 0;
-+}
-+
-+/**
-+ * mipi_dbi_driver_register - register a driver for DBI devices
-+ * @drv: DBI driver structure
-+ */
-+int mipi_dbi_driver_register(struct mipi_dbi_driver *drv)
-+{
-+	drv->driver.bus = &mipi_dbi_bus_type;
-+	if (drv->probe)
-+		drv->driver.probe = mipi_dbi_drv_probe;
-+	if (drv->remove)
-+		drv->driver.remove = mipi_dbi_drv_remove;
-+
-+	return driver_register(&drv->driver);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_driver_register);
-+
-+/**
-+ * mipi_dbi_driver_unregister - unregister a driver for DBI devices
-+ * @drv: DBI driver structure
-+ */
-+void mipi_dbi_driver_unregister(struct mipi_dbi_driver *drv)
-+{
-+	driver_unregister(&drv->driver);
-+}
-+EXPORT_SYMBOL_GPL(mipi_dbi_driver_unregister);
-+
-+/* -----------------------------------------------------------------------------
-+ * Init/exit
-+ */
-+
-+static int __init mipi_dbi_init(void)
-+{
-+	return bus_register(&mipi_dbi_bus_type);
-+}
-+
-+static void __exit mipi_dbi_exit(void)
-+{
-+	bus_unregister(&mipi_dbi_bus_type);
-+}
-+
-+module_init(mipi_dbi_init);
-+module_exit(mipi_dbi_exit)
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("MIPI DBI Bus");
-+MODULE_LICENSE("GPL");
-diff --git a/include/video/display.h b/include/video/display.h
-index ba319d6..3138401 100644
---- a/include/video/display.h
-+++ b/include/video/display.h
-@@ -17,6 +17,7 @@
- #include <linux/list.h>
- #include <linux/module.h>
- #include <media/media-entity.h>
-+#include <video/mipi-dbi-bus.h>
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c8859d6..5e58df6 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+ 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+ 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
++	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
  
- #define DISPLAY_PIXEL_CODING(option, type, from, to, variant) \
- 	(((option) << 17) | ((type) << 13) | ((variant) << 10) | \
-@@ -189,6 +190,9 @@ enum display_entity_interface_type {
+ 	if (is_vid) {
+ 		/* video specific ioctls */
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 68e6b5e..cdd5c77 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
+ 	const struct v4l2_cropcap *p = arg;
  
- struct display_entity_interface_params {
- 	enum display_entity_interface_type type;
-+	union {
-+		struct mipi_dbi_interface_params dbi;
-+	} p;
+ 	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
+-		"defrect wxh=%dx%d, x,y=%d,%d\n, "
++		"defrect wxh=%dx%d, x,y=%d,%d, "
+ 		"pixelaspect %d/%d\n",
+ 		prt_names(p->type, v4l2_type_names),
+ 		p->bounds.width, p->bounds.height,
+@@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
+ 			p->rangehigh, p->modulation);
+ }
+ 
++static void v4l_print_query_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_query_matrix *p = arg;
++
++	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
++			p->type, p->columns, p->rows,
++			p->elem_min.val, p->elem_max.val, p->elem_size);
++}
++
++static void v4l_print_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_matrix *p = arg;
++
++	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
++			p->type, p->rect.width, p->rect.height,
++			p->rect.top, p->rect.left, p->matrix);
++}
++
+ static void v4l_print_u32(const void *arg, bool write_only)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
++	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, type)),
++	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
++	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e0b74a4..7e4538e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+ 					const struct v4l2_event_subscription *sub);
+ 
++	/* Matrix ioctls */
++	int (*vidioc_query_matrix) (struct file *file, void *fh,
++				    struct v4l2_query_matrix *qmatrix);
++	int (*vidioc_g_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++	int (*vidioc_s_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					bool valid_prio, unsigned int cmd, void *arg);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 95ef455..cf13339 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1838,6 +1838,58 @@ struct v4l2_create_buffers {
+ 	__u32			reserved[8];
  };
  
- struct display_entity_control_ops {
-diff --git a/include/video/mipi-dbi-bus.h b/include/video/mipi-dbi-bus.h
-new file mode 100644
-index 0000000..876b69d
---- /dev/null
-+++ b/include/video/mipi-dbi-bus.h
-@@ -0,0 +1,125 @@
-+/*
-+ * MIPI DBI Bus
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++/* Define to which motion detection region each element belongs.
++ * Each element is a __u8. */
++#define V4L2_MATRIX_T_MD_REGION     (1)
++/* Define the motion detection threshold for each element.
++ * Each element is a __u16. */
++#define V4L2_MATRIX_T_MD_THRESHOLD  (2)
++
++/**
++ * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @columns:	number of columns in the matrix
++ * @rows:	number of rows in the matrix
++ * @elem_min:	minimum matrix element value
++ * @elem_max:	maximum matrix element value
++ * @elem_size:	size in bytes each matrix element
++ * @reserved:	future extensions, applications and drivers must zero this.
 + */
++struct v4l2_query_matrix {
++	__u32 type;
++	__u32 columns;
++	__u32 rows;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 raw[4];
++	} elem_min;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 raw[4];
++	} elem_max;
++	__u32 elem_size;
++	__u32 reserved[16];
++} __attribute__ ((packed));
 +
-+#ifndef __MIPI_DBI_BUS_H__
-+#define __MIPI_DBI_BUS_H__
-+
-+#include <linux/device.h>
-+
-+struct mipi_dbi_bus;
-+struct mipi_dbi_device;
-+
-+struct mipi_dbi_bus_ops {
-+	int (*write_command)(struct mipi_dbi_bus *bus,
-+			     struct mipi_dbi_device *dev, u16 cmd);
-+	int (*write_data)(struct mipi_dbi_bus *bus, struct mipi_dbi_device *dev,
-+			  const u8 *data, size_t len);
-+	int (*read_data)(struct mipi_dbi_bus *bus, struct mipi_dbi_device *dev,
-+			 u8 *data, size_t len);
-+};
-+
-+struct mipi_dbi_bus {
-+	struct device *dev;
-+	const struct mipi_dbi_bus_ops *ops;
-+};
-+
-+#define MIPI_DBI_MODULE_PREFIX		"mipi-dbi:"
-+#define MIPI_DBI_NAME_SIZE		32
-+
-+struct mipi_dbi_device_id {
-+	char name[MIPI_DBI_NAME_SIZE];
-+	__kernel_ulong_t driver_data	/* Data private to the driver */
-+			__aligned(sizeof(__kernel_ulong_t));
-+};
-+
-+enum mipi_dbi_interface_type {
-+	MIPI_DBI_INTERFACE_TYPE_A,
-+	MIPI_DBI_INTERFACE_TYPE_B,
-+};
-+
-+#define MIPI_DBI_INTERFACE_TE		(1 << 0)
-+
-+struct mipi_dbi_interface_params {
-+	enum mipi_dbi_interface_type type;
-+	unsigned int flags;
-+
-+	unsigned int cs_setup;
-+	unsigned int rd_setup;
-+	unsigned int rd_latch;
-+	unsigned int rd_cycle;
-+	unsigned int rd_hold;
-+	unsigned int wr_setup;
-+	unsigned int wr_cycle;
-+	unsigned int wr_hold;
-+};
-+
-+#define MIPI_DBI_FLAG_ALIGN_LEFT	(1 << 0)
-+
-+struct mipi_dbi_device {
-+	const char *name;
-+	int id;
-+	struct device dev;
-+
-+	const struct mipi_dbi_device_id *id_entry;
-+	struct mipi_dbi_bus *bus;
-+
-+	unsigned int flags;
-+	unsigned int bus_width;
-+	unsigned int data_width;
-+};
-+
-+#define to_mipi_dbi_device(d)	container_of(d, struct mipi_dbi_device, dev)
-+
-+int mipi_dbi_device_register(struct mipi_dbi_device *dev,
-+			     struct mipi_dbi_bus *bus);
-+void mipi_dbi_device_unregister(struct mipi_dbi_device *dev);
-+
-+struct mipi_dbi_driver {
-+	int(*probe)(struct mipi_dbi_device *);
-+	int(*remove)(struct mipi_dbi_device *);
-+	struct device_driver driver;
-+	const struct mipi_dbi_device_id *id_table;
-+};
-+
-+#define to_mipi_dbi_driver(d)	container_of(d, struct mipi_dbi_driver, driver)
-+
-+int mipi_dbi_driver_register(struct mipi_dbi_driver *drv);
-+void mipi_dbi_driver_unregister(struct mipi_dbi_driver *drv);
-+
-+static inline void *mipi_dbi_get_drvdata(const struct mipi_dbi_device *dev)
-+{
-+	return dev_get_drvdata(&dev->dev);
-+}
-+
-+static inline void mipi_dbi_set_drvdata(struct mipi_dbi_device *dev,
-+					void *data)
-+{
-+	dev_set_drvdata(&dev->dev, data);
-+}
-+
-+/* module_mipi_dbi_driver() - Helper macro for drivers that don't do
-+ * anything special in module init/exit.  This eliminates a lot of
-+ * boilerplate.  Each module may only use this macro once, and
-+ * calling it replaces module_init() and module_exit()
++/**
++ * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @rect:	which part of the matrix to get/set
++ * @matrix:	pointer to the matrix of size (in bytes):
++ *		elem_size * rect.width * rect.height
++ * @reserved:	future extensions, applications and drivers must zero this.
 + */
-+#define module_mipi_dbi_driver(__mipi_dbi_driver) \
-+	module_driver(__mipi_dbi_driver, mipi_dbi_driver_register, \
-+			mipi_dbi_driver_unregister)
++struct v4l2_matrix {
++	__u32 type;
++	struct v4l2_rect rect;
++	void __user *matrix;
++	__u32 reserved[16];
++} __attribute__ ((packed));
 +
-+int mipi_dbi_set_data_width(struct mipi_dbi_device *dev, unsigned int width);
+ /*
+  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+  *
+@@ -1946,6 +1998,12 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++/* Experimental, these three ioctls may change over the next couple of kernel
++   versions. */
++#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
++#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
++#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
 +
-+int mipi_dbi_write_command(struct mipi_dbi_device *dev, u16 cmd);
-+int mipi_dbi_read_data(struct mipi_dbi_device *dev, u8 *data, size_t len);
-+int mipi_dbi_write_data(struct mipi_dbi_device *dev, const u8 *data,
-+			size_t len);
-+
-+#endif /* __MIPI_DBI_BUS__ */
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
 -- 
-1.8.1.5
+1.8.3.2
 
