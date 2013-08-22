@@ -1,114 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:45102 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754639Ab3HRVMs (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1134 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171Ab3HVCyo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Aug 2013 17:12:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <201307110112.57398.arnd@arndb.de>
-References: <Pine.LNX.4.44L0.1307101724430.1215-100000@iolanthe.rowland.org>
-	<201307110112.57398.arnd@arndb.de>
-Date: Sun, 18 Aug 2013 23:12:47 +0200
-Message-ID: <CAMuHMdVXeWaggY5FPKrr2fBBnKLq3Rqw9WF99N+AX5sFwBOnog@mail.gmail.com>
-Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 21 Aug 2013 22:54:44 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7M2sf45070259
+	for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 04:54:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id E4BE02A0760
+	for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 04:54:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130822025432.E4BE02A0760@tschai.lan>
+Date: Thu, 22 Aug 2013 04:54:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 11, 2013 at 1:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 10 July 2013, Alan Stern wrote:
->> This isn't right.  There are USB host controllers that use PIO, not
->> DMA.  The HAS_DMA dependency should go with the controller driver, not
->> the USB core.
->>
->> On the other hand, the USB core does call various routines like
->> dma_unmap_single.  It ought to be possible to compile these calls even
->> when DMA isn't enabled.  That is, they should be defined as do-nothing
->> stubs.
->
-> The asm-generic/dma-mapping-broken.h file intentionally causes link
-> errors, but that could be changed.
->
-> The better approach in my mind would be to replace code like
->
->
->         if (hcd->self.uses_dma)
->
-> with
->
->         if (IS_ENABLED(CONFIG_HAS_DMA) && hcd->self.uses_dma) {
->
-> which will reliably cause that reference to be omitted from object code,
-> but not stop giving link errors for drivers that actually require
-> DMA.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This can be done for drivers/usb/core/hcd.c.
+Results of the daily build of media_tree:
 
-But I'm a bit puzzled by drivers/usb/core/buffer.c. E.g.
+date:		Thu Aug 22 04:00:13 CEST 2013
+git branch:	test
+git hash:	bfd22c490bc74f9603ea90c37823036660a313e2
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-void *hcd_buffer_alloc(...)
-{
-        ....
-        /* some USB hosts just use PIO */
-        if (!bus->controller->dma_mask &&
-            !(hcd->driver->flags & HCD_LOCAL_MEM)) {
-                *dma = ~(dma_addr_t) 0;
-                return kmalloc(size, mem_flags);
-        }
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-        for (i = 0; i < HCD_BUFFER_POOLS; i++) {
-                if (size <= pool_max[i])
-                        return dma_pool_alloc(hcd->pool[i], mem_flags, dma);
-        }
-        return dma_alloc_coherent(hcd->self.controller, size, dma, mem_flags);
-}
+Detailed results are available here:
 
-which is called from usb_hcd_map_urb_for_dma():
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-                if (hcd->self.uses_dma) {
-                        ....
-                } else if (hcd->driver->flags & HCD_LOCAL_MEM) {
-                        ret = hcd_alloc_coherent(
-                                        urb->dev->bus, mem_flags,
-                                        &urb->setup_dma,
-                                        (void **)&urb->setup_packet,
-                                        sizeof(struct usb_ctrlrequest),
-                                        DMA_TO_DEVICE);
-                        ...
-                }
+Full logs are available here:
 
-So if DMA is not used (!hcd->self.uses_dma, i.e. bus->controller->dma_mask
-is zero), and HCD_LOCAL_MEM is set, we still end up calling dma_pool_alloc()?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-(Naively, I'm not so familiar with the USB code) I'd expect it to use
-kmalloc() instead?
+The Media Infrastructure API from this daily build is here:
 
-So I would change it to
-
-        if (!IS_ENABLED(CONFIG_HAS_DMA) ||
-            (!bus->controller->dma_mask &&
-             !(hcd->driver->flags & HCD_LOCAL_MEM))) {
-                *dma = ~(dma_addr_t) 0;
-                return kmalloc(size, mem_flags);
-        }
-
-Thanks for your clarification!
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+http://www.xs4all.nl/~hverkuil/spec/media.html
