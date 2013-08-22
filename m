@@ -1,160 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53936 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802Ab3HTKcl convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1403 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753442Ab3HVGj0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 06:32:41 -0400
-Date: Tue, 20 Aug 2013 12:32:31 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Message-ID: <408826654.91086.1376994751713.open-xchange@email.1and1.fr>
-In-Reply-To: <52123758.4090007@iki.fi>
-References: <641271032.80124.1376921926586.open-xchange@email.1and1.fr> <52123758.4090007@iki.fi>
-Subject: Re: avermedia A306 / PCIe-minicard (laptop)
+	Thu, 22 Aug 2013 02:39:26 -0400
+Message-ID: <5215B203.5080203@xs4all.nl>
+Date: Thu, 22 Aug 2013 08:38:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sylvester.nawrocki@gmail.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 08/10] DocBook: document new v4l motion detection
+ event.
+References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl> <1376305113-17128-9-git-send-email-hverkuil@xs4all.nl> <7288776.lXyIOr0qYX@avalon>
+In-Reply-To: <7288776.lXyIOr0qYX@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On 08/21/2013 11:41 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Monday 12 August 2013 12:58:31 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 40 +++++++++++++++++++
+>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  9 +++++
+>>  2 files changed, 49 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml index 89891ad..23ee1e3
+>> 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> @@ -94,6 +94,12 @@
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>> +	    <entry>&v4l2-event-motion-det;</entry>
+>> +            <entry><structfield>motion_det</structfield></entry>
+>> +	    <entry>Event data for event V4L2_EVENT_MOTION_DET.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry></entry>
+>>  	    <entry>__u8</entry>
+>>              <entry><structfield>data</structfield>[64]</entry>
+>>  	    <entry>Event data. Defined by the event type. The union
+>> @@ -242,6 +248,40 @@
+>>        </tgroup>
+>>      </table>
+>>
+>> +    <table frame="none" pgwide="1" id="v4l2-event-motion-det">
+>> +      <title>struct <structname>v4l2_event_motion_det</structname></title>
+>> +      <tgroup cols="3">
+>> +	&cs-str;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>flags</structfield></entry>
+>> +	    <entry>
+>> +	      Currently only one flag is available: if
+>> <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> +	      is set, then
+>> the <structfield>frame_sequence</structfield> field is valid, +	     
+>> otherwise that field should be ignored.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>frame_sequence</structfield></entry>
+>> +	    <entry>
+>> +	      The sequence number of the frame being received. Only valid if the
+>> +	      <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> flag was set.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>region_mask</structfield></entry>
+>> +	    <entry>
+>> +	      The bitmask of the regions that reported motion. There is at least
+>> one
+>> +	      region. If this field is 0, then no motion was detected at all.
+>> +	    </entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>> +
+>>      <table pgwide="1" frame="none" id="changes-flags">
+>>        <title>Changes</title>
+>>        <tgroup cols="3">
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+>> 5c70b61..d9c3e66 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> @@ -155,6 +155,15 @@
+>>  	    </entry>
+>>  	  </row>
+>>  	  <row>
+>> +	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
+>> +	    <entry>5</entry>
+>> +	    <entry>
+>> +	      <para>Triggered whenever the motion detection state changes, i.e.
+>> +	      whether motion is detected or not.
+> 
+> Isn't the event also triggered when region_mask changes from a non-zero value 
+> to a different non-zero value ? The second part of the sentence seems to imply 
+> that the even is only triggered when motion starts being detected or stops 
+> being detected.
 
-I have just putdown my screwdrivers :)
+Good point. How about this:
 
+"Triggered whenever the motion detection state for one or more of the regions
+changes."
 
-Yes it was three ICs
+Regards,
 
-
-on the bottom-side , no heatsinks (digital reception, that's why i guess) , is
-an AF9013-N1
-
-on the top-side, with a heatsink : CX23885-13Z , PCIe A/V controler
-
-on the top-side, with heat-sink + "radio-isolation" (aluminum box) XC3028ACQ ,
-so the analog reception .
-
- 
-Its all on a PCIe bus, the reason why i baught it ... :)
-
-
-
-To resume :
-
-
-AF9013-N1
-
-CX23885-13Z
-
-XC3028ACQ
-
-
-the drivers while scanning
-
-
-gpunk@medeb:~/Bureau$ dmesg |grep i2c
-[    2.363784] cx23885[0]: i2c scan: found device @ 0xa0  [eeprom]
-[    2.384721] cx23885[0]: i2c scan: found device @ 0xc2 
-[tuner/mt2131/tda8275/xc5000/xc3028]
-[    2.391502] cx23885[0]: i2c scan: found device @ 0x66  [???]
-[    2.392339] cx23885[0]: i2c scan: found device @ 0x88  [cx25837]
-[    2.392831] cx23885[0]: i2c scan: found device @ 0x98  [flatiron]
-[    5.306751] i2c /dev entries driver
-gpunk@medeb:~/Bureau$
-
-
- 4.560428] xc2028 2-0061: xc2028_get_reg 0008 called
-[    4.560989] xc2028 2-0061: Device is Xceive 0 version 0.0, firmware version
-0.0
-[    4.560990] xc2028 2-0061: Incorrect readback of firmware version.
-[ *    4.561184] xc2028 2-0061: Read invalid device hardware information - tuner
-hung?
-[ *    4.561386] xc2028 2-0061: 0.0      0.0
-[ *    4.674072] xc2028 2-0061: divisor= 00 00 64 00 (freq=400.000)
-[    4.697830] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[    4.698029] cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 18, latency: 0,
-mmio: 0xd3000000
-
-* --> I bypassed the "goto fail" to start debugging a little bit the
-tuner-xc2028.c/ko ... lines 869
-...
-
-
-
-The firmware doesnt get all loaded .
-gpunk@medeb:~/Bureau$  uname -a
-Linux medeb 3.11.0-rc6remi #1 SMP PREEMPT Mon Aug 19 13:30:04 CEST 2013 i686
-GNU/Linux
-gpunk@medeb:~/Bureau$
-
-
-With yesterday's tarball from linuxtv.org / media-build git .
-
-
-
-Best regards
-
-Rémi
-
-
-
-
-> Le 19 août 2013 à 17:18, Antti Palosaari <crope@iki.fi> a écrit :
->
->
-> On 08/19/2013 05:18 PM, remi wrote:
-> > Hello
-> >
-> > I have this card since months,
-> >
-> > http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=376&SI=true
-> >
-> > I have finally retested it with the cx23885 driver : card=39
-> >
-> >
-> >
-> > If I could do anything to identify : [    2.414734] cx23885[0]: i2c scan:
-> > found
-> > device @ 0x66  [???]
-> >
-> > Or "hookup" the xc5000 etc
-> >
-> > I'll be more than glad .
-> >
->
->
-> >
-> > ps: i opened it up a while ago,i saw an af9013 chip ? dvb-tuner looks like
-> > maybe the "device @ 0x66 i2c"
-> >
-> > I will double check , and re-write-down all the chips , i think 3 .
->
-> You have to identify all the chips, for DVB-T there is tuner missing.
->
-> USB-interface: cx23885
-> DVB-T demodulator: AF9013
-> RF-tuner: ?
->
-> If there is existing driver for used RF-tuner it comes nice hacking
-> project for some newcomer.
->
-> It is just tweaking and hacking to find out all settings. AF9013 driver
-> also needs likely some changes, currently it is used only for devices
-> having AF9015 with integrated AF9013, or AF9015 dual devices having
-> AF9015 + external AF9013 providing second tuner.
->
-> I have bought quite similar AverMedia A301 ages back as I was looking
-> for that AF9013 model, but maybe I have bought just wrong one... :)
->
->
-> regards
-> Antti
->
->
-> --
-> http://palosaari.fi/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Hans
