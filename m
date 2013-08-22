@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24311 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721Ab3H1Nez (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3880 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752698Ab3HVK1q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:34:55 -0400
-From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-To: kyungmin.park@samsung.com
-Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
-	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
-	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
-	tomasz.figa@gmail.com, kgene.kim@samsung.com,
-	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux@arm.linux.org.uk, ben-linux@fluff.org,
-	linux-samsung-soc@vger.kernel.org,
-	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-Subject: [PATCH v2 0/5] ARM: S5PV210: move to common clk framework
-Date: Wed, 28 Aug 2013 15:34:27 +0200
-Message-id: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
+	Thu, 22 Aug 2013 06:27:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 5/5] MAINTAINERS: add entries for adv7511 and adv7842.
+Date: Thu, 22 Aug 2013 12:27:30 +0200
+Message-Id: <99e0f6dd87b4c1e1ef0503ac13db2aec0fdf24e4.1377167031.git.hans.verkuil@cisco.com>
+In-Reply-To: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
+References: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
+References: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is the new s5pv210 clock implementation
-(using common clk framework).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This implementation is compatible with device tree definition and board files.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-This patch series is based on linux-next and has been tested on goni and aquila 
-boards using board file.
-
-This patch series require adding new registration method
-for PLL45xx and PLL46xx, which is included in this patch series:
-clk: samsung: pll: Use new registration method for PLL46xx
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21653.html
-clk: samsung: pll: Use new registration method for PLL45xx
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21652.html
-clk: samsung: exynos4: Rename exynos4_plls to exynos4x12_plls
-http://www.spinics.net/lists/arm-kernel/msg268486.html
-
-Mateusz Krawczuk (5):
-  media: s5p-tv: Restore vpll clock rate
-  media: s5p-tv: Fix sdo driver to work with CCF
-  media: s5p-tv: Fix mixer driver to work with CCF
-  clk: samsung: Add clock driver for s5pc110/s5pv210
-  ARM: s5pv210: Migrate clock handling to Common Clock Framework
-
- .../bindings/clock/samsung,s5pv210-clock.txt       |  72 ++
- arch/arm/mach-s5pv210/Kconfig                      |   9 +
- arch/arm/mach-s5pv210/Makefile                     |   4 +-
- arch/arm/mach-s5pv210/common.c                     |  17 +
- arch/arm/mach-s5pv210/common.h                     |  13 +
- arch/arm/mach-s5pv210/mach-aquila.c                |   1 +
- arch/arm/mach-s5pv210/mach-goni.c                  |   3 +-
- arch/arm/mach-s5pv210/mach-smdkc110.c              |   1 +
- arch/arm/mach-s5pv210/mach-smdkv210.c              |   1 +
- arch/arm/mach-s5pv210/mach-torbreck.c              |   1 +
- arch/arm/plat-samsung/Kconfig                      |   2 +-
- arch/arm/plat-samsung/init.c                       |   2 -
- drivers/clk/samsung/Makefile                       |   3 +
- drivers/clk/samsung/clk-s5pv210.c                  | 733 +++++++++++++++++++++
- drivers/media/platform/s5p-tv/mixer_drv.c          |  35 +-
- drivers/media/platform/s5p-tv/sdo_drv.c            |  45 +-
- include/dt-bindings/clock/samsung,s5pv210-clock.h  | 221 +++++++
- 17 files changed, 1140 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt
- create mode 100644 drivers/clk/samsung/clk-s5pv210.c
- create mode 100644 include/dt-bindings/clock/samsung,s5pv210-clock.h
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bf61e04..e50819b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -580,12 +580,24 @@ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/i2c/ad9389b*
+ 
++ANALOG DEVICES INC ADV7511 DRIVER
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/i2c/adv7511*
++
+ ANALOG DEVICES INC ADV7604 DRIVER
+ M:	Hans Verkuil <hans.verkuil@cisco.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/i2c/adv7604*
+ 
++ANALOG DEVICES INC ADV7842 DRIVER
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/i2c/adv7842*
++
+ ANALOG DEVICES INC ASOC CODEC DRIVERS
+ M:	Lars-Peter Clausen <lars@metafoo.de>
+ L:	device-drivers-devel@blackfin.uclinux.org
 -- 
-1.8.1.2
+1.8.3.2
 
