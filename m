@@ -1,125 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54304 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751475Ab3HULeh (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:42931 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218Ab3HVLdZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 07:34:37 -0400
-Date: Wed, 21 Aug 2013 14:34:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, k.debski@samsung.com
-Subject: Re: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond
- to reality
-Message-ID: <20130821113432.GC20717@valkosipuli.retiisi.org.uk>
-References: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
- <1732074.vUfkmKHbt9@avalon>
- <51B50340.4020509@iki.fi>
- <201306101329.53310.hverkuil@xs4all.nl>
+	Thu, 22 Aug 2013 07:33:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [PATCH v1 37/49] media: usb: cx231xx: prepare for enabling irq in complete()
+Date: Thu, 22 Aug 2013 13:33:20 +0200
+Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com> <1376756714-25479-38-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1376756714-25479-38-git-send-email-ming.lei@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201306101329.53310.hverkuil@xs4all.nl>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201308221333.20958.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Apologies for the much delayed answer.
-
-On Mon, Jun 10, 2013 at 01:29:53PM +0200, Hans Verkuil wrote:
-> On Mon June 10 2013 00:35:44 Sakari Ailus wrote:
-> > Hi Laurent,
-> > 
-> > Laurent Pinchart wrote:
-> > ...
-> > >>>>> @@ -745,13 +718,9 @@ applications when an output stream.</entry>
-> > >>>>>
-> > >>>>>   	    byte was captured, as returned by the
-> > >>>>>   	    <function>clock_gettime()</function> function for the relevant
-> > >>>>>   	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
-> > >>>>>
-> > >>>>> -	    <xref linkend="buffer-flags" />. For output streams the data
-> > >>>>> -	    will not be displayed before this time, secondary to the nominal
-> > >>>>> -	    frame rate determined by the current video standard in enqueued
-> > >>>>> -	    order. Applications can for example zero this field to display
-> > >>>>> -	    frames as soon as possible. The driver stores the time at which
-> > >>>>> -	    the first data byte was actually sent out in the
-> > >>>>> -	    <structfield>timestamp</structfield> field. This permits
-> > >>>>> +	    <xref linkend="buffer-flags" />. For output streams he driver
-> > >>>>
-> > >>>> 'he' -> 'the'
-> > >>>>
-> > >>>>> +	   stores the time at which the first data byte was actually sent
-> > >>>>> out
-> > >>>>> +	   in the  <structfield>timestamp</structfield> field. This permits
-> > >>>>
-> > >>>> Not true: the timestamp is taken after the whole frame was transmitted.
-> > >>>>
-> > >>>> Note that the 'timestamp' field documentation still says that it is the
-> > >>>> timestamp of the first data byte for capture as well, that's also wrong.
-> > >>>
-> > >>> I know we've already discussed this, but what about devices, such as
-> > >>> uvcvideo, that can provide the time stamp at which the image has been
-> > >>> captured ? I don't think it would be worth it making this configurable,
-> > >>> or even reporting the information to userspace, but shouldn't we give
-> > >>> some degree of freedom to drivers here ?
-> > >>
-> > >> Hmm. That's a good question --- if we allow variation then we preferrably
-> > >> should also provide a way for applications to know which case is which.
-> > >>
-> > >> Could the uvcvideo timestamps be meaningfully converted to the frame end
-> > >> time instead? I'd suppose that a frame rate dependent constant would
-> > >> suffice. However, how to calculate this I don't know.
-> > >
-> > > I don't think that's a good idea. The time at which the last byte of the image
-> > > is received is meaningless to applications. What they care about, for
-> > > synchronization purpose, is the time at which the image has been captured.
-> > >
-> > > I'm wondering if we really need to care for now. I would be enclined to leave
-> > > it as-is until an application runs into a real issue related to timestamps.
-> > 
-> > What do you mean by "image has been captured"? Which part of it?
-> > 
-> > What I was thinking was the possibility that we could change the 
-> > definition so that it'd be applicable to both cases: the time the whole 
-> > image is fully in the system memory is of secondary importance in both 
-> > cases anyway. As on embedded systems the time between the last pixel of 
-> > the image is fully captured to it being in the host system memory is 
-> > very, very short the two can be considered the same in most situations.
-> > 
-> > I wonder if this change would have any undesirable consequences.
+On Sat 17 August 2013 18:25:02 Ming Lei wrote:
+> Complete() will be run with interrupt enabled, so change to
+> spin_lock_irqsave().
 > 
-> I really think we need to add a buffer flag that states whether the timestamp
-> is taken at the start or at the end of the frame.
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/usb/cx231xx/cx231xx-audio.c |   10 ++++++----
+>  drivers/media/usb/cx231xx/cx231xx-core.c  |   10 ++++++----
+>  drivers/media/usb/cx231xx/cx231xx-vbi.c   |    5 +++--
+>  3 files changed, 15 insertions(+), 10 deletions(-)
 > 
-> For video receivers the timestamp at the end of the frame is the logical
-> choice and this is what almost all drivers do. Only for sensors can the start
-> of the frame be more suitable since the framerate can be variable.
-
-Do you have a use case in mind?
-
-The start-of-frame (frame sync) event is can be subscribed for that purpose.
-Most of the time the start-of-frame event is also generated by a different
-hardware sub-block (and thus sub-device) than the one that finally writes
-the image to the system memory. In the future there could be cases where
-it's a different driver altogeter, albeit we don't have one now. Besides
-possibly requiring at least a tiny hack to implement in a driver I could
-hardly argue that kind of an implementation would be more beautiful: the
-buffer timestamp is better associated with end-of-frame if possible. Systems
-that need the start-of-frame event generally need both (at least the ones
-I'm aware of).
-
-> /* Timestamp is taken at the start-of-frame, not the end-of-frame */
-> #define V4L2_BUF_FLAG_TIMESTAMP_SOF 0x0200
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
+> index 81a1d97..f6fa0af 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-audio.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
+> @@ -136,6 +136,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+>  		stride = runtime->frame_bits >> 3;
+>  
+>  		for (i = 0; i < urb->number_of_packets; i++) {
+> +			unsigned long flags;
+>  			int length = urb->iso_frame_desc[i].actual_length /
+>  				     stride;
+>  			cp = (unsigned char *)urb->transfer_buffer +
+> @@ -158,7 +159,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+>  				       length * stride);
+>  			}
+>  
+> -			snd_pcm_stream_lock(substream);
+> +			snd_pcm_stream_lock_irqsave(substream, flags);
+>  
+>  			dev->adev.hwptr_done_capture += length;
+>  			if (dev->adev.hwptr_done_capture >=
+> @@ -173,7 +174,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+>  						runtime->period_size;
+>  				period_elapsed = 1;
+>  			}
+> -			snd_pcm_stream_unlock(substream);
+> +			snd_pcm_stream_unlock_irqrestore(substream, flags);
+>  		}
+>  		if (period_elapsed)
+>  			snd_pcm_period_elapsed(substream);
+> @@ -224,6 +225,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+>  		stride = runtime->frame_bits >> 3;
+>  
+>  		if (1) {
+> +			unsigned long flags;
+>  			int length = urb->actual_length /
+>  				     stride;
+>  			cp = (unsigned char *)urb->transfer_buffer;
+> @@ -242,7 +244,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+>  				       length * stride);
+>  			}
+>  
+> -			snd_pcm_stream_lock(substream);
+> +			snd_pcm_stream_lock_irqsave(substream, flags);
+>  
+>  			dev->adev.hwptr_done_capture += length;
+>  			if (dev->adev.hwptr_done_capture >=
+> @@ -257,7 +259,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+>  						runtime->period_size;
+>  				period_elapsed = 1;
+>  			}
+> -			snd_pcm_stream_unlock(substream);
+> +			snd_pcm_stream_unlock_irqrestore(substream,flags);
+>  		}
+>  		if (period_elapsed)
+>  			snd_pcm_period_elapsed(substream);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+> index 4ba3ce0..593b397 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+> @@ -798,6 +798,7 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
+>  	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+>  	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
+>  	int i;
+> +	unsigned long flags;
+>  
+>  	switch (urb->status) {
+>  	case 0:		/* success */
+> @@ -813,9 +814,9 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
+>  	}
+>  
+>  	/* Copy data from URB */
+> -	spin_lock(&dev->video_mode.slock);
+> +	spin_lock_irqsave(&dev->video_mode.slock, flags);
+>  	dev->video_mode.isoc_ctl.isoc_copy(dev, urb);
+> -	spin_unlock(&dev->video_mode.slock);
+> +	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
+>  
+>  	/* Reset urb buffers */
+>  	for (i = 0; i < urb->number_of_packets; i++) {
+> @@ -842,6 +843,7 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
+>  	struct cx231xx_video_mode *vmode =
+>  	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+>  	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
+> +	unsigned long flags;
+>  
+>  	switch (urb->status) {
+>  	case 0:		/* success */
+> @@ -857,9 +859,9 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
+>  	}
+>  
+>  	/* Copy data from URB */
+> -	spin_lock(&dev->video_mode.slock);
+> +	spin_lock_irqsave(&dev->video_mode.slock, flags);
+>  	dev->video_mode.bulk_ctl.bulk_copy(dev, urb);
+> -	spin_unlock(&dev->video_mode.slock);
+> +	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
+>  
+>  	/* Reset urb buffers */
+>  	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+> index c027942..38e78f8 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+> @@ -306,6 +306,7 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
+>  	struct cx231xx_video_mode *vmode =
+>  	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+>  	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
+> +	unsigned long flags;
+>  
+>  	switch (urb->status) {
+>  	case 0:		/* success */
+> @@ -322,9 +323,9 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
+>  	}
+>  
+>  	/* Copy data from URB */
+> -	spin_lock(&dev->vbi_mode.slock);
+> +	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
+>  	dev->vbi_mode.bulk_ctl.bulk_copy(dev, urb);
+> -	spin_unlock(&dev->vbi_mode.slock);
+> +	spin_unlock_irqrestore(&dev->vbi_mode.slock, flags);
+>  
+>  	/* Reset status */
+>  	urb->status = 0;
 > 
-> I think it is a safe bet that we won't see 'middle of frame' timestamps, so
-> let's just add this flag.
-
-Agreed. I'll add the flag and resend.
-
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
