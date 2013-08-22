@@ -1,149 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53029 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757403Ab3HIMxl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:53:41 -0400
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:51118 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753699Ab3HVSXi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 14:23:38 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MRY00GN932402C0@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Aug 2013 14:23:37 -0400 (EDT)
+Date: Thu, 22 Aug 2013 15:23:31 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
-	<alfredodelaiti@netscape.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 3/3] cx23885: Add DTV support for Mygica X8502/X8507 boards
-Date: Fri,  9 Aug 2013 09:53:27 -0300
-Message-Id: <1376052807-8215-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1376052807-8215-1-git-send-email-m.chehab@samsung.com>
-References: <1376052807-8215-1-git-send-email-m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Javier =?UTF-8?B?QsO6Y2Fy?= <jbucar@lifia.info.unlp.edu.ar>
+Cc: Luis Polasek <lpolasek@gmail.com>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Olivier GRENIE <olivier.grenie@parrot.com>,
+	Patrick BOETTCHER <patrick.boettcher@parrot.com>
+Subject: Re: dib8000 scanning not working on 3.10.3
+Message-id: <20130822152331.6e186acd@samsung.com>
+In-reply-to: <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+ <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+ <20130801163624.GA10498@localhost> <20130801141518.258ff0a3@samsung.com>
+ <CAER7dwe9biLNZKtW6xQmD8J0Qmh4dMTi=chpUuQ_Dq5KKxJ5UQ@mail.gmail.com>
+ <20130805172605.1ba32958@samsung.com>
+ <CAER7dwcDxa4=i453tOU21ZJP9Opd01mZ-QYrLpQTcgB_yU4B+Q@mail.gmail.com>
+ <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those boards were missing the ISDB-T support.
+Em Thu, 22 Aug 2013 14:47:33 -0300
+Javier Búcar <jbucar@lifia.info.unlp.edu.ar> escreveu:
 
-Most of the work on this patch were done by Alfredo.
+> Hello Mauro, we have the bad commit:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=173a64cb3fcff1993b2aa8113e53fd379f6a968f
+> 
+> This is a very big commit. I don't known where to fix it. Can you help
+> me on fixing it
 
-My work here were to port this patch from Kernel 3.2 to upstream,
-fix the issue caused by the set_frontend bad hook, and add the
-Kconfig bits.
+Hmm.... So, the error is on this patch?
 
-Tested on a X8502 board rebranded as:
-"Leadership - Placa PCI-e de Captura de Vídeo Híbrida" - product code 3800.
+	author	Patrick Boettcher <pboettcher@kernellabs.com>	2013-04-22 15:45:52 (GMT)
+	[media] dib8000: enhancement
 
-Thanks-to: Alfredo Delaiti <alfredodelaiti@netscape.net>
-Tested-by: Alfredo Delaiti <alfredodelaiti@netscape.net>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/cx23885/Kconfig         |  1 +
- drivers/media/pci/cx23885/cx23885-cards.c |  6 ++++--
- drivers/media/pci/cx23885/cx23885-dvb.c   | 25 +++++++++++++++++++++++++
- 3 files changed, 30 insertions(+), 2 deletions(-)
+	The intend of this patch is to improve the support of the dib8000. 
 
-diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
-index b3688aa..5104c80 100644
---- a/drivers/media/pci/cx23885/Kconfig
-+++ b/drivers/media/pci/cx23885/Kconfig
-@@ -29,6 +29,7 @@ config VIDEO_CX23885
- 	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA10071 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_A8293 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2063 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2131 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 7e923f8..6a71a96 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -528,11 +528,12 @@ struct cx23885_board cx23885_boards[] = {
- 		} },
- 	},
- 	[CX23885_BOARD_MYGICA_X8507] = {
--		.name		= "Mygica X8507",
-+		.name		= "Mygica X8502/X8507 ISDB-T",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
- 		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
-+		.portb		= CX23885_MPEG_DVB,
- 		.input		= {
- 			{
- 				.type   = CX23885_VMUX_TELEVISION,
-@@ -1281,7 +1282,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MYGICA_X8507:
- 		/* GPIO-0 (0)Analog / (1)Digital TV */
- 		/* GPIO-1 reset XC5000 */
--		/* GPIO-2 reset LGS8GL5 / LGS8G75 */
-+		/* GPIO-2 demod reset */
- 		cx23885_gpio_enable(dev, GPIO_0 | GPIO_1 | GPIO_2, 1);
- 		cx23885_gpio_clear(dev, GPIO_1 | GPIO_2);
- 		mdelay(100);
-@@ -1677,6 +1678,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		break;
- 	case CX23885_BOARD_MYGICA_X8506:
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
-+	case CX23885_BOARD_MYGICA_X8507:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index a25a037..971e4ff 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -69,6 +69,7 @@
- #include "stb6100_cfg.h"
- #include "tda10071.h"
- #include "a8293.h"
-+#include "mb86a20s.h"
- 
- static unsigned int debug;
- 
-@@ -492,6 +493,15 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
- 	.if_khz = 5380,
- };
- 
-+static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
-+	.demod_address = 0x10,
-+};
-+
-+static struct xc5000_config mygica_x8507_xc5000_config = {
-+	.i2c_address = 0x61,
-+	.if_khz = 4000,
-+};
-+
- static struct stv090x_config prof_8000_stv090x_config = {
- 	.device                 = STV0903,
- 	.demod_mode             = STV090x_SINGLE,
-@@ -548,6 +558,7 @@ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
- 		}
- 		break;
- 	case CX23885_BOARD_MYGICA_X8506:
-+	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 		/* Select Digital TV */
- 		cx23885_gpio_set(dev, GPIO_0);
-@@ -1114,6 +1125,20 @@ static int dvb_register(struct cx23885_tsport *port)
- 		}
- 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
- 		break;
-+	case CX23885_BOARD_MYGICA_X8507:
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
-+		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
-+			&mygica_x8507_mb86a20s_config,
-+			&i2c_bus->i2c_adap);
-+		if (fe0->dvb.frontend != NULL) {
-+			dvb_attach(xc5000_attach,
-+			fe0->dvb.frontend,
-+			&i2c_bus2->i2c_adap,
-+			&mygica_x8507_xc5000_config);
-+		}
-+		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
-+		break;
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 		i2c_bus = &dev->i2c_bus[0];
- 		i2c_bus2 = &dev->i2c_bus[1];
+	Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com> 
+	Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com> 
+	Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com> 
+
+If so, then we need either Olivier or Patrick's help, as I don't have any
+documentation about the dib8000 chips.
+
+You can still take a look there at the code that checks for the
+chipset version, like:
+	if (state->revision == 0x8090) {
+		<some code for newer version>
+	} else {
+		<some code for the old version>
+	}
+
+If the code for the old version remains the same as before the patch.
+Where it doesn't remains the same, then it could be the source of the
+troubles.
+
+I suggest you to check what state->revision shows on your specific device,
+in order to do such analysis.
+
+I'll try latter to do some tests with the devices I have, but this could
+take some time, as I'm really busy those days.
+
+Regards,
+Mauro
+
+
+> Thanks in advance
+> Javier
+> 
+> On Wed, Aug 7, 2013 at 3:48 PM, Luis Polasek <lpolasek@gmail.com> wrote:
+> > Hi again Mauro, reverting both commits:
+> >
+> > *  59501bb792c66b85fb7fdbd740e788e3afc70bbd
+> > *  f45f513a9325b52a5f3e26ee8d15471e8b692947
+> >
+> > The problem still exists, I am unable to get any result, and also no
+> > error logs) :(
+> >
+> > What shall I do to try to fix this ? Do you need more info on my current setup.
+> >
+> > Thanks in advance and best regards...
+> >
+> > On Mon, Aug 5, 2013 at 5:26 PM, Mauro Carvalho Chehab
+> > <m.chehab@samsung.com> wrote:
+> >> Em Mon, 05 Aug 2013 16:09:56 -0300
+> >> Luis Polasek <lpolasek@gmail.com> escreveu:
+> >>
+> >>> Hi Mauro, I have tested using dvb5-scan, and the results are the same (no
+> >>> results, and no error logs) :(
+> >>>
+> >>>  Do you have any clue why it is not working with this kernel version ?
+> >>
+> >> c/c Oliver and Patrick, who maintains this driver
+> >>
+> >> There were a recent change on this driver, in order to support some newer
+> >> versions of this chipset. Perhaps those changes broke it for you.
+> >>
+> >> commit 59501bb792c66b85fb7fdbd740e788e3afc70bbd
+> >> Author: Olivier Grenie <olivier.grenie@parrot.com>
+> >> Date:   Mon Dec 31 09:51:17 2012 -0300
+> >>
+> >>     [media] dib7090p: improve the support of the dib7090 and dib7790
+> >>
+> >>     The intend of this patch is to improve the support of the dib7090 and
+> >>     dib7790. The AGC1 min value is set to 32768 by default. The actual AGC1 min
+> >>     and the external attenuation are controled depending on the received RF
+> >>     level.
+> >>
+> >>     Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+> >>     Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com>
+> >>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> commit f45f513a9325b52a5f3e26ee8d15471e8b692947
+> >> Author: Olivier Grenie <olivier.grenie@parrot.com>
+> >> Date:   Mon Dec 31 09:47:10 2012 -0300
+> >>
+> >>     [media] dib7090p: remove the support for the dib7090E
+> >>
+> >>     The intend of this patch is to remove the support for the dib7090E. The
+> >>     DiB7090E-package has never left prototype state and never made it to
+> >>     mass-prod-state.
+> >>
+> >>     Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+> >>     Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com>
+> >>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> Could you please revert those patches and see if they fix the issue?
+> >> Please try to revert this one first:
+> >>         http://git.linuxtv.org/media_tree.git/commitdiff_plain/59501bb792c66b85fb7fdbd740e788e3afc70bbd
+> >>
+> >> If this doesn't solve, try to revert just this one:
+> >>         http://git.linuxtv.org/media_tree.git/commitdiff_plain/f45f513a9325b52a5f3e26ee8d15471e8b692947
+> >>
+> >> then, try to revert both.
+> >>
+> >> AFAIKT, those are the only changes that may be affecting isdb-t on dib8000
+> >> driver.
+> >>
+> >> Thanks!
+> >> Mauro
+> >>
+> >>>
+> >>> Thanks and regards...
+> >>>
+> >>>
+> >>> On Thu, Aug 1, 2013 at 2:15 PM, Mauro Carvalho Chehab
+> >>> <m.chehab@samsung.com>wrote:
+> >>>
+> >>> > Em Thu, 1 Aug 2013 13:36:25 -0300
+> >>> > Ezequiel Garcia <ezequiel.garcia@free-electrons.com> escreveu:
+> >>> >
+> >>> > > Hi Luis,
+> >>> > >
+> >>> > > (I'm Ccing Mauro, who mantains this driver and might know what's going
+> >>> > on).
+> >>> > >
+> >>> > > On Wed, Jul 31, 2013 at 03:47:10PM -0300, Luis Polasek wrote:
+> >>> > > > Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
+> >>> > > > work anymore.
+> >>> > > >
+> >>> > > > I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
+> >>> > > > Pixelview SBTVD (dib8000 module*).This tools worked very well on
+> >>> > > > version 3.9.9 , but now it does not produces any result, and also
+> >>> > > > there are no error messages in the logs (dmesg).
+> >>> > > >
+> >>> > >
+> >>> > > Please run a git bisect and report your findings.
+> >>> > >
+> >>> > > Note that dibcom8000 shows just a handful of commit on 2013,
+> >>> > > so you could start reverting those and see what happens.
+> >>> >
+> >>> > Perhaps it is a failure at the DVBv3 emulation.
+> >>> >
+> >>> > Did it also break using dvbv5-scan (part of v4l-utils)?
+> >>> >
+> >>> > Regards,
+> >>> > Mauro
+> >>> > --
+> >>> >
+> >>> > Cheers,
+> >>> > Mauro
+> >>> >
+> >>
+> >>
+> >> --
+> >>
+> >> Cheers,
+> >> Mauro
+
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
