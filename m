@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53121 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751998Ab3HGWnT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 18:43:19 -0400
-Received: from dyn3-82-128-186-228.psoas.suomi.net ([82.128.186.228] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1V7CRp-0001oB-GK
-	for linux-media@vger.kernel.org; Thu, 08 Aug 2013 01:43:17 +0300
-Message-ID: <5202CD5D.1000509@iki.fi>
-Date: Thu, 08 Aug 2013 01:42:37 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:35760 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab3HVUBR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 16:01:17 -0400
+Message-ID: <52166E09.60908@wwwdotorg.org>
+Date: Thu, 22 Aug 2013 14:01:13 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.12] e4000 fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andrzej Hajda <a.hajda@samsung.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
+References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 1c26190a8d492adadac4711fe5762d46204b18b0:
+On 08/21/2013 08:41 AM, Andrzej Hajda wrote:
+> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
+> with embedded SoC ISP.
+> The driver exposes the sensor as two V4L2 subdevices:
+> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
+>   no controls.
+> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
+>   pre/post ISP cropping, downscaling via selection API, controls.
 
-   [media] exynos4-is: Correct colorspace handling at FIMC-LITE 
-(2013-06-28 15:33:27 -0300)
+The binding,
+Acked-by: Stephen Warren <swarren@nvidia.com>
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git rtl2832u_e4000
-
-for you to fetch changes up to 9b3fd8a3ff7ab8b02ef29fa17744323e786b4f2f:
-
-   e4000: change remaining pr_warn to dev_warn (2013-07-26 13:00:02 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (4):
-       e4000: implement DC offset correction
-       e4000: use swap() macro
-       e4000: make checkpatch.pl happy
-       e4000: change remaining pr_warn to dev_warn
-
-  drivers/media/tuners/e4000.c | 82 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------
-  drivers/media/tuners/e4000.h |  2 +-
-  2 files changed, 61 insertions(+), 23 deletions(-)
-
--- 
-http://palosaari.fi/
+(although it would be great if another DT binding maintainer gave it a
+quick look-over to make sure I didn't miss anything!)
