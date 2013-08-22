@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:50242 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793Ab3HUIiV convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:51651 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab3HVV1F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 04:38:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] s5p-tv: Include missing v4l2-dv-timings.h header file
-Date: Wed, 21 Aug 2013 10:38:18 +0200
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1376856050-30538-1-git-send-email-s.nawrocki@samsung.com> <5211C608.60201@xs4all.nl> <5214796E.5050000@samsung.com>
-In-Reply-To: <5214796E.5050000@samsung.com>
+	Thu, 22 Aug 2013 17:27:05 -0400
+Received: by mail-lb0-f176.google.com with SMTP id w10so2103304lbi.7
+        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 14:27:03 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: horms@verge.net.au, linux-sh@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: [PATCH v5 3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+Date: Fri, 23 Aug 2013 01:27:08 +0400
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	vladimir.barinov@cogentembedded.com
+References: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201308211038.18389.hverkuil@xs4all.nl>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201308230127.09051.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 21 August 2013 10:25:18 Sylwester Nawrocki wrote:
-> Hi Hans,
-> 
-> On 08/19/2013 09:15 AM, Hans Verkuil wrote:
-> > On 08/18/2013 10:00 PM, Sylwester Nawrocki wrote:
-> >> Include the v4l2-dv-timings.h header file which in the s5p-tv driver which
-> >> was supposed to be updated in commit 2576415846bcbad3c0a6885fc44f95083710
-> >> "[media] v4l2: move dv-timings related code to v4l2-dv-timings.c"
-> >>
-> >> This fixes following build error:
-> >>
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c: In function ‘hdmi_s_dv_timings’:
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:628:3: error: implicit declaration of function ‘v4l_match_dv_timings’
-> >>
-> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > My apologies for missing this one.
-> 
-> That's all right. Shit happens. I was wondering why this error
-> didn't show up in your daily builds.
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-I had a local patch for that and I forgot to remove it. So next time it will
-show up as an error again.
+Add the VIN and ADV7180 drivers to 'marzen_defconfig'.
 
-Regards,
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-	Hans
+---
+ arch/arm/configs/marzen_defconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+Index: media_tree/arch/arm/configs/marzen_defconfig
+===================================================================
+--- media_tree.orig/arch/arm/configs/marzen_defconfig
++++ media_tree/arch/arm/configs/marzen_defconfig
+@@ -84,6 +84,13 @@ CONFIG_GPIO_RCAR=y
+ CONFIG_THERMAL=y
+ CONFIG_RCAR_THERMAL=y
+ CONFIG_SSB=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_SOC_CAMERA=y
++CONFIG_VIDEO_RCAR_VIN=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_ADV7180=y
+ CONFIG_USB=y
+ CONFIG_USB_RCAR_PHY=y
+ CONFIG_MMC=y
