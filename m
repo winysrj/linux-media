@@ -1,97 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:48602 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396Ab3HKGC5 (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:39594 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753690Ab3HVRre (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Aug 2013 02:02:57 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: OF: add "sync-on-green-active" property
-Date: Sun, 11 Aug 2013 11:32:24 +0530
-Message-Id: <1376200944-20478-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 22 Aug 2013 13:47:34 -0400
+Received: by mail-pa0-f45.google.com with SMTP id bg4so2456045pad.4
+        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 10:47:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAER7dwcDxa4=i453tOU21ZJP9Opd01mZ-QYrLpQTcgB_yU4B+Q@mail.gmail.com>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+	<CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+	<20130801163624.GA10498@localhost>
+	<20130801141518.258ff0a3@samsung.com>
+	<CAER7dwe9biLNZKtW6xQmD8J0Qmh4dMTi=chpUuQ_Dq5KKxJ5UQ@mail.gmail.com>
+	<20130805172605.1ba32958@samsung.com>
+	<CAER7dwcDxa4=i453tOU21ZJP9Opd01mZ-QYrLpQTcgB_yU4B+Q@mail.gmail.com>
+Date: Thu, 22 Aug 2013 14:47:33 -0300
+Message-ID: <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com>
+Subject: Re: dib8000 scanning not working on 3.10.3
+From: =?ISO-8859-1?Q?Javier_B=FAcar?= <jbucar@lifia.info.unlp.edu.ar>
+To: Luis Polasek <lpolasek@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Olivier GRENIE <olivier.grenie@parrot.com>,
+	Patrick BOETTCHER <patrick.boettcher@parrot.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hello Mauro, we have the bad commit:
 
-This patch adds 'sync-on-green-active' property as part
-of endpoint property.
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=173a64cb3fcff1993b2aa8113e53fd379f6a968f
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-  
-  Changes for non RFC:
-  1: Fixed review comments pointed by Hans.
-  2: Added Ack from Sylwester.
-  
-  Changes for v5:
-  1: Changed description for sync-on-green-active property in
-     documentation file as suggested by Sylwester.
-  
-  Changes for v4:
-  1: Fixed review comments pointed by Sylwester.
+This is a very big commit. I don't known where to fix it. Can you help
+me on fixing it
+Thanks in advance
+Javier
 
-  Changes for v3:
-  1: Fixed review comments pointed by Laurent and Sylwester.
-
-  RFC v2 https://patchwork.kernel.org/patch/2578091/
-
-  RFC V1 https://patchwork.kernel.org/patch/2572341/
-  
- .../devicetree/bindings/media/video-interfaces.txt |    2 ++
- drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
- include/media/v4l2-mediabus.h                      |    3 +++
- 3 files changed, 9 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index e022d2d..ce719f8 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -88,6 +88,8 @@ Optional endpoint properties
- - field-even-active: field signal level during the even field data transmission.
- - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
-   signal.
-+- sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
-+  LOW/HIGH respectively.
- - data-lanes: an array of physical data lane indexes. Position of an entry
-   determines the logical lane number, while the value of an entry indicates
-   physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..5c4c9f0 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "data-shift", &v))
- 		bus->data_shift = v;
- 
-+	if (!of_property_read_u32(node, "sync-on-green-active", &v))
-+		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
-+			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
-+
- 	bus->flags = flags;
- 
- }
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 83ae07e..395c4a9 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -40,6 +40,9 @@
- #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
- /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
- #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-+/* Active state of Sync-on-green (SoG) signal, 0/1 for LOW/HIGH respectively. */
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.7.9.5
-
+On Wed, Aug 7, 2013 at 3:48 PM, Luis Polasek <lpolasek@gmail.com> wrote:
+> Hi again Mauro, reverting both commits:
+>
+> *  59501bb792c66b85fb7fdbd740e788e3afc70bbd
+> *  f45f513a9325b52a5f3e26ee8d15471e8b692947
+>
+> The problem still exists, I am unable to get any result, and also no
+> error logs) :(
+>
+> What shall I do to try to fix this ? Do you need more info on my current setup.
+>
+> Thanks in advance and best regards...
+>
+> On Mon, Aug 5, 2013 at 5:26 PM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+>> Em Mon, 05 Aug 2013 16:09:56 -0300
+>> Luis Polasek <lpolasek@gmail.com> escreveu:
+>>
+>>> Hi Mauro, I have tested using dvb5-scan, and the results are the same (no
+>>> results, and no error logs) :(
+>>>
+>>>  Do you have any clue why it is not working with this kernel version ?
+>>
+>> c/c Oliver and Patrick, who maintains this driver
+>>
+>> There were a recent change on this driver, in order to support some newer
+>> versions of this chipset. Perhaps those changes broke it for you.
+>>
+>> commit 59501bb792c66b85fb7fdbd740e788e3afc70bbd
+>> Author: Olivier Grenie <olivier.grenie@parrot.com>
+>> Date:   Mon Dec 31 09:51:17 2012 -0300
+>>
+>>     [media] dib7090p: improve the support of the dib7090 and dib7790
+>>
+>>     The intend of this patch is to improve the support of the dib7090 and
+>>     dib7790. The AGC1 min value is set to 32768 by default. The actual AGC1 min
+>>     and the external attenuation are controled depending on the received RF
+>>     level.
+>>
+>>     Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+>>     Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com>
+>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> commit f45f513a9325b52a5f3e26ee8d15471e8b692947
+>> Author: Olivier Grenie <olivier.grenie@parrot.com>
+>> Date:   Mon Dec 31 09:47:10 2012 -0300
+>>
+>>     [media] dib7090p: remove the support for the dib7090E
+>>
+>>     The intend of this patch is to remove the support for the dib7090E. The
+>>     DiB7090E-package has never left prototype state and never made it to
+>>     mass-prod-state.
+>>
+>>     Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+>>     Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com>
+>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> Could you please revert those patches and see if they fix the issue?
+>> Please try to revert this one first:
+>>         http://git.linuxtv.org/media_tree.git/commitdiff_plain/59501bb792c66b85fb7fdbd740e788e3afc70bbd
+>>
+>> If this doesn't solve, try to revert just this one:
+>>         http://git.linuxtv.org/media_tree.git/commitdiff_plain/f45f513a9325b52a5f3e26ee8d15471e8b692947
+>>
+>> then, try to revert both.
+>>
+>> AFAIKT, those are the only changes that may be affecting isdb-t on dib8000
+>> driver.
+>>
+>> Thanks!
+>> Mauro
+>>
+>>>
+>>> Thanks and regards...
+>>>
+>>>
+>>> On Thu, Aug 1, 2013 at 2:15 PM, Mauro Carvalho Chehab
+>>> <m.chehab@samsung.com>wrote:
+>>>
+>>> > Em Thu, 1 Aug 2013 13:36:25 -0300
+>>> > Ezequiel Garcia <ezequiel.garcia@free-electrons.com> escreveu:
+>>> >
+>>> > > Hi Luis,
+>>> > >
+>>> > > (I'm Ccing Mauro, who mantains this driver and might know what's going
+>>> > on).
+>>> > >
+>>> > > On Wed, Jul 31, 2013 at 03:47:10PM -0300, Luis Polasek wrote:
+>>> > > > Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
+>>> > > > work anymore.
+>>> > > >
+>>> > > > I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
+>>> > > > Pixelview SBTVD (dib8000 module*).This tools worked very well on
+>>> > > > version 3.9.9 , but now it does not produces any result, and also
+>>> > > > there are no error messages in the logs (dmesg).
+>>> > > >
+>>> > >
+>>> > > Please run a git bisect and report your findings.
+>>> > >
+>>> > > Note that dibcom8000 shows just a handful of commit on 2013,
+>>> > > so you could start reverting those and see what happens.
+>>> >
+>>> > Perhaps it is a failure at the DVBv3 emulation.
+>>> >
+>>> > Did it also break using dvbv5-scan (part of v4l-utils)?
+>>> >
+>>> > Regards,
+>>> > Mauro
+>>> > --
+>>> >
+>>> > Cheers,
+>>> > Mauro
+>>> >
+>>
+>>
+>> --
+>>
+>> Cheers,
+>> Mauro
