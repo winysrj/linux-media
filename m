@@ -1,24 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mppre.gob.ve ([64.212.74.237]:39222 "EHLO
-	mail.mppre.gob.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122Ab3HSSzM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 14:55:12 -0400
-Date: Mon, 19 Aug 2013 07:34:56 -0430 (VET)
-From: CORREO <conve.brspa@mppre.gob.ve>
-Reply-To: CORREO <upgrade.dept@careceo.com>
-Message-ID: <644481564.7896084.1376913896656.JavaMail.root@mppre.gob.ve>
-Subject: =?utf-8?Q?Alerta_final=E2=80=8F?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Received: from dmz-mailsec-scanner-1.mit.edu ([18.9.25.12]:42591 "EHLO
+	dmz-mailsec-scanner-1.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752127Ab3HVJHH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 05:07:07 -0400
+From: Wajeeha Ahmad <wajeeha@MIT.EDU>
+Subject: RE
+Date: Thu, 22 Aug 2013 08:52:47 +0000
+Message-ID: <091F9F111E5FAE458C62C13351CBB59D1312AA@OC11expo28.exchange.mit.edu>
+Content-Language: en-US
+Content-Type: text/plain; charset="koi8-r"
 Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+MIME-Version: 1.0
+To: Undisclosed recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Su contraseц╠a caducarц║ en 3 dц╜as formulario llenar y enviar de inmediato para validar su direcciцЁn de e-mail.
-Nombre de Usuario: .................
-Contraseц╠a anterior: .................
-Nueva Contraseц╠a: ................
-gracias
-administrador del sistema
+Ваш электронный идентификатор выиграл 1,000,000.00 фунтов от NOKIA 2013 КОНЕЦ ГОДА рисовать, состоявшемся на 2 августа 2013 ничьей с приложением номер "244". Вы должны связаться с нашим агентом претензии по этому e-mail: (nokiaclaim_dept@hotmail.co.uk) с, указанные ниже данные для претензий.
+
+Полное имя:
+Адрес:
+Номер мобильного телефона:
+Возраст:
+Страна:
+
+Контактное лицо: Mr.Harry Мур
+Контактный адрес электронной почты: nokiaclaim_dept@hotmail.co.uk
