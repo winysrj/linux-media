@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:46609 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755829Ab3HIMei (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:34:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l: Fix colorspace conversion error in sample code
-Date: Fri, 9 Aug 2013 14:34:08 +0200
-Cc: linux-media@vger.kernel.org
-References: <1375974070-2392-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1375974070-2392-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from sjdciscan04.udc.trendmicro.com ([66.180.85.17]:60467 "EHLO
+	sjdciscan04.udc.trendmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752763Ab3HWECw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Aug 2013 00:02:52 -0400
+From: "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: RE: [PATCH -next] [media] davinci: vpif_display: fix error return
+ code in vpif_probe()
+Date: Fri, 23 Aug 2013 03:39:35 +0000
+Message-ID: <A360F954C61C69449463B0606663711289760041@CDCEXMBX01.tw.trendnet.org>
+References: <CAPgLHd89o=SNERB1cCyQKUmyQE9q-hx6nj19yvVd_PzkOfp4BA@mail.gmail.com>
+ <CA+V-a8sY0ej8_w0paeGu4sotg+DtxpK=JFUk_BhVxy0pb_hz9g@mail.gmail.com>
+In-Reply-To: <CA+V-a8sY0ej8_w0paeGu4sotg+DtxpK=JFUk_BhVxy0pb_hz9g@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308091434.08529.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 8 August 2013 17:01:10 Laurent Pinchart wrote:
-> The sample code erroneously scales the y1, pb and pr variables from the
-> [0.0 .. 1.0] and [-0.5 .. 0.5] ranges to [0 .. 255] and [-128 .. 127].
-> Fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogUHJhYmhha2FyIExhZCBbbWFpbHRv
+OnByYWJoYWthci5jc2VuZ2dAZ21haWwuY29tXSANClNlbnQ6IDIwMTPE6jjUwjIzyNUgMTE6MTAN
+ClRvOiBXZWkgWW9uZ2p1bg0KQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYjsgWW9uZ2p1biBXZWkg
+KFJELUNOKTsgbGludXgtbWVkaWE7IGRsb3MNClN1YmplY3Q6IFJlOiBbUEFUQ0ggLW5leHRdIFtt
+ZWRpYV0gZGF2aW5jaTogdnBpZl9kaXNwbGF5OiBmaXggZXJyb3IgcmV0dXJuIGNvZGUgaW4gdnBp
+Zl9wcm9iZSgpDQoNCkhpIFdlaSwNCg0KT24gRnJpLCBBdWcgMjMsIDIwMTMgYXQgODoyOSBBTSwg
+V2VpIFlvbmdqdW4gPHdlaXlqLmxrQGdtYWlsLmNvbT4gd3JvdGU6DQo+IEZyb206IFdlaSBZb25n
+anVuIDx5b25nanVuX3dlaUB0cmVuZG1pY3JvLmNvbS5jbj4NCj4NCj4gRml4IHRvIHJldHVybiAt
+RU5PREVWIGluIHRoZSBzdWJkZXZpY2UgcmVnaXN0ZXIgZXJyb3IgaGFuZGxpbmcgY2FzZSANCj4g
+aW5zdGVhZCBvZiAwLCBhcyBkb25lIGVsc2V3aGVyZSBpbiB0aGlzIGZ1bmN0aW9uLg0KPg0KPiBJ
+bnRyb2R1Y2UgYnkgY29tbWl0IDRiOGE1MzFlNmJiMDY4NjIwM2U5Y2Y4MmE1NGRmZTE4OWRlN2Q1
+YzIuDQo+IChbbWVkaWFdIG1lZGlhOiBkYXZpbmNpOiB2cGlmOiBkaXNwbGF5OiBhZGQgVjRMMi1h
+c3luYyBzdXBwb3J0KQ0KPg0KVGhpcyBmaXggaXMgYWxyZWFkeSBwcmVzZW50IGluIHRoZSBrZXJu
+ZWwgd2l0aCBjb21taXQgaWQgNGZhOTRlMjI0Yjg0YmU3YjI1MjJhMGY1Y2U1YjY0MTI0ZjE0NmZh
+Yw0KDQpZZXMsIEkgZml4IHRoaXMgYmVmb3JlLCBidXQgY29tbWl0IDRiOGE1MzFlNmJiMDY4NjIw
+M2U5Y2Y4MmE1NGRmZTE4OWRlN2Q1YzIgcmV2ZXJ0ZWQgdGhpcyBmaXguDQoNClJlZ2FyZHMsDQot
+LVByYWJoYWthciBMYWQNCg0KPHRhYmxlIGNsYXNzPSJUTV9FTUFJTF9OT1RJQ0UiPjx0cj48dGQ+
+PHByZT4NClRSRU5EIE1JQ1JPIEVNQUlMIE5PVElDRQ0KVGhlIGluZm9ybWF0aW9uIGNvbnRhaW5l
+ZCBpbiB0aGlzIGVtYWlsIGFuZCBhbnkgYXR0YWNobWVudHMgaXMgY29uZmlkZW50aWFsIA0KYW5k
+IG1heSBiZSBzdWJqZWN0IHRvIGNvcHlyaWdodCBvciBvdGhlciBpbnRlbGxlY3R1YWwgcHJvcGVy
+dHkgcHJvdGVjdGlvbi4gDQpJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZW50LCB5
+b3UgYXJlIG5vdCBhdXRob3JpemVkIHRvIHVzZSBvciANCmRpc2Nsb3NlIHRoaXMgaW5mb3JtYXRp
+b24sIGFuZCB3ZSByZXF1ZXN0IHRoYXQgeW91IG5vdGlmeSB1cyBieSByZXBseSBtYWlsIG9yDQp0
+ZWxlcGhvbmUgYW5kIGRlbGV0ZSB0aGUgb3JpZ2luYWwgbWVzc2FnZSBmcm9tIHlvdXIgbWFpbCBz
+eXN0ZW0uDQo8L3ByZT48L3RkPjwvdHI+PC90YWJsZT4=
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  Documentation/DocBook/media/v4l/pixfmt.xml | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 99b8d2a..4babd4d 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -391,9 +391,9 @@ clamp (double x)
->  	else               return r;
->  }
->  
-> -y1 = (255 / 219.0) * (Y1 - 16);
-> -pb = (255 / 224.0) * (Cb - 128);
-> -pr = (255 / 224.0) * (Cr - 128);
-> +y1 = (Y1 - 16) / 219.0;
-> +pb = (Cb - 128) / 224.0;
-> +pr = (Cr - 128) / 224.0;
->  
->  r = 1.0 * y1 + 0     * pb + 1.402 * pr;
->  g = 1.0 * y1 - 0.344 * pb - 0.714 * pr;
-> 
