@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54641 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752113Ab3HZVqp (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60115 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755198Ab3HWWMK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Aug 2013 17:46:45 -0400
-Date: Tue, 27 Aug 2013 00:46:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tom <Bassai_Dai@gmx.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: media-ctl: line 1: syntax error: "(" unexpected
-Message-ID: <20130826214611.GC2835@valkosipuli.retiisi.org.uk>
-References: <loom.20130821T143312-331@post.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <loom.20130821T143312-331@post.gmane.org>
+	Fri, 23 Aug 2013 18:12:10 -0400
+Received: by mail-bk0-f46.google.com with SMTP id 6so428529bkj.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 15:12:09 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hansverk@cisco.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arun Kumar <arun.kk@samsung.com>
+Subject: [PATCH] v4l2-ctrls: Correct v4l2_ctrl_get_int_menu() function prototype
+Date: Sat, 24 Aug 2013 00:11:58 +0200
+Message-Id: <1377295918-14884-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tom,
+This function is supposed to return constant pointer to a constant.
+Also remove double const from the qmenu_int arrays' declarations.
 
-On Wed, Aug 21, 2013 at 12:40:42PM +0000, Tom wrote:
-> Hello,
-> 
-> I got the media-ctl tool from http://git.ideasonboard.org/git/media-ctl.git
-> and compiled and build it successfully. But when try to run it I get this error:
-> 
-> sudo ./media-ctl -r -l "ov3640 3-003c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> CCDC":1->"OMAP3 ISP CCDC output":0[1]
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Arun Kumar <arun.kk@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |    6 +++---
+ include/media/v4l2-common.h          |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-You're missing single quotes around the argument to -l option. Looks like
-the string will reach media-ctl altogether w/o quotes and as several command
-line arguments, and both are bad. Entity names need to be quoted if they
-contain spaces.
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c6dc1fd..d081f35 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -565,13 +565,13 @@ EXPORT_SYMBOL(v4l2_ctrl_get_menu);
+  * Returns NULL or an s64 type array containing the menu for given
+  * control ID. The total number of the menu items is returned in @len.
+  */
+-const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
++const s64 * const v4l2_ctrl_get_int_menu(u32 id, u32 *len)
+ {
+-	static const s64 const qmenu_int_vpx_num_partitions[] = {
++	static const s64 qmenu_int_vpx_num_partitions[] = {
+ 		1, 2, 4, 8,
+ 	};
+ 
+-	static const s64 const qmenu_int_vpx_num_ref_frames[] = {
++	static const s64 qmenu_int_vpx_num_ref_frames[] = {
+ 		1, 2, 3,
+ 	};
+ 
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 16550c4..e1c388c 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -86,7 +86,7 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
+ 		const char * const *menu_items);
+ const char *v4l2_ctrl_get_name(u32 id);
+ const char * const *v4l2_ctrl_get_menu(u32 id);
+-const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len);
++const s64 * const v4l2_ctrl_get_int_menu(u32 id, u32 *len);
+ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
+ int v4l2_ctrl_query_menu(struct v4l2_querymenu *qmenu,
+ 		struct v4l2_queryctrl *qctrl, const char * const *menu_items);
 -- 
-Regards,
+1.7.4.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
