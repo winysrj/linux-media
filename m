@@ -1,69 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47847 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775Ab3HSPTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 11:19:33 -0400
-Message-ID: <52123758.4090007@iki.fi>
-Date: Mon, 19 Aug 2013 18:18:48 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: remi <remi@remis.cc>
-CC: linux-media@vger.kernel.org
-Subject: Re: avermedia A306 / PCIe-minicard (laptop)
-References: <641271032.80124.1376921926586.open-xchange@email.1and1.fr>
-In-Reply-To: <641271032.80124.1376921926586.open-xchange@email.1and1.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1982 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172Ab3HWCkp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Aug 2013 22:40:45 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7N2eg2u064750
+	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 04:40:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 7E1DB2A0761
+	for <linux-media@vger.kernel.org>; Fri, 23 Aug 2013 04:40:38 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130823024038.7E1DB2A0761@tschai.lan>
+Date: Fri, 23 Aug 2013 04:40:38 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2013 05:18 PM, remi wrote:
-> Hello
->
-> I have this card since months,
->
-> http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=376&SI=true
->
-> I have finally retested it with the cx23885 driver : card=39
->
->
->
-> If I could do anything to identify : [    2.414734] cx23885[0]: i2c scan: found
-> device @ 0x66  [???]
->
-> Or "hookup" the xc5000 etc
->
-> I'll be more than glad .
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
->
-> ps: i opened it up a while ago,i saw an af9013 chip ? dvb-tuner looks like
-> maybe the "device @ 0x66 i2c"
->
-> I will double check , and re-write-down all the chips , i think 3 .
+date:		Fri Aug 23 04:00:24 CEST 2013
+git branch:	test
+git hash:	5be789fc84a752946f6bdf263b053ed7d4a12a1c
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-You have to identify all the chips, for DVB-T there is tuner missing.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.10.1-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.11-rc1-i686: WARNINGS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.11-rc1-x86_64: WARNINGS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-USB-interface: cx23885
-DVB-T demodulator: AF9013
-RF-tuner: ?
+Detailed results are available here:
 
-If there is existing driver for used RF-tuner it comes nice hacking 
-project for some newcomer.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-It is just tweaking and hacking to find out all settings. AF9013 driver 
-also needs likely some changes, currently it is used only for devices 
-having AF9015 with integrated AF9013, or AF9015 dual devices having 
-AF9015 + external AF9013 providing second tuner.
+Full logs are available here:
 
-I have bought quite similar AverMedia A301 ages back as I was looking 
-for that AF9013 model, but maybe I have bought just wrong one... :)
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-regards
-Antti
-
-
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/media.html
