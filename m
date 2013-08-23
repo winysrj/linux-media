@@ -1,43 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:33592 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752770Ab3H3CRb (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2334 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755284Ab3HWL0J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:31 -0400
-Received: by mail-pb0-f53.google.com with SMTP id up15so1236361pbc.12
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:31 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
+	Fri, 23 Aug 2013 07:26:09 -0400
+Message-ID: <521746B3.7030307@xs4all.nl>
+Date: Fri, 23 Aug 2013 13:25:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 02/19] uvcvideo: Return 0 when setting probe control succeeds.
-Date: Fri, 30 Aug 2013 11:17:01 +0900
-Message-Id: <1377829038-4726-3-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+CC: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH] v4l2-compat-ioctl32: add g/s_matrix support.
+References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl> <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+In-Reply-To: <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Return 0 instead of returning size of the probe control on successful set.
+Update of RFCv3 PATCH 03/10 from the "Matrix and Motion Detection support"
+patch series. This time I've actually tested it, and as a bonus found a
+bug in the G/S_SUBDEV_EDID32 handling as well.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Regards,
+
+	Hans
+
+[PATCH] v4l2-compat-ioctl32: add g/s_matrix support.
+
+Also fix a copy_to_user bug in put_v4l2_subdev_edid32(): the user and kernel
+pointers were used the wrong way around.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   50 ++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 695f6d9..1198989 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -296,6 +296,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
- 			"%d (exp. %u).\n", probe ? "probe" : "commit",
- 			ret, size);
- 		ret = -EIO;
-+	} else {
-+		ret = 0;
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..8fb3e86 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -772,11 +772,40 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
+ 		put_user(kp->start_block, &up->start_block) ||
+ 		put_user(kp->blocks, &up->blocks) ||
+ 		put_user(tmp, &up->edid) ||
+-		copy_to_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++		copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
+ 			return -EFAULT;
+ 	return 0;
+ }
+ 
++struct v4l2_matrix32 {
++	__u32 type;
++	struct v4l2_rect rect;
++	compat_caddr_t matrix;
++	__u32 reserved[16];
++} __attribute__ ((packed));
++
++static int get_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32 __user *up)
++{
++	u32 tmp;
++
++	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_matrix32)) ||
++	    get_user(kp->type, &up->type) ||
++	    copy_from_user(&kp->rect, &up->rect, sizeof(up->rect)) ||
++	    get_user(tmp, &up->matrix) ||
++	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++		return -EFAULT;
++	kp->matrix = compat_ptr(tmp);
++	return 0;
++}
++
++static int put_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32 __user *up)
++{
++	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_matrix32)) ||
++	    copy_to_user(&up->rect, &kp->rect, sizeof(up->rect)) ||
++	    copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
++		return -EFAULT;
++	return 0;
++}
+ 
+ #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
+ #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
+@@ -796,6 +825,8 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
+ #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
+ #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
+ #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
++#define VIDIOC_G_MATRIX32	_IOWR('V', 104, struct v4l2_matrix32)
++#define VIDIOC_S_MATRIX32	_IOWR('V', 105, struct v4l2_matrix32)
+ 
+ #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
+ #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
+@@ -817,6 +848,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		struct v4l2_event v2ev;
+ 		struct v4l2_create_buffers v2crt;
+ 		struct v4l2_subdev_edid v2edid;
++		struct v4l2_matrix v2matrix;
+ 		unsigned long vx;
+ 		int vi;
+ 	} karg;
+@@ -851,6 +883,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+ 	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
+ 	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
++	case VIDIOC_G_MATRIX32: cmd = VIDIOC_G_MATRIX; break;
++	case VIDIOC_S_MATRIX32: cmd = VIDIOC_S_MATRIX; break;
  	}
  
- 	kfree(data);
+ 	switch (cmd) {
+@@ -922,6 +956,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_DQEVENT:
+ 		compatible_arg = 0;
+ 		break;
++
++	case VIDIOC_G_MATRIX:
++	case VIDIOC_S_MATRIX:
++		err = get_v4l2_matrix32(&karg.v2matrix, up);
++		compatible_arg = 0;
++		break;
+ 	}
+ 	if (err)
+ 		return err;
+@@ -994,6 +1034,11 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_ENUMINPUT:
+ 		err = put_v4l2_input32(&karg.v2i, up);
+ 		break;
++
++	case VIDIOC_G_MATRIX:
++	case VIDIOC_S_MATRIX:
++		err = put_v4l2_matrix32(&karg.v2matrix, up);
++		break;
+ 	}
+ 	return err;
+ }
+@@ -1089,6 +1134,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_ENUM_FREQ_BANDS:
+ 	case VIDIOC_SUBDEV_G_EDID32:
+ 	case VIDIOC_SUBDEV_S_EDID32:
++	case VIDIOC_QUERY_MATRIX:
++	case VIDIOC_G_MATRIX32:
++	case VIDIOC_S_MATRIX32:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
 -- 
-1.8.4
+1.7.10.4
 
