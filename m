@@ -1,113 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:48930 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934068Ab3HIQD6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 12:03:58 -0400
-Received: by mail-ob0-f182.google.com with SMTP id wo10so6633362obc.13
-        for <linux-media@vger.kernel.org>; Fri, 09 Aug 2013 09:03:57 -0700 (PDT)
+Received: from sauhun.de ([89.238.76.85]:46688 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755054Ab3HWIwH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Aug 2013 04:52:07 -0400
+Date: Fri, 23 Aug 2013 10:52:03 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: linux-i2c@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH V3] i2c: move of helpers into the core
+Message-ID: <20130823085203.GC3035@katana>
+References: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
 MIME-Version: 1.0
-In-Reply-To: <CAPybu_2nzJ5YmjzMViK+bnChKdNT_XvP3KPz5JARTbQPKQugjA@mail.gmail.com>
-References: <1375483372-4354-1-git-send-email-ricardo.ribalda@gmail.com>
- <1375483372-4354-3-git-send-email-ricardo.ribalda@gmail.com>
- <51FD32F5.40200@googlemail.com> <CAPybu_2nzJ5YmjzMViK+bnChKdNT_XvP3KPz5JARTbQPKQugjA@mail.gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 9 Aug 2013 18:03:37 +0200
-Message-ID: <CAPybu_3mE16EeEuUvbimZr2Z2a0cNfPGpWYAZ2_qHPptqXQppQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] libv4lconvert: Support for RGB32 and BGR32 format
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bAmEntskrkuBymla"
+Content-Disposition: inline
+In-Reply-To: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ping?
 
-On Sun, Aug 4, 2013 at 10:05 AM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> Hello Gregor
->
-> Thanks for your comments. I have replied inline.
->
-> On Sat, Aug 3, 2013 at 6:42 PM, Gregor Jasny <gjasny@googlemail.com> wrote:
->> On 8/3/13 12:42 AM, Ricardo Ribalda Delgado wrote:
->>>
->>> +       case V4L2_PIX_FMT_RGB32:
->>> +               switch (dest_pix_fmt) {
->>> +               case V4L2_PIX_FMT_RGB24:
->>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
->>> height, 0);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_BGR24:
->>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
->>> height, 1);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_YUV420:
->>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 0,
->>> 4);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_YVU420:
->>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 0, 1,
->>> 4);
->>> +                       break;
->>> +               }
->>> +               if (src_size < (width * height * 4)) {
->>> +                       V4LCONVERT_ERR("short rgb32 data frame\n");
->>> +                       errno = EPIPE;
->>> +                       result = -1;
->>> +               }
->>> +               break;
->>
->>
->> I have not looked at the whole function but shouldn't this sanity check
->> happen before the actual work?
->
-> Yes, but it is how it is done in the whole library with all the
-> formats. Please grep for "short " on libv4lconvert.c
->
->> Also aren't you applying the condition here
->> also for rgb24_to_xxx which should have only three bpp?
->>
->
-> I have modified the function rgb24_to_yuv420 to support other bytes per pixel.
->
->>
->>> +       case V4L2_PIX_FMT_BGR32:
->>> +               switch (dest_pix_fmt) {
->>> +               case V4L2_PIX_FMT_RGB24:
->>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
->>> height, 1);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_BGR24:
->>> +                       v4lconvert_rgb32_to_rgb24(src, dest, width,
->>> height, 0);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_YUV420:
->>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 0,
->>> 4);
->>> +                       break;
->>> +               case V4L2_PIX_FMT_YVU420:
->>> +                       v4lconvert_rgb24_to_yuv420(src, dest, fmt, 1, 1,
->>> 4);
->>> +                       break;
->>> +               }
->>> +               if (src_size < (width * height * 4)) {
->>> +                       V4LCONVERT_ERR("short bgr32 data frame\n");
->>> +                       errno = EPIPE;
->>> +                       result = -1;
->>> +               }
->>> +               break;
->>
->>
->> Same here. And also in the other patch.
->>
->>
->
-> Thanks again
->
-> --
-> Ricardo Ribalda
+--bAmEntskrkuBymla
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Aug 22, 2013 at 06:00:14PM +0200, Wolfram Sang wrote:
+> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
+> that it is much cleaner to have this in the core. This also removes a
+> circular dependency between the helpers and the core, and so we can
+> finally register child nodes in the core instead of doing this manually
+> in each driver. So, fix the drivers and documentation, too.
+>=20
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 
+Applied to for-next!
 
--- 
-Ricardo Ribalda
+--bAmEntskrkuBymla
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSFyKzAAoJEBQN5MwUoCm2bI0QAK5awQ507hl+3+q76tlv3bM/
++m1YNlqdEye7K3+XmB48MpCUi65bGtoITuOg+DaWYxw3+A7RhoJgwkFyMZ0gpesj
+aHkFe51yVYiU4Zx1MVSpIDo5ufAmp+8FRM3TF++IgAq62/7fLtwhTJlU2qgzShzs
+rw8UbmXg9+VjWFRfw1tAl+Vz3sWb9+vH2fmNiwXyPMglOdpClKe28rXrABJ78Gqc
+cxqgatPqfBCxyob57z/hGShtPUZkRWdpMU/hjbfemsPrysbLQzmqVyVS2idFP1ad
+T3mJ3xbKXcyJNO4NjGWazxPnpZ74RfNIJQ5nerZfqralO2gdVW8EFwCYaEy9k8YF
+/EpBpMQkHz3Pb3eb4tZJa50cVCygjuikpPoxq9Mtao6T8VG0aVNj8NuE9ros2WS8
+YWkRaVRDN8fjW98vuw7HmNuHCfFZV7QQ8uCcDtrl9k7X+fLQIvxPAVgrDs7Qmugm
+9nzR9AchLDuHuBNRM42bz/t+cILX2ExwIMC5k1YouF0Inuvfrh3LSrEyaJSD8IEF
+VeRGJPNSEP+Ww2+bGexV56ziz8JeMNLaj5rghDw9h9Jz5D4nMRjqhsRAbSfjrlMb
+YfyMTzS/tmJgt2NPj2bc2DvK4JLfrS/SR5YsdWSgR6VQ0WUvPSLJL/rY8Gn/UJ2j
+gfliuM4Sj6/OhS+bbMX3
+=pGc6
+-----END PGP SIGNATURE-----
+
+--bAmEntskrkuBymla--
