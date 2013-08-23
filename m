@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46630 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755743Ab3HaRmd (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:50443 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754164Ab3HWJy6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 13:42:33 -0400
-Date: Sat, 31 Aug 2013 20:42:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <posciak@chromium.org>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, k.debski@samsung.com
-Subject: Re: [PATCH v1 14/19] v4l: Add v4l2_buffer flags for VP8-specific
- special frames.
-Message-ID: <20130831174228.GA4216@valkosipuli.retiisi.org.uk>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
- <52203EDB.8080308@xs4all.nl>
- <CACHYQ-pUhmPhMrbE8QWM+r6OWbBnOx7g6vjQvOxBSoodnPk4+Q@mail.gmail.com>
- <201308301012.46032.hverkuil@xs4all.nl>
+	Fri, 23 Aug 2013 05:54:58 -0400
+Date: Fri, 23 Aug 2013 12:54:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] sh_vou: almost forever loop in
+ sh_vou_try_fmt_vid_out()
+Message-ID: <20130823095444.GR31293@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201308301012.46032.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Pawel,
+The "i < " part of the "i < ARRAY_SIZE()" condition was missing.
 
-On Fri, Aug 30, 2013 at 10:12:45AM +0200, Hans Verkuil wrote:
-> Are prev/golden/altref frames mutually exclusive? If so, then perhaps we
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Does that apply to other types of frames as well (key, p and b)? If yes, the
-existing frame bits could be used for VP8 frame flags while the existing
-codecs could keep using the old definitions, i.e. same bits, but different
-macros.
-
-Just my five euro cents.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 7a9c5e9..41f612c 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -776,9 +776,10 @@ static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
+ 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 1,
+ 			      &pix->height, 0, VOU_MAX_IMAGE_HEIGHT, 1, 0);
+ 
+-	for (i = 0; ARRAY_SIZE(vou_fmt); i++)
++	for (i = 0; i < ARRAY_SIZE(vou_fmt); i++) {
+ 		if (vou_fmt[i].pfmt == pix->pixelformat)
+ 			return 0;
++	}
+ 
+ 	pix->pixelformat = vou_fmt[0].pfmt;
+ 
