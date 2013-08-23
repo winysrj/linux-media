@@ -1,611 +1,573 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:4476 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755646Ab3H3L3o (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40051 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab3HWMwE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:29:44 -0400
-From: Dinesh Ram <dinram@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dinesh.ram@cern.ch, Dinesh Ram <dinram@cisco.com>
-Subject: [PATCH 5/6] si4713 : Added the USB driver for Si4713
-Date: Fri, 30 Aug 2013 13:28:23 +0200
-Message-Id: <e94acd26ee235728f56a20c65bcb639fe48be749.1377861337.git.dinram@cisco.com>
-In-Reply-To: <1377862104-15429-1-git-send-email-dinram@cisco.com>
-References: <1377862104-15429-1-git-send-email-dinram@cisco.com>
-In-Reply-To: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
+	Fri, 23 Aug 2013 08:52:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>
+Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
+Date: Fri, 23 Aug 2013 14:53:18 +0200
+Message-ID: <1544715.uKei6kdjbJ@avalon>
+In-Reply-To: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the USB driver for the Silicon Labs development board.
-It contains the Si4713 FM transmitter chip.
+Hi Andrzej,
 
-Signed-off-by: Dinesh Ram <dinram@cisco.com>
----
- drivers/media/radio/si4713/Kconfig            |  15 +
- drivers/media/radio/si4713/Makefile           |   1 +
- drivers/media/radio/si4713/radio-usb-si4713.c | 538 ++++++++++++++++++++++++++
- 3 files changed, 554 insertions(+)
- create mode 100644 drivers/media/radio/si4713/radio-usb-si4713.c
+Thank you for the patch.
 
-diff --git a/drivers/media/radio/si4713/Kconfig b/drivers/media/radio/si4713/Kconfig
-index f8ac328..6229078 100644
---- a/drivers/media/radio/si4713/Kconfig
-+++ b/drivers/media/radio/si4713/Kconfig
-@@ -1,3 +1,18 @@
-+config USB_SI4713
-+	tristate "Silicon Labs Si4713 FM Radio Transmitter support with USB"
-+	depends on USB && RADIO_SI4713
-+	select SI4713
-+	---help---
-+	  This is a driver for USB devices with the Silicon Labs SI4713
-+	  chip. Currently these devices are known to work.
-+	  - 10c4:8244: Silicon Labs FM Transmitter USB device.
-+
-+	  Say Y here if you want to connect this type of radio to your
-+	  computer's USB port.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-usb-si4713.
-+
- config PLATFORM_SI4713
- 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with I2C"
- 	depends on I2C && RADIO_SI4713
-diff --git a/drivers/media/radio/si4713/Makefile b/drivers/media/radio/si4713/Makefile
-index 9d0bd0e..6524674 100644
---- a/drivers/media/radio/si4713/Makefile
-+++ b/drivers/media/radio/si4713/Makefile
-@@ -3,5 +3,6 @@
- #
- 
- obj-$(CONFIG_I2C_SI4713) += si4713.o
-+obj-$(CONFIG_USB_SI4713) += radio-usb-si4713.o
- obj-$(CONFIG_PLATFORM_SI4713) += radio-platform-si4713.o
- 
-diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-new file mode 100644
-index 0000000..7f7b322
---- /dev/null
-+++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-@@ -0,0 +1,538 @@
-+/*
-+ * Copyright 2013 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * 
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+/* kernel includes */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/input.h>
-+#include <linux/mutex.h>
-+#include <linux/i2c.h>
-+/* V4l includes */
-+#include <linux/videodev2.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-event.h>
-+#include <media/si4713.h>
-+
-+#include "si4713.h"
-+
-+/* driver and module definitions */
-+MODULE_AUTHOR("Dinesh Ram <dinesh.ram@cern.ch>");
-+MODULE_DESCRIPTION("Si4713 FM Transmitter USB driver");
-+MODULE_LICENSE("GPL v2");
-+
-+/* The Device announces itself as Cygnal Integrated Products, Inc. */
-+#define USB_SI4713_VENDOR		0x10c4 
-+#define USB_SI4713_PRODUCT		0x8244
-+
-+#define BUFFER_LENGTH			64
-+#define USB_TIMEOUT			1000
-+#define USB_RESP_TIMEOUT		50000
-+
-+/* USB Device ID List */
-+static struct usb_device_id usb_si4713_usb_device_table[] = {
-+	{USB_DEVICE_AND_INTERFACE_INFO(USB_SI4713_VENDOR, USB_SI4713_PRODUCT,
-+							USB_CLASS_HID, 0, 0) },
-+	{ }						/* Terminating entry */
-+};
-+
-+MODULE_DEVICE_TABLE(usb, usb_si4713_usb_device_table);
-+
-+struct si4713_usb_device {
-+	struct usb_device 	*usbdev;
-+	struct usb_interface 	*intf;
-+	struct video_device 	vdev;
-+	struct v4l2_device 	v4l2_dev;
-+	struct v4l2_subdev	*v4l2_subdev;
-+	struct mutex 		lock;
-+	struct i2c_adapter 	i2c_adapter;
-+
-+	u8 			*buffer;
-+};
-+
-+static inline struct si4713_usb_device *to_si4713_dev(struct v4l2_device *v4l2_dev)
-+{
-+	return container_of(v4l2_dev, struct si4713_usb_device, v4l2_dev);
-+}
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+					struct v4l2_capability *v)
-+{
-+	struct si4713_usb_device *radio = video_drvdata(file);
-+
-+	strlcpy(v->driver, "radio-usb-si4713", sizeof(v->driver));
-+	strlcpy(v->card, "Si4713 FM Transmitter", sizeof(v->card));
-+	usb_make_path(radio->usbdev, v->bus_info, sizeof(v->bus_info));
-+	v->device_caps = V4L2_CAP_MODULATOR | V4L2_CAP_RDS_OUTPUT;
-+	v->capabilities = v->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	
-+	return 0;
-+}
-+
-+static int vidioc_g_modulator(struct file *file, void *priv,
-+				struct v4l2_modulator *vm)
-+{
-+	struct si4713_usb_device *radio = video_drvdata(file);
-+	
-+	return v4l2_subdev_call(radio->v4l2_subdev, tuner, g_modulator, vm);
-+}
-+
-+static int vidioc_s_modulator(struct file *file, void *priv,
-+				const struct v4l2_modulator *vm)
-+{
-+	struct si4713_usb_device *radio = video_drvdata(file);
-+	
-+	return v4l2_subdev_call(radio->v4l2_subdev, tuner, s_modulator, vm);
-+}
-+
-+static int vidioc_s_frequency(struct file *file, void *priv,
-+				const struct v4l2_frequency *vf)
-+{
-+	struct si4713_usb_device *radio = video_drvdata(file);
-+	
-+	return v4l2_subdev_call(radio->v4l2_subdev, tuner, s_frequency, vf);
-+}
-+
-+static int vidioc_g_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *vf)
-+{
-+	struct si4713_usb_device *radio = video_drvdata(file);
-+	
-+	return v4l2_subdev_call(radio->v4l2_subdev, tuner, g_frequency, vf);
-+}
-+
-+static const struct v4l2_ioctl_ops usb_si4713_ioctl_ops = {
-+	.vidioc_querycap    	  = vidioc_querycap,
-+	.vidioc_g_modulator 	  = vidioc_g_modulator,
-+	.vidioc_s_modulator 	  = vidioc_s_modulator,
-+	.vidioc_g_frequency 	  = vidioc_g_frequency,
-+	.vidioc_s_frequency 	  = vidioc_s_frequency,
-+	.vidioc_log_status    	  = v4l2_ctrl_log_status,
-+        .vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
-+        .vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+};
-+
-+/* File system interface */
-+static const struct v4l2_file_operations usb_si4713_fops = {
-+	.owner		= THIS_MODULE,
-+	.open           = v4l2_fh_open,
-+	.release        = v4l2_fh_release,
-+	.poll           = v4l2_ctrl_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+};
-+
-+static void usb_si4713_video_device_release(struct v4l2_device *v4l2_dev)
-+{
-+	struct si4713_usb_device *radio = to_si4713_dev(v4l2_dev);
-+	struct i2c_adapter *adapter = &radio->i2c_adapter;
-+
-+	i2c_del_adapter(adapter);
-+	v4l2_device_unregister(&radio->v4l2_dev);
-+	kfree(radio->buffer);
-+	kfree(radio);
-+}
-+
-+/* 
-+ * This command sequence emulates the behaviour of the Windows driver.
-+ * The structure of these commands was determined by sniffing the 
-+ * usb traffic of the device during startup. 
-+ * Most likely, these commands make some queries to the device.
-+ * Commands are sent to enquire parameters like the bus mode, 
-+ * component revision, boot mode, the device serial number etc.
-+ * 
-+ * These commands are necessary to be sent in this order during startup.
-+ * The device fails to powerup if these commands are not sent. 
-+ * 
-+ * The complete list of startup commands is given in the start_seq table below.
-+ */
-+static int si4713_send_startup_command(struct si4713_usb_device *radio)
-+{
-+	unsigned long until_jiffies = jiffies + usecs_to_jiffies(USB_RESP_TIMEOUT) + 1;
-+	u8 *buffer = radio->buffer;
-+	int retval;
-+
-+	/* send the command */
-+	retval = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-+ 					0x09, 0x21, 0x033f, 0, radio->buffer, 
-+					BUFFER_LENGTH, USB_TIMEOUT);
-+ 	if (retval < 0)
-+ 		return retval;
-+
-+ 	for (;;) {
-+		/* receive the response */
-+		retval = usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
-+				0x01, 0xa1, 0x033f, 0, radio->buffer, 
-+				BUFFER_LENGTH, USB_TIMEOUT);
-+		if (retval < 0)
-+			return retval;
-+		if (!radio->buffer[1]) {
-+			/* USB traffic sniffing showed that some commands require
-+			 * additional checks. */
-+			switch (buffer[1]) {
-+			case 0x32:
-+				if (radio->buffer[2] == 0)
-+					return 0;
-+				break;
-+			case 0x14:
-+			case 0x12:
-+				if (radio->buffer[2] & SI4713_CTS)
-+					return 0;
-+				break;
-+			case 0x06:
-+				if ((radio->buffer[2] & SI4713_CTS) && radio->buffer[9] == 0x08)
-+					return 0;
-+				break;
-+			default:
-+				return 0;
-+			}
-+		}
-+		if (jiffies > until_jiffies)
-+			return -EIO;
-+		msleep(3);
-+	}
-+	
-+	return retval;
-+}
-+
-+struct si4713_start_seq_table {
-+	int len;
-+	u8 payload[8];
-+};
-+
-+/* 
-+ * Some of the startup commands that could be recognized are :
-+ * (0x03): Get serial number of the board (Response : CB000-00-00)
-+ * (0x06, 0x03, 0x03, 0x08, 0x01, 0x0f) : Get Component revision
-+ */
-+struct si4713_start_seq_table start_seq[] = {
-+	
-+	{ 1, { 0x03 } },
-+	{ 2, { 0x32, 0x7f } },
-+	{ 6, { 0x06, 0x03, 0x03, 0x08, 0x01, 0x0f } },
-+	{ 2, { 0x14, 0x02 } },
-+	{ 2, { 0x09, 0x90 } },
-+	{ 3, { 0x08, 0x90, 0xfa } },
-+	{ 2, { 0x36, 0x01 } },
-+	{ 2, { 0x05, 0x03 } },
-+	{ 7, { 0x06, 0x00, 0x06, 0x0e, 0x01, 0x0f, 0x05 } },
-+	{ 1, { 0x12 } },
-+	/* Commands that are sent after pressing the 'Initialize' 
-+	 	button in the windows application */
-+	{ 1, { 0x03 } },
-+	{ 1, { 0x01 } },
-+	{ 2, { 0x09, 0x90 } },
-+	{ 3, { 0x08, 0x90, 0xfa } },
-+	{ 1, { 0x34 } },
-+	{ 2, { 0x35, 0x01 } },
-+	{ 2, { 0x36, 0x01 } },
-+	{ 2, { 0x30, 0x09 } },
-+	{ 4, { 0x30, 0x06, 0x00, 0xe2 } },
-+	{ 3, { 0x31, 0x01, 0x30 } },
-+	{ 3, { 0x31, 0x04, 0x09 } },
-+	{ 2, { 0x05, 0x02 } },
-+	{ 6, { 0x06, 0x03, 0x03, 0x08, 0x01, 0x0f } },
-+};
-+
-+static int si4713_start_seq(struct si4713_usb_device *radio)
-+{
-+	int retval = 0;
-+	int i;
-+	
-+	radio->buffer[0] = 0x3f;
-+	
-+	for (i = 0; i < ARRAY_SIZE(start_seq); i++) {
-+		int len = start_seq[i].len;
-+		u8 *payload = start_seq[i].payload;
-+
-+		memcpy(radio->buffer + 1, payload, len);
-+		memset(radio->buffer + len + 1, 0, BUFFER_LENGTH - 1 - len);
-+		retval = si4713_send_startup_command(radio);
-+	}
-+	
-+	return retval;
-+}
-+
-+static struct i2c_board_info si4713_board_info = {
-+	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
-+};
-+
-+struct si4713_command_table {
-+	int command_id;
-+	u8 payload[8];
-+};
-+
-+/* 
-+ * Structure of a command :
-+ * 	Byte 1 : 0x3f (always)
-+ * 	Byte 2 : 0x06 (send a command)
-+ * 	Byte 3 : Unknown 
-+ * 	Byte 4 : Number of arguments + 1 (for the command byte)
-+ * 	Byte 5 : Number of response bytes
-+ */
-+struct si4713_command_table command_table[] = {
-+	
-+	{ SI4713_CMD_POWER_UP,		{ 0x00, SI4713_PWUP_NARGS + 1, SI4713_PWUP_NRESP} },
-+	{ SI4713_CMD_GET_REV,		{ 0x03, 0x01, SI4713_GETREV_NRESP } },
-+	{ SI4713_CMD_POWER_DOWN,	{ 0x00, 0x01, SI4713_PWDN_NRESP} }, 
-+	{ SI4713_CMD_SET_PROPERTY,	{ 0x00, SI4713_SET_PROP_NARGS + 1, SI4713_SET_PROP_NRESP } },
-+	{ SI4713_CMD_GET_PROPERTY,	{ 0x00, SI4713_GET_PROP_NARGS + 1, SI4713_GET_PROP_NRESP } }, 
-+	{ SI4713_CMD_TX_TUNE_FREQ,	{ 0x03, SI4713_TXFREQ_NARGS + 1, SI4713_TXFREQ_NRESP } }, 
-+	{ SI4713_CMD_TX_TUNE_POWER,	{ 0x03, SI4713_TXPWR_NARGS + 1, SI4713_TXPWR_NRESP } }, 
-+	{ SI4713_CMD_TX_TUNE_MEASURE,	{ 0x03, SI4713_TXMEA_NARGS + 1, SI4713_TXMEA_NRESP } },
-+	{ SI4713_CMD_TX_TUNE_STATUS,	{ 0x00, SI4713_TXSTATUS_NARGS + 1, SI4713_TXSTATUS_NRESP } }, 
-+	{ SI4713_CMD_TX_ASQ_STATUS,	{ 0x03, SI4713_ASQSTATUS_NARGS + 1, SI4713_ASQSTATUS_NRESP } },
-+	{ SI4713_CMD_GET_INT_STATUS,	{ 0x03, 0x01, SI4713_GET_STATUS_NRESP } },
-+	{ SI4713_CMD_TX_RDS_BUFF,	{ 0x03, SI4713_RDSBUFF_NARGS + 1, SI4713_RDSBUFF_NRESP } },
-+	{ SI4713_CMD_TX_RDS_PS,		{ 0x00, SI4713_RDSPS_NARGS + 1, SI4713_RDSPS_NRESP } },	
-+};
-+
-+static int send_command(struct si4713_usb_device *radio, u8 *payload, char *data, int len)
-+{
-+	int retval;
-+	
-+	radio->buffer[0] = 0x3f;
-+	radio->buffer[1] = 0x06;
-+	
-+	memcpy(radio->buffer + 2, payload, 3);
-+	memcpy(radio->buffer + 5, data, len); 
-+	memset(radio->buffer + 5 + len, 0, BUFFER_LENGTH - 5 - len);
-+	
-+	/* send the command */
-+	retval = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-+					0x09, 0x21, 0x033f, 0, radio->buffer, 
-+					BUFFER_LENGTH, USB_TIMEOUT);
-+	
-+	return retval < 0 ? retval : 0;
-+}
-+
-+static int si4713_i2c_read(struct si4713_usb_device *radio, char *data, int len)
-+{
-+	unsigned long until_jiffies = jiffies + usecs_to_jiffies(USB_RESP_TIMEOUT) + 1;
-+	int retval;
-+	
-+	/* receive the response */
-+	for (;;) {
-+		retval = usb_control_msg(radio->usbdev, 
-+					usb_rcvctrlpipe(radio->usbdev, 0),
-+					0x01, 0xa1, 0x033f, 0, radio->buffer,
-+					BUFFER_LENGTH, USB_TIMEOUT);
-+		if (retval < 0)
-+			return retval;
-+
-+		/*
-+		 * Check that we get a valid reply back (buffer[1] == 0) and
-+		 * that CTS is set before returning, otherwise we wait and try
-+		 * again. The i2c driver also does the CTS check, but the timeouts
-+		 * used there are much too small for this USB driver, so we wait
-+		 * for it here.
-+		 */
-+		if (radio->buffer[1] == 0 && (radio->buffer[2] & SI4713_CTS)) {
-+			memcpy(data, radio->buffer + 2, len);
-+			return 0;
-+		}
-+		if (jiffies > until_jiffies) {
-+			/* Zero the status value, ensuring CTS isn't set */
-+			data[0] = 0;
-+			return 0;
-+		}
-+		msleep(3);
-+	}
-+}
-+
-+static int si4713_i2c_write(struct si4713_usb_device *radio, char *data, int len)
-+{
-+	int retval;
-+	int i;
-+	
-+	if (len > BUFFER_LENGTH - 5)
-+		return -EINVAL;
-+	
-+	for (i = 0; i < ARRAY_SIZE(command_table); i++) {
-+		if (data[0] == command_table[i].command_id)
-+			retval = send_command(radio, command_table[i].payload, data, len);
-+	}
-+				
-+	return retval < 0 ? retval : 0;
-+}
-+
-+static int si4713_transfer(struct i2c_adapter *i2c_adapter, struct i2c_msg *msgs, int num)
-+{
-+	struct si4713_usb_device *radio = i2c_get_adapdata(i2c_adapter);
-+	int retval = -EINVAL;
-+	int i;
-+
-+	if (num <= 0)
-+		return 0;
-+
-+	for (i = 0; i < num; i++) {
-+		if (msgs[i].flags & I2C_M_RD)
-+			retval = si4713_i2c_read(radio, msgs[i].buf, msgs[i].len);
-+		else
-+			retval = si4713_i2c_write(radio, msgs[i].buf, msgs[i].len);
-+		if (retval)
-+			break;
-+	}
-+	
-+	return retval ? retval : num; 
-+}
-+ 
-+static u32 si4713_functionality(struct i2c_adapter *adapter)
-+{
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-+}
-+ 
-+static struct i2c_algorithm si4713_algo = {
-+	.master_xfer   = si4713_transfer,	
-+	.functionality = si4713_functionality,
-+};
-+
-+/* This name value shows up in the sysfs filename associated 
-+	 	with this I2C adapter */
-+static struct i2c_adapter si4713_i2c_adapter_template = {
-+	.name   = "si4713-i2c",
-+	.owner  = THIS_MODULE,
-+	.algo   = &si4713_algo,
-+};
-+
-+int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
-+{
-+	radio->i2c_adapter = si4713_i2c_adapter_template;
-+	/* set up sysfs linkage to our parent device */
-+	radio->i2c_adapter.dev.parent = &radio->usbdev->dev;
-+	i2c_set_adapdata(&radio->i2c_adapter, radio);
-+
-+	return i2c_add_adapter(&radio->i2c_adapter);
-+}
-+
-+/* check if the device is present and register with v4l and usb if it is */
-+static int usb_si4713_probe(struct usb_interface *intf,
-+				const struct usb_device_id *id) 
-+{	
-+	struct si4713_usb_device *radio;
-+	struct i2c_adapter *adapter;
-+	struct v4l2_subdev *sd;
-+	int retval = -ENOMEM;
-+
-+	dev_info(&intf->dev, "Si4713 development board discovered: (%04X:%04X)\n",
-+			id->idVendor, id->idProduct);
-+	
-+	/* Initialize local device structure */
-+	radio = kzalloc(sizeof(struct si4713_usb_device), GFP_KERNEL);
-+	if (radio)
-+		radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
-+
-+	if (!radio || !radio->buffer) {
-+		dev_err(&intf->dev, "kmalloc for si4713_usb_device failed\n");
-+		kfree(radio);
-+		return -ENOMEM;
-+	}
-+	
-+	mutex_init(&radio->lock);
-+	
-+	radio->usbdev = interface_to_usbdev(intf);
-+	radio->intf = intf;
-+	usb_set_intfdata(intf, &radio->v4l2_dev);
-+	
-+	retval = si4713_start_seq(radio);
-+	if (retval < 0)
-+		goto err_v4l2;
-+	
-+	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "couldn't register v4l2_device\n");
-+		goto err_v4l2;
-+	}
-+	
-+	retval = si4713_register_i2c_adapter(radio);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "could not register i2c device\n");
-+		goto err_i2cdev;
-+	}
-+	
-+	adapter = &radio->i2c_adapter;
-+	sd = v4l2_i2c_new_subdev_board(&radio->v4l2_dev, adapter,
-+					  &si4713_board_info, NULL);
-+	radio->v4l2_subdev = sd;
-+	if (!sd) {
-+		dev_err(&intf->dev, "cannot get v4l2 subdevice\n");
-+		retval = -ENODEV;
-+		goto del_adapter; 
-+	}
-+
-+	radio->vdev.ctrl_handler = sd->ctrl_handler;
-+	radio->v4l2_dev.release = usb_si4713_video_device_release;
-+	strlcpy(radio->vdev.name, radio->v4l2_dev.name,
-+		sizeof(radio->vdev.name));
-+	radio->vdev.v4l2_dev = &radio->v4l2_dev;
-+	radio->vdev.fops = &usb_si4713_fops;
-+	radio->vdev.ioctl_ops = &usb_si4713_ioctl_ops;
-+	radio->vdev.lock = &radio->lock;
-+	radio->vdev.release = video_device_release_empty;
-+	radio->vdev.vfl_dir = VFL_DIR_TX;
-+
-+	video_set_drvdata(&radio->vdev, radio);
-+	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
-+	
-+	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "could not register video device\n");
-+		goto del_adapter;
-+	}
-+	
-+	dev_info(&intf->dev, "V4L2 device registered as %s\n",
-+			video_device_node_name(&radio->vdev));
-+	
-+	return 0;
-+
-+del_adapter:
-+	i2c_del_adapter(adapter);
-+err_i2cdev:
-+	v4l2_device_unregister(&radio->v4l2_dev);
-+err_v4l2:
-+	kfree(radio->buffer);
-+	kfree(radio);
-+	return retval;
-+}
-+
-+static void usb_si4713_disconnect(struct usb_interface *intf)
-+{	
-+	struct si4713_usb_device *radio = to_si4713_dev(usb_get_intfdata(intf));
-+	
-+	dev_info(&intf->dev, "Si4713 development board now disconnected\n");
-+	
-+	mutex_lock(&radio->lock);
-+	usb_set_intfdata(intf, NULL);
-+	video_unregister_device(&radio->vdev);
-+	v4l2_device_disconnect(&radio->v4l2_dev);
-+	mutex_unlock(&radio->lock);
-+	v4l2_device_put(&radio->v4l2_dev);
-+}
-+
-+/* USB subsystem interface */
-+static struct usb_driver usb_si4713_driver = {
-+	.name			= "radio-usb-si4713",
-+	.probe			= usb_si4713_probe,
-+	.disconnect		= usb_si4713_disconnect,
-+	.id_table		= usb_si4713_usb_device_table,
-+};
-+
-+module_usb_driver(usb_si4713_driver);
-+
+On Wednesday 21 August 2013 16:41:31 Andrzej Hajda wrote:
+> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
+> with embedded SoC ISP.
+> The driver exposes the sensor as two V4L2 subdevices:
+> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
+>   no controls.
+> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
+>   pre/post ISP cropping, downscaling via selection API, controls.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> Hi,
+> 
+> This patch incorporates Stephen's suggestions, thanks.
+> 
+> Regards
+> Andrzej
+> 
+> v7
+> - changed description of 'clock-frequency' DT property
+> 
+> v6
+> - endpoint node presence is now optional,
+> - added asynchronous subdev registration support and clock
+>   handling,
+> - use named gpios in DT bindings
+> 
+> v5
+> - removed hflip/vflip device tree properties
+> 
+> v4
+> - GPL changed to GPLv2,
+> - bitfields replaced by u8,
+> - cosmetic changes,
+> - corrected s_stream flow,
+> - gpio pins are no longer exported,
+> - added I2C addresses to subdev names,
+> - CIS subdev registration postponed after
+>   succesfull HW initialization,
+> - added enums for pads,
+> - selections are initialized only during probe,
+> - default resolution changed to 1600x1200,
+> - state->error pattern removed from few other functions,
+> - entity link creation moved to registered callback.
+> 
+> v3:
+> - narrowed state->error usage to i2c and power errors,
+> - private gain controls replaced by red/blue balance user controls,
+> - added checks to devicetree gpio node parsing
+> 
+> v2:
+> - lower-cased driver name,
+> - removed underscore from regulator names,
+> - removed platform data code,
+> - v4l controls grouped in anonymous structs,
+> - added s5k5baf_clear_error function,
+> - private controls definitions moved to uapi header file,
+> - added v4l2-controls.h reservation for private controls,
+> - corrected subdev registered/unregistered code,
+> - .log_status sudbev op set to v4l2 helper,
+> - moved entity link creation to probe routines,
+> - added cleanup on error to probe function.
+> ---
+>  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   59 +
+>  MAINTAINERS                                        |    7 +
+>  drivers/media/i2c/Kconfig                          |    7 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/s5k5baf.c                        | 2045 +++++++++++++++++
+>  5 files changed, 2119 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/samsung-s5k5baf.txt create mode
+> 100644 drivers/media/i2c/s5k5baf.c
+
+[snip]
+
+> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> new file mode 100644
+> index 0000000..f21d9f1
+> --- /dev/null
+> +++ b/drivers/media/i2c/s5k5baf.c
+
+[snip]
+
+> +enum s5k5baf_pads_id {
+> +	PAD_CIS,
+> +	PAD_OUT,
+> +	CIS_PAD_NUM = 1,
+> +	ISP_PAD_NUM = 2
+> +};
+
+You can just use #define's here, the enum doesn't bring any additional value 
+and isn't very explicit.
+
+> +static struct v4l2_rect s5k5baf_cis_rect = { 0, 0, S5K5BAF_CIS_WIDTH,
+> +				     S5K5BAF_CIS_HEIGHT };
+
+Shouldn't this be const ?
+
+> +static u16 s5k5baf_i2c_read(struct s5k5baf *state, u16 addr)
+> +{
+> +	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
+> +	u16 w, r;
+
+You should declare these variables as __be16.
+
+> +	struct i2c_msg msg[] = {
+> +		{ .addr = c->addr, .flags = 0,
+> +		  .len = 2, .buf = (u8 *)&w },
+> +		{ .addr = c->addr, .flags = I2C_M_RD,
+> +		  .len = 2, .buf = (u8 *)&r },
+> +	};
+> +	int ret;
+> +
+> +	if (state->error)
+> +		return 0;
+> +
+> +	w = htons(addr);
+
+Wouldln't cpu_to_be16() be more appropriate ?
+
+> +	ret = i2c_transfer(c->adapter, msg, 2);
+> +	r = ntohs(r);
+
+And be16_to_cpu() here.
+
+> +
+> +	v4l2_dbg(3, debug, c, "i2c_read: 0x%04x : 0x%04x\n", addr, r);
+> +
+> +	if (ret != 2) {
+> +		v4l2_err(c, "i2c_read: error during transfer (%d)\n", ret);
+> +		state->error = ret;
+> +	}
+> +	return r;
+> +}
+
+[snip]
+
+> +static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
+> +				  u16 count, const u16 *seq)
+> +{
+> +	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
+> +	u16 buf[count + 1];
+> +	int ret, n;
+> +
+> +	s5k5baf_i2c_write(state, REG_CMDWR_ADDR, addr);
+> +	if (state->error)
+> +		return;
+
+I would have a preference for returning an error directly from the write 
+function instead of storing it in state->error, that would be more explicit. 
+The same is true for all read/write functions.
+
+> +	buf[0] = __constant_htons(REG_CMD_BUF);
+> +	for (n = 1; n <= count; ++n)
+> +		buf[n] = htons(*seq++);
+
+cpu_to_be16()/be16_to_cpu() here as well ?
+
+> +
+> +	n *= 2;
+> +	ret = i2c_master_send(c, (char *)buf, n);
+> +	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
+> +		 min(2 * count, 64), seq - count);
+> +
+> +	if (ret != n) {
+> +		v4l2_err(c, "i2c_write_seq: error during transfer (%d)\n", ret);
+> +		state->error = ret;
+> +	}
+> +}
+
+[snip]
+
+> +static void s5k5baf_hw_set_ccm(struct s5k5baf *state)
+
+A small comment explaining what this function configures would be nice.
+
+> +{
+> +	static const u16 nseq_cfg[] = {
+> +		NSEQ(REG_PTR_CCM_HORIZON,
+> +		REG_ARR_CCM(0), PAGE_IF_SW,
+> +		REG_ARR_CCM(1), PAGE_IF_SW,
+> +		REG_ARR_CCM(2), PAGE_IF_SW,
+> +		REG_ARR_CCM(3), PAGE_IF_SW,
+> +		REG_ARR_CCM(4), PAGE_IF_SW,
+> +		REG_ARR_CCM(5), PAGE_IF_SW),
+> +		NSEQ(REG_PTR_CCM_OUTDOOR,
+> +		REG_ARR_CCM(6), PAGE_IF_SW),
+> +		NSEQ(REG_ARR_CCM(0),
+> +		/* horizon */
+> +		0x010d, 0xffa7, 0xfff5, 0x003b, 0x00ef, 0xff38,
+> +		0xfe42, 0x0270, 0xff71, 0xfeed, 0x0198, 0x0198,
+> +		0xff95, 0xffa3, 0x0260, 0x00ec, 0xff33, 0x00f4,
+> +		/* incandescent */
+> +		0x010d, 0xffa7, 0xfff5, 0x003b, 0x00ef, 0xff38,
+> +		0xfe42, 0x0270, 0xff71, 0xfeed, 0x0198, 0x0198,
+> +		0xff95, 0xffa3, 0x0260, 0x00ec, 0xff33, 0x00f4,
+> +		/* warm white */
+> +		0x01ea, 0xffb9, 0xffdb, 0x0127, 0x0109, 0xff3c,
+> +		0xff2b, 0x021b, 0xff48, 0xff03, 0x0207, 0x0113,
+> +		0xffca, 0xff93, 0x016f, 0x0164, 0xff55, 0x0163,
+> +		/* cool white */
+> +		0x01ea, 0xffb9, 0xffdb, 0x0127, 0x0109, 0xff3c,
+> +		0xff2b, 0x021b, 0xff48, 0xff03, 0x0207, 0x0113,
+> +		0xffca, 0xff93, 0x016f, 0x0164, 0xff55, 0x0163,
+> +		/* daylight 5000K */
+> +		0x0194, 0xffad, 0xfffe, 0x00c5, 0x0103, 0xff5d,
+> +		0xfee3, 0x01ae, 0xff27, 0xff18, 0x018f, 0x00c8,
+> +		0xffe8, 0xffaa, 0x01c8, 0x0132, 0xff3e, 0x0100,
+> +		/* daylight 6500K */
+> +		0x0194, 0xffad, 0xfffe, 0x00c5, 0x0103, 0xff5d,
+> +		0xfee3, 0x01ae, 0xff27, 0xff18, 0x018f, 0x00c8,
+> +		0xffe8, 0xffaa, 0x01c8, 0x0132, 0xff3e, 0x0100,
+> +		/* outdoor */
+> +		0x01cc, 0xffc3, 0x0009, 0x00a2, 0x0106, 0xff3f,
+> +		0xfed8, 0x01fe, 0xff08, 0xfec7, 0x00f5, 0x0119,
+> +		0xffdf, 0x0024, 0x01a8, 0x0170, 0xffad, 0x011b),
+> +		0
+> +	};
+> +	s5k5baf_write_nseq(state, nseq_cfg);
+> +}
+> +
+> +static void s5k5baf_hw_set_cis(struct s5k5baf *state)
+
+Same here.
+
+> +{
+> +	static const u16 nseq_cfg[] = {
+> +		NSEQ(0xc202, 0x0700),
+> +		NSEQ(0xf260, 0x0001),
+> +		NSEQ(0xf414, 0x0030),
+> +		NSEQ(0xc204, 0x0100),
+> +		NSEQ(0xf402, 0x0092, 0x007f),
+> +		NSEQ(0xf700, 0x0040),
+> +		NSEQ(0xf708,
+> +		0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+> +		0x0040, 0x0040, 0x0040, 0x0040, 0x0040,
+> +		0x0001, 0x0015, 0x0001, 0x0040),
+> +		NSEQ(0xf48a, 0x0048),
+> +		NSEQ(0xf10a, 0x008b),
+> +		NSEQ(0xf900, 0x0067),
+> +		NSEQ(0xf406, 0x0092, 0x007f, 0x0003, 0x0003, 0x0003),
+> +		NSEQ(0xf442, 0x0000, 0x0000),
+> +		NSEQ(0xf448, 0x0000),
+> +		NSEQ(0xf456, 0x0001, 0x0010, 0x0000),
+> +		NSEQ(0xf41a, 0x00ff, 0x0003, 0x0030),
+> +		NSEQ(0xf410, 0x0001, 0x0000),
+> +		NSEQ(0xf416, 0x0001),
+> +		NSEQ(0xf424, 0x0000),
+> +		NSEQ(0xf422, 0x0000),
+> +		NSEQ(0xf41e, 0x0000),
+> +		NSEQ(0xf428, 0x0000, 0x0000, 0x0000),
+> +		NSEQ(0xf430, 0x0000, 0x0000, 0x0008, 0x0005, 0x000f, 0x0001,
+> +		0x0040, 0x0040, 0x0010),
+> +		NSEQ(0xf4d6, 0x0090, 0x0000),
+> +		NSEQ(0xf47c, 0x000c, 0x0000),
+> +		NSEQ(0xf49a, 0x0008, 0x0000),
+> +		NSEQ(0xf4a2, 0x0008, 0x0000),
+> +		NSEQ(0xf4b2, 0x0013, 0x0000, 0x0013, 0x0000),
+> +		NSEQ(0xf4aa, 0x009b, 0x00fb, 0x009b, 0x00fb),
+> +		0
+> +	};
+> +
+> +	s5k5baf_i2c_write(state, REG_CMDWR_PAGE, PAGE_IF_HW);
+> +	s5k5baf_write_nseq(state, nseq_cfg);
+> +	s5k5baf_i2c_write(state, REG_CMDWR_PAGE, PAGE_IF_SW);
+> +}
+
+[snip]
+
+> +/* Set auto/manual exposure and total gain */
+> +static void s5k5baf_hw_set_auto_exposure(struct s5k5baf *state, int value)
+> +{
+> +	unsigned int exp_time = state->ctrls.exposure->val;
+> +	u16 auto_alg;
+> +
+> +	auto_alg = s5k5baf_read(state, REG_DBG_AUTOALG_EN);
+
+Wouldn't it be faster to cache the register value in the state structure 
+instead of reading it back ? By the way, you might want to have a look at 
+regmap.
+
+> +
+> +	if (value == V4L2_EXPOSURE_AUTO) {
+> +		auto_alg |= AALG_AE_EN | AALG_DIVLEI_EN;
+> +	} else {
+> +		s5k5baf_hw_set_user_exposure(state, exp_time);
+> +		s5k5baf_hw_set_user_gain(state, state->ctrls.gain->val);
+> +		auto_alg &= ~(AALG_AE_EN | AALG_DIVLEI_EN);
+> +	}
+> +
+> +	s5k5baf_write(state, REG_DBG_AUTOALG_EN, auto_alg);
+> +}
+
+> +static void s5k5baf_hw_set_colorfx(struct s5k5baf *state, int val)
+> +{
+> +	static const u16 colorfx[] = {
+> +		[V4L2_COLORFX_NONE] = 0,
+> +		[V4L2_COLORFX_BW] = 1,
+> +		[V4L2_COLORFX_NEGATIVE] = 2,
+> +		[V4L2_COLORFX_SEPIA] = 3,
+> +		[V4L2_COLORFX_SKY_BLUE] = 4,
+> +		[V4L2_COLORFX_SKETCH] = 5,
+> +	};
+> +
+> +	if (val >= ARRAY_SIZE(colorfx)) {
+> +		v4l2_err(&state->sd, "colorfx(%d) out of range(%d)\n",
+> +			 val, ARRAY_SIZE(colorfx));
+> +		state->error = -EINVAL;
+
+Can this happen, given the range of admissible values for the control ?
+
+> +	} else {
+> +		s5k5baf_write(state, REG_G_SPEC_EFFECTS, colorfx[val]);
+> +	}
+> +}
+> +
+> +static int s5k5baf_find_pixfmt(struct v4l2_mbus_framefmt *mf)
+> +{
+> +	int i, c = -1;
+
+I tend to use unsigned int for integer variables that store unsigned content 
+(i in this case), but that might just be me.
+
+> +
+> +	for (i = 0; i < ARRAY_SIZE(s5k5baf_formats); i++) {
+> +		if (mf->colorspace != s5k5baf_formats[i].colorspace)
+> +			continue;
+> +		if (mf->code == s5k5baf_formats[i].code)
+> +			return i;
+> +		if (c < 0)
+> +			c = i;
+> +	}
+> +	return (c < 0) ? 0 : c;
+> +}
+
+[snip]
+
+> +static int s5k5baf_hw_set_video_bus(struct s5k5baf *state)
+> +{
+> +	u16 en_packets;
+> +
+> +	switch (state->bus_type) {
+> +	case V4L2_MBUS_CSI2:
+> +		en_packets = EN_PACKETS_CSI2;
+> +		break;
+> +	case V4L2_MBUS_PARALLEL:
+> +		en_packets = 0;
+> +		break;
+> +	default:
+> +		v4l2_err(&state->sd, "unknown video bus: %d\n",
+> +			 state->bus_type);
+> +		return -EINVAL;
+
+Can this happen ?
+
+> +	};
+> +
+> +	s5k5baf_write_seq(state, REG_OIF_EN_MIPI_LANES,
+> +			  state->nlanes, en_packets, 1);
+> +
+> +	return s5k5baf_clear_error(state);
+> +}
+
+[snip]
+
+> +static int s5k5baf_s_stream(struct v4l2_subdev *sd, int on)
+> +{
+> +	struct s5k5baf *state = to_s5k5baf(sd);
+> +	int ret;
+> +
+> +	if (state->streaming == !!on)
+> +		return 0;
+> +
+> +	mutex_lock(&state->lock);
+
+Shouldn't the lock protect the state->streaming check above ?
+
+> +	if (on) {
+> +		s5k5baf_hw_set_config(state);
+> +		ret = s5k5baf_hw_set_crop_rects(state);
+> +		if (ret < 0)
+> +			goto out;
+> +		s5k5baf_hw_set_stream(state, 1);
+> +		s5k5baf_i2c_write(state, 0xb0cc, 0x000b);
+> +	} else {
+> +		s5k5baf_hw_set_stream(state, 0);
+> +	}
+> +	ret = s5k5baf_clear_error(state);
+> +	if (!ret)
+> +		state->streaming = !state->streaming;
+> +
+> +out:
+> +	mutex_unlock(&state->lock);
+> +
+> +	return ret;
+> +}
+
+[snip]
+
+> +/*
+> + * V4L2 subdev internal operations
+> + */
+> +static int s5k5baf_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct v4l2_mbus_framefmt *mf;
+> +
+> +	mf = v4l2_subdev_get_try_format(fh, PAD_CIS);
+> +	s5k5baf_try_cis_format(mf);
+> +
+> +	if (s5k5baf_is_cis_subdev(sd))
+> +		return 0;
+
+What about defining two open operations instead, one for each subdev ?
+
+> +	mf = v4l2_subdev_get_try_format(fh, PAD_OUT);
+> +	mf->colorspace = s5k5baf_formats[0].colorspace;
+> +	mf->code = s5k5baf_formats[0].code;
+> +	mf->width = s5k5baf_cis_rect.width;
+> +	mf->height = s5k5baf_cis_rect.height;
+> +	mf->field = V4L2_FIELD_NONE;
+> +
+> +	*v4l2_subdev_get_try_crop(fh, PAD_CIS) = s5k5baf_cis_rect;
+> +	*v4l2_subdev_get_try_compose(fh, PAD_CIS) = s5k5baf_cis_rect;
+> +	*v4l2_subdev_get_try_crop(fh, PAD_OUT) = s5k5baf_cis_rect;
+> +
+> +	return 0;
+> +}
+> +
+> +static int s5k5baf_check_fw_revision(struct s5k5baf *state)
+> +{
+> +	u16 api_ver = 0, fw_rev = 0, s_id = 0;
+> +	int ret;
+> +
+> +	api_ver = s5k5baf_read(state, REG_FW_APIVER);
+> +	fw_rev = s5k5baf_read(state, REG_FW_REVISION) & 0xff;
+> +	s_id = s5k5baf_read(state, REG_FW_SENSOR_ID);
+> +	ret = s5k5baf_clear_error(state);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	v4l2_info(&state->sd, "FW API=%#x, revision=%#x sensor_id=%#x\n",
+> +		  api_ver, fw_rev, s_id);
+> +
+> +	if (api_ver == S5K5BAF_FW_APIVER)
+> +		return 0;
+
+I would have dealt with the error inside the if, but that's up to you.
+
+> +	v4l2_err(&state->sd, "FW API version not supported\n");
+> +	return -ENODEV;
+> +}
+> +
+> +static int s5k5baf_registered(struct v4l2_subdev *sd)
+> +{
+> +	struct s5k5baf *state = to_s5k5baf(sd);
+> +	int ret;
+> +
+> +	ret = v4l2_device_register_subdev(sd->v4l2_dev, &state->cis_sd);
+> +	if (ret < 0)
+> +		v4l2_err(sd, "failed to register subdev %s\n",
+> +			 state->cis_sd.name);
+> +	else
+> +		ret = media_entity_create_link(&state->cis_sd.entity, PAD_CIS,
+> +					       &state->sd.entity, PAD_CIS,
+> +					       MEDIA_LNK_FL_IMMUTABLE |
+> +					       MEDIA_LNK_FL_ENABLED);
+> +	return ret;
+> +}
+> +
+> +static void s5k5baf_unregistered(struct v4l2_subdev *sd)
+> +{
+> +	struct s5k5baf *state = to_s5k5baf(sd);
+> +	v4l2_device_unregister_subdev(&state->cis_sd);
+
+The unregistered operation is called from v4l2_device_unregister_subdev(). 
+Calling it again will be a no-op, the function will return immediately. You 
+can thus get rid of the unregistered operation completely.
+
+Similarly, the registered operation is called from 
+v4l2_device_register_subdev(). You can get rid of it as well and just create 
+the link in the probe function.
+
+> +}
+
+[snip]
+
+> +static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device
+> *dev) +{
+> +	struct device_node *node = dev->of_node;
+> +	struct device_node *node_ep;
+> +	struct v4l2_of_endpoint ep;
+> +	int ret;
+> +
+> +	if (!node) {
+> +		dev_err(dev, "no device-tree node provided\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = of_property_read_u32(node, "clock-frequency",
+> +				   &state->mclk_frequency);
+> +	if (ret < 0) {
+> +		state->mclk_frequency = S5K5BAF_DEFAULT_MCLK_FREQ;
+> +		dev_info(dev, "using default %u Hz clock frequency\n",
+> +			 state->mclk_frequency);
+> +	}
+> +
+> +	ret = s5k5baf_parse_gpios(state->gpios, dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	node_ep = v4l2_of_get_next_endpoint(node, NULL);
+> +	if (!node_ep) {
+> +		/* Default data bus configuration: MIPI CSI-2, 1 data lane. */
+> +		state->bus_type = V4L2_MBUS_CSI2;
+> +		state->nlanes = S5K5BAF_DEF_NUM_LANES;
+> +		dev_warn(dev, "no endpoint defined at node %s\n",
+> +			 node->full_name);
+> +		return 0;
+
+Shouldn't this be a fatal error ? If there's no endpoint the sensor isn't part 
+of any media pipeline, so it's unusable anyway.
+
+> +	}
+> +
+> +	v4l2_of_parse_endpoint(node_ep, &ep);
+> +	of_node_put(node_ep);
+> +	state->bus_type = ep.bus_type;
+> +
+> +	if (state->bus_type == V4L2_MBUS_CSI2)
+> +		state->nlanes = ep.bus.mipi_csi2.num_data_lanes;
+> +
+> +	return 0;
+> +}
+
 -- 
-1.8.4.rc2
+Regards,
+
+Laurent Pinchart
 
