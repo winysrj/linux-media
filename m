@@ -1,158 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:56856 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab3HUJ2V (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:35546 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754279Ab3HWALp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 05:28:21 -0400
-To: undisclosed-recipients:;
-Message-id: <52148830.5040209@samsung.com>
-Date: Wed, 21 Aug 2013 11:28:16 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v7 13/13] V4L: Add driver for s5k4e5 image sensor
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
- <52146403.9050702@xs4all.nl> <4486068.1NMnLxuSKb@flatron>
- <201308211024.58303.hverkuil@xs4all.nl> <521484BD.1070005@samsung.com>
-In-reply-to: <521484BD.1070005@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 22 Aug 2013 20:11:45 -0400
+Date: Fri, 23 Aug 2013 09:11:40 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, m.chehab@samsung.com,
+	magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v5 0/3] R8A7779/Marzen R-Car VIN driver support
+Message-ID: <20130823001140.GD9254@verge.net.au>
+References: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2013 11:13 AM, Sylwester Nawrocki wrote:
-> On 08/21/2013 10:24 AM, Hans Verkuil wrote:
->>>>> +static const char * const s5k4e5_supply_names[] = {
->>>>> +	"svdda",
->>>>> +	"svddio"
->>>>> +};
->>>>
->>>> I'm no regulator expert, but shouldn't this list come from the DT or
->>>> platform_data? Or are these names specific to this sensor?
->>>
->>> This is a list of regulator input (aka supply) names. In other words those 
->>> are usually names of pins of the consumer device (s5k4e5 chip in this 
->>> case) to which the regulators are connected. They are used as lookup keys 
->>> when looking up regulators, either from device tree or lookup tables.
->>
->> How does that work if you have two of these sensors? E.g. in a stereo-camera?
->> Can the regulator subsystem map those pins to the correct regulators?
->>
->> Again, sorry for my ignorance in this area as I've never used it. I just
->> want to make sure this information is stored in the right place.
+On Fri, Aug 23, 2013 at 01:19:13AM +0400, Sergei Shtylyov wrote:
+> Hello.
 > 
-> The _voltage regulator supply names_ are fixed but _voltage regulator_
-> is matched with a consumer device based on the supply name and name of
-> the consumer device. See usage of struct regulator_consumer_supply, e.g.
-> in arch/arm/mach-s5pv210/mach-goni.c board file. This is an example of
-> non-dt system, and something that would presumably be created by a driver
-> like em28xx if it wanted to use that sensor. I.e. em28xx would first
-> need to create a voltage regulator device and then pass in a
-> struct regulator_init_data the list of voltage supply definitions for
-> the consumers to be able to use this regulator.
+>    [Resending with a real version #.]
 > 
+>    Here's the set of 3 patches against the Mauro's 'media_tree.git' repo's
+> 'master' branch. Here we add the VIN driver platform code for the R8A7779/Marzen
+> with ADV7180 I2C video decoder.
 > 
-> In case of device tree the voltage supplies are specified in 
-> a DT node, which can be referenced by subsystems/drivers through 
-> struct device::of_node.
+> [1/3] ARM: shmobile: r8a7779: add VIN support
+> [2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
+> [3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
 > 
-> 	reg_a: voltage-regulator-a {
-> 		compatible = "regulator-fixed";
-> 		regulator-name = "REG_5V_A";
-> 		regulator-min-microvolt = <5000000>;
-> 		regulator-max-microvolt = <5000000>;
-> 		gpio = <...>;
-> 		...
-> 	};
-> 
-> 	reg_b: voltage-regulator-b {
-> 		compatible = "regulator-fixed";
-> 		regulator-name = "REG_3.3V_B";
-> 		regulator-min-microvolt = <3300000>;
-> 		regulator-max-microvolt = <3300000>;
-> 		gpio = <...>;
-> 		...
-> 	};
-> 
-> 	s5k4e5@20 {
-> 		compatible = "samsung,s5k4e5";
-> 		reg = <0x20>;
-> 		...
-> 		svdda-supply = <&reg_a>;
-> 		svddio-supply = <&reg_b>;
-> 		...
-> 	};
+>     Mauro has kindly agreed to merge this patchset thru his tree to resolve the
+> dependency on the driver's platform data header, provided that the maintainer
+> ACKs this. Simon, could you ACK the patchset ASAP -- Mauro expects to close his
+> tree for 3.12 this weekend or next Monday?
 
-I forgot to mention that each of the two sensors would of course have
-its corresponding DT node, but since they both have same slave address
-would likely be attached to separate I2C bus controllers, e.g.
+All three patches:
 
-/* I2C bus controller node */
-i2c-gpio-0 {
-	compatible = "i2c-gpio";
-	gpios = <...>;
-	...
- 	s5k4e5@20 {
- 		compatible = "samsung,s5k4e5";
- 		reg = <0x20>;
- 		...
- 		svdda-supply = <&reg_a>;
- 		svddio-supply = <&reg_b>;
- 		...
- 	};
-};
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 
-i2c-gpio-1 {
-	compatible = "i2c-gpio";
-	gpios = <...>;
-	...
- 	s5k4e5@20 {
- 		compatible = "samsung,s5k4e5";
- 		reg = <0x20>;
- 		...
- 		svdda-supply = <&reg_a>;
- 		svddio-supply = <&reg_b>;
- 		...
- 	};
-};
-
-So these sensors have same regulator supply names but different i2c_client
-(device) names, since they are children of different I2C bus adapters.
-
-> The regulator supply names are part of name of the property defining
-> a voltage regulator for a device. Properties in form of 
-> [supply_name]-supply are parsed by the regulator core when consumer
-> device driver calls regulator_get(). This way drivers don't need to
-> care whether the system is booted from Device Tree or not. They just
-> keep using the regulator API and the regulator supply lookup is done
-> the the core based on data in a board file or in device tree blob.
-> 
-> This is similar to the clock API operation, except that clkdev entries 
-> are usually defined per SOC/MCU rather than per board.
-> 
-> I hope it helps. I looked yesterday at the em28xx driver. Do you happen
-> to know if there is a schematic for one of devices this driver supports ?
-> Sorry, I didn't dig to hard yet.
-> At first sight I thought it may look a bit problematic and require 
-> significant amount of code to define regulators for the all supported 
-> sensors by this driver, should it be made to work with sensors that 
-> are currently known to be used only in embedded systems and use the 
-> regulators API. However it should be as simple as defining at least one 
-> regulator device and attaching regulator supply list definition for all 
-> supported sensors. Thus not that scary at all. And the subdev drivers 
-> can continue to use regulator API, without a need for any hacks making 
-> it optional through e.g. platform_data flag. And IMO if the regulator 
-> API is disabled currently by some x86 distros it should be enabled,
-> as long as some drivers need it.
-> 
-> --
-> Regards,
-> Sylwester
