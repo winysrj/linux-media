@@ -1,143 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60184 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753033Ab3H1OtN (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:41001 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752296Ab3HWMPf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 10:49:13 -0400
-Date: Wed, 28 Aug 2013 16:49:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] V4L2: add v4l2-clock helpers to register and unregister
- a fixed-rate clock
-In-Reply-To: <1634189.nIXkBbvd1k@avalon>
-Message-ID: <Pine.LNX.4.64.1308281545450.22743@axis700.grange>
-References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
- <1377696508-3190-2-git-send-email-g.liakhovetski@gmx.de> <1634189.nIXkBbvd1k@avalon>
+	Fri, 23 Aug 2013 08:15:35 -0400
+Message-ID: <52175262.3040702@cisco.com>
+Date: Fri, 23 Aug 2013 14:15:30 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+CC: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [RFCv4 PATCH] v4l2-compat-ioctl32: add g/s_matrix support.
+References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl> <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+In-Reply-To: <8b4d154fc2351c7c1f2999bfec665011dd0afdb9.1377166147.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Aug 2013, Laurent Pinchart wrote:
+Update of RFCv3 PATCH 03/10 from the "Matrix and Motion Detection support"
+patch series. This time I've actually tested it, and as a bonus found a
+bug in the G/S_SUBDEV_EDID32 handling as well.
 
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 28 August 2013 15:28:26 Guennadi Liakhovetski wrote:
-> > Many bridges and video host controllers supply fixed rate always on clocks
-> > to their I2C devices. This patch adds two simple helpers to register and
-> > unregister such a clock.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-clk.c |   39 +++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-clk.h           |   14 ++++++++++++
-> >  2 files changed, 53 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-clk.c
-> > b/drivers/media/v4l2-core/v4l2-clk.c index b67de86..e18cc04 100644
-> > --- a/drivers/media/v4l2-core/v4l2-clk.c
-> > +++ b/drivers/media/v4l2-core/v4l2-clk.c
-> > @@ -240,3 +240,42 @@ void v4l2_clk_unregister(struct v4l2_clk *clk)
-> >  	kfree(clk);
-> >  }
-> >  EXPORT_SYMBOL(v4l2_clk_unregister);
-> > +
-> > +struct v4l2_clk_fixed {
-> > +	unsigned long rate;
-> > +	struct v4l2_clk_ops ops;
-> > +};
-> > +
-> > +static unsigned long fixed_get_rate(struct v4l2_clk *clk)
-> > +{
-> > +	struct v4l2_clk_fixed *priv = clk->priv;
-> > +	return priv->rate;
-> > +}
-> > +
-> > +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
-> > +		const char *id, unsigned long rate, struct module *owner)
-> > +{
-> > +	struct v4l2_clk *clk;
-> > +	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-> > +
-> > +	if (!priv)
-> > +		return ERR_PTR(-ENOMEM);
-> > +
-> > +	priv->rate = rate;
-> > +	priv->ops.get_rate = fixed_get_rate;
-> > +	priv->ops.owner = owner;
-> 
-> The ops owner is v4l2-clk.c, shouldn't you use THIS_MODULE here instead of the 
-> caller's THIS_MODULE ?
+Regards,
 
-Actually I don't think so. Making THIS_MODULE the owner wouldn't make any 
-sense, IMHO, the module cannot be unloaded anyway as long as any V4L 
-activity is taking place. If there is anything you want to lock in for as 
-long as the clock is used, then it's the bridge / camera host driver, 
-which is exactly what's done here.
+	Hans
 
-Thanks
-Guennadi
+[PATCH] v4l2-compat-ioctl32: add g/s_matrix support.
 
-> 
-> > +
-> > +	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
-> > +	if (IS_ERR(clk))
-> > +		kfree(priv);
-> > +
-> > +	return clk;
-> > +}
-> > +EXPORT_SYMBOL(__v4l2_clk_register_fixed);
-> > +
-> > +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk)
-> > +{
-> > +	kfree(clk->priv);
-> > +	v4l2_clk_unregister(clk);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_clk_unregister_fixed);
-> > diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-> > index 0503a90..a354a9d 100644
-> > --- a/include/media/v4l2-clk.h
-> > +++ b/include/media/v4l2-clk.h
-> > @@ -15,6 +15,7 @@
-> >  #define MEDIA_V4L2_CLK_H
-> > 
-> >  #include <linux/atomic.h>
-> > +#include <linux/export.h>
-> >  #include <linux/list.h>
-> >  #include <linux/mutex.h>
-> > 
-> > @@ -51,4 +52,17 @@ void v4l2_clk_disable(struct v4l2_clk *clk);
-> >  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
-> >  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
-> > 
-> > +struct module;
-> > +
-> > +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
-> > +		const char *id, unsigned long rate, struct module *owner);
-> > +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
-> > +
-> > +static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
-> > +							const char *id,
-> > +							unsigned long rate)
-> > +{
-> > +	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
-> > +}
-> > +
-> >  #endif
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Also fix a copy_to_user bug in put_v4l2_subdev_edid32(): the user and kernel
+pointers were used the wrong way around.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   50 ++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..8fb3e86 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -772,11 +772,40 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
+ 		put_user(kp->start_block, &up->start_block) ||
+ 		put_user(kp->blocks, &up->blocks) ||
+ 		put_user(tmp, &up->edid) ||
+-		copy_to_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++		copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
+ 			return -EFAULT;
+ 	return 0;
+ }
+ 
++struct v4l2_matrix32 {
++	__u32 type;
++	struct v4l2_rect rect;
++	compat_caddr_t matrix;
++	__u32 reserved[16];
++} __attribute__ ((packed));
++
++static int get_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32 __user *up)
++{
++	u32 tmp;
++
++	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_matrix32)) ||
++	    get_user(kp->type, &up->type) ||
++	    copy_from_user(&kp->rect, &up->rect, sizeof(up->rect)) ||
++	    get_user(tmp, &up->matrix) ||
++	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++		return -EFAULT;
++	kp->matrix = compat_ptr(tmp);
++	return 0;
++}
++
++static int put_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32 __user *up)
++{
++	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_matrix32)) ||
++	    copy_to_user(&up->rect, &kp->rect, sizeof(up->rect)) ||
++	    copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
++		return -EFAULT;
++	return 0;
++}
+ 
+ #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
+ #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
+@@ -796,6 +825,8 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
+ #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
+ #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
+ #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
++#define VIDIOC_G_MATRIX32	_IOWR('V', 104, struct v4l2_matrix32)
++#define VIDIOC_S_MATRIX32	_IOWR('V', 105, struct v4l2_matrix32)
+ 
+ #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
+ #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
+@@ -817,6 +848,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		struct v4l2_event v2ev;
+ 		struct v4l2_create_buffers v2crt;
+ 		struct v4l2_subdev_edid v2edid;
++		struct v4l2_matrix v2matrix;
+ 		unsigned long vx;
+ 		int vi;
+ 	} karg;
+@@ -851,6 +883,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+ 	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
+ 	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
++	case VIDIOC_G_MATRIX32: cmd = VIDIOC_G_MATRIX; break;
++	case VIDIOC_S_MATRIX32: cmd = VIDIOC_S_MATRIX; break;
+ 	}
+ 
+ 	switch (cmd) {
+@@ -922,6 +956,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_DQEVENT:
+ 		compatible_arg = 0;
+ 		break;
++
++	case VIDIOC_G_MATRIX:
++	case VIDIOC_S_MATRIX:
++		err = get_v4l2_matrix32(&karg.v2matrix, up);
++		compatible_arg = 0;
++		break;
+ 	}
+ 	if (err)
+ 		return err;
+@@ -994,6 +1034,11 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_ENUMINPUT:
+ 		err = put_v4l2_input32(&karg.v2i, up);
+ 		break;
++
++	case VIDIOC_G_MATRIX:
++	case VIDIOC_S_MATRIX:
++		err = put_v4l2_matrix32(&karg.v2matrix, up);
++		break;
+ 	}
+ 	return err;
+ }
+@@ -1089,6 +1134,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_ENUM_FREQ_BANDS:
+ 	case VIDIOC_SUBDEV_G_EDID32:
+ 	case VIDIOC_SUBDEV_S_EDID32:
++	case VIDIOC_QUERY_MATRIX:
++	case VIDIOC_G_MATRIX32:
++	case VIDIOC_S_MATRIX32:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+-- 
+1.7.10.4
+
