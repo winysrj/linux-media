@@ -1,63 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4914 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964997Ab3HHKYv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 06:24:51 -0400
-Message-ID: <520371E3.2010802@xs4all.nl>
-Date: Thu, 08 Aug 2013 12:24:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.17.10]:62332 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373Ab3HWVQy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Aug 2013 17:16:54 -0400
+Date: Fri, 23 Aug 2013 23:16:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] mx3-camera: locking typo in mx3_videobuf_queue()
+In-Reply-To: <20130823094530.GN31293@elgon.mountain>
+Message-ID: <Pine.LNX.4.64.1308232313220.14796@axis700.grange>
+References: <20130823094530.GN31293@elgon.mountain>
 MIME-Version: 1.0
-To: =?UTF-8?B?Sm9uIEFybmUgSsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
-	andriy.shevchenko@linux.intel.com,
-	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
-Subject: Re: [RFC v4 0/3] saa7115: Implement i2c_board_info.platform_data
-References: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1375535977-28913-1-git-send-email-jonarne@jonarne.no>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2013 03:19 PM, Jon Arne Jørgensen wrote:
-> This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
-> The main goal of this patch is to give the different devices with the gm7113c
-> chip an opportunity to configure the chip to their needs.
+Hi Dan,
+
+On Fri, 23 Aug 2013, Dan Carpenter wrote:
+
+> There is a return in the middle where we haven't restored the IRQs to
+> their original state.
 > 
-> I've only implemented the overrides I know are necessary to get the stk1160
-> and the smi2021 drivers to work.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 > 
-> This is the forth version of this patch series.
-> There are only minor changes since version 3 of this patch series.
-> I've mostly just changed some comments, and removed some debug statements
-> in the last patch in the series.
-> 
-> The third version of the RFC was posted on 2013/7/4 and can be found here:
-> http://lkml.indiana.edu/hypermail/linux/kernel/1307.0/01931.html
-> 
-> The second version of the RFC was posted on 2013/5/31 and can be found here:
-> http://lkml.indiana.edu/hypermail/linux/kernel/1305.3/03747.html
-> 
-> The first version of the RFC can be found here:
-> https://lkml.org/lkml/2013/5/29/558
-> 
-> Jon Arne Jørgensen (3):
->   saa7115: Fix saa711x_set_v4lstd for gm7113c
->   saa7115: Do not load saa7115_init_misc for gm7113c
->   saa7115: Implement i2c_board_info.platform_data
-> 
->  drivers/media/i2c/saa7115.c      | 167 +++++++++++++++++++++++++++++++--------
->  drivers/media/i2c/saa711x_regs.h |  19 +++++
->  include/media/saa7115.h          |  64 +++++++++++++++
->  3 files changed, 216 insertions(+), 34 deletions(-)
+> diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+> index 1047e3e..4bae910 100644
+> --- a/drivers/media/platform/soc_camera/mx3_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx3_camera.c
+> @@ -334,7 +334,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+>  	if (!mx3_cam->active)
+>  		mx3_cam->active = buf;
+>  
+> -	spin_unlock_irq(&mx3_cam->lock);
+> +	spin_unlock_irqrestore(&mx3_cam->lock, flags);
+>  
+>  	cookie = txd->tx_submit(txd);
+>  	dev_dbg(icd->parent, "Submitted cookie %d DMA 0x%08x\n",
+
+Please, wait with this. The above doesn't seem quite right to me. IIRC, 
+the purpose of unlock_irq(), i.e. of the unconditionally enabling IRQs was 
+to make sure ->tx_submit() is called with interrupts enabled. I'm 
+currently on holiday with very scarce internet access. Either please 
+double-check this yourself or I'll have another look at it when back home 
+next week.
+
+Thanks
+Guennadi
+
+> @@ -343,7 +343,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+>  	if (cookie >= 0)
+>  		return;
+>  
+> -	spin_lock_irq(&mx3_cam->lock);
+> +	spin_lock_irqsave(&mx3_cam->lock, flags);
+>  
+>  	/* Submit error */
+>  	list_del_init(&buf->queue);
 > 
 
-For this patch series:
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I'll merge this Monday at the latest.
-
-	Hans
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
