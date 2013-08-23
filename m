@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:18555 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab3HXHHM (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:35605 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898Ab3HWJyd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Aug 2013 03:07:12 -0400
-Date: Sat, 24 Aug 2013 10:06:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] mx3-camera: locking typo in mx3_videobuf_queue()
-Message-ID: <20130824070650.GA19256@mwanda>
-References: <20130823094530.GN31293@elgon.mountain>
- <Pine.LNX.4.64.1308232313220.14796@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1308232313220.14796@axis700.grange>
+	Fri, 23 Aug 2013 05:54:33 -0400
+Message-id: <52173155.9090902@samsung.com>
+Date: Fri, 23 Aug 2013 11:54:29 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [media] s5p-csis: Add support for non-image data packets capture
+References: <20130823093504.GJ31293@elgon.mountain>
+In-reply-to: <20130823093504.GJ31293@elgon.mountain>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 23, 2013 at 11:16:51PM +0200, Guennadi Liakhovetski wrote:
-> Hi Dan,
+On 08/23/2013 11:35 AM, Dan Carpenter wrote:
+> Hello Sylwester Nawrocki,
 > 
-> On Fri, 23 Aug 2013, Dan Carpenter wrote:
+> I had a question about 36fa80927638: "[media] s5p-csis: Add support for
+> non-image data packets capture" from Sep 21, 2012.
 > 
-> > There is a return in the middle where we haven't restored the IRQs to
-> > their original state.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-> > index 1047e3e..4bae910 100644
-> > --- a/drivers/media/platform/soc_camera/mx3_camera.c
-> > +++ b/drivers/media/platform/soc_camera/mx3_camera.c
-> > @@ -334,7 +334,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
-> >  	if (!mx3_cam->active)
-> >  		mx3_cam->active = buf;
-> >  
-> > -	spin_unlock_irq(&mx3_cam->lock);
-> > +	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-> >  
-> >  	cookie = txd->tx_submit(txd);
-> >  	dev_dbg(icd->parent, "Submitted cookie %d DMA 0x%08x\n",
+> S5PCSIS_INTSRC_NON_IMAGE_DATA is defined in mipi-csis.c:
 > 
-> Please, wait with this. The above doesn't seem quite right to me. IIRC, 
-> the purpose of unlock_irq(), i.e. of the unconditionally enabling IRQs was 
-> to make sure ->tx_submit() is called with interrupts enabled. I'm 
-> currently on holiday with very scarce internet access. Either please 
-> double-check this yourself or I'll have another look at it when back home 
-> next week.
+> #define S5PCSIS_INTSRC_NON_IMAGE_DATA   (0xff << 28)
+
+This is supposed to be a mask for bits [31:28], so (0xf << 28)
+
+> And it's only used in one place.
 > 
+> drivers/media/platform/exynos4-is/mipi-csis.c
+>    692          u32 status;
+>    693  
+>    694          status = s5pcsis_read(state, S5PCSIS_INTSRC);
+>    695          spin_lock_irqsave(&state->slock, flags);
+>    696  
+>    697          if ((status & S5PCSIS_INTSRC_NON_IMAGE_DATA) && pktbuf->data) {
+>                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> "status" is a u32 so 0xff0000000 is 4 bits too much.  In other words,
+> the mask is effectively "(0xf << 28)".  Was that intended or should it
+> be (0xff << 24)?
 
-No problem.   This is static checker stuff.  The currect code is
-definitely wrong because the return in the middle.  When the
-function returns we don't know if IRQs are enabled or not.
-
-> > @@ -343,7 +343,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
-> >  	if (cookie >= 0)
-> >  		return;
-            ^^^^^^^^^^^
-> >  
-> > -	spin_lock_irq(&mx3_cam->lock);
-> > +	spin_lock_irqsave(&mx3_cam->lock, flags);
-
-I thought about using local_irq_restore(flags) but it seemed like
-an obvious oversight.
-
-regards,
-dan carpenter
-
+It should be (0xf << 28). Thanks for looking into this.
