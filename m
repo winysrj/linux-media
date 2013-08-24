@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:47547 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891Ab3HVVkd (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:55594 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413Ab3HXL7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 17:40:33 -0400
-Received: by mail-la0-f52.google.com with SMTP id ev20so1935564lab.11
-        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 14:40:31 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, m.chehab@samsung.com,
-	linux-media@vger.kernel.org
-Subject: [PATCH v6 3/3] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
-Date: Fri, 23 Aug 2013 01:40:36 +0400
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-References: <201308230134.26092.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201308230134.26092.sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308230140.37614.sergei.shtylyov@cogentembedded.com>
+	Sat, 24 Aug 2013 07:59:36 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2] [media] Fix build errors on usbtv when driver is builtin
+Date: Sat, 24 Aug 2013 05:58:53 -0300
+Message-Id: <1377334733-12021-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+As reported by Fengguang Wu <fengguang.wu@intel.com>
 
-Add the VIN and ML86V7667 drivers to 'bockw_defconfig'.
+   drivers/built-in.o: In function `vb2_ioctl_streamon':
+>> (.text+0x8d354): undefined reference to `video_devdata'
+   drivers/built-in.o: In function `vb2_ioctl_streamoff':
+>> (.text+0x8d397): undefined reference to `video_devdata'
+   drivers/built-in.o: In function `vb2_ioctl_expbuf':
+...
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+That happens when:
+	CONFIG_VIDEO_DEV=y
+	CONFIG_VIDEO_V4L2=m
+	CONFIG_VIDEO_USBTV=y
 
+As the core is module, usbtv should also be compiled as module.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
-Changes since version 4:
-- resolved reject.
+ drivers/media/usb/usbtv/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- arch/arm/configs/bockw_defconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+diff --git a/drivers/media/usb/usbtv/Kconfig b/drivers/media/usb/usbtv/Kconfig
+index 8864436..7c5b860 100644
+--- a/drivers/media/usb/usbtv/Kconfig
++++ b/drivers/media/usb/usbtv/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_USBTV
+         tristate "USBTV007 video capture support"
+-        depends on VIDEO_DEV
++        depends on VIDEO_V4L2
+         select VIDEOBUF2_VMALLOC
+ 
+         ---help---
+-- 
+1.8.3.1
 
-Index: media_tree/arch/arm/configs/bockw_defconfig
-===================================================================
---- media_tree.orig/arch/arm/configs/bockw_defconfig
-+++ media_tree/arch/arm/configs/bockw_defconfig
-@@ -82,6 +82,13 @@ CONFIG_SERIAL_SH_SCI_CONSOLE=y
- # CONFIG_HWMON is not set
- CONFIG_I2C=y
- CONFIG_I2C_RCAR=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_SOC_CAMERA=y
-+CONFIG_VIDEO_RCAR_VIN=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ML86V7667=y
- CONFIG_SPI=y
- CONFIG_SPI_SH_HSPI=y
- CONFIG_USB=y
