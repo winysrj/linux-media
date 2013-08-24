@@ -1,141 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:42873 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159Ab3HUH6f (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:35420 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754109Ab3HXNeo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 03:58:35 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	s.nawrocki@samsung.com, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v7 13/13] V4L: Add driver for s5k4e5 image sensor
-Date: Wed, 21 Aug 2013 09:58:28 +0200
-Message-ID: <4486068.1NMnLxuSKb@flatron>
-In-Reply-To: <52146403.9050702@xs4all.nl>
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-14-git-send-email-arun.kk@samsung.com> <52146403.9050702@xs4all.nl>
+	Sat, 24 Aug 2013 09:34:44 -0400
+Received: by mail-lb0-f180.google.com with SMTP id q8so299811lbi.39
+        for <linux-media@vger.kernel.org>; Sat, 24 Aug 2013 06:34:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1374682135-26259-1-git-send-email-updatelee@gmail.com>
+References: <1374682135-26259-1-git-send-email-updatelee@gmail.com>
+Date: Sat, 24 Aug 2013 19:04:42 +0530
+Message-ID: <CAHFNz9+wxS=fu_tDKYwAVhEuirdrNuenRW-A7ybmENgfj_g1SA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] stv090x: on tuning lock return correct tuned
+ paramaters like freq/sr/fec/rolloff/etc
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Wed, Jul 24, 2013 at 9:38 PM, Chris Lee <updatelee@gmail.com> wrote:
+>
+> If you need it broken up more just let me know, I look forward to comments, thanks
+>
 
-On Wednesday 21 of August 2013 08:53:55 Hans Verkuil wrote:
-> On 08/21/2013 08:34 AM, Arun Kumar K wrote:
-> > This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
-> > Like s5k6a3, it is also another fimc-is firmware controlled
-> > sensor. This minimal sensor driver doesn't do any I2C communications
-> > as its done by ISP firmware. It can be updated if needed to a
-> > regular sensor driver by adding the I2C communication.
-> > 
-> > Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> > Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > ---
-> > 
-> >  .../devicetree/bindings/media/i2c/s5k4e5.txt       |   43 +++
-> >  drivers/media/i2c/Kconfig                          |    8 +
-> >  drivers/media/i2c/Makefile                         |    1 +
-> >  drivers/media/i2c/s5k4e5.c                         |  361
-> >  ++++++++++++++++++++ 4 files changed, 413 insertions(+)
-> >  create mode 100644
-> >  Documentation/devicetree/bindings/media/i2c/s5k4e5.txt create mode
-> >  100644 drivers/media/i2c/s5k4e5.c
-> 
-> ...
-> 
-> > diff --git a/drivers/media/i2c/s5k4e5.c b/drivers/media/i2c/s5k4e5.c
-> > new file mode 100644
-> > index 0000000..0a6ece6
-> > --- /dev/null
-> > +++ b/drivers/media/i2c/s5k4e5.c
-> > @@ -0,0 +1,361 @@
-> > +/*
-> > + * Samsung S5K4E5 image sensor driver
-> > + *
-> > + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> > + * Author: Arun Kumar K <arun.kk@samsung.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > modify + * it under the terms of the GNU General Public License
-> > version 2 as + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/clk.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/device.h>
-> > +#include <linux/errno.h>
-> > +#include <linux/gpio.h>
-> > +#include <linux/i2c.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +#include <linux/of_gpio.h>
-> > +#include <linux/pm_runtime.h>
-> > +#include <linux/regulator/consumer.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/videodev2.h>
-> > +#include <media/v4l2-async.h>
-> > +#include <media/v4l2-subdev.h>
-> > +
-> > +#define S5K4E5_SENSOR_MAX_WIDTH		2576
-> > +#define S5K4E5_SENSOR_MAX_HEIGHT	1930
-> > +
-> > +#define S5K4E5_SENSOR_ACTIVE_WIDTH	2560
-> > +#define S5K4E5_SENSOR_ACTIVE_HEIGHT	1920
-> > +
-> > +#define S5K4E5_SENSOR_MIN_WIDTH		(32 + 16)
-> > +#define S5K4E5_SENSOR_MIN_HEIGHT	(32 + 10)
-> > +
-> > +#define S5K4E5_DEF_WIDTH		1296
-> > +#define S5K4E5_DEF_HEIGHT		732
-> > +
-> > +#define S5K4E5_DRV_NAME			"S5K4E5"
-> > +#define S5K4E5_CLK_NAME			"mclk"
-> > +
-> > +#define S5K4E5_NUM_SUPPLIES		2
-> > +
-> > +#define S5K4E5_DEF_CLK_FREQ		24000000
-> > +
-> > +/**
-> > + * struct s5k4e5 - s5k4e5 sensor data structure
-> > + * @dev: pointer to this I2C client device structure
-> > + * @subdev: the image sensor's v4l2 subdev
-> > + * @pad: subdev media source pad
-> > + * @supplies: image sensor's voltage regulator supplies
-> > + * @gpio_reset: GPIO connected to the sensor's reset pin
-> > + * @lock: mutex protecting the structure's members below
-> > + * @format: media bus format at the sensor's source pad
-> > + */
-> > +struct s5k4e5 {
-> > +	struct device *dev;
-> > +	struct v4l2_subdev subdev;
-> > +	struct media_pad pad;
-> > +	struct regulator_bulk_data supplies[S5K4E5_NUM_SUPPLIES];
-> > +	int gpio_reset;
-> > +	struct mutex lock;
-> > +	struct v4l2_mbus_framefmt format;
-> > +	struct clk *clock;
-> > +	u32 clock_frequency;
-> > +};
-> > +
-> > +static const char * const s5k4e5_supply_names[] = {
-> > +	"svdda",
-> > +	"svddio"
-> > +};
-> 
-> I'm no regulator expert, but shouldn't this list come from the DT or
-> platform_data? Or are these names specific to this sensor?
+Sorry about the late comments, have been a bit too busy ..
 
-This is a list of regulator input (aka supply) names. In other words those 
-are usually names of pins of the consumer device (s5k4e5 chip in this 
-case) to which the regulators are connected. They are used as lookup keys 
-when looking up regulators, either from device tree or lookup tables.
+I have a bit hard time, understanding the need for some of the changes.
+Comments, inline.
 
-Best regards,
-Tomasz
 
+> Chris
+>
+> ---
+>  drivers/media/dvb-frontends/stv090x.c     | 182 ++++++++++++++++++++++++++++--
+>  drivers/media/dvb-frontends/stv090x_reg.h |   2 +
+>  2 files changed, 172 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+> index 56d470a..474584f 100644
+> --- a/drivers/media/dvb-frontends/stv090x.c
+> +++ b/drivers/media/dvb-frontends/stv090x.c
+> @@ -1678,6 +1678,7 @@ static u32 stv090x_get_srate(struct stv090x_state *state, u32 clk)
+>                 ((int_1 * tmp_2) >> 16) +
+>                 ((int_2 * tmp_1) >> 16);
+>
+> +       state->srate = srate;
+>         return srate;
+>  }
+>
+> @@ -2592,6 +2593,94 @@ static int stv090x_get_viterbi(struct stv090x_state *state)
+>  static enum stv090x_signal_state stv090x_get_sig_params(struct stv090x_state *state)
+>  {
+>         struct dvb_frontend *fe = &state->frontend;
+> +       struct dtv_frontend_properties *props = &fe->dtv_property_cache;
+> +
+> +       int fe_stv0900_tracking_standard_return[] = {
+> +               SYS_UNDEFINED,
+> +               SYS_DVBS,
+> +               SYS_DVBS2,
+> +               SYS_DSS
+> +       };
+> +
+> +       int fe_stv0900_rolloff_return[] = {
+> +               ROLLOFF_35,
+> +               ROLLOFF_25,
+> +               ROLLOFF_20,
+> +               ROLLOFF_AUTO
+> +       };
+> +
+> +       int fe_stv0900_modulation_return[] = {
+> +               QPSK,
+> +               PSK_8,
+> +               APSK_16,
+> +               APSK_32
+> +       };
+> +
+> +       int fe_stv0900_modcod_return_dvbs[] = {
+> +               FEC_NONE,
+> +               FEC_AUTO,
+> +               FEC_AUTO,
+> +               FEC_AUTO,
+> +               FEC_1_2,
+> +               FEC_3_5,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_6_7,
+> +               FEC_7_8,
+> +               FEC_3_5,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_AUTO
+> +       };
+> +
+> +       int fe_stv0900_modcod_return_dvbs2[] = {
+> +               FEC_NONE,
+> +               FEC_AUTO,
+> +               FEC_AUTO,
+> +               FEC_AUTO,
+> +               FEC_1_2,
+> +               FEC_3_5,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_3_5,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_2_3,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_3_4,
+> +               FEC_4_5,
+> +               FEC_5_6,
+> +               FEC_8_9,
+> +               FEC_9_10,
+> +               FEC_AUTO
+> +       };
+>
+>         u8 tmg;
+>         u32 reg;
+> @@ -2631,10 +2720,71 @@ static enum stv090x_signal_state stv090x_get_sig_params(struct stv090x_state *st
+>         state->modcod = STV090x_GETFIELD_Px(reg, DEMOD_MODCOD_FIELD);
+>         state->pilots = STV090x_GETFIELD_Px(reg, DEMOD_TYPE_FIELD) & 0x01;
+>         state->frame_len = STV090x_GETFIELD_Px(reg, DEMOD_TYPE_FIELD) >> 1;
+> -       reg = STV090x_READ_DEMOD(state, TMGOBS);
+> -       state->rolloff = STV090x_GETFIELD_Px(reg, ROLLOFF_STATUS_FIELD);
+> -       reg = STV090x_READ_DEMOD(state, FECM);
+> -       state->inversion = STV090x_GETFIELD_Px(reg, IQINV_FIELD);
+> +       reg = STV090x_READ_DEMOD(state, MATSTR1);
+> +       state->rolloff = STV090x_GETFIELD_Px(reg, MATYPE_ROLLOFF_FIELD);
+> +
+> +       switch (state->delsys) {
+> +       case STV090x_DVBS2:
+> +               if (state->modcod <= STV090x_QPSK_910)
+> +                       state->modulation = STV090x_QPSK;
+> +               else if (state->modcod <= STV090x_8PSK_910)
+> +                       state->modulation = STV090x_8PSK;
+> +               else if (state->modcod <= STV090x_16APSK_910)
+> +                       state->modulation = STV090x_16APSK;
+> +               else if (state->modcod <= STV090x_32APSK_910)
+> +                       state->modulation = STV090x_32APSK;
+> +               else
+> +                       state->modulation = STV090x_UNKNOWN;
+> +               reg = STV090x_READ_DEMOD(state, PLHMODCOD);
+
+
+It is documented with Bug 6, that the demodulator may reject
+the MODCOD being read out. As a result, it is not a good idea to
+report the information, especially knowing that it is buggy.
+
+
+> +               state->inversion = STV090x_GETFIELD_Px(reg, SPECINV_DEMOD_FIELD);
+> +               break;
+> +       case STV090x_DVBS1:
+> +       case STV090x_DSS:
+> +               switch(state->fec) {
+> +               case STV090x_PR12:
+> +                       state->modcod = STV090x_QPSK_12;
+> +                       break;
+> +               case STV090x_PR23:
+> +                       state->modcod = STV090x_QPSK_23;
+> +                       break;
+> +               case STV090x_PR34:
+> +                       state->modcod = STV090x_QPSK_34;
+> +                       break;
+> +               case STV090x_PR45:
+> +                       state->modcod = STV090x_QPSK_45;
+> +                       break;
+> +               case STV090x_PR56:
+> +                       state->modcod = STV090x_QPSK_56;
+> +                       break;
+> +               case STV090x_PR67:
+> +                       state->modcod = STV090x_QPSK_89;
+> +                       break;
+> +               case STV090x_PR78:
+> +                       state->modcod = STV090x_QPSK_910;
+> +                       break;
+> +               default:
+> +                       state->modcod = STV090x_DUMMY_PLF;
+> +                       break;
+> +               }
+> +               state->modulation = STV090x_QPSK;
+> +               reg = STV090x_READ_DEMOD(state, FECM);
+> +               state->inversion = STV090x_GETFIELD_Px(reg, IQINV_FIELD);
+> +               break;
+> +       default:
+> +               break;
+> +       }
+> +
+> +       props->frequency                = state->frequency;
+> +       props->symbol_rate              = state->srate;
+> +       if (state->delsys == 2)
+> +               props->fec_inner        = fe_stv0900_modcod_return_dvbs2[state->modcod];
+> +       else
+> +               props->fec_inner        = fe_stv0900_modcod_return_dvbs[state->modcod];
+> +       props->pilot                    = state->pilots;
+> +       props->rolloff                  = fe_stv0900_rolloff_return[state->rolloff];
+> +       props->modulation               = fe_stv0900_modulation_return[state->modulation];
+> +       props->inversion                = state->inversion;
+> +       props->delivery_system          = fe_stv0900_tracking_standard_return[state->delsys];
+>
+>         if ((state->algo == STV090x_BLIND_SEARCH) || (state->srate < 10000000)) {
+>
+> @@ -2842,6 +2992,7 @@ static int stv090x_optimize_track(struct stv090x_state *state)
+>  {
+>         struct dvb_frontend *fe = &state->frontend;
+>
+> +       enum stv090x_rolloff rolloff;
+>         enum stv090x_modcod modcod;
+>
+>         s32 srate, pilots, aclc, f_1, f_0, i = 0, blind_tune = 0;
+> @@ -2965,6 +3116,7 @@ static int stv090x_optimize_track(struct stv090x_state *state)
+>         f_1 = STV090x_READ_DEMOD(state, CFR2);
+>         f_0 = STV090x_READ_DEMOD(state, CFR1);
+>         reg = STV090x_READ_DEMOD(state, TMGOBS);
+> +       rolloff = STV090x_GETFIELD_Px(reg, ROLLOFF_STATUS_FIELD);
+>
+>         if (state->algo == STV090x_BLIND_SEARCH) {
+>                 STV090x_WRITE_DEMOD(state, SFRSTEP, 0x00);
+> @@ -3464,20 +3616,24 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>         state->frequency = props->frequency;
+>         state->srate = props->symbol_rate;
+>         state->search_mode = STV090x_SEARCH_AUTO;
+> -       state->algo = STV090x_COLD_SEARCH;
+> +       state->algo = STV090x_BLIND_SEARCH;
+
+
+Why ?
+
+
+
+>         state->fec = STV090x_PRERR;
+> -       if (state->srate > 10000000) {
+> -               dprintk(FE_DEBUG, 1, "Search range: 10 MHz");
+> -               state->search_range = 10000000;
+> -       } else {
+> -               dprintk(FE_DEBUG, 1, "Search range: 5 MHz");
+> -               state->search_range = 5000000;
+> -       }
+> +       state->search_range = 0;
+>
+
+
+Again, why ?
+
+
+>         stv090x_set_mis(state, props->stream_id);
+>
+> +       dprintk(FE_DEBUG, 1, "Search started...");
+>         if (stv090x_algo(state) == STV090x_RANGEOK) {
+> +               stv090x_get_sig_params(state);
+>                 dprintk(FE_DEBUG, 1, "Search success!");
+> +               dprintk(FE_DEBUG, 1, "frequency       = %d", props->frequency);
+> +               dprintk(FE_DEBUG, 1, "symbol_rate     = %d", props->symbol_rate);
+> +               dprintk(FE_DEBUG, 1, "fec_inner       = %d, %d", props->fec_inner, state->modcod);
+> +               dprintk(FE_DEBUG, 1, "pilot           = %d", props->pilot);
+> +               dprintk(FE_DEBUG, 1, "rolloff         = %d", props->rolloff);
+> +               dprintk(FE_DEBUG, 1, "modulation      = %d, %d", props->modulation, state->modulation);
+> +               dprintk(FE_DEBUG, 1, "inversion       = %d", props->inversion);
+> +               dprintk(FE_DEBUG, 1, "delivery_system = %d, %d", props->delivery_system, state->delsys);
+>                 return DVBFE_ALGO_SEARCH_SUCCESS;
+>         } else {
+>                 dprintk(FE_DEBUG, 1, "Search failed!");
+> @@ -3520,6 +3676,7 @@ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
+>                                         *status |= FE_HAS_SYNC | FE_HAS_LOCK;
+>                         }
+>                 }
+> +               stv090x_get_sig_params(state);
+>                 break;
+>
+>         case 3: /* DVB-S1/legacy mode */
+> @@ -3533,6 +3690,7 @@ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
+>                                         *status |= FE_HAS_SYNC | FE_HAS_LOCK;
+>                         }
+>                 }
+> +               stv090x_get_sig_params(state);
+>                 break;
+>         }
+>
+> diff --git a/drivers/media/dvb-frontends/stv090x_reg.h b/drivers/media/dvb-frontends/stv090x_reg.h
+> index 93741ee..ac6bc30 100644
+> --- a/drivers/media/dvb-frontends/stv090x_reg.h
+> +++ b/drivers/media/dvb-frontends/stv090x_reg.h
+> @@ -1927,6 +1927,8 @@
+>  #define STV090x_P1_MATSTR1                     STV090x_Px_MATSTRy(1, 1)
+>  #define STV090x_P2_MATSTR0                     STV090x_Px_MATSTRy(2, 0)
+>  #define STV090x_P2_MATSTR1                     STV090x_Px_MATSTRy(2, 1)
+> +#define STV090x_OFFST_Px_MATYPE_ROLLOFF_FIELD  0
+> +#define STV090x_WIDTH_Px_MATYPE_ROLLOFF_FIELD  2
+>  #define STV090x_OFFST_Px_MATYPE_CURRENT_FIELD  0
+>  #define STV090x_WIDTH_Px_MATYPE_CURRENT_FIELD  8
+>
+> --
+> 1.8.1.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
