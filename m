@@ -1,76 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55826 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750746Ab3HXN4O (ORCPT
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:52609 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755563Ab3HXW0M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Aug 2013 09:56:14 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] cx88: fix build when VP3054=m and CX88_DVB=y
-Date: Sat, 24 Aug 2013 07:55:26 -0300
-Message-Id: <1377341726-24306-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 24 Aug 2013 18:26:12 -0400
+Message-ID: <521932FA.20801@gmail.com>
+Date: Sun, 25 Aug 2013 00:26:02 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Inki Dae <inki.dae@samsung.com>
+CC: 'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	cpgs@samsung.com, s.nawrocki@samsung.com, posciak@google.com,
+	arun.kk@samsung.com
+Subject: Re: [PATCH v2 4/5] [media] exynos-mscl: Add DT bindings for M-Scaler
+ driver
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com> <1376909932-23644-5-git-send-email-shaik.ameer@samsung.com> <033401ce9cdb$af145800$0d3d0800$%dae@samsung.com>
+In-Reply-To: <033401ce9cdb$af145800$0d3d0800$%dae@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by Jim Davis <jim.epost@gmail.com>:
+On 08/19/2013 02:57 PM, Inki Dae wrote:
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Shaik Ameer Basha
+>> Sent: Monday, August 19, 2013 7:59 PM
+>> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+>> Cc: s.nawrocki@samsung.com; posciak@google.com; arun.kk@samsung.com;
+>> shaik.ameer@samsung.com
+>> Subject: [PATCH v2 4/5] [media] exynos-mscl: Add DT bindings for M-Scaler
+>> driver
+>>
+>> This patch adds the DT binding documentation for the exynos5
 
-randconfig build error with next-20130813, in drivers/media/pci/cx88,
-when:
-	CONFIG_VIDEO_CX88=y
-	CONFIG_VIDEO_CX88_BLACKBIRD=m
-	CONFIG_VIDEO_CX88_DVB=y
-	CONFIG_VIDEO_CX88_VP3054=m
-	CONFIG_VIDEO_CX88_MPEG=y
+You may want to say to which specific SoC it applies.
 
-  LD      init/built-in.o
-drivers/built-in.o: In function `cx8802_dvb_remove':
-cx88-dvb.c:(.text+0x3a9914): undefined reference to `vp3054_i2c_remove'
-drivers/built-in.o: In function `cx8802_dvb_probe':
-cx88-dvb.c:(.text+0x3a9c4b): undefined reference to `vp3054_i2c_probe'
-make: *** [vmlinux] Error 1
+>> based M-Scaler device driver.
+>>
+>> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+>> ---
+>>   .../devicetree/bindings/media/exynos5-mscl.txt     |   34
+>> ++++++++++++++++++++
+>>   1 file changed, 34 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/exynos5-
+>> mscl.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-mscl.txt
+>> b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
+>> new file mode 100644
+>> index 0000000..5c9d1b1
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-mscl.txt
+>> @@ -0,0 +1,34 @@
+>> +* Samsung Exynos5 M-Scaler device
+>> +
+>> +M-Scaler is used for scaling, blending, color fill and color space
+>> +conversion on EXYNOS5 SoCs.
+>> +
+>> +Required properties:
+>> +- compatible: should be "samsung,exynos5-mscl"
 
-That happens because the vp3054 symbols aren't available builtin.
-So, make it builtin, if CX88_DVB=y, or module otherwise, if this
-support is selected.
+What is an exact name of this IP in the datasheet ?
 
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/cx88/Kconfig | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+> If Exynos5410/5420 have same IP,
+> "samsung,exynos5410-mscl" for M Scaler IP in Exynos5410/5420"
+>
+> Else,
+> Compatible: should be one of the following:
+> (a) "samsung,exynos5410-mscl" for M Scaler IP in Exynos5410"
+> (b) "samsung,exynos5420-mscl" for M Scaler IP in Exynos5420"
 
-diff --git a/drivers/media/pci/cx88/Kconfig b/drivers/media/pci/cx88/Kconfig
-index bb05eca..a63a9ad 100644
---- a/drivers/media/pci/cx88/Kconfig
-+++ b/drivers/media/pci/cx88/Kconfig
-@@ -72,9 +72,9 @@ config VIDEO_CX88_DVB
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called cx88-dvb.
- 
--config VIDEO_CX88_VP3054
--	tristate "VP-3054 Secondary I2C Bus Support"
--	default m
-+config VIDEO_CX88_ENABLE_VP3054
-+	bool "VP-3054 Secondary I2C Bus Support"
-+	default y
- 	depends on VIDEO_CX88_DVB && DVB_MT352
- 	---help---
- 	  This adds DVB-T support for cards based on the
-@@ -82,6 +82,11 @@ config VIDEO_CX88_VP3054
- 	  which also require support for the VP-3054
- 	  Secondary I2C bus, such at DNTV Live! DVB-T Pro.
- 
-+config VIDEO_CX88_VP3054
-+	tristate
-+	depends on VIDEO_CX88_DVB && VIDEO_CX88_ENABLE_VP3054
-+	default y
-+
- config VIDEO_CX88_MPEG
- 	tristate
- 	depends on VIDEO_CX88_DVB || VIDEO_CX88_BLACKBIRD
--- 
-1.8.3.1
+Yes, except I suspect "mscl" is incorrect. It sounds like an unclear
+abbreviation of real name of the IP. It likely should be "mscaler".
 
+>> +- reg: should contain M-Scaler physical address location and length.
+>> +- interrupts: should contain M-Scaler interrupt number
+>> +- clocks: should contain the clock number according to CCF
+
+Hmm, this sounds like a Linux specific term in the binding. Perhaps:
+
+  - clocks: should contain the M-Scaler clock specifier, from the common
+	   clock bindings
+
+?
+>> +- clock-names: should be "mscl"
+>> +
+>> +Example:
+>> +
+>> +	mscl_0: mscl@0x12800000 {
+
+s/0x//
+
+>> +		compatible = "samsung,exynos5-mscl";
+>
+> "samsung,exynos5410-mscl";
+>
+>> +		reg =<0x12800000 0x1000>;
+>> +		interrupts =<0 220 0>;
+>> +		clocks =<&clock 381>;
+>> +		clock-names = "mscl";
+>> +	};
+>> +
+>> +Aliases:
+>> +Each M-Scaler node should have a numbered alias in the aliases node,
+>> +in the form of msclN, N = 0...2. M-Scaler driver uses these aliases
+>> +to retrieve the device IDs using "of_alias_get_id()" call.
+
+So except in debug logs and for selecting variant data (which is same for
+all IP instances) are the aliases used for anything else ?
+I suspect you could do without these aliases. Device name includes start
+address of the IP register region, so that could be used to identify the
+M-Scaler instance in the logs.
+
+--
+Regards,
+Sylwester
