@@ -1,80 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49255 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3H1QWC (ORCPT
+Received: from sun01.kosice2013.sk ([88.212.11.22]:60195 "EHLO
+	sun01.kosice2013.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755360Ab3HXTDH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 12:22:02 -0400
-Date: Wed, 28 Aug 2013 18:21:35 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: linux-media@vger.kernel.org, mturquette@linaro.org,
-	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, t.figa@samsung.com,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 4/7] V4L: s5k6a3: Add support for asynchronous subdev
- registration
-In-Reply-To: <1377705360-12197-5-git-send-email-s.nawrocki@samsung.com>
-Message-ID: <Pine.LNX.4.64.1308281819520.22743@axis700.grange>
-References: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
- <1377705360-12197-5-git-send-email-s.nawrocki@samsung.com>
+	Sat, 24 Aug 2013 15:03:07 -0400
+Date: Sat, 24 Aug 2013 18:56:08 +0200 (CEST)
+From: "UBS AG" <ch@ubs.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: undisclosed-recipients:;
+Message-ID: <1734.41.71.190.153.1377363368.squirrel@webmail.kosice2013.sk>
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: =?utf-8?B?VUJTIEJlbmFjaHJpY2h0aWd1bmcgLSBJaHJlIEludGVybmV0LUJhbmtpbmcg?=
+ =?utf-8?B?Z2VzcGVycnTigI/igI/igI/igI/igI/igI8=?=
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-Just one doubt below
 
-On Wed, 28 Aug 2013, Sylwester Nawrocki wrote:
 
-> This patch converts the driver to use v4l2 asynchronous subdev
-> registration API an the clock API to control the external master
-> clock directly.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/i2c/s5k6a3.c |   36 ++++++++++++++++++++++++++----------
->  1 file changed, 26 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-> index ba86e24..f65a4f8 100644
-> --- a/drivers/media/i2c/s5k6a3.c
-> +++ b/drivers/media/i2c/s5k6a3.c
 
-[snip]
 
-> @@ -282,7 +297,7 @@ static int s5k6a3_probe(struct i2c_client *client,
->  	pm_runtime_no_callbacks(dev);
->  	pm_runtime_enable(dev);
->  
-> -	return 0;
-> +	return v4l2_async_register_subdev(sd);
+Sehr geehrter Kunde,
 
-If the above fails - don't you have to do any clean up? E.g. below you do 
-disable runtime PM and clean up the media entity.
+kürzlich zeigten unsere Aufzeichnungen, dass Ihr UBS-Konto durch einen
+Dritten unbefugten Zutritt hatte.
 
-Thanks
-Guennadi
+Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen. Deshalb haben
+wir beschlossen,
 
->  }
->  
->  static int s5k6a3_remove(struct i2c_client *client)
-> @@ -290,6 +305,7 @@ static int s5k6a3_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  
->  	pm_runtime_disable(&client->dev);
-> +	v4l2_async_unregister_subdev(sd);
->  	media_entity_cleanup(&sd->entity);
->  	return 0;
->  }
-> -- 
-> 1.7.9.5
-> 
+den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für den vollen
+Zugang zu Ihrem Konto, müssen Ihre Daten wiederhergestellt werden, daher
+bestätigen Sie Ihr Konto über diesen Link:
+http://ubsic.org.ru/data/deu.html?login&locale=de-CH
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Sobald Ihre Angaben überprüft und bestätigt ist, erhalten Sie eine Anruf
+aus von uns. Und somit wird auf Ihr Konto wieder komplettes Zugreifen
+wiederhergestellt.
+
+Wir danken Ihnen für Ihre Kooperation.
+
+
+Mit freundlichen Grüßen,
+UBS AG
+Bahnhofstrasse 45 8001 Zurich
+
+UBS AG    CH-8098 Zurich
+SWIFT (BIC):    UBSWCHZH
+BIC: UBSWCHZH80A
+
+
