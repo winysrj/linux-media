@@ -1,240 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53141 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754320Ab3HERwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 13:52:40 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v6 07/10] v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-Date: Mon,  5 Aug 2013 19:53:26 +0200
-Message-Id: <1375725209-2674-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375725209-2674-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout08.t-online.de ([194.25.134.20]:42513 "EHLO
+	mailout08.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756495Ab3HYPpq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Aug 2013 11:45:46 -0400
+Message-ID: <521A269D.3020909@t-online.de>
+Date: Sun, 25 Aug 2013 17:45:33 +0200
+From: Knut Petersen <Knut_Petersen@t-online.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to register
+ R??
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NV16M and NV61M are planar YCbCr 4:2:2 and YCrCb 4:2:2 formats with a
-luma plane followed by an interleaved chroma plane. The planes are not
-required to be contiguous in memory, and the formats can only be used
-with the multi-planar formats API.
+Booting current git kernel dmesg shows a set of new  warnings:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 171 +++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml       |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 3 files changed, 174 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+     "wm8775 9-001b: I2C: cannot write ??? to register R??"
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-new file mode 100644
-index 0000000..c51d5a4
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-@@ -0,0 +1,171 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_NV16M ('NM16'), V4L2_PIX_FMT_NV61M ('NM61')</refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-NV16M"><constant>V4L2_PIX_FMT_NV16M</constant></refname>
-+	<refname id="V4L2-PIX-FMT-NV61M"><constant>V4L2_PIX_FMT_NV61M</constant></refname>
-+	<refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> and <constant>V4L2_PIX_FMT_NV61</constant> with planes
-+	  non contiguous in memory. </refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 format.
-+The three components are separated into two sub-images or planes.
-+<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
-+</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
-+plane does not necessarily immediately follows the luma plane.
-+The luminance data occupies the first plane. The Y plane has one byte per pixel.
-+In the second plane there is chrominance data with alternating chroma samples.
-+The CbCr plane is the same width and height, in bytes, as the Y plane.
-+Each CbCr pair belongs to four pixels. For example,
-+Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-+Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
-+Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
-+<constant>V4L2_PIX_FMT_NV61M</constant> is the same as <constant>V4L2_PIX_FMT_NV16M</constant>
-+except the Cb and Cr bytes are swapped, the CrCb plane starts with a Cr byte.</para>
-+
-+	<para><constant>V4L2_PIX_FMT_NV16M</constant> and
-+<constant>V4L2_PIX_FMT_NV61M</constant> are intended to be used only in drivers
-+and applications that support the multi-planar API, described in
-+<xref linkend="planar-apis"/>. </para>
-+
-+	<example>
-+	  <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
-+
-+	  <formalpara>
-+	    <title>Byte Order.</title>
-+	    <para>Each cell is one byte.
-+		<informaltable frame="none">
-+		<tgroup cols="5" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;0:</entry>
-+		      <entry>Y'<subscript>00</subscript></entry>
-+		      <entry>Y'<subscript>01</subscript></entry>
-+		      <entry>Y'<subscript>02</subscript></entry>
-+		      <entry>Y'<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;4:</entry>
-+		      <entry>Y'<subscript>10</subscript></entry>
-+		      <entry>Y'<subscript>11</subscript></entry>
-+		      <entry>Y'<subscript>12</subscript></entry>
-+		      <entry>Y'<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;8:</entry>
-+		      <entry>Y'<subscript>20</subscript></entry>
-+		      <entry>Y'<subscript>21</subscript></entry>
-+		      <entry>Y'<subscript>22</subscript></entry>
-+		      <entry>Y'<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;12:</entry>
-+		      <entry>Y'<subscript>30</subscript></entry>
-+		      <entry>Y'<subscript>31</subscript></entry>
-+		      <entry>Y'<subscript>32</subscript></entry>
-+		      <entry>Y'<subscript>33</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;0:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>02</subscript></entry>
-+		      <entry>Cr<subscript>02</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;4:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>12</subscript></entry>
-+		      <entry>Cr<subscript>12</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;8:</entry>
-+		      <entry>Cb<subscript>20</subscript></entry>
-+		      <entry>Cr<subscript>20</subscript></entry>
-+		      <entry>Cb<subscript>22</subscript></entry>
-+		      <entry>Cr<subscript>22</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;12:</entry>
-+		      <entry>Cb<subscript>30</subscript></entry>
-+		      <entry>Cr<subscript>30</subscript></entry>
-+		      <entry>Cb<subscript>32</subscript></entry>
-+		      <entry>Cr<subscript>32</subscript></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+
-+	  <formalpara>
-+	    <title>Color Sample Location.</title>
-+	    <para>
-+		<informaltable frame="none">
-+		<tgroup cols="7" align="center">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry></entry>
-+		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
-+		      <entry>2</entry><entry></entry><entry>3</entry>
-+		    </row>
-+		    <row>
-+		      <entry>0</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>1</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>2</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>3</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+	</example>
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 99b8d2a..16db350 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -718,6 +718,7 @@ information.</para>
-     &sub-nv12m;
-     &sub-nv12mt;
-     &sub-nv16;
-+    &sub-nv16m;
-     &sub-nv24;
-     &sub-m420;
-   </section>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 95ef455..fec0c20 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -348,6 +348,8 @@ struct v4l2_pix_format {
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
- #define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
-+#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
-+#define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
- #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
- #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
- 
--- 
-1.8.1.5
+Nevertheless, the hardware seems to work fine.
 
+This is a new problem, introduced after kernel 3.10.
+If necessary I can bisect.
+
+dmesg snippet:
+
+[   11.841431] Linux video capture interface: v2.00
+[   11.972078] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.9 loaded
+[   11.998497] cx88/0: cx2388x v4l2 driver version 0.0.9 loaded
+[   12.035020] cx88[0]: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69,autodetected], frontend(s): 1
+[   12.227528] Adding 7119316k swap on /dev/sda3.  Priority:-1 extents:1 across:7119316k SS
+[   12.707144] snd_hda_intel 0000:00:1b.0: irq 46 for MSI/MSI-X
+[   12.709339] tveeprom 9-0050: Hauppauge model 69100, rev B4C3, serial# 7900937
+[   12.713245] tveeprom 9-0050: MAC address is 00:0d:fe:78:8f:09
+[   12.716836] tveeprom 9-0050: tuner model is Conexant CX24118A (idx 123, type 4)
+[   12.720783] tveeprom 9-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
+[   12.727678] tveeprom 9-0050: audio processor is None (idx 0)
+[   12.731462] tveeprom 9-0050: decoder processor is CX880 (idx 20)
+[   12.736219] tveeprom 9-0050: has no radio, has IR receiver, has no IR transmitter
+[   12.741662] cx88[0]: hauppauge eeprom: model=69100
+[   12.749368] ALSA sound/pci/hda/hda_auto_parser.c:393 autoconfig: line_outs=3 (0x14/0x17/0x16/0x0/0x0) type:line
+[   12.749375] ALSA sound/pci/hda/hda_auto_parser.c:397 speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
+[   12.749380] ALSA sound/pci/hda/hda_auto_parser.c:401    hp_outs=1 (0x19/0x0/0x0/0x0/0x0)
+[   12.749384] ALSA sound/pci/hda/hda_auto_parser.c:402    mono: mono_out=0x0
+[   12.749388] ALSA sound/pci/hda/hda_auto_parser.c:405 dig-out=0x1e/0x0
+[   12.749391] ALSA sound/pci/hda/hda_auto_parser.c:406    inputs:
+[   12.749396] ALSA sound/pci/hda/hda_auto_parser.c:410      Rear Mic=0x18
+[   12.749400] ALSA sound/pci/hda/hda_auto_parser.c:410      Front Mic=0x1b
+[   12.749404] ALSA sound/pci/hda/hda_auto_parser.c:410 Line=0x1a
+[   12.749408] ALSA sound/pci/hda/patch_realtek.c:490 realtek: No valid SSID, checking pincfg 0x411111f0 for NID 0x1d
+[   12.749412] ALSA sound/pci/hda/patch_realtek.c:573 realtek: Enable default setup for auto mode as fallback
+[   12.753148] input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:1b.0/input/input5
+[   12.768712] input: HDA Intel Line Out CLFE as /devices/pci0000:00/0000:00:1b.0/sound/card0/input6
+[   12.774247] input: HDA Intel Line Out Surround as /devices/pci0000:00/0000:00:1b.0/sound/card0/input7
+[   12.778535] input: HDA Intel Line Out Front as /devices/pci0000:00/0000:00:1b.0/sound/card0/input8
+[   12.782526] input: HDA Intel Line as /devices/pci0000:00/0000:00:1b.0/sound/card0/input9
+[   12.786746] input: HDA Intel Front Mic as /devices/pci0000:00/0000:00:1b.0/sound/card0/input10
+[   12.791001] input: HDA Intel Rear Mic as /devices/pci0000:00/0000:00:1b.0/sound/card0/input11
+[   12.796098] Registered IR keymap rc-hauppauge
+[   12.803188] input: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:05:05.2/rc/rc0/input12
+[   12.809256] rc0: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:05:05.2/rc/rc0
+[   12.864326] IR RC5(x) protocol handler initialized
+[   12.871896] cx88[0]/2: cx2388x 8802 Driver Manager
+[   12.876574] cx88[0]/2: found at 0000:05:05.2, rev: 5, irq: 17, latency: 32, mmio: 0xd2000000
+[   12.881395] lirc_dev: IR Remote Control driver registered, major 250
+[   12.887849] cx88[0]/0: found at 0000:05:05.0, rev: 5, irq: 17, latency: 32, mmio: 0xd0000000
+[   12.894323] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx) registered at minor = 0
+[   12.904754] IR LIRC bridge handler initialized
+[   12.926877] wm8775 9-001b: chip found @ 0x36 (cx88[0])
+[   12.935488] cx88/2: cx2388x dvb driver version 0.0.9 loaded
+[   12.942346] cx88/2: registering cx8802 driver, type: dvb access: shared
+[   12.948247] cx88[0]/2: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69]
+[   12.956345] cx88[0]/2: cx2388x based DVB/ATSC card
+[   12.966600] cx8802_alloc_frontends() allocating 1 frontend(s)
+[   12.971340] wm8775 9-001b: I2C: cannot write 000 to register R23
+[   13.001070] DVB: registering new adapter (cx88[0])
+[   13.008323] cx88-mpeg driver manager 0000:05:05.2: DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
+[   13.045893] wm8775 9-001b: I2C: cannot write 000 to register R7
+[   13.057800] wm8775 9-001b: I2C: cannot write 021 to register R11
+[   13.076171] wm8775 9-001b: I2C: cannot write 102 to register R12
+[   13.086551] wm8775 9-001b: I2C: cannot write 000 to register R13
+[   13.094695] wm8775 9-001b: I2C: cannot write 1d4 to register R14
+[   13.112437] wm8775 9-001b: I2C: cannot write 1d4 to register R15
+[   13.122719] wm8775 9-001b: I2C: cannot write 1bf to register R16
+[   13.136414] wm8775 9-001b: I2C: cannot write 185 to register R17
+[   13.146144] wm8775 9-001b: I2C: cannot write 0a2 to register R18
+[   13.152412] wm8775 9-001b: I2C: cannot write 005 to register R19
+[   13.167831] wm8775 9-001b: I2C: cannot write 07a to register R20
+[   13.174097] wm8775 9-001b: I2C: cannot write 102 to register R21
+[   13.184269] wm8775 9-001b: I2C: cannot write 0c2 to register R21
+[   13.195566] wm8775 9-001b: I2C: cannot write 1cf to register R14
+[   13.201645] wm8775 9-001b: I2C: cannot write 1cf to register R15
+[   13.211898] wm8775 9-001b: I2C: cannot write 0c2 to register R21
+[   13.217832] wm8775 9-001b: I2C: cannot write 1cf to register R14
+[   13.226794] wm8775 9-001b: I2C: cannot write 1cf to register R15
+[   13.240810] wm8775 9-001b: I2C: cannot write 0c2 to register R21
+[   13.249220] wm8775 9-001b: I2C: cannot write 1cf to register R14
+[   13.256881] wm8775 9-001b: I2C: cannot write 1cf to register R15
+[   13.274529] cx88[0]/0: registered device video0 [v4l2]
+[   13.279167] cx88[0]/0: registered device vbi0
+
+
+Hardware:
+========
+
+Hauppauge WinTV Nova HD-S2,
+installed on AOpen i915GMm-hfs mobo,
+2GB RAM, 2GHz Pentium-M Dothan
+
+lspci -vv::
+
+05:05.0 Multimedia video controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+         Subsystem: Hauppauge computer works Inc. Device 6906
+         Flags: bus master, medium devsel, latency 32, IRQ 17
+         Memory at d0000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: [44] Vital Product Data
+         Capabilities: [4c] Power Management version 2
+         Kernel driver in use: cx8800
+
+05:05.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] (rev 05)
+         Subsystem: Hauppauge computer works Inc. Device 6906
+         Flags: bus master, medium devsel, latency 32, IRQ 12
+         Memory at d1000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: [4c] Power Management version 2
+
+05:05.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
+         Subsystem: Hauppauge computer works Inc. Device 6906
+         Flags: bus master, medium devsel, latency 32, IRQ 17
+         Memory at d2000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: [4c] Power Management version 2
+         Kernel driver in use: cx88-mpeg driver manager
+
+05:05.4 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI Video and Audio Decoder [IR Port] (rev 05)
+         Subsystem: Hauppauge computer works Inc. Device 6906
+         Flags: bus master, medium devsel, latency 32, IRQ 12
+         Memory at d3000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: [4c] Power Management version 2
+
+cu,
+  Knut
