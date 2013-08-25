@@ -1,64 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:4384 "EHLO
-	mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932204Ab3HNJLu (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:15265 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756358Ab3HYMmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Aug 2013 05:11:50 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 26/29] drivers/media/platform/coda.c: simplify use of devm_ioremap_resource
-Date: Wed, 14 Aug 2013 11:11:30 +0200
-Message-Id: <1376471493-22215-27-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
+	Sun, 25 Aug 2013 08:42:31 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS3001RW7AU0I20@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 25 Aug 2013 08:42:30 -0400 (EDT)
+Date: Sun, 25 Aug 2013 09:42:24 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Carsten Haitzler <c.haitzler@samsung.com>
+Subject: Re: [GIT PULL FOR v3.12] Matrix and Motion Detection support,
+ move solo/go7007 out of staging
+Message-id: <20130825094224.2507c766@samsung.com>
+In-reply-to: <5217604B.8080600@cisco.com>
+References: <5217604B.8080600@cisco.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Em Fri, 23 Aug 2013 15:14:51 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-Remove unneeded error handling on the result of a call to
-platform_get_resource when the value is passed to devm_ioremap_resource.
+> Hi Mauro,
+> 
+> This pull request adds the motion detection and matrix API, implements it in the
+> solo6x10 and go7007 drivers and moves both drivers out of staging.
+> 
+> This pull request builds on top of my v3.12 pull request:
+> 
+> https://patchwork.linuxtv.org/patch/19898/
+> 
+> The only thing missing is enabling support for the WIS-Voyager saa7134 card that uses
+> the go7007 driver. I want to test that first to make sure nothing is broken since the
+> last time I used it. That may take some time before I can get around that, but that
+> board is very rare so there is no hurry with that.
+> 
+> Whether or not this can go in for 3.12 depends on your review of the new API elements.
 
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
+Hi Hans,
 
-// <smpl>
-@@
-expression pdev,res,n,e,e1;
-expression ret != 0;
-identifier l;
-@@
+Carlsten (Enlightment maintainer) pointed me on IRC that linux evdev has a
+somewhat similar API, in order to track multi-finger position on a touchpad.
 
-- res = platform_get_resource(pdev, IORESOURCE_MEM, n);
-  ... when != res
-- if (res == NULL) { ... \(goto l;\|return ret;\) }
-  ... when != res
-+ res = platform_get_resource(pdev, IORESOURCE_MEM, n);
-  e = devm_ioremap_resource(e1, res);
-// </smpl>
+In order to avoid having duplication at Kernel APIs, it makes sense to envolve
+linux-input on those API discussions, in order to be sure that we won't be
+reinventing the wheel.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Regards,
+Mauro
 
----
- drivers/media/platform/coda.c |    5 -----
- 1 file changed, 5 deletions(-)
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 72230f27e0c7668e14dbcbd8abc1ed1c08451931:
+> 
+>   MAINTAINERS: add entries for adv7511 and adv7842. (2013-08-23 14:12:44 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git md
+> 
+> for you to fetch changes up to 342b0b7b8864b6e27cd013e94cf687649083ac33:
+> 
+>   go7007: move out of staging into drivers/media/usb. (2013-08-23 14:49:57 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (12):
+>       v4l2-controls: add motion detection controls.
+>       v4l2: add matrix support.
+>       v4l2-compat-ioctl32: add g/s_matrix support
+>       solo: implement the new matrix ioctls instead of the custom ones.
+>       v4l2: add a motion detection event.
+>       solo6x10: implement motion detection events and controls.
+>       DocBook: add the new v4l detection class controls.
+>       DocBook: document new v4l motion detection event.
+>       DocBook: document the new v4l2 matrix ioctls.
+>       go7007: add motion detection support.
+>       solo6x10: move out of staging into drivers/media/pci.
+>       go7007: move out of staging into drivers/media/usb.
+> 
+>  Documentation/DocBook/media/v4l/controls.xml                      |  69 +++++++++++
+>  Documentation/DocBook/media/v4l/v4l2.xml                          |   2 +
+>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml                |  40 ++++++
+>  Documentation/DocBook/media/v4l/vidioc-g-matrix.xml               | 108 ++++++++++++++++
+>  Documentation/DocBook/media/v4l/vidioc-query-matrix.xml           | 180 +++++++++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml        |   8 ++
+>  drivers/media/pci/Kconfig                                         |   1 +
+>  drivers/media/pci/Makefile                                        |   1 +
+>  drivers/{staging/media => media/pci}/solo6x10/Kconfig             |   2 +-
+>  drivers/{staging/media => media/pci}/solo6x10/Makefile            |   2 +-
+>  drivers/{staging/media => media/pci}/solo6x10/TODO                |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c   |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c      |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c      |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h  |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c      |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c | 219 ++++++++++++++++++++++++---------
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c     |   0
+>  drivers/{staging/media => media/pci}/solo6x10/solo6x10.h          |  19 +--
+>  drivers/media/usb/Kconfig                                         |   1 +
+>  drivers/media/usb/Makefile                                        |   1 +
+>  drivers/{staging/media => media/usb}/go7007/Kconfig               |   0
+>  drivers/{staging/media => media/usb}/go7007/Makefile              |   0
+>  drivers/{staging/media => media/usb}/go7007/README                |   0
+>  drivers/{staging/media => media/usb}/go7007/go7007-driver.c       | 119 +++++++++++++-----
+>  drivers/{staging/media => media/usb}/go7007/go7007-fw.c           |  28 +++--
+>  drivers/{staging/media => media/usb}/go7007/go7007-i2c.c          |   0
+>  drivers/{staging/media => media/usb}/go7007/go7007-loader.c       |   0
+>  drivers/{staging/media => media/usb}/go7007/go7007-priv.h         |  16 +++
+>  drivers/{staging/media => media/usb}/go7007/go7007-usb.c          |   0
+>  drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c         | 382 ++++++++++++++++++++++++++++++++++++++++++---------------
+>  drivers/{staging/media => media/usb}/go7007/go7007.txt            |   0
+>  drivers/{staging/media => media/usb}/go7007/s2250-board.c         |   0
+>  drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c      |   1 -
+>  drivers/{staging/media => media/usb}/go7007/snd-go7007.c          |   0
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c                     |  50 +++++++-
+>  drivers/media/v4l2-core/v4l2-ctrls.c                              |  31 ++++-
+>  drivers/media/v4l2-core/v4l2-dev.c                                |   3 +
+>  drivers/media/v4l2-core/v4l2-ioctl.c                              |  23 +++-
+>  drivers/staging/media/Kconfig                                     |   4 -
+>  drivers/staging/media/Makefile                                    |   2 -
+>  drivers/staging/media/go7007/go7007.h                             |  40 ------
+>  include/media/v4l2-ioctl.h                                        |   8 ++
+>  include/uapi/linux/v4l2-controls.h                                |  14 +++
+>  include/uapi/linux/videodev2.h                                    |  73 +++++++++++
+>  53 files changed, 1174 insertions(+), 273 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
+>  rename drivers/{staging/media => media/pci}/solo6x10/Kconfig (93%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/Makefile (82%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/TODO (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c (88%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c (100%)
+>  rename drivers/{staging/media => media/pci}/solo6x10/solo6x10.h (93%)
+>  rename drivers/{staging/media => media/usb}/go7007/Kconfig (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/Makefile (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/README (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-driver.c (88%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-fw.c (97%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-i2c.c (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-loader.c (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-priv.h (90%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-usb.c (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c (77%)
+>  rename drivers/{staging/media => media/usb}/go7007/go7007.txt (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/s2250-board.c (100%)
+>  rename drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c (99%)
+>  rename drivers/{staging/media => media/usb}/go7007/snd-go7007.c (100%)
+>  delete mode 100644 drivers/staging/media/go7007/go7007.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 66db0df..1a2192f 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -3122,11 +3122,6 @@ static int coda_probe(struct platform_device *pdev)
- 
- 	/* Get  memory for physical registers */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL) {
--		dev_err(&pdev->dev, "failed to get memory region resource\n");
--		return -ENOENT;
--	}
--
- 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(dev->regs_base))
- 		return PTR_ERR(dev->regs_base);
 
+-- 
+
+Cheers,
+Mauro
