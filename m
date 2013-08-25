@@ -1,101 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33836 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753487Ab3H1QHB (ORCPT
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:42550 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756470Ab3HYPdL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 12:07:01 -0400
-Date: Wed, 28 Aug 2013 19:06:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
-Message-ID: <20130828160626.GE2835@valkosipuli.retiisi.org.uk>
-References: <201308281419.52009.hverkuil@xs4all.nl>
- <1377703495-21112-1-git-send-email-sakari.ailus@iki.fi>
- <521E1779.9030905@xs4all.nl>
-MIME-Version: 1.0
+	Sun, 25 Aug 2013 11:33:11 -0400
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <521E1779.9030905@xs4all.nl>
+Content-Transfer-Encoding: 8BIT
+Subject: Re: [PATCH v5] media: i2c: tvp7002: add OF support
+References: <1376202321-25175-1-git-send-email-prabhakar.csengg@gmail.com> <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org> <52179B03.8090402@samsung.com>
+From: naim.dahnoun@googlemail.com
+Mime-Version: 1.0 (1.0)
+In-Reply-To: <52179B03.8090402@samsung.com>
+Message-Id: <07E2F059-EB81-47F7-814E-C55073144FD2@gmail.com>
+Date: Sun, 25 Aug 2013 16:23:41 +0100
+Cc: Kumar Gala <galak@codeaurora.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"<linux-doc@vger.kernel.org>" <linux-doc@vger.kernel.org>,
+	"<devicetree-discuss@lists.ozlabs.org>"
+	<devicetree-discuss@lists.ozlabs.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks for your prompt comments.
 
-On Wed, Aug 28, 2013 at 05:30:01PM +0200, Hans Verkuil wrote:
-> On 08/28/2013 05:24 PM, Sakari Ailus wrote:
-> > Some devices such as the uvc produce timestamps at the beginning of the
-> > frame rather than at the end of it. Add a buffer flag
-> > (V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
-> > 
-> > Also document timestamp_type in struct vb2_queue, and make the uvc set the
-> > buffer flag.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> > since v4:
-> > - Fixes according to Hans's comments.
-> > 
-> > - Note in comment the uvc driver will set the SOF flag from now on.
-> > 
-> > - Change comment of vb2_queue timestamp_type field: this is timestamp flags
-> >   rather than just type. I stopped short of renaming the field.
-> > 
-> >  Documentation/DocBook/media/v4l/io.xml |   19 ++++++++++++++-----
-> >  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
-> >  include/media/videobuf2-core.h         |    1 +
-> >  include/uapi/linux/videodev2.h         |   10 ++++++++++
-> >  4 files changed, 27 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> > index 2c155cc..3aee210 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -654,11 +654,12 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
-> >  In that case, struct <structname>v4l2_buffer</structname> contains an array of
-> >  plane structures.</para>
-> >  
-> > -      <para>For timestamp types that are sampled from the system clock
-> > -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-> > -taken after the complete frame has been received (or transmitted in
-> > -case of video output devices). For other kinds of
-> > -timestamps this may vary depending on the driver.</para>
-> > +      <para>The timestamp is taken once the complete frame has been
-> > +received (or transmitted for output devices) unless
+Sent from my iPhone
+
+On 23 Aug 2013, at 18:25, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+
+> On 08/13/2013 03:00 AM, Kumar Gala wrote:
+>> On Aug 11, 2013, at 1:25 AM, Lad, Prabhakar wrote:
+>> 
+>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>> 
+>>> add OF support for the tvp7002 driver.
+>>> 
+>>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>> ---
+> [...]
+>>> .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
+>>> drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
+>>> 2 files changed, 113 insertions(+), 7 deletions(-)
+>>> create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> 
+>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> new file mode 100644
+>>> index 0000000..5f28b5d
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> @@ -0,0 +1,53 @@
+>>> +* Texas Instruments TV7002 video decoder
+>>> +
+>>> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
+>>> +YPbPr color space.
+>>> +
+>>> +Required Properties :
+>>> +- compatible : Must be "ti,tvp7002"
+>>> +
+>>> +Optional Properties:
+>> 
+>> 
+>>> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
+>>> +  this property is not specified is <0>.
+>>> +
+>>> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
+>>> +  this property is not specified is <0>.
+>>> +
+>>> +- pclk-sample: Clock polarity of the bus. Default value when this property is
+>>> +  not specified is <0>.
+>>> +
+>>> +- sync-on-green-active: Active state of Sync-on-green signal property of the
+>>> +  endpoint.
+>>> +  0 = Normal Operation (Active Low, Default)
+>>> +  1 = Inverted operation
+>> 
+>> These seems better than what you have in video-interfaces.txt
 > 
-> unless -> unless the
+> We probably should specify default values in in the common binding description.
+> Then duplication could be avoided. Not sure if it's not too late for this, all
+> drivers would need to have same default values.
 > 
-> > +<constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> buffer flag is set.
-> > +If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> is set, the
+> What's normal and what's inverted depends on a particular device.
 > 
-> the -> then the
-
-Fixed both.
-
-> > +timestamp is taken when the first pixel of the frame is received
-> > +(or transmitted).</para>
-> >  
-> >      <table frame="none" pgwide="1" id="v4l2-buffer">
-> >        <title>struct <structname>v4l2_buffer</structname></title>
-> > @@ -1120,6 +1121,14 @@ in which case caches have not been used.</entry>
-> >  	    <entry>The CAPTURE buffer timestamp has been taken from the
-> >  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
-> >  	  </row>
-> > +	  <row>
-> > +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
-> > +	    <entry>0x00010000</entry>
-> > +	    <entry>The buffer timestamp has been taken when the first
+>>> +- field-even-active: Active-high Field ID output polarity control of the bus.
+>>> +  Under normal operation, the field ID output is set to logic 1 for an odd field
+>>> +  (field 1) and set to logic 0 for an even field (field 0).
+>>> +  0 = Normal Operation (Active Low, Default)
+>>> +  1 = FID output polarity inverted
+>>> +
+>> 
+>> Why the duplication if this is covered in video-interfaces.txt?
 > 
-> I think 'has been' should be 'was' in this context.
-
-Then I wonder if I should change all the other flags, too. :-) "Has been" is
-consistent with the documentation of other flags.
-
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Yes, it would be better to avoid redefining these properties in each specific 
+> device's binding. Presumably, for easier matching of DT properties with the
+> hardware's description, we could only say in device specific document which
+> value of a property corresponds to "normal" and which to "inverted" operation ?
+> 
+>>> +For further reading of port node refer Documentation/devicetree/bindings/media/
+>>> +video-interfaces.txt.
+> 
+> -- 
+> Sylwester Nawrocki
+> Samsung R&D Institute Poland
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
