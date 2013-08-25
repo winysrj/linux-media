@@ -1,222 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:39661 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab3HVK4K (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51208 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756377Ab3HYWzx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:56:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFCv3 PATCH 02/10] v4l2: add matrix support.
-Date: Thu, 22 Aug 2013 12:56:05 +0200
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com> <bf522c1bf85e48ce9bb9e070043cd3f52bbfebfe.1377166147.git.hans.verkuil@cisco.com> <20130822104924.GA21009@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130822104924.GA21009@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308221256.05867.hverkuil@xs4all.nl>
+	Sun, 25 Aug 2013 18:55:53 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
+	hverkuil@xs4all.nl
+Subject: [PATCH v4 2/3] v4l: Use full 32 bits for buffer flags
+Date: Mon, 26 Aug 2013 02:02:02 +0300
+Message-Id: <1377471723-22341-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
+References: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 22 August 2013 12:49:24 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Thu, Aug 22, 2013 at 12:14:16PM +0200, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This patch adds core support for matrices: querying, getting and setting.
-> > 
-> > Two initial matrix types are defined for motion detection (defining regions
-> > and thresholds).
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c | 23 +++++++++++++-
-> >  include/media/v4l2-ioctl.h           |  8 +++++
-> >  include/uapi/linux/videodev2.h       | 58 ++++++++++++++++++++++++++++++++++++
-> >  4 files changed, 91 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > index c8859d6..5e58df6 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
-> >  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
-> >  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
-> > +	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
-> > +	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
-> > +	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
-> >  
-> >  	if (is_vid) {
-> >  		/* video specific ioctls */
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > index 68e6b5e..cdd5c77 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
-> >  	const struct v4l2_cropcap *p = arg;
-> >  
-> >  	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
-> > -		"defrect wxh=%dx%d, x,y=%d,%d\n, "
-> > +		"defrect wxh=%dx%d, x,y=%d,%d, "
-> >  		"pixelaspect %d/%d\n",
-> >  		prt_names(p->type, v4l2_type_names),
-> >  		p->bounds.width, p->bounds.height,
-> > @@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
-> >  			p->rangehigh, p->modulation);
-> >  }
-> >  
-> > +static void v4l_print_query_matrix(const void *arg, bool write_only)
-> > +{
-> > +	const struct v4l2_query_matrix *p = arg;
-> > +
-> > +	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
-> > +			p->type, p->columns, p->rows,
-> > +			p->elem_min.val, p->elem_max.val, p->elem_size);
-> > +}
-> > +
-> > +static void v4l_print_matrix(const void *arg, bool write_only)
-> > +{
-> > +	const struct v4l2_matrix *p = arg;
-> > +
-> > +	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
-> > +			p->type, p->rect.width, p->rect.height,
-> > +			p->rect.top, p->rect.left, p->matrix);
-> > +}
-> > +
-> >  static void v4l_print_u32(const void *arg, bool write_only)
-> >  {
-> >  	pr_cont("value=%u\n", *(const u32 *)arg);
-> > @@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
-> >  	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
-> >  	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
-> >  	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
-> > +	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, type)),
-> > +	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
-> > +	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
-> >  };
-> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> >  
-> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> > index e0b74a4..7e4538e 100644
-> > --- a/include/media/v4l2-ioctl.h
-> > +++ b/include/media/v4l2-ioctl.h
-> > @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
-> >  	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
-> >  					const struct v4l2_event_subscription *sub);
-> >  
-> > +	/* Matrix ioctls */
-> > +	int (*vidioc_query_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_query_matrix *qmatrix);
-> > +	int (*vidioc_g_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_matrix *matrix);
-> > +	int (*vidioc_s_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_matrix *matrix);
-> > +
-> >  	/* For other private ioctls */
-> >  	long (*vidioc_default)	       (struct file *file, void *fh,
-> >  					bool valid_prio, unsigned int cmd, void *arg);
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 95ef455..cf13339 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1838,6 +1838,58 @@ struct v4l2_create_buffers {
-> >  	__u32			reserved[8];
-> >  };
-> >  
-> > +/* Define to which motion detection region each element belongs.
-> > + * Each element is a __u8. */
-> > +#define V4L2_MATRIX_T_MD_REGION     (1)
-> > +/* Define the motion detection threshold for each element.
-> > + * Each element is a __u16. */
-> > +#define V4L2_MATRIX_T_MD_THRESHOLD  (2)
-> > +
-> > +/**
-> > + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
-> > + * @type:	matrix type
-> > + * @ref:	reference to some object (if any) owning the matrix
-> 
-> How about removing the comment, too? :-)
+The buffer flags field is 32 bits but the defined only used 16. This is
+fine, but as more than 16 bits will be used in the very near future, define
+them as 32-bit numbers for consistency.
 
-Oops! I really thought I caught all 'ref' references :-)
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
+ include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++-------------
+ 2 files changed, 38 insertions(+), 30 deletions(-)
 
-> > + * @columns:	number of columns in the matrix
-> > + * @rows:	number of rows in the matrix
-> > + * @elem_min:	minimum matrix element value
-> > + * @elem_max:	maximum matrix element value
-> > + * @elem_size:	size in bytes each matrix element
-> 
-> How about "size of each matrix element in bytes"?
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index cd5f9de..b9a83bc 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -985,7 +985,7 @@ should set this to 0.</entry>
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_MAPPED</constant></entry>
+-	    <entry>0x0001</entry>
++	    <entry>0x00000001</entry>
+ 	    <entry>The buffer resides in device memory and has been mapped
+ into the application's address space, see <xref linkend="mmap" /> for details.
+ Drivers set or clear this flag when the
+@@ -995,7 +995,7 @@ Drivers set or clear this flag when the
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_QUEUED</constant></entry>
+-	    <entry>0x0002</entry>
++	    <entry>0x00000002</entry>
+ 	  <entry>Internally drivers maintain two buffer queues, an
+ incoming and outgoing queue. When this flag is set, the buffer is
+ currently on the incoming queue. It automatically moves to the
+@@ -1008,7 +1008,7 @@ cleared.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_DONE</constant></entry>
+-	    <entry>0x0004</entry>
++	    <entry>0x00000004</entry>
+ 	    <entry>When this flag is set, the buffer is currently on
+ the outgoing queue, ready to be dequeued from the driver. Drivers set
+ or clear this flag when the <constant>VIDIOC_QUERYBUF</constant> ioctl
+@@ -1022,7 +1022,7 @@ state, in the application domain to say so.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_ERROR</constant></entry>
+-	    <entry>0x0040</entry>
++	    <entry>0x00000040</entry>
+ 	    <entry>When this flag is set, the buffer has been dequeued
+ 	    successfully, although the data might have been corrupted.
+ 	    This is recoverable, streaming may continue as normal and
+@@ -1032,7 +1032,7 @@ state, in the application domain to say so.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_KEYFRAME</constant></entry>
+-	    <entry>0x0008</entry>
++	    <entry>0x00000008</entry>
+ 	  <entry>Drivers set or clear this flag when calling the
+ <constant>VIDIOC_DQBUF</constant> ioctl. It may be set by video
+ capture devices when the buffer contains a compressed image which is a
+@@ -1040,27 +1040,27 @@ key frame (or field), &ie; can be decompressed on its own.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_PFRAME</constant></entry>
+-	    <entry>0x0010</entry>
++	    <entry>0x00000010</entry>
+ 	    <entry>Similar to <constant>V4L2_BUF_FLAG_KEYFRAME</constant>
+ this flags predicted frames or fields which contain only differences to a
+ previous key frame.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_BFRAME</constant></entry>
+-	    <entry>0x0020</entry>
++	    <entry>0x00000020</entry>
+ 	    <entry>Similar to <constant>V4L2_BUF_FLAG_PFRAME</constant>
+ 	this is a bidirectional predicted frame or field. [ooc tbd]</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMECODE</constant></entry>
+-	    <entry>0x0100</entry>
++	    <entry>0x00000100</entry>
+ 	    <entry>The <structfield>timecode</structfield> field is valid.
+ Drivers set or clear this flag when the <constant>VIDIOC_DQBUF</constant>
+ ioctl is called.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
+-	    <entry>0x0400</entry>
++	    <entry>0x00000400</entry>
+ 	    <entry>The buffer has been prepared for I/O and can be queued by the
+ application. Drivers set or clear this flag when the
+ <link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
+@@ -1070,7 +1070,7 @@ application. Drivers set or clear this flag when the
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+-	    <entry>0x0800</entry>
++	    <entry>0x00000800</entry>
+ 	    <entry>Caches do not have to be invalidated for this buffer.
+ Typically applications shall use this flag if the data captured in the buffer
+ is not going to be touched by the CPU, instead the buffer will, probably, be
+@@ -1079,7 +1079,7 @@ passed on to a DMA-capable hardware unit for further processing or output.
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+-	    <entry>0x1000</entry>
++	    <entry>0x00001000</entry>
+ 	    <entry>Caches do not have to be cleaned for this buffer.
+ Typically applications shall use this flag for output buffers if the data
+ in this buffer has not been created by the CPU but by some DMA-capable unit,
+@@ -1087,7 +1087,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+-	    <entry>0xe000</entry>
++	    <entry>0x0000e000</entry>
+ 	    <entry>Mask for timestamp types below. To test the
+ 	    timestamp type, mask out bits not belonging to timestamp
+ 	    type by performing a logical and operation with buffer
+@@ -1095,7 +1095,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
+-	    <entry>0x0000</entry>
++	    <entry>0x00000000</entry>
+ 	    <entry>Unknown timestamp type. This type is used by
+ 	    drivers before Linux 3.9 and may be either monotonic (see
+ 	    below) or realtime (wall clock). Monotonic clock has been
+@@ -1108,7 +1108,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
+-	    <entry>0x2000</entry>
++	    <entry>0x00002000</entry>
+ 	    <entry>The buffer timestamp has been taken from the
+ 	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
+ 	    same clock outside V4L2, use
+@@ -1116,7 +1116,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
+-	    <entry>0x4000</entry>
++	    <entry>0x00004000</entry>
+ 	    <entry>The CAPTURE buffer timestamp has been taken from the
+ 	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+ 	  </row>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..691077d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,24 +669,32 @@ struct v4l2_buffer {
+ };
+ 
+ /*  Flags for 'flags' field */
+-#define V4L2_BUF_FLAG_MAPPED	0x0001  /* Buffer is mapped (flag) */
+-#define V4L2_BUF_FLAG_QUEUED	0x0002	/* Buffer is queued for processing */
+-#define V4L2_BUF_FLAG_DONE	0x0004	/* Buffer is ready */
+-#define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+-#define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+-#define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
++/* Buffer is mapped (flag) */
++#define V4L2_BUF_FLAG_MAPPED			0x00000001
++/* Buffer is queued for processing */
++#define V4L2_BUF_FLAG_QUEUED			0x00000002
++/* Buffer is ready */
++#define V4L2_BUF_FLAG_DONE			0x00000004
++/* Image is a keyframe (I-frame) */
++#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
++/* Image is a P-frame */
++#define V4L2_BUF_FLAG_PFRAME			0x00000010
++/* Image is a B-frame */
++#define V4L2_BUF_FLAG_BFRAME			0x00000020
+ /* Buffer is ready, but the data contained within is corrupted. */
+-#define V4L2_BUF_FLAG_ERROR	0x0040
+-#define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+-#define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
++#define V4L2_BUF_FLAG_ERROR			0x00000040
++/* timecode field is valid */
++#define V4L2_BUF_FLAG_TIMECODE			0x00000100
++/* Buffer is prepared for queuing */
++#define V4L2_BUF_FLAG_PREPARED			0x00000400
+ /* Cache handling flags */
+-#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+-#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
++#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
++#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+ /* Timestamp type */
+-#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
+-#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+-#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+-#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
++#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
++#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
++#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
++#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+1.7.10.4
 
-Fixed.
-
-> 
-> > + * @reserved:	future extensions, applications and drivers must zero this.
-> > + */
-> > +struct v4l2_query_matrix {
-> > +	__u32 type;
-> > +	__u32 columns;
-> > +	__u32 rows;
-> > +	union {
-> > +		__s64 val;
-> > +		__u64 uval;
-> > +		__u32 raw[4];
-> > +	} elem_min;
-> > +	union {
-> > +		__s64 val;
-> > +		__u64 uval;
-> > +		__u32 raw[4];
-> > +	} elem_max;
-> > +	__u32 elem_size;
-> > +	__u32 reserved[16];
-> > +} __attribute__ ((packed));
-> > +
-> > +/**
-> > + * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
-> > + * @type:	matrix type
-> > + * @ref:	reference to some object (if any) owning the matrix
-> 
-> Same here.
-> 
-> > + * @rect:	which part of the matrix to get/set
-> > + * @matrix:	pointer to the matrix of size (in bytes):
-> > + *		elem_size * rect.width * rect.height
-> > + * @reserved:	future extensions, applications and drivers must zero this.
-> > + */
-> > +struct v4l2_matrix {
-> > +	__u32 type;
-> > +	struct v4l2_rect rect;
-> > +	void __user *matrix;
-> > +	__u32 reserved[16];
-> > +} __attribute__ ((packed));
-> > +
-> >  /*
-> >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> >   *
-> > @@ -1946,6 +1998,12 @@ struct v4l2_create_buffers {
-> >     Never use these in applications! */
-> >  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
-> >  
-> > +/* Experimental, these three ioctls may change over the next couple of kernel
-> > +   versions. */
-> > +#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
-> > +#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
-> > +#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
-> > +
-> >  /* Reminder: when adding new ioctls please add support for them to
-> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> >  
-> 
-> With these changes,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-Thanks!
-
-	Hans
