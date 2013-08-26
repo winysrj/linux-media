@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3931 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756194Ab3HOLh2 (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:42594 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909Ab3HZPsn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:37:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 26 Aug 2013 11:48:43 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS500KG3AL55060@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Aug 2013 00:48:41 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/12] adv7604: corrected edid crc-calculation
-Date: Thu, 15 Aug 2013 13:36:30 +0200
-Message-Id: <0c9aaba732cde3bedd5870ea20982f700fdefa84.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, m.chehab@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] vb2: Add debug print for the output buffer planes lengths
+ checks
+Date: Mon, 26 Aug 2013 17:47:53 +0200
+Message-id: <1377532073-12864-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Add debug print so it's easier to find any errors resulting from
+the planes' configuration checks added in commit 8023ed09cb278004a2
+"videobuf2-core: Verify planes lengths for output buffers".
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Reviewed-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/i2c/ad9389b.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 545aabb..d78fd3d 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -983,12 +983,12 @@ static void ad9389b_check_monitor_present_status(struct v4l2_subdev *sd)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index de0e87f..6bffc96 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1205,8 +1205,11 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	int ret;
  
- static bool edid_block_verify_crc(u8 *edid_block)
- {
--	int i;
- 	u8 sum = 0;
-+	int i;
+ 	ret = __verify_length(vb, b);
+-	if (ret < 0)
++	if (ret < 0) {
++		dprintk(1, "%s(): plane parameters verification failed: %d\n",
++			__func__, ret);
+ 		return ret;
++	}
  
--	for (i = 0; i < 127; i++)
--		sum += *(edid_block + i);
--	return ((255 - sum + 1) == edid_block[127]);
-+	for (i = 0; i < 128; i++)
-+		sum += edid_block[i];
-+	return sum == 0;
- }
- 
- static bool edid_segment_verify_crc(struct v4l2_subdev *sd, u32 segment)
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
 -- 
-1.8.3.2
+1.7.9.5
 
