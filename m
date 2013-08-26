@@ -1,127 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54864 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031466Ab3HIXCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:33 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH/RFC v3 18/19] ARM: shmobile: lager-reference: Add display device nodes to device tree
-Date: Sat, 10 Aug 2013 01:03:17 +0200
-Message-Id: <1376089398-13322-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54692 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755496Ab3HZIPv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Aug 2013 04:15:51 -0400
+Message-ID: <521B0E79.6060506@ti.com>
+Date: Mon, 26 Aug 2013 13:44:49 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: <gregkh@linuxfoundation.org>
+CC: Kishon Vijay Abraham I <kishon@ti.com>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>,
+	<grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: Re: [PATCH v11 0/8] PHY framework
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- arch/arm/boot/dts/r8a7790-lager-reference.dts | 92 +++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+Hi Greg,
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager-reference.dts b/arch/arm/boot/dts/r8a7790-lager-reference.dts
-index d9a25d5..ba2469b 100644
---- a/arch/arm/boot/dts/r8a7790-lager-reference.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager-reference.dts
-@@ -42,6 +42,98 @@
- 			gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
- 		};
- 	};
-+
-+	adv7123 {
-+		compatible = "adi,adv7123";
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				adv7123_in: endpoint {
-+					remote-endpoint = <&du_out_rgb>;
-+				};
-+			};
-+			port@1 {
-+				reg = <1>;
-+				adv7123_out: endpoint {
-+					remote-endpoint = <&con_vga_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	con-vga {
-+		compatible = "con-vga";
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				con_vga_in: endpoint {
-+					remote-endpoint = <&adv7123_out>;
-+				};
-+			};
-+		};
-+	};
-+
-+	panel-dpi {
-+		compatible = "panel-dpi";
-+
-+		width-mm = <210>;
-+		height-mm = <158>;
-+
-+		display-timings {
-+			timing {
-+				/* 1024x768 @65Hz */
-+				clock-frequency = <65000000>;
-+				hactive = <1024>;
-+				vactive = <768>;
-+				hsync-len = <136>;
-+				hfront-porch = <20>;
-+				hback-porch = <160>;
-+				vfront-porch = <3>;
-+				vback-porch = <29>;
-+				vsync-len = <6>;
-+			};
-+		};
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				panel_in: endpoint {
-+					remote-endpoint = <&du_out_lvds1>;
-+				};
-+			};
-+		};
-+	};
-+};
-+
-+&du {
-+	pinctrl-0 = <&du_pins>;
-+	pinctrl-names = "default";
-+};
-+
-+&du_out_rgb {
-+	remote-endpoint = <&adv7123_in>;
-+};
-+
-+&du_out_lvds1 {
-+	remote-endpoint = <&panel_in>;
-+};
-+
-+&pfc {
-+	du_pins: du {
-+		renesas,groups = "du_rgb666", "du_sync_1", "du_clk_out_0";
-+		renesas,function = "du";
-+	};
- };
- 
- &pfc {
--- 
-1.8.1.5
+On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> the PHY with or without using phandle.
+> 
+> This framework will be of use only to devices that uses external PHY (PHY
+> functionality is not embedded within the controller).
+> 
+> The intention of creating this framework is to bring the phy drivers spread
+> all over the Linux kernel to drivers/phy to increase code re-use and to
+> increase code maintainability.
+> 
+> Comments to make PHY as bus wasn't done because PHY devices can be part of
+> other bus and making a same device attached to multiple bus leads to bad
+> design.
+> 
+> If the PHY driver has to send notification on connect/disconnect, the PHY
+> driver should make use of the extcon framework. Using this susbsystem
+> to use extcon framwork will have to be analysed.
+> 
+> You can find this patch series @
+> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
 
+Looks like there are not further comments on this series. Can you take this in
+your misc tree?
+
+Thanks
+Kishon
