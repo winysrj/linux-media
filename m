@@ -1,126 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60339 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab3HVKdn (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:59695 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755195Ab3HZCmH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:33:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sylvester.nawrocki@gmail.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 09/10] DocBook: document the new v4l2 matrix ioctls.
-Date: Thu, 22 Aug 2013 12:34:56 +0200
-Message-ID: <2389202.KPmZT6iCB5@avalon>
-In-Reply-To: <5215B600.8000009@xs4all.nl>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl> <1527473.WFxGOHRo9q@avalon> <5215B600.8000009@xs4all.nl>
+	Sun, 25 Aug 2013 22:42:07 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <5217A3E7.50706@samsung.com>
+References: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1374301266-26726-3-git-send-email-prabhakar.csengg@gmail.com> <5217A3E7.50706@samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 26 Aug 2013 08:11:45 +0530
+Message-ID: <CA+V-a8tStFRbELAmZL=418VpR9SJgp8uo_4hrtny2UEMEoXakg@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] media: i2c: adv7343: add OF support
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	device-tree <devicetree-discuss@lists.ozlabs.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <Mark.Rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sylwester,
 
-On Thursday 22 August 2013 08:56:00 Hans Verkuil wrote:
-> On 08/21/2013 11:58 PM, Laurent Pinchart wrote:
-> > On Monday 12 August 2013 12:58:32 Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >> 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  Documentation/DocBook/media/v4l/v4l2.xml           |   2 +
-> >>  .../DocBook/media/v4l/vidioc-g-matrix.xml          | 115 +++++++++++++
-> >>  .../DocBook/media/v4l/vidioc-query-matrix.xml      | 178 +++++++++++++++
-> >>  3 files changed, 295 insertions(+)
-> >>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-matrix.xml
-> >>  create mode 100644
-> >>  Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
-> > 
-> > [snip]
-> > 
-> >> diff --git a/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
-> >> b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml new file mode
-> >> 100644
-> >> index 0000000..c2845c7
-> >> --- /dev/null
-> >> +++ b/Documentation/DocBook/media/v4l/vidioc-query-matrix.xml
+On Fri, Aug 23, 2013 at 11:33 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Cc: DT binding maintainers
+>
+> On 07/20/2013 08:21 AM, Lad, Prabhakar wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> add OF support for the adv7343 driver.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+> [...]
+>>  .../devicetree/bindings/media/i2c/adv7343.txt      |   48 ++++++++++++++++++++
+>>  drivers/media/i2c/adv7343.c                        |   46 ++++++++++++++++++-
+>>  2 files changed, 93 insertions(+), 1 deletion(-)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>> new file mode 100644
+>> index 0000000..5653bc2
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>> @@ -0,0 +1,48 @@
+>> +* Analog Devices adv7343 video encoder
+>> +
+>> +The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead LQFP
+>> +package. Six high speed, 3.3 V, 11-bit video DACs provide support for composite
+>> +(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs in standard
+>> +definition (SD), enhanced definition (ED), or high definition (HD) video
+>> +formats.
+>> +
+>> +Required Properties :
+>> +- compatible: Must be "adi,adv7343"
+>> +
+>> +Optional Properties :
+>> +- adi,power-mode-sleep-mode: on enable the current consumption is reduced to
+>> +                           micro ampere level. All DACs and the internal PLL
+>> +                           circuit are disabled.
+>
+> Sorry for getting back so late to this. I realize this is already queued in
+> the media tree. But this binding doesn't look good enough to me. I think it
+> will need to be corrected during upcoming -rc period.
+>
+Thanks for the catch :-)
 
-[snip]
+> It might be hard to figure out only from the chip's datasheet what
+> adi,power-mode-sleep-mode really refers to. AFAICS it is for assigning some
+> value to a specific register. If we really need to specify register values
+> in the device tree then it would probably make sense to describe to which
+> register this apply. Now the name looks like derived from some structure
+> member name in the Linux driver of the device.
+>
+the property is derived from the datasheet itself for example the
+'adi,power-mode-sleep-mode' --> Register 0x0 power mode bit 0
+'adi,power-mode-pll-ctrl' ---> Register 0x0 power mode bit 1
+'adi,dac-enable' ----> Register 0x0 power mode bit 2-7
+'adi,sd-dac-enable' ---> Register 0x82 SD mode register bit 1-2
 
-> >> +    <table pgwide="1" frame="none" id="v4l2-matrix-type">
-> >> +      <title>Matrix Types</title>
-> >> +      <tgroup cols="2" align="left">
-> >> +	<colspec colwidth="30*" />
-> >> +	<colspec colwidth="55*" />
-> >> +	<thead>
-> >> +	  <row>
-> >> +	    <entry>Type</entry>
-> >> +	    <entry>Description</entry>
-> >> +	  </row>
-> >> +	</thead>
-> >> +	<tbody valign="top">
-> >> +	  <row>
-> >> +	    <entry><constant>V4L2_MATRIX_T_MD_REGION</constant></entry>
-> >> +	    <entry>Hardware motion detection often divides the image into
-> >> several
-> >> +	    regions, and each region can have its own motion detection
-> >> thresholds.
-> >> +	    This matrix assigns a region number to each element. Each element
-> >> is
-> >> a __u8.
-> >> +	    Generally each element refers to a block of pixels in the image.
-> > 
-> > From the description I have trouble understanding what the matrix type is
-> > for. Do you think we could make the explanation more detailed ?
-> 
-> How about this:
-> 
-> Hardware motion detection divides the image up into cells. If the image
-> resolution is WxH and the matrix size is COLSxROWS, then each cell is a
-> rectangle of (W/COLS)x(H/ROWS) pixels (approximately as there may be some
-> rounding involved). Depending on the hardware each cell can have its own
-> properties. This matrix type sets the 'region' property which is a __u8.
-> Each region will typically have its own set of motion detection parameters
-> such as a threshold that determines the motion detection sensitivity. By
-> assigning each cell a region you can create regions with lower and regions
-> with higher motion sensitivity.
+[1] http://www.analog.com/static/imported-files/data_sheets/ADV7342_7343.pdf
 
-That sounds good to me. One more question, however: if the hardware divides 
-the sub-sampled image into regions, how do you configure per-region thresholds 
-? The V4L2_MATRIX_T_MD_THRESHOLD matrix only configures per-cell thresholds.
+>> +- adi,power-mode-pll-ctrl: PLL and oversampling control. This control allows
+>> +                        internal PLL 1 circuit to be powered down and the
+>> +                        oversampling to be switched off.
+>
+> Similar comments applies to this property.
+>
+>> +- ad,adv7343-power-mode-dac: array configuring the power on/off DAC's 1..6,
+>> +                           0 = OFF and 1 = ON, Default value when this
+>> +                           property is not specified is <0 0 0 0 0 0>.
+>
+> Name of the property is incorrect here. It has changed to "adi,dac-enable".
+>
+OK
 
-> > > +	    </entry>
-> > > +	  </row>
-> > > +	  <row>
-> > > +	    <entry><constant>V4L2_MATRIX_T_MD_THRESHOLD</constant></entry>
-> > > +	    <entry>Hardware motion detection can assign motion detection
-> > > threshold +	    values to each element of an image. Each element is a
-> > > __u16. +       Generally each element refers to a block of pixels in
-> > > the image.
-> This would be improved as well along the same lines:
-> 
-> Hardware motion detection divides the image up into cells. If the image
-> resolution is WxH and the matrix size is COLSxROWS, then each cell is a
-> rectangle of (W/COLS)x(H/ROWS) pixels (approximately as there may be some
-> rounding involved). Depending on the hardware each cell can have its own
-> motion detection sensitivity threshold. This matrix type sets the motion
-> detection threshold property which is a __u16.
-> > > +	    </entry>
-> > > +	  </row>
-> > > +	</tbody>
-> > > +      </tgroup>
-> > > +    </table>
-> > > +
-> > > +  </refsect1>
-> > > +  <refsect1>
-> > > +    &return-value;
-> > > +  </refsect1>
-> > > +</refentry>
+>> +- ad,adv7343-sd-config-dac-out: array configure SD DAC Output's 1 and 2, 0 = OFF
+>> +                              and 1 = ON, Default value when this property is
+>> +                              not specified is <0 0>.
+>
+> Similarly, "adi,sd-dac-enable.
+>
+OK
 
--- 
 Regards,
-
-Laurent Pinchart
-
+--Prabhakar Lad
