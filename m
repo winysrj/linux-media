@@ -1,57 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40060 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59671 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab3HWMwq (ORCPT
+	with ESMTP id S1756478Ab3HZJQg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 08:52:46 -0400
+	Mon, 26 Aug 2013 05:16:36 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] s5k6aa: off by one in s5k6aa_enum_frame_interval()
-Date: Fri, 23 Aug 2013 14:54:01 +0200
-Message-ID: <4319865.UMEVfJshWy@avalon>
-In-Reply-To: <20130823093306.GH31293@elgon.mountain>
-References: <20130823093306.GH31293@elgon.mountain>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] v4l: Fix typo in v4l2_subdev_get_try_crop()
+Date: Mon, 26 Aug 2013 11:17:51 +0200
+Message-Id: <1377508671-13188-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+The helper function is defined by a macro that is erroneously called
+with the compose rectangle instead of the crop rectangle. Fix it.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Friday 23 August 2013 12:33:06 Dan Carpenter wrote:
-> The check is off by one so we could read one space past the end of the
-> array.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Mauro, I have no other pending sensor patches, can you pick this one up from 
-the list, or should I send you a pull request ?
-
-> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-> index 789c02a..629a5cd 100644
-> --- a/drivers/media/i2c/s5k6aa.c
-> +++ b/drivers/media/i2c/s5k6aa.c
-> @@ -1003,7 +1003,7 @@ static int s5k6aa_enum_frame_interval(struct
-> v4l2_subdev *sd, const struct s5k6aa_interval *fi;
->  	int ret = 0;
-> 
-> -	if (fie->index > ARRAY_SIZE(s5k6aa_intervals))
-> +	if (fie->index >= ARRAY_SIZE(s5k6aa_intervals))
->  		return -EINVAL;
-> 
->  	v4l_bound_align_image(&fie->width, S5K6AA_WIN_WIDTH_MIN,
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index bfda0fe..34d9219 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -628,7 +628,7 @@ struct v4l2_subdev_fh {
+ 	}
+ 
+ __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+-__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
++__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
+ __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+ #endif
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.5
 
