@@ -1,40 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:60510 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753262Ab3HVVRv (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32778 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668Ab3HZN21 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 17:17:51 -0400
-Received: by mail-la0-f43.google.com with SMTP id ep20so1935770lab.30
-        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 14:17:49 -0700 (PDT)
-To: horms@verge.net.au, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	m.chehab@samsung.com
-Subject: [PATCH v4 0/3] R8A7779/Marzen R-Car VIN driver support
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Fri, 23 Aug 2013 01:17:48 +0400
+	Mon, 26 Aug 2013 09:28:27 -0400
+Received: from avalon.localnet (unknown [109.134.70.29])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 02C9435A6F
+	for <linux-media@vger.kernel.org>; Mon, 26 Aug 2013 15:28:04 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.12] VSP1 driver fixes
+Date: Mon, 26 Aug 2013 15:29:46 +0200
+Message-ID: <1604449.0Llice0ng2@avalon>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201308230117.49681.sergei.shtylyov@cogentembedded.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Mauro,
 
-   Here's the set of 3 patches against the Mauro's 'media_tree.git' repo's
-'master' branch. Here we add the VIN driver platform code for the R8A7779/Marzen
-with ADV7180 I2C video decoder.
+Here are three v3.12 fixes for the VSP1 driver.
 
-[1/3] ARM: shmobile: r8a7779: add VIN support
-[2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
-[3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+The following changes since commit e0c332c671e71941e0bd4a339972ee4af15df676:
 
-    Mauro has kindly agreed to merge this patchset thru his tree to resolve the
-dependency on the driver's platform data header, provided that the maintainer
-ACKs this. Simon, could you ACK the patchset ASAP -- Mauro expects to close his
-tree for 3.12 this weekend or next Monday?
+  [media] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig 
+(2013-08-25 07:34:52 -0300)
 
-WBR, Sergei
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git vsp1
+
+for you to fetch changes up to 74552e772a715b9004d41b9fda239e74f1dcc990:
+
+  v4l: vsp1: Fix mutex double lock at streamon time (2013-08-26 15:24:48 
++0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (3):
+      v4l: vsp1: Initialize media device bus_info field
+      v4l: vsp1: Add support for RT clock
+      v4l: vsp1: Fix mutex double lock at streamon time
+
+ drivers/media/platform/vsp1/vsp1.h       |  1 +
+ drivers/media/platform/vsp1/vsp1_drv.c   | 42 ++++++++++++++++++++++++++-----
+ drivers/media/platform/vsp1/vsp1_video.c |  2 --
+ 3 files changed, 38 insertions(+), 7 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
