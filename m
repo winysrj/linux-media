@@ -1,86 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63843 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:55111 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754221Ab3HaSi5 (ORCPT
+	with ESMTP id S1751962Ab3HZNyY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 14:38:57 -0400
-Date: Sat, 31 Aug 2013 20:38:54 +0200 (CEST)
+	Mon, 26 Aug 2013 09:54:24 -0400
+Date: Mon, 26 Aug 2013 15:54:16 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-In-Reply-To: <52219093.7080409@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1308312020020.26694@axis700.grange>
-References: <201308301501.25164.hverkuil@xs4all.nl> <52219093.7080409@xs4all.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+In-Reply-To: <20130824160348.074b3d3f@samsung.com>
+Message-ID: <Pine.LNX.4.64.1308261515320.1767@axis700.grange>
+References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com>
+ <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon>
+ <52139A9B.1030400@googlemail.com> <52152578.2060201@googlemail.com>
+ <5215344E.2070002@gmail.com> <52168D98.9060600@googlemail.com>
+ <20130824160348.074b3d3f@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 31 Aug 2013, Hans Verkuil wrote:
+On Sat, 24 Aug 2013, Mauro Carvalho Chehab wrote:
 
+> Em Fri, 23 Aug 2013 00:15:52 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 > 
-> 
-> On 08/30/2013 03:01 PM, Hans Verkuil wrote:
-> > OK, I know, we don't even know yet when the mini-summit will be held but I thought
-> > I'd just start this thread to collect input for the agenda.
+> > Hi Sylwester,
 > > 
-> > I have these topics (and I *know* that I am forgetting a few):
-> > 
-> > - Discuss ideas/use-cases for a property-based API. An initial discussion
-> >   appeared in this thread:
-> > 
-> >   http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
-> > 
-> > - What is needed to share i2c video transmitters between drm and v4l? Hopefully
-> >   we will know more after the upcoming LPC.
-> > 
-> > - Decide on how v4l2 support libraries should be organized. There is code for
-> >   handling raw-to-sliced VBI decoding, ALSA looping, finding associated
-> >   video/alsa nodes and for TV frequency tables. We should decide how that should
-> >   be organized into libraries and how they should be documented. The first two
-> >   aren't libraries at the moment, but I think they should be. The last two are
-> >   libraries but they aren't installed. Some work is also being done on an improved
-> >   version of the 'associating nodes' library that uses the MC if available.
-> > 
-> > - Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
-> >   this thread for all the nasty details:
-> > 
-> >   http://www.spinics.net/lists/linux-media/msg65137.html
-> > 
-> > Feel free to add suggestions to this list.
-> 
-> I got another one:
-> 
-> VIDIOC_TRY_FMT shouldn't return -EINVAL when an unsupported pixelformat is provided,
-> but in practice video capture board tend to do that, while webcam drivers tend to map
-> it silently to a valid pixelformat. Some applications rely on the -EINVAL error code.
-> 
-> We need to decide how to adjust the spec. I propose to just say that some drivers
-> will map it silently and others will return -EINVAL and that you don't know what a
-> driver will do. Also specify that an unsupported pixelformat is the only reason why
-> TRY_FMT might return -EINVAL.
-> 
-> Alternatively we might want to specify explicitly that EINVAL should be returned for
-> video capture devices (i.e. devices supporting S_STD or S_DV_TIMINGS) and 0 for all
-> others.
+> > Am 21.08.2013 23:42, schrieb Sylwester Nawrocki:
+> > > Hi Frank,
+> > >
+> > > On 08/21/2013 10:39 PM, Frank Schäfer wrote:
+> > >> Am 20.08.2013 18:34, schrieb Frank Schäfer:
+> > >>> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
+> > >>>> Hi Mauro,
+> > >>>>
+> > >>>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+> > >>>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+> > >>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+> > >>>>>>> Hi Frank,
+> > >>>>>>> As I mentioned on the list, I'm currently on a holiday, so,
+> > >>>>>>> replying
+> > >>>>>>> briefly.
+> > >>>>>> Sorry, I missed that (can't read all mails on the list).
+> > >>>>>>
+> > >>>>>>> Since em28xx is a USB device, I conclude, that it's supplying
+> > >>>>>>> clock to
+> > >>>>>>> its components including the ov2640 sensor. So, yes, I think the
+> > >>>>>>> driver
+> > >>>>>>> should export a V4L2 clock.
+> > >>>>>> Ok, so it's mandatory on purpose ?
+> > >>>>>> I'll take a deeper into the v4l2-clk code and the
+> > >>>>>> em28xx/ov2640/soc-camera interaction this week.
+> > >>>>>> Have a nice holiday !
 
-Just to make sure I understand right - that kind of excludes cameras, 
-right? Still, even for (other) video capture devices, like TV decoders, is 
-there a real serious enough reason to _change_ the specs, which says 
+Thanks, it was nice indeed :)
 
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html
+> > >>>> too late to
+> > >>>> fix the issue (given that 3.10 is already broken) ? The fix
 
-EINVAL
+Don't think it is, "[media] soc-camera: switch I2C subdevice drivers to 
+use v4l2-clk" only appeared in v3.11-rc1.
 
-    The struct v4l2_format type field is invalid or the requested buffer 
-type not supported.
+> > >>>> shouldn't be too
+> > >>>> complex, registering a dummy V4L2 clock in the em28xx driver should
+> > >>>> be enough.
+> > >>> I would prefer either a) making the clock optional in the senor
+> > >>> driver(s) or b) implementing a real V4L2 clock.
+> > >>>
+> > >>> Reading the soc-camera code, it looks like NULL-pointers for struct
+> > >>> v4l2_clk are handled correctly. so a) should be pretty simple:
+> > >>>
+> > >>>      priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> > >>> -   if (IS_ERR(priv->clk)) {
+> > >>> -       ret = PTR_ERR(priv->clk);
+> > >>> -       goto eclkget;
+> > >>> -   }
+> > >>> +   if (IS_ERR(priv->clk))
+> > >>> +       priv->clk = NULL;
+> > >>>
+> > >>> Some additional NULL-pointer checks might be necessary, e.g. before
+> > >>> calling v4l2_clk_put().
+> > >>
+> > >> Tested and that works.
+> > >> Patch follows.
+> > >
+> > > That patch breaks subdevs registration through the v4l2-async. See commit
+> > >
+> > > ef6672ea35b5bb64ab42e18c1a1ffc717c31588a
+> > > [media] V4L2: mt9m111: switch to asynchronous subdevice probing
+> > >
+> > > Sensor probe() callback must return EPROBE_DEFER when the clock is not
+> > > found. This cause the sensor's probe() callback to be called again by
+> > > the driver core after some other driver has probed, e.g. the one that
+> > > registers v4l2_clk. If specific error code is not returned from probe()
+> > > the whole registration process breaks.
+> > Urgh... great. :/
+> > So the presence of a clock is used as indicator if the device is ready ?
+> > Honestly, that sounds like a misuse... Is there no other way to check if
+> > the device is ready ?
+> > Please don't get me wrong, I noticed you've been working on the async
+> > subdevice registration patches for quite a long time and I'm sure it
+> > wasn't an easy task.
+> 
+> The interface was written to mimic what OF does with clock.
+> 
+> Yeah, I agree that this sucks for non OF drivers.
+> 
+> > Btw: only 2 of the 14 drivers return -EPROBE_DEFER when no clock is
+> > found: imx074, mt9m111m.
+> > All others return the error code from v4l2_clk_get(), usually -ENODEV.
+> 
+> Probably because they weren't converted yet to the new way.
+> 
+> > >
+> > >>> Concerning b): I'm not yet sure if it is really needed/makes sense...
+> > >>> Who is supposed to configure/enable/disable the clock in a
+> > >>> constellation
+> > >>> like em28xx+ov2640 ?
 
-If we have a spec, that says A, and some drivers drivers do A, but others 
-do B, and we want to change the specs to B? Instead of either changing the 
-(wrong) drivers to A (yes, some applications expect that wrong behaviour) 
-or at least extending the spec to allow both A and B?
+Ok, let's try to summerise:
+
+* background: many camera sensors do not react to I2C commands as long as 
+no master clock is supplied. Therefore for _those_ sensors making a clock 
+availability seems logical to me. And since it's the sensor driver, that 
+knows what that clock is used for, when it is needed and - eventually - 
+what rate is required - it's the sensor driver, that should manipulate it. 
+Example: some camera sensor drivers write sensor configuration directly to 
+the hardware in each ioctl() possibly without storing the state 
+internally. Such drivers will need a clock running all the time to keep 
+register values. Other drivers might only store configuration internally 
+and only send it to the hardware when streaming is enabled. Those drivers 
+can keep the clock disabled until that time then.
+
+* problem: em28xx USB camera driver uses the ov2640 camera sensor driver 
+and doesn't supply a clock. But ov2640 sensors do need a clock, so, we 
+have to assume it is supplied internally in the camera. Presumably, it is 
+always on and its rate cannot be adjusted either.
+
+* possible fixes: several fixes have been proposed, e.g.
+(a) implement a V4L2 clock in em28xx.
+    Pro: logically correct - a clock is indeed present, local - no core 
+	changes are needed
+    Contra: presumably relatively many devices will have such static 
+	always-on clocks. Implementing them in each of those drivers will 
+	add copied code. Besides creating a clock name from I2C bus and 
+	device numbers is ugly (a helper is needed).
+
+(b) make clocks optional in all subdevice drivers
+    Pro: host / bridge drivers or core don't have to be modified
+    Contra: wrong in principle - those clocks are indeed compulsory
+
+(c) add a global flag to indicate, that the use of clocks on this device 
+    is optional
+    Pro: easy to support in drivers
+    Contra: as in (b) above
+
+(d) a variant of (a), but with a helper function in V4L2 clock core to 
+    implement such a static always-on clock
+    Pro: simple to support in host / bridge drivers
+    Contra: adds bloat to V4L2 clock helper layer, which we want to keep 
+	small and remove eventually.
+
+Have I missed anything? Of the above I would go with (d). I could try to 
+code the required always-on clock helpers.
 
 Thanks
 Guennadi
