@@ -1,125 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43248 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758500Ab3HJMRF (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:44689 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab3HZPDP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Aug 2013 08:17:05 -0400
-Date: Sat, 10 Aug 2013 15:16:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 26 Aug 2013 11:03:15 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS5000YV8H8X6B0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 26 Aug 2013 16:03:12 +0100 (BST)
+Message-id: <521B6E2F.3050809@samsung.com>
+Date: Mon, 26 Aug 2013 17:03:11 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC 2/4] media: Check for active links on pads with
- MEDIA_PAD_FL_MUST_CONNECT flag
-Message-ID: <20130810121629.GF16719@valkosipuli.retiisi.org.uk>
-References: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
- <1374256509-7850-3-git-send-email-sakari.ailus@iki.fi>
- <32006650.7k13BkzS1n@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <32006650.7k13BkzS1n@avalon>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] videobuf2-core: Verify planes lengths for output buffers
+References: <1350401832-22186-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <521B5E54.7030101@samsung.com> <20130826113201.5384bb49@samsung.com>
+ <4180721.bTkb1na8CH@avalon>
+In-reply-to: <4180721.bTkb1na8CH@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Fri, Aug 09, 2013 at 01:34:46AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+On 08/26/2013 04:41 PM, Laurent Pinchart wrote:
+> Hi Sylwester,
 > 
-> Thank you for the patch.
+> On Monday 26 August 2013 11:32:01 Mauro Carvalho Chehab wrote:
+>> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+>>> On 08/08/2013 02:35 PM, Laurent Pinchart wrote:
+>>>> On Thursday 08 August 2013 14:14:30 Marek Szyprowski wrote:
+>>>>> On 8/7/2013 12:44 PM, Laurent Pinchart wrote:
+>>>>>> On Monday 12 November 2012 12:35:35 Laurent Pinchart wrote:
+>>>>>>> On Friday 09 November 2012 15:33:22 Pawel Osciak wrote:
+>>>>>>>> On Tue, Oct 16, 2012 at 8:37 AM, Laurent Pinchart wrote:
+>>>>>>>>> For output buffers application provide to the kernel the number of
+>>>>>>>>> bytes they stored in each plane of the buffer. Verify that the
+>>>>>>>>> value is smaller than or equal to the plane length.
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>>>>>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>>>> ---
+>>>>>>>>
+>>>>>>>> Acked-by: Pawel Osciak <pawel@osciak.com>
+>>>>>>>
+>>>>>>> You're listed, as well as Marek and Kyungmin, as videobuf2
+>>>>>>> maintainers. When you ack a videobuf2 patch, should we assume that
+>>>>>>> you will take it in your git tree ?
+>>>>>>
+>>>>>> Ping ? I'd like to get this patch in v3.12, should I send a pull
+>>>>>> request ?
+>>>>>
+>>>>> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>>>
+>>>>> Feel free to include it in your pull-request. I'm sorry for so huge
+>>>>> delay in my response.
+>>>>
+>>>> No worries. I'll send a pull request to Mauro.
+>>>>
+>>>>>>>>>  drivers/media/v4l2-core/videobuf2-core.c |   39
+>>>>>>>>>  +++++++++++++++++++
+>>>>>>>>>  1 files changed, 39 insertions(+), 0 deletions(-)
+>>>>>>>>>
+>>>>>>>>> Changes compared to v1:
+>>>>>>>>>
+>>>>>>>>> - Sanity check the data_offset value for each plane.
+>>>>>>>>>
+>>>>>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>>>> b/drivers/media/v4l2-core/videobuf2-core.c index 432df11..479337d
+>>>>>>>>> 100644
+>>>>>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>>>> @@ -296,6 +296,41 @@ static int __verify_planes_array(struct
+>>>>>>>>> vb2_buffer
+>>>>>>>>> *vb, const struct v4l2_buffer>
+>>>>>>>>>  }
+>>>>>>>>>  
+>>>>>>>>>  /**
+>>>>>>>>> + * __verify_length() - Verify that the bytesused value for each
+>>>>>>>>> plane
+>>>>>>>>> fits in
+>>>>>>>>> + * the plane length and that the data offset doesn't exceed the
+>>>>>>>>> bytesused value.
+>>>>>>>>> + */
+>>>>>>>>> +static int __verify_length(struct vb2_buffer *vb, const struct
+>>>>>>>>> v4l2_buffer *b)
+>>>>>>>>> +{
+>>>>>>>>> +       unsigned int length;
+>>>>>>>>> +       unsigned int plane;
+>>>>>>>>> +
+>>>>>>>>> +       if (!V4L2_TYPE_IS_OUTPUT(b->type))
+>>>>>>>>> +               return 0;
+>>>>>>>>> +
+>>>>>>>>> +       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>>>>>>>>> +               for (plane = 0; plane < vb->num_planes; ++plane) {
+>>>>>>>>> +                       length = (b->memory == V4L2_MEMORY_USERPTR)
+>>>>>>>>> +                              ? b->m.planes[plane].length
+>>>>>>>>> +                              : vb->v4l2_planes[plane].length;
+>>>>>>>>> +
+>>>>>>>>> +                       if (b->m.planes[plane].bytesused > length)
+>>>>>>>>> +                               return -EINVAL;
+>>>>>>>>> +                       if (b->m.planes[plane].data_offset >=
+>>>>>>>>> +                           b->m.planes[plane].bytesused)
+>>>>>>>>> +                               return -EINVAL;
+>>>
+>>> This patch causes regressions. After kernel upgrade applications that
+>>> zero the planes array and don't set bytesused will stop working.
+>>> We could say that these are buggy applications, but if it has been
+>>> allowed for several kernel releases failing VIDIOC_QBUF on this check
+>>> now is plainly a regression IMO. I guess Linus wouldn't be happy about
+>>> a change like this.
+>>>
+>>> With this patch it is no longer possible to queue a buffer with bytesused
+>>> set to 0. I think it shouldn't be disallowed to queue a buffer with no
+>>> data to be used. So the check should likely be instead:
+>>>
+>>>  if (b->m.planes[plane].bytesused > 0 &&
+>>>      b->m.planes[plane].data_offset >=
+>>>      b->m.planes[plane].bytesused)
+>>> 	return -EINVAL;
 > 
-> On Friday 19 July 2013 20:55:07 Sakari Ailus wrote:
-> > Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is not
-> > connected by an active link.
-> > 
-> > This patch makes it possible to avoid drivers having to check for the most
-> > common case of link state validation: a sink pad that must be connected.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/media-entity.c |   34 +++++++++++++++++++++++++++-------
-> >  1 file changed, 27 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index cb30ffb..4e58f8a 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -20,6 +20,7 @@
-> >   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 
-> > USA */
-> > 
-> > +#include <linux/bitmap.h>
-> >  #include <linux/module.h>
-> >  #include <linux/slab.h>
-> >  #include <media/media-entity.h>
-> > @@ -227,6 +228,7 @@ __must_check int media_entity_pipeline_start(struct
-> > media_entity *entity, media_entity_graph_walk_start(&graph, entity);
-> > 
-> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
-> > +		DECLARE_BITMAP(active, entity->num_pads);
-> >  		unsigned int i;
-> > 
-> >  		entity->stream_count++;
-> > @@ -240,21 +242,39 @@ __must_check int media_entity_pipeline_start(struct
-> > media_entity *entity, if (!entity->ops || !entity->ops->link_validate)
-> >  			continue;
-> > 
-> > +		bitmap_zero(active, entity->num_pads);
-> > +
-> >  		for (i = 0; i < entity->num_links; i++) {
-> >  			struct media_link *link = &entity->links[i];
-> > -
-> > -			/* Is this pad part of an enabled link? */
-> > -			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
-> > -				continue;
-> > -
-> > -			/* Are we the sink or not? */
-> > -			if (link->sink->entity != entity)
-> > +			struct media_pad *pad = link->sink->entity == entity
-> > +				? link->sink : link->source;
-> > +
-> > +			/*
-> > +			 * Pads that either do not need to connect or
-> > +			 * are connected through an enabled link are
-> > +			 * fine.
-> > +			 */
-> > +			if (!(pad->flags & MEDIA_PAD_FL_MUST_CONNECT)
-> > +			    || link->flags & MEDIA_LNK_FL_ENABLED)
-> > +				bitmap_set(active, pad->index, 1);
-> > +
-> > +			/*
-> > +			 * Link validation will only take place for
-> > +			 * sink ends of the link that are enabled.
-> > +			 */
-> > +			if (link->sink != pad
-> > +			    || !(link->flags & MEDIA_LNK_FL_ENABLED))
-> >  				continue;
-> > 
-> >  			ret = entity->ops->link_validate(link);
-> >  			if (ret < 0 && ret != -ENOIOCTLCMD)
-> >  				goto error;
-> >  		}
-> > +
-> > +		if (!bitmap_full(active, entity->num_pads)) {
-> > +			ret = -EPIPE;
-> > +			goto error;
-> > +		}
+> What about
 > 
-> I'm afraid that won't work if one of the pads has no links. In that case the 
-> bitmap won't be full. I think you will have to iterate separately on the links 
-> to validate them, and on the pads to check the flags.
+> 	if (b->m.planes[plane].data_offset > 0 &&
+> 	    b->m.planes[plane].data_offset >=
+> 	    b->m.planes[plane].bytesused)
+> 	 	return -EINVAL;
+> 
+> If data_offset is non-zero we don't want to accept a zero bytesused value.
 
-Good point.
+You're right, that looks better.
 
-I could as well add another bitmap or perhaps rather keep the information in
-struct media_pad, separately from flags since this is something the user can
-find through other means --- that way we don't add practically any runtime
-overhead.
+This will at least prevent failure of user space code like this one [1].
 
-What do you think?
+> We could also catch data_offset == 0 && bytesused == 0 with a WARN_ONCE to try 
+> and get userspace applications fixed (this should definitely have been caught 
+> from the very start).
 
--- 
-Kind regards,
+But is it really a critical error condition ? IIRC s5p-mfc driver uses buffers
+with bytesused = 0 to signal end of stream (I'm not judging whether it is
+right or not at the moment). I'm no sure if such a configuration should be 
+disallowed right at the v4l2-core.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>>> Sorry for the late review of this.
+>>
+>> Makes sense. Could you please send such patch?
+
+Sure, I'm preparing a patch. And...
+
+[...]
+
+>>>>>>>>> +       ret = __verify_length(vb, b);
+>>>>>>>>> +       if (ret < 0)
+
+additionally adding a debug print here, so it is easier to find out
+why QBUF fails.
+
+>>>>>>>>> +               return ret;
+>>>>>>>>> +
+>>>>>>>>>         switch (q->memory) {
+>>>>>>>>>         case V4L2_MEMORY_MMAP:
+>>>>>>>>>                 ret = __qbuf_mmap(vb, b);
+ 
+
+[1] http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/tree/sys/mfc/fimc/fimc.c?id=0489f5277649826d1b38213c234fb0fe27206c2c#n543
+
+--
+Regards,
+Sylwester
