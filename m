@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:47411 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753454Ab3HWJqo (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:23814 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab3HZPrX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 05:46:44 -0400
-Date: Fri, 23 Aug 2013 12:46:47 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: sylvester.nawrocki@gmail.com
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Subject: re: [media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera
- interface
-Message-ID: <20130823094647.GO31293@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Mon, 26 Aug 2013 11:47:23 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS5009TAAIXBQ20@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Aug 2013 00:47:21 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, m.chehab@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] vb2: Allow queuing OUTPUT buffers with zeroed 'bytesused'
+Date: Mon, 26 Aug 2013 17:47:09 +0200
+Message-id: <1377532029-12777-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[ Going through some old warnings... ]
+Modify the bytesused/data_offset check to not fail if both bytesused
+and data_offset is set to 0. This should minimize possible issues in
+existing applications which worked before we enforced the plane lengths
+for output buffers checks introduced in commit 8023ed09cb278004a2
+"videobuf2-core: Verify planes lengths for output buffers"
 
-Hello Sylwester Nawrocki,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-This is a semi-automatic email about new static checker warnings.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 594c75e..de0e87f 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -353,7 +353,9 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 			if (b->m.planes[plane].bytesused > length)
+ 				return -EINVAL;
+-			if (b->m.planes[plane].data_offset >=
++
++			if (b->m.planes[plane].data_offset > 0 &&
++			    b->m.planes[plane].data_offset >=
+ 			    b->m.planes[plane].bytesused)
+ 				return -EINVAL;
+ 		}
+-- 
+1.7.9.5
 
-The patch babde1c243b2: "[media] V4L: Add driver for S3C24XX/S3C64XX 
-SoC series camera interface" from Aug 22, 2012, leads to the 
-following Smatch complaint:
-
-drivers/media/platform/s3c-camif/camif-capture.c:463 queue_setup()
-	 warn: variable dereferenced before check 'fmt' (see line 460)
-
-drivers/media/platform/s3c-camif/camif-capture.c
-   455          if (pfmt) {
-   456                  pix = &pfmt->fmt.pix;
-   457                  fmt = s3c_camif_find_format(vp, &pix->pixelformat, -1);
-   458                  size = (pix->width * pix->height * fmt->depth) / 8;
-                                                           ^^^^^^^^^^
-Dereference.
-
-   459		} else {
-   460			size = (frame->f_width * frame->f_height * fmt->depth) / 8;
-                                                                   ^^^^^^^^^^
-Dereference.
-
-   461		}
-   462	
-   463		if (fmt == NULL)
-                    ^^^^^^^^^^^
-Check.
-
-   464			return -EINVAL;
-   465		*num_planes = 1;
-
-regards,
-dan carpenter
