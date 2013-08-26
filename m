@@ -1,117 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51212 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756200Ab3HYWzx (ORCPT
+Received: from mail-we0-f181.google.com ([74.125.82.181]:44887 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab3HZNs0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Aug 2013 18:55:53 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
-	hverkuil@xs4all.nl
-Subject: [PATCH v4 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
-Date: Mon, 26 Aug 2013 02:02:03 +0300
-Message-Id: <1377471723-22341-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
-References: <1377471723-22341-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 26 Aug 2013 09:48:26 -0400
+Received: by mail-we0-f181.google.com with SMTP id q57so2693149wes.40
+        for <linux-media@vger.kernel.org>; Mon, 26 Aug 2013 06:48:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130822152331.6e186acd@samsung.com>
+References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
+ <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
+ <20130801163624.GA10498@localhost> <20130801141518.258ff0a3@samsung.com>
+ <CAER7dwe9biLNZKtW6xQmD8J0Qmh4dMTi=chpUuQ_Dq5KKxJ5UQ@mail.gmail.com>
+ <20130805172605.1ba32958@samsung.com> <CAER7dwcDxa4=i453tOU21ZJP9Opd01mZ-QYrLpQTcgB_yU4B+Q@mail.gmail.com>
+ <CAJmEX9B=VAEXSto2omRTNcgVdX7akDBUAhJs7nwPUc9xhqFBbg@mail.gmail.com> <20130822152331.6e186acd@samsung.com>
+From: Luis Polasek <lpolasek@gmail.com>
+Date: Mon, 26 Aug 2013 10:48:05 -0300
+Message-ID: <CAER7dwfb6gtqoHh7cx7xgsVtXszsan6nx_CZgCnpBzKbadRvMg@mail.gmail.com>
+Subject: Re: dib8000 scanning not working on 3.10.3
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: =?ISO-8859-1?Q?Javier_B=FAcar?= <jbucar@lifia.info.unlp.edu.ar>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Olivier GRENIE <olivier.grenie@parrot.com>,
+	Patrick BOETTCHER <patrick.boettcher@parrot.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices such as the uvc produce timestamps at the beginning of the
-frame rather than at the end of it. Add a buffer flag
-(V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
+On Thu, Aug 22, 2013 at 3:23 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> Em Thu, 22 Aug 2013 14:47:33 -0300
+> Javier Búcar <jbucar@lifia.info.unlp.edu.ar> escreveu:
+>
+>> Hello Mauro, we have the bad commit:
+>>
+>> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=173a64cb3fcff1993b2aa8113e53fd379f6a968f
+>>
+>> This is a very big commit. I don't known where to fix it. Can you help
+>> me on fixing it
+>
+> Hmm.... So, the error is on this patch?
+>
+>         author  Patrick Boettcher <pboettcher@kernellabs.com>   2013-04-22 15:45:52 (GMT)
+>         [media] dib8000: enhancement
+>
+>         The intend of this patch is to improve the support of the dib8000.
+>
+>         Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+>         Signed-off-by: Patrick Boettcher <patrick.boettcher@parrot.com>
+>         Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> If so, then we need either Olivier or Patrick's help, as I don't have any
+> documentation about the dib8000 chips.
+>
+> You can still take a look there at the code that checks for the
+> chipset version, like:
+>         if (state->revision == 0x8090) {
+>                 <some code for newer version>
+>         } else {
+>                 <some code for the old version>
+>         }
+>
+> If the code for the old version remains the same as before the patch.
+> Where it doesn't remains the same, then it could be the source of the
+> troubles.
+>
+> I suggest you to check what state->revision shows on your specific device,
+> in order to do such analysis.
+>
+> I'll try latter to do some tests with the devices I have, but this could
+> take some time, as I'm really busy those days.
 
-Also document timestamp_type in struct vb2_queue.
+The PixelView DiB8000B revision is:
+   Vendor ID: 0x1b3
+   Product ID: 0x8001
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/io.xml |   17 ++++++++++++-----
- drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
- include/media/videobuf2-core.h         |    1 +
- include/uapi/linux/videodev2.h         |   10 ++++++++++
- 4 files changed, 25 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index b9a83bc..d3a725c 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -654,11 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
- In that case, struct <structname>v4l2_buffer</structname> contains an array of
- plane structures.</para>
- 
--      <para>On timestamp types that are sampled from the system clock
--(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
--taken after the complete frame has been received (or transmitted in
--case of video output devices). For other kinds of
--timestamps this may vary depending on the driver.</para>
-+      <para>The timestamp is taken once the complete frame has been
-+received unless <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant>
-+buffer flag is set. If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant>
-+is set, the timestamp is taken when the first pixel of the frame is
-+received.</para>
- 
-     <table frame="none" pgwide="1" id="v4l2-buffer">
-       <title>struct <structname>v4l2_buffer</structname></title>
-@@ -1120,6 +1120,13 @@ in which case caches have not been used.</entry>
- 	    <entry>The CAPTURE buffer timestamp has been taken from the
- 	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
-+	    <entry>0x00010000</entry>
-+	    <entry>The buffer timestamp has been taken when the first
-+	    pixel is received. If this flag is not set, the timestamp
-+	    is taken when the entire frame has been received.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cd962be..0d80512 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
- 	queue->queue.ops = &uvc_queue_qops;
- 	queue->queue.mem_ops = &vb2_vmalloc_memops;
--	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-+		| V4L2_BUF_FLAG_TIMESTAMP_SOF;
- 	ret = vb2_queue_init(&queue->queue);
- 	if (ret)
- 		return ret;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 6781258..6eb2d59 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -307,6 +307,7 @@ struct v4l2_fh;
-  * @buf_struct_size: size of the driver-specific buffer structure;
-  *		"0" indicates the driver doesn't want to use a custom buffer
-  *		structure type, so sizeof(struct vb2_buffer) will is used
-+ * @timestamp_type: Type of the timestamp; V4L2_BUF_FLAGS_TIMESTAMP_*
-  * @gfp_flags:	additional gfp flags used when allocating the buffers.
-  *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
-  *		to force the buffer allocation to a specific memory zone.
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 691077d..ca2b4fc 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -695,6 +695,16 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
- #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
- #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-+/*
-+ * Timestamp taken once the first pixel is received. If the flag is
-+ * not set the buffer timestamp is taken at the end of the frame. This
-+ * is not a timestamp type.
-+ *
-+ * In general drivers should not use this flag if the end-of-frame
-+ * timestamps is as good quality as the start-of-frame one; the
-+ * V4L2_EVENT_FRAME_SYNC event should be used in that case instead.
-+ */
-+#define V4L2_BUF_FLAG_TIMESTAMP_SOF		0x00010000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
--- 
-1.7.10.4
-
+Thanks and regards...
