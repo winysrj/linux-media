@@ -1,72 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1794 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab3HVK1l (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:17882 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752996Ab3H0QAr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:27:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 1/5] adv7604: set is_private only after successfully creating all controls
-Date: Thu, 22 Aug 2013 12:27:26 +0200
-Message-Id: <649dbb2a170c401618608d53b9c485396defb683.1377167031.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377167250-27589-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 27 Aug 2013 12:00:47 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS700LJR5SWX150@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Aug 2013 12:00:46 -0400 (EDT)
+Date: Tue, 27 Aug 2013 13:00:41 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Frank =?UTF-8?B?U2No?= =?UTF-8?B?w6RmZXI=?=
+	<fschaefer.oss@googlemail.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Message-id: <20130827130041.15db82d5@samsung.com>
+In-reply-to: <5182139.9PqyLJNP0L@avalon>
+References: <520E76E7.30201@googlemail.com> <6237856.Ni2ROBVUfl@avalon>
+ <20130827110858.01d88513@samsung.com> <5182139.9PqyLJNP0L@avalon>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 27 Aug 2013 17:27:52 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-is_private was set right after creating each control, but the control pointer
-might be NULL in case of an error. Set it after all controls were successfully
-created, since that guarantees that all control pointers are non-NULL.
+> Hi Mauro,
+> 
+> On Tuesday 27 August 2013 11:08:58 Mauro Carvalho Chehab wrote:
+> > Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> > > On Monday 26 August 2013 11:09:33 Mauro Carvalho Chehab wrote:
+> > > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+> > Ok, but the voltage and clock regulators are not mapped, on embedded
+> > devices, as part of the USB or PCI bus bridge device (except, of course,
+> > when the voltage/clocks are needed by the bridge device itself). It is
+> > mapped elsewhere, at DT.
+> 
+> Or in a C code board file, depending on the platform. DT or board files are 
+> more or less equivalent, both of them store information about the board. For 
+> PCI and USB devices we need to store that information somewhere as well. As 
+> the em28xx driver already stores board layout information in em28xx-cards.c, 
+> we could store clock information there as well (I haven't checked whether 
+> that's the best place to store that information in the driver). I don't see 
+> why storing board-specific clock information ("there's a fixed-frequency clock 
+> with this frequency and this name on the board") in the driver is a different 
+> issue than storing other kind of board information in the em28xx_board 
+> structure.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5b54ba1..fbfdd2f 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2021,29 +2021,30 @@ static int adv7604_probe(struct i2c_client *client,
- 	/* private controls */
- 	state->detect_tx_5v_ctrl = v4l2_ctrl_new_std(hdl, NULL,
- 			V4L2_CID_DV_RX_POWER_PRESENT, 0, 1, 0, 0);
--	state->detect_tx_5v_ctrl->is_private = true;
- 	state->rgb_quantization_range_ctrl =
- 		v4l2_ctrl_new_std_menu(hdl, &adv7604_ctrl_ops,
- 			V4L2_CID_DV_RX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
- 			0, V4L2_DV_RGB_RANGE_AUTO);
--	state->rgb_quantization_range_ctrl->is_private = true;
- 
- 	/* custom controls */
- 	state->analog_sampling_phase_ctrl =
- 		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_analog_sampling_phase, NULL);
--	state->analog_sampling_phase_ctrl->is_private = true;
- 	state->free_run_color_manual_ctrl =
- 		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_free_run_color_manual, NULL);
--	state->free_run_color_manual_ctrl->is_private = true;
- 	state->free_run_color_ctrl =
- 		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_free_run_color, NULL);
--	state->free_run_color_ctrl->is_private = true;
- 
- 	sd->ctrl_handler = hdl;
- 	if (hdl->error) {
- 		err = hdl->error;
- 		goto err_hdl;
- 	}
-+	state->detect_tx_5v_ctrl->is_private = true;
-+	state->rgb_quantization_range_ctrl->is_private = true;
-+	state->analog_sampling_phase_ctrl->is_private = true;
-+	state->free_run_color_manual_ctrl->is_private = true;
-+	state->free_run_color_ctrl->is_private = true;
-+
- 	if (adv7604_s_detect_tx_5v_ctrl(sd)) {
- 		err = -ENODEV;
- 		goto err_hdl;
--- 
-1.8.3.2
+Yes, on PCI/USB drivers, we have a board specific setup. On em28xx, it is
+at em28xx-cards.c.
 
+Yet, there's no board-specific information in this case: em28xx doesn't
+manage clocks. It is always on. No need to add a bit there at the boards
+config file to initialize the clock before loading the subdevice, because
+the clock is already there.
+
+> The point is that the client driver knows that it needs a clock, and knows how 
+> to use it (for instance it knows that it should turn the clock on at least 
+> 100ms before sending the first I2C command). However, the client should not 
+> know how the clock is provided. That's the clock API abstraction layer. The 
+> client will request the clock and turn it on/off when it needs to, and if the 
+> clock source is a crystal it will always be on. On platforms where the clock 
+> can be controlled we will thus save power by disabling the clock when it's not 
+> used, and on other platforms the clock will just always be on, without any 
+> need to code this explictly in all client drivers.
+
+On em28xx devices, power saving is done by enabling reset pin. On several
+hardware, doing that internally disables the clock line. I'm not sure if
+ov2640 supports this mode (Frank may know better how power saving is done
+with those cameras). Other devices have an special pin for power off or
+power saving.
+
+Anyway, that rises an interesting question: on devices with wired clocks,
+the power saving mode should not be provided via clock API abstraction
+layer, but via a callback to the bridge (as the bridge knows the GPIO
+register/bit that corresponds to device reset and/or power off pin).
+
+> > So, the only sense on having a clock API is when the hardware allows some
+> > control on it.
+> > 
+> > So, if the hardware can't be controlled and it is always on, it makes no
+> > sense to register a clock.
+> 
+> Please also note that, even if the clock can't be controlled, the sensor might 
+> need to query the clock frequency for instance to adjust its PLL parameters. 
+> The clk_get_rate() call is used for such a purpose, and requires a clock 
+> object.
+
+Ok, this is a good point.
+
+> > The thing is that you're wanting to use the clock register as a way to
+> > detect that the device got initialized.
+> 
+> I'm not sure to follow you there, I don't think that's how I want to use the 
+> clock. Could you please elaborate ?
+
+As Sylwester pointed, the lack of clock register makes ov2640 to defer
+probing, as it assumes that the sensor is not ready.
+
+Cheers,
+Mauro
