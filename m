@@ -1,243 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1226 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab3HVKO5 (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:35903 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab3H0JvY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:14:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 06/10] solo6x10: implement motion detection events and controls.
-Date: Thu, 22 Aug 2013 12:14:20 +0200
-Message-Id: <b791d282dd4a29fafa35e22484c88c5a60a0f596.1377166147.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+	Tue, 27 Aug 2013 05:51:24 -0400
+Message-ID: <521C7697.6070809@cisco.com>
+Date: Tue, 27 Aug 2013 11:51:19 +0200
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Knut Petersen <Knut_Petersen@t-online.de>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to
+ register R??
+References: <521A269D.3020909@t-online.de> <521C5493.1050407@cisco.com> <521C72FF.5070902@t-online.de>
+In-Reply-To: <521C72FF.5070902@t-online.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/27/2013 11:35 AM, Knut Petersen wrote:
+> On 27.08.2013 09:26, Hans Verkuil wrote:
+>> On 08/25/2013 05:45 PM, Knut Petersen wrote:
+>>> Booting current git kernel dmesg shows a set of new  warnings:
+>>>
+>>>      "wm8775 9-001b: I2C: cannot write ??? to register R??"
+>>>
+>>> Nevertheless, the hardware seems to work fine.
+>>>
+>>> This is a new problem, introduced after kernel 3.10.
+>>> If necessary I can bisect.
+>> Can you try this patch? I'm pretty sure this will fix it.
+> 
+> Indeed, it does cure the problem. Thanks.
+> 
+> Tested-by: Knut Petersen <Knut_Petersen@t-online.de>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 117 +++++++++++++--------
- drivers/staging/media/solo6x10/solo6x10.h          |   9 +-
- 2 files changed, 74 insertions(+), 52 deletions(-)
+Thanks for testing this! I've posted the pull request for this.
+Hopefully it will make 3.11 before it is released.
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 6858993..db5ce20 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -270,6 +270,8 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
- 	if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
- 		return -EBUSY;
- 	solo_enc->sequence = 0;
-+	solo_enc->motion_last_state = false;
-+	solo_enc->frames_since_last_motion = 0;
- 	solo_dev->enc_bw_remain -= solo_enc->bw_weight;
- 
- 	if (solo_enc->type == SOLO_ENC_TYPE_EXT)
-@@ -510,15 +512,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	struct vop_header *vh = enc_buf->vh;
- 	int ret;
- 
--	/* Check for motion flags */
--	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_MOTION_ON |
--				V4L2_BUF_FLAG_MOTION_DETECTED);
--	if (solo_is_motion_on(solo_enc)) {
--		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_ON;
--		if (enc_buf->motion)
--			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
--	}
--
- 	switch (solo_enc->fmt) {
- 	case V4L2_PIX_FMT_MPEG4:
- 	case V4L2_PIX_FMT_H264:
-@@ -530,9 +523,49 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	}
- 
- 	if (!ret) {
-+		bool send_event = false;
-+
- 		vb->v4l2_buf.sequence = solo_enc->sequence++;
- 		vb->v4l2_buf.timestamp.tv_sec = vh->sec;
- 		vb->v4l2_buf.timestamp.tv_usec = vh->usec;
-+
-+		/* Check for motion flags */
-+		if (solo_is_motion_on(solo_enc)) {
-+			/* It takes a few frames for the hardware to detect
-+			 * motion. Once it does it clears the motion detection
-+			 * register and it takes again a few frames before
-+			 * motion is seen. This means in practice that when the
-+			 * motion field is 1, it will go back to 0 for the next
-+			 * frame. This leads to motion detection event being
-+			 * sent all the time, which is not what we want.
-+			 * Instead wait a few frames before deciding that the
-+			 * motion has halted. After some experimentation it
-+			 * turns out that waiting for 5 frames works well.
-+			 */
-+			if (enc_buf->motion == 0 &&
-+			    solo_enc->motion_last_state &&
-+			    solo_enc->frames_since_last_motion++ > 5)
-+				send_event = true;
-+			else if (enc_buf->motion) {
-+				solo_enc->frames_since_last_motion = 0;
-+				send_event = !solo_enc->motion_last_state;
-+			}
-+		}
-+
-+		if (send_event) {
-+			struct v4l2_event ev = {
-+				.type = V4L2_EVENT_MOTION_DET,
-+				.u.motion_det = {
-+					.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
-+					.frame_sequence = vb->v4l2_buf.sequence,
-+					.region_mask = enc_buf->motion ? 1 : 0,
-+				},
-+			};
-+
-+			solo_enc->motion_last_state = enc_buf->motion;
-+			solo_enc->frames_since_last_motion = 0;
-+			v4l2_event_queue(solo_enc->vfd, &ev);
-+		}
- 	}
- 
- 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-@@ -1145,14 +1178,15 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
- 		solo_enc->gop = ctrl->val;
- 		return 0;
--	case V4L2_CID_MOTION_THRESHOLD:
--		solo_enc->motion_thresh = ctrl->val;
-+	case V4L2_CID_DETECT_MOTION_THRESHOLD:
-+		solo_enc->motion_thresh = ctrl->val << 8;
- 		if (!solo_enc->motion_global || !solo_enc->motion_enabled)
- 			return 0;
--		return solo_set_motion_threshold(solo_dev, solo_enc->ch, ctrl->val);
--	case V4L2_CID_MOTION_MODE:
--		solo_enc->motion_global = ctrl->val == 1;
--		solo_enc->motion_enabled = ctrl->val > 0;
-+		return solo_set_motion_threshold(solo_dev, solo_enc->ch,
-+				solo_enc->motion_thresh);
-+	case V4L2_CID_DETECT_MOTION_MODE:
-+		solo_enc->motion_global = ctrl->val == V4L2_DETECT_MOTION_GLOBAL;
-+		solo_enc->motion_enabled = ctrl->val > V4L2_DETECT_MOTION_DISABLED;
- 		if (ctrl->val) {
- 			if (solo_enc->motion_global)
- 				solo_set_motion_threshold(solo_dev, solo_enc->ch,
-@@ -1174,6 +1208,21 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
-+static int solo_subscribe_event(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub)
-+{
-+
-+	switch (sub->type) {
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_ctrl_subscribe_event(fh, sub);
-+	case V4L2_EVENT_MOTION_DET:
-+		/* Allow for up to 30 events (1 second for NTSC) to be
-+		 * stored. */
-+		return v4l2_event_subscribe(fh, sub, 30, NULL);
-+	}
-+	return -EINVAL;
-+}
-+
- static const struct v4l2_file_operations solo_enc_fops = {
- 	.owner			= THIS_MODULE,
- 	.open			= v4l2_fh_open,
-@@ -1216,7 +1265,7 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
- 	.vidioc_s_matrix		= solo_s_matrix,
- 	/* Logging and events */
- 	.vidioc_log_status		= v4l2_ctrl_log_status,
--	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_subscribe_event		= solo_subscribe_event,
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
-@@ -1233,33 +1282,6 @@ static const struct v4l2_ctrl_ops solo_ctrl_ops = {
- 	.s_ctrl = solo_s_ctrl,
- };
- 
--static const struct v4l2_ctrl_config solo_motion_threshold_ctrl = {
--	.ops = &solo_ctrl_ops,
--	.id = V4L2_CID_MOTION_THRESHOLD,
--	.name = "Motion Detection Threshold",
--	.type = V4L2_CTRL_TYPE_INTEGER,
--	.max = 0xffff,
--	.def = SOLO_DEF_MOT_THRESH,
--	.step = 1,
--	.flags = V4L2_CTRL_FLAG_SLIDER,
--};
--
--static const char * const solo_motion_mode_menu[] = {
--	"Disabled",
--	"Global Threshold",
--	"Regional Threshold",
--	NULL
--};
--
--static const struct v4l2_ctrl_config solo_motion_enable_ctrl = {
--	.ops = &solo_ctrl_ops,
--	.id = V4L2_CID_MOTION_MODE,
--	.name = "Motion Detection Mode",
--	.type = V4L2_CTRL_TYPE_MENU,
--	.qmenu = solo_motion_mode_menu,
--	.max = 2,
--};
--
- static const struct v4l2_ctrl_config solo_osd_text_ctrl = {
- 	.ops = &solo_ctrl_ops,
- 	.id = V4L2_CID_OSD_TEXT,
-@@ -1296,8 +1318,13 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 			V4L2_CID_SHARPNESS, 0, 15, 1, 0);
- 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
- 			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1, solo_dev->fps);
--	v4l2_ctrl_new_custom(hdl, &solo_motion_threshold_ctrl, NULL);
--	v4l2_ctrl_new_custom(hdl, &solo_motion_enable_ctrl, NULL);
-+	v4l2_ctrl_new_std_menu(hdl, &solo_ctrl_ops,
-+			V4L2_CID_DETECT_MOTION_MODE,
-+			V4L2_DETECT_MOTION_REGIONAL, 0,
-+			V4L2_DETECT_MOTION_DISABLED);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_DETECT_MOTION_THRESHOLD, 0, 0xff, 1,
-+			SOLO_DEF_MOT_THRESH >> 8);
- 	v4l2_ctrl_new_custom(hdl, &solo_osd_text_ctrl, NULL);
- 	if (hdl->error) {
- 		ret = hdl->error;
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 01c8655..df34a31 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -97,14 +97,7 @@
- #define SOLO_DEFAULT_GOP		30
- #define SOLO_DEFAULT_QP			3
- 
--#ifndef V4L2_BUF_FLAG_MOTION_ON
--#define V4L2_BUF_FLAG_MOTION_ON		0x10000
--#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
--#endif
--
- #define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
--#define V4L2_CID_MOTION_MODE		(SOLO_CID_CUSTOM_BASE+0)
--#define V4L2_CID_MOTION_THRESHOLD	(SOLO_CID_CUSTOM_BASE+1)
- #define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
- #define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
- 
-@@ -174,6 +167,8 @@ struct solo_enc_dev {
- 	struct solo_motion_thresholds motion_thresholds;
- 	bool			motion_global;
- 	bool			motion_enabled;
-+	bool			motion_last_state;
-+	u8			frames_since_last_motion;
- 	u16			width;
- 	u16			height;
- 
--- 
-1.8.3.2
+Regards,
+
+	Hans
+
+> 
+> 
+>>
+>> Regards,
+>>
+>>     Hans
+>>
+>> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+>> index afe0eae..28893a6 100644
+>> --- a/drivers/media/pci/cx88/cx88.h
+>> +++ b/drivers/media/pci/cx88/cx88.h
+>> @@ -259,7 +259,7 @@ struct cx88_input {
+>>   };
+>>     enum cx88_audio_chip {
+>> -    CX88_AUDIO_WM8775,
+>> +    CX88_AUDIO_WM8775 = 1,
+>>       CX88_AUDIO_TVAUDIO,
+>>   };
+>>  
+>>
+> 
 
