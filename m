@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42215 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997Ab3HaU2I (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:44666 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133Ab3H0Ju1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 16:28:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: purchase@utopiacontrol.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: Fw: Memory acquisition problem with yavta and media control.
-Date: Sat, 31 Aug 2013 22:29:34 +0200
-Message-ID: <1475404.9MHgQaVtRD@avalon>
-In-Reply-To: <F74E216C170F4219AAD7D7D3D5CDFF61@store>
-References: <F74E216C170F4219AAD7D7D3D5CDFF61@store>
+	Tue, 27 Aug 2013 05:50:27 -0400
+Received: from [10.61.81.153] (ams3-vpn-dhcp4506.cisco.com [10.61.81.153])
+	(authenticated bits=0)
+	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r7R9oNju003461
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 27 Aug 2013 09:50:24 GMT
+Message-ID: <521C765F.8010508@cisco.com>
+Date: Tue, 27 Aug 2013 11:50:23 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.11] cx88 regression fix
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nilesh,
+Mauro,
 
-On Saturday 31 August 2013 10:07:14 purchase@utopiacontrol.com wrote:
-> //=================================
-> linux-media@vger.kernel.org
-> laurent.pinchart@ideasonboard.com
-> //=================================
-> 
-> Hi laurent pinchart,
+Here is a fix for a cx88 regression introduced in 3.10.
 
-Just Laurent will do :-)
-
-> You have done a great work for snapshot mode image sensor driver for linux.
-> I am using your media control tool with yavta test application for
-> interfacing the mt9v032 image sensor with Gumstix Overo Water Com board. I
-> have successfully tested the snapshot mode with this combination. But the
-> problem is that, when I attempt to grab lots of images (thousands) of images
-> by this test application yavta. I found that the free memory goes increasing
-> by some amount which will not get free. Afterwards I have calculate the
-> amount of ram acquires on every snap is about 0.618 KB (after averaging
-> 100000 frames). Will you please Give me any reason why this is happening
-> with this test application? And how can I get overcome on this problem.
-
-That's definitely not expected and should be debugged. First of all, is the 
-memory released when you stop yavta ? If it isn't then we have a kernel bug, 
-if it is the bug could be either on the kernel side or the application side.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+The following changes since commit 43054ecced8ae77c805470447d72da4fdc276e02:
+
+  [media] davinci: vpif_capture: fix error return code in vpif_probe() (2013-08-26 07:54:47 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cx88fix
+
+for you to fetch changes up to b9a1dfd3ba3ae00b0c1d1a396ed43fac85a32990:
+
+  cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0. (2013-08-27 11:49:36 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0.
+
+ drivers/media/pci/cx88/cx88.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
