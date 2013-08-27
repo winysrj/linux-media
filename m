@@ -1,42 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f180.google.com ([209.85.220.180]:34853 "EHLO
-	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415Ab3HaQvI (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31673 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753071Ab3H0O0K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 12:51:08 -0400
-MIME-Version: 1.0
-In-Reply-To: <5221A28B.3060009@t-online.de>
-References: <521A269D.3020909@t-online.de>
-	<521C5493.1050407@cisco.com>
-	<521C72FF.5070902@t-online.de>
-	<5221A28B.3060009@t-online.de>
-Date: Sat, 31 Aug 2013 09:51:07 -0700
-Message-ID: <CA+55aFzau2ocCcBmV8Z7ULaom4vgTJ_J5gsQxAWpx=Q91ERiRQ@mail.gmail.com>
-Subject: Re: [REGRESSION 3.11-rc1+] wm8775 9-001b: I2C: cannot write ??? to
- register R??
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Knut Petersen <Knut_Petersen@t-online.de>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 27 Aug 2013 10:26:10 -0400
+Message-id: <521CB6FF.70401@samsung.com>
+Date: Tue, 27 Aug 2013 16:26:07 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera
+ interface
+References: <20130823094647.GO31293@elgon.mountain>
+ <5219F736.2010706@gmail.com> <20130827141914.GD19256@mwanda>
+In-reply-to: <20130827141914.GD19256@mwanda>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 31, 2013 at 1:00 AM, Knut Petersen
-<Knut_Petersen@t-online.de> wrote:
-> Hi Linus!
->
-> It would be nice to have head cx88fix of
-> git.linuxtv.org/hverkuil/media_tree.git
-> (git.linuxtv.org/hverkuil/media_tree.git/commit/5dce3635bf803cfe9dde84e00f5f9594439e6c02)
-> in 3.11 as it is a trivial and tested fix for a regression introduced
-> between 3.10 and 3.11-rc1.
+On 08/27/2013 04:19 PM, Dan Carpenter wrote:
+> On Sun, Aug 25, 2013 at 02:23:18PM +0200, Sylwester Nawrocki wrote:
+>> On 08/23/2013 11:46 AM, Dan Carpenter wrote:
+>>> [ Going through some old warnings... ]
+>>>
+>>> Hello Sylwester Nawrocki,
+>>>
+>>> This is a semi-automatic email about new static checker warnings.
+>>>
+>>> The patch babde1c243b2: "[media] V4L: Add driver for S3C24XX/S3C64XX
+>>> SoC series camera interface" from Aug 22, 2012, leads to the
+>>> following Smatch complaint:
+>>>
+>>> drivers/media/platform/s3c-camif/camif-capture.c:463 queue_setup()
+>>> 	 warn: variable dereferenced before check 'fmt' (see line 460)
+>>>
+>>> drivers/media/platform/s3c-camif/camif-capture.c
+>>>    455          if (pfmt) {
+>>>    456                  pix =&pfmt->fmt.pix;
+>>>    457                  fmt = s3c_camif_find_format(vp,&pix->pixelformat, -1);
+>>>    458                  size = (pix->width * pix->height * fmt->depth) / 8;
+>>>                                                            ^^^^^^^^^^
+>>> Dereference.
+>>>
+>>>    459		} else {
+>>>    460			size = (frame->f_width * frame->f_height * fmt->depth) / 8;
+>>>                                                                    ^^^^^^^^^^
+>>> Dereference.
+>>>
+>>>    461		}
+>>>    462	
+>>>    463		if (fmt == NULL)
+>>>                     ^^^^^^^^^^^
+>>> Check.
+>>
+>> Thanks for the bug report. This check of course should be before line 455.
+>> Would you like to sent a patch for this or should I handle that ?
+> 
+> Could you handle it and give me the Reported-by tag?
 
-I can't take partial pull requests - I can take individual patches
-from email (with proper sign-off chains etc, of course), but I don't
-do "take this patch from this git tree". Git pulls need to go through
-the tree owner and with all the normal pull request rules, and the
-rest of that tree doesn't look critical.
+Sure, will do.
 
-                Linus
+--
+Regards,
+Sylwester
