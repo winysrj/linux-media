@@ -1,45 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:35546 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754279Ab3HWALp (ORCPT
+Received: from server2.irisoft.sk ([82.208.7.68]:53656 "EHLO
+	server2.irisoft.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340Ab3H1B7u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 20:11:45 -0400
-Date: Fri, 23 Aug 2013 09:11:40 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, m.chehab@samsung.com,
-	magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v5 0/3] R8A7779/Marzen R-Car VIN driver support
-Message-ID: <20130823001140.GD9254@verge.net.au>
-References: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
+	Tue, 27 Aug 2013 21:59:50 -0400
+Message-ID: <eb691671281065de97489e5c28389932.squirrel@82.208.7.68>
+Date: Wed, 28 Aug 2013 01:02:43 +0200 (CEST)
+Subject: =?iso-8859-2?Q?V=E1=BEen=ED_E-mail_u=BE=EDvate=B5a;?=
+From: "webmail update" <info@upcmail.sk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain;charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 23, 2013 at 01:19:13AM +0400, Sergei Shtylyov wrote:
-> Hello.
-> 
->    [Resending with a real version #.]
-> 
->    Here's the set of 3 patches against the Mauro's 'media_tree.git' repo's
-> 'master' branch. Here we add the VIN driver platform code for the R8A7779/Marzen
-> with ADV7180 I2C video decoder.
-> 
-> [1/3] ARM: shmobile: r8a7779: add VIN support
-> [2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
-> [3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
-> 
->     Mauro has kindly agreed to merge this patchset thru his tree to resolve the
-> dependency on the driver's platform data header, provided that the maintainer
-> ACKs this. Simon, could you ACK the patchset ASAP -- Mauro expects to close his
-> tree for 3.12 this weekend or next Monday?
+Vá¾ení E-mail u¾ívateµa;
 
-All three patches:
+Prekroèili ste 23432 boxy nastavi» svoje
+Webová slu¾ba / Administrátor, a budete ma» problémy pri odosielaní a
+prijíma» e-maily, kým znova overi». Musíte aktualizova» kliknutím na
+odkaz ni¾¹ie a vyplòte údaje pre overenie vá¹ho úètu
+Prosím, kliknite na odkaz ni¾¹ie alebo skopírova» vlo¾i» do
+e-prehliadaè pre overenie Schránky.
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+http://webmailupdate20324.jimdo.com/
+Pozor!
+Ak tak neurobíte, budú ma» obmedzený prístup k e-mailu schránky. Ak
+sa
+nepodarí aktualizova» svoj &#8203;&#8203;úèet do troch dní od aktualizácie
+oznámenia,
+bude vá¹ úèet natrvalo uzavretá.
+S pozdravom,
+System Administrator &#174;
 
