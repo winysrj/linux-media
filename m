@@ -1,73 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47384 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966754Ab3HHWK0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 18:10:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	dagriego@biglakesoftware.com, dale@farnsworth.org,
-	pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl,
-	tomi.valkeinen@ti.com, Rajendra Nayak <rnayak@ti.com>,
-	Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 6/6] experimental: arm: dts: dra7xx: Add a DT node for VPE
-Date: Fri, 09 Aug 2013 00:11:31 +0200
-Message-ID: <16994189.3ZRYT6i8Y5@avalon>
-In-Reply-To: <1375452223-30524-7-git-send-email-archit@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-7-git-send-email-archit@ti.com>
+Received: from mail.estepona.es ([195.55.142.188]:38311 "HELO mail.estepona.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752738Ab3H0I34 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Aug 2013 04:29:56 -0400
+Date: Tue, 27 Aug 2013 09:22:57 +0200 (CEST)
+From: HUK <linea48horas@estepona.es>
+Reply-To: HUK <services@bsnservicecenter.com>
+Message-ID: <639734252.998678.1377588177711.JavaMail.root@estepona.es>
+Subject: =?utf-8?Q?pieteikt_savu_aizdevumu_ar_3_procentiem_procentu_likm=C4=93m?=
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Archit,
 
-Thank you for the patch.
 
-On Friday 02 August 2013 19:33:43 Archit Taneja wrote:
-> Add a DT node for VPE in dra7.dtsi. This is experimental because we might
-> need to split the VPE address space a bit more, and also because the IRQ
-> line described is accessible the IRQ crossbar driver is added for DRA7XX.
-> 
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Sricharan R <r.sricharan@ti.com>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
-
-Documentation is missing :-) As this is an experimental patch you can probably 
-document the bindings later.
-
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index ce9a0f0..3237972 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -484,6 +484,17 @@
->  			dmas = <&sdma 70>, <&sdma 71>;
->  			dma-names = "tx0", "rx0";
->  		};
-> +
-> +		vpe {
-> +			compatible = "ti,vpe";
-> +			ti,hwmods = "vpe";
-> +			reg = <0x489d0000 0xd000>, <0x489dd000 0x400>;
-> +			reg-names = "vpe", "vpdma";
-> +			interrupts = <0 159 0x4>;
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-
-Are #address-cells and #size-cells really needed ?
-
-> +		};
-> +
->  	};
-> 
->  	clocks {
--- 
-Regards,
-
-Laurent Pinchart
+Vai jums nepieciešama finansējumu? Mēs sniegt tiešu finansējumu par pieņemamām likmēm. Sazinieties ar mums tagad, lai saņemtu sīkāku informāciju. 
 
