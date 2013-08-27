@@ -1,218 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54864 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39931 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031442Ab3HIXCa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 19:02:30 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH/RFC v3 12/19] video: display: Add VGA Digital to Analog Converter support
-Date: Sat, 10 Aug 2013 01:03:11 +0200
-Message-Id: <1376089398-13322-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	with ESMTP id S1752877Ab3H0Mu6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Aug 2013 08:50:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Date: Tue, 27 Aug 2013 14:52:19 +0200
+Message-ID: <6237856.Ni2ROBVUfl@avalon>
+In-Reply-To: <20130826110933.318f31fa@samsung.com>
+References: <520E76E7.30201@googlemail.com> <Pine.LNX.4.64.1308261515320.1767@axis700.grange> <20130826110933.318f31fa@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver implements support for VGA Digital to Analog Converters
-(DACs) that receive pixel data through a DPI interface and have no
-control interface (GPIOs- and/or regulators-based control can be
-implemented later when needed). It exposes the devices a display
-entities.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/video/display/Kconfig   |   9 +++
- drivers/video/display/Makefile  |   1 +
- drivers/video/display/vga-dac.c | 152 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 162 insertions(+)
- create mode 100644 drivers/video/display/vga-dac.c
+On Monday 26 August 2013 11:09:33 Mauro Carvalho Chehab wrote:
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > On Sat, 24 Aug 2013, Mauro Carvalho Chehab wrote:
+> > > Em Fri, 23 Aug 2013 00:15:52 +0200
+> > > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> > > > Am 21.08.2013 23:42, schrieb Sylwester Nawrocki:
+> > > > > On 08/21/2013 10:39 PM, Frank Schäfer wrote:
+> > > > >> Am 20.08.2013 18:34, schrieb Frank Schäfer:
+> > > > >>> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
+> > > > >>>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
+> > > > >>>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
+> > > > >>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+> > > > >>>>>>> Hi Frank,
+> > > > >>>>>>> As I mentioned on the list, I'm currently on a holiday, so,
+> > > > >>>>>>> replying briefly.
+> > > > >>>>>> 
+> > > > >>>>>> Sorry, I missed that (can't read all mails on the list).
+> > > > >>>>>> 
+> > > > >>>>>>> Since em28xx is a USB device, I conclude, that it's supplying
+> > > > >>>>>>> clock to its components including the ov2640 sensor. So, yes,
+> > > > >>>>>>> I think the driver should export a V4L2 clock.
+> > > > >>>>>> 
+> > > > >>>>>> Ok, so it's mandatory on purpose ?
+> > > > >>>>>> I'll take a deeper into the v4l2-clk code and the
+> > > > >>>>>> em28xx/ov2640/soc-camera interaction this week.
+> > > > >>>>>> Have a nice holiday !
+> > 
+> > Thanks, it was nice indeed :)
+> > 
+> > > > >>>> too late to fix the issue (given that 3.10 is already broken) ?
+> > > > >>>> The fix
+> > 
+> > Don't think it is, "[media] soc-camera: switch I2C subdevice drivers to
+> > use v4l2-clk" only appeared in v3.11-rc1.
+> > 
+> > > > >>>> shouldn't be too complex, registering a dummy V4L2 clock in the
+> > > > >>>> em28xx driver should be enough.
+> > > > >>> 
+> > > > >>> I would prefer either a) making the clock optional in the senor
+> > > > >>> driver(s) or b) implementing a real V4L2 clock.
+> > > > >>> 
+> > > > >>> Reading the soc-camera code, it looks like NULL-pointers for
+> > > > >>> struct
+> > > > >>> 
+> > > > >>> v4l2_clk are handled correctly. so a) should be pretty simple:
+> > > > >>>      priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> > > > >>> 
+> > > > >>> -   if (IS_ERR(priv->clk)) {
+> > > > >>> -       ret = PTR_ERR(priv->clk);
+> > > > >>> -       goto eclkget;
+> > > > >>> -   }
+> > > > >>> +   if (IS_ERR(priv->clk))
+> > > > >>> +       priv->clk = NULL;
+> > > > >>> 
+> > > > >>> Some additional NULL-pointer checks might be necessary, e.g.
+> > > > >>> before calling v4l2_clk_put().
+> > > > >> 
+> > > > >> Tested and that works.
+> > > > >> Patch follows.
+> > > > > 
+> > > > > That patch breaks subdevs registration through the v4l2-async. See
+> > > > > commit
+> > > > > 
+> > > > > ef6672ea35b5bb64ab42e18c1a1ffc717c31588a
+> > > > > [media] V4L2: mt9m111: switch to asynchronous subdevice probing
+> > > > > 
+> > > > > Sensor probe() callback must return EPROBE_DEFER when the clock is
+> > > > > not found. This cause the sensor's probe() callback to be called
+> > > > > again by the driver core after some other driver has probed, e.g.
+> > > > > the one that registers v4l2_clk. If specific error code is not
+> > > > > returned from probe() the whole registration process breaks.
+> > > > 
+> > > > Urgh... great. :/
+> > > > So the presence of a clock is used as indicator if the device is ready
+> > > > ? Honestly, that sounds like a misuse... Is there no other way to
+> > > > check if the device is ready ? Please don't get me wrong, I noticed
+> > > > you've been working on the async subdevice registration patches for
+> > > > quite a long time and I'm sure it wasn't an easy task.
+> > > 
+> > > The interface was written to mimic what OF does with clock.
+> > > 
+> > > Yeah, I agree that this sucks for non OF drivers.
+> > > 
+> > > > Btw: only 2 of the 14 drivers return -EPROBE_DEFER when no clock is
+> > > > found: imx074, mt9m111m.
+> > > > All others return the error code from v4l2_clk_get(), usually -ENODEV.
+> > > 
+> > > Probably because they weren't converted yet to the new way.
+> > > 
+> > > > >>> Concerning b): I'm not yet sure if it is really needed/makes
+> > > > >>> sense... Who is supposed to configure/enable/disable the clock in
+> > > > >>> a constellation like em28xx+ov2640 ?
+> > 
+> > Ok, let's try to summerise:
+> > 
+> > * background: many camera sensors do not react to I2C commands as long as
+> > no master clock is supplied. Therefore for _those_ sensors making a clock
+> > availability seems logical to me. And since it's the sensor driver, that
+> > knows what that clock is used for, when it is needed and - eventually -
+> > what rate is required - it's the sensor driver, that should manipulate it.
+> > Example: some camera sensor drivers write sensor configuration directly to
+> > the hardware in each ioctl() possibly without storing the state
+> > internally. Such drivers will need a clock running all the time to keep
+> > register values. Other drivers might only store configuration internally
+> > and only send it to the hardware when streaming is enabled. Those drivers
+> > can keep the clock disabled until that time then.
+> > 
+> > * problem: em28xx USB camera driver uses the ov2640 camera sensor driver
+> > and doesn't supply a clock. But ov2640 sensors do need a clock, so, we
+> > have to assume it is supplied internally in the camera. Presumably, it is
+> > always on and its rate cannot be adjusted either.
+> 
+> Guennadi,
+> 
+> I don't have the schematics of those cameras, but I suspect that the
+> clock for the sensor is hardwired, e. g. probably em28xx can't enable
+> or disable it. This is the usual solution on non-embedded hardware.
 
-diff --git a/drivers/video/display/Kconfig b/drivers/video/display/Kconfig
-index 9b44b5f..32ce08d 100644
---- a/drivers/video/display/Kconfig
-+++ b/drivers/video/display/Kconfig
-@@ -39,4 +39,13 @@ config DISPLAY_PANEL_R61517
- 	  If you are in doubt, say N. To compile this driver as a module, choose
- 	  M here; the module will be called panel-r61517.
- 
-+config DISPLAY_VGA_DAC
-+	tristate "VGA Digital to Analog Converters"
-+	---help---
-+	  Support for simple VGA digital to analog converters. Those converters
-+	  receive pixel data through a parallel bus and have no control bus.
-+
-+	  If you are in doubt, say N. To compile this driver as a module, choose
-+	  M here: the module will be called vga-dac.
-+
- endif # DISPLAY_CORE
-diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefile
-index 1cdc8d4..43cd78d 100644
---- a/drivers/video/display/Makefile
-+++ b/drivers/video/display/Makefile
-@@ -5,3 +5,4 @@ obj-$(CONFIG_DISPLAY_MIPI_DBI)			+= mipi-dbi-bus.o
- obj-$(CONFIG_DISPLAY_PANEL_DPI)			+= panel-dpi.o
- obj-$(CONFIG_DISPLAY_PANEL_R61505)		+= panel-r61505.o
- obj-$(CONFIG_DISPLAY_PANEL_R61517)		+= panel-r61517.o
-+obj-$(CONFIG_DISPLAY_VGA_DAC)			+= vga-dac.o
-diff --git a/drivers/video/display/vga-dac.c b/drivers/video/display/vga-dac.c
-new file mode 100644
-index 0000000..d0256e6
---- /dev/null
-+++ b/drivers/video/display/vga-dac.c
-@@ -0,0 +1,152 @@
-+/*
-+ * VGA Digital to Analog Converter
-+ *
-+ * Copyright (C) 2013 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include <video/display.h>
-+
-+#define VGA_DAC_PORT_SINK		0
-+#define VGA_DAC_PORT_SOURCE		1
-+
-+struct vga_dac {
-+	struct display_entity entity;
-+};
-+
-+static inline struct vga_dac *to_vga_dac(struct display_entity *e)
-+{
-+	return container_of(e, struct vga_dac, entity);
-+}
-+
-+static int vga_dac_set_state(struct display_entity *entity,
-+			     enum display_entity_state state)
-+{
-+	struct media_pad *source;
-+
-+	source = media_entity_remote_pad(&entity->entity.pads[0]);
-+	if (source == NULL)
-+		return -EPIPE;
-+
-+	switch (state) {
-+	case DISPLAY_ENTITY_STATE_OFF:
-+	case DISPLAY_ENTITY_STATE_STANDBY:
-+		display_entity_set_stream(to_display_entity(source->entity),
-+					  source->index,
-+					  DISPLAY_ENTITY_STREAM_STOPPED);
-+		break;
-+
-+	case DISPLAY_ENTITY_STATE_ON:
-+		display_entity_set_stream(to_display_entity(source->entity),
-+					  source->index,
-+					  DISPLAY_ENTITY_STREAM_CONTINUOUS);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vga_dac_get_params(struct display_entity *entity, unsigned int port,
-+			      struct display_entity_interface_params *params)
-+{
-+	memset(params, 0, sizeof(*params));
-+
-+	if (port == VGA_DAC_PORT_SINK)
-+		params->type = DISPLAY_ENTITY_INTERFACE_DPI;
-+	else
-+		params->type = DISPLAY_ENTITY_INTERFACE_VGA;
-+
-+	return 0;
-+}
-+
-+static const struct display_entity_control_ops vga_dac_control_ops = {
-+	.set_state = vga_dac_set_state,
-+	.get_params = vga_dac_get_params,
-+};
-+
-+static const struct display_entity_ops vga_dac_ops = {
-+	.ctrl = &vga_dac_control_ops,
-+};
-+
-+static int vga_dac_remove(struct platform_device *pdev)
-+{
-+	struct vga_dac *dac = platform_get_drvdata(pdev);
-+
-+	display_entity_remove(&dac->entity);
-+	display_entity_cleanup(&dac->entity);
-+
-+	return 0;
-+}
-+
-+static int vga_dac_probe(struct platform_device *pdev)
-+{
-+	struct vga_dac *dac;
-+	int ret;
-+
-+	dac = devm_kzalloc(&pdev->dev, sizeof(*dac), GFP_KERNEL);
-+	if (dac == NULL)
-+		return -ENOMEM;
-+
-+	dac->entity.dev = &pdev->dev;
-+	dac->entity.ops = &vga_dac_ops;
-+	strlcpy(dac->entity.name, dev_name(&pdev->dev),
-+		sizeof(dac->entity.name));
-+
-+	ret = display_entity_init(&dac->entity, 1, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = display_entity_add(&dac->entity);
-+	if (ret < 0)
-+		return ret;
-+
-+	platform_set_drvdata(pdev, dac);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops vga_dac_dev_pm_ops = {
-+};
-+
-+static struct platform_device_id vga_dac_id_table[] = {
-+	{ "adv7123", 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, vga_dac_id_table);
-+
-+#ifdef CONFIG_OF
-+static struct of_device_id vga_dac_of_id_table[] = {
-+	{ .compatible = "adi,adv7123", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, vga_dac_of_id_table);
-+#endif
-+
-+static struct platform_driver vga_dac_driver = {
-+	.probe = vga_dac_probe,
-+	.remove = vga_dac_remove,
-+	.id_table = vga_dac_id_table,
-+	.driver = {
-+		.name = "vga-dac",
-+		.owner = THIS_MODULE,
-+		.pm = &vga_dac_dev_pm_ops,
-+		.of_match_table = of_match_ptr(vga_dac_of_id_table),
-+	},
-+};
-+
-+module_platform_driver(vga_dac_driver);
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("VGA Digital-to-Analog Converter");
-+MODULE_LICENSE("GPL");
+Possibly. Or the em28xx controls the clock transparently. We will probably 
+never know, and it doesn't matter much at the end of the day. We know that the 
+clock is on whenever we access the sensor, so we can consider that clock as an 
+always-on clock for all practical matters.
+
+> That's why, IMHO, putting anything at the USB bridge driver (em28xx) makes
+> no sense: the bridge doesn't have any control over the clock.
+
+That's where I don't agree. Here we need to think about the bridge as the 
+combination of the bridge chip and the board on which it's soldered, as the 
+board itself isn't modelled separately.
+
+Even if the bridge doesn't control the clock, it provides a clock to the 
+sensor. As such, it's the responsibility of the bridge driver to provide the 
+clock to the sensor driver. The sensor driver knows that the sensor needs a 
+clock, and must thus get a clock object from somewhere.
+
+This is a fundamental principle of the Linux clock framework and regulator 
+framework. For fixed-frequency always-on clocks, as well as for fixed-voltage 
+always-on regulators, the clock and/or regulator provider just needs to 
+register a fixed clock or regulator, which is very easy to do.
+
+The v4l2-clock API has been designed to mimic the clock API to ease the 
+transition to the clock API at a later time (the v4l2-clock API is meant to be 
+temporary only). It doesn't offer all the helper functions available in the 
+clock API and should thus be improved, as Guennadi pointed out.
+
+> > * possible fixes: several fixes have been proposed, e.g.
+> > (a) implement a V4L2 clock in em28xx.
+> > 
+> >     Pro: logically correct - a clock is indeed present, local - no core
+> > 	changes are needed
+> >     Contra: presumably relatively many devices will have such static
+> > 	
+> > 	always-on clocks. Implementing them in each of those drivers will
+> > 	add copied code. Besides creating a clock name from I2C bus and
+> > 	device numbers is ugly (a helper is needed).
+> > 
+> > (b) make clocks optional in all subdevice drivers
+> > 
+> >     Pro: host / bridge drivers or core don't have to be modified
+> >     Contra: wrong in principle - those clocks are indeed compulsory
+> 
+> I don't think that (b) is wrong: it is not a matter or clocks being
+> compulsory or not. It is a matter of being able to be controlled or not.
+
+No, it's a matter of providing a clock to a chip that needs one. If the chip 
+needs a clock, it must get one. Whether the clock can be controlled or not is 
+not relevant. Otherwise all clock users would need to implement several code 
+paths depending on whether the clock is controllable or not. That's something 
+we wanted to avoid, as it would result in code bloat. We've instead pushed all 
+that common code to the core, with a requirement for clock providers to 
+register a clock, even if it can't be controlled.
+
+> If the clock can't be controlled via software, there's no sense on adding
+> control stuff for it: it will just add extra code for no good reason.
+> 
+> > (c) add a global flag to indicate, that the use of clocks on this device
+> > 
+> >     is optional
+> >     Pro: easy to support in drivers
+> >     Contra: as in (b) above
+> > 
+> > (d) a variant of (a), but with a helper function in V4L2 clock core to
+> > 
+> >     implement such a static always-on clock
+> >     Pro: simple to support in host / bridge drivers
+> >     Contra: adds bloat to V4L2 clock helper layer, which we want to keep
+> > 	
+> > 	small and remove eventually.
+> > 
+> > Have I missed anything? Of the above I would go with (d). I could try to
+> > code the required always-on clock helpers.
+> 
+> I prefer to have some solution that won't add any extra code if the clock is
+> always on and can't be controlled.
+
+But that's not how the common clock framework works. Sure, we could implement 
+that right now in the v4l2-clock API, but we will need to register a fixed-
+clock in the em28xx driver when moving to the clock API anyway. Let's not make 
+the transition more complex than it should be.
+
 -- 
-1.8.1.5
+Regards,
+
+Laurent Pinchart
 
