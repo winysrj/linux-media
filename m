@@ -1,216 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:23517 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172Ab3HEI5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:43 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7e001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:40 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 3/7] qv4l2: show frames option can be toggled during capture
-Date: Mon,  5 Aug 2013 10:56:53 +0200
-Message-Id: <e6cb8149fda41edf59a3fddf3dadd00430d40e0c.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-References: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39595 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752908Ab3H0Lun (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Aug 2013 07:50:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>
+Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
+Date: Tue, 27 Aug 2013 13:52:04 +0200
+Message-ID: <1424546.lJXUZLPMUj@avalon>
+In-Reply-To: <521B4B4D.50209@samsung.com>
+References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com> <1544715.uKei6kdjbJ@avalon> <521B4B4D.50209@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/qv4l2.cpp | 77 ++++++++++++++++++++++++++-------------------------
- utils/qv4l2/qv4l2.h   |  2 +-
- 2 files changed, 41 insertions(+), 38 deletions(-)
+Hi Andrejz,
 
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index e078e91..fa1425d 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -404,7 +404,7 @@ void ApplicationWindow::capVbiFrame()
- 		m_capStartAct->setChecked(false);
- 		return;
- 	}
--	if (m_showFrames) {
-+	if (showFrames()) {
- 		for (unsigned y = 0; y < m_vbiHeight; y++) {
- 			__u8 *p = data + y * m_vbiWidth;
- 			__u8 *q = m_capImage->bits() + y * m_capImage->bytesPerLine();
-@@ -448,7 +448,7 @@ void ApplicationWindow::capVbiFrame()
- 		m_tv = tv;
- 	}
- 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
--	if (m_showFrames)
-+	if (showFrames())
- 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
- 				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), status);
- 
-@@ -490,7 +490,7 @@ void ApplicationWindow::capFrame()
- 		if (m_saveRaw.openMode())
- 			m_saveRaw.write((const char *)m_frameData, s);
- 
--		if (!m_showFrames)
-+		if (!showFrames())
- 			break;
- 		if (m_mustConvert)
- 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
-@@ -514,7 +514,7 @@ void ApplicationWindow::capFrame()
- 		if (again)
- 			return;
- 
--		if (m_showFrames) {
-+		if (showFrames()) {
- 			if (m_mustConvert)
- 				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
- 							 (unsigned char *)m_buffers[buf.index].start, buf.bytesused,
-@@ -544,7 +544,7 @@ void ApplicationWindow::capFrame()
- 		if (again)
- 			return;
- 
--		if (m_showFrames) {
-+		if (showFrames()) {
- 			if (m_mustConvert)
- 				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
- 							 (unsigned char *)buf.m.userptr, buf.bytesused,
-@@ -592,10 +592,10 @@ void ApplicationWindow::capFrame()
- 			      .arg((m_totalAudioLatency.tv_sec * 1000 + m_totalAudioLatency.tv_usec / 1000) / m_frame));
- 	}
- #endif
--	if (displaybuf == NULL && m_showFrames)
-+	if (displaybuf == NULL && showFrames())
- 		status.append(" Error: Unsupported format.");
- 
--	if (m_showFrames)
-+	if (showFrames())
- 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
- 				    m_capDestFormat.fmt.pix.pixelformat, displaybuf, status);
- 
-@@ -778,6 +778,13 @@ void ApplicationWindow::stopCapture()
- 	refresh();
- }
- 
-+bool ApplicationWindow::showFrames()
-+{
-+	if (m_showFramesAct->isChecked() && !m_capture->isVisible())
-+		m_capture->show();
-+	return m_showFramesAct->isChecked();
-+}
-+
- void ApplicationWindow::startOutput(unsigned)
- {
- }
-@@ -851,7 +858,6 @@ void ApplicationWindow::capStart(bool start)
- 		m_capImage = NULL;
- 		return;
- 	}
--	m_showFrames = m_showFramesAct->isChecked();
- 	m_frame = m_lastFrame = m_fps = 0;
- 	m_capMethod = m_genTab->capMethod();
- 
-@@ -859,7 +865,6 @@ void ApplicationWindow::capStart(bool start)
- 		v4l2_format fmt;
- 		v4l2_std_id std;
- 
--		m_showFrames = false;
- 		g_fmt_sliced_vbi(fmt);
- 		g_std(std);
- 		fmt.fmt.sliced.service_set = (std & V4L2_STD_625_50) ?
-@@ -898,14 +903,14 @@ void ApplicationWindow::capStart(bool start)
- 			m_vbiHeight = fmt.fmt.vbi.count[0] + fmt.fmt.vbi.count[1];
- 		m_vbiSize = m_vbiWidth * m_vbiHeight;
- 		m_frameData = new unsigned char[m_vbiSize];
--		if (m_showFrames) {
--			m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
--			m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
--			m_capImage->fill(0);
--			m_capture->setFrame(m_capImage->width(), m_capImage->height(),
--					    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
-+		m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
-+		m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
-+		m_capImage->fill(0);
-+		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
-+				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
-+		if (showFrames())
- 			m_capture->show();
--		}
-+
- 		statusBar()->showMessage("No frame");
- 		if (startCapture(m_vbiSize)) {
- 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
-@@ -919,30 +924,28 @@ void ApplicationWindow::capStart(bool start)
- 	if (m_genTab->get_interval(interval))
- 		set_interval(interval);
- 
--	m_mustConvert = m_showFrames;
- 	m_frameData = new unsigned char[srcPix.sizeimage];
--	if (m_showFrames) {
--		m_capDestFormat = m_capSrcFormat;
--		dstPix.pixelformat = V4L2_PIX_FMT_RGB24;
--
--		if (m_capture->hasNativeFormat(srcPix.pixelformat)) {
--			dstPix.pixelformat = srcPix.pixelformat;
--			m_mustConvert = false;
--		}
--
--		if (m_mustConvert) {
--			v4l2_format copy = m_capSrcFormat;
-+	m_capDestFormat = m_capSrcFormat;
-+	dstPix.pixelformat = V4L2_PIX_FMT_RGB24;
- 
--			v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
--			// v4lconvert_try_format sometimes modifies the source format if it thinks
--			// that there is a better format available. Restore our selected source
--			// format since we do not want that happening.
--			m_capSrcFormat = copy;
--		}
-+	if (m_capture->hasNativeFormat(srcPix.pixelformat)) {
-+		dstPix.pixelformat = srcPix.pixelformat;
-+		m_mustConvert = false;
-+	} else {
-+		m_mustConvert = true;
-+		v4l2_format copy = m_capSrcFormat;
-+
-+		v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
-+		// v4lconvert_try_format sometimes modifies the source format if it thinks
-+		// that there is a better format available. Restore our selected source
-+		// format since we do not want that happening.
-+		m_capSrcFormat = copy;
-+	}
- 
--		m_capture->setMinimumSize(dstPix.width, dstPix.height);
--		m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
--		m_capImage->fill(0);
-+	m_capture->setMinimumSize(dstPix.width, dstPix.height);
-+	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
-+	m_capImage->fill(0);
-+	if (showFrames()) {
- 		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
- 				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
- 		m_capture->show();
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 223db75..92d6f25 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -172,6 +172,7 @@ private:
- 	void updateStandard();
- 	void updateFreq();
- 	void updateFreqChannel();
-+	bool showFrames();
- 
- 	GeneralTab *m_genTab;
- 	VbiTab *m_vbiTab;
-@@ -193,7 +194,6 @@ private:
- 	WidgetMap m_widgetMap;
- 	ClassMap m_classMap;
- 	bool m_haveExtendedUserCtrls;
--	bool m_showFrames;
- 	int m_vbiSize;
- 	unsigned m_vbiWidth;
- 	unsigned m_vbiHeight;
+On Monday 26 August 2013 14:34:21 Andrzej Hajda wrote:
+> On 08/23/2013 02:53 PM, Laurent Pinchart wrote:
+> > On Wednesday 21 August 2013 16:41:31 Andrzej Hajda wrote:
+> >> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
+> >> with embedded SoC ISP.
+> >> The driver exposes the sensor as two V4L2 subdevices:
+> >> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
+> >>   no controls.
+> >> 
+> >> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
+> >>   pre/post ISP cropping, downscaling via selection API, controls.
+> >> 
+> >> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> ---
+> >> Hi,
+> >> 
+> >> This patch incorporates Stephen's suggestions, thanks.
+> >> 
+> >> Regards
+> >> Andrzej
+> >> 
+> >> v7
+> >> - changed description of 'clock-frequency' DT property
+> >> 
+> >> v6
+> >> - endpoint node presence is now optional,
+> >> - added asynchronous subdev registration support and clock
+> >> 
+> >>   handling,
+> >> 
+> >> - use named gpios in DT bindings
+> >> 
+> >> v5
+> >> - removed hflip/vflip device tree properties
+> >> 
+> >> v4
+> >> - GPL changed to GPLv2,
+> >> - bitfields replaced by u8,
+> >> - cosmetic changes,
+> >> - corrected s_stream flow,
+> >> - gpio pins are no longer exported,
+> >> - added I2C addresses to subdev names,
+> >> - CIS subdev registration postponed after
+> >> 
+> >>   succesfull HW initialization,
+> >> 
+> >> - added enums for pads,
+> >> - selections are initialized only during probe,
+> >> - default resolution changed to 1600x1200,
+> >> - state->error pattern removed from few other functions,
+> >> - entity link creation moved to registered callback.
+> >> 
+> >> v3:
+> >> - narrowed state->error usage to i2c and power errors,
+> >> - private gain controls replaced by red/blue balance user controls,
+> >> - added checks to devicetree gpio node parsing
+> >> 
+> >> v2:
+> >> - lower-cased driver name,
+> >> - removed underscore from regulator names,
+> >> - removed platform data code,
+> >> - v4l controls grouped in anonymous structs,
+> >> - added s5k5baf_clear_error function,
+> >> - private controls definitions moved to uapi header file,
+> >> - added v4l2-controls.h reservation for private controls,
+> >> - corrected subdev registered/unregistered code,
+> >> - .log_status sudbev op set to v4l2 helper,
+> >> - moved entity link creation to probe routines,
+> >> - added cleanup on error to probe function.
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   59 +
+> >>  MAINTAINERS                                        |    7 +
+> >>  drivers/media/i2c/Kconfig                          |    7 +
+> >>  drivers/media/i2c/Makefile                         |    1 +
+> >>  drivers/media/i2c/s5k5baf.c                        | 2045 ++++++++++++++
+> >>  5 files changed, 2119 insertions(+)
+> >>  create mode 100644
+> >> 
+> >> Documentation/devicetree/bindings/media/samsung-s5k5baf.txt create mode
+> >> 100644 drivers/media/i2c/s5k5baf.c
+> > 
+> > [snip]
+> > 
+> >> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> >> new file mode 100644
+> >> index 0000000..f21d9f1
+> >> --- /dev/null
+> >> +++ b/drivers/media/i2c/s5k5baf.c
+
+[snip]
+
+> >> +static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
+> >> +				  u16 count, const u16 *seq)
+> >> +{
+> >> +	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
+> >> +	u16 buf[count + 1];
+> >> +	int ret, n;
+> >> +
+> >> +	s5k5baf_i2c_write(state, REG_CMDWR_ADDR, addr);
+> >> +	if (state->error)
+> >> +		return;
+> > 
+> > I would have a preference for returning an error directly from the write
+> > function instead of storing it in state->error, that would be more
+> > explicit. The same is true for all read/write functions.
+> 
+> I have introduced state->error to avoid code bloat. With this 'pattern'
+> error is checked in about 10 places in the code, of course without
+> scarifying code correctness.
+> Replacing this pattern with classic 'return error directly from function'
+> would result with adding error checks after all calls to i2c i/o functions
+> and after calls to many functions which those i2c i/o calls contains.
+> According to my rough estimates it is about 70 places.
+> 
+> Similar pattern is used already in v4l2_ctrl_handler::error.
+> 
+> >> +	buf[0] = __constant_htons(REG_CMD_BUF);
+> >> +	for (n = 1; n <= count; ++n)
+> >> +		buf[n] = htons(*seq++);
+> > 
+> > cpu_to_be16()/be16_to_cpu() here as well ?
+> 
+> OK
+> 
+> >> +
+> >> +	n *= 2;
+> >> +	ret = i2c_master_send(c, (char *)buf, n);
+> >> +	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
+> >> +		 min(2 * count, 64), seq - count);
+> >> +
+> >> +	if (ret != n) {
+> >> +		v4l2_err(c, "i2c_write_seq: error during transfer (%d)\n", ret);
+> >> +		state->error = ret;
+> >> +	}
+> >> +}
+
+[snip]
+
+> >> +static int s5k5baf_hw_set_video_bus(struct s5k5baf *state)
+> >> +{
+> >> +	u16 en_packets;
+> >> +
+> >> +	switch (state->bus_type) {
+> >> +	case V4L2_MBUS_CSI2:
+> >> +		en_packets = EN_PACKETS_CSI2;
+> >> +		break;
+> >> +	case V4L2_MBUS_PARALLEL:
+> >> +		en_packets = 0;
+> >> +		break;
+> >> +	default:
+> >> +		v4l2_err(&state->sd, "unknown video bus: %d\n",
+> >> +			 state->bus_type);
+> >> +		return -EINVAL;
+> > 
+> > Can this happen ?
+> 
+> Yes, in case of incorrect DT bindings.
+
+Shouldn't it be caught at probe time instead then ?
+
+> >> +	};
+> >> +
+> >> +	s5k5baf_write_seq(state, REG_OIF_EN_MIPI_LANES,
+> >> +			  state->nlanes, en_packets, 1);
+> >> +
+> >> +	return s5k5baf_clear_error(state);
+> >> +}
+> > 
+> > [snip]
+> > 
+> >> +static int s5k5baf_s_stream(struct v4l2_subdev *sd, int on)
+> >> +{
+> >> +	struct s5k5baf *state = to_s5k5baf(sd);
+> >> +	int ret;
+> >> +
+> >> +	if (state->streaming == !!on)
+> >> +		return 0;
+> >> +
+> >> +	mutex_lock(&state->lock);
+> > 
+> > Shouldn't the lock protect the state->streaming check above ?
+> 
+> Yes, will be corrected.
+> 
+> >> +	if (on) {
+> >> +		s5k5baf_hw_set_config(state);
+> >> +		ret = s5k5baf_hw_set_crop_rects(state);
+> >> +		if (ret < 0)
+> >> +			goto out;
+> >> +		s5k5baf_hw_set_stream(state, 1);
+> >> +		s5k5baf_i2c_write(state, 0xb0cc, 0x000b);
+> >> +	} else {
+> >> +		s5k5baf_hw_set_stream(state, 0);
+> >> +	}
+> >> +	ret = s5k5baf_clear_error(state);
+> >> +	if (!ret)
+> >> +		state->streaming = !state->streaming;
+> >> +
+> >> +out:
+> >> +	mutex_unlock(&state->lock);
+> >> +
+> >> +	return ret;
+> >> +}
+
+[snip]
+
+> >> +static int s5k5baf_registered(struct v4l2_subdev *sd)
+> >> +{
+> >> +	struct s5k5baf *state = to_s5k5baf(sd);
+> >> +	int ret;
+> >> +
+> >> +	ret = v4l2_device_register_subdev(sd->v4l2_dev, &state->cis_sd);
+> >> +	if (ret < 0)
+> >> +		v4l2_err(sd, "failed to register subdev %s\n",
+> >> +			 state->cis_sd.name);
+> >> +	else
+> >> +		ret = media_entity_create_link(&state->cis_sd.entity, PAD_CIS,
+> >> +					       &state->sd.entity, PAD_CIS,
+> >> +					       MEDIA_LNK_FL_IMMUTABLE |
+> >> +					       MEDIA_LNK_FL_ENABLED);
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static void s5k5baf_unregistered(struct v4l2_subdev *sd)
+> >> +{
+> >> +	struct s5k5baf *state = to_s5k5baf(sd);
+> >> +	v4l2_device_unregister_subdev(&state->cis_sd);
+> > 
+> > The unregistered operation is called from v4l2_device_unregister_subdev().
+> > Calling it again will be a no-op, the function will return immediately.
+> > You can thus get rid of the unregistered operation completely.
+> > 
+> > Similarly, the registered operation is called from
+> > v4l2_device_register_subdev(). You can get rid of it as well and just
+> > create the link in the probe function.
+> 
+> The sensor exposes two subdevs: s5k5baf_cis and s5k5baf_isp.
+> v4l2_device is not aware of it - he registers only the subdev bound to
+> i2c client - isp.
+> The registration of cis subdev is performed by the sensor in .registered
+> callback. Without .registered callback cis subdev will not be registered.
+
+You're right, my bad. I had overlooked that, I thought you were registering 
+the ISP subdev. Could you please add a comment to the .registered() handler to 
+document this ?
+
+> This is similar solution to smiapp and s5c73m3 drivers.
+> 
+> Regarding .unregistered callback, it seems that removing it would not harm -
+> there should be added only check in .registered to avoid its re-
+> registration. On the other hand IMO if sensor driver is responsible for
+> registration it should be responsible for unregistration of subdev, what do
+> you think about it?
+
+I agree.
+
+> And about links: v4l2_device_unregister_subdev calls
+> media_entity_remove_links,
+> so in case device is re-registered driver should re-create them.
+> 
+> >> +}
+
+[snip]
+
 -- 
-1.8.3.2
+Regards,
 
+Laurent Pinchart
