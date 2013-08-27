@@ -1,97 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:55210 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754045Ab3H3CRk (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:43514 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752378Ab3H0PUW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:40 -0400
-Received: by mail-pa0-f54.google.com with SMTP id kx10so1693437pab.41
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:39 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 07/19] uvcvideo: Unify error reporting during format descriptor parsing.
-Date: Fri, 30 Aug 2013 11:17:06 +0900
-Message-Id: <1377829038-4726-8-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+	Tue, 27 Aug 2013 11:20:22 -0400
+Date: Tue, 27 Aug 2013 16:20:07 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	device-tree <devicetree-discuss@lists.ozlabs.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>
+Subject: Re: [PATCH v3 2/2] media: i2c: adv7343: add OF support
+Message-ID: <20130827152007.GP19893@e106331-lin.cambridge.arm.com>
+References: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1374301266-26726-3-git-send-email-prabhakar.csengg@gmail.com>
+ <5217A3E7.50706@samsung.com>
+ <CA+V-a8tStFRbELAmZL=418VpR9SJgp8uo_4hrtny2UEMEoXakg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8tStFRbELAmZL=418VpR9SJgp8uo_4hrtny2UEMEoXakg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add common error handling paths for format parsing failures.
+On Mon, Aug 26, 2013 at 03:41:45AM +0100, Prabhakar Lad wrote:
+> Hi Sylwester,
+> 
+> On Fri, Aug 23, 2013 at 11:33 PM, Sylwester Nawrocki
+> <s.nawrocki@samsung.com> wrote:
+> > Cc: DT binding maintainers
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
----
- drivers/media/usb/uvc/uvc_driver.c | 35 ++++++++++++++---------------------
- 1 file changed, 14 insertions(+), 21 deletions(-)
+Cheers!
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index d950b40..936ddc7 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -322,13 +322,8 @@ static int uvc_parse_format(struct uvc_device *dev,
- 	case UVC_VS_FORMAT_UNCOMPRESSED:
- 	case UVC_VS_FORMAT_FRAME_BASED:
- 		n = buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED ? 27 : 28;
--		if (buflen < n) {
--			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
--			       "interface %d FORMAT error\n",
--			       dev->udev->devnum,
--			       alts->desc.bInterfaceNumber);
--			return -EINVAL;
--		}
-+		if (buflen < n)
-+			goto format_error;
- 
- 		/* Find the format descriptor from its GUID. */
- 		fmtdesc = uvc_format_by_guid(&buffer[5]);
-@@ -356,13 +351,8 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		break;
- 
- 	case UVC_VS_FORMAT_MJPEG:
--		if (buflen < 11) {
--			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
--			       "interface %d FORMAT error\n",
--			       dev->udev->devnum,
--			       alts->desc.bInterfaceNumber);
--			return -EINVAL;
--		}
-+		if (buflen < 11)
-+			goto format_error;
- 
- 		strlcpy(format->name, "MJPEG", sizeof format->name);
- 		format->fcc = V4L2_PIX_FMT_MJPEG;
-@@ -372,13 +362,8 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		break;
- 
- 	case UVC_VS_FORMAT_DV:
--		if (buflen < 9) {
--			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
--			       "interface %d FORMAT error\n",
--			       dev->udev->devnum,
--			       alts->desc.bInterfaceNumber);
--			return -EINVAL;
--		}
-+		if (buflen < 9)
-+			goto format_error;
- 
- 		switch (buffer[8] & 0x7f) {
- 		case 0:
-@@ -542,6 +527,14 @@ static int uvc_parse_format(struct uvc_device *dev,
- 	}
- 
- 	return buffer - start;
-+
-+format_error:
-+	uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-+			"interface %d FORMAT error\n",
-+			dev->udev->devnum,
-+			alts->desc.bInterfaceNumber);
-+	return -EINVAL;
-+
- }
- 
- static int uvc_parse_streaming(struct uvc_device *dev,
--- 
-1.8.4
+> >
+> > On 07/20/2013 08:21 AM, Lad, Prabhakar wrote:
+> >> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> >>
+> >> add OF support for the adv7343 driver.
+> >>
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> ---
+> > [...]
+> >>  .../devicetree/bindings/media/i2c/adv7343.txt      |   48 ++++++++++++++++++++
+> >>  drivers/media/i2c/adv7343.c                        |   46 ++++++++++++++++++-
+> >>  2 files changed, 93 insertions(+), 1 deletion(-)
+> >>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+> >> new file mode 100644
+> >> index 0000000..5653bc2
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+> >> @@ -0,0 +1,48 @@
+> >> +* Analog Devices adv7343 video encoder
+> >> +
+> >> +The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead LQFP
+> >> +package. Six high speed, 3.3 V, 11-bit video DACs provide support for composite
+> >> +(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs in standard
+> >> +definition (SD), enhanced definition (ED), or high definition (HD) video
+> >> +formats.
+> >> +
+> >> +Required Properties :
+> >> +- compatible: Must be "adi,adv7343"
+> >> +
+> >> +Optional Properties :
+> >> +- adi,power-mode-sleep-mode: on enable the current consumption is reduced to
+> >> +                           micro ampere level. All DACs and the internal PLL
+> >> +                           circuit are disabled.
 
+This seems to be a boolean property, and I couldn't find any description
+in the linked datasheet of the constraints under which the unit may be
+put into sleep mode.
+
+Why do we require this property in the dt? Can the driver not always put
+a adv734x into sleep mode if it wants to, and then wake it up as
+required?
+
+> >
+> > Sorry for getting back so late to this. I realize this is already queued in
+> > the media tree. But this binding doesn't look good enough to me. I think it
+> > will need to be corrected during upcoming -rc period.
+> >
+> Thanks for the catch :-)
+> 
+> > It might be hard to figure out only from the chip's datasheet what
+> > adi,power-mode-sleep-mode really refers to. AFAICS it is for assigning some
+> > value to a specific register. If we really need to specify register values
+> > in the device tree then it would probably make sense to describe to which
+> > register this apply. Now the name looks like derived from some structure
+> > member name in the Linux driver of the device.
+> >
+> the property is derived from the datasheet itself for example the
+> 'adi,power-mode-sleep-mode' --> Register 0x0 power mode bit 0
+> 'adi,power-mode-pll-ctrl' ---> Register 0x0 power mode bit 1
+> 'adi,dac-enable' ----> Register 0x0 power mode bit 2-7
+> 'adi,sd-dac-enable' ---> Register 0x82 SD mode register bit 1-2
+> 
+> [1] http://www.analog.com/static/imported-files/data_sheets/ADV7342_7343.pdf
+> 
+> >> +- adi,power-mode-pll-ctrl: PLL and oversampling control. This control allows
+> >> +                        internal PLL 1 circuit to be powered down and the
+> >> +                        oversampling to be switched off.
+
+This affects whether or not oversampling is possible. That sounds like
+it should be a run-time configurable rather than a fixed property of the
+device.
+
+> >
+> > Similar comments applies to this property.
+> >
+> >> +- ad,adv7343-power-mode-dac: array configuring the power on/off DAC's 1..6,
+> >> +                           0 = OFF and 1 = ON, Default value when this
+> >> +                           property is not specified is <0 0 0 0 0 0>.
+> >
+> > Name of the property is incorrect here. It has changed to "adi,dac-enable".
+> >
+> OK
+
+Why do we need this property at all? Might some DACs not be wired up to
+anything?
+
+Surely this could be configured at run-time as and when the user wants
+to use the DACs.
+
+> 
+> >> +- ad,adv7343-sd-config-dac-out: array configure SD DAC Output's 1 and 2, 0 = OFF
+> >> +                              and 1 = ON, Default value when this property is
+> >> +                              not specified is <0 0>.
+> >
+> > Similarly, "adi,sd-dac-enable.
+> >
+> OK
+
+Again, couldn't this be done at run-time?
+
+Do we need to permanently disable/enable some DACs? If so, why?
+
+I also note from the spec that the unit has two clocks, CLKIN_A and
+CLKIN_B that aren't in the binding, but should be. Some regulators
+too (VDD, PVDD, VAA, VDD_IO, VREF?).
+
+Thanks,
+Mark.
