@@ -1,39 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:48893 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754949Ab3HEIXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:23:50 -0400
-Received: by mail-wg0-f54.google.com with SMTP id e12so1078301wgh.33
-        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 01:23:49 -0700 (PDT)
+Received: from mailout07.t-online.de ([194.25.134.83]:60234 "EHLO
+	mailout07.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259Ab3H0JzI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Aug 2013 05:55:08 -0400
+Message-ID: <521C72FF.5070902@t-online.de>
+Date: Tue, 27 Aug 2013 11:35:59 +0200
+From: Knut Petersen <Knut_Petersen@t-online.de>
 MIME-Version: 1.0
-In-Reply-To: <1375101661-6493-8-git-send-email-hverkuil@xs4all.nl>
-References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl> <1375101661-6493-8-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 5 Aug 2013 13:53:28 +0530
-Message-ID: <CA+V-a8t5VK4EO3Qn3uM7e_125Od8ppZf1EVGvCHX0aC2gufrWA@mail.gmail.com>
-Subject: Re: [RFC PATCH 7/8] v4l2: use new V4L2_DV_BT_BLANKING/FRAME defines
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hansverk@cisco.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to
+ register R??
+References: <521A269D.3020909@t-online.de> <521C5493.1050407@cisco.com>
+In-Reply-To: <521C5493.1050407@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 27.08.2013 09:26, Hans Verkuil wrote:
+> On 08/25/2013 05:45 PM, Knut Petersen wrote:
+>> Booting current git kernel dmesg shows a set of new  warnings:
+>>
+>>      "wm8775 9-001b: I2C: cannot write ??? to register R??"
+>>
+>> Nevertheless, the hardware seems to work fine.
+>>
+>> This is a new problem, introduced after kernel 3.10.
+>> If necessary I can bisect.
+> Can you try this patch? I'm pretty sure this will fix it.
 
-Thanks for the patch.
+Indeed, it does cure the problem. Thanks.
 
-On Mon, Jul 29, 2013 at 6:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Knut Petersen <Knut_Petersen@t-online.de>
+
+
 >
-> Use the new blanking and frame size defines. This also fixed a bug in
-> these drivers: they assumed that the height for interlaced formats was
-> the field height, however height is the frame height. So the height
-> for a field is actually bt->height / 2.
+> Regards,
 >
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 	Hans
+>
+> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+> index afe0eae..28893a6 100644
+> --- a/drivers/media/pci/cx88/cx88.h
+> +++ b/drivers/media/pci/cx88/cx88.h
+> @@ -259,7 +259,7 @@ struct cx88_input {
+>   };
+>   
+>   enum cx88_audio_chip {
+> -	CX88_AUDIO_WM8775,
+> +	CX88_AUDIO_WM8775 = 1,
+>   	CX88_AUDIO_TVAUDIO,
+>   };
+>   
+>
+>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Regards,
---Prabhakar Lad
