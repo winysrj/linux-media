@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51936 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39832 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534Ab3HIN5Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 09:57:25 -0400
+	with ESMTP id S1752321Ab3H0Mcp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Aug 2013 08:32:45 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: oliver@neukum.org
-Cc: linux-media@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
-Subject: Re: [PATCH] uvc: more buffers
-Date: Fri, 09 Aug 2013 15:58:31 +0200
-Message-ID: <2017146.oxz2IcHa3F@avalon>
-In-Reply-To: <1376053896-8931-1-git-send-email-oliver@neukum.org>
-References: <1376053896-8931-1-git-send-email-oliver@neukum.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Fix typo in v4l2_subdev_get_try_crop()
+Date: Tue, 27 Aug 2013 14:34:05 +0200
+Message-ID: <6073088.jjl5NmzUoe@avalon>
+In-Reply-To: <20130826095346.GB2835@valkosipuli.retiisi.org.uk>
+References: <1377508671-13188-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130826095346.GB2835@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oliver,
-
-Thank you for the patch.
-
-On Friday 09 August 2013 15:11:36 oliver@neukum.org wrote:
-> From: Oliver Neukum <oneukum@suse.de>
+On Monday 26 August 2013 12:53:46 Sakari Ailus wrote:
+> On Mon, Aug 26, 2013 at 11:17:51AM +0200, Laurent Pinchart wrote:
+> > The helper function is defined by a macro that is erroneously called
+> > with the compose rectangle instead of the crop rectangle. Fix it.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  include/media/v4l2-subdev.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index bfda0fe..34d9219 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -628,7 +628,7 @@ struct v4l2_subdev_fh {
+> > 
+> >  	}
+> >  
+> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+> > -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
+> > +__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
+> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+> >  #endif
 > 
-> This is necessary to let the new generation of cameras from LiteOn used in
-> Haswell ULT notebook operate. Otherwise the images will be truncated.
-
-Could you please post the lsusb -v output for the device ?
-
-Why does it need more buffers, is it a superspeed webcam ?
-
-> Signed-off-by: Oliver Neukum <oneukum@suse.de>
-> ---
->  drivers/media/usb/uvc/uvcvideo.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Oops. My bad I guess... it's a surprise to me this one slipped through.
+> Excellent find!
 > 
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..9f1930b 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -114,9 +114,9 @@
->  /* Number of isochronous URBs. */
->  #define UVC_URBS		5
->  /* Maximum number of packets per URB. */
-> -#define UVC_MAX_PACKETS		32
-> +#define UVC_MAX_PACKETS		128
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-That would mean up to 384KiB per URB. While not unreasonable, I'd like to know 
-how much data your camera produces to require this.
+Thank you.
 
->  /* Maximum number of video buffers. */
-> -#define UVC_MAX_VIDEO_BUFFERS	32
-> +#define UVC_MAX_VIDEO_BUFFERS	128
+Mauro, could you please pick this patch up, for v3.12 if still possible ?
 
-I don't think your camera really needs more than 32 V4L2 (full frame) buffers 
-:-)
-
->  /* Maximum status buffer size in bytes of interrupt URB. */
->  #define UVC_MAX_STATUS_SIZE	16
 -- 
 Regards,
 
