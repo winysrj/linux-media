@@ -1,141 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:25372 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752014Ab3HEM13 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 08:27:29 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Rob Herring <robherring2@gmail.com>,
-	Olof Johansson <olof@lixom.net>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>
-Subject: [PATCH 2/2] media: s5p-mfc: remove DT hacks and simplify
- initialization code
-Date: Mon, 05 Aug 2013 14:26:50 +0200
-Message-id: <1375705610-12724-3-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com>
-References: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:63119 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752504Ab3H1NfF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 09:35:05 -0400
+From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+To: kyungmin.park@samsung.com
+Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
+	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
+	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
+	tomasz.figa@gmail.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux@arm.linux.org.uk, ben-linux@fluff.org,
+	linux-samsung-soc@vger.kernel.org,
+	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Subject: [PATCH v2 1/5] media: s5p-tv: Restore vpll clock rate
+Date: Wed, 28 Aug 2013 15:34:28 +0200
+Message-id: <1377696872-32069-2-git-send-email-m.krawczuk@partner.samsung.com>
+In-reply-to: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
+References: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes custom initialization of reserved memory regions from
-s5p-mfc driver. Memory initialization can be now handled by generic
-code.
+Restore vpll clock rate if start stream fail or stream is off.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   75 ++++++------------------------
- 1 file changed, 15 insertions(+), 60 deletions(-)
+ drivers/media/platform/s5p-tv/sdo_drv.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index a130dcd..696e0e0 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1011,51 +1011,11 @@ static int match_child(struct device *dev, void *data)
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index 0afa90f..b919008 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -55,6 +55,8 @@ struct sdo_device {
+ 	struct clk *dacphy;
+ 	/** clock for control of VPLL */
+ 	struct clk *fout_vpll;
++	/** vpll rate before sdo stream was on */
++	int vpll_rate;
+ 	/** regulator for SDO IP power */
+ 	struct regulator *vdac;
+ 	/** regulator for SDO plug detection */
+@@ -193,17 +195,34 @@ static int sdo_s_power(struct v4l2_subdev *sd, int on)
+ 
+ static int sdo_streamon(struct sdo_device *sdev)
  {
- 	if (!dev_name(dev))
- 		return 0;
--	return !strcmp(dev_name(dev), (char *)data);
-+	return !!strstr(dev_name(dev), (char *)data);
++	int ret;
++
+ 	/* set proper clock for Timing Generator */
+-	clk_set_rate(sdev->fout_vpll, 54000000);
++	sdev->vpll_rate = clk_get_rate(sdev->fout_vpll);
++	ret = clk_set_rate(sdev->fout_vpll, 54000000);
++	if (ret < 0) {
++		dev_err(sdev->dev,
++			"%s: Failed to set vpll rate!\n", __func__);
++		return ret;
++	}
+ 	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
+ 	clk_get_rate(sdev->fout_vpll));
+ 	/* enable clock in SDO */
+ 	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
+-	clk_enable(sdev->dacphy);
++	ret = clk_prepare_enable(sdev->dacphy);
++	if (ret < 0) {
++		dev_err(sdev->dev,
++			"%s: Failed to prepare and enable clock !\n", __func__);
++		goto fail;
++	}
+ 	/* enable DAC */
+ 	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
+ 	sdo_reg_debug(sdev);
+ 	return 0;
++fail:
++	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
++	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
++	return ret;
  }
  
- static void *mfc_get_drv_data(struct platform_device *pdev);
- 
--static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
--{
--	unsigned int mem_info[2] = { };
--
--	dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
--			sizeof(struct device), GFP_KERNEL);
--	if (!dev->mem_dev_l) {
--		mfc_err("Not enough memory\n");
--		return -ENOMEM;
--	}
--	device_initialize(dev->mem_dev_l);
--	of_property_read_u32_array(dev->plat_dev->dev.of_node,
--			"samsung,mfc-l", mem_info, 2);
--	if (dma_declare_coherent_memory(dev->mem_dev_l, mem_info[0],
--				mem_info[0], mem_info[1],
--				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
--		mfc_err("Failed to declare coherent memory for\n"
--		"MFC device\n");
--		return -ENOMEM;
--	}
--
--	dev->mem_dev_r = devm_kzalloc(&dev->plat_dev->dev,
--			sizeof(struct device), GFP_KERNEL);
--	if (!dev->mem_dev_r) {
--		mfc_err("Not enough memory\n");
--		return -ENOMEM;
--	}
--	device_initialize(dev->mem_dev_r);
--	of_property_read_u32_array(dev->plat_dev->dev.of_node,
--			"samsung,mfc-r", mem_info, 2);
--	if (dma_declare_coherent_memory(dev->mem_dev_r, mem_info[0],
--				mem_info[0], mem_info[1],
--				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
--		pr_err("Failed to declare coherent memory for\n"
--		"MFC device\n");
--		return -ENOMEM;
--	}
--	return 0;
--}
--
- /* MFC probe function */
- static int s5p_mfc_probe(struct platform_device *pdev)
- {
-@@ -1107,25 +1067,20 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		goto err_res;
+ static int sdo_streamoff(struct sdo_device *sdev)
+@@ -220,6 +239,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
  	}
+ 	if (tries == 0)
+ 		dev_err(sdev->dev, "failed to stop streaming\n");
++	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
+ 	return tries ? 0 : -EIO;
+ }
  
--	if (pdev->dev.of_node) {
--		ret = s5p_mfc_alloc_memdevs(dev);
--		if (ret < 0)
--			goto err_res;
--	} else {
--		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
--				"s5p-mfc-l", match_child);
--		if (!dev->mem_dev_l) {
--			mfc_err("Mem child (L) device get failed\n");
--			ret = -ENODEV;
--			goto err_res;
--		}
--		dev->mem_dev_r = device_find_child(&dev->plat_dev->dev,
--				"s5p-mfc-r", match_child);
--		if (!dev->mem_dev_r) {
--			mfc_err("Mem child (R) device get failed\n");
--			ret = -ENODEV;
--			goto err_res;
--		}
-+	dev->mem_dev_l = device_find_child(&dev->plat_dev->dev, "-l",
-+					   match_child);
-+	if (!dev->mem_dev_l) {
-+		mfc_err("Mem child (L) device get failed\n");
-+		ret = -ENODEV;
-+		goto err_res;
-+	}
-+
-+	dev->mem_dev_r = device_find_child(&dev->plat_dev->dev, "-r",
-+					   match_child);
-+	if (!dev->mem_dev_r) {
-+		mfc_err("Mem child (R) device get failed\n");
-+		ret = -ENODEV;
-+		goto err_res;
- 	}
- 
- 	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
 -- 
-1.7.9.5
+1.8.1.2
 
