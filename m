@@ -1,162 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:23962 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172Ab3HEI5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:40 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7c001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:36 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 1/7] qv4l2: fix YUY2 shader
-Date: Mon,  5 Aug 2013 10:56:51 +0200
-Message-Id: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-we0-f175.google.com ([74.125.82.175]:52229 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452Ab3H1Ngs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 09:36:48 -0400
+From: John Horan <knasher@gmail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	John Horan <knasher@gmail.com>
+Subject: [PATCH] media: dvb-frontends: ts2020: Added in a option for frequency divider value for s600 devices
+Date: Wed, 28 Aug 2013 14:37:37 +0100
+Message-Id: <1377697057-23676-1-git-send-email-knasher@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed the YUY2 shaders to support scaling.
-The new solution has cleaner shader code and texture upload
-uses a better format for OpenGL.
+When the tuner part of the ds3000 driver was split to share code with the m88rs2000 driver, the ts2020 driver used
+the frequency divider value from the m88rs2000 driver.  However the ds3000 driver requires a different value, and this
+resulted in some frequecies being invisible to the tuner.  This patch adds back in the value needed for the ds3000 driver
+and configured as an option in the dw2102 frontend driver.
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+It may also apply to su3000 devices, which use the same ds3000 driver, but for now it is only applied to the s660 device.
+
+Signed-off-by: John Horan <knasher@gmail.com>
 ---
- utils/qv4l2/capture-win-gl.cpp | 68 ++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 33 deletions(-)
+ drivers/media/dvb-frontends/ts2020.c |  4 +++-
+ drivers/media/dvb-frontends/ts2020.h |  1 +
+ drivers/media/usb/dvb-usb/dw2102.c   | 13 ++++++++++---
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
-index 52412c7..bae6569 100644
---- a/utils/qv4l2/capture-win-gl.cpp
-+++ b/utils/qv4l2/capture-win-gl.cpp
-@@ -1,5 +1,5 @@
- /*
-- * The YUY2 shader code was copied and simplified from face-responder. The code is under public domain:
-+ * The YUY2 shader code is based on face-responder. The code is under public domain:
-  * https://bitbucket.org/nateharward/face-responder/src/0c3b4b957039d9f4bf1da09b9471371942de2601/yuv42201_laplace.frag?at=master
-  *
-  * All other OpenGL code:
-@@ -446,47 +446,51 @@ QString CaptureWinGLEngine::shader_YUY2_invariant(__u32 format)
- {
- 	switch (format) {
- 	case V4L2_PIX_FMT_YUYV:
--		return QString("y = (luma_chroma.r - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   u = luma_chroma.a;"
--			       "   v = texture2D(tex, vec2(pixelx + texl_w, pixely)).a;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.r - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   v = luma_chroma.a;"
--			       "   u = texture2D(tex, vec2(pixelx - texl_w, pixely)).a;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.b - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.g - 0.5;"
-+			       "v = luma_chroma.a - 0.5;"
- 			       );
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index ad7ad85..678f13a 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -31,6 +31,7 @@ struct ts2020_priv {
+ 	struct i2c_adapter *i2c;
+ 	u8 clk_out_div;
+ 	u32 frequency;
++	u32 frequency_div;
+ };
  
- 	case V4L2_PIX_FMT_YVYU:
--		return QString("y = (luma_chroma.r - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   v = luma_chroma.a;"
--			       "   u = texture2D(tex, vec2(pixelx + texl_w, pixely)).a;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.r - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   u = luma_chroma.a;"
--			       "   v = texture2D(tex, vec2(pixelx - texl_w, pixely)).a;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.b - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.a - 0.5;"
-+			       "v = luma_chroma.g - 0.5;"
- 			       );
+ static int ts2020_release(struct dvb_frontend *fe)
+@@ -193,7 +194,7 @@ static int ts2020_set_params(struct dvb_frontend *fe)
+ 	u8 lo = 0x01, div4 = 0x0;
  
- 	case V4L2_PIX_FMT_UYVY:
--		return QString("y = (luma_chroma.a - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   u = luma_chroma.r;"
--			       "   v = texture2D(tex, vec2(pixelx + texl_w, pixely)).r;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.g - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   v = luma_chroma.r;"
--			       "   u = texture2D(tex, vec2(pixelx - texl_w, pixely)).r;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.a - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.r - 0.5;"
-+			       "v = luma_chroma.b - 0.5;"
- 			       );
+ 	/* Calculate frequency divider */
+-	if (frequency < 1060000) {
++	if (frequency < priv->frequency_div) {
+ 		lo |= 0x10;
+ 		div4 = 0x1;
+ 		ndiv = (frequency * 14 * 4) / TS2020_XTAL_FREQ;
+@@ -340,6 +341,7 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
+ 	priv->i2c_address = config->tuner_address;
+ 	priv->i2c = i2c;
+ 	priv->clk_out_div = config->clk_out_div;
++	priv->frequency_div = config->frequency_div;
+ 	fe->tuner_priv = priv;
  
- 	case V4L2_PIX_FMT_VYUY:
--		return QString("y = (luma_chroma.a - 0.0625) * 1.1643;"
--			       "if (mod(xcoord, 2.0) == 0.0) {"
--			       "   v = luma_chroma.r;"
--			       "   u = texture2D(tex, vec2(pixelx + texl_w, pixely)).r;"
-+		return QString("if (mod(xcoord, 2.0) == 0.0) {"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
-+			       "   y = (luma_chroma.g - 0.0625) * 1.1643;"
- 			       "} else {"
--			       "   u = luma_chroma.r;"
--			       "   v = texture2D(tex, vec2(pixelx - texl_w, pixely)).r;"
-+			       "   luma_chroma = texture2D(tex, vec2(pixelx - texl_w, pixely));"
-+			       "   y = (luma_chroma.a - 0.0625) * 1.1643;"
- 			       "}"
-+			       "u = luma_chroma.b - 0.5;"
-+			       "v = luma_chroma.r - 0.5;"
- 			       );
+ 	/* Wake Up the tuner */
+diff --git a/drivers/media/dvb-frontends/ts2020.h b/drivers/media/dvb-frontends/ts2020.h
+index 5bcb9a7..b2fe6bb 100644
+--- a/drivers/media/dvb-frontends/ts2020.h
++++ b/drivers/media/dvb-frontends/ts2020.h
+@@ -28,6 +28,7 @@
+ struct ts2020_config {
+ 	u8 tuner_address;
+ 	u8 clk_out_div;
++	u32 frequency_div;
+ };
  
- 	default:
-@@ -499,8 +503,8 @@ void CaptureWinGLEngine::shader_YUY2(__u32 format)
- 	m_screenTextureCount = 1;
- 	glGenTextures(m_screenTextureCount, m_screenTexture);
- 	configureTexture(0);
--	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, m_frameWidth, m_frameHeight, 0,
--		     GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
-+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_frameWidth / 2, m_frameHeight, 0,
-+		     GL_RGBA, GL_UNSIGNED_BYTE, NULL);
- 	checkError("YUY2 shader");
+ #if IS_ENABLED(CONFIG_DVB_TS2020)
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 6e237b6..6136a2c 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -955,9 +955,10 @@ static struct ds3000_config dw2104_ds3000_config = {
+ 	.demod_address = 0x68,
+ };
  
- 	QString codeHead = QString("uniform sampler2D tex;"
-@@ -509,17 +513,15 @@ void CaptureWinGLEngine::shader_YUY2(__u32 format)
- 				   "void main()"
- 				   "{"
- 				   "   float y, u, v;"
-+				   "   vec4 luma_chroma;"
- 				   "   float pixelx = gl_TexCoord[0].x;"
- 				   "   float pixely = gl_TexCoord[0].y;"
- 				   "   float xcoord = floor(pixelx * tex_w);"
--				   "   vec4 luma_chroma = texture2D(tex, vec2(pixelx, pixely));"
- 				   );
+-static struct ts2020_config dw2104_ts2020_config  = {
++static struct ts2020_config dw2104_ts2020_config = {
+ 	.tuner_address = 0x60,
+ 	.clk_out_div = 1,
++	.frequency_div = 1060000,
+ };
  
- 	QString codeBody = shader_YUY2_invariant(format);
+ static struct ds3000_config s660_ds3000_config = {
+@@ -966,6 +967,12 @@ static struct ds3000_config s660_ds3000_config = {
+ 	.set_lock_led = dw210x_led_ctrl,
+ };
  
--	QString codeTail = QString("   u = u - 0.5;"
--				   "   v = v - 0.5;"
--				   "   float r = y + 1.5958 * v;"
-+	QString codeTail = QString("   float r = y + 1.5958 * v;"
- 				   "   float g = y - 0.39173 * u - 0.81290 * v;"
- 				   "   float b = y + 2.017 * u;"
- 				   "   gl_FragColor = vec4(r, g, b, 1.0);"
-@@ -548,8 +550,8 @@ void CaptureWinGLEngine::render_YUY2()
- 	glBindTexture(GL_TEXTURE_2D, m_screenTexture[0]);
- 	GLint Y = m_glfunction.glGetUniformLocation(m_shaderProgram.programId(), "tex");
- 	glUniform1i(Y, 0);
--	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth, m_frameHeight,
--			GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_frameData);
-+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth / 2, m_frameHeight,
-+			GL_RGBA, GL_UNSIGNED_BYTE, m_frameData);
- 	checkError("YUY2 paint");
++static struct ts2020_config s660_ts2020_config = {
++	.tuner_address = 0x60,
++	.clk_out_div = 1,
++	.frequency_div = 1146000,
++};
++
+ static struct stv0900_config dw2104a_stv0900_config = {
+ 	.demod_address = 0x6a,
+ 	.demod_mode = 0,
+@@ -1205,7 +1212,7 @@ static int ds3000_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (d->fe_adap[0].fe == NULL)
+ 		return -EIO;
+ 
+-	dvb_attach(ts2020_attach, d->fe_adap[0].fe, &dw2104_ts2020_config,
++	dvb_attach(ts2020_attach, d->fe_adap[0].fe, &s660_ts2020_config,
+ 		&d->dev->i2c_adap);
+ 
+ 	st->old_set_voltage = d->fe_adap[0].fe->ops.set_voltage;
+@@ -1213,7 +1220,7 @@ static int ds3000_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached ds3000+ds2020!\n");
++	info("Attached ds3000+ts2020!\n");
+ 
+ 	return 0;
  }
- #endif
 -- 
-1.8.3.2
+1.8.4
 
