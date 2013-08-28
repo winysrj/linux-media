@@ -1,79 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2186 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757819Ab3HHMul (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:50:41 -0400
-Message-ID: <5203941A.6010909@xs4all.nl>
-Date: Thu, 08 Aug 2013 14:50:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.187]:60184 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753033Ab3H1OtN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 10:49:13 -0400
+Date: Wed, 28 Aug 2013 16:49:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/3] V4L2: add v4l2-clock helpers to register and unregister
+ a fixed-rate clock
+In-Reply-To: <1634189.nIXkBbvd1k@avalon>
+Message-ID: <Pine.LNX.4.64.1308281545450.22743@axis700.grange>
+References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
+ <1377696508-3190-2-git-send-email-g.liakhovetski@gmx.de> <1634189.nIXkBbvd1k@avalon>
 MIME-Version: 1.0
-To: =?UTF-8?B?QsOlcmQgRWlyaWsgV2ludGhlcg==?= <bwinther@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 0/9] qv4l2: scaling, pixel aspect ratio and render fixes
-References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/08/2013 02:31 PM, Bård Eirik Winther wrote:
-> The PATCHv2 only rebases for master pull.
+On Wed, 28 Aug 2013, Laurent Pinchart wrote:
 
-That applies properly, thanks!
+> Hi Guennadi,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 28 August 2013 15:28:26 Guennadi Liakhovetski wrote:
+> > Many bridges and video host controllers supply fixed rate always on clocks
+> > to their I2C devices. This patch adds two simple helpers to register and
+> > unregister such a clock.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-clk.c |   39 +++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-clk.h           |   14 ++++++++++++
+> >  2 files changed, 53 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-clk.c
+> > b/drivers/media/v4l2-core/v4l2-clk.c index b67de86..e18cc04 100644
+> > --- a/drivers/media/v4l2-core/v4l2-clk.c
+> > +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> > @@ -240,3 +240,42 @@ void v4l2_clk_unregister(struct v4l2_clk *clk)
+> >  	kfree(clk);
+> >  }
+> >  EXPORT_SYMBOL(v4l2_clk_unregister);
+> > +
+> > +struct v4l2_clk_fixed {
+> > +	unsigned long rate;
+> > +	struct v4l2_clk_ops ops;
+> > +};
+> > +
+> > +static unsigned long fixed_get_rate(struct v4l2_clk *clk)
+> > +{
+> > +	struct v4l2_clk_fixed *priv = clk->priv;
+> > +	return priv->rate;
+> > +}
+> > +
+> > +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
+> > +		const char *id, unsigned long rate, struct module *owner)
+> > +{
+> > +	struct v4l2_clk *clk;
+> > +	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+> > +
+> > +	if (!priv)
+> > +		return ERR_PTR(-ENOMEM);
+> > +
+> > +	priv->rate = rate;
+> > +	priv->ops.get_rate = fixed_get_rate;
+> > +	priv->ops.owner = owner;
+> 
+> The ops owner is v4l2-clk.c, shouldn't you use THIS_MODULE here instead of the 
+> caller's THIS_MODULE ?
 
-	Hans
+Actually I don't think so. Making THIS_MODULE the owner wouldn't make any 
+sense, IMHO, the module cannot be unloaded anyway as long as any V4L 
+activity is taking place. If there is anything you want to lock in for as 
+long as the clock is used, then it's the bridge / camera host driver, 
+which is exactly what's done here.
+
+Thanks
+Guennadi
 
 > 
-> This adds scaling and aspect ratio support to the qv4l2 CaptureWin.
-> In that regard it fixes a lot of other issues that would otherwise make scaling
-> render incorrectly. It also fixes some issues with the original OpenGL patch series,
-> as well as adding tweaks and improvements left out in the original patches.
+> > +
+> > +	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
+> > +	if (IS_ERR(clk))
+> > +		kfree(priv);
+> > +
+> > +	return clk;
+> > +}
+> > +EXPORT_SYMBOL(__v4l2_clk_register_fixed);
+> > +
+> > +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk)
+> > +{
+> > +	kfree(clk->priv);
+> > +	v4l2_clk_unregister(clk);
+> > +}
+> > +EXPORT_SYMBOL(v4l2_clk_unregister_fixed);
+> > diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+> > index 0503a90..a354a9d 100644
+> > --- a/include/media/v4l2-clk.h
+> > +++ b/include/media/v4l2-clk.h
+> > @@ -15,6 +15,7 @@
+> >  #define MEDIA_V4L2_CLK_H
+> > 
+> >  #include <linux/atomic.h>
+> > +#include <linux/export.h>
+> >  #include <linux/list.h>
+> >  #include <linux/mutex.h>
+> > 
+> > @@ -51,4 +52,17 @@ void v4l2_clk_disable(struct v4l2_clk *clk);
+> >  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
+> >  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
+> > 
+> > +struct module;
+> > +
+> > +struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
+> > +		const char *id, unsigned long rate, struct module *owner);
+> > +void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
+> > +
+> > +static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
+> > +							const char *id,
+> > +							unsigned long rate)
+> > +{
+> > +	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
+> > +}
+> > +
+> >  #endif
+> -- 
+> Regards,
 > 
-> 
-> Some of the changes/improvements:
-> - CaptureWin have scaling support for video frames for all renderers
-> - CaptureWin support pixel aspect ratio scaling
-> - Aspect ratio and scaling can be changed during capture
-> - Reset and disable scaling options
-> - CaptureWin's setMinimumSize is now resize, which resizes the window to the frame size given
->   and minimum size is set automatically
-> - The YUY2 shader programs are rewritten and has the resizing issue fixed
-> - The Show Frames option in Capture menu can be toggled during capture
-> - Added a hotkey:
->     CTRL + F : (size to video 'F'rame)
->                When either the main window or capture window is selected
->                this will reset the scaling to fit the frame size.
->                This option is also available in the Capture menu.
-> 
-> Pixel Aspect Ratio Modes:
-> - Autodetect (if not supported this assumes square pixels)
-> - Square
-> - NTSC/PAL-M/PAL-60
-> - NTSC/PAL-M/PAL-60, Anamorphic
-> - PAL/SECAM
-> - PAL/SECAM, Anamorphic
-> 
-> Perfomance:
->   All tests are done using the 3.10 kernel with OpenGL enabled and desktop effects disabled.
->   Testing was done on an Intel i7-2600S (with Turbo Boost disabled)
->   using the integrated Intel HD 2000 graphics processor. The mothreboard is an ASUS P8H77-I
->   with 2x2GB CL 9-9-9-24 DDR3 RAM. The capture card is a Cisco test card with 4 HDMI
->   inputs connected using PCIe2.0x8. All video input streams used for testing are
->   progressive HD (1920x1080) with 60fps.
-> 
->   FPS for every input for a given number of streams
->   (BGR3, YU12 and YV12 are emulated using the CPU):
->         1 STREAM  2 STREAMS  3 STREAMS  4 STREAMS
->   RGB3      60        60         60         60
->   BGR3      60        60         60         58
->   YUYV      60        60         60         60
->   YU12      60        60         60         60
->   YV12      60        60         60         60
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Laurent Pinchart
 > 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
