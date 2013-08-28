@@ -1,78 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63371 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753815Ab3HDVCp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Aug 2013 17:02:45 -0400
-Date: Sun, 4 Aug 2013 23:02:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Su Jiaquan <jiaquan.lnx@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
-	xzhao10@marvell.com
-Subject: Re: How to express planar formats with mediabus format code?
-In-Reply-To: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1308042252010.19244@axis700.grange>
-References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout1.samsung.com ([203.254.224.24]:35216 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460Ab3H1QOg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 12:14:36 -0400
+From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+To: kyungmin.park@samsung.com
+Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
+	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
+	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
+	tomasz.figa@gmail.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux@arm.linux.org.uk, ben-linux@fluff.org,
+	linux-samsung-soc@vger.kernel.org,
+	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Subject: [PATCH v3 2/6] media: s5p-tv: Restore vpll clock rate
+Date: Wed, 28 Aug 2013 18:13:00 +0200
+Message-id: <1377706384-3697-3-git-send-email-m.krawczuk@partner.samsung.com>
+In-reply-to: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
+References: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Su Jiaquan
+Restore vpll clock rate if start stream fail or stream is off.
 
-On Sun, 4 Aug 2013, Su Jiaquan wrote:
-
-> Hi,
-> 
-> I know the title looks crazy, but here is our problem:
-> 
-> In our SoC based ISP, the hardware can be divide to several blocks.
-> Some blocks can do color space conversion(raw to YUV
-> interleave/planar), others can do the pixel
-> re-order(interleave/planar/semi-planar conversion, UV planar switch).
-> We use one subdev to describe each of them, then came the problem: How
-> can we express the planar formats with mediabus format code?
-
-Could you please explain more exactly what you mean? How are those your 
-blocks connected? How do they exchange data? If they exchange data over a 
-serial bus, then I don't think planar formats make sense, right? Or do 
-your blocks really output planes one after another, reordering data 
-internally? That would be odd... If OTOH your blocks output data to RAM, 
-and the next block takes data from there, then you use V4L2_PIX_FMT_* 
-formats to describe them and any further processing block should be a 
-mem2mem device. Wouldn't this work?
-
-Thanks
-Guennadi
-
-> I understand at beginning, media-bus was designed to describe the data
-> link between camera sensor and camera controller, where sensor is
-> described in subdev. So interleave formats looks good enough at that
-> time. But now as Media-controller is introduced, subdev can describe a
-> much wider range of hardware, which is not limited to camera sensor.
-> So now planar formats are possible to be passed between subdevs.
-> 
-> I think the problem we meet can be very common for SoC based ISP
-> solutions, what do you think about it?
-> 
-> there are many possible solution for it:
-> 
-> 1> change the definition of v4l2_subdev_format::format, use v4l2_format;
-> 
-> 2> extend the mediabus format code, add planar format code;
-> 
-> 3> use a extra bit to tell the meaning of v4l2_mbus_framefmt::code, is
-> it in mediabus-format or in fourcc
-> 
->  Do you have any suggestions?
-> 
->  Thanks a lot!
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/s5p-tv/sdo_drv.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index 0afa90f..9dbdfe6 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -55,6 +55,8 @@ struct sdo_device {
+ 	struct clk *dacphy;
+ 	/** clock for control of VPLL */
+ 	struct clk *fout_vpll;
++	/** vpll rate before sdo stream was on */
++	int vpll_rate;
+ 	/** regulator for SDO IP power */
+ 	struct regulator *vdac;
+ 	/** regulator for SDO plug detection */
+@@ -193,17 +195,34 @@ static int sdo_s_power(struct v4l2_subdev *sd, int on)
+ 
+ static int sdo_streamon(struct sdo_device *sdev)
+ {
++	int ret;
++
+ 	/* set proper clock for Timing Generator */
+-	clk_set_rate(sdev->fout_vpll, 54000000);
++	sdev->vpll_rate = clk_get_rate(sdev->fout_vpll);
++	ret = clk_set_rate(sdev->fout_vpll, 54000000);
++	if (ret < 0) {
++		dev_err(sdev->dev,
++			"Failed to set vpll rate!\n");
++		return ret;
++	}
+ 	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
+ 	clk_get_rate(sdev->fout_vpll));
+ 	/* enable clock in SDO */
+ 	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
+-	clk_enable(sdev->dacphy);
++	ret = clk_enable(sdev->dacphy);
++	if (ret < 0) {
++		dev_err(sdev->dev,
++			"clk_enable(dacphy) failed !\n");
++		goto fail;
++	}
+ 	/* enable DAC */
+ 	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
+ 	sdo_reg_debug(sdev);
+ 	return 0;
++fail:
++	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
++	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
++	return ret;
+ }
+ 
+ static int sdo_streamoff(struct sdo_device *sdev)
+@@ -220,6 +239,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
+ 	}
+ 	if (tries == 0)
+ 		dev_err(sdev->dev, "failed to stop streaming\n");
++	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
+ 	return tries ? 0 : -EIO;
+ }
+ 
+-- 
+1.8.1.2
+
