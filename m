@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:45035 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934211Ab3HHMbv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:31:51 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcjb014622
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:48 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 5/9] qv4l2: create function getMargins
-Date: Thu,  8 Aug 2013 14:31:23 +0200
-Message-Id: <2b32e80e9b22855efe3fd4cc7d7cbd7d6bdeb041.1375964980.git.bwinther@cisco.com>
-In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:47861 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150Ab3H1QNt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 12:13:49 -0400
+From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+To: kyungmin.park@samsung.com
+Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
+	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
+	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
+	tomasz.figa@gmail.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux@arm.linux.org.uk, ben-linux@fluff.org,
+	linux-samsung-soc@vger.kernel.org,
+	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Subject: [PATCH v3 0/6] ARM: S5PV210: move to common clk framework
+Date: Wed, 28 Aug 2013 18:12:58 +0200
+Message-id: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Created a function to get the total margins (window frame) in pixels
-outside the actual video frame beeing displayed.
+This patch series is the new s5pv210 clock implementation
+(using common clk framework).
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 14 ++++++++++----
- utils/qv4l2/capture-win.h   |  1 +
- 2 files changed, 11 insertions(+), 4 deletions(-)
+This implementation is compatible with device tree definition and board files.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 2d57909..8722066 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -54,16 +54,22 @@ void CaptureWin::buildWindow(QWidget *videoSurface)
- 	vbox->setSpacing(b);
- }
- 
-+QSize CaptureWin::getMargins()
-+{
-+	int l, t, r, b;
-+	layout()->getContentsMargins(&l, &t, &r, &b);
-+	return QSize(l + r, t + b + m_information.minimumSizeHint().height() + layout()->spacing());
-+}
-+
- void CaptureWin::setMinimumSize(int minw, int minh)
- {
- 	QDesktopWidget *screen = QApplication::desktop();
- 	QRect resolution = screen->screenGeometry();
- 	QSize maxSize = maximumSize();
- 
--	int l, t, r, b;
--	layout()->getContentsMargins(&l, &t, &r, &b);
--	minw += l + r;
--	minh += t + b + m_information.minimumSizeHint().height() + layout()->spacing();
-+	QSize margins = getMargins();
-+	minw += margins.width();
-+	minh += margins.height();
- 
- 	if (minw > resolution.width())
- 		minw = resolution.width();
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index ca60244..f662bd3 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -78,6 +78,7 @@ public:
- protected:
- 	void closeEvent(QCloseEvent *event);
- 	void buildWindow(QWidget *videoSurface);
-+	QSize getMargins();
- 
- 	/**
- 	 * @brief A label that can is used to display capture information.
+This patch series is based on linux-next and has been tested on goni and aquila 
+boards using board file.
+
+This patch series require adding new registration method
+for PLL45xx and PLL46xx, which is included in this patch series:
+clk: samsung: pll: Use new registration method for PLL46xx
+http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21653.html
+clk: samsung: pll: Use new registration method for PLL45xx
+http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21652.html
+clk: samsung: exynos4: Rename exynos4_plls to exynos4x12_plls
+http://www.spinics.net/lists/arm-kernel/msg268486.html
+
+Mateusz Krawczuk (6):
+  media: s5p-tv: Replace mxr_ macro by default dev_
+  media: s5p-tv: Restore vpll clock rate
+  media: s5p-tv: Fix sdo driver to work with CCF
+  media: s5p-tv: Fix mixer driver to work with CCF
+  clk: samsung: Add clock driver for s5pc110/s5pv210
+  ARM: s5pv210: Migrate clock handling to Common Clock Framework
+
+ .../bindings/clock/samsung,s5pv210-clock.txt       |  72 ++
+ arch/arm/mach-s5pv210/Kconfig                      |   9 +
+ arch/arm/mach-s5pv210/Makefile                     |   4 +-
+ arch/arm/mach-s5pv210/common.c                     |  17 +
+ arch/arm/mach-s5pv210/common.h                     |  13 +
+ arch/arm/mach-s5pv210/mach-aquila.c                |   1 +
+ arch/arm/mach-s5pv210/mach-goni.c                  |   3 +-
+ arch/arm/mach-s5pv210/mach-smdkc110.c              |   1 +
+ arch/arm/mach-s5pv210/mach-smdkv210.c              |   1 +
+ arch/arm/mach-s5pv210/mach-torbreck.c              |   1 +
+ arch/arm/plat-samsung/Kconfig                      |   2 +-
+ arch/arm/plat-samsung/init.c                       |   2 -
+ drivers/clk/samsung/Makefile                       |   3 +
+ drivers/clk/samsung/clk-s5pv210.c                  | 732 +++++++++++++++++++++
+ drivers/media/platform/s5p-tv/mixer.h              |  12 -
+ drivers/media/platform/s5p-tv/mixer_drv.c          |  80 ++-
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c    |   2 +-
+ drivers/media/platform/s5p-tv/mixer_reg.c          |   6 +-
+ drivers/media/platform/s5p-tv/mixer_video.c        | 100 +--
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c     |   2 +-
+ drivers/media/platform/s5p-tv/sdo_drv.c            |  45 +-
+ include/dt-bindings/clock/samsung,s5pv210-clock.h  | 221 +++++++
+ 22 files changed, 1216 insertions(+), 113 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt
+ create mode 100644 drivers/clk/samsung/clk-s5pv210.c
+ create mode 100644 include/dt-bindings/clock/samsung,s5pv210-clock.h
+
 -- 
-1.8.4.rc1
+1.8.1.2
 
