@@ -1,87 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40063 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434Ab3HUGsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:48:42 -0400
-Message-ID: <5214627E.30503@ti.com>
-Date: Wed, 21 Aug 2013 12:17:26 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
-	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
-	<hverkuil@xs4all.nl>, <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1436822.NCo0PqzB8p@avalon> <52136C36.1090605@ti.com> <2009747.pxcYsmMib4@avalon>
-In-Reply-To: <2009747.pxcYsmMib4@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:16171 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753175Ab3H1P4P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 11:56:15 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS900I870955M10@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Aug 2013 00:56:13 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 0/7] Add device tree support for Exynos4412 Trats2 cameras
+Date: Wed, 28 Aug 2013 17:55:53 +0200
+Message-id: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This series is intended to add device tree support for both cameras
+on the Exynos4412 SoC Trats 2 board. It converts related drivers to use
+the v4l2-async API and expose the sensor's master clock supplied by the
+camera host interface through the common clock API.
 
-On Tuesday 20 August 2013 07:26 PM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> On Tuesday 20 August 2013 18:46:38 Archit Taneja wrote:
->> On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
->>
->> <snip>
->>
->>>>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
->>>>>> +{
->>>>>> +	int r;
->>>>>> +	struct device *dev = &vpdma->pdev->dev;
->>>>>> +
->>>>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
->>>>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
->>>>>> +		vpdma_firmware_cb);
->>>>>
->>>>> Is there a reason not to use the synchronous interface ? That would
->>>>> simplify both this code and the callers, as they won't have to check
->>>>> whether the firmware has been correctly loaded.
->>>>
->>>> I'm not clear what you mean by that, the firmware would be stored in the
->>>> filesystem. If the driver is built-in, then the synchronous interface
->>>> wouldn't work unless the firmware is appended to the kernel image. Am I
->>>> missing something here? I'm not very aware of the firmware api.
->>>
->>> request_firmware() would just sleep (with a 30 seconds timeout if I'm not
->>> mistaken) until userspace provides the firmware. As devices are probed
->>> asynchronously (in kernel threads) the system will just boot normally, and
->>> the request_firmware() call will return when the firmware is available.
->>
->> Sorry, I sent the previous mail bit too early.
->>
->> With request_firmware() and the driver built-in, I see that the kernel
->> stalls for 10 seconds at the driver's probe, and the firware loading fails
->> since we didn't enter userspace where the file is.
->>
->> The probing of devices asynchronously with kernel threads makes sense, so
->> it's possible that I'm doing something wrong here. I'll give it a try again
->
-> I might have spoken too fast. It looks like module initcalls are not run in
-> threads. I've most probably mistaken that with asynchronous probing of hot-
-> pluggable devices.
->
-> If your driver is built-in then it looks like the correct solution is to build
-> the firmware in the kernel image as well, or use the asynchronous API as you
-> did.
+This changeset is an updated version of my patch series [1] separating
+the sensor subdev driver from the exynos4-fimc-is module and adding
+asynchronous sensor registration support. There is also included next
+iteration of the patch adding DT bits to the rear facing S5C73M3 camera
+module driver [2].
 
-Okay, thanks for clarifying that.
+The S5K6A3 is a raw image sensor of the front facing camera connected
+to the SoC local ISP (FIMC-IS).
 
-We could use the request_firmware synchronous version if we call it in 
-the open v4l2 file op.
+This series depends on my patches adding clk_unregister() implementation
+[3].
 
-Maybe I could load the firmware when the device is opened the first 
-time(one instance).
+Any feedback, especially on the "s5k6a3: Add DT binding documentation"
+patch where I've described some issue with the common video-interfaces
+binding is welcome.
 
-I'll have to see whether it slows things down, and if I'd need to load 
-firmware more often. But I'd probably leave this experiment for later.
+[1] http://www.spinics.net/lists/linux-media/msg66073.html
+[2] https://linuxtv.org/patch/19386/
+[3] https://lkml.org/lkml/2013/8/24/63
 
-Archit
+Thanks.
+Sylwester
 
+Andrzej Hajda (1):
+  V4L: s5c73m3: Add device tree support
 
+Sylwester Nawrocki (6):
+  V4L: s5k6a3: Add DT binding documentation
+  V4L: Add driver for s5k6a3 image sensor
+  V4L: s5k6a3: Add support for asynchronous subdev registration
+  exynos4-is: Add clock provider for the external clocks
+  exynos4-is: Use external s5k6a3 sensor driver
+  exynos4-is: Add support for asynchronous sensor subddevs registration
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |   21 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   95 ++++++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   31 ++
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  206 +++++++++---
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ drivers/media/i2c/s5k6a3.c                         |  340 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +---------------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
+ drivers/media/platform/exynos4-is/fimc-is.c        |   97 +++---
+ drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  335 +++++++++++++------
+ drivers/media/platform/exynos4-is/media-dev.h      |   31 +-
+ 16 files changed, 984 insertions(+), 531 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+
+--
+1.7.9.5
 
