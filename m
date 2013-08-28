@@ -1,81 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outgoing.email.vodafone.de ([139.7.28.128]:52441 "EHLO
-	outgoing.email.vodafone.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751426Ab3HTIiJ (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:61239 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913Ab3H1NfN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 04:38:09 -0400
-Message-ID: <52132AE0.4010702@vodafone.de>
-Date: Tue, 20 Aug 2013 10:37:52 +0200
-From: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
-MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org,
-	Alex Deucher <alexander.deucher@amd.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] drm/radeon: rework to new fence interface
-References: <20130815124308.14812.58197.stgit@patser> <5211F0C5.2040705@canonical.com> <5212112C.70808@vodafone.de> <52127411.2010106@canonical.com>
-In-Reply-To: <52127411.2010106@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Wed, 28 Aug 2013 09:35:13 -0400
+From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+To: kyungmin.park@samsung.com
+Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
+	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
+	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
+	tomasz.figa@gmail.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux@arm.linux.org.uk, ben-linux@fluff.org,
+	linux-samsung-soc@vger.kernel.org,
+	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Subject: [PATCH v2 2/5] media: s5p-tv: Fix sdo driver to work with CCF
+Date: Wed, 28 Aug 2013 15:34:29 +0200
+Message-id: <1377696872-32069-3-git-send-email-m.krawczuk@partner.samsung.com>
+In-reply-to: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
+References: <1377696872-32069-1-git-send-email-m.krawczuk@partner.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.08.2013 21:37, schrieb Maarten Lankhorst:
-> Op 19-08-13 14:35, Christian König schreef:
->> Am 19.08.2013 12:17, schrieb Maarten Lankhorst:
->>> [SNIP]
->>> @@ -190,25 +225,24 @@ void radeon_fence_process(struct radeon_device *rdev, int ring)
->>>            }
->>>        } while (atomic64_xchg(&rdev->fence_drv[ring].last_seq, seq) > seq);
->>>    -    if (wake) {
->>> +    if (wake)
->>>            rdev->fence_drv[ring].last_activity = jiffies;
->>> -        wake_up_all(&rdev->fence_queue);
->>> -    }
->>> +    return wake;
->>>    }
->> Very bad idea, when sequence numbers change, you always want to wake up the whole fence queue here.
-> Yes, and the callers of this function call wake_up_all or wake_up_all_locked themselves, based on the return value..
+Replace clk_enable by clock_enable_prepare and clk_disable with clk_disable_unprepare.
+Clock prepare is required by Clock Common Framework, and old clock driver didn`t support it.
+Without it Common Clock Framework prints a warning.
 
-And as I said that's a very bad idea. The fence processing shouldn't be 
-called with any locks held and should be self responsible for activating 
-any waiters.
+Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+---
+ drivers/media/platform/s5p-tv/sdo_drv.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
->
->>> [SNIP]
->>> +/**
->>> + * radeon_fence_enable_signaling - enable signalling on fence
->>> + * @fence: fence
->>> + *
->>> + * This function is called with fence_queue lock held, and adds a callback
->>> + * to fence_queue that checks if this fence is signaled, and if so it
->>> + * signals the fence and removes itself.
->>> + */
->>> +static bool radeon_fence_enable_signaling(struct fence *f)
->>> +{
->>> +    struct radeon_fence *fence = to_radeon_fence(f);
->>> +
->>> +    if (atomic64_read(&fence->rdev->fence_drv[fence->ring].last_seq) >= fence->seq ||
->>> +        !fence->rdev->ddev->irq_enabled)
->>> +        return false;
->>> +
->> Do I get that right that you rely on IRQs to be enabled and working here? Cause that would be a quite bad idea from the conceptual side.
-> For cross-device synchronization it would be nice to have working irqs, it allows signalling fences faster,
-> and it allows for callbacks on completion to be called. For internal usage it's no more required than it was before.
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index b919008..acdae6b 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -230,7 +230,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
+ 	int tries;
+ 
+ 	sdo_write_mask(sdev, SDO_DAC, 0, SDO_POWER_ON_DAC);
+-	clk_disable(sdev->dacphy);
++	clk_disable_unprepare(sdev->dacphy);
+ 	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
+ 	for (tries = 100; tries; --tries) {
+ 		if (sdo_read(sdev, SDO_CLKCON) & SDO_TVOUT_CLOCK_READY)
+@@ -274,7 +274,7 @@ static int sdo_runtime_suspend(struct device *dev)
+ 	dev_info(dev, "suspend\n");
+ 	regulator_disable(sdev->vdet);
+ 	regulator_disable(sdev->vdac);
+-	clk_disable(sdev->sclk_dac);
++	clk_disable_unprepare(sdev->sclk_dac);
+ 	return 0;
+ }
+ 
+@@ -286,7 +286,7 @@ static int sdo_runtime_resume(struct device *dev)
+ 
+ 	dev_info(dev, "resume\n");
+ 
+-	ret = clk_enable(sdev->sclk_dac);
++	ret = clk_prepare_enable(sdev->sclk_dac);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -319,7 +319,7 @@ static int sdo_runtime_resume(struct device *dev)
+ vdac_r_dis:
+ 	regulator_disable(sdev->vdac);
+ dac_clk_dis:
+-	clk_disable(sdev->sclk_dac);
++	clk_disable_unprepare(sdev->sclk_dac);
+ 	return ret;
+ }
+ 
+@@ -333,7 +333,7 @@ static int sdo_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct sdo_device *sdev;
+ 	struct resource *res;
+-	int ret = 0;
++	int ret;
+ 	struct clk *sclk_vpll;
+ 
+ 	dev_info(dev, "probe start\n");
+@@ -425,8 +425,13 @@ static int sdo_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* enable gate for dac clock, because mixer uses it */
+-	clk_enable(sdev->dac);
+-
++	clk_prepare_enable(sdev->dac);
++	if (IS_ERR(sdev->dac)) {
++		dev_err(dev,
++			"%s: Failed to prepare and enable clock !\n", __func__);
++		ret = PTR_ERR(sdev->dac);
++		goto fail_fout_vpll;
++	}
+ 	/* configure power management */
+ 	pm_runtime_enable(dev);
+ 
+@@ -464,7 +469,7 @@ static int sdo_remove(struct platform_device *pdev)
+ 	struct sdo_device *sdev = sd_to_sdev(sd);
+ 
+ 	pm_runtime_disable(&pdev->dev);
+-	clk_disable(sdev->dac);
++	clk_disable_unprepare(sdev->dac);
+ 	clk_put(sdev->fout_vpll);
+ 	clk_put(sdev->dacphy);
+ 	clk_put(sdev->dac);
+-- 
+1.8.1.2
 
-That's a big NAK.
-
-The fence processing is actually very fine tuned to avoid IRQs and as 
-far as I can see you just leave them enabled by decrementing the atomic 
-from IRQ context. Additional to that we need allot of special handling 
-in case of a hardware lockup here, which isn't done if you abuse the 
-fence interface like this.
-
-Also your approach of leaking the IRQ context outside of the driver is a 
-very bad idea from the conceptual side. Please don't modify the fence 
-interface at all and instead use the wait functions already exposed by 
-radeon_fence.c. If you need some kind of signaling mechanism then wait 
-inside a workqueue instead.
-
-Christian.
