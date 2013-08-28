@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46641 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753901Ab3HaRpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 13:45:01 -0400
-Date: Sat, 31 Aug 2013 20:44:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v1 14/19] v4l: Add v4l2_buffer flags for VP8-specific
- special frames.
-Message-ID: <20130831174428.GB4216@valkosipuli.retiisi.org.uk>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
- <1377829038-4726-15-git-send-email-posciak@chromium.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37970 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752458Ab3H1Koy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 06:44:54 -0400
+Message-ID: <521DD46E.9090202@ti.com>
+Date: Wed, 28 Aug 2013 16:13:58 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1377829038-4726-15-git-send-email-posciak@chromium.org>
+To: <balbi@ti.com>
+CC: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<jg1.han@samsung.com>, <s.nawrocki@samsung.com>,
+	<kgene.kim@samsung.com>, <stern@rowland.harvard.edu>,
+	<broonie@kernel.org>, <tomasz.figa@gmail.com>, <arnd@arndb.de>,
+	<grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: Re: [PATCH v11 0/8] PHY framework
+References: <1377063973-22044-1-git-send-email-kishon@ti.com> <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
+In-Reply-To: <20130827192059.GZ3005@radagast>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+Hi,
 
-On Fri, Aug 30, 2013 at 11:17:13AM +0900, Pawel Osciak wrote:
-> Add bits for previous, golden and altref frame types.
+On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+> Hi,
 > 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  include/uapi/linux/videodev2.h | 4 ++++
->  1 file changed, 4 insertions(+)
+> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>> the PHY with or without using phandle.
+>>>
+>>> This framework will be of use only to devices that uses external PHY (PHY
+>>> functionality is not embedded within the controller).
+>>>
+>>> The intention of creating this framework is to bring the phy drivers spread
+>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>> increase code maintainability.
+>>>
+>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>> other bus and making a same device attached to multiple bus leads to bad
+>>> design.
+>>>
+>>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>>> driver should make use of the extcon framework. Using this susbsystem
+>>> to use extcon framwork will have to be analysed.
+>>>
+>>> You can find this patch series @
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>
+>> Looks like there are not further comments on this series. Can you take this in
+>> your misc tree?
 > 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 437f1b0..c011ee0 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -687,6 +687,10 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
->  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
->  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
-> +/* VP8 special frames */
-> +#define V4L2_BUF_FLAG_PREV_FRAME		0x10000  /* VP8 prev frame */
-> +#define V4L2_BUF_FLAG_GOLDEN_FRAME		0x20000  /* VP8 golden frame */
-> +#define V4L2_BUF_FLAG_ALTREF_FRAME		0x40000  /* VP8 altref frame */
+> Do you want me to queue these for you ? There are quite a few users for
+> this framework already and I know of at least 2 others which will show
+> up for v3.13.
 
-Whichever way this patch is changed, could you rebased it on "v4l: Use full
-32 bits for buffer flags"? It changes the definitions of the flags use
-32-bit values.
+yeah sure. That would be better I think.
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks
+Kishon
