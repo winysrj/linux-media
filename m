@@ -1,130 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [194.109.24.22] ([194.109.24.22]:3943 "EHLO smtp-vbr2.xs4all.nl"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752216Ab3HUGy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:54:59 -0400
-Message-ID: <52146403.9050702@xs4all.nl>
-Date: Wed, 21 Aug 2013 08:53:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
-	swarren@wwwdotorg.org, mark.rutland@arm.com, Pawel.Moll@arm.com,
-	galak@codeaurora.org, a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v7 13/13] V4L: Add driver for s5k4e5 image sensor
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-14-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1377066881-5423-14-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:51612 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752679Ab3H1N2c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 09:28:32 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] V4L2: add v4l2-clock helpers to register and unregister a fixed-rate clock
+Date: Wed, 28 Aug 2013 15:28:26 +0200
+Message-Id: <1377696508-3190-2-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2013 08:34 AM, Arun Kumar K wrote:
-> This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
-> Like s5k6a3, it is also another fimc-is firmware controlled
-> sensor. This minimal sensor driver doesn't do any I2C communications
-> as its done by ISP firmware. It can be updated if needed to a
-> regular sensor driver by adding the I2C communication.
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  .../devicetree/bindings/media/i2c/s5k4e5.txt       |   43 +++
->  drivers/media/i2c/Kconfig                          |    8 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/s5k4e5.c                         |  361 ++++++++++++++++++++
->  4 files changed, 413 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
->  create mode 100644 drivers/media/i2c/s5k4e5.c
-> 
+Many bridges and video host controllers supply fixed rate always on clocks
+to their I2C devices. This patch adds two simple helpers to register and
+unregister such a clock.
 
-...
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/v4l2-core/v4l2-clk.c |   39 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-clk.h           |   14 ++++++++++++
+ 2 files changed, 53 insertions(+), 0 deletions(-)
 
-> diff --git a/drivers/media/i2c/s5k4e5.c b/drivers/media/i2c/s5k4e5.c
-> new file mode 100644
-> index 0000000..0a6ece6
-> --- /dev/null
-> +++ b/drivers/media/i2c/s5k4e5.c
-> @@ -0,0 +1,361 @@
-> +/*
-> + * Samsung S5K4E5 image sensor driver
-> + *
-> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> + * Author: Arun Kumar K <arun.kk@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/device.h>
-> +#include <linux/errno.h>
-> +#include <linux/gpio.h>
-> +#include <linux/i2c.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/regulator/consumer.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-async.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define S5K4E5_SENSOR_MAX_WIDTH		2576
-> +#define S5K4E5_SENSOR_MAX_HEIGHT	1930
-> +
-> +#define S5K4E5_SENSOR_ACTIVE_WIDTH	2560
-> +#define S5K4E5_SENSOR_ACTIVE_HEIGHT	1920
-> +
-> +#define S5K4E5_SENSOR_MIN_WIDTH		(32 + 16)
-> +#define S5K4E5_SENSOR_MIN_HEIGHT	(32 + 10)
-> +
-> +#define S5K4E5_DEF_WIDTH		1296
-> +#define S5K4E5_DEF_HEIGHT		732
-> +
-> +#define S5K4E5_DRV_NAME			"S5K4E5"
-> +#define S5K4E5_CLK_NAME			"mclk"
-> +
-> +#define S5K4E5_NUM_SUPPLIES		2
-> +
-> +#define S5K4E5_DEF_CLK_FREQ		24000000
-> +
-> +/**
-> + * struct s5k4e5 - s5k4e5 sensor data structure
-> + * @dev: pointer to this I2C client device structure
-> + * @subdev: the image sensor's v4l2 subdev
-> + * @pad: subdev media source pad
-> + * @supplies: image sensor's voltage regulator supplies
-> + * @gpio_reset: GPIO connected to the sensor's reset pin
-> + * @lock: mutex protecting the structure's members below
-> + * @format: media bus format at the sensor's source pad
-> + */
-> +struct s5k4e5 {
-> +	struct device *dev;
-> +	struct v4l2_subdev subdev;
-> +	struct media_pad pad;
-> +	struct regulator_bulk_data supplies[S5K4E5_NUM_SUPPLIES];
-> +	int gpio_reset;
-> +	struct mutex lock;
-> +	struct v4l2_mbus_framefmt format;
-> +	struct clk *clock;
-> +	u32 clock_frequency;
-> +};
-> +
-> +static const char * const s5k4e5_supply_names[] = {
-> +	"svdda",
-> +	"svddio"
-> +};
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+index b67de86..e18cc04 100644
+--- a/drivers/media/v4l2-core/v4l2-clk.c
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -240,3 +240,42 @@ void v4l2_clk_unregister(struct v4l2_clk *clk)
+ 	kfree(clk);
+ }
+ EXPORT_SYMBOL(v4l2_clk_unregister);
++
++struct v4l2_clk_fixed {
++	unsigned long rate;
++	struct v4l2_clk_ops ops;
++};
++
++static unsigned long fixed_get_rate(struct v4l2_clk *clk)
++{
++	struct v4l2_clk_fixed *priv = clk->priv;
++	return priv->rate;
++}
++
++struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
++		const char *id, unsigned long rate, struct module *owner)
++{
++	struct v4l2_clk *clk;
++	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++
++	if (!priv)
++		return ERR_PTR(-ENOMEM);
++
++	priv->rate = rate;
++	priv->ops.get_rate = fixed_get_rate;
++	priv->ops.owner = owner;
++
++	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
++	if (IS_ERR(clk))
++		kfree(priv);
++
++	return clk;
++}
++EXPORT_SYMBOL(__v4l2_clk_register_fixed);
++
++void v4l2_clk_unregister_fixed(struct v4l2_clk *clk)
++{
++	kfree(clk->priv);
++	v4l2_clk_unregister(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_unregister_fixed);
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+index 0503a90..a354a9d 100644
+--- a/include/media/v4l2-clk.h
++++ b/include/media/v4l2-clk.h
+@@ -15,6 +15,7 @@
+ #define MEDIA_V4L2_CLK_H
+ 
+ #include <linux/atomic.h>
++#include <linux/export.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ 
+@@ -51,4 +52,17 @@ void v4l2_clk_disable(struct v4l2_clk *clk);
+ unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
+ int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
+ 
++struct module;
++
++struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
++		const char *id, unsigned long rate, struct module *owner);
++void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
++
++static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
++							const char *id,
++							unsigned long rate)
++{
++	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
++}
++
+ #endif
+-- 
+1.7.2.5
 
-I'm no regulator expert, but shouldn't this list come from the DT or platform_data?
-Or are these names specific to this sensor?
-
-Regards,
-
-	Hans
