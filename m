@@ -1,83 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51594 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756784Ab3HIMpI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Aug 2013 08:45:08 -0400
-Received: from avalon.ideasonboard.com (unknown [109.134.65.8])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 514AB363DA
-	for <linux-media@vger.kernel.org>; Fri,  9 Aug 2013 14:44:49 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:34141 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754373Ab3H1P5I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 11:57:08 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS9004EV0AX0NN0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Aug 2013 00:57:07 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] MAINTAINERS: Add entry for the Aptina PLL library
-Date: Fri,  9 Aug 2013 14:46:11 +0200
-Message-Id: <1376052371-11586-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 4/7] V4L: s5k6a3: Add support for asynchronous subdev
+ registration
+Date: Wed, 28 Aug 2013 17:55:57 +0200
+Message-id: <1377705360-12197-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
+References: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a maintainers entry for the Aptina PLL library, and rename the
-Aptina sensors entries to make it clear they refer to Aptina camera
-sensors.
+This patch converts the driver to use v4l2 asynchronous subdev
+registration API an the clock API to control the external master
+clock directly.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- MAINTAINERS | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/media/i2c/s5k6a3.c |   36 ++++++++++++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 10 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bf61e04..9b12947 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -638,6 +638,12 @@ S:	Maintained
- F:	drivers/net/appletalk/
- F:	net/appletalk/
+diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+index ba86e24..f65a4f8 100644
+--- a/drivers/media/i2c/s5k6a3.c
++++ b/drivers/media/i2c/s5k6a3.c
+@@ -34,6 +34,7 @@
+ #define S5K6A3_DEFAULT_HEIGHT		732
  
-+APTINA CAMERA SENSOR PLL
-+M:	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/i2c/aptina-pll.*
+ #define S5K6A3_DRV_NAME			"S5K6A3"
++#define S5K6A3_CLK_NAME			"extclk"
+ #define S5K6A3_DEFAULT_CLK_FREQ		24000000U
+ 
+ #define S5K6A3_NUM_SUPPLIES		2
+@@ -56,6 +57,7 @@ struct s5k6a3 {
+ 	int gpio_reset;
+ 	struct mutex lock;
+ 	struct v4l2_mbus_framefmt format;
++	struct clk *clock;
+ 	u32 clock_frequency;
+ };
+ 
+@@ -181,19 +183,25 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
+ 	int gpio = sensor->gpio_reset;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (on) {
++		ret = clk_set_rate(sensor->clock, sensor->clock_frequency);
++		if (ret < 0)
++			return ret;
 +
- ARASAN COMPACT FLASH PATA CONTROLLER
- M:	Viresh Kumar <viresh.linux@gmail.com>
- L:	linux-ide@vger.kernel.org
-@@ -5496,7 +5502,7 @@ L:	platform-driver-x86@vger.kernel.org
- S:	Supported
- F:	drivers/platform/x86/msi-wmi.c
+ 		ret = pm_runtime_get(sensor->dev);
+ 		if (ret < 0)
+ 			return ret;
  
--MT9M032 SENSOR DRIVER
-+MT9M032 APTINA SENSOR DRIVER
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
-@@ -5504,7 +5510,7 @@ S:	Maintained
- F:	drivers/media/i2c/mt9m032.c
- F:	include/media/mt9m032.h
+ 		ret = regulator_bulk_enable(S5K6A3_NUM_SUPPLIES,
+ 					    sensor->supplies);
+-		if (ret < 0) {
+-			pm_runtime_put(sensor->dev);
+-			return ret;
+-		}
++		if (ret < 0)
++			goto rpm_put;
++
++		ret = clk_prepare_enable(sensor->clock);
++		if (ret < 0)
++			goto reg_dis;
  
--MT9P031 SENSOR DRIVER
-+MT9P031 APTINA CAMERA SENSOR
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
-@@ -5512,7 +5518,7 @@ S:	Maintained
- F:	drivers/media/i2c/mt9p031.c
- F:	include/media/mt9p031.h
+ 		if (gpio_is_valid(gpio)) {
+ 			gpio_set_value(gpio, 1);
+@@ -209,10 +217,12 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
+ 		if (gpio_is_valid(gpio))
+ 			gpio_set_value(gpio, 0);
  
--MT9T001 SENSOR DRIVER
-+MT9T001 APTINA CAMERA SENSOR
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
-@@ -5520,7 +5526,7 @@ S:	Maintained
- F:	drivers/media/i2c/mt9t001.c
- F:	include/media/mt9t001.h
+-		ret = regulator_bulk_disable(S5K6A3_NUM_SUPPLIES,
+-					     sensor->supplies);
+-		if (!ret)
+-			pm_runtime_put(sensor->dev);
++		clk_disable_unprepare(sensor->clock);
++reg_dis:
++		regulator_bulk_disable(S5K6A3_NUM_SUPPLIES,
++						sensor->supplies);
++rpm_put:
++		pm_runtime_put(sensor->dev);
+ 	}
+ 	return ret;
+ }
+@@ -240,6 +250,7 @@ static int s5k6a3_probe(struct i2c_client *client,
  
--MT9V032 SENSOR DRIVER
-+MT9V032 APTINA CAMERA SENSOR
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
+ 	mutex_init(&sensor->lock);
+ 	sensor->gpio_reset = -EINVAL;
++	sensor->clock = ERR_PTR(-EINVAL);
+ 	sensor->dev = dev;
+ 
+ 	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
+@@ -266,6 +277,10 @@ static int s5k6a3_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	sensor->clock = devm_clk_get(dev, S5K6A3_CLK_NAME);
++	if (IS_ERR(sensor->clock))
++		return -EPROBE_DEFER;
++
+ 	sd = &sensor->subdev;
+ 	v4l2_i2c_subdev_init(sd, client, &s5k6a3_subdev_ops);
+ 	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+@@ -282,7 +297,7 @@ static int s5k6a3_probe(struct i2c_client *client,
+ 	pm_runtime_no_callbacks(dev);
+ 	pm_runtime_enable(dev);
+ 
+-	return 0;
++	return v4l2_async_register_subdev(sd);
+ }
+ 
+ static int s5k6a3_remove(struct i2c_client *client)
+@@ -290,6 +305,7 @@ static int s5k6a3_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 
+ 	pm_runtime_disable(&client->dev);
++	v4l2_async_unregister_subdev(sd);
+ 	media_entity_cleanup(&sd->entity);
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
