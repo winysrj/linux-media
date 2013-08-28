@@ -1,61 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:62938 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476Ab3HXSsc (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:65166 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419Ab3H1NTz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Aug 2013 14:48:32 -0400
-Date: Sat, 24 Aug 2013 15:48:26 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Simon Horman <horms@verge.net.au>, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v5 0/3] R8A7779/Marzen R-Car VIN driver support
-Message-id: <20130824154826.63c2cf6c@samsung.com>
-In-reply-to: <5218E1CE.8050600@cogentembedded.com>
-References: <201308230119.13783.sergei.shtylyov@cogentembedded.com>
- <20130823001140.GD9254@verge.net.au> <5218E1CE.8050600@cogentembedded.com>
+	Wed, 28 Aug 2013 09:19:55 -0400
 MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 8BIT
+Message-id: <521DF8F6.8020003@samsung.com>
+Date: Wed, 28 Aug 2013 15:19:50 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] videobuf2: Fix vb2_write prototype
+References: <1377679169-9374-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1377679169-9374-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 24 Aug 2013 20:39:42 +0400
-Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> escreveu:
+Hello,
 
-> Hello.
-> 
-> On 08/23/2013 04:11 AM, Simon Horman wrote:
-> 
-> >>     [Resending with a real version #.]
-> 
-> >>     Here's the set of 3 patches against the Mauro's 'media_tree.git' repo's
-> >> 'master' branch. Here we add the VIN driver platform code for the R8A7779/Marzen
-> >> with ADV7180 I2C video decoder.
-> 
-> >> [1/3] ARM: shmobile: r8a7779: add VIN support
-> >> [2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
-> >> [3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
-> 
-> >>      Mauro has kindly agreed to merge this patchset thru his tree to resolve the
-> >> dependency on the driver's platform data header, provided that the maintainer
-> >> ACKs this. Simon, could you ACK the patchset ASAP -- Mauro expects to close his
-> >> tree for 3.12 this weekend or next Monday?
-> 
-> > All three patches:
-> 
-> > Acked-by: Simon Horman <horms+renesas@verge.net.au>
-> 
->     Mauro, I see you have only merged the R8A7778/BOCK-W VIN series and didn't 
-> merge this one, obsoleting its patches in patchwork instead. What's wrong with 
-> them?
+On 8/28/2013 10:39 AM, Ricardo Ribalda Delgado wrote:
+> struct v4_file_operations defines the data param as
+> const char __user *data but on vb2 is defined as
+> char __user *data.
+>
+> This patch fixes the warnings produced by this. ie:
+>
+> drivers/qtec/qtec_xform.c:817:2: warning: initialization from
+> incompatible pointer type [enabled by default]
+> drivers/qtec/qtec_xform.c:817:2: warning: (near initialization for
+> 		‘qtec_xform_v4l_fops.write’) [enabled by default]
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-Sorry... as I saw v5 and v6 versions, one after the other, and both with VIN,
-from you, I assumed that v6 were just an update over v5.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-I re-tagged them as new. I'll handle them on a next spin this weekend.
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c |    7 ++++---
+>   include/media/videobuf2-core.h           |    4 ++--
+>   2 files changed, 6 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 9fc4bab..b3f86c1 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2438,10 +2438,11 @@ size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_read);
+>   
+> -size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
+> +size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+>   		loff_t *ppos, int nonblocking)
+>   {
+> -	return __vb2_perform_fileio(q, data, count, ppos, nonblocking, 0);
+> +	return __vb2_perform_fileio(q, (char __user *) data, count,
+> +							ppos, nonblocking, 0);
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_write);
+>   
+> @@ -2595,7 +2596,7 @@ int vb2_fop_release(struct file *file)
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_fop_release);
+>   
+> -ssize_t vb2_fop_write(struct file *file, char __user *buf,
+> +ssize_t vb2_fop_write(struct file *file, const char __user *buf,
+>   		size_t count, loff_t *ppos)
+>   {
+>   	struct video_device *vdev = video_devdata(file);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index d88a098..06ec850 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -388,7 +388,7 @@ unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
+>   unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
+>   size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+>   		loff_t *ppos, int nonblock);
+> -size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
+> +size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+>   		loff_t *ppos, int nonblock);
+>   
+>   /**
+> @@ -488,7 +488,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
+>   
+>   int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
+>   int vb2_fop_release(struct file *file);
+> -ssize_t vb2_fop_write(struct file *file, char __user *buf,
+> +ssize_t vb2_fop_write(struct file *file, const char __user *buf,
+>   		size_t count, loff_t *ppos);
+>   ssize_t vb2_fop_read(struct file *file, char __user *buf,
+>   		size_t count, loff_t *ppos);
 
-Regards,
-Mauro
+Best regards
+-- 
+Marek Szyprowski
+Samsung R&D Institute Poland
+
+
