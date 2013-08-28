@@ -1,162 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:33503 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab3H3CRg (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48216 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111Ab3H1QNW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Aug 2013 22:17:36 -0400
-Received: by mail-pa0-f41.google.com with SMTP id bj1so1696083pad.0
-        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:36 -0700 (PDT)
-From: Pawel Osciak <posciak@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH v1 05/19] uvcvideo: Add support for UVC1.5 P&C control.
-Date: Fri, 30 Aug 2013 11:17:04 +0900
-Message-Id: <1377829038-4726-6-git-send-email-posciak@chromium.org>
-In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+	Wed, 28 Aug 2013 12:13:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Wed, 28 Aug 2013 18:14:44 +0200
+Message-ID: <3137420.D3pZN9rLod@avalon>
+In-Reply-To: <20130828160922.GF2835@valkosipuli.retiisi.org.uk>
+References: <201308281419.52009.hverkuil@xs4all.nl> <2110334.R9xrNvrTcZ@avalon> <20130828160922.GF2835@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for UVC 1.5 Probe & Commit control.
+On Wednesday 28 August 2013 19:09:23 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Thanks for the comments!
+> 
+> On Wed, Aug 28, 2013 at 06:03:20PM +0200, Laurent Pinchart wrote:
+> > Hi Sakari,
+> > 
+> > Thank you for the patches.
+> > 
+> > On Wednesday 28 August 2013 18:24:55 Sakari Ailus wrote:
+> > > Some devices such as the uvc produce timestamps at the beginning of the
+> > > frame rather than at the end of it. Add a buffer flag
+> > > (V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
+> > > 
+> > > Also document timestamp_type in struct vb2_queue, and make the uvc set
+> > > the
+> > > buffer flag.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > since v4:
+> > > - Fixes according to Hans's comments.
+> > > 
+> > > - Note in comment the uvc driver will set the SOF flag from now on.
+> > > 
+> > > - Change comment of vb2_queue timestamp_type field: this is timestamp
+> > > flags
+> > > 
+> > >   rather than just type. I stopped short of renaming the field.
+> > >  
+> > >  Documentation/DocBook/media/v4l/io.xml |   19 ++++++++++++++-----
+> > >  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
+> > >  include/media/videobuf2-core.h         |    1 +
+> > >  include/uapi/linux/videodev2.h         |   10 ++++++++++
+> > >  4 files changed, 27 insertions(+), 6 deletions(-)
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > b/Documentation/DocBook/media/v4l/io.xml index 2c155cc..3aee210 100644
+> > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > > @@ -654,11 +654,12 @@ plane, are stored in struct
+> > > <structname>v4l2_plane</structname> instead. In that case, struct
+> > > <structname>v4l2_buffer</structname> contains an array of plane
+> > > structures.</para>
+> > > 
+> > > -      <para>For timestamp types that are sampled from the system clock
+> > > -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
+> > > is
+> > > -taken after the complete frame has been received (or transmitted in
+> > > -case of video output devices). For other kinds of
+> > > -timestamps this may vary depending on the driver.</para>
+> > > +      <para>The timestamp is taken once the complete frame has been
+> > > +received (or transmitted for output devices) unless
+> > > +<constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> buffer flag is set.
+> > > +If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> is set, the
+> > > +timestamp is taken when the first pixel of the frame is received
+> > > +(or transmitted).</para>
+> > > 
+> > >      <table frame="none" pgwide="1" id="v4l2-buffer">
+> > >      
+> > >        <title>struct <structname>v4l2_buffer</structname></title>
+> > > 
+> > > @@ -1120,6 +1121,14 @@ in which case caches have not been used.</entry>
+> > > 
+> > >  	    <entry>The CAPTURE buffer timestamp has been taken from the
+> > >  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
+> > > 
+> > > devices.</entry> </row>
+> > > +	  <row>
+> > > +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
+> > > +	    <entry>0x00010000</entry>
+> > > +	    <entry>The buffer timestamp has been taken when the first
+> > > +	    pixel is received (or transmitted for output devices). If
+> > > +	    this flag is not set, the timestamp is taken when the
+> > > +	    entire frame has been received (or transmitted).</entry>
+> > > +	  </row>
+> > > 
+> > >  	</tbody>
+> > >  	
+> > >        </tgroup>
+> > >      
+> > >      </table>
+> > > 
+> > > diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> > > b/drivers/media/usb/uvc/uvc_queue.c index cd962be..0d80512 100644
+> > > --- a/drivers/media/usb/uvc/uvc_queue.c
+> > > +++ b/drivers/media/usb/uvc/uvc_queue.c
+> > > @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue,
+> > > enum
+> > > v4l2_buf_type type, queue->queue.buf_struct_size = sizeof(struct
+> > > uvc_buffer);
+> > > 
+> > >  	queue->queue.ops = &uvc_queue_qops;
+> > >  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> > > 
+> > > -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> > > +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> > > +		| V4L2_BUF_FLAG_TIMESTAMP_SOF;
+> > > 
+> > >  	ret = vb2_queue_init(&queue->queue);
+> > >  	if (ret)
+> > >  	
+> > >  		return ret;
+> > > 
+> > > diff --git a/include/media/videobuf2-core.h
+> > > b/include/media/videobuf2-core.h index 6781258..033efc7 100644
+> > > --- a/include/media/videobuf2-core.h
+> > > +++ b/include/media/videobuf2-core.h
+> > > @@ -307,6 +307,7 @@ struct v4l2_fh;
+> > > 
+> > >   * @buf_struct_size: size of the driver-specific buffer structure;
+> > >   *		"0" indicates the driver doesn't want to use a custom buffer
+> > >   *		structure type, so sizeof(struct vb2_buffer) will is used
+> > > 
+> > > + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_*
+> > > 
+> > >   * @gfp_flags:	additional gfp flags used when allocating the buffers.
+> > >   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+> > >   *		to force the buffer allocation to a specific memory zone.
+> > > 
+> > > diff --git a/include/uapi/linux/videodev2.h
+> > > b/include/uapi/linux/videodev2.h index 691077d..c57765e 100644
+> > > --- a/include/uapi/linux/videodev2.h
+> > > +++ b/include/uapi/linux/videodev2.h
+> > > @@ -695,6 +695,16 @@ struct v4l2_buffer {
+> > > 
+> > >  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+> > >  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+> > >  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+> > > 
+> > > +/*
+> > > + * Timestamp taken once the first pixel is received (or transmitted).
+> > > + * If the flag is not set the buffer timestamp is taken at the end of
+> > > + * the frame. This is not a timestamp type.
+> > 
+> > UVC devices timestamp frames when the frame is captured, not when the
+> > first
+> > pixel is transmitted.
+> 
+> I.e. we shouldn't set the SOF flag? "When the frame is captured" doesn't say
+> much, or almost anything in terms of *when*. The frames have exposure time
+> and rolling shutter makes a difference, too.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
----
- drivers/media/usb/uvc/uvc_video.c | 52 ++++++++++++++++++++++++++++++++++++---
- include/uapi/linux/usb/video.h    |  7 ++++++
- 2 files changed, 55 insertions(+), 4 deletions(-)
+The UVC 1.1 specification defines the timestamp as
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 1198989..b4ebccd 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -168,14 +168,25 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
- 	}
- }
- 
-+int uvc_get_probe_ctrl_size(struct uvc_streaming *stream)
-+{
-+	if (stream->dev->uvc_version < 0x0110)
-+		return 26;
-+	else if (stream->dev->uvc_version < 0x0150)
-+		return 34;
-+	else
-+		return 48;
-+}
-+
- static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 	struct uvc_streaming_control *ctrl, int probe, __u8 query)
- {
- 	__u8 *data;
- 	__u16 size;
- 	int ret;
-+	int i;
- 
--	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-+	size = uvc_get_probe_ctrl_size(stream);
- 	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
- 			query == UVC_GET_DEF)
- 		return -EIO;
-@@ -230,7 +241,7 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 	ctrl->dwMaxVideoFrameSize = get_unaligned_le32(&data[18]);
- 	ctrl->dwMaxPayloadTransferSize = get_unaligned_le32(&data[22]);
- 
--	if (size == 34) {
-+	if (size >= 34) {
- 		ctrl->dwClockFrequency = get_unaligned_le32(&data[26]);
- 		ctrl->bmFramingInfo = data[30];
- 		ctrl->bPreferedVersion = data[31];
-@@ -244,6 +255,26 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 		ctrl->bMaxVersion = 0;
- 	}
- 
-+	if (size >= 48) {
-+		ctrl->bUsage = data[34];
-+		ctrl->bBitDepthLuma = data[35];
-+		ctrl->bmSetting = data[36];
-+		ctrl->bMaxNumberOfRefFramesPlus1 = data[37];
-+		ctrl->bmRateControlModes = get_unaligned_le16(&data[38]);
-+		for (i = 0; i < ARRAY_SIZE(ctrl->bmLayoutPerStream); ++i) {
-+			ctrl->bmLayoutPerStream[i] =
-+				get_unaligned_le16(&data[40 + i * 2]);
-+		}
-+	} else {
-+		ctrl->bUsage = 0;
-+		ctrl->bBitDepthLuma = 0;
-+		ctrl->bmSetting = 0;
-+		ctrl->bMaxNumberOfRefFramesPlus1 = 0;
-+		ctrl->bmRateControlModes = 0;
-+		for (i = 0; i < ARRAY_SIZE(ctrl->bmLayoutPerStream); ++i)
-+			ctrl->bmLayoutPerStream[i] = 0;
-+	}
-+
- 	/* Some broken devices return null or wrong dwMaxVideoFrameSize and
- 	 * dwMaxPayloadTransferSize fields. Try to get the value from the
- 	 * format and frame descriptors.
-@@ -262,8 +293,9 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
- 	__u8 *data;
- 	__u16 size;
- 	int ret;
-+	int i;
- 
--	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-+	size = uvc_get_probe_ctrl_size(stream);
- 	data = kzalloc(size, GFP_KERNEL);
- 	if (data == NULL)
- 		return -ENOMEM;
-@@ -280,7 +312,7 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
- 	put_unaligned_le32(ctrl->dwMaxVideoFrameSize, &data[18]);
- 	put_unaligned_le32(ctrl->dwMaxPayloadTransferSize, &data[22]);
- 
--	if (size == 34) {
-+	if (size >= 34) {
- 		put_unaligned_le32(ctrl->dwClockFrequency, &data[26]);
- 		data[30] = ctrl->bmFramingInfo;
- 		data[31] = ctrl->bPreferedVersion;
-@@ -288,6 +320,18 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
- 		data[33] = ctrl->bMaxVersion;
- 	}
- 
-+	if (size >= 48) {
-+		data[34] = ctrl->bUsage;
-+		data[35] = ctrl->bBitDepthLuma;
-+		data[36] = ctrl->bmSetting;
-+		data[37] = ctrl->bMaxNumberOfRefFramesPlus1;
-+		*(__le16 *)&data[38] = cpu_to_le16(ctrl->bmRateControlModes);
-+		for (i = 0; i < ARRAY_SIZE(ctrl->bmLayoutPerStream); ++i) {
-+			*(__le16 *)&data[40 + i * 2] =
-+				cpu_to_le16(ctrl->bmLayoutPerStream[i]);
-+		}
-+	}
-+
- 	ret = __uvc_query_ctrl(stream->dev, UVC_SET_CUR, 0, stream->intfnum,
- 		probe ? UVC_VS_PROBE_CONTROL : UVC_VS_COMMIT_CONTROL, data,
- 		size, uvc_timeout_param);
-diff --git a/include/uapi/linux/usb/video.h b/include/uapi/linux/usb/video.h
-index 3b3b95e..331c071 100644
---- a/include/uapi/linux/usb/video.h
-+++ b/include/uapi/linux/usb/video.h
-@@ -432,6 +432,7 @@ struct uvc_color_matching_descriptor {
- #define UVC_DT_COLOR_MATCHING_SIZE			6
- 
- /* 4.3.1.1. Video Probe and Commit Controls */
-+#define UVC_NUM_SIMULCAST_STREAMS			4
- struct uvc_streaming_control {
- 	__u16 bmHint;
- 	__u8  bFormatIndex;
-@@ -449,6 +450,12 @@ struct uvc_streaming_control {
- 	__u8  bPreferedVersion;
- 	__u8  bMinVersion;
- 	__u8  bMaxVersion;
-+	__u8  bUsage;
-+	__u8  bBitDepthLuma;
-+	__u8  bmSetting;
-+	__u8  bMaxNumberOfRefFramesPlus1;
-+	__u16 bmRateControlModes;
-+	__u16 bmLayoutPerStream[UVC_NUM_SIMULCAST_STREAMS];
- } __attribute__((__packed__));
- 
- /* Uncompressed Payload - 3.1.1. Uncompressed Video Format Descriptor */
+"The source clock time in native deviceclock units when the raw frame capture 
+begins."
+
+What devices do in practice may differ :-)
+
+> > For the other two patches,
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thanks! :-)
 -- 
-1.8.4
+Regards,
+
+Laurent Pinchart
 
