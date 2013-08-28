@@ -1,156 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:53089 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750720Ab3HSOxn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:53:43 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1VBQpx-0000XX-45
-	for linux-media@vger.kernel.org; Mon, 19 Aug 2013 16:53:41 +0200
-Received: from exchange.muehlbauer.de ([194.25.158.132])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 19 Aug 2013 16:53:41 +0200
-Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 19 Aug 2013 16:53:41 +0200
-To: linux-media@vger.kernel.org
-From: Tom <Bassai_Dai@gmx.net>
-Subject: Re: OMAP3 ISP DQBUF hangs
-Date: Mon, 19 Aug 2013 14:53:23 +0000 (UTC)
-Message-ID: <loom.20130819T160758-83@post.gmane.org>
-References: <loom.20130815T161444-925@post.gmane.org> <CALxrGmX2aZsTGG_gM6EECLa1Y9vWgWNqEg_TFoXFr=gVmsJnvw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48157 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487Ab3H1QB6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 12:01:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Wed, 28 Aug 2013 18:03:20 +0200
+Message-ID: <2110334.R9xrNvrTcZ@avalon>
+In-Reply-To: <1377703495-21112-1-git-send-email-sakari.ailus@iki.fi>
+References: <201308281419.52009.hverkuil@xs4all.nl> <1377703495-21112-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Su Jiaquan <jiaquan.lnx <at> gmail.com> writes:
+Hi Sakari,
 
-Hello,
+Thank you for the patches.
 
+On Wednesday 28 August 2013 18:24:55 Sakari Ailus wrote:
+> Some devices such as the uvc produce timestamps at the beginning of the
+> frame rather than at the end of it. Add a buffer flag
+> (V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
 > 
-> Hi Tom,
+> Also document timestamp_type in struct vb2_queue, and make the uvc set the
+> buffer flag.
 > 
-> On Thu, Aug 15, 2013 at 10:15 PM, Tom <Bassai_Dai <at> gmx.net> wrote:
-> > Hello,
-> >
-> > I'm working with an OMAP3 DM3730 processor module with a ov3640 camera
-> > module attached on parallel interface. I'm using Linux 3.5 and an
-> > application which builds the pipeline and grabs an image like the
-> > "media-ctl" and the "yavta" tools.
-> >
-> > I configured the pipeline to:
-> >
-> > sensor->ccdc->memory
-> >
-> > When I call ioctl with DQBUF the calling functions are:
-> >
-> > isp_video_dqbuf -> omap3isp_video_queue_dqbuf -> isp_video_buffer_wait ->
-> > wait_event_interruptible
-> >
-> > The last function waits until the state of the buffer will be reseted
-> > somehow. Can someone tell my which function sets the state of the buffer? Am
-> > I missing an interrupt?
-> >
-> > Best Regards, Tom
-> >
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+> since v4:
+> - Fixes according to Hans's comments.
 > 
-> I'm not familar with omap3isp, but from the code, the wait queue is
-> released by function ccdc_isr_buffer->omap3isp_video_buffer_next.
-> You are either missing a interrupt, or running out of buffer, or found
-> a buffer under run.
+> - Note in comment the uvc driver will set the SOF flag from now on.
 > 
-> Jiaquan
+> - Change comment of vb2_queue timestamp_type field: this is timestamp flags
+>   rather than just type. I stopped short of renaming the field.
 > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo <at> vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  Documentation/DocBook/media/v4l/io.xml |   19 ++++++++++++++-----
+>  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
+>  include/media/videobuf2-core.h         |    1 +
+>  include/uapi/linux/videodev2.h         |   10 ++++++++++
+>  4 files changed, 27 insertions(+), 6 deletions(-)
 > 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml
+> b/Documentation/DocBook/media/v4l/io.xml index 2c155cc..3aee210 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -654,11 +654,12 @@ plane, are stored in struct
+> <structname>v4l2_plane</structname> instead. In that case, struct
+> <structname>v4l2_buffer</structname> contains an array of plane
+> structures.</para>
+> 
+> -      <para>For timestamp types that are sampled from the system clock
+> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+> -taken after the complete frame has been received (or transmitted in
+> -case of video output devices). For other kinds of
+> -timestamps this may vary depending on the driver.</para>
+> +      <para>The timestamp is taken once the complete frame has been
+> +received (or transmitted for output devices) unless
+> +<constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> buffer flag is set.
+> +If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> is set, the
+> +timestamp is taken when the first pixel of the frame is received
+> +(or transmitted).</para>
+> 
+>      <table frame="none" pgwide="1" id="v4l2-buffer">
+>        <title>struct <structname>v4l2_buffer</structname></title>
+> @@ -1120,6 +1121,14 @@ in which case caches have not been used.</entry>
+>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
+> devices.</entry> </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
+> +	    <entry>0x00010000</entry>
+> +	    <entry>The buffer timestamp has been taken when the first
+> +	    pixel is received (or transmitted for output devices). If
+> +	    this flag is not set, the timestamp is taken when the
+> +	    entire frame has been received (or transmitted).</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index cd962be..0d80512 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum
+> v4l2_buf_type type, queue->queue.buf_struct_size = sizeof(struct
+> uvc_buffer);
+>  	queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> +		| V4L2_BUF_FLAG_TIMESTAMP_SOF;
+>  	ret = vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 6781258..033efc7 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -307,6 +307,7 @@ struct v4l2_fh;
+>   * @buf_struct_size: size of the driver-specific buffer structure;
+>   *		"0" indicates the driver doesn't want to use a custom buffer
+>   *		structure type, so sizeof(struct vb2_buffer) will is used
+> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_*
+>   * @gfp_flags:	additional gfp flags used when allocating the buffers.
+>   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+>   *		to force the buffer allocation to a specific memory zone.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 691077d..c57765e 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -695,6 +695,16 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+> +/*
+> + * Timestamp taken once the first pixel is received (or transmitted).
+> + * If the flag is not set the buffer timestamp is taken at the end of
+> + * the frame. This is not a timestamp type.
 
-you are right. it seems that the list of the ccdc has no buffer left,
-because the printk("TOM ccdc_isr_buffer ERROR 1 ##########\n"); is shown in
-my log. But I don't understand what I need to do to solve the problem.
-What I do is:
-- configure the pipeline
-- open the video device
-- do ioctl VIDIOC_REQBUFS (with memory = V4L2_MEMORY_MMAP and type =
-V4L2_BUF_TYPE_VIDEO_CAPTURE)
-- do ioctl VIDIOC_QUERYBUF
-- do ioctl VIDIOC_STREAMON
-- do ioctl VIDIOC_QBUF
+UVC devices timestamp frames when the frame is captured, not when the first 
+pixel is transmitted.
 
-without fail. and when I do ioctl VIDIOC_DQBUF. I get my problem. 
+For the other two patches,
 
-Does anyone have an idea what I need to do to solve this problem?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> + * In general drivers should not use this flag if the end-of-frame
+> + * timestamps is as good quality as the start-of-frame one; the
+> + * V4L2_EVENT_FRAME_SYNC event should be used in that case instead.
+> + */
+> +#define V4L2_BUF_FLAG_TIMESTAMP_SOF		0x00010000
+> 
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file
+> descriptor
+-- 
+Regards,
 
-
-static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
-{
-	printk("TOM ccdc_isr_buffer ##########\n");
-	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
-	struct isp_device *isp = to_isp_device(ccdc);
-	struct isp_buffer *buffer;
-	int restart = 0;
-
-	/* The CCDC generates VD0 interrupts even when disabled (the datasheet
-	 * doesn't explicitly state if that's supposed to happen or not, so it
-	 * can be considered as a hardware bug or as a feature, but we have to
-	 * deal with it anyway). Disabling the CCDC when no buffer is available
-	 * would thus not be enough, we need to handle the situation explicitly.
-	 */
-	printk("TOM ccdc_isr_buffer 1 ##########\n");
-	if (list_empty(&ccdc->video_out.dmaqueue))
-	{
-		printk("TOM ccdc_isr_buffer ERROR 1 ##########\n");
-		goto done;
-	}
-
-	/* We're in continuous mode, and memory writes were disabled due to a
-	 * buffer underrun. Reenable them now that we have a buffer. The buffer
-	 * address has been set in ccdc_video_queue.
-	 */
-	printk("TOM ccdc_isr_buffer 2 ##########\n");
-	if (ccdc->state == ISP_PIPELINE_STREAM_CONTINUOUS && ccdc->underrun) {
-		restart = 1;
-		ccdc->underrun = 0;
-		printk("TOM ccdc_isr_buffer ERROR 2 ##########\n");
-		goto done;
-	}
-
-	printk("TOM ccdc_isr_buffer 3 ##########\n");
-	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
-		printk("TOM ccdc_isr_buffer ERROR 3 ##########\n");
-		dev_info(isp->dev, "CCDC won't become idle!\n");
-		goto done;
-	}
-
-	printk("TOM ccdc_isr_buffer 4 ##########\n");
-	buffer = omap3isp_video_buffer_next(&ccdc->video_out);
-	if (buffer != NULL) {
-		ccdc_set_outaddr(ccdc, buffer->isp_addr);
-		restart = 1;
-	}
-	printk("TOM ccdc_isr_buffer 5 ##########\n");
-
-	pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
-
-	if (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT &&
-	    isp_pipeline_ready(pipe))
-		omap3isp_pipeline_set_stream(pipe,
-					ISP_PIPELINE_STREAM_SINGLESHOT);
-	printk("TOM ccdc_isr_buffer DONE ##########\n");
-done:
-	return restart;
-}
-
-
-
-Regards, Tom
-
-
-
+Laurent Pinchart
 
