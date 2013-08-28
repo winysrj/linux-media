@@ -1,238 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61644 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115Ab3HTOoa convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:34150 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754504Ab3H1P5O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 10:44:30 -0400
-Date: Tue, 20 Aug 2013 16:44:29 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Message-ID: <1970131979.98476.1377009869066.open-xchange@email.1and1.fr>
-In-Reply-To: <408826654.91086.1376994751713.open-xchange@email.1and1.fr>
-References: <641271032.80124.1376921926586.open-xchange@email.1and1.fr> <52123758.4090007@iki.fi> <408826654.91086.1376994751713.open-xchange@email.1and1.fr>
-Subject: Re: avermedia A306 / PCIe-minicard (laptop)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 28 Aug 2013 11:57:14 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MS9004EV0AX0NN0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Aug 2013 00:57:12 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 5/7] exynos4-is: Add clock provider for the external clocks
+Date: Wed, 28 Aug 2013 17:55:58 +0200
+Message-id: <1377705360-12197-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
+References: <1377705360-12197-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+This patch adds clock provider to expose the sclk_cam0/1 clocks
+for image sensor subdevs.
 
-FYI
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/samsung-fimc.txt     |   17 ++-
+ drivers/media/platform/exynos4-is/media-dev.c      |  115 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/media-dev.h      |   18 ++-
+ 3 files changed, 147 insertions(+), 3 deletions(-)
 
-I digged into the firmware problem a little,
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 96312f6..9f4d295 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -91,6 +91,15 @@ Optional properties
+ - samsung,camclk-out : specifies clock output for remote sensor,
+ 		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
+ 
++'clock-controller' node (optional)
++----------------------------------
++
++The purpose of this node is to define a clock provider for external image
++sensors and link any of the CAM_?_CLKOUT clock outputs with related external
++clock consumer device. Properties specific to this node are described in
++../clock/clock-bindings.txt.
++
++
+ Image sensor nodes
+ ------------------
+ 
+@@ -114,7 +123,7 @@ Example:
+ 			vddio-supply = <...>;
+ 
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camclk 1>;
+ 			clock-names = "mclk";
+ 
+ 			port {
+@@ -135,7 +144,7 @@ Example:
+ 			vddio-supply = <...>;
+ 
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camclk 0>;
+ 			clock-names = "mclk";
+ 
+ 			port {
+@@ -156,6 +165,10 @@ Example:
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
+ 
++		camclk: clock-controller {
++		       #clock-cells = <1>;
++		};
++
+ 		/* parallel camera ports */
+ 		parallel-ports {
+ 			/* camera A input */
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e327f45..6fba5f6 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -11,6 +11,8 @@
+  */
+ 
+ #include <linux/bug.h>
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/i2c.h>
+@@ -1438,6 +1440,108 @@ static int fimc_md_get_pinctrl(struct fimc_md *fmd)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_OF
++static int cam_clk_prepare(struct clk_hw *hw)
++{
++	struct cam_clk *camclk = to_cam_clk(hw);
++	int ret;
++
++	if (camclk->fmd->pmf == NULL)
++		return -ENODEV;
++
++	ret = pm_runtime_get_sync(camclk->fmd->pmf);
++	return ret < 0 ? ret : 0;
++}
++
++static void cam_clk_unprepare(struct clk_hw *hw)
++{
++	struct cam_clk *camclk = to_cam_clk(hw);
++
++	if (camclk->fmd->pmf == NULL)
++		return;
++
++	pm_runtime_put_sync(camclk->fmd->pmf);
++}
++
++static const struct clk_ops cam_clk_ops = {
++	.prepare = cam_clk_prepare,
++	.unprepare = cam_clk_unprepare,
++};
++
++static const char *cam_clk_p_names[] = { "sclk_cam0", "sclk_cam1" };
++
++static void fimc_md_unregister_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	unsigned int i;
++
++	if (cp->of_node)
++		of_clk_del_provider(cp->of_node);
++
++	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
++		if (!IS_ERR(cp->clks[i]))
++			clk_unregister(cp->clks[i]);
++}
++
++static int fimc_md_register_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	struct device *dev = &fmd->pdev->dev;
++	struct device_node *node;
++	int i, ret;
++
++	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
++		cp->clks[i] = ERR_PTR(-EINVAL);
++
++	node = of_get_child_by_name(dev->of_node, "clock-controller");
++	if (!node) {
++		dev_warn(dev, "clock-controller node at %s not found\n",
++					dev->of_node->full_name);
++		return 0;
++	}
++	for (i = 0; i < FIMC_MAX_CAMCLKS; i++) {
++		struct cam_clk *camclk = &cp->camclk[i];
++		struct clk_init_data init;
++		char clk_name[16];
++		struct clk *clk;
++
++		snprintf(clk_name, sizeof(clk_name), "cam_clkout%d", i);
++
++		init.name = clk_name;
++		init.ops = &cam_clk_ops;
++		init.flags = CLK_SET_RATE_PARENT;
++		init.parent_names = &cam_clk_p_names[i];
++		init.num_parents = 1;
++		camclk->hw.init = &init;
++		camclk->fmd = fmd;
++
++		clk = clk_register(dev, &camclk->hw);
++		if (IS_ERR(clk)) {
++			dev_err(dev, "failed to register clock: %s (%ld)\n",
++						clk_name, PTR_ERR(clk));
++			ret = PTR_ERR(clk);
++			goto err;
++		}
++		cp->clks[i] = clk;
++	}
++
++	cp->clk_data.clks = cp->clks;
++	cp->clk_data.clk_num = i;
++	cp->of_node = node;
++
++	ret = of_clk_add_provider(node, of_clk_src_onecell_get,
++						&cp->clk_data);
++	if (!ret)
++		return 0;
++err:
++	fimc_md_unregister_clk_provider(fmd);
++	return ret;
++}
++#else
++#define fimc_md_register_clk_provider(fmd) (0)
++#define fimc_md_unregister_clk_provider(fmd) (0)
++#endif
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1465,16 +1569,24 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 
+ 	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
+ 
++	ret = fimc_md_register_clk_provider(fmd);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "clock provider registration failed\n");
++		return ret;
++	}
++
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+ 		return ret;
+ 	}
++
+ 	ret = media_device_register(&fmd->media_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
+ 		goto err_md;
+ 	}
++
+ 	ret = fimc_md_get_clocks(fmd);
+ 	if (ret)
+ 		goto err_clk;
+@@ -1508,6 +1620,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	ret = fimc_md_create_links(fmd);
+ 	if (ret)
+ 		goto err_unlock;
++
+ 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+ 	if (ret)
+ 		goto err_unlock;
+@@ -1528,6 +1641,7 @@ err_clk:
+ 	media_device_unregister(&fmd->media_dev);
+ err_md:
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
++	fimc_md_unregister_clk_provider(fmd);
+ 	return ret;
+ }
+ 
+@@ -1538,6 +1652,7 @@ static int fimc_md_remove(struct platform_device *pdev)
+ 	if (!fmd)
+ 		return 0;
+ 
++	fimc_md_unregister_clk_provider(fmd);
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	fimc_md_unregister_entities(fmd);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 62599fd..240ca71 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -10,6 +10,7 @@
+ #define FIMC_MDEVICE_H_
+ 
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+@@ -89,6 +90,12 @@ struct fimc_sensor_info {
+ 	struct fimc_dev *host;
+ };
+ 
++struct cam_clk {
++	struct clk_hw hw;
++	struct fimc_md *fmd;
++};
++#define to_cam_clk(_hw) container_of(_hw, struct cam_clk, hw)
++
+ /**
+  * struct fimc_md - fimc media device information
+  * @csis: MIPI CSIS subdevs data
+@@ -105,6 +112,7 @@ struct fimc_sensor_info {
+  * @pinctrl: camera port pinctrl handle
+  * @state_default: pinctrl default state handle
+  * @state_idle: pinctrl idle state handle
++ * @cam_clk_provider: CAMCLK clock provider structure
+  * @user_subdev_api: true if subdevs are not configured by the host driver
+  * @slock: spinlock protecting @sensor array
+  */
+@@ -122,13 +130,21 @@ struct fimc_md {
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
++
+ 	struct fimc_pinctrl {
+ 		struct pinctrl *pinctrl;
+ 		struct pinctrl_state *state_default;
+ 		struct pinctrl_state *state_idle;
+ 	} pinctl;
+-	bool user_subdev_api;
+ 
++	struct cam_clk_provider {
++		struct clk *clks[FIMC_MAX_CAMCLKS];
++		struct clk_onecell_data clk_data;
++		struct device_node *of_node;
++		struct cam_clk camclk[FIMC_MAX_CAMCLKS];
++	} clk_provider;
++
++	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
+ };
+-- 
+1.7.9.5
 
-
-xc3028L-v36.fw  gets loaded by default , and the errors are as you saw earlier
-
-
-forcing the /lib/firmware/xc3028-v27.fw : 
-
-[ 3569.941404] xc2028 2-0061: Could not load firmware
-/lib/firmware/xc3028-v27.fw
-
-
-So i searched the original dell/windows driver :
-
-
-I have these files in there :
-
-root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070# ls -lR
-.:
-total 5468
-drwxr-xr-x 2 gpunk gpunk    4096 août  20 13:24 Driver_X86
--rwxr-xr-x 1 gpunk gpunk 5589827 sept. 12  2007 Setup.exe
--rw-r--r-- 1 gpunk gpunk     197 oct.   9  2007 setup.iss
-
-./Driver_X86:
-total 1448
--rw-r--r-- 1 gpunk gpunk 114338 sept.  7  2007 A885VCap_ASUS_DELL_2.inf
--rw-r--r-- 1 gpunk gpunk  15850 sept. 11  2007 a885vcap.cat
--rw-r--r-- 1 gpunk gpunk 733824 sept.  7  2007 A885VCap.sys
--rw-r--r-- 1 gpunk gpunk 147870 avril 20  2007 cpnotify.ax
--rw-r--r-- 1 gpunk gpunk 376836 avril 20  2007 cx416enc.rom
--rw-r--r-- 1 gpunk gpunk  65536 avril 20  2007 cxtvrate.dll
--rw-r--r-- 1 gpunk gpunk  16382 avril 20  2007 merlinC.rom
-root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070#
-
-root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86# grep
-firmware *
-Fichier binaire A885VCap.sys concordant
-root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86#
-
-
-
-I'll try to find a way to extract "maybe" the right firmware for what this card
-,
-
-I'd love some help :)
-
-Good news there are ALOT of infos on how to initialize the card in the .INF , so
-
-many problems, i think, are partially solved (I need to implement them )
-
-I'll send a copy of theses to anyone who wishes,
-
-Or see
-http://www.dell.com/support/drivers/us/en/04/DriverDetails?driverId=R169070     
- :)
-
-Regards
-
-Rémi
-
-
-
-
-
-> Le 20 août 2013 à 12:32, remi <remi@remis.cc> a écrit :
->
->
-> Hello
->
-> I have just putdown my screwdrivers :)
->
->
-> Yes it was three ICs
->
->
-> on the bottom-side , no heatsinks (digital reception, that's why i guess) , is
-> an AF9013-N1
->
-> on the top-side, with a heatsink : CX23885-13Z , PCIe A/V controler
->
-> on the top-side, with heat-sink + "radio-isolation" (aluminum box) XC3028ACQ ,
-> so the analog reception .
->
->  
-> Its all on a PCIe bus, the reason why i baught it ... :)
->
->
->
-> To resume :
->
->
-> AF9013-N1
->
-> CX23885-13Z
->
-> XC3028ACQ
->
->
-> the drivers while scanning
->
->
-> gpunk@medeb:~/Bureau$ dmesg |grep i2c
-> [    2.363784] cx23885[0]: i2c scan: found device @ 0xa0  [eeprom]
-> [    2.384721] cx23885[0]: i2c scan: found device @ 0xc2 
-> [tuner/mt2131/tda8275/xc5000/xc3028]
-> [    2.391502] cx23885[0]: i2c scan: found device @ 0x66  [???]
-> [    2.392339] cx23885[0]: i2c scan: found device @ 0x88  [cx25837]
-> [    2.392831] cx23885[0]: i2c scan: found device @ 0x98  [flatiron]
-> [    5.306751] i2c /dev entries driver
-> gpunk@medeb:~/Bureau$
->
->
->  4.560428] xc2028 2-0061: xc2028_get_reg 0008 called
-> [    4.560989] xc2028 2-0061: Device is Xceive 0 version 0.0, firmware version
-> 0.0
-> [    4.560990] xc2028 2-0061: Incorrect readback of firmware version.
-> [ *    4.561184] xc2028 2-0061: Read invalid device hardware information -
-> tuner
-> hung?
-> [ *    4.561386] xc2028 2-0061: 0.0      0.0
-> [ *    4.674072] xc2028 2-0061: divisor= 00 00 64 00 (freq=400.000)
-> [    4.697830] cx23885_dev_checkrevision() Hardware revision = 0xb0
-> [    4.698029] cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 18, latency:
-> 0,
-> mmio: 0xd3000000
->
-> * --> I bypassed the "goto fail" to start debugging a little bit the
-> tuner-xc2028.c/ko ... lines 869
-> ...
->
->
->
-> The firmware doesnt get all loaded .
-> gpunk@medeb:~/Bureau$  uname -a
-> Linux medeb 3.11.0-rc6remi #1 SMP PREEMPT Mon Aug 19 13:30:04 CEST 2013 i686
-> GNU/Linux
-> gpunk@medeb:~/Bureau$
->
->
-> With yesterday's tarball from linuxtv.org / media-build git .
->
->
->
-> Best regards
->
-> Rémi
->
->
->
->
-> > Le 19 août 2013 à 17:18, Antti Palosaari <crope@iki.fi> a écrit :
-> >
-> >
-> > On 08/19/2013 05:18 PM, remi wrote:
-> > > Hello
-> > >
-> > > I have this card since months,
-> > >
-> > > http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=376&SI=true
-> > >
-> > > I have finally retested it with the cx23885 driver : card=39
-> > >
-> > >
-> > >
-> > > If I could do anything to identify : [    2.414734] cx23885[0]: i2c scan:
-> > > found
-> > > device @ 0x66  [???]
-> > >
-> > > Or "hookup" the xc5000 etc
-> > >
-> > > I'll be more than glad .
-> > >
-> >
-> >
-> > >
-> > > ps: i opened it up a while ago,i saw an af9013 chip ? dvb-tuner looks like
-> > > maybe the "device @ 0x66 i2c"
-> > >
-> > > I will double check , and re-write-down all the chips , i think 3 .
-> >
-> > You have to identify all the chips, for DVB-T there is tuner missing.
-> >
-> > USB-interface: cx23885
-> > DVB-T demodulator: AF9013
-> > RF-tuner: ?
-> >
-> > If there is existing driver for used RF-tuner it comes nice hacking
-> > project for some newcomer.
-> >
-> > It is just tweaking and hacking to find out all settings. AF9013 driver
-> > also needs likely some changes, currently it is used only for devices
-> > having AF9015 with integrated AF9013, or AF9015 dual devices having
-> > AF9015 + external AF9013 providing second tuner.
-> >
-> > I have bought quite similar AverMedia A301 ages back as I was looking
-> > for that AF9013 model, but maybe I have bought just wrong one... :)
-> >
-> >
-> > regards
-> > Antti
-> >
-> >
-> > --
-> > http://palosaari.fi/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
