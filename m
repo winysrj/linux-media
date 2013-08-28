@@ -1,110 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1830 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752783Ab3HVKPB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33583 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754199Ab3H1PSa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 06:15:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 28 Aug 2013 11:18:30 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sakari.ailus@iki.fi, sylvester.nawrocki@gmail.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 08/10] DocBook: document new v4l motion detection event.
-Date: Thu, 22 Aug 2013 12:14:22 +0200
-Message-Id: <fff87807f3489430a05c8ba4502e72a1512f0a73.1377166147.git.hans.verkuil@cisco.com>
-In-Reply-To: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-References: <1377166464-27448-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
-References: <7c5a78eea892dd37d172f24081402be354758894.1377166147.git.hans.verkuil@cisco.com>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	k.debski@samsung.com
+Subject: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Wed, 28 Aug 2013 18:24:55 +0300
+Message-Id: <1377703495-21112-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <201308281419.52009.hverkuil@xs4all.nl>
+References: <201308281419.52009.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some devices such as the uvc produce timestamps at the beginning of the
+frame rather than at the end of it. Add a buffer flag
+(V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Also document timestamp_type in struct vb2_queue, and make the uvc set the
+buffer flag.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 40 ++++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  8 +++++
- 2 files changed, 48 insertions(+)
+since v4:
+- Fixes according to Hans's comments.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 89891ad..23ee1e3 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -94,6 +94,12 @@
+- Note in comment the uvc driver will set the SOF flag from now on.
+
+- Change comment of vb2_queue timestamp_type field: this is timestamp flags
+  rather than just type. I stopped short of renaming the field.
+
+ Documentation/DocBook/media/v4l/io.xml |   19 ++++++++++++++-----
+ drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
+ include/media/videobuf2-core.h         |    1 +
+ include/uapi/linux/videodev2.h         |   10 ++++++++++
+ 4 files changed, 27 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2c155cc..3aee210 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -654,11 +654,12 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
+ 
+-      <para>For timestamp types that are sampled from the system clock
+-(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+-taken after the complete frame has been received (or transmitted in
+-case of video output devices). For other kinds of
+-timestamps this may vary depending on the driver.</para>
++      <para>The timestamp is taken once the complete frame has been
++received (or transmitted for output devices) unless
++<constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> buffer flag is set.
++If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> is set, the
++timestamp is taken when the first pixel of the frame is received
++(or transmitted).</para>
+ 
+     <table frame="none" pgwide="1" id="v4l2-buffer">
+       <title>struct <structname>v4l2_buffer</structname></title>
+@@ -1120,6 +1121,14 @@ in which case caches have not been used.</entry>
+ 	    <entry>The CAPTURE buffer timestamp has been taken from the
+ 	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
  	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-event-motion-det;</entry>
-+            <entry><structfield>motion_det</structfield></entry>
-+	    <entry>Event data for event V4L2_EVENT_MOTION_DET.</entry>
-+	  </row>
 +	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
-             <entry><structfield>data</structfield>[64]</entry>
- 	    <entry>Event data. Defined by the event type. The union
-@@ -242,6 +248,40 @@
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
++	    <entry>0x00010000</entry>
++	    <entry>The buffer timestamp has been taken when the first
++	    pixel is received (or transmitted for output devices). If
++	    this flag is not set, the timestamp is taken when the
++	    entire frame has been received (or transmitted).</entry>
++	  </row>
+ 	</tbody>
        </tgroup>
      </table>
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index cd962be..0d80512 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+ 	queue->queue.ops = &uvc_queue_qops;
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
+-	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
++		| V4L2_BUF_FLAG_TIMESTAMP_SOF;
+ 	ret = vb2_queue_init(&queue->queue);
+ 	if (ret)
+ 		return ret;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 6781258..033efc7 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -307,6 +307,7 @@ struct v4l2_fh;
+  * @buf_struct_size: size of the driver-specific buffer structure;
+  *		"0" indicates the driver doesn't want to use a custom buffer
+  *		structure type, so sizeof(struct vb2_buffer) will is used
++ * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_*
+  * @gfp_flags:	additional gfp flags used when allocating the buffers.
+  *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+  *		to force the buffer allocation to a specific memory zone.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 691077d..c57765e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -695,6 +695,16 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+ #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+ #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
++/*
++ * Timestamp taken once the first pixel is received (or transmitted). 
++ * If the flag is not set the buffer timestamp is taken at the end of
++ * the frame. This is not a timestamp type.
++ *
++ * In general drivers should not use this flag if the end-of-frame
++ * timestamps is as good quality as the start-of-frame one; the
++ * V4L2_EVENT_FRAME_SYNC event should be used in that case instead.
++ */
++#define V4L2_BUF_FLAG_TIMESTAMP_SOF		0x00010000
  
-+    <table frame="none" pgwide="1" id="v4l2-event-motion-det">
-+      <title>struct <structname>v4l2_event_motion_det</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>
-+	      Currently only one flag is available: if <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant>
-+	      is set, then the <structfield>frame_sequence</structfield> field is valid,
-+	      otherwise that field should be ignored.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>frame_sequence</structfield></entry>
-+	    <entry>
-+	      The sequence number of the frame being received. Only valid if the
-+	      <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> flag was set.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>region_mask</structfield></entry>
-+	    <entry>
-+	      The bitmask of the regions that reported motion. There is at least one
-+	      region. If this field is 0, then no motion was detected at all.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..9e68976 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,14 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>
-+	      <para>Triggered whenever the motion detection state for one or more of the regions
-+	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
-1.8.3.2
+1.7.10.4
 
