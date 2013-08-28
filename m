@@ -1,85 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:51048 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752821Ab3HPLki (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 07:40:38 -0400
-Date: Fri, 16 Aug 2013 12:40:35 +0100
-From: Sean Young <sean@mess.org>
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] media: st-rc: Add ST remote control driver
-Message-ID: <20130816114035.GA1978@pequod.mess.org>
-References: <1376501221-22416-1-git-send-email-srinivas.kandagatla@st.com>
- <20130816083853.GA6844@pequod.mess.org>
- <520E04BC.10908@st.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46224 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab3H1Jsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 05:48:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Date: Wed, 28 Aug 2013 11:50 +0200
+Message-ID: <10693086.5dU3qYIIgB@avalon>
+In-Reply-To: <20130828062752.18604873@samsung.com>
+References: <520E76E7.30201@googlemail.com> <521DBC3A.7090604@samsung.com> <20130828062752.18604873@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <520E04BC.10908@st.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 16, 2013 at 11:53:48AM +0100, Srinivas KANDAGATLA wrote:
-> Thanks Sean for the comments.
-> On 16/08/13 09:38, Sean Young wrote:
-> > On Wed, Aug 14, 2013 at 06:27:01PM +0100, Srinivas KANDAGATLA wrote:
-> [...]
-> >> +			/* discard the entire collection in case of errors!  */
-> >> +			dev_info(dev->dev, "IR RX overrun\n");
-> >> +			writel(IRB_RX_OVERRUN_INT,
-> >> +					dev->rx_base + IRB_RX_INT_CLEAR);
-> >> +			continue;
-> >> +		}
-> >> +
-> >> +		symbol = readl(dev->rx_base + IRB_RX_SYS);
-> >> +		mark = readl(dev->rx_base + IRB_RX_ON);
-> >> +
-> >> +		if (symbol == IRB_TIMEOUT)
-> >> +			last_symbol = 1;
-> >> +
-> >> +		 /* Ignore any noise */
-> >> +		if ((mark > 2) && (symbol > 1)) {
-> >> +			symbol -= mark;
-> >> +			if (dev->overclocking) { /* adjustments to timings */
-> >> +				symbol *= dev->sample_mult;
-> >> +				symbol /= dev->sample_div;
-> >> +				mark *= dev->sample_mult;
-> >> +				mark /= dev->sample_div;
-> >> +			}
-> >> +
-> >> +			ev.duration = US_TO_NS(mark);
-> >> +			ev.pulse = true;
-> >> +			ir_raw_event_store(dev->rdev, &ev);
-> >> +
-> >> +			if (!last_symbol) {
-> >> +				ev.duration = US_TO_NS(symbol);
-> >> +				ev.pulse = false;
-> >> +				ir_raw_event_store(dev->rdev, &ev);
+Hi Mauro,
+
+On Wednesday 28 August 2013 06:27:52 Mauro Carvalho Chehab wrote:
+> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+> > On 08/27/2013 06:00 PM, Mauro Carvalho Chehab wrote:
+> > >>> > > The thing is that you're wanting to use the clock register as a
+> > >>> > > way to detect that the device got initialized.
+> > >> > 
+> > >> > I'm not sure to follow you there, I don't think that's how I want to
+> > >> > use the clock. Could you please elaborate ?
+> > > 
+> > > As Sylwester pointed, the lack of clock register makes ov2640 to defer
+> > > probing, as it assumes that the sensor is not ready.
 > > 
-> > Make sure you call ir_raw_event_handle() once a while (maybe every time
-> > the interrupt handler is called?) to prevent the ir kfifo from 
-> > overflowing in case of very long IR. ir_raw_event_store() just adds
-> > new edges to the kfifo() but does not flush them to the decoders or
-> > lirc.
-> I agree, but Am not sure it will really help in this case because, we
-> are going to stay in this interrupt handler till we get a
-> last_symbol(full key press/release event).. So calling
-> ir_raw_event_store mulitple times might not help because the
-> ir_raw_event kthread(which is clearing kfifo) which is only scheduled
-> after returning from this interrupt.
+> > Hmm, actually there are two drivers here - the sensor driver defers its
+> > probing() when a clock provided by the bridge driver is missing. Thus
+> > let's not misunderstand it that missing clock is used as an indication
+> > of the sensor not being ready. It merely means that the clock provider
+> > (which in this case is the bridge driver) has not initialized yet.
+> > It's pretty standard situation, the sensor doesn't know who provides
+> > the clock but it knows it needs the clock and when that's missing it
+> > defers its probe().
+> 
+> On an always on clock, there's no sense on defer probe.
 
-If I read it correctly, then this is only true if the fifo contains an 
-IRB_TIMEOUT symbol. If not yet, then the interrupt handlers is not 
-waiting around for those symbols to arrive.
+The point is that the sensor driver doesn't know whether the clock is always 
+on or not, so it must defer the probe if the clock object isn't available 
+(remember that even for always-on clocks the sensor driver often needs to 
+query the clock rate). That won't happen in this case as the sensor device is 
+instanciated by the em28xx driver, so the clock object will always be 
+available.
 
-Thanks
-Sean
+-- 
+Regards,
+
+Laurent Pinchart
+
