@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:23517 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172Ab3HEI5i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:38 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7b001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:34 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/7] qv4l2: scaling and pixel aspect ratio
-Date: Mon,  5 Aug 2013 10:56:50 +0200
-Message-Id: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4018 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207Ab3H1G22 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Aug 2013 02:28:28 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7S6SPmq012951
+	for <linux-media@vger.kernel.org>; Wed, 28 Aug 2013 08:28:27 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 75F4C2A0761
+	for <linux-media@vger.kernel.org>; Wed, 28 Aug 2013 08:28:18 +0200 (CEST)
+Message-ID: <521D9882.4080401@xs4all.nl>
+Date: Wed, 28 Aug 2013 08:28:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] cx88 regression fix
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch series depends on the qv4l2 ALSA and OpenGL patch series.
+Mauro,
 
-This adds scaling and aspect ratio support to the qv4l2 CaptureWin.
-It also fixes some issues with the original OpenGL patch series,
-as well as adding tweaks and improvements left out in the original patches.
+Here is a fix for a cx88 regression introduced in 3.11.
 
-Some of the changes/improvements:
-- CaptureWin have scaling support for video frames for all renderers
-- CaptureWin support pixel aspect ratio scaling
-- Aspect ratio and scaling can be changed during capture
-- CaptureWin's setMinimumSize is now resize, which resizes the window to the frame size given
-  and minimum size is set automatically
-- The YUY2 shader programs are rewritten and has the resizing issue fixed
-- The Show Frames option in Capture menu can be toggled during capture
-- Reset and disable scaling options
-- Added a hotkey:
-    CTRL + F : (size to video 'F'rame)
-               When either the main window or capture window is selected
-               this will reset the scaling to fit the frame size.
-               This option is also available in the Capture menu.
+Repost of an earlier pull request where I erroneously said that it was a 3.10
+regression, which isn't true. The CC to stable is removed in this updated pull
+request.
 
-Pixel Aspect Ratio Modes:
-- Autodetect (if not supported this assumes square pixels)
-- Square
-- NTSC/PAL-M/PAL-60
-- NTSC/PAL-M/PAL-60, Anamorphic
-- PAL/SECAM
-- PAL/SECAM, Anamorphic
+Regards,
 
+	Hans
+
+The following changes since commit 43054ecced8ae77c805470447d72da4fdc276e02:
+
+  [media] davinci: vpif_capture: fix error return code in vpif_probe() (2013-08-26 07:54:47 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cx88fix
+
+for you to fetch changes up to 5dce3635bf803cfe9dde84e00f5f9594439e6c02:
+
+  cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0. (2013-08-28 08:23:58 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0.
+
+ drivers/media/pci/cx88/cx88.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
