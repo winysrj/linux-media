@@ -1,182 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48216 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111Ab3H1QNW (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:53051 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab3H2Md4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 12:13:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
-Date: Wed, 28 Aug 2013 18:14:44 +0200
-Message-ID: <3137420.D3pZN9rLod@avalon>
-In-Reply-To: <20130828160922.GF2835@valkosipuli.retiisi.org.uk>
-References: <201308281419.52009.hverkuil@xs4all.nl> <2110334.R9xrNvrTcZ@avalon> <20130828160922.GF2835@valkosipuli.retiisi.org.uk>
+	Thu, 29 Aug 2013 08:33:56 -0400
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
+	<tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 0/6] v4l: VPE mem to mem driver
+Date: Thu, 29 Aug 2013 18:02:46 +0530
+Message-ID: <1377779572-22624-1-git-send-email-archit@ti.com>
+In-Reply-To: <1376996457-17275-1-git-send-email-archit@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 28 August 2013 19:09:23 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> Thanks for the comments!
-> 
-> On Wed, Aug 28, 2013 at 06:03:20PM +0200, Laurent Pinchart wrote:
-> > Hi Sakari,
-> > 
-> > Thank you for the patches.
-> > 
-> > On Wednesday 28 August 2013 18:24:55 Sakari Ailus wrote:
-> > > Some devices such as the uvc produce timestamps at the beginning of the
-> > > frame rather than at the end of it. Add a buffer flag
-> > > (V4L2_BUF_FLAG_TIMESTAMP_SOF) to tell about this.
-> > > 
-> > > Also document timestamp_type in struct vb2_queue, and make the uvc set
-> > > the
-> > > buffer flag.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > ---
-> > > since v4:
-> > > - Fixes according to Hans's comments.
-> > > 
-> > > - Note in comment the uvc driver will set the SOF flag from now on.
-> > > 
-> > > - Change comment of vb2_queue timestamp_type field: this is timestamp
-> > > flags
-> > > 
-> > >   rather than just type. I stopped short of renaming the field.
-> > >  
-> > >  Documentation/DocBook/media/v4l/io.xml |   19 ++++++++++++++-----
-> > >  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
-> > >  include/media/videobuf2-core.h         |    1 +
-> > >  include/uapi/linux/videodev2.h         |   10 ++++++++++
-> > >  4 files changed, 27 insertions(+), 6 deletions(-)
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > > b/Documentation/DocBook/media/v4l/io.xml index 2c155cc..3aee210 100644
-> > > --- a/Documentation/DocBook/media/v4l/io.xml
-> > > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > > @@ -654,11 +654,12 @@ plane, are stored in struct
-> > > <structname>v4l2_plane</structname> instead. In that case, struct
-> > > <structname>v4l2_buffer</structname> contains an array of plane
-> > > structures.</para>
-> > > 
-> > > -      <para>For timestamp types that are sampled from the system clock
-> > > -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
-> > > is
-> > > -taken after the complete frame has been received (or transmitted in
-> > > -case of video output devices). For other kinds of
-> > > -timestamps this may vary depending on the driver.</para>
-> > > +      <para>The timestamp is taken once the complete frame has been
-> > > +received (or transmitted for output devices) unless
-> > > +<constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> buffer flag is set.
-> > > +If <constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant> is set, the
-> > > +timestamp is taken when the first pixel of the frame is received
-> > > +(or transmitted).</para>
-> > > 
-> > >      <table frame="none" pgwide="1" id="v4l2-buffer">
-> > >      
-> > >        <title>struct <structname>v4l2_buffer</structname></title>
-> > > 
-> > > @@ -1120,6 +1121,14 @@ in which case caches have not been used.</entry>
-> > > 
-> > >  	    <entry>The CAPTURE buffer timestamp has been taken from the
-> > >  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
-> > > 
-> > > devices.</entry> </row>
-> > > +	  <row>
-> > > +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_SOF</constant></entry>
-> > > +	    <entry>0x00010000</entry>
-> > > +	    <entry>The buffer timestamp has been taken when the first
-> > > +	    pixel is received (or transmitted for output devices). If
-> > > +	    this flag is not set, the timestamp is taken when the
-> > > +	    entire frame has been received (or transmitted).</entry>
-> > > +	  </row>
-> > > 
-> > >  	</tbody>
-> > >  	
-> > >        </tgroup>
-> > >      
-> > >      </table>
-> > > 
-> > > diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> > > b/drivers/media/usb/uvc/uvc_queue.c index cd962be..0d80512 100644
-> > > --- a/drivers/media/usb/uvc/uvc_queue.c
-> > > +++ b/drivers/media/usb/uvc/uvc_queue.c
-> > > @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue,
-> > > enum
-> > > v4l2_buf_type type, queue->queue.buf_struct_size = sizeof(struct
-> > > uvc_buffer);
-> > > 
-> > >  	queue->queue.ops = &uvc_queue_qops;
-> > >  	queue->queue.mem_ops = &vb2_vmalloc_memops;
-> > > 
-> > > -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > > +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> > > +		| V4L2_BUF_FLAG_TIMESTAMP_SOF;
-> > > 
-> > >  	ret = vb2_queue_init(&queue->queue);
-> > >  	if (ret)
-> > >  	
-> > >  		return ret;
-> > > 
-> > > diff --git a/include/media/videobuf2-core.h
-> > > b/include/media/videobuf2-core.h index 6781258..033efc7 100644
-> > > --- a/include/media/videobuf2-core.h
-> > > +++ b/include/media/videobuf2-core.h
-> > > @@ -307,6 +307,7 @@ struct v4l2_fh;
-> > > 
-> > >   * @buf_struct_size: size of the driver-specific buffer structure;
-> > >   *		"0" indicates the driver doesn't want to use a custom buffer
-> > >   *		structure type, so sizeof(struct vb2_buffer) will is used
-> > > 
-> > > + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_*
-> > > 
-> > >   * @gfp_flags:	additional gfp flags used when allocating the buffers.
-> > >   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
-> > >   *		to force the buffer allocation to a specific memory zone.
-> > > 
-> > > diff --git a/include/uapi/linux/videodev2.h
-> > > b/include/uapi/linux/videodev2.h index 691077d..c57765e 100644
-> > > --- a/include/uapi/linux/videodev2.h
-> > > +++ b/include/uapi/linux/videodev2.h
-> > > @@ -695,6 +695,16 @@ struct v4l2_buffer {
-> > > 
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
-> > >  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-> > > 
-> > > +/*
-> > > + * Timestamp taken once the first pixel is received (or transmitted).
-> > > + * If the flag is not set the buffer timestamp is taken at the end of
-> > > + * the frame. This is not a timestamp type.
-> > 
-> > UVC devices timestamp frames when the frame is captured, not when the
-> > first
-> > pixel is transmitted.
-> 
-> I.e. we shouldn't set the SOF flag? "When the frame is captured" doesn't say
-> much, or almost anything in terms of *when*. The frames have exposure time
-> and rolling shutter makes a difference, too.
+VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
+mem to mem v4l2 driver, and VPDMA as a helper library.
 
-The UVC 1.1 specification defines the timestamp as
+The first version of the patch series described VPE in detail, you can have a
+look at it here:
 
-"The source clock time in native deviceclock units when the raw frame capture 
-begins."
+http://www.spinics.net/lists/linux-media/msg66518.html
 
-What devices do in practice may differ :-)
+The only change in v3 is that DMA allocation APIs for motion vector buffers
+instead of kzalloc as they can take up to 100Kb of memory. The descriptors used
+by VPDMA are still allocated via kzalloc. The allocation/mapping api for VPDMA
+was renamed such that we know it's for allocating descriptor lists and
+descriptor payloads.
 
-> > For the other two patches,
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Thanks! :-)
+Archit Taneja (6):
+  v4l: ti-vpe: Create a vpdma helper library
+  v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+  v4l: ti-vpe: Add VPE mem to mem driver
+  v4l: ti-vpe: Add de-interlacer support in VPE
+  arm: dra7xx: hwmod data: add VPE hwmod data and ocp_if info
+  experimental: arm: dts: dra7xx: Add a DT node for VPE
+
+ arch/arm/boot/dts/dra7.dtsi                |   11 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  |   42 +
+ drivers/media/platform/Kconfig             |   16 +
+ drivers/media/platform/Makefile            |    2 +
+ drivers/media/platform/ti-vpe/Makefile     |    5 +
+ drivers/media/platform/ti-vpe/vpdma.c      |  846 ++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      |  202 +++
+ drivers/media/platform/ti-vpe/vpdma_priv.h |  640 +++++++++
+ drivers/media/platform/ti-vpe/vpe.c        | 2050 ++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe_regs.h   |  496 +++++++
+ 10 files changed, 4310 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.2
 
