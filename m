@@ -1,484 +1,552 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46659 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759590Ab3HNK7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Aug 2013 06:59:10 -0400
-Message-ID: <520B62B5.8080000@ti.com>
-Date: Wed, 14 Aug 2013 16:27:57 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
-	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
-	<hverkuil@xs4all.nl>, <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon>
-In-Reply-To: <7062944.SGK3kvnN1v@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:61890 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756023Ab3H2Ktt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 06:49:49 -0400
+Date: Thu, 29 Aug 2013 07:49:40 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Rob Landley <rob@landley.net>,
+	Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v2] media: st-rc: Add ST remote control driver
+Message-id: <20130829074940.5decd369@samsung.com>
+In-reply-to: <20130829091155.GA6162@pequod.mess.org>
+References: <1377704030-3763-1-git-send-email-srinivas.kandagatla@st.com>
+ <20130829091155.GA6162@pequod.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 09 August 2013 03:34 AM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> Thank you for the patch.
->
-> On Friday 02 August 2013 19:33:38 Archit Taneja wrote:
->> The primary function of VPDMA is to move data between external memory and
->> internal processing modules(in our case, VPE) that source or sink data.
->> VPDMA is capable of buffering this data and then delivering the data as
->> demanded to the modules as programmed. The modules that source or sink data
->> are referred to as clients or ports. A channel is setup inside the VPDMA to
->> connect a specific memory buffer to a specific client. The VPDMA
->> centralizes the DMA control functions and buffering required to allow all
->> the clients to minimize the effect of long latency times.
->>
->> Add the following to the VPDMA helper:
->>
->> - A data struct which describe VPDMA channels. For now, these channels are
->> the ones used only by VPE, the list of channels will increase when
->> VIP(Video Input Port) also uses the VPDMA library. This channel information
->> will be used to populate fields required by data descriptors.
->>
->> - Data structs which describe the different data types supported by VPDMA.
->> This data type information will be used to populate fields required by data
->> descriptors and used by the VPE driver to map a V4L2 format to the
->> corresponding VPDMA data type.
->>
->> - Provide VPDMA register offset definitions, functions to read, write and
->> modify VPDMA registers.
->>
->> - Functions to create and submit a VPDMA list. A list is a group of
->> descriptors that makes up a set of DMA transfers that need to be completed.
->> Each descriptor will either perform a DMA transaction to fetch input
->> buffers and write to output buffers(data descriptors), or configure the
->> MMRs of sub blocks of VPE(configuration descriptors), or provide control
->> information to VPDMA (control descriptors).
->>
->> - Functions to allocate, map and unmap buffers needed for the descriptor
->> list, payloads containing MMR values and motion vector buffers. These use
->> the DMA mapping APIs to ensure exclusive access to VPDMA.
->>
->> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on
->> the VPE interrupt line when a descriptor list is parsed completely and the
->> DMA transactions are completed. This requires masking the events in VPDMA
->> registers and configuring some top level VPE interrupt registers.
->>
->> - Enable some VPDMA specific parameters: frame start event(when to start DMA
->> for a client) and line mode(whether each line fetched should be mirrored or
->> not).
->>
->> - Function to load firmware required by VPDMA. VPDMA requires a firmware for
->> it's internal list manager. We add the required request_firmware apis to
->> fetch this firmware from user space.
->>
->> - Function to dump VPDMA registers.
->>
->> - A function to initialize VPDMA, this will be called by the VPE driver with
->> it's platform device pointer, this function will take care of loading VPDMA
->> firmware and returning a handle back to the VPE driver. The VIP driver will
->> also call the same init function to initialize it's own VPDMA instance.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   drivers/media/platform/ti-vpe/vpdma.c      | 589 ++++++++++++++++++++++++++
->>   drivers/media/platform/ti-vpe/vpdma.h      | 154 ++++++++
->>   drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
->>   3 files changed, 862 insertions(+)
->>   create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
->>   create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
->>   create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
->>
->> diff --git a/drivers/media/platform/ti-vpe/vpdma.c
->> b/drivers/media/platform/ti-vpe/vpdma.c new file mode 100644
->> index 0000000..b15b3dd
->> --- /dev/null
->> +++ b/drivers/media/platform/ti-vpe/vpdma.c
->> @@ -0,0 +1,589 @@
->
-> [snip]
->
->> +static int get_field(u32 value, u32 mask, int shift)
->> +{
->> +	return (value & (mask << shift)) >> shift;
->> +}
->> +
->> +static int get_field_reg(struct vpdma_data *vpdma, int offset,
->> +		u32 mask, int shift)
->
-> I would call this read_field_reg().
->
->> +{
->> +	return get_field(read_reg(vpdma, offset), mask, shift);
->> +}
->> +
->> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
->> +{
->> +	u32 val = *valp;
->> +
->> +	val &= ~(mask << shift);
->> +	val |= (field & mask) << shift;
->> +	*valp = val;
->> +}
->
-> get_field() and insert_field() are used in a single location, you can manually
-> inline them.
+Em Thu, 29 Aug 2013 10:11:56 +0100
+Sean Young <sean@mess.org> escreveu:
 
-Thanks, I'll make these modifications.
+> On Wed, Aug 28, 2013 at 04:33:50PM +0100, Srinivas KANDAGATLA wrote:
+> > From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> > 
+> > This patch adds support to ST RC driver, which is basically a IR/UHF
+> > receiver and transmitter. This IP (IRB) is common across all the ST
+> > parts for settop box platforms. IRB is embedded in ST COMMS IP block.
+> > It supports both Rx & Tx functionality.
+> > 
+> > In this driver adds only Rx functionality via LIRC codec.
+> > 
+> > Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> > ---
+> > Hi Chehab,
+> > 
+> > This is a very simple rc driver for IRB controller found in STi ARM CA9 SOCs.
+> > STi ARM SOC support went in 3.11 recently.
+> > This driver is a raw driver which feeds data to lirc codec for the user lircd
+> > to decode the keys.
+> > 
+> > This patch is based on git://linuxtv.org/media_tree.git master branch.
+> > 
+> > Changes since v1:
+> > 	- Device tree bindings cleaned up as suggested by Mark and Pawel
+> > 	- use ir_raw_event_reset under overflow conditions as suggested by Sean.
+> > 	- call ir_raw_event_handle in interrupt handler as suggested by Sean.
+> > 	- correct allowed_protos flag with RC_BIT_ types as suggested by Sean.
+> > 	- timeout and rx resolution added as suggested by Sean.
+> 
+> Acked-by: Sean Young <sean@mess.org>
+> 
+> Note minor nitpicks below.
+> > 
+> > Thanks,
+> > srini
+> > 
+> >  Documentation/devicetree/bindings/media/st-rc.txt |   24 ++
+> >  drivers/media/rc/Kconfig                          |   10 +
+> >  drivers/media/rc/Makefile                         |    1 +
+> >  drivers/media/rc/st_rc.c                          |  392 +++++++++++++++++++++
+> >  4 files changed, 427 insertions(+), 0 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
+> >  create mode 100644 drivers/media/rc/st_rc.c
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/st-rc.txt b/Documentation/devicetree/bindings/media/st-rc.txt
+> > new file mode 100644
+> > index 0000000..20fe264
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/st-rc.txt
+> > @@ -0,0 +1,24 @@
+> > +Device-Tree bindings for ST IRB IP
+> > +
+> > +Required properties:
+> > +	- compatible: should be "st,comms-irb".
+> > +	- reg: base physical address of the controller and length of memory
+> > +	mapped  region.
+> > +	- interrupts: interrupt number to the cpu. The interrupt specifier
+> > +	format depends on the interrupt controller parent.
+> > +
+> > +Optional properties:
+> > +	- rx-mode: can be "infrared" or "uhf".
+> > +	- tx-mode: should be "infrared".
+> > +	- pinctrl-names, pinctrl-0: the pincontrol settings to configure
+> > +	muxing properly for IRB pins.
+> > +	- clocks : phandle of clock.
+> > +
+> > +Example node:
+> > +
+> > +	rc: rc@fe518000 {
+> > +		compatible	= "st,comms-irb";
+> > +		reg		= <0xfe518000 0x234>;
+> > +		interrupts	=  <0 203 0>;
+> > +		rx-mode		= "infrared";
+> > +	};
+> > diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> > index 11e84bc..bf301ed 100644
+> > --- a/drivers/media/rc/Kconfig
+> > +++ b/drivers/media/rc/Kconfig
+> > @@ -322,4 +322,14 @@ config IR_GPIO_CIR
+> >  	   To compile this driver as a module, choose M here: the module will
+> >  	   be called gpio-ir-recv.
+> >  
+> > +config RC_ST
+> > +	tristate "ST remote control receiver"
+> > +	depends on ARCH_STI && LIRC && OF
+> 
+> Minor nitpick, this should not depend on LIRC, it depends on RC_CORE.
+> 
+> > +	help
+> > +	 Say Y here if you want support for ST remote control driver
+> > +	 which allows both IR and UHF RX.
+> > +	 The driver passes raw pluse and space information to the LIRC decoder.
+> > +
+> > +	 If you're not sure, select N here.
+> > +
+> >  endif #RC_DEVICES
+> > diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+> > index 56bacf0..f4eb32c 100644
+> > --- a/drivers/media/rc/Makefile
+> > +++ b/drivers/media/rc/Makefile
+> > @@ -30,3 +30,4 @@ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+> >  obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+> >  obj-$(CONFIG_IR_IGUANA) += iguanair.o
+> >  obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
+> > +obj-$(CONFIG_RC_ST) += st_rc.o
+> > diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+> > new file mode 100644
+> > index 0000000..5caa6c5
+> > --- /dev/null
+> > +++ b/drivers/media/rc/st_rc.c
+> > @@ -0,0 +1,392 @@
+> > +/*
+> > + * Copyright (C) 2013 STMicroelectronics Limited
+> > + * Author: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License as published by
+> > + * the Free Software Foundation; either version 2 of the License, or
+> > + * (at your option) any later version.
+> > + */
+> > +#include <linux/kernel.h>
+> > +#include <linux/clk.h>
+> > +#include <linux/interrupt.h>
+> > +#include <linux/module.h>
+> > +#include <linux/of.h>
+> > +#include <linux/platform_device.h>
+> > +#include <media/rc-core.h>
+> > +#include <linux/pinctrl/consumer.h>
+> > +
+> > +struct st_rc_device {
+> > +	struct device			*dev;
+> > +	int				irq;
+> > +	int				irq_wake;
+> > +	struct clk			*sys_clock;
+> > +	void				*base;	/* Register base address */
+> > +	void				*rx_base;/* RX Register base address */
+> > +	struct rc_dev			*rdev;
+> > +	bool				overclocking;
+> > +	int				sample_mult;
+> > +	int				sample_div;
+> > +	bool				rxuhfmode;
+> > +};
+> > +
+> > +/* Registers */
+> > +#define IRB_SAMPLE_RATE_COMM	0x64	/* sample freq divisor*/
+> > +#define IRB_CLOCK_SEL		0x70	/* clock select       */
+> > +#define IRB_CLOCK_SEL_STATUS	0x74	/* clock status       */
+> > +/* IRB IR/UHF receiver registers */
+> > +#define IRB_RX_ON               0x40	/* pulse time capture */
+> > +#define IRB_RX_SYS              0X44	/* sym period capture */
+> > +#define IRB_RX_INT_EN           0x48	/* IRQ enable (R/W)   */
+> > +#define IRB_RX_INT_STATUS       0x4C	/* IRQ status (R/W)   */
+> > +#define IRB_RX_EN               0x50	/* Receive enablei    */
+> > +#define IRB_MAX_SYM_PERIOD      0x54	/* max sym value      */
+> > +#define IRB_RX_INT_CLEAR        0x58	/* overrun status     */
+> > +#define IRB_RX_STATUS           0x6C	/* receive status     */
+> > +#define IRB_RX_NOISE_SUPPR      0x5C	/* noise suppression  */
+> > +#define IRB_RX_POLARITY_INV     0x68	/* polarity inverter  */
+> > +
+> > +/**
+> > + * IRQ set: Enable full FIFO                 1  -> bit  3;
+> > + *          Enable overrun IRQ               1  -> bit  2;
+> > + *          Enable last symbol IRQ           1  -> bit  1:
+> > + *          Enable RX interrupt              1  -> bit  0;
+> > + */
+> > +#define IRB_RX_INTS		0x0f
+> > +#define IRB_RX_OVERRUN_INT	0x04
+> > + /* maximum symbol period (microsecs),timeout to detect end of symbol train */
+> > +#define MAX_SYMB_TIME		0x5000
+> > +#define IRB_SAMPLE_FREQ		10000000
+> > +#define	IRB_FIFO_NOT_EMPTY	0xff00
+> > +#define IRB_OVERFLOW		0x4
+> > +#define IRB_TIMEOUT		0xffff
+> > +#define IR_ST_NAME "st-rc"
+> > +
+> > +static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
+> > +{
+> > +	DEFINE_IR_RAW_EVENT(ev);
+> > +	ev.timeout = true;
+> > +	ir_raw_event_store(rdev, &ev);
+> > +}
+> > +
+> > +/**
+> > + * RX graphical example to better understand the difference between ST IR block
+> > + * output and standard definition used by LIRC (and most of the world!)
+> > + *
+> > + *           mark                                     mark
+> > + *      |-IRB_RX_ON-|                            |-IRB_RX_ON-|
+> > + *      ___  ___  ___                            ___  ___  ___             _
+> > + *      | |  | |  | |                            | |  | |  | |             |
+> > + *      | |  | |  | |         space 0            | |  | |  | |   space 1   |
+> > + * _____| |__| |__| |____________________________| |__| |__| |_____________|
+> > + *
+> > + *      |--------------- IRB_RX_SYS -------------|------ IRB_RX_SYS -------|
+> > + *
+> > + *      |------------- encoding bit 0 -----------|---- encoding bit 1 -----|
+> > + *
+> > + * ST hardware returns mark (IRB_RX_ON) and total symbol time (IRB_RX_SYS), so
+> > + * convert to standard mark/space we have to calculate space=(IRB_RX_SYS-mark)
+> > + * The mark time represents the amount of time the carrier (usually 36-40kHz)
+> > + * is detected.The above examples shows Pulse Width Modulation encoding where
+> > + * bit 0 is represented by space>mark.
+> > + */
+> > +
+> > +static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+> > +{
+> > +	unsigned int symbol, mark = 0;
+> > +	struct st_rc_device *dev = data;
+> > +	int last_symbol = 0;
+> > +	u32 status;
+> > +	DEFINE_IR_RAW_EVENT(ev);
+> > +
+> > +	if (dev->irq_wake)
+> > +		pm_wakeup_event(dev->dev, 0);
+> > +
+> > +	status  = readl(dev->rx_base + IRB_RX_STATUS);
+> > +
+> > +	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+> > +		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+> > +		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+> > +			/* discard the entire collection in case of errors!  */
+> > +			ir_raw_event_reset(dev->rdev);
+> > +			dev_info(dev->dev, "IR RX overrun\n");
+> > +			writel(IRB_RX_OVERRUN_INT,
+> > +					dev->rx_base + IRB_RX_INT_CLEAR);
+> > +			continue;
+> > +		}
+> > +
+> > +		symbol = readl(dev->rx_base + IRB_RX_SYS);
+> > +		mark = readl(dev->rx_base + IRB_RX_ON);
+> > +
+> > +		if (symbol == IRB_TIMEOUT)
+> > +			last_symbol = 1;
+> > +
+> > +		 /* Ignore any noise */
+> > +		if ((mark > 2) && (symbol > 1)) {
+> > +			symbol -= mark;
+> > +			if (dev->overclocking) { /* adjustments to timings */
+> > +				symbol *= dev->sample_mult;
+> > +				symbol /= dev->sample_div;
+> > +				mark *= dev->sample_mult;
+> > +				mark /= dev->sample_div;
+> > +			}
+> > +
+> > +			ev.duration = US_TO_NS(mark);
+> > +			ev.pulse = true;
+> > +			ir_raw_event_store(dev->rdev, &ev);
+> > +
+> > +			if (!last_symbol) {
+> > +				ev.duration = US_TO_NS(symbol);
+> > +				ev.pulse = false;
+> > +				ir_raw_event_store(dev->rdev, &ev);
+> > +			} else  {
+> > +				st_rc_send_lirc_timeout(dev->rdev);
+> > +			}
+> > +
+> > +		}
+> > +		last_symbol = 0;
+> > +		status  = readl(dev->rx_base + IRB_RX_STATUS);
+> > +	}
+> > +
+> > +	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
+> > +
+> > +	/* Empty software fifo */
+> > +	ir_raw_event_handle(dev->rdev);
+> > +	return IRQ_HANDLED;
+> > +}
+> > +
+> > +static void st_rc_hardware_init(struct st_rc_device *dev)
+> > +{
+> > +	int baseclock, freqdiff;
+> > +	unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
+> > +	unsigned int rx_sampling_freq_div;
+> > +
+> > +	clk_prepare_enable(dev->sys_clock);
+> > +	baseclock = clk_get_rate(dev->sys_clock);
+> > +
+> > +	/* IRB input pins are inverted internally from high to low. */
+> > +	writel(1, dev->rx_base + IRB_RX_POLARITY_INV);
+> > +
+> > +	rx_sampling_freq_div = baseclock / IRB_SAMPLE_FREQ;
+> > +	writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
+> > +
+> > +	freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
+> > +	if (freqdiff) { /* over clocking, workout the adjustment factors */
+> > +		dev->overclocking = true;
+> > +		dev->sample_mult = 1000;
+> > +		dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
+> > +		rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
+> > +	}
+> > +
+> > +	writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
+> > +}
+> > +
+> > +static int st_rc_remove(struct platform_device *pdev)
+> > +{
+> > +	struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
+> > +	clk_disable_unprepare(rc_dev->sys_clock);
+> > +	rc_unregister_device(rc_dev->rdev);
+> > +	return 0;
+> > +}
+> > +
+> > +static int st_rc_open(struct rc_dev *rdev)
+> > +{
+> > +	struct st_rc_device *dev = rdev->priv;
+> > +	unsigned long flags;
+> > +	local_irq_save(flags);
+> > +	/* enable interrupts and receiver */
+> > +	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_EN);
+> > +	writel(0x01, dev->rx_base + IRB_RX_EN);
+> > +	local_irq_restore(flags);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static void st_rc_close(struct rc_dev *rdev)
+> > +{
+> > +	struct st_rc_device *dev = rdev->priv;
+> > +	/* disable interrupts and receiver */
+> > +	writel(0x00, dev->rx_base + IRB_RX_EN);
+> > +	writel(0x00, dev->rx_base + IRB_RX_INT_EN);
+> > +}
+> > +
+> > +static int st_rc_probe(struct platform_device *pdev)
+> > +{
+> > +	int ret = -EINVAL;
+> > +	struct rc_dev *rdev;
+> > +	struct device *dev = &pdev->dev;
+> > +	struct resource *res;
+> > +	struct st_rc_device *rc_dev;
+> > +	struct device_node *np = pdev->dev.of_node;
+> > +	const char *rx_mode;
+> > +
+> > +	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
+> > +	rdev = rc_allocate_device();
+> > +
+> > +	if (!rc_dev || !rdev)
+> > +		return -ENOMEM;
+> 
+> If one fails and the other succeeds you have a leak.
+> 
+> > +
+> > +	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
+> > +
+> > +		if (!strcmp(rx_mode, "uhf")) {
+> > +			rc_dev->rxuhfmode = true;
+> > +		} else if (!strcmp(rx_mode, "infrared")) {
+> > +			rc_dev->rxuhfmode = false;
+> > +		} else {
+> > +			dev_err(dev, "Unsupported rx mode [%s]\n", rx_mode);
+> > +			goto err;
+> > +		}
+> > +
+> > +	} else {
+> > +		goto err;
+> > +	}
+> > +
+> > +	rc_dev->sys_clock = devm_clk_get(dev, NULL);
+> > +	if (IS_ERR(rc_dev->sys_clock)) {
+> > +		dev_err(dev, "System clock not found\n");
+> > +		ret = PTR_ERR(rc_dev->sys_clock);
+> > +		goto err;
+> > +	}
+> > +
+> > +	rc_dev->irq = platform_get_irq(pdev, 0);
+> > +	if (rc_dev->irq < 0) {
+> > +		ret = rc_dev->irq;
+> > +		goto clkerr;
+> > +	}
+> > +
+> > +	ret = -ENODEV;
+> > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	if (!res)
+> > +		goto clkerr;
+> > +
+> > +	rc_dev->base = devm_ioremap_resource(dev, res);
+> > +	if (IS_ERR(rc_dev->base))
+> > +		goto clkerr;
+> > +
+> > +	if (rc_dev->rxuhfmode)
+> > +		rc_dev->rx_base = rc_dev->base + 0x40;
+> > +	else
+> > +		rc_dev->rx_base = rc_dev->base;
+> > +
+> > +	rc_dev->dev = dev;
+> > +	platform_set_drvdata(pdev, rc_dev);
+> > +	st_rc_hardware_init(rc_dev);
+> > +
+> > +	rdev->driver_type = RC_DRIVER_IR_RAW;
+> > +	rdev->allowed_protos = RC_BIT_ALL;
+> > +	/* rx sampling rate is 10Mhz */
+> > +	rdev->rx_resolution = 100;
+> > +	rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
+> > +	rdev->priv = rc_dev;
+> > +	rdev->open = st_rc_open;
+> > +	rdev->close = st_rc_close;
+> > +	rdev->driver_name = IR_ST_NAME;
+> > +	rdev->map_name = RC_MAP_LIRC;
+> > +	rdev->input_name = "ST Remote Control Receiver";
+> > +
+> > +	/* enable wake via this device */
+> > +	device_set_wakeup_capable(dev, true);
+> > +	device_set_wakeup_enable(dev, true);
+> > +
+> > +	ret = rc_register_device(rdev);
+> > +	if (ret < 0)
+> > +		goto clkerr;
+> > +
+> > +	rc_dev->rdev = rdev;
+> > +	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
+> > +			IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
+> > +		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
+> > +		ret = -EINVAL;
+> > +		goto rcerr;
+> > +	}
+> > +
+> > +	/**
+> > +	 * for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
+> > +	 * lircd expects a long space first before a signal train to sync.
+> > +	 */
+> > +	st_rc_send_lirc_timeout(rdev);
+> > +
+> > +	dev_info(dev, "setup in %s mode\n", rc_dev->rxuhfmode ? "UHF" : "IR");
+> > +
+> > +	return ret;
+> > +rcerr:
+> > +	rc_unregister_device(rdev);
+> > +	rdev = NULL;
+> > +clkerr:
+> > +	clk_disable_unprepare(rc_dev->sys_clock);
+> > +err:
+> > +	rc_free_device(rdev);
+> > +	dev_err(dev, "Unable to register device (%d)\n", ret);
+> > +	return ret;
+> > +}
+> > +
+> > +#ifdef CONFIG_PM
+> > +static int st_rc_suspend(struct device *dev)
+> > +{
+> > +	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
+> > +
+> > +	if (device_may_wakeup(dev)) {
+> > +		if (!enable_irq_wake(rc_dev->irq))
+> > +			rc_dev->irq_wake = 1;
+> > +		else
+> > +			return -EINVAL;
+> > +	} else {
+> > +		pinctrl_pm_select_sleep_state(dev);
+> > +		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
+> > +		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
+> > +		clk_disable_unprepare(rc_dev->sys_clock);
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int st_rc_resume(struct device *dev)
+> > +{
+> > +	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
+> > +	struct rc_dev	*rdev = rc_dev->rdev;
+> > +
+> > +	if (rc_dev->irq_wake) {
+> > +		disable_irq_wake(rc_dev->irq);
+> > +		rc_dev->irq_wake = 0;
+> > +	} else {
+> > +		pinctrl_pm_select_default_state(dev);
+> > +		st_rc_hardware_init(rc_dev);
+> > +		if (rdev->users) {
+> > +			writel(IRB_RX_INTS, rc_dev->rx_base + IRB_RX_INT_EN);
+> > +			writel(0x01, rc_dev->rx_base + IRB_RX_EN);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
+> > +#endif
+> > +
+> > +#ifdef CONFIG_OF
+> 
+> Since this depends on OF it will always be defined.
 
->
->> +static void insert_field_reg(struct vpdma_data *vpdma, int offset, u32
->> field,
->> +		u32 mask, int shift)
->> +{
->> +	u32 val = read_reg(vpdma, offset);
->> +
->> +	insert_field(&val, field, mask, shift);
->> +
->> +	write_reg(vpdma, offset, val);
->> +}
->
-> [snip]
->
->> +/*
->> + * Allocate a DMA buffer
->> + */
->> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
->> +{
->> +	buf->size = size;
->> +	buf->mapped = 0;
->> +	buf->addr = kzalloc(size, GFP_KERNEL);
->
-> You should use the dma allocation API (depending on your needs,
-> dma_alloc_coherent for instance) to allocate DMA-able buffers.
+It is probably good to keep this and to remove the OF dependency at
+Kconfig, allowing this driver to be compiled and used without OF,
+it this could make sense on some setup.
 
-I'm not sure about this, dma_map_single() api works fine on kzalloc'd 
-buffers. The above function is used to allocate small contiguous 
-buffers(never more than 1024 bytes) needed for descriptors for the DMA 
-IP. I thought of using DMA pool, but that creates small buffers of the 
-same size. So I finally went with kzalloc.
+> 
+> > +static struct of_device_id st_rc_match[] = {
+> > +	{ .compatible = "st,comms-irb", },
+> > +	{},
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(of, st_rc_match);
+> > +#endif
+> > +
+> > +static struct platform_driver st_rc_driver = {
+> > +	.driver = {
+> > +		.name = IR_ST_NAME,
+> > +		.owner	= THIS_MODULE,
+> > +		.of_match_table = of_match_ptr(st_rc_match),
+> > +#ifdef CONFIG_PM
+> > +		.pm     = &st_rc_pm_ops,
+> > +#endif
+> > +	},
+> > +	.probe = st_rc_probe,
+> > +	.remove = st_rc_remove,
+> > +};
+> > +
+> > +module_platform_driver(st_rc_driver);
+> > +
+> > +MODULE_DESCRIPTION("RC Transceiver driver for STMicroelectronics platforms");
+> > +MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
+> > +MODULE_LICENSE("GPL");
+> > -- 
+> > 1.7.6.5
 
->
->> +	if (!buf->addr)
->> +		return -ENOMEM;
->> +
->> +	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
->> +
->> +	return 0;
->> +}
->> +
->> +void vpdma_buf_free(struct vpdma_buf *buf)
->> +{
->> +	WARN_ON(buf->mapped != 0);
->> +	kfree(buf->addr);
->> +	buf->addr = NULL;
->> +	buf->size = 0;
->> +}
->> +
->> +/*
->> + * map a DMA buffer, enabling DMA access
->> + */
->> +void vpdma_buf_map(struct vpdma_data *vpdma, struct vpdma_buf *buf)
->> +{
->> +	struct device *dev = &vpdma->pdev->dev;
->> +
->> +	WARN_ON(buf->mapped != 0);
->> +	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
->> +				DMA_TO_DEVICE);
->> +	buf->mapped = 1;
->> +	BUG_ON(dma_mapping_error(dev, buf->dma_addr));
->
-> BUG_ON() is too harsh, you should return a proper error instead.
+Except for the few points that Sean commented, the patch seems ok on my eyes.
 
-Right, I'll fix this.
-
->
->> +}
->> +
->> +/*
->> + * unmap a DMA buffer, disabling DMA access and
->> + * allowing the main processor to acces the data
->> + */
->> +void vpdma_buf_unmap(struct vpdma_data *vpdma, struct vpdma_buf *buf)
->> +{
->> +	struct device *dev = &vpdma->pdev->dev;
->> +
->> +	if (buf->mapped)
->> +		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
->> +
->> +	buf->mapped = 0;
->> +}
->> +
->> +/*
->> + * create a descriptor list, the user of this list will append
->> configuration,
->> + * contorl and data descriptors to this list, this list will be submitted
->
-> s/contorl/control/
->
->> to
->> + * VPDMA. VPDMA's list parser will go through each descriptor and perform
->> + * the required DMA operations
->> + */
->> +int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int
->> type)
->> +{
->> +	int r;
->> +
->> +	r = vpdma_buf_alloc(&list->buf, size);
->> +	if (r)
->> +		return r;
->> +
->> +	list->next = list->buf.addr;
->> +
->> +	list->type = type;
->> +
->> +	return 0;
->> +}
->> +
->> +/*
->> + * once a descriptor list is parsed by VPDMA, we reset the list by emptying
->> it,
->> + * to allow new descriptors to be added to the list.
->> + */
->> +void vpdma_reset_desc_list(struct vpdma_desc_list *list)
->> +{
->> +	list->next = list->buf.addr;
->> +}
->> +
->> +/*
->> + * free the buffer allocated fot the VPDMA descriptor list, this should be
->> + * called when the user doesn't want to use VPDMA any more.
->> + */
->> +void vpdma_free_desc_list(struct vpdma_desc_list *list)
->> +{
->> +	vpdma_buf_free(&list->buf);
->> +
->> +	list->next = NULL;
->> +}
->> +
->> +static int vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
->
-> Should the function return a bool instead of an int ?
-
-Yes, a bool would be better here.
->
->> +{
->> +	u32 sync_reg = read_reg(vpdma, VPDMA_LIST_STAT_SYNC);
->> +
->> +	return (sync_reg >> (list_num + 16)) & 0x01;
->
-> You could shorten that as
->
-> 	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
-
-yes, that does look better, I'll modify it.
-
->
->> +}
->> +
->> +/*
->> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for
->> completion
->> + */
->> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list
->> *list)
->> +{
->> +	/* we always use the first list */
->> +	int list_num = 0;
->> +	int list_size;
->> +
->> +	if (vpdma_list_busy(vpdma, list_num))
->> +		return -EBUSY;
->> +
->> +	/* 16-byte granularity */
->> +	list_size = (list->next - list->buf.addr) >> 4;
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
->> +	wmb();
->> +	write_reg(vpdma, VPDMA_LIST_ATTR,
->> +			(list_num << VPDMA_LIST_NUM_SHFT) |
->> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
->> +			list_size);
->> +
->> +	return 0;
->> +}
->> +
->> +/* set or clear the mask for list complete interrupt */
->> +void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
->> +		bool enable)
->> +{
->> +	u32 val;
->> +
->> +	val = read_reg(vpdma, VPDMA_INT_LIST0_MASK);
->> +	if (enable)
->> +		val |= (1 << (list_num * 2));
->> +	else
->> +		val &= ~(1 << (list_num * 2));
->> +	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
->> +}
->> +
->> +/* clear previosuly occured list intterupts in the LIST_STAT register */
->> +void vpdma_clear_list_stat(struct vpdma_data *vpdma)
->> +{
->> +	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
->> +		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
->> +}
->> +
->> +/*
->> + * configures the output mode of the line buffer for the given client, the
->> + * line buffer content can either be mirrored(each line repeated twice) or
->> + * passed to the client as is
->> + */
->> +void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
->> +		enum vpdma_channel chan)
->> +{
->> +	int client_cstat = chan_info[chan].cstat_offset;
->> +
->> +	insert_field_reg(vpdma, client_cstat, line_mode,
->> +		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
->> +}
->> +
->> +/*
->> + * configures the event which should trigger VPDMA transfer for the given
->> + * client
->> + */
->> +void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
->> +		enum vpdma_frame_start_event fs_event,
->> +		enum vpdma_channel chan)
->> +{
->> +	int client_cstat = chan_info[chan].cstat_offset;
->> +
->> +	insert_field_reg(vpdma, client_cstat, fs_event,
->> +		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
->> +}
->> +
->> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
->> +{
->> +	struct vpdma_data *vpdma = context;
->> +	struct vpdma_buf fw_dma_buf;
->> +	int i, r;
->> +
->> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
->> +
->> +	if (!f || !f->data) {
->> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
->> +		return;
->> +	}
->> +
->> +	/* already initialized */
->> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
->> +			VPDMA_LIST_RDY_SHFT)) {
->> +		vpdma->ready = true;
->> +		return;
->> +	}
->> +
->> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
->> +	if (r) {
->> +		dev_err(&vpdma->pdev->dev,
->> +			"failed to allocate dma buffer for firmware\n");
->> +		goto rel_fw;
->> +	}
->> +
->> +	memcpy(fw_dma_buf.addr, f->data, f->size);
->> +
->> +	vpdma_buf_map(vpdma, &fw_dma_buf);
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
->> +
->> +	for (i = 0; i < 100; i++) {		/* max 1 second */
->> +		msleep_interruptible(10);
->> +
->> +		if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
->> +				VPDMA_LIST_RDY_SHFT))
->> +			break;
->> +	}
->> +
->> +	if (i == 100) {
->> +		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
->> +		goto free_buf;
->> +	}
->> +
->> +	vpdma->ready = true;
->> +
->> +free_buf:
->> +	vpdma_buf_unmap(vpdma, &fw_dma_buf);
->> +
->> +	vpdma_buf_free(&fw_dma_buf);
->> +rel_fw:
->> +	release_firmware(f);
->> +}
->> +
->> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
->> +{
->> +	int r;
->> +	struct device *dev = &vpdma->pdev->dev;
->> +
->> +	r = request_firmware_nowait(THIS_MODULE, 1,
->> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
->> +		vpdma_firmware_cb);
->
-> Is there a reason not to use the synchronous interface ? That would simplify
-> both this code and the callers, as they won't have to check whether the
-> firmware has been correctly loaded.
-
-I'm not clear what you mean by that, the firmware would be stored in the 
-filesystem. If the driver is built-in, then the synchronous interface 
-wouldn't work unless the firmware is appended to the kernel image. Am I 
-missing something here? I'm not very aware of the firmware api.
-
-
->> +	if (r) {
->> +		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
->> +		return r;
->> +	} else {
->> +		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +int vpdma_init(struct platform_device *pdev, struct vpdma_data **pvpdma)
->
-> As the function allocates the vpdma instance, I would call it vpdma_create()
-> and make it turn a struct vpdma_data *. You can then return error codes using
-> ERR_PTR().
-
-Yes, that makes quite more sense. I'll use your approach.
-
->
->> +{
->> +	struct resource *res;
->> +	struct vpdma_data *vpdma;
->> +	int r;
->> +
->> +	dev_dbg(&pdev->dev, "vpdma_init\n");
->> +
->> +	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
->> +	if (!vpdma) {
->> +		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	vpdma->pdev = pdev;
->> +
->> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
->> +	if (res == NULL) {
->> +		dev_err(&pdev->dev, "missing platform resources data\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
->
-> You can use devm_ioremap_resource(). The function checks the res pointer and
-> prints error messages, so you can remove the res == NULL check above and the
-> dev_err() below.
-
-Ah nice, I'll use that one.
-
-Thanks a lot for the comments!
-
-Archit
-
+Regards,
+Mauro
