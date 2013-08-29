@@ -1,72 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44683 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932446Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 14:53:18 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 00/16 STAGING] Mirics MSi3101 SDR Dongle driver
-Date: Wed,  7 Aug 2013 21:51:31 +0300
-Message-Id: <1375901507-26661-1-git-send-email-crope@iki.fi>
+Received: from userp1040.oracle.com ([156.151.31.81]:18794 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753331Ab3H2IXr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 04:23:47 -0400
+Date: Thu, 29 Aug 2013 11:23:36 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch v2] [media] mx3-camera: locking cleanup in
+ mx3_videobuf_queue()
+Message-ID: <20130829082336.GA14334@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1308280947190.22743@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is driver for MSi3101 USB SDR designed by Mirics. I will pull-request
-that soon for the Kernel 3.12 staging. It is not ready for mainline as
-there is multiple issues. Biggest issues are; missing API controls and
-stream format conversions should be implemented by libv4l2.
+Smatch complains about the locking here because we mix spin_lock_irq()
+with spin_lock_irqsave() in an unusual way.  According to Smatch, it's
+not always clear if the IRQs are enabled or disabled when we return.  It
+turns out this function is always called with IRQs enabled and we can
+just use spin_lock_irq().
 
-That driver is MSi3101 design, which consists of two chips: 1) USB ADC
-called MSi2500 and RF-tuner called MSi001. So I will split that to the
-two parts later...
+It's called from __enqueue_in_driver().
 
-USB ADC is a state of the art in the reverse-engineering as I was not
-able to get documentation or other needed info, gah :-( Anyhow, it was
-quite interesting as a point of learn the first USB ADC I have seen.
-Biggest challenge was to discover how to calculate ADC sampling rate.
-It was a typical Fractional-N PLL as all these are nowadays. First I
-calculated sampling rates by the driver, after that brute forced PLL
-registers with a different values and look what kind of data rate it is
-outputting :) Nice trick - but took a lot of time.
-Re-engineering such USB ADC is still a little bit easier than typical
-DTV demodulator in my experience.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: The first version changed everything to irq_save/restore() but that
+    wasn't right because we wanted IRQs enabled and not simply restored.
 
-Another, not so hard, issue to mention was understand different stream
-formats. Chip seems to offer multiple formats, best one I found seems to
-offer even 14-bit resolution.
-
-Special thanks to University Oulu HAM club, Oulun Teekkarien Radiokerho,
-OH8TA, for the support I received. You rule!
-
-Antti Palosaari (16):
-  Mirics MSi3101 SDR Dongle driver
-  msi3101: sample is correct term for sample
-  msi3101: fix sampling rate calculation
-  msi3101: add sampling mode control
-  msi3101: enhance sampling results
-  msi3101: fix stream re-start halt
-  msi3101: add 2040:d300 Hauppauge WinTV 133559 LF
-  msi3101: add debug dump for unknown stream data
-  msi3101: correct ADC sampling rate calc a little
-  msi3101: improve tuner synth calc step size
-  msi3101: add support for stream format "252" I+Q per frame
-  msi3101: init bits 23:20 on PLL register
-  msi3101: fix overflow in freq setting
-  msi3101: add stream format 336 I+Q pairs per frame
-  msi3101: changes for tuner PLL freq limits
-  msi3101: a lot of small cleanups
-
- drivers/staging/media/Kconfig               |    2 +
- drivers/staging/media/Makefile              |    1 +
- drivers/staging/media/msi3101/Kconfig       |    3 +
- drivers/staging/media/msi3101/Makefile      |    1 +
- drivers/staging/media/msi3101/sdr-msi3101.c | 1822 +++++++++++++++++++++++++++
- 5 files changed, 1829 insertions(+)
- create mode 100644 drivers/staging/media/msi3101/Kconfig
- create mode 100644 drivers/staging/media/msi3101/Makefile
- create mode 100644 drivers/staging/media/msi3101/sdr-msi3101.c
-
--- 
-1.7.11.7
-
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 1047e3e..18eab8e 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -266,7 +266,6 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+ 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
+ 	struct idmac_video_param *video = &ichan->params.video;
+ 	const struct soc_mbus_pixelfmt *host_fmt = icd->current_fmt->host_fmt;
+-	unsigned long flags;
+ 	dma_cookie_t cookie;
+ 	size_t new_size;
+ 
+@@ -328,7 +327,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+ 		memset(vb2_plane_vaddr(vb, 0), 0xaa, vb2_get_plane_payload(vb, 0));
+ #endif
+ 
+-	spin_lock_irqsave(&mx3_cam->lock, flags);
++	spin_lock_irq(&mx3_cam->lock);
+ 	list_add_tail(&buf->queue, &mx3_cam->capture);
+ 
+ 	if (!mx3_cam->active)
+@@ -351,7 +350,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+ 	if (mx3_cam->active == buf)
+ 		mx3_cam->active = NULL;
+ 
+-	spin_unlock_irqrestore(&mx3_cam->lock, flags);
++	spin_unlock_irq(&mx3_cam->lock);
+ error:
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ }
