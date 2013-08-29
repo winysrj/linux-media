@@ -1,143 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:33948 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188Ab3HVWjw (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2414 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755529Ab3H2Czj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 18:39:52 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
-Date: Fri, 23 Aug 2013 00:39:44 +0200
-Message-ID: <9243520.EzMBhpL3jX@flatron>
-In-Reply-To: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
-References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 28 Aug 2013 22:55:39 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7T2tYJ1095210
+	for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 04:55:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 24E602A0761
+	for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 04:55:22 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130829025522.24E602A0761@tschai.lan>
+Date: Thu, 29 Aug 2013 04:55:22 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Please see some minor comments inline.
+Results of the daily build of media_tree:
 
-On Wednesday 21 of August 2013 16:41:31 Andrzej Hajda wrote:
-> Driver for Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor
-> with embedded SoC ISP.
-> The driver exposes the sensor as two V4L2 subdevices:
-> - S5K5BAF-CIS - pure CMOS Image Sensor, fixed 1600x1200 format,
->   no controls.
-> - S5K5BAF-ISP - Image Signal Processor, formats up to 1600x1200,
->   pre/post ISP cropping, downscaling via selection API, controls.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Hi,
-> 
-> This patch incorporates Stephen's suggestions, thanks.
-> 
-> Regards
-> Andrzej
-> 
-> v7
-> - changed description of 'clock-frequency' DT property
-> 
-> v6
-> - endpoint node presence is now optional,
-> - added asynchronous subdev registration support and clock
->   handling,
-> - use named gpios in DT bindings
-> 
-> v5
-> - removed hflip/vflip device tree properties
-> 
-> v4
-> - GPL changed to GPLv2,
-> - bitfields replaced by u8,
-> - cosmetic changes,
-> - corrected s_stream flow,
-> - gpio pins are no longer exported,
-> - added I2C addresses to subdev names,
-> - CIS subdev registration postponed after
->   succesfull HW initialization,
-> - added enums for pads,
-> - selections are initialized only during probe,
-> - default resolution changed to 1600x1200,
-> - state->error pattern removed from few other functions,
-> - entity link creation moved to registered callback.
-> 
-> v3:
-> - narrowed state->error usage to i2c and power errors,
-> - private gain controls replaced by red/blue balance user controls,
-> - added checks to devicetree gpio node parsing
-> 
-> v2:
-> - lower-cased driver name,
-> - removed underscore from regulator names,
-> - removed platform data code,
-> - v4l controls grouped in anonymous structs,
-> - added s5k5baf_clear_error function,
-> - private controls definitions moved to uapi header file,
-> - added v4l2-controls.h reservation for private controls,
-> - corrected subdev registered/unregistered code,
-> - .log_status sudbev op set to v4l2 helper,
-> - moved entity link creation to probe routines,
-> - added cleanup on error to probe function.
-> ---
->  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   59 +
->  MAINTAINERS                                        |    7 +
->  drivers/media/i2c/Kconfig                          |    7 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/s5k5baf.c                        | 2045
-> ++++++++++++++++++++ 5 files changed, 2119 insertions(+)
->  create mode 100644
-> Documentation/devicetree/bindings/media/samsung-s5k5baf.txt create mode
-> 100644 drivers/media/i2c/s5k5baf.c
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-> b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt new file
-> mode 100644
-> index 0000000..d680d99
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-> @@ -0,0 +1,59 @@
-> +Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC ISP
-> +--------------------------------------------------------------------
-> +
-> +Required properties:
-> +
-> +- compatible	  : "samsung,s5k5baf";
-> +- reg		  : I2C slave address of the sensor;
+date:		Thu Aug 29 04:00:27 CEST 2013
+git branch:	test
+git hash:	26a20eb09d44dc064c4f5d1f024bd501c09edb4b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-Can this sensor have an aribitrary slave address or only a set of well 
-known possible addresses (e.g. listed in documentation)?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> +- vdda-supply	  : analog power supply 2.8V (2.6V to 3.0V);
-> +- vddreg-supply	  : regulator input power supply 1.8V (1.7V to 
-1.9V)
-> +		    or 2.8V (2.6V to 3.0);
-> +- vddio-supply	  : I/O power supply 1.8V (1.65V to 1.95V)
-> +		    or 2.8V (2.5V to 3.1V);
-> +- stbyn-gpios	  : GPIO connected to STDBYN pin;
-> +- rstn-gpios	  : GPIO connected to RSTN pin;
+Detailed results are available here:
 
-Both GPIOs above have names suggesting that they are active low. I wonder 
-how the GPIO flags cell is interpreted here, namely the polarity bit.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Otherwise the binding looks good.
+Full logs are available here:
 
-Best regards,
-Tomasz
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
