@@ -1,353 +1,557 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog121.obsmtp.com ([207.126.144.151]:49662 "EHLO
-	eu1sys200aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753248Ab3HONL4 (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:44150 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296Ab3H2J0n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 09:11:56 -0400
-Message-ID: <520CD029.7090602@st.com>
-Date: Thu, 15 Aug 2013 13:57:13 +0100
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Reply-To: srinivas.kandagatla@st.com
-MIME-Version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Subject: Re: [PATCH] media: st-rc: Add ST remote control driver
-References: <1376501221-22416-1-git-send-email-srinivas.kandagatla@st.com> <20130815084900.GA28366@e106331-lin.cambridge.arm.com>
-In-Reply-To: <20130815084900.GA28366@e106331-lin.cambridge.arm.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 29 Aug 2013 05:26:43 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com,
+	swarren@wwwdotorg.org, pawel.moll@arm.com, rob.herring@calxeda.com,
+	galak@codeaurora.org, devicetree@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RESEND PATCH v2 1/7] V4L: s5c73m3: Add device tree support
+Date: Thu, 29 Aug 2013 11:24:32 +0200
+Message-id: <1377768278-15391-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
+References: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Mark for your comments.
+From: Andrzej Hajda <a.hajda@samsung.com>
 
-On 15/08/13 09:49, Mark Rutland wrote:
-> On Wed, Aug 14, 2013 at 06:27:01PM +0100, Srinivas KANDAGATLA wrote:
->> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
->>
->> This patch adds support to ST RC driver, which is basically a IR/UHF
->> receiver and transmitter. This IP is common across all the ST parts for
->> settop box platforms. IRB is embedded in ST COMMS IP block.
->> It supports both Rx & Tx functionality.
->>
->> In this driver adds only Rx functionality via LIRC codec.
-> 
-> Is there anything that additionally needs to be in the dt to support Tx
-> functionality?
+This patch adds the V4L2 asychronous subdev registration and
+device tree support. Common clock API is used to control the
+sensor master clock from within the subdev driver.
 
-We need an additional boolean property for TX enable.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v1:
+ - added missing ret assignment on clk_get failure,
+ - fixed error paths in probe(),
+ - changed clock name to cis_extclk as specified in the datasheet,
+ - separate properties used for the XSHUTDOWN, STANDBY GPIOs,
+ - multiple correctiond in the binding documentation (improved
+   description of data-lanes and clock-frequency properties).
+---
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   95 +++++++++
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  206 +++++++++++++++-----
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ 4 files changed, 261 insertions(+), 50 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+new file mode 100644
+index 0000000..6d6c0b6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+@@ -0,0 +1,95 @@
++Samsung S5C73M3 8Mp camera ISP
++------------------------------
++
++The S5C73M3 camera ISP supports MIPI CSI-2 and parallel (ITU-R BT.656) video
++data busses. The I2C bus is the main control bus and additionally the SPI bus
++is used, mostly for transferring the firmware to and from the device. Two
++slave device nodes corresponding to these control bus interfaces are required
++and should be placed under respective bus controller nodes.
++
++I2C slave device node
++---------------------
++
++Required properties:
++
++- compatible	    : "samsung,s5c73m3";
++- reg		    : I2C slave address of the sensor;
++- vdd-int-supply    : digital power supply (1.2V);
++- vdda-supply	    : analog power supply (1.2V);
++- vdd-reg-supply    : regulator input power supply (2.8V);
++- vddio-host-supply : host I/O power supply (1.8V to 2.8V);
++- vddio-cis-supply  : CIS I/O power supply (1.2V to 1.8V);
++- vdd-af-supply	    : lens power supply (2.8V);
++- xshutdown-gpios   : specifier of GPIO connected to the XSHUTDOWN pin;
++- standby-gpios     : specifier of GPIO connected to the STANDBY pin;
++- clocks	    : contains the sensor's CIS_EXTCLK clock specifier;
++- clock-names	    : contains "cis_extclk" entry;
++
++Optional properties:
++
++- clock-frequency   : the frequency at which the "cis_extclk" clock should be
++		      configured to operate, in Hz; if this property is not
++		      specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be used
++to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
++device node should contain one 'port' child node with an 'endpoint' subnode for
++this purpose. The data link from a raw image sensor to the S5C73M3 can be
++similarly specified, but it is optional since the S5C73M3 ISP and a raw image
++sensor are usually inseparable and form a hybrid module.
++
++Following properties are valid for the endpoint node(s):
++
++endpoint subnode
++----------------
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt. This sensor doesn't support data lane remapping
++  and physical lane indexes in subsequent elements of the array should
++  be only consecutive ascending values.
++
++SPI device node
++---------------
++
++Required properties:
++
++- compatible	    : "samsung,s5c73m3";
++
++For more details see description of the SPI busses bindings
++(../spi/spi-bus.txt) and bindings of a specific bus controller.
++
++Example:
++
++i2c@138A000000 {
++	...
++	s5c73m3@3c {
++		compatible = "samsung,s5c73m3";
++		reg = <0x3c>;
++		vdd-int-supply = <&buck9_reg>;
++		vdda-supply = <&ldo17_reg>;
++		vdd-reg-supply = <&cam_io_reg>;
++		vddio-host-supply = <&ldo18_reg>;
++		vddio-cis-supply = <&ldo9_reg>;
++		vdd-af-supply = <&cam_af_reg>;
++		clock-frequency = <24000000>;
++		clocks = <&clk 0>;
++		clock-names = "cis_extclk";
++		reset-gpios = <&gpf1 3 1>;
++		standby-gpios = <&gpm0 1 1>;
++		port {
++			s5c73m3_ep: endpoint {
++				remote-endpoint = <&csis0_ep>;
++				data-lanes = <1 2 3 4>;
++			};
++		};
++	};
++};
++
++spi@1392000 {
++	...
++	s5c73m3_spi: s5c73m3 {
++		compatible = "samsung,s5c73m3";
++		reg = <0>;
++		...
++	};
++};
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index b76ec0e..270d324 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -15,7 +15,7 @@
+  * GNU General Public License for more details.
+  */
+
+-#include <linux/sizes.h>
++#include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+ #include <linux/gpio.h>
+@@ -23,7 +23,9 @@
+ #include <linux/init.h>
+ #include <linux/media.h>
+ #include <linux/module.h>
++#include <linux/of_gpio.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/spi/spi.h>
+ #include <linux/videodev2.h>
+@@ -33,6 +35,7 @@
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/s5c73m3.h>
++#include <media/v4l2-of.h>
+
+ #include "s5c73m3.h"
+
+@@ -46,6 +49,8 @@ static int update_fw;
+ module_param(update_fw, int, 0644);
+
+ #define S5C73M3_EMBEDDED_DATA_MAXLEN	SZ_4K
++#define S5C73M3_MIPI_DATA_LANES		4
++#define S5C73M3_CLK_NAME		"cis_extclk"
+
+ static const char * const s5c73m3_supply_names[S5C73M3_MAX_SUPPLIES] = {
+ 	"vdd-int",	/* Digital Core supply (1.2V), CAM_ISP_CORE_1.2V */
+@@ -1355,9 +1360,20 @@ static int __s5c73m3_power_on(struct s5c73m3 *state)
+ 	for (i = 0; i < S5C73M3_MAX_SUPPLIES; i++) {
+ 		ret = regulator_enable(state->supplies[i].consumer);
+ 		if (ret)
+-			goto err;
++			goto err_reg_dis;
+ 	}
+
++	ret = clk_set_rate(state->clock, state->mclk_frequency);
++	if (ret < 0)
++		goto err_reg_dis;
++
++	ret = clk_prepare_enable(state->clock);
++	if (ret < 0)
++		goto err_reg_dis;
++
++	v4l2_dbg(1, s5c73m3_dbg, &state->oif_sd, "clock frequency: %ld\n",
++					clk_get_rate(state->clock));
++
+ 	s5c73m3_gpio_deassert(state, STBY);
+ 	usleep_range(100, 200);
+
+@@ -1365,7 +1381,8 @@ static int __s5c73m3_power_on(struct s5c73m3 *state)
+ 	usleep_range(50, 100);
+
+ 	return 0;
+-err:
++
++err_reg_dis:
+ 	for (--i; i >= 0; i--)
+ 		regulator_disable(state->supplies[i].consumer);
+ 	return ret;
+@@ -1380,6 +1397,9 @@ static int __s5c73m3_power_off(struct s5c73m3 *state)
+
+ 	if (s5c73m3_gpio_assert(state, STBY))
+ 		usleep_range(100, 200);
++
++	clk_disable_unprepare(state->clock);
++
+ 	state->streaming = 0;
+ 	state->isp_ready = 0;
+
+@@ -1388,6 +1408,7 @@ static int __s5c73m3_power_off(struct s5c73m3 *state)
+ 		if (ret)
+ 			goto err;
+ 	}
++
+ 	return 0;
+ err:
+ 	for (++i; i < S5C73M3_MAX_SUPPLIES; i++) {
+@@ -1404,6 +1425,7 @@ static int s5c73m3_oif_set_power(struct v4l2_subdev *sd, int on)
+ 	struct s5c73m3 *state = oif_sd_to_s5c73m3(sd);
+ 	int ret = 0;
 
 +
+ 	mutex_lock(&state->lock);
 
-Two more configurable parameters for TX sub-carrier frequency and
-duty-cycle. By default driver can set the sub carrier frequency to be
-38Khz and duty cycle as 50%.
-However I don't have strong use case to make these configurable.
+ 	if (on && !state->power) {
+@@ -1451,17 +1473,6 @@ static int s5c73m3_oif_registered(struct v4l2_subdev *sd)
+ 			S5C73M3_JPEG_PAD, &state->oif_sd.entity, OIF_JPEG_PAD,
+ 			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
 
-So, I think just one boolean property to enable tx should be Ok.
+-	mutex_lock(&state->lock);
+-	ret = __s5c73m3_power_on(state);
+-	if (ret == 0)
+-		s5c73m3_get_fw_version(state);
+-
+-	__s5c73m3_power_off(state);
+-	mutex_unlock(&state->lock);
+-
+-	v4l2_dbg(1, s5c73m3_dbg, sd, "%s: Booting %s (%d)\n",
+-		 __func__, ret ? "failed" : "succeded", ret);
+-
+ 	return ret;
+ }
 
-> 
->>
->> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
->> ---
->> Hi Chehab,
->>
->> This is a very simple rc driver for IRB controller found in STi ARM CA9 SOCs.
->> STi ARM SOC support went in 3.11 recently.
->> This driver is a raw driver which feeds data to lirc codec for the user lircd
->> to decode the keys.
->>
->> This patch is based on git://linuxtv.org/media_tree.git master branch.
->>
->> Comments?
->>
->> Thanks,
->> srini
->>
->>  Documentation/devicetree/bindings/media/st-rc.txt |   18 +
->>  drivers/media/rc/Kconfig                          |   10 +
->>  drivers/media/rc/Makefile                         |    1 +
->>  drivers/media/rc/st_rc.c                          |  371 +++++++++++++++++++++
->>  4 files changed, 400 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
->>  create mode 100644 drivers/media/rc/st_rc.c
->>
->> diff --git a/Documentation/devicetree/bindings/media/st-rc.txt b/Documentation/devicetree/bindings/media/st-rc.txt
->> new file mode 100644
->> index 0000000..57f9ee8
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/st-rc.txt
->> @@ -0,0 +1,18 @@
->> +Device-Tree bindings for ST IR and UHF receiver
->> +
->> +Required properties:
->> +       - compatible: should be "st,rc".
-> 
-> That "rc" should be made more specific, and it seems like this is a
-> subset of a larger block of IP (the ST COMMS IP block). Is this really a
-> standalone piece of hardware, or is it always in the larger comms block?
-COMMS block is a collection of communication peripherals, and IRB(Infra
-red blaster) is always part of the COMMS block.
+@@ -1519,41 +1530,108 @@ static const struct v4l2_subdev_ops oif_subdev_ops = {
+ 	.video	= &s5c73m3_oif_video_ops,
+ };
 
-May renaming the compatible to "st,comms-rc" might be more clear.
+-static int s5c73m3_configure_gpios(struct s5c73m3 *state,
+-				   const struct s5c73m3_platform_data *pdata)
++static int s5c73m3_configure_gpios(struct s5c73m3 *state)
++{
++	static const char * const gpio_names[] = {
++		"S5C73M3_STBY", "S5C73M3_RST"
++	};
++	struct i2c_client *c = state->i2c_client;
++	struct s5c73m3_gpio *g = state->gpio;
++	int ret, i;
++
++	for (i = 0; i < GPIO_NUM; ++i) {
++		unsigned int flags = GPIOF_DIR_OUT;
++		if (g[i].level)
++			flags |= GPIOF_INIT_HIGH;
++		ret = devm_gpio_request_one(&c->dev, g[i].gpio, flags,
++					    gpio_names[i]);
++		if (ret) {
++			v4l2_err(c, "failed to request gpio %s\n",
++				 gpio_names[i]);
++			return ret;
++		}
++	}
++	return 0;
++}
++
++static int s5c73m3_parse_gpios(struct s5c73m3 *state)
++{
++	static const char * const prop_names[] = {
++		"standby-gpios", "xshutdown-gpios",
++	};
++	struct device *dev = &state->i2c_client->dev;
++	struct device_node *node = dev->of_node;
++	int ret, i;
++
++	for (i = 0; i < GPIO_NUM; ++i) {
++		enum of_gpio_flags of_flags;
++
++		ret = of_get_named_gpio_flags(node, prop_names[i],
++					      0, &of_flags);
++		if (ret < 0) {
++			dev_err(dev, "failed to parse %s DT property\n",
++				prop_names[i]);
++			return -EINVAL;
++		}
++		state->gpio[i].gpio = ret;
++		state->gpio[i].level = !(of_flags & OF_GPIO_ACTIVE_LOW);
++	}
++	return 0;
++}
++
++static int s5c73m3_get_platform_data(struct s5c73m3 *state)
+ {
+ 	struct device *dev = &state->i2c_client->dev;
+-	const struct s5c73m3_gpio *gpio;
+-	unsigned long flags;
++	const struct s5c73m3_platform_data *pdata = dev->platform_data;
++	struct device_node *node = dev->of_node;
++	struct device_node *node_ep;
++	struct v4l2_of_endpoint ep;
+ 	int ret;
 
-> 
-> What's the full name of this unit as it appears in documentation?
-It is always refered as the Communication sub-system (COMMS) which is a
-collection of communication peripherals like UART, I2C, SPI, IRB.
+-	state->gpio[STBY].gpio = -EINVAL;
+-	state->gpio[RST].gpio  = -EINVAL;
++	if (!node) {
++		if (!pdata) {
++			dev_err(dev, "Platform data not specified\n");
++			return -EINVAL;
++		}
 
-> 
->> +       - st,uhfmode: boolean property to indicate if reception is in UHF.
-> 
-> That's not a very clear name. Is this a physical property of the device
-> (i.e. it's wired to either an IR receiver or a UHF receiver), or is this
-> a choice as to how it's used at runtime?
+-	gpio = &pdata->gpio_stby;
+-	if (gpio_is_valid(gpio->gpio)) {
+-		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
+-		      | GPIOF_EXPORT;
+-		ret = devm_gpio_request_one(dev, gpio->gpio, flags,
+-					    "S5C73M3_STBY");
+-		if (ret < 0)
+-			return ret;
++		state->mclk_frequency = pdata->mclk_frequency;
++		state->gpio[STBY] = pdata->gpio_stby;
++		state->gpio[RST] = pdata->gpio_reset;
++		return 0;
++	}
 
-Its both, some boards have IR and others UHF receivers, So it becomes
-board choice here.
-And also the driver has different register set for UHF receiver and IR
-receiver. This options selects which registers to use depending on mode
-of reception.
+-		state->gpio[STBY] = *gpio;
++	if (of_property_read_u32(node, "clock-frequency",
++				 &state->mclk_frequency)) {
++		state->mclk_frequency = S5C73M3_DEFAULT_MCLK_FREQ;
++		dev_info(dev, "using default %u Hz clock frequency\n",
++					state->mclk_frequency);
+ 	}
 
-> 
-> If it's fixed property of how the device is wired, it might make more
-> sense to have a string mode property that's either "uhf" or "infared".
+-	gpio = &pdata->gpio_reset;
+-	if (gpio_is_valid(gpio->gpio)) {
+-		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
+-		      | GPIOF_EXPORT;
+-		ret = devm_gpio_request_one(dev, gpio->gpio, flags,
+-					    "S5C73M3_RST");
+-		if (ret < 0)
+-			return ret;
++	ret = s5c73m3_parse_gpios(state);
++	if (ret < 0)
++		return -EINVAL;
 
-Am ok with either approaches.
+-		state->gpio[RST] = *gpio;
++	node_ep = v4l2_of_get_next_endpoint(node, NULL);
++	if (!node_ep) {
++		dev_warn(dev, "no endpoint defined for node: %s\n",
++						node->full_name);
++		return 0;
+ 	}
 
-> 
->> +       - reg: base physical address of the controller and length of memory
->> +       mapped  region.
->> +       - interrupts: interrupt number to the cpu. The interrupt specifier
->> +       format depends on the interrupt controller parent.
->> +
->> +Example node:
->> +
->> +       rc: rc@fe518000 {
->> +               compatible      = "st,rc";
->> +               reg             = <0xfe518000 0x234>;
->> +               interrupts      =  <0 203 0>;
->> +       };
->> +
-> 
-> [...]
-> 
->> +++ b/drivers/media/rc/st_rc.c
->> @@ -0,0 +1,371 @@
->> +/*
->> + * Copyright (C) 2013 STMicroelectronics Limited
->> + * Author: Srinivas Kandagatla <srinivas.kandagatla@st.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + */
->> +#include <linux/kernel.h>
->> +#include <linux/clk.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/module.h>
->> +#include <linux/of.h>
->> +#include <linux/platform_device.h>
->> +#include <media/rc-core.h>
->> +#include <linux/pinctrl/consumer.h>
->> +
->> +struct st_rc_device {
->> +       struct device                   *dev;
->> +       int                             irq;
->> +       int                             irq_wake;
->> +       struct clk                      *sys_clock;
->> +       void                            *base;  /* Register base address */
->> +       void                            *rx_base;/* RX Register base address */
->> +       struct rc_dev                   *rdev;
->> +       bool                            overclocking;
->> +       int                             sample_mult;
->> +       int                             sample_div;
->> +       bool                            rxuhfmode;
->> +};
-> 
-> [...]
-> 
->> +static void st_rc_hardware_init(struct st_rc_device *dev)
->> +{
->> +       int baseclock, freqdiff;
->> +       unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
->> +       unsigned int rx_sampling_freq_div;
->> +
->> +       clk_prepare_enable(dev->sys_clock);
-> 
-> This clock should be defined in the binding.
-Clock is coming for the device tree only.
++	v4l2_of_parse_endpoint(node_ep, &ep);
++	of_node_put(node_ep);
++
++	if (ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "unsupported bus type\n");
++		return -EINVAL;
++	}
++	/*
++	 * Number of MIPI CSI-2 data lanes is currently not configurable,
++	 * always a default value of 4 lanes is used.
++	 */
++	if (ep.bus.mipi_csi2.num_data_lanes != S5C73M3_MIPI_DATA_LANES)
++		dev_info(dev, "falling back to 4 MIPI CSI-2 data lanes\n");
++
+ 	return 0;
+ }
 
-I can add the clock and pinctrl bindings to the documentation if it
-makes it more clear.
+@@ -1561,21 +1639,24 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
+ {
+ 	struct device *dev = &client->dev;
+-	const struct s5c73m3_platform_data *pdata = client->dev.platform_data;
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev *oif_sd;
+ 	struct s5c73m3 *state;
+ 	int ret, i;
 
-> 
->> +       baseclock = clk_get_rate(dev->sys_clock);
->> +
->> +       /* IRB input pins are inverted internally from high to low. */
->> +       writel(1, dev->rx_base + IRB_RX_POLARITY_INV);
->> +
->> +       rx_sampling_freq_div = baseclock / IRB_SAMPLE_FREQ;
->> +       writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
->> +
->> +       freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
->> +       if (freqdiff) { /* over clocking, workout the adjustment factors */
->> +               dev->overclocking = true;
->> +               dev->sample_mult = 1000;
->> +               dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
->> +               rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
->> +       }
->> +
->> +       writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
->> +}
->> +
->> +static int st_rc_remove(struct platform_device *pdev)
->> +{
->> +       struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
->> +       clk_disable_unprepare(rc_dev->sys_clock);
->> +       rc_unregister_device(rc_dev->rdev);
-> 
-> Is a call to rc_free_device() not necessary?
-> 
-> There are separate calls to rc_allocate_device() and rc_register_device
-> in the probe function, and an rc_free_device() in its failure path.
-> 
-rc_unregister_device does call rc_free_device as well.
+-	if (pdata == NULL) {
+-		dev_err(&client->dev, "Platform data not specified\n");
+-		return -EINVAL;
+-	}
+-
+ 	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+ 	if (!state)
+ 		return -ENOMEM;
 
->> +       return 0;
->> +}
-> 
-> [...]
-> 
->> +static int st_rc_probe(struct platform_device *pdev)
->> +{
->> +       int ret = -EINVAL;
->> +       struct rc_dev *rdev;
->> +       struct device *dev = &pdev->dev;
->> +       struct resource *res;
->> +       struct st_rc_device *rc_dev;
->> +       struct device_node *np = pdev->dev.of_node;
->> +
->> +       rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
->> +       rdev = rc_allocate_device();
->> +
->> +       if (!rc_dev || !rdev)
->> +               return -ENOMEM;
->> +
->> +       if (np)
->> +               rc_dev->rxuhfmode = of_property_read_bool(np, "st,uhfmode");
-> 
-> I see of_property_read_bool has an implicit NULL check on np via
-> __of_find_property, though I'm not sure if we want people to rely on
-> that.
-> 
-> I don't think a boolean property is the best way of encoding this,
-> regardless.
-Am ok to move to string property for this.
-> 
->> +
->> +       rc_dev->sys_clock = devm_clk_get(dev, NULL);
->> +       if (IS_ERR(rc_dev->sys_clock)) {
->> +               dev_err(dev, "System clock not found\n");
->> +               ret = PTR_ERR(rc_dev->sys_clock);
->> +               goto err;
->> +       }
->> +
->> +       rc_dev->irq = platform_get_irq(pdev, 0);
->> +       if (rc_dev->irq < 0) {
->> +               ret = rc_dev->irq;
->> +               goto clkerr;
->> +       }
->> +
->> +       ret = -ENODEV;
->> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +       if (!res)
->> +               goto clkerr;
->> +
->> +       rc_dev->base = devm_ioremap_resource(dev, res);
->> +       if (IS_ERR(rc_dev->base))
->> +               goto clkerr;
->> +
->> +       if (rc_dev->rxuhfmode)
->> +               rc_dev->rx_base = rc_dev->base + 0x40;
->> +       else
->> +               rc_dev->rx_base = rc_dev->base;
->> +
->> +       rc_dev->dev = dev;
->> +       platform_set_drvdata(pdev, rc_dev);
->> +       st_rc_hardware_init(rc_dev);
->> +
->> +       rdev->driver_type = RC_DRIVER_IR_RAW;
->> +       rdev->allowed_protos = RC_TYPE_LIRC;
->> +       rdev->priv = rc_dev;
->> +       rdev->open = st_rc_open;
->> +       rdev->close = st_rc_close;
->> +       rdev->driver_name = IR_ST_NAME;
->> +       rdev->map_name = RC_MAP_LIRC;
->> +       rdev->input_name = "ST Remote Control Receiver";
->> +
->> +       /* enable wake via this device */
->> +       device_set_wakeup_capable(dev, true);
->> +       device_set_wakeup_enable(dev, true);
->> +
->> +       ret = rc_register_device(rdev);
->> +       if (ret < 0)
->> +               goto clkerr;
->> +
->> +       rc_dev->rdev = rdev;
->> +       if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
->> +                       IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
->> +               dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
->> +               ret = -EINVAL;
->> +               goto rcerr;
->> +       }
->> +
->> +       /* for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
->> +        * lircd expects a long space first before a signal train to sync. */
-> 
-> Comment should be like:
-Yep.. I missed this one...
-> 
-> 	/*
-> 	 * Multi-line comment.
-> 	 * Preceding and trailing / 
-> 	 */
-> 
->> +       st_rc_send_lirc_timeout(rdev);
->> +
->> +       dev_info(dev, "setup in %s mode\n", rc_dev->rxuhfmode ? "UHF" : "IR");
->> +
->> +       return ret;
->> +rcerr:
->> +       rc_unregister_device(rdev);
->> +       rdev = NULL;
-> 
-> Why? Doesn't that mean rdev never gets freed?
++	state->clock = devm_clk_get(dev, S5C73M3_CLK_NAME);
++	if (IS_ERR(state->clock))
++		return -EPROBE_DEFER;
++
++	state->i2c_client = client;
++	ret = s5c73m3_get_platform_data(state);
++	if (ret < 0)
++		return ret;
++
+ 	mutex_init(&state->lock);
+ 	sd = &state->sensor_sd;
+ 	oif_sd = &state->oif_sd;
+@@ -1613,11 +1694,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		return ret;
 
-As its freed in rc_unregister_device().
+-	state->mclk_frequency = pdata->mclk_frequency;
+-	state->bus_type = pdata->bus_type;
+-	state->i2c_client = client;
+-
+-	ret = s5c73m3_configure_gpios(state, pdata);
++	ret = s5c73m3_configure_gpios(state);
+ 	if (ret)
+ 		goto out_err;
 
-Thanks,
-srini
-> 
->> +clkerr:
->> +       clk_disable_unprepare(rc_dev->sys_clock);
->> +err:
->> +       rc_free_device(rdev);
->> +       dev_err(dev, "Unable to register device (%d)\n", ret);
->> +       return ret;
->> +}
-> 
-> Thanks,
-> Mark.
-> 
+@@ -1651,9 +1728,29 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto out_err;
+
++	oif_sd->dev = dev;
++
++	ret = __s5c73m3_power_on(state);
++	if (ret < 0)
++		goto out_err1;
++
++	ret = s5c73m3_get_fw_version(state);
++	__s5c73m3_power_off(state);
++
++	if (ret < 0) {
++		dev_err(dev, "Device detection failed: %d\n", ret);
++		goto out_err1;
++	}
++
++	ret = v4l2_async_register_subdev(oif_sd);
++	if (ret < 0)
++		goto out_err1;
++
+ 	v4l2_info(sd, "%s: completed succesfully\n", __func__);
+ 	return 0;
+
++out_err1:
++	s5c73m3_unregister_spi_driver(state);
+ out_err:
+ 	media_entity_cleanup(&sd->entity);
+ 	return ret;
+@@ -1665,7 +1762,7 @@ static int s5c73m3_remove(struct i2c_client *client)
+ 	struct s5c73m3 *state = oif_sd_to_s5c73m3(oif_sd);
+ 	struct v4l2_subdev *sensor_sd = &state->sensor_sd;
+
+-	v4l2_device_unregister_subdev(oif_sd);
++	v4l2_async_unregister_subdev(oif_sd);
+
+ 	v4l2_ctrl_handler_free(oif_sd->ctrl_handler);
+ 	media_entity_cleanup(&oif_sd->entity);
+@@ -1684,8 +1781,17 @@ static const struct i2c_device_id s5c73m3_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, s5c73m3_id);
+
++#ifdef CONFIG_OF
++static const struct of_device_id s5c73m3_of_match[] = {
++	{ .compatible = "samsung,s5c73m3" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, s5c73m3_of_match);
++#endif
++
+ static struct i2c_driver s5c73m3_i2c_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(s5c73m3_of_match),
+ 		.name	= DRIVER_NAME,
+ 	},
+ 	.probe		= s5c73m3_probe,
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+index 8079e26..f60b265 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+@@ -27,6 +27,11 @@
+
+ #define S5C73M3_SPI_DRV_NAME "S5C73M3-SPI"
+
++static const struct of_device_id s5c73m3_spi_ids[] = {
++	{ .compatible = "samsung,s5c73m3" },
++	{ }
++};
++
+ enum spi_direction {
+ 	SPI_DIR_RX,
+ 	SPI_DIR_TX
+@@ -146,6 +151,7 @@ int s5c73m3_register_spi_driver(struct s5c73m3 *state)
+ 	spidrv->driver.name = S5C73M3_SPI_DRV_NAME;
+ 	spidrv->driver.bus = &spi_bus_type;
+ 	spidrv->driver.owner = THIS_MODULE;
++	spidrv->driver.of_match_table = s5c73m3_spi_ids;
+
+ 	return spi_register_driver(spidrv);
+ }
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3.h b/drivers/media/i2c/s5c73m3/s5c73m3.h
+index 9d2c086..2917857 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3.h
++++ b/drivers/media/i2c/s5c73m3/s5c73m3.h
+@@ -17,6 +17,7 @@
+ #ifndef S5C73M3_H_
+ #define S5C73M3_H_
+
++#include <linux/clk.h>
+ #include <linux/kernel.h>
+ #include <linux/regulator/consumer.h>
+ #include <media/v4l2-common.h>
+@@ -321,6 +322,7 @@ enum s5c73m3_oif_pads {
+
+
+ #define S5C73M3_MAX_SUPPLIES			6
++#define S5C73M3_DEFAULT_MCLK_FREQ		24000000U
+
+ struct s5c73m3_ctrls {
+ 	struct v4l2_ctrl_handler handler;
+@@ -391,6 +393,8 @@ struct s5c73m3 {
+ 	struct regulator_bulk_data supplies[S5C73M3_MAX_SUPPLIES];
+ 	struct s5c73m3_gpio gpio[GPIO_NUM];
+
++	struct clk *clock;
++
+ 	/* External master clock frequency */
+ 	u32 mclk_frequency;
+ 	/* Video bus type - MIPI-CSI2/paralell */
+--
+1.7.9.5
 
