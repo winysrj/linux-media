@@ -1,209 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:64128 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738Ab3HUVmm (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:41792 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384Ab3H2NH6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 17:42:42 -0400
-Received: by mail-bk0-f54.google.com with SMTP id mz12so397021bkb.13
-        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 14:42:40 -0700 (PDT)
-Message-ID: <5215344E.2070002@gmail.com>
-Date: Wed, 21 Aug 2013 23:42:38 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-References: <520E76E7.30201@googlemail.com> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <1904390.nVVGcVBrVP@avalon> <52139A9B.1030400@googlemail.com> <52152578.2060201@googlemail.com>
-In-Reply-To: <52152578.2060201@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Thu, 29 Aug 2013 09:07:58 -0400
+From: Tomasz Figa <t.figa@samsung.com>
+To: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+Cc: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
+	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com,
+	swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net,
+	mturquette@linaro.org, tomasz.figa@gmail.com,
+	kgene.kim@samsung.com, thomas.abraham@linaro.org,
+	s.nawrocki@samsung.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux@arm.linux.org.uk,
+	ben-linux@fluff.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v3 2/6] media: s5p-tv: Restore vpll clock rate
+Date: Thu, 29 Aug 2013 15:07:52 +0200
+Message-id: <6294819.7vFezjQcVy@amdc1227>
+In-reply-to: <1377706384-3697-3-git-send-email-m.krawczuk@partner.samsung.com>
+References: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
+ <1377706384-3697-3-git-send-email-m.krawczuk@partner.samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Hi Mateusz,
 
-On 08/21/2013 10:39 PM, Frank Schäfer wrote:
-> Am 20.08.2013 18:34, schrieb Frank Schäfer:
->> Am 20.08.2013 15:38, schrieb Laurent Pinchart:
->>> Hi Mauro,
->>>
->>> On Sunday 18 August 2013 12:20:08 Mauro Carvalho Chehab wrote:
->>>> Em Sun, 18 Aug 2013 13:40:25 +0200 Frank Schäfer escreveu:
->>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
->>>>>> Hi Frank,
->>>>>> As I mentioned on the list, I'm currently on a holiday, so, replying
->>>>>> briefly.
->>>>> Sorry, I missed that (can't read all mails on the list).
->>>>>
->>>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to
->>>>>> its components including the ov2640 sensor. So, yes, I think the driver
->>>>>> should export a V4L2 clock.
->>>>> Ok, so it's mandatory on purpose ?
->>>>> I'll take a deeper into the v4l2-clk code and the
->>>>> em28xx/ov2640/soc-camera interaction this week.
->>>>> Have a nice holiday !
->>>> commit 9aea470b399d797e88be08985c489855759c6c60
->>>> Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
->>>> Date:   Fri Dec 21 13:01:55 2012 -0300
->>>>
->>>>      [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
->>>>
->>>>      Instead of centrally enabling and disabling subdevice master clocks in
->>>>      soc-camera core, let subdevice drivers do that themselves, using the
->>>>      V4L2 clock API and soc-camera convenience wrappers.
->>>>
->>>>      Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
->>>>      Acked-by: Hans Verkuil<hans.verkuil@cisco.com>
->>>>      Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
->>>>      Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>>>
->>>> (c/c the ones that acked with this broken changeset)
->>>>
->>>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
->>>> cameras are currently broken on 3.10.
->>>>
->>>> I'll also reject other ports to the async API if the drivers are
->>>> used outside an embedded driver, as no PC driver currently defines
->>>> any clock source. The same applies to regulators.
->>>>
->>>> Guennadi,
->>>>
->>>> Next time, please check if the i2c drivers are used outside soc_camera
->>>> and apply the fixes where needed, as no regressions are allowed.
->>> We definitely need to check all users of our sensor drivers when making such a
->>> change. Mistakes happen, so let's fix them.
->>>
->>> Guennadi is on holidays until the end of this week. Would that be too late to
->>> fix the issue (given that 3.10 is already broken) ? The fix shouldn't be too
->>> complex, registering a dummy V4L2 clock in the em28xx driver should be enough.
->> I would prefer either a) making the clock optional in the senor
->> driver(s) or b) implementing a real V4L2 clock.
->>
->> Reading the soc-camera code, it looks like NULL-pointers for struct
->> v4l2_clk are handled correctly. so a) should be pretty simple:
->>
->>      priv->clk = v4l2_clk_get(&client->dev, "mclk");
->> -   if (IS_ERR(priv->clk)) {
->> -       ret = PTR_ERR(priv->clk);
->> -       goto eclkget;
->> -   }
->> +   if (IS_ERR(priv->clk))
->> +       priv->clk = NULL;
->>
->> Some additional NULL-pointer checks might be necessary, e.g. before
->> calling v4l2_clk_put().
->
-> Tested and that works.
-> Patch follows.
+Generally this patch looks good, but I have some minor nitpicks, that I 
+would like to be fixed.
 
-That patch breaks subdevs registration through the v4l2-async. See commit
+On Wednesday 28 of August 2013 18:13:00 Mateusz Krawczuk wrote:
+> Restore vpll clock rate if start stream fail or stream is off.
+> 
+> Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+> ---
+>  drivers/media/platform/s5p-tv/sdo_drv.c | 24 ++++++++++++++++++++++--
+>  1 file changed, 22 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c
+> b/drivers/media/platform/s5p-tv/sdo_drv.c index 0afa90f..9dbdfe6 100644
+> --- a/drivers/media/platform/s5p-tv/sdo_drv.c
+> +++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+> @@ -55,6 +55,8 @@ struct sdo_device {
+>  	struct clk *dacphy;
+>  	/** clock for control of VPLL */
+>  	struct clk *fout_vpll;
+> +	/** vpll rate before sdo stream was on */
+> +	int vpll_rate;
 
-ef6672ea35b5bb64ab42e18c1a1ffc717c31588a
-[media] V4L2: mt9m111: switch to asynchronous subdevice probing
+Clock frequency should be stored in an unsigned long. (See the return type 
+of clk_get_rate().)
 
-Sensor probe() callback must return EPROBE_DEFER when the clock is not
-found. This cause the sensor's probe() callback to be called again by
-the driver core after some other driver has probed, e.g. the one that
-registers v4l2_clk. If specific error code is not returned from probe()
-the whole registration process breaks.
+>  	/** regulator for SDO IP power */
+>  	struct regulator *vdac;
+>  	/** regulator for SDO plug detection */
+> @@ -193,17 +195,34 @@ static int sdo_s_power(struct v4l2_subdev *sd, int
+> on)
+> 
+>  static int sdo_streamon(struct sdo_device *sdev)
+>  {
+> +	int ret;
+> +
+>  	/* set proper clock for Timing Generator */
+> -	clk_set_rate(sdev->fout_vpll, 54000000);
+> +	sdev->vpll_rate = clk_get_rate(sdev->fout_vpll);
+> +	ret = clk_set_rate(sdev->fout_vpll, 54000000);
+> +	if (ret < 0) {
+> +		dev_err(sdev->dev,
+> +			"Failed to set vpll rate!\n");
+> +		return ret;
+> +	}
+>  	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
+>  	clk_get_rate(sdev->fout_vpll));
+>  	/* enable clock in SDO */
+>  	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
+> -	clk_enable(sdev->dacphy);
+> +	ret = clk_enable(sdev->dacphy);
+> +	if (ret < 0) {
+> +		dev_err(sdev->dev,
+> +			"clk_enable(dacphy) failed !\n");
+> +		goto fail;
+> +	}
+>  	/* enable DAC */
+>  	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
+>  	sdo_reg_debug(sdev);
+>  	return 0;
 
->> Concerning b): I'm not yet sure if it is really needed/makes sense...
->> Who is supposed to configure/enable/disable the clock in a constellation
->> like em28xx+ov2640 ?
->> For UXGA for example, the clock needs to be switched to 12MHz, while
->> 24MHz is used for smaller reolutions.
->> But I'm not sure if it is a good idea to let the sensor driver do the
->> switch (to define fixed bindings between resoultions and clock frequencies).
->> Btw, what if a frequency is requested which isn't supported ? Set the
->> clock to the next nearest supported frequency ?
->>
->> Regards,
->> Frank
->
-> I tried to implement a v4l2_clk for the em28xx driver (not yet beeing
-> sure if it really makes sense) and I noticed the following problem:
-> The ov2640 driver (as well as all other sensor drivers) seems to have
-> specific expectations for the names of the clock.
-> The name must me "mclk" and dev_name must be the device name of the i2c
-> client device.
-> Is "mclk" supposed to be a clock type ? Wouldn't an enum be a better
-> choice in this case ?
+nit: Please insert a blank line here.
 
-This is made similar to the common clock API, a string is an identifier
-of a clock for the device. I can't see anything unusual in that, it will
-also make it easier to phase out the v4l2-clk API and replace it with
-the common clock API once that is more widely available.
+Best regards,
+Tomasz
 
-The name is supposed to come from the datasheet and usually be different
-for each sensor, but since we mostly deal with just one clock a common
-"mclk" name was chosen for simplicity.
+> +fail:
+> +	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
+> +	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
+> +	return ret;
+>  }
+> 
+>  static int sdo_streamoff(struct sdo_device *sdev)
+> @@ -220,6 +239,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
+>  	}
+>  	if (tries == 0)
+>  		dev_err(sdev->dev, "failed to stop streaming\n");
+> +	clk_set_rate(sdev->fout_vpll, sdev->vpll_rate);
+>  	return tries ? 0 : -EIO;
+>  }
 
-> Anyway, the sensor subdevices are registered using
-> v4l2_i2c_new_subdev_board(), which sets up an i2c client, loads the
-> module and returns v4l2_subdev.
-> The v4l2_clock needs to be registered before (otherwise no clock is
-> found during sensor probing), but at this point the device name of the
-> i2c_client isn't known yet...
-
-Look how soc-camera registers the clock:
-
-  snprintf(clk_name, sizeof(clk_name), "%d-%04x",
-	 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
-
-  icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-  if (IS_ERR(icd->clk)) {
-  	 ret = PTR_ERR(icd->clk);
-  	 goto eclkreg;
-  }
-
-Other bridge drivers need to do something similar. All you need to know is
-the I2C adapter id and the sensor's I2C slave address. For em28xx it might
-be something along the lines of:
-
-	...
-	struct i2c_board_info ov2640_info = {
-		.type = "ov2640",
-		.flags = I2C_CLIENT_SCCB,
-		.addr = dev->i2c_client[dev->def_i2c_bus].addr,
-		.platform_data = &camlink,
-	};
-	...
-
-	//////////////////////////////////////////////////////
-	char clk_name[16];
-	struct v4l2_clk *clk;
-
-	static const struct v4l2_clk_ops em28xx_sensor_clk_ops = {
-		/* empty ops */
-	};
-
-
-	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
-		 dev->i2c_adap[dev->def_i2c_bus].nr, ov2640_info.addr);
-
-	clk = v4l2_clk_register(&em28xx_sensor_clk_ops, clk_name, "mclk", icd);
-	if (IS_ERR(icd->clk)) {
-		...
-	}
-	//////////////////////////////////////////////////////
-
-	subdev =
-	     v4l2_i2c_new_subdev_board(&dev->v4l2_dev,
-				       &dev->i2c_adap[dev->def_i2c_bus],
-				       &ov2640_info, NULL);
-	...
-
-Alternatively all sensors modified by changeset 9aea470b399d797e88be
-"[media] soc-camera: switch I2C subdevice drivers to use v4l2-clk" could
-receive a platform data flag that would be set for drivers like em28xx,
-and which would be indicating if the clock should be used or not. It
-probably should has been done originally if it wasn't clear which bridge
-drivers use that modified sensors and that regressions were possible.
-
---
-Regards,
-Sylwester
