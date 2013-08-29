@@ -1,240 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:4771 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755611Ab3H3L3U (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:23520 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab3H2J2D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:29:20 -0400
-From: Dinesh Ram <dinram@cisco.com>
+	Thu, 29 Aug 2013 05:28:03 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: dinesh.ram@cern.ch, Dinesh Ram <dinram@cisco.com>
-Subject: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where interrupts are not used
-Date: Fri, 30 Aug 2013 13:28:20 +0200
-Message-Id: <b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
-In-Reply-To: <1377862104-15429-1-git-send-email-dinram@cisco.com>
-References: <1377862104-15429-1-git-send-email-dinram@cisco.com>
-In-Reply-To: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com,
+	swarren@wwwdotorg.org, pawel.moll@arm.com, rob.herring@calxeda.com,
+	galak@codeaurora.org, devicetree@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RESEND PATCH v2 2/7] V4L: s5k6a3: Add DT binding documentation
+Date: Thu, 29 Aug 2013 11:24:33 +0200
+Message-id: <1377768278-15391-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
+References: <1377768278-15391-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Checks have been introduced at several places in the code to test if an interrupt is set or not.
-For devices which do not use the interrupt, to get a valid response, within a specified timeout,
-the device is polled instead.
+This patch adds binding documentation for the Samsung S5K6A3(YX)
+raw image sensor.
 
-Signed-off-by: Dinesh Ram <dinram@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
- drivers/media/radio/si4713/si4713.h |   1 +
- 2 files changed, 63 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index ac727e3..55c4d27 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -27,7 +27,6 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/gpio.h>
--#include <linux/regulator/consumer.h>
- #include <linux/module.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-@@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
- 				u8 response[], const int respn, const int usecs)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-+	unsigned long until_jiffies;
- 	u8 data1[MAX_ARGS + 1];
- 	int err;
- 
-@@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
- 	if (err != argn + 1) {
- 		v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
- 			command);
--		return (err > 0) ? -EIO : err;
-+		return err < 0 ? err : -EIO;
- 	}
- 
-+	until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
+The binding of this sensors shows some issue in the generic video-interfaces
+binding. Namely The video bus type (serial MIPI CSI-2, parallel ITU-R BT.656,
+etc.) is being determined by the binding parser (v4l2-of.c) depending on what
+properties are found in an enddpoint node.
+
+Please have a look at the data-lanes property description. The sensor supports
+MIPI CSI-2 and SMIA CCP2 interfaces which both use one data lane. One data lane
+is everything this sensors supports. During our discussions on the generic
+bidings in the past I proposed to introduce a property in the endpoint node
+that would indicate what bus type (standard/protocol) is used, e.g. MIPI CSI-2,
+ITU-R BT.656, SMIA CCP2, etc. It was argued though that we can well determine
+bus type based on properties found in the endpoint node.
+
+So now in case of this sensor I'm not sure how it can be differentiated
+whether MIPI CSI-2 or CCP2 bus is used. There is no CCP2 specific generic
+properties yet. Anyway I'm not really happy there is no property like bus_type
+that would clearly indicate what data bus type is used. Then would would for
+instance not specify "data-lanes" in endpoint node just to differentiate
+between MIPI CSI-2 and the parallel busses.
+
+The main issue for this particular binding is that even with data-lanes = <1>;
+it is still impossible to figure out whether MIPI CSI-2 or SMIA CCP2 data bus
+is used.
+
+So how about introducing, e.g. a string type "bus_type" common property ?
+I'm considering starting a separate thread for discussing this.
+---
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   31 ++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+new file mode 100644
+index 0000000..a51fbe8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+@@ -0,0 +1,31 @@
++Samsung S5K6A3(YX) raw image sensor
++---------------------------------
 +
- 	/* Wait response from interrupt */
--	if (!wait_for_completion_timeout(&sdev->work,
-+	if (client->irq) {
-+		if (!wait_for_completion_timeout(&sdev->work,
- 				usecs_to_jiffies(usecs) + 1))
--		v4l2_warn(&sdev->sd,
-+			v4l2_warn(&sdev->sd,
- 				"(%s) Device took too much time to answer.\n",
- 				__func__);
--
--	/* Then get the response */
--	err = i2c_master_recv(client, response, respn);
--	if (err != respn) {
--		v4l2_err(&sdev->sd,
--			"Error while reading response for command 0x%02x\n",
--			command);
--		return (err > 0) ? -EIO : err;
- 	}
- 
--	DBG_BUFFER(&sdev->sd, "Response", response, respn);
--	if (check_command_failed(response[0]))
--		return -EBUSY;
-+	do {
-+		err = i2c_master_recv(client, response, respn);
-+		if (err != respn) {
-+			v4l2_err(&sdev->sd,
-+					"Error %d while reading response for command 0x%02x\n",
-+					err, command);
-+			return err < 0 ? err : -EIO;
-+		}
- 
--	return 0;
-+		DBG_BUFFER(&sdev->sd, "Response", response, respn);
-+		if (!check_command_failed(response[0]))
-+			return 0;
-+	
-+		if (client->irq)
-+			return -EBUSY;
-+		msleep(1);
-+	} while (jiffies <= until_jiffies);
++S5K6A3YX is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
 +
-+	return -EBUSY;
- }
- 
- /*
-@@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
-  */
- static int si4713_powerup(struct si4713_device *sdev)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
- 	int err;
- 	u8 resp[SI4713_PWUP_NRESP];
- 	/*
- 	 * 	.First byte = Enabled interrupts and boot function
- 	 * 	.Second byte = Input operation mode
- 	 */
--	const u8 args[SI4713_PWUP_NARGS] = {
--		SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-+	u8 args[SI4713_PWUP_NARGS] = {
-+		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
- 		SI4713_PWUP_OPMOD_ANALOG,
- 	};
- 
-@@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
- 		gpio_set_value(sdev->gpio_reset, 1);
- 	}
- 
-+	if (client->irq)
-+		args[0] |= SI4713_PWUP_CTSIEN;
++Required properties:
 +
- 	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
- 					args, ARRAY_SIZE(args),
- 					resp, ARRAY_SIZE(resp),
- 					TIMEOUT_POWER_UP);
--
-+	
- 	if (!err) {
- 		v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
- 				resp[0]);
- 		v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
- 		sdev->power_state = POWER_ON;
- 
--		err = si4713_write_property(sdev, SI4713_GPO_IEN,
-+		if (client->irq)
-+			err = si4713_write_property(sdev, SI4713_GPO_IEN,
- 						SI4713_STC_INT | SI4713_CTS);
- 	} else {
- 		if (gpio_is_valid(sdev->gpio_reset))
-@@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
- 	if (rval < 0)
- 		return rval;
- 
--	if (resp[1] == SI4713_PRODUCT_NUMBER) {
-+	if (resp[1] == SI4713_PRODUCT_NUMBER) { 
- 		v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
- 				client->addr << 1, client->adapter->name);
- 	} else {
-@@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
-  */
- static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
- {
--	int err;
-+	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
- 	u8 resp[SI4713_GET_STATUS_NRESP];
--
--	/* Wait response from STC interrupt */
--	if (!wait_for_completion_timeout(&sdev->work,
--			usecs_to_jiffies(usecs) + 1))
--		v4l2_warn(&sdev->sd,
--			"%s: device took too much time to answer (%d usec).\n",
--				__func__, usecs);
--
--	/* Clear status bits */
--	err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
--					NULL, 0,
--					resp, ARRAY_SIZE(resp),
--					DEFAULT_TIMEOUT);
--
--	if (err < 0)
--		goto exit;
--
--	v4l2_dbg(1, debug, &sdev->sd,
--			"%s: status bits: 0x%02x\n", __func__, resp[0]);
--
--	if (!(resp[0] & SI4713_STC_INT))
--		err = -EIO;
--
--exit:
--	return err;
-+	unsigned long start_jiffies = jiffies;
-+	int err;
-+	
-+ 	if (client->irq &&
-+	    !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
-+ 		v4l2_warn(&sdev->sd,
-+ 			"(%s) Device took too much time to answer.\n", __func__);
-+			
-+	for (;;) {
-+		/* Clear status bits */
-+		err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-+				NULL, 0,
-+				resp, ARRAY_SIZE(resp),
-+				DEFAULT_TIMEOUT);
++- compatible	: "samsung,s5k6a3yx";
++- reg		: I2C slave address of the sensor;
++- svdda-supply	: core voltage supply;
++- svddio-supply	: I/O voltage supply;
++- gpios		: specifier of a GPIO connected to the RESET pin;
++- clocks	: should contain the sensor's EXTCLK clock specifier, from
++		  the common clock bindings.
++- clock-names	: should contain "extclk" entry;
 +
-+		if (err >= 0) {
-+			v4l2_dbg(1, debug, &sdev->sd,
-+					"%s: status bits: 0x%02x\n", __func__, resp[0]);
++Optional properties:
 +
-+			if (resp[0] & SI4713_STC_INT)
-+				return 0;
-+		}
-+		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
-+			return -EIO;
-+		msleep(3);
-+	}
- }
- 
- /*
-@@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
- 	if (rval < 0)
- 		return rval;
- 
--
- 	sdev->frequency = DEFAULT_FREQUENCY;
- 	sdev->stereo = 1;
- 	sdev->tune_rnl = DEFAULT_TUNE_RNL;
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index c274e1f..dc0ce66 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -15,6 +15,7 @@
- #ifndef SI4713_I2C_H
- #define SI4713_I2C_H
- 
-+#include <linux/regulator/consumer.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/si4713.h>
--- 
-1.8.4.rc2
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The S5K6A3(YX) device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only one data lane.
+--
+1.7.9.5
 
