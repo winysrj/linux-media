@@ -1,636 +1,534 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:25362 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab3HEM1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 08:27:24 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Rob Herring <robherring2@gmail.com>,
-	Olof Johansson <olof@lixom.net>,
+Received: from eu1sys200aog115.obsmtp.com ([207.126.144.139]:39298 "EHLO
+	eu1sys200aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751715Ab3H2MYK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 08:24:10 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
 	Pawel Moll <pawel.moll@arm.com>,
 	Mark Rutland <mark.rutland@arm.com>,
 	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>
-Subject: [PATCH 1/2] ARM: Exynos: replace custom MFC reserved memory handling
- with generic code
-Date: Mon, 05 Aug 2013 14:26:49 +0200
-Message-id: <1375705610-12724-2-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com>
-References: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com>
+	Ian Campbell <ian.campbell@citrix.com>,
+	Rob Landley <rob@landley.net>,
+	Grant Likely <grant.likely@linaro.org>,
+	Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Subject: [PATCH v3] media: st-rc: Add ST remote control driver
+Date: Thu, 29 Aug 2013 13:06:52 +0100
+Message-Id: <1377778012-873-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC driver use custom bindings for managing reserved memory. Those bindings
-are not really specific to MFC device and no even well discussed. They can
-be easily replaced with generic, platform independent code for handling
-reserved and contiguous memory.
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-Two additional child devices for each memory port (AXI master) are
-introduced to let one assign some properties to each of them. Later one
-can also use them to assign properties related to SYSMMU controllers,
-which can be used to manage the limited dma window provided by those
-memory ports.
+This patch adds support to ST RC driver, which is basically a IR/UHF
+receiver and transmitter. This IP (IRB) is common across all the ST
+parts for settop box platforms. IRB is embedded in ST COMMS IP block.
+It supports both Rx & Tx functionality.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+In this driver adds only Rx functionality via LIRC codec.
+
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Acked-by: Sean Young <sean@mess.org>
 ---
- .../devicetree/bindings/media/s5p-mfc.txt          |   63 +++++++++++++++++---
- arch/arm/boot/dts/exynos4.dtsi                     |   10 +++-
- arch/arm/boot/dts/exynos4210-origen.dts            |   25 +++++++-
- arch/arm/boot/dts/exynos4210-smdkv310.dts          |   25 +++++++-
- arch/arm/boot/dts/exynos4412-origen.dts            |   25 +++++++-
- arch/arm/boot/dts/exynos4412-smdk4412.dts          |   25 +++++++-
- arch/arm/boot/dts/exynos5250-arndale.dts           |   26 +++++++-
- arch/arm/boot/dts/exynos5250-smdk5250.dts          |   26 +++++++-
- arch/arm/boot/dts/exynos5250.dtsi                  |   10 +++-
- arch/arm/mach-exynos/mach-exynos4-dt.c             |   16 -----
- arch/arm/mach-exynos/mach-exynos5-dt.c             |   17 ------
- arch/arm/plat-samsung/include/plat/mfc.h           |   11 ----
- arch/arm/plat-samsung/s5p-dev-mfc.c                |   32 ----------
- 13 files changed, 212 insertions(+), 99 deletions(-)
+Hi Chehab,
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index df37b02..d9528d4 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -6,10 +6,17 @@ The MFC device driver is a v4l2 driver which can encode/decode
- video raw/elementary streams and has support for all popular
- video codecs.
- 
-+The MFC device is connected to system bus with two memory ports (AXI
-+masters) for better performance. Those memory ports are modelled as
-+separate child devices, so one can assign some properties to them (like
-+memory region for dma buffer allocation or sysmmu controller).
+This is a very simple rc driver for IRB controller found in STi ARM CA9 SOCs.
+STi ARM SOC support went in 3.11 recently.
+This driver is a raw driver which feeds data to lirc codec for the user lircd
+to decode the keys.
+
+This patch is based on git://linuxtv.org/media_tree.git master branch.
+
+If its not too late can you please consider this driver for 3.12.
+
+Changes since v2:
+	- Updated Kconfig dependencies as suggested by Sean and Chehab.
+	- Fixed a logical check spoted by Sean.
+
+Changes since v1:
+	- Device tree bindings cleaned up as suggested by Mark and Pawel
+	- use ir_raw_event_reset under overflow conditions as suggested by Sean.
+	- call ir_raw_event_handle in interrupt handler as suggested by Sean.
+	- correct allowed_protos flag with RC_BIT_ types as suggested by Sean.
+	- timeout and rx resolution added as suggested by Sean.
+
+Thankyou all for reviewing and commenting.
+
+Thanks,
+srini
+
+ Documentation/devicetree/bindings/media/st-rc.txt |   24 ++
+ drivers/media/rc/Kconfig                          |   10 +
+ drivers/media/rc/Makefile                         |    1 +
+ drivers/media/rc/st_rc.c                          |  396 +++++++++++++++++++++
+ 4 files changed, 431 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
+ create mode 100644 drivers/media/rc/st_rc.c
+
+diff --git a/Documentation/devicetree/bindings/media/st-rc.txt b/Documentation/devicetree/bindings/media/st-rc.txt
+new file mode 100644
+index 0000000..20fe264
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st-rc.txt
+@@ -0,0 +1,24 @@
++Device-Tree bindings for ST IRB IP
 +
- Required properties:
-   - compatible : value should be either one among the following
- 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
- 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
-+	and additionally "simple-bus" to correctly initialize child
-+	devices for memory ports (AXI masters)
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-@@ -19,31 +26,69 @@ Required properties:
-   - clock-names : from common clock binding: must contain "sclk_mfc" and "mfc",
- 		  corresponding to entries in the clocks property.
- 
--  - samsung,mfc-r : Base address of the first memory bank used by MFC
--		    for DMA contiguous memory allocation and its size.
--
--  - samsung,mfc-l : Base address of the second memory bank used by MFC
--		    for DMA contiguous memory allocation and its size.
--
- Optional properties:
-   - samsung,power-domain : power-domain property defined with a phandle
- 			   to respective power domain.
- 
-+Two child nodes must be defined for MFC device. Their names must be
-+following: "memport-r" and "memport-l" ("right" and "left"). Required
-+properties:
-+  - compatible : value should be "samsung,memport"
-+  - dma-memory-region : optional property with a phandle to respective memory
-+			region (see devicetree/bindings/memory.txt), if no region
-+			is defined, sysmmu controller must be used for managing
-+			limited dma window of each memory port.
++Required properties:
++	- compatible: should be "st,comms-irb".
++	- reg: base physical address of the controller and length of memory
++	mapped  region.
++	- interrupts: interrupt number to the cpu. The interrupt specifier
++	format depends on the interrupt controller parent.
 +
++Optional properties:
++	- rx-mode: can be "infrared" or "uhf".
++	- tx-mode: should be "infrared".
++	- pinctrl-names, pinctrl-0: the pincontrol settings to configure
++	muxing properly for IRB pins.
++	- clocks : phandle of clock.
 +
- Example:
- SoC specific DT entry:
- 
- mfc: codec@13400000 {
--	compatible = "samsung,mfc-v5";
-+	compatible = "samsung,mfc-v5", "simple-bus";
- 	reg = <0x13400000 0x10000>;
- 	interrupts = <0 94 0>;
- 	samsung,power-domain = <&pd_mfc>;
- 	clocks = <&clock 170>, <&clock 273>;
- 	clock-names = "sclk_mfc", "mfc";
-+	status = "disabled";
++Example node:
 +
-+	mfc_r: memport-r {
-+		compatible = "samsung,memport";
++	rc: rc@fe518000 {
++		compatible	= "st,comms-irb";
++		reg		= <0xfe518000 0x234>;
++		interrupts	=  <0 203 0>;
++		rx-mode		= "infrared";
 +	};
-+
-+	mfc_l: memport-l {
-+		compatible = "samsung,memport";
-+	};
- };
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 11e84bc..557afc5 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -322,4 +322,14 @@ config IR_GPIO_CIR
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called gpio-ir-recv.
  
- Board specific DT entry:
- 
-+memory {
-+	/* ... */
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
++config RC_ST
++	tristate "ST remote control receiver"
++	depends on ARCH_STI && RC_CORE
++	help
++	 Say Y here if you want support for ST remote control driver
++	 which allows both IR and UHF RX.
++	 The driver passes raw pluse and space information to the LIRC decoder.
 +
-+		mfc_l_mem: mfc_l_region@43000000 {
-+			compatible = "contiguous-memory-region", "reserved-memory-region";
-+			reg = <0x43000000 0x1000000>;
-+		};
++	 If you're not sure, select N here.
 +
-+		mfc_r_mem: mfc_r_region@52000000 {
-+			compatible = "contiguous-memory-region", "reserved-memory-region";
-+			reg = <0x52000000 0x1000000>;
-+		};
-+	};
+ endif #RC_DEVICES
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 56bacf0..f4eb32c 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -30,3 +30,4 @@ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+ obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+ obj-$(CONFIG_IR_IGUANA) += iguanair.o
+ obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
++obj-$(CONFIG_RC_ST) += st_rc.o
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+new file mode 100644
+index 0000000..e2dad9c
+--- /dev/null
++++ b/drivers/media/rc/st_rc.c
+@@ -0,0 +1,396 @@
++/*
++ * Copyright (C) 2013 STMicroelectronics Limited
++ * Author: Srinivas Kandagatla <srinivas.kandagatla@st.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <media/rc-core.h>
++#include <linux/pinctrl/consumer.h>
++
++struct st_rc_device {
++	struct device			*dev;
++	int				irq;
++	int				irq_wake;
++	struct clk			*sys_clock;
++	void				*base;	/* Register base address */
++	void				*rx_base;/* RX Register base address */
++	struct rc_dev			*rdev;
++	bool				overclocking;
++	int				sample_mult;
++	int				sample_div;
++	bool				rxuhfmode;
 +};
 +
- codec@13400000 {
--	samsung,mfc-r = <0x43000000 0x800000>;
--	samsung,mfc-l = <0x51000000 0x800000>;
-+	status = "okay";
++/* Registers */
++#define IRB_SAMPLE_RATE_COMM	0x64	/* sample freq divisor*/
++#define IRB_CLOCK_SEL		0x70	/* clock select       */
++#define IRB_CLOCK_SEL_STATUS	0x74	/* clock status       */
++/* IRB IR/UHF receiver registers */
++#define IRB_RX_ON               0x40	/* pulse time capture */
++#define IRB_RX_SYS              0X44	/* sym period capture */
++#define IRB_RX_INT_EN           0x48	/* IRQ enable (R/W)   */
++#define IRB_RX_INT_STATUS       0x4C	/* IRQ status (R/W)   */
++#define IRB_RX_EN               0x50	/* Receive enablei    */
++#define IRB_MAX_SYM_PERIOD      0x54	/* max sym value      */
++#define IRB_RX_INT_CLEAR        0x58	/* overrun status     */
++#define IRB_RX_STATUS           0x6C	/* receive status     */
++#define IRB_RX_NOISE_SUPPR      0x5C	/* noise suppression  */
++#define IRB_RX_POLARITY_INV     0x68	/* polarity inverter  */
 +
-+	memport-r {
-+		dma-memory-region = <&mfc_r_mem>;
-+	};
++/**
++ * IRQ set: Enable full FIFO                 1  -> bit  3;
++ *          Enable overrun IRQ               1  -> bit  2;
++ *          Enable last symbol IRQ           1  -> bit  1:
++ *          Enable RX interrupt              1  -> bit  0;
++ */
++#define IRB_RX_INTS		0x0f
++#define IRB_RX_OVERRUN_INT	0x04
++ /* maximum symbol period (microsecs),timeout to detect end of symbol train */
++#define MAX_SYMB_TIME		0x5000
++#define IRB_SAMPLE_FREQ		10000000
++#define	IRB_FIFO_NOT_EMPTY	0xff00
++#define IRB_OVERFLOW		0x4
++#define IRB_TIMEOUT		0xffff
++#define IR_ST_NAME "st-rc"
 +
-+	memport-l {
-+		dma-memory-region = <&mfc_l_mem>;
-+	};
- };
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 3f94fe8..599637f 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -156,13 +156,21 @@
- 	};
- 
- 	mfc: codec@13400000 {
--		compatible = "samsung,mfc-v5";
-+		compatible = "samsung,mfc-v5", "simple-bus";
- 		reg = <0x13400000 0x10000>;
- 		interrupts = <0 94 0>;
- 		samsung,power-domain = <&pd_mfc>;
- 		clocks = <&clock 170>, <&clock 273>;
- 		clock-names = "sclk_mfc", "mfc";
- 		status = "disabled";
++static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
++{
++	DEFINE_IR_RAW_EVENT(ev);
++	ev.timeout = true;
++	ir_raw_event_store(rdev, &ev);
++}
 +
-+		mfc_r: memport-r {
-+			compatible = "samsung,memport";
-+		};
++/**
++ * RX graphical example to better understand the difference between ST IR block
++ * output and standard definition used by LIRC (and most of the world!)
++ *
++ *           mark                                     mark
++ *      |-IRB_RX_ON-|                            |-IRB_RX_ON-|
++ *      ___  ___  ___                            ___  ___  ___             _
++ *      | |  | |  | |                            | |  | |  | |             |
++ *      | |  | |  | |         space 0            | |  | |  | |   space 1   |
++ * _____| |__| |__| |____________________________| |__| |__| |_____________|
++ *
++ *      |--------------- IRB_RX_SYS -------------|------ IRB_RX_SYS -------|
++ *
++ *      |------------- encoding bit 0 -----------|---- encoding bit 1 -----|
++ *
++ * ST hardware returns mark (IRB_RX_ON) and total symbol time (IRB_RX_SYS), so
++ * convert to standard mark/space we have to calculate space=(IRB_RX_SYS-mark)
++ * The mark time represents the amount of time the carrier (usually 36-40kHz)
++ * is detected.The above examples shows Pulse Width Modulation encoding where
++ * bit 0 is represented by space>mark.
++ */
 +
-+		mfc_l: memport-l {
-+			compatible = "samsung,memport";
-+		};
- 	};
- 
- 	serial@13800000 {
-diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
-index 382d8c7..e80fe8a 100644
---- a/arch/arm/boot/dts/exynos4210-origen.dts
-+++ b/arch/arm/boot/dts/exynos4210-origen.dts
-@@ -26,6 +26,21 @@
- 		       0x50000000 0x10000000
- 		       0x60000000 0x10000000
- 		       0x70000000 0x10000000>;
++static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
++{
++	unsigned int symbol, mark = 0;
++	struct st_rc_device *dev = data;
++	int last_symbol = 0;
++	u32 status;
++	DEFINE_IR_RAW_EVENT(ev);
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++	if (dev->irq_wake)
++		pm_wakeup_event(dev->dev, 0);
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++	status  = readl(dev->rx_base + IRB_RX_STATUS);
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -66,9 +81,15 @@
- 	};
- 
- 	codec@13400000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
- 		status = "okay";
++	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
++		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
++		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
++			/* discard the entire collection in case of errors!  */
++			ir_raw_event_reset(dev->rdev);
++			dev_info(dev->dev, "IR RX overrun\n");
++			writel(IRB_RX_OVERRUN_INT,
++					dev->rx_base + IRB_RX_INT_CLEAR);
++			continue;
++		}
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++		symbol = readl(dev->rx_base + IRB_RX_SYS);
++		mark = readl(dev->rx_base + IRB_RX_ON);
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	serial@13800000 {
-diff --git a/arch/arm/boot/dts/exynos4210-smdkv310.dts b/arch/arm/boot/dts/exynos4210-smdkv310.dts
-index 9c01b71..07adb56 100644
---- a/arch/arm/boot/dts/exynos4210-smdkv310.dts
-+++ b/arch/arm/boot/dts/exynos4210-smdkv310.dts
-@@ -23,6 +23,21 @@
- 
- 	memory {
- 		reg = <0x40000000 0x80000000>;
++		if (symbol == IRB_TIMEOUT)
++			last_symbol = 1;
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++		 /* Ignore any noise */
++		if ((mark > 2) && (symbol > 1)) {
++			symbol -= mark;
++			if (dev->overclocking) { /* adjustments to timings */
++				symbol *= dev->sample_mult;
++				symbol /= dev->sample_div;
++				mark *= dev->sample_mult;
++				mark /= dev->sample_div;
++			}
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++			ev.duration = US_TO_NS(mark);
++			ev.pulse = true;
++			ir_raw_event_store(dev->rdev, &ev);
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -41,9 +56,15 @@
- 	};
- 
- 	codec@13400000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
- 		status = "okay";
++			if (!last_symbol) {
++				ev.duration = US_TO_NS(symbol);
++				ev.pulse = false;
++				ir_raw_event_store(dev->rdev, &ev);
++			} else  {
++				st_rc_send_lirc_timeout(dev->rdev);
++			}
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++		}
++		last_symbol = 0;
++		status  = readl(dev->rx_base + IRB_RX_STATUS);
++	}
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	serial@13800000 {
-diff --git a/arch/arm/boot/dts/exynos4412-origen.dts b/arch/arm/boot/dts/exynos4412-origen.dts
-index 7993641..1421070 100644
---- a/arch/arm/boot/dts/exynos4412-origen.dts
-+++ b/arch/arm/boot/dts/exynos4412-origen.dts
-@@ -21,6 +21,21 @@
- 
- 	memory {
- 		reg = <0x40000000 0x40000000>;
++	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++	/* Empty software fifo */
++	ir_raw_event_handle(dev->rdev);
++	return IRQ_HANDLED;
++}
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++static void st_rc_hardware_init(struct st_rc_device *dev)
++{
++	int baseclock, freqdiff;
++	unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
++	unsigned int rx_sampling_freq_div;
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -133,9 +148,15 @@
- 	};
- 
- 	codec@13400000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
- 		status = "okay";
++	clk_prepare_enable(dev->sys_clock);
++	baseclock = clk_get_rate(dev->sys_clock);
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++	/* IRB input pins are inverted internally from high to low. */
++	writel(1, dev->rx_base + IRB_RX_POLARITY_INV);
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	fimd@11c00000 {
-diff --git a/arch/arm/boot/dts/exynos4412-smdk4412.dts b/arch/arm/boot/dts/exynos4412-smdk4412.dts
-index ad316a1..08a3735 100644
---- a/arch/arm/boot/dts/exynos4412-smdk4412.dts
-+++ b/arch/arm/boot/dts/exynos4412-smdk4412.dts
-@@ -21,6 +21,21 @@
- 
- 	memory {
- 		reg = <0x40000000 0x40000000>;
++	rx_sampling_freq_div = baseclock / IRB_SAMPLE_FREQ;
++	writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++	freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
++	if (freqdiff) { /* over clocking, workout the adjustment factors */
++		dev->overclocking = true;
++		dev->sample_mult = 1000;
++		dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
++		rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
++	}
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++	writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
++}
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -126,9 +141,15 @@
- 	};
- 
- 	codec@13400000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
- 		status = "okay";
++static int st_rc_remove(struct platform_device *pdev)
++{
++	struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
++	clk_disable_unprepare(rc_dev->sys_clock);
++	rc_unregister_device(rc_dev->rdev);
++	return 0;
++}
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++static int st_rc_open(struct rc_dev *rdev)
++{
++	struct st_rc_device *dev = rdev->priv;
++	unsigned long flags;
++	local_irq_save(flags);
++	/* enable interrupts and receiver */
++	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_EN);
++	writel(0x01, dev->rx_base + IRB_RX_EN);
++	local_irq_restore(flags);
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	serial@13800000 {
-diff --git a/arch/arm/boot/dts/exynos5250-arndale.dts b/arch/arm/boot/dts/exynos5250-arndale.dts
-index abc7272..ba4a533 100644
---- a/arch/arm/boot/dts/exynos5250-arndale.dts
-+++ b/arch/arm/boot/dts/exynos5250-arndale.dts
-@@ -18,6 +18,21 @@
- 
- 	memory {
- 		reg = <0x40000000 0x80000000>;
++	return 0;
++}
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++static void st_rc_close(struct rc_dev *rdev)
++{
++	struct st_rc_device *dev = rdev->priv;
++	/* disable interrupts and receiver */
++	writel(0x00, dev->rx_base + IRB_RX_EN);
++	writel(0x00, dev->rx_base + IRB_RX_INT_EN);
++}
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++static int st_rc_probe(struct platform_device *pdev)
++{
++	int ret = -EINVAL;
++	struct rc_dev *rdev;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct st_rc_device *rc_dev;
++	struct device_node *np = pdev->dev.of_node;
++	const char *rx_mode;
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -25,8 +40,15 @@
- 	};
- 
- 	codec@11000000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
-+		status = "okay";
++	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++	if (!rc_dev)
++		return -ENOMEM;
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	i2c@12C60000 {
-diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-index 49f18c2..daed15e 100644
---- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
-+++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-@@ -21,6 +21,21 @@
- 
- 	memory {
- 		reg = <0x40000000 0x80000000>;
++	rdev = rc_allocate_device();
 +
-+		reserved-memory {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
++	if (!rdev)
++		return -ENOMEM;
 +
-+			mfc_l_mem: mfc_l_region@43000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x43000000 0x1000000>;
-+			};
++	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
 +
-+			mfc_r_mem: mfc_r_region@51000000 {
-+				compatible = "contiguous-memory-region", "reserved-memory-region";
-+				reg = <0x51000000 0x1000000>;
-+			};
-+		};
- 	};
- 
- 	chosen {
-@@ -223,8 +238,15 @@
- 	};
- 
- 	codec@11000000 {
--		samsung,mfc-r = <0x43000000 0x800000>;
--		samsung,mfc-l = <0x51000000 0x800000>;
-+		status = "okay";
++		if (!strcmp(rx_mode, "uhf")) {
++			rc_dev->rxuhfmode = true;
++		} else if (!strcmp(rx_mode, "infrared")) {
++			rc_dev->rxuhfmode = false;
++		} else {
++			dev_err(dev, "Unsupported rx mode [%s]\n", rx_mode);
++			goto err;
++		}
 +
-+		memport-r {
-+			dma-memory-region = <&mfc_r_mem>;
-+		};
++	} else {
++		goto err;
++	}
 +
-+		memport-l {
-+			dma-memory-region = <&mfc_l_mem>;
-+		};
- 	};
- 
- 	i2s0: i2s@03830000 {
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index ef57277..6011518 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -164,10 +164,18 @@
- 	};
- 
- 	codec@11000000 {
--		compatible = "samsung,mfc-v6";
-+		compatible = "samsung,mfc-v6", "simple-bus";
- 		reg = <0x11000000 0x10000>;
- 		interrupts = <0 96 0>;
- 		samsung,power-domain = <&pd_mfc>;
++	rc_dev->sys_clock = devm_clk_get(dev, NULL);
++	if (IS_ERR(rc_dev->sys_clock)) {
++		dev_err(dev, "System clock not found\n");
++		ret = PTR_ERR(rc_dev->sys_clock);
++		goto err;
++	}
 +
-+		mfc_r: memport-r {
-+			compatible = "samsung,memport";
-+		};
++	rc_dev->irq = platform_get_irq(pdev, 0);
++	if (rc_dev->irq < 0) {
++		ret = rc_dev->irq;
++		goto clkerr;
++	}
 +
-+		mfc_l: memport-l {
-+			compatible = "samsung,memport";
-+		};
- 	};
- 
- 	rtc {
-diff --git a/arch/arm/mach-exynos/mach-exynos4-dt.c b/arch/arm/mach-exynos/mach-exynos4-dt.c
-index 0099c6c..0b6da39 100644
---- a/arch/arm/mach-exynos/mach-exynos4-dt.c
-+++ b/arch/arm/mach-exynos/mach-exynos4-dt.c
-@@ -13,13 +13,10 @@
- 
- #include <linux/kernel.h>
- #include <linux/of_platform.h>
--#include <linux/of_fdt.h>
- #include <linux/serial_core.h>
--#include <linux/memblock.h>
- #include <linux/clocksource.h>
- 
- #include <asm/mach/arch.h>
--#include <plat/mfc.h>
- 
- #include "common.h"
- 
-@@ -35,18 +32,6 @@ static char const *exynos4_dt_compat[] __initdata = {
- 	NULL
- };
- 
--static void __init exynos4_reserve(void)
--{
--#ifdef CONFIG_S5P_DEV_MFC
--	struct s5p_mfc_dt_meminfo mfc_mem;
--
--	/* Reserve memory for MFC only if it's available */
--	mfc_mem.compatible = "samsung,mfc-v5";
--	if (of_scan_flat_dt(s5p_fdt_find_mfc_mem, &mfc_mem))
--		s5p_mfc_reserve_mem(mfc_mem.roff, mfc_mem.rsize, mfc_mem.loff,
--				mfc_mem.lsize);
--#endif
--}
- DT_MACHINE_START(EXYNOS4210_DT, "Samsung Exynos4 (Flattened Device Tree)")
- 	/* Maintainer: Thomas Abraham <thomas.abraham@linaro.org> */
- 	.smp		= smp_ops(exynos_smp_ops),
-@@ -57,5 +42,4 @@ DT_MACHINE_START(EXYNOS4210_DT, "Samsung Exynos4 (Flattened Device Tree)")
- 	.init_time	= exynos_init_time,
- 	.dt_compat	= exynos4_dt_compat,
- 	.restart        = exynos4_restart,
--	.reserve	= exynos4_reserve,
- MACHINE_END
-diff --git a/arch/arm/mach-exynos/mach-exynos5-dt.c b/arch/arm/mach-exynos/mach-exynos5-dt.c
-index f874b77..b5b0571 100644
---- a/arch/arm/mach-exynos/mach-exynos5-dt.c
-+++ b/arch/arm/mach-exynos/mach-exynos5-dt.c
-@@ -10,16 +10,13 @@
- */
- 
- #include <linux/of_platform.h>
--#include <linux/of_fdt.h>
- #include <linux/memblock.h>
--#include <linux/io.h>
- #include <linux/clocksource.h>
- 
- #include <asm/mach/arch.h>
- #include <mach/regs-pmu.h>
- 
- #include <plat/cpu.h>
--#include <plat/mfc.h>
- 
- #include "common.h"
- 
-@@ -57,19 +54,6 @@ static char const *exynos5_dt_compat[] __initdata = {
- 	NULL
- };
- 
--static void __init exynos5_reserve(void)
--{
--#ifdef CONFIG_S5P_DEV_MFC
--	struct s5p_mfc_dt_meminfo mfc_mem;
--
--	/* Reserve memory for MFC only if it's available */
--	mfc_mem.compatible = "samsung,mfc-v6";
--	if (of_scan_flat_dt(s5p_fdt_find_mfc_mem, &mfc_mem))
--		s5p_mfc_reserve_mem(mfc_mem.roff, mfc_mem.rsize, mfc_mem.loff,
--				mfc_mem.lsize);
--#endif
--}
--
- DT_MACHINE_START(EXYNOS5_DT, "SAMSUNG EXYNOS5 (Flattened Device Tree)")
- 	/* Maintainer: Kukjin Kim <kgene.kim@samsung.com> */
- 	.smp		= smp_ops(exynos_smp_ops),
-@@ -79,5 +63,4 @@ DT_MACHINE_START(EXYNOS5_DT, "SAMSUNG EXYNOS5 (Flattened Device Tree)")
- 	.init_time	= exynos_init_time,
- 	.dt_compat	= exynos5_dt_compat,
- 	.restart        = exynos5_restart,
--	.reserve	= exynos5_reserve,
- MACHINE_END
-diff --git a/arch/arm/plat-samsung/include/plat/mfc.h b/arch/arm/plat-samsung/include/plat/mfc.h
-index e6d7c42..ac13227 100644
---- a/arch/arm/plat-samsung/include/plat/mfc.h
-+++ b/arch/arm/plat-samsung/include/plat/mfc.h
-@@ -10,14 +10,6 @@
- #ifndef __PLAT_SAMSUNG_MFC_H
- #define __PLAT_SAMSUNG_MFC_H __FILE__
- 
--struct s5p_mfc_dt_meminfo {
--	unsigned long	loff;
--	unsigned long	lsize;
--	unsigned long	roff;
--	unsigned long	rsize;
--	char		*compatible;
--};
--
- /**
-  * s5p_mfc_reserve_mem - function to early reserve memory for MFC driver
-  * @rbase:	base address for MFC 'right' memory interface
-@@ -32,7 +24,4 @@ struct s5p_mfc_dt_meminfo {
- void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
- 				phys_addr_t lbase, unsigned int lsize);
- 
--int __init s5p_fdt_find_mfc_mem(unsigned long node, const char *uname,
--				int depth, void *data);
--
- #endif /* __PLAT_SAMSUNG_MFC_H */
-diff --git a/arch/arm/plat-samsung/s5p-dev-mfc.c b/arch/arm/plat-samsung/s5p-dev-mfc.c
-index ad51f85..f83be72 100644
---- a/arch/arm/plat-samsung/s5p-dev-mfc.c
-+++ b/arch/arm/plat-samsung/s5p-dev-mfc.c
-@@ -120,35 +120,3 @@ static int __init s5p_mfc_memory_init(void)
- }
- device_initcall(s5p_mfc_memory_init);
- #endif
--
--#ifdef CONFIG_OF
--int __init s5p_fdt_find_mfc_mem(unsigned long node, const char *uname,
--				int depth, void *data)
--{
--	__be32 *prop;
--	unsigned long len;
--	struct s5p_mfc_dt_meminfo *mfc_mem = data;
--
--	if (!data)
--		return 0;
--
--	if (!of_flat_dt_is_compatible(node, mfc_mem->compatible))
--		return 0;
--
--	prop = of_get_flat_dt_prop(node, "samsung,mfc-l", &len);
--	if (!prop || (len != 2 * sizeof(unsigned long)))
--		return 0;
--
--	mfc_mem->loff = be32_to_cpu(prop[0]);
--	mfc_mem->lsize = be32_to_cpu(prop[1]);
--
--	prop = of_get_flat_dt_prop(node, "samsung,mfc-r", &len);
--	if (!prop || (len != 2 * sizeof(unsigned long)))
--		return 0;
--
--	mfc_mem->roff = be32_to_cpu(prop[0]);
--	mfc_mem->rsize = be32_to_cpu(prop[1]);
--
--	return 1;
--}
--#endif
++	ret = -ENODEV;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		goto clkerr;
++
++	rc_dev->base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(rc_dev->base))
++		goto clkerr;
++
++	if (rc_dev->rxuhfmode)
++		rc_dev->rx_base = rc_dev->base + 0x40;
++	else
++		rc_dev->rx_base = rc_dev->base;
++
++	rc_dev->dev = dev;
++	platform_set_drvdata(pdev, rc_dev);
++	st_rc_hardware_init(rc_dev);
++
++	rdev->driver_type = RC_DRIVER_IR_RAW;
++	rdev->allowed_protos = RC_BIT_ALL;
++	/* rx sampling rate is 10Mhz */
++	rdev->rx_resolution = 100;
++	rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
++	rdev->priv = rc_dev;
++	rdev->open = st_rc_open;
++	rdev->close = st_rc_close;
++	rdev->driver_name = IR_ST_NAME;
++	rdev->map_name = RC_MAP_LIRC;
++	rdev->input_name = "ST Remote Control Receiver";
++
++	/* enable wake via this device */
++	device_set_wakeup_capable(dev, true);
++	device_set_wakeup_enable(dev, true);
++
++	ret = rc_register_device(rdev);
++	if (ret < 0)
++		goto clkerr;
++
++	rc_dev->rdev = rdev;
++	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
++			IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
++		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
++		ret = -EINVAL;
++		goto rcerr;
++	}
++
++	/**
++	 * for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
++	 * lircd expects a long space first before a signal train to sync.
++	 */
++	st_rc_send_lirc_timeout(rdev);
++
++	dev_info(dev, "setup in %s mode\n", rc_dev->rxuhfmode ? "UHF" : "IR");
++
++	return ret;
++rcerr:
++	rc_unregister_device(rdev);
++	rdev = NULL;
++clkerr:
++	clk_disable_unprepare(rc_dev->sys_clock);
++err:
++	rc_free_device(rdev);
++	dev_err(dev, "Unable to register device (%d)\n", ret);
++	return ret;
++}
++
++#ifdef CONFIG_PM
++static int st_rc_suspend(struct device *dev)
++{
++	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
++
++	if (device_may_wakeup(dev)) {
++		if (!enable_irq_wake(rc_dev->irq))
++			rc_dev->irq_wake = 1;
++		else
++			return -EINVAL;
++	} else {
++		pinctrl_pm_select_sleep_state(dev);
++		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
++		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
++		clk_disable_unprepare(rc_dev->sys_clock);
++	}
++
++	return 0;
++}
++
++static int st_rc_resume(struct device *dev)
++{
++	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
++	struct rc_dev	*rdev = rc_dev->rdev;
++
++	if (rc_dev->irq_wake) {
++		disable_irq_wake(rc_dev->irq);
++		rc_dev->irq_wake = 0;
++	} else {
++		pinctrl_pm_select_default_state(dev);
++		st_rc_hardware_init(rc_dev);
++		if (rdev->users) {
++			writel(IRB_RX_INTS, rc_dev->rx_base + IRB_RX_INT_EN);
++			writel(0x01, rc_dev->rx_base + IRB_RX_EN);
++		}
++	}
++
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
++#endif
++
++#ifdef CONFIG_OF
++static struct of_device_id st_rc_match[] = {
++	{ .compatible = "st,comms-irb", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, st_rc_match);
++#endif
++
++static struct platform_driver st_rc_driver = {
++	.driver = {
++		.name = IR_ST_NAME,
++		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(st_rc_match),
++#ifdef CONFIG_PM
++		.pm     = &st_rc_pm_ops,
++#endif
++	},
++	.probe = st_rc_probe,
++	.remove = st_rc_remove,
++};
++
++module_platform_driver(st_rc_driver);
++
++MODULE_DESCRIPTION("RC Transceiver driver for STMicroelectronics platforms");
++MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
++MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
+1.7.6.5
 
