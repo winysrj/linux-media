@@ -1,284 +1,958 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:34712 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042Ab3HVUrQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 16:47:16 -0400
-Received: by mail-yh0-f47.google.com with SMTP id 29so656072yhl.6
-        for <linux-media@vger.kernel.org>; Thu, 22 Aug 2013 13:47:16 -0700 (PDT)
-Message-ID: <521678C6.2020908@gmail.com>
-Date: Thu, 22 Aug 2013 17:47:02 -0300
-From: "Abel S." <abelnicolas1976@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46535 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752276Ab3H2MeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 08:34:01 -0400
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
+	<tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Thu, 29 Aug 2013 18:02:47 +0530
+Message-ID: <1377779572-22624-2-git-send-email-archit@ti.com>
+In-Reply-To: <1377779572-22624-1-git-send-email-archit@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com>
+ <1377779572-22624-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: BDA-2875
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Plugging plate with bda2875 chip does not seem to detect the kernel 
-correctly (I think that is not in the list).
-This is the message from kernel:
+The primary function of VPDMA is to move data between external memory and
+internal processing modules(in our case, VPE) that source or sink data. VPDMA is
+capable of buffering this data and then delivering the data as demanded to the
+modules as programmed. The modules that source or sink data are referred to as
+clients or ports. A channel is setup inside the VPDMA to connect a specific
+memory buffer to a specific client. The VPDMA centralizes the DMA control
+functions and buffering required to allow all the clients to minimize the
+effect of long latency times.
 
+Add the following to the VPDMA helper:
 
-[17419.315987] usb 1-4: new high-speed USB device number 3 using ehci-pci
-[17419.448607] usb 1-4: New USB device found, idVendor=eb1a, idProduct=2875
-[17419.448615] usb 1-4: New USB device strings: Mfr=0, Product=1, 
-SerialNumber=2
-[17419.448621] usb 1-4: Product: USB 2875 Device
-[17419.448626] usb 1-4: SerialNumber: 123456789ABCD
-[17419.575625] em28xx: New device  USB 2875 Device @ 480 Mbps 
-(eb1a:2875, interface 0, class 0)
-[17419.575632] em28xx: DVB interface 0 found
-[17419.575734] em28xx #0: chip ID is em2874
-[17419.705441] em28xx #0: found i2c device @ 0xa0 [eeprom]
-[17419.719924] em28xx #0: Your board has no unique USB ID.
-[17419.719930] em28xx #0: A hint were successfully done, based on i2c 
-devicelist hash.
-[17419.719934] em28xx #0: This method is not 100% failproof.
-[17419.719936] em28xx #0: If the board were missdetected, please email 
-this log to:
-[17419.719939] em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
-[17419.719942] em28xx #0: Board detected as EM2874 Leadership ISDBT
-[17419.823511] em28xx #0: Identified as EM2874 Leadership ISDBT (card=77)
-[17419.823519] em28xx #0: v4l2 driver version 0.1.3
-[17419.828468] em28xx #0: V4L2 video device registered as video1
-[17419.828896] usbcore: registered new interface driver em28xx
-[17419.938874] s921: s921_attach:
-[17419.938882] DVB: registering new adapter (em28xx #0)
-[17419.938893] usb 1-4: DVB: registering adapter 0 frontend 0 (Sharp 
-S921)...
-[17419.939834] em28xx #0: Successfully loaded em28xx-dvb
-[17419.939842] Em28xx: Initialized (Em28xx dvb Extension) extension
+- A data struct which describe VPDMA channels. For now, these channels are the
+  ones used only by VPE, the list of channels will increase when VIP(Video
+  Input Port) also uses the VPDMA library. This channel information will be
+  used to populate fields required by data descriptors.
 
-_______________________________________________________________________________________________________
+- Data structs which describe the different data types supported by VPDMA. This
+  data type information will be used to populate fields required by data
+  descriptors and used by the VPE driver to map a V4L2 format to the
+  corresponding VPDMA data type.
 
-When i load the module with card=0 the message is:
+- Provide VPDMA register offset definitions, functions to read, write and modify
+  VPDMA registers.
 
+- Functions to create and submit a VPDMA list. A list is a group of descriptors
+  that makes up a set of DMA transfers that need to be completed. Each
+  descriptor will either perform a DMA transaction to fetch input buffers and
+  write to output buffers(data descriptors), or configure the MMRs of sub blocks
+  of VPE(configuration descriptors), or provide control information to VPDMA
+  (control descriptors).
 
-[18217.667516] em28xx: New device  USB 2875 Device @ 480 Mbps 
-(eb1a:2875, interface 0, class 0)
-[18217.667521] em28xx: DVB interface 0 found
-[18217.667617] em28xx #0: chip ID is em2874
-[18223.861181] em28xx #0: Your board has no unique USB ID and thus need 
-a hint to be detected.
-[18223.861186] em28xx #0: You may try to use card=<n> insmod option to 
-workaround that.
-[18223.861188] em28xx #0: Please send an email with this log to:
-[18223.861189] em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
-[18223.861191] em28xx #0: Board eeprom hash is 0x00000000
-[18223.861192] em28xx #0: Board i2c devicelist hash is 0x1b800080
-[18223.861193] em28xx #0: Here is a list of valid choices for the 
-card=<n> insmod option:
-[18223.861195] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[18223.861197] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-[18223.861198] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[18223.861200] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[18223.861201] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[18223.861202] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[18223.861203] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[18223.861205] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[18223.861206] em28xx #0:     card=8 -> Kworld USB2800
-[18223.861207] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 
-90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 / 
-Plextor ConvertX PX-AV100U
-[18223.861209] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[18223.861210] em28xx #0:     card=11 -> Terratec Hybrid XS
-[18223.861212] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[18223.861213] em28xx #0:     card=13 -> Terratec Prodigy XS
-[18223.861214] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview 
-Prolink PlayTV USB 2.0
-[18223.861216] em28xx #0:     card=15 -> V-Gear PocketTV
-[18223.861217] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[18223.861218] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[18223.861219] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[18223.861221] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-[18223.861222] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[18223.861223] em28xx #0:     card=21 -> eMPIA Technology, Inc. 
-GrabBeeX+ Video Encoder
-[18223.861224] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[18223.861226] em28xx #0:     card=23 -> Huaqi DLCW-130
-[18223.861227] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[18223.861228] em28xx #0:     card=25 -> Gadmei UTV310
-[18223.861229] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[18223.861231] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips 
-FM1216ME)
-[18223.861232] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[18223.861233] em28xx #0:     card=29 -> EM2860/TVP5150 Reference Design
-[18223.861234] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[18223.861236] em28xx #0:     card=31 -> Usbgear VD204v9
-[18223.861237] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[18223.861238] em28xx #0:     card=33 -> Elgato Video Capture
-[18223.861239] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[18223.861241] em28xx #0:     card=35 -> Typhoon DVD Maker
-[18223.861242] em28xx #0:     card=36 -> NetGMBH Cam
-[18223.861243] em28xx #0:     card=37 -> Gadmei UTV330
-[18223.861244] em28xx #0:     card=38 -> Yakumo MovieMixer
-[18223.861245] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[18223.861247] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[18223.861248] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[18223.861249] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[18223.861250] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[18223.861252] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[18223.861253] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[18223.861254] em28xx #0:     card=46 -> Compro, VideoMate U3
-[18223.861255] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[18223.861256] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[18223.861258] em28xx #0:     card=49 -> MSI DigiVox A/D
-[18223.861259] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[18223.861260] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[18223.861261] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[18223.861263] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[18223.861264] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[18223.861265] em28xx #0:     card=55 -> Terratec Cinnergy Hybrid T USB 
-XS (em2882)
-[18223.861267] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (330e)
-[18223.861268] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[18223.861269] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[18223.861270] em28xx #0:     card=59 -> (null)
-[18223.861271] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[18223.861273] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[18223.861274] em28xx #0:     card=62 -> Gadmei TVR200
-[18223.861275] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[18223.861276] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[18223.861278] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[18223.861279] em28xx #0:     card=66 -> Empire dual TV
-[18223.861280] em28xx #0:     card=67 -> Terratec Grabby
-[18223.861281] em28xx #0:     card=68 -> Terratec AV350
-[18223.861283] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[18223.861284] em28xx #0:     card=70 -> Evga inDtube
-[18223.861285] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[18223.861286] em28xx #0:     card=72 -> Gadmei UTV330+
-[18223.861287] em28xx #0:     card=73 -> Reddo DVB-C USB TV Box
-[18223.861289] em28xx #0:     card=74 -> Actionmaster/LinXcel/Digitus VC211A
-[18223.861290] em28xx #0:     card=75 -> Dikom DK300
-[18223.861291] em28xx #0:     card=76 -> KWorld PlusTV 340U or UB435-Q 
-(ATSC)
-[18223.861292] em28xx #0:     card=77 -> EM2874 Leadership ISDBT
-[18223.861294] em28xx #0:     card=78 -> PCTV nanoStick T2 290e
-[18223.861295] em28xx #0:     card=79 -> Terratec Cinergy H5
-[18223.861296] em28xx #0:     card=80 -> PCTV DVB-S2 Stick (460e)
-[18223.861297] em28xx #0:     card=81 -> Hauppauge WinTV HVR 930C
-[18223.861299] em28xx #0:     card=82 -> Terratec Cinergy HTC Stick
-[18223.861300] em28xx #0:     card=83 -> Honestech Vidbox NW03
-[18223.861301] em28xx #0:     card=84 -> MaxMedia UB425-TC
-[18223.861302] em28xx #0:     card=85 -> PCTV QuatroStick (510e)
-[18223.861304] em28xx #0:     card=86 -> PCTV QuatroStick nano (520e)
-[18223.861305] em28xx #0:     card=87 -> Terratec Cinergy HTC USB XS
-[18223.861306] em28xx #0: Board not discovered
-[18223.861308] em28xx #0: Identified as Unknown EM2800 video grabber 
-(card=0)
-[18223.861309] em28xx #0: Your board has no unique USB ID and thus need 
-a hint to be detected.
-[18223.861310] em28xx #0: You may try to use card=<n> insmod option to 
-workaround that.
-[18223.861311] em28xx #0: Please send an email with this log to:
-[18223.861312] em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
-[18223.861314] em28xx #0: Board eeprom hash is 0x00000000
-[18223.861315] em28xx #0: Board i2c devicelist hash is 0x1b800080
-[18223.861316] em28xx #0: Here is a list of valid choices for the 
-card=<n> insmod option:
-[18223.861317] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[18223.861319] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-[18223.861320] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[18223.861321] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[18223.861322] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[18223.861324] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[18223.861325] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[18223.861326] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[18223.861327] em28xx #0:     card=8 -> Kworld USB2800
-[18223.861329] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 
-90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 / 
-Plextor ConvertX PX-AV100U
-[18223.861330] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[18223.861331] em28xx #0:     card=11 -> Terratec Hybrid XS
-[18223.861333] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[18223.861334] em28xx #0:     card=13 -> Terratec Prodigy XS
-[18223.861335] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview 
-Prolink PlayTV USB 2.0
-[18223.861336] em28xx #0:     card=15 -> V-Gear PocketTV
-[18223.861338] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[18223.861339] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[18223.861340] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[18223.861341] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-[18223.861343] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[18223.861344] em28xx #0:     card=21 -> eMPIA Technology, Inc. 
-GrabBeeX+ Video Encoder
-[18223.861345] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[18223.861347] em28xx #0:     card=23 -> Huaqi DLCW-130
-[18223.861348] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[18223.861349] em28xx #0:     card=25 -> Gadmei UTV310
-[18223.861350] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[18223.861352] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips 
-FM1216ME)
-[18223.861353] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[18223.861354] em28xx #0:     card=29 -> EM2860/TVP5150 Reference Design
-[18223.861355] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[18223.861357] em28xx #0:     card=31 -> Usbgear VD204v9
-[18223.861358] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[18223.861359] em28xx #0:     card=33 -> Elgato Video Capture
-[18223.861360] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[18223.861362] em28xx #0:     card=35 -> Typhoon DVD Maker
-[18223.861363] em28xx #0:     card=36 -> NetGMBH Cam
-[18223.861364] em28xx #0:     card=37 -> Gadmei UTV330
-[18223.861365] em28xx #0:     card=38 -> Yakumo MovieMixer
-[18223.861366] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[18223.861368] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[18223.861369] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[18223.861370] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[18223.861371] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[18223.861373] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[18223.861374] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[18223.861375] em28xx #0:     card=46 -> Compro, VideoMate U3
-[18223.861376] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[18223.861378] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[18223.861379] em28xx #0:     card=49 -> MSI DigiVox A/D
-[18223.861380] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[18223.861381] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[18223.861382] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[18223.861384] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[18223.861385] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[18223.861386] em28xx #0:     card=55 -> Terratec Cinnergy Hybrid T USB 
-XS (em2882)
-[18223.861387] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (330e)
-[18223.861389] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[18223.861390] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[18223.861391] em28xx #0:     card=59 -> (null)
-[18223.861392] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[18223.861394] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[18223.861395] em28xx #0:     card=62 -> Gadmei TVR200
-[18223.861396] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[18223.861397] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[18223.861399] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[18223.861400] em28xx #0:     card=66 -> Empire dual TV
-[18223.861401] em28xx #0:     card=67 -> Terratec Grabby
-[18223.861402] em28xx #0:     card=68 -> Terratec AV350
-[18223.861403] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[18223.861405] em28xx #0:     card=70 -> Evga inDtube
-[18223.861406] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[18223.861407] em28xx #0:     card=72 -> Gadmei UTV330+
-[18223.861408] em28xx #0:     card=73 -> Reddo DVB-C USB TV Box
-[18223.861409] em28xx #0:     card=74 -> Actionmaster/LinXcel/Digitus VC211A
-[18223.861411] em28xx #0:     card=75 -> Dikom DK300
-[18223.861412] em28xx #0:     card=76 -> KWorld PlusTV 340U or UB435-Q 
-(ATSC)
-[18223.861413] em28xx #0:     card=77 -> EM2874 Leadership ISDBT
-[18223.861414] em28xx #0:     card=78 -> PCTV nanoStick T2 290e
-[18223.861416] em28xx #0:     card=79 -> Terratec Cinergy H5
-[18223.861417] em28xx #0:     card=80 -> PCTV DVB-S2 Stick (460e)
-[18223.861418] em28xx #0:     card=81 -> Hauppauge WinTV HVR 930C
-[18223.861419] em28xx #0:     card=82 -> Terratec Cinergy HTC Stick
-[18223.861421] em28xx #0:     card=83 -> Honestech Vidbox NW03
-[18223.861422] em28xx #0:     card=84 -> MaxMedia UB425-TC
-[18223.861423] em28xx #0:     card=85 -> PCTV QuatroStick (510e)
-[18223.861424] em28xx #0:     card=86 -> PCTV QuatroStick nano (520e)
-[18223.861426] em28xx #0:     card=87 -> Terratec Cinergy HTC USB XS
-[18224.065002] em28xx #0: v4l2 driver version 0.1.3
-[18224.070263] em28xx #0: V4L2 video device registered as video1
-[18224.070717] usbcore: registered new interface driver em28xx
+- Functions to allocate, map and unmap buffers needed for the descriptor list,
+  payloads containing MMR values and scaler coefficients. These use the DMA
+  mapping APIs to ensure exclusive access to VPDMA.
 
+- Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on the
+  VPE interrupt line when a descriptor list is parsed completely and the DMA
+  transactions are completed. This requires masking the events in VPDMA
+  registers and configuring some top level VPE interrupt registers.
 
-I hope this information will be useful for future releases  ;)
-and excuse me, my english is bad
+- Enable some VPDMA specific parameters: frame start event(when to start DMA for
+  a client) and line mode(whether each line fetched should be mirrored or not).
+
+- Function to load firmware required by VPDMA. VPDMA requires a firmware for
+  it's internal list manager. We add the required request_firmware apis to fetch
+  this firmware from user space.
+
+- Function to dump VPDMA registers.
+
+- A function to initialize and create a VPDMA instance, this will be called by
+  the VPE driver with it's platform device pointer, this function will take care
+  of loading VPDMA firmware and returning a vpdma_data instance back to the VPE
+  driver. The VIP driver will also call the same init function to initialize it's
+  own VPDMA instance.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c      | 578 +++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      | 154 ++++++++
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
+ 3 files changed, 851 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+new file mode 100644
+index 0000000..42db12c
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -0,0 +1,578 @@
++/*
++ * VPDMA helper library
++ *
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/err.h>
++#include <linux/firmware.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++
++#include "vpdma.h"
++#include "vpdma_priv.h"
++
++#define VPDMA_FIRMWARE	"vpdma-1b8.bin"
++
++const struct vpdma_data_format vpdma_yuv_fmts[] = {
++	[VPDMA_DATA_FMT_Y444] = {
++		.data_type	= DATA_TYPE_Y444,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_Y422] = {
++		.data_type	= DATA_TYPE_Y422,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_Y420] = {
++		.data_type	= DATA_TYPE_Y420,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C444] = {
++		.data_type	= DATA_TYPE_C444,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C422] = {
++		.data_type	= DATA_TYPE_C422,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_C420] = {
++		.data_type	= DATA_TYPE_C420,
++		.depth		= 4,
++	},
++	[VPDMA_DATA_FMT_YC422] = {
++		.data_type	= DATA_TYPE_YC422,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_YC444] = {
++		.data_type	= DATA_TYPE_YC444,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_CY422] = {
++		.data_type	= DATA_TYPE_CY422,
++		.depth		= 16,
++	},
++};
++
++const struct vpdma_data_format vpdma_rgb_fmts[] = {
++	[VPDMA_DATA_FMT_RGB565] = {
++		.data_type	= DATA_TYPE_RGB16_565,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB16_1555] = {
++		.data_type	= DATA_TYPE_ARGB_1555,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB16] = {
++		.data_type	= DATA_TYPE_ARGB_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_RGBA16_5551] = {
++		.data_type	= DATA_TYPE_RGBA_5551,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_RGBA16] = {
++		.data_type	= DATA_TYPE_RGBA_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ARGB24] = {
++		.data_type	= DATA_TYPE_ARGB24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_RGB24] = {
++		.data_type	= DATA_TYPE_RGB24_888,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_ARGB32] = {
++		.data_type	= DATA_TYPE_ARGB32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_RGBA24] = {
++		.data_type	= DATA_TYPE_RGBA24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_RGBA32] = {
++		.data_type	= DATA_TYPE_RGBA32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_BGR565] = {
++		.data_type	= DATA_TYPE_BGR16_565,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR16_1555] = {
++		.data_type	= DATA_TYPE_ABGR_1555,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR16] = {
++		.data_type	= DATA_TYPE_ABGR_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_BGRA16_5551] = {
++		.data_type	= DATA_TYPE_BGRA_5551,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_BGRA16] = {
++		.data_type	= DATA_TYPE_BGRA_4444,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_ABGR24] = {
++		.data_type	= DATA_TYPE_ABGR24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_BGR24] = {
++		.data_type	= DATA_TYPE_BGR24_888,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_ABGR32] = {
++		.data_type	= DATA_TYPE_ABGR32_8888,
++		.depth		= 32,
++	},
++	[VPDMA_DATA_FMT_BGRA24] = {
++		.data_type	= DATA_TYPE_BGRA24_6666,
++		.depth		= 24,
++	},
++	[VPDMA_DATA_FMT_BGRA32] = {
++		.data_type	= DATA_TYPE_BGRA32_8888,
++		.depth		= 32,
++	},
++};
++
++const struct vpdma_data_format vpdma_misc_fmts[] = {
++	[VPDMA_DATA_FMT_MV] = {
++		.data_type	= DATA_TYPE_MV,
++		.depth		= 4,
++	},
++};
++
++struct vpdma_channel_info {
++	int num;		/* VPDMA channel number */
++	int cstat_offset;	/* client CSTAT register offset */
++};
++
++static const struct vpdma_channel_info chan_info[] = {
++	[VPE_CHAN_LUMA1_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA1_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA1_CSTAT,
++	},
++	[VPE_CHAN_CHROMA1_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA1_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA1_CSTAT,
++	},
++	[VPE_CHAN_LUMA2_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA2_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA2_CSTAT,
++	},
++	[VPE_CHAN_CHROMA2_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA2_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA2_CSTAT,
++	},
++	[VPE_CHAN_LUMA3_IN] = {
++		.num		= VPE_CHAN_NUM_LUMA3_IN,
++		.cstat_offset	= VPDMA_DEI_LUMA3_CSTAT,
++	},
++	[VPE_CHAN_CHROMA3_IN] = {
++		.num		= VPE_CHAN_NUM_CHROMA3_IN,
++		.cstat_offset	= VPDMA_DEI_CHROMA3_CSTAT,
++	},
++	[VPE_CHAN_MV_IN] = {
++		.num		= VPE_CHAN_NUM_MV_IN,
++		.cstat_offset	= VPDMA_DEI_MV_IN_CSTAT,
++	},
++	[VPE_CHAN_MV_OUT] = {
++		.num		= VPE_CHAN_NUM_MV_OUT,
++		.cstat_offset	= VPDMA_DEI_MV_OUT_CSTAT,
++	},
++	[VPE_CHAN_LUMA_OUT] = {
++		.num		= VPE_CHAN_NUM_LUMA_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
++	},
++	[VPE_CHAN_CHROMA_OUT] = {
++		.num		= VPE_CHAN_NUM_CHROMA_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_UV_CSTAT,
++	},
++	[VPE_CHAN_RGB_OUT] = {
++		.num		= VPE_CHAN_NUM_RGB_OUT,
++		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
++	},
++};
++
++static u32 read_reg(struct vpdma_data *vpdma, int offset)
++{
++	return ioread32(vpdma->base + offset);
++}
++
++static void write_reg(struct vpdma_data *vpdma, int offset, u32 value)
++{
++	iowrite32(value, vpdma->base + offset);
++}
++
++static int read_field_reg(struct vpdma_data *vpdma, int offset,
++		u32 mask, int shift)
++{
++	return (read_reg(vpdma, offset) & (mask << shift)) >> shift;
++}
++
++static void write_field_reg(struct vpdma_data *vpdma, int offset, u32 field,
++		u32 mask, int shift)
++{
++	u32 val = read_reg(vpdma, offset);
++
++	val &= ~(mask << shift);
++	val |= (field & mask) << shift;
++
++	write_reg(vpdma, offset, val);
++}
++
++void vpdma_dump_regs(struct vpdma_data *vpdma)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(vpdma, VPDMA_##r))
++
++	dev_dbg(dev, "VPDMA Registers:\n");
++
++	DUMPREG(PID);
++	DUMPREG(LIST_ADDR);
++	DUMPREG(LIST_ATTR);
++	DUMPREG(LIST_STAT_SYNC);
++	DUMPREG(BG_RGB);
++	DUMPREG(BG_YUV);
++	DUMPREG(SETUP);
++	DUMPREG(MAX_SIZE1);
++	DUMPREG(MAX_SIZE2);
++	DUMPREG(MAX_SIZE3);
++
++	/*
++	 * dumping registers of only group0 and group3, because VPE channels
++	 * lie within group0 and group3 registers
++	 */
++	DUMPREG(INT_CHAN_STAT(0));
++	DUMPREG(INT_CHAN_MASK(0));
++	DUMPREG(INT_CHAN_STAT(3));
++	DUMPREG(INT_CHAN_MASK(3));
++	DUMPREG(INT_CLIENT0_STAT);
++	DUMPREG(INT_CLIENT0_MASK);
++	DUMPREG(INT_CLIENT1_STAT);
++	DUMPREG(INT_CLIENT1_MASK);
++	DUMPREG(INT_LIST0_STAT);
++	DUMPREG(INT_LIST0_MASK);
++
++	/*
++	 * these are registers specific to VPE clients, we can make this
++	 * function dump client registers specific to VPE or VIP based on
++	 * who is using it
++	 */
++	DUMPREG(DEI_CHROMA1_CSTAT);
++	DUMPREG(DEI_LUMA1_CSTAT);
++	DUMPREG(DEI_CHROMA2_CSTAT);
++	DUMPREG(DEI_LUMA2_CSTAT);
++	DUMPREG(DEI_CHROMA3_CSTAT);
++	DUMPREG(DEI_LUMA3_CSTAT);
++	DUMPREG(DEI_MV_IN_CSTAT);
++	DUMPREG(DEI_MV_OUT_CSTAT);
++	DUMPREG(VIP_UP_Y_CSTAT);
++	DUMPREG(VIP_UP_UV_CSTAT);
++	DUMPREG(VPI_CTL_CSTAT);
++}
++
++/*
++ * Allocate a DMA buffer
++ */
++int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size)
++{
++	buf->size = size;
++	buf->mapped = false;
++	buf->addr = kzalloc(size, GFP_KERNEL);
++	if (!buf->addr)
++		return -ENOMEM;
++
++	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
++
++	return 0;
++}
++
++void vpdma_free_desc_buf(struct vpdma_buf *buf)
++{
++	WARN_ON(buf->mapped);
++	kfree(buf->addr);
++	buf->addr = NULL;
++	buf->size = 0;
++}
++
++/*
++ * map descriptor/payload DMA buffer, enabling DMA access
++ */
++int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++	WARN_ON(buf->mapped);
++	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
++				DMA_TO_DEVICE);
++	if (dma_mapping_error(dev, buf->dma_addr)) {
++		dev_err(dev, "failed to map buffer\n");
++		return -EINVAL;
++	}
++
++	buf->mapped = true;
++
++	return 0;
++}
++
++/*
++ * unmap descriptor/payload DMA buffer, disabling DMA access and
++ * allowing the main processor to acces the data
++ */
++void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
++{
++	struct device *dev = &vpdma->pdev->dev;
++
++	if (buf->mapped)
++		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
++
++	buf->mapped = false;
++}
++
++/*
++ * create a descriptor list, the user of this list will append configuration,
++ * control and data descriptors to this list, this list will be submitted to
++ * VPDMA. VPDMA's list parser will go through each descriptor and perform the
++ * required DMA operations
++ */
++int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type)
++{
++	int r;
++
++	r = vpdma_alloc_desc_buf(&list->buf, size);
++	if (r)
++		return r;
++
++	list->next = list->buf.addr;
++
++	list->type = type;
++
++	return 0;
++}
++
++/*
++ * once a descriptor list is parsed by VPDMA, we reset the list by emptying it,
++ * to allow new descriptors to be added to the list.
++ */
++void vpdma_reset_desc_list(struct vpdma_desc_list *list)
++{
++	list->next = list->buf.addr;
++}
++
++/*
++ * free the buffer allocated fot the VPDMA descriptor list, this should be
++ * called when the user doesn't want to use VPDMA any more.
++ */
++void vpdma_free_desc_list(struct vpdma_desc_list *list)
++{
++	vpdma_free_desc_buf(&list->buf);
++
++	list->next = NULL;
++}
++
++static bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
++{
++	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
++}
++
++/*
++ * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
++ */
++int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
++{
++	/* we always use the first list */
++	int list_num = 0;
++	int list_size;
++
++	if (vpdma_list_busy(vpdma, list_num))
++		return -EBUSY;
++
++	/* 16-byte granularity */
++	list_size = (list->next - list->buf.addr) >> 4;
++
++	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
++
++	write_reg(vpdma, VPDMA_LIST_ATTR,
++			(list_num << VPDMA_LIST_NUM_SHFT) |
++			(list->type << VPDMA_LIST_TYPE_SHFT) |
++			list_size);
++
++	return 0;
++}
++
++/* set or clear the mask for list complete interrupt */
++void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
++		bool enable)
++{
++	u32 val;
++
++	val = read_reg(vpdma, VPDMA_INT_LIST0_MASK);
++	if (enable)
++		val |= (1 << (list_num * 2));
++	else
++		val &= ~(1 << (list_num * 2));
++	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
++}
++
++/* clear previosuly occured list intterupts in the LIST_STAT register */
++void vpdma_clear_list_stat(struct vpdma_data *vpdma)
++{
++	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
++		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
++}
++
++/*
++ * configures the output mode of the line buffer for the given client, the
++ * line buffer content can either be mirrored(each line repeated twice) or
++ * passed to the client as is
++ */
++void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
++		enum vpdma_channel chan)
++{
++	int client_cstat = chan_info[chan].cstat_offset;
++
++	write_field_reg(vpdma, client_cstat, line_mode,
++		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
++}
++
++/*
++ * configures the event which should trigger VPDMA transfer for the given
++ * client
++ */
++void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
++		enum vpdma_frame_start_event fs_event,
++		enum vpdma_channel chan)
++{
++	int client_cstat = chan_info[chan].cstat_offset;
++
++	write_field_reg(vpdma, client_cstat, fs_event,
++		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
++}
++
++static void vpdma_firmware_cb(const struct firmware *f, void *context)
++{
++	struct vpdma_data *vpdma = context;
++	struct vpdma_buf fw_dma_buf;
++	int i, r;
++
++	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
++
++	if (!f || !f->data) {
++		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
++		return;
++	}
++
++	/* already initialized */
++	if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
++			VPDMA_LIST_RDY_SHFT)) {
++		vpdma->ready = true;
++		return;
++	}
++
++	r = vpdma_alloc_desc_buf(&fw_dma_buf, f->size);
++	if (r) {
++		dev_err(&vpdma->pdev->dev,
++			"failed to allocate dma buffer for firmware\n");
++		goto rel_fw;
++	}
++
++	memcpy(fw_dma_buf.addr, f->data, f->size);
++
++	vpdma_map_desc_buf(vpdma, &fw_dma_buf);
++
++	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
++
++	for (i = 0; i < 100; i++) {		/* max 1 second */
++		msleep_interruptible(10);
++
++		if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
++				VPDMA_LIST_RDY_SHFT))
++			break;
++	}
++
++	if (i == 100) {
++		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
++		goto free_buf;
++	}
++
++	vpdma->ready = true;
++
++free_buf:
++	vpdma_unmap_desc_buf(vpdma, &fw_dma_buf);
++
++	vpdma_free_desc_buf(&fw_dma_buf);
++rel_fw:
++	release_firmware(f);
++}
++
++static int vpdma_load_firmware(struct vpdma_data *vpdma)
++{
++	int r;
++	struct device *dev = &vpdma->pdev->dev;
++
++	r = request_firmware_nowait(THIS_MODULE, 1,
++		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
++		vpdma_firmware_cb);
++	if (r) {
++		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
++		return r;
++	} else {
++		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
++	}
++
++	return 0;
++}
++
++struct vpdma_data *vpdma_create(struct platform_device *pdev)
++{
++	struct resource *res;
++	struct vpdma_data *vpdma;
++	int r;
++
++	dev_dbg(&pdev->dev, "vpdma_create\n");
++
++	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
++	if (!vpdma) {
++		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	vpdma->pdev = pdev;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
++	if (res == NULL) {
++		dev_err(&pdev->dev, "missing platform resources data\n");
++		return ERR_PTR(-ENODEV);
++	}
++
++	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
++	if (!vpdma->base) {
++		dev_err(&pdev->dev, "failed to ioremap\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	r = vpdma_load_firmware(vpdma);
++	if (r) {
++		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
++		return ERR_PTR(r);
++	}
++
++	return vpdma;
++}
++MODULE_FIRMWARE(VPDMA_FIRMWARE);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+new file mode 100644
+index 0000000..9710f57
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef __TI_VPDMA_H_
++#define __TI_VPDMA_H_
++
++/*
++ * A vpdma_buf tracks the size, DMA address and mapping status of each
++ * driver DMA area.
++ */
++struct vpdma_buf {
++	void			*addr;
++	dma_addr_t		dma_addr;
++	size_t			size;
++	bool			mapped;
++};
++
++struct vpdma_desc_list {
++	struct vpdma_buf buf;
++	void *next;
++	int type;
++};
++
++struct vpdma_data {
++	void __iomem		*base;
++
++	struct platform_device	*pdev;
++
++	/* tells whether vpdma firmware is loaded or not */
++	bool ready;
++};
++
++struct vpdma_data_format {
++	int data_type;
++	u8 depth;
++};
++
++#define VPDMA_DESC_ALIGN		16	/* 16-byte descriptor alignment */
++
++#define VPDMA_MAX_DESC_SIZE		32	/* 8 words */
++
++#define VPDMA_LIST_TYPE_NORMAL		0
++#define VPDMA_LIST_TYPE_SELF_MODIFYING	1
++#define VPDMA_LIST_TYPE_DOORBELL	2
++
++enum vpdma_yuv_formats {
++	VPDMA_DATA_FMT_Y444 = 0,
++	VPDMA_DATA_FMT_Y422,
++	VPDMA_DATA_FMT_Y420,
++	VPDMA_DATA_FMT_C444,
++	VPDMA_DATA_FMT_C422,
++	VPDMA_DATA_FMT_C420,
++	VPDMA_DATA_FMT_YC422,
++	VPDMA_DATA_FMT_YC444,
++	VPDMA_DATA_FMT_CY422,
++};
++
++enum vpdma_rgb_formats {
++	VPDMA_DATA_FMT_RGB565 = 0,
++	VPDMA_DATA_FMT_ARGB16_1555,
++	VPDMA_DATA_FMT_ARGB16,
++	VPDMA_DATA_FMT_RGBA16_5551,
++	VPDMA_DATA_FMT_RGBA16,
++	VPDMA_DATA_FMT_ARGB24,
++	VPDMA_DATA_FMT_RGB24,
++	VPDMA_DATA_FMT_ARGB32,
++	VPDMA_DATA_FMT_RGBA24,
++	VPDMA_DATA_FMT_RGBA32,
++	VPDMA_DATA_FMT_BGR565,
++	VPDMA_DATA_FMT_ABGR16_1555,
++	VPDMA_DATA_FMT_ABGR16,
++	VPDMA_DATA_FMT_BGRA16_5551,
++	VPDMA_DATA_FMT_BGRA16,
++	VPDMA_DATA_FMT_ABGR24,
++	VPDMA_DATA_FMT_BGR24,
++	VPDMA_DATA_FMT_ABGR32,
++	VPDMA_DATA_FMT_BGRA24,
++	VPDMA_DATA_FMT_BGRA32,
++};
++
++enum vpdma_misc_formats {
++	VPDMA_DATA_FMT_MV = 0,
++};
++
++extern const struct vpdma_data_format vpdma_yuv_fmts[];
++extern const struct vpdma_data_format vpdma_rgb_fmts[];
++extern const struct vpdma_data_format vpdma_misc_fmts[];
++
++enum vpdma_frame_start_event {
++	VPDMA_FSEVENT_HDMI_FID = 0,
++	VPDMA_FSEVENT_DVO2_FID,
++	VPDMA_FSEVENT_HDCOMP_FID,
++	VPDMA_FSEVENT_SD_FID,
++	VPDMA_FSEVENT_LM_FID0,
++	VPDMA_FSEVENT_LM_FID1,
++	VPDMA_FSEVENT_LM_FID2,
++	VPDMA_FSEVENT_CHANNEL_ACTIVE,
++};
++
++/*
++ * VPDMA channel numbers
++ */
++enum vpdma_channel {
++	VPE_CHAN_LUMA1_IN,
++	VPE_CHAN_CHROMA1_IN,
++	VPE_CHAN_LUMA2_IN,
++	VPE_CHAN_CHROMA2_IN,
++	VPE_CHAN_LUMA3_IN,
++	VPE_CHAN_CHROMA3_IN,
++	VPE_CHAN_MV_IN,
++	VPE_CHAN_MV_OUT,
++	VPE_CHAN_LUMA_OUT,
++	VPE_CHAN_CHROMA_OUT,
++	VPE_CHAN_RGB_OUT,
++};
++
++/* vpdma descriptor buffer allocation and management */
++int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size);
++void vpdma_free_desc_buf(struct vpdma_buf *buf);
++int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf);
++void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf);
++
++/* vpdma descriptor list funcs */
++int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type);
++void vpdma_reset_desc_list(struct vpdma_desc_list *list);
++void vpdma_free_desc_list(struct vpdma_desc_list *list);
++int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
++
++/* vpdma list interrupt management */
++void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
++		bool enable);
++void vpdma_clear_list_stat(struct vpdma_data *vpdma);
++
++/* vpdma client configuration */
++void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
++		enum vpdma_channel chan);
++void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
++		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
++
++void vpdma_dump_regs(struct vpdma_data *vpdma);
++
++/* initialize vpdma, passed with VPE's platform device pointer */
++struct vpdma_data *vpdma_create(struct platform_device *pdev);
++
++#endif
+diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
+new file mode 100644
+index 0000000..8ff51a3
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
+@@ -0,0 +1,119 @@
++/*
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _TI_VPDMA_PRIV_H_
++#define _TI_VPDMA_PRIV_H_
++
++/*
++ * VPDMA Register offsets
++ */
++
++/* Top level */
++#define VPDMA_PID		0x00
++#define VPDMA_LIST_ADDR		0x04
++#define VPDMA_LIST_ATTR		0x08
++#define VPDMA_LIST_STAT_SYNC	0x0c
++#define VPDMA_BG_RGB		0x18
++#define VPDMA_BG_YUV		0x1c
++#define VPDMA_SETUP		0x30
++#define VPDMA_MAX_SIZE1		0x34
++#define VPDMA_MAX_SIZE2		0x38
++#define VPDMA_MAX_SIZE3		0x3c
++
++/* Interrupts */
++#define VPDMA_INT_CHAN_STAT(grp)	(0x40 + grp * 8)
++#define VPDMA_INT_CHAN_MASK(grp)	(VPDMA_INT_CHAN_STAT(grp) + 4)
++#define VPDMA_INT_CLIENT0_STAT		0x78
++#define VPDMA_INT_CLIENT0_MASK		0x7c
++#define VPDMA_INT_CLIENT1_STAT		0x80
++#define VPDMA_INT_CLIENT1_MASK		0x84
++#define VPDMA_INT_LIST0_STAT		0x88
++#define VPDMA_INT_LIST0_MASK		0x8c
++
++#define VPDMA_PERFMON(i)		(0x200 + i * 4)
++
++/* VPE specific client registers */
++#define VPDMA_DEI_CHROMA1_CSTAT		0x0300
++#define VPDMA_DEI_LUMA1_CSTAT		0x0304
++#define VPDMA_DEI_LUMA2_CSTAT		0x0308
++#define VPDMA_DEI_CHROMA2_CSTAT		0x030c
++#define VPDMA_DEI_LUMA3_CSTAT		0x0310
++#define VPDMA_DEI_CHROMA3_CSTAT		0x0314
++#define VPDMA_DEI_MV_IN_CSTAT		0x0330
++#define VPDMA_DEI_MV_OUT_CSTAT		0x033c
++#define VPDMA_VIP_UP_Y_CSTAT		0x0390
++#define VPDMA_VIP_UP_UV_CSTAT		0x0394
++#define VPDMA_VPI_CTL_CSTAT		0x03d0
++
++/* Reg field info for VPDMA_CLIENT_CSTAT registers */
++#define VPDMA_CSTAT_LINE_MODE_MASK	0x03
++#define VPDMA_CSTAT_LINE_MODE_SHIFT	8
++#define VPDMA_CSTAT_FRAME_START_MASK	0xf
++#define VPDMA_CSTAT_FRAME_START_SHIFT	10
++
++#define VPDMA_LIST_NUM_MASK		0x07
++#define VPDMA_LIST_NUM_SHFT		24
++#define VPDMA_LIST_STOP_SHFT		20
++#define VPDMA_LIST_RDY_MASK		0x01
++#define VPDMA_LIST_RDY_SHFT		19
++#define VPDMA_LIST_TYPE_MASK		0x03
++#define VPDMA_LIST_TYPE_SHFT		16
++#define VPDMA_LIST_SIZE_MASK		0xffff
++
++/* VPDMA data type values for data formats */
++#define DATA_TYPE_Y444				0x0
++#define DATA_TYPE_Y422				0x1
++#define DATA_TYPE_Y420				0x2
++#define DATA_TYPE_C444				0x4
++#define DATA_TYPE_C422				0x5
++#define DATA_TYPE_C420				0x6
++#define DATA_TYPE_YC422				0x7
++#define DATA_TYPE_YC444				0x8
++#define DATA_TYPE_CY422				0x23
++
++#define DATA_TYPE_RGB16_565			0x0
++#define DATA_TYPE_ARGB_1555			0x1
++#define DATA_TYPE_ARGB_4444			0x2
++#define DATA_TYPE_RGBA_5551			0x3
++#define DATA_TYPE_RGBA_4444			0x4
++#define DATA_TYPE_ARGB24_6666			0x5
++#define DATA_TYPE_RGB24_888			0x6
++#define DATA_TYPE_ARGB32_8888			0x7
++#define DATA_TYPE_RGBA24_6666			0x8
++#define DATA_TYPE_RGBA32_8888			0x9
++#define DATA_TYPE_BGR16_565			0x10
++#define DATA_TYPE_ABGR_1555			0x11
++#define DATA_TYPE_ABGR_4444			0x12
++#define DATA_TYPE_BGRA_5551			0x13
++#define DATA_TYPE_BGRA_4444			0x14
++#define DATA_TYPE_ABGR24_6666			0x15
++#define DATA_TYPE_BGR24_888			0x16
++#define DATA_TYPE_ABGR32_8888			0x17
++#define DATA_TYPE_BGRA24_6666			0x18
++#define DATA_TYPE_BGRA32_8888			0x19
++
++#define DATA_TYPE_MV				0x3
++
++/* VPDMA channel numbers(only VPE channels for now) */
++#define	VPE_CHAN_NUM_LUMA1_IN		0
++#define	VPE_CHAN_NUM_CHROMA1_IN		1
++#define	VPE_CHAN_NUM_LUMA2_IN		2
++#define	VPE_CHAN_NUM_CHROMA2_IN		3
++#define	VPE_CHAN_NUM_LUMA3_IN		4
++#define	VPE_CHAN_NUM_CHROMA3_IN		5
++#define	VPE_CHAN_NUM_MV_IN		12
++#define	VPE_CHAN_NUM_MV_OUT		15
++#define	VPE_CHAN_NUM_LUMA_OUT		102
++#define	VPE_CHAN_NUM_CHROMA_OUT		103
++#define	VPE_CHAN_NUM_RGB_OUT		106
++
++#endif
+-- 
+1.8.1.2
 
