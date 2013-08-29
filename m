@@ -1,916 +1,981 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:50042 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab3HLPna (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:46972 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322Ab3H2Oj5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 11:43:30 -0400
-MIME-Version: 1.0
-In-Reply-To: <20130729140519.25868.86479.stgit@patser>
-References: <20130729140519.25868.86479.stgit@patser>
-Date: Mon, 12 Aug 2013 11:43:29 -0400
-Message-ID: <CAF6AEGtTB05-Jf1sN9RxSak6EW77Et2HM1xr=gzLHLyc9VLYOQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] fence: dma-buf cross-device synchronization (v12)
-From: Rob Clark <robdclark@gmail.com>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 29 Aug 2013 10:39:57 -0400
+From: Tomasz Figa <t.figa@samsung.com>
+To: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>,
+	mturquette@linaro.org
+Cc: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
+	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com,
+	swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net,
+	tomasz.figa@gmail.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux@arm.linux.org.uk, ben-linux@fluff.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v3 5/6] clk: samsung: Add clock driver for s5pc110/s5pv210
+Date: Thu, 29 Aug 2013 16:39:50 +0200
+Message-id: <4391436.nyMIuy3Tug@amdc1227>
+In-reply-to: <1377706384-3697-6-git-send-email-m.krawczuk@partner.samsung.com>
+References: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
+ <1377706384-3697-6-git-send-email-m.krawczuk@partner.samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 29, 2013 at 10:05 AM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> A fence can be attached to a buffer which is being filled or consumed
-> by hw, to allow userspace to pass the buffer without waiting to another
-> device.  For example, userspace can call page_flip ioctl to display the
-> next frame of graphics after kicking the GPU but while the GPU is still
-> rendering.  The display device sharing the buffer with the GPU would
-> attach a callback to get notified when the GPU's rendering-complete IRQ
-> fires, to update the scan-out address of the display, without having to
-> wake up userspace.
->
-> A driver must allocate a fence context for each execution ring that can
-> run in parallel. The function for this takes an argument with how many
-> contexts to allocate:
->   + fence_context_alloc()
->
-> A fence is transient, one-shot deal.  It is allocated and attached
-> to one or more dma-buf's.  When the one that attached it is done, with
-> the pending operation, it can signal the fence:
->   + fence_signal()
->
-> To have a rough approximation whether a fence is fired, call:
->   + fence_is_signaled()
->
-> The dma-buf-mgr handles tracking, and waiting on, the fences associated
-> with a dma-buf.
->
-> The one pending on the fence can add an async callback:
->   + fence_add_callback()
->
-> The callback can optionally be cancelled with:
->   + fence_remove_callback()
->
-> To wait synchronously, optionally with a timeout:
->   + fence_wait()
->   + fence_wait_timeout()
->
-> A default software-only implementation is provided, which can be used
-> by drivers attaching a fence to a buffer when they have no other means
-> for hw sync.  But a memory backed fence is also envisioned, because it
-> is common that GPU's can write to, or poll on some memory location for
-> synchronization.  For example:
->
->   fence = custom_get_fence(...);
->   if ((seqno_fence = to_seqno_fence(fence)) != NULL) {
->     dma_buf *fence_buf = fence->sync_buf;
->     get_dma_buf(fence_buf);
->
->     ... tell the hw the memory location to wait ...
->     custom_wait_on(fence_buf, fence->seqno_ofs, fence->seqno);
->   } else {
->     /* fall-back to sw sync * /
->     fence_add_callback(fence, my_cb);
->   }
->
-> On SoC platforms, if some other hw mechanism is provided for synchronizing
-> between IP blocks, it could be supported as an alternate implementation
-> with it's own fence ops in a similar way.
->
-> enable_signaling callback is used to provide sw signaling in case a cpu
-> waiter is requested or no compatible hardware signaling could be used.
->
-> The intention is to provide a userspace interface (presumably via eventfd)
-> later, to be used in conjunction with dma-buf's mmap support for sw access
-> to buffers (or for userspace apps that would prefer to do their own
-> synchronization).
->
-> v1: Original
-> v2: After discussion w/ danvet and mlankhorst on #dri-devel, we decided
->     that dma-fence didn't need to care about the sw->hw signaling path
->     (it can be handled same as sw->sw case), and therefore the fence->ops
->     can be simplified and more handled in the core.  So remove the signal,
->     add_callback, cancel_callback, and wait ops, and replace with a simple
->     enable_signaling() op which can be used to inform a fence supporting
->     hw->hw signaling that one or more devices which do not support hw
->     signaling are waiting (and therefore it should enable an irq or do
->     whatever is necessary in order that the CPU is notified when the
->     fence is passed).
-> v3: Fix locking fail in attach_fence() and get_fence()
-> v4: Remove tie-in w/ dma-buf..  after discussion w/ danvet and mlankorst
->     we decided that we need to be able to attach one fence to N dma-buf's,
->     so using the list_head in dma-fence struct would be problematic.
-> v5: [ Maarten Lankhorst ] Updated for dma-bikeshed-fence and dma-buf-manager.
-> v6: [ Maarten Lankhorst ] I removed dma_fence_cancel_callback and some comments
->     about checking if fence fired or not. This is broken by design.
->     waitqueue_active during destruction is now fatal, since the signaller
->     should be holding a reference in enable_signalling until it signalled
->     the fence. Pass the original dma_fence_cb along, and call __remove_wait
->     in the dma_fence_callback handler, so that no cleanup needs to be
->     performed.
-> v7: [ Maarten Lankhorst ] Set cb->func and only enable sw signaling if
->     fence wasn't signaled yet, for example for hardware fences that may
->     choose to signal blindly.
-> v8: [ Maarten Lankhorst ] Tons of tiny fixes, moved __dma_fence_init to
->     header and fixed include mess. dma-fence.h now includes dma-buf.h
->     All members are now initialized, so kmalloc can be used for
->     allocating a dma-fence. More documentation added.
-> v9: Change compiler bitfields to flags, change return type of
->     enable_signaling to bool. Rework dma_fence_wait. Added
->     dma_fence_is_signaled and dma_fence_wait_timeout.
->     s/dma// and change exports to non GPL. Added fence_is_signaled and
->     fence_enable_sw_signaling calls, add ability to override default
->     wait operation.
-> v10: remove event_queue, use a custom list, export try_to_wake_up from
->     scheduler. Remove fence lock and use a global spinlock instead,
->     this should hopefully remove all the locking headaches I was having
->     on trying to implement this. enable_signaling is called with this
->     lock held.
-> v11:
->     Use atomic ops for flags, lifting the need for some spin_lock_irqsaves.
->     However I kept the guarantee that after fence_signal returns, it is
->     guaranteed that enable_signaling has either been called to completion,
->     or will not be called any more.
->
->     Add contexts and seqno to base fence implementation. This allows you
->     to wait for less fences, by testing for seqno + signaled, and then only
->     wait on the later fence.
->
->     Add FENCE_TRACE, FENCE_WARN, and FENCE_ERR. This makes debugging easier.
->     An CONFIG_DEBUG_FENCE will be added to turn off the FENCE_TRACE
->     spam, and another runtime option can turn it off at runtime.
-> v12:
->     Add CONFIG_FENCE_TRACE. Add missing documentation for the fence->context
->     and fence->seqno members.
->
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Hi Mateusz,
 
-Hi, few (mostly minor/superficial comments).. I didn't really spot
-anything major (but then again, I think I've looked at all/most of the
-earlier versions of this too)
-
-Reviewed-by: Rob Clark <robdclark@gmail.com>
-
+On Wednesday 28 of August 2013 18:13:03 Mateusz Krawczuk wrote:
+> This patch adds new, Common Clock Framework-based clock driver for
+> Samsung S5PV210 SoCs. The driver is just added, without enabling it yet.
+> 
+> Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
 > ---
->  Documentation/DocBook/device-drivers.tmpl |    2
->  drivers/base/Kconfig                      |   10 +
->  drivers/base/Makefile                     |    2
->  drivers/base/fence.c                      |  286 +++++++++++++++++++++++
->  include/linux/fence.h                     |  365 +++++++++++++++++++++++++++++
->  5 files changed, 664 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/base/fence.c
->  create mode 100644 include/linux/fence.h
->
-> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-> index cbfdf54..241f4c5 100644
-> --- a/Documentation/DocBook/device-drivers.tmpl
-> +++ b/Documentation/DocBook/device-drivers.tmpl
-> @@ -126,6 +126,8 @@ X!Edrivers/base/interface.c
->       </sect1>
->       <sect1><title>Device Drivers DMA Management</title>
->  !Edrivers/base/dma-buf.c
-> +!Edrivers/base/fence.c
-> +!Iinclude/linux/fence.h
->  !Edrivers/base/reservation.c
->  !Iinclude/linux/reservation.h
->  !Edrivers/base/dma-coherent.c
-> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-> index 5daa259..0ad35df 100644
-> --- a/drivers/base/Kconfig
-> +++ b/drivers/base/Kconfig
-> @@ -200,6 +200,16 @@ config DMA_SHARED_BUFFER
->           APIs extension; the file's descriptor can then be passed on to other
->           driver.
->
-> +config FENCE_TRACE
-> +       bool "Enable verbose FENCE_TRACE messages"
-> +       default n
-> +       depends on DMA_SHARED_BUFFER
-> +       help
-> +         Enable the FENCE_TRACE printks. This will add extra
-> +         spam to the config log, but will make it easier to diagnose
-
-s/config/console/ I guess?
-
-> +         lockup related problems for dma-buffers shared across multiple
-> +         devices.
-> +
->  config CMA
->         bool "Contiguous Memory Allocator"
->         depends on HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK
-> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-> index 48029aa..8a55cb9 100644
-> --- a/drivers/base/Makefile
-> +++ b/drivers/base/Makefile
-> @@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
->  obj-y                  += power/
->  obj-$(CONFIG_HAS_DMA)  += dma-mapping.o
->  obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
-> -obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o reservation.o
-> +obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o fence.o reservation.o
->  obj-$(CONFIG_ISA)      += isa.o
->  obj-$(CONFIG_FW_LOADER)        += firmware_class.o
->  obj-$(CONFIG_NUMA)     += node.o
-> diff --git a/drivers/base/fence.c b/drivers/base/fence.c
-> new file mode 100644
-> index 0000000..28e5ffd
+>  .../bindings/clock/samsung,s5pv210-clock.txt       |  72 ++
+>  drivers/clk/samsung/Makefile                       |   3 +
+>  drivers/clk/samsung/clk-s5pv210.c                  | 732
+> +++++++++++++++++++++ include/dt-bindings/clock/samsung,s5pv210-clock.h 
+> | 221 +++++++ 4 files changed, 1028 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt create
+> mode 100644 drivers/clk/samsung/clk-s5pv210.c
+>  create mode 100644 include/dt-bindings/clock/samsung,s5pv210-clock.h
+> 
+> diff --git
+> a/Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt
+> b/Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt new
+> file mode 100644
+> index 0000000..753c8f9
 > --- /dev/null
-> +++ b/drivers/base/fence.c
-> @@ -0,0 +1,286 @@
-> +/*
-> + * Fence mechanism for dma-buf and to allow for asynchronous dma access
-> + *
-> + * Copyright (C) 2012 Canonical Ltd
-> + * Copyright (C) 2012 Texas Instruments
-> + *
-> + * Authors:
-> + * Rob Clark <rob.clark@linaro.org>
-> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
+> +++ b/Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt
+> @@ -0,0 +1,72 @@
+> +* Samsung S5PC110/S5PV210 Clock Controller
 > +
-> +#include <linux/slab.h>
-> +#include <linux/export.h>
-> +#include <linux/fence.h>
+> +The S5PV210 clock controller generates and supplies clock to various
+> controllers +within the SoC. The clock binding described here is
+> applicable to all SoCs in +the S5PC110/S5PV210 family.
 > +
-> +atomic_t fence_context_counter = ATOMIC_INIT(0);
-> +EXPORT_SYMBOL(fence_context_counter);
+> +Required Properties:
 > +
-> +int __fence_signal(struct fence *fence)
-> +{
-> +       struct fence_cb *cur, *tmp;
-> +       int ret = 0;
+> +- compatible: should be one of the following.
+> +  - "samsung,s5pv210-clock" - controller compatible with S5PC110/S5PV210
+> SoC. +
+> +- reg: physical base address of the controller and length of memory
+> mapped +  region.
 > +
-> +       if (WARN_ON(!fence))
-> +               return -EINVAL;
+> +- #clock-cells: should be 1.
 > +
-> +       if (test_and_set_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
-> +               ret = -EINVAL;
+> +Each clock is assigned an identifier and client nodes can use this
+> identifier +to specify the clock which they consume. Some of the clocks
+> are available only +on a particular S5PC110/S5PV210 SoC and this is
+> specified where applicable. +
+> +All available clocks are defined as preprocessor macros in
+> +dt-bindings/clock/samsung,s5pv210-clock.h header and can be used in
+> device +tree sources.
 > +
-> +               /*
-> +                * we might have raced with the unlocked fence_signal,
-> +                * still run through all callbacks
-> +                */
-> +       }
+> +External clocks:
 > +
-> +       list_for_each_entry_safe(cur, tmp, &fence->cb_list, node) {
-> +               list_del_init(&cur->node);
-> +               cur->func(fence, cur, cur->priv);
-> +       }
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(__fence_signal);
-> +
-> +/**
-> + * fence_signal - signal completion of a fence
-> + * @fence: the fence to signal
-> + *
-> + * Signal completion for software callbacks on a fence, this will unblock
-> + * fence_wait() calls and run all the callbacks added with
-> + * fence_add_callback(). Can be called multiple times, but since a fence
-> + * can only go from unsignaled to signaled state, it will only be effective
-> + * the first time.
-> + */
-> +int fence_signal(struct fence *fence)
-> +{
-> +       unsigned long flags;
-> +
-> +       if (!fence || test_and_set_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               return -EINVAL;
-> +
-> +       if (test_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags)) {
-> +               struct fence_cb *cur, *tmp;
-> +
-> +               spin_lock_irqsave(fence->lock, flags);
-> +               list_for_each_entry_safe(cur, tmp, &fence->cb_list, node) {
-> +                       list_del_init(&cur->node);
-> +                       cur->func(fence, cur, cur->priv);
-> +               }
-> +               spin_unlock_irqrestore(fence->lock, flags);
-> +       }
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(fence_signal);
-> +
-> +void release_fence(struct kref *kref)
-> +{
-> +       struct fence *fence =
-> +                       container_of(kref, struct fence, refcount);
-> +
-> +       BUG_ON(!list_empty(&fence->cb_list));
-> +
-> +       if (fence->ops->release)
-> +               fence->ops->release(fence);
-> +       else
-> +               kfree(fence);
-> +}
-> +EXPORT_SYMBOL(release_fence);
-> +
-> +/**
-> + * fence_enable_sw_signaling - enable signaling on fence
-> + * @fence:     [in]    the fence to enable
-> + *
-> + * this will request for sw signaling to be enabled, to make the fence
-> + * complete as soon as possible
-> + */
-> +void fence_enable_sw_signaling(struct fence *fence)
-> +{
-> +       unsigned long flags;
-> +
-> +       if (!test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags) &&
-> +           !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
-> +               spin_lock_irqsave(fence->lock, flags);
-> +
-> +               if (!fence->ops->enable_signaling(fence))
-> +                       __fence_signal(fence);
-> +
-> +               spin_unlock_irqrestore(fence->lock, flags);
-> +       }
-> +}
-> +EXPORT_SYMBOL(fence_enable_sw_signaling);
-> +
-> +/**
-> + * fence_add_callback - add a callback to be called when the fence
-> + * is signaled
-> + * @fence:     [in]    the fence to wait on
-> + * @cb:                [in]    the callback to register
-> + * @func:      [in]    the function to call
-> + * @priv:      [in]    the argument to pass to function
-> + *
-> + * cb will be initialized by fence_add_callback, no initialization
-> + * by the caller is required. Any number of callbacks can be registered
-> + * to a fence, but a callback can only be registered to one fence at a time.
-> + *
-> + * Note that the callback can be called from an atomic context.  If
-> + * fence is already signaled, this function will return -ENOENT (and
-> + * *not* call the callback)
-> + *
-> + * Add a software callback to the fence. Same restrictions apply to
-> + * refcount as it does to fence_wait, however the caller doesn't need to
-> + * keep a refcount to fence afterwards: when software access is enabled,
-> + * the creator of the fence is required to keep the fence alive until
-> + * after it signals with fence_signal. The callback itself can be called
-> + * from irq context.
-> + *
-> + */
-> +int fence_add_callback(struct fence *fence, struct fence_cb *cb,
-> +                      fence_func_t func, void *priv)
-> +{
-> +       unsigned long flags;
-> +       int ret = 0;
-> +       bool was_set;
-> +
-> +       if (WARN_ON(!fence || !func))
-> +               return -EINVAL;
-> +
-> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               return -ENOENT;
-> +
-> +       spin_lock_irqsave(fence->lock, flags);
-> +
-> +       was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
-> +
-> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               ret = -ENOENT;
-> +       else if (!was_set && !fence->ops->enable_signaling(fence)) {
-> +               __fence_signal(fence);
-> +               ret = -ENOENT;
-> +       }
-> +
-> +       if (!ret) {
-> +               cb->func = func;
-> +               cb->priv = priv;
-> +               list_add_tail(&cb->node, &fence->cb_list);
+> +There are several clocks that are generated outside the SoC. It is
+> expected +that they are defined using standard clock bindings with
+> following +clock-output-names:
+> + - "xxti"    - xtal - required
+> + - "xusbxti" - USB xtal - required,
 
-since the user is providing the 'struct fence_cb', why not drop the
-priv & func args, and have some cb-initialize macro, ie.
+Hmm, I'm not sure if all the boards must always provide both of them. 
+Actually it looks like the correct statement here would be "At least one of 
+the above clocks should be specified.".
 
-INIT_FENCE_CB(&foo->fence, cbfxn);
-
-and I guess we can just drop priv and let the user embed fence in
-whatever structure they like.  Ie. make it look a bit how work_struct
-works.
-
-maybe also, if (!list_empty(&cb->node) return -EBUSY?
-
-> +       }
-> +       spin_unlock_irqrestore(fence->lock, flags);
 > +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(fence_add_callback);
 > +
-> +/**
-> + * fence_remove_callback - remove a callback from the signaling list
-> + * @fence:     [in]    the fence to wait on
-> + * @cb:                [in]    the callback to remove
-> + *
-> + * Remove a previously queued callback from the fence. This function returns
-> + * true is the callback is succesfully removed, or false if the fence has
-> + * already been signaled.
-> + *
-> + * *WARNING*:
-> + * Cancelling a callback should only be done if you really know what you're
-> + * doing, since deadlocks and race conditions could occur all too easily. For
-> + * this reason, it should only ever be done on hardware lockup recovery,
-> + * with a reference held to the fence.
-> + */
-> +bool
-> +fence_remove_callback(struct fence *fence, struct fence_cb *cb)
-> +{
-> +       unsigned long flags;
-> +       bool ret;
+> +Example: Clock controller node:
 > +
-> +       spin_lock_irqsave(fence->lock, flags);
+> +	clock: clock-controller@7e00f000 {
+> +		compatible = "samsung,s5pv210-clock";
+> +		reg = <0x7e00f000 0x1000>;
+> +		#clock-cells = <1>;
+> +	};
 > +
-> +       ret = !list_empty(&cb->node);
-> +       if (ret)
-> +               list_del_init(&cb->node);
+> +Example: Required external clocks:
 > +
-> +       spin_unlock_irqrestore(fence->lock, flags);
+> +	fin_pll: clock-xxti {
+> +		compatible = "fixed-clock";
+> +		clock-output-names = "xxti";
+> +		clock-frequency = <12000000>;
+> +		#clock-cells = <0>;
+> +	};
 > +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(fence_remove_callback);
+> +	xusbxti: clock-xusbxti {
+> +		compatible = "fixed-clock";
+> +		clock-output-names = "xusbxti";
+> +		clock-frequency = <48000000>;
+> +		#clock-cells = <0>;
+> +	};
 > +
-> +static void
-> +fence_default_wait_cb(struct fence *fence, struct fence_cb *cb, void *priv)
-> +{
-> +       try_to_wake_up(priv, TASK_NORMAL, 0);
-> +}
+> +Example: UART controller node that consumes the clock generated by the
+> clock +  controller (refer to the standard clock bindings for
+> information about +  "clocks" and "clock-names" properties):
 > +
-> +/**
-> + * fence_default_wait - default sleep until the fence gets signaled
-> + * or until timeout elapses
-> + * @fence:     [in]    the fence to wait on
-> + * @intr:      [in]    if true, do an interruptible wait
-> + * @timeout:   [in]    timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-> + *
-> + * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
-> + * remaining timeout in jiffies on success.
-> + */
-> +long
-> +fence_default_wait(struct fence *fence, bool intr, signed long timeout)
-> +{
-> +       struct fence_cb cb;
-> +       unsigned long flags;
-> +       long ret = timeout;
-> +       bool was_set;
-> +
-> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               return timeout;
-> +
-> +       spin_lock_irqsave(fence->lock, flags);
-> +
-> +       if (intr && signal_pending(current)) {
-> +               ret = -ERESTARTSYS;
-> +               goto out;
-> +       }
-> +
-> +       was_set = test_and_set_bit(FENCE_FLAG_ENABLE_SIGNAL_BIT, &fence->flags);
-> +
-> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               goto out;
-> +
-> +       if (!was_set && !fence->ops->enable_signaling(fence)) {
-> +               __fence_signal(fence);
-> +               goto out;
-> +       }
-> +
-> +       cb.func = fence_default_wait_cb;
-> +       cb.priv = current;
-> +       list_add(&cb.node, &fence->cb_list);
-> +
-> +       while (!test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags) && ret > 0) {
-> +               if (intr)
-> +                       __set_current_state(TASK_INTERRUPTIBLE);
-> +               else
-> +                       __set_current_state(TASK_UNINTERRUPTIBLE);
-> +               spin_unlock_irqrestore(fence->lock, flags);
-> +
-> +               ret = schedule_timeout(ret);
-> +
-> +               spin_lock_irqsave(fence->lock, flags);
-> +               if (ret > 0 && intr && signal_pending(current))
-> +                       ret = -ERESTARTSYS;
-> +       }
-> +
-> +       if (!list_empty(&cb.node))
-> +               list_del(&cb.node);
-> +       __set_current_state(TASK_RUNNING);
-> +
-> +out:
-> +       spin_unlock_irqrestore(fence->lock, flags);
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(fence_default_wait);
-> diff --git a/include/linux/fence.h b/include/linux/fence.h
-> new file mode 100644
-> index 0000000..8c7a126
+> +		uart0: serial@7f005000 {
+> +			compatible = "samsung,s5pv210-uart";
+> +			reg = <0x7f005000 0x100>;
+> +			interrupt-parent = <&vic1>;
+> +			interrupts = <5>;
+> +			clock-names = "uart", "clk_uart_baud2",
+> +					"clk_uart_baud3";
+> +			clocks = <&clock PCLK_UART0>, <&clocks PCLK_UART0>,
+> +					<&clock SCLK_UART>;
+> +			status = "disabled";
+> +		};
+> \ No newline at end of file
+> diff --git a/drivers/clk/samsung/Makefile b/drivers/clk/samsung/Makefile
+> index 8eb4799..e08c45e 100644
+> --- a/drivers/clk/samsung/Makefile
+> +++ b/drivers/clk/samsung/Makefile
+> @@ -9,3 +9,6 @@ obj-$(CONFIG_SOC_EXYNOS5420)	+= clk-exynos5420.o
+>  obj-$(CONFIG_SOC_EXYNOS5440)	+= clk-exynos5440.o
+>  obj-$(CONFIG_ARCH_EXYNOS)	+= clk-exynos-audss.o
+>  obj-$(CONFIG_ARCH_S3C64XX)	+= clk-s3c64xx.o
+> +ifeq ($(CONFIG_COMMON_CLK), y)
+> +obj-$(CONFIG_ARCH_S5PV210)	+= clk-s5pv210.o
+> +endif
+> \ No newline at end of file
+> diff --git a/drivers/clk/samsung/clk-s5pv210.c
+> b/drivers/clk/samsung/clk-s5pv210.c new file mode 100644
+> index 0000000..1c5ea5c
 > --- /dev/null
-> +++ b/include/linux/fence.h
-> @@ -0,0 +1,365 @@
+> +++ b/drivers/clk/samsung/clk-s5pv210.c
+> @@ -0,0 +1,732 @@
 > +/*
-> + * Fence mechanism for dma-buf to allow for asynchronous dma access
+> + * Copyright (c) 2013 Samsung Electronics Co., Ltd.
+> + * Author: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
 > + *
-> + * Copyright (C) 2012 Canonical Ltd
-> + * Copyright (C) 2012 Texas Instruments
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + *
-> + * Authors:
-> + * Rob Clark <rob.clark@linaro.org>
-> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
+> + * Common Clock Framework support for all S5PC110/S5PV210 SoCs.
+> +*/
 > +
-> +#ifndef __LINUX_FENCE_H
-> +#define __LINUX_FENCE_H
+> +#include <linux/clk.h>
+> +#include <linux/clkdev.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+> +#include <mach/regs-clock.h>
+
+NAK.
+
+Please don't use headers from mach/ or plat/ directories in drivers, as 
+this will break future enablement of multiplatform support for S5PV210.
+
 > +
-> +#include <linux/err.h>
-> +#include <linux/wait.h>
-> +#include <linux/list.h>
-> +#include <linux/bitops.h>
-> +#include <linux/kref.h>
-> +#include <linux/sched.h>
-> +#include <linux/printk.h>
+> +#include "clk.h"
+> +#include "clk-pll.h"
 > +
-> +struct fence;
-> +struct fence_ops;
-> +struct fence_cb;
+> +#include <dt-bindings/clock/samsung,s5pv210-clock.h>
 > +
-> +/**
-> + * struct fence - software synchronization primitive
-> + * @refcount: refcount for this fence
-> + * @ops: fence_ops associated with this fence
-> + * @cb_list: list of all callbacks to call
-> + * @lock: spin_lock_irqsave used for locking
-> + * @context: execution context this fence belongs to, returned by
-> + *           fence_context_alloc()
-> + * @seqno: the sequence number of this fence inside the execution context,
-> + * can be compared to decide which fence would be signaled later.
-> + * @flags: A mask of FENCE_FLAG_* defined below
-> + *
-> + * the flags member must be manipulated and read using the appropriate
-> + * atomic ops (bit_*), so taking the spinlock will not be needed most
-> + * of the time.
-> + *
-> + * FENCE_FLAG_SIGNALED_BIT - fence is already signaled
-> + * FENCE_FLAG_ENABLE_SIGNAL_BIT - enable_signaling might have been called*
-> + * FENCE_FLAG_USER_BITS - start of the unused bits, can be used by the
-> + * implementer of the fence for its own purposes. Can be used in different
-> + * ways by different fence implementers, so do not rely on this.
-> + *
-> + * *) Since atomic bitops are used, this is not guaranteed to be the case.
-> + * Particularly, if the bit was set, but fence_signal was called right
-> + * before this bit was set, it would have been able to set the
-> + * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
-> + * Adding a check for FENCE_FLAG_SIGNALED_BIT after setting
-> + * FENCE_FLAG_ENABLE_SIGNAL_BIT closes this race, and makes sure that
-> + * after fence_signal was called, any enable_signaling call will have either
-> + * been completed, or never called at all.
-> + */
-> +struct fence {
-> +       struct kref refcount;
-> +       const struct fence_ops *ops;
-> +       struct list_head cb_list;
-> +       spinlock_t *lock;
-> +       unsigned context, seqno;
-> +       unsigned long flags;
+> +/* S5PC110/S5PV210 clock controller register offsets */
+> +#define APLL_LOCK		0x0000
+> +#define MPLL_LOCK		0x0008
+> +#define EPLL_LOCK		0x0010
+> +#define VPLL_LOCK		0x0020
+> +#define APLL_CON0		0x0100
+> +#define APLL_CON1		0x0104
+> +#define MPLL_CON		0x0108
+> +#define EPLL_CON0		0x0110
+> +#define EPLL_CON1		0x0114
+> +#define VPLL_CON0		0x0120
+> +#define CLK_SRC0		0x0200
+> +#define CLK_SRC1		0x0204
+> +#define CLK_SRC2		0x0208
+> +#define CLK_SRC3		0x020c
+> +#define CLK_SRC4		0x0210
+> +#define CLK_SRC5		0x0214
+> +#define CLK_SRC6		0x0218
+> +#define CLK_SRC_MASK0		0x0280
+> +#define CLK_SRC_MASK1		0x0284
+> +#define CLK_DIV0		0x0300
+> +#define CLK_DIV1		0x0304
+> +#define CLK_DIV2		0x0308
+> +#define CLK_DIV3		0x030c
+> +#define CLK_DIV4		0x0310
+> +#define CLK_DIV5		0x0314
+> +#define CLK_DIV6		0x0318
+> +#define CLK_DIV7		0x031c
+> +#define CLK_GATE_SCLK		0x0444
+> +#define CLK_GATE_IP0		0x0460
+> +#define CLK_GATE_IP1		0x0464
+> +#define CLK_GATE_IP2		0x0468
+> +#define CLK_GATE_IP3		0x046c
+> +#define CLK_GATE_IP4		0x0470
+> +#define CLK_GATE_BLOCK		0x0480
+> +#define CLK_GATE_IP5		0x0484
+> +#define DAC_CONTROL		0xe810
+> +
+> +/* Helper macros to define clock arrays. */
+> +#define FIXED_RATE_CLOCKS(name)	\
+> +		static struct samsung_fixed_rate_clock name[]
+> +#define MUX_CLOCKS(name)	\
+> +		static struct samsung_mux_clock name[]
+> +#define DIV_CLOCKS(name)	\
+> +		static struct samsung_div_clock name[]
+> +#define GATE_CLOCKS(name)	\
+> +		static struct samsung_gate_clock name[]
+> +
+> +/* Helper macros for gate types present on S5PC110/S5PV210. */
+> +#define GATE_BUS(_id, cname, pname, o, b) \
+> +		GATE(_id, cname, pname, o, b, 0, 0)
+> +#define GATE_SCLK(_id, cname, pname, o, b) \
+> +		GATE(_id, cname, pname, o, b, CLK_SET_RATE_PARENT, 0)
+> +#define GATE_ON(_id, cname, pname, o, b) \
+> +		GATE(_id, cname, pname, o, b, CLK_IGNORE_UNUSED, 0)
+
+These three macros above does not seem to be used anywhere in this driver. 
+You can either remove them or change the driver to use them, as I can see 
+several places they would be appropriate. See below.
+
+> +enum s5pv210_plls {
+> +	apll, mpll, epll, vpll,
 > +};
 > +
-> +enum fence_flag_bits {
-> +       FENCE_FLAG_SIGNALED_BIT,
-> +       FENCE_FLAG_ENABLE_SIGNAL_BIT,
-> +       FENCE_FLAG_USER_BITS, /* must always be last member */
+> +static unsigned long s5pv210_clk_regs[] __initdata = {
+> +	CLK_SRC0,
+> +	CLK_SRC1,
+> +	CLK_SRC2,
+> +	CLK_SRC3,
+> +	CLK_SRC4,
+> +	CLK_SRC5,
+> +	CLK_SRC6,
+> +	CLK_DIV0,
+> +	CLK_DIV1,
+> +	CLK_DIV2,
+> +	CLK_DIV3,
+> +	CLK_DIV4,
+> +	CLK_DIV5,
+> +	CLK_DIV6,
+> +	CLK_DIV7,
+> +	CLK_GATE_SCLK,
+> +	CLK_GATE_IP0,
+> +	CLK_GATE_IP1,
+> +	CLK_GATE_IP2,
+> +	CLK_GATE_IP3,
+> +	CLK_GATE_IP4,
+> +	CLK_GATE_IP5,
+> +	CLK_SRC_MASK0,
+> +	CLK_SRC_MASK1,
+> +	APLL_CON0,
+> +	MPLL_CON,
+> +	EPLL_CON0,
+> +	VPLL_CON0,
+> +	APLL_LOCK,
+> +	MPLL_LOCK,
+> +	EPLL_LOCK,
+> +	VPLL_LOCK,
 > +};
 > +
-> +typedef void (*fence_func_t)(struct fence *fence, struct fence_cb *cb, void *priv);
-> +
-> +/**
-> + * struct fence_cb - callback for fence_add_callback
-> + * @node: used by fence_add_callback to append this struct to fence::cb_list
-> + * @func: fence_func_t to call
-> + * @priv: value of priv to pass to function
-> + *
-> + * This struct will be initialized by fence_add_callback, additional
-> + * data can be passed along by embedding fence_cb in another struct.
-> + */
-> +struct fence_cb {
-> +       struct list_head node;
-> +       fence_func_t func;
-> +       void *priv;
+> +/* List of parent clocks common for all S5PC110 SoCs. */
+> +PNAME(mout_apll_p) = {
+> +	"fin_pll",
+> +	"fout_apll"
 > +};
 > +
-> +/**
-> + * struct fence_ops - operations implemented for fence
-> + * @enable_signaling: enable software signaling of fence
-> + * @signaled: [optional] peek whether the fence is signaled, can be null
-> + * @wait: custom wait implementation
-> + * @release: [optional] called on destruction of fence, can be null
-> + *
-> + * Notes on enable_signaling:
-> + * For fence implementations that have the capability for hw->hw
-> + * signaling, they can implement this op to enable the necessary
-> + * irqs, or insert commands into cmdstream, etc.  This is called
-> + * in the first wait() or add_callback() path to let the fence
-> + * implementation know that there is another driver waiting on
-> + * the signal (ie. hw->sw case).
-> + *
-> + * This function can be called called from atomic context, but not
-> + * from irq context, so normal spinlocks can be used.
-> + *
-> + * A return value of false indicates the fence already passed,
-> + * or some failure occured that made it impossible to enable
-> + * signaling. True indicates succesful enabling.
-> + *
-> + * Calling fence_signal before enable_signaling is called allows
-> + * for a tiny race window in which enable_signaling is called during,
-> + * before, or after fence_signal. To fight this, it is recommended
-> + * that before enable_signaling returns true an extra reference is
-> + * taken on the fence, to be released when the fence is signaled.
-> + * This will mean fence_signal will still be called twice, but
-> + * the second time will be a noop since it was already signaled.
-> + *
-> + * Notes on wait:
-> + * Must not be NULL, set to fence_default_wait for default implementation.
-> + * the fence_default_wait implementation should work for any fence, as long
-> + * as enable_signaling works correctly.
-> + *
-> + * Must return -ERESTARTSYS if the wait is intr = true and the wait was
-> + * interrupted, and remaining jiffies if fence has signaled, or 0 if wait
-> + * timed out. Can also return other error values on custom implementations,
-> + * which should be treated as if the fence is signaled. For example a hardware
-> + * lockup could be reported like that.
-> + *
-> + * Notes on release:
-> + * Can be NULL, this function allows additional commands to run on
-> + * destruction of the fence. Can be called from irq context.
-> + * If pointer is set to NULL, kfree will get called instead.
-> + */
-> +
-> +struct fence_ops {
-> +       bool (*enable_signaling)(struct fence *fence);
-> +       bool (*signaled)(struct fence *fence);
-> +       long (*wait)(struct fence *fence, bool intr, signed long timeout);
-> +       void (*release)(struct fence *fence);
+> +PNAME(mout_mpll_p) = {
+> +	"fin_pll",
+> +	"fout_mpll"
 > +};
 > +
-> +/**
-> + * __fence_init - Initialize a custom fence.
-> + * @fence:     [in]    the fence to initialize
-> + * @ops:       [in]    the fence_ops for operations on this fence
-> + * @lock:      [in]    the irqsafe spinlock to use for locking this fence
-> + * @context:   [in]    the execution context this fence is run on
-> + * @seqno:     [in]    a linear increasing sequence number for this context
-> + *
-> + * Initializes an allocated fence, the caller doesn't have to keep its
-> + * refcount after committing with this fence, but it will need to hold a
-> + * refcount again if fence_ops.enable_signaling gets called. This can
-> + * be used for other implementing other types of fence.
-> + *
-> + * context and seqno are used for easy comparison between fences, allowing
-> + * to check which fence is later by simply using fence_later.
-> + */
-> +static inline void
-> +__fence_init(struct fence *fence, const struct fence_ops *ops,
-> +            spinlock_t *lock, unsigned context, unsigned seqno)
-> +{
-> +       BUG_ON(!ops || !lock || !ops->enable_signaling || !ops->wait);
+> +PNAME(mout_epll_p) = {
+> +	"fin_pll",
+> +	"fout_epll"
+> +};
 > +
-> +       kref_init(&fence->refcount);
-> +       fence->ops = ops;
-> +       INIT_LIST_HEAD(&fence->cb_list);
-> +       fence->lock = lock;
-> +       fence->context = context;
-> +       fence->seqno = seqno;
-> +       fence->flags = 0UL;
+> +PNAME(mout_vpllsrc_p) = {
+> +	"fin_pll",
+> +	"sclk_hdmi27m"
+> +};
+> +
+> +PNAME(mout_vpll_p) = {
+> +	"fin_pll",
+> +	"fout_vpll"
+> +};
+> +
+> +PNAME(mout_group1_p) = {
+> +	"dout_a2m",
+> +	"mout_mpll",
+> +	"mout_epll",
+> +	"mout_vpll"
+> +};
+> +
+> +PNAME(mout_group2_p) = {
+> +	"xxti",
+> +	"xusbxti",
+> +	"sclk_hdmi27m",
+> +	"sclk_usbphy0",
+> +	"sclk_usbphy1",
+> +	"sclk_hdmiphy",
+> +	"mout_mpll",
+> +	"mout_epll",
+> +	"mout_vpll",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none"
+> +};
+> +
+> +PNAME(mout_audio0_p) = {
+> +	"xxti",
+> +	"pcmcdclk0",
+> +	"sclk_hdmi27m",
+> +	"sclk_usbphy0",
+> +	"sclk_usbphy1",
+> +	"sclk_hdmiphy",
+> +	"mout_mpll",
+> +	"mout_epll",
+> +	"mout_vpll",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none"
+> +};
+> +
+> +PNAME(mout_audio1_p) = {
+> +	"i2scdclk1",
+> +	"pcmcdclk1",
+> +	"sclk_hdmi27m",
+> +	"sclk_usbphy0",
+> +	"sclk_usbphy1",
+> +	"sclk_hdmiphy",
+> +	"mout_mpll",
+> +	"mout_epll",
+> +	"mout_vpll",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none"
+> +};
+> +
+> +PNAME(mout_audio2_p) = {
+> +	"i2scdclk2",
+> +	"pcmcdclk2",
+> +	"sclk_hdmi27m",
+> +	"sclk_usbphy0",
+> +	"sclk_usbphy1",
+> +	"sclk_hdmiphy",
+> +	"mout_mpll",
+> +	"mout_epll",
+> +	"mout_vpll",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none",
+> +	"none"
+> +};
+> +
+> +PNAME(mout_spdif_p) = {
+> +	"dout_audio0",
+> +	"dout_audio1",
+> +	"dout_audio3",
+> +	"none"
+> +};
+> +
+> +PNAME(mout_group3_p) = {
+> +	"mout_apll",
+> +	"mout_mpll"
+> +};
+> +PNAME(mout_group4_p) = {
+> +	"mout_mpll",
+> +	"dout_a2m"
+> +};
+> +
+> +PNAME(mout_flash_p) = {
+> +	"dout_hclkd",
+> +	"dout_hclkp"
+> +};
+> +
+> +PNAME(mout_dac_p) = {
+> +	"mout_vpll",
+> +	"sclk_hdmiphy"
+> +};
+> +
+> +PNAME(mout_hdmi_p) = {
+> +	"sclk_hdmiphy",
+> +	"dout_tblk"
+> +
+> +};
+> +
+> +PNAME(mout_mixer_p) = {
+> +	"mout_dac",
+> +	"mout_hdmi"
+> +};
+> +
+> +/* register S5PC110/S5PV210 clocks */
+> +MUX_CLOCKS(s5pv210_mux_clks) __initdata = {
+> +	MUX(MOUT_FLASH, "mout_flash", mout_flash_p, CLK_SRC0, 28, 1),
+> +	MUX(MOUT_PSYS, "mout_psys", mout_group4_p, CLK_SRC0, 24, 1),
+> +	MUX(MOUT_DSYS, "mout_dsys", mout_group4_p, CLK_SRC0, 20, 1),
+> +	MUX(MOUT_MSYS, "mout_msys", mout_group3_p, CLK_SRC0, 16, 1),
+> +	MUX(MOUT_VPLL, "mout_vpll", mout_vpll_p, CLK_SRC0, 12, 1),
+> +	MUX(MOUT_EPLL, "mout_epll", mout_epll_p, CLK_SRC0, 8, 1),
+> +	MUX(MOUT_MPLL, "mout_mpll", mout_mpll_p, CLK_SRC0, 4, 1),
+> +	MUX(MOUT_APLL, "mout_apll", mout_apll_p, CLK_SRC0, 0, 1),
+> +
+> +	MUX(MOUT_VPLLSRC, "mout_vpllsrc", mout_vpllsrc_p, CLK_SRC1, 28, 1),
+> +	MUX(MOUT_CSIS, "mout_csis", mout_group2_p, CLK_SRC1, 24, 4),
+> +	MUX(MOUT_FIMD, "mout_fimd", mout_group2_p, CLK_SRC1, 20, 4),
+> +	MUX(MOUT_CAM1, "mout_cam1", mout_group2_p, CLK_SRC1, 16, 4),
+> +	MUX(MOUT_CAM0, "mout_cam0", mout_group2_p, CLK_SRC1, 12, 4),
+> +	MUX(MOUT_DAC, "mout_dac", mout_dac_p, CLK_SRC1, 8, 1),
+> +	MUX(MOUT_MIXER, "mout_mixer", mout_mixer_p, CLK_SRC1, 4, 1),
+> +
+> +	MUX(MOUT_HDMI, "mout_hdmi", mout_hdmi_p, CLK_SRC1, 0, 1),
+> +	MUX(MOUT_G2D, "mout_g2d", mout_group1_p, CLK_SRC2, 8, 2),
+> +	MUX(MOUT_MFC, "mout_mfc", mout_group1_p, CLK_SRC2, 4, 2),
+> +	MUX(MOUT_G3D, "mout_g3d", mout_group1_p, CLK_SRC2, 0, 2),
+> +
+> +	MUX(MOUT_FIMC2, "mout_fimc2", mout_group2_p, CLK_SRC3, 20, 4),
+> +	MUX(MOUT_FIMC1, "mout_fimc1", mout_group2_p, CLK_SRC3, 16, 4),
+> +	MUX(MOUT_FIMC0, "mout_fimc0", mout_group2_p, CLK_SRC3, 12, 4),
+> +
+> +	MUX(MOUT_UART3, "mout_uart3", mout_group2_p, CLK_SRC4, 28, 4),
+> +	MUX(MOUT_UART2, "mout_uart2", mout_group2_p, CLK_SRC4, 24, 4),
+> +	MUX(MOUT_UART1, "mout_uart1", mout_group2_p, CLK_SRC4, 20, 4),
+> +	MUX(MOUT_UART0, "mout_uart0", mout_group2_p, CLK_SRC4, 16, 4),
+> +	MUX(MOUT_MMC3, "mout_mmc3", mout_group2_p, CLK_SRC4, 12, 4),
+> +	MUX(MOUT_MMC2, "mout_mmc2", mout_group2_p, CLK_SRC4, 8, 4),
+> +	MUX(MOUT_MMC1, "mout_mmc1", mout_group2_p, CLK_SRC4, 4, 4),
+> +	MUX(MOUT_MMC0, "mout_mmc0", mout_group2_p, CLK_SRC4, 0, 4),
+> +
+> +	MUX(MOUT_PWM, "mout_pwm", mout_group2_p, CLK_SRC5, 12, 4),
+> +	MUX(MOUT_SPI1, "mout_spi1", mout_group2_p, CLK_SRC5, 4, 4),
+> +	MUX(MOUT_SPI0, "mout_spi0", mout_group2_p, CLK_SRC5, 0, 4),
+> +
+> +	MUX(MOUT_DMC0, "mout_dmc0", mout_group1_p, CLK_SRC6, 24, 2),
+> +	MUX(MOUT_PWI, "mout_pwi", mout_group2_p, CLK_SRC6, 20, 4),
+> +	MUX(MOUT_HPM, "mout_hpm", mout_group3_p, CLK_SRC6, 16, 1),
+> +	MUX(MOUT_SPDIF, "mout_spdif", mout_spdif_p, CLK_SRC6, 12, 2),
+> +	MUX(MOUT_AUDIO2, "mout_audio2", mout_audio2_p, CLK_SRC6, 8, 4),
+> +	MUX(MOUT_AUDIO1, "mout_audio1", mout_audio1_p, CLK_SRC6, 4, 4),
+> +	MUX(MOUT_AUDIO0, "mout_audio0", mout_audio0_p, CLK_SRC6, 0, 4)
+> +};
+> +
+> +/* Fixed rate clocks generated outside the soc */
+> +FIXED_RATE_CLOCKS(s5pv210_fixed_rate_ext_clks) __initdata = {
+> +	FRATE(0, "xxti", NULL, CLK_IS_ROOT, 0),
+> +	FRATE(0, "xusbxti", NULL, CLK_IS_ROOT, 0),
+> +};
+> +
+> +/* Fixed rate clocks generated inside the soc */
+> +FIXED_RATE_CLOCKS(s5pv210_fixed_rate_clks) __initdata = {
+> +	FRATE(0, "sclk_hdmi27m", NULL, CLK_IS_ROOT, 27000000),
+> +	FRATE(0, "sclk_hdmiphy", NULL, CLK_IS_ROOT, 27000000),
+> +	FRATE(0, "sclk_usbphy0", NULL, CLK_IS_ROOT, 48000000),
+> +	FRATE(0, "sclk_usbphy1", NULL, CLK_IS_ROOT, 48000000),
+
+I think the four fixed rate clocks above should be assigned IDs too, to 
+allow referencing them from device tree. The external fixed rate clocks are 
+an exception to this, because they are specified in device tree using 
+separate nodes.
+
+> +};
+> +
+> +/* list of divider clocks supported in all S5PC110/S5PV210 soc's */
+> +DIV_CLOCKS(s5pv210_div_clks) __initdata = {
+> +	DIV(DOUT_PCLKP, "dout_pclkp", "dout_hclkp", CLK_DIV0, 28, 3),
+> +	DIV(DOUT_HCLKP, "dout_hclkp", "mout_psys", CLK_DIV0, 24, 4),
+> +	DIV(DOUT_PCLKD, "dout_pclkd", "dout_hclkd", CLK_DIV0, 20, 3),
+> +	DIV(DOUT_HCLKD, "dout_hclkd", "mout_dsys", CLK_DIV0, 16, 4),
+> +	DIV(DOUT_PCLKM, "dout_pclkm", "dout_hclkm", CLK_DIV0, 12, 3),
+> +	DIV(DOUT_HCLKM, "dout_hclkm", "dout_apll", CLK_DIV0, 8, 3),
+> +	DIV(DOUT_A2M, "dout_a2m", "mout_apll", CLK_DIV0, 4, 3),
+> +	DIV(DOUT_APLL, "dout_apll", "mout_msys", CLK_DIV0, 0, 3),
+> +
+> +	DIV(DOUT_CSIS, "dout_csis", "mout_csis", CLK_DIV1, 28, 4),
+> +	DIV(DOUT_FIMD, "dout_fimd", "mout_fimd", CLK_DIV1, 20, 4),
+> +	DIV(DOUT_CAM1, "dout_cam1", "mout_cam1", CLK_DIV1, 16, 4),
+> +	DIV(DOUT_CAM0, "dout_cam0", "mout_cam0", CLK_DIV1, 12, 4),
+> +	DIV(DOUT_TBLK, "dout_tblk", "mout_vpll", CLK_DIV1, 0, 4),
+> +
+> +	DIV(DOUT_G2D, "dout_g2d", "mout_g2d", CLK_DIV2, 8, 4),
+> +	DIV(DOUT_MFC, "dout_mfc", "mout_mfc", CLK_DIV2, 4, 4),
+> +	DIV(DOUT_G3D, "dout_g3d", "mout_g3d", CLK_DIV2, 0, 4),
+> +
+> +	DIV(DOUT_FIMC2, "dout_fimc2", "mout_fimc2", CLK_DIV3, 20, 4),
+> +	DIV(DOUT_FIMC1, "dout_fimc1", "mout_fimc1", CLK_DIV3, 16, 4),
+> +	DIV(DOUT_FIMC0, "dout_fimc0", "mout_fimc0", CLK_DIV3, 12, 4),
+> +
+> +	DIV(DOUT_UART3, "dout_uart3", "mout_uart3", CLK_DIV4, 28, 4),
+> +	DIV(DOUT_UART2, "dout_uart2", "mout_uart2", CLK_DIV4, 24, 4),
+> +	DIV(DOUT_UART1, "dout_uart1", "mout_uart1", CLK_DIV4, 20, 4),
+> +	DIV(DOUT_UART0, "dout_uart0", "mout_uart0", CLK_DIV4, 16, 4),
+> +
+> +	DIV(DOUT_MMC3, "dout_mmc3", "mout_mmc3", CLK_DIV4, 12, 4),
+> +	DIV(DOUT_MMC2, "dout_mmc2", "mout_mmc2", CLK_DIV4, 8, 4),
+> +	DIV(DOUT_MMC1, "dout_mmc1", "mout_mmc1", CLK_DIV4, 4, 4),
+> +	DIV(DOUT_MMC0, "dout_mmc0", "mout_mmc0", CLK_DIV4, 0, 4),
+> +
+> +	DIV(DOUT_PWM, "dout_pwm", "mout_pwm", CLK_DIV5, 12, 4),
+> +	DIV(DOUT_SPI1, "dout_spi1", "mout_spi1", CLK_DIV5, 4, 4),
+> +	DIV(DOUT_SPI0, "dout_spi0", "mout_spi0", CLK_DIV5, 0, 4),
+> +
+> +	DIV(DOUT_DMC0, "dout_dmc0", "mout_dmc0", CLK_DIV6, 28, 4),
+> +	DIV(DOUT_PWI, "dout_pwi", "mout_pwi", CLK_DIV6, 24, 4),
+> +	DIV(DOUT_HPM, "dout_hpm", "dout_copy", CLK_DIV6, 20, 3),
+> +	DIV(DOUT_COPY, "dout_copy", "mout_hpm", CLK_DIV6, 16, 3),
+> +	DIV(DOUT_FLASH, "dout_flash", "mout_flash", CLK_DIV6, 12, 3),
+> +	DIV(DOUT_AUDIO2, "dout_audio2", "mout_audio2", CLK_DIV6, 8, 4),
+> +	DIV(DOUT_AUDIO1, "dout_audio1", "mout_audio1", CLK_DIV6, 4, 4),
+> +	DIV(DOUT_AUDIO0, "dout_audio0", "mout_audio0", CLK_DIV6, 0, 4),
+> +
+> +	DIV(DOUT_DPM, "dout_dpm", "dout_pclkp", CLK_DIV7, 8, 7),
+> +	DIV(DOUT_DVSEM, "dout_dvsem", "dout_pclkp", CLK_DIV7, 0, 7),
+> +};
+> +
+> +/* list of gate clocks supported in all S5PC110/S5PV210 soc's */
+> +struct samsung_gate_clock s5pv210_gate_clks[] __initdata = {
+> +
+
+nit: Stray blank line.
+
+> +	GATE(CSIS, "clk_csis", "dout_hclkd", CLK_GATE_IP0, 31, 0, 0),
+> +	GATE(ROTATOR, "rotator", "dout_hclkd", CLK_GATE_IP0, 29, 0, 0),
+> +
+> +	GATE(MFC, "mfc", "dout_hclkm", CLK_GATE_IP0, 16, 0, 0),
+> +	GATE(G2D, "g2d", "dout_hclkd", CLK_GATE_IP0, 12, 0, 0),
+> +	GATE(G3D, "g3d", "dout_hclkm",
+> +			CLK_GATE_IP0, 8, CLK_SET_RATE_PARENT, 0),
+
+This CLK_SET_RATE_PARENT flag doesn't look correctly. Why should it be able 
+to set rate of dout_hclkm, which is shared by multiple peripherals?
+
+> +	GATE(IMEM, "imem", "dout_hclkm", CLK_GATE_IP0, 5, 0, 0),
+> +	GATE(PDMA1, "pdma1", "dout_hclkp", CLK_GATE_IP0, 4, 0, 0),
+> +	GATE(PDMA0, "pdma0", "dout_hclkp", CLK_GATE_IP0, 3, 0, 0),
+> +	GATE(MDMA, "mdma", "dout_hclkd", CLK_GATE_IP0, 2, 0, 0),
+> +
+> +	GATE(NFCON, "nfcon", "dout_hclkp", CLK_GATE_IP1, 28, 0, 0),
+> +	GATE(SROMC, "sromc", "dout_hclkp", CLK_GATE_IP1, 26, 0, 0),
+> +	GATE(CFCON, "cfcon", "dout_hclkp", CLK_GATE_IP1, 25, 0, 0),
+> +	GATE(NANDXL, "nandxl", "dout_hclkp", CLK_GATE_IP1, 24, 0, 0),
+> +	GATE(USB_HOST, "usb_host", "dout_hclkp", CLK_GATE_IP1, 17, 0, 0),
+> +	GATE(USB_OTG, "usb_otg", "dout_hclkp", CLK_GATE_IP1, 16, 0, 0),
+> +	GATE(HDMI, "hdmi", "dout_hclkd", CLK_GATE_IP1, 11, 0, 0),
+> +	GATE(TVENC, "tvenc", "dout_hclkd", CLK_GATE_IP1, 10, 0, 0),
+> +	GATE(MIXER, "mixer", "dout_hclkd", CLK_GATE_IP1, 9, 0, 0),
+> +	GATE(VP, "vp", "dout_hclkd", CLK_GATE_IP1, 8, 0, 0),
+> +	GATE(DSIM, "dsim", "dout_pclkd", CLK_GATE_IP1, 2, 0, 0),
+> +	GATE(FIMD, "fimd", "dout_hclkd", CLK_GATE_IP1, 0, 0, 0),
+> +
+> +	GATE(TZIC3, "tzic3", "dout_hclkm", CLK_GATE_IP2, 31, 0, 0),
+> +	GATE(TZIC2, "tzic2", "dout_hclkm", CLK_GATE_IP2, 30, 0, 0),
+> +	GATE(TZIC1, "tzic1", "dout_hclkm", CLK_GATE_IP2, 29, 0, 0),
+> +	GATE(TZIC0, "tzic0", "dout_hclkm", CLK_GATE_IP2, 28, 0, 0),
+> +	GATE(TSI, "tsi", "dout_hclkd", CLK_GATE_IP2, 20, 0, 0),
+> +	GATE(HSMMC3, "hsmmc3", "dout_hclkp", CLK_GATE_IP2, 19, 0, 0),
+> +	GATE(HSMMC2, "hsmmc2", "dout_hclkp", CLK_GATE_IP2, 18, 0, 0),
+> +	GATE(HSMMC1, "hsmmc1", "dout_hclkp", CLK_GATE_IP2, 17, 0, 0),
+> +	GATE(HSMMC0, "hsmmc0", "dout_hclkp", CLK_GATE_IP2, 16, 0, 0),
+> +	GATE(JTAG, "jtag", "dout_hclkp", CLK_GATE_IP2, 11, 0, 0),
+> +	GATE(MODEMIF, "modemif", "dout_hclkp", CLK_GATE_IP2, 9, 0, 0),
+> +	GATE(CORESIGHT, "coresight", "dout_pclkp", CLK_GATE_IP2, 8, 0, 0),
+> +	GATE(SDM, "sdm", "dout_pclkm", CLK_GATE_IP2, 1, 0, 0),
+> +	GATE(SECSS, "secss", "dout_hclkp", CLK_GATE_IP2, 0, 0, 0),
+> +
+> +	GATE(PCM2, "pcm2", "dout_pclkp", CLK_GATE_IP3, 30, 0, 0),
+> +	GATE(PCM1, "pcm1", "dout_pclkp", CLK_GATE_IP3, 29, 0, 0),
+> +	GATE(PCM0, "pcm0", "dout_pclkp", CLK_GATE_IP3, 28, 0, 0),
+> +	GATE(TSADC, "tsadc", "dout_pclkp", CLK_GATE_IP3, 24, 0, 0),
+> +	GATE(PWM, "pwm", "dout_pclkp", CLK_GATE_IP3, 23, 0, 0),
+> +	GATE(WDT, "watchdog", "dout_pclkp", CLK_GATE_IP3, 22, 0, 0),
+> +	GATE(KEYIF, "keyif", "dout_pclkp", CLK_GATE_IP3, 21, 0, 0),
+> +	GATE(UART3, "uart3", "dout_pclkp", CLK_GATE_IP3, 20, 0, 0),
+> +	GATE(UART2, "uart2", "dout_pclkp", CLK_GATE_IP3, 19, 0, 0),
+> +	GATE(UART1, "uart1", "dout_pclkp", CLK_GATE_IP3, 18, 0, 0),
+> +	GATE(UART0, "uart0", "dout_pclkp", CLK_GATE_IP3, 17, 0, 0),
+> +	GATE(SYSTIMER, "systimer", "dout_pclkp", CLK_GATE_IP3, 16, 0, 0),
+> +	GATE(RTC, "rtc", "dout_pclkp", CLK_GATE_IP3, 15, 0, 0),
+> +	GATE(SPI1, "spi1", "dout_pclkp", CLK_GATE_IP3, 13, 0, 0),
+> +	GATE(SPI0, "spi0", "dout_pclkp", CLK_GATE_IP3, 12, 0, 0),
+> +	GATE(I2C_HDMI_PHY, "i2c_hdmi_phy", "dout_pclkd",
+> +			CLK_GATE_IP3, 11, 0, 0),
+> +	GATE(I2C_HDMI_CEC, "i2c_hdmi_cec", "dout_pclkd",
+> +			CLK_GATE_IP3, 10, 0, 0),
+> +	GATE(I2C2, "i2c2", "dout_pclkp", CLK_GATE_IP3, 9, 0, 0),
+> +	GATE(I2C0, "i2c0", "dout_pclkp", CLK_GATE_IP3, 7, 0, 0),
+> +	GATE(I2S1, "i2s1", "dout_pclkp", CLK_GATE_IP3, 6, 0, 0),
+> +	GATE(I2S2, "i2s2", "dout_pclkp", CLK_GATE_IP3, 5, 0, 0),
+> +	GATE(I2S0, "i2s0", "dout_pclkp", CLK_GATE_IP3, 4, 0, 0),
+> +	GATE(AC97, "ac97", "dout_pclkp", CLK_GATE_IP3, 1, 0, 0),
+> +	GATE(SPDIF, "spdif", "dout_pclkp", CLK_GATE_IP3, 0, 0, 0),
+> +
+> +	GATE(TZPC3, "tzpc.3", "dout_pclkd", CLK_GATE_IP4, 8, 0, 0),
+> +	GATE(TZPC2, "tzpc.2", "dout_pclkd", CLK_GATE_IP4, 7, 0, 0),
+> +	GATE(TZPC1, "tzpc.1", "dout_pclkp", CLK_GATE_IP4, 6, 0, 0),
+> +	GATE(TZPC0, "tzpc.0", "dout_pclkm", CLK_GATE_IP4, 5, 0, 0),
+> +	GATE(SECKEY, "seckey", "dout_pclkp", CLK_GATE_IP4, 3, 0, 0),
+> +	GATE(IEM_APC, "iem_apc", "dout_pclkp", CLK_GATE_IP4, 2, 0, 0),
+> +	GATE(IEM_IEC, "iem_iec", "dout_pclkp", CLK_GATE_IP4, 1, 0, 0),
+> +	GATE(CHIPID, "chipid", "dout_pclkp", CLK_GATE_IP4, 0, 0, 0),
+> +
+> +	GATE(JPEG, "jpeg", "dout_hclkd", CLK_GATE_IP5, 29, 0, 0),
+> +
+
+You can use GATE_SCLK() macro for all the SCLK gates below.
+
+> +	GATE(SCLK_SPDIF, "sclk_spdif", "mout_spdif", CLK_SRC_MASK0, 27,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_AUDIO2, "sclk_audio2", "dout_audio2", CLK_SRC_MASK0, 26,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_AUDIO1, "sclk_audio1", "dout_audio1", CLK_SRC_MASK0, 25,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_AUDIO0, "sclk_audio0", "dout_audio0", CLK_SRC_MASK0, 24,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_PWM, "sclk_pwm", "dout_pwm", CLK_SRC_MASK0, 19,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_SPI1, "sclk_spi1", "dout_spi1", CLK_SRC_MASK0, 17,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_SPI0, "sclk_spi0", "dout_spi0", CLK_SRC_MASK0, 16,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_UART3, "sclk_uart3", "dout_uart3", CLK_SRC_MASK0, 15,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_UART2, "sclk_uart2", "dout_uart2", CLK_SRC_MASK0, 14,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_UART1, "sclk_uart1", "dout_uart1", CLK_SRC_MASK0, 13,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_UART0, "sclk_uart0", "dout_uart0", CLK_SRC_MASK0, 12,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_MMC3, "sclk_mmc3", "dout_mmc3", CLK_SRC_MASK0, 11,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_MMC2, "sclk_mmc2", "dout_mmc2", CLK_SRC_MASK0, 10,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_MMC1, "sclk_mmc1", "dout_mmc1", CLK_SRC_MASK0, 9,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_MMC0, "sclk_mmc0", "dout_mmc0", CLK_SRC_MASK0, 8,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_CSIS, "sclk_csis", "dout_csis", CLK_SRC_MASK0, 6,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_FIMD, "sclk_fimd", "dout_fimd", CLK_SRC_MASK0, 5,
+> +				CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED, 0),
+> +	GATE(SCLK_CAM1, "sclk_cam1", "dout_cam1", CLK_SRC_MASK0, 4,
+> +				CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED, 0),
+> +	GATE(SCLK_CAM0, "sclk_cam0", "dout_cam0", CLK_SRC_MASK0, 3,
+> +				CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED, 0),
+
+This CLK_IGNORE_UNUSED in the three clocks above does not look correct to 
+me. It should be responsibility of the driver to claim the clock and 
+control it. CLK_IGNORE_UNUSED should be rather used as last resort, for 
+example if there is no driver yet, but the clock must be kept enabled.
+
+> +	GATE(SCLK_DAC, "sclk_dac", "mout_dac", CLK_SRC_MASK0, 2, 0, 0),
+> +	GATE(SCLK_MIXER, "sclk_mixer", "mout_mixer", CLK_SRC_MASK0, 1, 0, 0),
+> +	GATE(SCLK_HDMI, "sclk_hdmi", "mout_hdmi", CLK_SRC_MASK0, 0, 0, 0),
+> +
+> +	GATE(SCLK_FIMC2, "sclk_fimc2", "dout_fimc2", CLK_SRC_MASK1, 4,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_FIMC1, "sclk_fimc1", "dout_fimc1", CLK_SRC_MASK1, 3,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(SCLK_FIMC0, "sclk_fimc0", "dout_fimc0", CLK_SRC_MASK1, 2,
+> +				CLK_SET_RATE_PARENT, 0),
+> +	GATE(FIMC2, "fimc2", "dout_hclkd", CLK_GATE_IP0, 26, 0, 0),
+> +	GATE(FIMC1, "fimc1", "dout_hclkd", CLK_GATE_IP0, 25, 0, 0),
+> +	GATE(FIMC0, "fimc0", "dout_hclkd", CLK_GATE_IP0, 24, 0, 0),
+> +
+> +	/*HACK dacphy isn`t real clock*/
+> +	GATE(DACPHY, "dacphy", "dout_hclkd", DAC_CONTROL, 0, 0, 0),
+
+You should be careful with this kind of hack, because the DACPHY index 
+introduced here, when first used in DT, would become an ABI, support for 
+which would have to be kept in future.
+
+There are three possible ways to deal with this:
+ 1) remove this and thus break DAC support (does any existing board file 
+use it?),
+ 2) implement this hack only for board files, without assigning a clock 
+specifier index for this clock and thus making it unavailable for DT.
+ 3) implement this properly,
+
+While option 3 would be the best one, I understand that it would require a 
+significant amount of work, so other choices might better for now. Option 
+1, if there are board files that have working DAC, will introduce a 
+regression, so it isn't really good. I guess we could go with 2) for now.
+
+> +};
+> +
+> +/* list of all parent clock list */
+> +static struct samsung_clock_alias s5pv210_clock_aliases[] = {
+> +	ALIAS(FIMC0, "s5pv210-fimc.0", "fimc"),
+> +	ALIAS(FIMC1, "s5pv210-fimc.1", "fimc"),
+> +	ALIAS(FIMC2, "s5pv210-fimc.2", "fimc"),
+> +	ALIAS(MOUT_FIMC2, NULL, "mout_fimc2"),
+> +	ALIAS(MOUT_FIMC1, NULL, "mout_fimc1"),
+> +	ALIAS(MOUT_FIMC0, NULL, "mout_fimc0"),
+
+These aliases should not have NULL here. I belive this is to allow looking 
+these clocks up from board files, but this can be done using clk_get_sys() 
+and passing appropriate device name to the function.
+
+This would also make the X in mout_fimcX redundant, so the clocks could be 
+specified as follows:
+
+	ALIAS(MOUT_FIMC2, "s5pv210-fimc.0", "mout_fimc"),
+	ALIAS(MOUT_FIMC1, "s5pv210-fimc.1", "mout_fimc"),
+	ALIAS(MOUT_FIMC0, "s5pv210-fimc.2", "mout_fimc"),
+
+> +	ALIAS(SCLK_FIMC0, "s5pv210-fimc.0", "sclk_fimc"),
+> +	ALIAS(SCLK_FIMC1, "s5pv210-fimc.1", "sclk_fimc"),
+> +	ALIAS(SCLK_FIMC2, "s5pv210-fimc.2", "sclk_fimc"),
+> +
+> +	ALIAS(MOUT_APLL, NULL, "mout_apll"),
+> +	ALIAS(MOUT_MPLL, NULL, "mout_mpll"),
+> +	ALIAS(MOUT_EPLL, NULL, "mout_epll"),
+> +	ALIAS(MOUT_VPLL, NULL, "mout_vpll"),
+
+Hmm. This is a bit problematic. I believe the reason for exporting this is 
+exactly the same as for mout_fimcX. Am I right?
+
+I believe there should be some way to do this kind of lookup from platform 
+code, without the need to add fake aliases for the clocks. Mike, do you 
+have any suggestsions?
+
+> +	ALIAS(UART0, "s5pv210-uart.0", "uart"),
+> +	ALIAS(UART1, "s5pv210-uart.1", "uart"),
+> +	ALIAS(UART2, "s5pv210-uart.2", "uart"),
+> +	ALIAS(UART3, "s5pv210-uart.3", "uart"),
+> +	ALIAS(UART0, "s5pv210-uart.0", "clk_uart_baud0"),
+> +	ALIAS(UART1, "s5pv210-uart.1", "clk_uart_baud0"),
+> +	ALIAS(UART2, "s5pv210-uart.2", "clk_uart_baud0"),
+> +	ALIAS(UART3, "s5pv210-uart.3", "clk_uart_baud0"),
+> +	ALIAS(SCLK_UART0, "s5pv210-uart.0", "clk_uart_baud1"),
+> +	ALIAS(SCLK_UART1, "s5pv210-uart.1", "clk_uart_baud1"),
+> +	ALIAS(SCLK_UART2, "s5pv210-uart.2", "clk_uart_baud1"),
+> +	ALIAS(SCLK_UART3, "s5pv210-uart.3", "clk_uart_baud1"),
+> +	ALIAS(HSMMC0, "s3c-sdhci.0", "hsmmc"),
+> +	ALIAS(HSMMC1, "s3c-sdhci.1", "hsmmc"),
+> +	ALIAS(HSMMC2, "s3c-sdhci.2", "hsmmc"),
+> +	ALIAS(HSMMC3, "s3c-sdhci.3", "hsmmc"),
+> +	ALIAS(HSMMC0, "s3c-sdhci.0", "mmc_busclk.0"),
+> +	ALIAS(HSMMC1, "s3c-sdhci.1", "mmc_busclk.0"),
+> +	ALIAS(HSMMC2, "s3c-sdhci.2", "mmc_busclk.0"),
+> +	ALIAS(HSMMC3, "s3c-sdhci.3", "mmc_busclk.0"),
+> +	ALIAS(SCLK_MMC0, "s3c-sdhci.0", "mmc_busclk.2"),
+> +	ALIAS(SCLK_MMC1, "s3c-sdhci.1", "mmc_busclk.2"),
+> +	ALIAS(SCLK_MMC2, "s3c-sdhci.2", "mmc_busclk.2"),
+> +	ALIAS(SCLK_MMC3, "s3c-sdhci.3", "mmc_busclk.2"),
+> +	ALIAS(SPI0, "s5pv210-spi.0", "spi_busclk0"),
+> +	ALIAS(SPI1, "s5pv210-spi.1", "spi_busclk0"),
+> +	ALIAS(SCLK_SPI0, "s5pv210-spi.0", "spi_busclk1"),
+> +	ALIAS(SCLK_SPI1, "s5pv210-spi.1", "spi_busclk1"),
+> +	ALIAS(PDMA0, "dma-pl330.0", "apb_pclk"),
+> +	ALIAS(PDMA1, "dma-pl330.1", "apb_pclk"),
+> +	ALIAS(PWM, NULL, "timers"),
+
+This one if fine, as the PWM clocksource driver does not have a struct 
+device bound to it. (Generally speaking, this should be fixed by using 
+clk_get_sys() in that driver, but this is a material for separate patches.)
+
+> +
+> +	ALIAS(JPEG, NULL, "jpeg"),
+
+This one should have a device name as well.
+
+> +	ALIAS(MFC, "s5p-mfc", "mfc"),
+> +	ALIAS(TVENC, "s5p-sdo", "dac"),
+> +	ALIAS(MIXER, "s5p-mixer", "mixer"),
+> +	ALIAS(VP, "s5p-mixer", "vp"),
+> +	ALIAS(HDMI, "s5p-hdmi", "hdmi"),
+> +	ALIAS(SCLK_HDMI, "s5p-hdmi", "hdmiphy"),
+> +
+> +	ALIAS(SCLK_DAC, NULL, "sclk_dac"),
+
+Ditto.
+
+> +	ALIAS(DACPHY, "s5p-sdo", "dacphy"),
+> +	ALIAS(USB_OTG, NULL, "usbotg"),
+> +	ALIAS(USB_OTG, NULL, "otg"),
+> +	ALIAS(USB_HOST, NULL, "usb-host"),
+> +	ALIAS(USB_HOST, NULL, "usbhost"),
+
+4 x Ditto.
+
+Also why these clocks have two aliases? What are their users?
+
+> +	ALIAS(FIMD, "s5pv210-fb", "lcd"),
+> +	ALIAS(CFCON, NULL, "cfcon"),
+
+Does anything even use this alias?
+
+> +	ALIAS(SYSTIMER, NULL, "systimer"),
+
+Does anything use this alias?
+
+> +	ALIAS(WDT, NULL, "watchdog"),
+> +	ALIAS(RTC, NULL, "rtc"),
+
+Device names x 2.
+
+> +	ALIAS(I2C0, "s3c2440-i2c.0", "i2c"),
+> +	ALIAS(I2C_HDMI_CEC, "s3c2440-i2c.1", "i2c"),
+> +	ALIAS(I2C2, "s3c2440-i2c.2", "i2c"),
+> +	ALIAS(I2C_HDMI_PHY, "s3c2440-hdmiphy-i2c", "i2c"),
+> +	ALIAS(TSADC, NULL, "adc"),
+
+Ditto.
+
+> +	ALIAS(KEYIF, "s5pv210-keypad", "keypad"),
+> +	ALIAS(I2S0, "samsung-i2s.0", "iis"),
+> +	ALIAS(I2S1, "samsung-i2s.1", "iis"),
+> +	ALIAS(I2S2, "samsung-i2s.2", "iis"),
+> +	ALIAS(SPDIF, NULL, "spdif"),
+> +	ALIAS(ROTATOR, NULL, "rot"),
+
+Device names x 2. (Although I'm not sure if something really uses the "rot" 
+alias.)
+
+> +	ALIAS(DOUT_APLL, NULL, "armclk"),
+
+This one is needed by s5pv210-cpufreq indeed, but it also needs sclk_dmc0 
+and hclk_msys, which don't seem to have aliases defined in this driver. 
+However I also believe that s5pv210-cpufreq should be fixed to use 
+clk_get_sys(), with some made up device name, e.g. "s5pv210-cpufreq".
+
+> +	ALIAS(SCLK_AUDIO0, "soc-audio.0", "sclk_audio"),
+> +	ALIAS(SCLK_AUDIO1, "soc-audio.1", "sclk_audio"),
+> +	ALIAS(SCLK_AUDIO2, "soc-audio.2", "sclk_audio"),
+> +
+> +	ALIAS(MFC, "s5p-mfc", "sclk_mfc"),
+> +	ALIAS(SCLK_CAM0, NULL, "sclk_cam0"),
+> +	ALIAS(SCLK_CAM1, NULL, "sclk_cam1"),
+
+Device names. x2
+
+> +	ALIAS(G2D, "s5p-g2d", "fimg2d"),
+> +	ALIAS(DOUT_G2D, "s5p-g2d", "sclk_fimg2d"),
+> +	ALIAS(CSIS, "s5p-mipi-csis", "csis"),
+> +	ALIAS(SCLK_CSIS, "s5p-mipi-csis", "sclk_csis"),
+> +	ALIAS(SCLK_PWM, "samsung-pwm", "pwm-tclk0"),
+> +	ALIAS(SCLK_PWM, "samsung-pwm", "pwm-tclk1"),
+> +	ALIAS(SCLK_FIMD, NULL, "sclk_fimd"),
+> +	ALIAS(MOUT_CAM0, NULL, "mout_cam0"),
+> +	ALIAS(MOUT_CAM1, NULL, "mout_cam1"),
+> +
+> +	ALIAS(MOUT_CSIS, NULL, "mout_csis"),
+> +	ALIAS(MOUT_VPLL, NULL, "sclk_vpll"),
+> +	ALIAS(SCLK_MIXER, NULL, "sclk_mixer"),
+> +	ALIAS(SCLK_HDMI, NULL, "sclk_hdmi"),
+
+Device names. x7
+
+> +};
+> +
+> +static unsigned long __init s5pv210_get_xom(void)
+> +{
+> +	unsigned long xom = 1;
+> +	struct device_node *np;
+> +
+> +	np = of_find_compatible_node(NULL, NULL, "samsung,s5pv210-chipid");
+> +	if (np) {
+
+Instead of moving the successful path under the if, what about calling 
+panic() if the node couldn't be found?
+
+> +		void __iomem *chipid_base = of_iomap(np, 0);
+> +
+> +		if (!chipid_base)
+> +			panic("%s: failed to map chipid\n", __func__);
+> +		else {
+
+Coding style: Braces should be used consistently, i.e. if used for "if" 
+clause, then should be used for "else" clause as well and vice versa.
+
+Also you don't even need this else, because panic() does not return.
+
+> +			xom = readl(chipid_base + 8);
+> +			iounmap(chipid_base);
+> +		}
+> +	}
+> +
+> +	return xom;
 > +}
 > +
-> +/**
-> + * fence_get - increases refcount of the fence
-> + * @fence:     [in]    fence to increase refcount of
-> + */
-> +static inline void fence_get(struct fence *fence)
+> +static void __init s5pv210_clk_register_finpll(unsigned long xom)
 > +{
-> +       if (WARN_ON(!fence))
-> +               return;
-> +       kref_get(&fence->refcount);
+> +	struct samsung_fixed_rate_clock fclk;
+> +	struct clk *clk;
+> +	unsigned long finpll_f = 24000000;
+> +	char *parent_name;
+> +
+> +	parent_name = xom & 1 ? "xusbxti" : "xxti";
+> +	clk = clk_get(NULL, parent_name);
+> +	if (IS_ERR(clk))
+> +		pr_err("%s: failed to lookup parent clock %s, assuming fin_pll clock
+> frequency is 24MHz\n", +						__func__, parent_name);
+> +	else
+> +		finpll_f = clk_get_rate(clk);
+
+Hmm, I wonder if it's the right assumption. Maybe it would be better to 
+simply fail here? I'd like to hear other opinions on this.
+
+> +
+> +	fclk.id = FIN_PLL;
+> +	fclk.name = "fin_pll";
+> +	fclk.parent_name = NULL;
+> +	fclk.flags = CLK_IS_ROOT;
+> +	fclk.fixed_rate = finpll_f;
+> +	samsung_clk_register_fixed_rate(&fclk, 1);
+
+Also if you could register here a fixed factor clock with 1:1 factor that 
+would just have the right parent clock set, instead of fixed rate clock, 
+the clock tree would be closer to reality.
+
 > +}
 > +
-> +extern void release_fence(struct kref *kref);
-> +
-> +/**
-> + * fence_put - decreases refcount of the fence
-> + * @fence:     [in]    fence to reduce refcount of
-> + */
-> +static inline void fence_put(struct fence *fence)
+> +static void __init s5pv210_clk_register_fixed_ext(unsigned long xxti_f,
+> +						unsigned long xusbxti_f)
 > +{
-> +       if (WARN_ON(!fence))
-> +               return;
-> +       kref_put(&fence->refcount, release_fence);
+> +	s5pv210_fixed_rate_ext_clks[0].fixed_rate = xxti_f;
+> +	s5pv210_fixed_rate_ext_clks[1].fixed_rate = xusbxti_f;
+> +	samsung_clk_register_fixed_rate(s5pv210_fixed_rate_ext_clks,
+> +				ARRAY_SIZE(s5pv210_fixed_rate_ext_clks));
 > +}
 > +
-> +int fence_signal(struct fence *fence);
-> +int __fence_signal(struct fence *fence);
-> +long fence_default_wait(struct fence *fence, bool intr, signed long timeout);
-> +int fence_add_callback(struct fence *fence, struct fence_cb *cb,
-> +                      fence_func_t func, void *priv);
-> +bool fence_remove_callback(struct fence *fence, struct fence_cb *cb);
-> +void fence_enable_sw_signaling(struct fence *fence);
+> +static struct samsung_pll_clock s5pv210_pll_clks[] __initdata = {
+> +	[apll] = PLL(pll_4508, FOUT_APLL, "fout_apll", "fin_pll",
+> +						APLL_LOCK, APLL_CON0, NULL),
+> +	[mpll] = PLL(pll_4502, FOUT_MPLL, "fout_mpll", "fin_pll",
+> +						MPLL_LOCK, MPLL_CON, NULL),
+> +	[epll] = PLL(pll_4600, FOUT_EPLL, "fout_epll", "fin_pll",
+> +						EPLL_LOCK, EPLL_CON0, NULL),
+> +	[vpll] = PLL(pll_4502, FOUT_VPLL, "fout_vpll", "mout_vpllsrc",
+> +						VPLL_LOCK, VPLL_CON0, NULL),
+> +};
 > +
-> +/**
-> + * fence_is_signaled - Return an indication if the fence is signaled yet.
-> + * @fence:     [in]    the fence to check
-> + *
-> + * Returns true if the fence was already signaled, false if not. Since this
-> + * function doesn't enable signaling, it is not guaranteed to ever return true
-> + * If fence_add_callback, fence_wait or fence_enable_sw_signaling
-> + * haven't been called before.
-> + *
-> + * It's recommended for seqno fences to call fence_signal when the
-> + * operation is complete, it makes it possible to prevent issues from
-> + * wraparound between time of issue and time of use by checking the return
-> + * value of this function before calling hardware-specific wait instructions.
-> + */
-> +static inline bool
-> +fence_is_signaled(struct fence *fence)
+> +void __init s5pv210_clk_init(struct device_node *np, unsigned long
+> xxti_f, +			unsigned long xusbxti_f, void __iomem *reg_base)
 > +{
-> +       if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
-> +               return true;
-> +
-> +       if (fence->ops->signaled && fence->ops->signaled(fence)) {
-> +               fence_signal(fence);
-> +               return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
-> +/**
-> + * fence_later - return the chronologically later fence
-> + * @f1:        [in]    the first fence from the same context
-> + * @f2:        [in]    the second fence from the same context
-> + *
-> + * Returns NULL if both fences are signaled, otherwise the fence that would be
-> + * signaled last. Both fences must be from the same context, since a seqno is
-> + * not re-used across contexts.
-> + */
-> +static inline struct fence *fence_later(struct fence *f1, struct fence *f2)
+> +	unsigned long xom = s5pv210_get_xom();
 
-fence_before/fence_after?  (ie. more like time_before()/time_after())
+What about XOM value when booting without device tree? Shouldn't you have 
+some way to read XOM value in platform code and pass it here, like it was 
+done in Exynos4 clock driver before we dropped non-DT support for Exynos?
 
-> +{
-> +       bool sig1, sig2;
-> +
-> +       /*
-> +        * can't check just FENCE_FLAG_SIGNALED_BIT here, it may never have been
-> +        * set called if enable_signaling wasn't, and enabling that here is
-> +        * overkill.
-> +        */
-> +       sig1 = fence_is_signaled(f1);
-> +       sig2 = fence_is_signaled(f2);
-> +
-> +       if (sig1 && sig2)
-> +               return NULL;
-> +
-> +       BUG_ON(f1->context != f2->context);
+Otherwise looks good.
 
-hmm, I guess I have to see how this is used.. is the user expected to
-check a->context==b->context first?  Seems like it might be a bit
-nicer to just return -EINVAL in this case?  Not sure, would have to
-check how this is used.
+Best regards,
+Tomasz
 
-> +
-> +       if (sig1 || f2->seqno - f1->seqno <= INT_MAX)
-> +               return f2;
-> +       else
-> +               return f1;
-> +}
-> +
-> +/**
-> + * fence_wait_timeout - sleep until the fence gets signaled
-> + * or until timeout elapses
-> + * @fence:     [in]    the fence to wait on
-> + * @intr:      [in]    if true, do an interruptible wait
-> + * @timeout:   [in]    timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-> + *
-> + * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
-> + * remaining timeout in jiffies on success. Other error values may be
-> + * returned on custom implementations.
-> + *
-> + * Performs a synchronous wait on this fence. It is assumed the caller
-> + * directly or indirectly (buf-mgr between reservation and committing)
-> + * holds a reference to the fence, otherwise the fence might be
-> + * freed before return, resulting in undefined behavior.
-> + */
-> +static inline long
-> +fence_wait_timeout(struct fence *fence, bool intr, signed long timeout)
-> +{
-> +       if (WARN_ON(timeout < 0))
-> +               return -EINVAL;
-> +
-> +       return fence->ops->wait(fence, intr, timeout);
-> +}
-> +
-> +/**
-> + * fence_wait - sleep until the fence gets signaled
-> + * @fence:     [in]    the fence to wait on
-> + * @intr:      [in]    if true, do an interruptible wait
-> + *
-> + * This function will return -ERESTARTSYS if interrupted by a signal,
-> + * or 0 if the fence was signaled. Other error values may be
-> + * returned on custom implementations.
-> + *
-> + * Performs a synchronous wait on this fence. It is assumed the caller
-> + * directly or indirectly (buf-mgr between reservation and committing)
-> + * holds a reference to the fence, otherwise the fence might be
-> + * freed before return, resulting in undefined behavior.
-> + */
-> +static inline long fence_wait(struct fence *fence, bool intr)
-> +{
-> +       long ret;
-> +
-> +       /* Since fence_wait_timeout cannot timeout with
-> +        * MAX_SCHEDULE_TIMEOUT, only valid return values are
-> +        * -ERESTARTSYS and MAX_SCHEDULE_TIMEOUT.
-> +        */
-> +       ret = fence_wait_timeout(fence, intr, MAX_SCHEDULE_TIMEOUT);
-> +
-> +       return ret < 0 ? ret : 0;
-> +}
-> +
-> +/**
-> + * fence context counter: each execution context should have its own
-> + * fence context, this allows checking if fences belong to the same
-> + * context or not. One device can have multiple separate contexts,
-> + * and they're used if some engine can run independently of another.
-> + */
-> +extern atomic_t fence_context_counter;
-
-context-alloc should not be in the critical path.. I'd think probably
-drop the extern and inline, and make fence_context_counter static
-inside the .c
-
-> +
-> +static inline unsigned fence_context_alloc(unsigned num)
-
-well, this is actually allocating 'num' contexts, so
-'fence_context_alloc()' sounds a bit funny.. or at least to me it
-sounds from the name like it allocates a single context
-
-BR,
--R
-
-> +{
-> +       BUG_ON(!num);
-> +       return atomic_add_return(num, &fence_context_counter) - num;
-> +}
-> +
-> +#define FENCE_TRACE(f, fmt, args...) \
-> +       do {                                                                    \
-> +               struct fence *__ff = (f);                                       \
-> +               if (config_enabled(CONFIG_FENCE_TRACE))                 \
-> +                       pr_info("f %u#%u: " fmt,                                \
-> +                               __ff->context, __ff->seqno, ##args);            \
-> +       } while (0)
-> +
-> +#define FENCE_WARN(f, fmt, args...) \
-> +       do {                                                                    \
-> +               struct fence *__ff = (f);                                       \
-> +               pr_warn("f %u#%u: " fmt, __ff->context, __ff->seqno, ##args);   \
-> +       } while (0)
-> +
-> +#define FENCE_ERR(f, fmt, args...) \
-> +       do {                                                                    \
-> +               struct fence *__ff = (f);                                       \
-> +               pr_err("f %u#%u: " fmt, __ff->context, __ff->seqno, ##args);    \
-> +       } while (0)
-> +
-> +#endif /* __LINUX_FENCE_H */
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
