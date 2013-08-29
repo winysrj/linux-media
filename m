@@ -1,332 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:23517 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755385Ab3HEI5v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 04:57:51 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id r758vY7i001512
-	for <linux-media@vger.kernel.org>; Mon, 5 Aug 2013 08:57:48 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:61879 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650Ab3H2JfH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 05:35:07 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 7/7] qv4l2: add aspect ratio support
-Date: Mon,  5 Aug 2013 10:56:57 +0200
-Message-Id: <1f361d3a48848e8b4918666cf80e4745efab8c0d.1375692973.git.bwinther@cisco.com>
-In-Reply-To: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-References: <1375693017-6079-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-References: <8be0aea2a33100972c3f9c74a8c981fca0e7a2aa.1375692973.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: mturquette@linaro.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, arun.kk@samsung.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, t.figa@samsung.com,
+	linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com,
+	swarren@wwwdotorg.org, pawel.moll@arm.com, rob.herring@calxeda.com,
+	galak@codeaurora.org, devicetree@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RESEND PATCH v2 5/7] exynos4-is: Add clock provider for the external
+ clocks
+Date: Thu, 29 Aug 2013 11:34:06 +0200
+Message-id: <1377768846-16145-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 24 ++++++++++++++++++++++--
- utils/qv4l2/capture-win.h   |  8 +++++++-
- utils/qv4l2/general-tab.cpp | 36 ++++++++++++++++++++++++++++++++++++
- utils/qv4l2/general-tab.h   |  3 +++
- utils/qv4l2/qv4l2.cpp       | 22 +++++++++++++++-------
- utils/qv4l2/qv4l2.h         |  2 +-
- 6 files changed, 84 insertions(+), 11 deletions(-)
+This patch adds clock provider to expose the sclk_cam0/1 clocks
+for image sensor subdevs.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 435c19b..415829a 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -30,6 +30,7 @@
- #define MIN_WIN_SIZE_HEIGHT 120
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/samsung-fimc.txt     |   17 ++-
+ drivers/media/platform/exynos4-is/media-dev.c      |  115 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/media-dev.h      |   18 ++-
+ 3 files changed, 147 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 96312f6..9f4d295 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -91,6 +91,15 @@ Optional properties
+ - samsung,camclk-out : specifies clock output for remote sensor,
+ 		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
  
- bool CaptureWin::m_enableScaling = true;
-+double CaptureWin::m_pixelAspectRatio = 1.0;
++'clock-controller' node (optional)
++----------------------------------
++
++The purpose of this node is to define a clock provider for external image
++sensors and link any of the CAM_?_CLKOUT clock outputs with related external
++clock consumer device. Properties specific to this node are described in
++../clock/clock-bindings.txt.
++
++
+ Image sensor nodes
+ ------------------
  
- CaptureWin::CaptureWin() :
- 	m_curWidth(-1),
-@@ -73,6 +74,14 @@ void CaptureWin::resetSize()
- 	resize(w, h);
+@@ -114,7 +123,7 @@ Example:
+ 			vddio-supply = <...>;
+ 
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camclk 1>;
+ 			clock-names = "mclk";
+ 
+ 			port {
+@@ -135,7 +144,7 @@ Example:
+ 			vddio-supply = <...>;
+ 
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camclk 0>;
+ 			clock-names = "mclk";
+ 
+ 			port {
+@@ -156,6 +165,10 @@ Example:
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
+ 
++		camclk: clock-controller {
++		       #clock-cells = <1>;
++		};
++
+ 		/* parallel camera ports */
+ 		parallel-ports {
+ 			/* camera A input */
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e327f45..6fba5f6 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -11,6 +11,8 @@
+  */
+ 
+ #include <linux/bug.h>
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/i2c.h>
+@@ -1438,6 +1440,108 @@ static int fimc_md_get_pinctrl(struct fimc_md *fmd)
+ 	return 0;
  }
  
-+int CaptureWin::actualFrameWidth(int width)
++#ifdef CONFIG_OF
++static int cam_clk_prepare(struct clk_hw *hw)
 +{
-+	if (m_enableScaling)
-+		return (int)((double)width * m_pixelAspectRatio);
-+	else
-+		return width;
++	struct cam_clk *camclk = to_cam_clk(hw);
++	int ret;
++
++	if (camclk->fmd->pmf == NULL)
++		return -ENODEV;
++
++	ret = pm_runtime_get_sync(camclk->fmd->pmf);
++	return ret < 0 ? ret : 0;
 +}
 +
- QSize CaptureWin::getMargins()
- {
- 	int l, t, r, b;
-@@ -94,6 +103,14 @@ void CaptureWin::enableScaling(bool enable)
- 	delete event;
- }
- 
-+void CaptureWin::setPixelAspectRatio(double ratio)
++static void cam_clk_unprepare(struct clk_hw *hw)
 +{
-+	m_pixelAspectRatio = ratio;
-+	QResizeEvent *event = new QResizeEvent(QSize(width(), height()), QSize(width(), height()));
-+	QCoreApplication::sendEvent(this, event);
-+	delete event;
++	struct cam_clk *camclk = to_cam_clk(hw);
++
++	if (camclk->fmd->pmf == NULL)
++		return;
++
++	pm_runtime_put_sync(camclk->fmd->pmf);
 +}
 +
- void CaptureWin::resize(int width, int height)
- {
- 	// Dont resize window if the frame size is the same in
-@@ -105,7 +122,7 @@ void CaptureWin::resize(int width, int height)
- 	m_curHeight = height;
- 
- 	QSize margins = getMargins();
--	width += margins.width();
-+	width = actualFrameWidth(width) + margins.width();
- 	height += margins.height();
- 
- 	QDesktopWidget *screen = QApplication::desktop();
-@@ -127,12 +144,15 @@ void CaptureWin::resize(int width, int height)
- 
- QSize CaptureWin::scaleFrameSize(QSize window, QSize frame)
- {
--	int actualFrameWidth = frame.width();;
-+	int actualFrameWidth;
- 	int actualFrameHeight = frame.height();
- 
- 	if (!m_enableScaling) {
- 		window.setWidth(frame.width());
- 		window.setHeight(frame.height());
-+		actualFrameWidth = frame.width();
-+	} else {
-+		actualFrameWidth = CaptureWin::actualFrameWidth(frame.width());
- 	}
- 
- 	double newW, newH;
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 1bfb1e1..eded9e0 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -76,9 +76,10 @@ public:
- 	static bool isSupported() { return false; }
- 
- 	void enableScaling(bool enable);
-+	void setPixelAspectRatio(double ratio);
- 	static QSize scaleFrameSize(QSize window, QSize frame);
- 
--public slots:
-+	public slots:
- 	void resetSize();
- 
- protected:
-@@ -99,6 +100,11 @@ protected:
- 	 */
- 	static bool m_enableScaling;
- 
-+	/**
-+	 * @note Aspect ratio it taken care of by scaling, frame size is for square pixels only!
-+	 */
-+	static double m_pixelAspectRatio;
++static const struct clk_ops cam_clk_ops = {
++	.prepare = cam_clk_prepare,
++	.unprepare = cam_clk_unprepare,
++};
 +
- signals:
- 	void close();
- 
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index 5996c03..53b7e36 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -53,6 +53,7 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 	m_tvStandard(NULL),
- 	m_qryStandard(NULL),
- 	m_videoTimings(NULL),
-+	m_pixelAspectRatio(NULL),
- 	m_qryTimings(NULL),
- 	m_freq(NULL),
- 	m_vidCapFormats(NULL),
-@@ -210,6 +211,20 @@ GeneralTab::GeneralTab(const QString &device, v4l2 &fd, int n, QWidget *parent)
- 		connect(m_qryTimings, SIGNAL(clicked()), SLOT(qryTimingsClicked()));
- 	}
- 
-+	if (!isRadio() && !isVbi()) {
-+		m_pixelAspectRatio = new QComboBox(parent);
-+		m_pixelAspectRatio->addItem("Autodetect");
-+		m_pixelAspectRatio->addItem("Square");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60");
-+		m_pixelAspectRatio->addItem("NTSC/PAL-M/PAL-60, Anamorphic");
-+		m_pixelAspectRatio->addItem("PAL/SECAM");
-+		m_pixelAspectRatio->addItem("PAL/SECAM, Anamorphic");
++static const char *cam_clk_p_names[] = { "sclk_cam0", "sclk_cam1" };
 +
-+		addLabel("Pixel Aspect Ratio");
-+		addWidget(m_pixelAspectRatio);
-+		connect(m_pixelAspectRatio, SIGNAL(activated(int)), SIGNAL(pixelAspectRatioChanged()));
++static void fimc_md_unregister_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	unsigned int i;
++
++	if (cp->of_node)
++		of_clk_del_provider(cp->of_node);
++
++	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
++		if (!IS_ERR(cp->clks[i]))
++			clk_unregister(cp->clks[i]);
++}
++
++static int fimc_md_register_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	struct device *dev = &fmd->pdev->dev;
++	struct device_node *node;
++	int i, ret;
++
++	for (i = 0; i < ARRAY_SIZE(cp->clks); i++)
++		cp->clks[i] = ERR_PTR(-EINVAL);
++
++	node = of_get_child_by_name(dev->of_node, "clock-controller");
++	if (!node) {
++		dev_warn(dev, "clock-controller node at %s not found\n",
++					dev->of_node->full_name);
++		return 0;
++	}
++	for (i = 0; i < FIMC_MAX_CAMCLKS; i++) {
++		struct cam_clk *camclk = &cp->camclk[i];
++		struct clk_init_data init;
++		char clk_name[16];
++		struct clk *clk;
++
++		snprintf(clk_name, sizeof(clk_name), "cam_clkout%d", i);
++
++		init.name = clk_name;
++		init.ops = &cam_clk_ops;
++		init.flags = CLK_SET_RATE_PARENT;
++		init.parent_names = &cam_clk_p_names[i];
++		init.num_parents = 1;
++		camclk->hw.init = &init;
++		camclk->fmd = fmd;
++
++		clk = clk_register(dev, &camclk->hw);
++		if (IS_ERR(clk)) {
++			dev_err(dev, "failed to register clock: %s (%ld)\n",
++						clk_name, PTR_ERR(clk));
++			ret = PTR_ERR(clk);
++			goto err;
++		}
++		cp->clks[i] = clk;
 +	}
 +
- 	if (m_tuner.capability) {
- 		QDoubleValidator *val;
- 		double factor = (m_tuner.capability & V4L2_TUNER_CAP_LOW) ? 16 : 16000;
-@@ -1105,6 +1120,27 @@ void GeneralTab::updateFrameSize()
- 	updateFrameInterval();
- }
- 
-+double GeneralTab::getPixelAspectRatio()
-+{
-+	if (m_pixelAspectRatio->currentText().compare("Autodetect") == 0) {
-+		v4l2_cropcap ratio;
-+		ratio.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		if (ioctl(VIDIOC_CROPCAP, &ratio) < 0)
-+			return 1.0;
++	cp->clk_data.clks = cp->clks;
++	cp->clk_data.clk_num = i;
++	cp->of_node = node;
 +
-+		return (double)ratio.pixelaspect.denominator / ratio.pixelaspect.numerator;
++	ret = of_clk_add_provider(node, of_clk_src_onecell_get,
++						&cp->clk_data);
++	if (!ret)
++		return 0;
++err:
++	fimc_md_unregister_clk_provider(fmd);
++	return ret;
++}
++#else
++#define fimc_md_register_clk_provider(fmd) (0)
++#define fimc_md_unregister_clk_provider(fmd) (0)
++#endif
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1465,16 +1569,24 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 
+ 	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
+ 
++	ret = fimc_md_register_clk_provider(fmd);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "clock provider registration failed\n");
++		return ret;
 +	}
-+	if (m_pixelAspectRatio->currentText().compare("NTSC/PAL-M/PAL-60") == 0)
-+		return 10.0/11.0;
-+	if (m_pixelAspectRatio->currentText().compare("NTSC/PAL-M/PAL-60, Anamorphic") == 0)
-+		return 40.0/33.0;
-+	if (m_pixelAspectRatio->currentText().compare("PAL/SECAM") == 0)
-+		return 12.0/11.0;
-+	if (m_pixelAspectRatio->currentText().compare("PAL/SECAM, Anamorphic") == 0)
-+		return 16.0/11.0;
-+	return 1.0;
-+}
 +
- void GeneralTab::updateFrameInterval()
- {
- 	v4l2_frmivalenum frmival;
-diff --git a/utils/qv4l2/general-tab.h b/utils/qv4l2/general-tab.h
-index c83368a..73e7a88 100644
---- a/utils/qv4l2/general-tab.h
-+++ b/utils/qv4l2/general-tab.h
-@@ -55,6 +55,7 @@ public:
- 	void setAudioDeviceBufferSize(int size);
- 	int getAudioDeviceBufferSize();
- 	bool hasAlsaAudio();
-+	double getPixelAspectRatio();
- 	bool get_interval(struct v4l2_fract &interval);
- 	int width() const { return m_width; }
- 	int height() const { return m_height; }
-@@ -88,6 +89,7 @@ public slots:
- 
- signals:
- 	void audioDeviceChanged();
-+	void pixelAspectRatioChanged();
- 
- private slots:
- 	void inputChanged(int);
-@@ -180,6 +182,7 @@ private:
- 	QComboBox *m_tvStandard;
- 	QPushButton *m_qryStandard;
- 	QComboBox *m_videoTimings;
-+	QComboBox *m_pixelAspectRatio;
- 	QPushButton *m_qryTimings;
- 	QLineEdit *m_freq;
- 	QComboBox *m_freqTable;
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 92a415f..0ce3cd7 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -103,7 +103,7 @@ ApplicationWindow::ApplicationWindow() :
- 	m_saveRawAct->setChecked(false);
- 	connect(m_saveRawAct, SIGNAL(toggled(bool)), this, SLOT(saveRaw(bool)));
- 
--	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "Show &Frames", this);
-+	m_showFramesAct = new QAction(QIcon(":/video-television.png"), "&Show Frames", this);
- 	m_showFramesAct->setStatusTip("Only show captured frames if set.");
- 	m_showFramesAct->setCheckable(true);
- 	m_showFramesAct->setChecked(true);
-@@ -137,12 +137,12 @@ ApplicationWindow::ApplicationWindow() :
- 	toolBar->addSeparator();
- 	toolBar->addAction(quitAct);
- 
--	m_scalingAct = new QAction("Enable Video Scaling", this);
-+	m_scalingAct = new QAction("&Enable Video Scaling", this);
- 	m_scalingAct->setStatusTip("Scale video frames to match window size if set");
- 	m_scalingAct->setCheckable(true);
- 	m_scalingAct->setChecked(true);
- 	connect(m_scalingAct, SIGNAL(toggled(bool)), this, SLOT(enableScaling(bool)));
--	m_resetScalingAct = new QAction("Resize to Frame Size", this);
-+	m_resetScalingAct = new QAction("Resize to &Frame Size", this);
- 	m_resetScalingAct->setStatusTip("Resizes the capture window to match frame size");
- 	m_resetScalingAct->setShortcut(Qt::CTRL+Qt::Key_F);
- 
-@@ -169,13 +169,13 @@ ApplicationWindow::ApplicationWindow() :
- #ifdef ENABLE_ALSA
- 	captureMenu->addSeparator();
- 
--	m_showAllAudioAct = new QAction("Show All Audio Devices", this);
-+	m_showAllAudioAct = new QAction("Show All Audio &Devices", this);
- 	m_showAllAudioAct->setStatusTip("Show all audio input and output devices if set");
- 	m_showAllAudioAct->setCheckable(true);
- 	m_showAllAudioAct->setChecked(false);
- 	captureMenu->addAction(m_showAllAudioAct);
- 
--	m_audioBufferAct = new QAction("Set Audio Buffer Size...", this);
-+	m_audioBufferAct = new QAction("Set Audio &Buffer Size...", this);
- 	m_audioBufferAct->setStatusTip("Set audio buffer capacity in amout of ms than can be stored");
- 	connect(m_audioBufferAct, SIGNAL(triggered()), this, SLOT(setAudioBufferSize()));
- 	captureMenu->addAction(m_audioBufferAct);
-@@ -216,8 +216,6 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 
- 	newCaptureWin();
- 
--	m_capture->setMinimumSize(150, 50);
--
- 	QWidget *w = new QWidget(m_tabs);
- 	m_genTab = new GeneralTab(device, *this, 4, w);
- 
-@@ -233,6 +231,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+ 		return ret;
  	}
- #endif
- 
-+	connect(m_genTab, SIGNAL(pixelAspectRatioChanged()), this, SLOT(updatePixelAspectRatio()));
- 	m_tabs->addTab(w, "General");
- 	addTabs();
- 	if (caps() & (V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)) {
-@@ -363,6 +362,7 @@ void ApplicationWindow::newCaptureWin()
- 		break;
++
+ 	ret = media_device_register(&fmd->media_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
+ 		goto err_md;
  	}
- 
-+	m_capture->setPixelAspectRatio(1.0);
- 	m_capture->enableScaling(m_scalingAct->isChecked());
-         connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
- 	connect(m_resetScalingAct, SIGNAL(triggered()), m_capture, SLOT(resetSize()));
-@@ -813,6 +813,12 @@ void ApplicationWindow::enableScaling(bool enable)
- 		m_capture->enableScaling(enable);
++
+ 	ret = fimc_md_get_clocks(fmd);
+ 	if (ret)
+ 		goto err_clk;
+@@ -1508,6 +1620,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	ret = fimc_md_create_links(fmd);
+ 	if (ret)
+ 		goto err_unlock;
++
+ 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+ 	if (ret)
+ 		goto err_unlock;
+@@ -1528,6 +1641,7 @@ err_clk:
+ 	media_device_unregister(&fmd->media_dev);
+ err_md:
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
++	fimc_md_unregister_clk_provider(fmd);
+ 	return ret;
  }
  
-+void ApplicationWindow::updatePixelAspectRatio()
-+{
-+	if (m_capture != NULL && m_genTab != NULL)
-+		m_capture->setPixelAspectRatio(m_genTab->getPixelAspectRatio());
-+}
+@@ -1538,6 +1652,7 @@ static int fimc_md_remove(struct platform_device *pdev)
+ 	if (!fmd)
+ 		return 0;
+ 
++	fimc_md_unregister_clk_provider(fmd);
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	fimc_md_unregister_entities(fmd);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 62599fd..240ca71 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -10,6 +10,7 @@
+ #define FIMC_MDEVICE_H_
+ 
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+@@ -89,6 +90,12 @@ struct fimc_sensor_info {
+ 	struct fimc_dev *host;
+ };
+ 
++struct cam_clk {
++	struct clk_hw hw;
++	struct fimc_md *fmd;
++};
++#define to_cam_clk(_hw) container_of(_hw, struct cam_clk, hw)
 +
- void ApplicationWindow::startAudio()
- {
- #ifdef ENABLE_ALSA
-@@ -894,6 +900,7 @@ void ApplicationWindow::capStart(bool start)
- 		m_vbiTab->slicedFormat(fmt.fmt.sliced);
- 		m_vbiSize = fmt.fmt.sliced.io_size;
- 		m_frameData = new unsigned char[m_vbiSize];
-+		updatePixelAspectRatio();
- 		if (startCapture(m_vbiSize)) {
- 			m_capNotifier = new QSocketNotifier(fd(), QSocketNotifier::Read, m_tabs);
- 			connect(m_capNotifier, SIGNAL(activated(int)), this, SLOT(capVbiFrame()));
-@@ -962,6 +969,7 @@ void ApplicationWindow::capStart(bool start)
- 		m_capSrcFormat = copy;
- 	}
+ /**
+  * struct fimc_md - fimc media device information
+  * @csis: MIPI CSIS subdevs data
+@@ -105,6 +112,7 @@ struct fimc_sensor_info {
+  * @pinctrl: camera port pinctrl handle
+  * @state_default: pinctrl default state handle
+  * @state_idle: pinctrl idle state handle
++ * @cam_clk_provider: CAMCLK clock provider structure
+  * @user_subdev_api: true if subdevs are not configured by the host driver
+  * @slock: spinlock protecting @sensor array
+  */
+@@ -122,13 +130,21 @@ struct fimc_md {
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
++
+ 	struct fimc_pinctrl {
+ 		struct pinctrl *pinctrl;
+ 		struct pinctrl_state *state_default;
+ 		struct pinctrl_state *state_idle;
+ 	} pinctl;
+-	bool user_subdev_api;
  
-+	updatePixelAspectRatio();
- 	m_capture->resize(dstPix.width, dstPix.height);
- 	m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
- 	m_capImage->fill(0);
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 3704ab1..859113a 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -131,7 +131,7 @@ private slots:
- 	void rejectedRawFile();
- 	void setAudioBufferSize();
- 	void enableScaling(bool enable);
--
-+	void updatePixelAspectRatio();
- 
- 	void about();
- 
++	struct cam_clk_provider {
++		struct clk *clks[FIMC_MAX_CAMCLKS];
++		struct clk_onecell_data clk_data;
++		struct device_node *of_node;
++		struct cam_clk camclk[FIMC_MAX_CAMCLKS];
++	} clk_provider;
++
++	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
+ };
 -- 
-1.8.3.2
+1.7.9.5
 
