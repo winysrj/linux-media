@@ -1,66 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:56789 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754585Ab3HFWRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Aug 2013 18:17:42 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Grant Likely' <grant.likely@secretlab.ca>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Sachin Kamat' <sachin.kamat@linaro.org>,
-	'Rob Herring' <robherring2@gmail.com>,
-	'Olof Johansson' <olof@lixom.net>,
-	'Pawel Moll' <pawel.moll@arm.com>,
-	'Mark Rutland' <mark.rutland@arm.com>,
-	'Stephen Warren' <swarren@wwwdotorg.org>,
-	'Ian Campbell' <ian.campbell@citrix.com>
-Subject: Re: [PATCH 2/2] media: s5p-mfc: remove DT hacks and simplify initialization code
-Date: Wed, 07 Aug 2013 00:17:36 +0200
-Message-ID: <2081911.Lb2nBczokV@flatron>
-In-Reply-To: <520174F5.6060508@samsung.com>
-References: <1375705610-12724-1-git-send-email-m.szyprowski@samsung.com> <030d01ce928e$de27e190$9a77a4b0$%debski@samsung.com> <520174F5.6060508@samsung.com>
+Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:50261 "EHLO
+	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752608Ab3H2LrM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 07:47:12 -0400
+Message-ID: <521F30C3.8000206@st.com>
+Date: Thu, 29 Aug 2013 12:30:11 +0100
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Reply-To: srinivas.kandagatla@st.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Rob Landley <rob@landley.net>,
+	Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v2] media: st-rc: Add ST remote control driver
+References: <1377704030-3763-1-git-send-email-srinivas.kandagatla@st.com> <20130829091155.GA6162@pequod.mess.org> <20130829074940.5decd369@samsung.com>
+In-Reply-To: <20130829074940.5decd369@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kukjin,
+On 29/08/13 11:49, Mauro Carvalho Chehab wrote:
+>>> +MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
+>>> > > +MODULE_LICENSE("GPL");
+>>> > > -- 
+>>> > > 1.7.6.5
+> Except for the few points that Sean commented, the patch seems ok on my eyes.
 
-On Wednesday 07 of August 2013 07:13:09 Kukjin Kim wrote:
-> On 08/06/13 19:22, Kamil Debski wrote:
-> > Hi Kukjin,
-> > 
-> > This patch looks good.
-> > 
-> > Best wishes,
-> > Kamil Debski
-> > 
-> >> From: Marek Szyprowski [mailto:m.szyprowski@samsung.com]
-> >> Sent: Monday, August 05, 2013 2:27 PM
-> >> 
-> >> This patch removes custom initialization of reserved memory regions
-> >> from s5p-mfc driver. Memory initialization can be now handled by
-> >> generic code.
-> >> 
-> >> Signed-off-by: Marek Szyprowski<m.szyprowski@samsung.com>
-> > 
-> > Acked-by: Kamil Debski<k.debski@samsung.com>
+Thankyou for reviewing. I will send v3 with the fixes.
+
+thanks,
+srini
+
+
 > 
-> Kamil, thanks for your ack.
+> Regards,
+> Mauro
 > 
-> Applied.
-
-This is a nice cleanup, but I don't think it should be applied yet, 
-because it depends on patch 1/2, which needs an Ack from DT maintainers.
-
-Best regards,
-Tomasz
 
