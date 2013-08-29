@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:35903 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752383Ab3H0JvY (ORCPT
+Received: from mail-la0-f49.google.com ([209.85.215.49]:59141 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608Ab3H2LzJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Aug 2013 05:51:24 -0400
-Message-ID: <521C7697.6070809@cisco.com>
-Date: Tue, 27 Aug 2013 11:51:19 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+	Thu, 29 Aug 2013 07:55:09 -0400
 MIME-Version: 1.0
-To: Knut Petersen <Knut_Petersen@t-online.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [REGRESSION 3.11-rc] wm8775 9-001b: I2C: cannot write ??? to
- register R??
-References: <521A269D.3020909@t-online.de> <521C5493.1050407@cisco.com> <521C72FF.5070902@t-online.de>
-In-Reply-To: <521C72FF.5070902@t-online.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <521F1E83.8060108@samsung.com>
+References: <1376909932-23644-1-git-send-email-shaik.ameer@samsung.com>
+	<1376909932-23644-6-git-send-email-shaik.ameer@samsung.com>
+	<521F1E83.8060108@samsung.com>
+Date: Thu, 29 Aug 2013 17:25:07 +0530
+Message-ID: <CAOD6AToJhN4FTW+g=L8+tEL2ftA7a10gd0LxUnyTkK1_0F0s1Q@mail.gmail.com>
+Subject: Re: [PATCH v2 5/5] [media] exynos-mscl: Add Makefile for M-Scaler driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, posciak@google.com,
+	Arun Kumar K <arun.kk@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/27/2013 11:35 AM, Knut Petersen wrote:
-> On 27.08.2013 09:26, Hans Verkuil wrote:
->> On 08/25/2013 05:45 PM, Knut Petersen wrote:
->>> Booting current git kernel dmesg shows a set of new  warnings:
->>>
->>>      "wm8775 9-001b: I2C: cannot write ??? to register R??"
->>>
->>> Nevertheless, the hardware seems to work fine.
->>>
->>> This is a new problem, introduced after kernel 3.10.
->>> If necessary I can bisect.
->> Can you try this patch? I'm pretty sure this will fix it.
-> 
-> Indeed, it does cure the problem. Thanks.
-> 
-> Tested-by: Knut Petersen <Knut_Petersen@t-online.de>
+Hi Sylwester,
 
-Thanks for testing this! I've posted the pull request for this.
-Hopefully it will make 3.11 before it is released.
+On Thu, Aug 29, 2013 at 3:42 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi Shaik,
+>
+> On 08/19/2013 12:58 PM, Shaik Ameer Basha wrote:
+>> This patch adds the Makefile for the M-Scaler (M2M scaler).
+>
+> Perhaps we could combine this with patch 3/5 ?
+
+Ok. I will do that.
+
+are you done with the review? can I start preparing for v3?
 
 Regards,
+Shaik
 
-	Hans
 
-> 
-> 
->>
->> Regards,
->>
->>     Hans
->>
->> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
->> index afe0eae..28893a6 100644
->> --- a/drivers/media/pci/cx88/cx88.h
->> +++ b/drivers/media/pci/cx88/cx88.h
->> @@ -259,7 +259,7 @@ struct cx88_input {
->>   };
->>     enum cx88_audio_chip {
->> -    CX88_AUDIO_WM8775,
->> +    CX88_AUDIO_WM8775 = 1,
->>       CX88_AUDIO_TVAUDIO,
->>   };
->>  
->>
-> 
-
+>
+> --
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
