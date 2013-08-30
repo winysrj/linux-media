@@ -1,152 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:34015 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357Ab3HUGe2 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2648 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755450Ab3H3GtJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:34:28 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v7 00/13] Exynos5 IS driver
-Date: Wed, 21 Aug 2013 12:04:27 +0530
-Message-Id: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+	Fri, 30 Aug 2013 02:49:09 -0400
+Message-ID: <52204058.6070008@xs4all.nl>
+Date: Fri, 30 Aug 2013 08:48:56 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Pawel Osciak <posciak@chromium.org>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-17-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-17-git-send-email-posciak@chromium.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch series add support for Exynos5 camera subsystem. It
-re-uses mipi-csis and fimc-lite from exynos4-is and adds a new
-media device and fimc-is device drivers for exynos5.
-The media device supports asynchronos subdev registration for the
-fimc-is sensors and is tested on top of the patch series from Sylwester
-for exynos4-is [1].
+On 08/30/2013 04:17 AM, Pawel Osciak wrote:
+> Add defines for controls found in UVC 1.5 encoding cameras.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 29 +++++++++++++++++++++++++++++
+>  include/uapi/linux/v4l2-controls.h   | 31 +++++++++++++++++++++++++++++++
+>  2 files changed, 60 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index c3f0803..0b3a632 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -781,6 +781,35 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
+>  	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
+>  
+> +	case V4L2_CID_ENCODER_MIN_FRAME_INTERVAL: return "Encoder, min. frame interval";
+> +	case V4L2_CID_ENCODER_RATE_CONTROL_MODE: return "Encoder, rate control mode";
+> +	case V4L2_CID_ENCODER_AVERAGE_BITRATE:	return "Encoder, average bitrate";
+> +	case V4L2_CID_ENCODER_CPB_SIZE:		return "Encoder, CPB size";
+> +	case V4L2_CID_ENCODER_PEAK_BIT_RATE:	return "Encoder, peak bit rate";
+> +	case V4L2_CID_ENCODER_QP_PARAM_I:	return "Encoder, QP param for I frames";
+> +	case V4L2_CID_ENCODER_QP_PARAM_P:	return "Encoder, QP param for P frames";
+> +	case V4L2_CID_ENCODER_QP_PARAM_BG:	return "Encoder, QP param for B/G frames";
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg64653.html
+A lot of these exist already. E.g. V4L2_CID_MPEG_VIDEO_MPEG4_I/P/B_FRAME_QP.
 
-Changes from v6
----------------
-- Addressed DT binding doc review comments from Sylwester
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65771.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65772.html
+Samsung added support for many of these parameters for their MFC encoder (including
+VP8 support) so you should use them as well. As mentioned in v4l2-controls.h the
+MPEG part of the control name is historical. Interpret it as 'CODEC', not MPEG.
 
-Changes from v5
----------------
-- Addressed review comments from Sylwester
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65578.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg65605.html
+> +	case V4L2_CID_ENCODER_NUM_GDR_FRAMES:	return "Encoder, number of GDR frames";
+> +	case V4L2_CID_ENCODER_LTR_BUFFER_CONTROL: return "Encoder, LTR buffer control";
+> +	case V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE: return "Encoder, LTR buffer trust mode";
+> +	case V4L2_CID_ENCODER_LTR_PICTURE_POSITION: return "Encoder, LTR picture position";
+> +	case V4L2_CID_ENCODER_LTR_PICTURE_MODE:	return "Encoder, LTR picture mode";
+> +	case V4L2_CID_ENCODER_LTR_VALIDATION:	return "Encoder, LTR validation";
+> +	case V4L2_CID_ENCODER_MIN_QP:		return "Encoder, minimum QP param";
+> +	case V4L2_CID_ENCODER_MAX_QP:		return "Encoder, maximum QP param";
+> +	case V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL: return "Encoder, sync frame interval";
+> +	case V4L2_CID_ENCODER_ERROR_RESILIENCY:	return "Encoder, error resiliency";
+> +	case V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE: return "Encoder, temporal layer enable";
+> +
+> +	case V4L2_CID_ENCODER_VP8_SLICE_MODE:	return "Encoder, VP8 slice mode";
+> +	case V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE: return "Encoder, VP8 sync frame type";
+> +	case V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME: return "Encoder, VP8, DCT partitions per frame";
+> +
+> +	case V4L2_CID_ENCODER_H264_PROFILE_TOOLSET: return "Encoder, H.264 profile and toolset";
+> +	case V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT: return "Encoder, H.264 level IDC limit";
+> +	case V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE: return "Encoder, H.264 SEI payload type";
+> +	case V4L2_CID_ENCODER_H264_LAYER_PRIORITY: return "Encoder, H.264 layer priority";
+> +
+>  	/* FM Radio Modulator control */
+>  	/* Keep the order of the 'case's the same as in videodev2.h! */
+>  	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 083bb5a..ef3a30d 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -729,6 +729,37 @@ enum v4l2_auto_focus_range {
+>  	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
+>  };
+>  
+> +/* Controls found in UVC 1.5 encoding cameras */
+> +#define V4L2_CID_ENCODER_MIN_FRAME_INTERVAL	(V4L2_CID_CAMERA_CLASS_BASE+32)
+> +#define V4L2_CID_ENCODER_RATE_CONTROL_MODE	(V4L2_CID_CAMERA_CLASS_BASE+33)
+> +#define V4L2_CID_ENCODER_AVERAGE_BITRATE	(V4L2_CID_CAMERA_CLASS_BASE+34)
+> +#define V4L2_CID_ENCODER_CPB_SIZE		(V4L2_CID_CAMERA_CLASS_BASE+35)
+> +#define V4L2_CID_ENCODER_PEAK_BIT_RATE		(V4L2_CID_CAMERA_CLASS_BASE+36)
+> +#define V4L2_CID_ENCODER_QP_PARAM_I		(V4L2_CID_CAMERA_CLASS_BASE+37)
+> +#define V4L2_CID_ENCODER_QP_PARAM_P		(V4L2_CID_CAMERA_CLASS_BASE+38)
+> +#define V4L2_CID_ENCODER_QP_PARAM_BG		(V4L2_CID_CAMERA_CLASS_BASE+39)
+> +#define V4L2_CID_ENCODER_NUM_GDR_FRAMES		(V4L2_CID_CAMERA_CLASS_BASE+40)
+> +#define V4L2_CID_ENCODER_LTR_BUFFER_CONTROL	(V4L2_CID_CAMERA_CLASS_BASE+41)
+> +#define V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE	(V4L2_CID_CAMERA_CLASS_BASE+42)
+> +#define V4L2_CID_ENCODER_LTR_PICTURE_POSITION	(V4L2_CID_CAMERA_CLASS_BASE+43)
+> +#define V4L2_CID_ENCODER_LTR_PICTURE_MODE	(V4L2_CID_CAMERA_CLASS_BASE+44)
+> +#define V4L2_CID_ENCODER_LTR_VALIDATION		(V4L2_CID_CAMERA_CLASS_BASE+45)
+> +#define V4L2_CID_ENCODER_MIN_QP			(V4L2_CID_CAMERA_CLASS_BASE+46)
+> +#define V4L2_CID_ENCODER_MAX_QP			(V4L2_CID_CAMERA_CLASS_BASE+47)
+> +#define V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL	(V4L2_CID_CAMERA_CLASS_BASE+48)
+> +#define V4L2_CID_ENCODER_ERROR_RESILIENCY	(V4L2_CID_CAMERA_CLASS_BASE+49)
+> +#define V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE	(V4L2_CID_CAMERA_CLASS_BASE+50)
+> +
+> +/* VP8-specific controls */
+> +#define V4L2_CID_ENCODER_VP8_SLICE_MODE		(V4L2_CID_CAMERA_CLASS_BASE+51)
+> +#define V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME (V4L2_CID_CAMERA_CLASS_BASE+52)
+> +#define V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE	(V4L2_CID_CAMERA_CLASS_BASE+53)
+> +
+> +/* H.264-specific controls */
+> +#define V4L2_CID_ENCODER_H264_PROFILE_TOOLSET	(V4L2_CID_CAMERA_CLASS_BASE+54)
+> +#define V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT	(V4L2_CID_CAMERA_CLASS_BASE+55)
+> +#define V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE	(V4L2_CID_CAMERA_CLASS_BASE+56)
+> +#define V4L2_CID_ENCODER_H264_LAYER_PRIORITY	(V4L2_CID_CAMERA_CLASS_BASE+57)
 
-Changes from v4
----------------
-- Addressed all review comments from Sylwester
-- Added separate PMU node as suggested by Stephen Warren
-- Added phandle based discovery of subdevs instead of node name
+Codec controls go to the MPEG class, not the CAMERA class.
 
-Changes from v3
----------------
-- Dropped the RFC tag
-- Addressed all review comments from Sylwester and Sachin
-- Removed clock provider for media dev
-- Added s5k4e5 sensor devicetree binding doc
+Regards,
 
-Changes from v2
----------------
-- Added exynos5 media device driver from Shaik to this series
-- Added ISP pipeline support in media device driver
-- Based on Sylwester's latest exynos4-is development
-- Asynchronos registration of sensor subdevs
-- Made independent IS-sensor support
-- Add s5k4e5 sensor driver
-- Addressed review comments from Sylwester, Hans, Andrzej, Sachin
+	Hans
 
-Changes from v1
----------------
-- Addressed all review comments from Sylwester
-- Made sensor subdevs as independent i2c devices
-- Lots of cleanup
-- Debugfs support added
-- Removed PMU global register access
-
-Arun Kumar K (12):
-  [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings
-    documentation
-  [media] exynos5-fimc-is: Add driver core files
-  [media] exynos5-fimc-is: Add common driver header files
-  [media] exynos5-fimc-is: Add register definition and context header
-  [media] exynos5-fimc-is: Add isp subdev
-  [media] exynos5-fimc-is: Add scaler subdev
-  [media] exynos5-fimc-is: Add sensor interface
-  [media] exynos5-fimc-is: Add the hardware pipeline control
-  [media] exynos5-fimc-is: Add the hardware interface module
-  [media] exynos5-is: Add Kconfig and Makefile
-  V4L: s5k6a3: Change sensor min/max resolutions
-  V4L: Add driver for s5k4e5 image sensor
-
-Shaik Ameer Basha (1):
-  [media] exynos5-is: Adding media device driver for exynos5
-
- .../devicetree/bindings/media/exynos5-fimc-is.txt  |   46 +
- .../bindings/media/exynos5250-camera.txt           |  126 ++
- .../devicetree/bindings/media/i2c/s5k4e5.txt       |   43 +
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/s5k4e5.c                         |  361 +++++
- drivers/media/i2c/s5k6a3.c                         |   19 +-
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos5-is/Kconfig          |   20 +
- drivers/media/platform/exynos5-is/Makefile         |    7 +
- drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1210 ++++++++++++++
- drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
- drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
- drivers/media/platform/exynos5-is/fimc-is-core.c   |  413 +++++
- drivers/media/platform/exynos5-is/fimc-is-core.h   |  132 ++
- drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++
- .../media/platform/exynos5-is/fimc-is-interface.c  |  810 ++++++++++
- .../media/platform/exynos5-is/fimc-is-interface.h  |  125 ++
- drivers/media/platform/exynos5-is/fimc-is-isp.c    |  534 ++++++
- drivers/media/platform/exynos5-is/fimc-is-isp.h    |   90 ++
- .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++
- drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 ++++++++++++++
- .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1692 ++++++++++++++++++++
- .../media/platform/exynos5-is/fimc-is-pipeline.h   |  128 ++
- drivers/media/platform/exynos5-is/fimc-is-regs.h   |  105 ++
- drivers/media/platform/exynos5-is/fimc-is-scaler.c |  472 ++++++
- drivers/media/platform/exynos5-is/fimc-is-scaler.h |  106 ++
- drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 +
- drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 +
- drivers/media/platform/exynos5-is/fimc-is.h        |  160 ++
- 31 files changed, 9208 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
- create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
- create mode 100644 drivers/media/i2c/s5k4e5.c
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
-
--- 
-1.7.9.5
+>  
+>  /* FM Modulator class control IDs */
+>  
+> 
 
