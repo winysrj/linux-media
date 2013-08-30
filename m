@@ -1,66 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:28019 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755560Ab3H3L2y (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:55210 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754045Ab3H3CRk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:28:54 -0400
-From: Dinesh Ram <dinram@cisco.com>
+	Thu, 29 Aug 2013 22:17:40 -0400
+Received: by mail-pa0-f54.google.com with SMTP id kx10so1693437pab.41
+        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:39 -0700 (PDT)
+From: Pawel Osciak <posciak@chromium.org>
 To: linux-media@vger.kernel.org
-Cc: dinesh.ram@cern.ch
-Subject: [PATCH 0/6] si4713 : USB driver 
-Date: Fri, 30 Aug 2013 13:28:18 +0200
-Message-Id: <1377862104-15429-1-git-send-email-dinram@cisco.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	Pawel Osciak <posciak@chromium.org>
+Subject: [PATCH v1 07/19] uvcvideo: Unify error reporting during format descriptor parsing.
+Date: Fri, 30 Aug 2013 11:17:06 +0900
+Message-Id: <1377829038-4726-8-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a follow-up to the patch-series mailed on 21-Agu-2013 to the mailing list.
+Add common error handling paths for format parsing failures.
 
-Please note that I will not be reachable at the cisco email id anymore. So please
-send you comments and suggestions to my private email : dinesh.ram@cern.ch
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 35 ++++++++++++++---------------------
+ 1 file changed, 14 insertions(+), 21 deletions(-)
 
-All the patches are on top of the latest version of the media-git tree as 
-on 30-August-2013 (10:30 Europe time)
-
-The main difference to the aforementioned patch series is that, in this series the 
-radio-i2c-si4713.c is renamed to a more appropriate one - radio-platform-si4713.c. 
-Ofcourse, this also involvs corrosponding changes in the Makefile and Kconfig 
-in drivers/media/radio/si4713.
-
-An entry is also added to the MAINTAINERS file.
-
-This patch series adds USB support for the SiLabs development board 
-which contains the Si4713 FM transmitter chip. 
-
-This device can transmit audio through FM. 
-It can transmit RDS and RBDS signals as well.
-
-Documentation for this product can be accessed here :
-http://www.silabs.com/products/audiovideo/fmtransmitters/Pages/si471213.aspx
-
-
-In the source tree, drivers/media/radio has been reorganized to include a new folder 
-drivers/media/radio/si4713 which  contains all the si4713 related files.
-
-Modified and renamed files :
------------------------------------
-drivers/media/radio/si4713-i2c.c ==> drivers/media/radio/si4713/si4713.c
-drivers/media/radio/si4713-i2c.h ==> drivers/media/radio/si4713/si4713.h
-drivers/media/radio/radio-si4713.c ==> drivers/media/radio/si4713/radio-platform-si4713.c
-
-New files :
--------------
-drivers/media/radio/si4713/radio-usb-si4713.c
-
-The existing i2c driver has been modified to add support for cases where the interrupt 
-is not enabled. 
-Checks have been introduced in several places in the code to test if an interrupt is set or not. 
-The development board is plugged into the host through USB and does not use interrupts. 
-To get a valid response, within a specified timeout, the device is polled instead.
-
-
-The USB driver has been developed by analyzing the the USB traffic obtained by sniffing the USB bus.
-A bunch of commands are sent during device startup, the specifics of which are not obvious.
-Nevertheless they seem to be necessary for the proper fuctioning of the device.
-
-Note : The i2c driver assumes a 2-wire bus mode.
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index d950b40..936ddc7 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -322,13 +322,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 	case UVC_VS_FORMAT_UNCOMPRESSED:
+ 	case UVC_VS_FORMAT_FRAME_BASED:
+ 		n = buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED ? 27 : 28;
+-		if (buflen < n) {
+-			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
+-			       "interface %d FORMAT error\n",
+-			       dev->udev->devnum,
+-			       alts->desc.bInterfaceNumber);
+-			return -EINVAL;
+-		}
++		if (buflen < n)
++			goto format_error;
+ 
+ 		/* Find the format descriptor from its GUID. */
+ 		fmtdesc = uvc_format_by_guid(&buffer[5]);
+@@ -356,13 +351,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		break;
+ 
+ 	case UVC_VS_FORMAT_MJPEG:
+-		if (buflen < 11) {
+-			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
+-			       "interface %d FORMAT error\n",
+-			       dev->udev->devnum,
+-			       alts->desc.bInterfaceNumber);
+-			return -EINVAL;
+-		}
++		if (buflen < 11)
++			goto format_error;
+ 
+ 		strlcpy(format->name, "MJPEG", sizeof format->name);
+ 		format->fcc = V4L2_PIX_FMT_MJPEG;
+@@ -372,13 +362,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		break;
+ 
+ 	case UVC_VS_FORMAT_DV:
+-		if (buflen < 9) {
+-			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
+-			       "interface %d FORMAT error\n",
+-			       dev->udev->devnum,
+-			       alts->desc.bInterfaceNumber);
+-			return -EINVAL;
+-		}
++		if (buflen < 9)
++			goto format_error;
+ 
+ 		switch (buffer[8] & 0x7f) {
+ 		case 0:
+@@ -542,6 +527,14 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 	}
+ 
+ 	return buffer - start;
++
++format_error:
++	uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
++			"interface %d FORMAT error\n",
++			dev->udev->devnum,
++			alts->desc.bInterfaceNumber);
++	return -EINVAL;
++
+ }
+ 
+ static int uvc_parse_streaming(struct uvc_device *dev,
+-- 
+1.8.4
 
