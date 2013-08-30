@@ -1,93 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53425 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752303Ab3HUFr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 01:47:56 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [PATCH v11 7/8] usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
-Date: Wed, 21 Aug 2013 11:16:12 +0530
-Message-ID: <1377063973-22044-8-git-send-email-kishon@ti.com>
-In-Reply-To: <1377063973-22044-1-git-send-email-kishon@ti.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:33592 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752770Ab3H3CRb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 22:17:31 -0400
+Received: by mail-pb0-f53.google.com with SMTP id up15so1236361pbc.12
+        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:31 -0700 (PDT)
+From: Pawel Osciak <posciak@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Pawel Osciak <posciak@chromium.org>
+Subject: [PATCH v1 02/19] uvcvideo: Return 0 when setting probe control succeeds.
+Date: Fri, 30 Aug 2013 11:17:01 +0900
+Message-Id: <1377829038-4726-3-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that omap-usb2 is adapted to the new generic PHY framework,
-*set_suspend* ops can be removed from omap-usb2 driver.
+Return 0 instead of returning size of the probe control on successful set.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
 ---
- drivers/phy/phy-omap-usb2.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/media/usb/uvc/uvc_video.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 25e0f3c..dec3fab 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -97,29 +97,6 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
- 	return 0;
- }
- 
--static int omap_usb2_suspend(struct usb_phy *x, int suspend)
--{
--	u32 ret;
--	struct omap_usb *phy = phy_to_omapusb(x);
--
--	if (suspend && !phy->is_suspended) {
--		omap_control_usb_phy_power(phy->control_dev, 0);
--		pm_runtime_put_sync(phy->dev);
--		phy->is_suspended = 1;
--	} else if (!suspend && phy->is_suspended) {
--		ret = pm_runtime_get_sync(phy->dev);
--		if (ret < 0) {
--			dev_err(phy->dev, "get_sync failed with err %d\n",
--									ret);
--			return ret;
--		}
--		omap_control_usb_phy_power(phy->control_dev, 1);
--		phy->is_suspended = 0;
--	}
--
--	return 0;
--}
--
- static int omap_usb_power_off(struct phy *x)
- {
- 	struct omap_usb *phy = phy_get_drvdata(x);
-@@ -167,7 +144,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 
- 	phy->phy.dev		= phy->dev;
- 	phy->phy.label		= "omap-usb2";
--	phy->phy.set_suspend	= omap_usb2_suspend;
- 	phy->phy.otg		= otg;
- 	phy->phy.type		= USB_PHY_TYPE_USB2;
- 
-@@ -182,7 +158,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 		return -ENODEV;
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 695f6d9..1198989 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -296,6 +296,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 			"%d (exp. %u).\n", probe ? "probe" : "commit",
+ 			ret, size);
+ 		ret = -EIO;
++	} else {
++		ret = 0;
  	}
  
--	phy->is_suspended	= 1;
- 	omap_control_usb_phy_power(phy->control_dev, 0);
- 
- 	otg->set_host		= omap_usb_set_host;
+ 	kfree(data);
 -- 
-1.7.10.4
+1.8.4
 
