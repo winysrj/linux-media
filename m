@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47417 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752504Ab3H1NeZ (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:43818 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755496Ab3H3M3m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:34:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] V4L2: add a v4l2-clk helper macro to produce an I2C device ID
-Date: Wed, 28 Aug 2013 15:35:48 +0200
-Message-ID: <14364379.DScLfzIeAP@avalon>
-In-Reply-To: <1377696508-3190-3-git-send-email-g.liakhovetski@gmx.de>
-References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de> <1377696508-3190-3-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 30 Aug 2013 08:29:42 -0400
+Received: by mail-ea0-f182.google.com with SMTP id o10so894417eaj.27
+        for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 05:29:41 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	hans.verkuil@cisco.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 2/4] adv7511: fix compilation with GCC < 4.4.6
+Date: Fri, 30 Aug 2013 14:29:23 +0200
+Message-Id: <1377865765-25203-3-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1377865765-25203-1-git-send-email-gennarone@gmail.com>
+References: <1377865765-25203-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/i2c/adv7511.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-Thank you for the patch.
-
-On Wednesday 28 August 2013 15:28:27 Guennadi Liakhovetski wrote:
-> To obtain a clock reference consumers supply their device object to the
-> V4L2 clock framework. The latter then uses the consumer device name to
-> find a matching clock. For that to work V4L2 clock providers have to
-> provide the same device name, when registering clocks. This patch adds
-> a helper macro to generate a suitable device name for I2C devices.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> V4L2 clocks use device ID matching, which in case of I2C devices involves
-> comparing a specially constructed from an I2C adapter number and a device
-> address
-
-Is this text placed below the SoB on purpose ?
-
-> ---
->  include/media/v4l2-clk.h |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-> index a354a9d..0b36cc1 100644
-> --- a/include/media/v4l2-clk.h
-> +++ b/include/media/v4l2-clk.h
-> @@ -65,4 +65,7 @@ static inline struct v4l2_clk
-> *v4l2_clk_register_fixed(const char *dev_id, return
-> __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE); }
-> 
-> +#define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
-> +			  "%d-%04x", adap, client)
-> +
-
-I would have made this a static inline but I have to confess I don't know why 
-:-)
-
->  #endif
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index 7a57609..cc3880a 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -119,16 +119,14 @@ static int adv7511_s_clock_freq(struct v4l2_subdev *sd, u32 freq);
+ 
+ static const struct v4l2_dv_timings_cap adv7511_timings_cap = {
+ 	.type = V4L2_DV_BT_656_1120,
+-	.bt = {
+-		.max_width = ADV7511_MAX_WIDTH,
+-		.max_height = ADV7511_MAX_HEIGHT,
+-		.min_pixelclock = ADV7511_MIN_PIXELCLOCK,
+-		.max_pixelclock = ADV7511_MAX_PIXELCLOCK,
+-		.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
++	/* keep this initialization for compatibility with GCC < 4.4.6 */
++	.reserved = { 0 },
++	V4L2_INIT_BT_TIMINGS(0, ADV7511_MAX_WIDTH, 0, ADV7511_MAX_HEIGHT,
++		ADV7511_MIN_PIXELCLOCK, ADV7511_MAX_PIXELCLOCK,
++		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
+ 			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
+-		.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
+-			V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM,
+-	},
++		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
++			V4L2_DV_BT_CAP_CUSTOM)
+ };
+ 
+ static inline struct adv7511_state *get_adv7511_state(struct v4l2_subdev *sd)
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4
 
