@@ -1,91 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4494 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756661Ab3HOLhb (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2982 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751968Ab3H3Cyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:37:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 29 Aug 2013 22:54:43 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7U2serq018199
+	for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 04:54:42 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 4D82C2A0761
+	for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 04:54:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/12] adv7604: print flags and standards in timing information
-Date: Thu, 15 Aug 2013 13:36:27 +0200
-Message-Id: <ea69e04ec249413ac1f97e696522738aa4939060.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130830025432.4D82C2A0761@tschai.lan>
+Date: Fri, 30 Aug 2013 04:54:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 41 ++++++++++++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 13 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 34fcdf3..e732c9b 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1052,7 +1052,8 @@ static int adv7604_g_input_status(struct v4l2_subdev *sd, u32 *status)
- /* ----------------------------------------------------------------------- */
- 
- static void adv7604_print_timings(struct v4l2_subdev *sd,
--	struct v4l2_dv_timings *timings, const char *txt, bool detailed)
-+				  struct v4l2_dv_timings *timings,
-+				  const char *txt, bool detailed)
- {
- 	struct v4l2_bt_timings *bt = &timings->bt;
- 	u32 htot, vtot;
-@@ -1069,18 +1070,32 @@ static void adv7604_print_timings(struct v4l2_subdev *sd,
- 				(htot * vtot)) : 0,
- 			htot, vtot);
- 
--	if (detailed) {
--		v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
--				bt->hfrontporch,
--				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
--				bt->hsync, bt->hbackporch);
--		v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
--				bt->vfrontporch,
--				(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
--				bt->vsync, bt->vbackporch);
--		v4l2_info(sd, "    pixelclock: %lld, flags: 0x%x, standards: 0x%x\n",
--				bt->pixelclock, bt->flags, bt->standards);
--	}
-+	if (!detailed)
-+		return;
-+
-+	v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
-+			bt->hfrontporch,
-+			(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
-+			bt->hsync, bt->hbackporch);
-+	v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
-+			bt->vfrontporch,
-+			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
-+			bt->vsync, bt->vbackporch);
-+	v4l2_info(sd, "    pixelclock: %lld\n", bt->pixelclock);
-+	v4l2_info(sd, "    flags (0x%x):%s%s%s%s\n", bt->flags,
-+			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
-+			" Reduced blanking," : "",
-+			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
-+			" Can reduce FPS," : "",
-+			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
-+			" Reduced FPS," : "",
-+			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
-+			" Half line," : "");
-+	v4l2_info(sd, "    standards (0x%x):%s%s%s%s\n", bt->standards,
-+			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA," : "",
-+			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT," : "",
-+			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
-+			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
- }
- 
- struct stdi_readback {
--- 
-1.8.3.2
+date:		Fri Aug 30 04:00:14 CEST 2013
+git branch:	test
+git hash:	26a20eb09d44dc064c4f5d1f024bd501c09edb4b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
