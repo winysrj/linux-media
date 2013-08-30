@@ -1,144 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49085 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757988Ab3HHQwH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 12:52:07 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
-	<alfredodelaiti@netscape.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 3/3] mb86a20s: hack it to emulate what x8502 driver does
-Date: Thu,  8 Aug 2013 13:51:52 -0300
-Message-Id: <1375980712-9349-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
-References: <1375980712-9349-1-git-send-email-m.chehab@samsung.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3895 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058Ab3H3Ny4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 09:54:56 -0400
+Message-ID: <5220A41B.6070505@xs4all.nl>
+Date: Fri, 30 Aug 2013 15:54:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Agenda for the Edinburgh mini-summit
+References: <201308301501.25164.hverkuil@xs4all.nl> <52209C41.8040402@schinagl.nl>
+In-Reply-To: <52209C41.8040402@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is just a dirty hack that replaces the init sequence to the one
-found on Mygica X8502, as reported by Alfredo.
+On 08/30/2013 03:21 PM, Oliver Schinagl wrote:
+> On 30-08-13 15:01, Hans Verkuil wrote:
+>> OK, I know, we don't even know yet when the mini-summit will be held but I thought
+>> I'd just start this thread to collect input for the agenda.
+>>
+>> I have these topics (and I *know* that I am forgetting a few):
+>>
+>> - Discuss ideas/use-cases for a property-based API. An initial discussion
+>>    appeared in this thread:
+>>
+>>    http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
+>>
+>> - What is needed to share i2c video transmitters between drm and v4l? Hopefully
+>>    we will know more after the upcoming LPC.
+>>
+>> - Decide on how v4l2 support libraries should be organized. There is code for
+>>    handling raw-to-sliced VBI decoding, ALSA looping, finding associated
+>>    video/alsa nodes and for TV frequency tables. We should decide how that should
+>>    be organized into libraries and how they should be documented. The first two
+>>    aren't libraries at the moment, but I think they should be. The last two are
+>>    libraries but they aren't installed. Some work is also being done on an improved
+>>    version of the 'associating nodes' library that uses the MC if available.
+>>
+>> - Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
+>>    this thread for all the nasty details:
+>>
+>>    http://www.spinics.net/lists/linux-media/msg65137.html
+>>
+>> Feel free to add suggestions to this list.
+> What about a hardware accelerated decoding API/framework? Is there a 
+> proper framework for this at all? I see the broadcom module is still in 
+> staging and may never come out of it, but how are other video decoding 
+> engines handled that don't have cameras or displays.
+> 
+> Reason for asking is that we from linux-sunxi have made some positive 
+> progress in Reverse engineering the video decoder blob of the Allwinner 
+> A10 and this knowledge will need a kernel side driver in some framework. 
+> I looked at the exynos video decoders and googling for linux-media 
+> hardware accelerated decoding doesn't yield much either.
+> 
+> Anyway, just a thought; if you think it's the wrong place for it to be 
+> discussed, that's ok :)
 
-This patch should never be merged as-is upstream, as it likely breaks
-support for other devices.
+No, this is the right place. See http://hverkuil.home.xs4all.nl/spec/media.html#codec
+for more information.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 100 +++++++++++++++++++++++++++++++++
- 1 file changed, 100 insertions(+)
+For the longest time that section in the spec said that that interface was 'Suspended'.
+That was only corrected in 3.10 or 3.11 even though actual codec support has been
+around for much longer. There are many v4l2 drivers today that do this. Just grep
+for V4L2_CAP_VIDEO_M2M in drivers/media.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 856374b..3cf547b 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -204,6 +204,106 @@ static struct regdata mb86a20s_init2[] = {
- 	{ 0xec, 0x0f },
- 	{ 0xeb, 0x1f },
- 	{ 0x28, 0x6a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x00 },
-+
-+	/* HACK: Init sequence as found on X8502 driver */
-+
-+	{ 0x09, 0x3a },
-+	{ 0x50, 0xd1 }, { 0x51, 0x22 },
-+	{ 0x39, 0x00 },
-+	{ 0x28, 0x2a }, { 0x29, 0x00 }, { 0x2a, 0xfd }, { 0x2b, 0xc8 },
-+	{ 0x3c, 0x38 },
-+	{ 0x28, 0x20 }, { 0x29, 0x3e }, { 0x2a, 0xde }, { 0x2b, 0x4d },
-+	{ 0x28, 0x22 }, { 0x29, 0x00 }, { 0x2a, 0x1f }, { 0x2b, 0xf0 },
-+	{ 0x04, 0x08 }, { 0x05, 0x03 },
-+	{ 0x04, 0x0e }, { 0x05, 0x00 },
-+	{ 0x04, 0x0f }, { 0x05, 0x32 },
-+	{ 0x04, 0x0b }, { 0x05, 0x78 },
-+	{ 0x04, 0x00 }, { 0x05, 0x00 },
-+	{ 0x04, 0x01 }, { 0x05, 0x1e },
-+	{ 0x04, 0x02 }, { 0x05, 0x07 },
-+	{ 0x04, 0x03 }, { 0x05, 0xd0 },
-+	{ 0x04, 0x09 }, { 0x05, 0x00 },
-+	{ 0x04, 0x0a }, { 0x05, 0xff },
-+	{ 0x04, 0x27 }, { 0x05, 0x00 },
-+	{ 0x04, 0x28 }, { 0x05, 0x00 },
-+	{ 0x04, 0x1e }, { 0x05, 0x00 },
-+	{ 0x04, 0x29 }, { 0x05, 0x64 },
-+	{ 0x04, 0x32 }, { 0x05, 0x64 },
-+	{ 0x04, 0x14 }, { 0x05, 0x02 },
-+	{ 0x04, 0x04 }, { 0x05, 0x00 },
-+	{ 0x04, 0x05 }, { 0x05, 0x22 },
-+	{ 0x04, 0x06 }, { 0x05, 0x0e },
-+	{ 0x04, 0x07 }, { 0x05, 0xd8 },
-+	{ 0x04, 0x12 }, { 0x05, 0x00 },
-+	{ 0x04, 0x13 }, { 0x05, 0xff },
-+	{ 0x50, 0xa7 }, { 0x51, 0x00 },
-+	{ 0x50, 0xa8 }, { 0x51, 0xff },
-+	{ 0x50, 0xa9 }, { 0x51, 0xff },
-+	{ 0x50, 0xaa }, { 0x51, 0x00 },
-+	{ 0x50, 0xab }, { 0x51, 0xff },
-+	{ 0x50, 0xac }, { 0x51, 0xff },
-+	{ 0x50, 0xad }, { 0x51, 0x00 },
-+	{ 0x50, 0xae }, { 0x51, 0xff },
-+	{ 0x50, 0xaf }, { 0x51, 0xff },
-+	{ 0x50, 0xdc }, { 0x51, 0x3f },
-+	{ 0x50, 0xdd }, { 0x51, 0xff },
-+	{ 0x50, 0xde }, { 0x51, 0x3f },
-+	{ 0x50, 0xdf }, { 0x51, 0xff },
-+	{ 0x50, 0xe0 }, { 0x51, 0x3f },
-+	{ 0x50, 0xe1 }, { 0x51, 0xff },
-+	{ 0x50, 0xb0 }, { 0x51, 0x07 },
-+	{ 0x50, 0xb2 }, { 0x51, 0x3f },
-+	{ 0x50, 0xb3 }, { 0x51, 0xff },
-+	{ 0x50, 0xb4 }, { 0x51, 0x3f },
-+	{ 0x50, 0xb5 }, { 0x51, 0xff },
-+	{ 0x50, 0xb6 }, { 0x51, 0x3f },
-+	{ 0x50, 0xb7 }, { 0x51, 0xff },
-+	{ 0x50, 0x51 }, { 0x51, 0x04 },
-+	{ 0x50, 0x50 }, { 0x51, 0x02 },
-+	{ 0x50, 0xd5 }, { 0x51, 0x00 },
-+	{ 0x50, 0xd6 }, { 0x51, 0x1f },
-+	{ 0x50, 0xd2 }, { 0x51, 0x03 },
-+	{ 0x50, 0xd7 }, { 0x51, 0x3f },
-+	{ 0x28, 0x74 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xff },
-+	{ 0x28, 0x46 }, { 0x29, 0x00 }, { 0x2a, 0x1a }, { 0x2b, 0x0c },
-+	{ 0x04, 0x40 },
-+	{ 0x05, 0x00 },
-+	{ 0x28, 0x00 }, { 0x2b, 0x08 },
-+	{ 0x28, 0x05 }, { 0x2b, 0x00 },
-+	{ 0x28, 0x06 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x1f },
-+	{ 0x28, 0x07 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x18 },
-+	{ 0x28, 0x08 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x18 },
-+	{ 0x28, 0x09 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x30 },
-+	{ 0x28, 0x0a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x37 },
-+	{ 0x28, 0x0b }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x02 },
-+	{ 0x28, 0x0c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x09 },
-+	{ 0x28, 0x0d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x06 },
-+	{ 0x28, 0x0e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7b },
-+	{ 0x28, 0x0f }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x76 },
-+	{ 0x28, 0x10 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7d },
-+	{ 0x28, 0x11 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x08 },
-+	{ 0x28, 0x12 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0b },
-+	{ 0x28, 0x13 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x00 },
-+	{ 0x28, 0x14 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf2 },
-+	{ 0x28, 0x15 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf3 },
-+	{ 0x28, 0x16 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x05 },
-+	{ 0x28, 0x17 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x16 },
-+	{ 0x28, 0x18 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0f },
-+	{ 0x28, 0x19 }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xef },
-+	{ 0x28, 0x1a }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xd8 },
-+	{ 0x28, 0x1b }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xf1 },
-+	{ 0x28, 0x1c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x3d },
-+	{ 0x28, 0x1d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x94 },
-+	{ 0x28, 0x1e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xba },
-+	{ 0x50, 0x1e }, { 0x51, 0x5d },
-+	{ 0x50, 0x22 }, { 0x51, 0x00 },
-+	{ 0x50, 0x23 }, { 0x51, 0xc8 },
-+	{ 0x50, 0x24 }, { 0x51, 0x00 },
-+	{ 0x50, 0x25 }, { 0x51, 0xf0 },
-+	{ 0x50, 0x26 }, { 0x51, 0x00 },
-+	{ 0x50, 0x27 }, { 0x51, 0xc3 },
-+	{ 0x50, 0x39 }, { 0x51, 0x02 },
-+
- 	{ 0xd0, 0x00 },
- };
- 
--- 
-1.8.3.1
+Codec drivers are really just a video node that can capture and output at the same
+time, and has a lot of codec controls (http://hverkuil.home.xs4all.nl/spec/media.html#mpeg-controls)
+to tweak codec parameters.
+
+Just post any questions you have regarding this to the linux-media mailinglist,
+we're happy to help out.
+
+Regards,
+
+	Hans
+
+> 
+> oliver
+>>
+>> Note: my email availability will be limited in the next three weeks, especially
+>> next week, as I am travelling a lot.
+>>
+>> Regards,
+>>
+>> 	Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
 
