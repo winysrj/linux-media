@@ -1,60 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f194.google.com ([209.85.223.194]:65228 "EHLO
-	mail-ie0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757001Ab3HGS4X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Aug 2013 14:56:23 -0400
-Received: by mail-ie0-f194.google.com with SMTP id w15so26225iea.9
-        for <linux-media@vger.kernel.org>; Wed, 07 Aug 2013 11:56:23 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 7 Aug 2013 20:56:23 +0200
-Message-ID: <CAFq0+eTc+aDRDF4YvXTXZoX9jyw97QuuHYZ6U3mhZsL4zHwGUQ@mail.gmail.com>
-Subject: PROLINK PixelView PlayTV Cinema BX1500 TV card
-From: =?ISO-8859-13?Q?Ivan_Skeled=FEija?= <iskeledz@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:55728 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756413Ab3H3Nb3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 09:31:29 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MSC006QGIVPVA40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Aug 2013 09:31:27 -0400 (EDT)
+Date: Fri, 30 Aug 2013 10:31:23 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Agenda for the Edinburgh mini-summit
+Message-id: <20130830103123.0bb6a256@samsung.com>
+In-reply-to: <52209C41.8040402@schinagl.nl>
+References: <201308301501.25164.hverkuil@xs4all.nl>
+ <52209C41.8040402@schinagl.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, I'm copying my post from the Ubuntu Forums:
+Em Fri, 30 Aug 2013 15:21:05 +0200
+Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
 
-// starts here
+> On 30-08-13 15:01, Hans Verkuil wrote:
+> > OK, I know, we don't even know yet when the mini-summit will be held but I thought
+> > I'd just start this thread to collect input for the agenda.
+> >
+> > I have these topics (and I *know* that I am forgetting a few):
+> >
+> > - Discuss ideas/use-cases for a property-based API. An initial discussion
+> >    appeared in this thread:
+> >
+> >    http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
+> >
+> > - What is needed to share i2c video transmitters between drm and v4l? Hopefully
+> >    we will know more after the upcoming LPC.
+> >
+> > - Decide on how v4l2 support libraries should be organized. There is code for
+> >    handling raw-to-sliced VBI decoding, ALSA looping, finding associated
+> >    video/alsa nodes and for TV frequency tables. We should decide how that should
+> >    be organized into libraries and how they should be documented. The first two
+> >    aren't libraries at the moment, but I think they should be. The last two are
+> >    libraries but they aren't installed. Some work is also being done on an improved
+> >    version of the 'associating nodes' library that uses the MC if available.
+> >
+> > - Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
+> >    this thread for all the nasty details:
+> >
+> >    http://www.spinics.net/lists/linux-media/msg65137.html
+> >
+> > Feel free to add suggestions to this list.
 
-Hi, I'm running Linux Mint 12 32-bit (the equivalent of Ubuntu 11.10) with
-the 3.2.49 kernel and I have the TV card from the title.
-Manufacturer's website:
-http://www.prolink.com.tw/style/frame/templates15/product_detail.asp?lang=2&customer_id=1470&name_id=36169&rid=17744&id=79936&content_set=color_5
+>From my side, I'd like to discuss about a better integration between DVB
+and V4L2, including starting using the media controller API on DVB side
+too. Btw, it would be great if we could get a status about the media
+controller API usage on ALSA. I'm planning to work at such integration
+soon. 
 
-I have properly installed the latest V4L drivers following this guide:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> What about a hardware accelerated decoding API/framework? Is there a 
+> proper framework for this at all? I see the broadcom module is still in 
+> staging and may never come out of it, but how are other video decoding 
+> engines handled that don't have cameras or displays.
+> 
+> Reason for asking is that we from linux-sunxi have made some positive 
+> progress in Reverse engineering the video decoder blob of the Allwinner 
+> A10 and this knowledge will need a kernel side driver in some framework. 
+> I looked at the exynos video decoders and googling for linux-media 
+> hardware accelerated decoding doesn't yield much either.
+> 
+> Anyway, just a thought; if you think it's the wrong place for it to be 
+> discussed, that's ok :)
 
-However, it looks like the driver doesn't have support for this particular
-card as noted in the first warning in the above article. The proper kernel
-module (cx23885) loads, but it doesn't do anything. I've tried it with
-MythTV, Kaffeine and VLC and all of them report that there is no capture
-card.
+Well, the mem2mem V4L2 devices should provide all that would be needed for
+accelerated encoders/decoders. If not, then feel free to propose extensions
+to fit your needs.
 
-This is the output of lspci -v:
-04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-Video and Audio Decoder (rev 02)
-    Subsystem: PROLINK Microsystems Corp Device 4980
-    Flags: bus master, fast devsel, latency 0, IRQ 16
-    Memory at fbe00000 (64-bit, non-prefetchable) [size=2M]
-    Capabilities: [40] Express Endpoint, MSI 00
-    Capabilities: [80] Power Management version 2
-    Capabilities: [90] Vital Product Data
-    Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
-    Kernel driver in use: cx23885
-    Kernel modules: cx23885
+Regards,
+Mauro
 
-The output of dmesg is here: http://pastebin.com/yVK2NE3u
-Trying to modprobe the module with other card ids just spits out a bunch of
-errors in dmesg.
+> 
+> oliver
+> >
+> > Note: my email availability will be limited in the next three weeks, especially
+> > next week, as I am travelling a lot.
+> >
+> > Regards,
+> >
+> > 	Hans
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-// ends here
 
-I have been googling a lot and found no information whatsoever about this
-and similar PlayTV Cinema cards on Linux. After receiving no reply on
-Ubuntu Forums, on linuxtv.org wiki I found that I can contact LMML directly
-about driver support. So I was wondering if there is any way to add support
-for this and similar cards to the cx23885 driver. I am willing to provide
-more information if necessary.
+-- 
+
+Cheers,
+Mauro
