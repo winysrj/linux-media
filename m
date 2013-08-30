@@ -1,70 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:64323 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab3HVMYN (ORCPT
+Received: from intranet.asianux.com ([58.214.24.6]:62918 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752529Ab3H3IeE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Aug 2013 08:24:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH v1 38/49] media: usb: em28xx: prepare for enabling irq in complete()
-Date: Thu, 22 Aug 2013 14:24:08 +0200
-Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1376756714-25479-1-git-send-email-ming.lei@canonical.com> <1376756714-25479-39-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1376756714-25479-39-git-send-email-ming.lei@canonical.com>
+	Fri, 30 Aug 2013 04:34:04 -0400
+Message-ID: <522058B5.5020100@asianux.com>
+Date: Fri, 30 Aug 2013 16:32:53 +0800
+From: Chen Gang <gang.chen@asianux.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: usb: b2c2: Kconfig: add PCI dependancy to DVB_B2C2_FLEXCOP_USB
+References: <5220021C.2050700@asianux.com> <3939732.OJKiKvCJjt@dibcom294>
+In-Reply-To: <3939732.OJKiKvCJjt@dibcom294>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201308221424.09015.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat 17 August 2013 18:25:03 Ming Lei wrote:
-> Complete() will be run with interrupt enabled, so change to
-> spin_lock_irqsave().
+On 08/30/2013 04:06 PM, Patrick Boettcher wrote:
+> Hi,
 > 
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Tested-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+>  
 > 
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index fc157af..0d698f9 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -941,6 +941,7 @@ static void em28xx_irq_callback(struct urb *urb)
->  {
->  	struct em28xx *dev = urb->context;
->  	int i;
-> +	unsigned long flags;
->  
->  	switch (urb->status) {
->  	case 0:             /* success */
-> @@ -956,9 +957,9 @@ static void em28xx_irq_callback(struct urb *urb)
->  	}
->  
->  	/* Copy data from URB */
-> -	spin_lock(&dev->slock);
-> +	spin_lock_irqsave(&dev->slock, flags);
->  	dev->usb_ctl.urb_data_copy(dev, urb);
-> -	spin_unlock(&dev->slock);
-> +	spin_unlock_irqrestore(&dev->slock, flags);
->  
->  	/* Reset urb buffers */
->  	for (i = 0; i < urb->number_of_packets; i++) {
+> On Friday 30 August 2013 10:23:24 Chen Gang wrote:
 > 
+>> DVB_B2C2_FLEXCOP_USB need depend on PCI, or can not pass compiling with
+> 
+>> allmodconfig for h8300.
+> 
+>>
+> 
+>> The related error:
+> 
+>>
+> 
+>> drivers/media/usb/b2c2/flexcop-usb.c: In function
+> 
+>> 'flexcop_usb_transfer_exit': drivers/media/usb/b2c2/flexcop-usb.c:393:3:
+> 
+>> error: implicit declaration of function 'pci_free_consistent'
+> 
+>> [-Werror=implicit-function-declaration] pci_free_consistent(NULL,
+> 
+>>
+> 
+>> [..]
+> 
+>>
+> 
+>> config DVB_B2C2_FLEXCOP_USB
+> 
+>> tristate "Technisat/B2C2 Air/Sky/Cable2PC USB"
+> 
+>> - depends on DVB_CORE && I2C
+> 
+>> + depends on DVB_CORE && I2C && PCI
+> 
+>> help
+> 
+>> Support for the Air/Sky/Cable2PC USB1.1 box (DVB/ATSC) by
+> 
+>> Technisat/B2C2,
+> 
+>  
+> 
+> Instead of selecting PCI we could/should use usb_alloc_coherent() and
+> usb_free_cohrerent(), shouldn't we?
+> 
+
+Hmm... maybe it is a good idea, but I am just trying another ways.
+
+Just now, I find that the module which calls pci*consistent() may not be
+pci dependent module (e.g. may depend on ISA or EISA instead of).
+
+So "arch/h8300/include/asm/pci.h" has related issues, I am just fixing.
+
+Maybe our case is not an issue, after "asm/pci.h" fixed (although for
+our case only, it can be improved, too, and if you are sure about it,
+please help improving it, thanks).
+
+>  
+> 
+> --
+> 
+> Patrick
+> 
+
+
+Thanks.
+-- 
+Chen Gang
