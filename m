@@ -1,101 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46628 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755320Ab3HWRZ1 (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:60858 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752770Ab3H3CRf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Aug 2013 13:25:27 -0400
-Message-id: <52179B03.8090402@samsung.com>
-Date: Fri, 23 Aug 2013 19:25:23 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kumar Gala <galak@codeaurora.org>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v5] media: i2c: tvp7002: add OF support
-References: <1376202321-25175-1-git-send-email-prabhakar.csengg@gmail.com>
- <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org>
-In-reply-to: <BD586D1F-DC60-46A7-AB20-EEC959380CA6@codeaurora.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 29 Aug 2013 22:17:35 -0400
+Received: by mail-pd0-f174.google.com with SMTP id y13so1218036pdi.5
+        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:34 -0700 (PDT)
+From: Pawel Osciak <posciak@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Pawel Osciak <posciak@chromium.org>
+Subject: [PATCH v1 04/19] uvcvideo: Create separate debugfs entries for each streaming interface.
+Date: Fri, 30 Aug 2013 11:17:03 +0900
+Message-Id: <1377829038-4726-5-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/13/2013 03:00 AM, Kumar Gala wrote:
-> On Aug 11, 2013, at 1:25 AM, Lad, Prabhakar wrote:
-> 
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp7002 driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
-[...]
->> .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
->> drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->> 2 files changed, 113 insertions(+), 7 deletions(-)
->> create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> new file mode 100644
->> index 0000000..5f28b5d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> @@ -0,0 +1,53 @@
->> +* Texas Instruments TV7002 video decoder
->> +
->> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
->> +YPbPr color space.
->> +
->> +Required Properties :
->> +- compatible : Must be "ti,tvp7002"
->> +
->> +Optional Properties:
-> 
-> 
->> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
->> +  this property is not specified is <0>.
->> +
->> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
->> +  this property is not specified is <0>.
->> +
->> +- pclk-sample: Clock polarity of the bus. Default value when this property is
->> +  not specified is <0>.
->> +
->> +- sync-on-green-active: Active state of Sync-on-green signal property of the
->> +  endpoint.
->> +  0 = Normal Operation (Active Low, Default)
->> +  1 = Inverted operation
-> 
-> These seems better than what you have in video-interfaces.txt
+Add interface number to debugfs entry name to be able to create separate
+entries for each streaming interface for devices exposing more than one,
+instead of failing to create more than one.
 
-We probably should specify default values in in the common binding description.
-Then duplication could be avoided. Not sure if it's not too late for this, all
-drivers would need to have same default values.
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+---
+ drivers/media/usb/uvc/uvc_debugfs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-What's normal and what's inverted depends on a particular device.
-
->> +- field-even-active: Active-high Field ID output polarity control of the bus.
->> +  Under normal operation, the field ID output is set to logic 1 for an odd field
->> +  (field 1) and set to logic 0 for an even field (field 0).
->> +  0 = Normal Operation (Active Low, Default)
->> +  1 = FID output polarity inverted
->> +
-> 
-> Why the duplication if this is covered in video-interfaces.txt?
-
-Yes, it would be better to avoid redefining these properties in each specific 
-device's binding. Presumably, for easier matching of DT properties with the
-hardware's description, we could only say in device specific document which
-value of a property corresponds to "normal" and which to "inverted" operation ?
+diff --git a/drivers/media/usb/uvc/uvc_debugfs.c b/drivers/media/usb/uvc/uvc_debugfs.c
+index 14561a5..0663fbd 100644
+--- a/drivers/media/usb/uvc/uvc_debugfs.c
++++ b/drivers/media/usb/uvc/uvc_debugfs.c
+@@ -84,7 +84,8 @@ int uvc_debugfs_init_stream(struct uvc_streaming *stream)
+ 	if (uvc_debugfs_root_dir == NULL)
+ 		return -ENODEV;
  
->> +For further reading of port node refer Documentation/devicetree/bindings/media/
->> +video-interfaces.txt.
-
+-	sprintf(dir_name, "%u-%u", udev->bus->busnum, udev->devnum);
++	sprintf(dir_name, "%u-%u-%u", udev->bus->busnum, udev->devnum,
++			stream->intfnum);
+ 
+ 	dent = debugfs_create_dir(dir_name, uvc_debugfs_root_dir);
+ 	if (IS_ERR_OR_NULL(dent)) {
 -- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
+1.8.4
+
