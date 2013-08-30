@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:57752 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab3HUKOv (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:52740 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801Ab3H3OcW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 06:14:51 -0400
-Received: by mail-bk0-f52.google.com with SMTP id e11so87914bkh.11
-        for <linux-media@vger.kernel.org>; Wed, 21 Aug 2013 03:14:50 -0700 (PDT)
+	Fri, 30 Aug 2013 10:32:22 -0400
+Date: Fri, 30 Aug 2013 16:32:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Linux Media mini-summit in Edinburgh
+In-Reply-To: <20130830083923.52745cb8@samsung.com>
+Message-ID: <Pine.LNX.4.64.1308301629440.12356@axis700.grange>
+References: <20130830083923.52745cb8@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <2205654.JNC8mWJ5su@avalon>
-References: <CALxrGmW86b4983Ud5hftjpPkc-KpcPTWiMeDEf1-zSt5POsHBg@mail.gmail.com>
-	<CALxrGmWgpHtmBTSwz0+P18VtZOcYO=3E0m6npa_1mR8ownNtcQ@mail.gmail.com>
-	<CALxrGmUW3AQts3kDHJ79K82qL4huGp0QceTL3ZtnUPW2VzNfeA@mail.gmail.com>
-	<2205654.JNC8mWJ5su@avalon>
-Date: Wed, 21 Aug 2013 18:14:50 +0800
-Message-ID: <CALxrGmVHS2BnmyLd4EDEHJ-CB44e-AfdFqj0pVFTa_hbBhgWAA@mail.gmail.com>
-Subject: Re: How to express planar formats with mediabus format code?
-From: Su Jiaquan <jiaquan.lnx@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>, jqsu@marvell.com,
-	xzhao10@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro
 
-Thanks for the replay, I've removed earlier mail content and only keep
-you question:
+On Fri, 30 Aug 2013, Mauro Carvalho Chehab wrote:
 
-On Tue, Aug 20, 2013 at 8:53 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Jiaquan,
->
-> I'm not sure if that's needed here. Vendor-specific formats still need to be
-> documented, so we could just create a custom YUV format for your case. Let's
-> start with the beginning, could you describe what gets transmitted on the bus
-> when that special format is selected ?
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> Hi media developers,
+> 
+> This year, we're planning to do a media mini-summit together with the
+> conferences that will be hosted in Edinburgh (LinuxCon EU/ELCE/KS/...),
+> at the Oct 21-25 week. We don't have the specific days for the
+> event yet (we're still closing it with Linux Foundation).
+> 
+> Yet, I'd like to know who is interested on participate on the event, and
+> ask for the theme proposals for the discussions.
+> 
+> As we're doing over the last years, we'll be using the 
+> media-workshop@linuxtv.org mailing list for such discussions.
 
-For YUV420P format, the data format sent from IPC is similar to
-V4L2_MBUS_FMT_YUYV8_1_5X8, but the content for each line is different:
-For odd line, it's YYU YYU YYU... For even line, it's YYV YYV YYV...
-then DMA engine send them to RAM in planar format.
+I'll be there for the ELCE / KS time-frame, i.e. 24, 25.10. IIUC, the 
+mini-summit should be on one of those days, but if it falls e.g. on 23rd, 
+I could try to adjust my itinerary.
 
-For YUV420SP format, the data format sent from IPC is YYUV YYUV
-YYUV(maybe called V4L2_MBUS_FMT_YYUV8_2X8?), but DMA engine drop UV
-every other line, then send them to RAM as semi-planar.
+Thanks
+Guennadi
 
-Well, the first data format is too odd, I don't have a clue how to
-call it, do you have suggestion?
+> Thank you!
+> -- 
+> 
+> Cheers,
+> Mauro
 
-Thanks a lot!
-
-Jiaquan
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
