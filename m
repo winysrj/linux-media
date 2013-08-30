@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59612 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991Ab3HTNQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 09:16:53 -0400
-Message-ID: <52136C36.1090605@ti.com>
-Date: Tue, 20 Aug 2013 18:46:38 +0530
-From: Archit Taneja <a0393947@ti.com>
+Received: from intranet.asianux.com ([58.214.24.6]:52834 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282Ab3H3CY3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 22:24:29 -0400
+Message-ID: <5220021C.2050700@asianux.com>
+Date: Fri, 30 Aug 2013 10:23:24 +0800
+From: Chen Gang <gang.chen@asianux.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Archit Taneja <archit@ti.com>, <linux-media@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>, <dagriego@biglakesoftware.com>,
-	<dale@farnsworth.org>, <pawel@osciak.com>,
-	<m.szyprowski@samsung.com>, <hverkuil@xs4all.nl>,
-	<tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon> <520B62B5.8080000@ti.com> <1436822.NCo0PqzB8p@avalon>
-In-Reply-To: <1436822.NCo0PqzB8p@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: m.chehab@samsung.com
+CC: linux-media@vger.kernel.org
+Subject: [PATCH] media: usb: b2c2: Kconfig: add PCI dependancy to DVB_B2C2_FLEXCOP_USB
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+DVB_B2C2_FLEXCOP_USB need depend on PCI, or can not pass compiling with
+allmodconfig for h8300.
 
-On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
+The related error:
 
-<snip>
+  drivers/media/usb/b2c2/flexcop-usb.c: In function 'flexcop_usb_transfer_exit':
+  drivers/media/usb/b2c2/flexcop-usb.c:393:3: error: implicit declaration of function 'pci_free_consistent' [-Werror=implicit-function-declaration]
+     pci_free_consistent(NULL,
+     ^
+  drivers/media/usb/b2c2/flexcop-usb.c: In function 'flexcop_usb_transfer_init':
+  drivers/media/usb/b2c2/flexcop-usb.c:410:2: error: implicit declaration of function 'pci_alloc_consistent' [-Werror=implicit-function-declaration]
+    fc_usb->iso_buffer = pci_alloc_consistent(NULL,
+    ^
+  drivers/media/usb/b2c2/flexcop-usb.c:410:21: warning: assignment makes pointer from integer without a cast [enabled by default]
+    fc_usb->iso_buffer = pci_alloc_consistent(NULL,
+                       ^
+  cc1: some warnings being treated as errors
 
->>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
->>>> +{
->>>> +	int r;
->>>> +	struct device *dev = &vpdma->pdev->dev;
->>>> +
->>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
->>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
->>>> +		vpdma_firmware_cb);
->>>
->>> Is there a reason not to use the synchronous interface ? That would
->>> simplify both this code and the callers, as they won't have to check
->>> whether the firmware has been correctly loaded.
->>
->> I'm not clear what you mean by that, the firmware would be stored in the
->> filesystem. If the driver is built-in, then the synchronous interface
->> wouldn't work unless the firmware is appended to the kernel image. Am I
->> missing something here? I'm not very aware of the firmware api.
->
-> request_firmware() would just sleep (with a 30 seconds timeout if I'm not
-> mistaken) until userspace provides the firmware. As devices are probed
-> asynchronously (in kernel threads) the system will just boot normally, and the
-> request_firmware() call will return when the firmware is available.
 
-Sorry, I sent the previous mail bit too early.
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
+---
+ drivers/media/usb/b2c2/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-With request_firmware() and the driver built-in, I see that the kernel 
-stalls for 10 seconds at the driver's probe, and the firware loading 
-fails since we didn't enter userspace where the file is.
-
-The probing of devices asynchronously with kernel threads makes sense, 
-so it's possible that I'm doing something wrong here. I'll give it a try 
-again
-
-Archit
-
+diff --git a/drivers/media/usb/b2c2/Kconfig b/drivers/media/usb/b2c2/Kconfig
+index 17d3583..06fdf30 100644
+--- a/drivers/media/usb/b2c2/Kconfig
++++ b/drivers/media/usb/b2c2/Kconfig
+@@ -1,6 +1,6 @@
+ config DVB_B2C2_FLEXCOP_USB
+ 	tristate "Technisat/B2C2 Air/Sky/Cable2PC USB"
+-	depends on DVB_CORE && I2C
++	depends on DVB_CORE && I2C && PCI
+ 	help
+ 	  Support for the Air/Sky/Cable2PC USB1.1 box (DVB/ATSC) by Technisat/B2C2,
+ 
+-- 
+1.7.7.6
