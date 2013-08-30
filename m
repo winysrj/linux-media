@@ -1,155 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4819 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579Ab3HOLrL (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:4771 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755611Ab3H3L3U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 07:47:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 30 Aug 2013 07:29:20 -0400
+From: Dinesh Ram <dinram@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 12/12] v4l2-dv-timings: rename v4l_match_dv_timings to v4l2_match_dv_timings
-Date: Thu, 15 Aug 2013 13:36:34 +0200
-Message-Id: <3746a7b801e333eef93d59406450b2feb5994543.1376566340.git.hans.verkuil@cisco.com>
-In-Reply-To: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376566594-427-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
-References: <b1134caad54251cdfc8191a446a160ecc986f9b9.1376566340.git.hans.verkuil@cisco.com>
+Cc: dinesh.ram@cern.ch, Dinesh Ram <dinram@cisco.com>
+Subject: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where interrupts are not used
+Date: Fri, 30 Aug 2013 13:28:20 +0200
+Message-Id: <b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
+In-Reply-To: <1377862104-15429-1-git-send-email-dinram@cisco.com>
+References: <1377862104-15429-1-git-send-email-dinram@cisco.com>
+In-Reply-To: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
+References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Checks have been introduced at several places in the code to test if an interrupt is set or not.
+For devices which do not use the interrupt, to get a valid response, within a specified timeout,
+the device is polled instead.
 
-It's the only function in v4l2-dv-timings.c with the v4l prefix instead
-of v4l2. Make it consistent with the other functions.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Dinesh Ram <dinram@cisco.com>
 ---
- drivers/media/i2c/adv7604.c               |  4 ++--
- drivers/media/platform/s5p-tv/hdmi_drv.c  |  2 +-
- drivers/media/usb/hdpvr/hdpvr-video.c     |  2 +-
- drivers/media/v4l2-core/v4l2-dv-timings.c | 12 ++++++------
- include/media/v4l2-dv-timings.h           |  8 ++++----
- 5 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
+ drivers/media/radio/si4713/si4713.h |   1 +
+ 2 files changed, 63 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index ba8602c..a1a9d1e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -763,7 +763,7 @@ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
- 	int i;
- 
- 	for (i = 0; predef_vid_timings[i].timings.bt.width; i++) {
--		if (!v4l_match_dv_timings(timings, &predef_vid_timings[i].timings,
-+		if (!v4l2_match_dv_timings(timings, &predef_vid_timings[i].timings,
- 					DIGITAL_INPUT ? 250000 : 1000000))
- 			continue;
- 		io_write(sd, 0x00, predef_vid_timings[i].vid_std); /* video std */
-@@ -1183,7 +1183,7 @@ static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
- 	int i;
- 
- 	for (i = 0; adv7604_timings[i].bt.width; i++) {
--		if (v4l_match_dv_timings(timings, &adv7604_timings[i],
-+		if (v4l2_match_dv_timings(timings, &adv7604_timings[i],
- 					DIGITAL_INPUT ? 250000 : 1000000)) {
- 			*timings = adv7604_timings[i];
- 			break;
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 1b34c36..4ad9374 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -625,7 +625,7 @@ static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
- 	int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(hdmi_timings); i++)
--		if (v4l_match_dv_timings(&hdmi_timings[i].dv_timings,
-+		if (v4l2_match_dv_timings(&hdmi_timings[i].dv_timings,
- 					timings, 0))
- 			break;
- 	if (i == ARRAY_SIZE(hdmi_timings)) {
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index e68245a..0500c417 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -642,7 +642,7 @@ static int vidioc_s_dv_timings(struct file *file, void *_fh,
- 	if (dev->status != STATUS_IDLE)
- 		return -EBUSY;
- 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++)
--		if (v4l_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
-+		if (v4l2_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
- 			break;
- 	if (i == ARRAY_SIZE(hdpvr_dv_timings))
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 917e58c..1a9d393 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -181,7 +181,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 
- 	for (i = 0; i < ARRAY_SIZE(timings); i++) {
- 		if (v4l2_dv_valid_timings(timings + i, cap) &&
--		    v4l_match_dv_timings(t, timings + i, pclock_delta)) {
-+		    v4l2_match_dv_timings(t, timings + i, pclock_delta)) {
- 			*t = timings[i];
- 			return true;
- 		}
-@@ -191,16 +191,16 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cap);
- 
- /**
-- * v4l_match_dv_timings - check if two timings match
-+ * v4l2_match_dv_timings - check if two timings match
-  * @t1 - compare this v4l2_dv_timings struct...
-  * @t2 - with this struct.
-  * @pclock_delta - the allowed pixelclock deviation.
-  *
-  * Compare t1 with t2 with a given margin of error for the pixelclock.
-  */
--bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
--			  const struct v4l2_dv_timings *t2,
--			  unsigned pclock_delta)
-+bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
-+			   const struct v4l2_dv_timings *t2,
-+			   unsigned pclock_delta)
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index ac727e3..55c4d27 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -27,7 +27,6 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/module.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+ 				u8 response[], const int respn, const int usecs)
  {
- 	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
- 		return false;
-@@ -221,7 +221,7 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
- 		return true;
- 	return false;
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
++	unsigned long until_jiffies;
+ 	u8 data1[MAX_ARGS + 1];
+ 	int err;
+ 
+@@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+ 	if (err != argn + 1) {
+ 		v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
+ 			command);
+-		return (err > 0) ? -EIO : err;
++		return err < 0 ? err : -EIO;
+ 	}
+ 
++	until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
++
+ 	/* Wait response from interrupt */
+-	if (!wait_for_completion_timeout(&sdev->work,
++	if (client->irq) {
++		if (!wait_for_completion_timeout(&sdev->work,
+ 				usecs_to_jiffies(usecs) + 1))
+-		v4l2_warn(&sdev->sd,
++			v4l2_warn(&sdev->sd,
+ 				"(%s) Device took too much time to answer.\n",
+ 				__func__);
+-
+-	/* Then get the response */
+-	err = i2c_master_recv(client, response, respn);
+-	if (err != respn) {
+-		v4l2_err(&sdev->sd,
+-			"Error while reading response for command 0x%02x\n",
+-			command);
+-		return (err > 0) ? -EIO : err;
+ 	}
+ 
+-	DBG_BUFFER(&sdev->sd, "Response", response, respn);
+-	if (check_command_failed(response[0]))
+-		return -EBUSY;
++	do {
++		err = i2c_master_recv(client, response, respn);
++		if (err != respn) {
++			v4l2_err(&sdev->sd,
++					"Error %d while reading response for command 0x%02x\n",
++					err, command);
++			return err < 0 ? err : -EIO;
++		}
+ 
+-	return 0;
++		DBG_BUFFER(&sdev->sd, "Response", response, respn);
++		if (!check_command_failed(response[0]))
++			return 0;
++	
++		if (client->irq)
++			return -EBUSY;
++		msleep(1);
++	} while (jiffies <= until_jiffies);
++
++	return -EBUSY;
  }
--EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
-+EXPORT_SYMBOL_GPL(v4l2_match_dv_timings);
  
- void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
- 			   const struct v4l2_dv_timings *t, bool detailed)
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 696e5c2..43f6b67 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -64,7 +64,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 			      const struct v4l2_dv_timings_cap *cap,
- 			      unsigned pclock_delta);
+ /*
+@@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
+  */
+ static int si4713_powerup(struct si4713_device *sdev)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+ 	int err;
+ 	u8 resp[SI4713_PWUP_NRESP];
+ 	/*
+ 	 * 	.First byte = Enabled interrupts and boot function
+ 	 * 	.Second byte = Input operation mode
+ 	 */
+-	const u8 args[SI4713_PWUP_NARGS] = {
+-		SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
++	u8 args[SI4713_PWUP_NARGS] = {
++		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
+ 		SI4713_PWUP_OPMOD_ANALOG,
+ 	};
  
--/** v4l_match_dv_timings() - do two timings match?
-+/** v4l2_match_dv_timings() - do two timings match?
-   * @measured:	  the measured timings data.
-   * @standard:	  the timings according to the standard.
-   * @pclock_delta: maximum delta in Hz between standard->pixelclock and
-@@ -72,9 +72,9 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
-   *
-   * Returns true if the two timings match, returns false otherwise.
-   */
--bool v4l_match_dv_timings(const struct v4l2_dv_timings *measured,
--			  const struct v4l2_dv_timings *standard,
--			  unsigned pclock_delta);
-+bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
-+			   const struct v4l2_dv_timings *standard,
-+			   unsigned pclock_delta);
+@@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 		gpio_set_value(sdev->gpio_reset, 1);
+ 	}
  
- /** v4l2_print_dv_timings() - log the contents of a dv_timings struct
-   * @dev_prefix:device prefix for each log line.
++	if (client->irq)
++		args[0] |= SI4713_PWUP_CTSIEN;
++
+ 	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
+ 					args, ARRAY_SIZE(args),
+ 					resp, ARRAY_SIZE(resp),
+ 					TIMEOUT_POWER_UP);
+-
++	
+ 	if (!err) {
+ 		v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
+ 				resp[0]);
+ 		v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+ 		sdev->power_state = POWER_ON;
+ 
+-		err = si4713_write_property(sdev, SI4713_GPO_IEN,
++		if (client->irq)
++			err = si4713_write_property(sdev, SI4713_GPO_IEN,
+ 						SI4713_STC_INT | SI4713_CTS);
+ 	} else {
+ 		if (gpio_is_valid(sdev->gpio_reset))
+@@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
+ 	if (rval < 0)
+ 		return rval;
+ 
+-	if (resp[1] == SI4713_PRODUCT_NUMBER) {
++	if (resp[1] == SI4713_PRODUCT_NUMBER) { 
+ 		v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
+ 				client->addr << 1, client->adapter->name);
+ 	} else {
+@@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
+  */
+ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
+ {
+-	int err;
++	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+ 	u8 resp[SI4713_GET_STATUS_NRESP];
+-
+-	/* Wait response from STC interrupt */
+-	if (!wait_for_completion_timeout(&sdev->work,
+-			usecs_to_jiffies(usecs) + 1))
+-		v4l2_warn(&sdev->sd,
+-			"%s: device took too much time to answer (%d usec).\n",
+-				__func__, usecs);
+-
+-	/* Clear status bits */
+-	err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
+-					NULL, 0,
+-					resp, ARRAY_SIZE(resp),
+-					DEFAULT_TIMEOUT);
+-
+-	if (err < 0)
+-		goto exit;
+-
+-	v4l2_dbg(1, debug, &sdev->sd,
+-			"%s: status bits: 0x%02x\n", __func__, resp[0]);
+-
+-	if (!(resp[0] & SI4713_STC_INT))
+-		err = -EIO;
+-
+-exit:
+-	return err;
++	unsigned long start_jiffies = jiffies;
++	int err;
++	
++ 	if (client->irq &&
++	    !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
++ 		v4l2_warn(&sdev->sd,
++ 			"(%s) Device took too much time to answer.\n", __func__);
++			
++	for (;;) {
++		/* Clear status bits */
++		err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
++				NULL, 0,
++				resp, ARRAY_SIZE(resp),
++				DEFAULT_TIMEOUT);
++
++		if (err >= 0) {
++			v4l2_dbg(1, debug, &sdev->sd,
++					"%s: status bits: 0x%02x\n", __func__, resp[0]);
++
++			if (resp[0] & SI4713_STC_INT)
++				return 0;
++		}
++		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
++			return -EIO;
++		msleep(3);
++	}
+ }
+ 
+ /*
+@@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
+ 	if (rval < 0)
+ 		return rval;
+ 
+-
+ 	sdev->frequency = DEFAULT_FREQUENCY;
+ 	sdev->stereo = 1;
+ 	sdev->tune_rnl = DEFAULT_TUNE_RNL;
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index c274e1f..dc0ce66 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -15,6 +15,7 @@
+ #ifndef SI4713_I2C_H
+ #define SI4713_I2C_H
+ 
++#include <linux/regulator/consumer.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/si4713.h>
 -- 
-1.8.3.2
+1.8.4.rc2
 
