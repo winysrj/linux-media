@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:45035 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934211Ab3HHMbr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Aug 2013 08:31:47 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-90.cisco.com [10.54.92.90])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r78CVcjZ014622
-	for <linux-media@vger.kernel.org>; Thu, 8 Aug 2013 12:31:44 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 3/9] qv4l2: fix black screen with opengl after capture
-Date: Thu,  8 Aug 2013 14:31:21 +0200
-Message-Id: <5c62833aa65136029a9bd712c796d3fbd06caf29.1375964980.git.bwinther@cisco.com>
-In-Reply-To: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-References: <1375965087-16318-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
-References: <cdb6d3a353ce89599cd716e763e85e704b92f79c.1375964980.git.bwinther@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34292 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756612Ab3H3Qn7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 12:43:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <greg@kroah.com>
+Cc: Joseph Salisbury <joseph.salisbury@canonical.com>,
+	linux-kernel@vger.kernel.org, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] uvcvideo: quirk PROBE_DEF for Dell SP2008WFP monitor.
+Date: Fri, 30 Aug 2013 18:45:22 +0200
+Message-ID: <3315071.bviZFKW3Se@avalon>
+In-Reply-To: <20130830163958.GA7556@kroah.com>
+References: <cover.1377781889.git.joseph.salisbury@canonical.com> <1985123.qJiQ0PhVD2@avalon> <20130830163958.GA7556@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the issue when the window was beeing resized/moved
-and the frame image would become black.
+Hi Greg,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win-gl.cpp | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Friday 30 August 2013 09:39:58 Greg KH wrote:
+> On Fri, Aug 30, 2013 at 12:28:16PM +0200, Laurent Pinchart wrote:
+> > On Thursday 29 August 2013 21:00:21 Greg KH wrote:
+> > > On Fri, Aug 30, 2013 at 02:41:17AM +0200, Laurent Pinchart wrote:
+> > > > On Thursday 29 August 2013 11:17:41 Joseph Salisbury wrote:
+> > > > > BugLink: http://bugs.launchpad.net/bugs/1217957
+> > > > > 
+> > > > > Add quirk for Dell SP2008WFP monitor: 05a9:2641
+> > > > > 
+> > > > > Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+> > > > > Tested-by: Christopher Townsend <christopher.townsend@canonical.com>
+> > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > > > > Cc: linux-media@vger.kernel.org
+> > > > > Cc: linux-kernel@vger.kernel.org
+> > > > > Cc: stable@vger.kernel.org
+> > > > 
+> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > 
+> > > > I've applied it to my tree. Given that we're too close to the v3.12
+> > > > merge window I will push it for v3.13.
+> > > 
+> > > A quirk has to wait that long?  That's not ok, they should go in much
+> > > sooner than that...
+> > 
+> > Can such a patch get merged during the -rc phase ? If so I will push it to
+> > v3.12.
+> 
+> Yes it can,
 
-diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
-index 6071410..c8238c5 100644
---- a/utils/qv4l2/capture-win-gl.cpp
-+++ b/utils/qv4l2/capture-win-gl.cpp
-@@ -253,6 +253,12 @@ void CaptureWinGLEngine::paintGL()
- 		changeShader();
- 
- 	if (m_frameData == NULL) {
-+		glBegin(GL_QUADS);
-+		glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0, 0);
-+		glTexCoord2f(1.0f, 0.0f); glVertex2f(m_frameWidth, 0);
-+		glTexCoord2f(1.0f, 1.0f); glVertex2f(m_frameWidth, m_frameHeight);
-+		glTexCoord2f(0.0f, 1.0f); glVertex2f(0, m_frameHeight);
-+		glEnd();
- 		return;
- 	}
- 
+OK, I'll send a pull request to Mauro right after the v3.12 merge window 
+closes, as he's pretty busy with pending pull requests for v3.12 at the 
+moment.
+
+> and it should also be merged to stable releases, as the cc: stable shows.
+
+Sure, that was my plan.
+
 -- 
-1.8.4.rc1
+Regards,
+
+Laurent Pinchart
 
