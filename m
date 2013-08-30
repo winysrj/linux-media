@@ -1,105 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2936 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754358Ab3HLS27 (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:49200 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113Ab3H3CR2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 14:28:59 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7CISuOn060913
-	for <linux-media@vger.kernel.org>; Mon, 12 Aug 2013 20:28:58 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 12 Aug 2013 20:28:56 +0200 (CEST)
-Message-Id: <201308121828.r7CISuOn060913@smtp-vbr4.xs4all.nl>
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id E77232A075F
-	for <linux-media@vger.kernel.org>; Mon, 12 Aug 2013 20:28:55 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 29 Aug 2013 22:17:28 -0400
+Received: by mail-pb0-f43.google.com with SMTP id md4so1229809pbc.16
+        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:28 -0700 (PDT)
+From: Pawel Osciak <posciak@chromium.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v1 00/19] UVC 1.5 VP8 support for uvcvideo
+Date: Fri, 30 Aug 2013 11:16:59 +0900
+Message-Id: <1377829038-4726-1-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello everyone,
 
-Results of the daily build of media_tree:
+This series adds support for UVC 1.5 and VP8 encoding cameras to the uvcvideo
+driver. The official specification for the new standard can be found here:
+http://www.usb.org/developers/devclass_docs.
 
-date:		Mon Aug 12 19:00:21 CEST 2013
-git branch:	test
-git hash:	dfb9f94e8e5e7f73c8e2bcb7d4fb1de57e7c333d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+The main change in 1.5 is support for encoding cameras. Those cameras contain
+additional UVC entities, called Encoding Units, with their own set of controls
+governing encode parameters. Typical encoding cameras (see examples in class
+spec) expose two USB Video Streaming Interfaces (VSIs): one for raw stream
+formats and one for encoded streams. Typically, both get their source stream
+from a single sensor, producing raw and encoded versions of the video feed
+simultaneously.
+Encoding Units may also support the so-called "simulcast" formats, which allow
+additional sub-streams, or layers, used to achieve temporal scalability.
+The spec allows up to 4 simulcast layers. Those layers are encoded in the same
+format, but encoding parameters, such as resolution, bitrate, etc., may,
+depending on the camera capabilities, be changed independently for each layer,
+and their streaming state may also be controlled independently as well. The
+layers are streamed from the same USB VSI, and the information which layer
+a frame belongs to is contained in its payload header.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+In V4L2 API, a separate video node is created for each VSI: one for raw formats
+VSI and another for the encoded formats VSI. Both can operate completely
+independently from each other. In addition, if the Encoding Unit supports
+simulcast, one V4L2 node is created for each stream layer instead, and each
+can be controlled independently, including streamon/streamoff state, setting
+resolution and controls. Once a simulcast format is successfully set for one
+of the simulcast video nodes however, it cannot be changed, unless all connected
+nodes are idle, i.e. they are not streaming and their buffers are freed.
 
-Detailed results are available here:
+The userspace can discover if a set of nodes belongs to one encoding unit
+by traversing media controller topology of the camera.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
+I will be gradually posting documentation changes for new features after initial
+rounds of reviews. This is a relatively major change to the UVC driver and
+although I tried to keep the existing logic for UVC <1.5 cameras intact as much
+as possible, I would very much appreciate it if these patches could get some
+testing from you as well, on your own devices/systems.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Thanks,
+Pawel Osciak
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Pawel Osciak (19):
+      uvcvideo: Add UVC query tracing.
+      uvcvideo: Return 0 when setting probe control succeeds.
+      uvcvideo: Add support for multiple chains with common roots.
+      uvcvideo: Create separate debugfs entries for each streaming interface.
+      uvcvideo: Add support for UVC1.5 P&C control.
+      uvcvideo: Recognize UVC 1.5 encoding units.
+      uvcvideo: Unify error reporting during format descriptor parsing.
+      uvcvideo: Add UVC1.5 VP8 format support.
+      uvcvideo: Reorganize uvc_{get,set}_le_value.
+      uvcvideo: Support UVC 1.5 runtime control property.
+      uvcvideo: Support V4L2_CTRL_TYPE_BITMASK controls.
+      uvcvideo: Reorganize next buffer handling.
+      uvcvideo: Unify UVC payload header parsing.
+      v4l: Add v4l2_buffer flags for VP8-specific special frames.
+      uvcvideo: Add support for VP8 special frame flags.
+      v4l: Add encoding camera controls.
+      uvcvideo: Add UVC 1.5 Encoding Unit controls.
+      v4l: Add V4L2_PIX_FMT_VP8_SIMULCAST format.
+      uvcvideo: Add support for UVC 1.5 VP8 simulcast.
+
+ drivers/media/usb/uvc/uvc_ctrl.c     | 960 ++++++++++++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_debugfs.c  |   3 +-
+ drivers/media/usb/uvc/uvc_driver.c   | 604 ++++++++++++++--------
+ drivers/media/usb/uvc/uvc_entity.c   | 129 ++++-
+ drivers/media/usb/uvc/uvc_isight.c   |  12 +-
+ drivers/media/usb/uvc/uvc_queue.c    |  25 +-
+ drivers/media/usb/uvc/uvc_v4l2.c     | 284 +++++++++--
+ drivers/media/usb/uvc/uvc_video.c    | 704 ++++++++++++++++---------
+ drivers/media/usb/uvc/uvcvideo.h     | 214 +++++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c |  29 ++
+ include/uapi/linux/usb/video.h       |  45 ++
+ include/uapi/linux/v4l2-controls.h   |  31 ++
+ include/uapi/linux/videodev2.h       |   8 +
+ 13 files changed, 2421 insertions(+), 627 deletions(-)
