@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4690 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab3HSOor (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34381 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756457Ab3H3QxZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:44:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/20] ad9389b: trigger edid re-read by power-cycle chip
-Date: Mon, 19 Aug 2013 16:44:16 +0200
-Message-Id: <1376923469-30694-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376923469-30694-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 30 Aug 2013 12:53:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: media-workshop@linuxtv.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	linux-media@vger.kernel.org, benjamin.gaignard@linaro.org
+Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
+Date: Fri, 30 Aug 2013 18:54:50 +0200
+Message-ID: <3906204.pByWntDMrc@avalon>
+In-Reply-To: <20130830103123.0bb6a256@samsung.com>
+References: <201308301501.25164.hverkuil@xs4all.nl> <52209C41.8040402@schinagl.nl> <20130830103123.0bb6a256@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Hi Mauro,
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ad9389b.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+On Friday 30 August 2013 10:31:23 Mauro Carvalho Chehab wrote:
+> Em Fri, 30 Aug 2013 15:21:05 +0200 Oliver Schinagl escreveu:
+> > On 30-08-13 15:01, Hans Verkuil wrote:
+> > > OK, I know, we don't even know yet when the mini-summit will be held but
+> > > I thought I'd just start this thread to collect input for the agenda.
+> > > 
+> > > I have these topics (and I *know* that I am forgetting a few):
+> > > 
+> > > - Discuss ideas/use-cases for a property-based API. An initial
+> > >   discussion appeared in this thread:
+> > >    
+> > >   http://permalink.gmane.org/gmane.linux.drivers.video-input-> > >   infrastructure/65195
+> > >
+> > > - What is needed to share i2c video transmitters between drm and v4l?
+> > >   Hopefully we will know more after the upcoming LPC.
+> > > 
+> > > - Decide on how v4l2 support libraries should be organized. There is
+> > >   code for handling raw-to-sliced VBI decoding, ALSA looping, finding
+> > >   associated video/alsa nodes and for TV frequency tables. We should
+> > >   decide how that should be organized into libraries and how they should
+> > >   be documented. The first two aren't libraries at the moment, but I
+> > >   think they should be. The last two are libraries but they aren't
+> > >   installed. Some work is also being done on an improved version of
+> > >   the 'associating nodes' library that uses the MC if available.> > 
+> > > - Define the interaction between selection API, ENUM_FRAMESIZES and
+> > >   S_FMT. See this thread for all the nasty details:
+> > >    
+> > >   http://www.spinics.net/lists/linux-media/msg65137.html
+> > > 
+> > > Feel free to add suggestions to this list.
+> 
+> From my side, I'd like to discuss about a better integration between DVB
+> and V4L2, including starting using the media controller API on DVB side
+> too. Btw, it would be great if we could get a status about the media
+> controller API usage on ALSA. I'm planning to work at such integration
+> soon.
+> 
+> > What about a hardware accelerated decoding API/framework? Is there a
+> > proper framework for this at all? I see the broadcom module is still in
+> > staging and may never come out of it, but how are other video decoding
+> > engines handled that don't have cameras or displays.
+> > 
+> > Reason for asking is that we from linux-sunxi have made some positive
+> > progress in Reverse engineering the video decoder blob of the Allwinner
+> > A10 and this knowledge will need a kernel side driver in some framework.
+> > I looked at the exynos video decoders and googling for linux-media
+> > hardware accelerated decoding doesn't yield much either.
+> > 
+> > Anyway, just a thought; if you think it's the wrong place for it to be
+> > discussed, that's ok :)
+> 
+> Well, the mem2mem V4L2 devices should provide all that would be needed for
+> accelerated encoders/decoders. If not, then feel free to propose extensions
+> to fit your needs.
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 52384e8..545aabb 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -855,8 +855,10 @@ static void ad9389b_edid_handler(struct work_struct *work)
- 		 * (DVI connectors are particularly prone to this problem). */
- 		if (state->edid.read_retries) {
- 			state->edid.read_retries--;
--			/* EDID read failed, trigger a retry */
--			ad9389b_wr(sd, 0xc9, 0xf);
-+			v4l2_dbg(1, debug, sd, "%s: edid read failed\n", __func__);
-+			state->have_monitor = false;
-+			ad9389b_s_power(sd, false);
-+			ad9389b_s_power(sd, true);
- 			queue_delayed_work(state->work_queue,
- 					&state->edid_handler, EDID_DELAY);
- 			return;
-@@ -1019,7 +1021,6 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
- 	segment = ad9389b_rd(sd, 0xc4);
- 	if (segment >= EDID_MAX_SEGM) {
- 		v4l2_err(sd, "edid segment number too big\n");
--		state->have_monitor = false;
- 		return false;
- 	}
- 	v4l2_dbg(1, debug, sd, "%s: got segment %d\n", __func__, segment);
+Two comments regarding this:
+
+- V4L2 mem-to-mem is great for frame-based codecs, but SoCs sometimes only 
+implement part of the codec in hardware, leaving the rest to the software. 
+Encoded bistream parsing is one of those areas that are left to the CPU, for 
+instance on some ST SoCs (CC'ing Benjamin Gaignard).
+
+- http://www.linuxplumbersconf.org/2013/ocw/sessions/1605
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
