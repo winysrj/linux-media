@@ -1,85 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42160 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381Ab3HaUSW (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1879 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340Ab3H3Gg3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Aug 2013 16:18:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: media-workshop <media-workshop@linuxtv.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	linux-media@vger.kernel.org,
-	"benjamin.gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-Date: Sat, 31 Aug 2013 22:19:44 +0200
-Message-ID: <1590738.js4VoLrYFn@avalon>
-In-Reply-To: <CACHYQ-qDD5S5FJvzT-oUBe+Y+S=CB_ZN+QNQPpu+BFE-ZPr45g@mail.gmail.com>
-References: <201308301501.25164.hverkuil@xs4all.nl> <1440169.4erfBAv8If@avalon> <CACHYQ-qDD5S5FJvzT-oUBe+Y+S=CB_ZN+QNQPpu+BFE-ZPr45g@mail.gmail.com>
+	Fri, 30 Aug 2013 02:36:29 -0400
+Message-ID: <52203D59.9020605@xs4all.nl>
+Date: Fri, 30 Aug 2013 08:36:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Pawel Osciak <posciak@chromium.org>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v1 10/19] uvcvideo: Support UVC 1.5 runtime control property.
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-11-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-11-git-send-email-posciak@chromium.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 31 August 2013 09:04:14 Pawel Osciak wrote:
-> On Sat, Aug 31, 2013 at 9:03 AM, Laurent Pinchart wrote:
-> > On Saturday 31 August 2013 08:58:41 Pawel Osciak wrote:
-> > > On Sat, Aug 31, 2013 at 1:54 AM, Laurent Pinchart wrote:
-> > > > On Friday 30 August 2013 10:31:23 Mauro Carvalho Chehab wrote:
-> > > > > Em Fri, 30 Aug 2013 15:21:05 +0200 Oliver Schinagl escreveu:
+On 08/30/2013 04:17 AM, Pawel Osciak wrote:
+> UVC 1.5 introduces the concept of runtime controls, which can be set during
+> streaming. Non-runtime controls can only be changed while device is idle.
 
-[snip]
+I don't know if you know this, but the V4L2_CTRL_FLAG_GRABBED flag can be set for
+controls that cannot be changed while streaming. Typically drivers will set that
+flag for the relevant controls when streaming starts and clear it when streaming
+stops.
 
-> > > > > > What about a hardware accelerated decoding API/framework? Is there
-> > > > > > a proper framework for this at all? I see the broadcom module is
-> > > > > > still in staging and may never come out of it, but how are other
-> > > > > > video decoding engines handled that don't have cameras or
-> > > > > > displays.
-> > > > > > 
-> > > > > > Reason for asking is that we from linux-sunxi have made some
-> > > > > > positive progress in Reverse engineering the video decoder blob of
-> > > > > > the Allwinner A10 and this knowledge will need a kernel side
-> > > > > > driver in some framework.
-> > > > > > 
-> > > > > > I looked at the exynos video decoders and googling for linux-media
-> > > > > > hardware accelerated decoding doesn't yield much either.
-> > > > > > 
-> > > > > > Anyway, just a thought; if you think it's the wrong place for it
-> > > > > > to be discussed, that's ok :)
-> > > > > 
-> > > > > Well, the mem2mem V4L2 devices should provide all that would be
-> > > > > needed for accelerated encoders/decoders. If not, then feel free to
-> > > > > propose extensionsto fit your needs.
-> > > > 
-> > > > Two comments regarding this:
-> > > > 
-> > > > - V4L2 mem-to-mem is great for frame-based codecs, but SoCs sometimes
-> > > >   only implement part of the codec in hardware, leaving the rest to
-> > > >   the software.
-> > > >
-> > > > Encoded bistream parsing is one of those areas that are left to the
-> > > > CPU, for instance on some ST SoCs (CC'ing Benjamin Gaignard).
-> > > 
-> > > This is an interesting topic for me as well, although I'm still not sure
-> > > if I can make it to the workshop. Would it make sense to have v4l parser
-> > > plugins hook up to qbuf and do the parsing there?
-> > 
-> > Do you mean in libv4l ?
-> 
-> Yes...
+Toggling that flag also means that a control event has to be generated reporting
+a change of the control flags.
 
-Let's discuss that in Edinburgh then. The major problem as I see it is that 
-the hardware codec might consume and produce data that wouldn't fit the spirit 
-of the current V4L2 API. We might end up with passing register lists in a V4L2 
-buffer, which would be pretty ugly.
-
-Benjamin, do you plan to attend the conference ?
-
-> > > > - http://www.linuxplumbersconf.org/2013/ocw/sessions/1605
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c | 45 +++++++++++++++++++++++++++++++++-------
+>  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++------
+>  drivers/media/usb/uvc/uvcvideo.h | 12 +++++++----
+>  3 files changed, 57 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+> index d735c88..b0a19b9 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1076,8 +1076,19 @@ void __uvc_ctrl_unlock(struct uvc_video_chain *chain)
+>  	mutex_unlock(&chain->pipeline->ctrl_mutex);
+>  }
+>  
+> +static int uvc_check_ctrl_runtime(struct uvc_control *ctrl, bool streaming)
+> +{
+> +	if (streaming && !ctrl->in_runtime) {
+> +		uvc_trace(UVC_TRACE_CONTROL,
+> +				"Control disabled while streaming\n");
+> +		return -EBUSY;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+> -	struct v4l2_queryctrl *v4l2_ctrl)
+> +			struct v4l2_queryctrl *v4l2_ctrl, bool streaming)
+>  {
+>  	struct uvc_control *ctrl;
+>  	struct uvc_control_mapping *mapping;
+> @@ -1093,6 +1104,10 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+>  		goto done;
+>  	}
+>  
+> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
+> +	if (ret < 0)
+> +		goto done;
+> +
+>  	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
+>  done:
+>  	__uvc_ctrl_unlock(chain);
+> @@ -1109,7 +1124,7 @@ done:
+>   * manually.
+>   */
+>  int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+> -	struct v4l2_querymenu *query_menu)
+> +	struct v4l2_querymenu *query_menu, bool streaming)
+>  {
+>  	struct uvc_menu_info *menu_info;
+>  	struct uvc_control_mapping *mapping;
+> @@ -1132,6 +1147,10 @@ int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+>  		goto done;
+>  	}
+>  
+> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
+> +	if (ret < 0)
+> +		goto done;
+> +
+>  	if (query_menu->index >= mapping->menu_count) {
+>  		ret = -EINVAL;
+>  		goto done;
+> @@ -1436,21 +1455,26 @@ done:
+>  	return ret;
+>  }
+>  
+> -int uvc_ctrl_get(struct uvc_video_chain *chain,
+> -	struct v4l2_ext_control *xctrl)
+> +int uvc_ctrl_get(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl,
+> +		 bool streaming)
+>  {
+>  	struct uvc_control *ctrl;
+>  	struct uvc_control_mapping *mapping;
+> +	int ret;
+>  
+>  	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
+>  	if (ctrl == NULL)
+>  		return -EINVAL;
+>  
+> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
+>  }
+>  
+> -int uvc_ctrl_set(struct uvc_video_chain *chain,
+> -	struct v4l2_ext_control *xctrl)
+> +int uvc_ctrl_set(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl,
+> +		 bool streaming)
+>  {
+>  	struct uvc_control *ctrl;
+>  	struct uvc_control_mapping *mapping;
+> @@ -1466,6 +1490,10 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+>  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
+>  		return -EACCES;
+>  
+> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	/* Clamp out of range values. */
+>  	switch (mapping->v4l2_type) {
+>  	case V4L2_CTRL_TYPE_INTEGER:
+> @@ -1885,8 +1913,9 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+>  	ctrl->initialized = 1;
+>  
+>  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+> -		"entity %u\n", ctrl->info.entity, ctrl->info.selector,
+> -		dev->udev->devpath, ctrl->entity->id);
+> +		"entity %u, init/runtime %d/%d\n", ctrl->info.entity,
+> +		ctrl->info.selector, dev->udev->devpath, ctrl->entity->id,
+> +		ctrl->on_init, ctrl->in_runtime);
+>  
+>  done:
+>  	if (ret < 0)
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index a899159..decd65f 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -597,7 +597,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  
+>  	/* Get, Set & Query control */
+>  	case VIDIOC_QUERYCTRL:
+> -		return uvc_query_v4l2_ctrl(chain, arg);
+> +		return uvc_query_v4l2_ctrl(chain, arg,
+> +					uvc_is_stream_streaming(stream));
+>  
+>  	case VIDIOC_G_CTRL:
+>  	{
+> @@ -611,7 +612,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		if (ret < 0)
+>  			return ret;
+>  
+> -		ret = uvc_ctrl_get(chain, &xctrl);
+> +		ret = uvc_ctrl_get(chain, &xctrl,
+> +					uvc_is_stream_streaming(stream));
+>  		uvc_ctrl_rollback(handle);
+>  		if (ret >= 0)
+>  			ctrl->value = xctrl.value;
+> @@ -635,7 +637,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		if (ret < 0)
+>  			return ret;
+>  
+> -		ret = uvc_ctrl_set(chain, &xctrl);
+> +		ret = uvc_ctrl_set(chain, &xctrl,
+> +					uvc_is_stream_streaming(stream));
+>  		if (ret < 0) {
+>  			uvc_ctrl_rollback(handle);
+>  			return ret;
+> @@ -647,7 +650,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  	}
+>  
+>  	case VIDIOC_QUERYMENU:
+> -		return uvc_query_v4l2_menu(chain, arg);
+> +		return uvc_query_v4l2_menu(chain, arg,
+> +					uvc_is_stream_streaming(stream));
+>  
+>  	case VIDIOC_G_EXT_CTRLS:
+>  	{
+> @@ -660,7 +664,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  			return ret;
+>  
+>  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> -			ret = uvc_ctrl_get(chain, ctrl);
+> +			ret = uvc_ctrl_get(chain, ctrl,
+> +					uvc_is_stream_streaming(stream));
+>  			if (ret < 0) {
+>  				uvc_ctrl_rollback(handle);
+>  				ctrls->error_idx = i;
+> @@ -688,7 +693,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  			return ret;
+>  
+>  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> -			ret = uvc_ctrl_set(chain, ctrl);
+> +			ret = uvc_ctrl_set(chain, ctrl,
+> +					uvc_is_stream_streaming(stream));
+>  			if (ret < 0) {
+>  				uvc_ctrl_rollback(handle);
+>  				ctrls->error_idx = cmd == VIDIOC_S_EXT_CTRLS
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 88f5e38..46ffd92 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -694,6 +694,10 @@ extern int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+>  void uvc_video_clock_update(struct uvc_streaming *stream,
+>  			    struct v4l2_buffer *v4l2_buf,
+>  			    struct uvc_buffer *buf);
+> +static inline bool uvc_is_stream_streaming(struct uvc_streaming *stream)
+> +{
+> +	return vb2_is_streaming(&stream->queue.queue);
+> +}
+>  
+>  /* Status */
+>  extern int uvc_status_init(struct uvc_device *dev);
+> @@ -705,9 +709,9 @@ extern void uvc_status_stop(struct uvc_device *dev);
+>  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
+>  
+>  extern int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+> -		struct v4l2_queryctrl *v4l2_ctrl);
+> +		struct v4l2_queryctrl *v4l2_ctrl, bool streaming);
+>  extern int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+> -		struct v4l2_querymenu *query_menu);
+> +		struct v4l2_querymenu *query_menu, bool streaming);
+>  
+>  extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+>  		const struct uvc_control_mapping *mapping);
+> @@ -731,9 +735,9 @@ static inline int uvc_ctrl_rollback(struct uvc_fh *handle)
+>  }
+>  
+>  extern int uvc_ctrl_get(struct uvc_video_chain *chain,
+> -		struct v4l2_ext_control *xctrl);
+> +		struct v4l2_ext_control *xctrl, bool streaming);
+>  extern int uvc_ctrl_set(struct uvc_video_chain *chain,
+> -		struct v4l2_ext_control *xctrl);
+> +		struct v4l2_ext_control *xctrl, bool streaming);
+>  
+>  extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+>  		struct uvc_xu_control_query *xqry);
+> 
 
