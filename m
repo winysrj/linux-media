@@ -1,94 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42025 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932260Ab3HGSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Aug 2013 14:53:18 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/16] msi3101: sample is correct term for sample
-Date: Wed,  7 Aug 2013 21:51:33 +0300
-Message-Id: <1375901507-26661-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1375901507-26661-1-git-send-email-crope@iki.fi>
-References: <1375901507-26661-1-git-send-email-crope@iki.fi>
+Received: from cernmx32.cern.ch ([137.138.144.178]:30580 "EHLO
+	CERNMX32.cern.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417Ab3H3MTi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 08:19:38 -0400
+From: Dinesh Ram <Dinesh.Ram@cern.ch>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Dinesh Ram <dinram@cisco.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v2 6/6] si4713 : Added MAINTAINERS entry for
+ radio-usb-si4713 driver
+Date: Fri, 30 Aug 2013 12:14:09 +0000
+Message-ID: <C40DBE54484849439FC5081A05AEF5F5979DEBB7@PLOXCHG23.cern.ch>
+Content-Language: en-GB
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Hans Verkuil <hverkuil@xs4all.nl> will maintain the USB driver for si4713
+
+Signed-off-by: Dinesh Ram <dinram@cisco.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 32 ++++++++++++++---------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ MAINTAINERS | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 46fdb6c..87896ee 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -405,8 +405,8 @@ struct msi3101_state {
- 	struct v4l2_ctrl *ctrl_tuner_if;
- 	struct v4l2_ctrl *ctrl_tuner_gain;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b2618ce..ddd4d5f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7412,7 +7412,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ W:	http://linuxtv.org
+ S:	Odd Fixes
+-F:	drivers/media/radio/si4713-i2c.?
++F:	drivers/media/radio/si4713/si4713.?
  
--	u32 symbol_received; /* for track lost packets */
--	u32 symbol; /* for symbol rate calc */
-+	u32 next_sample; /* for track lost packets */
-+	u32 sample; /* for sample rate calc */
- 	unsigned long jiffies;
- };
+ SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
+ M:	Eduardo Valentin <edubezval@gmail.com>
+@@ -7420,7 +7420,15 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ W:	http://linuxtv.org
+ S:	Odd Fixes
+-F:	drivers/media/radio/radio-si4713.h
++F:	drivers/media/radio/si4713/radio-platform-si4713.c
++
++SI4713 FM RADIO TRANSMITTER USB DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/radio/si4713/radio-usb-si4713.c
  
-@@ -476,18 +476,18 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- 	int i, j, k, l, i_max, dst_len = 0;
- 	u16 sample[4];
- #ifdef MSI3101_EXTENSIVE_DEBUG
--	u32 symbol[3];
-+	u32 sample_num[3];
- #endif
- 	/* There could be 1-3 1024 bytes URB frames */
- 	i_max = src_len / 1024;
- 	for (i = 0; i < i_max; i++) {
- #ifdef MSI3101_EXTENSIVE_DEBUG
--		symbol[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
--		if (i == 0 && s->symbol_received != symbol[0]) {
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
-+		if (i == 0 && s->next_sample != sample_num[0]) {
- 			dev_dbg(&s->udev->dev,
--					"%d symbols lost, %d %08x:%08x\n",
--					symbol[0] - s->symbol_received,
--					src_len, s->symbol_received, symbol[0]);
-+					"%d samples lost, %d %08x:%08x\n",
-+					sample_num[0] - s->next_sample,
-+					src_len, s->next_sample, sample_num[0]);
- 		}
- #endif
- 		src += 16;
-@@ -520,21 +520,21 @@ static int msi3101_convert_stream(struct msi3101_state *s, u32 *dst,
- 	}
- 
- #ifdef MSI3101_EXTENSIVE_DEBUG
--	/* calculate symbol rate and output it in 10 seconds intervals */
-+	/* calculate samping rate and output it in 10 seconds intervals */
- 	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
- 		unsigned long jiffies_now = jiffies;
- 		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
--		unsigned int symbols = symbol[i_max - 1] - s->symbol;
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
- 		s->jiffies = jiffies_now;
--		s->symbol = symbol[i_max - 1];
-+		s->sample = sample_num[i_max - 1];
- 		dev_dbg(&s->udev->dev,
--				"slen=%d symbols=%u msecs=%lu symbolrate=%lu\n",
--				src_len, symbols, msecs,
--				symbols * 1000UL / msecs);
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				src_len, samples, msecs,
-+				samples * 1000UL / msecs);
- 	}
- 
--	/* last received symbol (symbol = symbol + i * 384) */
--	s->symbol_received = symbol[i_max - 1] + 384;
-+	/* next sample (sample = sample + i * 384) */
-+	s->next_sample = sample_num[i_max - 1] + 384;
- #endif
- 	return dst_len;
- }
--- 
-1.7.11.7
+ SIANO DVB DRIVER
+ M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
+-- 1.8.4.rc2 
+________________________________________
+From: Hans Verkuil [hverkuil@xs4all.nl]
+Sent: 30 August 2013 14:07
+To: Dinesh Ram
+Cc: linux-media@vger.kernel.org; Dinesh Ram
+Subject: Re: [PATCH 6/6] si4713 : Added MAINTAINERS entry for radio-usb-si4713 driver
 
+On Fri 30 August 2013 13:28:24 Dinesh Ram wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> will maintain the USB driver for si4713
+>
+> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+> ---
+>  MAINTAINERS | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b2618ce..ddd4d5f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7412,7 +7412,7 @@ L:      linux-media@vger.kernel.org
+>  T:   git git://linuxtv.org/media_tree.git
+>  W:   http://linuxtv.org
+>  S:   Odd Fixes
+> -F:   drivers/media/radio/si4713-i2c.?
+> +F:   drivers/media/radio/si4713/si4713.?
+>
+>  SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
+>  M:   Eduardo Valentin <edubezval@gmail.com>
+> @@ -7420,7 +7420,15 @@ L:     linux-media@vger.kernel.org
+>  T:   git git://linuxtv.org/media_tree.git
+>  W:   http://linuxtv.org
+>  S:   Odd Fixes
+> -F:   drivers/media/radio/radio-si4713.h
+> +F:   drivers/media/radio/si4713/radio-platform-si4713.c
+> +
+> +KEENE FM RADIO TRANSMITTER DRIVER
+
+You forgot to update the driver description! This is the SiLabs si4713 EVB
+driver, not Keene.
+
+Can you make a v2 of this patch fixing this?
+
+Regards,
+
+        Hans
+
+> +M:   Hans Verkuil <hverkuil@xs4all.nl>
+> +L:   linux-media@vger.kernel.org
+> +T:   git git://linuxtv.org/media_tree.git
+> +W:   http://linuxtv.org
+> +S:   Maintained
+> +F:   drivers/media/radio/si4713/radio-usb-si4713.c
+>
+>  SIANO DVB DRIVER
+>  M:   Mauro Carvalho Chehab <m.chehab@samsung.com>
+>
