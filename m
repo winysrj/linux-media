@@ -1,66 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:47209 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab3HETLi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 15:11:38 -0400
-Received: by mail-we0-f182.google.com with SMTP id u55so2798169wes.41
-        for <linux-media@vger.kernel.org>; Mon, 05 Aug 2013 12:11:37 -0700 (PDT)
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:34996 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab3H3LmX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 07:42:23 -0400
+Received: by mail-oa0-f45.google.com with SMTP id m1so1661396oag.18
+        for <linux-media@vger.kernel.org>; Fri, 30 Aug 2013 04:42:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20130801141518.258ff0a3@samsung.com>
-References: <CAER7dwe+kkVoDbRt9Xj8+77tJnL29bxRzHbSPYOrck_HxVsENw@mail.gmail.com>
- <CAER7dwe8UQZ=5iZhCi1C1-DGi7t_Hz43M4QamnBSNerHNnDCvg@mail.gmail.com>
- <20130801163624.GA10498@localhost> <20130801141518.258ff0a3@samsung.com>
-From: Luis Polasek <lpolasek@gmail.com>
-Date: Mon, 5 Aug 2013 16:11:17 -0300
-Message-ID: <CAER7dwfhXEzNY5Ue=Rxfe3kQiigp-uyz4g0TKyBXcKYpQaru6A@mail.gmail.com>
-Subject: Re: dib8000 scanning not working on 3.10.3
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-	linux-media@vger.kernel.org,
-	"jbucar@lifia.info.unlp.edu.ar" <jbucar@lifia.info.unlp.edu.ar>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <522082D1.1080206@samsung.com>
+References: <1377861082-17312-1-git-send-email-sachin.kamat@linaro.org>
+	<522082D1.1080206@samsung.com>
+Date: Fri, 30 Aug 2013 17:12:22 +0530
+Message-ID: <CAK9yfHzthS9mcK+3CSPYcCeexxs5mCAARKvrRQJWJss47WkhDw@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] v4l2-ctrls: Remove duplicate const
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com,
+	Patch Tracking <patches@linaro.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, I have tested using dvb5-scan, and the results are the same
-(no results, and no error logs) :(
+On 30 August 2013 17:02, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> Hi Sachin,
+>
+> On 08/30/2013 01:11 PM, Sachin Kamat wrote:
+>> The function returns a pointer to a const array. Duplicate use of const
+>> led to the following warning.
+>> drivers/media/v4l2-core/v4l2-ctrls.c:574:32: warning: duplicate const
+>>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>
+> Thanks for the patch. I have already submitted a fix for this:
+> https://patchwork.linuxtv.org/patch/19902/
 
- Do you have any clue why it is not working with this kernel version ?
+Oops.. missed out on that. Looks like it is not yet applied to your
+for-3.12-3 branch?
 
-Thanks and regards...
-
-On Thu, Aug 1, 2013 at 2:15 PM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Thu, 1 Aug 2013 13:36:25 -0300
-> Ezequiel Garcia <ezequiel.garcia@free-electrons.com> escreveu:
->
->> Hi Luis,
->>
->> (I'm Ccing Mauro, who mantains this driver and might know what's going on).
->>
->> On Wed, Jul 31, 2013 at 03:47:10PM -0300, Luis Polasek wrote:
->> > Hi, I just upgraded my kernel to 3.10.3, and dib8000 scanning does not
->> > work anymore.
->> >
->> > I tested using dvbscan (from dvb-apps/util/) and w_scan on a Prolink
->> > Pixelview SBTVD (dib8000 module*).This tools worked very well on
->> > version 3.9.9 , but now it does not produces any result, and also
->> > there are no error messages in the logs (dmesg).
->> >
->>
->> Please run a git bisect and report your findings.
->>
->> Note that dibcom8000 shows just a handful of commit on 2013,
->> so you could start reverting those and see what happens.
->
-> Perhaps it is a failure at the DVBv3 emulation.
->
-> Did it also break using dvbv5-scan (part of v4l-utils)?
->
-> Regards,
-> Mauro
-> --
->
-> Cheers,
-> Mauro
+-- 
+With warm regards,
+Sachin
