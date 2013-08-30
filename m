@@ -1,93 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m09.mx.aol.com ([64.12.143.82]:64922 "EHLO
-	omr-m09.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933475Ab3HJNWt (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:15417 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755407Ab3H3MJm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Aug 2013 09:22:49 -0400
-Message-ID: <52063E81.9040303@netscape.net>
-Date: Sat, 10 Aug 2013 10:22:09 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
+	Fri, 30 Aug 2013 08:09:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dinesh Ram <dinram@cisco.com>
+Subject: Re: [PATCH 0/6] si4713 : USB driver
+Date: Fri, 30 Aug 2013 14:09:25 +0200
+Cc: linux-media@vger.kernel.org, dinesh.ram@cern.ch
+References: <1377862104-15429-1-git-send-email-dinram@cisco.com>
+In-Reply-To: <1377862104-15429-1-git-send-email-dinram@cisco.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC 0/3] Experimental patches for ISDB-T on Mygica X8502/X8507
-References: <1375980712-9349-1-git-send-email-m.chehab@samsung.com> <5204311E.6070602@netscape.net> <20130809102410.73d896de@samsung.com>
-In-Reply-To: <20130809102410.73d896de@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201308301409.25475.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-El 09/08/13 10:24, Mauro Carvalho Chehab escribió:
-> Em Thu, 08 Aug 2013 21:00:30 -0300
-> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
->
->> Hi
->>
->>
->> El 08/08/13 13:51, Mauro Carvalho Chehab escribió:
->>> This is a first set of experimental patches for Mygica X8502/X8507.
->>>
->>> The last patch is just a very dirty hack, for testing purposes. I intend
->>> to get rid of it, but it is there to replace exactly the same changes that
->>> Alfredo reported to work on Kernel 3.2.
->>>
->>> I intend to remove it on a final series, eventually replacing by some
->>> other changes at mb86a20s.
->>>
->>> Alfredo,
->>>
->>> Please test, and send your tested-by, if this works for you.
->> tested-by:  Alfredo Delaiti <alfredodelaiti@netscape.net>
->>
->>
->>
->> two comments:
->>
->> two  "breaks":
->>
->> @@ -1106,6 +1112,8 @@ static int dvb_register(struct cx23885_tsport *port)
->>    				&i2c_bus2->i2c_adap,
->>    				&mygica_x8506_xc5000_config);
->>    		}
->> +		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
->> +		break;
->>    		break;
->>    		
->>
->> and I would add this on cx23885-cards.c (is not a patch):
->>
->>       case CX23885_BOARD_MYGICA_X8506:
->>       case CX23885_BOARD_MAGICPRO_PROHDTVE2:
->>       case CX23885_BOARD_MYGICA_X8507:
->>           /* GPIO-0 (0)Analog / (1)Digital TV */
->>           /* GPIO-1 reset XC5000 */
->> -        /* GPIO-2 reset LGS8GL5 / LGS8G75 */
->> +        /* GPIO-2 reset LGS8GL5 / LGS8G75 / MB86A20S */
->>           cx23885_gpio_enable(dev, GPIO_0 | GPIO_1 | GPIO_2, 1);
->>           cx23885_gpio_clear(dev, GPIO_1 | GPIO_2);
->>           mdelay(100);
->>           cx23885_gpio_set(dev, GPIO_0 | GPIO_1 | GPIO_2);
->>           mdelay(100);
->>           break;
->>
->>
->> Thanks again Mauro,
-> Thank you for your tests. I just pushed a new patch series addressing the
-> above, and getting rid of the horrible mb86a20s hack.
->
-> Please test it again, to see if the mb86a20s fixes also worked for you.
->
-> Thanks!
-> Mauro
+On Fri 30 August 2013 13:28:18 Dinesh Ram wrote:
+> This is a follow-up to the patch-series mailed on 21-Agu-2013 to the mailing list.
+> 
+> Please note that I will not be reachable at the cisco email id anymore. So please
+> send you comments and suggestions to my private email : dinesh.ram@cern.ch
 
-Thanks, it works, and now more faster, and I only tested with last 
-driver that have on git://linuxtv.org/media_build.git
+For patches 1-5:
 
-I hope with happiness see those patch on new kernels.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Again,Thannks
+Patch 6 has an issue, so I'll wait for the corrected version before Acking it.
 
-Alfredo
+Regards,
+
+	Hans
+
+> 
+> All the patches are on top of the latest version of the media-git tree as 
+> on 30-August-2013 (10:30 Europe time)
+> 
+> The main difference to the aforementioned patch series is that, in this series the 
+> radio-i2c-si4713.c is renamed to a more appropriate one - radio-platform-si4713.c. 
+> Ofcourse, this also involvs corrosponding changes in the Makefile and Kconfig 
+> in drivers/media/radio/si4713.
+> 
+> An entry is also added to the MAINTAINERS file.
+> 
+> This patch series adds USB support for the SiLabs development board 
+> which contains the Si4713 FM transmitter chip. 
+> 
+> This device can transmit audio through FM. 
+> It can transmit RDS and RBDS signals as well.
+> 
+> Documentation for this product can be accessed here :
+> http://www.silabs.com/products/audiovideo/fmtransmitters/Pages/si471213.aspx
+> 
+> 
+> In the source tree, drivers/media/radio has been reorganized to include a new folder 
+> drivers/media/radio/si4713 which  contains all the si4713 related files.
+> 
+> Modified and renamed files :
+> -----------------------------------
+> drivers/media/radio/si4713-i2c.c ==> drivers/media/radio/si4713/si4713.c
+> drivers/media/radio/si4713-i2c.h ==> drivers/media/radio/si4713/si4713.h
+> drivers/media/radio/radio-si4713.c ==> drivers/media/radio/si4713/radio-platform-si4713.c
+> 
+> New files :
+> -------------
+> drivers/media/radio/si4713/radio-usb-si4713.c
+> 
+> The existing i2c driver has been modified to add support for cases where the interrupt 
+> is not enabled. 
+> Checks have been introduced in several places in the code to test if an interrupt is set or not. 
+> The development board is plugged into the host through USB and does not use interrupts. 
+> To get a valid response, within a specified timeout, the device is polled instead.
+> 
+> 
+> The USB driver has been developed by analyzing the the USB traffic obtained by sniffing the USB bus.
+> A bunch of commands are sent during device startup, the specifics of which are not obvious.
+> Nevertheless they seem to be necessary for the proper fuctioning of the device.
+> 
+> Note : The i2c driver assumes a 2-wire bus mode.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
