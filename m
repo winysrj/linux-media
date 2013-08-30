@@ -1,110 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:54451 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754078Ab3HOKaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Aug 2013 06:30:03 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:39763 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755152Ab3H3CRs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Aug 2013 22:17:48 -0400
+Received: by mail-pd0-f182.google.com with SMTP id r10so1219488pdi.41
+        for <linux-media@vger.kernel.org>; Thu, 29 Aug 2013 19:17:48 -0700 (PDT)
+From: Pawel Osciak <posciak@chromium.org>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Yaroslav Zakharuk <slavikz@gmail.com>,
-	1173723@bugs.launchpad.net,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	<stable@vger.kernel.org>
-Subject: [PATCH] [media] gspca-ov534: don't call sd_start() from sd_init()
-Date: Thu, 15 Aug 2013 12:29:32 +0200
-Message-Id: <1376562572-10772-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <5205D969.4040301@gmail.com>
-References: <5205D969.4040301@gmail.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	Pawel Osciak <posciak@chromium.org>
+Subject: [PATCH v1 12/19] uvcvideo: Reorganize next buffer handling.
+Date: Fri, 30 Aug 2013 11:17:11 +0900
+Message-Id: <1377829038-4726-13-git-send-email-posciak@chromium.org>
+In-Reply-To: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sd_start() operates on device controls but after the conversion to the
-v4l2 control framework in commits 62bba5d and 1bd7d6a controls are
-initialized in sd_init_controls() which is called _after_ sd_init():
+Move getting the first buffer from the current queue to a uvc_queue function
+and out of the USB completion handler.
 
-The change fixes a NULL pointer dereference for Hercules Blog Webcam;
-the problem is observable since 3.6:
-
-  gspca_main: v2.14.0 registered
-  gspca_main: ov534-2.14.0 probing 06f8:3002
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
-  IP: [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
-  PGD 0
-  Oops: 0000 [#1] SMP
-  Modules linked in: gspca_ov534(+) gspca_main videodev rfcomm bnep ppdev bluetooth binfmt_misc snd_hda_codec_hdmi snd_hda_codec_realtek stir4200 irda crc_ccitt usblp snd_hda_intel snd_hda_codec snd_hwdep snd_pcm hid_generic snd_page_alloc snd_seq_midi snd_seq_midi_event usbhid snd_rawmidi snd_seq snd_seq_device snd_timer hid i915 snd psmouse drm_kms_helper serio_raw mei_me drm mei soundcore video i2c_algo_bit lpc_ich mac_hid coretemp lp parport firewire_ohci firewire_core crc_itu_t ahci libahci alx mdio r8169 mii [last unloaded: parport_pc]
-  CPU: 3 PID: 4352 Comm: modprobe Not tainted 3.11.0-031100rc2-generic #201307211535
-  Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Z77-DS3H, BIOS F9 09/19/2012
-  task: ffff8801c20f9770 ti: ffff8801ceaa0000 task.ti: ffff8801ceaa0000
-  RIP: 0010:[<ffffffffa03c1b01>]  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
-  RSP: 0018:ffff8801ceaa1af8  EFLAGS: 00010292
-  RAX: 0000000000000001 RBX: 0000000000000000 RCX: 000000000001988b
-  RDX: 000000000001988a RSI: ffffffffa032745a RDI: 0000000000000000
-  RBP: ffff8801ceaa1b28 R08: 0000000000017380 R09: ffffea0008419d80
-  R10: ffffffff81538f5a R11: 0000000000000002 R12: ffffffffa03273dc
-  R13: ffffffffa03273dc R14: 0000000000000000 R15: ffffffffa03270a0
-  FS:  00007f72d564a740(0000) GS:ffff88021f380000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 0000000000000050 CR3: 00000001bd1f0000 CR4: 00000000001407e0
-  Stack:
-   ffff8801ceaa1b28 ffffffffa0325cff ffff8801000001f4 ffff8801ceb44000
-   ffffffffa03273dc ffff8801ceb44000 ffff8801ceaa1b58 ffffffffa032688e
-   ffff8801ceb44000 ffffffffa03274f0 ffffffffa03274f0 ffff8801ceb44380
-  Call Trace:
-   [<ffffffffa0325cff>] ? sccb_w_array+0x3f/0x80 [gspca_ov534]
-   [<ffffffffa032688e>] sd_start+0xce/0x2b0 [gspca_ov534]
-   [<ffffffffa0326bf9>] sd_init+0x189/0x1e8 [gspca_ov534]
-   [<ffffffffa02a0c95>] gspca_dev_probe2+0x285/0x410 [gspca_main]
-   [<ffffffffa02a0e58>] gspca_dev_probe+0x38/0x60 [gspca_main]
-   [<ffffffffa0325081>] sd_probe+0x21/0x30 [gspca_ov534]
-   [<ffffffff8153c960>] usb_probe_interface+0x1c0/0x2f0
-   [<ffffffff8148758c>] really_probe+0x6c/0x330
-   [<ffffffff814879d7>] driver_probe_device+0x47/0xa0
-   [<ffffffff81487adb>] __driver_attach+0xab/0xb0
-   [<ffffffff81487a30>] ? driver_probe_device+0xa0/0xa0
-   [<ffffffff814857be>] bus_for_each_dev+0x5e/0x90
-   [<ffffffff8148714e>] driver_attach+0x1e/0x20
-   [<ffffffff81486bdc>] bus_add_driver+0x10c/0x290
-   [<ffffffff8148805d>] driver_register+0x7d/0x160
-   [<ffffffff8153b590>] usb_register_driver+0xa0/0x160
-   [<ffffffffa0067000>] ? 0xffffffffa0066fff
-   [<ffffffffa006701e>] sd_driver_init+0x1e/0x1000 [gspca_ov534]
-   [<ffffffff8100212a>] do_one_initcall+0xfa/0x1b0
-   [<ffffffff810578c3>] ? set_memory_nx+0x43/0x50
-   [<ffffffff81712e8d>] do_init_module+0x80/0x1d1
-   [<ffffffff810d2079>] load_module+0x4c9/0x5f0
-   [<ffffffff810cf7b0>] ? add_kallsyms+0x210/0x210
-   [<ffffffff810d2254>] SyS_init_module+0xb4/0x100
-   [<ffffffff817333ef>] tracesys+0xe1/0xe6
-  Code: a0 09 00 00 48 c7 c7 30 c3 3c a0 e8 7a 38 ca e0 eb cf 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5 53 48 89 fb 48 83 ec 28 <8b> 47 50 83 e8 05 83 f8 02 77 09 80 b8 20 8c 3c a0 00 74 1d 48
-  RIP  [<ffffffffa03c1b01>] v4l2_ctrl_g_ctrl+0x11/0x60 [videodev]
-   RSP <ffff8801ceaa1af8>
-  CR2: 0000000000000050
-  ---[ end trace 6786f15abfd2ac90 ]---
-
-Original bug report from:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1173723/
-
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-Tested-by: Yaroslav Zakharuk <slavikz@gmail.com>
-Cc: <stable@vger.kernel.org> # 3.6+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
 ---
- drivers/media/usb/gspca/ov534.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/usb/uvc/uvc_isight.c |  6 ++++--
+ drivers/media/usb/uvc/uvc_queue.c  | 14 ++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c  | 29 ++++++++++++-----------------
+ drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
+ 4 files changed, 33 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-index 2e28c81..03a33c4 100644
---- a/drivers/media/usb/gspca/ov534.c
-+++ b/drivers/media/usb/gspca/ov534.c
-@@ -1305,8 +1305,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 	ov534_set_led(gspca_dev, 1);
- 	sccb_w_array(gspca_dev, sensor_init[sd->sensor].val,
- 			sensor_init[sd->sensor].len);
--	if (sd->sensor == SENSOR_OV767x)
--		sd_start(gspca_dev);
-+
- 	sd_stopN(gspca_dev);
- /*	set_frame_rate(gspca_dev);	*/
+diff --git a/drivers/media/usb/uvc/uvc_isight.c b/drivers/media/usb/uvc/uvc_isight.c
+index 8510e72..ab01286 100644
+--- a/drivers/media/usb/uvc/uvc_isight.c
++++ b/drivers/media/usb/uvc/uvc_isight.c
+@@ -99,10 +99,12 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
+ 	return 0;
+ }
  
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf)
++void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream)
+ {
+ 	int ret, i;
++	struct uvc_buffer *buf;
++
++	buf = uvc_queue_get_first_buf(&stream->queue);
+ 
+ 	for (i = 0; i < urb->number_of_packets; ++i) {
+ 		if (urb->iso_frame_desc[i].status < 0) {
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index cd962be..55d2670 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -352,6 +352,20 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ }
+ 
++struct uvc_buffer *uvc_queue_get_first_buf(struct uvc_video_queue *queue)
++{
++	struct uvc_buffer *buf = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&queue->irqlock, flags);
++	if (!list_empty(&queue->irqqueue))
++		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
++					queue);
++	spin_unlock_irqrestore(&queue->irqlock, flags);
++
++	return buf;
++}
++
+ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf)
+ {
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index b4ebccd..2f9a5fa 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1193,11 +1193,11 @@ static int uvc_video_encode_data(struct uvc_streaming *stream,
+ /*
+  * Completion handler for video URBs.
+  */
+-static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream)
+ {
+ 	u8 *mem;
+ 	int ret, i;
++	struct uvc_buffer *buf = NULL;
+ 
+ 	for (i = 0; i < urb->number_of_packets; ++i) {
+ 		if (urb->iso_frame_desc[i].status < 0) {
+@@ -1211,6 +1211,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 
+ 		/* Decode the payload header. */
+ 		mem = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
++		buf = uvc_queue_get_first_buf(&stream->queue);
+ 		do {
+ 			ret = uvc_video_decode_start(stream, buf, mem,
+ 				urb->iso_frame_desc[i].actual_length);
+@@ -1241,11 +1242,11 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream)
+ {
+ 	u8 *mem;
+ 	int len, ret;
++	struct uvc_buffer *buf;
+ 
+ 	/*
+ 	 * Ignore ZLPs if they're not part of a frame, otherwise process them
+@@ -1258,6 +1259,8 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 	len = urb->actual_length;
+ 	stream->bulk.payload_size += len;
+ 
++	buf = uvc_queue_get_first_buf(&stream->queue);
++
+ 	/* If the URB is the first of its payload, decode and save the
+ 	 * header.
+ 	 */
+@@ -1309,12 +1312,13 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream)
+ {
+ 	u8 *mem = urb->transfer_buffer;
+ 	int len = stream->urb_size, ret;
++	struct uvc_buffer *buf;
+ 
++	buf = uvc_queue_get_first_buf(&stream->queue);
+ 	if (buf == NULL) {
+ 		urb->transfer_buffer_length = 0;
+ 		return;
+@@ -1355,9 +1359,6 @@ static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ static void uvc_video_complete(struct urb *urb)
+ {
+ 	struct uvc_streaming *stream = urb->context;
+-	struct uvc_video_queue *queue = &stream->queue;
+-	struct uvc_buffer *buf = NULL;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	switch (urb->status) {
+@@ -1374,17 +1375,11 @@ static void uvc_video_complete(struct urb *urb)
+ 
+ 	case -ECONNRESET:	/* usb_unlink_urb() called. */
+ 	case -ESHUTDOWN:	/* The endpoint is being disabled. */
+-		uvc_queue_cancel(queue, urb->status == -ESHUTDOWN);
++		uvc_queue_cancel(&stream->queue, urb->status == -ESHUTDOWN);
+ 		return;
+ 	}
+ 
+-	spin_lock_irqsave(&queue->irqlock, flags);
+-	if (!list_empty(&queue->irqqueue))
+-		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+-				       queue);
+-	spin_unlock_irqrestore(&queue->irqlock, flags);
+-
+-	stream->decode(urb, stream, buf);
++	stream->decode(urb, stream);
+ 
+ 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 46ffd92..bca8715 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -482,8 +482,7 @@ struct uvc_streaming {
+ 	/* Buffers queue. */
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
+-	void (*decode) (struct urb *urb, struct uvc_streaming *video,
+-			struct uvc_buffer *buf);
++	void (*decode) (struct urb *urb, struct uvc_streaming *video);
+ 
+ 	/* Context data used by the bulk completion handler. */
+ 	struct {
+@@ -659,6 +658,7 @@ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf, int nonblocking);
+ extern int uvc_queue_enable(struct uvc_video_queue *queue, int enable);
+ extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
++struct uvc_buffer *uvc_queue_get_first_buf(struct uvc_video_queue *queue);
+ extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf);
+ extern int uvc_queue_mmap(struct uvc_video_queue *queue,
+@@ -751,8 +751,7 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
+ 		struct usb_host_interface *alts, __u8 epaddr);
+ 
+ /* Quirks support */
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf);
++void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream);
+ 
+ /* debugfs and statistics */
+ int uvc_debugfs_init(void);
 -- 
-1.8.4.rc2
+1.8.4
 
