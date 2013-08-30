@@ -1,67 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9635 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976Ab3HTMUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Aug 2013 08:20:37 -0400
-Message-ID: <52135F04.80700@redhat.com>
-Date: Tue, 20 Aug 2013 14:20:20 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: Re: [PATCH] [media] gspca: fix dev_open() error path
-References: <1375733797-7002-1-git-send-email-khoroshilov@ispras.ru>
-In-Reply-To: <1375733797-7002-1-git-send-email-khoroshilov@ispras.ru>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-1.atlantis.sk ([80.94.52.57]:57458 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755899Ab3H3Uyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 16:54:35 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/3] gspca: Support variable resolution
+Date: Fri, 30 Aug 2013 22:54:24 +0200
+Message-Id: <1377896065-29392-2-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1377896065-29392-1-git-send-email-linux@rainbow-software.org>
+References: <1377896065-29392-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add variable resolution support to gspca by allowing subdrivers to
+specify try_fmt and enum_framesizes functions.
 
-Thanks for the patch I've added this to my "gspca" tree, and this
-will be included in my next pull-request to Mauro for 3.12
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/usb/gspca/gspca.c |   20 ++++++++++++++------
+ drivers/media/usb/gspca/gspca.h |    6 ++++++
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-Regards,
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 9ffcce6..423c7c8 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1133,6 +1133,12 @@ static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
+ 			mode = mode2;
+ 	}
+ 	fmt->fmt.pix = gspca_dev->cam.cam_mode[mode];
++	if (gspca_dev->sd_desc->try_fmt) {
++		/* pass original resolution to subdriver try_fmt */
++		fmt->fmt.pix.width = w;
++		fmt->fmt.pix.height = h;
++		gspca_dev->sd_desc->try_fmt(gspca_dev, fmt);
++	}
+ 	/* some drivers use priv internally, zero it before giving it to
+ 	   userspace */
+ 	fmt->fmt.pix.priv = 0;
+@@ -1171,17 +1177,16 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 		goto out;
+ 	}
+ 
+-	if (ret == gspca_dev->curr_mode) {
+-		ret = 0;
+-		goto out;			/* same mode */
+-	}
+-
+ 	if (gspca_dev->streaming) {
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
+ 	gspca_dev->curr_mode = ret;
+-	gspca_dev->pixfmt = gspca_dev->cam.cam_mode[ret];
++	if (gspca_dev->sd_desc->try_fmt)
++		/* subdriver try_fmt can modify format parameters */
++		gspca_dev->pixfmt = fmt->fmt.pix;
++	else
++		gspca_dev->pixfmt = gspca_dev->cam.cam_mode[ret];
+ 
+ 	ret = 0;
+ out:
+@@ -1196,6 +1201,9 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
+ 	int i;
+ 	__u32 index = 0;
+ 
++	if (gspca_dev->sd_desc->enum_framesizes)
++		return gspca_dev->sd_desc->enum_framesizes(gspca_dev, fsize);
++
+ 	for (i = 0; i < gspca_dev->cam.nmodes; i++) {
+ 		if (fsize->pixel_format !=
+ 				gspca_dev->cam.cam_mode[i].pixelformat)
+diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+index 0f3d150..300642d 100644
+--- a/drivers/media/usb/gspca/gspca.h
++++ b/drivers/media/usb/gspca/gspca.h
+@@ -88,6 +88,10 @@ typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
+ typedef int (*cam_int_pkt_op) (struct gspca_dev *gspca_dev,
+ 				u8 *data,
+ 				int len);
++typedef void (*cam_format_op) (struct gspca_dev *gspca_dev,
++				struct v4l2_format *fmt);
++typedef int (*cam_frmsize_op) (struct gspca_dev *gspca_dev,
++				struct v4l2_frmsizeenum *fsize);
+ 
+ /* subdriver description */
+ struct sd_desc {
+@@ -109,6 +113,8 @@ struct sd_desc {
+ 	cam_set_jpg_op set_jcomp;
+ 	cam_streamparm_op get_streamparm;
+ 	cam_streamparm_op set_streamparm;
++	cam_format_op try_fmt;
++	cam_frmsize_op enum_framesizes;
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	cam_set_reg_op set_register;
+ 	cam_get_reg_op get_register;
+-- 
+Ondrej Zary
 
-Hans
-
-On 08/05/2013 10:16 PM, Alexey Khoroshilov wrote:
-> If v4l2_fh_open() fails in dev_open(), gspca_dev->module left locked.
-> The patch adds module_put(gspca_dev->module) on this path.
->
-> Found by Linux Driver Verification project (linuxtesting.org).
->
-> Signed-off-by: Alexey Khoroshilov<khoroshilov@ispras.ru>
-> ---
->   drivers/media/usb/gspca/gspca.c | 6 +++++-
->   1 file changed, 5 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> index b7ae872..048507b 100644
-> --- a/drivers/media/usb/gspca/gspca.c
-> +++ b/drivers/media/usb/gspca/gspca.c
-> @@ -1266,6 +1266,7 @@ static void gspca_release(struct v4l2_device *v4l2_device)
->   static int dev_open(struct file *file)
->   {
->   	struct gspca_dev *gspca_dev = video_drvdata(file);
-> +	int ret;
->
->   	PDEBUG(D_STREAM, "[%s] open", current->comm);
->
-> @@ -1273,7 +1274,10 @@ static int dev_open(struct file *file)
->   	if (!try_module_get(gspca_dev->module))
->   		return -ENODEV;
->
-> -	return v4l2_fh_open(file);
-> +	ret = v4l2_fh_open(file);
-> +	if (ret)
-> +		module_put(gspca_dev->module);
-> +	return ret;
->   }
->
->   static int dev_close(struct file *file)
-> -- 1.8.1.2
->
