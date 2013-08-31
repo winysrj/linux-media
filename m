@@ -1,102 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:47441 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752196Ab3HUGfq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42551 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753916Ab3HaVlx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:35:46 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v7 11/13] [media] exynos5-is: Add Kconfig and Makefile
-Date: Wed, 21 Aug 2013 12:04:38 +0530
-Message-Id: <1377066881-5423-12-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
+	Sat, 31 Aug 2013 17:41:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Sat, 31 Aug 2013 23:43:18 +0200
+Message-ID: <2062971.KPW0FZTQyQ@avalon>
+In-Reply-To: <20130830160847.GI2835@valkosipuli.retiisi.org.uk>
+References: <201308281419.52009.hverkuil@xs4all.nl> <8949750.QPjOLDxmxg@avalon> <20130830160847.GI2835@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds Kconfig and Makefile for exynos5-is driver files.
+Hi Sakari,
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/Kconfig             |    1 +
- drivers/media/platform/Makefile            |    1 +
- drivers/media/platform/exynos5-is/Kconfig  |   20 ++++++++++++++++++++
- drivers/media/platform/exynos5-is/Makefile |    7 +++++++
- 4 files changed, 29 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
+On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
+> On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
+> > On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
+> > > On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
+> > > > On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
+> > > > > On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart wrote:
+> > > > > ...
+> > > > > 
+> > > > > > > > UVC devices timestamp frames when the frame is captured, not
+> > > > > > > > when the first pixel is transmitted.
+> > > > > > > 
+> > > > > > > I.e. we shouldn't set the SOF flag? "When the frame is captured"
+> > > > > > > doesn't say much, or almost anything in terms of *when*. The
+> > > > > > > frames have exposure time and rolling shutter makes a
+> > > > > > > difference, too.
+> > > > > > 
+> > > > > > The UVC 1.1 specification defines the timestamp as
+> > > > > > 
+> > > > > > "The source clock time in native deviceclock units when the raw
+> > > > > > frame capture begins."
+> > > > > > 
+> > > > > > What devices do in practice may differ :-)
+> > > > > 
+> > > > > I think that this should mean start-of-frame - exposure time. I'd
+> > > > > really wonder if any practical implementation does that however.
+> > > > 
+> > > > It's start-of-frame - exposure time - internal delays (UVC webcams are
+> > > > supposed to report their internal delay value as well).
+> > > 
+> > > Do they report it? How about the exposure time?
+> > 
+> > It's supposed to be configurable.
+> 
+> Is the exposure reported with the frame so it could be used to construct the
+> per-frame SOF timestamp?
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 08de865..4b0475e 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -123,6 +123,7 @@ config VIDEO_S3C_CAMIF
- 
- source "drivers/media/platform/soc_camera/Kconfig"
- source "drivers/media/platform/exynos4-is/Kconfig"
-+source "drivers/media/platform/exynos5-is/Kconfig"
- source "drivers/media/platform/s5p-tv/Kconfig"
- 
- endif # V4L_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index eee28dd..40bf09f 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
- 
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
-diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
-new file mode 100644
-index 0000000..b67d11a
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Kconfig
-@@ -0,0 +1,20 @@
-+config VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+	bool "Samsung Exynos5 SoC Camera Media Device driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
-+	depends on VIDEO_SAMSUNG_EXYNOS4_IS
-+	help
-+	  This is a V4L2 media device driver for Exynos5 SoC series
-+	  camera subsystem.
-+
-+if VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+
-+config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
-+	tristate "Samsung Exynos5 SoC FIMC-IS driver"
-+	depends on I2C && OF
-+	depends on VIDEO_EXYNOS4_FIMC_IS
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  This is a V4L2 driver for Samsung Exynos5 SoC series Imaging
-+	  Subsystem known as FIMC-IS.
-+
-+endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
-diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
-new file mode 100644
-index 0000000..6cdb037
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Makefile
-@@ -0,0 +1,7 @@
-+ccflags-y += -Idrivers/media/platform/exynos4-is
-+exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o
-+exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o fimc-is-sensor.o
-+exynos-mdevice-objs := exynos5-mdev.o
-+
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos-mdevice.o
+Not when auto-exposure is turned on I'm afraid :-S
+
+I believe that the capture timestamp makes more sense than the SOF timestamp 
+for applications. SOF/EOF are more of a poor man's timestamp in case nothing 
+else is available, but when you want to synchronize multiple audio and/or 
+video streams the capture timestamp is what you're interested in. I don't 
+think converting a capture timestamp to an SOF would be a good idea.
+
+> > > If you know them all you can calculate the SOF timestamp. The fewer
+> > > timestamps are available for user programs the better.
+> > > 
+> > > It's another matter then if there are webcams that report these values
+> > > wrong.
+> > 
+> > There most probably are :-)
+> > 
+> > > Then you could get timestamps that are complete garbage. But I guess you
+> > > could compare them to the current monotonic timestamp and detect such
+> > > cases.
+> > >
+> > > > > What's your suggestion; should we use the SOF flag for this or do
+> > > > > you prefer the end-of-frame timestamp instead? I think it'd be quite
+> > > > > nice for drivers to know which one is which without having to guess,
+> > > > > and based on the above start-of-frame comes as close to that
+> > > > > definition as is meaningful.
+> > > > 
+> > > > SOF is better than EOF. Do we need a start-of-capture flag, or could
+> > > > we document SOF as meaning start-of-capture or start-of-reception
+> > > > depending on what the device can do ?
+> > > 
+> > > One possibility is to dedicate a few flags for this; by using three bits
+> > > we'd get eight different timestamps already. But I have to say that
+> > > fewer is better. :-)
+> > 
+> > Does it really need to be a per-buffer flag ? This seems to be a
+> > driver-wide (or at least device-wide) behaviour to me.
+> 
+> Same goes for timestamp clock sources. It was concluded to use buffer flags
+> for those as well.
+
+Yes, and I don't think I was convinced, so I'm not convinced here either :-)
+
+> Using a control for the purpose would however require quite non-zero amount
+> of initialisation code from each driver so that would probably need to be
+> sorted out first.
+
+We could also use a capabilities flag.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
