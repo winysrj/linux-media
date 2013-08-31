@@ -1,71 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2267 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756011Ab3HLK7e (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42215 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997Ab3HaU2I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Aug 2013 06:59:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
-	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 05/10] v4l2: add a motion detection event.
-Date: Mon, 12 Aug 2013 12:58:28 +0200
-Message-Id: <1376305113-17128-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
-References: <1376305113-17128-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 31 Aug 2013 16:28:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: purchase@utopiacontrol.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: Fw: Memory acquisition problem with yavta and media control.
+Date: Sat, 31 Aug 2013 22:29:34 +0200
+Message-ID: <1475404.9MHgQaVtRD@avalon>
+In-Reply-To: <F74E216C170F4219AAD7D7D3D5CDFF61@store>
+References: <F74E216C170F4219AAD7D7D3D5CDFF61@store>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Nilesh,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+On Saturday 31 August 2013 10:07:14 purchase@utopiacontrol.com wrote:
+> //=================================
+> linux-media@vger.kernel.org
+> laurent.pinchart@ideasonboard.com
+> //=================================
+> 
+> Hi laurent pinchart,
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 605d295..918f397 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_MOTION_DET			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
-+
-+/**
-+ * struct v4l2_event_motion_det - motion detection event
-+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-+ *                     frame_sequence field is valid.
-+ * @frame_sequence:    the frame sequence number associated with this event.
-+ * @region_mask:       which regions detected motion.
-+ */
-+struct v4l2_event_motion_det {
-+	__u32 flags;
-+	__u32 frame_sequence;
-+	__u32 region_mask;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_motion_det	motion_det;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
+Just Laurent will do :-)
+
+> You have done a great work for snapshot mode image sensor driver for linux.
+> I am using your media control tool with yavta test application for
+> interfacing the mt9v032 image sensor with Gumstix Overo Water Com board. I
+> have successfully tested the snapshot mode with this combination. But the
+> problem is that, when I attempt to grab lots of images (thousands) of images
+> by this test application yavta. I found that the free memory goes increasing
+> by some amount which will not get free. Afterwards I have calculate the
+> amount of ram acquires on every snap is about 0.618 KB (after averaging
+> 100000 frames). Will you please Give me any reason why this is happening
+> with this test application? And how can I get overcome on this problem.
+
+That's definitely not expected and should be debugged. First of all, is the 
+memory released when you stop yavta ? If it isn't then we have a kernel bug, 
+if it is the bug could be either on the kernel side or the application side.
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
