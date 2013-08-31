@@ -1,61 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46224 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3H1Jsi (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46475 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753674Ab3HaQVl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 05:48:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-Date: Wed, 28 Aug 2013 11:50 +0200
-Message-ID: <10693086.5dU3qYIIgB@avalon>
-In-Reply-To: <20130828062752.18604873@samsung.com>
-References: <520E76E7.30201@googlemail.com> <521DBC3A.7090604@samsung.com> <20130828062752.18604873@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 31 Aug 2013 12:21:41 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v1.1 3/5] media: Pads that are not connected by even a disabled link are fine
+Date: Sat, 31 Aug 2013 19:28:06 +0300
+Message-Id: <1377966487-22565-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1611138.kmhZXgyzhc@avalon>
+References: <1611138.kmhZXgyzhc@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Do not require a connected link to a pad if a pad has no links connected to
+it.
 
-On Wednesday 28 August 2013 06:27:52 Mauro Carvalho Chehab wrote:
-> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-> > On 08/27/2013 06:00 PM, Mauro Carvalho Chehab wrote:
-> > >>> > > The thing is that you're wanting to use the clock register as a
-> > >>> > > way to detect that the device got initialized.
-> > >> > 
-> > >> > I'm not sure to follow you there, I don't think that's how I want to
-> > >> > use the clock. Could you please elaborate ?
-> > > 
-> > > As Sylwester pointed, the lack of clock register makes ov2640 to defer
-> > > probing, as it assumes that the sensor is not ready.
-> > 
-> > Hmm, actually there are two drivers here - the sensor driver defers its
-> > probing() when a clock provided by the bridge driver is missing. Thus
-> > let's not misunderstand it that missing clock is used as an indication
-> > of the sensor not being ready. It merely means that the clock provider
-> > (which in this case is the bridge driver) has not initialized yet.
-> > It's pretty standard situation, the sensor doesn't know who provides
-> > the clock but it knows it needs the clock and when that's missing it
-> > defers its probe().
-> 
-> On an always on clock, there's no sense on defer probe.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Hi Laurent,
 
-The point is that the sensor driver doesn't know whether the clock is always 
-on or not, so it must defer the probe if the clock object isn't available 
-(remember that even for always-on clocks the sensor driver often needs to 
-query the clock rate). That won't happen in this case as the sensor device is 
-instanciated by the em28xx driver, so the clock object will always be 
-available.
+This goes on top of patch 2/4. I can combine the two in the end but I think
+this is cleaner as a separate change.
 
+ drivers/media/media-entity.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index a99396b..2ad291f 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -236,6 +236,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		DECLARE_BITMAP(active, entity->num_pads);
++		DECLARE_BITMAP(has_no_links, entity->num_pads);
+ 		unsigned int i;
+ 
+ 		entity->stream_count++;
+@@ -250,6 +251,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 			continue;
+ 
+ 		bitmap_zero(active, entity->num_pads);
++		bitmap_fill(has_no_links, entity->num_pads);
+ 
+ 		for (i = 0; i < entity->num_links; i++) {
+ 			struct media_link *link = &entity->links[i];
+@@ -257,6 +259,11 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 				? link->sink : link->source;
+ 
+ 			/*
++			 * Mark that a pad is connected by a link.
++			 */
++			bitmap_clear(has_no_links, pad->index, 1);
++
++			/*
+ 			 * Pads that either do not need to connect or
+ 			 * are connected through an enabled link are
+ 			 * fine.
+@@ -278,6 +285,9 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 				goto error;
+ 		}
+ 
++		/* Either no links or validated links are fine. */
++		bitmap_or(active, active, has_no_links, entity->num_pads);
++
+ 		if (!bitmap_full(active, entity->num_pads)) {
+ 			ret = -EPIPE;
+ 			goto error;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
