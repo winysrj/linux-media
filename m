@@ -1,76 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:57771 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab3HEFMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Aug 2013 01:12:13 -0400
-Received: by mail-ob0-f182.google.com with SMTP id wo10so4790854obc.27
-        for <linux-media@vger.kernel.org>; Sun, 04 Aug 2013 22:12:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1375425134-17080-2-git-send-email-sachin.kamat@linaro.org>
-References: <1375425134-17080-1-git-send-email-sachin.kamat@linaro.org>
-	<1375425134-17080-2-git-send-email-sachin.kamat@linaro.org>
-Date: Mon, 5 Aug 2013 10:42:12 +0530
-Message-ID: <CAK9yfHyhDyoAphFC=MtDxtCedhN8-A=+gtXKZevsFg=JYq=ZUQ@mail.gmail.com>
-Subject: Re: [PATCH 2/3] [media] exynos4-is: Annotate unused functions
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: sachin.kamat@linaro.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4069 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab3HaCym (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Aug 2013 22:54:42 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r7V2sdE1054782
+	for <linux-media@vger.kernel.org>; Sat, 31 Aug 2013 04:54:41 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 256EF2A0761
+	for <linux-media@vger.kernel.org>; Sat, 31 Aug 2013 04:54:31 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130831025431.256EF2A0761@tschai.lan>
+Date: Sat, 31 Aug 2013 04:54:31 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 2 August 2013 12:02, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> __is_set_init_isp_aa and fimc_is_hw_set_tune currently do not have
-> any callers. However these functions may be used in the future. Hence
-> instead of deleting them, staticize and annotate them with __maybe_unused
-> flag to avoid compiler warnings.
->
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Results of the daily build of media_tree:
 
-Thanks for applying the other 2 patches in this series. What is your
-opinion about this one?
-Does this look good or do you prefer to delete the code altogether?
+date:		Sat Aug 31 04:00:14 CEST 2013
+git branch:	test
+git hash:	26a20eb09d44dc064c4f5d1f024bd501c09edb4b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-> ---
->  drivers/media/platform/exynos4-is/fimc-is-param.c |    2 +-
->  drivers/media/platform/exynos4-is/fimc-is-regs.c  |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
-> index a353be0..9bf3ddd 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-is-param.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
-> @@ -287,7 +287,7 @@ void __is_set_sensor(struct fimc_is *is, int fps)
->         fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
->  }
->
-> -void __is_set_init_isp_aa(struct fimc_is *is)
-> +static void __maybe_unused __is_set_init_isp_aa(struct fimc_is *is)
->  {
->         struct isp_param *isp;
->
-> diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-> index 63c68ec..cf2e13a 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-> @@ -96,7 +96,7 @@ int fimc_is_hw_set_param(struct fimc_is *is)
->         return 0;
->  }
->
-> -int fimc_is_hw_set_tune(struct fimc_is *is)
-> +static int __maybe_unused fimc_is_hw_set_tune(struct fimc_is *is)
->  {
->         fimc_is_hw_wait_intmsr0_intmsd0(is);
->
-> --
-> 1.7.9.5
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-With warm regards,
-Sachin
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
