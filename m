@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37591 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466Ab3H3Lr2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:47:28 -0400
-Date: Fri, 30 Aug 2013 13:47:24 +0200 (CEST)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Dinesh Ram <dinram@cisco.com>
-Cc: linux-media@vger.kernel.org, dinesh.ram@cern.ch,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 4/6] si4713 : HID blacklist Si4713 USB development
- board
-In-Reply-To: <228d4c6c3c411f4f5aad408d5bff88bb09a82e4e.1377861337.git.dinram@cisco.com>
-Message-ID: <alpine.LNX.2.00.1308301346480.23267@pobox.suse.cz>
-References: <1377862104-15429-1-git-send-email-dinram@cisco.com> <228d4c6c3c411f4f5aad408d5bff88bb09a82e4e.1377861337.git.dinram@cisco.com>
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:34853 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415Ab3HaQvI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Aug 2013 12:51:08 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <5221A28B.3060009@t-online.de>
+References: <521A269D.3020909@t-online.de>
+	<521C5493.1050407@cisco.com>
+	<521C72FF.5070902@t-online.de>
+	<5221A28B.3060009@t-online.de>
+Date: Sat, 31 Aug 2013 09:51:07 -0700
+Message-ID: <CA+55aFzau2ocCcBmV8Z7ULaom4vgTJ_J5gsQxAWpx=Q91ERiRQ@mail.gmail.com>
+Subject: Re: [REGRESSION 3.11-rc1+] wm8775 9-001b: I2C: cannot write ??? to
+ register R??
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Knut Petersen <Knut_Petersen@t-online.de>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Aug 2013, Dinesh Ram wrote:
+On Sat, Aug 31, 2013 at 1:00 AM, Knut Petersen
+<Knut_Petersen@t-online.de> wrote:
+> Hi Linus!
+>
+> It would be nice to have head cx88fix of
+> git.linuxtv.org/hverkuil/media_tree.git
+> (git.linuxtv.org/hverkuil/media_tree.git/commit/5dce3635bf803cfe9dde84e00f5f9594439e6c02)
+> in 3.11 as it is a trivial and tested fix for a regression introduced
+> between 3.10 and 3.11-rc1.
 
-> The Si4713 development board contains a Si4713 FM transmitter chip
-> and is handled by the radio-usb-si4713 driver.
-> The board reports itself as (10c4:8244) Cygnal Integrated Products, Inc.
-> and misidentifies itself as a HID device in its USB interface descriptor.
-> This patch ignores this device as an HID device and hence loads the custom driver.
-> 
-> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+I can't take partial pull requests - I can take individual patches
+from email (with proper sign-off chains etc, of course), but I don't
+do "take this patch from this git tree". Git pulls need to go through
+the tree owner and with all the normal pull request rules, and the
+rest of that tree doesn't look critical.
 
-	Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-
-Please feel free to take it together with my sigoff with the rest of the 
-series.
-
--- 
-Jiri Kosina
-SUSE Labs
+                Linus
