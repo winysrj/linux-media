@@ -1,80 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:47861 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3H1QNt (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46657 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753501Ab3HaRxA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Aug 2013 12:13:49 -0400
-From: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-To: kyungmin.park@samsung.com
-Cc: t.stanislaws@samsung.com, m.chehab@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rob.herring@calxeda.com,
-	pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org,
-	ian.campbell@citrix.com, rob@landley.net, mturquette@linaro.org,
-	tomasz.figa@gmail.com, kgene.kim@samsung.com,
-	thomas.abraham@linaro.org, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux@arm.linux.org.uk, ben-linux@fluff.org,
-	linux-samsung-soc@vger.kernel.org,
-	Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-Subject: [PATCH v3 0/6] ARM: S5PV210: move to common clk framework
-Date: Wed, 28 Aug 2013 18:12:58 +0200
-Message-id: <1377706384-3697-1-git-send-email-m.krawczuk@partner.samsung.com>
+	Sat, 31 Aug 2013 13:53:00 -0400
+Date: Sat, 31 Aug 2013 20:52:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v1 18/19] v4l: Add V4L2_PIX_FMT_VP8_SIMULCAST format.
+Message-ID: <20130831175256.GC4216@valkosipuli.retiisi.org.uk>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+ <1377829038-4726-19-git-send-email-posciak@chromium.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1377829038-4726-19-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is the new s5pv210 clock implementation
-(using common clk framework).
+Hi Pawel,
 
-This implementation is compatible with device tree definition and board files.
+Thanks for the patchset.
 
-This patch series is based on linux-next and has been tested on goni and aquila 
-boards using board file.
+On Fri, Aug 30, 2013 at 11:17:17AM +0900, Pawel Osciak wrote:
+> This format is used by UVC 1.5 VP8-encoding cameras. When it is used, the camera
+> may encode captured frames into one or more streams, each of which may
+> be configured differently. This allows simultaneous capture of streams
+> with different resolutions, bitrates, and other settings, depending on the
+> camera capabilities.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  include/uapi/linux/videodev2.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index c011ee0..8b0d4ad 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -402,6 +402,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+>  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+>  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+> +#define V4L2_PIX_FMT_VP8_SIMULCAST v4l2_fourcc('V', 'P', '8', 'S') /* VP8 simulcast */
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+> @@ -691,6 +692,9 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_PREV_FRAME		0x10000  /* VP8 prev frame */
+>  #define V4L2_BUF_FLAG_GOLDEN_FRAME		0x20000  /* VP8 golden frame */
+>  #define V4L2_BUF_FLAG_ALTREF_FRAME		0x40000  /* VP8 altref frame */
+> +/* Simulcast layer structure. */
+> +#define V4L2_BUF_FLAG_LAYER_STRUCTURE_SHIFT	19  /* Bits 19-20 for layer */
+> +#define V4L2_BUF_FLAG_LAYER_STRUCTURE_MASK	0x3 /* structure information. */
 
-This patch series require adding new registration method
-for PLL45xx and PLL46xx, which is included in this patch series:
-clk: samsung: pll: Use new registration method for PLL46xx
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21653.html
-clk: samsung: pll: Use new registration method for PLL45xx
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg21652.html
-clk: samsung: exynos4: Rename exynos4_plls to exynos4x12_plls
-http://www.spinics.net/lists/arm-kernel/msg268486.html
-
-Mateusz Krawczuk (6):
-  media: s5p-tv: Replace mxr_ macro by default dev_
-  media: s5p-tv: Restore vpll clock rate
-  media: s5p-tv: Fix sdo driver to work with CCF
-  media: s5p-tv: Fix mixer driver to work with CCF
-  clk: samsung: Add clock driver for s5pc110/s5pv210
-  ARM: s5pv210: Migrate clock handling to Common Clock Framework
-
- .../bindings/clock/samsung,s5pv210-clock.txt       |  72 ++
- arch/arm/mach-s5pv210/Kconfig                      |   9 +
- arch/arm/mach-s5pv210/Makefile                     |   4 +-
- arch/arm/mach-s5pv210/common.c                     |  17 +
- arch/arm/mach-s5pv210/common.h                     |  13 +
- arch/arm/mach-s5pv210/mach-aquila.c                |   1 +
- arch/arm/mach-s5pv210/mach-goni.c                  |   3 +-
- arch/arm/mach-s5pv210/mach-smdkc110.c              |   1 +
- arch/arm/mach-s5pv210/mach-smdkv210.c              |   1 +
- arch/arm/mach-s5pv210/mach-torbreck.c              |   1 +
- arch/arm/plat-samsung/Kconfig                      |   2 +-
- arch/arm/plat-samsung/init.c                       |   2 -
- drivers/clk/samsung/Makefile                       |   3 +
- drivers/clk/samsung/clk-s5pv210.c                  | 732 +++++++++++++++++++++
- drivers/media/platform/s5p-tv/mixer.h              |  12 -
- drivers/media/platform/s5p-tv/mixer_drv.c          |  80 ++-
- drivers/media/platform/s5p-tv/mixer_grp_layer.c    |   2 +-
- drivers/media/platform/s5p-tv/mixer_reg.c          |   6 +-
- drivers/media/platform/s5p-tv/mixer_video.c        | 100 +--
- drivers/media/platform/s5p-tv/mixer_vp_layer.c     |   2 +-
- drivers/media/platform/s5p-tv/sdo_drv.c            |  45 +-
- include/dt-bindings/clock/samsung,s5pv210-clock.h  | 221 +++++++
- 22 files changed, 1216 insertions(+), 113 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/samsung,s5pv210-clock.txt
- create mode 100644 drivers/clk/samsung/clk-s5pv210.c
- create mode 100644 include/dt-bindings/clock/samsung,s5pv210-clock.h
+What do these bits signify? It'd be also nice to document them.
 
 -- 
-1.8.1.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
