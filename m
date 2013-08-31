@@ -1,118 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54168 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751487Ab3HUKqW (ORCPT
+Received: from mailout02.t-online.de ([194.25.134.17]:52070 "EHLO
+	mailout02.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956Ab3HaIAV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Aug 2013 06:46:22 -0400
-Date: Wed, 21 Aug 2013 13:45:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [RFC] Motion Detection API
-Message-ID: <20130821104547.GB20717@valkosipuli.retiisi.org.uk>
-References: <201305061541.41204.hverkuil@xs4all.nl>
- <2428502.07isB1rKTR@avalon>
- <201305071435.30062.hverkuil@xs4all.nl>
- <518909DA.8000407@samsung.com>
- <20130508162648.GG1075@valkosipuli.retiisi.org.uk>
- <518ACDDA.3080908@gmail.com>
- <20130521173037.GD2041@valkosipuli.retiisi.org.uk>
- <519D3B9E.4090800@gmail.com>
- <20130603012559.GA2075@valkosipuli.retiisi.org.uk>
- <51B4C1C7.7050002@gmail.com>
+	Sat, 31 Aug 2013 04:00:21 -0400
+Message-ID: <5221A28B.3060009@t-online.de>
+Date: Sat, 31 Aug 2013 10:00:11 +0200
+From: Knut Petersen <Knut_Petersen@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <51B4C1C7.7050002@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Hans Verkuil <hansverk@cisco.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [REGRESSION 3.11-rc1+] wm8775 9-001b: I2C: cannot write ??? to register
+ R??
+References: <521A269D.3020909@t-online.de> <521C5493.1050407@cisco.com> <521C72FF.5070902@t-online.de>
+In-Reply-To: <521C72FF.5070902@t-online.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Linus!
 
-My apologies for the delayed answer.
+It would be nice to have head cx88fix of git.linuxtv.org/hverkuil/media_tree.git
+(git.linuxtv.org/hverkuil/media_tree.git/commit/5dce3635bf803cfe9dde84e00f5f9594439e6c02)
+in 3.11 as it is a trivial and tested fix for a regression introduced between 3.10 and 3.11-rc1.
 
-On Sun, Jun 09, 2013 at 07:56:23PM +0200, Sylwester Nawrocki wrote:
-> On 06/03/2013 03:25 AM, Sakari Ailus wrote:
-> >On Wed, May 22, 2013 at 11:41:50PM +0200, Sylwester Nawrocki wrote:
-> >>[...]
-> >>>>>I'm in favour of using a separate video buffer queue for passing
-> >>>>>low-level
-> >>>>>metadata to user space.
-> >>>>
-> >>>>Sure. I certainly see a need for such an interface. I wouldn't like to
-> >>>>see it
-> >>>>as the only option, however. One of the main reasons of introducing
-> >>>>MPLANE
-> >>>>API was to allow capture of meta-data. We are going to finally prepare
-> >>>>some
-> >>>>RFC regarding usage of a separate plane for meta-data capture. I'm not
-> >>>>sure
-> >>>>yet how it would look exactly in detail, we've just discussed this topic
-> >>>>roughly with Andrzej.
-> >>>
-> >>>I'm fine that being not the only option; however it's unbeatable when it
-> >>>comes to latencies. So perhaps we should allow using multi-plane buffers
-> >>>for the same purpose as well.
-> >>>
-> >>>But how to choose between the two?
-> >>
-> >>I think we need some example implementation for metadata capture over
-> >>multi-plane interface and with a separate video node. Without such
-> >>implementation/API draft it is a bit difficult to discuss this further.
-> >
-> >Yes, that'd be quite nice.
-> 
-> I still haven't found time to look into that, got stuck with debugging some
-> hardware related issues which took much longer than expected..
+see http://www.gossamer-threads.com/lists/linux/kernel/1771751?#1771751
 
-Any better luck now? :-) :-)
-
-> >There are actually a number of things that I think would be needed to
-> >support what's discussed above. Extended frame descriptors (I'm preparing
-> >RFC v2 --- yes, really!) are one.
-> 
-> Sounds great, I'm really looking forward to improving this part and
-> having it
-> used in more drivers.
-> 
-> >Also creating video nodes based on how many different content streams there
-> >are doesn't make much sense to me. A quick and dirty solution would be to
-> >create a low level metadata queue type to avoid having to create more video
-> >nodes. I think I'd prefer a more generic solution though.
-> 
-> Hmm, does it mean having multiple buffer queues on a video device node,
-> similarly to, e.g. the M2M interface ? Not sure if it would have been a bad
-
-Yes; the metadata and the images would arrive through the same video node
-but a different buffer queue. This way creating new video nodes based on
-whether metadata exists or not can be avoided.
-
-But just creating a single separate metadata queue type is slightly hackish:
-there can be multiple metadata regions in the frame and the sensor can also
-produce a JPEG image (albeit I'd like to consider them rare; I've never
-worked on one myself).
-
-> idea at all. The number of video/subdev nodes can get ridiculously high in
-> case of more complex devices. For example in case of the Samsung Exynos
-> SoC imaging subsystem the total number of various device nodes is getting
-> near *30*, and it is going to be at least that many for sure once all
-> functionality is covered.
-> 
-> So one video node per a DMA engine is probably fair rule, but there might
-> be reasons to avoid adding more device nodes for covering "logical" streams.
-
-The number in my opinion isn't an issue, but it would be an issue if devices
-appear and disappear dynamically based on e.g. sensor configuration.
-
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+cu,
+  Knut
