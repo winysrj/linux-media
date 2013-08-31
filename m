@@ -1,95 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog123.obsmtp.com ([207.126.144.155]:47975 "EHLO
-	eu1sys200aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756081Ab3HPMbj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46641 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753901Ab3HaRpB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Aug 2013 08:31:39 -0400
-Message-ID: <520E183D.701@st.com>
-Date: Fri, 16 Aug 2013 13:17:01 +0100
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Reply-To: srinivas.kandagatla@st.com
+	Sat, 31 Aug 2013 13:45:01 -0400
+Date: Sat, 31 Aug 2013 20:44:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v1 14/19] v4l: Add v4l2_buffer flags for VP8-specific
+ special frames.
+Message-ID: <20130831174428.GB4216@valkosipuli.retiisi.org.uk>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+ <1377829038-4726-15-git-send-email-posciak@chromium.org>
 MIME-Version: 1.0
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-doc@vger.kernel.org, devicetree@vger.kernel.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Rob Landley <rob@landley.net>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] media: st-rc: Add ST remote control driver
-References: <1376501221-22416-1-git-send-email-srinivas.kandagatla@st.com> <20130816083853.GA6844@pequod.mess.org> <520E04BC.10908@st.com> <20130816114035.GA1978@pequod.mess.org>
-In-Reply-To: <20130816114035.GA1978@pequod.mess.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1377829038-4726-15-git-send-email-posciak@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/08/13 12:40, Sean Young wrote:
-> On Fri, Aug 16, 2013 at 11:53:48AM +0100, Srinivas KANDAGATLA wrote:
->> Thanks Sean for the comments.
->> On 16/08/13 09:38, Sean Young wrote:
->>> On Wed, Aug 14, 2013 at 06:27:01PM +0100, Srinivas KANDAGATLA wrote:
->> [...]
->>>> +			/* discard the entire collection in case of errors!  */
->>>> +			dev_info(dev->dev, "IR RX overrun\n");
->>>> +			writel(IRB_RX_OVERRUN_INT,
->>>> +					dev->rx_base + IRB_RX_INT_CLEAR);
->>>> +			continue;
->>>> +		}
->>>> +
->>>> +		symbol = readl(dev->rx_base + IRB_RX_SYS);
->>>> +		mark = readl(dev->rx_base + IRB_RX_ON);
->>>> +
->>>> +		if (symbol == IRB_TIMEOUT)
->>>> +			last_symbol = 1;
->>>> +
->>>> +		 /* Ignore any noise */
->>>> +		if ((mark > 2) && (symbol > 1)) {
->>>> +			symbol -= mark;
->>>> +			if (dev->overclocking) { /* adjustments to timings */
->>>> +				symbol *= dev->sample_mult;
->>>> +				symbol /= dev->sample_div;
->>>> +				mark *= dev->sample_mult;
->>>> +				mark /= dev->sample_div;
->>>> +			}
->>>> +
->>>> +			ev.duration = US_TO_NS(mark);
->>>> +			ev.pulse = true;
->>>> +			ir_raw_event_store(dev->rdev, &ev);
->>>> +
->>>> +			if (!last_symbol) {
->>>> +				ev.duration = US_TO_NS(symbol);
->>>> +				ev.pulse = false;
->>>> +				ir_raw_event_store(dev->rdev, &ev);
->>>
->>> Make sure you call ir_raw_event_handle() once a while (maybe every time
->>> the interrupt handler is called?) to prevent the ir kfifo from 
->>> overflowing in case of very long IR. ir_raw_event_store() just adds
->>> new edges to the kfifo() but does not flush them to the decoders or
->>> lirc.
->> I agree, but Am not sure it will really help in this case because, we
->> are going to stay in this interrupt handler till we get a
->> last_symbol(full key press/release event).. So calling
->> ir_raw_event_store mulitple times might not help because the
->> ir_raw_event kthread(which is clearing kfifo) which is only scheduled
->> after returning from this interrupt.
+Hi Pawel,
+
+On Fri, Aug 30, 2013 at 11:17:13AM +0900, Pawel Osciak wrote:
+> Add bits for previous, golden and altref frame types.
 > 
-> If I read it correctly, then this is only true if the fifo contains an 
-> IRB_TIMEOUT symbol. If not yet, then the interrupt handlers is not 
-> waiting around for those symbols to arrive.
-
-Yes, as we are clearing the fifo and fifo size is 64 words its always
-highly possible that It will contain IRB_TIMEOUT for that interrupt.
-
-
-Thanks,
-srini
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  include/uapi/linux/videodev2.h | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> Thanks
-> Sean
-> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 437f1b0..c011ee0 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -687,6 +687,10 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
+> +/* VP8 special frames */
+> +#define V4L2_BUF_FLAG_PREV_FRAME		0x10000  /* VP8 prev frame */
+> +#define V4L2_BUF_FLAG_GOLDEN_FRAME		0x20000  /* VP8 golden frame */
+> +#define V4L2_BUF_FLAG_ALTREF_FRAME		0x40000  /* VP8 altref frame */
 
+Whichever way this patch is changed, could you rebased it on "v4l: Use full
+32 bits for buffer flags"? It changes the definitions of the flags use
+32-bit values.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
