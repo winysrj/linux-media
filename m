@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fpasia.hk ([202.130.89.98]:39974 "EHLO fpa01n0.fpasia.hk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753128Ab3I3JNP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 05:13:15 -0400
-Message-ID: <524940E3.2070206@gtsys.com.hk>
-Date: Mon, 30 Sep 2013 17:14:11 +0800
-From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1869 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757183Ab3IALEq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 07:04:46 -0400
+Message-ID: <52231F3C.9000208@xs4all.nl>
+Date: Sun, 01 Sep 2013 13:04:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: iram pool not available for MX27
-References: <52490EEB.1090806@gtsys.com.hk> <1380529823.3959.1.camel@pizza.hi.pengutronix.de> <52493F77.2020602@gtsys.com.hk>
-In-Reply-To: <52493F77.2020602@gtsys.com.hk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+CC: Dinesh Ram <dinram@cisco.com>,
+	Linux-Media <linux-media@vger.kernel.org>, dinesh.ram@cern.ch
+Subject: Re: [PATCH 3/6] si4713 : Bug fix for si4713_tx_tune_power() method
+ in the i2c driver
+References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com> <1377862104-15429-1-git-send-email-dinram@cisco.com> <637d28441ff1e63ae72385afcba990fda11e0210.1377861337.git.dinram@cisco.com> <CAC-25o_Fk3fva7xdna=-fUv53vp2DjRt99+sEGwTwvgQn=cgkg@mail.gmail.com>
+In-Reply-To: <CAC-25o_Fk3fva7xdna=-fUv53vp2DjRt99+sEGwTwvgQn=cgkg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, September 30, 2013 05:08 PM, Chris Ruehl wrote:
-> Hi Philipp,
->
-> On Monday, September 30, 2013 04:30 PM, Philipp Zabel wrote:
->> Hi Chris,
->>
->> Am Montag, den 30.09.2013, 13:40 +0800 schrieb Chris Ruehl:
->>> Hi Phillipp,
->>>
->>> hope things doing OK.
->>>
->>> I recently update to the 3.12-rc kernel and hit this problem below.
->>>
->>> [ 3.377790] coda coda-imx27.0: iram pool not available
->>> [ 3.383363] coda: probe of coda-imx27.0 failed with error -12
->>>
->>> I read your comments of the patch-set using platform data rather then
->>> hard coded addresses to get
->>> the ocram from a SoC.
->>>
->>> I checked the imx27.dtsi for the iram (coda: coda@..) definition and
->>> compare with the former hard coded address and size it matches.
->>>
->>> My .config also has the CONFIG_OF set.
->>>
->>> Any Idea what's go wrong?
->> do you have the mmio-sram driver enabled (CONFIG_SRAM=y)?
->>
->> regards
->> Philipp
->>
->
-> No, I didn't,  and I found out that my device is not yet ported to use 
-> "Device Tree Support"
->
-> for the moment I will quick add the CONFIG_SRAM  and see what happen,
-> but on the long term I move my code (clone of mach-mx27ads.c)
-> to DTS which makes absolute sense when I see how nice that code works.
->
-> Thanks for the reply!
-> Chris
->
-CONFIG_SRAM not solve my problem, I must port the code to Device Tree 
-Support and call the of_ functions to make the iram config available.
+On 08/31/2013 01:49 PM, edubezval@gmail.com wrote:
+> Hi Dinesh,
+> 
+> On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
+>> In the si4713_tx_tune_power() method, the args array element 'power' can take values between
+>> SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0 is also valid.
+>> All the values (0 > power < SI4713_MIN_POWER) are illegal and hence
+>> are all mapped to SI4713_MIN_POWER.
+> 
+> While do we need to assume min power in these cases?
 
-thank you.
-Chris
+It makes no sense to map 0 < powers < MIN_POWER to 0 (i.e. power off). I would never
+expect that selecting a power > 0 would actually turn off power, so just map to the
+lowest possible power value.
+
+> 
+>>
+>> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+>> ---
+>>  drivers/media/radio/si4713/si4713.c | 16 ++++++++--------
+>>  1 file changed, 8 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+>> index 55c4d27..5d0be87 100644
+>> --- a/drivers/media/radio/si4713/si4713.c
+>> +++ b/drivers/media/radio/si4713/si4713.c
+>> @@ -550,14 +550,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
+>>  }
+>>
+>>  /*
+>> - * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
+>> + * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
+>>   *                     1 dB units. A value of 0x00 indicates off. The command
+>>   *                     also sets the antenna tuning capacitance. A value of 0
+>>   *                     indicates autotuning, and a value of 1 - 191 indicates
+>>   *                     a manual override, which results in a tuning
+>>   *                     capacitance of 0.25 pF x @antcap.
+>>   * @sdev: si4713_device structure for the device we are communicating
+>> - * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
+>> + * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
+>>   * @antcap: value of antenna tuning capacitor (0 - 191)
+>>   */
+>>  static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>> @@ -571,16 +571,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>>          *      .Third byte = power
+>>          *      .Fourth byte = antcap
+>>          */
+>> -       const u8 args[SI4713_TXPWR_NARGS] = {
+>> +       u8 args[SI4713_TXPWR_NARGS] = {
+>>                 0x00,
+>>                 0x00,
+>>                 power,
+>>                 antcap,
+>>         };
+>>
+>> -       if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+>> -               power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+>> -               return -EDOM;
+>> +       /* Map power values 1-87 to MIN_POWER (88) */
+>> +       if (power > 0 && power < SI4713_MIN_POWER)
+>> +               args[2] = power = SI4713_MIN_POWER;
+> 
+> Why are you allowing antcap > SI4713_MAX_ANTCAP? and power >
+> SI4713_MAX_POWER too?
+
+The control framework already checks for that so you'll never see out-of-range values
+here. So it was an unnecessary check.
+
+> 
+>>
+>>         err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
+>>                                   args, ARRAY_SIZE(args), val,
+>> @@ -1457,9 +1457,9 @@ static int si4713_probe(struct i2c_client *client,
+>>                         V4L2_CID_TUNE_PREEMPHASIS,
+>>                         V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+>>         sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+>> -                       V4L2_CID_TUNE_POWER_LEVEL, 0, 120, 1, DEFAULT_POWER_LEVEL);
+>> +                       V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
+>>         sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+>> -                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, 191, 1, 0);
+>> +                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
+>>
+>>         if (hdl->error) {
+>>                 rval = hdl->error;
+>> --
+>> 1.8.4.rc2
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
+
+Regards,
+
+	Hans
