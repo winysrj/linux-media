@@ -1,224 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-003.synserver.de ([212.40.185.3]:1213 "EHLO
-	smtp-out-003.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754867Ab3IDLkR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 07:40:17 -0400
-Message-ID: <52271AC6.1020906@metafoo.de>
-Date: Wed, 04 Sep 2013 13:34:30 +0200
-From: Lars-Peter Clausen <lars@metafoo.de>
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:63424 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410Ab3IAOqA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 10:46:00 -0400
+Received: by mail-vc0-f172.google.com with SMTP id m17so2476630vca.3
+        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 07:45:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Ulrich Hecht <ulrich.hecht@gmail.com>, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [RFC 01/10] drm: ADV7511 i2c HDMI encoder driver
-References: <1377866264-21110-1-git-send-email-ulrich.hecht@gmail.com> <1867305.sTJDNiZ7SL@avalon> <5224AA17.6060806@metafoo.de> <2603252.pOSLifSPDx@avalon>
-In-Reply-To: <2603252.pOSLifSPDx@avalon>
+In-Reply-To: <52231DA0.20307@xs4all.nl>
+References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
+	<1377862104-15429-1-git-send-email-dinram@cisco.com>
+	<b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
+	<CAC-25o9OW1nmuzbmRX6dW4pLwaJHaFTxXTr_nzaGXk1HDzcdzA@mail.gmail.com>
+	<52231DA0.20307@xs4all.nl>
+Date: Sun, 1 Sep 2013 10:45:57 -0400
+Message-ID: <CAC-25o-+u5u7yNiJ8PY40FQ9EMdLvga+NKXJaELJHT6oEBUzKg@mail.gmail.com>
+Subject: Re: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where
+ interrupts are not used
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dinesh Ram <dinram@cisco.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"dinesh.ram" <dinesh.ram@cern.ch>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[...]
->> +
->> +/**
->> + * enum adv7511_input_color_depth - Selects the input format color depth
->> + * @ADV7511_INPUT_COLOR_DEPTH_8BIT: Input format color depth is 8 bits per 
-> channel
->> + * @ADV7511_INPUT_COLOR_DEPTH_10BIT: Input format color dpeth is 10 bits 
-> per channel
->> + * @ADV7511_INPUT_COLOR_DEPTH_12BIT: Input format color depth is 12 bits 
-> per channel
->> + **/
->> +enum adv7511_input_color_depth {
->> +	ADV7511_INPUT_COLOR_DEPTH_8BIT = 3,
->> +	ADV7511_INPUT_COLOR_DEPTH_10BIT = 1,
->> +	ADV7511_INPUT_COLOR_DEPTH_12BIT = 2,
->> +};
-> 
-> Those enums describe the video format at the chip input. This can be 
-> configured statically from platform data or DT, but some platforms might need 
-> to setup formats dynamically at runtime. For instance the ADV7511 could be 
-> driven by a mux with two inputs using different formats.
-> 
-> For these reasons I would combine all those enums in a single one that lists 
-> all possible input formats. The formats should be standardized and moved to a 
-> separate header file. Get and set format operations will be needed (this is 
-> something CDF will address :-)).
+Hello Hans,
 
-Since most these settings are orthogonal to each other putting them in one
-enum gives you 3 * 3 * 6 * 3 = 162 entries. These enums configure to which
-pins of the ADV7511 what signal is connected. Standardizing this would
-require that other chips use the same layouts for connecting the pins.
 
-[...]
->> +
->> +/**
->> + * enum adv7511_up_conversion - Selects the upscaling conversion method
->> + * @ADV7511_UP_CONVERSION_ZERO_ORDER: Use zero order up conversion
->> + * @ADV7511_UP_CONVERSION_FIRST_ORDER: Use first order up conversion
->> + *
->> + * This used when converting from a 4:2:2 format to a 4:4:4 format.
->> + **/
->> +enum adv7511_up_conversion {
->> +    ADV7511_UP_CONVERSION_ZERO_ORDER = 0,
->> +    ADV7511_UP_CONVERSION_FIRST_ORDER = 1,
->> +};
-> 
-> How is the upscaling conversion method supposed to be selected ? What does it 
-> depend on ?
-> 
+On Sun, Sep 1, 2013 at 6:57 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 08/31/2013 01:31 PM, edubezval@gmail.com wrote:
+> > Dinesh, Hi
+> >
+> >
+> > On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
+> >>
+> >> Checks have been introduced at several places in the code to test if an interrupt is set or not.
+> >> For devices which do not use the interrupt, to get a valid response, within a specified timeout,
+> >> the device is polled instead.
+> >>
+> >> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+> >> ---
+> >>  drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
+> >>  drivers/media/radio/si4713/si4713.h |   1 +
+> >>  2 files changed, 63 insertions(+), 48 deletions(-)
+> >>
+> >> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+> >> index ac727e3..55c4d27 100644
+> >> --- a/drivers/media/radio/si4713/si4713.c
+> >> +++ b/drivers/media/radio/si4713/si4713.c
+> >> @@ -27,7 +27,6 @@
+> >>  #include <linux/i2c.h>
+> >>  #include <linux/slab.h>
+> >>  #include <linux/gpio.h>
+> >> -#include <linux/regulator/consumer.h>
+> >>  #include <linux/module.h>
+> >>  #include <media/v4l2-device.h>
+> >>  #include <media/v4l2-ioctl.h>
+> >> @@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+> >>                                 u8 response[], const int respn, const int usecs)
+> >>  {
+> >>         struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+> >> +       unsigned long until_jiffies;
+> >>         u8 data1[MAX_ARGS + 1];
+> >>         int err;
+> >>
+> >> @@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+> >>         if (err != argn + 1) {
+> >>                 v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
+> >>                         command);
+> >> -               return (err > 0) ? -EIO : err;
+> >> +               return err < 0 ? err : -EIO;
+> >
+> > Why did you change the semantics here?
+>
+> It's a bug fix: if i2c_master_send returns 0, then si4713_send_command() would
+> return 0 as well instead of -EIO. Highly unlikely to ever happen, but it is a
+> bug.
 
-It's probably up to the system designer to say which method yields better
-results for their system.
+I am not sure I follow your bug fix. The current code recognizes a
+successful case only when it succeed to transfer all requested bytes
+(err == argn + 1 or err == respn). I know there are better ways to
+retransmit the remaining bytes in case the master fails to transfer
+all at once, but I don't think it is worth the complication for this
+driver. Anyways, the driver assumes when returned value is different
+than expected bytes, but positive, as an error and return -EIO in that
+case. In case the err response is negative, it just propagates the
+error code.
 
-[...]
->> +/**
->> + * struct adv7511_video_config - Describes adv7511 hardware configuration
->> + * @csc_enable:			Whether to enable color space conversion
->> + * @csc_scaling_factor:		Color space conversion scaling factor
->> + * @csc_coefficents:		Color space conversion coefficents
->> + * @hdmi_mode:			Whether to use HDMI or DVI output mode
->> + * @avi_infoframe:		HDMI infoframe
->> + **/
->> +struct adv7511_video_config {
->> +	bool csc_enable;
-> 
-> Shouldn't this be automatically computed based on the input and output formats 
-> ?
+The assumption is also that for the case no bytes are transfered,
+presumably when return code is zero, then this code expect that the
+i2c layer return an error code. Zero bytes transfered is same as a
+transfer error to me. I am not sure the i2c layer is returning 0. Have
+you experienced this case in other scenarios (even other drivers)? If
+yes, I don't think the semantic bug is in this driver, but in the i2c
+layer. Unless you can explain a case where someone requests to
+transfer N > 0 bytes, the function return 0 and that is not a transfer
+error issue.
 
-If the driver knew the input and output colorspaces and had coefficient
-tables for all possible combinations built in that could be done. This is
-maybe something that could be done in the framework.
 
-> 
->> +	enum adv7511_csc_scaling csc_scaling_factor;
->> +	const uint16_t *csc_coefficents;
-> 
-> Do the coefficients need to be configured freely, or could presets do ?
-> 
->> +	bool hdmi_mode;
->> +	struct hdmi_avi_infoframe avi_infoframe;
->> +};
-[...]
->> +static void adv7511_set_config(struct drm_encoder *encoder, void *c)
-> 
-> Now we're getting to the controversial point.
-> 
-> What bothers me about the DRM encoder slave API is that the display controller 
-> driver needs to be aware of the details of the slave encoder, as it needs to 
-> pass an encoder-specific configuration structure to the .set_config() 
-> operation. The question would thus be, what about using the Common Display 
-> Framework ?
+>
+> >
+> >>         }
+> >>
+> >> +       until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
+> >> +
+> >>         /* Wait response from interrupt */
+> >> -       if (!wait_for_completion_timeout(&sdev->work,
+> >> +       if (client->irq) {
+> >> +               if (!wait_for_completion_timeout(&sdev->work,
+> >>                                 usecs_to_jiffies(usecs) + 1))
+> >> -               v4l2_warn(&sdev->sd,
+> >> +                       v4l2_warn(&sdev->sd,
+> >>                                 "(%s) Device took too much time to answer.\n",
+> >>                                 __func__);
+> >> -
+> >> -       /* Then get the response */
+> >> -       err = i2c_master_recv(client, response, respn);
+> >> -       if (err != respn) {
+> >> -               v4l2_err(&sdev->sd,
+> >> -                       "Error while reading response for command 0x%02x\n",
+> >> -                       command);
+> >> -               return (err > 0) ? -EIO : err;
+> >>         }
+> >>
+> >> -       DBG_BUFFER(&sdev->sd, "Response", response, respn);
+> >> -       if (check_command_failed(response[0]))
+> >> -               return -EBUSY;
+> >> +       do {
+> >> +               err = i2c_master_recv(client, response, respn);
+> >> +               if (err != respn) {
+> >> +                       v4l2_err(&sdev->sd,
+> >> +                                       "Error %d while reading response for command 0x%02x\n",
+> >> +                                       err, command);
+> >> +                       return err < 0 ? err : -EIO;
+> >
+> > Again?
+> >
+> >> +               }
+> >>
+> >> -       return 0;
+> >> +               DBG_BUFFER(&sdev->sd, "Response", response, respn);
+> >> +               if (!check_command_failed(response[0]))
+> >> +                       return 0;
+> >> +
+> >> +               if (client->irq)
+> >> +                       return -EBUSY;
+> >> +               msleep(1);
+> >> +       } while (jiffies <= until_jiffies);
+> >> +
+> >> +       return -EBUSY;
+> >>  }
+> >>
+> >>  /*
+> >> @@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
+> >>   */
+> >>  static int si4713_powerup(struct si4713_device *sdev)
+> >>  {
+> >> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+> >>         int err;
+> >>         u8 resp[SI4713_PWUP_NRESP];
+> >>         /*
+> >>          *      .First byte = Enabled interrupts and boot function
+> >>          *      .Second byte = Input operation mode
+> >>          */
+> >> -       const u8 args[SI4713_PWUP_NARGS] = {
+> >> -               SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
+> >> +       u8 args[SI4713_PWUP_NARGS] = {
+> >> +               SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
+> >>                 SI4713_PWUP_OPMOD_ANALOG,
+> >>         };
+> >>
+> >> @@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
+> >>                 gpio_set_value(sdev->gpio_reset, 1);
+> >>         }
+> >>
+> >> +       if (client->irq)
+> >> +               args[0] |= SI4713_PWUP_CTSIEN;
+> >> +
+> >>         err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
+> >>                                         args, ARRAY_SIZE(args),
+> >>                                         resp, ARRAY_SIZE(resp),
+> >>                                         TIMEOUT_POWER_UP);
+> >> -
+> >> +
+> >
+> > Please, do not insert tabulation in blank lines.
+> >
+> >>         if (!err) {
+> >>                 v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
+> >>                                 resp[0]);
+> >>                 v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+> >>                 sdev->power_state = POWER_ON;
+> >>
+> >> -               err = si4713_write_property(sdev, SI4713_GPO_IEN,
+> >> +               if (client->irq)
+> >> +                       err = si4713_write_property(sdev, SI4713_GPO_IEN,
+> >>                                                 SI4713_STC_INT | SI4713_CTS);
+> >>         } else {
+> >>                 if (gpio_is_valid(sdev->gpio_reset))
+> >> @@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
+> >>         if (rval < 0)
+> >>                 return rval;
+> >>
+> >> -       if (resp[1] == SI4713_PRODUCT_NUMBER) {
+> >> +       if (resp[1] == SI4713_PRODUCT_NUMBER) {
+> >
+> > Please, do not insert spaces in the end of the line.
+> >
+> >>                 v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
+> >>                                 client->addr << 1, client->adapter->name);
+> >>         } else {
+> >> @@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
+> >>   */
+> >>  static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
+> >>  {
+> >> -       int err;
+> >> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+> >>         u8 resp[SI4713_GET_STATUS_NRESP];
+> >> -
+> >> -       /* Wait response from STC interrupt */
+> >> -       if (!wait_for_completion_timeout(&sdev->work,
+> >> -                       usecs_to_jiffies(usecs) + 1))
+> >> -               v4l2_warn(&sdev->sd,
+> >> -                       "%s: device took too much time to answer (%d usec).\n",
+> >> -                               __func__, usecs);
+> >> -
+> >> -       /* Clear status bits */
+> >> -       err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
+> >> -                                       NULL, 0,
+> >> -                                       resp, ARRAY_SIZE(resp),
+> >> -                                       DEFAULT_TIMEOUT);
+> >> -
+> >> -       if (err < 0)
+> >> -               goto exit;
+> >> -
+> >> -       v4l2_dbg(1, debug, &sdev->sd,
+> >> -                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
+> >> -
+> >> -       if (!(resp[0] & SI4713_STC_INT))
+> >> -               err = -EIO;
+> >> -
+> >> -exit:
+> >> -       return err;
+> >> +       unsigned long start_jiffies = jiffies;
+> >> +       int err;
+> >> +
+> >> +       if (client->irq &&
+> >> +           !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
+> >> +               v4l2_warn(&sdev->sd,
+> >> +                       "(%s) Device took too much time to answer.\n", __func__);
+> >> +
+> >> +       for (;;) {
+> >> +               /* Clear status bits */
+> >> +               err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
+> >> +                               NULL, 0,
+> >> +                               resp, ARRAY_SIZE(resp),
+> >> +                               DEFAULT_TIMEOUT);
+> >> +
+> >> +               if (err >= 0) {
+> >
+> > Why are you polling while the command fails? If the command fails, you
+> > need to stop, and propagate the error to upper layers. You shall keep
+> > polling only while the command succeed and (resp[0] & SI4713_STC_INT)
+> > == 0.
+>
+> This needs a comment. Dinesh, correct me if I am wrong but as I remember
+> the usb device actually does return errors when it is waiting for STC.
+> It seems the usb device just blocks new usb requests during that wait.
+>
+> >
+> >> +                       v4l2_dbg(1, debug, &sdev->sd,
+> >> +                                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
+> >> +
+> >> +                       if (resp[0] & SI4713_STC_INT)
+> >> +                               return 0;
+> >> +               }
+> >> +               if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
+> >> +                       return -EIO;
+>
+> Although this should be replaced with:
+>
+>                         return err < 0 ? err : -EIO;
+>
+> >> +               msleep(3);
+> >> +       }
+> >
+> > Can you please add a comment why you chose msleep(3)? For instance,
+> > here you sleep for 3 ms, in send command you need only 1ms. Any
+> > explanation?
+>
+> Experimentation. If you flood the USB device with USB requests it hangs.
 
-Well, as I said I'd prefer using the CDF for this driver. But even then the
-display controller driver might need to know about the details of the
-encoder. I think we talked about this during the FOSDEM meeting. The
-graphics fabric on the board can easily get complex enough to require a
-board custom driver, similar to what we have in ASoC. I think this
-drm_bridge patchset[1] tries to address a similar issue.
 
-[1] http://lists.freedesktop.org/archives/dri-devel/2013-August/043237.html
-[...]
->> +
->> +		for (i = 0; i < 4; ++i) {
->> +			ret = i2c_transfer(adv7511->i2c_edid->adapter, xfer, 
-> ARRAY_SIZE(xfer));
->> +			if (ret < 0)
->> +				return ret;
->> +			else if (ret != 2)
->> +				return -EIO;
->> +
->> +			xfer[1].buf += 64;
->> +			offset += 64;
->> +		}
-> 
-> Shouldn't you read two times 64 bytes per block, not four times ?
+Well, that it is experimentation I don't have doubts :-).
 
-The controller on the ADV7511 always reads two blocks at once, so it is 256
-bytes.
+I was just requesting you guys to add a comment there to explain the
+magic number.
 
-> 
->> +
->> +		adv7511->current_edid_segment = block / 2;
->> +	}
->> +
->> +	if (block % 2 == 0)
->> +		memcpy(buf, adv7511->edid_buf, len);
->> +	else
->> +		memcpy(buf, adv7511->edid_buf + 128, len);
->> +
->> +	return 0;
->> +}
->> +
-[...]
->> +
->> +struct edid *adv7511_get_edid(struct drm_encoder *encoder)
->> +{
->> +	struct adv7511 *adv7511 = encoder_to_adv7511(encoder);
->> +
->> +	if (!adv7511->edid)
->> +		return NULL;
->> +
->> +	return kmemdup(adv7511->edid, sizeof(*adv7511->edid) +
->> +		adv7511->edid->extensions * 128, GFP_KERNEL);
->> +}
->> +EXPORT_SYMBOL_GPL(adv7511_get_edid);
-> 
-> Why do you need to export this function, who will use it ?
+>
+> >
+> > Besides could you please move this for to another function? Something
+> > like si4713_poll_stc?
+>
+> Why? I see no compelling reason to split it. Some more comments would be
+> useful, though.
 
-The drm driver using the encoder that wants to know the EDID. E.g. to know
-if the monitor supports HDMI or not. But exporting this function is really
-just a quick hack to compensate for the removal of 'raw_edid', this probably
-wants proper abstraction in the framework.
+Just for better code readability, function starts to become confusing
+with IRQ event check, polling loop, and even experimentation values
+flying around.
 
-[...]
->> +/*
->> +	adi,input-id - 
->> +		0x00: 
->> +		0x01:
->> +		0x02:
->> +		0x03:
->> +		0x04:
->> +		0x05:
->> +	adi,sync-pulse - Selects the sync pulse
->> +		0x00: Use the DE signal as sync pulse
->> +		0x01: Use the HSYNC signal as sync pulse
->> +		0x02: Use the VSYNC signal as sync pulse
->> +		0x03: No external sync pulse
->> +	adi,bit-justification -
->> +		0x00: Evently
->> +		0x01: Right
->> +		0x02: Left
->> +	adi,up-conversion - 
->> +		0x00: zero-order up conversion
->> +		0x01: first-order up conversion
->> +	adi,timing-generation-sequence -
->> +		0x00: Sync adjustment first, then DE generation
->> +		0x01: DE generation first then sync adjustment
->> +	adi,vsync-polarity - Polarity of the vsync signal
->> +		0x00: Passthrough
->> +		0x01: Active low
->> +		0x02: Active high
->> +	adi,hsync-polarity - Polarity of the hsync signal
->> +		0x00: Passthrough
->> +		0x01: Active low
->> +		0x02: Active high
->> +	adi,reverse-bitorder - If set the bitorder is reveresed
->> +	adi,tmds-clock-inversion - If set use tdms clock inversion
->> +	adi,clock-delay - Clock delay for the video data clock
->> +		0x00: -1200 ps
->> +		0x01:  -800 ps
->> +		0x02:  -400 ps
->> +		0x03: no dealy
->> +		0x04:   400 ps
->> +		0x05:   800 ps
->> +		0x06:  1200 ps
->> +		0x07:  1600 ps
-> 
-> The value should be expressed directly in ps in the DT.
+>
+> Regards,
+>
+>         Hans
+>
+> >
+> >>  }
+> >>
+> >>  /*
+> >> @@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
+> >>         if (rval < 0)
+> >>                 return rval;
+> >>
+> >> -
+> >>         sdev->frequency = DEFAULT_FREQUENCY;
+> >>         sdev->stereo = 1;
+> >>         sdev->tune_rnl = DEFAULT_TUNE_RNL;
+> >> diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+> >> index c274e1f..dc0ce66 100644
+> >> --- a/drivers/media/radio/si4713/si4713.h
+> >> +++ b/drivers/media/radio/si4713/si4713.h
+> >> @@ -15,6 +15,7 @@
+> >>  #ifndef SI4713_I2C_H
+> >>  #define SI4713_I2C_H
+> >>
+> >> +#include <linux/regulator/consumer.h>
+> >>  #include <media/v4l2-subdev.h>
+> >>  #include <media/v4l2-ctrls.h>
+> >>  #include <media/si4713.h>
+> >> --
+> >> 1.8.4.rc2
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> >
+> >
+>
 
-DT doesn't allow negative values.
 
-Thanks for the review,
-- Lars
+
+-- 
+Eduardo Bezerra Valentin
