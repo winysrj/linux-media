@@ -1,90 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2285 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734Ab3IIKhn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:37:43 -0400
-Message-ID: <522DA4E7.4050600@xs4all.nl>
-Date: Mon, 09 Sep 2013 12:37:27 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <26516577.dQgL4XrfDY@avalon> <522DA03E.8010808@xs4all.nl> <7183549.W0I9Cqdz4K@avalon>
-In-Reply-To: <7183549.W0I9Cqdz4K@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3855 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853Ab3IAC4l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Aug 2013 22:56:41 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r812ubKk063473
+	for <linux-media@vger.kernel.org>; Sun, 1 Sep 2013 04:56:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 929B82A0761
+	for <linux-media@vger.kernel.org>; Sun,  1 Sep 2013 04:56:28 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130901025628.929B82A0761@tschai.lan>
+Date: Sun,  1 Sep 2013 04:56:28 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/2013 12:24 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 09 September 2013 12:17:34 Hans Verkuil wrote:
->> On 09/09/2013 12:10 PM, Laurent Pinchart wrote:
->>> On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
->>>> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
->>>>> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
->>>>>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
->>>>> [snip]
->>>>>
->>>>>>> The main issue as I see it is that we need to track both driver
->>>>>>> remove() and struct device .release() calls and free resources only
->>>>>>> when last of them executes. Data structures which are referenced in
->>>>>>> fops must not be freed in remove() and we cannot use dev_get_drvdata()
->>>>>>> in fops, e.g. not protected with device_lock().
->>>>>>
->>>>>> You can do all that by returning 0 if probe() was partially successful
->>>>>> (i.e. one or more, but not all, nodes were created successfully) by
->>>>>> doing what I described above. I don't see another way that doesn't
->>>>>> introduce a race condition.
->>>>>
->>>>> But isn't this just plain wrong ? If probing fails, I don't see how
->>>>> returning success could be a good idea.
->>>>
->>>> Well, the nodes that are created are working fine. So it's partially OK
->>>> :-)
->>>>
->>>> That said, yes it would be better if it could safely clean up and return
->>>> an error. But it is better than returning an error and introducing a race
->>>> condition.
->>>>
->>>>>> That doesn't mean that there isn't one, it's just that I don't know of
->>>>>> a better way of doing this.
->>>>>
->>>>> We might need support from the device core.
->>>>
->>>> I do come back to my main question: has anyone actually experienced this
->>>> error in a realistic scenario? Other than in very low-memory situations I
->>>> cannot imagine this happening.
->>>
->>> What about running out of minors, which could very well happen with subdev
->>> nodes in complex SoCs ?
->>
->> Is that really realistic? What's the worst-case SoC we have in terms of
->> device nodes? Frankly, if this might happen then we should allow for more
->> minors or make the minor allocation completely dynamic.
-> 
-> For the 4 VSP1 instances on the R-Car H2, I need 33 video nodes and 65 (if I'm 
-> not mistaken) subdev nodes. That doesn't include the camera interface.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So that leaves 158 free minors. That's a lot of webcams that can be attached :-)
+Results of the daily build of media_tree:
 
-> On a side note, this seems to indicate that the subdev API should probably 
-> move to the /dev/media device node. That's something else to discuss.
+date:		Sun Sep  1 04:00:18 CEST 2013
+git branch:	test
+git hash:	26a20eb09d44dc064c4f5d1f024bd501c09edb4b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-I have 70 tty nodes in /dev. Just because there are a lot of them doesn't mean that
-we have to merge them somehow. There may be other arguments for changing how we
-handle them, but 'there are a lot of them' isn't a good argument, IMHO.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Regards,
+Detailed results are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
->> If you run into this situation then you have bigger problems than a
->> potential race condition.
-> 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
