@@ -1,132 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10595 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232Ab3IIJAG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 05:00:06 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MSU000WHP03XD40@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Sep 2013 10:00:03 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Pawel Osciak' <posciak@chromium.org>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
- <1377829038-4726-17-git-send-email-posciak@chromium.org>
- <52204058.6070008@xs4all.nl>
- <CACHYQ-oGaAS1TVLqm-wRsPSg5xDqBTuvj9PcMAmu5vEc-aVb1A@mail.gmail.com>
- <522D7E3E.8070104@xs4all.nl>
- <CACHYQ-ph7eBPkr38c__Wpr_ixPChQQi5tYJENrR3GAfyDzcThQ@mail.gmail.com>
-In-reply-to: <CACHYQ-ph7eBPkr38c__Wpr_ixPChQQi5tYJENrR3GAfyDzcThQ@mail.gmail.com>
-Subject: RE: [PATCH v1 16/19] v4l: Add encoding camera controls.
-Date: Mon, 09 Sep 2013 11:00:02 +0200
-Message-id: <04c001cead3a$f8ea0dc0$eabe2940$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1761 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab3IALNo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 07:13:44 -0400
+Message-ID: <5223214F.6010206@xs4all.nl>
+Date: Sun, 01 Sep 2013 13:13:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	media-workshop@linuxtv.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
+References: <201308301501.25164.hverkuil@xs4all.nl> <52219093.7080409@xs4all.nl> <Pine.LNX.4.64.1308312020020.26694@axis700.grange> <1914410.cJBkn24AFZ@avalon> <Pine.LNX.4.64.1308312231270.26694@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1308312231270.26694@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-> From: Pawel Osciak [mailto:posciak@chromium.org]
-> Sent: Monday, September 09, 2013 9:59 AM
+On 08/31/2013 10:36 PM, Guennadi Liakhovetski wrote:
+> On Sat, 31 Aug 2013, Laurent Pinchart wrote:
 > 
-> On Mon, Sep 9, 2013 at 4:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On 09/09/2013 05:48 AM, Pawel Osciak wrote:
-> >> Hi Hans,
-> >> Thanks for the comments, one question inline.
-> >>
-> >> On Fri, Aug 30, 2013 at 3:48 PM, Hans Verkuil <hverkuil@xs4all.nl>
-> wrote:
-> >>> On 08/30/2013 04:17 AM, Pawel Osciak wrote:
-> >>>> Add defines for controls found in UVC 1.5 encoding cameras.
-> >>>>
-> >>>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> >>>> ---
-> >>>>  drivers/media/v4l2-core/v4l2-ctrls.c | 29
-> +++++++++++++++++++++++++++++
-> >>>>  include/uapi/linux/v4l2-controls.h   | 31
-> +++++++++++++++++++++++++++++++
-> >>>>  2 files changed, 60 insertions(+)
-> >>>>
-> >>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
-> >>>> b/drivers/media/v4l2-core/v4l2-ctrls.c
-> >>>> index c3f0803..0b3a632 100644
-> >>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> >>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> >>>> @@ -781,6 +781,35 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >>>>       case V4L2_CID_AUTO_FOCUS_STATUS:        return "Auto Focus,
-> Status";
-> >>>>       case V4L2_CID_AUTO_FOCUS_RANGE:         return "Auto Focus,
-> Range";
-> >>>>
-> >>>> +     case V4L2_CID_ENCODER_MIN_FRAME_INTERVAL: return "Encoder,
-> min. frame interval";
-> >>>> +     case V4L2_CID_ENCODER_RATE_CONTROL_MODE: return "Encoder,
-> rate control mode";
-> >>>> +     case V4L2_CID_ENCODER_AVERAGE_BITRATE:  return "Encoder,
-> average bitrate";
-> >>>> +     case V4L2_CID_ENCODER_CPB_SIZE:         return "Encoder, CPB
-> size";
-> >>>> +     case V4L2_CID_ENCODER_PEAK_BIT_RATE:    return "Encoder,
-> peak bit rate";
-> >>>> +     case V4L2_CID_ENCODER_QP_PARAM_I:       return "Encoder, QP
-> param for I frames";
-> >>>> +     case V4L2_CID_ENCODER_QP_PARAM_P:       return "Encoder, QP
-> param for P frames";
-> >>>> +     case V4L2_CID_ENCODER_QP_PARAM_BG:      return "Encoder, QP
-> param for B/G frames";
-> >>>
-> >>> A lot of these exist already. E.g.
-> V4L2_CID_MPEG_VIDEO_MPEG4_I/P/B_FRAME_QP.
-> >>>
-> >>> Samsung added support for many of these parameters for their MFC
-> >>> encoder (including
-> >>> VP8 support) so you should use them as well. As mentioned in
-> >>> v4l2-controls.h the MPEG part of the control name is historical.
-> Interpret it as 'CODEC', not MPEG.
-> >>>
-> >>
-> >> We have QP controls separately for H264, H263 and MPEG4. Why is that?
-> >> Which one should I use for VP8? Shouldn't we unify them instead?
-> >
-> > I can't quite remember the details, so I've CCed Kamil since he added
-> those controls.
-> > At least the H264 QP controls are different from the others as they
-> > have a different range. What's the range for VP8?
-> >
+>> Hi Guennadi,
+>>
+>> On Saturday 31 August 2013 20:38:54 Guennadi Liakhovetski wrote:
+>>> On Sat, 31 Aug 2013, Hans Verkuil wrote:
+>>>> On 08/30/2013 03:01 PM, Hans Verkuil wrote:
+>>>>> OK, I know, we don't even know yet when the mini-summit will be held but
+>>>>> I thought I'd just start this thread to collect input for the agenda.
+>>>>>
+>>>>> I have these topics (and I *know* that I am forgetting a few):
+>>
+>> [snip]
+>>
+>>>>> Feel free to add suggestions to this list.
+>>>>
+>>>> I got another one:
+>>>>
+>>>> VIDIOC_TRY_FMT shouldn't return -EINVAL when an unsupported pixelformat is
+>>>> provided, but in practice video capture board tend to do that, while
+>>>> webcam drivers tend to map it silently to a valid pixelformat. Some
+>>>> applications rely on the -EINVAL error code.
+>>>>
+>>>> We need to decide how to adjust the spec. I propose to just say that some
+>>>> drivers will map it silently and others will return -EINVAL and that you
+>>>> don't know what a driver will do. Also specify that an unsupported
+>>>> pixelformat is the only reason why TRY_FMT might return -EINVAL.
+>>>>
+>>>> Alternatively we might want to specify explicitly that EINVAL should be
+>>>> returned for video capture devices (i.e. devices supporting S_STD or
+>>>> S_DV_TIMINGS) and 0 for all others.
+>>>
+>>> Just to make sure I understand right - that kind of excludes cameras,
+>>> right? Still, even for (other) video capture devices, like TV decoders, is
+>>> there a real serious enough reason to _change_ the specs, which says
+>>>
+>>> http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html
+>>>
+>>> EINVAL
+>>>
+>>>     The struct v4l2_format type field is invalid or the requested buffer
+>>> type not supported.
+>>
+>> I think Hans meant unsupported fmt.pix.pixelformat (or the equivalent for 
+>> multiplane) values.
 > 
-> Yes, it differs, 0-127.
-> But I feel this is pretty unfortunate, is it a good idea to multiply
-> controls to have one per format when they have different ranges
-> depending on the selected format in general? Perhaps a custom handler
-> would be better?
+> Good, then I understood him correctly :)
 > 
-> > I'm not sure why the H263/MPEG4 controls weren't unified: it might be
-> > that since the
-> > H264 range was different we decided to split it up per codec. But I
-> > seem to remember that there was another reason as well.
-> >
+>> For instance the uvcvideo driver will return a default 
+>> fourcc if an application tries an unsupported fourcc,
+> 
+> Yes, that's what I would do too and that's what the spec dictates.
+> 
+>> some other drivers 
+>> return -EINVAL.
+> 
+> that just seems plain wrong to me. So, as I said, to not break the 
+> userspace we can extend the specs, but not prohibit the currently defined 
+> behaviour. So, that last option:
+> 
+>>>> Alternatively we might want to specify explicitly that EINVAL should be
+>>>> returned for video capture devices (i.e. devices supporting S_STD or
+>>>> S_DV_TIMINGS) and 0 for all others.
+> 
+> I'm not sure I like a lot, unless those drivers are very special and they 
+> all already behave like that.
 
-We had a discussion about this on linux-media mailing list. It can be found
-here:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/326
-06
-In short, it is a mix of two reasons: one - the valid range is different for
-different formats and second - implementing controls which have different
-min/max
-values depending on format was not easy.
+Almost (have to check though) all TV capture drivers behave like that, yes.
+Very unfortunate.
 
-On the one hand I am thinking that now, when we have more codecs, it would
-be better
-to have a single control, on the other hand what about backward
-compatibility?
-Is there a graceful way to merge H263 and H264 QP controls?
+On the other hand webcam apps must assume that TRY_FMT will just map an unsupported
+pixel format to a valid pixel format since that is what uvc does. And a webcam app
+that doesn't support uvc can't be called a webcam app :-)
 
-Best wishes,
-Kamil
+Regards,
+
+	Hans
+
+> Thanks
+> Guennadi
+> 
+>>> If we have a spec, that says A, and some drivers drivers do A, but others
+>>> do B, and we want to change the specs to B? Instead of either changing the
+>>> (wrong) drivers to A (yes, some applications expect that wrong behaviour)
+>>> or at least extending the spec to allow both A and B?
+>>
+>> -- 
+>> Regards,
+>>
+>> Laurent Pinchart
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
