@@ -1,120 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4938 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885Ab3IGCzI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 22:55:08 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r872t5nd056778
-	for <linux-media@vger.kernel.org>; Sat, 7 Sep 2013 04:55:07 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id DEEEC2A0764
-	for <linux-media@vger.kernel.org>; Sat,  7 Sep 2013 04:55:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130907025502.DEEEC2A0764@tschai.lan>
-Date: Sat,  7 Sep 2013 04:55:02 +0200 (CEST)
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:35205 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753273Ab3IAO5v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 10:57:51 -0400
+Received: by mail-vb0-f52.google.com with SMTP id f12so2369663vbg.39
+        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 07:57:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <52231F3C.9000208@xs4all.nl>
+References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
+	<1377862104-15429-1-git-send-email-dinram@cisco.com>
+	<637d28441ff1e63ae72385afcba990fda11e0210.1377861337.git.dinram@cisco.com>
+	<CAC-25o_Fk3fva7xdna=-fUv53vp2DjRt99+sEGwTwvgQn=cgkg@mail.gmail.com>
+	<52231F3C.9000208@xs4all.nl>
+Date: Sun, 1 Sep 2013 10:57:49 -0400
+Message-ID: <CAC-25o8r4xMY_LFDMpszHZqoi0h13CR1wZYVXVHOmuorTmU=rg@mail.gmail.com>
+Subject: Re: [PATCH 3/6] si4713 : Bug fix for si4713_tx_tune_power() method in
+ the i2c driver
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dinesh Ram <dinram@cisco.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Dino d <dinesh.ram@cern.ch>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello Hans,
 
-Results of the daily build of media_tree:
+On Sun, Sep 1, 2013 at 7:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 08/31/2013 01:49 PM, edubezval@gmail.com wrote:
+>> Hi Dinesh,
+>>
+>> On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
+>>> In the si4713_tx_tune_power() method, the args array element 'power' can take values between
+>>> SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0 is also valid.
+>>> All the values (0 > power < SI4713_MIN_POWER) are illegal and hence
+>>> are all mapped to SI4713_MIN_POWER.
+>>
+>> While do we need to assume min power in these cases?
 
-date:		Sat Sep  7 04:00:42 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+s/While/Why! but I guess you already got it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+>
+> It makes no sense to map 0 < powers < MIN_POWER to 0 (i.e. power off). I would never
+> expect that selecting a power > 0 would actually turn off power, so just map to the
+> lowest possible power value.
 
-Detailed results are available here:
+Hmm.. Interesting. Is this what you are seen currently?
+0 < power < MIN_POWER == power off?
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I would expect the driver to return an error code:
 
-Full logs are available here:
+    if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+        power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+        return -EDOM;
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+And that is why I am asking why are we assigning a min value when we
+see a value out of the expected range?
 
-The Media Infrastructure API from this daily build is here:
+>
+>>
+>>>
+>>> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+>>> ---
+>>>  drivers/media/radio/si4713/si4713.c | 16 ++++++++--------
+>>>  1 file changed, 8 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+>>> index 55c4d27..5d0be87 100644
+>>> --- a/drivers/media/radio/si4713/si4713.c
+>>> +++ b/drivers/media/radio/si4713/si4713.c
+>>> @@ -550,14 +550,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
+>>>  }
+>>>
+>>>  /*
+>>> - * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
+>>> + * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
+>>>   *                     1 dB units. A value of 0x00 indicates off. The command
+>>>   *                     also sets the antenna tuning capacitance. A value of 0
+>>>   *                     indicates autotuning, and a value of 1 - 191 indicates
+>>>   *                     a manual override, which results in a tuning
+>>>   *                     capacitance of 0.25 pF x @antcap.
+>>>   * @sdev: si4713_device structure for the device we are communicating
+>>> - * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
+>>> + * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
+>>>   * @antcap: value of antenna tuning capacitor (0 - 191)
+>>>   */
+>>>  static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>>> @@ -571,16 +571,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>>>          *      .Third byte = power
+>>>          *      .Fourth byte = antcap
+>>>          */
+>>> -       const u8 args[SI4713_TXPWR_NARGS] = {
+>>> +       u8 args[SI4713_TXPWR_NARGS] = {
+>>>                 0x00,
+>>>                 0x00,
+>>>                 power,
+>>>                 antcap,
+>>>         };
+>>>
+>>> -       if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+>>> -               power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+>>> -               return -EDOM;
+>>> +       /* Map power values 1-87 to MIN_POWER (88) */
+>>> +       if (power > 0 && power < SI4713_MIN_POWER)
+>>> +               args[2] = power = SI4713_MIN_POWER;
+>>
+>> Why are you allowing antcap > SI4713_MAX_ANTCAP? and power >
+>> SI4713_MAX_POWER too?
+>
+> The control framework already checks for that so you'll never see out-of-range values
+> here. So it was an unnecessary check.
+>
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+I see. Are you sure about that?
+
+I am just a bit concerned about regulations here. One can really get
+in trouble if it can transmit FM for longer than 10m in some
+countries, without a license.
+
+I know of some nasty ways to boost transmitting power, but I would
+like to avoid making even easier with this driver. :-)
+
+>>
+>>>
+>>>         err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
+>>>                                   args, ARRAY_SIZE(args), val,
+>>> @@ -1457,9 +1457,9 @@ static int si4713_probe(struct i2c_client *client,
+>>>                         V4L2_CID_TUNE_PREEMPHASIS,
+>>>                         V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+>>>         sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+>>> -                       V4L2_CID_TUNE_POWER_LEVEL, 0, 120, 1, DEFAULT_POWER_LEVEL);
+>>> +                       V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
+>>>         sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+>>> -                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, 191, 1, 0);
+>>> +                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
+>>>
+>>>         if (hdl->error) {
+>>>                 rval = hdl->error;
+>>> --
+>>> 1.8.4.rc2
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>
+> Regards,
+>
+>         Hans
+
+
+
+-- 
+Eduardo Bezerra Valentin
