@@ -1,69 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59133 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758630Ab3IBQ1F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Sep 2013 12:27:05 -0400
-Message-ID: <5224BC2D.2040909@iki.fi>
-Date: Mon, 02 Sep 2013 19:26:21 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:58889 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab3IAUzM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 16:55:12 -0400
+Received: by mail-wi0-f175.google.com with SMTP id ez12so591622wid.8
+        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 13:55:11 -0700 (PDT)
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org, Jacek Konieczny <jajcus@jajcus.net>,
-	Torsten Seyffarth <t.seyffarth@gmx.de>,
-	Jan Taegert <jantaegert@gmx.net>,
-	Damien CABROL <cabrol.damien@free.fr>
-Subject: Re: [PATCH] e4000: fix PLL calc error in 32-bit arch
-References: <1378138669-22302-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1378138669-22302-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+From: Dark Shadow <shadowofdarkness@gmail.com>
+Date: Sun, 1 Sep 2013 14:54:51 -0600
+Message-ID: <CAMXzSMoSe5HMFgt0SrbqEh+CyxhB5BH-FtdS5yhn9x2eWCc8PA@mail.gmail.com>
+Subject: Can't get cx23885 IR to work after kernel update.
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Testers?
+I have a Hauppauge HVR-1270 tuner card that comes with a IR remote
+that seems to have problems with newer kernels.
 
-Here is tree:
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/e4000_fix_3.11
+Under my previous 3.2.0 kernel everything works perfect if I boot the
+same system with kernel 3.10.10 the remote doesn't completely work.
 
-I assume all of you have been running 32-bit arch as that bug is related 
-to 32-bit overflow.
+It can't be a configuration problem since I am just swapping kernels.
+Under 3.2 XBMC gets all the key presses and works like a dream.
 
-regards
-Antti
+Under 3.10 the only response to key presses comes from mode2 which
+receives them fine but nothing else. no irw or XBMC response
 
-
-On 09/02/2013 07:17 PM, Antti Palosaari wrote:
-> Fix long-lasting error that causes tuning failure to some frequencies
-> on 32-bit arch.
->
-> Special thanks goes to Damien CABROL who finally find root of the bug.
-> Also big thanks to Jacek Konieczny for donating non-working device.
->
-> Reported-by: Jacek Konieczny <jajcus@jajcus.net>
-> Reported-by: Torsten Seyffarth <t.seyffarth@gmx.de>
-> Reported-by: Jan Taegert <jantaegert@gmx.net>
-> Reported-by: Damien CABROL <cabrol.damien@free.fr>
-> Tested-by: Damien CABROL <cabrol.damien@free.fr>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/media/tuners/e4000.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 1b33ed3..a88f757 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -232,7 +232,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
->   	 * or more.
->   	 */
->   	f_VCO = c->frequency * e4000_pll_lut[i].mul;
-> -	sigma_delta = 0x10000UL * (f_VCO % priv->cfg->clock) / priv->cfg->clock;
-> +	sigma_delta = div_u64(0x10000ULL * (f_VCO % priv->cfg->clock), priv->cfg->clock);
->   	buf[0] = f_VCO / priv->cfg->clock;
->   	buf[1] = (sigma_delta >> 0) & 0xff;
->   	buf[2] = (sigma_delta >> 8) & 0xff;
->
+I have tried other kernels in the past that had the problem so I don't
+know exactly when it started. In the past I got tired of Googling and
+just left my system working but I would like toget it working more now
+for other hardware support in the kernel.
 
 
--- 
-http://palosaari.fi/
+After Google searches I have tried making sure nothing like evdev is
+trying for conflicting access but that didn't work and like I say it
+has to be in the kernel itself since that is the only thing changed
+and I can use the remote again by just choosing the old kernel from
+Grub during boot.
+
+I can't find anything in the logs that shows any errors.
