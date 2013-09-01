@@ -1,107 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3776 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753595Ab3ILEUh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 00:20:37 -0400
-Message-ID: <52314107.60903@xs4all.nl>
-Date: Thu, 12 Sep 2013 06:20:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49596 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752276Ab3IAWWZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 18:22:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: purchase@utopiacontrol.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: Fw: Fw: Memory acquisition problem with yavta and media control.
+Date: Mon, 02 Sep 2013 00:23:52 +0200
+Message-ID: <10939564.Cr93PsC9Lz@avalon>
+In-Reply-To: <FF672DFF18414DF29388FFBB2E9FAE23@store>
+References: <FF672DFF18414DF29388FFBB2E9FAE23@store>
 MIME-Version: 1.0
-To: Pawel Osciak <posciak@chromium.org>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <04c001cead3a$f8ea0dc0$eabe2940$%debski@samsung.com> <522D9065.3040209@samsung.com> <201309101117.01044.hverkuil@xs4all.nl> <CACHYQ-rTaU5mgQ=p1ARx+PDk8wPR5yVxhJob5hHGxLg8zjne8g@mail.gmail.com>
-In-Reply-To: <CACHYQ-rTaU5mgQ=p1ARx+PDk8wPR5yVxhJob5hHGxLg8zjne8g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+Hello,
 
-On 09/12/2013 03:10 AM, Pawel Osciak wrote:
-> On Tue, Sep 10, 2013 at 6:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On Mon 9 September 2013 11:09:57 Sylwester Nawrocki wrote:
->>> On 09/09/2013 11:00 AM, Kamil Debski wrote:
->>> [...]
->>>>>>> We have QP controls separately for H264, H263 and MPEG4. Why is that?
->>>>>>> Which one should I use for VP8? Shouldn't we unify them instead?
->>>>>>
->>>>>> I can't quite remember the details, so I've CCed Kamil since he added
->>>>> those controls.
->>>>>> At least the H264 QP controls are different from the others as they
->>>>>> have a different range. What's the range for VP8?
->>>>>
->>>>> Yes, it differs, 0-127.
->>>>> But I feel this is pretty unfortunate, is it a good idea to multiply
->>>>> controls to have one per format when they have different ranges
->>>>> depending on the selected format in general? Perhaps a custom handler
->>>>> would be better?
->>>>>
->>>>>> I'm not sure why the H263/MPEG4 controls weren't unified: it might be
->>>>>> that since the
->>>>>> H264 range was different we decided to split it up per codec. But I
->>>>>> seem to remember that there was another reason as well.
->>>>
->>>> We had a discussion about this on linux-media mailing list. It can be found
->>>> here:
->>>> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32606
->>>> In short, it is a mix of two reasons: one - the valid range is different for
->>>> different formats and second - implementing controls which have different
->>>> min/max values depending on format was not easy.
->>>
->>> Hmm, these seem pretty vague reasons. And since some time we have support
->>> for dynamic control range update [1].
->>
->> I don't think we should change this. We chose to go with separate controls,
->> and we should stick with that. We might do it differently today, but it's
->> not a big deal.
+On Sunday 01 September 2013 12:35:35 purchase@utopiacontrol.com wrote:
+> On Sunday, September 01, 2013 1:59 AM Laurent Pinchart wrote:
+> > On Saturday 31 August 2013 10:07:14 purchase@utopiacontrol.com wrote:
+> >> //=================================
+> >> linux-media@vger.kernel.org
+> >> laurent.pinchart@ideasonboard.com
+> >> //=================================
+> >> 
+> >> Hi laurent pinchart,
+> >
+> > Just Laurent will do :-)
+> >
+> >> You have done a great work for snapshot mode image sensor driver for
+> >> linux. I am using your media control tool with yavta test application for
+> >> interfacing the mt9v032 image sensor with Gumstix Overo Water Com board.
+> >> I have successfully tested the snapshot mode with this combination. But
+> >> the problem is that, when I attempt to grab lots of images (thousands) of
+> >> images by this test application yavta. I found that the free memory goes
+> >> increasing by some amount which will not get free. Afterwards I have
+> >> calculate the amount of ram acquires on every snap is about 0.618 KB
+> >> (after averaging 100000 frames). Will you please Give me any reason why
+> >> this is happening with this test application? And how can I get overcome
+> >> on this problem.
+> >
+> > That's definitely not expected and should be debugged. First of all, is
+> > the memory released when you stop yavta ? If it isn't then we have a
+> > kernel bug, if it is the bug could be either on the kernel side or the
+> > application side.
+>
+> Thank you for quick reply,
 > 
-> I guess I can't reuse MPEG controls as you suggested then.
+> I have checked the memory status before starting yavta and while running .
+> then after killing yavta. the results are as below.
+> 
+> 
+> Example condition 1
+> 1) Before Starting yavta Free memory is 370528KB
+> 2) After running yavta and before first trigger free memory is 370108KB       
+> //acquired   420KB for initial buffer allocations
+> 3) After 1008 triggers free memory is 369488KB 
+> //unexpected 620KB for 1008 images ( I.e. 0.61KB / image ) acquired
+> 4) After killing yavta free memory is 369908KB
+> //620KB not released only    420KB released
+> 
+> Example condition 2
+> 1) Before Starting yavta Free memory is 366064KB
+> 2) After running yavta and before first trigger free memory is 365520KB   
+> //acquired   544KB for initial buffer allocations
+> 3) After 10000 triggers free memory is 359328KB
+> //unexpected 6192KB for 10000 images ( I.e. 0.6192KB / image ) acquired
+> 4) After killing yavta free memory is 359864KB
+> //6200KB not released only    536KB released
+> 
+> As per your guidance can I conclude that memory acquired during triggering
+> and image grab process is an bug in kernel or driver ?
 
-Sure you can. Just call it V4L2_CID_MPEG_VIDEO_VPX_MIN_QP etc. The name 'MPEG'
-was an unfortunate choice, it should have been 'CODEC'. And in fact in the spec
-it's now known as the Codec Control Class. The QP settings are most definitely
-codec controls, not camera or vpx controls.
+Not yet, you should be careful about how you compute the free memory. Merely 
+running free won't give you an accurate information about potential memory 
+leaks.
 
-> But I could
-> either create a new VPX class, or keep these ones in camera class and
-> create separate VPX class later for codecs. It's technically possible
-> for UVC to have different constraints on some controls though, even if
-> the codec is the same, potentially creating more confusion...
+I also don't know what you mean by trigger above, could you please elaborate ?
 
-That's nothing new for uvc and there isn't anything you can do about it.
-I don't think this will cause problems in practice.
+> If it is how can I found it to get resolve my error?
+> 
+> From where can I get the correct source for MT9V032 driver working in
+> snapshot mode and  kernel source code(3.2.0+ or any). for my platform?
+> Platform          :    Gumstix Overo Water Com
+> OS                 :    Angstrom
+> Kernel            :    3.2.0+
+> Image sensor  :    MT9V032
 
+3.2.0 is old, you should upgrade to the latest mainline kernel. The mt9v032 
+driver is present in mainline, and sample board code is available at 
+http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/board/overo/mt9v032.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> 
->>
->> Regards,
->>
->>         Hans
->>
->>>
->>>> On the one hand I am thinking that now, when we have more codecs, it would
->>>> be better
->>>> to have a single control, on the other hand what about backward
->>>> compatibility?
->>>> Is there a graceful way to merge H263 and H264 QP controls?
->>>
->>> [1] https://patchwork.linuxtv.org/patch/16436/
->>>
->>> --
->>> Regards,
->>> Sylwester
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
