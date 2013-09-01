@@ -1,176 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:57709 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab3I0UMA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 16:12:00 -0400
-Date: Fri, 27 Sep 2013 22:11:59 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: =?UTF-8?Q?Nguy=E1=BB=85n_Minh_Ho=C3=A0ng?=
-	<minhhoang1004@yahoo.com>
-Cc: Steven Toth <stoth@linuxtv.org>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Message-ID: <1915168699.332052.1380312719179.open-xchange@email.1and1.fr>
-In-Reply-To: <EE60072D-11C5-4C25-B1EA-C9627DD6B3F1@yahoo.com>
-References: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com> <259638318.304490.1380270295589.open-xchange@email.1and1.fr> <293EC746-6C7C-4ED3-9509-1FA868AB9661@yahoo.com> <52966910.313114.1380280004856.open-xchange@email.1and1.fr> <EE60072D-11C5-4C25-B1EA-C9627DD6B3F1@yahoo.com>
-Subject: Re: Need help with AverMedia306 driver on linux system.
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:57487 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752139Ab3IATkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 15:40:32 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, rdunlap@infradead.org,
+	hans.verkuil@cisco.com, mkrufky@linuxtv.org, lkundrak@v3.sk,
+	linux-kernel@vger.kernel.org
+Subject: [RFC v3] Add a driver for the somagic smi2021 chip
+Date: Sun,  1 Sep 2013 21:42:50 +0200
+Message-Id: <1378064571-10537-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good news, and thank you for the feedback
+This patch will add a driver for the smi2021 chip.
 
+This chip is found in a series of usb video capture devices branded as Easycap.
 
-Must be because I am in Paris/FRANCE, they went all TNT (dvb)
+On first insertion, the device will identify as 0x1c88:0x0007.
+This is just a bootloader stage. After uploading the firmware, the
+device will reconnect with usb product id 0x003c, 0x003d, 0x003e or 0x003f
+depending on the firmware.
 
-I thaught they left a channel or two in the hertzerian analog but not :( or my
-reception is really bad ...
+The device uses the gm7113c chip for video ADC, this is a clone of the
+saa7113 chip. This chip is controlled over i2c-bus from the bridge
+chip by a proprietary usb control transfer.
 
-And you have the right cables if it's in it's original laptop !! :)
+The device also has a CirrusLogic CS5340 chip for audio ADC.
 
+This is the third version of this patch.
+The first version was posted on 14th of Mars 2013, and can be found here:
+http://www.spinics.net/lists/kernel/msg1499018.html
 
-Thnx again for your help !!
+The second version was posted on 25th of April 2014, and can be found here:
+http://www.spinics.net/lists/linux-media/msg63049.html
 
+Between the 2nd version and this version,
+most of my time was spent on implementing i2c platform_data
+for the saa7113 driver and having it accepted.
+I've also done a major rework on the code of this driver,
+rewriting almost all of it.
 
+This patch should be applied to the current media-master
+from linuxtv as it requires these patches:
+https://patchwork.linuxtv.org/patch/19535
+https://patchwork.linuxtv.org/patch/19536
+https://patchwork.linuxtv.org/patch/19537
 
+Output from v4l2-compliance:
 
+Driver Info:
+	Driver name   : smi2021
+	Card type     : smi2021
+	Bus info      : usb-0000:00:1d.0-1.1
+	Driver version: 3.11.0
+	Capabilities  : 0x85000001
+		Video Capture
+		Read/Write
+		Streaming
+		Device Capabilities
+	Device Caps   : 0x05000001
+		Video Capture
+		Read/Write
+		Streaming
 
-> Le 27 septembre 2013 à 13:20, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
-> 
-> 
-> Yes, you are so smart, buddy. I know you are not developer of these card driver. But you got the way to make this card worked well. So i wrote to you. I am not successful with your 306 patches because i use other revision of linuxtv driver, i tried modprobe option with card=39 too and as you say, it works as analog - no dvb. This card is hybridge, not single analog or dvb. If you get the way, help me with your way :) thank you. 
-> 
-> Sent from my iPhone
-> 
-> > On Sep 27, 2013, at 6:06 PM, remi <remi@remis.cc> wrote:
-> > 
-> > Oh, I am not the person who wrote the driver ... :(
-> > 
-> > 
-> > I merly cloned the HC81r, gave it the proper PCI ID, and the correct firmware ,
-> > 
-> > I also have no DVB either,
-> > 
-> > Unless I get time to learn V4L API, or the mainter of the "xc2028" finds more
-> > infos too ...
-> > 
-> > we are prety much at this stage, some analog, but no dvb ...
-> > 
-> > at my knowlodge .
-> > 
-> > 
-> > Best regards
-> > 
-> > Rémi
-> > 
-> > 
-> > 
-> > 
-> >>  Le 27 septembre 2013 à 12:46, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
-> >>  
-> >>  
-> >>  Thank you for your relying. I know that your patch is not same my revision, i can't apply it. I think i should find and add your patches manually, but there are so much code to do. I am on phone now. I will send you some more detail when i am back to my computer. Pls help me. 
-> >>  Ps: i used "option=39" before, my system got it as video and vbi device, not dvb device. Maybe i need some patches in this case as your suggestion today.
-> >>  Thank you again!
-> >>  
-> >>  Sent from my iPhone
-> >>  
-> >>  > On Sep 27, 2013, at 3:24 PM, remi <remi@remis.cc> wrote:
-> >>  > 
-> >>  > :)
-> >>  > 
-> >>  > Also,
-> >>  > 
-> >>  > 
-> >>  > by the time I redo the patch,
-> >>  > 
-> >>  > 
-> >>  > You must have seen how i have reached this point,
-> >>  > 
-> >>  > I have actually started by insering the module with card=39 as an option,
-> >>  > 
-> >>  > 
-> >>  > So you can for now, add theses line to
-> >>  > 
-> >>  > gpunk@gpunk-Aspire-8930:~$cat /etc/modprobe.d/video-tv.conf
-> >>  > 
-> >>  > 
-> >>  > options tuner-xc2028 firmware_name=xc3028-v27.fw
-> >>  > options cx23885 card=39
-> >>  > 
-> >>  > 
-> >>  > I called my file this way ... it's arbitrary, please check the man modprobe of
-> >>  > your ditribution/kernel .
-> >>  > 
-> >>  > 
-> >>  > Best regards
-> >>  > 
-> >>  > Rémi
-> >>  > 
-> >>  > 
-> >>  > 
-> >>  >>  Le 21 septembre 2013 à 19:43, "Admin@tydaikho.com" <minhhoang1004@yahoo.com> a écrit :
-> >>  >>  
-> >>  >>  
-> >>  >>  Hi Remi!
-> >>  >>  I got my card but i have not finish to install driver. I follow your patch on linuxtv.org but i am not successful. it makes some mistake: "malform" and "hunk" errors.
-> >>  >>  =======================
-> >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885.patch
-> >>  >>  can't find file to patch at input line 3
-> >>  >>  Perhaps you used the wrong -p or --strip option?
-> >>  >>  The text leading up to this was:
-> >>  >>  --------------------------
-> >>  >>  |--- drivers/media/pci/cx23885/cx23885.h   2013-03-25 05:45:50.000000000 +0100
-> >>  >>  |+++ drivers/media/pci/cx23885/cx23885.h      2013-08-21 13:55:20.010625134 +0200
-> >>  >>  --------------------------
-> >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885.h                                  
-> >>  >>  patching file ./drivers/media/pci/cx23885/cx23885.h
-> >>  >>  patch: **** malformed patch at line 4:  #define CX23885_BOARD_PROF_8000                37
-> >>  >>  ==========================
-> >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-video.patch
-> >>  >>  can't find file to patch at input line 4
-> >>  >>  Perhaps you used the wrong -p or --strip option?
-> >>  >>  The text leading up to this was:
-> >>  >>  --------------------------
-> >>  >>  |--- drivers/media/pci/cx23885/cx23885-video.c     2013-08-02 05:45:59.000000000 +0200
-> >>  >>  |+++ drivers/media/pci/cx23885/cx23885-video.c        2013-08-21 13:55:20.017625046
-> >>  >>  |+0200
-> >>  >>  --------------------------
-> >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-video.c
-> >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-video.c
-> >>  >>  Hunk #1 FAILED at 511.
-> >>  >>  Hunk #2 FAILED at 1888.
-> >>  >>  2 out of 2 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-video.c.rej
-> >>  >>  ============================
-> >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-cards.patch
-> >>  >>  can't find file to patch at input line 4
-> >>  >>  Perhaps you used the wrong -p or --strip option?
-> >>  >>  The text leading up to this was:
-> >>  >>  --------------------------
-> >>  >>  |--- drivers/media/pci/cx23885/cx23885-cards.c     2012-12-28 00:04:05.000000000 +0100
-> >>  >>  |+++ drivers/media/pci/cx23885/cx23885-cards.c        2013-08-21 14:15:54.173195979
-> >>  >>  |+0200
-> >>  >>  --------------------------
-> >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-cards.c
-> >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-cards.c
-> >>  >>  Hunk #1 FAILED at 604.
-> >>  >>  Hunk #2 FAILED at 841.
-> >>  >>  Hunk #3 FAILED at 1069.
-> >>  >>  Hunk #4 FAILED at 1394.
-> >>  >>  Hunk #5 FAILED at 1623.
-> >>  >>  Hunk #6 FAILED at 1758.
-> >>  >>  6 out of 6 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-cards.c.rej
-> >>  >>  ===============================
-> >>  >>  
-> >>  >>  If you don't mind, i need your support to get my card works well. Thank you very much!
-> >>  >>  
-> >>  >>   
-> >>  >>  ----------------------------------------------------------
-> >>  >>  Yahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho
-> >>  >>  ----------------------------------------------------------
-> >>  >>  
-> >>  >>  (http://tydaikho.com)  VS  (http://vnluser.net)
+Compliance test for device /dev/video1 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 2 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+	test VIDIOC_QUERYCTRL/MENU: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 7 Private Controls: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+
+Total: 36, Succeeded: 36, Failed: 0, Warnings: 0
+
+Jon Arne Jørgensen (1):
+  media: Add a driver for the Somagic smi2021 chip
+
+ drivers/media/usb/Kconfig                      |   1 +
+ drivers/media/usb/Makefile                     |   1 +
+ drivers/media/usb/smi2021/Kconfig              |  11 +
+ drivers/media/usb/smi2021/Makefile             |   9 +
+ drivers/media/usb/smi2021/smi2021.h            | 193 +++++
+ drivers/media/usb/smi2021/smi2021_audio.c      | 401 +++++++++++
+ drivers/media/usb/smi2021/smi2021_bootloader.c | 256 +++++++
+ drivers/media/usb/smi2021/smi2021_main.c       | 952 +++++++++++++++++++++++++
+ drivers/media/usb/smi2021/smi2021_v4l2.c       | 277 +++++++
+ 9 files changed, 2101 insertions(+)
+ create mode 100644 drivers/media/usb/smi2021/Kconfig
+ create mode 100644 drivers/media/usb/smi2021/Makefile
+ create mode 100644 drivers/media/usb/smi2021/smi2021.h
+ create mode 100644 drivers/media/usb/smi2021/smi2021_audio.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_bootloader.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_main.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_v4l2.c
+
+-- 
+1.8.3.4
+
