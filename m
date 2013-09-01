@@ -1,86 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:46844 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651Ab3IRO7O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Sep 2013 10:59:14 -0400
-Message-ID: <5239BFB8.4020304@infradead.org>
-Date: Wed, 18 Sep 2013 07:59:04 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49867 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab3IAXXI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 19:23:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: width and height of JPEG compressed images
+Date: Mon, 02 Sep 2013 01:23:05 +0200
+Message-ID: <2758622.spTFUrmXC1@avalon>
+In-Reply-To: <52226D74.9050501@gmail.com>
+References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local> <A683633ABCE53E43AFB0344442BF0F054C632AA7@server10.irisys.local> <52226D74.9050501@gmail.com>
 MIME-Version: 1.0
-To: "Jeff P. Zacher" <ad_sicks@yahoo.com>
-CC: linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Dependency bug in the uvcvideo Kconfig
-References: <1828294.VXnhqsmrEo@localhost>
-In-Reply-To: <1828294.VXnhqsmrEo@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[adding linux-media mailing list]
+Hi Sylwester,
 
+On Sunday 01 September 2013 00:25:56 Sylwester Nawrocki wrote:
+> Hi Thomas,
+> 
+> I sincerely apologise for not having replied earlier. Looks like I'm
+> being pulled in too many directions. :/
+> 
+> On 08/06/2013 06:26 PM, Thomas Vajzovic wrote:
+> > On 24 July 2013 10:30 Sylwester Nawrocki wrote:
+> >> On 07/22/2013 10:40 AM, Thomas Vajzovic wrote:
+> >>> On 21 July 2013 21:38 Sylwester Nawrocki wrote:
+> >>>> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
+> >>>>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
+> >>>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
+> >>>>>>> The hardware reads AxB sensor pixels from its array, resamples
+> >>>>>>> them to CxD image pixels, and then compresses them to ExF bytes.
+> >>> 
+> >>> If the sensor driver is only told the user's requested sizeimage, it
+> >>> can be made to factorize (ExF) into (E,F) itself, but then both the
+> >>> parallel interface and the 2D DMA peripheral need to be told the
+> >>> particular factorization that it has chosen.
+> >>> 
+> >>> If the user requests sizeimage which cannot be satisfied (eg: a prime
+> >>> number) then it will need to return (E,F) to the bridge driver which
+> >>> does not multiply exactly to sizeimage.  Because of this the bridge
+> >>> driver must set the corrected value of sizeimage which it returns to
+> >>> userspace to the product ExF.
+> >> 
+> >> Ok, let's consider following data structure describing the frame:
+> >> 
+> >> struct v4l2_frame_desc_entry {
+> >>    u32 flags;
+> >>    u32 pixelcode;
+> >>    u32 samples_per_line;
+> >>    u32 num_lines;
+> >>    u32 size;
+> >> };
+> >> 
+> >> I think we could treat the frame descriptor to be at lower lever in
+> >> the protocol stack than struct v4l2_mbus_framefmt.
+> >> 
+> >> Then the bridge would set size and pixelcode and the subdev would
+> >> return (E, F) in (samples_per_frame, num_lines) and adjust size if
+> >> required. Number of bits per sample can be determined by pixelcode.
+> >> 
+> >> It needs to be considered that for some sensor drivers it might not
+> >> be immediately clear what samples_per_line, num_lines values are.
+> >> In such case those fields could be left zeroed and bridge driver
+> >> could signal such condition as a more or less critical error. In
+> >> end of the day specific sensor driver would need to be updated to
+> >> interwork with a bridge that requires samples_per_line, num_lines.
+> > 
+> > I think we ought to try to consider the four cases:
+> > 
+> > 1D sensor and 1D bridge: already works
+> > 
+> > 2D sensor and 2D bridge: my use case
+> > 
+> > 1D sensor and 2D bridge, 2D sensor and 1D bridge:
+> > Perhaps both of these cases could be made to work by setting:
+> > num_lines = 1; samples_per_line = ((size * 8) / bpp);
+> > 
+> > (Obviously this would also require the appropriate pull-up/down
+> > on the second sync input on a 2D bridge).
+> 
+> So to determine when this has to be done, e.g. we could see that either
+> num_lines or samples_per_line == 1 ?
+> 
+> > Since the frame descriptor interface is still new and used in so
+> > few drivers, is it reasonable to expect them all to be fixed to
+> > do this?
+> 
+> Certainly, I'll be happy to rework those drivers to whatever the
+> re-designed API, as long as it supports the current functionality.
+> 
+> >> Not sure if we need to add image width and height in pixels to the
+> >> above structure. It wouldn't make much sensor when single frame
+> >> carries multiple images, e.g. interleaved YUV and compressed image
+> >> data at different resolutions.
+> > 
+> > If image size were here then we are duplicating get_fmt/set_fmt.
+> > But then, by having pixelcode here we are already duplicating part
+> > of get_fmt/set_fmt.  If the bridge changes pixelcode and calls
+> > set_frame_desc then is this equivalent to calling set_fmt?
+> > I would like to see as much data normalization as possible and
+> > eliminate the redundancy.
+> 
+> Perhaps we could replace pixelcode in the above struct by something
+> else that would have conveyed required data. But I'm not sure what it
+> would have been. Perhaps just bits_per_sample for starters ?
+> 
+> The frame descriptors were also supposed to cover interleaved image data.
+> Then we need something like pixelcode (MIPI CSI-2 Data Type) in each
+> frame_desc entry.
+> 
+> Not sure if it would have been sensible to put some of the above
+> information into struct v4l2_mbus_frame_desc rather than to struct
+> v4l2_mbus_frame_desc_entry.
+> 
+> >>> Whatever mechanism is chosen needs to have corresponding get/set/try
+> >>> methods to be used when the user calls
+> >>> VIDIOC_G_FMT/VIDIOC_S_FMT/VIDIOC_TRY_FMT.
+> >> 
+> >> Agreed, it seems we need some sort of negotiation of those low
+> >> level parameters.
+> > 
+> > Should there be set/get/try function pointers, or should the struct
+> > include an enum member like v4l2_subdev_format.which to determine
+> > which operation is to be perfomed?
+> > 
+> > Personally I think that it is a bit ugly having two different
+> > function pointers for set_fmt/get_fmt but then a structure member
+> > to determine between set/try.  IMHO it should be three function
+> > pointers or one function with a three valued enum in the struct.
+> 
+> I'm fine either way, with a slight preference for three separate callbacks.
 
-On 09/18/13 06:18, Jeff P. Zacher wrote:
-> Not subscribed, please CC'me in replies:
-> 
-> There seems to be a dependency bug in the Kconfig for the uvcvideo kernel 
-> module.  If uvcvideo is built in and usb support is built as a module, the 
-> kernel build will fail with the obviously missing dependanies.
-> 
-> 
-> Error logs:
-> 
-> * ERROR: Failed to compile the "bzImage" target...
-> * 
-> * -- Grepping log... --
-> * 
-> *  SHIPPED scripts/genksyms/keywords.hash.c
-> *  SHIPPED scripts/genksyms/parse.tab.h
-> *  SHIPPED scripts/genksyms/parse.tab.c
-> *  HOSTCC  scripts/genksyms/lex.lex.o
-> *scripts/genksyms/lex.lex.c_shipped: In function ‘yylex1’:
-> *scripts/genksyms/lex.lex.c_shipped:904:1: warning: ignoring return value of 
-> ‘fwrite’, declared with attribute warn_unused_result [-Wunused-result]
-> *--
-> *  CC      drivers/video/console/font_8x16.o
-> *  CC      drivers/video/console/softcursor.o
-> *  CC      sound/core/seq/seq_memory.o
-> *  CC      drivers/video/console/fbcondecor.o
-> *  CC      sound/core/seq/seq_queue.o
-> *drivers/video/console/fbcondecor.c:511:6: warning: function declaration isn’t 
-> a prototype [-Wstrict-prototypes]
-> *--
-> *(.text+0xf8fb1): undefined reference to `usb_submit_urb'
-> *drivers/built-in.o: In function `uvc_init':
-> *uvc_driver.c:(.init.text+0x908a): undefined reference to 
-> `usb_register_driver'
-> *drivers/built-in.o: In function `uvc_cleanup':
-> *uvc_driver.c:(.exit.text+0x67e): undefined reference to `usb_deregister'
-> *make: *** [vmlinux] Error 1
-> *--
-> * Running with options: --lvm --menuconfig all
-> * Using genkernel.conf from /etc/genkernel.conf
-> * Sourcing arch-specific config.sh from 
-> /usr/share/genkernel/arch/x86_64/config.sh ..
-> * Sourcing arch-specific modules_load from 
-> /usr/share/genkernel/arch/x86_64/modules_load ..
-> *
-> * ERROR: Failed to compile the "bzImage" target...
-> * 
-> * -- End log... --
-> 
-> Compiling uvc as a module allows the compilation to complete.
-> 
-> Platform x86_64
-> 
-> Ref: http://forums.gentoo.org/viewtopic-p-7398782.html#7398782
-> 
-> 
-> -- Jeff P. Zacher
-> ad_sicks@yahoo.com
+Don't forget that the reason the pad-level API was designed this way is that 
+trying a format on a pad requires configuring formats on all other pads. Pads 
+are not isolated, they depend on each other, so we can't have a standalone try 
+operation.
 
+> WRT to making frame_desc read-only, subdevices for which it doesn't make
+> sense to set anything could always adjust passed data to their fixed or
+> depending on other calls, like the pad level set_fmt op, values. And we
+> seem to have use cases already for at least try_frame_desc.
 
 -- 
-~Randy
+Regards,
+
+Laurent Pinchart
+
