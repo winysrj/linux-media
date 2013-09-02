@@ -1,90 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:52553 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab3I3HJN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 03:09:13 -0400
-Received: by mail-pa0-f44.google.com with SMTP id lf10so5477723pab.31
-        for <linux-media@vger.kernel.org>; Mon, 30 Sep 2013 00:09:13 -0700 (PDT)
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:41569 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758212Ab3IBOAI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 10:00:08 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rq2so4753123pbb.5
+        for <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 07:00:07 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20130930030518.GA3024@localhost>
-References: <5248d26d.XCpLjin/D8FfRGFk%fengguang.wu@intel.com>
-	<20130930030518.GA3024@localhost>
-Date: Mon, 30 Sep 2013 09:09:13 +0200
-Message-ID: <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
-Subject: Re: mcam-core.c:undefined reference to `vb2_dma_sg_memops'
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20130831142943.GJ2835@valkosipuli.retiisi.org.uk>
+References: <20130830083923.52745cb8@samsung.com>
+	<20130831142943.GJ2835@valkosipuli.retiisi.org.uk>
+Date: Mon, 2 Sep 2013 16:00:07 +0200
+Message-ID: <CA+MoWDrC5=c8wzV8Du_h=D=xFSpSRJQ2sMpMjj4QT_HieWqwYQ@mail.gmail.com>
+Subject: Re: [media-workshop] Linux Media mini-summit in Edinburgh
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fengguang,
+Hi Mauro,
 
-On Mon, Sep 30, 2013 at 5:05 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
-> FYI, kernel build failed on
+I'll love to join the media mini-summit.
+
+Thanks,
+
+Peter
+
+On Sat, Aug 31, 2013 at 4:29 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Mauro,
 >
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> head:   15c03dd4859ab16f9212238f29dd315654aa94f6
-> commit: 866f321339988293a5bb3ec6634c2c9d8396bf54 Revert "staging/solo6x10: depend on CONFIG_FONTS"
-> date:   3 months ago
-> config: x86_64-randconfig-c5-0930 (attached as .config)
+> On Fri, Aug 30, 2013 at 08:39:23AM -0300, Mauro Carvalho Chehab wrote:
+>> Hi media developers,
+>>
+>> This year, we're planning to do a media mini-summit together with the
+>> conferences that will be hosted in Edinburgh (LinuxCon EU/ELCE/KS/...),
+>> at the Oct 21-25 week. We don't have the specific days for the
+>> event yet (we're still closing it with Linux Foundation).
+>>
+>> Yet, I'd like to know who is interested on participate on the event, and
+>> ask for the theme proposals for the discussions.
+>>
+>> As we're doing over the last years, we'll be using the
+>> media-workshop@linuxtv.org mailing list for such discussions.
 >
-> All error/warnings:
+> I'm very interested in having a media mini-summit in Edinburgh. I'll be
+> there.
 >
->    drivers/built-in.o: In function `mcam_v4l_open':
->>> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
+> --
+> Cheers,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+>
+> _______________________________________________
+> media-workshop mailing list
+> media-workshop@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
 
-The referenced commit above is completely unrelated to this failure, as
-both CONFIG_SOLO6X10=m and CONFIG_VIDEOBUF2_DMA_SG=m,
-while this is about a missing symbol in builtin code.
 
-However, there's something wrong with the VIDEO_CAFE_CCIC dependencies.
-Untested gmail-white-space-damaged patch below (so your trick of emailing random
-people to obtain a solution worked ;-)
 
->From 8a53ff3c33cfaa8641c9ba3e16bc5b0a35c74842 Mon Sep 17 00:00:00 2001
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 30 Sep 2013 09:03:20 +0200
-Subject: [PATCH] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
-
-If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
-
-drivers/built-in.o: In function `mcam_v4l_open':
->> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/platform/marvell-ccic/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/marvell-ccic/Kconfig
-b/drivers/media/platform/marvell-ccic/Kconfig
-index bf739e3..ec4c771 100644
---- a/drivers/media/platform/marvell-ccic/Kconfig
-+++ b/drivers/media/platform/marvell-ccic/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_CAFE_CCIC
-  select VIDEO_OV7670
-  select VIDEOBUF2_VMALLOC
-  select VIDEOBUF2_DMA_CONTIG
-+ select VIDEOBUF2_DMA_SG
-  ---help---
-   This is a video4linux2 driver for the Marvell 88ALP01 integrated
-   CMOS camera controller.  This is the controller found on first-
 -- 
-1.7.9.5
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Peter
