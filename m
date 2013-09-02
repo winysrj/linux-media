@@ -1,100 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:49504 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365Ab3IOVLP (ORCPT
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:52790 "EHLO
+	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932098Ab3IBQz6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Sep 2013 17:11:15 -0400
-Message-ID: <5236226F.40901@gmail.com>
-Date: Sun, 15 Sep 2013 23:11:11 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 2 Sep 2013 12:55:58 -0400
+Date: Mon, 2 Sep 2013 17:55:43 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	"grant.likely@linaro.org" <grant.likely@linaro.org>
+Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
+Message-ID: <20130902165543.GC18206@e106331-lin.cambridge.arm.com>
+References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+ <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
+ <5224BB26.9090902@samsung.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, pawel@osciak.com,
-	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH RFC 1/7] V4L: Add mem2mem ioctl and file operation helpers
-References: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>  <1379076986-10446-2-git-send-email-s.nawrocki@samsung.com> <1379078027.4396.20.camel@pizza.hi.pengutronix.de>
-In-Reply-To: <1379078027.4396.20.camel@pizza.hi.pengutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5224BB26.9090902@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On Mon, Sep 02, 2013 at 05:21:58PM +0100, Sylwester Nawrocki wrote:
+> Hi Mark,
 
-On 09/13/2013 03:13 PM, Philipp Zabel wrote:
-> Am Freitag, den 13.09.2013, 14:56 +0200 schrieb Sylwester Nawrocki:
->> This patch adds ioctl helpers to the V4L2 mem-to-mem API, so we
->> can avoid several ioctl handlers in the mem-to-mem video node
->> drivers that are simply a pass-through to the v4l2_m2m_* calls.
->> These helpers will only be useful for drivers that use same mutex
->> for both OUTPUT and CAPTURE queue, which is the case for all
->> currently in tree v4l2 m2m drivers.
->> In order to use the helpers the driver are required to use
->> struct v4l2_fh.
->
-> this looks good to me.
+Hi Sylwester,
 
-Thank you for the review.
+> 
+> On 08/27/2013 11:14 AM, Mark Rutland wrote:
+> >> +endpoint node
+> >> +-------------
+> >> +
+> >> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> >> +  video-interfaces.txt. This property can be only used to specify number
+> >> +  of data lanes, i.e. the array's content is unused, only its length is
+> >> +  meaningful. When this property is not specified default value of 1 lane
+> >> +  will be used.
+> > 
+> > Apologies for having not replied to the last posting, but having looked
+> > at the documentation I was provided last time [1], I don't think the
+> > values in the data-lanes property should be described as unused. That
+> > may be the way the Linux driver functions at present, but it's not how
+> > the generic video-interfaces binding documentation describes the
+> > property.
+> > 
+> > If the CSI transmitter hardware doesn't support logical remapping of
+> > lanes, then the only valid values for data-lanes would be a contiguous
+> > list of lane IDs starting at 1, ending at 4 at most. Valid values for
+> > the property would be one of:
+> > 
+> > data-lanes = <1>;
+> > data-lanes = <1>, <2>;
+> > data-lanes = <1>, <2>, <3>;
+> > data-lanes = <1>, <2>, <3>, <4>;
+> > 
+> > We can mention the fact the hardware doesn't support remapping of lanes,
+> > and therefore the list must start with lane 1 and end with (at most)
+> > lane 4. That way a dts will match the generic binding and actually
+> > describe the hardware, and it's possible for Linux (or any other OS) to
+> > factor out the parsing of data-lanes later as desired.
+> > 
+> > I don't think we should offer freedom to encode garbage in the dt when
+> > we can just as easily encourage more standard use of bindings that will
+> > make our lives easier in the long-term.
+> 
+> I entirely agree, that's a very accurate analysis.
+> 
+> Presumably the data-lanes property's descriptions could be improved so
+> it is said explicitly that array elements 0...N - 1, where N = 4, 
+> correspond to logical data lanes 1...N.
 
->> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
->> index 7c43712..dddad5b 100644
->> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
->> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-[...]
->> +/* Videobuf2 ioctl helpers */
->> +
->> +int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
->> +				struct v4l2_requestbuffers *rb)
->> +{
->> +	struct v4l2_fh *fh = file->private_data;
->> +	return v4l2_m2m_reqbufs(file, fh->m2m_ctx, rb);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_reqbufs);
->> +
->> +int v4l2_m2m_ioctl_querybuf(struct file *file, void *priv,
->> +				struct v4l2_buffer *buf)
->> +{
->> +	struct v4l2_fh *fh = file->private_data;
->> +	return v4l2_m2m_querybuf(file, fh->m2m_ctx, buf);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_querybuf);
->> +
->> +int v4l2_m2m_ioctl_qbuf(struct file *file, void *priv,
->> +				struct v4l2_buffer *buf)
->> +{
->> +	struct v4l2_fh *fh = file->private_data;
->> +	return v4l2_m2m_qbuf(file, fh->m2m_ctx, buf);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_qbuf);
->> +
->> +int v4l2_m2m_ioctl_dqbuf(struct file *file, void *priv,
->> +				struct v4l2_buffer *buf)
->> +{
->> +	struct v4l2_fh *fh = file->private_data;
->> +	return v4l2_m2m_dqbuf(file, fh->m2m_ctx, buf);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_dqbuf);
->> +
->
-> Here I'm missing one
->
-> +int v4l2_m2m_ioctl_create_bufs(struct file *file, void *priv,
-> +			       struct v4l2_create_buffers *create)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +	return v4l2_m2m_create_bufs(file, fh->m2m_ctx, create);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_create_bufs);
+That makes sense to me.
 
-OK, I'll add that in the next iteration. I thought I would need to
-add v4l2_m2m_ioctl_prepare_buf() similarly, but it's not necessary,
-since vidioc_create_buf() calls directly to videobuf2, so that's
-even simpler.
+> 
+> Then considering the values in the data-lanes property, I didn't make
+> the description terribly specific about the fact that pool of indexes
+> 0...4 is used for the clock lane and 4 data lanes. The values could well
+> be H/W specific, but it seems more sensible to enforce common range.
+> It may not match exactly with documentation of various hardware. E.g.
+> OMAP, see page 1661, register CSI2_COMPLEXIO_CFG [1], uses indexes 
+> 1..5 to indicate position of a data lane and 0 is used to mark a lane 
+> as unused.
 
---
-Regards,
-Sylwester
+Ah, I see. I guess this boils down to what the "physical indexes"
+referred to by the video-interfaces binding actually are. If an
+interface may only ever have 5 lanes, then using a logical index sounds
+fine. But if we ever have the case where a CSI transmitter has more than
+5 lanes (so it could communicate with multiple receviers), then the
+value has to become hardware-specific. At that point, we'd possibly need
+to define remapping of the clocks too. I'm not that familiar with CSI so
+I'm not sure if such a device is possible.
+
+> 
+> I think we should have similarly defined value 0 to indicate an unused 
+> lane. None of drivers in mainline uses this line remapping feature, so 
+> changing meaning of the array values wouldn't presumably have any bad 
+> side effects. I'm not sure if it's OK to make a change like this now. 
+> IIUC the MIPI CSI-2 standard requires consecutive data lane indexes, 
+> so valid set of data lanes could be only: <1>, <1, 2>, <1, 2, 3>, 
+> <1, 2, 3, 4>. So there seems to be no issue for MIPI CSI-2. But for 
+> future protocols the current convention might not have been flexible 
+> enough.
+
+Given that the video-interfaces binding refers to the clock being on
+lane 0, I'm not sure it makes sense to reserve this as an unused id --
+we'd be saying the lane is the clock to say it's unused, but maybe that
+doesn't matter.
+
+Thanks,
+Mark.
+
+> 
+> > [1] http://www.mipi.org/specifications/camera-interface#CSI2
+> 
+> [2] http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=swpu231ao&fileType=pdf
+ 
+> --
+> Regards,
+> Sylwester
+> 
