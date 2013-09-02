@@ -1,74 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-220.synserver.de ([212.40.185.220]:1322 "EHLO
-	smtp-out-220.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab3I2Iti (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60751 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752366Ab3IBBlk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 04:49:38 -0400
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
+	Sun, 1 Sep 2013 21:41:40 -0400
+Message-ID: <1378086079.25743.87.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [PATCH 2/4] [media] lirc_bt829: Fix physical address type
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 4/8] drm: encoder_slave: Don't use i2c_client->driver
-Date: Sun, 29 Sep 2013 10:51:02 +0200
-Message-Id: <1380444666-12019-5-git-send-email-lars@metafoo.de>
-In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
-References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+	linux-media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org
+Date: Mon, 02 Sep 2013 02:41:19 +0100
+In-Reply-To: <CAOMZO5C_fOqe+9a1BVWxnQ3hrYZaxf5AN4WNrOacQdkng8h-Jg@mail.gmail.com>
+References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
+	 <1378082375.25743.61.camel@deadeye.wl.decadent.org.uk>
+	 <CAOMZO5C_fOqe+9a1BVWxnQ3hrYZaxf5AN4WNrOacQdkng8h-Jg@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-yvgOAdgzr1FhVTnmrQN7"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'driver' field of the i2c_client struct is redundant and is going to be
-removed. The results of the expressions 'client->driver.driver->field' and
-'client->dev.driver->field' are identical, so replace all occurrences of the
-former with the later. To get direct access to the i2c_driver struct use
-'to_i2c_driver(client->dev.driver)'.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/gpu/drm/drm_encoder_slave.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+--=-yvgOAdgzr1FhVTnmrQN7
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpu/drm/drm_encoder_slave.c b/drivers/gpu/drm/drm_encoder_slave.c
-index 0cfb60f..d18b88b 100644
---- a/drivers/gpu/drm/drm_encoder_slave.c
-+++ b/drivers/gpu/drm/drm_encoder_slave.c
-@@ -67,12 +67,12 @@ int drm_i2c_encoder_init(struct drm_device *dev,
- 		goto fail;
- 	}
- 
--	if (!client->driver) {
-+	if (!client->dev.driver) {
- 		err = -ENODEV;
- 		goto fail_unregister;
- 	}
- 
--	module = client->driver->driver.owner;
-+	module = client->dev.driver->owner;
- 	if (!try_module_get(module)) {
- 		err = -ENODEV;
- 		goto fail_unregister;
-@@ -80,7 +80,7 @@ int drm_i2c_encoder_init(struct drm_device *dev,
- 
- 	encoder->bus_priv = client;
- 
--	encoder_drv = to_drm_i2c_encoder_driver(client->driver);
-+	encoder_drv = to_drm_i2c_encoder_driver(to_i2c_driver(client->dev.driver));
- 
- 	err = encoder_drv->encoder_init(client, dev, encoder);
- 	if (err)
-@@ -111,7 +111,7 @@ void drm_i2c_encoder_destroy(struct drm_encoder *drm_encoder)
- {
- 	struct drm_encoder_slave *encoder = to_encoder_slave(drm_encoder);
- 	struct i2c_client *client = drm_i2c_encoder_get_client(drm_encoder);
--	struct module *module = client->driver->driver.owner;
-+	struct module *module = client->dev.driver->owner;
- 
- 	i2c_unregister_device(client);
- 	encoder->bus_priv = NULL;
--- 
-1.8.0
+On Sun, 2013-09-01 at 22:37 -0300, Fabio Estevam wrote:
+> On Sun, Sep 1, 2013 at 9:39 PM, Ben Hutchings <ben@decadent.org.uk> wrote=
+:
+>=20
+> >         pci_addr_phys =3D pdev->resource[0].start;
+> > -       dev_info(&pdev->dev, "memory at 0x%08X\n",
+> > -                (unsigned int)pci_addr_phys);
+> > +       dev_info(&pdev->dev, "memory at 0x%08llX\n",
+> > +                (unsigned long long)pci_addr_phys);
+>=20
+> You could use %pa instead for printing phys_addr_t:
+>=20
+> dev_info(&pdev->dev, "memory at %pa\n", &pci_addr_phys);
 
+Could do, but I'm not sure it's clearer.  And all these %p formats
+defeat type-checking anyway.
+
+Ben.
+
+--=20
+Ben Hutchings
+If you seem to know what you are doing, you'll be given more to do.
+
+--=-yvgOAdgzr1FhVTnmrQN7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIVAwUAUiPsv+e/yOyVhhEJAQooOBAAttqIoG9zlESj5vQOyMcLCK3Rzgaq/JGr
+qU6hWuf5nZYzmg+qJWbxUf/V4QLGG3QM+yFizM67KGvZc+Y0m/IDgTEPpWrX3KmW
+L/stlanFo+A5QbR6EbmZ9fcq7eyVE3ZRq6M2tJE4I+Fq76vOmANUDY3tAJq/9KNq
+Fe3c7z8dn2IMw9g401lItru7m5v2Xl8VDOGhuvNDzyVJw+XGUgXrGz2FskFt18C8
+mXJLBvnPR5kppSg7sgKBw2+bERXW7tkJFJtNPSGtcuPUy03PdEerCnVt2H9FJa59
+LQVWTLAKcYagLnLrsIZmOHc0xPOiwjxx482Pma+GBfR7Bq114YCWrX3IOpNSdk/G
+rAGPmCBwju1RZ1NEGIP23YmSzOcomRyIbrKhnJMnUvx8QynSZYWNwq3T9k8eQJKL
+7wj5niYyCN84HMZlHkV9Z6/8GgM12dE6dABTFUXmadVH35dE7pu1mz+ZSEqW+nPL
+mDM11V4r3zdW3xHN3p8KNefnTsPsvLvQ08JiQZTun54vKLPHGbXZhLKL7bVmiB1h
+eFhVFVwvPpoPv49AAqXexGHMv2zVECrkH/IHGk8t/VNYBZrXFKQF6dZzeAIqaMS0
+Q40OMPx68lcKsou+HRM2l3wuDckZg0a+d77Cm+7f5ZS3U3VxdfbsadogbqevCghh
+irzmzFPPL9w=
+=m0b3
+-----END PGP SIGNATURE-----
+
+--=-yvgOAdgzr1FhVTnmrQN7--
