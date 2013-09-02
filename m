@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:42496 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751966Ab3IIK40 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Sep 2013 06:56:26 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 09 Sep 2013 12:47:45 +0200
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:47394 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758154Ab3IBJGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 05:06:11 -0400
+Received: by mail-bk0-f51.google.com with SMTP id mx10so1424184bkb.24
+        for <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 02:06:10 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID: <m3d2oifezy.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: SOLO6x10 MPEG4/H.264 encoder driver
+In-Reply-To: <CA+V-a8vLpSWCAecvNEFB0jxoJ0=oXsB3LWEMbfN00LghkW4Egw@mail.gmail.com>
+References: <CAPgLHd-0+fYLMh+Ff+cgewBPy1itjp-EtbAjzs5UrJsqrY3aNg@mail.gmail.com>
+	<CA+V-a8szUWiURmmuWReyH1xWSheyn9COOgdGkfFTSkbOPh44FQ@mail.gmail.com>
+	<CA+V-a8vLpSWCAecvNEFB0jxoJ0=oXsB3LWEMbfN00LghkW4Egw@mail.gmail.com>
+Date: Mon, 2 Sep 2013 17:06:10 +0800
+Message-ID: <CAPgLHd9n__f62vRMUDOhjX+KygoFQqp-ip02-S0rt7cDYHk+BQ@mail.gmail.com>
+Subject: [PATCH -next v2] [media] davinci: vpif_capture: fix error return code
+ in vpif_probe()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: prabhakar.csengg@gmail.com
+Cc: m.chehab@samsung.com, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-I'm trying to move to Linux 3.11 and I noticed you've made some
-significant changes to the SOLO6x10 driver. While I don't yet have
-the big picture, I can see some regressions here:
+Fix to return -ENODEV in the subdevice register error handling
+case instead of 0, as done elsewhere in this function.
 
-- the driver doesn't even try to work on big endian systems (I'm using
-  IXP4xx-based system which is BE). For instance, you're now using
-  bitfields for frame headers (struct vop_header) and this is well known
-  to fail (unless you have a different struct for each endianness).
+Introduced by commit 873229e4fdf34196aa5d707957c59ba54c25eaba
+([media] media: davinci: vpif: capture: add V4L2-async support)
 
-  This is actually what I have fixed with commit
-  c55564fdf793797dd2740a67c35a2cedc133c9ff in 2011, and you brought the
-  old buggy version back with dcae5dacbce518513abf7776cb450b7bd95d722b.
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+v1 -> v2: fix mistake using -ENOMEM
+---
+ drivers/media/platform/davinci/vpif_capture.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-- you removed my dynamic building of MPEG4/H.264 VOP headers (the same
-  commit c55564fdf793797dd2740a67c35a2cedc133c9ff) and replaced it with
-  precomputed static binary headers, one for each PAL/NTSC/D1/CIF
-  combination. While I don't strictly object the precomputed data,
-  perhaps you could consider adding some tool to optionally calculate
-  them, as required by the license. For now, It seems it's practically
-  impossible to make modifications to the header data, without, for
-  example, extracting the code from older driver version.
-
-- what was the motivation behind renaming all (C language) files in
-  drivers/staging/media/solo6x10 to solo6x10-* (commits
-  dad7fab933622ee67774a9219d5c18040d97a5e5 and
-  7bce33daeaca26a3ea3f6099fdfe4e11ea46cac6, essentially a reversion of
-  my commit ae69b22c6ca7d1d7fdccf0b664dafbc777099abe)? I'm under
-  impression that a driver file names don't need (and shouldn't) contain
-  the driver name if the directory is already named after the driver.
-
-  This is also the case with b3c7d453a00b7dadc2a7435f68b012371ccc3a3e:
-
-  > [media] solo6x10: rename jpeg.h to solo6x10-jpeg.h
-  >
-  >  This header clashes with the jpeg.h in gspca when doing a compatibility
-  >  build using the media_build system.
-
-  What is this media_build system and why is it forcing code in
-  different directories to have unique file names?
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 7fbde6d..e4b6a26 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2160,6 +2160,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 			if (!vpif_obj.sd[i]) {
+ 				vpif_err("Error registering v4l2 subdevice\n");
++				err = -ENODEV;
+ 				goto probe_subdev_out;
+ 			}
+ 			v4l2_info(&vpif_obj.v4l2_dev,
 
 
-I appreciate the switch to VB2 and other improvements (though I can't
-test them yet), but perhaps it could be done without causing major
-breakage?
-
-I'm thinking about a correct course of action now. I need the driver
-functional so I'll revert the struct vop_header thing again, any
-thoughts?
--- 
-Krzysztof Halasa
-
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
