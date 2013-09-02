@@ -1,281 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:54848 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754694Ab3I1T3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Sep 2013 15:29:20 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: kishon@ti.com
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH V5 2/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-Date: Sat, 28 Sep 2013 21:27:44 +0200
-Message-Id: <1380396467-29278-3-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
-References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1459 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754908Ab3IBHP3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 03:15:29 -0400
+Message-ID: <52243B08.80401@xs4all.nl>
+Date: Mon, 02 Sep 2013 09:15:20 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+CC: Dinesh Ram <dinram@cisco.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Dino d <dinesh.ram@cern.ch>
+Subject: Re: [PATCH 3/6] si4713 : Bug fix for si4713_tx_tune_power() method
+ in the i2c driver
+References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com> <1377862104-15429-1-git-send-email-dinram@cisco.com> <637d28441ff1e63ae72385afcba990fda11e0210.1377861337.git.dinram@cisco.com> <CAC-25o_Fk3fva7xdna=-fUv53vp2DjRt99+sEGwTwvgQn=cgkg@mail.gmail.com> <52231F3C.9000208@xs4all.nl> <CAC-25o8r4xMY_LFDMpszHZqoi0h13CR1wZYVXVHOmuorTmU=rg@mail.gmail.com> <5224376B.8020003@xs4all.nl>
+In-Reply-To: <5224376B.8020003@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
-receiver and MIPI DSI transmitter DPHYs.
+On 09/02/2013 08:59 AM, Hans Verkuil wrote:
+> On 09/01/2013 04:57 PM, edubezval@gmail.com wrote:
+>> Hello Hans,
+>>
+>> On Sun, Sep 1, 2013 at 7:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 08/31/2013 01:49 PM, edubezval@gmail.com wrote:
+>>>> Hi Dinesh,
+>>>>
+>>>> On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
+>>>>> In the si4713_tx_tune_power() method, the args array element 'power' can take values between
+>>>>> SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0 is also valid.
+>>>>> All the values (0 > power < SI4713_MIN_POWER) are illegal and hence
+>>>>> are all mapped to SI4713_MIN_POWER.
+>>>>
+>>>> While do we need to assume min power in these cases?
+>>
+>> s/While/Why! but I guess you already got it.
+>>
+>>>
+>>> It makes no sense to map 0 < powers < MIN_POWER to 0 (i.e. power off). I would never
+>>> expect that selecting a power > 0 would actually turn off power, so just map to the
+>>> lowest possible power value.
+>>
+>> Hmm.. Interesting. Is this what you are seen currently?
+>> 0 < power < MIN_POWER == power off?
+> 
+> Currently trying to use a power value in that range will result in the EDOM
+> error. But that's quite unexpected for a control that's defined for the range
+> [0..MAX_POWER]. So rather than return an error you map it internally to the
+> lowest power value.
+> 
+>>
+>> I would expect the driver to return an error code:
+>>
+>>     if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+>>         power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+>>         return -EDOM;
+>>
+>> And that is why I am asking why are we assigning a min value when we
+>> see a value out of the expected range?
+> 
+> The hardware expects the value 0 or a value in the range [MIN_POWER..MAX_POWER].
+> The control expects a value in the range [0..MAX_POWER]. In order to prevent
+> the driver from returning -EDOM for values in the range [1..MIN_POWER> we
+> map those values to MIN_POWER. Returning an error in this case is not allowed
+> by the V4L2 specification.
+> 
+>>
+>>>
+>>>>
+>>>>>
+>>>>> Signed-off-by: Dinesh Ram <dinram@cisco.com>
+>>>>> ---
+>>>>>  drivers/media/radio/si4713/si4713.c | 16 ++++++++--------
+>>>>>  1 file changed, 8 insertions(+), 8 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+>>>>> index 55c4d27..5d0be87 100644
+>>>>> --- a/drivers/media/radio/si4713/si4713.c
+>>>>> +++ b/drivers/media/radio/si4713/si4713.c
+>>>>> @@ -550,14 +550,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
+>>>>>  }
+>>>>>
+>>>>>  /*
+>>>>> - * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
+>>>>> + * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
+>>>>>   *                     1 dB units. A value of 0x00 indicates off. The command
+>>>>>   *                     also sets the antenna tuning capacitance. A value of 0
+>>>>>   *                     indicates autotuning, and a value of 1 - 191 indicates
+>>>>>   *                     a manual override, which results in a tuning
+>>>>>   *                     capacitance of 0.25 pF x @antcap.
+>>>>>   * @sdev: si4713_device structure for the device we are communicating
+>>>>> - * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
+>>>>> + * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
+>>>>>   * @antcap: value of antenna tuning capacitor (0 - 191)
+>>>>>   */
+>>>>>  static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>>>>> @@ -571,16 +571,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+>>>>>          *      .Third byte = power
+>>>>>          *      .Fourth byte = antcap
+>>>>>          */
+>>>>> -       const u8 args[SI4713_TXPWR_NARGS] = {
+>>>>> +       u8 args[SI4713_TXPWR_NARGS] = {
+>>>>>                 0x00,
+>>>>>                 0x00,
+>>>>>                 power,
+>>>>>                 antcap,
+>>>>>         };
+>>>>>
+>>>>> -       if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+>>>>> -               power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+>>>>> -               return -EDOM;
+>>>>> +       /* Map power values 1-87 to MIN_POWER (88) */
+>>>>> +       if (power > 0 && power < SI4713_MIN_POWER)
+>>>>> +               args[2] = power = SI4713_MIN_POWER;
+>>>>
+>>>> Why are you allowing antcap > SI4713_MAX_ANTCAP? and power >
+>>>> SI4713_MAX_POWER too?
+>>>
+>>> The control framework already checks for that so you'll never see out-of-range values
+>>> here. So it was an unnecessary check.
+>>>
+>>
+>> I see. Are you sure about that?
+> 
+> I wrote the control framework, so yes, I'm sure about that. One of the reasons for the
+> framework was to prevent all these checks in all the drivers.
+> 
+>>
+>> I am just a bit concerned about regulations here. One can really get
+>> in trouble if it can transmit FM for longer than 10m in some
+>> countries, without a license.
+> 
+> Well, I assume Nokia knew what they were doing when they wrote this driver.
+> AFAIK these devices are all low power with low ranges, meant for the mobile
+> market.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v4:
- - updated to latest version of the PHY framework - removed PHY
-   labels.
+Oops, I didn't notice until now that you're Eduardo Valentin: you email has changed
+since the last time and I didn't notice your name. Of course you know all
+about this device :-)
 
-The individual driver symbols in drivers/phy/Kconfig should
-presumably be prefixed with, e.g. PHY_. This is something that
-perhaps could be done as a follow up patch.
----
- .../devicetree/bindings/phy/samsung-phy.txt        |   14 ++
- drivers/phy/Kconfig                                |    6 +
- drivers/phy/Makefile                               |    7 +-
- drivers/phy/phy-exynos-mipi-video.c                |  176 ++++++++++++++++++++
- 4 files changed, 200 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
- create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-new file mode 100644
-index 0000000..5ff208c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-@@ -0,0 +1,14 @@
-+Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY
-+-------------------------------------------------
-+
-+Required properties:
-+- compatible : should be "samsung,s5pv210-mipi-video-phy";
-+- reg : offset and length of the MIPI DPHY register set;
-+- #phy-cells : from the generic phy bindings, must be 1;
-+
-+For "samsung,s5pv210-mipi-video-phy" compatible PHYs the second cell in
-+the PHY specifier identifies the PHY and its meaning is as follows:
-+  0 - MIPI CSIS 0,
-+  1 - MIPI DSIM 0,
-+  2 - MIPI CSIS 1,
-+  3 - MIPI DSIM 1.
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index ac239ac..0062d7e 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -15,6 +15,12 @@ config GENERIC_PHY
- 	  phy users can obtain reference to the PHY. All the users of this
- 	  framework should select this config.
- 
-+config PHY_EXYNOS_MIPI_VIDEO
-+	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
-+	help
-+	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung S5P
-+	  and EXYNOS SoCs.
-+
- config OMAP_USB2
- 	tristate "OMAP USB2 PHY Driver"
- 	depends on ARCH_OMAP2PLUS
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 0dd8a98..6344053 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for the phy drivers.
- #
- 
--obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
--obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
--obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
-+obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
-+obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
-+obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
-+obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
-diff --git a/drivers/phy/phy-exynos-mipi-video.c b/drivers/phy/phy-exynos-mipi-video.c
-new file mode 100644
-index 0000000..b73b86a
---- /dev/null
-+++ b/drivers/phy/phy-exynos-mipi-video.c
-@@ -0,0 +1,176 @@
-+/*
-+ * Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/phy/phy.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+
-+/* MIPI_PHYn_CONTROL register offset: n = 0..1 */
-+#define EXYNOS_MIPI_PHY_CONTROL(n)	((n) * 4)
-+#define EXYNOS_MIPI_PHY_ENABLE		(1 << 0)
-+#define EXYNOS_MIPI_PHY_SRESETN		(1 << 1)
-+#define EXYNOS_MIPI_PHY_MRESETN		(1 << 2)
-+#define EXYNOS_MIPI_PHY_RESET_MASK	(3 << 1)
-+
-+enum exynos_mipi_phy_id {
-+	EXYNOS_MIPI_PHY_ID_CSIS0,
-+	EXYNOS_MIPI_PHY_ID_DSIM0,
-+	EXYNOS_MIPI_PHY_ID_CSIS1,
-+	EXYNOS_MIPI_PHY_ID_DSIM1,
-+	EXYNOS_MIPI_PHYS_NUM
-+};
-+
-+#define is_mipi_dsim_phy_id(id) \
-+	((id) == EXYNOS_MIPI_PHY_ID_DSIM0 || (id) == EXYNOS_MIPI_PHY_ID_DSIM1)
-+
-+struct exynos_mipi_video_phy {
-+	spinlock_t slock;
-+	struct video_phy_desc {
-+		struct phy *phy;
-+		unsigned int index;
-+	} phys[EXYNOS_MIPI_PHYS_NUM];
-+	void __iomem *regs;
-+};
-+
-+static int __set_phy_state(struct exynos_mipi_video_phy *state,
-+			enum exynos_mipi_phy_id id, unsigned int on)
-+{
-+	void __iomem *addr;
-+	u32 reg, reset;
-+
-+	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
-+
-+	if (is_mipi_dsim_phy_id(id))
-+		reset = EXYNOS_MIPI_PHY_MRESETN;
-+	else
-+		reset = EXYNOS_MIPI_PHY_SRESETN;
-+
-+	spin_lock(&state->slock);
-+	reg = readl(addr);
-+	if (on)
-+		reg |= reset;
-+	else
-+		reg &= ~reset;
-+	writel(reg, addr);
-+
-+	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
-+	if (on)
-+		reg |= EXYNOS_MIPI_PHY_ENABLE;
-+	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
-+		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
-+
-+	writel(reg, addr);
-+	spin_unlock(&state->slock);
-+	return 0;
-+}
-+
-+#define to_mipi_video_phy(desc) \
-+	container_of((desc), struct exynos_mipi_video_phy, phys[(desc)->index]);
-+
-+static int exynos_mipi_video_phy_power_on(struct phy *phy)
-+{
-+	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
-+	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
-+
-+	return __set_phy_state(state, phy_desc->index, 1);
-+}
-+
-+static int exynos_mipi_video_phy_power_off(struct phy *phy)
-+{
-+	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
-+	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
-+
-+	return __set_phy_state(state, phy_desc->index, 1);
-+}
-+
-+static struct phy *exynos_mipi_video_phy_xlate(struct device *dev,
-+					struct of_phandle_args *args)
-+{
-+	struct exynos_mipi_video_phy *state = dev_get_drvdata(dev);
-+
-+	if (WARN_ON(args->args[0] > EXYNOS_MIPI_PHYS_NUM))
-+		return ERR_PTR(-ENODEV);
-+
-+	return state->phys[args->args[0]].phy;
-+}
-+
-+static struct phy_ops exynos_mipi_video_phy_ops = {
-+	.power_on	= exynos_mipi_video_phy_power_on,
-+	.power_off	= exynos_mipi_video_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int exynos_mipi_video_phy_probe(struct platform_device *pdev)
-+{
-+	struct exynos_mipi_video_phy *state;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct phy_provider *phy_provider;
-+	unsigned int i;
-+
-+	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	state->regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(state->regs))
-+		return PTR_ERR(state->regs);
-+
-+	dev_set_drvdata(dev, state);
-+	spin_lock_init(&state->slock);
-+
-+	phy_provider = devm_of_phy_provider_register(dev,
-+					exynos_mipi_video_phy_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	for (i = 0; i < EXYNOS_MIPI_PHYS_NUM; i++) {
-+		struct phy *phy = devm_phy_create(dev,
-+					&exynos_mipi_video_phy_ops, NULL);
-+		if (IS_ERR(phy)) {
-+			dev_err(dev, "failed to create PHY %d\n", i);
-+			return PTR_ERR(phy);
-+		}
-+
-+		state->phys[i].phy = phy;
-+		state->phys[i].index = i;
-+		phy_set_drvdata(phy, &state->phys[i]);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id exynos_mipi_video_phy_of_match[] = {
-+	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, exynos_mipi_video_phy_of_match);
-+
-+static struct platform_driver exynos_mipi_video_phy_driver = {
-+	.probe	= exynos_mipi_video_phy_probe,
-+	.driver = {
-+		.of_match_table	= exynos_mipi_video_phy_of_match,
-+		.name  = "exynos-mipi-video-phy",
-+		.owner = THIS_MODULE,
-+	}
-+};
-+module_platform_driver(exynos_mipi_video_phy_driver);
-+
-+MODULE_DESCRIPTION("Samsung S5P/EXYNOS SoC MIPI CSI-2/DSI PHY driver");
-+MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.4.1
-
+	Hans
