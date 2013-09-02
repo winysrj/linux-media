@@ -1,53 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49978 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338Ab3ILXCT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 19:02:19 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] Some improvements/fixes for Siano driver
-Date: Thu, 12 Sep 2013 16:59:57 -0300
-Message-Id: <1379016000-19577-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52635 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758854Ab3IBQWG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 12:22:06 -0400
+Message-id: <5224BB26.9090902@samsung.com>
+Date: Mon, 02 Sep 2013 18:21:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	"grant.likely@linaro.org" <grant.likely@linaro.org>
+Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
+References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
+ <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
+In-reply-to: <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I got a few reports those days about Siano regressions/issues.
+Hi Mark,
 
-The first one was reported at:
-       https://bugzilla.kernel.org/show_bug.cgi?id=60645
+On 08/27/2013 11:14 AM, Mark Rutland wrote:
+>> +endpoint node
+>> +-------------
+>> +
+>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+>> +  video-interfaces.txt. This property can be only used to specify number
+>> +  of data lanes, i.e. the array's content is unused, only its length is
+>> +  meaningful. When this property is not specified default value of 1 lane
+>> +  will be used.
+> 
+> Apologies for having not replied to the last posting, but having looked
+> at the documentation I was provided last time [1], I don't think the
+> values in the data-lanes property should be described as unused. That
+> may be the way the Linux driver functions at present, but it's not how
+> the generic video-interfaces binding documentation describes the
+> property.
+> 
+> If the CSI transmitter hardware doesn't support logical remapping of
+> lanes, then the only valid values for data-lanes would be a contiguous
+> list of lane IDs starting at 1, ending at 4 at most. Valid values for
+> the property would be one of:
+> 
+> data-lanes = <1>;
+> data-lanes = <1>, <2>;
+> data-lanes = <1>, <2>, <3>;
+> data-lanes = <1>, <2>, <3>, <4>;
+> 
+> We can mention the fact the hardware doesn't support remapping of lanes,
+> and therefore the list must start with lane 1 and end with (at most)
+> lane 4. That way a dts will match the generic binding and actually
+> describe the hardware, and it's possible for Linux (or any other OS) to
+> factor out the parsing of data-lanes later as desired.
+> 
+> I don't think we should offer freedom to encode garbage in the dt when
+> we can just as easily encourage more standard use of bindings that will
+> make our lives easier in the long-term.
 
-While its fix was already upstream, the "error" messages there doesn't
-help, as it induced people to believe that it was a firmware related
-error.
+I entirely agree, that's a very accurate analysis.
 
-The second one was reported via IRC, and it is related to the first
-generation of Siano devices (sms1000).
+Presumably the data-lanes property's descriptions could be improved so
+it is said explicitly that array elements 0...N - 1, where N = 4, 
+correspond to logical data lanes 1...N.
 
-It was a regression caused on kernel 3.9, that made those devices to
-fail.
+Then considering the values in the data-lanes property, I didn't make
+the description terribly specific about the fact that pool of indexes
+0...4 is used for the clock lane and 4 data lanes. The values could well
+be H/W specific, but it seems more sensible to enforce common range.
+It may not match exactly with documentation of various hardware. E.g.
+OMAP, see page 1661, register CSI2_COMPLEXIO_CFG [1], uses indexes 
+1..5 to indicate position of a data lane and 0 is used to mark a lane 
+as unused.
 
-It turns that, on those devices, the driver should first initialize
-one USB ID and load a firmware. After firmware load, the device got
-replaced by another USB ID, and the device initialization can be
-done, on a diferent USB Interface.
+I think we should have similarly defined value 0 to indicate an unused 
+lane. None of drivers in mainline uses this line remapping feature, so 
+changing meaning of the array values wouldn't presumably have any bad 
+side effects. I'm not sure if it's OK to make a change like this now. 
+IIUC the MIPI CSI-2 standard requires consecutive data lane indexes, 
+so valid set of data lanes could be only: <1>, <1, 2>, <1, 2, 3>, 
+<1, 2, 3, 4>. So there seems to be no issue for MIPI CSI-2. But for 
+future protocols the current convention might not have been flexible 
+enough.
 
-This series fixes the second issue and improves the debug message,
-in order to make easier to identify what's going wrong at the
-init process.
+> [1] http://www.mipi.org/specifications/camera-interface#CSI2
 
-Mauro Carvalho Chehab (3):
-  [media] siano: Don't show debug messages as errors
-  [media] siano: Improve debug/info messages
-  [media] siano: Fix initialization for Stellar models
+[2] http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=swpu231ao&fileType=pdf
 
- drivers/media/common/siano/smscoreapi.c |  4 ++--
- drivers/media/usb/siano/smsusb.c        | 40 +++++++++++++++++++++++----------
- 2 files changed, 30 insertions(+), 14 deletions(-)
-
--- 
-1.8.3.1
-
+--
+Regards,
+Sylwester
