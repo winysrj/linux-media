@@ -1,77 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1429 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181Ab3I3Hvy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 03:51:54 -0400
-Message-ID: <52492D91.1030806@xs4all.nl>
-Date: Mon, 30 Sep 2013 09:51:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:54418 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751659Ab3IBTIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Sep 2013 15:08:47 -0400
+Received: from [192.168.1.101] ([146.52.61.147]) by mail.gmx.com (mrgmx103)
+ with ESMTPSA (Nemesis) id 0LjquD-1Vs7IS3fGT-00bt5D for
+ <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 21:08:46 +0200
+Message-ID: <5224E23C.3060006@gmx.net>
+Date: Mon, 02 Sep 2013 21:08:44 +0200
+From: Jan Taegert <jantaegert@gmx.net>
 MIME-Version: 1.0
-To: =?UTF-8?B?S3J6eXN6dG9mIEhhxYJhc2E=?= <khalasa@piap.pl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	ismael.luceno@corp.bluecherry.net
-Subject: Re: [PATCH] SOLO6x10: don't do DMA from stack in solo_dma_vin_region().
-References: <m37gemb51b.fsf@t19.piap.pl>
-In-Reply-To: <m37gemb51b.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, Jacek Konieczny <jajcus@jajcus.net>,
+	Torsten Seyffarth <t.seyffarth@gmx.de>,
+	Damien CABROL <cabrol.damien@free.fr>
+Subject: Re: [PATCH] e4000: fix PLL calc error in 32-bit arch
+References: <1378138669-22302-1-git-send-email-crope@iki.fi> <5224BC2D.2040909@iki.fi>
+In-Reply-To: <5224BC2D.2040909@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ismael,
-
-Can you Ack these four patches?
+Thanks! Works like a charm here with TerraTec Cinergy T Stick RC (Rev. 
+3). And you're right, I'm running 32-bit.
 
 Regards,
+jan.
 
-	Hans
 
-On 09/12/2013 02:25 PM, Krzysztof Hałasa wrote:
-> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
-> 
-> diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
-> index 32d9953..884512e 100644
-> --- a/drivers/staging/media/solo6x10/solo6x10-disp.c
-> +++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
-> @@ -176,18 +176,26 @@ static void solo_vout_config(struct solo_dev *solo_dev)
->  static int solo_dma_vin_region(struct solo_dev *solo_dev, u32 off,
->  			       u16 val, int reg_size)
->  {
-> -	u16 buf[64];
-> -	int i;
-> -	int ret = 0;
-> +	u16 *buf;
-> +	const int n = 64, size = n * sizeof(*buf);
-> +	int i, ret = 0;
-> +
-> +	if (!(buf = kmalloc(size, GFP_KERNEL)))
-> +		return -ENOMEM;
->  
-> -	for (i = 0; i < sizeof(buf) >> 1; i++)
-> +	for (i = 0; i < n; i++)
->  		buf[i] = cpu_to_le16(val);
->  
-> -	for (i = 0; i < reg_size; i += sizeof(buf))
-> -		ret |= solo_p2m_dma(solo_dev, 1, buf,
-> -				    SOLO_MOTION_EXT_ADDR(solo_dev) + off + i,
-> -				    sizeof(buf), 0, 0);
-> +	for (i = 0; i < reg_size; i += size) {
-> +		ret = solo_p2m_dma(solo_dev, 1, buf,
-> +				   SOLO_MOTION_EXT_ADDR(solo_dev) + off + i,
-> +				   size, 0, 0);
-> +
-> +		if (ret)
-> +			break;
-> +	}
->  
-> +	kfree(buf);
->  	return ret;
->  }
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Am 02.09.2013 18:26, schrieb Antti Palosaari:
+> Testers?
+>
+> Here is tree:
+> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/e4000_fix_3.11
+>
+>
+> I assume all of you have been running 32-bit arch as that bug is related
+> to 32-bit overflow.
+>
+> regards
+> Antti
+>
+>
+> On 09/02/2013 07:17 PM, Antti Palosaari wrote:
+>> Fix long-lasting error that causes tuning failure to some frequencies
+>> on 32-bit arch.
+>>
+>> Special thanks goes to Damien CABROL who finally find root of the bug.
+>> Also big thanks to Jacek Konieczny for donating non-working device.
+>>
+>> Reported-by: Jacek Konieczny <jajcus@jajcus.net>
+>> Reported-by: Torsten Seyffarth <t.seyffarth@gmx.de>
+>> Reported-by: Jan Taegert <jantaegert@gmx.net>
+>> Reported-by: Damien CABROL <cabrol.damien@free.fr>
+>> Tested-by: Damien CABROL <cabrol.damien@free.fr>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/tuners/e4000.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>> index 1b33ed3..a88f757 100644
+>> --- a/drivers/media/tuners/e4000.c
+>> +++ b/drivers/media/tuners/e4000.c
+>> @@ -232,7 +232,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+>>        * or more.
+>>        */
+>>       f_VCO = c->frequency * e4000_pll_lut[i].mul;
+>> -    sigma_delta = 0x10000UL * (f_VCO % priv->cfg->clock) /
+>> priv->cfg->clock;
+>> +    sigma_delta = div_u64(0x10000ULL * (f_VCO % priv->cfg->clock),
+>> priv->cfg->clock);
+>>       buf[0] = f_VCO / priv->cfg->clock;
+>>       buf[1] = (sigma_delta >> 0) & 0xff;
+>>       buf[2] = (sigma_delta >> 8) & 0xff;
+>>
+>
+>
 
