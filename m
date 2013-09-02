@@ -1,161 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:33861 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132Ab3I0K7h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 06:59:37 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v9 08/13] [media] exynos5-fimc-is: Add sensor interface
-Date: Fri, 27 Sep 2013 16:29:13 +0530
-Message-Id: <1380279558-21651-9-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
-References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59133 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758630Ab3IBQ1F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Sep 2013 12:27:05 -0400
+Message-ID: <5224BC2D.2040909@iki.fi>
+Date: Mon, 02 Sep 2013 19:26:21 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org, Jacek Konieczny <jajcus@jajcus.net>,
+	Torsten Seyffarth <t.seyffarth@gmx.de>,
+	Jan Taegert <jantaegert@gmx.net>,
+	Damien CABROL <cabrol.damien@free.fr>
+Subject: Re: [PATCH] e4000: fix PLL calc error in 32-bit arch
+References: <1378138669-22302-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1378138669-22302-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors to be used with fimc-is are exclusively controlled
-by the fimc-is firmware. This minimal sensor driver provides
-the required info for the firmware to configure the sensors
-sitting on I2C bus.
+Testers?
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
- 2 files changed, 110 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
+Here is tree:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/e4000_fix_3.11
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-new file mode 100644
-index 0000000..475f1c3
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-@@ -0,0 +1,45 @@
-+/*
-+ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "fimc-is-sensor.h"
-+
-+static const struct sensor_drv_data s5k6a3_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
-+	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
-+};
-+
-+static const struct sensor_drv_data s5k4e5_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
-+	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
-+};
-+
-+static const struct of_device_id fimc_is_sensor_of_ids[] = {
-+	{
-+		.compatible	= "samsung,s5k6a3",
-+		.data		= &s5k6a3_drvdata,
-+	},
-+	{
-+		.compatible	= "samsung,s5k4e5",
-+		.data		= &s5k4e5_drvdata,
-+	},
-+	{  }
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node)
-+{
-+	const struct of_device_id *of_id;
-+
-+	of_id = of_match_node(fimc_is_sensor_of_ids, node);
-+	return of_id ? of_id->data : NULL;
-+}
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-new file mode 100644
-index 0000000..0ba5733
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-@@ -0,0 +1,65 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_SENSOR_H_
-+#define FIMC_IS_SENSOR_H_
-+
-+#include <linux/of.h>
-+#include <linux/types.h>
-+
-+#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K6A3_SENSOR_WIDTH		1392
-+#define S5K6A3_SENSOR_HEIGHT		1392
-+
-+#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K4E5_SENSOR_WIDTH		2560
-+#define S5K4E5_SENSOR_HEIGHT		1920
-+
-+#define SENSOR_WIDTH_PADDING		16
-+#define SENSOR_HEIGHT_PADDING		10
-+
-+enum fimc_is_sensor_id {
-+	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
-+	FIMC_IS_SENSOR_ID_S5K6A3,
-+	FIMC_IS_SENSOR_ID_S5K4E5,
-+	FIMC_IS_SENSOR_ID_S5K3H7,
-+	FIMC_IS_SENSOR_ID_CUSTOM,
-+	FIMC_IS_SENSOR_ID_END
-+};
-+
-+struct sensor_drv_data {
-+	enum fimc_is_sensor_id id;
-+	/* sensor open timeout in ms */
-+	unsigned short open_timeout;
-+	char *setfile_name;
-+};
-+
-+/**
-+ * struct fimc_is_sensor - fimc-is sensor data structure
-+ * @drvdata: a pointer to the sensor's parameters data structure
-+ * @i2c_bus: ISP I2C bus index (0...1)
-+ * @width: sensor active width
-+ * @height: sensor active height
-+ * @pixel_width: sensor effective pixel width (width + padding)
-+ * @pixel_height: sensor effective pixel height (height + padding)
-+ */
-+struct fimc_is_sensor {
-+	const struct sensor_drv_data *drvdata;
-+	unsigned int i2c_bus;
-+	unsigned int width;
-+	unsigned int height;
-+	unsigned int pixel_width;
-+	unsigned int pixel_height;
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node);
-+
-+#endif /* FIMC_IS_SENSOR_H_ */
+I assume all of you have been running 32-bit arch as that bug is related 
+to 32-bit overflow.
+
+regards
+Antti
+
+
+On 09/02/2013 07:17 PM, Antti Palosaari wrote:
+> Fix long-lasting error that causes tuning failure to some frequencies
+> on 32-bit arch.
+>
+> Special thanks goes to Damien CABROL who finally find root of the bug.
+> Also big thanks to Jacek Konieczny for donating non-working device.
+>
+> Reported-by: Jacek Konieczny <jajcus@jajcus.net>
+> Reported-by: Torsten Seyffarth <t.seyffarth@gmx.de>
+> Reported-by: Jan Taegert <jantaegert@gmx.net>
+> Reported-by: Damien CABROL <cabrol.damien@free.fr>
+> Tested-by: Damien CABROL <cabrol.damien@free.fr>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/tuners/e4000.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+> index 1b33ed3..a88f757 100644
+> --- a/drivers/media/tuners/e4000.c
+> +++ b/drivers/media/tuners/e4000.c
+> @@ -232,7 +232,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+>   	 * or more.
+>   	 */
+>   	f_VCO = c->frequency * e4000_pll_lut[i].mul;
+> -	sigma_delta = 0x10000UL * (f_VCO % priv->cfg->clock) / priv->cfg->clock;
+> +	sigma_delta = div_u64(0x10000ULL * (f_VCO % priv->cfg->clock), priv->cfg->clock);
+>   	buf[0] = f_VCO / priv->cfg->clock;
+>   	buf[1] = (sigma_delta >> 0) & 0xff;
+>   	buf[2] = (sigma_delta >> 8) & 0xff;
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
