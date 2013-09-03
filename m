@@ -1,39 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:55665 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754620Ab3I2Rpr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 13:45:47 -0400
-Message-ID: <52486745.9040405@gmail.com>
-Date: Sun, 29 Sep 2013 19:45:41 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35133 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760245Ab3ICUVh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 16:21:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1 02/19] uvcvideo: Return 0 when setting probe control succeeds.
+Date: Tue, 03 Sep 2013 22:21:38 +0200
+Message-ID: <1470601.zIbq0UikIW@avalon>
+In-Reply-To: <1377829038-4726-3-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-3-git-send-email-posciak@chromium.org>
 MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>
-CC: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH 1/8] [media] s5c73m3: Don't use i2c_client->driver
-References: <1380444666-12019-1-git-send-email-lars@metafoo.de> <1380444666-12019-2-git-send-email-lars@metafoo.de>
-In-Reply-To: <1380444666-12019-2-git-send-email-lars@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/29/2013 10:50 AM, Lars-Peter Clausen wrote:
-> The 'driver' field of the i2c_client struct is redundant and is going to be
-> removed. The results of the expressions 'client->driver.driver->field' and
-> 'client->dev.driver->field' are identical, so replace all occurrences of the
-> former with the later.
->
-> Signed-off-by: Lars-Peter Clausen<lars@metafoo.de>
-> Cc: Kyungmin Park<kyungmin.park@samsung.com>
-> Cc: Andrzej Hajda<a.hajda@samsung.com>
+Hi Pawel,
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Thank you for the patch.
+
+On Friday 30 August 2013 11:17:01 Pawel Osciak wrote:
+> Return 0 instead of returning size of the probe control on successful set.
+
+This looks good, but could you update the commit message to explain why ?
+
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 695f6d9..1198989 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -296,6 +296,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming
+> *stream, "%d (exp. %u).\n", probe ? "probe" : "commit",
+>  			ret, size);
+>  		ret = -EIO;
+> +	} else {
+> +		ret = 0;
+>  	}
+> 
+>  	kfree(data);
+-- 
+Regards,
+
+Laurent Pinchart
+
