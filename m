@@ -1,88 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60582 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757711Ab3IBAkN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Sep 2013 20:40:13 -0400
-Message-ID: <1378082410.25743.62.camel@deadeye.wl.decadent.org.uk>
-Subject: [PATCH 3/4] [media] lirc_bt829: Fix iomap leak
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Mon, 02 Sep 2013 01:40:10 +0100
-In-Reply-To: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-Ui3tg8zGBgAMaN9/vZYg"
-Mime-Version: 1.0
+Received: from mga09.intel.com ([134.134.136.24]:12212 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752612Ab3ICMbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Sep 2013 08:31:53 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH] gspca: print small buffers via %*ph
+Date: Tue,  3 Sep 2013 15:31:37 +0300
+Message-Id: <1378211497-16482-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of passing each byte through stack let's use %*ph specifier to do this
+job better.
 
---=-Ui3tg8zGBgAMaN9/vZYg
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-We must call iounmap() when removed from a device.
-
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/staging/media/lirc/lirc_bt829.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/usb/gspca/sonixb.c      |  5 +----
+ drivers/media/usb/gspca/xirlink_cit.c | 12 ++++--------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/medi=
-a/lirc/lirc_bt829.c
-index 8c5ba2a..76e6cfb 100644
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ b/drivers/staging/media/lirc/lirc_bt829.c
-@@ -140,12 +140,14 @@ static int atir_pci_probe(struct pci_dev *pdev,
- 	if (atir->minor < 0) {
- 		dev_err(&pdev->dev, "failed to register driver!\n");
- 		rc =3D atir->minor;
--		goto err_free;
-+		goto err_unmap;
- 	}
- 	dprintk("driver is registered on minor %d\n", atir->minor);
-=20
- 	return 0;
-=20
-+err_unmap:
-+	iounmap(atir->pci_addr_lin);
- err_free:
- 	pci_set_drvdata(pdev, NULL);
- 	kfree(atir);
-@@ -158,6 +160,7 @@ static void atir_pci_remove(struct pci_dev *pdev)
- 	struct atir_device *atir =3D pci_get_drvdata(pdev);
-=20
- 	lirc_unregister_driver(atir->minor);
-+	iounmap(atir->pci_addr_lin);
- 	pci_set_drvdata(pdev, NULL);
- 	kfree(atir);
- }
+diff --git a/drivers/media/usb/gspca/sonixb.c b/drivers/media/usb/gspca/sonixb.c
+index d7ff3b9..5e5613e 100644
+--- a/drivers/media/usb/gspca/sonixb.c
++++ b/drivers/media/usb/gspca/sonixb.c
+@@ -513,10 +513,7 @@ static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf)
+ 		if (gspca_dev->usb_buf[0] & 0x04) {
+ 			if (gspca_dev->usb_buf[0] & 0x08) {
+ 				dev_err(gspca_dev->v4l2_dev.dev,
+-					"i2c error writing %02x %02x %02x %02x"
+-					" %02x %02x %02x %02x\n",
+-					buf[0], buf[1], buf[2], buf[3],
+-					buf[4], buf[5], buf[6], buf[7]);
++					"i2c error writing %8ph\n", buf);
+ 				gspca_dev->usb_err = -EIO;
+ 			}
+ 			return;
+diff --git a/drivers/media/usb/gspca/xirlink_cit.c b/drivers/media/usb/gspca/xirlink_cit.c
+index 7eaf64e..3beb351 100644
+--- a/drivers/media/usb/gspca/xirlink_cit.c
++++ b/drivers/media/usb/gspca/xirlink_cit.c
+@@ -2864,20 +2864,16 @@ static u8 *cit_find_sof(struct gspca_dev *gspca_dev, u8 *data, int len)
+ 				if (data[i] == 0xff) {
+ 					if (i >= 4)
+ 						PDEBUG(D_FRAM,
+-						       "header found at offset: %d: %02x %02x 00 %02x %02x %02x\n",
++						       "header found at offset: %d: %02x %02x 00 %3ph\n",
+ 						       i - 1,
+ 						       data[i - 4],
+ 						       data[i - 3],
+-						       data[i],
+-						       data[i + 1],
+-						       data[i + 2]);
++						       &data[i]);
+ 					else
+ 						PDEBUG(D_FRAM,
+-						       "header found at offset: %d: 00 %02x %02x %02x\n",
++						       "header found at offset: %d: 00 %3ph\n",
+ 						       i - 1,
+-						       data[i],
+-						       data[i + 1],
+-						       data[i + 2]);
++						       &data[i]);
+ 					return data + i + (sd->sof_len - 1);
+ 				}
+ 				break;
+-- 
+1.8.4.rc3
 
-
-
---=-Ui3tg8zGBgAMaN9/vZYg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIVAwUAUiPeaue/yOyVhhEJAQoL8xAApuw1v9NxvA/fEYfxYzGSBmowhZEpz6/i
-jfYD84p+QHSTo15YUFYgwR4tdyvP2aDkRQCWdXmGt/86ETfwR6ttzCzpm6irJOjy
-jTaJJFA6g4AfIvdbo5nL8LsEPfIVLwopskLsq9B19cUpEqjlXg0On91l4ldgHNM6
-zsGrgKis0QCGhQ/Kze91lxs82+JrfZHuTWb9HV0JE9VqwXHzvcly2NAeXmZ2k9yC
-zRyf9HMhF0HVkUxMEsAO9PN0/YDZW1gvWMT0V8qsw1PTlG9kkavAAb8zxPuHFsGE
-uhBXyl0RLcwr928vMUT2tSS+AhfYVSDFurrhZP0IKF8kt9odcW5ofpcu8jnDr5Je
-oglJ4VP2XL6p4zzAM6c3ukHiKs9jwddprauNqJXlH2twjT/b/l2K7ov6FH7mrul/
-26X0GEd5TRkafJHTVoCjx0HEO9udGaiZHK1oskGY63wF1CbhtbPgbSjxfO0ATekz
-ECduIbnDSrJSGW4VNnz1FrfbFfapiTdJ5NcvVH9qVelOO1mNIPDx6uriOr6vAiJv
-wOfW3o28OtDKAPcmMxSyEoSDQX5xGYeVsoKtsBdAVZqjIiYYDLonpOV9rEquEaSA
-ivb6BhuGzJHlr8PkIIkHPjeHBA3gGXdZUIm9Da6ZcLHHkYiAmHM1WTcthUK6g2Oq
-ixiK4nhYm7c=
-=0cwX
------END PGP SIGNATURE-----
-
---=-Ui3tg8zGBgAMaN9/vZYg--
