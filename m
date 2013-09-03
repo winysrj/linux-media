@@ -1,166 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1802 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756193Ab3I3Kcn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 06:32:43 -0400
-Message-ID: <52495337.4040309@xs4all.nl>
-Date: Mon, 30 Sep 2013 12:32:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58022 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756642Ab3ICPry (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 11:47:54 -0400
+Date: Tue, 3 Sep 2013 08:50:30 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, balbi@ti.com,
+	kyungmin.park@samsung.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	stern@rowland.harvard.edu, broonie@kernel.org,
+	tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org,
+	tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, balajitk@ti.com,
+	george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Subject: Re: [PATCH v11 0/8] PHY framework
+Message-ID: <20130903155030.GA21525@kroah.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com>
+ <20130827192059.GZ3005@radagast>
+ <5225FF63.6080608@ti.com>
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.samsung@gmail.com>
-CC: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
- the SCALER driver
-References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com> <1378991371-24428-4-git-send-email-shaik.ameer@samsung.com> <52493160.5030401@xs4all.nl> <CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
-In-Reply-To: <CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5225FF63.6080608@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/30/2013 11:32 AM, Shaik Ameer Basha wrote:
-> Hi Hans,
+On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
+> Hi Greg,
 > 
-> Thanks for pointing it out.
+> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+> >> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+> >>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> >>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> >>> the PHY with or without using phandle.
+> >>>
+> >>> This framework will be of use only to devices that uses external PHY (PHY
+> >>> functionality is not embedded within the controller).
+> >>>
+> >>> The intention of creating this framework is to bring the phy drivers spread
+> >>> all over the Linux kernel to drivers/phy to increase code re-use and to
+> >>> increase code maintainability.
+> >>>
+> >>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+> >>> other bus and making a same device attached to multiple bus leads to bad
+> >>> design.
+> >>>
+> >>> If the PHY driver has to send notification on connect/disconnect, the PHY
+> >>> driver should make use of the extcon framework. Using this susbsystem
+> >>> to use extcon framwork will have to be analysed.
+> >>>
+> >>> You can find this patch series @
+> >>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+> >>
+> >> Looks like there are not further comments on this series. Can you take this in
+> >> your misc tree?
+> > 
+> > Do you want me to queue these for you ? There are quite a few users for
+> > this framework already and I know of at least 2 others which will show
+> > up for v3.13.
 > 
-> 
-> On Mon, Sep 30, 2013 at 1:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Shaik,
->>
->> I have a few questions regarding the selection part...
->>
->> On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
->>> This patch adds the Makefile and memory to memory (m2m) interface
->>> functionality for the SCALER driver.
->>>
->>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->>> ---
->>>  drivers/media/platform/Kconfig                    |    8 +
->>>  drivers/media/platform/Makefile                   |    1 +
->>>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
->>>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
->>>  4 files changed, 793 insertions(+)
->>>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
->>>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
->>>
->>
-> 
-> 
-> [...]
-> 
-> 
->>> +
->>> +static int scaler_m2m_s_selection(struct file *file, void *fh,
->>> +                             struct v4l2_selection *s)
->>> +{
->>> +     struct scaler_frame *frame;
->>> +     struct scaler_ctx *ctx = fh_to_ctx(fh);
->>> +     struct v4l2_crop cr;
->>> +     struct scaler_variant *variant = ctx->scaler_dev->variant;
->>> +     int ret;
->>> +
->>> +     cr.type = s->type;
->>> +     cr.c = s->r;
->>> +
->>> +     if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
->>> +         (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
->>> +             return -EINVAL;
->>> +
->>> +     ret = scaler_try_crop(ctx, &cr);
->>> +     if (ret < 0)
->>> +             return ret;
->>> +
->>> +     if (s->flags & V4L2_SEL_FLAG_LE &&
->>> +         !is_rectangle_enclosed(&cr.c, &s->r))
->>> +             return -ERANGE;
->>> +
->>> +     if (s->flags & V4L2_SEL_FLAG_GE &&
->>> +         !is_rectangle_enclosed(&s->r, &cr.c))
->>> +             return -ERANGE;
->>> +
->>> +     s->r = cr.c;
->>> +
->>> +     switch (s->target) {
->>> +     case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->>> +     case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->>> +     case V4L2_SEL_TGT_COMPOSE:
->>> +             frame = &ctx->s_frame;
->>> +             break;
->>> +
->>> +     case V4L2_SEL_TGT_CROP_BOUNDS:
->>> +     case V4L2_SEL_TGT_CROP:
->>> +     case V4L2_SEL_TGT_CROP_DEFAULT:
->>> +             frame = &ctx->d_frame;
->>> +             break;
->>
->> Similar problems as with g_selection above. Tomasz mentioned to me that the selection
->> API is not implemented correctly in m2m Samsung drivers. It looks like this code is
->> copied-and-pasted from other drivers, so it seems he was right.
-> 
-> Sorry, after going through the documentation, I have to agree with you...
-> As you mentioned, this part of the code was copied while implementing
-> the G-Scaler driver :)
-> 
-> I will change the above implementation for M2M devices (GScaler and
-> SCALER) as below,
-> I will only allow all V4L2_SEL_TGT_COMPOSE_* target requests if
-> 's->type' is equal to "V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE".
-> and all V4L2_SEL_TGT_CROP_* target requests if 's->type' is equal to
-> "V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE".
-> 
-> I hope with the above two checkings taken in to care, there should not
-> be any issues with using selection APIs here.
+> Can you queue this patch series? There are quite a few users already for this
+> framework.
 
-Well, that depends on what the hardware does.
+It will have to wait for 3.13 as the merge window for new features has
+been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
+is out.
 
-Using compose with a capture buffer means that the frame as delivered by
-the hardware is composed into a larger buffer. E.g. the hardware gives
-you 1280x720 which is composed into a buffer of size 1920x1080.
-
-Using crop with an output buffer means that the hardware gets a cropped
-part of a larger frame. E.g. you give a 1280x720 crop from a larger 1920x1080
-buffer.
-
-I suspect however, that in this case the hardware does the opposite for
-capture: you really want to crop with a capture buffer (e.g. the hardware
-delivers a 1280x720 frame which is cropped before DMA to 640x360).
-
-I'm not sure what you want to do with an output buffer: cropping or composing.
-
-Tomasz mentioned that the M2M + selection API was screwy, and this seems to
-be to be the case indeed.
-
-Which is also why I would like to know exactly what this hardware does.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> Shaik Ameer Basha
-> 
->>
->> The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
->> since the API may actually need some adjustments to have it work the way it should.
->>
->> As requested above, if you can explain the exact functionality you are trying to
->> implement here, then I can look over this code carefully and see how it should be done.
->>
->> Thanks!
->>
->>         Hans
->>
-> [...]
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+greg k-h
