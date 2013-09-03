@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:48123 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754211Ab3I3ONF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 10:13:05 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <s.nawrocki@samsung.com>
-CC: <m.chehab@samsung.com>, <kernel@pengutronix.de>,
-	<shawn.guo@linaro.org>, <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] platform: Kconfig: Select SRAM for VIDEO_CODA
-Date: Mon, 30 Sep 2013 11:12:22 -0300
-Message-ID: <1380550342-27530-1-git-send-email-fabio.estevam@freescale.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:57688 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754636Ab3ICEss (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 00:48:48 -0400
+Received: by mail-wg0-f44.google.com with SMTP id b13so169497wgh.35
+        for <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 21:48:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAPgLHd9n__f62vRMUDOhjX+KygoFQqp-ip02-S0rt7cDYHk+BQ@mail.gmail.com>
+References: <CAPgLHd-0+fYLMh+Ff+cgewBPy1itjp-EtbAjzs5UrJsqrY3aNg@mail.gmail.com>
+ <CA+V-a8szUWiURmmuWReyH1xWSheyn9COOgdGkfFTSkbOPh44FQ@mail.gmail.com>
+ <CA+V-a8vLpSWCAecvNEFB0jxoJ0=oXsB3LWEMbfN00LghkW4Egw@mail.gmail.com> <CAPgLHd9n__f62vRMUDOhjX+KygoFQqp-ip02-S0rt7cDYHk+BQ@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 3 Sep 2013 10:18:27 +0530
+Message-ID: <CA+V-a8ty6aKTmgTp5TJmA3BeBqT0EjPUeTFoae9rPxrhd97J9Q@mail.gmail.com>
+Subject: Re: [PATCH -next v2] [media] davinci: vpif_capture: fix error return
+ code in vpif_probe()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Running the coda driver without CONFIG_SRAM selected leads to the following 
-probe error:
+On Mon, Sep 2, 2013 at 2:36 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> Fix to return -ENODEV in the subdevice register error handling
+> case instead of 0, as done elsewhere in this function.
+>
+> Introduced by commit 873229e4fdf34196aa5d707957c59ba54c25eaba
+> ([media] media: davinci: vpif: capture: add V4L2-async support)
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-coda 63ff4000.vpu: iram pool not available
-coda: probe of 63ff4000.vpu failed with error -12
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-In order to avoid it, select CONFIG_SRAM inside VIDEO_CODA.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/platform/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c7caf94..8b2467d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -143,6 +143,7 @@ if V4L_MEM2MEM_DRIVERS
- config VIDEO_CODA
- 	tristate "Chips&Media Coda multi-standard codec IP"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
-+	select SRAM
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
--- 
-1.8.1.2
-
-
+Regards,
+--Prabhakar Lad
