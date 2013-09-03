@@ -1,99 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36258 "EHLO mga02.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52709 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab3I3IMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 04:12:30 -0400
-Date: Mon, 30 Sep 2013 16:12:24 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: kbuild-all@01.org, Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: mcam-core.c:undefined reference to `vb2_dma_sg_memops'
-Message-ID: <20130930081224.GA27870@localhost>
-References: <5248d26d.XCpLjin/D8FfRGFk%fengguang.wu@intel.com>
- <20130930030518.GA3024@localhost>
- <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
+	id S1756054Ab3ICP0x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Sep 2013 11:26:53 -0400
+Message-ID: <5225FF63.6080608@ti.com>
+Date: Tue, 3 Sep 2013 20:55:23 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
+To: <gregkh@linuxfoundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+CC: <balbi@ti.com>, <kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>,
+	<grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: Re: [PATCH v11 0/8] PHY framework
+References: <1377063973-22044-1-git-send-email-kishon@ti.com> <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
+In-Reply-To: <20130827192059.GZ3005@radagast>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 09:09:13AM +0200, Geert Uytterhoeven wrote:
-> Hi Fengguang,
-> 
-> On Mon, Sep 30, 2013 at 5:05 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
-> > FYI, kernel build failed on
-> >
-> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> > head:   15c03dd4859ab16f9212238f29dd315654aa94f6
-> > commit: 866f321339988293a5bb3ec6634c2c9d8396bf54 Revert "staging/solo6x10: depend on CONFIG_FONTS"
-> > date:   3 months ago
-> > config: x86_64-randconfig-c5-0930 (attached as .config)
-> >
-> > All error/warnings:
-> >
-> >    drivers/built-in.o: In function `mcam_v4l_open':
-> >>> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
-> 
-> The referenced commit above is completely unrelated to this failure, as
-> both CONFIG_SOLO6X10=m and CONFIG_VIDEOBUF2_DMA_SG=m,
-> while this is about a missing symbol in builtin code.
+Hi Greg,
 
-You are probably right.. However I tried manually reproduce this error
-and find that 866f3213 is the first bad commit (for whatever reason),
-so I decided to email the report out.
+On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>> the PHY with or without using phandle.
+>>>
+>>> This framework will be of use only to devices that uses external PHY (PHY
+>>> functionality is not embedded within the controller).
+>>>
+>>> The intention of creating this framework is to bring the phy drivers spread
+>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>> increase code maintainability.
+>>>
+>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>> other bus and making a same device attached to multiple bus leads to bad
+>>> design.
+>>>
+>>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>>> driver should make use of the extcon framework. Using this susbsystem
+>>> to use extcon framwork will have to be analysed.
+>>>
+>>> You can find this patch series @
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>
+>> Looks like there are not further comments on this series. Can you take this in
+>> your misc tree?
+> 
+> Do you want me to queue these for you ? There are quite a few users for
+> this framework already and I know of at least 2 others which will show
+> up for v3.13.
 
-> However, there's something wrong with the VIDEO_CAFE_CCIC dependencies.
-> Untested gmail-white-space-damaged patch below (so your trick of emailing random
-> people to obtain a solution worked ;-)
+Can you queue this patch series? There are quite a few users already for this
+framework.
 
-Yeah, indeed! :)
-
-Thanks,
-Fengguang
-
-> >From 8a53ff3c33cfaa8641c9ba3e16bc5b0a35c74842 Mon Sep 17 00:00:00 2001
-> From: Geert Uytterhoeven <geert@linux-m68k.org>
-> Date: Mon, 30 Sep 2013 09:03:20 +0200
-> Subject: [PATCH] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
-> 
-> If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
-> 
-> drivers/built-in.o: In function `mcam_v4l_open':
-> >> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
->  drivers/media/platform/marvell-ccic/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/Kconfig
-> b/drivers/media/platform/marvell-ccic/Kconfig
-> index bf739e3..ec4c771 100644
-> --- a/drivers/media/platform/marvell-ccic/Kconfig
-> +++ b/drivers/media/platform/marvell-ccic/Kconfig
-> @@ -4,6 +4,7 @@ config VIDEO_CAFE_CCIC
->   select VIDEO_OV7670
->   select VIDEOBUF2_VMALLOC
->   select VIDEOBUF2_DMA_CONTIG
-> + select VIDEOBUF2_DMA_SG
->   ---help---
->    This is a video4linux2 driver for the Marvell 88ALP01 integrated
->    CMOS camera controller.  This is the controller found on first-
-> -- 
-> 1.7.9.5
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+Thanks
+Kishon
