@@ -1,44 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f52.google.com ([209.85.128.52]:53233 "EHLO
-	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935037Ab3IDOmQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 10:42:16 -0400
-Received: by mail-qe0-f52.google.com with SMTP id i11so208747qej.39
-        for <linux-media@vger.kernel.org>; Wed, 04 Sep 2013 07:42:15 -0700 (PDT)
-From: Alexandru Juncu <alexj@rosedu.org>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Alexandru Juncu <alexj@rosedu.org>
-Subject: [PATCH] dm1105: remove unneeded not-null test
-Date: Wed,  4 Sep 2013 17:41:34 +0300
-Message-Id: <1378305694-28879-1-git-send-email-alexj@rosedu.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34408 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759421Ab3ICSHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 14:07:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1.1 3/5] media: Pads that are not connected by even a disabled link are fine
+Date: Tue, 03 Sep 2013 20:07:43 +0200
+Message-ID: <1806796.1hWpdenVOE@avalon>
+In-Reply-To: <1377966487-22565-1-git-send-email-sakari.ailus@iki.fi>
+References: <1611138.kmhZXgyzhc@avalon> <1377966487-22565-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_adap is a field of a struct and will always be allocated so
-its address will never be null.
+Hi Sakari,
 
-Suggested by coccinelle, manually verified.
+Thank you for the patch.
 
-Signed-off-by: Alexandru Juncu <alexj@rosedu.org>
----
- drivers/media/pci/dm1105/dm1105.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Saturday 31 August 2013 19:28:06 Sakari Ailus wrote:
+> Do not require a connected link to a pad if a pad has no links connected to
+> it.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+> Hi Laurent,
+> 
+> This goes on top of patch 2/4. I can combine the two in the end but I think
+> this is cleaner as a separate change.
 
-diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
-index ab797fe..110a009 100644
---- a/drivers/media/pci/dm1105/dm1105.c
-+++ b/drivers/media/pci/dm1105/dm1105.c
-@@ -1202,8 +1202,7 @@ static void dm1105_remove(struct pci_dev *pdev)
- 	dvb_dmxdev_release(&dev->dmxdev);
- 	dvb_dmx_release(dvbdemux);
- 	dvb_unregister_adapter(dvb_adapter);
--	if (&dev->i2c_adap)
--		i2c_del_adapter(&dev->i2c_adap);
-+	i2c_del_adapter(&dev->i2c_adap);
- 
- 	dm1105_hw_exit(dev);
- 	synchronize_irq(pdev->irq);
+Merging the patches separately could result in a bisection breakage, so I'd 
+rather combine the patches if that's OK. What about the following commit 
+message ?
+
+"media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
+
+Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is 
+connected by links that are all inactive.
+
+This patch makes it possible to avoid drivers having to check for the most
+common case of link state validation: a sink pad that must be connected."
+
+>  drivers/media/media-entity.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index a99396b..2ad291f 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -236,6 +236,7 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity,
+> 
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+>  		DECLARE_BITMAP(active, entity->num_pads);
+> +		DECLARE_BITMAP(has_no_links, entity->num_pads);
+>  		unsigned int i;
+> 
+>  		entity->stream_count++;
+> @@ -250,6 +251,7 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, continue;
+> 
+>  		bitmap_zero(active, entity->num_pads);
+> +		bitmap_fill(has_no_links, entity->num_pads);
+> 
+>  		for (i = 0; i < entity->num_links; i++) {
+>  			struct media_link *link = &entity->links[i];
+> @@ -257,6 +259,11 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, ? link->sink : link->source;
+> 
+>  			/*
+> +			 * Mark that a pad is connected by a link.
+> +			 */
+> +			bitmap_clear(has_no_links, pad->index, 1);
+> +
+> +			/*
+>  			 * Pads that either do not need to connect or
+>  			 * are connected through an enabled link are
+>  			 * fine.
+> @@ -278,6 +285,9 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, goto error;
+>  		}
+> 
+> +		/* Either no links or validated links are fine. */
+> +		bitmap_or(active, active, has_no_links, entity->num_pads);
+> +
+>  		if (!bitmap_full(active, entity->num_pads)) {
+>  			ret = -EPIPE;
+>  			goto error;
 -- 
-1.8.4.rc0.1.g8f6a3e5
+Regards,
+
+Laurent Pinchart
 
