@@ -1,99 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:45976 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979Ab3I3Qqw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 12:46:52 -0400
-Received: by mail-pb0-f50.google.com with SMTP id uo5so5820959pbc.37
-        for <linux-media@vger.kernel.org>; Mon, 30 Sep 2013 09:46:52 -0700 (PDT)
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:34175 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756240Ab3IDKZU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 06:25:20 -0400
+Message-ID: <52270A5B.2040600@free.fr>
+Date: Wed, 04 Sep 2013 12:24:27 +0200
+From: Martin Peres <martin.peres@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <5249A9EC.7020804@seznam.cz>
-References: <524804B3.9090505@seznam.cz>
-	<524804DB.7020108@seznam.cz>
-	<CAOcJUbyVx=fqHwVeM9K3SKUTk3g7vNqsWf0xokX5nO_DdQenYA@mail.gmail.com>
-	<5249A9EC.7020804@seznam.cz>
-Date: Mon, 30 Sep 2013 12:46:52 -0400
-Message-ID: <CAOcJUbyBewvrgiuDsuOtQJP_Un9ExF+L9yqkVzLXyEq2b9xbGQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] r820t: fix nint range check
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: =?UTF-8?B?SmnFmcOtIFBpbmthdmE=?= <j-pi@seznam.cz>
-Cc: Gianluca Gennari <gennarone@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Christopher James Halse Rogers
+	<christopher.halse.rogers@canonical.com>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace (v2)
+References: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
+In-Reply-To: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do you have any comments on this, Mauro?
+Hi Christopher,
+Le 04/09/2013 05:15, Christopher James Halse Rogers a �crit :
+> Each dma-buf has an associated size and it's reasonable for userspace
+> to want to know what it is.
+>
+> Since userspace already has an fd, expose the size using the
+> size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
+> idiom.
+>
+> v2: Added Daniel's sugeested documentation, with minor fixups
+>
+> Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+>   Documentation/dma-buf-sharing.txt | 12 ++++++++++++
+>   drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
+>   2 files changed, 40 insertions(+)
+>
+> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> index 0b23261..849e982 100644
+> --- a/Documentation/dma-buf-sharing.txt
+> +++ b/Documentation/dma-buf-sharing.txt
+> @@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>      interesting ways depending upong the exporter (if userspace starts depending
+>      upon this implicit synchronization).
+>   
+> +Other Interfaces Exposed to Userspace on the dma-buf FD
+> +------------------------------------------------------
+> +
+> +- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
+> +  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
+> +  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
+> +  llseek operation will report -EINVAL.
+> +
+> +  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
+Shouldn't it be "supported" instead of "support"?
 
-Assuming that Mauro is OK with this change, (since he is the author of
-this driver) then yes - please resubmit the patch with some
-explanation within comments inline or within the commit message.
-
-Best regards,
-
-Mike Krufky
-
-On Mon, Sep 30, 2013 at 12:42 PM, Jiří Pinkava <j-pi@seznam.cz> wrote:
-> Mike,
->
-> unfortunately no documentation can be referenced except preliminary
-> version of
-> datasheet (1).This change is based on lucky guess and supported by lot of
-> testing on real hardware.
->
-> This change add support for devices with Xtal frequency bellow 28.8MHz.
->
-> From Nint  are computed values of Ni and Si. For 28.8MHz crystal can
-> reach up to 12 / 3 (Ni / Si). Tuner supports crystals with frequencies
-> (1) 12, 16, 20, 20.48, 24, 27, 28.8, 32 MHz, but this kind of device is
-> rare to found.
-> Allowing Ni to go up to 15 instead of only 12 should be safe and for 15
-> / 3 (Ni / Si)
-> we can compute limit for Nint = max(Ni) * 4 + max(Si) + 13 = 76.
->
-> If This is sufficient and acceptable explanation I can add some sort of
-> documentation into patch and resend it (both patches, I can prove I'm
-> right :)
->
-> (1)
-> http://rtl-sdr.com/wp-content/uploads/2013/04/R820T_datasheet-Non_R-20111130_unlocked.pdf
->
->> Jiří,
->>
->> Do you have any documentation that supports this value change?
->> Changing this value affects the algorithm, and we'd be happier making
->> this change if the patch included some better description and perhaps
->> a reference explaining why the new value is correct.
->>
->> Regards,
->>
->> Mike Krufky
->>
->> On Sun, Sep 29, 2013 at 6:45 AM, Jiří Pinkava <j-pi@seznam.cz> wrote:
->>>
->>> Use full range of VCO parameters, fixes tunning for some frequencies.
->>> ---
->>>  drivers/media/tuners/r820t.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
->>> index 1c23666..e25c720 100644
->>> --- a/drivers/media/tuners/r820t.c
->>> +++ b/drivers/media/tuners/r820t.c
->>> @@ -637,7 +637,7 @@ static int r820t_set_pll(struct r820t_priv *priv,
->>> enum v4l2_tuner_type type,
->>>                 vco_fra = pll_ref * 129 / 128;
->>>         }
->>>
->>> -       if (nint > 63) {
->>> +       if (nint > 76) {
->>>                 tuner_info("No valid PLL values for %u kHz!\n", freq);
->>>                 return -EINVAL;
->>>         }
->>> --
->>> 1.8.3.2
->>>
->>>
->
+Anyway, I'm just curious, in which case is it important to know the size?
+Do we already have a way to get the dimensions (x, y and stripe)?
