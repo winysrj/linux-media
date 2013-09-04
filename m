@@ -1,200 +1,297 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50969 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab3IQQZU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 12:25:20 -0400
-Date: Tue, 17 Sep 2013 18:25:18 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Message-ID: <1373709848.211147.1379435118175.open-xchange@email.1and1.fr>
-In-Reply-To: <CALzAhNVvz4zoBDAPw609_c+NuPc8JXFj+HqgKWzonEO9oAOMig@mail.gmail.com>
-References: <1152216514.26450.1378910904534.open-xchange@email.1and1.fr> <CALzAhNVvz4zoBDAPw609_c+NuPc8JXFj+HqgKWzonEO9oAOMig@mail.gmail.com>
-Subject: Re: avermedia A306 / PCIe-minicard (laptop) / CX23885
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33635 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760161Ab3IDOWg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 10:22:36 -0400
+Message-ID: <1378304498.5721.42.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH/RFC v3 06/19] video: display: OF support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Date: Wed, 04 Sep 2013 16:21:38 +0200
+In-Reply-To: <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	 <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello :)
+Hi Laurent,
 
-Thnx for the reply !
+Am Samstag, den 10.08.2013, 01:03 +0200 schrieb Laurent Pinchart:
+> Extend the notifier with DT node matching support, and add helper functions to
+> build the notifier and link entities based on a graph representation in
+> DT.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/video/display/display-core.c     | 334 +++++++++++++++++++++++++++++++
+>  drivers/video/display/display-notifier.c | 187 +++++++++++++++++
+>  include/video/display.h                  |  45 +++++
+>  3 files changed, 566 insertions(+)
+> 
+> diff --git a/drivers/video/display/display-core.c b/drivers/video/display/display-core.c
+> index c3b47d3..328ead7 100644
+> --- a/drivers/video/display/display-core.c
+> +++ b/drivers/video/display/display-core.c
+[...]
+> @@ -420,6 +599,161 @@ int display_entity_link_graph(struct device *dev, struct list_head *entities)
+>  }
+>  EXPORT_SYMBOL_GPL(display_entity_link_graph);
+>  
+> +#ifdef CONFIG_OF
+> +
+> +static int display_of_entity_link_entity(struct device *dev,
+> +					 struct display_entity *entity,
+> +					 struct list_head *entities,
+> +					 struct display_entity *root)
+> +{
+> +	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> +	const struct device_node *node = entity->dev->of_node;
 
+the current device tree matching implementation only allows one display
+entity per linux device. How about adding an of_node pointer to struct
+display_entity directly and allow multiple display entity nodes below in
+a single device node in the device tree?
 
-Well, I do not have the cables ... it's a laptop card, orginally for a Dell,
+lvds-encoder {
+	channel@0 {
+		port@0 {
+			lvds0_input: endpoint {
+			};
+		};
+		port@1 {
+			lvds0_output: endpoint {
+			};
+		};
+	};
+	channel@1 {
+		port@0 {
+			lvds1_input: endpoint {
+			};
+		};
+		lvds1: port@1 {
+			lvds1_output: endpoint {
+			};
+		};
+	};
+};
 
-I am doing my tests on an Acer,
+> +	struct media_entity *local = &entity->entity;
+> +	struct device_node *ep = NULL;
+> +	int ret = 0;
+> +
+> +	dev_dbg(dev, "creating links for entity %s\n", local->name);
+> +
+> +	while (1) {
+> +		struct media_entity *remote = NULL;
+> +		struct media_pad *remote_pad;
+> +		struct media_pad *local_pad;
+> +		struct display_of_link link;
+> +		struct display_entity *ent;
+> +		struct device_node *next;
+> +
+> +		/* Get the next endpoint and parse its link. */
+> +		next = display_of_get_next_endpoint(node, ep);
+> +		if (next == NULL)
+> +			break;
+> +
+> +		of_node_put(ep);
+> +		ep = next;
+> +
+> +		dev_dbg(dev, "processing endpoint %s\n", ep->full_name);
+> +
+> +		ret = display_of_parse_link(ep, &link);
+> +		if (ret < 0) {
+> +			dev_err(dev, "failed to parse link for %s\n",
+> +				ep->full_name);
+> +			continue;
+> +		}
+> +
+> +		/* Skip source pads, they will be processed from the other end of
+> +		 * the link.
+> +		 */
+> +		if (link.local_port >= local->num_pads) {
+> +			dev_err(dev, "invalid port number %u on %s\n",
+> +				link.local_port, link.local_node->full_name);
+> +			display_of_put_link(&link);
+> +			ret = -EINVAL;
+> +			break;
+> +		}
+> +
+> +		local_pad = &local->pads[link.local_port];
+> +
+> +		if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
+> +			dev_dbg(dev, "skipping source port %s:%u\n",
+> +				link.local_node->full_name, link.local_port);
+> +			display_of_put_link(&link);
+> +			continue;
+> +		}
+> +
+> +		/* Find the remote entity. If not found, just skip the link as
+> +		 * it goes out of scope of the entities handled by the notifier.
+> +		 */
+> +		list_for_each_entry(ent, entities, list) {
+> +			if (ent->dev->of_node == link.remote_node) {
+> +				remote = &ent->entity;
+> +				break;
+> +			}
+> +		}
+> +
+> +		if (root->dev->of_node == link.remote_node)
+> +			remote = &root->entity;
+> +
+> +		if (remote == NULL) {
+> +			dev_dbg(dev, "no entity found for %s\n",
+> +				link.remote_node->full_name);
+> +			display_of_put_link(&link);
+> +			continue;
+> +		}
+> +
+> +		if (link.remote_port >= remote->num_pads) {
+> +			dev_err(dev, "invalid port number %u on %s\n",
+> +				link.remote_port, link.remote_node->full_name);
+> +			display_of_put_link(&link);
+> +			ret = -EINVAL;
+> +			break;
+> +		}
+> +
+> +		remote_pad = &remote->pads[link.remote_port];
+> +
+> +		display_of_put_link(&link);
+> +
+> +		/* Create the media link. */
+> +		dev_dbg(dev, "creating %s:%u -> %s:%u link\n",
+> +			remote->name, remote_pad->index,
+> +			local->name, local_pad->index);
+> +
+> +		ret = media_entity_create_link(remote, remote_pad->index,
+> +					       local, local_pad->index,
+> +					       link_flags);
+> +		if (ret < 0) {
+> +			dev_err(dev,
+> +				"failed to create %s:%u -> %s:%u link\n",
+> +				remote->name, remote_pad->index,
+> +				local->name, local_pad->index);
+> +			break;
+> +		}
+> +	}
+> +
+> +	of_node_put(ep);
+> +	return ret;
+> +}
+[...]
 
+For example like this:
 
-The Video0 dev , composite/s-video is showing an analog signal, i guess a
-"noise" picture because not hooked-up,
+diff --git a/drivers/video/display/display-core.c b/drivers/video/display/display-core.c
+index 7910c23..a04feed 100644
+--- a/drivers/video/display/display-core.c
++++ b/drivers/video/display/display-core.c
+@@ -302,6 +302,9 @@ int display_entity_init(struct display_entity *entity, unsigned int num_sinks,
+ 	kref_init(&entity->ref);
+ 	entity->state = DISPLAY_ENTITY_STATE_OFF;
+ 
++	if (!entity->of_node && entity->dev)
++		entity->of_node = entity->dev->of_node;
++
+ 	num_pads = num_sinks + num_sources;
+ 	pads = kzalloc(sizeof(*pads) * num_pads, GFP_KERNEL);
+ 	if (pads == NULL)
+@@ -665,7 +668,7 @@ static int display_of_entity_link_entity(struct device *dev,
+ 					 struct display_entity *root)
+ {
+ 	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+-	const struct device_node *node = entity->dev->of_node;
++	const struct device_node *node = entity->of_node;
+ 	struct media_entity *local = &entity->entity;
+ 	struct device_node *ep = NULL;
+ 	int num_sink, ret = 0;
+@@ -727,13 +730,13 @@ static int display_of_entity_link_entity(struct device *dev,
+ 		 * it goes out of scope of the entities handled by the notifier.
+ 		 */
+ 		list_for_each_entry(ent, entities, list) {
+-			if (ent->dev->of_node == link.remote_node) {
++			if (ent->of_node == link.remote_node) {
+ 				remote = &ent->entity;
+ 				break;
+ 			}
+ 		}
+ 
+-		if (root && root->dev->of_node == link.remote_node)
++		if (root && root->of_node == link.remote_node)
+ 			remote = &root->entity;
+ 
+ 		if (remote == NULL) {
+diff --git a/drivers/video/display/display-notifier.c b/drivers/video/display/display-notifier.c
+index a3998c7..d0da6e5 100644
+--- a/drivers/video/display/display-notifier.c
++++ b/drivers/video/display/display-notifier.c
+@@ -28,28 +28,30 @@ static DEFINE_MUTEX(display_entity_mutex);
+  * Notifiers
+  */
+ 
+-static bool match_platform(struct device *dev,
++static bool match_platform(struct display_entity *entity,
+ 			   struct display_entity_match *match)
+ {
+ 	pr_debug("%s: matching device '%s' with name '%s'\n", __func__,
+-		 dev_name(dev), match->match.platform.name);
++		 dev_name(entity->dev), match->match.platform.name);
+ 
+-	return !strcmp(match->match.platform.name, dev_name(dev));
++	return !strcmp(match->match.platform.name, dev_name(entity->dev));
+ }
+ 
+-static bool match_dt(struct device *dev, struct display_entity_match *match)
++static bool match_dt(struct display_entity *entity,
++		     struct display_entity_match *match)
+ {
+ 	pr_debug("%s: matching device node '%s' with node '%s'\n", __func__,
+-		 dev->of_node->full_name, match->match.dt.node->full_name);
++		 entity->of_node->full_name, match->match.dt.node->full_name);
+ 
+-	return match->match.dt.node == dev->of_node;
++	return match->match.dt.node == entity->of_node;
+ }
+ 
+ static struct display_entity_match *
+ display_entity_notifier_match(struct display_entity_notifier *notifier,
+ 			      struct display_entity *entity)
+ {
+-	bool (*match_func)(struct device *, struct display_entity_match *);
++	bool (*match_func)(struct display_entity *,
++			   struct display_entity_match *);
+ 	struct display_entity_match *match;
+ 
+ 	pr_debug("%s: matching entity '%s' (ptr 0x%p dev '%s')\n", __func__,
+@@ -66,7 +68,7 @@ display_entity_notifier_match(struct display_entity_notifier *notifier,
+ 			break;
+ 		}
+ 
+-		if (match_func(entity->dev, match))
++		if (match_func(entity, match))
+ 			return match;
+ 	}
+ 
+diff --git a/include/video/display.h b/include/video/display.h
+index 4c402bee..d1f8833 100644
+--- a/include/video/display.h
++++ b/include/video/display.h
+@@ -228,6 +228,7 @@ struct display_entity {
+ 	struct list_head list;
+ 	struct device *dev;
+ 	struct module *owner;
++	struct device_node *of_node;
+ 	struct kref ref;
+ 
+ 	char name[32];
+-- 
+1.8.4.rc3
 
-but bottom half is sometimes green .
+regards
+Philipp
 
-Analog scanning/reception = NULL , I might have to check again the antenna
-connexion,
-
-
-For the Mpeg, negative, it's a 9013 chip, I still have to discecte the 9015
-driver and pull-out
-
-the 9013 spcific data , iguess .
-
-
-What I need the most, Is a big picture of the V4L API , like an organigram of
-what is where ( initialising this or that,
-
-handeling setups - and controls)
-
-
-I code, but going thru others Code, is always like playing Maze ... :)
-especially an API in a whole System Package...
-
-
-But I am searching on my side :)
-
-
-I there a dummy /test driver for PCIe cards I can study ?
-
-
-Best regards
-
-
-Rémi.
-
-
-> Le 17 septembre 2013 à 15:38, Steven Toth <stoth@kernellabs.com> a écrit :
->
->
-> > Hello
->
-> Hello Remi!
->
-> Thank you for looking at the Avercard with the CX23885 driver.
->
-> >
-> > Antti, redirected me toward you,
->
-> What exactly is your question?
->
-> > And
-> >
-> > If it's at the least at the same "stage" as the HC81 , I think it deserve's
-> > to
-> > be listed in "cards".h
->
-> Possibly. Tell us again 1) what you have working reliably 2) what
-> isn't working but the driver is exposing and 3) what the driver is
-> exposing but has not been tested.
->
-> > So people will know right away, that this card has been identified by the
-> > V4L
-> > community, and dont have
->
-> Anyone working on that card would arrive here on the mailing list, I
-> don't think that's going to be an issue. I suggest you focus on
-> getting feature of the card working reliably, produce a patchset and
-> I'm sure it will get reviewed, refined then eventually merged.
->
-> Other comments below.
->
-> > > +       [CX23885_BOARD_AVERMEDIA_A306] = {
-> > > +                .name           = "AVerTV Hybrid Minicard PCIe A306",
-> > > +                .tuner_type     = TUNER_XC2028,
-> > > +                .tuner_addr     = 0x61, /* 0xc2 >> 1 */
-> > > +                .tuner_bus      = 1,
-> > > +                .porta          = CX23885_ANALOG_VIDEO,
-> > > +               .portb          = CX23885_MPEG_ENCODER,
-> > > +                .input          = {{
-> > > +                        .type   = CX23885_VMUX_TELEVISION,
-> > > +                        .vmux   = CX25840_VIN2_CH1 |
-> > > +                                  CX25840_VIN5_CH2 |
-> > > +                                  CX25840_NONE0_CH3 |
-> > > +                                  CX25840_NONE1_CH3,
-> > > +                        .amux   = CX25840_AUDIO8,
-> > > +                }, {
-> > > +                        .type   = CX23885_VMUX_SVIDEO,
-> > > +                        .vmux   = CX25840_VIN8_CH1 |
-> > > +                                  CX25840_NONE_CH2 |
-> > > +                                  CX25840_VIN7_CH3 |
-> > > +                                  CX25840_SVIDEO_ON,
-> > > +                        .amux   = CX25840_AUDIO6,
-> > > +                }, {
-> > > +                        .type   = CX23885_VMUX_COMPONENT,
-> > > +                        .vmux   = CX25840_VIN1_CH1 |
-> > > +                                  CX25840_NONE_CH2 |
-> > > +                                  CX25840_NONE0_CH3 |
-> > > +                                  CX25840_NONE1_CH3,
-> > > +                        .amux   = CX25840_AUDIO6,
-> > > +                }},
-> > > +
-> > > +       }
->
-> Does the card have a MPEG2 hardware compressor and is it functioning
-> properly? (/dev/video1)
->
-> Are both svideo and component inputs working correctly in tvtime?
->
-> What about audio inputs? Does the card have any audio inputs and is
-> the driver acting and exposing those features correctly?
->
-> If not then please remove any of these sections.
->
-> > > +        case CX23885_BOARD_AVERMEDIA_A306:
-> > > +                cx_clear(MC417_CTL, 1);
-> > > +                /* GPIO-0,1,2 setup direction as output */
-> > > +                cx_set(GP0_IO, 0x00070000);
-> > > +                mdelay(10);
-> > > +                /* AF9013 demod reset */
-> > > +                cx_set(GP0_IO, 0x00010001);
-> > > +                mdelay(10);
-> > > +                cx_clear(GP0_IO, 0x00010001);
-> > > +                mdelay(10);
-> > > +                cx_set(GP0_IO, 0x00010001);
-> > > +                mdelay(10);
-> > > +                /* demod tune? */
-> > > +                cx_clear(GP0_IO, 0x00030003);
-> > > +                mdelay(10);
-> > > +                cx_set(GP0_IO, 0x00020002);
-> > > +                mdelay(10);
-> > > +                cx_set(GP0_IO, 0x00010001);
-> > > +                mdelay(10);
-> > > +                cx_clear(GP0_IO, 0x00020002);
-> > > +                /* XC3028L tuner reset */
-> > > +                cx_set(GP0_IO, 0x00040004);
-> > > +                cx_clear(GP0_IO, 0x00040004);
-> > > +                cx_set(GP0_IO, 0x00040004);
-> > > +                mdelay(60);
-> > > +                break;
->
-> You're setting and clearing the GPIO direction enable registers (upper
-> 16 bits), this isn't a good idea.
->
-> If you want to drive a GPIO in a specific direction (lower 8 bits),
-> perhaps for a reset, instead do this:
->
-> /* AF9013 demod reset */
-> cx_set(GP0_IO, 0x00010001); /* Establish the direction of the GPIO and
-> it's signal level)
-> mdelay(10);
-> cx_clear(GP0_IO, 0x00000001); /* change the signal level, drive to low */
-> mdelay(10);
-> cx_set(GP0_IO, 0x00000001); /* back to high */
-> mdelay(10);
->
-> Repeat this example for other other 'demod tune' and 3028 resets you
-> are doing, don't toggle the upper 16bits, else you leave the GPIO
-> floating, a bad idea.
->
-> - Steve
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
