@@ -1,53 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46377 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754813Ab3I3Ne7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:34:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 06/10] [media] coda: use picture type returned from hardware
-Date: Mon, 30 Sep 2013 15:34:49 +0200
-Message-Id: <1380548093-22313-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
-References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:41512 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756278Ab3IDMEw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 08:04:52 -0400
+Received: by mail-ee0-f45.google.com with SMTP id c50so121015eek.32
+        for <linux-media@vger.kernel.org>; Wed, 04 Sep 2013 05:04:51 -0700 (PDT)
+Date: Wed, 4 Sep 2013 14:05:04 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Martin Peres <martin.peres@free.fr>
+Cc: Christopher James Halse Rogers
+	<christopher.halse.rogers@canonical.com>,
+	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace (v2)
+Message-ID: <20130904120504.GB28675@phenom.ffwll.local>
+References: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
+ <52270A5B.2040600@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <52270A5B.2040600@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of copying v4l2_buf.flags from the source buffer, set
-the destination buffer flags as reported by the hardware codec.
+On Wed, Sep 04, 2013 at 12:24:27PM +0200, Martin Peres wrote:
+> Hi Christopher,
+> Le 04/09/2013 05:15, Christopher James Halse Rogers a écrit :
+> >Each dma-buf has an associated size and it's reasonable for userspace
+> >to want to know what it is.
+> >
+> >Since userspace already has an fd, expose the size using the
+> >size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
+> >idiom.
+> >
+> >v2: Added Daniel's sugeested documentation, with minor fixups
+> >
+> >Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+> >Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> >Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> >---
+> >  Documentation/dma-buf-sharing.txt | 12 ++++++++++++
+> >  drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
+> >  2 files changed, 40 insertions(+)
+> >
+> >diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> >index 0b23261..849e982 100644
+> >--- a/Documentation/dma-buf-sharing.txt
+> >+++ b/Documentation/dma-buf-sharing.txt
+> >@@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+> >     interesting ways depending upong the exporter (if userspace starts depending
+> >     upon this implicit synchronization).
+> >+Other Interfaces Exposed to Userspace on the dma-buf FD
+> >+------------------------------------------------------
+> >+
+> >+- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
+> >+  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
+> >+  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
+> >+  llseek operation will report -EINVAL.
+> >+
+> >+  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
+> Shouldn't it be "supported" instead of "support"?
+> 
+> Anyway, I'm just curious, in which case is it important to know the size?
+> Do we already have a way to get the dimensions (x, y and stripe)?
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index e70a272..82049f8 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -2744,7 +2744,6 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 
- 	/* Get results from the coda */
--	coda_read(dev, CODA_RET_ENC_PIC_TYPE);
- 	start_ptr = coda_read(dev, CODA_CMD_ENC_PIC_BB_START);
- 	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->reg_idx));
- 
-@@ -2764,7 +2763,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	coda_read(dev, CODA_RET_ENC_PIC_SLICE_NUM);
- 	coda_read(dev, CODA_RET_ENC_PIC_FLAG);
- 
--	if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
-+	if (coda_read(dev, CODA_RET_ENC_PIC_TYPE) == 0) {
- 		dst_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
- 		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
- 	} else {
+Size is an invariant part of a dma-buf. Everything else wrt metadata isn't
+tracked in the kernel, so doesn't make much sense to expose it ;-)
+-Daniel
 -- 
-1.8.4.rc3
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
