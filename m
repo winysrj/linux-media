@@ -1,131 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 2a.88.344a.static.theplanet.com ([74.52.136.42]:46672 "EHLO
-	metroid.mu3d.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147Ab3I3CC1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 22:02:27 -0400
-From: Jean-Francois Thibert <jfthibert@google.com>
-Cc: Jean-Francois Thibert <jfthibert@google.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Add support for KWorld UB435-Q V2
-Date: Sun, 29 Sep 2013 20:45:22 -0400
-Message-Id: <1380501923-23127-2-git-send-email-jfthibert@google.com>
-In-Reply-To: <1380501923-23127-1-git-send-email-jfthibert@google.com>
-References: <1380501923-23127-1-git-send-email-jfthibert@google.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36175 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754209Ab3IDM3l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Sep 2013 08:29:41 -0400
+Message-ID: <522727A4.6050109@free.fr>
+Date: Wed, 04 Sep 2013 14:29:24 +0200
+From: Martin Peres <martin.peres@free.fr>
+MIME-Version: 1.0
+To: Christopher James Halse Rogers
+	<christopher.halse.rogers@canonical.com>,
+	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace (v2)
+References: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com> <52270A5B.2040600@free.fr> <20130904120504.GB28675@phenom.ffwll.local>
+In-Reply-To: <20130904120504.GB28675@phenom.ffwll.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jean-Francois Thibert <jfthibert@google.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   14 +++++++++++++-
- drivers/media/usb/em28xx/em28xx-dvb.c   |   27 +++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx.h       |    1 +
- 3 files changed, 41 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index dc65742..a512909 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -174,7 +174,7 @@ static struct em28xx_reg_seq evga_indtube_digital[] = {
- };
- 
- /*
-- * KWorld PlusTV 340U and UB435-Q (ATSC) GPIOs map:
-+ * KWorld PlusTV 340U, UB435-Q and UB435-Q V2 (ATSC) GPIOs map:
-  * EM_GPIO_0 - currently unknown
-  * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
-  * EM_GPIO_2 - currently unknown
-@@ -2030,6 +2030,16 @@ struct em28xx_board em28xx_boards[] = {
- 		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
- 				EM28XX_I2C_FREQ_400_KHZ,
- 	},
-+	/* 1b80:e346 KWorld USB ATSC TV Stick UB435-Q V2
-+	 * Empia EM2874B + LG DT3305 + NXP TDA18271HDC2 */
-+	[EM2874_BOARD_KWORLD_UB435Q_V2] = {
-+		.name       = "KWorld USB ATSC TV Stick UB435-Q V2",
-+		.tuner_type = TUNER_ABSENT,
-+		.has_dvb    = 1,
-+		.dvb_gpio   = kworld_a340_digital,
-+		.tuner_gpio = default_tuner_gpio,
-+		.def_i2c_bus  = 1,
-+	},
- };
- const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
- 
-@@ -2173,6 +2183,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2860_BOARD_GADMEI_UTV330 },
- 	{ USB_DEVICE(0x1b80, 0xa340),
- 			.driver_info = EM2870_BOARD_KWORLD_A340 },
-+	{ USB_DEVICE(0x1b80, 0xe346),
-+			.driver_info = EM2874_BOARD_KWORLD_UB435Q_V2 },
- 	{ USB_DEVICE(0x2013, 0x024f),
- 			.driver_info = EM28174_BOARD_PCTV_290E },
- 	{ USB_DEVICE(0x2013, 0x024c),
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index bb1e8dc..547eea6 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -298,6 +298,18 @@ static struct lgdt3305_config em2870_lgdt3304_dev = {
- 	.qam_if_khz         = 4000,
- };
- 
-+static struct lgdt3305_config em2874_lgdt3305_dev = {
-+	.i2c_addr           = 0x0e,
-+	.demod_chip         = LGDT3305,
-+	.spectral_inversion = 1,
-+	.deny_i2c_rptr      = 0,
-+	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
-+	.tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
-+	.tpvalid_polarity   = LGDT3305_TP_VALID_HIGH,
-+	.vsb_if_khz         = 3250,
-+	.qam_if_khz         = 4000,
-+};
-+
- static struct s921_config sharp_isdbt = {
- 	.demod_address = 0x30 >> 1
- };
-@@ -329,6 +341,12 @@ static struct tda18271_config kworld_a340_config = {
- 	.std_map           = &kworld_a340_std_map,
- };
- 
-+static struct tda18271_config kworld_ub435q_v2_config = {
-+	.std_map           = &kworld_a340_std_map,
-+	.gate              = TDA18271_GATE_DIGITAL,
-+};
-+
-+
- static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
- 	.demod_address = (0x1e >> 1),
- 	.no_tuner = 1,
-@@ -1297,6 +1315,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			goto out_free;
- 		}
- 		break;
-+	case EM2874_BOARD_KWORLD_UB435Q_V2:
-+		dvb->fe[0] = dvb_attach(lgdt3305_attach,
-+					   &em2874_lgdt3305_dev,
-+					   &dev->i2c_adap[dev->def_i2c_bus]);
-+		if (dvb->fe[0] != NULL)
-+			dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-+				   &dev->i2c_adap[dev->def_i2c_bus], &kworld_ub435q_v2_config);
-+
-+		break;
- 	default:
- 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
- 				" isn't supported yet\n");
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 205e903..6d988ad 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -131,6 +131,7 @@
- #define EM2884_BOARD_TERRATEC_HTC_USB_XS	  87
- #define EM2884_BOARD_C3TECH_DIGITAL_DUO		  88
- #define EM2874_BOARD_DELOCK_61959		  89
-+#define EM2874_BOARD_KWORLD_UB435Q_V2		  90
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
--- 
-1.7.5.4
-
+Le 04/09/2013 14:05, Daniel Vetter a écrit :
+> On Wed, Sep 04, 2013 at 12:24:27PM +0200, Martin Peres wrote:
+>> Hi Christopher,
+>> Le 04/09/2013 05:15, Christopher James Halse Rogers a écrit :
+>>> Each dma-buf has an associated size and it's reasonable for userspace
+>>> to want to know what it is.
+>>>
+>>> Since userspace already has an fd, expose the size using the
+>>> size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
+>>> idiom.
+>>>
+>>> v2: Added Daniel's sugeested documentation, with minor fixups
+>>>
+>>> Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+>>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+>>> Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+>>> ---
+>>>   Documentation/dma-buf-sharing.txt | 12 ++++++++++++
+>>>   drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
+>>>   2 files changed, 40 insertions(+)
+>>>
+>>> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+>>> index 0b23261..849e982 100644
+>>> --- a/Documentation/dma-buf-sharing.txt
+>>> +++ b/Documentation/dma-buf-sharing.txt
+>>> @@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>>>      interesting ways depending upong the exporter (if userspace starts depending
+>>>      upon this implicit synchronization).
+>>> +Other Interfaces Exposed to Userspace on the dma-buf FD
+>>> +------------------------------------------------------
+>>> +
+>>> +- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
+>>> +  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
+>>> +  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
+>>> +  llseek operation will report -EINVAL.
+>>> +
+>>> +  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
+>> Shouldn't it be "supported" instead of "support"?
+>>
+>> Anyway, I'm just curious, in which case is it important to know the size?
+>> Do we already have a way to get the dimensions (x, y and stripe)?
+> Size is an invariant part of a dma-buf. Everything else wrt metadata isn't
+> tracked in the kernel, so doesn't make much sense to expose it ;-)
+> -Daniel
+ACK, thanks Daniel.
