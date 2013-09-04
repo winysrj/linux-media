@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:50009 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750878Ab3IIImC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Sep 2013 04:42:02 -0400
-Received: from [10.2.0.64] (unknown [10.2.0.64])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by 7of9.schinagl.nl (Postfix) with ESMTPSA id 6AC32202B6
-	for <linux-media@vger.kernel.org>; Mon,  9 Sep 2013 10:41:59 +0200 (CEST)
-Message-ID: <522D89C7.2080109@schinagl.nl>
-Date: Mon, 09 Sep 2013 10:41:43 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:48732 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761750Ab3IDCqp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 22:46:45 -0400
+Received: by mail-wi0-f171.google.com with SMTP id hm2so1622629wib.16
+        for <linux-media@vger.kernel.org>; Tue, 03 Sep 2013 19:46:44 -0700 (PDT)
 MIME-Version: 1.0
-CC: "linux-media@ >> linux-media" <linux-media@vger.kernel.org>
-Subject: iMon driver with 3.11 no response
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+In-Reply-To: <5225C87D.2010606@licor.com>
+References: <5220CADF.5050805@licor.com> <CA+V-a8t7sb9HVACCVTDG0c2LH6Ca=Tc7EY=UmU38apKNjVdZyA@mail.gmail.com>
+ <5225C87D.2010606@licor.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 4 Sep 2013 08:16:24 +0530
+Message-ID: <CA+V-a8sbSdCdoFMpP2rfPCzvXYS6mydnTEhbG741duUQqTUOQg@mail.gmail.com>
+Subject: Re: davinci vpif_capture
+To: Darryl <ddegraff@licor.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Jarod,
+Hi,
 
-I've been using my iMon that came with my silverstone tech case for 
-years. This was all using the old methods via lirc etc. With my new 
-install I decided to move to devinput and use your brand new and shiny 
-driver.
+On Tue, Sep 3, 2013 at 5:01 PM, Darryl <ddegraff@licor.com> wrote:
+> On 08/31/2013 06:15 AM, Prabhakar Lad wrote:
+>>
+>> On Fri, Aug 30, 2013 at 10:09 PM, Darryl <ddegraff@licor.com> wrote:
+>>>
+>>> I am working on an application involving the davinci using the vpif.  My
+>>> board file has the inputs configured to use VPIF_IF_RAW_BAYER if_type.
+>>> When my application starts up, I have it enumerate the formats
+>>> (VIDIOC_ENUM_FMT) and it indicates that the only available format is
+>>> "YCbCr4:2:2 YC Planar" (from vpif_enum_fmt_vid_cap).  It looks to me that
+>>> the culprit is vpif_open().
+>>>
+>>> struct channel_obj.vpifparams.iface is initialized at vpif_probe() time
+>>> in
+>>> the function vpif_set_input.  Open the device file (/dev/video0)
+>>> overwrites
+>>> this.  I suspect that it is __not__ supposed to do this, since I don't
+>>> see
+>>> any method for restoring the iface.
+>>>
+>> NAK, Ideally the application should go in the following manner,
+>> you open the device say example /dev/video0 , then you issue
+>> a VIDIOC_ENUMINPUT IOCTL,  this will enumerate the inputs
+>> then you do  VIDIOC_S_INPUT this will select the input device
+>> so when this IOCTL is called vpif_s_input() is called in vpif_capture
+>> driver this function will internally call the vpif_set_input() which
+>> will set the iface for you on line 1327.
+>
+>
+> Is there a document or documents where I can find this "following manner"?
+> I've read through a lot of v4l docs, but none seem to suggest an ordered
+> sequence of ioctl calls.
+>
+Yes thats the way its done! I dont have any docs but you can refer some test
+application yavta[1] so that you are clear and you can also go through
+the link [2].
 
-However I get little to no response from either the IR part, the knob or 
-the VFD (I just echo "Hello" > /dev/lcd0). The only thing I do know 
-works, is powerup (since that's all handled on the PCB itself, that's no 
-surprise, but does show the board seems to be still in working order).
+[1] http://git.ideasonboard.org/yavta.git/shortlog/refs/heads/master
+[2] http://www.linuxtv.org/downloads/legacy/video4linux/API/V4L2_API/spec-single/v4l2.html
 
-The driver (when loading rc-imon-pad first) loads fine, but evtest 
-doesn't respond to anything. I tried with lirc initially and devinput 
-but also that gave no response. The debug output from imon when loading 
-it with debug=1 as follows:
-
-[  568.738241] input: iMON Panel, Knob and Mouse(15c2:ffdc) as 
-/devices/pci0000:00/0000:00:1a.2/usb5/5-2/5-2:1.0/input/input19
-[  568.746030] imon 5-2:1.0: Unknown 0xffdc device, defaulting to VFD 
-and iMON IR
-[  568.746033]  (id 0x2e)
-[  568.746036] Registered IR keymap rc-imon-pad
-[  568.746140] input: iMON Remote (15c2:ffdc) as 
-/devices/pci0000:00/0000:00:1a.2/usb5/5-2/5-2:1.0/rc/rc4/input20
-[  568.746194] rc4: iMON Remote (15c2:ffdc) as 
-/devices/pci0000:00/0000:00:1a.2/usb5/5-2/5-2:1.0/rc/rc4
-[  568.754091] imon 5-2:1.0: iMON device (15c2:ffdc, intf0) on usb<5:2> 
-initialized
-[  568.754116] usbcore: registered new interface driver imon
-[  568.755501] imon 5-2:1.0: Looks like you're trying to use an IR 
-protocol this device does not support
-[  568.755506] imon 5-2:1.0: Unsupported IR protocol specified, 
-overriding to iMON IR protocol
-
-
-If you say that I'd need to double check if the original stuff still 
-even works, I'll jerry rig some stuff and make sure that I can test it, 
-but since I assume it works just fine, is there some deeper debug level 
-that shows even more output? Is there anything else that I can do to 
-test it really even works at all? Is evtest able to test the created 
-input? It can't be an IR thing, since the knob doesn't produce output 
-either, and lsusb shows up fine so communication seems to work to some 
-length? THat last warning seems odd though?
-
-Oliver
+Regards,
+--Prabhakar Lad
