@@ -1,158 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2860 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753815Ab3I3LZu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55896 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753696Ab3IDAJq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 07:25:50 -0400
-Message-ID: <52495FAF.9050605@xs4all.nl>
-Date: Mon, 30 Sep 2013 13:25:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teemux.tuominen@intel.com
-Subject: Re: [RFC 1/1] v4l: return POLLERR on V4L2 sub-devices if no events
- are subscribed
-References: <1379441239-7378-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1379441239-7378-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 3 Sep 2013 20:09:46 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [RFC v1.2 2/4] media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
+Date: Wed,  4 Sep 2013 03:09:42 +0300
+Message-Id: <1378253382-23174-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1806796.1hWpdenVOE@avalon>
+References: <1806796.1hWpdenVOE@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Teemu, Sakari,
+Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is
+connected by links that are all inactive.
 
-I've been thinking about this change and I think it is a reasonable change.
-I had some doubts earlier, but after thinking it through I agree with this.
+This patch makes it possible to avoid drivers having to check for the most
+common case of link state validation: a sink pad that must be connected.
 
-But it needs a bit more work, see below.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/media-entity.c |   41 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-On 09/17/2013 08:07 PM, Sakari Ailus wrote:
-> From: Teemu Tuominen <teemux.tuominen@intel.com>
-> 
-> Add check and return POLLERR from subdev_poll() in case of no events
-> subscribed and wakeup once the last event subscription is removed.
-> 
-> This change is essentially done to add possibility to wakeup polling
-> with concurrent unsubscribe.
-> 
-> Signed-off-by: Teemu Tuominen <teemux.tuominen@intel.com>
-> 
-> Move the check after calling poll_wait(). Otherwise it's possible that we go
-> to sleep without getting notified if the subscription went away between the
-> two.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Tested-by: Teemu Tuominen <teemux.tuominen@intel.com>
-> ---
-> Hi all,
-> 
-> Poll for events will sleep forever if there are no events subscribed.
-> Calling poll from an application that has not subscribed any event indeed
-> sounds silly, but un multi-threaded applications this is not quite as
-> straightforward.
-> 
-> Assume the following: an application has two threads where one handles
-> event subscription and the other handles the events. The first thread
-> unsubscribes the events and the latter will sleep forever. And do this while
-> the program intends to quit without an intention to subscribe for any
-> further events, and there's a deadlock.
-> 
-> Alternative solutions to handle this are signals (rather a nuisance if the
-> application happens to be a library instead) or a pipe (2) between the
-> threads. Pipe is workable, but instead of being a proper solution to the
-> problem still looks like a workaround instead.
-> 
-> This patch fixes the issue on kernel side by waking up the processes
-> sleeping in poll and returning POLLERR when the last subscribed event is
-> gone. The behaviour mirrors that of videobuf2 which will return POLLERR if
-> either streaming is disabled or no buffers are queued.
-> 
-> Just "waking up the sleeping threads once" is not an option: threads are not
-> visible to the kernel at this level and just "waking them up" isn't either
-> since poll will go back to sleep before returning the control back to user
-> space as long as it would return zero.
-> 
-> (Thinking about it --- similar change should probably be made to videobuf2
-> event poll handling as well.)
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 2c286c3..567a171 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -235,6 +235,8 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
++		DECLARE_BITMAP(active, entity->num_pads);
++		DECLARE_BITMAP(has_no_links, entity->num_pads);
+ 		unsigned int i;
+ 
+ 		entity->stream_count++;
+@@ -248,21 +250,46 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 		if (!entity->ops || !entity->ops->link_validate)
+ 			continue;
+ 
++		bitmap_zero(active, entity->num_pads);
++		bitmap_fill(has_no_links, entity->num_pads);
++
+ 		for (i = 0; i < entity->num_links; i++) {
+ 			struct media_link *link = &entity->links[i];
+-
+-			/* Is this pad part of an enabled link? */
+-			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+-				continue;
+-
+-			/* Are we the sink or not? */
+-			if (link->sink->entity != entity)
++			struct media_pad *pad = link->sink->entity == entity
++				? link->sink : link->source;
++
++			/* Mark that a pad is connected by a link. */
++			bitmap_clear(has_no_links, pad->index, 1);
++
++			/*
++			 * Pads that either do not need to connect or
++			 * are connected through an enabled link are
++			 * fine.
++			 */
++			if (!(pad->flags & MEDIA_PAD_FL_MUST_CONNECT)
++			    || link->flags & MEDIA_LNK_FL_ENABLED)
++				bitmap_set(active, pad->index, 1);
++
++			/*
++			 * Link validation will only take place for
++			 * sink ends of the link that are enabled.
++			 */
++			if (link->sink != pad
++			    || !(link->flags & MEDIA_LNK_FL_ENABLED))
+ 				continue;
+ 
+ 			ret = entity->ops->link_validate(link);
+ 			if (ret < 0 && ret != -ENOIOCTLCMD)
+ 				goto error;
+ 		}
++
++		/* Either no links or validated links are fine. */
++		bitmap_or(active, active, has_no_links, entity->num_pads);
++
++		if (!bitmap_full(active, entity->num_pads)) {
++			ret = -EPIPE;
++			goto error;
++		}
+ 	}
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+-- 
+1.7.10.4
 
-Yes, this should be added here as well. Can you implement that as well?
-
-> 
-> Kind regards,
-> Sakari
-> 
->  drivers/media/v4l2-core/v4l2-event.c  | 15 +++++++++++++++
->  drivers/media/v4l2-core/v4l2-subdev.c |  3 +++
->  include/media/v4l2-event.h            |  1 +
->  3 files changed, 19 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 86dcb54..b53897e 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -107,6 +107,19 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
->  	return NULL;
->  }
->  
-> +bool v4l2_event_has_subscribed(struct v4l2_fh *fh)
-> +{
-> +	unsigned long flags;
-> +	bool rval;
-> +
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	rval = !list_empty(&fh->subscribed);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +
-> +	return rval;
-> +}
-> +EXPORT_SYMBOL(v4l2_event_has_subscribed);
-> +
->  static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
->  		const struct timespec *ts)
->  {
-> @@ -299,6 +312,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  			fh->navailable--;
->  		}
->  		list_del(&sev->list);
-> +		if (list_empty(&fh->subscribed))
-> +			wake_up_all(&fh->wait);
->  	}
->  
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 996c248..f2aa00f 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -382,6 +382,9 @@ static unsigned int subdev_poll(struct file *file, poll_table *wait)
->  	if (v4l2_event_pending(fh))
->  		return POLLPRI;
->  
-> +	if (!v4l2_event_has_subscribed(fh))
-> +		return POLLERR;
-> +
-
-This needs a bit more work: you should also check that poll() actually is waiting
-for exceptions. If not, then also return POLLERR. This has never been checked before,
-but it is needed.
-
->  	return 0;
->  }
->  
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index be05d01..a9ca2b5 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -121,6 +121,7 @@ struct v4l2_subscribed_event {
->  
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
->  		       int nonblocking);
-> +bool v4l2_event_has_subscribed(struct v4l2_fh *fh);
->  void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
->  void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
->  int v4l2_event_pending(struct v4l2_fh *fh);
-> 
-
-Regards,
-
-	Hans
