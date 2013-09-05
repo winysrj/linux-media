@@ -1,119 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:27695 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444Ab3IJHzN (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:44365 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763059Ab3IECDz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Sep 2013 03:55:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-Date: Tue, 10 Sep 2013 09:54:38 +0200
+	Wed, 4 Sep 2013 22:03:55 -0400
+Message-ID: <1378346623.27597.13.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [PATCH 0/4] [media] Make lirc_bt829 a well-behaved PCI driver
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Jarod Wilson <jarod@wilsonet.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	"media-workshop" <media-workshop@linuxtv.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <201308301501.25164.hverkuil@xs4all.nl> <522DA3D5.100@xs4all.nl> <7020EDD3BA6FF244B3C070FA4F02B1D8014BF8852674@SAFEX1MAIL2.st.com>
-In-Reply-To: <7020EDD3BA6FF244B3C070FA4F02B1D8014BF8852674@SAFEX1MAIL2.st.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201309100954.38467.hverkuil@xs4all.nl>
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Thu, 05 Sep 2013 03:03:43 +0100
+In-Reply-To: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
+References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-7bCOXC2NigCGr2S7a8+K"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 10 September 2013 09:36:00 Hugues FRUCHET wrote:
-> Thanks Hans,
-> 
-> Have you some implementation based on meta that we can check to see code details ?
 
-Not as such. Basically you just add another pixelformat define for a multiplanar
-format. And you define this format as having X video planes and Y planes containing
-meta data.
+--=-7bCOXC2NigCGr2S7a8+K
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> It would be nice to have one with noticeable amount of code/processing made on user-land side.
-> I'm wondering also how libv4l is selecting each driver specific user-land plugin and how they are loaded.
+On Mon, 2013-09-02 at 01:36 +0100, Ben Hutchings wrote:
+> I noticed lirc_bt829 didn't have a module device ID table, so I set out
+> to fix that and ended up with this series.
+>=20
+> It still appears to do everything else wrong (like reinventing
+> i2c-algo-bit) though...
+>=20
+> This is compile-tested only.
 
-libv4l-mplane in v4l-utils.git is an example of a plugin.
+On reflection, I think it might be better to leave this driver 'badly
+behaved'.  It wants to use registers on a Mach64 VT, which has a
+separate kernel framebuffer driver (atyfb) and userland X driver
+(mach64).  If this driver is compatible with them now, changing it is
+liable to break that.
 
-Documentation on the plugin API seems to be sparse, but Hans de Goede,
-Sakari Ailus or Laurent Pinchart know a lot more about it.
+I'll repost the minor fixes.
 
-There are (to my knowledge) no plugins that do exactly what you want, so
-you're the first. But it has been designed with your use-case in mind.
+Ben.
 
-Regards,
+--=20
+Ben Hutchings
+Knowledge is power.  France is bacon.
 
-	Hans
+--=-7bCOXC2NigCGr2S7a8+K
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-> 
-> BR.
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-> Sent: lundi 9 septembre 2013 12:33
-> To: Hugues FRUCHET
-> Cc: Mauro Carvalho Chehab; Oliver Schinagl; media-workshop; Benjamin Gaignard; linux-media@vger.kernel.org
-> Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-> 
-> Hi Hugues,
-> 
-> On 09/05/2013 01:37 PM, Hugues FRUCHET wrote:
-> > Hi Mauro,
-> > 
-> > For floating point issue, we have not encountered such issue while
-> > integrating various codec (currently H264, MPEG4, VP8 of both Google
-> > G1 IP & ST IPs), could you precise which codec you experienced which
-> > required FP support ?
-> > 
-> > For user-space library, problem we encountered is that interface
-> > between parsing side (for ex. H264 SPS/PPS decoding, slice header
-> > decoding, references frame list management, ...moreover all that is
-> > needed to prepare hardware IPs call) and decoder side (hardware IPs
-> > handling) is not standardized and differs largely regarding IPs or
-> > CPU/copro partitioning. This means that even if we use the standard
-> > V4L2 capture interface to inject video bitstream (H264 access units
-> > for ex), some proprietary meta are needed to be attached to each
-> > buffers, making de facto "un-standard" the V4L2 interface for this
-> > driver.
-> 
-> There are lots of drivers (mostly camera drivers) that have non-standard
-> video formats. That's perfectly fine, as long as libv4l plugins/conversions
-> exist to convert it to something that's standardized.
-> 
-> Any application using libv4l doesn't notice the work going on under the
-> hood and it will look like a standard v4l2 driver.
-> 
-> The multiplanar API seems to me to be very suitable for these sort of devices.
-> 
-> > Exynos S5P MFC is not attaching any meta to capture input
-> > buffers, keeping a standard video bitstream injection interface (what
-> > is output naturally by well-known standard demuxers such as gstreamer
-> > ones or Android Stagefright ones). This is the way we want to go, we
-> > will so keep hardware details at kernel driver side. On the other
-> > hand, this simplify drastically the integration of our video drivers
-> > on user-land multimedia middleware, reducing the time to market and
-> > support needed when reaching our end-customers. Our target is to
-> > create a unified gstreamer V4L2 decoder(encoder) plugin and a unified
-> > OMX V4L2 decoder(encoder) to fit Android, based on a single V4L2 M2M
-> > API whatever hardware IP is.
-> > 
-> > About mini summit, Benjamin and I are checking internally how to
-> > attend to discuss this topic. We think that about half a day is
-> > needed to discuss this, we can so share our code and discuss about
-> > other codebase you know dealing with video codecs.> 
-> 
-> We are getting a lot of topics for the agenda and half a day for one topic
-> seems problematic to me.
-> 
-> One option is to discuss this in a smaller group a day earlier (October 22).
-> We might be able to get a room, or we can discuss it in the hotel lounge or
-> pub :-) or something.
-> 
-> Another option is that ST organizes a separate brainstorm session with a
-> few core developers. We done that in the past quite successfully.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIVAwUAUifmf+e/yOyVhhEJAQrJvg//fY/f1KQ4pV71FmswLCC2U2i2S8rhikrk
+etzB57f50jXMvVv7ZAucvhv6Q5hzI6+adM/iKFrg9gxY67i8IPSRhzN91tOr/DXW
+1nIyb/VUewPF/tev6EbCo1RnH1+ST+/cRahnnmiQwfxzHw+HXYhsPYYN9hQ+u8tj
+3zCf2YWuT1Mxv0+EcwLX64JREYiB7qgErf11+4Ky09tqnzBlB5m7dl8xv0ZLJOUw
+CnSVi90eeE6Soli8LpnfZSaXc7d2jvKfT2iMG13c7ErGo033WU+hxMhaXx8Edy84
+F+APaqAc9P6UqA7zVRYoxyvzqemv8Kvh2QBMwh7yIKG8kx2ZxLNDDm9wjU57CrnI
+vfNff6f0eeKcjgLXLeOBrVe0YO3jgHuBL1LbrDk+gYPEPM1T6KR6XGVND4lGXrKU
+FRb54iUsPosMuVi7iSaNRGEBZWj6ofivbcL7MVYhEWxA3qCAevYbAeHBp7clM4/2
+YmxourNve9Emr7dWSrHlVV2s7E2bjnEyEaz/+hUYu5gwHKFEtau8Tu5I8A6LttuN
+Uxu9MPvModfG6Y7Zppo8HoyPh6QzbAffMyuL0ap2bWe+AAMJmryh5M3bgyU5O74B
+QokgDn56nV7QA7m5gseD7/jIYJPY4aI2aPyb6lAGujAEnsOclg9FpBFgXMZHVipv
+SBJXX/569Go=
+=KIb8
+-----END PGP SIGNATURE-----
+
+--=-7bCOXC2NigCGr2S7a8+K--
