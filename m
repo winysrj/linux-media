@@ -1,134 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:64642 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab3I3Jco (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:44450 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752809Ab3IECcB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 05:32:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <52493160.5030401@xs4all.nl>
-References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
-	<1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
-	<52493160.5030401@xs4all.nl>
-Date: Mon, 30 Sep 2013 15:02:43 +0530
-Message-ID: <CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
- the SCALER driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 4 Sep 2013 22:32:01 -0400
+Message-ID: <1378348319.27597.16.camel@deadeye.wl.decadent.org.uk>
+Subject: [PATCH v2 2/4] [media] lirc_bt829: Fix iomap and PCI device leaks
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Thu, 05 Sep 2013 03:31:59 +0100
+In-Reply-To: <1378348215.27597.14.camel@deadeye.wl.decadent.org.uk>
+References: <1378348215.27597.14.camel@deadeye.wl.decadent.org.uk>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-DIyw3uy737LanNnFtfwB"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks for pointing it out.
+--=-DIyw3uy737LanNnFtfwB
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+We must call iounmap() and pci_dev_put() when removed and on
+the probe failure path.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/media/lirc/lirc_bt829.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/medi=
+a/lirc/lirc_bt829.c
+index 9c7be55..a61d233 100644
+--- a/drivers/staging/media/lirc/lirc_bt829.c
++++ b/drivers/staging/media/lirc/lirc_bt829.c
+@@ -82,6 +82,7 @@ static struct pci_dev *do_pci_probe(void)
+ 		}
+ 		if (pci_addr_phys =3D=3D 0) {
+ 			pr_err("no memory resource ?\n");
++			pci_dev_put(my_dev);
+ 			return NULL;
+ 		}
+ 	} else {
+@@ -119,13 +120,16 @@ static void atir_set_use_dec(void *data)
+ int init_module(void)
+ {
+ 	struct pci_dev *pdev;
++	int rc;
+=20
+ 	pdev =3D do_pci_probe();
+ 	if (pdev =3D=3D NULL)
+ 		return -ENODEV;
+=20
+-	if (!atir_init_start())
+-		return -ENODEV;
++	if (!atir_init_start()) {
++		rc =3D -ENODEV;
++		goto err_put_dev;
++	}
+=20
+ 	strcpy(atir_driver.name, "ATIR");
+ 	atir_driver.minor       =3D -1;
+@@ -141,17 +145,28 @@ int init_module(void)
+ 	atir_minor =3D lirc_register_driver(&atir_driver);
+ 	if (atir_minor < 0) {
+ 		pr_err("failed to register driver!\n");
+-		return atir_minor;
++		rc =3D atir_minor;
++		goto err_unmap;
+ 	}
+ 	dprintk("driver is registered on minor %d\n", atir_minor);
+=20
+ 	return 0;
++
++err_unmap:
++	iounmap(pci_addr_lin);
++err_put_dev:
++	pci_dev_put(pdev);
++	return rc;
+ }
+=20
+
+ void cleanup_module(void)
+ {
++	struct pci_dev *pdev =3D to_pci_dev(atir_driver.dev);
++
+ 	lirc_unregister_driver(atir_minor);
++	iounmap(pci_addr_lin);
++	pci_dev_put(pdev);
+ }
+=20
 
 
-On Mon, Sep 30, 2013 at 1:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Shaik,
->
-> I have a few questions regarding the selection part...
->
-> On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
->> This patch adds the Makefile and memory to memory (m2m) interface
->> functionality for the SCALER driver.
->>
->> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->> ---
->>  drivers/media/platform/Kconfig                    |    8 +
->>  drivers/media/platform/Makefile                   |    1 +
->>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
->>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
->>  4 files changed, 793 insertions(+)
->>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
->>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
->>
->
 
 
-[...]
+--=-DIyw3uy737LanNnFtfwB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
->> +
->> +static int scaler_m2m_s_selection(struct file *file, void *fh,
->> +                             struct v4l2_selection *s)
->> +{
->> +     struct scaler_frame *frame;
->> +     struct scaler_ctx *ctx = fh_to_ctx(fh);
->> +     struct v4l2_crop cr;
->> +     struct scaler_variant *variant = ctx->scaler_dev->variant;
->> +     int ret;
->> +
->> +     cr.type = s->type;
->> +     cr.c = s->r;
->> +
->> +     if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
->> +         (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
->> +             return -EINVAL;
->> +
->> +     ret = scaler_try_crop(ctx, &cr);
->> +     if (ret < 0)
->> +             return ret;
->> +
->> +     if (s->flags & V4L2_SEL_FLAG_LE &&
->> +         !is_rectangle_enclosed(&cr.c, &s->r))
->> +             return -ERANGE;
->> +
->> +     if (s->flags & V4L2_SEL_FLAG_GE &&
->> +         !is_rectangle_enclosed(&s->r, &cr.c))
->> +             return -ERANGE;
->> +
->> +     s->r = cr.c;
->> +
->> +     switch (s->target) {
->> +     case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->> +     case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->> +     case V4L2_SEL_TGT_COMPOSE:
->> +             frame = &ctx->s_frame;
->> +             break;
->> +
->> +     case V4L2_SEL_TGT_CROP_BOUNDS:
->> +     case V4L2_SEL_TGT_CROP:
->> +     case V4L2_SEL_TGT_CROP_DEFAULT:
->> +             frame = &ctx->d_frame;
->> +             break;
->
-> Similar problems as with g_selection above. Tomasz mentioned to me that the selection
-> API is not implemented correctly in m2m Samsung drivers. It looks like this code is
-> copied-and-pasted from other drivers, so it seems he was right.
+iQIVAwUAUiftH+e/yOyVhhEJAQoAWQ/8CIcRFxJQzR40XnQ69vtBiIcUkzn6mMGH
++3htOc0SOKmrLRItCvPDBiycQLUWdJA9xLOdNjBJ9Anoz3xXhnr5DToYOoReRPTO
+Ieb73NBCwo8L8Zd9iaCmc2uzHahKpYW7JPP/nyA22j76qeYsIhBf8dcm0ojOL/Wk
+TrU5VkVozfJviCTndtrKvuKtl8avfVu20fX2kz5pWqjb1rmVtKkmoHV5U6OWmR4S
+QkU3A3DBkMETrXAezEYUyzaFRiWK2+BLB3IbjnWYsvjNufn3EPXFg8xKGQOL+5ig
+JIgqudqjaibH8bVZnb6uJeqxETWWyZSmkwRrKGzWm0uJmZT5Ya10JqVmhRLlZC+9
+fzqOqSZ35rzX6I0sd6KzsVU4d8wmLDR11i9P9a8FCxV01+8hikFp+zirbxMkIlyF
+bsf0099f02ml/02cajjkzGeBA0GllLTLFTZ0U+1n7mv2M0TUHAc/N0blLKRzXzVi
+Ex0wn7DILtdY/+bsV96dtzXC5GQG92VrXCh4y5q9ZG8YUeGKPwRa5B5gEdljsAj7
+FWBVcZ2/lumHN38QwfzkPOUUv4qWa1zTETTlFb24tuPVzsEw8MPMXP4r6xUQl9iH
+8EcC9BHBmAAGnqFoNGpqtH95eoq69GTLe3582sju7K2OYI9WY1cg2kF/Ou6Z1IU3
+eShDolrxkHU=
+=iIko
+-----END PGP SIGNATURE-----
 
-Sorry, after going through the documentation, I have to agree with you...
-As you mentioned, this part of the code was copied while implementing
-the G-Scaler driver :)
-
-I will change the above implementation for M2M devices (GScaler and
-SCALER) as below,
-I will only allow all V4L2_SEL_TGT_COMPOSE_* target requests if
-'s->type' is equal to "V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE".
-and all V4L2_SEL_TGT_CROP_* target requests if 's->type' is equal to
-"V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE".
-
-I hope with the above two checkings taken in to care, there should not
-be any issues with using selection APIs here.
-
-Thanks,
-Shaik Ameer Basha
-
->
-> The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
-> since the API may actually need some adjustments to have it work the way it should.
->
-> As requested above, if you can explain the exact functionality you are trying to
-> implement here, then I can look over this code carefully and see how it should be done.
->
-> Thanks!
->
->         Hans
->
-[...]
+--=-DIyw3uy737LanNnFtfwB--
