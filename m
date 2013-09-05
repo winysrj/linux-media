@@ -1,145 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:37808 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763Ab3IQKLD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 06:11:03 -0400
-MIME-Version: 1.0
-In-Reply-To: <52363487.6010408@gmail.com>
-References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
-	<1378991371-24428-3-git-send-email-shaik.ameer@samsung.com>
-	<52363487.6010408@gmail.com>
-Date: Tue, 17 Sep 2013 15:40:59 +0530
-Message-ID: <CAOD6ATpg8M9M=b+8czdVo+oUA2iVFXdvBUTVPOKncBr2Bzac6Q@mail.gmail.com>
-Subject: Re: [PATCH v3 2/4] [media] exynos-scaler: Add core functionality for
- the SCALER driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
+Received: from moutng.kundenserver.de ([212.227.126.186]:65118 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109Ab3IHP2P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Sep 2013 11:28:15 -0400
+Date: Thu, 5 Sep 2013 15:11:26 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] em28xx: balance subdevice power-off calls
+Message-ID: <Pine.LNX.4.64.1309051459261.785@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The em28xx USB driver powers off its subdevices, by calling their .s_power()
+methods to save power, but actually never powers them on. Apparently this
+works with currently used subdevice drivers, but is wrong and might break
+with some other ones. This patch fixes this issue by adding required
+.s_power() calls to turn subdevices on.
 
-Thanks for the comments.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-On Mon, Sep 16, 2013 at 3:58 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Shaik,
->
-> Thanks for addressing my comments, it really looks much better now.
-> I have few more comments, mostly minor issues.
+Please, test - only compile tested due to lack of hardware
 
-[...]
+ drivers/media/usb/em28xx/em28xx-cards.c |    1 +
+ drivers/media/usb/em28xx/em28xx-video.c |   17 ++++++++++-------
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
->> +
->> +const struct scaler_fmt *scaler_find_fmt(u32 *pixelformat,
->> +                               u32 *mbus_code, u32 index)
->> +{
->> +       const struct scaler_fmt *fmt, *def_fmt = NULL;
->> +       unsigned int i;
->> +
->> +       if (index>= ARRAY_SIZE(scaler_formats))
->> +               return NULL;
->> +
->> +       for (i = 0; i<  ARRAY_SIZE(scaler_formats); ++i) {
->> +               fmt = scaler_get_format(i);
->> +               if (pixelformat&&  fmt->pixelformat == *pixelformat)
->> +                       return fmt;
->
->
->> +               if (mbus_code&&  fmt->mbus_code == *mbus_code)
->> +                       return fmt;
->
->
-> is mbus_code ever used ?
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index dc65742..d2d3b06 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3066,6 +3066,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 	}
+ 
+ 	/* wake i2c devices */
++	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 1);
+ 	em28xx_wake_i2c(dev);
+ 
+ 	/* init video dma queues */
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 9d10334..283fa26 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1589,15 +1589,18 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	fh->type = fh_type;
+ 	filp->private_data = fh;
+ 
+-	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
+-		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+-		em28xx_resolution_set(dev);
++	if (dev->users == 0) {
++		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 1);
+ 
+-		/* Needed, since GPIO might have disabled power of
+-		   some i2c device
+-		 */
+-		em28xx_wake_i2c(dev);
++		if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++			em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
++			em28xx_resolution_set(dev);
+ 
++			/* Needed, since GPIO might have disabled power of
++			   some i2c device
++			*/
++			em28xx_wake_i2c(dev);
++		}
+ 	}
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+-- 
+1.7.2.5
 
-Yes. Currently not used. Will remove this field for now..
-
->
->> +               if (index == i)
->> +                       def_fmt = fmt;
->> +       }
->> +
->> +       return def_fmt;
->> +}
-
-[...]
-
->> +
->> +int scaler_try_fmt_mplane(struct scaler_ctx *ctx, struct v4l2_format *f)
->> +{
->> +       struct scaler_dev *scaler = ctx->scaler_dev;
->> +       struct device *dev =&scaler->pdev->dev;
->>
->> +       struct scaler_variant *variant = scaler->variant;
->> +       struct v4l2_pix_format_mplane *pix_mp =&f->fmt.pix_mp;
->>
-
-[...]
-
->> +
->> +       /*
->> +        * Nothing mentioned about the colorspace in SCALER. Default value
->> is
->> +        * set to V4L2_COLORSPACE_REC709.
->> +        */
->
->
-> Isn't scaler_hw_set_csc_coef() function configuring the colorspace ?
-
-Actually speaking this function should do the color space setting part.
-What the SCALER ip supports is CSC offset value for Y
-
-YCbCr to RGB : Zero offset of -16 offset for input
-RGB to YCbCr : Zero offset of +16 offset for output
-
-I think user should provide this information through some controls.
-Anyways, will take it later.
-
->
->> +       pix_mp->colorspace = V4L2_COLORSPACE_REC709;
->> +
->> +       for (i = 0; i<  pix_mp->num_planes; ++i) {
->> +               int bpl = (pix_mp->width * fmt->depth[i])>>  3;
->> +               pix_mp->plane_fmt[i].bytesperline = bpl;
->> +               pix_mp->plane_fmt[i].sizeimage = bpl * pix_mp->height;
->> +
->> +               scaler_dbg(scaler, "[%d]: bpl: %d, sizeimage: %d",
->> +                               i, bpl, pix_mp->plane_fmt[i].sizeimage);
->> +       }
->> +
->> +       return 0;
->> +}
->> +
-
-[...]
-
->> +static int scaler_runtime_resume(struct device *dev)
->> +{
->> +       struct scaler_dev *scaler = dev_get_drvdata(dev);
->> +       int ret = 0;
->> +       scaler_dbg(scaler, "state: 0x%lx", scaler->state);
->> +
->> +       ret = clk_enable(scaler->clock);
->> +       if (ret<  0)
->> +               return ret;
->> +
->> +       scaler_sw_reset(scaler);
->> +
->> +       return scaler_m2m_resume(scaler);
->
->
-> Shouldn't there be clk_disable() when this function fails ?
-
-this funciton scaler_m2m_resume() never fails.
-
-
-Regards,
-Shaik Ameer Basha
