@@ -1,266 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47540 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124Ab3IEWdx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 18:33:53 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c13so780037eek.5
-        for <linux-media@vger.kernel.org>; Thu, 05 Sep 2013 15:33:52 -0700 (PDT)
-Message-ID: <522906CD.1000006@gmail.com>
-Date: Fri, 06 Sep 2013 00:33:49 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:33957 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383Ab3IEPWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 11:22:39 -0400
+Received: by mail-bk0-f41.google.com with SMTP id na10so834190bkb.14
+        for <linux-media@vger.kernel.org>; Thu, 05 Sep 2013 08:22:38 -0700 (PDT)
+Message-ID: <5228A1BC.7000209@googlemail.com>
+Date: Thu, 05 Sep 2013 17:22:36 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <51FBAD74.6060603@xs4all.nl> <52027AB7.5080006@samsung.com> <520288C1.7040207@xs4all.nl>
-In-Reply-To: <520288C1.7040207@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 0/3] V4L2: fix em28xx ov2640 support
+References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de> <5224DBB8.1010601@googlemail.com> <Pine.LNX.4.64.1309030821050.14776@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1309030821050.14776@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Guennadi,
 
-Sorry for putting this on a back burner for a while.
+sorry for delayed replies, I'm currently burried under lots of stuff
+with a higher priority...
 
-On 08/07/2013 07:49 PM, Hans Verkuil wrote:
-> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
->> Hi Hans,
->>
->> On 08/02/2013 03:00 PM, Hans Verkuil wrote:
->>> Hi Sylwester,
+Am 03.09.2013 08:34, schrieb Guennadi Liakhovetski:
+> Hi Frank
+>
+> Thanks for testing! Let's have a look then:
+>
+> On Mon, 2 Sep 2013, Frank Schäfer wrote:
+>
+>> Am 28.08.2013 15:28, schrieb Guennadi Liakhovetski:
+>>> This patch series adds a V4L2 clock support to em28xx with an ov2640 
+>>> sensor. Only compile tested, might need fixing, please, test.
 >>>
->>> The patch is good, but I have some issues with the commit message itself.
->>
->> Thanks a lot for the detailed explanation, I just wrote this a bit
->> longish changelog to possibly get some feedback and to better understand
->> what is exactly going on. Currently the v4l2-core looks like a racing
->> disaster to me.
->>
->>> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
->>>> As it currently stands this code doesn't protect against any races
->>>> between video device open() and its unregistration. Races could be
->>>> avoided by doing the video_is_registered() check protected by the
->>>> core mutex, while the video device unregistration is also done with
->>>> this mutex held.
+>>> Guennadi Liakhovetski (3):
+>>>   V4L2: add v4l2-clock helpers to register and unregister a fixed-rate
+>>>     clock
+>>>   V4L2: add a v4l2-clk helper macro to produce an I2C device ID
+>>>   V4L2: em28xx: register a V4L2 clock source
 >>>
->>> The video_unregister_device() is called completely asynchronously,
->>> particularly in the case of usb drivers. So it was never the goal of
->>> the video_is_registered() to be fool proof, since that isn't possible,
->>> nor is that necessary.
+>>>  drivers/media/usb/em28xx/em28xx-camera.c |   41 ++++++++++++++++++++++-------
+>>>  drivers/media/usb/em28xx/em28xx-cards.c  |    3 ++
+>>>  drivers/media/usb/em28xx/em28xx.h        |    1 +
+>>>  drivers/media/v4l2-core/v4l2-clk.c       |   39 ++++++++++++++++++++++++++++
+>>>  include/media/v4l2-clk.h                 |   17 ++++++++++++
+>>>  5 files changed, 91 insertions(+), 10 deletions(-)
 >>>
->>> The goal was that the v4l2 core would use it for the various file
->>> operations and ioctls as a quick check whether the device was unregistered
->>> and to return the correct error. This prevents drivers from having to do
->>> the same thing.
+>> Tested a few minutes ago:
 >>
->> OK, I think I just myself used this video_is_registered() flag for some
->> more stuff, by surrounding it with mutex_lock/mutex_unlock and putting
->> more stuff in between, like media_entity_cleanup().
+>> ...
+>> [  103.564065] usb 1-8: new high-speed USB device number 10 using ehci-pci
+>> [  103.678554] usb 1-8: config 1 has an invalid interface number: 3 but
+>> max is 2
+>> [  103.678559] usb 1-8: config 1 has no interface number 2
+>> [  103.678566] usb 1-8: New USB device found, idVendor=1ae7, idProduct=9004
+>> [  103.678569] usb 1-8: New USB device strings: Mfr=0, Product=0,
+>> SerialNumber=0
+>> [  103.797040] em28xx audio device (1ae7:9004): interface 0, class 1
+>> [  103.797054] em28xx audio device (1ae7:9004): interface 1, class 1
+>> [  103.797064] em28xx: New device   @ 480 Mbps (1ae7:9004, interface 3,
+>> class 3)
+>> [  103.797066] em28xx: Video interface 3 found: bulk
+>> [  103.933941] em28xx: chip ID is em2765
+>> [  104.043811] em2765 #0: i2c eeprom 0000: 26 00 01 00 02 0d ea c2 ee 30
+>> fa 02 d2 0a 32 02
+>> [  104.043821] em2765 #0: i2c eeprom 0010: 0d c3 c2 04 12 00 33 c2 04 12
+>> 00 4b 12 0e 1f d2
+>> [  104.043828] em2765 #0: i2c eeprom 0020: 04 12 00 33 12 0e 1f d2 04 12
+>> 00 4b 02 0e 1f 80
+>> [  104.043835] em2765 #0: i2c eeprom 0030: 00 a2 85 22 02 0b cb a2 04 92
+>> 84 22 02 0c 78 00
+>> [  104.043841] em2765 #0: i2c eeprom 0040: 02 0d 69 7b 1f 7d 40 7f 32 02
+>> 0c 44 02 00 03 a2
+>> [  104.043847] em2765 #0: i2c eeprom 0050: 04 92 85 22 00 00 00 00 e7 1a
+>> 04 90 00 00 00 00
+>> [  104.043854] em2765 #0: i2c eeprom 0060: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043860] em2765 #0: i2c eeprom 0070: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043866] em2765 #0: i2c eeprom 0080: 00 00 00 00 00 00 1e 40 1e 72
+>> 00 20 01 01 00 01
+>> [  104.043873] em2765 #0: i2c eeprom 0090: 01 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043879] em2765 #0: i2c eeprom 00a0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043885] em2765 #0: i2c eeprom 00b0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043891] em2765 #0: i2c eeprom 00c0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043898] em2765 #0: i2c eeprom 00d0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043904] em2765 #0: i2c eeprom 00e0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043910] em2765 #0: i2c eeprom 00f0: 00 00 00 00 00 00 00 00 00 00
+>> 00 00 00 00 00 00
+>> [  104.043917] em2765 #0: i2c eeprom 0100: ... (skipped)
+>> [  104.043921] em2765 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x5c22c624
+>> [  104.043922] em2765 #0: EEPROM info:
+>> [  104.043924] em2765 #0:       microcode start address = 0x0004, boot
+>> configuration = 0x01
+>> [  104.069818] em2765 #0:       no hardware configuration dataset found
+>> in eeprom
+>> [  104.080693] em2765 #0: sensor OV2640 detected
+>> [  104.080715] em2765 #0: Identified as SpeedLink Vicious And Devine
+>> Laplace webcam (card=90)
+>> [  104.159699] ov2640 11-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
+>> [  104.173836] i2c i2c-11: OV2640 Probed
+> I presume, this is good.
 >
-> You can't do that, because there are most likely still filehandles open
-> or even ioctls being executed. Cleanup happens in the release function(s)
-> when the kref goes to 0.
-
-Yeah, a bit late, but I'm finally well aware of that.
-
->> And this probably led
->> me astray for a while, thinking that video_is_registered() was intended
->> to be used synchronously.
->> For example see fimc_lite_subdev_unregistered() in drivers/media/platform/
->> exynos4-is/fimc-lite.c.
->>
->> But as you said video_is_registered() is fully asynchronous.
->>
->> Actually I'm trying to fix a nasty race between deferred driver probing
->> and video device open(). The problem is that video open() callback can
->> be called after driver remove() callback was invoked.
+>> [  104.306698] em2765 #0: Config register raw data: 0x00
+>> [  104.306717] em2765 #0: v4l2 driver version 0.2.0
+>> [  104.321152] em2765 #0: V4L2 video device registered as video1
+> This is good too.
 >
-> How is that possible? The video_device_register must be the last thing in
-> the probe function. If it succeeds, then the probe must succeed as well.
+>> [  104.321167] ------------[ cut here ]------------
+>> [  104.321216] WARNING: CPU: 0 PID: 517 at
+>> drivers/media/v4l2-core/v4l2-clk.c:131 v4l2_clk_disable+0x83/0x90
+>> [videodev]()
+>> [  104.321221] Unbalanced v4l2_clk_disable() on 11-0030:mclk!
+> Ok, this is because em28xx_init_dev() calls
 >
-> Note that I now realize that this might fail in the case of multiple device
-> nodes being registered. We never had problems with that in the past, but in
-> theory you can the race condition you mention in that scenario. The correct
-> approach here would probably be to always return 0 in probe() if only some
-> of the video_device_register calls fail.
+> 	/* Save some power by putting tuner to sleep */
+> 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
 >
-> Anyway, assuming that only one device node is created, then I can't see how
-> you can get a race condition here. Any open() call will increase the module's
-> refcount, making it impossible to unload.
+> without turning the subdevice on before. Are those subdevices on by 
+> default? 
+I don't know. We have numerous magic GPIO sequences in the em28xx
+driver... ;)
+It has at least been working so far without a (s_power, 1) call. ;)
 
-The main issue is that in the exynos4-is driver there are multiple platform
-devices (these represent IP blocks that are scattered across various Exynos
-SoC revisions). Drivers of this platform devices create subdevs and video
-nodes are registered in subdev's .registered() callback. This allows the
-drivers to be more modular and self contained. But also during video device
-registration proper struct v4l2_device (and through this struct 
-media_device)
-can be passed so the video nodes are attached to the common media driver.
+> In principle, this warning is harmless and it should still work 
+> afterwards, but we should still clean this up - by either removing the 
+> warning, or adding a power-on before a power-off in em28xx_init_dev(), or 
+> somehow else. In fact, I think, this should indeed be done: 
+> em28xx_card_setup() performs i2c accesses, right? So, we have to power up 
+> the subdev before that.
 
-In probe() of the media driver all subdevs are registered and this triggers
-video nodes creation. The media device first registers all platform devices.
-Subdevs are created and all video nodes. After that are being registered
-sensor subdevs and media links are created. Then all subdev devnodes are
-created in a single call. Note this single call is a bit contrary to the
-v4l2-sync API concepts.
+I agree, but I also think the warning should be removed.
+The log looks scary and multiple/unbalanced s_power calls are nothing
+unusual.
 
-So there is lots of things that may fail after first video node is 
-registered,
-and on which open() may be called immediately.
-
-> As far as I can tell, once you call rmmod it should no longer be possible to
-> open() an device node whose struct file_operations owner is that module (i.e.
-> the owner field of the file_operations struct points to that module). Looking
-> at the way fs/char_dev is implemented, that seems to be correctly handled by
-> the kernel core.
-
-Yes, that's a good news. There is only still the issue with the "unbind" 
-sysfs
-attribute. I couldn't see any similar checks done around code 
-implementing it.
-
->> This issue is actually not only related to deferred probing. It can be
->> also triggered by driver module removal or through driver's sysfs "unbind"
->> attribute.
->>
->> Let's assume following scenario:
->>
->> - a driver module is loaded
->> - driver probe is called, it registers video device,
->> - udev opens /dev/video
->> - after mutex_unlock(&videodev_lock); call in v4l2_open() in v4l2-core/
->>    v4l2-dev.c something fails in probe()
+>> [  104.321226] Modules linked in: ov2640 soc_camera soc_mediabus
+>> em28xx(+) videobuf2_core videobuf2_vmalloc videobuf2_memops xt_tcpudp
+>> xt_pkttype xt_LOG af_packet xt_limit snd_hda_codec_hdmi
+>> snd_hda_codec_analog snd_hda_intel snd_hda_codec snd_hwdep snd_pcm
+>> ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw ipt_REJECT
+>> iptable_raw xt_CT iptable_filter ip6table_mangle nf_conntrack_netbios_ns
+>> nf_conntrack_broadcast nf_conntrack_ipv4 nf_defrag_ipv4 ip_tables
+>> xt_conntrack nf_conntrack ip6table_filter ip6_tables x_tables fuse
+>> snd_seq arc4 rtl8187 rc_hauppauge ir_kbd_i2c tuner_simple tuner_types
+>> mac80211 tda9887 snd_timer tda8290 tuner cfg80211 snd_seq_device msp3400
+>> snd bttv usb_storage usblp firewire_ohci shpchp sg firewire_core sr_mod
+>> rfkill v4l2_common eeprom_93cx6 videodev crc_itu_t ppdev pci_hotplug
+>> serio_raw videobuf_dma_sg soundcore videobuf_core parport_pc parport
+>> i2c_nforce2 forcedeth k8temp snd_page_alloc btcx_risc rc_core tveeprom
+>> mperf asus_atk0110 pcspkr powernow_k8 button cdrom floppy autofs4
+>> radeon ttm drm_kms_helper drm i2c_algo_bit thermal fan processor
+>> thermal_sys scsi_dh_alua scsi_dh_hp_sw scsi_dh_emc scsi_dh_rdac scsi_dh
+>> ata_generic pata_amd pata_jmicron sata_nv
+>> [  104.321353] CPU: 0 PID: 517 Comm: udevd Not tainted
+>> 3.11.0-rc2-0.1-desktop+ #19
+>> [  104.321358] Hardware name: System manufacturer System Product
+>> Name/M2N-VM DH, BIOS ASUS M2N-VM DH ACPI BIOS Revision 1503 09/16/2010
+>> [  104.321363]  00000000 00000000 f52dbb70 c0743834 f52dbbb0 f52dbba0
+>> c023f5ef f7bde565
+>> [  104.321375]  f52dbbcc 00000205 f7bdf620 00000083 f7bd9f03 f7bd9f03
+>> eb112c40 eb112c58
+>> [  104.321386]  00000000 f52dbbb8 c023f68e 00000009 f52dbbb0 f7bde565
+>> f52dbbcc f52dbbe0
+>> [  104.321397] Call Trace:
+>> [  104.321411]  [<c0743834>] dump_stack+0x4b/0x72
+>> [  104.321420]  [<c023f5ef>] warn_slowpath_common+0x7f/0xa0
+>> [  104.321446]  [<f7bd9f03>] ? v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.321466]  [<f7bd9f03>] ? v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.321473]  [<c023f68e>] warn_slowpath_fmt+0x2e/0x30
+>> [  104.321494]  [<f7bd9f03>] v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.321511]  [<f8d2b821>] soc_camera_power_off+0x31/0x60 [soc_camera]
+>> [  104.321530]  [<f8d46f13>] ?
+>> em28xx_register_analog_devices+0x653/0x6c0 [em28xx]
+>> [  104.321539]  [<f8d33284>] ov2640_s_power+0x34/0x60 [ov2640]
+>> [  104.321555]  [<f8d492c2>] em28xx_usb_probe+0xef2/0x1330 [em28xx]
+>> [  104.321564]  [<c03a31f5>] ? __sysfs_add_one+0x55/0xf0
+>> [  104.321574]  [<c057f5f8>] ? __pm_runtime_set_status+0xf8/0x210
+>> [  104.321581]  [<c057f4b1>] ? __pm_runtime_resume+0x41/0x50
+>> [  104.321590]  [<c05df477>] usb_probe_interface+0x187/0x2c0
+>> [  104.321598]  [<c05745aa>] ? driver_sysfs_add+0x6a/0x90
+>> [  104.321604]  [<c0574a44>] driver_probe_device+0x74/0x360
+>> [  104.321610]  [<c05ded31>] ? usb_match_id+0x41/0x60
+>> [  104.321617]  [<c05ded9e>] ? usb_device_match+0x4e/0x90
+>> [  104.321623]  [<c0574db9>] __driver_attach+0x89/0x90
+>> [  104.321630]  [<c0574d30>] ? driver_probe_device+0x360/0x360
+>> [  104.321639]  [<c0572f92>] bus_for_each_dev+0x42/0x80
+>> [  104.321645]  [<c0574539>] driver_attach+0x19/0x20
+>> [  104.321652]  [<c0574d30>] ? driver_probe_device+0x360/0x360
+>> [  104.321658]  [<c05740c4>] bus_add_driver+0xe4/0x260
+>> [  104.321665]  [<c0575375>] driver_register+0x65/0x160
+>> [  104.321673]  [<c029beed>] ? smp_call_function+0x2d/0x50
+>> [  104.321681]  [<c0236870>] ? __cpa_process_fault+0x80/0x80
+>> [  104.321688]  [<c05ddf22>] usb_register_driver+0x62/0x150
+>> [  104.321695]  [<c023752a>] ? change_page_attr_set_clr+0x2da/0x380
+>> [  104.321707]  [<f8d5c000>] ? 0xf8d5bfff
+>> [  104.321724]  [<f8d5c017>] em28xx_usb_driver_init+0x17/0x1000 [em28xx]
+>> [  104.321732]  [<c02003fa>] do_one_initcall+0xaa/0x160
+>> [  104.321741]  [<c02d0ab4>] ? tracepoint_module_notify+0xc4/0x180
+>> [  104.321752]  [<f8d5c000>] ? 0xf8d5bfff
+>> [  104.321758]  [<c0237797>] ? set_memory_nx+0x57/0x60
+>> [  104.321772]  [<c0740c14>] ? set_section_ro_nx+0x4f/0x54
+>> [  104.321781]  [<c02a1388>] load_module+0x1ba8/0x2510
+>> [  104.321792]  [<c02a1d87>] SyS_init_module+0x97/0x100
+>> [  104.321801]  [<c030f463>] ? vm_mmap_pgoff+0x83/0xb0
+>> [  104.321811]  [<c074fc3a>] sysenter_do_call+0x12/0x22
+>> [  104.321816] ---[ end trace ce95bae000cad89a ]---
+>> [  104.321823] em2765 #0: analog set to bulk mode.
+>> [  104.322214] usbcore: registered new interface driver em28xx
+>> [  104.373835] ------------[ cut here ]------------
+>> [  104.373886] WARNING: CPU: 0 PID: 2087 at
+>> drivers/media/v4l2-core/v4l2-clk.c:131 v4l2_clk_disable+0x83/0x90
+>> [videodev]()
+>> [  104.373892] Unbalanced v4l2_clk_disable() on 11-0030:mclk!
+> Here's another one of the same kind.
 >
-> And that shouldn't happen. That's the crucial bit: under which scenario does
-> this happen for you? If there is a control path where you do create a working
-> device node, but the probe fails, then that will indeed cause all sorts of
-> problems. But it shouldn't get in that situation (except I think in the case
-> of multiple device nodes, which is something I need to think about).
+>> [  104.373896] Modules linked in: snd_rawmidi ov2640 soc_camera
+>> soc_mediabus em28xx videobuf2_core videobuf2_vmalloc videobuf2_memops
+>> xt_tcpudp xt_pkttype xt_LOG af_packet xt_limit snd_hda_codec_hdmi
+>> snd_hda_codec_analog snd_hda_intel snd_hda_codec snd_hwdep snd_pcm
+>> ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw ipt_REJECT
+>> iptable_raw xt_CT iptable_filter ip6table_mangle nf_conntrack_netbios_ns
+>> nf_conntrack_broadcast nf_conntrack_ipv4 nf_defrag_ipv4 ip_tables
+>> xt_conntrack nf_conntrack ip6table_filter ip6_tables x_tables fuse
+>> snd_seq arc4 rtl8187 rc_hauppauge ir_kbd_i2c tuner_simple tuner_types
+>> mac80211 tda9887 snd_timer tda8290 tuner cfg80211 snd_seq_device msp3400
+>> snd bttv usb_storage usblp firewire_ohci shpchp sg firewire_core sr_mod
+>> rfkill v4l2_common eeprom_93cx6 videodev crc_itu_t ppdev pci_hotplug
+>> serio_raw videobuf_dma_sg soundcore videobuf_core parport_pc parport
+>> i2c_nforce2 forcedeth k8temp snd_page_alloc btcx_risc rc_core tveeprom
+>> mperf asus_atk0110 pcspkr powernow_k8 button cdrom floppy
+>> autofs4 radeon ttm drm_kms_helper drm i2c_algo_bit thermal fan processor
+>> thermal_sys scsi_dh_alua scsi_dh_hp_sw scsi_dh_emc scsi_dh_rdac scsi_dh
+>> ata_generic pata_amd pata_jmicron sata_nv
+>> [  104.374088] CPU: 0 PID: 2087 Comm: v4l_id Tainted: G        W   
+>> 3.11.0-rc2-0.1-desktop+ #19
+>> [  104.374093] Hardware name: System manufacturer System Product
+>> Name/M2N-VM DH, BIOS ASUS M2N-VM DH ACPI BIOS Revision 1503 09/16/2010
+>> [  104.374098]  00000000 00000000 eb247e74 c0743834 eb247eb4 eb247ea4
+>> c023f5ef f7bde565
+>> [  104.374110]  eb247ed0 00000827 f7bdf620 00000083 f7bd9f03 f7bd9f03
+>> eb112c40 eb112c58
+>> [  104.374121]  00000000 eb247ebc c023f68e 00000009 eb247eb4 f7bde565
+>> eb247ed0 eb247ee4
+>> [  104.374132] Call Trace:
+>> [  104.374145]  [<c0743834>] dump_stack+0x4b/0x72
+>> [  104.374178]  [<c023f5ef>] warn_slowpath_common+0x7f/0xa0
+>> [  104.374208]  [<f7bd9f03>] ? v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.374228]  [<f7bd9f03>] ? v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.374242]  [<c023f68e>] warn_slowpath_fmt+0x2e/0x30
+>> [  104.374266]  [<f7bd9f03>] v4l2_clk_disable+0x83/0x90 [videodev]
+>> [  104.374284]  [<f8d2b821>] soc_camera_power_off+0x31/0x60 [soc_camera]
+>> [  104.374293]  [<f8d33284>] ov2640_s_power+0x34/0x60 [ov2640]
+>> [  104.374308]  [<f8d44c16>] em28xx_v4l2_close+0x86/0x150 [em28xx]
+>> [  104.374326]  [<f7bcf02e>] v4l2_release+0x2e/0x70 [videodev]
+>> [  104.374335]  [<c034558f>] __fput+0xaf/0x1d0
+>> [  104.374342]  [<c03456e8>] ____fput+0x8/0x10
+>> [  104.374352]  [<c025d189>] task_work_run+0x79/0x90
+>> [  104.374359]  [<c0202071>] do_notify_resume+0x41/0x70
+>> [  104.374368]  [<c0749a8f>] work_notifysig+0x24/0x29
+>> [  104.374374] ---[ end trace ce95bae000cad89b ]---
+>> [  104.440959] usbcore: registered new interface driver snd-usb-audio
+> So, above I didn't see anything bad, does the camera actually work with 
+> this?
+Yes, it works.
 
-Yes, I'm dealing with multiple device nodes created from within media 
-driver's
-probe(). As described above, there is quite a few things that could 
-fail, even
-single sub-driver created multiple nodes for same IP block (capture, 
-mem-to-mem).
-
->> and it unwinds, probe callback
->>    exits and the driver code code calls dev_set_drvdata(dev, NULL); as
->>    shown below.
->>
->> static int really_probe(struct device *dev, struct device_driver *drv)
->> {
->> 	...
->> 	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
->> 		 drv->bus->name, __func__, drv->name, dev_name(dev));
->> 	...
->> 	if (dev->bus->probe) {
->> 		ret = dev->bus->probe(dev);
->> 		if (ret)
->> 			goto probe_failed;
->> 	} else if (drv->probe) {
->> 		ret = drv->probe(dev);
->> 		if (ret)
->> 			goto probe_failed;
->> 	}
->> 	...
->> 	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
->> 		 drv->bus->name, __func__, dev_name(dev), drv->name);
->> 	goto done;
->>
->> probe_failed:
->> 	devres_release_all(dev);
->> 	driver_sysfs_remove(dev);
->> 	dev->driver = NULL;
->> 	dev_set_drvdata(dev, NULL);
->>
->> 	...
->> 	ret = 0;
->> done:
->> 	...
->> 	return ret;
->> }
->>
->> Now we get to
->>
->>   	ret = vdev->fops->open(filp);
->>
->> in v4l2_open(). This calls some driver's callback, e.g. something
->> like:
->>
->> static int fimc_lite_open(struct file *file)
->> {
->> 	struct fimc_lite *fimc = video_drvdata(file);
->> 	struct media_entity *me =&fimc->ve.vdev.entity;
->> 	int ret;
->>
->> 	mutex_lock(&fimc->lock);
->> 	if (!video_is_registered(&fimc->ve.vdev)) {
->> 		ret = -ENODEV;
->> 		goto unlock;
->> 	}
->>
->> 	...
->>
->> 	/* Mark video pipeline ending at this video node as in use. */
->> 	if (ret == 0)
->> 		me->use_count++;
->> 	...
->> unlock:
->> 	mutex_unlock(&fimc->lock);
->> 	return ret;
->> }
->>
->> Now what will video_drvdata(file); return ?
->>
->> static inline void *video_drvdata(struct file *file)
->> {
->> 	return video_get_drvdata(video_devdata(file));
->> }
->>
->> static inline void *video_get_drvdata(struct video_device *vdev)
->> {
->> 	return dev_get_drvdata(&vdev->dev);
->> }
->>
->> Yes, so that will be just NULL o_O, due to the dev_set_drvdata(dev, NULL);
->> in really_probe(). drvdata is cleared similarly in __device_release_driver(),
->> right after calling driver's remove handler.
->>
->> Another issue I have is that, e.g. driver/media/platform/exynos4-is/fimc-lite*
->> driver has empty video dev release() callback. It should be implemented
->> in the driver to kfree the whole driver's private data structure where
->> struct video_device is embedded in (struct fimc_lite). But that freeing
->> really needs to be synchronized with driver's remove() call, since there
->> is e.g. freed interrupt which accesses the driver's private data. I can't
->> use kref from struct v4l2_device as that belongs to a different driver.
->> A driver's custom reference counting comes to mind, where vdev->release()
->> and drv->remove() would be decrementing the reference counter. But that
->> seems ugly as hell :/ And it predates devm_*.
->>
->> This is all getting a bit depressing :/ Deferred probing and the
->> asynchronous subdev handling just made those issues more visible, i.e.
->> not very good design of some parts of the v4l2-core.
->
-> It's just not clear to me how exactly things go wrong for you. Ping me on irc
-> tomorrow and we can discuss it further. I have reworked refcounting in the
-> past (at the time it was *really* bad), so perhaps we need to rework it again,
-> particularly with video nodes associated with subdevices in the mix, something
-> that didn't exist at the time.
-
-Thanks, and sorry for holding on with that for too long.
-
-The main issue as I see it is that we need to track both driver remove() 
-and
-struct device .release() calls and free resources only when last of them
-executes. Data structures which are referenced in fops must not be freed in
-remove() and we cannot use dev_get_drvdata() in fops, e.g. not protected 
-with
-device_lock().
-
---
 Regards,
-Sylwester
+Frank
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
