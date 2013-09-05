@@ -1,153 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:29378 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340Ab3IQMXk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 08:23:40 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Cc: Roger.Teague@arm.com, jesse.barker@arm.com,
-	jesse.barker@linaro.org, maarten.lankhorst@canonical.com,
-	sumit.semwal@linaro.org, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH v2 2/2] dma-buf: Add user interfaces for dmabuf sync support
-Date: Tue, 17 Sep 2013 21:23:36 +0900
-Message-id: <1379420616-9194-3-git-send-email-inki.dae@samsung.com>
-In-reply-to: <1379420616-9194-1-git-send-email-inki.dae@samsung.com>
-References: <1379420616-9194-1-git-send-email-inki.dae@samsung.com>
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:33599 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755032Ab3IETk3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 15:40:29 -0400
+Message-ID: <5228DE28.4030503@gmail.com>
+Date: Thu, 05 Sep 2013 21:40:24 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: devicetree@vger.kernel.org
+CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
+	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH v7 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS
+ device tree bindings documentation
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1377066881-5423-3-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds lock and poll callbacks to dma buf file operations,
-and these callbacks will be called by fcntl and select system calls.
+On 08/21/2013 08:34 AM, Arun Kumar K wrote:
+> The patch adds the DT binding documentation for Samsung
+> Exynos5 SoC series imaging subsystem (FIMC-IS).
+>
+> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+> Reviewed-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
 
-fcntl and select system calls can be used to wait for the completion
-of DMA or CPU access to a shared dmabuf. The difference of them is
-fcntl system call takes a lock after the completion but select system
-call doesn't. So in case of fcntl system call, it's useful when a task
-wants to access a shared dmabuf without any broken. On the other hand,
-it's useful when a task wants to just wait for the completion.
+Can I have a DT binding maintainer Ack for this binding ?
+I'd like to queue this patch for 3.13 once the merge window has closed.
 
-Changelog v2:
-- Add select system call support.
-  . The purpose of this feature is to wait for the completion of DMA or
-    CPU access to a dmabuf without that caller locks the dmabuf again
-    after the completion.
-    That is useful when caller wants to be aware of the completion of
-    DMA access to the dmabuf, and the caller doesn't use intefaces for
-    the DMA device driver.
+> ---
+>   .../devicetree/bindings/media/exynos5-fimc-is.txt  |   46 ++++++++++++++++++++
+>   1 file changed, 46 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> new file mode 100644
+> index 0000000..5611401
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> @@ -0,0 +1,46 @@
+> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+> +------------------------------------------------------
+> +
+> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+> +handle sensor controls and camera post-processing operations. The
+> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+> +dedicated scalers (SCC and SCP).
+> +
+> +fimc-is node
+> +------------
+> +
+> +Required properties:
+> +
+> +- compatible        : must be "samsung,exynos5250-fimc-is"
+> +- reg               : physical base address and size of the memory mapped
+> +                      registers
+> +- interrupt-parent  : parent interrupt controller
+> +- interrupts        : fimc-is interrupt to the parent interrupt controller
+> +- clocks            : list of clock specifiers, corresponding to entries in
+> +                      clock-names property
+> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
+> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
+> +                      matching entries in the clocks property
+> +- samsung,pmu       : phandle to the Power Management Unit (PMU) node
+> +
+> +i2c-isp (ISP I2C bus controller) nodes
+> +------------------------------------------
+> +
+> +Required properties:
+> +
+> +- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
+> +		  Exynos4412 and Exynos5250 SoCs
+> +- reg		: physical base address and length of the registers set
+> +- clocks	: must contain gate clock specifier for this controller
+> +- clock-names	: must contain "i2c_isp" entry
+> +
+> +For the i2c-isp node, it is required to specify a pinctrl state named "default",
+> +according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
+> +
+> +Device tree nodes of the image sensors controlled directly by the FIMC-IS
+> +firmware must be child nodes of their corresponding ISP I2C bus controller node.
+> +The data link of these image sensors must be specified using the common video
+> +interfaces bindings, defined in video-interfaces.txt.
 
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/base/dma-buf.c |   81 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
-
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 3985751..73234ba 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -29,6 +29,7 @@
- #include <linux/export.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/poll.h>
- #include <linux/dmabuf-sync.h>
- 
- static inline int is_dma_buf_file(struct file *);
-@@ -106,10 +107,90 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
- 	return base + offset;
- }
- 
-+static unsigned int dma_buf_poll(struct file *filp,
-+					struct poll_table_struct *poll)
-+{
-+	struct dma_buf *dmabuf;
-+	struct dmabuf_sync_reservation *robj;
-+	int ret = 0;
-+
-+	if (!is_dma_buf_file(filp))
-+		return POLLERR;
-+
-+	dmabuf = filp->private_data;
-+	if (!dmabuf || !dmabuf->sync)
-+		return POLLERR;
-+
-+	robj = dmabuf->sync;
-+
-+	mutex_lock(&robj->lock);
-+
-+	robj->polled = true;
-+
-+	/*
-+	 * CPU or DMA access to this buffer has been completed, and
-+	 * the blocked task has been waked up. Return poll event
-+	 * so that the task can get out of select().
-+	 */
-+	if (robj->poll_event) {
-+		robj->poll_event = false;
-+		mutex_unlock(&robj->lock);
-+		return POLLIN | POLLOUT;
-+	}
-+
-+	/*
-+	 * There is no anyone accessing this buffer so just return.
-+	 */
-+	if (!robj->locked) {
-+		mutex_unlock(&robj->lock);
-+		return POLLIN | POLLOUT;
-+	}
-+
-+	poll_wait(filp, &robj->poll_wait, poll);
-+
-+	mutex_unlock(&robj->lock);
-+
-+	return ret;
-+}
-+
-+static int dma_buf_lock(struct file *file, int cmd, struct file_lock *fl)
-+{
-+	struct dma_buf *dmabuf;
-+	unsigned int type;
-+	bool wait = false;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
-+
-+	dmabuf = file->private_data;
-+
-+	if ((fl->fl_type & F_UNLCK) == F_UNLCK) {
-+		dmabuf_sync_single_unlock(dmabuf);
-+		return 0;
-+	}
-+
-+	/* convert flock type to dmabuf sync type. */
-+	if ((fl->fl_type & F_WRLCK) == F_WRLCK)
-+		type = DMA_BUF_ACCESS_W;
-+	else if ((fl->fl_type & F_RDLCK) == F_RDLCK)
-+		type = DMA_BUF_ACCESS_R;
-+	else
-+		return -EINVAL;
-+
-+	if (fl->fl_flags & FL_SLEEP)
-+		wait = true;
-+
-+	/* TODO. the locking to certain region should also be considered. */
-+
-+	return dmabuf_sync_single_lock(dmabuf, type, wait);
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
- 	.llseek		= dma_buf_llseek,
-+	.poll		= dma_buf_poll,
-+	.lock		= dma_buf_lock,
- };
- 
- /*
--- 
-1.7.9.5
-
+--
+Thanks,
+Sylwester
