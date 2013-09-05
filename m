@@ -1,552 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60565 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757612Ab3IBAjN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Sep 2013 20:39:13 -0400
-Message-ID: <1378082350.25743.60.camel@deadeye.wl.decadent.org.uk>
-Subject: [PATCH 1/4] [media] lirc_bt829: Make it a proper PCI driver
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Mon, 02 Sep 2013 01:39:10 +0100
-In-Reply-To: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-bFPPkdey525TI/K2becS"
-Mime-Version: 1.0
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:47540 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752124Ab3IEWdx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 18:33:53 -0400
+Received: by mail-ee0-f46.google.com with SMTP id c13so780037eek.5
+        for <linux-media@vger.kernel.org>; Thu, 05 Sep 2013 15:33:52 -0700 (PDT)
+Message-ID: <522906CD.1000006@gmail.com>
+Date: Fri, 06 Sep 2013 00:33:49 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <51FBAD74.6060603@xs4all.nl> <52027AB7.5080006@samsung.com> <520288C1.7040207@xs4all.nl>
+In-Reply-To: <520288C1.7040207@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---=-bFPPkdey525TI/K2becS
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Sorry for putting this on a back burner for a while.
 
-Replace static variables with a device structure and pass pointers
-to this into all the functions that need it.
+On 08/07/2013 07:49 PM, Hans Verkuil wrote:
+> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
+>> Hi Hans,
+>>
+>> On 08/02/2013 03:00 PM, Hans Verkuil wrote:
+>>> Hi Sylwester,
+>>>
+>>> The patch is good, but I have some issues with the commit message itself.
+>>
+>> Thanks a lot for the detailed explanation, I just wrote this a bit
+>> longish changelog to possibly get some feedback and to better understand
+>> what is exactly going on. Currently the v4l2-core looks like a racing
+>> disaster to me.
+>>
+>>> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
+>>>> As it currently stands this code doesn't protect against any races
+>>>> between video device open() and its unregistration. Races could be
+>>>> avoided by doing the video_is_registered() check protected by the
+>>>> core mutex, while the video device unregistration is also done with
+>>>> this mutex held.
+>>>
+>>> The video_unregister_device() is called completely asynchronously,
+>>> particularly in the case of usb drivers. So it was never the goal of
+>>> the video_is_registered() to be fool proof, since that isn't possible,
+>>> nor is that necessary.
+>>>
+>>> The goal was that the v4l2 core would use it for the various file
+>>> operations and ioctls as a quick check whether the device was unregistered
+>>> and to return the correct error. This prevents drivers from having to do
+>>> the same thing.
+>>
+>> OK, I think I just myself used this video_is_registered() flag for some
+>> more stuff, by surrounding it with mutex_lock/mutex_unlock and putting
+>> more stuff in between, like media_entity_cleanup().
+>
+> You can't do that, because there are most likely still filehandles open
+> or even ioctls being executed. Cleanup happens in the release function(s)
+> when the kref goes to 0.
 
-Fold init_module(), do_pci_probe() and atir_init_start() into a
-single probe function.  Use dev_err() to provide context for
-logging.
+Yeah, a bit late, but I'm finally well aware of that.
 
-This also fixes a device reference leak, as the driver wasn't
-calling pci_dev_put().
+>> And this probably led
+>> me astray for a while, thinking that video_is_registered() was intended
+>> to be used synchronously.
+>> For example see fimc_lite_subdev_unregistered() in drivers/media/platform/
+>> exynos4-is/fimc-lite.c.
+>>
+>> But as you said video_is_registered() is fully asynchronous.
+>>
+>> Actually I'm trying to fix a nasty race between deferred driver probing
+>> and video device open(). The problem is that video open() callback can
+>> be called after driver remove() callback was invoked.
+>
+> How is that possible? The video_device_register must be the last thing in
+> the probe function. If it succeeds, then the probe must succeed as well.
+>
+> Note that I now realize that this might fail in the case of multiple device
+> nodes being registered. We never had problems with that in the past, but in
+> theory you can the race condition you mention in that scenario. The correct
+> approach here would probably be to always return 0 in probe() if only some
+> of the video_device_register calls fail.
+>
+> Anyway, assuming that only one device node is created, then I can't see how
+> you can get a race condition here. Any open() call will increase the module's
+> refcount, making it impossible to unload.
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/staging/media/lirc/lirc_bt829.c | 276 +++++++++++++++++-----------=
-----
- 1 file changed, 144 insertions(+), 132 deletions(-)
+The main issue is that in the exynos4-is driver there are multiple platform
+devices (these represent IP blocks that are scattered across various Exynos
+SoC revisions). Drivers of this platform devices create subdevs and video
+nodes are registered in subdev's .registered() callback. This allows the
+drivers to be more modular and self contained. But also during video device
+registration proper struct v4l2_device (and through this struct 
+media_device)
+can be passed so the video nodes are attached to the common media driver.
 
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/medi=
-a/lirc/lirc_bt829.c
-index fa31ee7..c277bf3 100644
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ b/drivers/staging/media/lirc/lirc_bt829.c
-@@ -30,25 +30,32 @@
-=20
- #include <media/lirc_dev.h>
-=20
--static int poll_main(void);
--static int atir_init_start(void);
-+struct atir_device {
-+	int minor;
-+	unsigned char *pci_addr_lin;
-+	struct lirc_driver driver;
-+};
-=20
--static void write_index(unsigned char index, unsigned int value);
--static unsigned int read_index(unsigned char index);
-+static int poll_main(struct atir_device *atir);
-=20
--static void do_i2c_start(void);
--static void do_i2c_stop(void);
-+static void write_index(struct atir_device *atir, unsigned char index,
-+			unsigned int value);
-+static unsigned int read_index(struct atir_device *atir, unsigned char ind=
-ex);
-=20
--static void seems_wr_byte(unsigned char al);
--static unsigned char seems_rd_byte(void);
-+static void do_i2c_start(struct atir_device *atir);
-+static void do_i2c_stop(struct atir_device *atir);
-=20
--static unsigned int read_index(unsigned char al);
--static void write_index(unsigned char ah, unsigned int edx);
-+static void seems_wr_byte(struct atir_device *atir, unsigned char al);
-+static unsigned char seems_rd_byte(struct atir_device *atir);
-+
-+static unsigned int read_index(struct atir_device *atir, unsigned char al)=
-;
-+static void write_index(struct atir_device *atir, unsigned char ah,
-+			unsigned int edx);
-=20
- static void cycle_delay(int cycle);
-=20
--static void do_set_bits(unsigned char bl);
--static unsigned char do_get_bits(void);
-+static void do_set_bits(struct atir_device *atir, unsigned char bl);
-+static unsigned char do_get_bits(struct atir_device *atir);
-=20
- #define DATA_PCI_OFF 0x7FFC00
- #define WAIT_CYCLE   20
-@@ -62,41 +69,12 @@ static bool debug;
- 			printk(KERN_DEBUG DRIVER_NAME ": "fmt, ## args); \
- 	} while (0)
-=20
--static int atir_minor;
--static unsigned long pci_addr_phys;
--static unsigned char *pci_addr_lin;
--
--static struct lirc_driver atir_driver;
--
--static struct pci_dev *do_pci_probe(void)
--{
--	struct pci_dev *my_dev;
--	my_dev =3D pci_get_device(PCI_VENDOR_ID_ATI,
--				PCI_DEVICE_ID_ATI_264VT, NULL);
--	if (my_dev) {
--		pr_err("Using device: %s\n", pci_name(my_dev));
--		pci_addr_phys =3D 0;
--		if (my_dev->resource[0].flags & IORESOURCE_MEM) {
--			pci_addr_phys =3D my_dev->resource[0].start;
--			pr_info("memory at 0x%08X\n",
--			       (unsigned int)pci_addr_phys);
--		}
--		if (pci_addr_phys =3D=3D 0) {
--			pr_err("no memory resource ?\n");
--			return NULL;
--		}
--	} else {
--		pr_err("pci_probe failed\n");
--		return NULL;
--	}
--	return my_dev;
--}
--
- static int atir_add_to_buf(void *data, struct lirc_buffer *buf)
- {
-+	struct atir_device *atir =3D data;
- 	unsigned char key;
- 	int status;
--	status =3D poll_main();
-+	status =3D poll_main(atir);
- 	key =3D (status >> 8) & 0xFF;
- 	if (status & 0xFF) {
- 		dprintk("reading key %02X\n", key);
-@@ -117,172 +95,191 @@ static void atir_set_use_dec(void *data)
- 	dprintk("driver is closed\n");
- }
-=20
--int init_module(void)
-+static int atir_pci_probe(struct pci_dev *pdev,
-+			  const struct pci_device_id *entry)
- {
--	struct pci_dev *pdev;
--
--	pdev =3D do_pci_probe();
--	if (pdev =3D=3D NULL)
--		return -ENODEV;
--
--	if (!atir_init_start())
--		return -ENODEV;
--
--	strcpy(atir_driver.name, "ATIR");
--	atir_driver.minor       =3D -1;
--	atir_driver.code_length =3D 8;
--	atir_driver.sample_rate =3D 10;
--	atir_driver.data        =3D 0;
--	atir_driver.add_to_buf  =3D atir_add_to_buf;
--	atir_driver.set_use_inc =3D atir_set_use_inc;
--	atir_driver.set_use_dec =3D atir_set_use_dec;
--	atir_driver.dev         =3D &pdev->dev;
--	atir_driver.owner       =3D THIS_MODULE;
--
--	atir_minor =3D lirc_register_driver(&atir_driver);
--	if (atir_minor < 0) {
--		pr_err("failed to register driver!\n");
--		return atir_minor;
-+	struct atir_device *atir;
-+	unsigned long pci_addr_phys;
-+	int rc;
-+
-+	atir =3D kzalloc(sizeof(*atir), GFP_KERNEL);
-+	if (!atir)
-+		return -ENOMEM;
-+
-+	pci_set_drvdata(pdev, atir);
-+
-+	if (!(pdev->resource[0].flags & IORESOURCE_MEM)) {
-+		dev_err(&pdev->dev, "no memory resource ?\n");
-+		rc =3D -ENODEV;
-+		goto err_free;
- 	}
--	dprintk("driver is registered on minor %d\n", atir_minor);
-=20
--	return 0;
--}
-+	pci_addr_phys =3D pdev->resource[0].start;
-+	dev_info(&pdev->dev, "memory at 0x%08X\n",
-+		 (unsigned int)pci_addr_phys);
-=20
-+	atir->pci_addr_lin =3D ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
-+	if (atir->pci_addr_lin =3D=3D 0) {
-+		dev_err(&pdev->dev, "pci mem must be mapped\n");
-+		rc =3D -ENODEV;
-+		goto err_free;
-+	}
-=20
--void cleanup_module(void)
--{
--	lirc_unregister_driver(atir_minor);
-+	strcpy(atir->driver.name, "ATIR");
-+	atir->driver.minor       =3D -1;
-+	atir->driver.code_length =3D 8;
-+	atir->driver.sample_rate =3D 10;
-+	atir->driver.data        =3D atir;
-+	atir->driver.add_to_buf  =3D atir_add_to_buf;
-+	atir->driver.set_use_inc =3D atir_set_use_inc;
-+	atir->driver.set_use_dec =3D atir_set_use_dec;
-+	atir->driver.dev         =3D &pdev->dev;
-+	atir->driver.owner       =3D THIS_MODULE;
-+
-+	atir->minor =3D lirc_register_driver(&atir->driver);
-+	if (atir->minor < 0) {
-+		dev_err(&pdev->dev, "failed to register driver!\n");
-+		rc =3D atir->minor;
-+		goto err_free;
-+	}
-+	dprintk("driver is registered on minor %d\n", atir->minor);
-+
-+	return 0;
-+
-+err_free:
-+	pci_set_drvdata(pdev, NULL);
-+	kfree(atir);
-+	return rc;
- }
-=20
+In probe() of the media driver all subdevs are registered and this triggers
+video nodes creation. The media device first registers all platform devices.
+Subdevs are created and all video nodes. After that are being registered
+sensor subdevs and media links are created. Then all subdev devnodes are
+created in a single call. Note this single call is a bit contrary to the
+v4l2-sync API concepts.
 
--static int atir_init_start(void)
-+static void atir_pci_remove(struct pci_dev *pdev)
- {
--	pci_addr_lin =3D ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
--	if (pci_addr_lin =3D=3D 0) {
--		pr_info("pci mem must be mapped\n");
--		return 0;
--	}
--	return 1;
-+	struct atir_device *atir =3D pci_get_drvdata(pdev);
-+
-+	lirc_unregister_driver(atir->minor);
-+	pci_set_drvdata(pdev, NULL);
-+	kfree(atir);
- }
-=20
-+
- static void cycle_delay(int cycle)
- {
- 	udelay(WAIT_CYCLE*cycle);
- }
-=20
+So there is lots of things that may fail after first video node is 
+registered,
+and on which open() may be called immediately.
 
--static int poll_main(void)
-+static int poll_main(struct atir_device *atir)
- {
- 	unsigned char status_high, status_low;
-=20
--	do_i2c_start();
-+	do_i2c_start(atir);
-=20
--	seems_wr_byte(0xAA);
--	seems_wr_byte(0x01);
-+	seems_wr_byte(atir, 0xAA);
-+	seems_wr_byte(atir, 0x01);
-=20
--	do_i2c_start();
-+	do_i2c_start(atir);
-=20
--	seems_wr_byte(0xAB);
-+	seems_wr_byte(atir, 0xAB);
-=20
--	status_low =3D seems_rd_byte();
--	status_high =3D seems_rd_byte();
-+	status_low =3D seems_rd_byte(atir);
-+	status_high =3D seems_rd_byte(atir);
-=20
--	do_i2c_stop();
-+	do_i2c_stop(atir);
-=20
- 	return (status_high << 8) | status_low;
- }
-=20
--static void do_i2c_start(void)
-+static void do_i2c_start(struct atir_device *atir)
- {
--	do_set_bits(3);
-+	do_set_bits(atir, 3);
- 	cycle_delay(4);
-=20
--	do_set_bits(1);
-+	do_set_bits(atir, 1);
- 	cycle_delay(7);
-=20
--	do_set_bits(0);
-+	do_set_bits(atir, 0);
- 	cycle_delay(2);
- }
-=20
--static void do_i2c_stop(void)
-+static void do_i2c_stop(struct atir_device *atir)
- {
- 	unsigned char bits;
--	bits =3D  do_get_bits() & 0xFD;
--	do_set_bits(bits);
-+	bits =3D  do_get_bits(atir) & 0xFD;
-+	do_set_bits(atir, bits);
- 	cycle_delay(1);
-=20
- 	bits |=3D 1;
--	do_set_bits(bits);
-+	do_set_bits(atir, bits);
- 	cycle_delay(2);
-=20
- 	bits |=3D 2;
--	do_set_bits(bits);
-+	do_set_bits(atir, bits);
- 	bits =3D 3;
--	do_set_bits(bits);
-+	do_set_bits(atir, bits);
- 	cycle_delay(2);
- }
-=20
--static void seems_wr_byte(unsigned char value)
-+static void seems_wr_byte(struct atir_device *atir, unsigned char value)
- {
- 	int i;
- 	unsigned char reg;
-=20
--	reg =3D do_get_bits();
-+	reg =3D do_get_bits(atir);
- 	for (i =3D 0; i < 8; i++) {
- 		if (value & 0x80)
- 			reg |=3D 0x02;
- 		else
- 			reg &=3D 0xFD;
-=20
--		do_set_bits(reg);
-+		do_set_bits(atir, reg);
- 		cycle_delay(1);
-=20
- 		reg |=3D 1;
--		do_set_bits(reg);
-+		do_set_bits(atir, reg);
- 		cycle_delay(1);
-=20
- 		reg &=3D 0xFE;
--		do_set_bits(reg);
-+		do_set_bits(atir, reg);
- 		cycle_delay(1);
- 		value <<=3D 1;
- 	}
- 	cycle_delay(2);
-=20
- 	reg |=3D 2;
--	do_set_bits(reg);
-+	do_set_bits(atir, reg);
-=20
- 	reg |=3D 1;
--	do_set_bits(reg);
-+	do_set_bits(atir, reg);
-=20
- 	cycle_delay(1);
--	do_get_bits();
-+	do_get_bits(atir);
-=20
- 	reg &=3D 0xFE;
--	do_set_bits(reg);
-+	do_set_bits(atir, reg);
- 	cycle_delay(3);
- }
-=20
--static unsigned char seems_rd_byte(void)
-+static unsigned char seems_rd_byte(struct atir_device *atir)
- {
- 	int i;
- 	int rd_byte;
- 	unsigned char bits_2, bits_1;
-=20
--	bits_1 =3D do_get_bits() | 2;
--	do_set_bits(bits_1);
-+	bits_1 =3D do_get_bits(atir) | 2;
-+	do_set_bits(atir, bits_1);
-=20
- 	rd_byte =3D 0;
- 	for (i =3D 0; i < 8; i++) {
- 		bits_1 &=3D 0xFE;
--		do_set_bits(bits_1);
-+		do_set_bits(atir, bits_1);
- 		cycle_delay(2);
-=20
- 		bits_1 |=3D 1;
--		do_set_bits(bits_1);
-+		do_set_bits(atir, bits_1);
- 		cycle_delay(1);
-=20
--		bits_2 =3D do_get_bits();
-+		bits_2 =3D do_get_bits(atir);
- 		if (bits_2 & 2)
- 			rd_byte |=3D 1;
-=20
-@@ -293,15 +290,15 @@ static unsigned char seems_rd_byte(void)
- 	if (bits_2 =3D=3D 0)
- 		bits_1 |=3D 2;
-=20
--	do_set_bits(bits_1);
-+	do_set_bits(atir, bits_1);
- 	cycle_delay(2);
-=20
- 	bits_1 |=3D 1;
--	do_set_bits(bits_1);
-+	do_set_bits(atir, bits_1);
- 	cycle_delay(3);
-=20
- 	bits_1 &=3D 0xFE;
--	do_set_bits(bits_1);
-+	do_set_bits(atir, bits_1);
- 	cycle_delay(2);
-=20
- 	rd_byte >>=3D 1;
-@@ -309,10 +306,10 @@ static unsigned char seems_rd_byte(void)
- 	return rd_byte;
- }
-=20
--static void do_set_bits(unsigned char new_bits)
-+static void do_set_bits(struct atir_device *atir, unsigned char new_bits)
- {
- 	int reg_val;
--	reg_val =3D read_index(0x34);
-+	reg_val =3D read_index(atir, 0x34);
- 	if (new_bits & 2) {
- 		reg_val &=3D 0xFFFFFFDF;
- 		reg_val |=3D 1;
-@@ -321,36 +318,36 @@ static void do_set_bits(unsigned char new_bits)
- 		reg_val |=3D 0x20;
- 	}
- 	reg_val |=3D 0x10;
--	write_index(0x34, reg_val);
-+	write_index(atir, 0x34, reg_val);
-=20
--	reg_val =3D read_index(0x31);
-+	reg_val =3D read_index(atir, 0x31);
- 	if (new_bits & 1)
- 		reg_val |=3D 0x1000000;
- 	else
- 		reg_val &=3D 0xFEFFFFFF;
-=20
- 	reg_val |=3D 0x8000000;
--	write_index(0x31, reg_val);
-+	write_index(atir, 0x31, reg_val);
- }
-=20
--static unsigned char do_get_bits(void)
-+static unsigned char do_get_bits(struct atir_device *atir)
- {
- 	unsigned char bits;
- 	int reg_val;
-=20
--	reg_val =3D read_index(0x34);
-+	reg_val =3D read_index(atir, 0x34);
- 	reg_val |=3D 0x10;
- 	reg_val &=3D 0xFFFFFFDF;
--	write_index(0x34, reg_val);
-+	write_index(atir, 0x34, reg_val);
-=20
--	reg_val =3D read_index(0x34);
-+	reg_val =3D read_index(atir, 0x34);
- 	bits =3D 0;
- 	if (reg_val & 8)
- 		bits |=3D 2;
- 	else
- 		bits &=3D 0xFD;
-=20
--	reg_val =3D read_index(0x31);
-+	reg_val =3D read_index(atir, 0x31);
- 	if (reg_val & 0x1000000)
- 		bits |=3D 1;
- 	else
-@@ -359,26 +356,41 @@ static unsigned char do_get_bits(void)
- 	return bits;
- }
-=20
--static unsigned int read_index(unsigned char index)
-+static unsigned int read_index(struct atir_device *atir, unsigned char ind=
-ex)
- {
- 	unsigned char *addr;
- 	unsigned int value;
- 	/*  addr =3D pci_addr_lin + DATA_PCI_OFF + ((index & 0xFF) << 2); */
--	addr =3D pci_addr_lin + ((index & 0xFF) << 2);
-+	addr =3D atir->pci_addr_lin + ((index & 0xFF) << 2);
- 	value =3D readl(addr);
- 	return value;
- }
-=20
--static void write_index(unsigned char index, unsigned int reg_val)
-+static void write_index(struct atir_device *atir, unsigned char index,
-+			unsigned int reg_val)
- {
- 	unsigned char *addr;
--	addr =3D pci_addr_lin + ((index & 0xFF) << 2);
-+	addr =3D atir->pci_addr_lin + ((index & 0xFF) << 2);
- 	writel(reg_val, addr);
- }
-=20
-+static DEFINE_PCI_DEVICE_TABLE(atir_pci_table) =3D {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_264VT) },
-+	{ 0 }
-+};
-+
-+static struct pci_driver atir_pci_driver =3D {
-+	.name		=3D KBUILD_MODNAME,
-+	.id_table	=3D atir_pci_table,
-+	.probe		=3D atir_pci_probe,
-+	.remove		=3D atir_pci_remove,
-+};
-+module_pci_driver(atir_pci_driver);
-+
- MODULE_AUTHOR("Froenchenko Leonid");
- MODULE_DESCRIPTION("IR remote driver for bt829 based TV cards");
- MODULE_LICENSE("GPL");
-+MODULE_DEVICE_TABLE(pci, atir_pci_table);
-=20
- module_param(debug, bool, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(debug, "Debug enabled or not");
+> As far as I can tell, once you call rmmod it should no longer be possible to
+> open() an device node whose struct file_operations owner is that module (i.e.
+> the owner field of the file_operations struct points to that module). Looking
+> at the way fs/char_dev is implemented, that seems to be correctly handled by
+> the kernel core.
 
+Yes, that's a good news. There is only still the issue with the "unbind" 
+sysfs
+attribute. I couldn't see any similar checks done around code 
+implementing it.
 
+>> This issue is actually not only related to deferred probing. It can be
+>> also triggered by driver module removal or through driver's sysfs "unbind"
+>> attribute.
+>>
+>> Let's assume following scenario:
+>>
+>> - a driver module is loaded
+>> - driver probe is called, it registers video device,
+>> - udev opens /dev/video
+>> - after mutex_unlock(&videodev_lock); call in v4l2_open() in v4l2-core/
+>>    v4l2-dev.c something fails in probe()
+>
+> And that shouldn't happen. That's the crucial bit: under which scenario does
+> this happen for you? If there is a control path where you do create a working
+> device node, but the probe fails, then that will indeed cause all sorts of
+> problems. But it shouldn't get in that situation (except I think in the case
+> of multiple device nodes, which is something I need to think about).
 
---=-bFPPkdey525TI/K2becS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Yes, I'm dealing with multiple device nodes created from within media 
+driver's
+probe(). As described above, there is quite a few things that could 
+fail, even
+single sub-driver created multiple nodes for same IP block (capture, 
+mem-to-mem).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+>> and it unwinds, probe callback
+>>    exits and the driver code code calls dev_set_drvdata(dev, NULL); as
+>>    shown below.
+>>
+>> static int really_probe(struct device *dev, struct device_driver *drv)
+>> {
+>> 	...
+>> 	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
+>> 		 drv->bus->name, __func__, drv->name, dev_name(dev));
+>> 	...
+>> 	if (dev->bus->probe) {
+>> 		ret = dev->bus->probe(dev);
+>> 		if (ret)
+>> 			goto probe_failed;
+>> 	} else if (drv->probe) {
+>> 		ret = drv->probe(dev);
+>> 		if (ret)
+>> 			goto probe_failed;
+>> 	}
+>> 	...
+>> 	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
+>> 		 drv->bus->name, __func__, dev_name(dev), drv->name);
+>> 	goto done;
+>>
+>> probe_failed:
+>> 	devres_release_all(dev);
+>> 	driver_sysfs_remove(dev);
+>> 	dev->driver = NULL;
+>> 	dev_set_drvdata(dev, NULL);
+>>
+>> 	...
+>> 	ret = 0;
+>> done:
+>> 	...
+>> 	return ret;
+>> }
+>>
+>> Now we get to
+>>
+>>   	ret = vdev->fops->open(filp);
+>>
+>> in v4l2_open(). This calls some driver's callback, e.g. something
+>> like:
+>>
+>> static int fimc_lite_open(struct file *file)
+>> {
+>> 	struct fimc_lite *fimc = video_drvdata(file);
+>> 	struct media_entity *me =&fimc->ve.vdev.entity;
+>> 	int ret;
+>>
+>> 	mutex_lock(&fimc->lock);
+>> 	if (!video_is_registered(&fimc->ve.vdev)) {
+>> 		ret = -ENODEV;
+>> 		goto unlock;
+>> 	}
+>>
+>> 	...
+>>
+>> 	/* Mark video pipeline ending at this video node as in use. */
+>> 	if (ret == 0)
+>> 		me->use_count++;
+>> 	...
+>> unlock:
+>> 	mutex_unlock(&fimc->lock);
+>> 	return ret;
+>> }
+>>
+>> Now what will video_drvdata(file); return ?
+>>
+>> static inline void *video_drvdata(struct file *file)
+>> {
+>> 	return video_get_drvdata(video_devdata(file));
+>> }
+>>
+>> static inline void *video_get_drvdata(struct video_device *vdev)
+>> {
+>> 	return dev_get_drvdata(&vdev->dev);
+>> }
+>>
+>> Yes, so that will be just NULL o_O, due to the dev_set_drvdata(dev, NULL);
+>> in really_probe(). drvdata is cleared similarly in __device_release_driver(),
+>> right after calling driver's remove handler.
+>>
+>> Another issue I have is that, e.g. driver/media/platform/exynos4-is/fimc-lite*
+>> driver has empty video dev release() callback. It should be implemented
+>> in the driver to kfree the whole driver's private data structure where
+>> struct video_device is embedded in (struct fimc_lite). But that freeing
+>> really needs to be synchronized with driver's remove() call, since there
+>> is e.g. freed interrupt which accesses the driver's private data. I can't
+>> use kref from struct v4l2_device as that belongs to a different driver.
+>> A driver's custom reference counting comes to mind, where vdev->release()
+>> and drv->remove() would be decrementing the reference counter. But that
+>> seems ugly as hell :/ And it predates devm_*.
+>>
+>> This is all getting a bit depressing :/ Deferred probing and the
+>> asynchronous subdev handling just made those issues more visible, i.e.
+>> not very good design of some parts of the v4l2-core.
+>
+> It's just not clear to me how exactly things go wrong for you. Ping me on irc
+> tomorrow and we can discuss it further. I have reworked refcounting in the
+> past (at the time it was *really* bad), so perhaps we need to rework it again,
+> particularly with video nodes associated with subdevices in the mix, something
+> that didn't exist at the time.
 
-iQIVAwUAUiPeLue/yOyVhhEJAQoEZhAAz3BQaHR6CpRPPV5MtdPIEo6as4Ok5T9Q
-+VrUsAjtKR4r6y9bgB8IsdmqPWrGJIwle35ex+VqQUpShXBg0hhKgDda5ulVroov
-zOT3NxweUfBReyOW+r4+7IhPxsYLiMPc2kSMg7mbY364JAReAFL1axDz5woUT9VF
-srdRhkfJ7PQg/eEB4ivmlIwHOm+ycdM/VR17FNzIpp8w5AdtMmbguxs7wlaTVzH+
-2MdKi0fgHu9qKIGKNYeCnbcAJ+JcQ4dSvCISyzUFdnIycRvDYquSRzbK1+PtSS6h
-BHaGwtzQx0ZK4YOnIUzBx6iiLmZJRCmGtqYIuVIXGYidee2cP7BAM3eTZDww80Aq
-Ol1iVmVmKT+NznPCyJXKDRrqnU/QS6yOx3mZa2RGHVOwF8WZA6SZCciSNyK4SVnr
-/eIIUSf9BPwuTPS8QH0amTEqZYBcABXDWYOw0v3Ygt4rWPbTzJYHTNbN5G+cRBD9
-fqrg95vxzxxn2+WCNuLxieL/kejVYb/1SzpA3iiOVFN5f5wBZ15Y091Lc0BClA2k
-944U40mZuF4HZmvbFwOtqsPe7OmPrCF49U4DktpXI221ty2P3wFff6tyetqQ8hcW
-P1//GMs9mPhLkkZ0xtSC52wtgaLFb+mfFsMoEjN5bthihxZ1XSNf2odsM7F7GwFd
-UI52odhs4uo=
-=S8gu
------END PGP SIGNATURE-----
+Thanks, and sorry for holding on with that for too long.
 
---=-bFPPkdey525TI/K2becS--
+The main issue as I see it is that we need to track both driver remove() 
+and
+struct device .release() calls and free resources only when last of them
+executes. Data structures which are referenced in fops must not be freed in
+remove() and we cannot use dev_get_drvdata() in fops, e.g. not protected 
+with
+device_lock().
+
+--
+Regards,
+Sylwester
