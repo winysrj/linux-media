@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:48725 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab3IKOKZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 10:10:25 -0400
-Received: by mail-bk0-f50.google.com with SMTP id mz11so3582475bkb.37
-        for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 07:10:24 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46397 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934094Ab3IELER (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 07:04:17 -0400
+Received: from avalon.localnet (unknown [91.177.150.224])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0CCAF35A6D
+	for <linux-media@vger.kernel.org>; Thu,  5 Sep 2013 13:03:52 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.12] uvcvideo fixes
+Date: Thu, 05 Sep 2013 13:04:20 +0200
+Message-ID: <1679280.7BIEXJlCLW@avalon>
 MIME-Version: 1.0
-Date: Wed, 11 Sep 2013 22:10:24 +0800
-Message-ID: <CAPgLHd9fXJHqn=c50XY84xdmxC5FhAFqJ3Z5yEZReoOgLRPHbw@mail.gmail.com>
-Subject: [PATCH] [media] v4l: vsp1: fix error return code in vsp1_video_init()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: m.chehab@samsung.com, laurent.pinchart+renesas@ideasonboard.com,
-	sakari.ailus@iki.fi
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi Mauro,
 
-Fix to return a negative error code from the error handling
-case instead of 0, as done elsewhere in this function.
+Here are two ucvideo patches that enable quirks by default for buggy devices. 
+Despite not being regressions, they're candidates for v3.12 (see 
+http://www.spinics.net/lists/stable/msg18747.html).
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/vsp1/vsp1_video.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+The following changes since commit f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 714c53e..4b0ac07 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1026,8 +1026,10 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
- 
- 	/* ... and the buffers queue... */
- 	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
--	if (IS_ERR(video->alloc_ctx))
-+	if (IS_ERR(video->alloc_ctx)) {
-+		ret = PTR_ERR(video->alloc_ctx);
- 		goto error;
-+	}
- 
- 	video->queue.type = video->type;
- 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+  [media] cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0 (2013-09-03 
+09:24:22 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-fixes
+
+for you to fetch changes up to c8f2c441127589c66229991a53d75dd53be1d358::
+
+  uvcvideo: quirk PROBE_DEF for Microsoft Lifecam NX-3000 (2013-09-03 22:07:35 
++0200)
+
+----------------------------------------------------------------
+Joseph Salisbury (1):
+      uvcvideo: quirk PROBE_DEF for Dell SP2008WFP monitor
+
+Laurent Pinchart (1):
+      uvcvideo: quirk PROBE_DEF for Microsoft Lifecam NX-3000
+
+ drivers/media/usb/uvc/uvc_driver.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
