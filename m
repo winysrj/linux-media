@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1859 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab3IIHwp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 03:52:45 -0400
-Message-ID: <522D7E3E.8070104@xs4all.nl>
-Date: Mon, 09 Sep 2013 09:52:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:33116 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab3IEDFF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 23:05:05 -0400
+Received: by mail-ve0-f180.google.com with SMTP id jz11so95248veb.25
+        for <linux-media@vger.kernel.org>; Wed, 04 Sep 2013 20:05:04 -0700 (PDT)
 MIME-Version: 1.0
-To: Pawel Osciak <posciak@chromium.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	k.debski@samsung.com
-Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-17-git-send-email-posciak@chromium.org> <52204058.6070008@xs4all.nl> <CACHYQ-oGaAS1TVLqm-wRsPSg5xDqBTuvj9PcMAmu5vEc-aVb1A@mail.gmail.com>
-In-Reply-To: <CACHYQ-oGaAS1TVLqm-wRsPSg5xDqBTuvj9PcMAmu5vEc-aVb1A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1378348275.27597.15.camel@deadeye.wl.decadent.org.uk>
+References: <1378348215.27597.14.camel@deadeye.wl.decadent.org.uk>
+	<1378348275.27597.15.camel@deadeye.wl.decadent.org.uk>
+Date: Thu, 5 Sep 2013 00:05:03 -0300
+Message-ID: <CAOMZO5C0n5vP1Tb8Kx=jWjN9NQ7_8S3y28vE6Jby-fugHC=Tjw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] [media] lirc_bt829: Fix physical address type
+From: Fabio Estevam <festevam@gmail.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/2013 05:48 AM, Pawel Osciak wrote:
-> Hi Hans,
-> Thanks for the comments, one question inline.
-> 
-> On Fri, Aug 30, 2013 at 3:48 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 08/30/2013 04:17 AM, Pawel Osciak wrote:
->>> Add defines for controls found in UVC 1.5 encoding cameras.
->>>
->>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-ctrls.c | 29 +++++++++++++++++++++++++++++
->>>  include/uapi/linux/v4l2-controls.h   | 31 +++++++++++++++++++++++++++++++
->>>  2 files changed, 60 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> index c3f0803..0b3a632 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> @@ -781,6 +781,35 @@ const char *v4l2_ctrl_get_name(u32 id)
->>>       case V4L2_CID_AUTO_FOCUS_STATUS:        return "Auto Focus, Status";
->>>       case V4L2_CID_AUTO_FOCUS_RANGE:         return "Auto Focus, Range";
->>>
->>> +     case V4L2_CID_ENCODER_MIN_FRAME_INTERVAL: return "Encoder, min. frame interval";
->>> +     case V4L2_CID_ENCODER_RATE_CONTROL_MODE: return "Encoder, rate control mode";
->>> +     case V4L2_CID_ENCODER_AVERAGE_BITRATE:  return "Encoder, average bitrate";
->>> +     case V4L2_CID_ENCODER_CPB_SIZE:         return "Encoder, CPB size";
->>> +     case V4L2_CID_ENCODER_PEAK_BIT_RATE:    return "Encoder, peak bit rate";
->>> +     case V4L2_CID_ENCODER_QP_PARAM_I:       return "Encoder, QP param for I frames";
->>> +     case V4L2_CID_ENCODER_QP_PARAM_P:       return "Encoder, QP param for P frames";
->>> +     case V4L2_CID_ENCODER_QP_PARAM_BG:      return "Encoder, QP param for B/G frames";
->>
->> A lot of these exist already. E.g. V4L2_CID_MPEG_VIDEO_MPEG4_I/P/B_FRAME_QP.
->>
->> Samsung added support for many of these parameters for their MFC encoder (including
->> VP8 support) so you should use them as well. As mentioned in v4l2-controls.h the
->> MPEG part of the control name is historical. Interpret it as 'CODEC', not MPEG.
->>
-> 
-> We have QP controls separately for H264, H263 and MPEG4. Why is that?
-> Which one should I use for VP8? Shouldn't we unify them instead?
+On Wed, Sep 4, 2013 at 11:31 PM, Ben Hutchings <ben@decadent.org.uk> wrote:
+> Use phys_addr_t and log format %pa.
+>
+> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+> ---
+>  drivers/staging/media/lirc/lirc_bt829.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
+> index fa31ee7..9c7be55 100644
+> --- a/drivers/staging/media/lirc/lirc_bt829.c
+> +++ b/drivers/staging/media/lirc/lirc_bt829.c
+> @@ -63,7 +63,7 @@ static bool debug;
+>         } while (0)
+>
+>  static int atir_minor;
+> -static unsigned long pci_addr_phys;
+> +static phys_addr_t pci_addr_phys;
+>  static unsigned char *pci_addr_lin;
+>
+>  static struct lirc_driver atir_driver;
+> @@ -78,8 +78,7 @@ static struct pci_dev *do_pci_probe(void)
+>                 pci_addr_phys = 0;
+>                 if (my_dev->resource[0].flags & IORESOURCE_MEM) {
+>                         pci_addr_phys = my_dev->resource[0].start;
+> -                       pr_info("memory at 0x%08X\n",
+> -                              (unsigned int)pci_addr_phys);
+> +                       pr_info("memory at %pa\n", &pci_addr_phys);
 
-I can't quite remember the details, so I've CCed Kamil since he added those controls.
-At least the H264 QP controls are different from the others as they have a different
-range. What's the range for VP8?
+Looks much better :-)
 
-I'm not sure why the H263/MPEG4 controls weren't unified: it might be that since the
-H264 range was different we decided to split it up per codec. But I seem to remember
-that there was another reason as well.
-
-Regards,
-
-	Hans
+Reviewed-by: Fabio Estevam <fabio.estevam@freescale.com>
