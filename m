@@ -1,63 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2582 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab3IKI3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 04:29:12 -0400
-Message-ID: <523029C6.8070305@xs4all.nl>
-Date: Wed, 11 Sep 2013 10:28:54 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: videobuf2: V4L2_BUF_TYPE_VIDEO_CAPTURE and V4L2_BUF_TYPE_VIDEO_OUTPUT
- at the same time?
-References: <CAPybu_2dq6FkWebNw8ySD=4wJu++3z7K6oNDjXEJvcKVvRTVsQ@mail.gmail.com>
-In-Reply-To: <CAPybu_2dq6FkWebNw8ySD=4wJu++3z7K6oNDjXEJvcKVvRTVsQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1930 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753698Ab3IFCyt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 22:54:49 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r862skCk041142
+	for <linux-media@vger.kernel.org>; Fri, 6 Sep 2013 04:54:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id F07BF2A0764
+	for <linux-media@vger.kernel.org>; Fri,  6 Sep 2013 04:54:43 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130906025443.F07BF2A0764@tschai.lan>
+Date: Fri,  6 Sep 2013 04:54:43 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Memory-to-memory devices can do this. In that case querycap will return the M2M
-or M2M_MPLANE capability. The mem2mem_testdev driver is a good example.
+Results of the daily build of media_tree:
 
-Other devices shouldn't combine the two.
+date:		Fri Sep  6 04:00:24 CEST 2013
+git branch:	test
+git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-On 09/10/2013 04:10 PM, Ricardo Ribalda Delgado wrote:
-> Hello!
-> 
-> I am writing the driver for a device that can work as an input and as
-> output at the same time. It is used for debugging of the video
-> pipeline.
-> 
-> Is it possible to have a vb2 queue that supports capture and out at
-> the same time?
-> 
-> After a fast look on the code it seems that the code flow is different
-> depending of the type. if (V4L2_TYPE_IS_OUTPUT()....)  :(
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-A vb2_queue is for one direction only, so for a bidirectional device you need
-two vb2_queue structs. It's recommended to use the v4l2-mem2mem.h framework
-for that, as is also used by the mem2mem_testdev driver.
+Detailed results are available here:
 
-> 
-> Also it seems that struct video device has only space for one
-> vb2_queue, so I cant create a video device with two vbuf2 queues.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-You can, but not by using the vb2_queue pointer in videodev. It might
-actually be nice to add better core support for m2m devices. If
-someone needs a project, then that would be nice.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
 
-> So is there any way to have a video device with videobuf2 that
-> supports caputer and output?
-> 
-> Thanks!
-> 
+http://www.xs4all.nl/~hverkuil/spec/media.html
