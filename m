@@ -1,63 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:38905 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210Ab3I3AFK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 20:05:10 -0400
-Received: by mail-la0-f42.google.com with SMTP id ep20so3851904lab.15
-        for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 17:05:08 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53355 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab3IFLFO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 07:05:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Fri, 06 Sep 2013 13:05:17 +0200
+Message-ID: <344618801.kmLM0jZvMY@avalon>
+In-Reply-To: <20130905163130.GF4493@valkosipuli.retiisi.org.uk>
+References: <201308281419.52009.hverkuil@xs4all.nl> <2062971.KPW0FZTQyQ@avalon> <20130905163130.GF4493@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1379579401.4224.7.camel@pizza.hi.pengutronix.de>
-References: <1379576249-16909-1-git-send-email-p.zabel@pengutronix.de>
- <CAMm-=zAYwHRu61dAPrQZq4ghw6pfL=nG-A1iCkLSGJOvBkpgkQ@mail.gmail.com> <1379579401.4224.7.camel@pizza.hi.pengutronix.de>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 30 Sep 2013 09:04:28 +0900
-Message-ID: <CAMm-=zC2V7fAv3sfHj3HNXR94i65C5qrSeHpsWa8WUWDp2a+AQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] videobuf2-core: call __setup_offsets only for
- mmap memory type
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Michael Olbrich <m.olbrich@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Philipp.
+Hi Sakari,
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
-
-
-On Thu, Sep 19, 2013 at 5:30 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Pawel,
+On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
+> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
+> > On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
+> > > On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
+> > > > On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
+> > > > > On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
+> > > > > > On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
+> > > > > > > On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
+> > > > > > > wrote:
+> > > > > > > ...
+> > > > > > > 
+> > > > > > > > > > UVC devices timestamp frames when the frame is captured,
+> > > > > > > > > > not when the first pixel is transmitted.
+> > > > > > > > > 
+> > > > > > > > > I.e. we shouldn't set the SOF flag? "When the frame is
+> > > > > > > > > captured" doesn't say much, or almost anything in terms of
+> > > > > > > > > *when*. The frames have exposure time and rolling shutter
+> > > > > > > > > makes a difference, too.
+> > > > > > > > 
+> > > > > > > > The UVC 1.1 specification defines the timestamp as
+> > > > > > > > 
+> > > > > > > > "The source clock time in native deviceclock units when the
+> > > > > > > > raw frame capture begins."
+> > > > > > > > 
+> > > > > > > > What devices do in practice may differ :-)
+> > > > > > > 
+> > > > > > > I think that this should mean start-of-frame - exposure time.
+> > > > > > > I'd really wonder if any practical implementation does that
+> > > > > > > however.
+> > > > > > 
+> > > > > > It's start-of-frame - exposure time - internal delays (UVC webcams
+> > > > > > are supposed to report their internal delay value as well).
+> > > > > 
+> > > > > Do they report it? How about the exposure time?
+> > > > 
+> > > > It's supposed to be configurable.
+> > > 
+> > > Is the exposure reported with the frame so it could be used to construct
+> > > the per-frame SOF timestamp?
+> > 
+> > Not when auto-exposure is turned on I'm afraid :-S
+> > 
+> > I believe that the capture timestamp makes more sense than the SOF
+> > timestamp for applications. SOF/EOF are more of a poor man's timestamp in
+> > case nothing else is available, but when you want to synchronize multiple
+> > audio and/or video streams the capture timestamp is what you're
+> > interested in. I don't think converting a capture timestamp to an SOF
+> > would be a good idea.
 >
-> Am Donnerstag, den 19.09.2013, 16:54 +0900 schrieb Pawel Osciak:
->> On Thu, Sep 19, 2013 at 4:37 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
->> > __setup_offsets fills the v4l2_planes' mem_offset fields, which is only valid
->> > for V4L2_MEMORY_MMAP type buffers. For V4L2_MEMORY_DMABUF and _USERPTR buffers,
->> > this incorrectly overwrites the fd and userptr fields.
->>
->> I'm not particularly against this change, but I'm curious if anything
->> that you were doing was broken by this call? The buffers are created
->> here, so their fields don't contain anything that could be overwritten
->> (although keeping them at 0 is preferable).
->
-> nothing was actually broken, but even though the spec doesn't say
-> anything about the QUERYBUF return values in the DMABUF/USERPTR cases,
-> setting them to some random initial value doesn't seem right.
->
-> Maybe the documentation could be amended to mention fd and userptr,
-> although in this case the fd should probably be set to -1 initially.
-> QUERYBUF could then be used to find free slots.
->
-> regards
-> Philipp
->
+> I'm not quite sure of that --- I think the SOF/EOF will be more stable than
+> the exposure start which depends on the exposure time. If you're recording a
+> video you may want to keep the time between the frames constant.
+
+I can see two main use cases for timestamps. The first one is multi-stream 
+synchronization (audio and video, stereo video, ...), the second one is 
+playback rate control.
+
+To synchronize media streams you need to timestamp samples with a common 
+clock. Timestamps must be correlated to the time at which the sound and/or 
+image events occur. If we consider the speed of sound and speed of light as 
+negligible (the former could be compensated for if needed, but that's out of 
+scope), the time at which the sound or image is produced can be considered as 
+equal to the time at which they're captured. Given that we only need to 
+synchronize streams here, an offset wouldn't matter, so any clock that is 
+synchronized to the capture clock with a fixed offset would do. The SOF event, 
+in particular, will do if the capture time and device processing time is 
+constant, and if interrupt latencies are kept small enough.. So will the EOF 
+event if the transmission time is also constant.
+
+Granted, frames are not captured at a precise point of time, as the sensor 
+needs to be exposed for a certain duration. There is thus no such thing as a 
+capture time, we instead have a capture interval. However, that's irrelevant 
+for multi-video synchronization purposes. It could matter for audio+video 
+synchronization though.
+
+Regarding playback rate control, the goal is to render frames at the same rate 
+they are captured. If the frame rate isn't constant (for instance because of a 
+variable exposure time), then a time stamp is required for every frame. Here 
+we care about the difference between timestamps for two consecutive frames, 
+and the start of capture timestamp is what will give best results.
+
+Let's consider three frames, A, B and C, captured as follows.
 
 
+00000000001111111111222222222233333333334444444444555555555566666666667777
+01234567890123456789012345678901234567890123456789012345678901234567890123
 
+| --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
+
+On the playback side, we want to display A for a duration of 34. If we 
+timestamp the frames with the start of capture time, we will have the 
+following timestamps.
+
+A  0
+B  34
+C  57
+
+B-A = 34, which is the time during which A needs to be displayed.
+
+If we use the end of capture time, we will get
+
+A  27
+B  50
+C  73
+
+B-A = 23, which is too short.
+
+> Nevertheless --- if we don't get such a timestamp from the device this will
+> only remain speculation. Applications might be best using e.g. half the
+> frame period to get a guesstimate of the differences between the two
+> timestamps.
+
+Obviously if the device can't provide the start of capture timestamp we will 
+need to use any source of timestamps, but I believe we should aim for start of 
+capture as a first class citizen.
+
+> > > > > If you know them all you can calculate the SOF timestamp. The fewer
+> > > > > timestamps are available for user programs the better.
+> > > > > 
+> > > > > It's another matter then if there are webcams that report these
+> > > > > values wrong.
+> > > > 
+> > > > There most probably are :-)
+> > > > 
+> > > > > Then you could get timestamps that are complete garbage. But I guess
+> > > > > you could compare them to the current monotonic timestamp and detect
+> > > > > such cases.
+> > > > > 
+> > > > > > > What's your suggestion; should we use the SOF flag for this or
+> > > > > > > do you prefer the end-of-frame timestamp instead? I think it'd
+> > > > > > > be quite nice for drivers to know which one is which without
+> > > > > > > having to guess, and based on the above start-of-frame comes as
+> > > > > > > close to that definition as is meaningful.
+> > > > > > 
+> > > > > > SOF is better than EOF. Do we need a start-of-capture flag, or
+> > > > > > could we document SOF as meaning start-of-capture or start-of-
+> > > > > > reception depending on what the device can do ?
+> > > > > 
+> > > > > One possibility is to dedicate a few flags for this; by using three
+> > > > > bits we'd get eight different timestamps already. But I have to say
+> > > > > that fewer is better. :-)
+> > > > 
+> > > > Does it really need to be a per-buffer flag ? This seems to be a
+> > > > driver-wide (or at least device-wide) behaviour to me.
+> > > 
+> > > Same goes for timestamp clock sources. It was concluded to use buffer
+> > > flags for those as well.
+> > 
+> > Yes, and I don't think I was convinced, so I'm not convinced here either
+> > :-)
+> > 
+> > > Using a control for the purpose would however require quite non-zero
+> > > amount of initialisation code from each driver so that would probably
+> > > need to be sorted out first.
+> > 
+> > We could also use a capabilities flag.
+> 
+> Interesting idea. I'm fine that as well. Hans?
 -- 
-Best regards,
-Pawel Osciak
+Regards,
+
+Laurent Pinchart
+
