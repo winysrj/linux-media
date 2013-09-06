@@ -1,101 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:57456 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751829Ab3INFYP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Sep 2013 01:24:15 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:40368 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919Ab3IFKNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Sep 2013 06:13:39 -0400
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>, <hverkuil@xs4all.nl>,
+	<laurent.pinchart@ideasonboard.com>
+CC: <linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 0/4] v4l: VPE mem to mem driver
+Date: Fri, 6 Sep 2013 15:42:22 +0530
+Message-ID: <1378462346-10880-1-git-send-email-archit@ti.com>
+In-Reply-To: <1376996457-17275-1-git-send-email-archit@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <523395DC.5080009@wwwdotorg.org>
-References: <1379073471-7244-1-git-send-email-prabhakar.csengg@gmail.com> <523395DC.5080009@wwwdotorg.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 14 Sep 2013 10:53:53 +0530
-Message-ID: <CA+V-a8sVyJ1TrTSiaj8vpaD+f_qJ5Hp287E3HuHJ_pRzzmdAvg@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: adv7343: fix the DT binding properties
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>, LDOC <linux-doc@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stephen,
+VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
+mem to mem v4l2 driver, and VPDMA as a helper library.
 
-This patch should have been marked as RFC.
+The first version of the patch series described VPE in detail, you can have a
+look at it here:
 
-Thanks for the review.
+http://www.spinics.net/lists/linux-media/msg66518.html
 
-On Sat, Sep 14, 2013 at 4:16 AM, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> On 09/13/2013 05:57 AM, Prabhakar Lad wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> This patch fixes the DT binding properties of adv7343 decoder.
->> The pdata which was being read from the DT property, is removed
->> as this can done internally in the driver using cable detection
->> register.
->>
->> This patch also removes the pdata of ADV7343 which was passed from
->> DA850 machine.
->
->> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
->
->>  Required Properties :
->>  - compatible: Must be "adi,adv7343"
->> +- reg: I2C device address.
->> +- vddio-supply: I/O voltage supply.
->> +- vddcore-supply: core voltage supply.
->> +- vaa-supply: Analog power supply.
->> +- pvdd-supply: PLL power supply.
->
-> Old DTs won't contain those properties. This breaks the DT ABI if those
-> properties are required. Is that acceptable?
->
-As of now adv7343 via DT binding is not enabled in any platforms
-so this wont break any DT ABI.
+Changes in v4:
+- Control ID for the driver reserved in v4l2-controls.h
+- Some fixes/clean ups suggested by Hans.
+- A small hack done in VPE's probe to use a fixed 64K resource size, this
+  is needed as the DT bindings will split the addresses accross VPE
+  submodules, the driver currently works with register offsets from the top
+  level VPE base. The driver can be modified later to support multiple
+  ioremaps of the sub modules.
+- Addition of sync on channel descriptors for input DMA channels, this
+  ensures the VPDMA list is stalled in the rare case of an input channel's
+  DMA getting completed after all the output channel DMAs.
+- Removed the DT and hwmod patches from this series. DRA7xx support is not
+  yet got in the 3.12 merge window. Will deal with those separately.
 
-> If it is, I think we should document that older versions of the binding
-> didn't require those properties, so they may in fact be missing.
->
-> I note that this patch doesn't actually update the driver to
-> regulator_get() anything. Shouldn't it?
->
-As of now the driver isn’t enabling/accepting the regulators,
-so should I add those in DT properties or not ?
+Archit Taneja (4):
+  v4l: ti-vpe: Create a vpdma helper library
+  v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+  v4l: ti-vpe: Add VPE mem to mem driver
+  v4l: ti-vpe: Add de-interlacer support in VPE
 
->>  Optional Properties :
->> -- adi,power-mode-sleep-mode: on enable the current consumption is reduced to
->> -                           micro ampere level. All DACs and the internal PLL
->> -                           circuit are disabled.
->> -- adi,power-mode-pll-ctrl: PLL and oversampling control. This control allows
->> -                        internal PLL 1 circuit to be powered down and the
->> -                        oversampling to be switched off.
->> -- ad,adv7343-power-mode-dac: array configuring the power on/off DAC's 1..6,
->> -                           0 = OFF and 1 = ON, Default value when this
->> -                           property is not specified is <0 0 0 0 0 0>.
->> -- ad,adv7343-sd-config-dac-out: array configure SD DAC Output's 1 and 2, 0 = OFF
->> -                              and 1 = ON, Default value when this property is
->> -                              not specified is <0 0>.
->
-> At a very quick glance, it's not really clear why those properties are
-> being removed. They seem like HW configuration, so might be fine to put
-> into DT. What replaces these?
+ drivers/media/platform/Kconfig             |   16 +
+ drivers/media/platform/Makefile            |    2 +
+ drivers/media/platform/ti-vpe/Makefile     |    5 +
+ drivers/media/platform/ti-vpe/vpdma.c      |  846 ++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      |  203 +++
+ drivers/media/platform/ti-vpe/vpdma_priv.h |  641 +++++++++
+ drivers/media/platform/ti-vpe/vpe.c        | 2074 ++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe_regs.h   |  496 +++++++
+ include/uapi/linux/v4l2-controls.h         |    4 +
+ 9 files changed, 4287 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
 
-Yes these were HW configuration but, its now internally handled in
-the driver.  The 'ad,adv7343-power-mode-dac' property which enabled the
-DAC's 1..6 , so now in the driver by default all the DAC's are enabled by
-default and enable unconnected DAC auto power down. Similarly
-'ad,adv7343-sd-config-dac-out' property enabled SD DAC's 1..2 but
-now is enabled by reading the CABLE DETECT register which tells
-the status of DAC1/2.
+-- 
+1.8.1.2
 
-Regards,
---Prabhakar
