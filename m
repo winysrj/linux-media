@@ -1,121 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3503 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359Ab3IRCyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 22:54:47 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8I2siOT050500
-	for <linux-media@vger.kernel.org>; Wed, 18 Sep 2013 04:54:46 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 0EDC52A0764
-	for <linux-media@vger.kernel.org>; Wed, 18 Sep 2013 04:54:37 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130918025437.0EDC52A0764@tschai.lan>
-Date: Wed, 18 Sep 2013 04:54:37 +0200 (CEST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55107 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757790Ab3IFQan (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 12:30:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC v1.2 2/4] media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
+Date: Fri, 06 Sep 2013 18:30:47 +0200
+Message-ID: <2776033.HLZrjxzBOj@avalon>
+In-Reply-To: <1378253382-23174-1-git-send-email-sakari.ailus@iki.fi>
+References: <1806796.1hWpdenVOE@avalon> <1378253382-23174-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Wed Sep 18 04:00:14 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+On Wednesday 04 September 2013 03:09:42 Sakari Ailus wrote:
+> Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is
+> connected by links that are all inactive.
+> 
+> This patch makes it possible to avoid drivers having to check for the most
+> common case of link state validation: a sink pad that must be connected.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/media-entity.c |   41 > +++++++++++++++++++++++++++++++------
+>  1 file changed, 34 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 2c286c3..567a171 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -235,6 +235,8 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, media_entity_graph_walk_start(&graph, entity);
+> 
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		DECLARE_BITMAP(active, entity->num_pads);
+> +		DECLARE_BITMAP(has_no_links, entity->num_pads);
+>  		unsigned int i;
+> 
+>  		entity->stream_count++;
+> @@ -248,21 +250,46 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, if (!entity->ops || !entity->ops->link_validate)
+>  			continue;
+> 
+> +		bitmap_zero(active, entity->num_pads);
+> +		bitmap_fill(has_no_links, entity->num_pads);
+> +
+>  		for (i = 0; i < entity->num_links; i++) {
+>  			struct media_link *link = &entity->links[i];
+> -
+> -			/* Is this pad part of an enabled link? */
+> -			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+> -				continue;
+> -
+> -			/* Are we the sink or not? */
+> -			if (link->sink->entity != entity)
+> +			struct media_pad *pad = link->sink->entity == entity
+> +				? link->sink : link->source;
+> +
+> +			/* Mark that a pad is connected by a link. */
+> +			bitmap_clear(has_no_links, pad->index, 1);
+> +
+> +			/*
+> +			 * Pads that either do not need to connect or
+> +			 * are connected through an enabled link are
+> +			 * fine.
+> +			 */
+> +			if (!(pad->flags & MEDIA_PAD_FL_MUST_CONNECT)
+> +			    || link->flags & MEDIA_LNK_FL_ENABLED)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+With the || moved on the previous line (here and below),
 
-Detailed results are available here:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+If that's fine with you there's no need to resent, I'll take the patch in my 
+tree with that modification.
 
-Full logs are available here:
+> +				bitmap_set(active, pad->index, 1);
+> +
+> +			/*
+> +			 * Link validation will only take place for
+> +			 * sink ends of the link that are enabled.
+> +			 */
+> +			if (link->sink != pad
+> +			    || !(link->flags & MEDIA_LNK_FL_ENABLED))
+>  				continue;
+> 
+>  			ret = entity->ops->link_validate(link);
+>  			if (ret < 0 && ret != -ENOIOCTLCMD)
+>  				goto error;
+>  		}
+> +
+> +		/* Either no links or validated links are fine. */
+> +		bitmap_or(active, active, has_no_links, entity->num_pads);
+> +
+> +		if (!bitmap_full(active, entity->num_pads)) {
+> +			ret = -EPIPE;
+> +			goto error;
+> +		}
+>  	}
+> 
+>  	mutex_unlock(&mdev->graph_mutex);
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Laurent Pinchart
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
