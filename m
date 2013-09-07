@@ -1,97 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60586 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757553Ab3IBAkq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Sep 2013 20:40:46 -0400
-Message-ID: <1378082443.25743.63.camel@deadeye.wl.decadent.org.uk>
-Subject: [PATCH 4/4] [media] lirc_bt829: Enable and disable memory BAR
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Mon, 02 Sep 2013 01:40:43 +0100
-In-Reply-To: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-AQT1iDXpB2yQ5i/71rj2"
-Mime-Version: 1.0
+Received: from hipper.arcada.fi ([193.167.33.246]:59474 "EHLO hipper.arcada.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750991Ab3IGOFQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Sep 2013 10:05:16 -0400
+Message-ID: <522B2BF9.5020701@arcada.fi>
+Date: Sat, 07 Sep 2013 16:36:57 +0300
+From: Sam Stenvall <sam.stenvall@arcada.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: oliver+list@schinagl.nl
+Subject: Updated fi-HTV scan file
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---=-AQT1iDXpB2yQ5i/71rj2
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Here's an updated fi-HTV scan file according to the official 
+specification available at http://dvb.welho.fi/cable.php.
 
-We must not assume that the PCI device is already enabled.
+diff -r 3ee111da5b3a util/scan/dvb-c/fi-HTV
+--- a/util/scan/dvb-c/fi-HTV    Mon May 13 15:49:02 2013 +0530
++++ b/util/scan/dvb-c/fi-HTV    Sat Sep 07 16:32:53 2013 +0300
+@@ -1,4 +1,38 @@
+  # HTV
+  # freq sr fec mod
+-C 283000000 5900000 NONE QAM128
++C 274000000 6900000 NONE QAM128
++C 282000000 6900000 NONE QAM128
++C 162000000 6900000 NONE QAM64
++C 170000000 6900000 NONE QAM128
++C 290000000 6900000 NONE QAM128
++C 146000000 6900000 NONE QAM128
+  C 154000000 6900000 NONE QAM128
++C 138000000 6900000 NONE QAM128
++C 266000000 6900000 NONE QAM128
++C 362000000 6900000 NONE QAM128
++C 298000000 6900000 NONE QAM128
++C 354000000 6900000 NONE QAM128
++C 370000000 6900000 NONE QAM128
++C 378000000 6900000 NONE QAM128
++C 394000000 6900000 NONE QAM128
++C 386000000 6900000 NONE QAM128
++C 258000000 6900000 NONE QAM128
++C 250000000 6900000 NONE QAM128
++C 314000000 6900000 NONE QAM128
++C 306000000 6900000 NONE QAM64
++C 322000000 6900000 NONE QAM128
++C 330000000 6900000 NONE QAM256
++C 338000000 6900000 NONE QAM256
++C 346000000 6900000 NONE QAM128
++C 234000000 6900000 NONE QAM256
++C 210000000 6900000 NONE QAM256
++C 218000000 6900000 NONE QAM256
++C 226000000 6900000 NONE QAM256
++C 178000000 6900000 NONE QAM256
++C 186000000 6900000 NONE QAM256
++C 194000000 6900000 NONE QAM256
++C 202000000 6900000 NONE QAM256
++C 514000000 6900000 NONE QAM256
++C 522000000 6900000 NONE QAM256
++C 530000000 6900000 NONE QAM256
++C 554000000 6900000 NONE QAM256
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/staging/media/lirc/lirc_bt829.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Regards,
+Sam Stenvall
 
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/medi=
-a/lirc/lirc_bt829.c
-index 76e6cfb..b386628 100644
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ b/drivers/staging/media/lirc/lirc_bt829.c
-@@ -118,11 +118,15 @@ static int atir_pci_probe(struct pci_dev *pdev,
- 	dev_info(&pdev->dev, "memory at 0x%08llX\n",
- 		 (unsigned long long)pci_addr_phys);
-=20
-+	rc =3D pci_enable_device_mem(pdev);
-+	if (rc)
-+		goto err_free;
-+
- 	atir->pci_addr_lin =3D ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
- 	if (atir->pci_addr_lin =3D=3D 0) {
- 		dev_err(&pdev->dev, "pci mem must be mapped\n");
- 		rc =3D -ENODEV;
--		goto err_free;
-+		goto err_disable;
- 	}
-=20
- 	strcpy(atir->driver.name, "ATIR");
-@@ -148,6 +152,8 @@ static int atir_pci_probe(struct pci_dev *pdev,
-=20
- err_unmap:
- 	iounmap(atir->pci_addr_lin);
-+err_disable:
-+	pci_disable_device(pdev);
- err_free:
- 	pci_set_drvdata(pdev, NULL);
- 	kfree(atir);
-@@ -161,6 +167,7 @@ static void atir_pci_remove(struct pci_dev *pdev)
-=20
- 	lirc_unregister_driver(atir->minor);
- 	iounmap(atir->pci_addr_lin);
-+	pci_disable_device(pdev);
- 	pci_set_drvdata(pdev, NULL);
- 	kfree(atir);
- }
+-- 
 
-
---=-AQT1iDXpB2yQ5i/71rj2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIVAwUAUiPei+e/yOyVhhEJAQpq7A//ZnRwkBAKEo7+8cPpdsSgDHQvopW48cSC
-YnPK5qz2gCpJ07wNM198QavPk/PMV6J9hjGXaiTWngbZ4cJ042AX49+2YBtiZBrh
-FgQHUb8xoMW8PDozzsQJzJtW3JqJA00eP0ARt0CBJ6z4qEdfySBI3XtjCd6oE9cH
-yFMs8aFjWJ+TSbVeNDxvn3/ZGYfBZIFkUDTJl6/GCPmFsXy7yncR56I65k56LZYw
-kf/CkAUV85+23mwAfo6JBTPZByHogGzcWQHUYhJhb0zyrYcI7mSmmb+mIHhjoben
-rNWQP2CIIb2OEksIzTXyB1WxgiyT1DViILNgyV+DFIQKxHOxStkGG1iBvQVzz3YT
-/8T0+RnLCjRH3T7W02MYvPcIXia2Vbc4xH+epTlP7Hc4tVyYyBEIQpo4ef5iyIF7
-BblgbJQbQusnVOYDZBHTzUcCbUzg4ww3k+2VsPl5wQvUHqoFZlAL69Juwo/1xZqZ
-UJdrRLJpIzV3KFtHiYRv7EV3JtoSwGSl87f5j1hpSl5lqScAGhE9pj2Zr74Hl+Kr
-IdxMn28UsEK8tpd3y0gsHJx/73jgDUd3MYHxYqSGbtB70S/Yuapia5UsYGdCMSRo
-3l783Tre7vu1LenGOl3LbBokJuJ4wIJJ6R+Wsg56h8FFUTSRm6IMsgGit4E7oSeN
-co3CdmFh0cc=
-=zIFF
------END PGP SIGNATURE-----
-
---=-AQT1iDXpB2yQ5i/71rj2--
+Sam Stenvall
++358 (0)40 509 0191
+sam.stenvall@arcada.fi
