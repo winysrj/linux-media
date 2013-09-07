@@ -1,22 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1590 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884Ab3IKCyx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Sep 2013 22:54:53 -0400
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4938 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885Ab3IGCzI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 22:55:08 -0400
 Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
 	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8B2snk4017061
-	for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 04:54:51 +0200 (CEST)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r872t5nd056778
+	for <linux-media@vger.kernel.org>; Sat, 7 Sep 2013 04:55:07 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 6A8572A0764
-	for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 04:54:40 +0200 (CEST)
+	by tschai.lan (Postfix) with ESMTPSA id DEEEC2A0764
+	for <linux-media@vger.kernel.org>; Sat,  7 Sep 2013 04:55:02 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130911025440.6A8572A0764@tschai.lan>
-Date: Wed, 11 Sep 2013 04:54:40 +0200 (CEST)
+Message-Id: <20130907025502.DEEEC2A0764@tschai.lan>
+Date: Sat,  7 Sep 2013 04:55:02 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -25,7 +24,7 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Wed Sep 11 04:00:16 CEST 2013
+date:		Sat Sep  7 04:00:42 CEST 2013
 git branch:	test
 git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
 gcc version:	i686-linux-gcc (GCC) 4.8.1
@@ -110,11 +109,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
