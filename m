@@ -1,46 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:57666 "EHLO smtp.outflux.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:43851 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751216Ab3IPXh0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Sep 2013 19:37:26 -0400
-Date: Mon, 16 Sep 2013 16:37:20 -0700
-From: Kees Cook <keescook@chromium.org>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] dvb: fix potential format string leak
-Message-ID: <20130916233720.GA3967@www.outflux.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S1750867Ab3IHAXA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Sep 2013 20:23:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/3] fixes for 3.12
+Date: Sun,  8 Sep 2013 03:21:48 +0300
+Message-Id: <1378599711-26875-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure that a format string cannot accidentally leak into the printk
-buffer.
+PULL-request will follow soon.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/media/dvb-frontends/dib9000.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I will send e4000 fix to stable too after a week or two.
 
-diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
-index 6201c59..61b2cfe 100644
---- a/drivers/media/dvb-frontends/dib9000.c
-+++ b/drivers/media/dvb-frontends/dib9000.c
-@@ -649,7 +649,7 @@ static int dib9000_risc_debug_buf(struct dib9000_state *state, u16 * data, u8 si
- 	b[2 * (size - 2) - 1] = '\0';	/* Bullet proof the buffer */
- 	if (*b == '~') {
- 		b++;
--		dprintk(b);
-+		dprintk("%s", b);
- 	} else
- 		dprintk("RISC%d: %d.%04d %s", state->fe_id, ts / 10000, ts % 10000, *b ? b : "<emtpy>");
- 	return 1;
--- 
-1.7.9.5
+Antti Palosaari (2):
+  e4000: fix PLL calc bug on 32-bit arch
+  msi3101: Kconfig select VIDEOBUF2_VMALLOC
 
+Fengguang Wu (1):
+  msi3101: msi3101_ioctl_ops can be static
+
+ drivers/media/tuners/e4000.c                | 2 +-
+ drivers/staging/media/msi3101/Kconfig       | 1 +
+ drivers/staging/media/msi3101/sdr-msi3101.c | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
 -- 
-Kees Cook
-Chrome OS Security
+1.7.11.7
+
