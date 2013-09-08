@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:47394 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758154Ab3IBJGL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 05:06:11 -0400
-Received: by mail-bk0-f51.google.com with SMTP id mx10so1424184bkb.24
-        for <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 02:06:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+V-a8vLpSWCAecvNEFB0jxoJ0=oXsB3LWEMbfN00LghkW4Egw@mail.gmail.com>
-References: <CAPgLHd-0+fYLMh+Ff+cgewBPy1itjp-EtbAjzs5UrJsqrY3aNg@mail.gmail.com>
-	<CA+V-a8szUWiURmmuWReyH1xWSheyn9COOgdGkfFTSkbOPh44FQ@mail.gmail.com>
-	<CA+V-a8vLpSWCAecvNEFB0jxoJ0=oXsB3LWEMbfN00LghkW4Egw@mail.gmail.com>
-Date: Mon, 2 Sep 2013 17:06:10 +0800
-Message-ID: <CAPgLHd9n__f62vRMUDOhjX+KygoFQqp-ip02-S0rt7cDYHk+BQ@mail.gmail.com>
-Subject: [PATCH -next v2] [media] davinci: vpif_capture: fix error return code
- in vpif_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: prabhakar.csengg@gmail.com
-Cc: m.chehab@samsung.com, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:48493 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750868Ab3IHAXA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Sep 2013 20:23:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/3] e4000: fix PLL calc bug on 32-bit arch
+Date: Sun,  8 Sep 2013 03:21:49 +0300
+Message-Id: <1378599711-26875-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1378599711-26875-1-git-send-email-crope@iki.fi>
+References: <1378599711-26875-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Fix long-lasting bug that causes tuning failure of some frequencies
+on 32-bit arch.
 
-Fix to return -ENODEV in the subdevice register error handling
-case instead of 0, as done elsewhere in this function.
+Special thanks goes to Damien CABROL who finally find root of the bug.
+Also big thanks to Jacek Konieczny for donating "non-working" device.
 
-Introduced by commit 873229e4fdf34196aa5d707957c59ba54c25eaba
-([media] media: davinci: vpif: capture: add V4L2-async support)
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+[crope@iki.fi: fix trivial merge conflict]
+Reported-by: Jacek Konieczny <jajcus@jajcus.net>
+Reported-by: Torsten Seyffarth <t.seyffarth@gmx.de>
+Reported-by: Jan Taegert <jantaegert@gmx.net>
+Reported-by: Damien CABROL <cabrol.damien@free.fr>
+Tested-by: Damien CABROL <cabrol.damien@free.fr>
+Tested-by: Jan Taegert <jantaegert@gmx.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-v1 -> v2: fix mistake using -ENOMEM
----
- drivers/media/platform/davinci/vpif_capture.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/tuners/e4000.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 7fbde6d..e4b6a26 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -2160,6 +2160,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 
- 			if (!vpif_obj.sd[i]) {
- 				vpif_err("Error registering v4l2 subdevice\n");
-+				err = -ENODEV;
- 				goto probe_subdev_out;
- 			}
- 			v4l2_info(&vpif_obj.v4l2_dev,
-
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index ad9309d..54e2d8a 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -233,7 +233,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	 * or more.
+ 	 */
+ 	f_vco = c->frequency * e4000_pll_lut[i].mul;
+-	sigma_delta = 0x10000UL * (f_vco % priv->cfg->clock) / priv->cfg->clock;
++	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->cfg->clock), priv->cfg->clock);
+ 	buf[0] = f_vco / priv->cfg->clock;
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+-- 
+1.7.11.7
 
