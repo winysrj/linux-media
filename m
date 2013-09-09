@@ -1,73 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46364 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754813Ab3I3Ne6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:34:58 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 01/10] [media] coda: allow more than four instances on CODA7541
-Date: Mon, 30 Sep 2013 15:34:44 +0200
-Message-Id: <1380548093-22313-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
-References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
+Received: from hipper.arcada.fi ([193.167.33.246]:57779 "EHLO hipper.arcada.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751966Ab3IIKdR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Sep 2013 06:33:17 -0400
+Message-ID: <522DA3EF.9050806@arcada.fi>
+Date: Mon, 09 Sep 2013 13:33:19 +0300
+From: Sam Stenvall <sam.stenvall@arcada.fi>
+MIME-Version: 1.0
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: Updated fi-HTV scan file
+References: <522B2BF9.5020701@arcada.fi> <522D8C28.1070803@schinagl.nl>
+In-Reply-To: <522D8C28.1070803@schinagl.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the new firmware, there are not anymore four register sets,
-but a single register set, which the driver has to conserve across
-context switches. This allows to handle more than four instances
-at the same time.
+On 9.9.2013 11:51, Oliver Schinagl wrote:
+> On 07-09-13 15:36, Sam Stenvall wrote:
+>> Hi,
+> Hello,
+>
+>>
+>> Here's an updated fi-HTV scan file according to the official
+>> specification available at http://dvb.welho.fi/cable.php.
+>
+> Patch merged manually and pushed, your diff failed to apply, did you use
+> git diff?
+>
+> Oliver
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+I used hg diff and copy pasted the output.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 449d2fe..2805538 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -39,7 +39,7 @@
- 
- #define CODA_NAME		"coda"
- 
--#define CODA_MAX_INSTANCES	4
-+#define CODADX6_MAX_INSTANCES	4
- 
- #define CODA_FMO_BUF_SIZE	32
- #define CODADX6_WORK_BUF_SIZE	(288 * 1024 + CODA_FMO_BUF_SIZE * 8 * 1024)
-@@ -2371,7 +2371,13 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 
- static int coda_next_free_instance(struct coda_dev *dev)
- {
--	return ffz(dev->instance_mask);
-+	int idx = ffz(dev->instance_mask);
-+
-+	if ((idx < 0) ||
-+	    (dev->devtype->product == CODA_DX6 && idx > CODADX6_MAX_INSTANCES))
-+		return -EBUSY;
-+
-+	return idx;
- }
- 
- static int coda_open(struct file *file)
-@@ -2386,8 +2392,8 @@ static int coda_open(struct file *file)
- 		return -ENOMEM;
- 
- 	idx = coda_next_free_instance(dev);
--	if (idx >= CODA_MAX_INSTANCES) {
--		ret = -EBUSY;
-+	if (idx < 0) {
-+		ret = idx;
- 		goto err_coda_max;
- 	}
- 	set_bit(idx, &dev->instance_mask);
+>>
+>> diff -r 3ee111da5b3a util/scan/dvb-c/fi-HTV
+>> --- a/util/scan/dvb-c/fi-HTV    Mon May 13 15:49:02 2013 +0530
+>> +++ b/util/scan/dvb-c/fi-HTV    Sat Sep 07 16:32:53 2013 +0300
+>> @@ -1,4 +1,38 @@
+>>   # HTV
+>>   # freq sr fec mod
+>> -C 283000000 5900000 NONE QAM128
+>> +C 274000000 6900000 NONE QAM128
+>> +C 282000000 6900000 NONE QAM128
+>> +C 162000000 6900000 NONE QAM64
+>> +C 170000000 6900000 NONE QAM128
+>> +C 290000000 6900000 NONE QAM128
+>> +C 146000000 6900000 NONE QAM128
+>>   C 154000000 6900000 NONE QAM128
+>> +C 138000000 6900000 NONE QAM128
+>> +C 266000000 6900000 NONE QAM128
+>> +C 362000000 6900000 NONE QAM128
+>> +C 298000000 6900000 NONE QAM128
+>> +C 354000000 6900000 NONE QAM128
+>> +C 370000000 6900000 NONE QAM128
+>> +C 378000000 6900000 NONE QAM128
+>> +C 394000000 6900000 NONE QAM128
+>> +C 386000000 6900000 NONE QAM128
+>> +C 258000000 6900000 NONE QAM128
+>> +C 250000000 6900000 NONE QAM128
+>> +C 314000000 6900000 NONE QAM128
+>> +C 306000000 6900000 NONE QAM64
+>> +C 322000000 6900000 NONE QAM128
+>> +C 330000000 6900000 NONE QAM256
+>> +C 338000000 6900000 NONE QAM256
+>> +C 346000000 6900000 NONE QAM128
+>> +C 234000000 6900000 NONE QAM256
+>> +C 210000000 6900000 NONE QAM256
+>> +C 218000000 6900000 NONE QAM256
+>> +C 226000000 6900000 NONE QAM256
+>> +C 178000000 6900000 NONE QAM256
+>> +C 186000000 6900000 NONE QAM256
+>> +C 194000000 6900000 NONE QAM256
+>> +C 202000000 6900000 NONE QAM256
+>> +C 514000000 6900000 NONE QAM256
+>> +C 522000000 6900000 NONE QAM256
+>> +C 530000000 6900000 NONE QAM256
+>> +C 554000000 6900000 NONE QAM256
+>>
+>> Regards,
+>> Sam Stenvall
+>>
+
 -- 
-1.8.4.rc3
 
+Sam Stenvall
++358 (0)40 509 0191
+sam.stenvall@arcada.fi
