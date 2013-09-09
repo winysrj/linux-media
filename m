@@ -1,35 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f44.google.com ([209.85.212.44]:64881 "EHLO
-	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab3IBBhB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 21:37:01 -0400
-Received: by mail-vb0-f44.google.com with SMTP id e13so2600144vbg.17
-        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 18:37:00 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:15294 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750870Ab3IILMj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Sep 2013 07:12:39 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r89BCdqQ011009
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 9 Sep 2013 07:12:39 -0400
+Received: from shalem.localdomain (vpn1-7-169.ams2.redhat.com [10.36.7.169])
+	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id r89BCbVj032350
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 9 Sep 2013 07:12:39 -0400
+Message-ID: <522DAD25.2030509@redhat.com>
+Date: Mon, 09 Sep 2013 13:12:37 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1378082375.25743.61.camel@deadeye.wl.decadent.org.uk>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-	<1378082375.25743.61.camel@deadeye.wl.decadent.org.uk>
-Date: Sun, 1 Sep 2013 22:37:00 -0300
-Message-ID: <CAOMZO5C_fOqe+9a1BVWxnQ3hrYZaxf5AN4WNrOacQdkng8h-Jg@mail.gmail.com>
-Subject: Re: [PATCH 2/4] [media] lirc_bt829: Fix physical address type
-From: Fabio Estevam <festevam@gmail.com>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FIX for 3.12]: Add a new upside down latpop model to stkwebcam
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 1, 2013 at 9:39 PM, Ben Hutchings <ben@decadent.org.uk> wrote:
+Hi Mauro,
 
->         pci_addr_phys = pdev->resource[0].start;
-> -       dev_info(&pdev->dev, "memory at 0x%08X\n",
-> -                (unsigned int)pci_addr_phys);
-> +       dev_info(&pdev->dev, "memory at 0x%08llX\n",
-> +                (unsigned long long)pci_addr_phys);
+Can you please pull from my tree for a small fix for 3.12:
 
-You could use %pa instead for printing phys_addr_t:
+The following changes since commit f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16:
 
-dev_info(&pdev->dev, "memory at %pa\n", &pci_addr_phys);
+   [media] cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0 (2013-09-03 09:24:22 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.12
+
+for you to fetch changes up to 94d9a89a963acc1b659a2ed6cd07090d5a6443eb:
+
+   Add HCL T12Rg-H to STK webcam upside-down table (2013-09-09 13:08:31 +0200)
+
+----------------------------------------------------------------
+Gregor Jasny (1):
+       Add HCL T12Rg-H to STK webcam upside-down table
+
+  drivers/media/usb/stkwebcam/stk-webcam.c | 7 +++++++
+  1 file changed, 7 insertions(+)
+
+Thanks & Regards,
+
+Hans
