@@ -1,359 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f172.google.com ([209.85.220.172]:63424 "EHLO
-	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410Ab3IAOqA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 10:46:00 -0400
-Received: by mail-vc0-f172.google.com with SMTP id m17so2476630vca.3
-        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 07:45:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <52231DA0.20307@xs4all.nl>
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com>
-	<1377862104-15429-1-git-send-email-dinram@cisco.com>
-	<b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com>
-	<CAC-25o9OW1nmuzbmRX6dW4pLwaJHaFTxXTr_nzaGXk1HDzcdzA@mail.gmail.com>
-	<52231DA0.20307@xs4all.nl>
-Date: Sun, 1 Sep 2013 10:45:57 -0400
-Message-ID: <CAC-25o-+u5u7yNiJ8PY40FQ9EMdLvga+NKXJaELJHT6oEBUzKg@mail.gmail.com>
-Subject: Re: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where
- interrupts are not used
-From: "edubezval@gmail.com" <edubezval@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dinesh Ram <dinram@cisco.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	"dinesh.ram" <dinesh.ram@cern.ch>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from top.free-electrons.com ([176.31.233.9]:52595 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751784Ab3IIDaP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Sep 2013 23:30:15 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: prabhakar.csengg@gmail.com, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] davinci: remove deprecated IRQF_DISABLED
+Date: Mon,  9 Sep 2013 05:30:11 +0200
+Message-Id: <1378697411-4619-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+This patch proposes to remove the IRQF_DISABLED flag from
+davinci media platform drivers.
 
+It's a NOOP since 2.6.35 and it will be removed one day.
 
-On Sun, Sep 1, 2013 at 6:57 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 08/31/2013 01:31 PM, edubezval@gmail.com wrote:
-> > Dinesh, Hi
-> >
-> >
-> > On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
-> >>
-> >> Checks have been introduced at several places in the code to test if an interrupt is set or not.
-> >> For devices which do not use the interrupt, to get a valid response, within a specified timeout,
-> >> the device is polled instead.
-> >>
-> >> Signed-off-by: Dinesh Ram <dinram@cisco.com>
-> >> ---
-> >>  drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
-> >>  drivers/media/radio/si4713/si4713.h |   1 +
-> >>  2 files changed, 63 insertions(+), 48 deletions(-)
-> >>
-> >> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-> >> index ac727e3..55c4d27 100644
-> >> --- a/drivers/media/radio/si4713/si4713.c
-> >> +++ b/drivers/media/radio/si4713/si4713.c
-> >> @@ -27,7 +27,6 @@
-> >>  #include <linux/i2c.h>
-> >>  #include <linux/slab.h>
-> >>  #include <linux/gpio.h>
-> >> -#include <linux/regulator/consumer.h>
-> >>  #include <linux/module.h>
-> >>  #include <media/v4l2-device.h>
-> >>  #include <media/v4l2-ioctl.h>
-> >> @@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
-> >>                                 u8 response[], const int respn, const int usecs)
-> >>  {
-> >>         struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-> >> +       unsigned long until_jiffies;
-> >>         u8 data1[MAX_ARGS + 1];
-> >>         int err;
-> >>
-> >> @@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
-> >>         if (err != argn + 1) {
-> >>                 v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
-> >>                         command);
-> >> -               return (err > 0) ? -EIO : err;
-> >> +               return err < 0 ? err : -EIO;
-> >
-> > Why did you change the semantics here?
->
-> It's a bug fix: if i2c_master_send returns 0, then si4713_send_command() would
-> return 0 as well instead of -EIO. Highly unlikely to ever happen, but it is a
-> bug.
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c | 2 +-
+ drivers/media/platform/davinci/vpfe_capture.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-I am not sure I follow your bug fix. The current code recognizes a
-successful case only when it succeed to transfer all requested bytes
-(err == argn + 1 or err == respn). I know there are better ways to
-retransmit the remaining bytes in case the master fails to transfer
-all at once, but I don't think it is worth the complication for this
-driver. Anyways, the driver assumes when returned value is different
-than expected bytes, but positive, as an error and return -EIO in that
-case. In case the err response is negative, it just propagates the
-error code.
-
-The assumption is also that for the case no bytes are transfered,
-presumably when return code is zero, then this code expect that the
-i2c layer return an error code. Zero bytes transfered is same as a
-transfer error to me. I am not sure the i2c layer is returning 0. Have
-you experienced this case in other scenarios (even other drivers)? If
-yes, I don't think the semantic bug is in this driver, but in the i2c
-layer. Unless you can explain a case where someone requests to
-transfer N > 0 bytes, the function return 0 and that is not a transfer
-error issue.
-
-
->
-> >
-> >>         }
-> >>
-> >> +       until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
-> >> +
-> >>         /* Wait response from interrupt */
-> >> -       if (!wait_for_completion_timeout(&sdev->work,
-> >> +       if (client->irq) {
-> >> +               if (!wait_for_completion_timeout(&sdev->work,
-> >>                                 usecs_to_jiffies(usecs) + 1))
-> >> -               v4l2_warn(&sdev->sd,
-> >> +                       v4l2_warn(&sdev->sd,
-> >>                                 "(%s) Device took too much time to answer.\n",
-> >>                                 __func__);
-> >> -
-> >> -       /* Then get the response */
-> >> -       err = i2c_master_recv(client, response, respn);
-> >> -       if (err != respn) {
-> >> -               v4l2_err(&sdev->sd,
-> >> -                       "Error while reading response for command 0x%02x\n",
-> >> -                       command);
-> >> -               return (err > 0) ? -EIO : err;
-> >>         }
-> >>
-> >> -       DBG_BUFFER(&sdev->sd, "Response", response, respn);
-> >> -       if (check_command_failed(response[0]))
-> >> -               return -EBUSY;
-> >> +       do {
-> >> +               err = i2c_master_recv(client, response, respn);
-> >> +               if (err != respn) {
-> >> +                       v4l2_err(&sdev->sd,
-> >> +                                       "Error %d while reading response for command 0x%02x\n",
-> >> +                                       err, command);
-> >> +                       return err < 0 ? err : -EIO;
-> >
-> > Again?
-> >
-> >> +               }
-> >>
-> >> -       return 0;
-> >> +               DBG_BUFFER(&sdev->sd, "Response", response, respn);
-> >> +               if (!check_command_failed(response[0]))
-> >> +                       return 0;
-> >> +
-> >> +               if (client->irq)
-> >> +                       return -EBUSY;
-> >> +               msleep(1);
-> >> +       } while (jiffies <= until_jiffies);
-> >> +
-> >> +       return -EBUSY;
-> >>  }
-> >>
-> >>  /*
-> >> @@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
-> >>   */
-> >>  static int si4713_powerup(struct si4713_device *sdev)
-> >>  {
-> >> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-> >>         int err;
-> >>         u8 resp[SI4713_PWUP_NRESP];
-> >>         /*
-> >>          *      .First byte = Enabled interrupts and boot function
-> >>          *      .Second byte = Input operation mode
-> >>          */
-> >> -       const u8 args[SI4713_PWUP_NARGS] = {
-> >> -               SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-> >> +       u8 args[SI4713_PWUP_NARGS] = {
-> >> +               SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-> >>                 SI4713_PWUP_OPMOD_ANALOG,
-> >>         };
-> >>
-> >> @@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
-> >>                 gpio_set_value(sdev->gpio_reset, 1);
-> >>         }
-> >>
-> >> +       if (client->irq)
-> >> +               args[0] |= SI4713_PWUP_CTSIEN;
-> >> +
-> >>         err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
-> >>                                         args, ARRAY_SIZE(args),
-> >>                                         resp, ARRAY_SIZE(resp),
-> >>                                         TIMEOUT_POWER_UP);
-> >> -
-> >> +
-> >
-> > Please, do not insert tabulation in blank lines.
-> >
-> >>         if (!err) {
-> >>                 v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
-> >>                                 resp[0]);
-> >>                 v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
-> >>                 sdev->power_state = POWER_ON;
-> >>
-> >> -               err = si4713_write_property(sdev, SI4713_GPO_IEN,
-> >> +               if (client->irq)
-> >> +                       err = si4713_write_property(sdev, SI4713_GPO_IEN,
-> >>                                                 SI4713_STC_INT | SI4713_CTS);
-> >>         } else {
-> >>                 if (gpio_is_valid(sdev->gpio_reset))
-> >> @@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
-> >>         if (rval < 0)
-> >>                 return rval;
-> >>
-> >> -       if (resp[1] == SI4713_PRODUCT_NUMBER) {
-> >> +       if (resp[1] == SI4713_PRODUCT_NUMBER) {
-> >
-> > Please, do not insert spaces in the end of the line.
-> >
-> >>                 v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
-> >>                                 client->addr << 1, client->adapter->name);
-> >>         } else {
-> >> @@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
-> >>   */
-> >>  static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
-> >>  {
-> >> -       int err;
-> >> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-> >>         u8 resp[SI4713_GET_STATUS_NRESP];
-> >> -
-> >> -       /* Wait response from STC interrupt */
-> >> -       if (!wait_for_completion_timeout(&sdev->work,
-> >> -                       usecs_to_jiffies(usecs) + 1))
-> >> -               v4l2_warn(&sdev->sd,
-> >> -                       "%s: device took too much time to answer (%d usec).\n",
-> >> -                               __func__, usecs);
-> >> -
-> >> -       /* Clear status bits */
-> >> -       err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-> >> -                                       NULL, 0,
-> >> -                                       resp, ARRAY_SIZE(resp),
-> >> -                                       DEFAULT_TIMEOUT);
-> >> -
-> >> -       if (err < 0)
-> >> -               goto exit;
-> >> -
-> >> -       v4l2_dbg(1, debug, &sdev->sd,
-> >> -                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
-> >> -
-> >> -       if (!(resp[0] & SI4713_STC_INT))
-> >> -               err = -EIO;
-> >> -
-> >> -exit:
-> >> -       return err;
-> >> +       unsigned long start_jiffies = jiffies;
-> >> +       int err;
-> >> +
-> >> +       if (client->irq &&
-> >> +           !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
-> >> +               v4l2_warn(&sdev->sd,
-> >> +                       "(%s) Device took too much time to answer.\n", __func__);
-> >> +
-> >> +       for (;;) {
-> >> +               /* Clear status bits */
-> >> +               err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-> >> +                               NULL, 0,
-> >> +                               resp, ARRAY_SIZE(resp),
-> >> +                               DEFAULT_TIMEOUT);
-> >> +
-> >> +               if (err >= 0) {
-> >
-> > Why are you polling while the command fails? If the command fails, you
-> > need to stop, and propagate the error to upper layers. You shall keep
-> > polling only while the command succeed and (resp[0] & SI4713_STC_INT)
-> > == 0.
->
-> This needs a comment. Dinesh, correct me if I am wrong but as I remember
-> the usb device actually does return errors when it is waiting for STC.
-> It seems the usb device just blocks new usb requests during that wait.
->
-> >
-> >> +                       v4l2_dbg(1, debug, &sdev->sd,
-> >> +                                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
-> >> +
-> >> +                       if (resp[0] & SI4713_STC_INT)
-> >> +                               return 0;
-> >> +               }
-> >> +               if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
-> >> +                       return -EIO;
->
-> Although this should be replaced with:
->
->                         return err < 0 ? err : -EIO;
->
-> >> +               msleep(3);
-> >> +       }
-> >
-> > Can you please add a comment why you chose msleep(3)? For instance,
-> > here you sleep for 3 ms, in send command you need only 1ms. Any
-> > explanation?
->
-> Experimentation. If you flood the USB device with USB requests it hangs.
-
-
-Well, that it is experimentation I don't have doubts :-).
-
-I was just requesting you guys to add a comment there to explain the
-magic number.
-
->
-> >
-> > Besides could you please move this for to another function? Something
-> > like si4713_poll_stc?
->
-> Why? I see no compelling reason to split it. Some more comments would be
-> useful, though.
-
-Just for better code readability, function starts to become confusing
-with IRQ event check, polling loop, and even experimentation values
-flying around.
-
->
-> Regards,
->
->         Hans
->
-> >
-> >>  }
-> >>
-> >>  /*
-> >> @@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
-> >>         if (rval < 0)
-> >>                 return rval;
-> >>
-> >> -
-> >>         sdev->frequency = DEFAULT_FREQUENCY;
-> >>         sdev->stereo = 1;
-> >>         sdev->tune_rnl = DEFAULT_TUNE_RNL;
-> >> diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-> >> index c274e1f..dc0ce66 100644
-> >> --- a/drivers/media/radio/si4713/si4713.h
-> >> +++ b/drivers/media/radio/si4713/si4713.h
-> >> @@ -15,6 +15,7 @@
-> >>  #ifndef SI4713_I2C_H
-> >>  #define SI4713_I2C_H
-> >>
-> >> +#include <linux/regulator/consumer.h>
-> >>  #include <media/v4l2-subdev.h>
-> >>  #include <media/v4l2-ctrls.h>
-> >>  #include <media/si4713.h>
-> >> --
-> >> 1.8.4.rc2
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> >
-> >
->
-
-
-
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 04609cc6..eac472b 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1785,7 +1785,7 @@ static int vpbe_display_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	irq = res->start;
+-	err = devm_request_irq(&pdev->dev, irq, venc_isr, IRQF_DISABLED,
++	err = devm_request_irq(&pdev->dev, irq, venc_isr, 0,
+ 			       VPBE_DISPLAY_DRIVER, disp_dev);
+ 	if (err) {
+ 		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 9360909..d762246 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -688,7 +688,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
+ 	frame_format = ccdc_dev->hw_ops.get_frame_format();
+ 	if (frame_format == CCDC_FRMFMT_PROGRESSIVE) {
+ 		return request_irq(vpfe_dev->ccdc_irq1, vdint1_isr,
+-				    IRQF_DISABLED, "vpfe_capture1",
++				    0, "vpfe_capture1",
+ 				    vpfe_dev);
+ 	}
+ 	return 0;
+@@ -1863,7 +1863,7 @@ static int vpfe_probe(struct platform_device *pdev)
+ 	}
+ 	vpfe_dev->ccdc_irq1 = res1->start;
+ 
+-	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
++	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, 0,
+ 			  "vpfe_capture0", vpfe_dev);
+ 
+ 	if (0 != ret) {
 -- 
-Eduardo Bezerra Valentin
+1.8.1.2
+
