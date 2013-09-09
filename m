@@ -1,90 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:33002 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535Ab3IQL32 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 07:29:28 -0400
+Received: from mail-qe0-f46.google.com ([209.85.128.46]:43982 "EHLO
+	mail-qe0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab3IIDtM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Sep 2013 23:49:12 -0400
+Received: by mail-qe0-f46.google.com with SMTP id x7so2959351qeu.5
+        for <linux-media@vger.kernel.org>; Sun, 08 Sep 2013 20:49:11 -0700 (PDT)
+Received: by mail-qc0-f179.google.com with SMTP id l4so2986834qcv.24
+        for <linux-media@vger.kernel.org>; Sun, 08 Sep 2013 20:49:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <52377DE5.3070808@gmail.com>
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com>
-	<1377066881-5423-2-git-send-email-arun.kk@samsung.com>
-	<52377DE5.3070808@gmail.com>
-Date: Tue, 17 Sep 2013 16:59:26 +0530
-Message-ID: <CALt3h79YMgdkju17SF8M3NKLkJ+6Gjzy2vwXDYTXc8B-GaecyQ@mail.gmail.com>
-Subject: Re: [PATCH v7 01/13] [media] exynos5-is: Adding media device driver
- for exynos5
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	kilyeon.im@samsung.com
+In-Reply-To: <52204058.6070008@xs4all.nl>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
+ <1377829038-4726-17-git-send-email-posciak@chromium.org> <52204058.6070008@xs4all.nl>
+From: Pawel Osciak <posciak@chromium.org>
+Date: Mon, 9 Sep 2013 12:48:29 +0900
+Message-ID: <CACHYQ-oGaAS1TVLqm-wRsPSg5xDqBTuvj9PcMAmu5vEc-aVb1A@mail.gmail.com>
+Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Hans,
+Thanks for the comments, one question inline.
 
+On Fri, Aug 30, 2013 at 3:48 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 08/30/2013 04:17 AM, Pawel Osciak wrote:
+>> Add defines for controls found in UVC 1.5 encoding cameras.
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ctrls.c | 29 +++++++++++++++++++++++++++++
+>>  include/uapi/linux/v4l2-controls.h   | 31 +++++++++++++++++++++++++++++++
+>>  2 files changed, 60 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index c3f0803..0b3a632 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -781,6 +781,35 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>       case V4L2_CID_AUTO_FOCUS_STATUS:        return "Auto Focus, Status";
+>>       case V4L2_CID_AUTO_FOCUS_RANGE:         return "Auto Focus, Range";
+>>
+>> +     case V4L2_CID_ENCODER_MIN_FRAME_INTERVAL: return "Encoder, min. frame interval";
+>> +     case V4L2_CID_ENCODER_RATE_CONTROL_MODE: return "Encoder, rate control mode";
+>> +     case V4L2_CID_ENCODER_AVERAGE_BITRATE:  return "Encoder, average bitrate";
+>> +     case V4L2_CID_ENCODER_CPB_SIZE:         return "Encoder, CPB size";
+>> +     case V4L2_CID_ENCODER_PEAK_BIT_RATE:    return "Encoder, peak bit rate";
+>> +     case V4L2_CID_ENCODER_QP_PARAM_I:       return "Encoder, QP param for I frames";
+>> +     case V4L2_CID_ENCODER_QP_PARAM_P:       return "Encoder, QP param for P frames";
+>> +     case V4L2_CID_ENCODER_QP_PARAM_BG:      return "Encoder, QP param for B/G frames";
 >
+> A lot of these exist already. E.g. V4L2_CID_MPEG_VIDEO_MPEG4_I/P/B_FRAME_QP.
 >
-> I'd like to propose a little re-design of this binding. The reason is that
-> I've noticed issues related to the power domain and FIMC-LITE, FIMC-IS
-> clocks
-> handling sequences. This lead to a failure to disable the ISP power domain
-> and to complete the system suspend/resume cycle. Not sure if this happens on
-> Exynos5 SoCs, nevertheless IMHO it would be more reasonable to make
-> FIMC-LITE
-> device nodes child nodes of FIMC-IS. FIMC-LITE seems to be an integral part
-> of the FIMC-IS subsystem.
->
-> Then fimc-is node would be placed at root level, with fimc-lite nodes as its
-> subnodes:
->
-> fimc-is {
->         compatible = "exynos5250-fimc-is";
->         reg = <...>;
->         ...
->         #address-cells = <1>;
->         #size-cells = <1>;
->         ranges;
->
->         fimc_lite_0: fimc-lite@12390000 {
->                 compatible = "samsung,exynos4212-fimc-lite";
->                 ...
->         };
->
->         fimc_lite_1: fimc-lite@123A0000 {
->                 compatible = "samsung,exynos4212-fimc-lite";
->                 ...
->         };
->
->         fimc_lite_2: fimc-lite@123B0000 {
->                 compatible = "samsung,exynos4212-fimc-lite";
->                 ...
->         };
->
->         i2c0_isp: i2c-isp@12130000 {
->                 ...
->         };
->
->         ...
-> };
+> Samsung added support for many of these parameters for their MFC encoder (including
+> VP8 support) so you should use them as well. As mentioned in v4l2-controls.h the
+> MPEG part of the control name is historical. Interpret it as 'CODEC', not MPEG.
 >
 
-Wont this make fimc-is to be enabled to use fimc-lite?
-As such there is no dependency like that in hardware and we can
-use fimc-lite alone in DMA out mode without fimc-is.
-If its modified as per your suggestion, how will the scenario of
-sensor -> mipi-csis -> fimc-lite -> memory look like without fimc-is?
+We have QP controls separately for H264, H263 and MPEG4. Why is that?
+Which one should I use for VP8? Shouldn't we unify them instead?
 
-Regards
-Arun
+
+>> +     case V4L2_CID_ENCODER_NUM_GDR_FRAMES:   return "Encoder, number of GDR frames";
+>> +     case V4L2_CID_ENCODER_LTR_BUFFER_CONTROL: return "Encoder, LTR buffer control";
+>> +     case V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE: return "Encoder, LTR buffer trust mode";
+>> +     case V4L2_CID_ENCODER_LTR_PICTURE_POSITION: return "Encoder, LTR picture position";
+>> +     case V4L2_CID_ENCODER_LTR_PICTURE_MODE: return "Encoder, LTR picture mode";
+>> +     case V4L2_CID_ENCODER_LTR_VALIDATION:   return "Encoder, LTR validation";
+>> +     case V4L2_CID_ENCODER_MIN_QP:           return "Encoder, minimum QP param";
+>> +     case V4L2_CID_ENCODER_MAX_QP:           return "Encoder, maximum QP param";
+>> +     case V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL: return "Encoder, sync frame interval";
+>> +     case V4L2_CID_ENCODER_ERROR_RESILIENCY: return "Encoder, error resiliency";
+>> +     case V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE: return "Encoder, temporal layer enable";
+>> +
+>> +     case V4L2_CID_ENCODER_VP8_SLICE_MODE:   return "Encoder, VP8 slice mode";
+>> +     case V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE: return "Encoder, VP8 sync frame type";
+>> +     case V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME: return "Encoder, VP8, DCT partitions per frame";
+>> +
+>> +     case V4L2_CID_ENCODER_H264_PROFILE_TOOLSET: return "Encoder, H.264 profile and toolset";
+>> +     case V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT: return "Encoder, H.264 level IDC limit";
+>> +     case V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE: return "Encoder, H.264 SEI payload type";
+>> +     case V4L2_CID_ENCODER_H264_LAYER_PRIORITY: return "Encoder, H.264 layer priority";
+>> +
+>>       /* FM Radio Modulator control */
+>>       /* Keep the order of the 'case's the same as in videodev2.h! */
+>>       case V4L2_CID_FM_TX_CLASS:              return "FM Radio Modulator Controls";
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index 083bb5a..ef3a30d 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -729,6 +729,37 @@ enum v4l2_auto_focus_range {
+>>       V4L2_AUTO_FOCUS_RANGE_INFINITY          = 3,
+>>  };
+>>
+>> +/* Controls found in UVC 1.5 encoding cameras */
+>> +#define V4L2_CID_ENCODER_MIN_FRAME_INTERVAL  (V4L2_CID_CAMERA_CLASS_BASE+32)
+>> +#define V4L2_CID_ENCODER_RATE_CONTROL_MODE   (V4L2_CID_CAMERA_CLASS_BASE+33)
+>> +#define V4L2_CID_ENCODER_AVERAGE_BITRATE     (V4L2_CID_CAMERA_CLASS_BASE+34)
+>> +#define V4L2_CID_ENCODER_CPB_SIZE            (V4L2_CID_CAMERA_CLASS_BASE+35)
+>> +#define V4L2_CID_ENCODER_PEAK_BIT_RATE               (V4L2_CID_CAMERA_CLASS_BASE+36)
+>> +#define V4L2_CID_ENCODER_QP_PARAM_I          (V4L2_CID_CAMERA_CLASS_BASE+37)
+>> +#define V4L2_CID_ENCODER_QP_PARAM_P          (V4L2_CID_CAMERA_CLASS_BASE+38)
+>> +#define V4L2_CID_ENCODER_QP_PARAM_BG         (V4L2_CID_CAMERA_CLASS_BASE+39)
+>> +#define V4L2_CID_ENCODER_NUM_GDR_FRAMES              (V4L2_CID_CAMERA_CLASS_BASE+40)
+>> +#define V4L2_CID_ENCODER_LTR_BUFFER_CONTROL  (V4L2_CID_CAMERA_CLASS_BASE+41)
+>> +#define V4L2_CID_ENCODER_LTR_BUFFER_TRUST_MODE       (V4L2_CID_CAMERA_CLASS_BASE+42)
+>> +#define V4L2_CID_ENCODER_LTR_PICTURE_POSITION        (V4L2_CID_CAMERA_CLASS_BASE+43)
+>> +#define V4L2_CID_ENCODER_LTR_PICTURE_MODE    (V4L2_CID_CAMERA_CLASS_BASE+44)
+>> +#define V4L2_CID_ENCODER_LTR_VALIDATION              (V4L2_CID_CAMERA_CLASS_BASE+45)
+>> +#define V4L2_CID_ENCODER_MIN_QP                      (V4L2_CID_CAMERA_CLASS_BASE+46)
+>> +#define V4L2_CID_ENCODER_MAX_QP                      (V4L2_CID_CAMERA_CLASS_BASE+47)
+>> +#define V4L2_CID_ENCODER_SYNC_FRAME_INTERVAL (V4L2_CID_CAMERA_CLASS_BASE+48)
+>> +#define V4L2_CID_ENCODER_ERROR_RESILIENCY    (V4L2_CID_CAMERA_CLASS_BASE+49)
+>> +#define V4L2_CID_ENCODER_TEMPORAL_LAYER_ENABLE       (V4L2_CID_CAMERA_CLASS_BASE+50)
+>> +
+>> +/* VP8-specific controls */
+>> +#define V4L2_CID_ENCODER_VP8_SLICE_MODE              (V4L2_CID_CAMERA_CLASS_BASE+51)
+>> +#define V4L2_CID_ENCODER_VP8_DCT_PARTS_PER_FRAME (V4L2_CID_CAMERA_CLASS_BASE+52)
+>> +#define V4L2_CID_ENCODER_VP8_SYNC_FRAME_TYPE (V4L2_CID_CAMERA_CLASS_BASE+53)
+>> +
+>> +/* H.264-specific controls */
+>> +#define V4L2_CID_ENCODER_H264_PROFILE_TOOLSET        (V4L2_CID_CAMERA_CLASS_BASE+54)
+>> +#define V4L2_CID_ENCODER_H264_LEVEL_IDC_LIMIT        (V4L2_CID_CAMERA_CLASS_BASE+55)
+>> +#define V4L2_CID_ENCODER_H264_SEI_PAYLOAD_TYPE       (V4L2_CID_CAMERA_CLASS_BASE+56)
+>> +#define V4L2_CID_ENCODER_H264_LAYER_PRIORITY (V4L2_CID_CAMERA_CLASS_BASE+57)
+>
+> Codec controls go to the MPEG class, not the CAMERA class.
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>>  /* FM Modulator class control IDs */
+>>
+>>
+>
