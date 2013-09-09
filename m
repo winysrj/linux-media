@@ -1,51 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35133 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760245Ab3ICUVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 16:21:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 02/19] uvcvideo: Return 0 when setting probe control succeeds.
-Date: Tue, 03 Sep 2013 22:21:38 +0200
-Message-ID: <1470601.zIbq0UikIW@avalon>
-In-Reply-To: <1377829038-4726-3-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-3-git-send-email-posciak@chromium.org>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2171 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751044Ab3IIKRu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:17:50 -0400
+Message-ID: <522DA03E.8010808@xs4all.nl>
+Date: Mon, 09 Sep 2013 12:17:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <5584569.Fq1hO5v8IF@avalon> <522D9DD6.2080609@xs4all.nl> <26516577.dQgL4XrfDY@avalon>
+In-Reply-To: <26516577.dQgL4XrfDY@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
-
-Thank you for the patch.
-
-On Friday 30 August 2013 11:17:01 Pawel Osciak wrote:
-> Return 0 instead of returning size of the probe control on successful set.
-
-This looks good, but could you update the commit message to explain why ?
-
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 2 ++
->  1 file changed, 2 insertions(+)
+On 09/09/2013 12:10 PM, Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 695f6d9..1198989 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -296,6 +296,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming
-> *stream, "%d (exp. %u).\n", probe ? "probe" : "commit",
->  			ret, size);
->  		ret = -EIO;
-> +	} else {
-> +		ret = 0;
->  	}
+> On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
+>> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
+>>> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
+>>>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
+>>>
+>>> [snip]
+>>>
+>>>>> The main issue as I see it is that we need to track both driver remove()
+>>>>> and struct device .release() calls and free resources only when last of
+>>>>> them executes. Data structures which are referenced in fops must not be
+>>>>> freed in remove() and we cannot use dev_get_drvdata() in fops, e.g. not
+>>>>> protected with device_lock().
+>>>>
+>>>> You can do all that by returning 0 if probe() was partially successful
+>>>> (i.e. one or more, but not all, nodes were created successfully) by
+>>>> doing what I described above. I don't see another way that doesn't
+>>>> introduce a race condition.
+>>>
+>>> But isn't this just plain wrong ? If probing fails, I don't see how
+>>> returning success could be a good idea.
+>>
+>> Well, the nodes that are created are working fine. So it's partially OK :-)
+>>
+>> That said, yes it would be better if it could safely clean up and return an
+>> error. But it is better than returning an error and introducing a race
+>> condition.
+>>
+>>>> That doesn't mean that there isn't one, it's just that I don't know of a
+>>>> better way of doing this.
+>>>
+>>> We might need support from the device core.
+>>
+>> I do come back to my main question: has anyone actually experienced this
+>> error in a realistic scenario? Other than in very low-memory situations I
+>> cannot imagine this happening.
 > 
->  	kfree(data);
--- 
+> What about running out of minors, which could very well happen with subdev 
+> nodes in complex SoCs ?
+
+Is that really realistic? What's the worst-case SoC we have in terms of
+device nodes? Frankly, if this might happen then we should allow for more
+minors or make the minor allocation completely dynamic.
+
+If you run into this situation then you have bigger problems than a potential
+race condition.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
