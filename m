@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tx2ehsobe005.messaging.microsoft.com ([65.55.88.15]:3004 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758561Ab3IDOJj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Sep 2013 10:09:39 -0400
-Message-ID: <52273ED5.6090609@licor.com>
-Date: Wed, 4 Sep 2013 09:08:21 -0500
-From: Darryl <ddegraff@licor.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4498 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714Ab3IIKHe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:07:34 -0400
+Message-ID: <522D9DD6.2080609@xs4all.nl>
+Date: Mon, 09 Sep 2013 12:07:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: davinci vpif_capture
-References: <5220CADF.5050805@licor.com> <CA+V-a8t7sb9HVACCVTDG0c2LH6Ca=Tc7EY=UmU38apKNjVdZyA@mail.gmail.com> <5225C87D.2010606@licor.com> <CA+V-a8sbSdCdoFMpP2rfPCzvXYS6mydnTEhbG741duUQqTUOQg@mail.gmail.com>
-In-Reply-To: <CA+V-a8sbSdCdoFMpP2rfPCzvXYS6mydnTEhbG741duUQqTUOQg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <522906CD.1000006@gmail.com> <522D8FDF.3030006@xs4all.nl> <5584569.Fq1hO5v8IF@avalon>
+In-Reply-To: <5584569.Fq1hO5v8IF@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2013 09:46 PM, Prabhakar Lad wrote:
-> Hi,
->
-> On Tue, Sep 3, 2013 at 5:01 PM, Darryl <ddegraff@licor.com> wrote:
->> On 08/31/2013 06:15 AM, Prabhakar Lad wrote:
->>> On Fri, Aug 30, 2013 at 10:09 PM, Darryl <ddegraff@licor.com> wrote:
->>>> I am working on an application involving the davinci using the vpif.  My
->>>> board file has the inputs configured to use VPIF_IF_RAW_BAYER if_type.
->>>> When my application starts up, I have it enumerate the formats
->>>> (VIDIOC_ENUM_FMT) and it indicates that the only available format is
->>>> "YCbCr4:2:2 YC Planar" (from vpif_enum_fmt_vid_cap).  It looks to me that
->>>> the culprit is vpif_open().
->>>>
->>>> struct channel_obj.vpifparams.iface is initialized at vpif_probe() time
->>>> in
->>>> the function vpif_set_input.  Open the device file (/dev/video0)
->>>> overwrites
->>>> this.  I suspect that it is __not__ supposed to do this, since I don't
->>>> see
->>>> any method for restoring the iface.
->>>>
->>> NAK, Ideally the application should go in the following manner,
->>> you open the device say example /dev/video0 , then you issue
->>> a VIDIOC_ENUMINPUT IOCTL,  this will enumerate the inputs
->>> then you do  VIDIOC_S_INPUT this will select the input device
->>> so when this IOCTL is called vpif_s_input() is called in vpif_capture
->>> driver this function will internally call the vpif_set_input() which
->>> will set the iface for you on line 1327.
+On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
+>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
+>>> On 08/07/2013 07:49 PM, Hans Verkuil wrote:
+>>>> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
+>>>>> On 08/02/2013 03:00 PM, Hans Verkuil wrote:
+>>>>>> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
+> 
+> [snip]
+> 
+>>> The main issue as I see it is that we need to track both driver remove()
+>>> and struct device .release() calls and free resources only when last of
+>>> them executes. Data structures which are referenced in fops must not be
+>>> freed in remove() and we cannot use dev_get_drvdata() in fops, e.g. not
+>>> protected with device_lock().
 >>
->> Is there a document or documents where I can find this "following manner"?
->> I've read through a lot of v4l docs, but none seem to suggest an ordered
->> sequence of ioctl calls.
->>
-> Yes thats the way its done! I dont have any docs but you can refer some test
-> application yavta[1] so that you are clear and you can also go through
-> the link [2].
->
-> [1] http://git.ideasonboard.org/yavta.git/shortlog/refs/heads/master
-> [2] http://www.linuxtv.org/downloads/legacy/video4linux/API/V4L2_API/spec-single/v4l2.html
+>> You can do all that by returning 0 if probe() was partially successful (i.e.
+>> one or more, but not all, nodes were created successfully) by doing what I
+>> described above. I don't see another way that doesn't introduce a race
+>> condition.
+> 
+> But isn't this just plain wrong ? If probing fails, I don't see how returning 
+> success could be a good idea.
 
-Thanks very much for your help.  I'll check out the yavta sources.
+Well, the nodes that are created are working fine. So it's partially OK :-)
 
-I've looked at both the legacy and current specs.  They are full of 
-information, but sadly, in my opinion, don't give a unified vision of 
-how to use the whole.
+That said, yes it would be better if it could safely clean up and return an error.
+But it is better than returning an error and introducing a race condition.
 
->
-> Regards,
-> --Prabhakar Lad
->
+>> That doesn't mean that there isn't one, it's just that I don't know of a
+>> better way of doing this.
+> 
+> We might need support from the device core.
+> 
 
+I do come back to my main question: has anyone actually experienced this error in a
+realistic scenario? Other than in very low-memory situations I cannot imagine this
+happening. I'm not sure whether you want to spend a lot of time trying to fix this
+all perfectly. That's why I am suggesting just unregistering everything and returning
+0 in probe(). Not ideal, but at least it's safe (as far as I can tell).
 
+Regards,
+
+	Hans
