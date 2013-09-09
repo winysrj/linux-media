@@ -1,210 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:46841 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756282Ab3IETpA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 15:45:00 -0400
-Message-ID: <5228DF32.4000909@gmail.com>
-Date: Thu, 05 Sep 2013 21:44:50 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2564 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484Ab3IIKst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:48:49 -0400
+Message-ID: <522DA782.9050402@xs4all.nl>
+Date: Mon, 09 Sep 2013 12:48:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: devicetree@vger.kernel.org
-CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
-	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v7 01/13] [media] exynos5-is: Adding media device driver
- for exynos5
-References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1377066881-5423-2-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <26516577.dQgL4XrfDY@avalon> <522DA03E.8010808@xs4all.nl> <7183549.W0I9Cqdz4K@avalon> <522DA4E7.4050600@xs4all.nl>
+In-Reply-To: <522DA4E7.4050600@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2013 08:34 AM, Arun Kumar K wrote:
-> From: Shaik Ameer Basha<shaik.ameer@samsung.com>
->
-> This patch adds support for media device for EXYNOS5 SoCs.
-> The current media device supports the following ips to connect
-> through the media controller framework.
->
-> * MIPI-CSIS
->    Support interconnection(subdev interface) between devices
->
-> * FIMC-LITE
->    Support capture interface from device(Sensor, MIPI-CSIS) to memory
->    Support interconnection(subdev interface) between devices
->
-> * FIMC-IS
->    Camera post-processing IP having multiple sub-nodes.
->
-> G-Scaler will be added later to the current media device.
->
-> The media device creates two kinds of pipelines for connecting
-> the above mentioned IPs.
-> The pipeline0 is uses Sensor, MIPI-CSIS and FIMC-LITE which captures
-> image data and dumps to memory.
-> Pipeline1 uses FIMC-IS components for doing post-processing
-> operations on the captured image and give scaled YUV output.
->
-> Pipeline0
->    +--------+     +-----------+     +-----------+     +--------+
->    | Sensor | -->  | MIPI-CSIS | -->  | FIMC-LITE | -->  | Memory |
->    +--------+     +-----------+     +-----------+     +--------+
->
-> Pipeline1
->   +--------+      +--------+     +-----------+     +-----------+
->   | Memory | -->   |  ISP   | -->  |    SCC    | -->  |    SCP    |
->   +--------+      +--------+     +-----------+     +-----------+
->
-> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
-> ---
->   .../bindings/media/exynos5250-camera.txt           |  126 ++
->   drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1210 ++++++++++++++++++++
->   drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
->   3 files changed, 1462 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
->   create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
->   create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
->
-> diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
-> new file mode 100644
-> index 0000000..09420ba
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
-> @@ -0,0 +1,126 @@
-> +Samsung EXYNOS5 SoC Camera Subsystem
-> +------------------------------------
-> +
-> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
-> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
-> +MIPI CSIS and FIMC-IS.
-> +
-> +The sub-device nodes are referenced using phandles in the common 'camera' node
-> +which also includes common properties of the whole subsystem not really
-> +specific to any single sub-device, like common camera port pins or the common
-> +camera bus clocks.
-> +
-> +Common 'camera' node
-> +--------------------
-> +
-> +Required properties:
-> +
-> +- compatible		: must be "samsung,exynos5250-fimc"
-> +- clocks		: list of clock specifiers, corresponding to entries in
-> +                          the clock-names property
-> +- clock-names		: must contain "sclk_bayer" entry
-> +- samsung,csis		: list of phandles to the mipi-csis device nodes
-> +- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
-> +- samsung,fimc-is	: phandle to the fimc-is device node
-> +
-> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
-> +to define a required pinctrl state named "default".
-> +
-> +'parallel-ports' node
-> +---------------------
-> +
-> +This node should contain child 'port' nodes specifying active parallel video
-> +input ports. It includes camera A, camera B and RGB bay inputs.
-> +'reg' property in the port nodes specifies the input type:
-> + 1 - parallel camport A
-> + 2 - parallel camport B
-> + 5 - RGB camera bay
-> +
-> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
-> +
-> +Image sensor nodes
-> +------------------
-> +
-> +The sensor device nodes should be added to their control bus controller (e.g.
-> +I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
-> +using the common video interfaces bindings, defined in video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	aliases {
-> +		fimc-lite0 =&fimc_lite_0
-> +	};
-> +
-> +	/* Parallel bus IF sensor */
-> +	i2c_0: i2c@13860000 {
-> +		s5k6aa: sensor@3c {
-> +			compatible = "samsung,s5k6aafx";
-> +			reg =<0x3c>;
-> +			vddio-supply =<...>;
-> +
-> +			clock-frequency =<24000000>;
-> +			clocks =<...>;
-> +			clock-names = "mclk";
-> +
-> +			port {
-> +				s5k6aa_ep: endpoint {
-> +					remote-endpoint =<&fimc0_ep>;
-> +					bus-width =<8>;
-> +					hsync-active =<0>;
-> +					vsync-active =<1>;
-> +					pclk-sample =<1>;
-> +				};
-> +			};
-> +		};
-> +	};
-> +
-> +	/* MIPI CSI-2 bus IF sensor */
-> +	s5c73m3: sensor@1a {
-> +		compatible = "samsung,s5c73m3";
-> +		reg =<0x1a>;
-> +		vddio-supply =<...>;
-> +
-> +		clock-frequency =<24000000>;
-> +		clocks =<...>;
-> +		clock-names = "mclk";
-> +
-> +		port {
-> +			s5c73m3_1: endpoint {
-> +				data-lanes =<1 2 3 4>;
-> +				remote-endpoint =<&csis0_ep>;
-> +			};
-> +		};
-> +	};
-> +
-> +	camera {
-> +		compatible = "samsung,exynos5250-fimc";
-> +		#address-cells =<1>;
-> +		#size-cells =<1>;
-> +		status = "okay";
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 =<&cam_port_a_clk_active>;
-> +
-> +		samsung,csis =<&csis_0>,<&csis_1>;
-> +		samsung,fimc-lite =<&fimc_lite_0>,<&fimc_lite_1>,<&fimc_lite_2>;
-> +		samsung,fimc-is =<&fimc_is>;
-> +
-> +		/* parallel camera ports */
-> +		parallel-ports {
-> +			/* camera A input */
-> +			port@1 {
-> +				reg =<1>;
-> +				camport_a_ep: endpoint {
-> +					remote-endpoint =<&s5k6aa_ep>;
-> +					bus-width =<8>;
-> +					hsync-active =<0>;
-> +					vsync-active =<1>;
-> +					pclk-sample =<1>;
-> +				};
-> +			};
-> +		};
-> +	};
-> +
-> +MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
-> +device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
-> +is defined in exynos5-fimc-is.txt.
+On 09/09/2013 12:37 PM, Hans Verkuil wrote:
+> On 09/09/2013 12:24 PM, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Monday 09 September 2013 12:17:34 Hans Verkuil wrote:
+>>> On 09/09/2013 12:10 PM, Laurent Pinchart wrote:
+>>>> On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
+>>>>> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
+>>>>>> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
+>>>>>>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
+>>>>>> [snip]
+>>>>>>
+>>>>>>>> The main issue as I see it is that we need to track both driver
+>>>>>>>> remove() and struct device .release() calls and free resources only
+>>>>>>>> when last of them executes. Data structures which are referenced in
+>>>>>>>> fops must not be freed in remove() and we cannot use dev_get_drvdata()
+>>>>>>>> in fops, e.g. not protected with device_lock().
+>>>>>>>
+>>>>>>> You can do all that by returning 0 if probe() was partially successful
+>>>>>>> (i.e. one or more, but not all, nodes were created successfully) by
+>>>>>>> doing what I described above. I don't see another way that doesn't
+>>>>>>> introduce a race condition.
+>>>>>>
+>>>>>> But isn't this just plain wrong ? If probing fails, I don't see how
+>>>>>> returning success could be a good idea.
+>>>>>
+>>>>> Well, the nodes that are created are working fine. So it's partially OK
+>>>>> :-)
+>>>>>
+>>>>> That said, yes it would be better if it could safely clean up and return
+>>>>> an error. But it is better than returning an error and introducing a race
+>>>>> condition.
+>>>>>
+>>>>>>> That doesn't mean that there isn't one, it's just that I don't know of
+>>>>>>> a better way of doing this.
+>>>>>>
+>>>>>> We might need support from the device core.
+>>>>>
+>>>>> I do come back to my main question: has anyone actually experienced this
+>>>>> error in a realistic scenario? Other than in very low-memory situations I
+>>>>> cannot imagine this happening.
+>>>>
+>>>> What about running out of minors, which could very well happen with subdev
+>>>> nodes in complex SoCs ?
+>>>
+>>> Is that really realistic? What's the worst-case SoC we have in terms of
+>>> device nodes? Frankly, if this might happen then we should allow for more
+>>> minors or make the minor allocation completely dynamic.
+>>
+>> For the 4 VSP1 instances on the R-Car H2, I need 33 video nodes and 65 (if I'm 
+>> not mistaken) subdev nodes. That doesn't include the camera interface.
+> 
+> So that leaves 158 free minors. That's a lot of webcams that can be attached :-)
 
-Does this binding look OK, can I have a DT maintainer Ack for that ?
+Just for the record: I would have no objection whatsoever if we increase
+VIDEO_NUM_DEVICES to 512.
 
---
-Thanks,
-Sylwester
+Regards,
+
+	Hans
