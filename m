@@ -1,92 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44136 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:58089 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752806Ab3IILmW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Sep 2013 07:42:22 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r89BgMEg031665
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 9 Sep 2013 07:42:22 -0400
-Received: from shalem.localdomain (vpn1-7-238.ams2.redhat.com [10.36.7.238])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r89BgKa3003923
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 9 Sep 2013 07:42:21 -0400
-Message-ID: <522DB41B.5070406@redhat.com>
-Date: Mon, 09 Sep 2013 13:42:19 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752806Ab3IIVK0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Sep 2013 17:10:26 -0400
+Message-ID: <522E393E.1010204@schinagl.nl>
+Date: Mon, 09 Sep 2013 23:10:22 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL PATCHES for 3.13] Misc. gspca improvements
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: iMon driver with 3.11 no response
+References: <522CE16D.2030004@schinagl.nl> <522E1210.20506@wilsonet.com>
+In-Reply-To: <522E1210.20506@wilsonet.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/09/13 20:23, Jarod Wilson wrote:
+> Note: I've not had much time to work on any IR stuff in nearly 2 years
+> now, and I generally just ignore tech support requests, as there are
+> mailing lists and forums that can help you. But you caught me at a
+> decent time. :)
+Yay! I did cc the lmml but from my other e-mail address (this current 
+one) as I do all my lmml mails with, but I can completely understand.
+>
+> On 09/08/2013 04:43 PM, Oliver Schinagl wrote:
+>> Hey Jarod,
+>>
+>> I've been using my iMon that came with my silverstone tech case for
+>> years. This was all using the old methods via lirc etc. With my new
+>> install I decided to move to devinput and use your brand new and shiny
+>> driver.
+>>
+>> However I get little to no response from either the IR part, the knob or
+>> the VFD (I just echo "Hello" > /dev/lcd0). The only thing I do know
+>> works, is powerup (since that's all handled on the PCB itself, that's no
+>> surprise, but does show the board seems to be still in working order).
+>>
+>> The driver (when loading rc-imon-pad first) loads fine, but evtest
+>> doesn't respond to anything. I tried with lirc initially and devinput
+>> but also that gave no response. The debug output from imon when loading
+>> it with debug=1 as follows:
+>>
+>> [  568.738241] input: iMON Panel, Knob and Mouse(15c2:ffdc) as
+>> /devices/pci0000:00/0000:00:1a.2/usb5/5-2/5-2:1.0/input/input19
+>> [  568.746030] imon 5-2:1.0: Unknown 0xffdc device, defaulting to VFD
+>> and iMON IR
+> ^^^
+> This is the main issue. I suspect your ffdc device could be an LCD
+> instead of a VFD, which would explain the display not working, and it
+> may use an RC-6 MCE remote instead of an iMON remote, which would
+> explain the receiver not spitting out any devinput data. The lack of
+> events from the knob is slightly troubling though. You can load the imon
+> driver and override the display type to LCD:
+>
+> modprobe imon display_type=2
+Yeah, but I really do have the VFD version. The VFD wasn't working to 
+amazingly however when I last actually used it (dark, some pixels not at 
+all). Now the bigger question arises, does the microcontroller actually 
+need the VFD to work. I did 25% of my testing (i was messing with it for 
+2 hours or so) without the VFD actually connected (it's temporary in a 
+different system and it was getting in the way).
+>
+> Then you can use ir-keytable (part of v4l-utils) to load the MCE
+> keytable and set the protocol to MCE instead of iMON IR.
+But I also have the original imon remote, the PCB says 'Chisheng C 94 
+VO-333', the grey variant imon remote if you google for it, I think it's 
+called the iMon-pad. It's a really old model though, one of the earlier 
+ones ;)
+>
+> Once its determined what the hardware actually is, an entry can be added
+> to the code that figures out ffdc variant for your device so that it
+> gets auto-configured in the future.
+Well that would be a good plan; once I figure out why it's being wrong, 
+I'll send a patch ;)
 
-A bit early for 3.13, I know :)  Anways here are some misc. gspca
-improvements for 3.13 :
+oliver
+>
 
-The following changes since commit f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16:
-
-   [media] cx88: Fix regression: CX88_AUDIO_WM8775 can't be 0 (2013-09-03 09:24:22 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.13
-
-for you to fetch changes up to 982bf8c78821c9a8d428533801fab459ceee21e3:
-
-   gspca: print small buffers via %*ph (2013-09-09 13:15:29 +0200)
-
-----------------------------------------------------------------
-Andy Shevchenko (1):
-       gspca: print small buffers via %*ph
-
-Gregor Jasny (1):
-       Add HCL T12Rg-H to STK webcam upside-down table
-
-Ondrej Zary (3):
-       gspca: store current mode instead of individual parameters
-       gspca: Support variable resolution
-       gspca-stk1135: Add variable resolution support
-
-  drivers/media/usb/gspca/conex.c                  |  3 +-
-  drivers/media/usb/gspca/cpia1.c                  |  4 +-
-  drivers/media/usb/gspca/gspca.c                  | 48 +++++++--------
-  drivers/media/usb/gspca/gspca.h                  | 10 +++-
-  drivers/media/usb/gspca/jeilinj.c                |  5 +-
-  drivers/media/usb/gspca/jl2005bcd.c              |  2 +-
-  drivers/media/usb/gspca/m5602/m5602_mt9m111.c    |  2 +-
-  drivers/media/usb/gspca/mars.c                   |  7 ++-
-  drivers/media/usb/gspca/mr97310a.c               |  6 +-
-  drivers/media/usb/gspca/nw80x.c                  | 11 ++--
-  drivers/media/usb/gspca/ov519.c                  | 52 +++++++++-------
-  drivers/media/usb/gspca/ov534.c                  |  5 +-
-  drivers/media/usb/gspca/pac207.c                 |  4 +-
-  drivers/media/usb/gspca/pac7311.c                |  6 +-
-  drivers/media/usb/gspca/se401.c                  |  6 +-
-  drivers/media/usb/gspca/sn9c20x.c                |  6 +-
-  drivers/media/usb/gspca/sonixb.c                 |  7 +--
-  drivers/media/usb/gspca/sonixj.c                 |  3 +-
-  drivers/media/usb/gspca/spca1528.c               |  3 +-
-  drivers/media/usb/gspca/spca500.c                |  3 +-
-  drivers/media/usb/gspca/sq905c.c                 |  2 +-
-  drivers/media/usb/gspca/sq930x.c                 |  3 +-
-  drivers/media/usb/gspca/stk014.c                 |  5 +-
-  drivers/media/usb/gspca/stk1135.c                | 76 ++++++++++++------------
-  drivers/media/usb/gspca/stv06xx/stv06xx.c        |  2 +-
-  drivers/media/usb/gspca/stv06xx/stv06xx_pb0100.c |  2 +-
-  drivers/media/usb/gspca/sunplus.c                |  3 +-
-  drivers/media/usb/gspca/topro.c                  | 13 ++--
-  drivers/media/usb/gspca/tv8532.c                 |  7 ++-
-  drivers/media/usb/gspca/vicam.c                  |  8 +--
-  drivers/media/usb/gspca/w996Xcf.c                | 28 ++++-----
-  drivers/media/usb/gspca/xirlink_cit.c            | 46 +++++++-------
-  drivers/media/usb/gspca/zc3xx.c                  |  3 +-
-  drivers/media/usb/stkwebcam/stk-webcam.c         |  7 +++
-  34 files changed, 211 insertions(+), 187 deletions(-)
-
-Thanks & Regards,
-
-Hans
