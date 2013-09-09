@@ -1,106 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:41847 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756730Ab3INVd6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Sep 2013 17:33:58 -0400
-Message-ID: <1379194431.2978.22.camel@nightslugs>
-Subject: Re: [Linaro-mm-sig] [RFC 0/1] drm/pl111: Initial drm/kms driver for
- pl111
-From: Daniel Stone <daniels@collabora.com>
-To: Tom Cooksey <tom.cooksey@arm.com>
-Cc: 'Rob Clark' <robdclark@gmail.com>, linux-fbdev@vger.kernel.org,
-	Pawel Moll <Pawel.Moll@arm.com>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Sat, 14 Sep 2013 17:33:51 -0400
-In-Reply-To: <000101ce9298$8ce44ee0$a6aceca0$@cooksey@arm.com>
-References: <1374772648-19151-1-git-send-email-tom.cooksey@arm.com>
-		<CAF6AEGtspnhSGNM4_QQubVfOkZ1Gh1-Z3iyHOLBPVWuqRy81ew@mail.gmail.com>
-		<51f29ccd.f014b40a.34cc.ffffca2aSMTPIN_ADDED_BROKEN@mx.google.com>
-		<CAF6AEGvFPGueM_LHVij9KFzM6NJySHCzmaLstuzZkK5GwP+6gQ@mail.gmail.com>
-		<51ffdc7e.06b8b40a.2cc8.0fe0SMTPIN_ADDED_BROKEN@mx.google.com>
-	 <CAF6AEGsyKk_G-R-OX_YcgYFDgTEmCy9Vf2LV1pAOV0452QKSww@mail.gmail.com>
-	 <000101ce9298$8ce44ee0$a6aceca0$@cooksey@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2285 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752734Ab3IIKhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:37:43 -0400
+Message-ID: <522DA4E7.4050600@xs4all.nl>
+Date: Mon, 09 Sep 2013 12:37:27 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
+References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <26516577.dQgL4XrfDY@avalon> <522DA03E.8010808@xs4all.nl> <7183549.W0I9Cqdz4K@avalon>
+In-Reply-To: <7183549.W0I9Cqdz4K@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Tue, 2013-08-06 at 12:31 +0100, Tom Cooksey wrote:
-> > >> On Fri, Jul 26, 2013 at 11:58 AM, Tom Cooksey <tom.cooksey@arm.com>
-> > >> wrote:
-> > that was part of the reason to punt this problem to userspace ;-)
-> >
-> > In practice, the kernel drivers doesn't usually know too much about
-> > the dimensions/format/etc.. that is really userspace level knowledge.
-> > There are a few exceptions when the kernel needs to know how to setup
-> > GTT/etc for tiled buffers, but normally this sort of information is up
-> > at the next level up (userspace, and drm_framebuffer in case of
-> > scanout).  Userspace media frameworks like GStreamer already have a
-> > concept of format/caps negotiation.  For non-display<->gpu sharing, I
-> > think this is probably where this sort of constraint negotiation
-> > should be handled.
-
-Egads.  GStreamer's caps negotiation is already close to unbounded time;
-seems like most of the optimisation work that goes into it these days is
-all about _reducing_ the complexity of caps negotiation!
-
-> I agree that user-space will know which devices will access the buffer
-> and thus can figure out at least a common pixel format.
-
-Hm, are you sure about that? The answer is yes for 'userspace' as a
-broad handwave, but not necessarily for individual processes.  Take, for
-instance, media decode through GStreamer, being displayed by Wayland
-using a KMS plane/overlay/sprite/cursor/etc.  The media player knows
-that the buffers are coming from the decode engine, and Wayland knows
-that the buffers are going to a KMS plane, but neither of them knows the
-full combination of the two.
-
-Though this kinda feeds into an idea I've been kicking around for a
-while, which is an 'optimal hint' mechanism in the Wayland protocol.  So
-for our hypothetical dmabuf-using protocol, we'd start off with buffers
-which satisfied all the constraints of our media decode engine, but
-perhaps just the GPU rather than display controller.  At this point,
-we'd note that we could place the video in a plane if only the buffers
-were better-allocated, and send an event to the client letting it know
-how to tweak its buffer allocation for more optimal display.
-
-But ...
-
-> Though I'm not
-> so sure userspace can figure out more low-level details like alignment
-> and placement in physical memory, etc.
+On 09/09/2013 12:24 PM, Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Anyway, assuming user-space can figure out how a buffer should be 
-> stored in memory, how does it indicate this to a kernel driver and 
-> actually allocate it? Which ioctl on which device does user-space
-> call, with what parameters? Are you suggesting using something like
-> ION which exposes the low-level details of how buffers are laid out in
-> physical memory to userspace? If not, what?
+> On Monday 09 September 2013 12:17:34 Hans Verkuil wrote:
+>> On 09/09/2013 12:10 PM, Laurent Pinchart wrote:
+>>> On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
+>>>> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
+>>>>> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
+>>>>>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
+>>>>> [snip]
+>>>>>
+>>>>>>> The main issue as I see it is that we need to track both driver
+>>>>>>> remove() and struct device .release() calls and free resources only
+>>>>>>> when last of them executes. Data structures which are referenced in
+>>>>>>> fops must not be freed in remove() and we cannot use dev_get_drvdata()
+>>>>>>> in fops, e.g. not protected with device_lock().
+>>>>>>
+>>>>>> You can do all that by returning 0 if probe() was partially successful
+>>>>>> (i.e. one or more, but not all, nodes were created successfully) by
+>>>>>> doing what I described above. I don't see another way that doesn't
+>>>>>> introduce a race condition.
+>>>>>
+>>>>> But isn't this just plain wrong ? If probing fails, I don't see how
+>>>>> returning success could be a good idea.
+>>>>
+>>>> Well, the nodes that are created are working fine. So it's partially OK
+>>>> :-)
+>>>>
+>>>> That said, yes it would be better if it could safely clean up and return
+>>>> an error. But it is better than returning an error and introducing a race
+>>>> condition.
+>>>>
+>>>>>> That doesn't mean that there isn't one, it's just that I don't know of
+>>>>>> a better way of doing this.
+>>>>>
+>>>>> We might need support from the device core.
+>>>>
+>>>> I do come back to my main question: has anyone actually experienced this
+>>>> error in a realistic scenario? Other than in very low-memory situations I
+>>>> cannot imagine this happening.
+>>>
+>>> What about running out of minors, which could very well happen with subdev
+>>> nodes in complex SoCs ?
+>>
+>> Is that really realistic? What's the worst-case SoC we have in terms of
+>> device nodes? Frankly, if this might happen then we should allow for more
+>> minors or make the minor allocation completely dynamic.
+> 
+> For the 4 VSP1 instances on the R-Car H2, I need 33 video nodes and 65 (if I'm 
+> not mistaken) subdev nodes. That doesn't include the camera interface.
 
-... this is still rather unresolved. ;)
+So that leaves 158 free minors. That's a lot of webcams that can be attached :-)
 
-Cheers,
-Daniel
+> On a side note, this seems to indicate that the subdev API should probably 
+> move to the /dev/media device node. That's something else to discuss.
 
+I have 70 tty nodes in /dev. Just because there are a lot of them doesn't mean that
+we have to merge them somehow. There may be other arguments for changing how we
+handle them, but 'there are a lot of them' isn't a good argument, IMHO.
 
-> 
-> Cheers,
-> 
-> Tom
-> 
-> 
-> 
-> 
-> 
-> 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+Regards,
 
+	Hans
+
+>> If you run into this situation then you have bigger problems than a
+>> potential race condition.
+> 
 
