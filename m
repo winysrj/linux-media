@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33318 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753868Ab3IPPGM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Sep 2013 11:06:12 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MT80086Y4KHP8B0@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Sep 2013 16:05:43 +0100 (BST)
-Message-id: <52371E46.5060007@samsung.com>
-Date: Mon, 16 Sep 2013 17:05:42 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: Patchwork is down or only for me?
-References: <CAPybu_0grDJp7tempFnJd=rxTwvRGfDy=9Knyr1oGjx9vQrEAQ@mail.gmail.com>
- <52371C7D.60208@iki.fi> <52371DA7.6020905@samsung.com>
-In-reply-to: <52371DA7.6020905@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from plane.gmane.org ([80.91.229.3]:40577 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751268Ab3IJN2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Sep 2013 09:28:44 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VJNzl-00082B-0J
+	for linux-media@vger.kernel.org; Tue, 10 Sep 2013 15:28:41 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Sep 2013 15:28:41 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Sep 2013 15:28:41 +0200
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: kconfig syntax error
+Date: Tue, 10 Sep 2013 13:28:21 +0000 (UTC)
+Message-ID: <loom.20130910T135911-353@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/16/2013 05:03 PM, Sylwester Nawrocki wrote:
-> On 09/16/2013 04:58 PM, Antti Palosaari wrote:
->> On 09/16/2013 05:48 PM, Ricardo Ribalda Delgado wrote:
->>> Hello
->>>
->>> I have sent a patch and it does not appear on patchwork, it is also
->>> slower than usual.
->>>
->>> Also a patch from David Jedelsky is not there.
->>
->> At least for now both seems to be there:
->> https://patchwork.kernel.org/project/linux-media/list/
-> 
-> Oops, all patches in "New" state ? :-S
+Hello,
 
-Ah, dammit, that's patchwork.kernel.org... :)
+I cloned the linux kernel from git://linuxtv.org/pinchartl/media.git and
+tried to configure the kernel, but I got the following problem:
+
+arch/arm/Kconfig:98: syntax error
+arch/arm/Kconfig:97: unknown option "With"
+arch/arm/Kconfig:98: unknown option "DMA"
+arch/arm/Kconfig:99: unknown option "specified"
+arch/arm/Kconfig:100: unknown option "by"
+arch/arm/Kconfig:130: syntax error
+arch/arm/Kconfig:129: unknown option "The"
+arch/arm/Kconfig:130: unknown option "bus"
+arch/arm/Kconfig:131: unknown option "the"
+arch/arm/Kconfig:132: unknown option "1995"
+arch/arm/Kconfig:135: syntax error
+ .
+ .
+ .
+and so on. Does anyone know what I am missing? Is my crosscompiler too old?
+
+Regrads, Tom
+
+
 
