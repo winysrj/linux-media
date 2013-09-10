@@ -1,62 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:50078 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754805Ab3I3PHq convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:48572 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab3IJJfI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 11:07:46 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb1so6043045pad.9
-        for <linux-media@vger.kernel.org>; Mon, 30 Sep 2013 08:07:46 -0700 (PDT)
+	Tue, 10 Sep 2013 05:35:08 -0400
+To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: V2: Agenda for the Edinburgh mini-summit
+From: Hans Verkuil <hansverk@cisco.com>
+Date: Tue, 10 Sep 2013 11:34:32 +0200
 MIME-Version: 1.0
-In-Reply-To: <524804DB.7020108@seznam.cz>
-References: <524804B3.9090505@seznam.cz>
-	<524804DB.7020108@seznam.cz>
-Date: Mon, 30 Sep 2013 11:07:46 -0400
-Message-ID: <CAOcJUbyVx=fqHwVeM9K3SKUTk3g7vNqsWf0xokX5nO_DdQenYA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] r820t: fix nint range check
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: =?UTF-8?B?SmnFmcOtIFBpbmthdmE=?= <j-pi@seznam.cz>
-Cc: Gianluca Gennari <gennarone@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201309101134.32883.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jiří,
+I have collected all the ideas up to now in a V2 of the agenda.
 
-Do you have any documentation that supports this value change?
-Changing this value affects the algorithm, and we'd be happier making
-this change if the patch included some better description and perhaps
-a reference explaining why the new value is correct.
+The items are grouped by the person(s) that suggested them. As done in the
+past those who suggested a topic and who will attend the mini-summit are
+expected to prepare for it, perhaps making a (very) small presentation if
+necessary.
+
+Hans Verkuil:
+
+- Discuss ideas/use-cases for a property-based API. An initial discussion
+  appeared in this thread:
+
+  http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
+
+- What is needed to share i2c video transmitters between drm and v4l? Hopefully
+  we will know more after the upcoming LPC.
+
+- Decide on how v4l2 support libraries should be organized. There is code for
+  handling raw-to-sliced VBI decoding, ALSA looping, finding associated
+  video/alsa nodes and for TV frequency tables. We should decide how that should
+  be organized into libraries and how they should be documented. The first two
+  aren't libraries at the moment, but I think they should be. The last two are
+  libraries but they aren't installed. Some work is also being done on an improved
+  version of the 'associating nodes' library that uses the MC if available.
+
+- Define the interaction between selection API, ENUM_FRAMESIZES and S_FMT. See
+  this thread for all the nasty details:
+
+  http://www.spinics.net/lists/linux-media/msg65137.html
+
+- VIDIOC_TRY_FMT shouldn't return -EINVAL when an unsupported pixelformat is provided,
+  but in practice video capture board tend to do that, while webcam drivers tend to map
+  it silently to a valid pixelformat. Some applications rely on the -EINVAL error code.
+
+  We need to decide how to adjust the spec. I propose to just say that some drivers
+  will map it silently and others will return -EINVAL and that you don't know what a
+  driver will do. Also specify that an unsupported pixelformat is the only reason why
+  TRY_FMT might return -EINVAL.
+
+  Alternatively we might want to specify explicitly that EINVAL should be returned for
+  video capture devices (i.e. devices supporting S_STD or S_DV_TIMINGS) and 0 for all
+  others.
+
+Mauro Carvalho Chehab:
+
+- Better integration between DVB and V4L2, including starting using the media
+  controller API on DVB side too.
+
+- Get the status about the media controller API usage on ALSA.
+
+Oliver Schinagl, Benjamin Gaignard, Hugues Fruchet, Laurent Pinchart, Pawel Osciak:
+
+- How to handle codecs where part of the processing is done in HW and part in
+  SW?
+
+Sakari Ailus:
+
+- Multi-format frames and metadata. Support would be needed on video nodes
+  and V4L2 subdev nodes. I'll prepare the RFC for the former; the latter has
+  an RFC here: http://www.spinics.net/lists/linux-media/msg67295.html
+
+Ricardo Ribalda Delgado, Sylwester Nawrocki:
+
+- Support for multiple rectangle cropping
+  See thread: http://www.spinics.net/lists/linux-media/msg67824.html
+
+Feel free to add suggestions to this list.
+
+As it stands I don't think it will be possible to handle it all in one day.
+In particular the codec problem as mentioned by Oliver et al needs a lot of
+time. Should we set aside a separate day for just this? October 21 or 22
+would work for me. I would really like to get some feedback on this. If we
+decide to go for a second day for this topic, then I can see if I can get
+a room. It looks like there is a lot of interest in getting this sorted,
+so brainstorming for a day might be quite useful.
+
+Note: my email availability will be limited in the next two weeks, especially
+next week, as I am abroad (LinuxCon and LPC).
 
 Regards,
 
-Mike Krufky
+	Hans
 
-On Sun, Sep 29, 2013 at 6:45 AM, Jiří Pinkava <j-pi@seznam.cz> wrote:
->
->
-> Use full range of VCO parameters, fixes tunning for some frequencies.
-> ---
->  drivers/media/tuners/r820t.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-> index 1c23666..e25c720 100644
-> --- a/drivers/media/tuners/r820t.c
-> +++ b/drivers/media/tuners/r820t.c
-> @@ -637,7 +637,7 @@ static int r820t_set_pll(struct r820t_priv *priv,
-> enum v4l2_tuner_type type,
->                 vco_fra = pll_ref * 129 / 128;
->         }
->
-> -       if (nint > 63) {
-> +       if (nint > 76) {
->                 tuner_info("No valid PLL values for %u kHz!\n", freq);
->                 return -EINVAL;
->         }
-> --
-> 1.8.3.2
->
->
+_______________________________________________
+media-workshop mailing list
+media-workshop@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
