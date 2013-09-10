@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:52336 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab3IIFzb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 01:55:31 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MSU00D4AGG1UP40@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Sep 2013 14:55:18 +0900 (KST)
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
-References: <005e01cead20$c1c5d690$455183b0$%han@samsung.com>
-In-reply-to: <005e01cead20$c1c5d690$455183b0$%han@samsung.com>
-Subject: [PATCH 4/5] [media] ngene: Remove casting the return value which is a
- void pointer
-Date: Mon, 09 Sep 2013 14:55:14 +0900
-Message-id: <006101cead21$27432180$75c96480$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:42112 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab3IJOK5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Sep 2013 10:10:57 -0400
+Received: by mail-oa0-f51.google.com with SMTP id h1so7747932oag.24
+        for <linux-media@vger.kernel.org>; Tue, 10 Sep 2013 07:10:57 -0700 (PDT)
+MIME-Version: 1.0
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 10 Sep 2013 16:10:37 +0200
+Message-ID: <CAPybu_2dq6FkWebNw8ySD=4wJu++3z7K6oNDjXEJvcKVvRTVsQ@mail.gmail.com>
+Subject: videobuf2: V4L2_BUF_TYPE_VIDEO_CAPTURE and V4L2_BUF_TYPE_VIDEO_OUTPUT
+ at the same time?
+To: linux-media <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Casting the return value which is a void pointer is redundant.
-The conversion from void pointer to any other pointer type is
-guaranteed by the C programming language.
+Hello!
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/media/pci/ngene/ngene-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I am writing the driver for a device that can work as an input and as
+output at the same time. It is used for debugging of the video
+pipeline.
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 37ebc42..21d18d4 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1622,7 +1622,7 @@ static void ngene_unlink(struct ngene *dev)
- 
- void ngene_shutdown(struct pci_dev *pdev)
- {
--	struct ngene *dev = (struct ngene *)pci_get_drvdata(pdev);
-+	struct ngene *dev = pci_get_drvdata(pdev);
- 
- 	if (!dev || !shutdown_workaround)
- 		return;
+Is it possible to have a vb2 queue that supports capture and out at
+the same time?
+
+After a fast look on the code it seems that the code flow is different
+depending of the type. if (V4L2_TYPE_IS_OUTPUT()....)  :(
+
+Also it seems that struct video device has only space for one
+vb2_queue, so I cant create a video device with two vbuf2 queues.
+
+So is there any way to have a video device with videobuf2 that
+supports caputer and output?
+
+Thanks!
+
 -- 
-1.7.10.4
-
-
+Ricardo Ribalda
