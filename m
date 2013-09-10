@@ -1,55 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:35570 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754561Ab3I3QUt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 12:20:49 -0400
-MIME-Version: 1.0
-In-Reply-To: <1379375332.7083.3.camel@joe-AO722>
-References: <20130916233720.GA3967@www.outflux.net>
-	<1379375332.7083.3.camel@joe-AO722>
-Date: Mon, 30 Sep 2013 12:20:48 -0400
-Message-ID: <CAOcJUbxhwQQJudR1sz5rcEQb6V+AdcB0HUBAdsHZWoSZ2CBXmw@mail.gmail.com>
-Subject: Re: [PATCH] dvb: fix potential format string leak
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1860 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124Ab3IJCy6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 22:54:58 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8A2stOq083393
+	for <linux-media@vger.kernel.org>; Tue, 10 Sep 2013 04:54:57 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 1F2CE2A0764
+	for <linux-media@vger.kernel.org>; Tue, 10 Sep 2013 04:54:46 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130910025446.1F2CE2A0764@tschai.lan>
+Date: Tue, 10 Sep 2013 04:54:46 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 16, 2013 at 7:48 PM, Joe Perches <joe@perches.com> wrote:
-> On Mon, 2013-09-16 at 16:37 -0700, Kees Cook wrote:
->> Make sure that a format string cannot accidentally leak into the printk
->> buffer.
-> []
->> diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
-> []
->> @@ -649,7 +649,7 @@ static int dib9000_risc_debug_buf(struct dib9000_state *state, u16 * data, u8 si
->>       b[2 * (size - 2) - 1] = '\0';   /* Bullet proof the buffer */
->>       if (*b == '~') {
->>               b++;
->> -             dprintk(b);
->> +             dprintk("%s", b);
->>       } else
->>               dprintk("RISC%d: %d.%04d %s", state->fe_id, ts / 10000, ts % 10000, *b ? b : "<emtpy>");
->>       return 1;
->
-> This looks odd.
->
-> Perhaps this should be:
->
->         if (*b == '~')
->                 b++;
->         dprintk("etc...);
->
-> It'd be nice to fix the <empty> typo too.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This *does* look odd, I agree.  Meanwhile, I do believe this patch
-leaves things better than before.  I'm going to merge Kees' patch for
-now, but it would be nice to see a better cleanup for that code block.
+Results of the daily build of media_tree:
 
--Mike Krufky
+date:		Tue Sep 10 04:00:20 CEST 2013
+git branch:	test
+git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
