@@ -1,120 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3528 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752873Ab3IECyp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 22:54:45 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r852sga7059640
-	for <linux-media@vger.kernel.org>; Thu, 5 Sep 2013 04:54:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id DEB942A0764
-	for <linux-media@vger.kernel.org>; Thu,  5 Sep 2013 04:54:40 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130905025440.DEB942A0764@tschai.lan>
-Date: Thu,  5 Sep 2013 04:54:40 +0200 (CEST)
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:6368 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab3IJJRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Sep 2013 05:17:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
+Date: Tue, 10 Sep 2013 11:17:01 +0200
+Cc: Kamil Debski <k.debski@samsung.com>,
+	"'Pawel Osciak'" <posciak@chromium.org>,
+	linux-media@vger.kernel.org,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <04c001cead3a$f8ea0dc0$eabe2940$%debski@samsung.com> <522D9065.3040209@samsung.com>
+In-Reply-To: <522D9065.3040209@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201309101117.01044.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon 9 September 2013 11:09:57 Sylwester Nawrocki wrote:
+> On 09/09/2013 11:00 AM, Kamil Debski wrote:
+> [...]
+> >>>> We have QP controls separately for H264, H263 and MPEG4. Why is that?
+> >>>> Which one should I use for VP8? Shouldn't we unify them instead?
+> >>>
+> >>> I can't quite remember the details, so I've CCed Kamil since he added
+> >> those controls.
+> >>> At least the H264 QP controls are different from the others as they
+> >>> have a different range. What's the range for VP8?
+> >>
+> >> Yes, it differs, 0-127.
+> >> But I feel this is pretty unfortunate, is it a good idea to multiply
+> >> controls to have one per format when they have different ranges
+> >> depending on the selected format in general? Perhaps a custom handler
+> >> would be better?
+> >>
+> >>> I'm not sure why the H263/MPEG4 controls weren't unified: it might be
+> >>> that since the
+> >>> H264 range was different we decided to split it up per codec. But I
+> >>> seem to remember that there was another reason as well.
+> > 
+> > We had a discussion about this on linux-media mailing list. It can be found
+> > here:
+> > http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32606
+> > In short, it is a mix of two reasons: one - the valid range is different for
+> > different formats and second - implementing controls which have different
+> > min/max values depending on format was not easy.
+> 
+> Hmm, these seem pretty vague reasons. And since some time we have support
+> for dynamic control range update [1].
 
-Results of the daily build of media_tree:
+I don't think we should change this. We chose to go with separate controls,
+and we should stick with that. We might do it differently today, but it's
+not a big deal.
 
-date:		Thu Sep  5 04:00:21 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> > On the one hand I am thinking that now, when we have more codecs, it would
+> > be better
+> > to have a single control, on the other hand what about backward
+> > compatibility?
+> > Is there a graceful way to merge H263 and H264 QP controls?
+> 
+> [1] https://patchwork.linuxtv.org/patch/16436/
+> 
+> --
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
