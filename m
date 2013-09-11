@@ -1,123 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3525 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262Ab3I1C5E (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3762 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935Ab3IKKt5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 22:57:04 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8S2v0ld026007
-	for <linux-media@vger.kernel.org>; Sat, 28 Sep 2013 04:57:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 7FC2E2A0764
-	for <linux-media@vger.kernel.org>; Sat, 28 Sep 2013 04:56:59 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130928025659.7FC2E2A0764@tschai.lan>
-Date: Sat, 28 Sep 2013 04:56:59 +0200 (CEST)
+	Wed, 11 Sep 2013 06:49:57 -0400
+Message-ID: <52304AC6.5020107@xs4all.nl>
+Date: Wed, 11 Sep 2013 12:49:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] RFC: Support for multiple selections
+References: <CAPybu_3cOLztceJoNwyZQGuC8maNYKuunbxJRHt7X6nQHmCyhw@mail.gmail.com> <1378888254-5236-1-git-send-email-ricardo.ribalda@gmail.com> <52303233.6060504@xs4all.nl> <CAPybu_18+43UTxyxTRJ8DNqfxTOs+o3yv=32AaO7LHh9926QDg@mail.gmail.com>
+In-Reply-To: <CAPybu_18+43UTxyxTRJ8DNqfxTOs+o3yv=32AaO7LHh9926QDg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Ricardo,
 
-Results of the daily build of media_tree:
+On 09/11/2013 11:34 AM, Ricardo Ribalda Delgado wrote:
+> Hi Hans
+> 
+> Thanks for your feedback
+> 
+> On Wed, Sep 11, 2013 at 11:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Ricardo,
+>>
+>> On 09/11/2013 10:30 AM, Ricardo Ribalda Delgado wrote:
+>>> A new id field is added to the struct selection. On devices that
+>>> supports multiple sections this id indicate which of the selection to
+>>> modify.
+>>>
+>>> A new control V4L2_CID_SELECTION_BITMASK selects which of the selections
+>>> are used, if the control is set to zero the default rectangles are used.
+>>>
+>>> This is needed in cases where the user has to change multiple selections
+>>> at the same time to get a valid combination.
+>>>
+>>> On devices where the control V4L2_CID_SELECTION_BITMASK does not exist,
+>>> the id field is ignored
+>>
+>> This feels like a hack to me. A big problem I have with using a control here
+>> is that with a control you can't specify for which selection target it is.
+>>
+> 
+> I am not sure that I understand what you mean here.
+> 
+> If you set the control to 0x1 you are using selection 0, if you set
+> the control to 0x5, you are using selection 0 and 2.
 
-date:		Sat Sep 28 04:00:34 CEST 2013
-git branch:	test
-git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+If you look here:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-selection-targets
 
-Detailed results are available here:
+you see that a selection has a 'target': i.e. does the selection define a crop
+rectangle, a compose rectange, a default crop rectangle, etc.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+You are extending the API to support multiple rectangles per target and using
+a control to select which rectangles are active (if I understand correctly).
+But that control does not (and cannot) specify for which target the rectangles
+should be activated.
 
-Full logs are available here:
+> 
+> 
+>> If you want to set multiple rectangles, why not just pass them directly? E.g.:
+>>
+>> struct v4l2_selection {
+>>         __u32                   type;
+>>         __u32                   target;
+>>         __u32                   flags;
+>>         union {
+>>                 struct v4l2_rect        r;
+>>                 struct v4l2_rect        *pr;
+>>         };
+>>         __u32                   rectangles;
+>>         __u32                   reserved[8];
+>> };
+>>
+>> If rectangles > 1, then pr is used.
+>>
+> 
+> The structure is passed in a ioctl and I dont think that it is a good
+> idea that you let the kernel get/set a memory address not encapsulated
+> in it. I can see that it could lead to security breaches if there is a
+> mistake on the handling.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+It's used in lots of places. It's OK, provided you check the memory carefully.
+See e.g. how VIDIOC_G/S_EXT_CTRLS is handled. Usually the memory checks are done
+in the v4l2 core and the driver doesn't need to take care of it.
 
-The Media Infrastructure API from this daily build is here:
+>> It's a bit more work to add this to the core code (VIDIOC_SUBDEV_G/S_SELECTION
+>> should probably be changed at the same time and you have to fix existing drivers
+>> to check/set the new rectangles field), but it scales much better.
+> 
+> Also, we would be broking the ABI. Rectangles is not a mandatory
+> field, and has a value != 0.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+The spec clearly states that:
+
+"The flags and reserved fields of struct v4l2_selection are ignored and they must
+ be filled with zeros."
+
+Any app not doing that is not obeying the API and hence it is an application bug.
+
+It's standard practice inside the V4L2 API to handle reserved fields in that way,
+as it provides a mechanism to extend the API safely in the future.
+
+> 
+> What we could do is leave the V4L2_CID_SELECTION_BITMASK  out of the
+> api, but keep the id field on the structure, so the user can define a
+> private control to do whatever he needs with the id field, wekeep the
+> ABI compatibility and no big changes are needed.
+
+I really don't like that. It artificially limits the number of rectangles to 32
+and makes the API just cumbersome to use.
+
+The changes aren't difficult, just a bit tedious, and the end result does exactly
+what you want and, I think, is also very useful for things like face detection or
+object detection in general where a list of rectangles (or points, which is just a
+1x1 rectangle) has to be returned in an atomic manner.
+
+One thing that I am not certain about is whether v4l2_rect should be used when
+specifying multiple rectangles. I can imagine that rectangles have an additional
+type field (e.g. for face detection you might have rectangles for the left eye,
+right eye and mouth).
+
+Regards,
+
+	Hans
