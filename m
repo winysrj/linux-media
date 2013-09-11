@@ -1,216 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59603 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab3I1Qvw convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1446 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754043Ab3IKNsd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Sep 2013 12:51:52 -0400
-Date: Sat, 28 Sep 2013 18:51:36 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: =?UTF-8?Q?Nguy=E1=BB=85n_Minh_Ho=C3=A0ng?=
-	<minhhoang1004@yahoo.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@linuxtv.org>, Antti Palosaari <crope@iki.fi>
-Message-ID: <1691798187.333594.1380387096688.open-xchange@email.1and1.fr>
-In-Reply-To: <1915168699.332052.1380312719179.open-xchange@email.1and1.fr>
-References: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com> <259638318.304490.1380270295589.open-xchange@email.1and1.fr> <293EC746-6C7C-4ED3-9509-1FA868AB9661@yahoo.com> <52966910.313114.1380280004856.open-xchange@email.1and1.fr> <EE60072D-11C5-4C25-B1EA-C9627DD6B3F1@yahoo.com> <1915168699.332052.1380312719179.open-xchange@email.1and1.fr>
-Subject: Re: Need help with AverMedia306 driver on linux system.
+	Wed, 11 Sep 2013 09:48:33 -0400
+Message-ID: <523074A3.407@xs4all.nl>
+Date: Wed, 11 Sep 2013 15:48:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi
+Subject: Re: [PATCH/RFC v3 06/19] video: display: OF support
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1378304498.5721.42.camel@pizza.hi.pengutronix.de> <2263372.8nCBHctlWT@avalon>
+In-Reply-To: <2263372.8nCBHctlWT@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry
-
-I need clarify one thing,
 
 
-For the DVB, it's not the xc3028 here,
+On 09/11/2013 01:33 PM, Laurent Pinchart wrote:
+> Hi Philipp,
+> 
+> On Wednesday 04 September 2013 16:21:38 Philipp Zabel wrote:
+>> Am Samstag, den 10.08.2013, 01:03 +0200 schrieb Laurent Pinchart:
+>>> Extend the notifier with DT node matching support, and add helper
+>>> functions to build the notifier and link entities based on a graph
+>>> representation in DT.
+>>>
+>>> Signed-off-by: Laurent Pinchart
+>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>> ---
+>>>
+>>>  drivers/video/display/display-core.c     | 334 ++++++++++++++++++++++++++
+>>>  drivers/video/display/display-notifier.c | 187 +++++++++++++++++
+>>>  include/video/display.h                  |  45 +++++
+>>>  3 files changed, 566 insertions(+)
+>>>
+>>> diff --git a/drivers/video/display/display-core.c
+>>> b/drivers/video/display/display-core.c index c3b47d3..328ead7 100644
+>>> --- a/drivers/video/display/display-core.c
+>>> +++ b/drivers/video/display/display-core.c
+>>
+>> [...]
+>>
+>>> @@ -420,6 +599,161 @@ int display_entity_link_graph(struct device *dev,
+>>> struct list_head *entities)> 
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(display_entity_link_graph);
+>>>
+>>> +#ifdef CONFIG_OF
+>>> +
+>>> +static int display_of_entity_link_entity(struct device *dev,
+>>> +					 struct display_entity *entity,
+>>> +					 struct list_head *entities,
+>>> +					 struct display_entity *root)
+>>> +{
+>>> +	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+>>> +	const struct device_node *node = entity->dev->of_node;
+>>
+>> the current device tree matching implementation only allows one display
+>> entity per linux device. How about adding an of_node pointer to struct
+>> display_entity directly and allow multiple display entity nodes below in a
+>> single device node in the device tree?
+> 
+> That's a very good point. We had a similar issues in V4L2, with sensors that 
+> would create several entities. However, in those cases, the sensors would be 
+> connected to the rest of the pipeline through a single entity :
+> 
+> Sensor Entity 1 -> ... -> Sensor Entity N -> V4L2 pipeline ...
+> 
+> The core code thus had to care about a single sensor entity when building the 
+> pipeline. We could solve the problem in a similar way for panels, but encoders 
+> need a more elaborate solution.
 
-It's the AF9013
+Why? Sorry, I don't see why an encoder is different in this respect than a panel.
+I'm sure I'm missing something here.
 
-I have read the phrase "available C API" in the datasheet" , I googled it and
-found this thread for example :
+> 
+> I see (at least) two possibilities here, either explicitly describing all 
+> entities that make the device in DT (as you have proposed below), or creating 
+> a hierarchy of entities, with parent entities that can contain several child 
+> entities. I've CC'ed Guennadi, Hans, Sylwester and Sakari to get their opinion 
+> on the matter.
 
+I think the way this is done today in complex devices is that the driver just
+exposes itself as a single sub-device, but internally it has its own pipeline of
+sub-devices. The only one that I know of (platform/s5p-tv/hdmi_drv) doesn't expose
+them to a media controller, they are completely hidden inside the hdmi driver.
 
-http://forum.stmlabs.com/showthread.php?tid=3404
+The ability to support hierarchies of entities would be very nice. However, I
+don't know how much work that would be to implement and if it is worth the
+effort.
 
+Regards,
 
-It's for raspberry and the likes linux-toy-SBC/SOC ,
+	Hans
 
-I will go thru it , and keep you informed .
-
-
-The datasheet shows that it's accessible by i2c too, so it must be linked to the
-cx23885 by I2c ,
-
-I think it's at the address 0x66,
-
-once it's "linked up" I should be able to port their code .
-
-
-Best regards
-
-Rémi .
-
-
-> Le 27 septembre 2013 à 22:11, remi <remi@remis.cc> a écrit :
-> 
-> 
-> Good news, and thank you for the feedback
-> 
-> 
-> Must be because I am in Paris/FRANCE, they went all TNT (dvb)
-> 
-> I thaught they left a channel or two in the hertzerian analog but not :( or my
-> reception is really bad ...
-> 
-> And you have the right cables if it's in it's original laptop !! :)
-> 
-> 
-> Thnx again for your help !!
-> 
-> 
-> 
-> 
-> 
-> > Le 27 septembre 2013 à 13:20, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
-> > 
-> > 
-> > Yes, you are so smart, buddy. I know you are not developer of these card driver. But you got the way to make this card worked well. So i wrote to you. I am not successful with your 306 patches because i use other revision of linuxtv driver, i tried modprobe option with card=39 too and as you say, it works as analog - no dvb. This card is hybridge, not single analog or dvb. If you get the way, help me with your way :) thank you. 
-> > 
-> > Sent from my iPhone
-> > 
-> > > On Sep 27, 2013, at 6:06 PM, remi <remi@remis.cc> wrote:
-> > > 
-> > > Oh, I am not the person who wrote the driver ... :(
-> > > 
-> > > 
-> > > I merly cloned the HC81r, gave it the proper PCI ID, and the correct firmware ,
-> > > 
-> > > I also have no DVB either,
-> > > 
-> > > Unless I get time to learn V4L API, or the mainter of the "xc2028" finds more
-> > > infos too ...
-> > > 
-> > > we are prety much at this stage, some analog, but no dvb ...
-> > > 
-> > > at my knowlodge .
-> > > 
-> > > 
-> > > Best regards
-> > > 
-> > > Rémi
-> > > 
-> > > 
-> > > 
-> > > 
-> > >>  Le 27 septembre 2013 à 12:46, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
-> > >>  
-> > >>  
-> > >>  Thank you for your relying. I know that your patch is not same my revision, i can't apply it. I think i should find and add your patches manually, but there are so much code to do. I am on phone now. I will send you some more detail when i am back to my computer. Pls help me. 
-> > >>  Ps: i used "option=39" before, my system got it as video and vbi device, not dvb device. Maybe i need some patches in this case as your suggestion today.
-> > >>  Thank you again!
-> > >>  
-> > >>  Sent from my iPhone
-> > >>  
-> > >>  > On Sep 27, 2013, at 3:24 PM, remi <remi@remis.cc> wrote:
-> > >>  > 
-> > >>  > :)
-> > >>  > 
-> > >>  > Also,
-> > >>  > 
-> > >>  > 
-> > >>  > by the time I redo the patch,
-> > >>  > 
-> > >>  > 
-> > >>  > You must have seen how i have reached this point,
-> > >>  > 
-> > >>  > I have actually started by insering the module with card=39 as an option,
-> > >>  > 
-> > >>  > 
-> > >>  > So you can for now, add theses line to
-> > >>  > 
-> > >>  > gpunk@gpunk-Aspire-8930:~$cat /etc/modprobe.d/video-tv.conf
-> > >>  > 
-> > >>  > 
-> > >>  > options tuner-xc2028 firmware_name=xc3028-v27.fw
-> > >>  > options cx23885 card=39
-> > >>  > 
-> > >>  > 
-> > >>  > I called my file this way ... it's arbitrary, please check the man modprobe of
-> > >>  > your ditribution/kernel .
-> > >>  > 
-> > >>  > 
-> > >>  > Best regards
-> > >>  > 
-> > >>  > Rémi
-> > >>  > 
-> > >>  > 
-> > >>  > 
-> > >>  >>  Le 21 septembre 2013 à 19:43, "Admin@tydaikho.com" <minhhoang1004@yahoo.com> a écrit :
-> > >>  >>  
-> > >>  >>  
-> > >>  >>  Hi Remi!
-> > >>  >>  I got my card but i have not finish to install driver. I follow your patch on linuxtv.org but i am not successful. it makes some mistake: "malform" and "hunk" errors.
-> > >>  >>  =======================
-> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885.patch
-> > >>  >>  can't find file to patch at input line 3
-> > >>  >>  Perhaps you used the wrong -p or --strip option?
-> > >>  >>  The text leading up to this was:
-> > >>  >>  --------------------------
-> > >>  >>  |--- drivers/media/pci/cx23885/cx23885.h   2013-03-25 05:45:50.000000000 +0100
-> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885.h      2013-08-21 13:55:20.010625134 +0200
-> > >>  >>  --------------------------
-> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885.h                                  
-> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885.h
-> > >>  >>  patch: **** malformed patch at line 4:  #define CX23885_BOARD_PROF_8000                37
-> > >>  >>  ==========================
-> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-video.patch
-> > >>  >>  can't find file to patch at input line 4
-> > >>  >>  Perhaps you used the wrong -p or --strip option?
-> > >>  >>  The text leading up to this was:
-> > >>  >>  --------------------------
-> > >>  >>  |--- drivers/media/pci/cx23885/cx23885-video.c     2013-08-02 05:45:59.000000000 +0200
-> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885-video.c        2013-08-21 13:55:20.017625046
-> > >>  >>  |+0200
-> > >>  >>  --------------------------
-> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-video.c
-> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-video.c
-> > >>  >>  Hunk #1 FAILED at 511.
-> > >>  >>  Hunk #2 FAILED at 1888.
-> > >>  >>  2 out of 2 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-video.c.rej
-> > >>  >>  ============================
-> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-cards.patch
-> > >>  >>  can't find file to patch at input line 4
-> > >>  >>  Perhaps you used the wrong -p or --strip option?
-> > >>  >>  The text leading up to this was:
-> > >>  >>  --------------------------
-> > >>  >>  |--- drivers/media/pci/cx23885/cx23885-cards.c     2012-12-28 00:04:05.000000000 +0100
-> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885-cards.c        2013-08-21 14:15:54.173195979
-> > >>  >>  |+0200
-> > >>  >>  --------------------------
-> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-cards.c
-> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-cards.c
-> > >>  >>  Hunk #1 FAILED at 604.
-> > >>  >>  Hunk #2 FAILED at 841.
-> > >>  >>  Hunk #3 FAILED at 1069.
-> > >>  >>  Hunk #4 FAILED at 1394.
-> > >>  >>  Hunk #5 FAILED at 1623.
-> > >>  >>  Hunk #6 FAILED at 1758.
-> > >>  >>  6 out of 6 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-cards.c.rej
-> > >>  >>  ===============================
-> > >>  >>  
-> > >>  >>  If you don't mind, i need your support to get my card works well. Thank you very much!
-> > >>  >>  
-> > >>  >>   
-> > >>  >>  ----------------------------------------------------------
-> > >>  >>  Yahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho
-> > >>  >>  ----------------------------------------------------------
-> > >>  >>  
-> > >>  >>  (http://tydaikho.com)  VS  (http://vnluser.net)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>> lvds-encoder {
+>> 	channel@0 {
+> 
+> If I understand this correctly, your LVDS encoder has two independent 
+> channels. In the general case a device made of multiple entities might have 
+> those entities chained, so "channel" might not be the best term. "entity" 
+> might be a better choice.
+> 
+>> 		port@0 {
+>> 			lvds0_input: endpoint {
+>> 			};
+>> 		};
+>> 		port@1 {
+>> 			lvds0_output: endpoint {
+>> 			};
+>> 		};
+>> 	};
+>> 	channel@1 {
+>> 		port@0 {
+>> 			lvds1_input: endpoint {
+>> 			};
+>> 		};
+>> 		lvds1: port@1 {
+>> 			lvds1_output: endpoint {
+>> 			};
+>> 		};
+>> 	};
+>> };
+>>
+>>> +	struct media_entity *local = &entity->entity;
+>>> +	struct device_node *ep = NULL;
+>>> +	int ret = 0;
+>>> +
+>>> +	dev_dbg(dev, "creating links for entity %s\n", local->name);
+>>> +
+>>> +	while (1) {
+>>> +		struct media_entity *remote = NULL;
+>>> +		struct media_pad *remote_pad;
+>>> +		struct media_pad *local_pad;
+>>> +		struct display_of_link link;
+>>> +		struct display_entity *ent;
+>>> +		struct device_node *next;
+>>> +
+>>> +		/* Get the next endpoint and parse its link. */
+>>> +		next = display_of_get_next_endpoint(node, ep);
+>>> +		if (next == NULL)
+>>> +			break;
+>>> +
+>>> +		of_node_put(ep);
+>>> +		ep = next;
+>>> +
+>>> +		dev_dbg(dev, "processing endpoint %s\n", ep->full_name);
+>>> +
+>>> +		ret = display_of_parse_link(ep, &link);
+>>> +		if (ret < 0) {
+>>> +			dev_err(dev, "failed to parse link for %s\n",
+>>> +				ep->full_name);
+>>> +			continue;
+>>> +		}
+>>> +
+>>> +		/* Skip source pads, they will be processed from the other end of
+>>> +		 * the link.
+>>> +		 */
+>>> +		if (link.local_port >= local->num_pads) {
+>>> +			dev_err(dev, "invalid port number %u on %s\n",
+>>> +				link.local_port, link.local_node->full_name);
+>>> +			display_of_put_link(&link);
+>>> +			ret = -EINVAL;
+>>> +			break;
+>>> +		}
+>>> +
+>>> +		local_pad = &local->pads[link.local_port];
+>>> +
+>>> +		if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
+>>> +			dev_dbg(dev, "skipping source port %s:%u\n",
+>>> +				link.local_node->full_name, link.local_port);
+>>> +			display_of_put_link(&link);
+>>> +			continue;
+>>> +		}
+>>> +
+>>> +		/* Find the remote entity. If not found, just skip the link as
+>>> +		 * it goes out of scope of the entities handled by the notifier.
+>>> +		 */
+>>> +		list_for_each_entry(ent, entities, list) {
+>>> +			if (ent->dev->of_node == link.remote_node) {
+>>> +				remote = &ent->entity;
+>>> +				break;
+>>> +			}
+>>> +		}
+>>> +
+>>> +		if (root->dev->of_node == link.remote_node)
+>>> +			remote = &root->entity;
+>>> +
+>>> +		if (remote == NULL) {
+>>> +			dev_dbg(dev, "no entity found for %s\n",
+>>> +				link.remote_node->full_name);
+>>> +			display_of_put_link(&link);
+>>> +			continue;
+>>> +		}
+>>> +
+>>> +		if (link.remote_port >= remote->num_pads) {
+>>> +			dev_err(dev, "invalid port number %u on %s\n",
+>>> +				link.remote_port, link.remote_node->full_name);
+>>> +			display_of_put_link(&link);
+>>> +			ret = -EINVAL;
+>>> +			break;
+>>> +		}
+>>> +
+>>> +		remote_pad = &remote->pads[link.remote_port];
+>>> +
+>>> +		display_of_put_link(&link);
+>>> +
+>>> +		/* Create the media link. */
+>>> +		dev_dbg(dev, "creating %s:%u -> %s:%u link\n",
+>>> +			remote->name, remote_pad->index,
+>>> +			local->name, local_pad->index);
+>>> +
+>>> +		ret = media_entity_create_link(remote, remote_pad->index,
+>>> +					       local, local_pad->index,
+>>> +					       link_flags);
+>>> +		if (ret < 0) {
+>>> +			dev_err(dev,
+>>> +				"failed to create %s:%u -> %s:%u link\n",
+>>> +				remote->name, remote_pad->index,
+>>> +				local->name, local_pad->index);
+>>> +			break;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	of_node_put(ep);
+>>> +	return ret;
+>>> +}
+>>
+>> [...]
+>>
+>> For example like this:
+>>
+>> diff --git a/drivers/video/display/display-core.c
+>> b/drivers/video/display/display-core.c index 7910c23..a04feed 100644
+>> --- a/drivers/video/display/display-core.c
+>> +++ b/drivers/video/display/display-core.c
+>> @@ -302,6 +302,9 @@ int display_entity_init(struct display_entity *entity,
+>> unsigned int num_sinks, kref_init(&entity->ref);
+>>  	entity->state = DISPLAY_ENTITY_STATE_OFF;
+>>
+>> +	if (!entity->of_node && entity->dev)
+>> +		entity->of_node = entity->dev->of_node;
+>> +
+>>  	num_pads = num_sinks + num_sources;
+>>  	pads = kzalloc(sizeof(*pads) * num_pads, GFP_KERNEL);
+>>  	if (pads == NULL)
+>> @@ -665,7 +668,7 @@ static int display_of_entity_link_entity(struct device
+>> *dev, struct display_entity *root)
+>>  {
+>>  	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+>> -	const struct device_node *node = entity->dev->of_node;
+>> +	const struct device_node *node = entity->of_node;
+>>  	struct media_entity *local = &entity->entity;
+>>  	struct device_node *ep = NULL;
+>>  	int num_sink, ret = 0;
+>> @@ -727,13 +730,13 @@ static int display_of_entity_link_entity(struct device
+>> *dev, * it goes out of scope of the entities handled by the notifier. */
+>>  		list_for_each_entry(ent, entities, list) {
+>> -			if (ent->dev->of_node == link.remote_node) {
+>> +			if (ent->of_node == link.remote_node) {
+>>  				remote = &ent->entity;
+>>  				break;
+>>  			}
+>>  		}
+>>
+>> -		if (root && root->dev->of_node == link.remote_node)
+>> +		if (root && root->of_node == link.remote_node)
+>>  			remote = &root->entity;
+>>
+>>  		if (remote == NULL) {
+>> diff --git a/drivers/video/display/display-notifier.c
+>> b/drivers/video/display/display-notifier.c index a3998c7..d0da6e5 100644
+>> --- a/drivers/video/display/display-notifier.c
+>> +++ b/drivers/video/display/display-notifier.c
+>> @@ -28,28 +28,30 @@ static DEFINE_MUTEX(display_entity_mutex);
+>>   * Notifiers
+>>   */
+>>
+>> -static bool match_platform(struct device *dev,
+>> +static bool match_platform(struct display_entity *entity,
+>>  			   struct display_entity_match *match)
+>>  {
+>>  	pr_debug("%s: matching device '%s' with name '%s'\n", __func__,
+>> -		 dev_name(dev), match->match.platform.name);
+>> +		 dev_name(entity->dev), match->match.platform.name);
+>>
+>> -	return !strcmp(match->match.platform.name, dev_name(dev));
+>> +	return !strcmp(match->match.platform.name, dev_name(entity->dev));
+>>  }
+>>
+>> -static bool match_dt(struct device *dev, struct display_entity_match
+>> *match) +static bool match_dt(struct display_entity *entity,
+>> +		     struct display_entity_match *match)
+>>  {
+>>  	pr_debug("%s: matching device node '%s' with node '%s'\n", __func__,
+>> -		 dev->of_node->full_name, match->match.dt.node->full_name);
+>> +		 entity->of_node->full_name, match->match.dt.node->full_name);
+>>
+>> -	return match->match.dt.node == dev->of_node;
+>> +	return match->match.dt.node == entity->of_node;
+>>  }
+>>
+>>  static struct display_entity_match *
+>>  display_entity_notifier_match(struct display_entity_notifier *notifier,
+>>  			      struct display_entity *entity)
+>>  {
+>> -	bool (*match_func)(struct device *, struct display_entity_match *);
+>> +	bool (*match_func)(struct display_entity *,
+>> +			   struct display_entity_match *);
+>>  	struct display_entity_match *match;
+>>
+>>  	pr_debug("%s: matching entity '%s' (ptr 0x%p dev '%s')\n", __func__,
+>> @@ -66,7 +68,7 @@ display_entity_notifier_match(struct
+>> display_entity_notifier *notifier, break;
+>>  		}
+>>
+>> -		if (match_func(entity->dev, match))
+>> +		if (match_func(entity, match))
+>>  			return match;
+>>  	}
+>>
+>> diff --git a/include/video/display.h b/include/video/display.h
+>> index 4c402bee..d1f8833 100644
+>> --- a/include/video/display.h
+>> +++ b/include/video/display.h
+>> @@ -228,6 +228,7 @@ struct display_entity {
+>>  	struct list_head list;
+>>  	struct device *dev;
+>>  	struct module *owner;
+>> +	struct device_node *of_node;
+>>  	struct kref ref;
+>>
+>>  	char name[32];
