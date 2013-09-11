@@ -1,99 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:64830 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754637Ab3ILX2m convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60118 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963Ab3IKLd0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 19:28:42 -0400
-Received: by mail-ea0-f179.google.com with SMTP id b10so223754eae.10
-        for <linux-media@vger.kernel.org>; Thu, 12 Sep 2013 16:28:41 -0700 (PDT)
-Date: Fri, 13 Sep 2013 01:28:38 +0200
-From: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/3] [media] siano: Improve debug/info messages
-Message-ID: <20130913012838.7238b80d@neutrino.exnihilo>
-In-Reply-To: <1379016000-19577-3-git-send-email-m.chehab@samsung.com>
-References: <1379016000-19577-1-git-send-email-m.chehab@samsung.com>
-	<1379016000-19577-3-git-send-email-m.chehab@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 11 Sep 2013 07:33:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi
+Subject: Re: [PATCH/RFC v3 06/19] video: display: OF support
+Date: Wed, 11 Sep 2013 13:33:27 +0200
+Message-ID: <2263372.8nCBHctlWT@avalon>
+In-Reply-To: <1378304498.5721.42.camel@pizza.hi.pengutronix.de>
+References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1378304498.5721.42.camel@pizza.hi.pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 12 Sep 2013 16:59:59 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+Hi Philipp,
 
-Tested-by: André Roth <neolynx@gmail.com>
+On Wednesday 04 September 2013 16:21:38 Philipp Zabel wrote:
+> Am Samstag, den 10.08.2013, 01:03 +0200 schrieb Laurent Pinchart:
+> > Extend the notifier with DT node matching support, and add helper
+> > functions to build the notifier and link entities based on a graph
+> > representation in DT.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/video/display/display-core.c     | 334 ++++++++++++++++++++++++++
+> >  drivers/video/display/display-notifier.c | 187 +++++++++++++++++
+> >  include/video/display.h                  |  45 +++++
+> >  3 files changed, 566 insertions(+)
+> > 
+> > diff --git a/drivers/video/display/display-core.c
+> > b/drivers/video/display/display-core.c index c3b47d3..328ead7 100644
+> > --- a/drivers/video/display/display-core.c
+> > +++ b/drivers/video/display/display-core.c
+> 
+> [...]
+> 
+> > @@ -420,6 +599,161 @@ int display_entity_link_graph(struct device *dev,
+> > struct list_head *entities)> 
+> >  }
+> >  EXPORT_SYMBOL_GPL(display_entity_link_graph);
+> > 
+> > +#ifdef CONFIG_OF
+> > +
+> > +static int display_of_entity_link_entity(struct device *dev,
+> > +					 struct display_entity *entity,
+> > +					 struct list_head *entities,
+> > +					 struct display_entity *root)
+> > +{
+> > +	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> > +	const struct device_node *node = entity->dev->of_node;
+> 
+> the current device tree matching implementation only allows one display
+> entity per linux device. How about adding an of_node pointer to struct
+> display_entity directly and allow multiple display entity nodes below in a
+> single device node in the device tree?
 
+That's a very good point. We had a similar issues in V4L2, with sensors that 
+would create several entities. However, in those cases, the sensors would be 
+connected to the rest of the pipeline through a single entity :
 
-> Some messages are not clear, some are debug data, but are
-> shown as errors, and one message is duplicated.
+Sensor Entity 1 -> ... -> Sensor Entity N -> V4L2 pipeline ...
+
+The core code thus had to care about a single sensor entity when building the 
+pipeline. We could solve the problem in a similar way for panels, but encoders 
+need a more elaborate solution.
+
+I see (at least) two possibilities here, either explicitly describing all 
+entities that make the device in DT (as you have proposed below), or creating 
+a hierarchy of entities, with parent entities that can contain several child 
+entities. I've CC'ed Guennadi, Hans, Sylwester and Sakari to get their opinion 
+on the matter.
+
+> lvds-encoder {
+> 	channel@0 {
+
+If I understand this correctly, your LVDS encoder has two independent 
+channels. In the general case a device made of multiple entities might have 
+those entities chained, so "channel" might not be the best term. "entity" 
+might be a better choice.
+
+> 		port@0 {
+> 			lvds0_input: endpoint {
+> 			};
+> 		};
+> 		port@1 {
+> 			lvds0_output: endpoint {
+> 			};
+> 		};
+> 	};
+> 	channel@1 {
+> 		port@0 {
+> 			lvds1_input: endpoint {
+> 			};
+> 		};
+> 		lvds1: port@1 {
+> 			lvds1_output: endpoint {
+> 			};
+> 		};
+> 	};
+> };
 > 
-> Cleanup that mess in order to provide a cleaner log.
+> > +	struct media_entity *local = &entity->entity;
+> > +	struct device_node *ep = NULL;
+> > +	int ret = 0;
+> > +
+> > +	dev_dbg(dev, "creating links for entity %s\n", local->name);
+> > +
+> > +	while (1) {
+> > +		struct media_entity *remote = NULL;
+> > +		struct media_pad *remote_pad;
+> > +		struct media_pad *local_pad;
+> > +		struct display_of_link link;
+> > +		struct display_entity *ent;
+> > +		struct device_node *next;
+> > +
+> > +		/* Get the next endpoint and parse its link. */
+> > +		next = display_of_get_next_endpoint(node, ep);
+> > +		if (next == NULL)
+> > +			break;
+> > +
+> > +		of_node_put(ep);
+> > +		ep = next;
+> > +
+> > +		dev_dbg(dev, "processing endpoint %s\n", ep->full_name);
+> > +
+> > +		ret = display_of_parse_link(ep, &link);
+> > +		if (ret < 0) {
+> > +			dev_err(dev, "failed to parse link for %s\n",
+> > +				ep->full_name);
+> > +			continue;
+> > +		}
+> > +
+> > +		/* Skip source pads, they will be processed from the other end of
+> > +		 * the link.
+> > +		 */
+> > +		if (link.local_port >= local->num_pads) {
+> > +			dev_err(dev, "invalid port number %u on %s\n",
+> > +				link.local_port, link.local_node->full_name);
+> > +			display_of_put_link(&link);
+> > +			ret = -EINVAL;
+> > +			break;
+> > +		}
+> > +
+> > +		local_pad = &local->pads[link.local_port];
+> > +
+> > +		if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
+> > +			dev_dbg(dev, "skipping source port %s:%u\n",
+> > +				link.local_node->full_name, link.local_port);
+> > +			display_of_put_link(&link);
+> > +			continue;
+> > +		}
+> > +
+> > +		/* Find the remote entity. If not found, just skip the link as
+> > +		 * it goes out of scope of the entities handled by the notifier.
+> > +		 */
+> > +		list_for_each_entry(ent, entities, list) {
+> > +			if (ent->dev->of_node == link.remote_node) {
+> > +				remote = &ent->entity;
+> > +				break;
+> > +			}
+> > +		}
+> > +
+> > +		if (root->dev->of_node == link.remote_node)
+> > +			remote = &root->entity;
+> > +
+> > +		if (remote == NULL) {
+> > +			dev_dbg(dev, "no entity found for %s\n",
+> > +				link.remote_node->full_name);
+> > +			display_of_put_link(&link);
+> > +			continue;
+> > +		}
+> > +
+> > +		if (link.remote_port >= remote->num_pads) {
+> > +			dev_err(dev, "invalid port number %u on %s\n",
+> > +				link.remote_port, link.remote_node->full_name);
+> > +			display_of_put_link(&link);
+> > +			ret = -EINVAL;
+> > +			break;
+> > +		}
+> > +
+> > +		remote_pad = &remote->pads[link.remote_port];
+> > +
+> > +		display_of_put_link(&link);
+> > +
+> > +		/* Create the media link. */
+> > +		dev_dbg(dev, "creating %s:%u -> %s:%u link\n",
+> > +			remote->name, remote_pad->index,
+> > +			local->name, local_pad->index);
+> > +
+> > +		ret = media_entity_create_link(remote, remote_pad->index,
+> > +					       local, local_pad->index,
+> > +					       link_flags);
+> > +		if (ret < 0) {
+> > +			dev_err(dev,
+> > +				"failed to create %s:%u -> %s:%u link\n",
+> > +				remote->name, remote_pad->index,
+> > +				local->name, local_pad->index);
+> > +			break;
+> > +		}
+> > +	}
+> > +
+> > +	of_node_put(ep);
+> > +	return ret;
+> > +}
 > 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/siano/smsusb.c | 18 ++++++++++--------
->  1 file changed, 10 insertions(+), 8 deletions(-)
+> [...]
 > 
-> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-> index 03761c6..74236b8 100644
-> --- a/drivers/media/usb/siano/smsusb.c
-> +++ b/drivers/media/usb/siano/smsusb.c
-> @@ -209,8 +209,10 @@ static int smsusb_sendrequest(void *context, void *buffer, size_t size)
->  	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) buffer;
->  	int dummy;
->  
-> -	if (dev->state != SMSUSB_ACTIVE)
-> +	if (dev->state != SMSUSB_ACTIVE) {
-> +		sms_debug("Device not active yet");
->  		return -ENOENT;
-> +	}
->  
->  	sms_debug("sending %s(%d) size: %d",
->  		  smscore_translate_msg(phdr->msg_type), phdr->msg_type,
-> @@ -445,14 +447,15 @@ static int smsusb_probe(struct usb_interface *intf,
->  	char devpath[32];
->  	int i, rc;
->  
-> -	sms_info("interface number %d",
-> +	sms_info("board id=%lu, interface number %d",
-> +		 id->driver_info,
->  		 intf->cur_altsetting->desc.bInterfaceNumber);
->  
->  	if (sms_get_board(id->driver_info)->intf_num !=
->  	    intf->cur_altsetting->desc.bInterfaceNumber) {
-> -		sms_err("interface number is %d expecting %d",
-> -			sms_get_board(id->driver_info)->intf_num,
-> -			intf->cur_altsetting->desc.bInterfaceNumber);
-> +		sms_debug("interface %d won't be used. Expecting interface %d to popup",
-> +			intf->cur_altsetting->desc.bInterfaceNumber,
-> +			sms_get_board(id->driver_info)->intf_num);
->  		return -ENODEV;
->  	}
->  
-> @@ -483,12 +486,11 @@ static int smsusb_probe(struct usb_interface *intf,
->  	}
->  	if ((udev->actconfig->desc.bNumInterfaces == 2) &&
->  	    (intf->cur_altsetting->desc.bInterfaceNumber == 0)) {
-> -		sms_err("rom interface 0 is not used");
-> +		sms_debug("rom interface 0 is not used");
->  		return -ENODEV;
->  	}
->  
->  	if (id->driver_info == SMS1XXX_BOARD_SIANO_STELLAR_ROM) {
-> -		sms_info("stellar device was found.");
->  		snprintf(devpath, sizeof(devpath), "usb\\%d-%s",
->  			 udev->bus->busnum, udev->devpath);
->  		sms_info("stellar device was found.");
-> @@ -498,7 +500,7 @@ static int smsusb_probe(struct usb_interface *intf,
->  	}
->  
->  	rc = smsusb_init_device(intf, id->driver_info);
-> -	sms_info("rc %d", rc);
-> +	sms_info("Device initialized with return code %d", rc);
->  	sms_board_load_modules(id->driver_info);
->  	return rc;
+> For example like this:
+> 
+> diff --git a/drivers/video/display/display-core.c
+> b/drivers/video/display/display-core.c index 7910c23..a04feed 100644
+> --- a/drivers/video/display/display-core.c
+> +++ b/drivers/video/display/display-core.c
+> @@ -302,6 +302,9 @@ int display_entity_init(struct display_entity *entity,
+> unsigned int num_sinks, kref_init(&entity->ref);
+>  	entity->state = DISPLAY_ENTITY_STATE_OFF;
+> 
+> +	if (!entity->of_node && entity->dev)
+> +		entity->of_node = entity->dev->of_node;
+> +
+>  	num_pads = num_sinks + num_sources;
+>  	pads = kzalloc(sizeof(*pads) * num_pads, GFP_KERNEL);
+>  	if (pads == NULL)
+> @@ -665,7 +668,7 @@ static int display_of_entity_link_entity(struct device
+> *dev, struct display_entity *root)
+>  {
+>  	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> -	const struct device_node *node = entity->dev->of_node;
+> +	const struct device_node *node = entity->of_node;
+>  	struct media_entity *local = &entity->entity;
+>  	struct device_node *ep = NULL;
+>  	int num_sink, ret = 0;
+> @@ -727,13 +730,13 @@ static int display_of_entity_link_entity(struct device
+> *dev, * it goes out of scope of the entities handled by the notifier. */
+>  		list_for_each_entry(ent, entities, list) {
+> -			if (ent->dev->of_node == link.remote_node) {
+> +			if (ent->of_node == link.remote_node) {
+>  				remote = &ent->entity;
+>  				break;
+>  			}
+>  		}
+> 
+> -		if (root && root->dev->of_node == link.remote_node)
+> +		if (root && root->of_node == link.remote_node)
+>  			remote = &root->entity;
+> 
+>  		if (remote == NULL) {
+> diff --git a/drivers/video/display/display-notifier.c
+> b/drivers/video/display/display-notifier.c index a3998c7..d0da6e5 100644
+> --- a/drivers/video/display/display-notifier.c
+> +++ b/drivers/video/display/display-notifier.c
+> @@ -28,28 +28,30 @@ static DEFINE_MUTEX(display_entity_mutex);
+>   * Notifiers
+>   */
+> 
+> -static bool match_platform(struct device *dev,
+> +static bool match_platform(struct display_entity *entity,
+>  			   struct display_entity_match *match)
+>  {
+>  	pr_debug("%s: matching device '%s' with name '%s'\n", __func__,
+> -		 dev_name(dev), match->match.platform.name);
+> +		 dev_name(entity->dev), match->match.platform.name);
+> 
+> -	return !strcmp(match->match.platform.name, dev_name(dev));
+> +	return !strcmp(match->match.platform.name, dev_name(entity->dev));
 >  }
+> 
+> -static bool match_dt(struct device *dev, struct display_entity_match
+> *match) +static bool match_dt(struct display_entity *entity,
+> +		     struct display_entity_match *match)
+>  {
+>  	pr_debug("%s: matching device node '%s' with node '%s'\n", __func__,
+> -		 dev->of_node->full_name, match->match.dt.node->full_name);
+> +		 entity->of_node->full_name, match->match.dt.node->full_name);
+> 
+> -	return match->match.dt.node == dev->of_node;
+> +	return match->match.dt.node == entity->of_node;
+>  }
+> 
+>  static struct display_entity_match *
+>  display_entity_notifier_match(struct display_entity_notifier *notifier,
+>  			      struct display_entity *entity)
+>  {
+> -	bool (*match_func)(struct device *, struct display_entity_match *);
+> +	bool (*match_func)(struct display_entity *,
+> +			   struct display_entity_match *);
+>  	struct display_entity_match *match;
+> 
+>  	pr_debug("%s: matching entity '%s' (ptr 0x%p dev '%s')\n", __func__,
+> @@ -66,7 +68,7 @@ display_entity_notifier_match(struct
+> display_entity_notifier *notifier, break;
+>  		}
+> 
+> -		if (match_func(entity->dev, match))
+> +		if (match_func(entity, match))
+>  			return match;
+>  	}
+> 
+> diff --git a/include/video/display.h b/include/video/display.h
+> index 4c402bee..d1f8833 100644
+> --- a/include/video/display.h
+> +++ b/include/video/display.h
+> @@ -228,6 +228,7 @@ struct display_entity {
+>  	struct list_head list;
+>  	struct device *dev;
+>  	struct module *owner;
+> +	struct device_node *of_node;
+>  	struct kref ref;
+> 
+>  	char name[32];
+-- 
+Regards,
+
+Laurent Pinchart
+
