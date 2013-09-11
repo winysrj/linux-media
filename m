@@ -1,212 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:41994 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663Ab3ILRLD (ORCPT
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:54134 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309Ab3IKO5t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 13:11:03 -0400
-Received: by mail-la0-f50.google.com with SMTP id lv10so82043lab.9
-        for <linux-media@vger.kernel.org>; Thu, 12 Sep 2013 10:11:02 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] RFCv2: Support for multiple selections
-Date: Thu, 12 Sep 2013 19:10:56 +0200
-Message-Id: <1379005856-28585-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <CAPybu_3cOLztceJoNwyZQGuC8maNYKuunbxJRHt7X6nQHmCyhw@mail.gmail.com>
-References: <CAPybu_3cOLztceJoNwyZQGuC8maNYKuunbxJRHt7X6nQHmCyhw@mail.gmail.com>
+	Wed, 11 Sep 2013 10:57:49 -0400
+Received: by mail-vc0-f182.google.com with SMTP id hf12so6428836vcb.27
+        for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 07:57:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAHFNz9Kdmzj3uTP=n7nqBgZdH6MtUPeg1bBWA3=SLmC+-9NCfw@mail.gmail.com>
+References: <CALuNSF4znGu+NdsZs3eb0A5vqgyHNC13f8qXunNE2tXVxC=UTg@mail.gmail.com>
+ <CAHFNz9Kdmzj3uTP=n7nqBgZdH6MtUPeg1bBWA3=SLmC+-9NCfw@mail.gmail.com>
+From: Simon Liddicott <simon@liddicott.com>
+Date: Wed, 11 Sep 2013 15:57:28 +0100
+Message-ID: <CALuNSF4AkDKucyY_3OfvMy4iz=NxFeH8OjwsT32-M_cBfm8-rA@mail.gmail.com>
+Subject: Re: Correct scan file format?
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend v4l2 selection API to support multiple selection areas, this way
-sensors that support multiple readout areas can work with multiple areas
-of insterest.
+Thanks Manu.
 
-The struct v4l2_selection and v4l2_subdev_selection has been extented
-with a new field rectangles. If it is value is different than zero the
-pr array is used instead of the r field.
+Before I prepare to patch the entire UK scan files can someone confirm
+that the below is acceptable:
 
-A new structure v4l2_ext_rect has been defined, containing 4 reserved
-fields for future improvements, as suggested by Hans.
+#----------------------------------------------------------------------------------------------
+# Auto-generated from:
+# <http://stakeholders.ofcom.org.uk/broadcasting/guidance/tech-guidance/transmitter-frequency/>
+#----------------------------------------------------------------------------------------------
+# location and provider: UK, Sutton Coldfield
+# date (yyyy-mm-dd)    : 2013-09-11
+#
+# T[2] <freq>     <bw>  <fec_hi> <fec_lo> <mod>   <tm> <guard> <hi>
+[<plp_id>] [# comment]
+#----------------------------------------------------------------------------------------------
+T       650000000  8MHz  2/3      NONE     QAM64   8k   1/32    NONE
+         # PSB1
+T       674000000  8MHz  2/3      NONE     QAM64   8k   1/32    NONE
+         # PSB2
+T2      626167000  8MHz  2/3      NONE     QAM256  32k  1/128   NONE
+0         # PSB3
+T       642000000  8MHz  3/4      NONE     QAM64   8k   1/32    NONE
+         # COM4
+T       666000000  8MHz  3/4      NONE     QAM64   8k   1/32    NONE
+         # COM5
+T       618167000  8MHz  3/4      NONE     QAM64   8k   1/32    NONE
+         # COM6
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 54 +++++++++++++++++++++++++++++++-----
- include/uapi/linux/v4l2-subdev.h     | 10 +++++--
- include/uapi/linux/videodev2.h       | 15 ++++++++--
- 3 files changed, 68 insertions(+), 11 deletions(-)
+Si.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 68e6b5e..91d21a4 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -572,11 +572,22 @@ static void v4l_print_crop(const void *arg, bool write_only)
- static void v4l_print_selection(const void *arg, bool write_only)
- {
- 	const struct v4l2_selection *p = arg;
-+	int i;
- 
--	pr_cont("type=%s, target=%d, flags=0x%x, wxh=%dx%d, x,y=%d,%d\n",
--		prt_names(p->type, v4l2_type_names),
--		p->target, p->flags,
--		p->r.width, p->r.height, p->r.left, p->r.top);
-+	if (p->rectangles==0)
-+		pr_cont("type=%s, target=%d, flags=0x%x, wxh=%dx%d"
-+			", x,y=%d,%d\n",
-+			prt_names(p->type, v4l2_type_names),
-+			p->target, p->flags,
-+			p->r.width, p->r.height, p->r.left, p->r.top);
-+	else{
-+		pr_cont("type=%s, target=%d, flags=0x%x\n",
-+			prt_names(p->type, v4l2_type_names),
-+			p->target, p->flags);
-+		for (i=0; i<p->rectangles;i++)
-+			pr_cont("rectangle %d: wxh=%dx%d, x,y=%d,%d\n",
-+				i, p->r.width, p->r.height, p->r.left, p->r.top);
-+	}
- }
- 
- static void v4l_print_jpegcompression(const void *arg, bool write_only)
-@@ -1645,6 +1656,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_crop *p = arg;
- 	struct v4l2_selection s = {
- 		.type = p->type,
-+		.rectangles = 0,
- 	};
- 	int ret;
- 
-@@ -1673,6 +1685,7 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_selection s = {
- 		.type = p->type,
- 		.r = p->c,
-+		.rectangles = 0,
- 	};
- 
- 	if (ops->vidioc_s_crop)
-@@ -1692,7 +1705,10 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_cropcap *p = arg;
--	struct v4l2_selection s = { .type = p->type };
-+	struct v4l2_selection s = {
-+		.type = p->type,
-+		.rectangles = 0,
-+	};
- 	int ret;
- 
- 	if (ops->vidioc_cropcap)
-@@ -1726,6 +1742,30 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 	return 0;
- }
- 
-+static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_selection *s = arg;
-+
-+	if (s->rectangles &&
-+		!access_ok(VERIFY_READ, s->pr, s->rectangles * sizeof(*s->pr)))
-+		return -EFAULT;
-+
-+	return ops->vidioc_s_selection(file, fh, s);
-+}
-+
-+static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_selection *s = arg;
-+
-+	if (s->rectangles &&
-+		!access_ok(VERIFY_WRITE, s->pr, s->rectangles * sizeof(*s->pr)))
-+		return -EFAULT;
-+
-+	return ops->vidioc_g_selection(file, fh, s);
-+}
-+
- static int v4l_log_status(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -2018,8 +2058,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
- 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
--	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, 0),
--	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO),
-+	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, 0),
-+	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index a33c4da..b5ee08b 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -133,6 +133,8 @@ struct v4l2_subdev_frame_interval_enum {
-  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
-  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r: coordinates of the selection window
-+ * @pr:		array of rectangles containing the selection windows
-+ * @rectangles:	Number of rectangles in pr structure. If zero, r is used instead
-  * @reserved: for future use, set to zero for now
-  *
-  * Hardware may use multiple helper windows to process a video stream.
-@@ -144,8 +146,12 @@ struct v4l2_subdev_selection {
- 	__u32 pad;
- 	__u32 target;
- 	__u32 flags;
--	struct v4l2_rect r;
--	__u32 reserved[8];
-+	union{
-+		struct v4l2_rect r;
-+		struct v4l2_ext_rect        *pr;
-+	};
-+	__u32 rectangles;
-+	__u32 reserved[7];
- };
- 
- struct v4l2_subdev_edid {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 0e80472..691f73b 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -211,6 +211,11 @@ struct v4l2_rect {
- 	__s32   height;
- };
- 
-+struct v4l2_ext_rect {
-+	struct v4l2_rect r;
-+	__u32   reserved[4];
-+};
-+
- struct v4l2_fract {
- 	__u32   numerator;
- 	__u32   denominator;
-@@ -807,6 +812,8 @@ struct v4l2_crop {
-  *		defined in v4l2-common.h; V4L2_SEL_TGT_* .
-  * @flags:	constraints flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r:		coordinates of selection window
-+ * @pr:		array of rectangles containing the selection windows
-+ * @rectangles:	Number of rectangles in pr structure. If zero, r is used instead
-  * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
-  *
-  * Hardware may use multiple helper windows to process a video stream.
-@@ -817,8 +824,12 @@ struct v4l2_selection {
- 	__u32			type;
- 	__u32			target;
- 	__u32                   flags;
--	struct v4l2_rect        r;
--	__u32                   reserved[9];
-+	union{
-+		struct v4l2_rect        r;
-+		struct v4l2_ext_rect        *pr;
-+	};
-+	__u32                   rectangles;
-+	__u32                   reserved[8];
- };
- 
- 
--- 
-1.8.4.rc3
-
+On 11 September 2013 14:30, Manu Abraham <abraham.manu@gmail.com> wrote:
+> On Wed, Sep 11, 2013 at 6:19 PM, Simon Liddicott <simon@liddicott.com> wrote:
+>> What form should T2 multiplexes take in the DVB scan files?
+>>
+>> In the uk-CrystalPalace scan file
+>> <http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-t/uk-CrystalPalace>
+>> the PLP_ID and System_ID are included before the frequency but in
+>> ro-Krasnador scan file
+>> <http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-t/ru-Krasnodar>
+>> the PLP_ID is included at the end of the line and it has no System_ID.
+>
+>
+>
+> PLP_ID should be the very last entity to preserve compatibility.
+>
+>
+>
+>> I don't have a T2 tuner to test. Is a PLP_ID required in the scan file
+>> as in the UK we only have one?
+>>
+>
+>
+>
+> If you have only a single stream, it wouldn't make any difference if you
+> have a PLP_ID or not.
+>
+>
+>
+>> I presume the System_ID has been included in the Crystal Palace file
+>> because it was known by w_scan, but is it required for T2?
+>>
+>
+>
+> System ID is used for decryption with Conditional Access. If you don't
+> need to use a CA module, then you can ignore it.
+>
+>
+> Regards,
+>
+> Manu
