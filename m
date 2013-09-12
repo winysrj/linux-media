@@ -1,155 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49867 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213Ab3IAXXI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 19:23:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: width and height of JPEG compressed images
-Date: Mon, 02 Sep 2013 01:23:05 +0200
-Message-ID: <2758622.spTFUrmXC1@avalon>
-In-Reply-To: <52226D74.9050501@gmail.com>
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local> <A683633ABCE53E43AFB0344442BF0F054C632AA7@server10.irisys.local> <52226D74.9050501@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43863 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752631Ab3ILSCw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Sep 2013 14:02:52 -0400
+Message-ID: <5232018F.3000009@iki.fi>
+Date: Thu, 12 Sep 2013 21:01:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Randy Dunlap <rdunlap@infradead.org>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH -next] staging/media: fix msi3101 build errors
+References: <20130912143402.73f77e0cef1e19576b77a6b5@canb.auug.org.au> <5231FCFC.40505@infradead.org>
+In-Reply-To: <5231FCFC.40505@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hello Randy,
+It is already fixed, waiting for Mauro's processing.
+https://patchwork.kernel.org/patch/2856771/
 
-On Sunday 01 September 2013 00:25:56 Sylwester Nawrocki wrote:
-> Hi Thomas,
-> 
-> I sincerely apologise for not having replied earlier. Looks like I'm
-> being pulled in too many directions. :/
-> 
-> On 08/06/2013 06:26 PM, Thomas Vajzovic wrote:
-> > On 24 July 2013 10:30 Sylwester Nawrocki wrote:
-> >> On 07/22/2013 10:40 AM, Thomas Vajzovic wrote:
-> >>> On 21 July 2013 21:38 Sylwester Nawrocki wrote:
-> >>>> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
-> >>>>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
-> >>>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
-> >>>>>>> The hardware reads AxB sensor pixels from its array, resamples
-> >>>>>>> them to CxD image pixels, and then compresses them to ExF bytes.
-> >>> 
-> >>> If the sensor driver is only told the user's requested sizeimage, it
-> >>> can be made to factorize (ExF) into (E,F) itself, but then both the
-> >>> parallel interface and the 2D DMA peripheral need to be told the
-> >>> particular factorization that it has chosen.
-> >>> 
-> >>> If the user requests sizeimage which cannot be satisfied (eg: a prime
-> >>> number) then it will need to return (E,F) to the bridge driver which
-> >>> does not multiply exactly to sizeimage.  Because of this the bridge
-> >>> driver must set the corrected value of sizeimage which it returns to
-> >>> userspace to the product ExF.
-> >> 
-> >> Ok, let's consider following data structure describing the frame:
-> >> 
-> >> struct v4l2_frame_desc_entry {
-> >>    u32 flags;
-> >>    u32 pixelcode;
-> >>    u32 samples_per_line;
-> >>    u32 num_lines;
-> >>    u32 size;
-> >> };
-> >> 
-> >> I think we could treat the frame descriptor to be at lower lever in
-> >> the protocol stack than struct v4l2_mbus_framefmt.
-> >> 
-> >> Then the bridge would set size and pixelcode and the subdev would
-> >> return (E, F) in (samples_per_frame, num_lines) and adjust size if
-> >> required. Number of bits per sample can be determined by pixelcode.
-> >> 
-> >> It needs to be considered that for some sensor drivers it might not
-> >> be immediately clear what samples_per_line, num_lines values are.
-> >> In such case those fields could be left zeroed and bridge driver
-> >> could signal such condition as a more or less critical error. In
-> >> end of the day specific sensor driver would need to be updated to
-> >> interwork with a bridge that requires samples_per_line, num_lines.
-> > 
-> > I think we ought to try to consider the four cases:
-> > 
-> > 1D sensor and 1D bridge: already works
-> > 
-> > 2D sensor and 2D bridge: my use case
-> > 
-> > 1D sensor and 2D bridge, 2D sensor and 1D bridge:
-> > Perhaps both of these cases could be made to work by setting:
-> > num_lines = 1; samples_per_line = ((size * 8) / bpp);
-> > 
-> > (Obviously this would also require the appropriate pull-up/down
-> > on the second sync input on a 2D bridge).
-> 
-> So to determine when this has to be done, e.g. we could see that either
-> num_lines or samples_per_line == 1 ?
-> 
-> > Since the frame descriptor interface is still new and used in so
-> > few drivers, is it reasonable to expect them all to be fixed to
-> > do this?
-> 
-> Certainly, I'll be happy to rework those drivers to whatever the
-> re-designed API, as long as it supports the current functionality.
-> 
-> >> Not sure if we need to add image width and height in pixels to the
-> >> above structure. It wouldn't make much sensor when single frame
-> >> carries multiple images, e.g. interleaved YUV and compressed image
-> >> data at different resolutions.
-> > 
-> > If image size were here then we are duplicating get_fmt/set_fmt.
-> > But then, by having pixelcode here we are already duplicating part
-> > of get_fmt/set_fmt.  If the bridge changes pixelcode and calls
-> > set_frame_desc then is this equivalent to calling set_fmt?
-> > I would like to see as much data normalization as possible and
-> > eliminate the redundancy.
-> 
-> Perhaps we could replace pixelcode in the above struct by something
-> else that would have conveyed required data. But I'm not sure what it
-> would have been. Perhaps just bits_per_sample for starters ?
-> 
-> The frame descriptors were also supposed to cover interleaved image data.
-> Then we need something like pixelcode (MIPI CSI-2 Data Type) in each
-> frame_desc entry.
-> 
-> Not sure if it would have been sensible to put some of the above
-> information into struct v4l2_mbus_frame_desc rather than to struct
-> v4l2_mbus_frame_desc_entry.
-> 
-> >>> Whatever mechanism is chosen needs to have corresponding get/set/try
-> >>> methods to be used when the user calls
-> >>> VIDIOC_G_FMT/VIDIOC_S_FMT/VIDIOC_TRY_FMT.
-> >> 
-> >> Agreed, it seems we need some sort of negotiation of those low
-> >> level parameters.
-> > 
-> > Should there be set/get/try function pointers, or should the struct
-> > include an enum member like v4l2_subdev_format.which to determine
-> > which operation is to be perfomed?
-> > 
-> > Personally I think that it is a bit ugly having two different
-> > function pointers for set_fmt/get_fmt but then a structure member
-> > to determine between set/try.  IMHO it should be three function
-> > pointers or one function with a three valued enum in the struct.
-> 
-> I'm fine either way, with a slight preference for three separate callbacks.
+regards
+Antti
 
-Don't forget that the reason the pad-level API was designed this way is that 
-trying a format on a pad requires configuring formats on all other pads. Pads 
-are not isolated, they depend on each other, so we can't have a standalone try 
-operation.
+On 09/12/2013 08:42 PM, Randy Dunlap wrote:
+> From: Randy Dunlap <rdunlap@infradead.org>
+>
+> Fix build error when VIDEOBUF2_CORE=m and USB_MSI3101=y.
+>
+> drivers/built-in.o: In function `msi3101_buf_queue':
+> sdr-msi3101.c:(.text+0x1298d6): undefined reference to `vb2_buffer_done'
+> drivers/built-in.o: In function `msi3101_cleanup_queued_bufs':
+> sdr-msi3101.c:(.text+0x1299c7): undefined reference to `vb2_buffer_done'
+> drivers/built-in.o: In function `msi3101_isoc_handler':
+> sdr-msi3101.c:(.text+0x12a08d): undefined reference to `vb2_plane_vaddr'
+> sdr-msi3101.c:(.text+0x12a0b9): undefined reference to `vb2_buffer_done'
+> drivers/built-in.o: In function `msi3101_probe':
+> sdr-msi3101.c:(.text+0x12a1c5): undefined reference to `vb2_vmalloc_memops'
+> sdr-msi3101.c:(.text+0x12a1d7): undefined reference to `vb2_queue_init'
+> drivers/built-in.o:(.rodata+0x34cf0): undefined reference to `vb2_ioctl_reqbufs'
+> drivers/built-in.o:(.rodata+0x34cf4): undefined reference to `vb2_ioctl_querybuf'
+> drivers/built-in.o:(.rodata+0x34cf8): undefined reference to `vb2_ioctl_qbuf'
+> drivers/built-in.o:(.rodata+0x34d00): undefined reference to `vb2_ioctl_dqbuf'
+> drivers/built-in.o:(.rodata+0x34d04): undefined reference to `vb2_ioctl_create_bufs'
+> drivers/built-in.o:(.rodata+0x34d08): undefined reference to `vb2_ioctl_prepare_buf'
+> drivers/built-in.o:(.rodata+0x34d18): undefined reference to `vb2_ioctl_streamon'
+> drivers/built-in.o:(.rodata+0x34d1c): undefined reference to `vb2_ioctl_streamoff'
+> drivers/built-in.o:(.rodata+0x35580): undefined reference to `vb2_fop_read'
+> drivers/built-in.o:(.rodata+0x35588): undefined reference to `vb2_fop_poll'
+> drivers/built-in.o:(.rodata+0x35598): undefined reference to `vb2_fop_mmap'
+> drivers/built-in.o:(.rodata+0x355a0): undefined reference to `vb2_fop_release'
+> drivers/built-in.o:(.data+0x23b40): undefined reference to `vb2_ops_wait_prepare'
+> drivers/built-in.o:(.data+0x23b44): undefined reference to `vb2_ops_wait_finish'
+>
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/staging/media/msi3101/Kconfig |    2 ++
+>   1 file changed, 2 insertions(+)
+>
+> --- linux-next-20130912.orig/drivers/staging/media/msi3101/Kconfig
+> +++ linux-next-20130912/drivers/staging/media/msi3101/Kconfig
+> @@ -1,3 +1,5 @@
+>   config USB_MSI3101
+>   	tristate "Mirics MSi3101 SDR Dongle"
+>   	depends on USB && VIDEO_DEV && VIDEO_V4L2
+> +	select VIDEOBUF2_CORE
+> +	select VIDEOBUF2_VMALLOC
+>
 
-> WRT to making frame_desc read-only, subdevices for which it doesn't make
-> sense to set anything could always adjust passed data to their fixed or
-> depending on other calls, like the pad level set_fmt op, values. And we
-> seem to have use cases already for at least try_frame_desc.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
