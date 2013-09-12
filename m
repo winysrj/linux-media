@@ -1,592 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:43529 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752971Ab3I0K7L (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:27843 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753099Ab3ILPvq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 06:59:11 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v9 03/13] [media] exynos5-fimc-is: Add driver core files
-Date: Fri, 27 Sep 2013 16:29:08 +0530
-Message-Id: <1380279558-21651-4-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
-References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+	Thu, 12 Sep 2013 11:51:46 -0400
+Date: Thu, 12 Sep 2013 12:51:40 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: stable@vger.kernel.org
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: [media] siano: fix divide error on 0 counters
+Message-id: <20130912125140.6c8ef4eb@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is for the FIMC-IS IP available in Samsung Exynos5
-SoC onwards. This patch adds the core files for the new driver.
+From: Bjørn Mork <bjorn@mork.no>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+I took a quick look at the code and wonder if the problem is caused by
+an initial zero statistics message?  This is all just a wild guess, but
+if it is correct, then the attached untested patch might fix it...
+Bjørn
+>From d78a0599d5b5d4da384eae08bf7da316389dfbe5 Mon Sep 17 00:00:00 2001
+ts_packets and ets_packets counters can be 0.  Don't fall over
+if they are. Fixes:
+[  846.851711] divide error: 0000 [#1] SMP
+[  846.851806] Modules linked in: smsdvb dvb_core ir_lirc_codec lirc_dev ir_sanyo_decoder ir_mce_kbd_decoder ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder rc_hauppauge smsusb smsmdtv rc_core pci_stub vboxpci(O) vboxnetadp(O) vboxnetflt(O) vboxdrv(O) parport_pc ppdev lp parport cpufreq_userspace cpufreq_powersave cpufreq_stats cpufreq_conservative rfcomm bnep binfmt_misc uinput nfsd auth_rpcgss oid_registry nfs_acl nfs lockd dns_resolver fscache sunrpc ext4 jbd2 fuse tp_smapi(O) thinkpad_ec(O) loop firewire_sbp2 dm_crypt snd_hda_codec_conexant snd_hda_intel snd_hda_codec snd_hwdep snd_pcm_oss snd_mixer_oss snd_pcm thinkpad_acpi nvram snd_page_alloc hid_generic snd_seq_midi snd_seq_midi_event arc4 usbhid snd_rawmidi uvcvideo hid iwldvm coretemp kvm_intel mac8021
+ 1 cdc_wdm
+[  846.853477]  cdc_acm snd_seq videobuf2_vmalloc videobuf2_memops videobuf2_core videodev media kvm radeon r852 ttm joydev cdc_ether usbnet pcmcia mii sm_common nand btusb drm_kms_helper tpm_tis acpi_cpufreq bluetooth iwlwifi nand_ecc drm nand_ids i2c_i801 mtd snd_seq_device iTCO_wdt iTCO_vendor_support r592 memstick lpc_ich mperf tpm yenta_socket pcmcia_rsrc pcmcia_core cfg80211 snd_timer snd pcspkr i2c_algo_bit crc16 i2c_core tpm_bios processor mfd_core wmi psmouse mei_me rfkill mei serio_raw soundcore evdev battery button video ac microcode ext3 mbcache jbd md_mod dm_mirror dm_region_hash dm_log dm_mod sg sr_mod sd_mod cdrom crc_t10dif firewire_ohci sdhci_pci sdhci mmc_core firewire_core crc_itu_t thermal thermal_sys ahci libahci ehci_pci uhci_hcd ehci_hcd libata scsi_mod usbcore e1000
+ e usb_common
+[  846.855310]  ptp pps_core
+[  846.855356] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G           O 3.10-2-amd64 #1 Debian 3.10.5-1
+[  846.855490] Hardware name: LENOVO 4061WFA/4061WFA, BIOS 6FET92WW (3.22 ) 12/14/2011
+[  846.855609] task: ffffffff81613400 ti: ffffffff81600000 task.ti: ffffffff81600000
+[  846.855636] RIP: 0010:[<ffffffffa092be0c>]  [<ffffffffa092be0c>] smsdvb_onresponse+0x264/0xa86 [smsdvb]
+[  846.863906] RSP: 0018:ffff88013bc03cf0  EFLAGS: 00010046
+[  846.863906] RAX: 0000000000000000 RBX: ffff880133bf6000 RCX: 0000000000000000
+[  846.863906] RDX: 0000000000000000 RSI: ffff88005d3b58c0 RDI: ffff880133bf6000
+[  846.863906] RBP: ffff88005d1da000 R08: 0000000000000058 R09: 0000000000000015
+[  846.863906] R10: 0000000000001a0d R11: 000000000000021a R12: ffff88005d3b58c0
+[  846.863906] R13: ffff88005d1da008 R14: 00000000ffffff8d R15: ffff880036cf5060
+[  846.863906] FS:  0000000000000000(0000) GS:ffff88013bc00000(0000) knlGS:0000000000000000
+[  846.863906] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  846.863906] CR2: 00007f3a4b69ae50 CR3: 0000000036dac000 CR4: 00000000000407f0
+[  846.863906] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  846.863906] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  846.863906] Stack:
+[  846.863906]  ffff88007a102000 ffff88005d1da000 ffff88005d3b58c0 0000000000085824
+[  846.863906]  ffffffffa08c5aa3 ffff88005d1da000 ffff8800a6907390 ffff8800a69073b0
+[  846.863906]  ffff8800a6907000 ffffffffa08b642c 000000000000021a ffff8800a69073b0
+[  846.863906] Call Trace:
+[  846.863906]  <IRQ>
+[  846.863906]
+[  846.863906]  [<ffffffffa08c5aa3>] ? smscore_onresponse+0x1d5/0x353 [smsmdtv]
+[  846.863906]  [<ffffffffa08b642c>] ? smsusb_onresponse+0x146/0x192 [smsusb]
+[  846.863906]  [<ffffffffa004cb1a>] ? usb_hcd_giveback_urb+0x6c/0xac [usbcore]
+[  846.863906]  [<ffffffffa0217be1>] ? ehci_urb_done+0x62/0x72 [ehci_hcd]
+[  846.863906]  [<ffffffffa0217c82>] ? qh_completions+0x91/0x364 [ehci_hcd]
+[  846.863906]  [<ffffffffa0219bba>] ? ehci_work+0x8a/0x68e [ehci_hcd]
+[  846.863906]  [<ffffffff8107336c>] ? timekeeping_get_ns.constprop.10+0xd/0x31
+[  846.863906]  [<ffffffff81064d41>] ? update_cfs_rq_blocked_load+0xde/0xec
+[  846.863906]  [<ffffffff81058ec2>] ? run_posix_cpu_timers+0x25/0x575
+[  846.863906]  [<ffffffffa021aa46>] ? ehci_irq+0x211/0x23d [ehci_hcd]
+[  846.863906]  [<ffffffffa004c0c1>] ? usb_hcd_irq+0x31/0x48 [usbcore]
+[  846.863906]  [<ffffffff810996fd>] ? handle_irq_event_percpu+0x49/0x1a4
+[  846.863906]  [<ffffffff8109988a>] ? handle_irq_event+0x32/0x4b
+[  846.863906]  [<ffffffff8109bd76>] ? handle_fasteoi_irq+0x80/0xb6
+[  846.863906]  [<ffffffff8100e93e>] ? handle_irq+0x18/0x20
+[  846.863906]  [<ffffffff8100e657>] ? do_IRQ+0x40/0x95
+[  846.863906]  [<ffffffff813883ed>] ? common_interrupt+0x6d/0x6d
+[  846.863906]  <EOI>
+[  846.863906]
+[  846.863906]  [<ffffffff812a011c>] ? arch_local_irq_enable+0x4/0x8
+[  846.863906]  [<ffffffff812a04f3>] ? cpuidle_enter_state+0x52/0xc1
+[  846.863906]  [<ffffffff812a0636>] ? cpuidle_idle_call+0xd4/0x143
+[  846.863906]  [<ffffffff8101398c>] ? arch_cpu_idle+0x5/0x17
+[  846.863906]  [<ffffffff81072571>] ? cpu_startup_entry+0x10d/0x187
+[  846.863906]  [<ffffffff816b3d3d>] ? start_kernel+0x3e8/0x3f3
+[  846.863906]  [<ffffffff816b3777>] ? repair_env_string+0x54/0x54
+[  846.863906]  [<ffffffff816b3598>] ? x86_64_start_kernel+0xf2/0xfd
+[  846.863906] Code: 25 09 00 00 c6 83 da 08 00 00 03 8b 45 54 48 01 83 b6 08 00 00 8b 45 50 48 01 83 db 08 00 00 8b 4d 18 69 c1 ff ff 00 00 03 4d 14 <48> f7 f1 89 83 a8 09 00 00 e9 68 fe ff ff 48 8b 7f 10 e8 79 92
+[  846.863906] RIP  [<ffffffffa092be0c>] smsdvb_onresponse+0x264/0xa86 [smsdvb]
+[  846.863906]  RSP <ffff88013bc03cf0>
+Reference: http://bugs.debian.org/719623
+
+Reported-by: Johannes Rohr <jorohr@gmail.com>
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
 ---
- drivers/media/platform/exynos5-is/fimc-is-core.c |  410 ++++++++++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-core.h |  132 +++++++
- 2 files changed, 542 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.c b/drivers/media/platform/exynos5-is/fimc-is-core.c
-new file mode 100644
-index 0000000..2b116d0
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.c
-@@ -0,0 +1,410 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+*
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/bug.h>
-+#include <linux/ctype.h>
-+#include <linux/device.h>
-+#include <linux/debugfs.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/fs.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
-+#include <linux/of_address.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_irq.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-of.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "fimc-is.h"
-+#include "fimc-is-i2c.h"
-+
-+#define CLK_MCU_ISP_DIV0_FREQ	(200 * 1000000)
-+#define CLK_MCU_ISP_DIV1_FREQ	(100 * 1000000)
-+#define CLK_ISP_DIV0_FREQ	(134 * 1000000)
-+#define CLK_ISP_DIV1_FREQ	(68 * 1000000)
-+#define CLK_ISP_DIVMPWM_FREQ	(34 * 1000000)
-+
-+static const char * const fimc_is_clock_name[] = {
-+	[IS_CLK_ISP]		= "isp",
-+	[IS_CLK_MCU_ISP]	= "mcu_isp",
-+	[IS_CLK_ISP_DIV0]	= "isp_div0",
-+	[IS_CLK_ISP_DIV1]	= "isp_div1",
-+	[IS_CLK_ISP_DIVMPWM]	= "isp_divmpwm",
-+	[IS_CLK_MCU_ISP_DIV0]	= "mcu_isp_div0",
-+	[IS_CLK_MCU_ISP_DIV1]	= "mcu_isp_div1",
-+};
-+
-+static void fimc_is_put_clocks(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		if (IS_ERR(is->clock[i]))
-+			continue;
-+		clk_unprepare(is->clock[i]);
-+		clk_put(is->clock[i]);
-+		is->clock[i] = ERR_PTR(-EINVAL);
-+	}
-+}
-+
-+static int fimc_is_get_clocks(struct fimc_is *is)
-+{
-+	struct device *dev = &is->pdev->dev;
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
-+		if (IS_ERR(is->clock[i]))
-+			goto err;
-+		ret = clk_prepare(is->clock[i]);
-+		if (ret < 0) {
-+			clk_put(is->clock[i]);
-+			is->clock[i] = ERR_PTR(-EINVAL);
-+			goto err;
-+		}
-+	}
-+	return 0;
-+err:
-+	fimc_is_put_clocks(is);
-+	pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
-+	return -ENXIO;
-+}
-+
-+static int fimc_is_configure_clocks(struct fimc_is *is)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++)
-+		is->clock[i] = ERR_PTR(-EINVAL);
-+
-+	ret = fimc_is_get_clocks(is);
-+	if (ret)
-+		return ret;
-+
-+	/* Set rates */
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0],
-+			CLK_MCU_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1],
-+			CLK_MCU_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV0], CLK_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV1], CLK_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM],
-+			CLK_ISP_DIVMPWM_FREQ);
-+	return ret;
-+}
-+
-+static void fimc_is_pipelines_destroy(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < is->drvdata->num_instances; i++)
-+		fimc_is_pipeline_destroy(&is->pipeline[i]);
-+}
-+
-+static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
-+						struct device_node *node)
-+{
-+	struct fimc_is_sensor *sensor = &is->sensor[index];
-+	u32 tmp = 0;
-+	int ret;
-+
-+	sensor->drvdata = exynos5_is_sensor_get_drvdata(node);
-+	if (!sensor->drvdata) {
-+		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-+							 node->full_name);
-+		return -EINVAL;
-+	}
-+
-+	node = v4l2_of_get_next_endpoint(node, NULL);
-+	if (!node)
-+		return -ENXIO;
-+
-+	node = v4l2_of_get_remote_port(node);
-+	if (!node)
-+		return -ENXIO;
-+
-+	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
-+	ret = of_property_read_u32(node, "reg", &tmp);
-+	if (ret < 0) {
-+		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
-+							 node->full_name);
-+		return ret;
-+	}
-+
-+	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-+	return 0;
-+}
-+
-+static int fimc_is_parse_sensor(struct fimc_is *is)
-+{
-+	struct device_node *i2c_bus, *child;
-+	int ret, index = 0;
-+
-+	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
-+		for_each_available_child_of_node(i2c_bus, child) {
-+			ret = fimc_is_parse_sensor_config(is, index, child);
-+
-+			if (ret < 0 || index >= FIMC_IS_NUM_SENSORS) {
-+				of_node_put(child);
-+				return ret;
-+			}
-+			index++;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static void *fimc_is_get_drvdata(struct platform_device *pdev);
-+
-+static int fimc_is_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct fimc_is *is;
-+	void __iomem *regs;
-+	struct device_node *node;
-+	int irq, ret;
-+	int i;
-+
-+	dev_dbg(dev, "FIMC-IS Probe Enter\n");
-+
-+	if (!dev->of_node)
-+		return -ENODEV;
-+
-+	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
-+	if (!is)
-+		return -ENOMEM;
-+
-+	is->pdev = pdev;
-+
-+	is->drvdata = fimc_is_get_drvdata(pdev);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(regs))
-+		return PTR_ERR(regs);
-+
-+	/* Get the PMU base */
-+	node = of_parse_phandle(dev->of_node, "samsung,pmu", 0);
-+	if (!node)
-+		return -ENODEV;
-+	is->pmu_regs = of_iomap(node, 0);
-+	if (!is->pmu_regs)
-+		return -ENOMEM;
-+
-+	irq = irq_of_parse_and_map(dev->of_node, 0);
-+	if (irq < 0) {
-+		dev_err(dev, "Failed to get IRQ\n");
-+		return irq;
-+	}
-+
-+	ret = fimc_is_configure_clocks(is);
-+	if (ret < 0) {
-+		dev_err(dev, "clocks configuration failed\n");
-+		goto err_clk;
-+	}
-+
-+	platform_set_drvdata(pdev, is);
-+	pm_runtime_enable(dev);
-+
-+	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-+	if (IS_ERR(is->alloc_ctx)) {
-+		ret = PTR_ERR(is->alloc_ctx);
-+		goto err_vb;
-+	}
-+
-+	/* Get IS-sensor contexts */
-+	ret = fimc_is_parse_sensor(is);
-+	if (ret < 0)
-+		goto err_vb;
-+
-+	/* Initialize FIMC Pipeline */
-+	for (i = 0; i < is->drvdata->num_instances; i++) {
-+		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
-+		if (ret < 0)
-+			goto err_sd;
-+	}
-+
-+	/* Initialize FIMC Interface */
-+	ret = fimc_is_interface_init(&is->interface, regs, irq);
-+	if (ret < 0)
-+		goto err_sd;
-+
-+	/* Probe the peripheral devices  */
-+	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-+	if (ret < 0)
-+		goto err_sd;
-+
-+	dev_dbg(dev, "FIMC-IS registered successfully\n");
-+
-+	return 0;
-+
-+err_sd:
-+	fimc_is_pipelines_destroy(is);
-+err_vb:
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+err_clk:
-+	fimc_is_put_clocks(is);
-+
-+	return ret;
-+}
-+
-+int fimc_is_clk_enable(struct fimc_is *is)
-+{
-+	int ret;
-+
-+	ret = clk_enable(is->clock[IS_CLK_ISP]);
-+	if (ret)
-+		return ret;
-+	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
-+	if (ret)
-+		clk_disable(is->clock[IS_CLK_ISP]);
-+	return ret;
-+}
-+
-+void fimc_is_clk_disable(struct fimc_is *is)
-+{
-+	clk_disable(is->clock[IS_CLK_ISP]);
-+	clk_disable(is->clock[IS_CLK_MCU_ISP]);
-+}
-+
-+static int fimc_is_pm_resume(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = fimc_is_clk_enable(is);
-+	if (ret < 0) {
-+		dev_err(dev, "Could not enable clocks\n");
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int fimc_is_pm_suspend(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+
-+	fimc_is_clk_disable(is);
-+	return 0;
-+}
-+
-+static int fimc_is_runtime_resume(struct device *dev)
-+{
-+	return fimc_is_pm_resume(dev);
-+}
-+
-+static int fimc_is_runtime_suspend(struct device *dev)
-+{
-+	return fimc_is_pm_suspend(dev);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int fimc_is_resume(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+
-+static int fimc_is_suspend(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+static int fimc_is_remove(struct platform_device *pdev)
-+{
-+	struct fimc_is *is = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+
-+	pm_runtime_disable(dev);
-+	pm_runtime_set_suspended(dev);
-+	fimc_is_pipelines_destroy(is);
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+	fimc_is_put_clocks(is);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops fimc_is_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_suspend, fimc_is_resume)
-+	SET_RUNTIME_PM_OPS(fimc_is_runtime_suspend, fimc_is_runtime_resume,
-+			   NULL)
-+};
-+
-+static struct fimc_is_drvdata exynos5250_drvdata = {
-+	.num_instances	= 1,
-+	.fw_name	= "exynos5_fimc_is_fw.bin",
-+};
-+
-+static const struct of_device_id exynos5_fimc_is_match[] = {
-+	{
-+		.compatible = "samsung,exynos5250-fimc-is",
-+		.data = &exynos5250_drvdata,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos5_fimc_is_match);
-+
-+static void *fimc_is_get_drvdata(struct platform_device *pdev)
-+{
-+	struct fimc_is_drvdata *driver_data = NULL;
-+	const struct of_device_id *match;
-+
-+	match = of_match_node(exynos5_fimc_is_match,
-+			pdev->dev.of_node);
-+	if (match)
-+		driver_data = (struct fimc_is_drvdata *)match->data;
-+	return driver_data;
-+}
-+
-+static struct platform_driver fimc_is_driver = {
-+	.probe		= fimc_is_probe,
-+	.remove		= fimc_is_remove,
-+	.driver = {
-+		.name	= FIMC_IS_DRV_NAME,
-+		.owner	= THIS_MODULE,
-+		.pm	= &fimc_is_pm_ops,
-+		.of_match_table = exynos5_fimc_is_match,
-+	}
-+};
-+module_platform_driver(fimc_is_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Arun Kumar K <arun.kk@samsung.com>");
-+MODULE_DESCRIPTION("Samsung Exynos5 (FIMC-IS) Imaging Subsystem driver");
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.h b/drivers/media/platform/exynos5-is/fimc-is-core.h
-new file mode 100644
-index 0000000..c27b603
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.h
-@@ -0,0 +1,132 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_CORE_H_
-+#define FIMC_IS_CORE_H_
-+
-+#include <asm/barrier.h>
-+#include <linux/bug.h>
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/firmware.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irqreturn.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/sched.h>
-+#include <linux/sizes.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/media-entity.h>
-+#include <media/s5p_fimc.h>
-+#include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-mediabus.h>
-+
-+#define FIMC_IS_DRV_NAME		"exynos5-fimc-is"
-+
-+#define FIMC_IS_COMMAND_TIMEOUT		(10 * HZ)
-+#define FIMC_IS_STARTUP_TIMEOUT		(3 * HZ)
-+#define FIMC_IS_SHUTDOWN_TIMEOUT	(10 * HZ)
-+
-+#define FW_SHARED_OFFSET		(0x8c0000)
-+#define DEBUG_CNT			(500 * 1024)
-+#define DEBUG_OFFSET			(0x840000)
-+#define DEBUGCTL_OFFSET			(0x8bd000)
-+#define DEBUG_FCOUNT			(0x8c64c0)
-+
-+#define FIMC_IS_MAX_INSTANCES		1
-+
-+#define FIMC_IS_NUM_SENSORS		2
-+#define FIMC_IS_NUM_PIPELINES		1
-+
-+#define FIMC_IS_MAX_PLANES		3
-+#define FIMC_IS_NUM_SCALERS		2
-+
-+enum fimc_is_clks {
-+	IS_CLK_ISP,
-+	IS_CLK_MCU_ISP,
-+	IS_CLK_ISP_DIV0,
-+	IS_CLK_ISP_DIV1,
-+	IS_CLK_ISP_DIVMPWM,
-+	IS_CLK_MCU_ISP_DIV0,
-+	IS_CLK_MCU_ISP_DIV1,
-+	IS_CLK_MAX_NUM
-+};
-+
-+/* Video capture states */
-+enum fimc_is_video_state {
-+	STATE_INIT,
-+	STATE_BUFS_ALLOCATED,
-+	STATE_RUNNING,
-+};
-+
-+enum fimc_is_scaler_id {
-+	SCALER_SCC,
-+	SCALER_SCP
-+};
-+
-+enum fimc_is_sensor_pos {
-+	SENSOR_CAM0,
-+	SENSOR_CAM1
-+};
-+
-+struct fimc_is_buf {
-+	struct vb2_buffer vb;
-+	struct list_head list;
-+	unsigned int paddr[FIMC_IS_MAX_PLANES];
-+};
-+
-+struct fimc_is_memory {
-+	/* physical base address */
-+	dma_addr_t paddr;
-+	/* virtual base address */
-+	void *vaddr;
-+	/* total length */
-+	unsigned int size;
-+};
-+
-+struct fimc_is_meminfo {
-+	struct fimc_is_memory	fw;
-+	struct fimc_is_memory	shot;
-+	struct fimc_is_memory	region;
-+	struct fimc_is_memory	shared;
-+};
-+
-+struct fimc_is_drvdata {
-+	unsigned int	num_instances;
-+	char		*fw_name;
-+};
-+
-+/**
-+ * struct fimc_is_fmt - the driver's internal color format data
-+ * @name: format description
-+ * @fourcc: the fourcc code for this format
-+ * @depth: number of bytes per pixel
-+ * @num_planes: number of planes for this color format
-+ */
-+struct fimc_is_fmt {
-+	char		*name;
-+	unsigned int	fourcc;
-+	unsigned int	depth[FIMC_IS_MAX_PLANES];
-+	unsigned int	num_planes;
-+};
-+
-+#endif
--- 
-1.7.9.5
+This also fixes https://bugzilla.kernel.org/show_bug.cgi?id=60645
 
+Patch already merged upstream:
+	http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/patch/?id=ec532503209053bbee0c7dac410031e50835e01a
+
+
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index 0862622..63676a8 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -276,7 +276,8 @@ static void smsdvb_update_per_slices(struct smsdvb_client_t *client,
+ 
+ 	/* Legacy PER/BER */
+ 	tmp = p->ets_packets * 65535;
+-	do_div(tmp, p->ts_packets + p->ets_packets);
++	if (p->ts_packets + p->ets_packets)
++		do_div(tmp, p->ts_packets + p->ets_packets);
+ 	client->legacy_per = tmp;
+ }
+ 
