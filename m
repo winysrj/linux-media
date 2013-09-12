@@ -1,92 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46390 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755427Ab3I3NfA (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:50284 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab3ILMHc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:35:00 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 05/10] [media] coda: move coda_product_name above vidioc_querycap
-Date: Mon, 30 Sep 2013 15:34:48 +0200
-Message-Id: <1380548093-22313-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
-References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 12 Sep 2013 08:07:32 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v8 01/12] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
+Date: Thu, 12 Sep 2013 17:37:38 +0530
+Message-Id: <1378987669-10870-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
+References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the product name (currently CodaDx6 or CODA7541)
-to fill the v4l2_capabilities.name field.
+The patch adds the DT binding documentation for Samsung
+Exynos5 SoC series imaging subsystem (FIMC-IS).
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/platform/coda.c | 35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |   46 ++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 5fe947c..e70a272 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -394,14 +394,32 @@ static struct coda_codec *coda_find_codec(struct coda_dev *dev, int src_fourcc,
- 	return &codecs[k];
- }
- 
-+static char *coda_product_name(int product)
-+{
-+	static char buf[9];
+diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+new file mode 100644
+index 0000000..5611401
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+@@ -0,0 +1,46 @@
++Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
++------------------------------------------------------
 +
-+	switch (product) {
-+	case CODA_DX6:
-+		return "CodaDx6";
-+	case CODA_7541:
-+		return "CODA7541";
-+	default:
-+		snprintf(buf, sizeof(buf), "(0x%04x)", product);
-+		return buf;
-+	}
-+}
++The camera subsystem on Samsung Exynos5 SoC has some changes relative
++to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
++FIMC-LITE IPs but has a much improved version of FIMC-IS which can
++handle sensor controls and camera post-processing operations. The
++Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
++post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
++dedicated scalers (SCC and SCP).
 +
- /*
-  * V4L2 ioctl() operations.
-  */
- static int vidioc_querycap(struct file *file, void *priv,
- 			   struct v4l2_capability *cap)
- {
-+	struct coda_ctx *ctx = fh_to_ctx(priv);
++fimc-is node
++------------
 +
- 	strlcpy(cap->driver, CODA_NAME, sizeof(cap->driver));
--	strlcpy(cap->card, CODA_NAME, sizeof(cap->card));
-+	strlcpy(cap->card, coda_product_name(ctx->dev->devtype->product),
-+		sizeof(cap->card));
- 	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
- 	/*
- 	 * This is only a mem-to-mem video device. The capture and output
-@@ -2868,21 +2886,6 @@ static bool coda_firmware_supported(u32 vernum)
- 	return false;
- }
- 
--static char *coda_product_name(int product)
--{
--	static char buf[9];
--
--	switch (product) {
--	case CODA_DX6:
--		return "CodaDx6";
--	case CODA_7541:
--		return "CODA7541";
--	default:
--		snprintf(buf, sizeof(buf), "(0x%04x)", product);
--		return buf;
--	}
--}
--
- static int coda_hw_init(struct coda_dev *dev)
- {
- 	u16 product, major, minor, release;
++Required properties:
++
++- compatible        : must be "samsung,exynos5250-fimc-is"
++- reg               : physical base address and size of the memory mapped
++                      registers
++- interrupt-parent  : parent interrupt controller
++- interrupts        : fimc-is interrupt to the parent interrupt controller
++- clocks            : list of clock specifiers, corresponding to entries in
++                      clock-names property
++- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
++                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
++                      matching entries in the clocks property
++- samsung,pmu       : phandle to the Power Management Unit (PMU) node
++
++i2c-isp (ISP I2C bus controller) nodes
++------------------------------------------
++
++Required properties:
++
++- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
++		  Exynos4412 and Exynos5250 SoCs
++- reg		: physical base address and length of the registers set
++- clocks	: must contain gate clock specifier for this controller
++- clock-names	: must contain "i2c_isp" entry
++
++For the i2c-isp node, it is required to specify a pinctrl state named "default",
++according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
++
++Device tree nodes of the image sensors controlled directly by the FIMC-IS
++firmware must be child nodes of their corresponding ISP I2C bus controller node.
++The data link of these image sensors must be specified using the common video
++interfaces bindings, defined in video-interfaces.txt.
 -- 
-1.8.4.rc3
+1.7.9.5
 
