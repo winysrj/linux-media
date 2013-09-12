@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1939 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044Ab3I3MT6 (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:46548 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab3ILMIW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 08:19:58 -0400
-Message-ID: <52496C64.8090606@xs4all.nl>
-Date: Mon, 30 Sep 2013 14:19:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-CC: linux-media@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] saa7134: Fix crash when device is closed before streamoff
-References: <1379697328-9990-1-git-send-email-simon.farnsworth@onelan.co.uk>
-In-Reply-To: <1379697328-9990-1-git-send-email-simon.farnsworth@onelan.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Sep 2013 08:08:22 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v8 11/12] V4L: s5k6a3: Change sensor min/max resolutions
+Date: Thu, 12 Sep 2013 17:37:48 +0530
+Message-Id: <1378987669-10870-12-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
+References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2013 07:15 PM, Simon Farnsworth wrote:
-> pm_qos_remove_request was not called on video_release, resulting in the PM
-> core's list of requests being corrupted when the file handle was freed.
-> 
-> This has no immediate symptoms, but later in operation, the kernel will
-> panic as the PM core dereferences a dangling pointer.
-> 
-> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-> Cc: stable@vger.kernel.org
+s5k6a3 sensor has actual pixel resolution of 1408x1402 against
+the active resolution 1392x1392. The real resolution is needed
+when raw sensor SRGB data is dumped to memory by fimc-lite.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/i2c/s5k6a3.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Regards,
-
-	Hans
-
-> ---
-> 
-> I didn't notice this when I first implemented the pm_qos_request as the
-> userspace I was using always called streamoff before closing the
-> device. I've since changed userspace components, and hit the kernel panic.
-> 
->  drivers/media/pci/saa7134/saa7134-video.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-> index e12bbd8..fb60da8 100644
-> --- a/drivers/media/pci/saa7134/saa7134-video.c
-> +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> @@ -1455,6 +1455,7 @@ static int video_release(struct file *file)
->  
->  	/* stop video capture */
->  	if (res_check(fh, RESOURCE_VIDEO)) {
-> +		pm_qos_remove_request(&dev->qos_request);
->  		videobuf_streamoff(&fh->cap);
->  		res_free(dev,fh,RESOURCE_VIDEO);
->  	}
-> 
+diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+index ccbb4fc..e70e217 100644
+--- a/drivers/media/i2c/s5k6a3.c
++++ b/drivers/media/i2c/s5k6a3.c
+@@ -25,10 +25,12 @@
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-subdev.h>
+ 
+-#define S5K6A3_SENSOR_MAX_WIDTH		1392
+-#define S5K6A3_SENSOR_MAX_HEIGHT	1392
+-#define S5K6A3_SENSOR_MIN_WIDTH		32
+-#define S5K6A3_SENSOR_MIN_HEIGHT	32
++#define S5K6A3_SENSOR_MAX_WIDTH		1408
++#define S5K6A3_SENSOR_MAX_HEIGHT	1402
++#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
++#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
++#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
++#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
+ 
+ #define S5K6A3_DEF_PIX_WIDTH		1296
+ #define S5K6A3_DEF_PIX_HEIGHT		732
+-- 
+1.7.9.5
 
