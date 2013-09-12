@@ -1,87 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46396 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755472Ab3I3NfB (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:43724 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414Ab3ILNGX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:35:01 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 09/10] [media] coda: v4l2-compliance fix: implement try_decoder_cmd
-Date: Mon, 30 Sep 2013 15:34:52 +0200
-Message-Id: <1380548093-22313-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
-References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 12 Sep 2013 09:06:23 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	hverkuil@xs4all.nl, shaik.ameer@samsung.com
+Subject: [PATCH v3 4/4] [media] exynos-scaler: Add DT bindings for SCALER driver
+Date: Thu, 12 Sep 2013 18:39:31 +0530
+Message-Id: <1378991371-24428-5-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement try_decoder_cmd to let userspace determine available commands
-and flags.
+This patch adds the DT binding documentation for the
+Exynos5420/5410 based SCALER device driver.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 ---
- drivers/media/platform/coda.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ .../devicetree/bindings/media/exynos5-scaler.txt   |   22 ++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 1572929..2bf8175 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -835,23 +835,34 @@ static int coda_streamoff(struct file *file, void *priv,
- 	return ret;
- }
- 
--static int coda_decoder_cmd(struct file *file, void *fh,
--				   struct v4l2_decoder_cmd *dc)
-+static int coda_try_decoder_cmd(struct file *file, void *fh,
-+				struct v4l2_decoder_cmd *dc)
- {
--	struct coda_ctx *ctx = fh_to_ctx(fh);
--
- 	if (dc->cmd != V4L2_DEC_CMD_STOP)
- 		return -EINVAL;
- 
--	if ((dc->flags & V4L2_DEC_CMD_STOP_TO_BLACK) ||
--	    (dc->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY))
-+	if (dc->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
- 		return -EINVAL;
- 
--	if (dc->stop.pts != 0)
-+	if (!(dc->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) && (dc->stop.pts != 0))
- 		return -EINVAL;
- 
-+	return 0;
-+}
+diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+new file mode 100644
+index 0000000..f620baf
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+@@ -0,0 +1,22 @@
++* Samsung Exynos5 SCALER device
 +
-+static int coda_decoder_cmd(struct file *file, void *fh,
-+			    struct v4l2_decoder_cmd *dc)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	int ret;
++SCALER is used for scaling, blending, color fill and color space
++conversion on EXYNOS[5420/5410] SoCs.
 +
-+	ret = coda_try_decoder_cmd(file, fh, dc);
-+	if (ret < 0)
-+		return ret;
++Required properties:
++- compatible: should be "samsung,exynos5420-scaler" or
++			"samsung,exynos5410-scaler"
++- reg: should contain SCALER physical address location and length.
++- interrupts: should contain SCALER interrupt number
++- clocks: should contain the SCALER clock specifier, from the
++			common clock bindings
++- clock-names: should be "scaler"
 +
-+	/* Ignore decoder stop command silently in encoder context */
- 	if (ctx->inst_type != CODA_INST_DECODER)
--		return -EINVAL;
-+		return 0;
- 
- 	/* Set the strem-end flag on this context */
- 	ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
-@@ -894,6 +905,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_streamon	= coda_streamon,
- 	.vidioc_streamoff	= coda_streamoff,
- 
-+	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
- 
- 	.vidioc_subscribe_event = coda_subscribe_event,
++Example:
++	scaler_0: scaler@0x12800000 {
++		compatible = "samsung,exynos5420-scaler";
++		reg = <0x12800000 0x1000>;
++		interrupts = <0 220 0>;
++		clocks = <&clock 381>;
++		clock-names = "scaler";
++	};
 -- 
-1.8.4.rc3
+1.7.9.5
 
