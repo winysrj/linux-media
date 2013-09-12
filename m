@@ -1,91 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:25152 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab3I3HXz (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:53669 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754547Ab3ILRmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 03:23:55 -0400
-From: Kukjin Kim <kgene@kernel.org>
-To: 'Tomasz Figa' <tomasz.figa@gmail.com>,
-	linux-samsung-soc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, 'Arnd Bergmann' <arnd@arndb.de>,
-	'Olof Johansson' <olof@lixom.net>,
-	'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'Ben Dooks' <ben-linux@fluff.org>,
-	'Linus Walleij' <linus.walleij@linaro.org>,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Sangbeom Kim' <sbkim73@samsung.com>,
-	'Liam Girdwood' <lgirdwood@gmail.com>,
-	'Mark Brown' <broonie@kernel.org>,
-	'Jaroslav Kysela' <perex@perex.cz>,
-	'Takashi Iwai' <tiwai@suse.de>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Geert Uytterhoeven' <geert@linux-m68k.org>,
-	'Martin Schwidefsky' <schwidefsky@de.ibm.com>
-References: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
-In-reply-to: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
-Subject: RE: [PATCH 1/5] ARM: Kconfig: Move if ARCH_S3C64XX statement to
- mach-s3c64xx/Kconfig
-Date: Mon, 30 Sep 2013 16:22:51 +0900
-Message-id: <069301cebdad$df658f90$9e30aeb0$@org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Thu, 12 Sep 2013 13:42:25 -0400
+Message-ID: <5231FCFC.40505@infradead.org>
+Date: Thu, 12 Sep 2013 10:42:20 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH -next] staging/media: fix msi3101 build errors
+References: <20130912143402.73f77e0cef1e19576b77a6b5@canb.auug.org.au>
+In-Reply-To: <20130912143402.73f77e0cef1e19576b77a6b5@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tomasz Figa wrote:
-> 
-> All other platforms have this condition checked inside their own Kconfig
-> files, so for consistency this patch makes it this way for mach-s3c64xx
-> as well.
-> 
-> Signed-off-by: Tomasz Figa <tomasz.figa@gmail.com>
-> ---
->  arch/arm/Kconfig              | 2 --
->  arch/arm/mach-s3c64xx/Kconfig | 4 ++++
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index b766dad..dc51f8a 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -995,9 +995,7 @@ source "arch/arm/mach-sti/Kconfig"
-> 
->  source "arch/arm/mach-s3c24xx/Kconfig"
-> 
-> -if ARCH_S3C64XX
->  source "arch/arm/mach-s3c64xx/Kconfig"
-> -endif
-> 
->  source "arch/arm/mach-s5p64x0/Kconfig"
-> 
-> diff --git a/arch/arm/mach-s3c64xx/Kconfig b/arch/arm/mach-s3c64xx/Kconfig
-> index bd14e3a..0e23910 100644
-> --- a/arch/arm/mach-s3c64xx/Kconfig
-> +++ b/arch/arm/mach-s3c64xx/Kconfig
-> @@ -3,6 +3,8 @@
->  #
->  # Licensed under GPLv2
-> 
-> +if ARCH_S3C64XX
-> +
->  # temporary until we can eliminate all drivers using it.
->  config PLAT_S3C64XX
->  	bool
-> @@ -322,3 +324,5 @@ config MACH_S3C64XX_DT
->  	  board.
->  	  Note: This is under development and not all peripherals can be
->  	  supported with this machine file.
-> +
-> +endif
-> --
-> 1.8.3.2
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Looks good to me, applied 1 to 5 patches into cleanup.
+Fix build error when VIDEOBUF2_CORE=m and USB_MSI3101=y.
 
-Thanks,
-Kukjin
+drivers/built-in.o: In function `msi3101_buf_queue':
+sdr-msi3101.c:(.text+0x1298d6): undefined reference to `vb2_buffer_done'
+drivers/built-in.o: In function `msi3101_cleanup_queued_bufs':
+sdr-msi3101.c:(.text+0x1299c7): undefined reference to `vb2_buffer_done'
+drivers/built-in.o: In function `msi3101_isoc_handler':
+sdr-msi3101.c:(.text+0x12a08d): undefined reference to `vb2_plane_vaddr'
+sdr-msi3101.c:(.text+0x12a0b9): undefined reference to `vb2_buffer_done'
+drivers/built-in.o: In function `msi3101_probe':
+sdr-msi3101.c:(.text+0x12a1c5): undefined reference to `vb2_vmalloc_memops'
+sdr-msi3101.c:(.text+0x12a1d7): undefined reference to `vb2_queue_init'
+drivers/built-in.o:(.rodata+0x34cf0): undefined reference to `vb2_ioctl_reqbufs'
+drivers/built-in.o:(.rodata+0x34cf4): undefined reference to `vb2_ioctl_querybuf'
+drivers/built-in.o:(.rodata+0x34cf8): undefined reference to `vb2_ioctl_qbuf'
+drivers/built-in.o:(.rodata+0x34d00): undefined reference to `vb2_ioctl_dqbuf'
+drivers/built-in.o:(.rodata+0x34d04): undefined reference to `vb2_ioctl_create_bufs'
+drivers/built-in.o:(.rodata+0x34d08): undefined reference to `vb2_ioctl_prepare_buf'
+drivers/built-in.o:(.rodata+0x34d18): undefined reference to `vb2_ioctl_streamon'
+drivers/built-in.o:(.rodata+0x34d1c): undefined reference to `vb2_ioctl_streamoff'
+drivers/built-in.o:(.rodata+0x35580): undefined reference to `vb2_fop_read'
+drivers/built-in.o:(.rodata+0x35588): undefined reference to `vb2_fop_poll'
+drivers/built-in.o:(.rodata+0x35598): undefined reference to `vb2_fop_mmap'
+drivers/built-in.o:(.rodata+0x355a0): undefined reference to `vb2_fop_release'
+drivers/built-in.o:(.data+0x23b40): undefined reference to `vb2_ops_wait_prepare'
+drivers/built-in.o:(.data+0x23b44): undefined reference to `vb2_ops_wait_finish'
 
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- linux-next-20130912.orig/drivers/staging/media/msi3101/Kconfig
++++ linux-next-20130912/drivers/staging/media/msi3101/Kconfig
+@@ -1,3 +1,5 @@
+ config USB_MSI3101
+ 	tristate "Mirics MSi3101 SDR Dongle"
+ 	depends on USB && VIDEO_DEV && VIDEO_V4L2
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_VMALLOC
