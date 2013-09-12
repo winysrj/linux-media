@@ -1,74 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hipper.arcada.fi ([193.167.33.246]:59474 "EHLO hipper.arcada.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991Ab3IGOFQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Sep 2013 10:05:16 -0400
-Message-ID: <522B2BF9.5020701@arcada.fi>
-Date: Sat, 07 Sep 2013 16:36:57 +0300
-From: Sam Stenvall <sam.stenvall@arcada.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: oliver+list@schinagl.nl
-Subject: Updated fi-HTV scan file
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:50365 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414Ab3ILNGJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Sep 2013 09:06:09 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	hverkuil@xs4all.nl, shaik.ameer@samsung.com
+Subject: [PATCH v3 0/4] Exynos5 Series SCALER Driver
+Date: Thu, 12 Sep 2013 18:39:27 +0530
+Message-Id: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds support for SCALER device which is a
+new device for scaling, blending, color fill  and color space
+conversion on EXYNOS5410/5420 SoCs.
 
-Here's an updated fi-HTV scan file according to the official 
-specification available at http://dvb.welho.fi/cable.php.
+This device supports the following as key features.
+    input image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888, L8A8 and L8
+    output image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888
+    input rotation
+        - 0/90/180/270 degree, X/Y/XY Flip
+    scale ratio
+        - 1/4 scale down to 16 scale up
+    color space conversion
+        - RGB to YUV / YUV to RGB
+    Size - Exynos5420
+        - Input : 16x16 to 8192x8192
+        - Output:   4x4 to 8192x8192
+    Size - Exynos5410
+        - Input/Output: 4x4 to 4096x4096
+    alpha blending, color fill
 
-diff -r 3ee111da5b3a util/scan/dvb-c/fi-HTV
---- a/util/scan/dvb-c/fi-HTV    Mon May 13 15:49:02 2013 +0530
-+++ b/util/scan/dvb-c/fi-HTV    Sat Sep 07 16:32:53 2013 +0300
-@@ -1,4 +1,38 @@
-  # HTV
-  # freq sr fec mod
--C 283000000 5900000 NONE QAM128
-+C 274000000 6900000 NONE QAM128
-+C 282000000 6900000 NONE QAM128
-+C 162000000 6900000 NONE QAM64
-+C 170000000 6900000 NONE QAM128
-+C 290000000 6900000 NONE QAM128
-+C 146000000 6900000 NONE QAM128
-  C 154000000 6900000 NONE QAM128
-+C 138000000 6900000 NONE QAM128
-+C 266000000 6900000 NONE QAM128
-+C 362000000 6900000 NONE QAM128
-+C 298000000 6900000 NONE QAM128
-+C 354000000 6900000 NONE QAM128
-+C 370000000 6900000 NONE QAM128
-+C 378000000 6900000 NONE QAM128
-+C 394000000 6900000 NONE QAM128
-+C 386000000 6900000 NONE QAM128
-+C 258000000 6900000 NONE QAM128
-+C 250000000 6900000 NONE QAM128
-+C 314000000 6900000 NONE QAM128
-+C 306000000 6900000 NONE QAM64
-+C 322000000 6900000 NONE QAM128
-+C 330000000 6900000 NONE QAM256
-+C 338000000 6900000 NONE QAM256
-+C 346000000 6900000 NONE QAM128
-+C 234000000 6900000 NONE QAM256
-+C 210000000 6900000 NONE QAM256
-+C 218000000 6900000 NONE QAM256
-+C 226000000 6900000 NONE QAM256
-+C 178000000 6900000 NONE QAM256
-+C 186000000 6900000 NONE QAM256
-+C 194000000 6900000 NONE QAM256
-+C 202000000 6900000 NONE QAM256
-+C 514000000 6900000 NONE QAM256
-+C 522000000 6900000 NONE QAM256
-+C 530000000 6900000 NONE QAM256
-+C 554000000 6900000 NONE QAM256
+Rebased on:
+-----------
+git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
 
-Regards,
-Sam Stenvall
+Changes from v2:
+---------------
+Addressed review comments from, Inki Dae, Hans Verkuil and Sylwester Nawrocki
+Links to the review comments:
+	1] https://linuxtv.org/patch/19783/
+	2] https://linuxtv.org/patch/19784/
+	3] https://linuxtv.org/patch/19785/
+	4] https://linuxtv.org/patch/19786/
+	5] https://linuxtv.org/patch/19787/
+
+Changes from v1:
+---------------
+1] Split the previous single patch into multiple patches.
+2] Added DT binding documentation.
+3] Removed the unnecessary header file inclusions.
+4] Fix the condition check in mscl_prepare_address for swapping cb/cr addresses.
+
+
+Shaik Ameer Basha (4):
+  [media] exynos-scaler: Add new driver for Exynos5 SCALER
+  [media] exynos-scaler: Add core functionality for the SCALER driver
+  [media] exynos-scaler: Add m2m functionality for the SCALER driver
+  [media] exynos-scaler: Add DT bindings for SCALER driver
+
+ .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
+ drivers/media/platform/Kconfig                     |    8 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/exynos-scaler/Makefile      |    3 +
+ drivers/media/platform/exynos-scaler/scaler-m2m.c  |  781 ++++++++++++
+ drivers/media/platform/exynos-scaler/scaler-regs.c |  334 ++++++
+ drivers/media/platform/exynos-scaler/scaler-regs.h |  331 +++++
+ drivers/media/platform/exynos-scaler/scaler.c      | 1261 ++++++++++++++++++++
+ drivers/media/platform/exynos-scaler/scaler.h      |  385 ++++++
+ 9 files changed, 3126 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
+ create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
 
 -- 
+1.7.9.5
 
-Sam Stenvall
-+358 (0)40 509 0191
-sam.stenvall@arcada.fi
