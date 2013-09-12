@@ -1,68 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4498 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714Ab3IIKHe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:07:34 -0400
-Message-ID: <522D9DD6.2080609@xs4all.nl>
-Date: Mon, 09 Sep 2013 12:07:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <522906CD.1000006@gmail.com> <522D8FDF.3030006@xs4all.nl> <5584569.Fq1hO5v8IF@avalon>
-In-Reply-To: <5584569.Fq1hO5v8IF@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:59348 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754325Ab3ILMID (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Sep 2013 08:08:03 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v8 07/12] [media] exynos5-fimc-is: Add sensor interface
+Date: Thu, 12 Sep 2013 17:37:44 +0530
+Message-Id: <1378987669-10870-8-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
+References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
->> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
->>> On 08/07/2013 07:49 PM, Hans Verkuil wrote:
->>>> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
->>>>> On 08/02/2013 03:00 PM, Hans Verkuil wrote:
->>>>>> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
-> 
-> [snip]
-> 
->>> The main issue as I see it is that we need to track both driver remove()
->>> and struct device .release() calls and free resources only when last of
->>> them executes. Data structures which are referenced in fops must not be
->>> freed in remove() and we cannot use dev_get_drvdata() in fops, e.g. not
->>> protected with device_lock().
->>
->> You can do all that by returning 0 if probe() was partially successful (i.e.
->> one or more, but not all, nodes were created successfully) by doing what I
->> described above. I don't see another way that doesn't introduce a race
->> condition.
-> 
-> But isn't this just plain wrong ? If probing fails, I don't see how returning 
-> success could be a good idea.
+Some sensors to be used with fimc-is are exclusively controlled
+by the fimc-is firmware. This minimal sensor driver provides
+the required info for the firmware to configure the sensors
+sitting on I2C bus.
 
-Well, the nodes that are created are working fine. So it's partially OK :-)
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
 
-That said, yes it would be better if it could safely clean up and return an error.
-But it is better than returning an error and introducing a race condition.
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+new file mode 100644
+index 0000000..475f1c3
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+@@ -0,0 +1,45 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "fimc-is-sensor.h"
++
++static const struct sensor_drv_data s5k6a3_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
++	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
++};
++
++static const struct sensor_drv_data s5k4e5_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
++	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
++};
++
++static const struct of_device_id fimc_is_sensor_of_ids[] = {
++	{
++		.compatible	= "samsung,s5k6a3",
++		.data		= &s5k6a3_drvdata,
++	},
++	{
++		.compatible	= "samsung,s5k4e5",
++		.data		= &s5k4e5_drvdata,
++	},
++	{  }
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node)
++{
++	const struct of_device_id *of_id;
++
++	of_id = of_match_node(fimc_is_sensor_of_ids, node);
++	return of_id ? of_id->data : NULL;
++}
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+new file mode 100644
+index 0000000..0ba5733
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+@@ -0,0 +1,65 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SENSOR_H_
++#define FIMC_IS_SENSOR_H_
++
++#include <linux/of.h>
++#include <linux/types.h>
++
++#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
++#define S5K6A3_SENSOR_WIDTH		1392
++#define S5K6A3_SENSOR_HEIGHT		1392
++
++#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
++#define S5K4E5_SENSOR_WIDTH		2560
++#define S5K4E5_SENSOR_HEIGHT		1920
++
++#define SENSOR_WIDTH_PADDING		16
++#define SENSOR_HEIGHT_PADDING		10
++
++enum fimc_is_sensor_id {
++	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
++	FIMC_IS_SENSOR_ID_S5K6A3,
++	FIMC_IS_SENSOR_ID_S5K4E5,
++	FIMC_IS_SENSOR_ID_S5K3H7,
++	FIMC_IS_SENSOR_ID_CUSTOM,
++	FIMC_IS_SENSOR_ID_END
++};
++
++struct sensor_drv_data {
++	enum fimc_is_sensor_id id;
++	/* sensor open timeout in ms */
++	unsigned short open_timeout;
++	char *setfile_name;
++};
++
++/**
++ * struct fimc_is_sensor - fimc-is sensor data structure
++ * @drvdata: a pointer to the sensor's parameters data structure
++ * @i2c_bus: ISP I2C bus index (0...1)
++ * @width: sensor active width
++ * @height: sensor active height
++ * @pixel_width: sensor effective pixel width (width + padding)
++ * @pixel_height: sensor effective pixel height (height + padding)
++ */
++struct fimc_is_sensor {
++	const struct sensor_drv_data *drvdata;
++	unsigned int i2c_bus;
++	unsigned int width;
++	unsigned int height;
++	unsigned int pixel_width;
++	unsigned int pixel_height;
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node);
++
++#endif /* FIMC_IS_SENSOR_H_ */
+-- 
+1.7.9.5
 
->> That doesn't mean that there isn't one, it's just that I don't know of a
->> better way of doing this.
-> 
-> We might need support from the device core.
-> 
-
-I do come back to my main question: has anyone actually experienced this error in a
-realistic scenario? Other than in very low-memory situations I cannot imagine this
-happening. I'm not sure whether you want to spend a lot of time trying to fix this
-all perfectly. That's why I am suggesting just unregistering everything and returning
-0 in probe(). Not ideal, but at least it's safe (as far as I can tell).
-
-Regards,
-
-	Hans
