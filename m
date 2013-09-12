@@ -1,335 +1,861 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3370 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885Ab3IKODP (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:61667 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414Ab3ILNGU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 10:03:15 -0400
-Message-ID: <523077CE.5070300@xs4all.nl>
-Date: Wed, 11 Sep 2013 16:01:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mark Brown <broonie@kernel.org>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <51FBAD74.6060603@xs4all.nl> <52027AB7.5080006@samsung.com> <520288C1.7040207@xs4all.nl> <522906CD.1000006@gmail.com> <522D8FDF.3030006@xs4all.nl> <52306B2D.8060503@samsung.com>
-In-Reply-To: <52306B2D.8060503@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Sep 2013 09:06:20 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	hverkuil@xs4all.nl, shaik.ameer@samsung.com
+Subject: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for the SCALER driver
+Date: Thu, 12 Sep 2013 18:39:30 +0530
+Message-Id: <1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This patch adds the Makefile and memory to memory (m2m) interface
+functionality for the SCALER driver.
 
-On 09/11/2013 03:07 PM, Sylwester Nawrocki wrote:
-> On 09/09/2013 11:07 AM, Hans Verkuil wrote:
->> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
->>> On 08/07/2013 07:49 PM, Hans Verkuil wrote:
->>>> On 08/07/2013 06:49 PM, Sylwester Nawrocki wrote:
->>>>> On 08/02/2013 03:00 PM, Hans Verkuil wrote:
->>>>>> Hi Sylwester,
->>>>>>
->>>>>> The patch is good, but I have some issues with the commit message itself.
->>>>>
->>>>> Thanks a lot for the detailed explanation, I just wrote this a bit
->>>>> longish changelog to possibly get some feedback and to better understand
->>>>> what is exactly going on. Currently the v4l2-core looks like a racing
->>>>> disaster to me.
->>>>>
->>>>>> On 08/02/2013 02:27 PM, Sylwester Nawrocki wrote:
->>>>>>> As it currently stands this code doesn't protect against any races
->>>>>>> between video device open() and its unregistration. Races could be
->>>>>>> avoided by doing the video_is_registered() check protected by the
->>>>>>> core mutex, while the video device unregistration is also done with
->>>>>>> this mutex held.
->>>>>>
->>>>>> The video_unregister_device() is called completely asynchronously,
->>>>>> particularly in the case of usb drivers. So it was never the goal of
->>>>>> the video_is_registered() to be fool proof, since that isn't possible,
->>>>>> nor is that necessary.
->>>>>>
->>>>>> The goal was that the v4l2 core would use it for the various file
->>>>>> operations and ioctls as a quick check whether the device was unregistered
->>>>>> and to return the correct error. This prevents drivers from having to do
->>>>>> the same thing.
->>>>>
->>>>> OK, I think I just myself used this video_is_registered() flag for some
->>>>> more stuff, by surrounding it with mutex_lock/mutex_unlock and putting
->>>>> more stuff in between, like media_entity_cleanup().
->>>>
->>>> You can't do that, because there are most likely still filehandles open
->>>> or even ioctls being executed. Cleanup happens in the release function(s)
->>>> when the kref goes to 0.
->>>
->>> Yeah, a bit late, but I'm finally well aware of that.
->>>
->>>>> And this probably led
->>>>> me astray for a while, thinking that video_is_registered() was intended
->>>>> to be used synchronously.
->>>>> For example see fimc_lite_subdev_unregistered() in drivers/media/platform/
->>>>> exynos4-is/fimc-lite.c.
->>>>>
->>>>> But as you said video_is_registered() is fully asynchronous.
->>>>>
->>>>> Actually I'm trying to fix a nasty race between deferred driver probing
->>>>> and video device open(). The problem is that video open() callback can
->>>>> be called after driver remove() callback was invoked.
->>>>
->>>> How is that possible? The video_device_register must be the last thing in
->>>> the probe function. If it succeeds, then the probe must succeed as well.
->>>>
->>>> Note that I now realize that this might fail in the case of multiple device
->>>> nodes being registered. We never had problems with that in the past, but in
->>>> theory you can the race condition you mention in that scenario. The correct
->>>> approach here would probably be to always return 0 in probe() if only some
->>>> of the video_device_register calls fail.
->>>>
->>>> Anyway, assuming that only one device node is created, then I can't see how
->>>> you can get a race condition here. Any open() call will increase the module's
->>>> refcount, making it impossible to unload.
->>>
->>> The main issue is that in the exynos4-is driver there are multiple platform
->>> devices (these represent IP blocks that are scattered across various Exynos
->>> SoC revisions). Drivers of this platform devices create subdevs and video
->>> nodes are registered in subdev's .registered() callback. This allows the
->>> drivers to be more modular and self contained. But also during video device
->>> registration proper struct v4l2_device (and through this struct 
->>> media_device)
->>> can be passed so the video nodes are attached to the common media driver.
->>>
->>> In probe() of the media driver all subdevs are registered and this triggers
->>> video nodes creation. The media device first registers all platform devices.
->>> Subdevs are created and all video nodes. After that are being registered
->>> sensor subdevs and media links are created. Then all subdev devnodes are
->>> created in a single call. Note this single call is a bit contrary to the
->>> v4l2-sync API concepts.
->>
->> It wouldn't be difficult to add a v4l2_device_register_subdev_node() function.
->> The v4l2_device_register_subdev_nodes() function predates v4l2-sync, so if
->> it needs some tweaking to make it behave better with v4l2-sync, then that's
->> no problem.
-> 
-> Yeah, I think it will need to be added sooner or later.
-> 
->>> So there is lots of things that may fail after first video node is 
->>> registered, and on which open() may be called immediately.
->>
->> The only solution I know off-hand to handle this safely is to unregister all
->> nodes if some fail, but to return 0 in the probe function. If an open() succeeded,
->> then that will just work until the node is closed, at which point the v4l2_device
->> release() is called and you can cleanup.
-> 
-> Another solution would be to properly implement struct video_device::release()
-> callback and in video device open() do video_is_registered() check while
-> holding the driver private video device lock. Also video_unregister_device()
-> would need to be called while holding the video device lock.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/Kconfig                    |    8 +
+ drivers/media/platform/Makefile                   |    1 +
+ drivers/media/platform/exynos-scaler/Makefile     |    3 +
+ drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
+ 4 files changed, 793 insertions(+)
+ create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
 
-How would that help?
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8068d7b..339d3ba 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -201,6 +201,14 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
+ 	help
+ 	  This is a v4l2 driver for Samsung EXYNOS5 SoC G-Scaler.
+ 
++config VIDEO_SAMSUNG_EXYNOS_SCALER
++	tristate "Samsung Exynos SCALER driver"
++	depends on OF && VIDEO_DEV && VIDEO_V4L2 && ARCH_EXYNOS5
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	help
++	  This is a v4l2 driver for Samsung EXYNOS5410/5420 SoC SCALER.
++
+ config VIDEO_SH_VEU
+ 	tristate "SuperH VEU mem2mem video processing driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && GENERIC_HARDIRQS && HAS_DMA
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 4e4da48..14cdad5 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+ 
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_SCALER)	+= exynos-scaler/
+ 
+ obj-$(CONFIG_BLACKFIN)                  += blackfin/
+ 
+diff --git a/drivers/media/platform/exynos-scaler/Makefile b/drivers/media/platform/exynos-scaler/Makefile
+new file mode 100644
+index 0000000..6c8a25b
+--- /dev/null
++++ b/drivers/media/platform/exynos-scaler/Makefile
+@@ -0,0 +1,3 @@
++exynos-scaler-objs := scaler.o scaler-m2m.o scaler-regs.o
++
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_SCALER)	+= exynos-scaler.o
+diff --git a/drivers/media/platform/exynos-scaler/scaler-m2m.c b/drivers/media/platform/exynos-scaler/scaler-m2m.c
+new file mode 100644
+index 0000000..eb32f2f
+--- /dev/null
++++ b/drivers/media/platform/exynos-scaler/scaler-m2m.c
+@@ -0,0 +1,781 @@
++/*
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com
++ *
++ * Samsung EXYNOS5 SoC series SCALER driver
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++
++#include <media/v4l2-ioctl.h>
++
++#include "scaler-regs.h"
++
++#define SCALER_DEF_PIX_FMT	V4L2_PIX_FMT_RGB32
++#define SCALER_DEF_WIDTH	1280
++#define SCALER_DEF_HEIGHT	720
++
++static int scaler_m2m_ctx_stop_req(struct scaler_ctx *ctx)
++{
++	struct scaler_ctx *curr_ctx;
++	struct scaler_dev *scaler = ctx->scaler_dev;
++	int ret;
++
++	curr_ctx = v4l2_m2m_get_curr_priv(scaler->m2m.m2m_dev);
++	if (!scaler_m2m_pending(scaler) || (curr_ctx != ctx))
++		return 0;
++
++	scaler_ctx_state_lock_set(SCALER_CTX_STOP_REQ, ctx);
++	ret = wait_event_timeout(scaler->irq_queue,
++			!scaler_ctx_state_is_set(SCALER_CTX_STOP_REQ, ctx),
++			SCALER_SHUTDOWN_TIMEOUT);
++
++	return ret == 0 ? -ETIMEDOUT : ret;
++}
++
++static int scaler_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
++{
++	struct scaler_ctx *ctx = q->drv_priv;
++	int ret;
++
++	ret = pm_runtime_get_sync(&ctx->scaler_dev->pdev->dev);
++
++	return ret > 0 ? 0 : ret;
++}
++
++static int scaler_m2m_stop_streaming(struct vb2_queue *q)
++{
++	struct scaler_ctx *ctx = q->drv_priv;
++	int ret;
++
++	ret = scaler_m2m_ctx_stop_req(ctx);
++	if (ret < 0)
++		scaler_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
++
++	pm_runtime_put(&ctx->scaler_dev->pdev->dev);
++
++	return 0;
++}
++
++void scaler_m2m_job_finish(struct scaler_ctx *ctx, int vb_state)
++{
++	struct vb2_buffer *src_vb, *dst_vb;
++
++	if (!ctx || !ctx->m2m_ctx)
++		return;
++
++	src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
++
++	if (src_vb && dst_vb) {
++		v4l2_m2m_buf_done(src_vb, vb_state);
++		v4l2_m2m_buf_done(dst_vb, vb_state);
++
++		v4l2_m2m_job_finish(ctx->scaler_dev->m2m.m2m_dev,
++							ctx->m2m_ctx);
++	}
++}
++
++static void scaler_m2m_job_abort(void *priv)
++{
++	struct scaler_ctx *ctx = priv;
++	int ret;
++
++	ret = scaler_m2m_ctx_stop_req(ctx);
++	if (ret < 0)
++		scaler_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
++}
++
++static int scaler_get_bufs(struct scaler_ctx *ctx)
++{
++	struct scaler_frame *s_frame, *d_frame;
++	struct vb2_buffer *src_vb, *dst_vb;
++	int ret;
++
++	s_frame = &ctx->s_frame;
++	d_frame = &ctx->d_frame;
++
++	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	ret = scaler_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
++	if (ret < 0)
++		return ret;
++
++	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	ret = scaler_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
++	if (ret < 0)
++		return ret;
++
++	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
++
++	return 0;
++}
++
++static void scaler_m2m_device_run(void *priv)
++{
++	struct scaler_ctx *ctx = priv;
++	struct scaler_dev *scaler;
++	unsigned long flags;
++	int ret;
++	bool is_stopped;
++
++	if (WARN(!ctx, "Null hardware context\n"))
++		return;
++
++	scaler = ctx->scaler_dev;
++	spin_lock_irqsave(&scaler->slock, flags);
++
++	set_bit(ST_M2M_PEND, &scaler->state);
++
++	/* Reconfigure hardware if the context has changed. */
++	if (scaler->m2m.ctx != ctx) {
++		scaler_dbg(scaler, "scaler->m2m.ctx = 0x%p, current_ctx = 0x%p",
++				scaler->m2m.ctx, ctx);
++		ctx->state |= SCALER_PARAMS;
++		scaler->m2m.ctx = ctx;
++	}
++
++	is_stopped = ctx->state & SCALER_CTX_STOP_REQ;
++	ctx->state &= ~SCALER_CTX_STOP_REQ;
++	if (is_stopped) {
++		wake_up(&scaler->irq_queue);
++		goto unlock;
++	}
++
++	ret = scaler_get_bufs(ctx);
++	if (ret < 0) {
++		scaler_dbg(scaler, "Wrong address\n");
++		goto unlock;
++	}
++
++	scaler_hw_address_queue_reset(ctx);
++	scaler_set_prefbuf(scaler, &ctx->s_frame);
++	scaler_hw_set_input_addr(scaler, &ctx->s_frame.addr);
++	scaler_hw_set_output_addr(scaler, &ctx->d_frame.addr);
++	scaler_hw_set_csc_coeff(ctx);
++
++	if (ctx->state & SCALER_PARAMS) {
++		scaler_hw_set_irq(scaler, SCALER_INT_FRAME_END, false);
++		if (scaler_set_scaler_info(ctx)) {
++			scaler_dbg(scaler, "Scaler setup error");
++			goto unlock;
++		}
++
++		scaler_hw_set_in_size(ctx);
++		scaler_hw_set_in_image_format(ctx);
++
++		scaler_hw_set_out_size(ctx);
++		scaler_hw_set_out_image_format(ctx);
++
++		scaler_hw_set_scaler_ratio(ctx);
++		scaler_hw_set_rotation(ctx);
++	}
++
++	ctx->state &= ~SCALER_PARAMS;
++	scaler_hw_enable_control(scaler, true);
++
++	spin_unlock_irqrestore(&scaler->slock, flags);
++	return;
++
++unlock:
++	ctx->state &= ~SCALER_PARAMS;
++	spin_unlock_irqrestore(&scaler->slock, flags);
++}
++
++static int scaler_m2m_queue_setup(struct vb2_queue *vq,
++			const struct v4l2_format *fmt,
++			unsigned int *num_buffers, unsigned int *num_planes,
++			unsigned int sizes[], void *allocators[])
++{
++	struct scaler_ctx *ctx = vb2_get_drv_priv(vq);
++	struct scaler_frame *frame;
++	int i;
++
++	frame = ctx_get_frame(ctx, vq->type);
++	if (IS_ERR(frame))
++		return PTR_ERR(frame);
++
++	if (!frame->fmt)
++		return -EINVAL;
++
++	*num_planes = frame->fmt->num_planes;
++	for (i = 0; i < frame->fmt->num_planes; i++) {
++		sizes[i] = frame->payload[i];
++		allocators[i] = ctx->scaler_dev->alloc_ctx;
++	}
++	return 0;
++}
++
++static int scaler_m2m_buf_prepare(struct vb2_buffer *vb)
++{
++	struct scaler_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct scaler_frame *frame;
++	int i;
++
++	frame = ctx_get_frame(ctx, vb->vb2_queue->type);
++	if (IS_ERR(frame))
++		return PTR_ERR(frame);
++
++	for (i = 0; i < frame->fmt->num_planes; i++)
++		vb2_set_plane_payload(vb, i, frame->payload[i]);
++
++	return 0;
++}
++
++static void scaler_m2m_buf_queue(struct vb2_buffer *vb)
++{
++	struct scaler_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++
++	scaler_dbg(ctx->scaler_dev, "ctx: %p, ctx->state: 0x%x",
++				     ctx, ctx->state);
++
++	if (ctx->m2m_ctx)
++		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++}
++
++static void scaler_lock(struct vb2_queue *vq)
++{
++	struct scaler_ctx *ctx = vb2_get_drv_priv(vq);
++	mutex_lock(&ctx->scaler_dev->lock);
++}
++
++static void scaler_unlock(struct vb2_queue *vq)
++{
++	struct scaler_ctx *ctx = vb2_get_drv_priv(vq);
++	mutex_unlock(&ctx->scaler_dev->lock);
++}
++
++static struct vb2_ops scaler_m2m_qops = {
++	.queue_setup	 = scaler_m2m_queue_setup,
++	.buf_prepare	 = scaler_m2m_buf_prepare,
++	.buf_queue	 = scaler_m2m_buf_queue,
++	.wait_prepare	 = scaler_unlock,
++	.wait_finish	 = scaler_lock,
++	.stop_streaming	 = scaler_m2m_stop_streaming,
++	.start_streaming = scaler_m2m_start_streaming,
++};
++
++static int scaler_m2m_querycap(struct file *file, void *fh,
++			   struct v4l2_capability *cap)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	struct scaler_dev *scaler = ctx->scaler_dev;
++
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++
++	strlcpy(cap->driver, scaler->pdev->name, sizeof(cap->driver));
++	strlcpy(cap->card, scaler->pdev->name, sizeof(cap->card));
++	strlcpy(cap->bus_info, "platform:exynos5-scaler",
++					sizeof(cap->bus_info));
++
++	return 0;
++}
++
++static int scaler_m2m_enum_fmt_mplane(struct file *file, void *priv,
++				struct v4l2_fmtdesc *f)
++{
++	return scaler_enum_fmt_mplane(f);
++}
++
++static int scaler_m2m_g_fmt_mplane(struct file *file, void *fh,
++			     struct v4l2_format *f)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++
++	return scaler_g_fmt_mplane(ctx, f);
++}
++
++static int scaler_m2m_try_fmt_mplane(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++
++	return scaler_try_fmt_mplane(ctx, f);
++}
++
++static int scaler_m2m_set_default_format(struct scaler_ctx *ctx)
++{
++	struct scaler_frame *frame;
++	u32 def_pixformat = SCALER_DEF_PIX_FMT;
++	int i;
++
++	frame = &ctx->s_frame;
++
++	frame->colorspace = V4L2_COLORSPACE_REC709;
++	frame->fmt = scaler_find_fmt(&def_pixformat, NULL, 0);
++	if (!frame->fmt)
++		return -EINVAL;
++
++	scaler_set_frame_size(frame, SCALER_DEF_WIDTH, SCALER_DEF_HEIGHT);
++	for (i = 0; i < frame->fmt->num_planes; i++)
++		frame->payload[i] = SCALER_DEF_WIDTH * SCALER_DEF_HEIGHT *
++					(frame->fmt->depth[i] / 8);
++
++	scaler_ctx_state_lock_set(SCALER_PARAMS, ctx);
++
++	/* Apply the same src frame settings to dst frame */
++	ctx->d_frame = ctx->s_frame;
++
++	return 0;
++}
++
++
++static int scaler_m2m_s_fmt_mplane(struct file *file, void *fh,
++				 struct v4l2_format *f)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	struct vb2_queue *vq;
++	struct scaler_frame *frame;
++	struct v4l2_pix_format_mplane *pix;
++	int i, ret = 0;
++
++	ret = scaler_m2m_try_fmt_mplane(file, fh, f);
++	if (ret < 0)
++		return ret;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++
++	if (vb2_is_streaming(vq)) {
++		scaler_dbg(ctx->scaler_dev, "queue (%d) busy", f->type);
++		return -EBUSY;
++	}
++
++	if (V4L2_TYPE_IS_OUTPUT(f->type))
++		frame = &ctx->s_frame;
++	else
++		frame = &ctx->d_frame;
++
++	pix = &f->fmt.pix_mp;
++	frame->colorspace = pix->colorspace;
++	frame->fmt = scaler_find_fmt(&pix->pixelformat, NULL, 0);
++	if (!frame->fmt)
++		return -EINVAL;
++
++	for (i = 0; i < frame->fmt->num_planes; i++)
++		frame->payload[i] = pix->plane_fmt[i].sizeimage;
++
++	scaler_set_frame_size(frame, pix->width, pix->height);
++	scaler_ctx_state_lock_set(SCALER_PARAMS, ctx);
++
++	scaler_dbg(ctx->scaler_dev, "f_w: %d, f_h: %d",
++				frame->f_width, frame->f_height);
++
++	return 0;
++}
++
++static int scaler_m2m_reqbufs(struct file *file, void *fh,
++			  struct v4l2_requestbuffers *reqbufs)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	struct scaler_dev *scaler = ctx->scaler_dev;
++	u32 max_cnt;
++
++	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		max_cnt = scaler->variant->in_buf_cnt;
++	else
++		max_cnt = scaler->variant->out_buf_cnt;
++
++	if (reqbufs->count > max_cnt) {
++		/* Adjust the count value as per driver supports */
++		reqbufs->count = max_cnt;
++	}
++
++	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
++}
++
++static int scaler_m2m_expbuf(struct file *file, void *fh,
++				struct v4l2_exportbuffer *eb)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
++}
++
++static int scaler_m2m_querybuf(struct file *file, void *fh,
++					struct v4l2_buffer *buf)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
++}
++
++static int scaler_m2m_qbuf(struct file *file, void *fh,
++			  struct v4l2_buffer *buf)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int scaler_m2m_dqbuf(struct file *file, void *fh,
++			   struct v4l2_buffer *buf)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int scaler_m2m_streamon(struct file *file, void *fh,
++			   enum v4l2_buf_type type)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
++}
++
++static int scaler_m2m_streamoff(struct file *file, void *fh,
++			    enum v4l2_buf_type type)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
++}
++
++/* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
++static int is_rectangle_enclosed(struct v4l2_rect *a, struct v4l2_rect *b)
++{
++	return !((a->left < b->left) ||
++		 (a->top < b->top) ||
++		 (a->left + a->width > b->left + b->width) ||
++		 (a->top + a->height > b->top + b->height));
++}
++
++static int scaler_m2m_g_selection(struct file *file, void *fh,
++			struct v4l2_selection *s)
++{
++	struct scaler_frame *frame;
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
++		return -EINVAL;
++
++	frame = ctx_get_frame(ctx, s->type);
++	if (IS_ERR(frame))
++		return PTR_ERR(frame);
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		s->r.left = 0;
++		s->r.top = 0;
++		s->r.width = frame->f_width;
++		s->r.height = frame->f_height;
++		return 0;
++
++	case V4L2_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_CROP:
++		s->r.left = frame->crop.left;
++		s->r.top = frame->crop.top;
++		s->r.width = frame->crop.width;
++		s->r.height = frame->crop.height;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int scaler_m2m_s_selection(struct file *file, void *fh,
++				struct v4l2_selection *s)
++{
++	struct scaler_frame *frame;
++	struct scaler_ctx *ctx = fh_to_ctx(fh);
++	struct v4l2_crop cr;
++	struct scaler_variant *variant = ctx->scaler_dev->variant;
++	int ret;
++
++	cr.type = s->type;
++	cr.c = s->r;
++
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
++		return -EINVAL;
++
++	ret = scaler_try_crop(ctx, &cr);
++	if (ret < 0)
++		return ret;
++
++	if (s->flags & V4L2_SEL_FLAG_LE &&
++	    !is_rectangle_enclosed(&cr.c, &s->r))
++		return -ERANGE;
++
++	if (s->flags & V4L2_SEL_FLAG_GE &&
++	    !is_rectangle_enclosed(&s->r, &cr.c))
++		return -ERANGE;
++
++	s->r = cr.c;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE:
++		frame = &ctx->s_frame;
++		break;
++
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		frame = &ctx->d_frame;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	/* Check to see if scaling ratio is within supported range */
++	if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		ret = scaler_check_scaler_ratio(variant, cr.c.width,
++			cr.c.height, ctx->d_frame.crop.width,
++			ctx->d_frame.crop.height,
++			ctx->ctrls_scaler.rotate->val);
++	} else {
++		ret = scaler_check_scaler_ratio(variant,
++			ctx->s_frame.crop.width,
++			ctx->s_frame.crop.height, cr.c.width,
++			cr.c.height, ctx->ctrls_scaler.rotate->val);
++	}
++
++	if (ret < 0) {
++		scaler_dbg(ctx->scaler_dev, "Out of scaler range");
++		return -EINVAL;
++	}
++
++	frame->crop = cr.c;
++
++	scaler_ctx_state_lock_set(SCALER_PARAMS, ctx);
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops scaler_m2m_ioctl_ops = {
++	.vidioc_querycap		= scaler_m2m_querycap,
++	.vidioc_enum_fmt_vid_cap_mplane	= scaler_m2m_enum_fmt_mplane,
++	.vidioc_enum_fmt_vid_out_mplane	= scaler_m2m_enum_fmt_mplane,
++	.vidioc_g_fmt_vid_cap_mplane	= scaler_m2m_g_fmt_mplane,
++	.vidioc_g_fmt_vid_out_mplane	= scaler_m2m_g_fmt_mplane,
++	.vidioc_try_fmt_vid_cap_mplane	= scaler_m2m_try_fmt_mplane,
++	.vidioc_try_fmt_vid_out_mplane	= scaler_m2m_try_fmt_mplane,
++	.vidioc_s_fmt_vid_cap_mplane	= scaler_m2m_s_fmt_mplane,
++	.vidioc_s_fmt_vid_out_mplane	= scaler_m2m_s_fmt_mplane,
++	.vidioc_reqbufs			= scaler_m2m_reqbufs,
++	.vidioc_expbuf                  = scaler_m2m_expbuf,
++	.vidioc_querybuf		= scaler_m2m_querybuf,
++	.vidioc_qbuf			= scaler_m2m_qbuf,
++	.vidioc_dqbuf			= scaler_m2m_dqbuf,
++	.vidioc_streamon		= scaler_m2m_streamon,
++	.vidioc_streamoff		= scaler_m2m_streamoff,
++	.vidioc_g_selection		= scaler_m2m_g_selection,
++	.vidioc_s_selection		= scaler_m2m_s_selection
++};
++
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++			struct vb2_queue *dst_vq)
++{
++	struct scaler_ctx *ctx = priv;
++	int ret;
++
++	memset(src_vq, 0, sizeof(*src_vq));
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	src_vq->drv_priv = ctx;
++	src_vq->ops = &scaler_m2m_qops;
++	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++
++	ret = vb2_queue_init(src_vq);
++	if (ret < 0)
++		return ret;
++
++	memset(dst_vq, 0, sizeof(*dst_vq));
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	dst_vq->drv_priv = ctx;
++	dst_vq->ops = &scaler_m2m_qops;
++	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++
++	return vb2_queue_init(dst_vq);
++}
++
++static int scaler_m2m_open(struct file *file)
++{
++	struct scaler_dev *scaler = video_drvdata(file);
++	struct scaler_ctx *ctx = NULL;
++	int ret;
++
++	scaler_dbg(scaler, "pid: %d, state: 0x%lx",
++			task_pid_nr(current), scaler->state);
++
++	if (mutex_lock_interruptible(&scaler->lock))
++		return -ERESTARTSYS;
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx) {
++		ret = -ENOMEM;
++		goto unlock;
++	}
++
++	v4l2_fh_init(&ctx->fh, scaler->m2m.vfd);
++	ret = scaler_ctrls_create(ctx);
++	if (ret < 0)
++		goto error_fh;
++
++	/* Use separate control handler per file handle */
++	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
++	file->private_data = &ctx->fh;
++	v4l2_fh_add(&ctx->fh);
++
++	ctx->scaler_dev = scaler;
++	/* Default color format */
++	ctx->s_frame.fmt = scaler_get_format(0);
++	ctx->d_frame.fmt = scaler_get_format(0);
++	ctx->flags = 0;
++
++	ctx->m2m_ctx = v4l2_m2m_ctx_init(scaler->m2m.m2m_dev, ctx, queue_init);
++	if (IS_ERR(ctx->m2m_ctx)) {
++		scaler_dbg(scaler, "Failed to initialize m2m context");
++		ret = PTR_ERR(ctx->m2m_ctx);
++		goto error_ctrls;
++	}
++
++	/* Apply default format settings */
++	ret = scaler_m2m_set_default_format(ctx);
++	if (ret < 0) {
++		scaler_dbg(scaler, "Failed to set default format settings");
++		goto error_ctrls;
++	}
++
++	if (scaler->m2m.refcnt++ == 0)
++		set_bit(ST_M2M_OPEN, &scaler->state);
++
++	scaler_dbg(scaler, "scaler m2m driver is opened, ctx(0x%p)", ctx);
++
++	mutex_unlock(&scaler->lock);
++	return 0;
++
++error_ctrls:
++	scaler_ctrls_delete(ctx);
++error_fh:
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++	kfree(ctx);
++unlock:
++	mutex_unlock(&scaler->lock);
++	return ret;
++}
++
++static int scaler_m2m_release(struct file *file)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(file->private_data);
++	struct scaler_dev *scaler = ctx->scaler_dev;
++
++	scaler_dbg(scaler, "pid: %d, state: 0x%lx, refcnt= %d",
++		task_pid_nr(current), scaler->state, scaler->m2m.refcnt);
++
++	mutex_lock(&scaler->lock);
++
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	scaler_ctrls_delete(ctx);
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++
++	if (--scaler->m2m.refcnt <= 0)
++		clear_bit(ST_M2M_OPEN, &scaler->state);
++	kfree(ctx);
++
++	mutex_unlock(&scaler->lock);
++	return 0;
++}
++
++static unsigned int scaler_m2m_poll(struct file *file,
++					struct poll_table_struct *wait)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(file->private_data);
++	struct scaler_dev *scaler = ctx->scaler_dev;
++	int ret;
++
++	if (mutex_lock_interruptible(&scaler->lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_unlock(&scaler->lock);
++
++	return ret;
++}
++
++static int scaler_m2m_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct scaler_ctx *ctx = fh_to_ctx(file->private_data);
++	struct scaler_dev *scaler = ctx->scaler_dev;
++	int ret;
++
++	if (mutex_lock_interruptible(&scaler->lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	mutex_unlock(&scaler->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations scaler_m2m_fops = {
++	.owner		= THIS_MODULE,
++	.open		= scaler_m2m_open,
++	.release	= scaler_m2m_release,
++	.poll		= scaler_m2m_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= scaler_m2m_mmap,
++};
++
++static struct v4l2_m2m_ops scaler_m2m_ops = {
++	.device_run	= scaler_m2m_device_run,
++	.job_abort	= scaler_m2m_job_abort,
++};
++
++int scaler_register_m2m_device(struct scaler_dev *scaler)
++{
++	struct platform_device *pdev;
++	int ret;
++
++	if (!scaler)
++		return -ENODEV;
++
++	pdev = scaler->pdev;
++
++	scaler->vdev.fops	= &scaler_m2m_fops;
++	scaler->vdev.ioctl_ops	= &scaler_m2m_ioctl_ops;
++	scaler->vdev.release	= video_device_release_empty;
++	scaler->vdev.lock	= &scaler->lock;
++	scaler->vdev.vfl_dir	= VFL_DIR_M2M;
++	snprintf(scaler->vdev.name, sizeof(scaler->vdev.name), "%s:m2m",
++					SCALER_MODULE_NAME);
++
++	video_set_drvdata(&scaler->vdev, scaler);
++
++	scaler->m2m.vfd = &scaler->vdev;
++	scaler->m2m.m2m_dev = v4l2_m2m_init(&scaler_m2m_ops);
++	if (IS_ERR(scaler->m2m.m2m_dev)) {
++		dev_err(&pdev->dev, "failed to initialize v4l2-m2m device\n");
++		return PTR_ERR(scaler->m2m.m2m_dev);
++	}
++
++	ret = video_register_device(&scaler->vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		dev_err(&pdev->dev,
++			 "%s(): failed to register video device\n", __func__);
++		v4l2_m2m_release(scaler->m2m.m2m_dev);
++		return ret;
++	}
++
++	dev_info(&pdev->dev, "scaler m2m driver registered as /dev/video%d",
++			     scaler->vdev.num);
++	return 0;
++}
++
++void scaler_unregister_m2m_device(struct scaler_dev *scaler)
++{
++	if (scaler) {
++		video_unregister_device(scaler->m2m.vfd);
++		v4l2_m2m_release(scaler->m2m.m2m_dev);
++	}
++}
+-- 
+1.7.9.5
 
-> Then some devm_* calls would need to be removed from drivers, as we wanted to
-> have driver private data structure released on in video_device::release(), not
-> after failed driver probe() or after remove() call.
-> 
-> As a side note, in some previous posts a had been confusing struct device embedded 
-> in struct video_device with struct device of a physical device, e.g. associated
-> with struct platform_device. As video_get_drvdata() uses the former it should be
-> safe to  use this helper in open(), even without holding the driver private lock.
-> 
->> What does alsa do with multiple node creation?
-> 
-> Not sure, maybe Mark could shed some light on that (I've added him at Cc).
-> 
->>>> As far as I can tell, once you call rmmod it should no longer be possible to
->>>> open() an device node whose struct file_operations owner is that module (i.e.
->>>> the owner field of the file_operations struct points to that module). Looking
->>>> at the way fs/char_dev is implemented, that seems to be correctly handled by
->>>> the kernel core.
->>>
->>> Yes, that's a good news. There is only still the issue with the "unbind" 
->>> sysfs attribute. I couldn't see any similar checks done around code 
->>> implementing it.
->>
->> That seems to me to be a core code issue and should be solved there.
-> 
-> Yeah, as I noted below, it has been tried already [1].
-> 
->>>>> This issue is actually not only related to deferred probing. It can be
->>>>> also triggered by driver module removal or through driver's sysfs "unbind"
->>>>> attribute.
->>>>>
->>>>> Let's assume following scenario:
->>>>>
->>>>> - a driver module is loaded
->>>>> - driver probe is called, it registers video device,
->>>>> - udev opens /dev/video
->>>>> - after mutex_unlock(&videodev_lock); call in v4l2_open() in v4l2-core/
->>>>>    v4l2-dev.c something fails in probe()
->>>>
->>>> And that shouldn't happen. That's the crucial bit: under which scenario does
->>>> this happen for you? If there is a control path where you do create a working
->>>> device node, but the probe fails, then that will indeed cause all sorts of
->>>> problems. But it shouldn't get in that situation (except I think in the case
->>>> of multiple device nodes, which is something I need to think about).
->>>
->>> Yes, I'm dealing with multiple device nodes created from within media 
->>> driver's
->>> probe(). As described above, there is quite a few things that could 
->>> fail, even
->>> single sub-driver created multiple nodes for same IP block (capture, 
->>> mem-to-mem).
->>
->> Is this 'could fail', or 'I have seen it fail'? I have never seen problems in probe()
->> with node creation. The only reason I know of why creating a node might fail is
->> being out-of-memory.
-> 
-> In my case it was top level driver that was triggering device node creation
-> in its probe() and if, e.g. some of sub-device's driver was missing, it called,
-> through subdev internal unregistered(), op video_unregister_device(), but also
-> media_entity_cleanup() which seemed to be the source of trouble.
-
-Device nodes should always be created at the very end after all other setup
-actions (like loaded subdev drivers) have been done successfully. From your
-description it seems that device nodes were created earlier? 
-
-> So if we ignore the sysfs "unbind" issue the problem might not be that severe.
-> Not sure if we should. Nevertheless most of drivers crash kernel currently
-> when "unbind" is used on them. E.g. I could unbind unregister the system power
-> management device (PMIC) driver, the regulator core warned about regulators 
-> in use being removed and then cpufreq killed the system completely due to a
-> dangling pointer to a regulator object.
-> 
->>>>> and it unwinds, probe callback
->>>>>    exits and the driver code code calls dev_set_drvdata(dev, NULL); as
->>>>>    shown below.
->>>>>
->>>>> static int really_probe(struct device *dev, struct device_driver *drv)
->>>>> {
->>>>> 	...
->>>>> 	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
->>>>> 		 drv->bus->name, __func__, drv->name, dev_name(dev));
->>>>> 	...
->>>>> 	if (dev->bus->probe) {
->>>>> 		ret = dev->bus->probe(dev);
->>>>> 		if (ret)
->>>>> 			goto probe_failed;
->>>>> 	} else if (drv->probe) {
->>>>> 		ret = drv->probe(dev);
->>>>> 		if (ret)
->>>>> 			goto probe_failed;
->>>>> 	}
->>>>> 	...
->>>>> 	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
->>>>> 		 drv->bus->name, __func__, dev_name(dev), drv->name);
->>>>> 	goto done;
->>>>>
->>>>> probe_failed:
->>>>> 	devres_release_all(dev);
->>>>> 	driver_sysfs_remove(dev);
->>>>> 	dev->driver = NULL;
->>>>> 	dev_set_drvdata(dev, NULL);
->>>>>
->>>>> 	...
->>>>> 	ret = 0;
->>>>> done:
->>>>> 	...
->>>>> 	return ret;
->>>>> }
->>>>>
->>>>> Now we get to
->>>>>
->>>>>   	ret = vdev->fops->open(filp);
->>>>>
->>>>> in v4l2_open(). This calls some driver's callback, e.g. something
->>>>> like:
->>>>>
->>>>> static int fimc_lite_open(struct file *file)
->>>>> {
->>>>> 	struct fimc_lite *fimc = video_drvdata(file);
->>>>> 	struct media_entity *me =&fimc->ve.vdev.entity;
->>>>> 	int ret;
->>>>>
->>>>> 	mutex_lock(&fimc->lock);
->>>>> 	if (!video_is_registered(&fimc->ve.vdev)) {
->>>>> 		ret = -ENODEV;
->>>>> 		goto unlock;
->>>>> 	}
->>>>>
->>>>> 	...
->>>>>
->>>>> 	/* Mark video pipeline ending at this video node as in use. */
->>>>> 	if (ret == 0)
->>>>> 		me->use_count++;
->>>>> 	...
->>>>> unlock:
->>>>> 	mutex_unlock(&fimc->lock);
->>>>> 	return ret;
->>>>> }
->>>>>
->>>>> Now what will video_drvdata(file); return ?
->>>>>
->>>>> static inline void *video_drvdata(struct file *file)
->>>>> {
->>>>> 	return video_get_drvdata(video_devdata(file));
->>>>> }
->>>>>
->>>>> static inline void *video_get_drvdata(struct video_device *vdev)
->>>>> {
->>>>> 	return dev_get_drvdata(&vdev->dev);
->>>>> }
->>>>>
->>>>> Yes, so that will be just NULL o_O, due to the dev_set_drvdata(dev, NULL);
->>>>> in really_probe(). drvdata is cleared similarly in __device_release_driver(),
->>>>> right after calling driver's remove handler.
->>>>>
->>>>> Another issue I have is that, e.g. driver/media/platform/exynos4-is/fimc-lite*
->>>>> driver has empty video dev release() callback. It should be implemented
->>>>> in the driver to kfree the whole driver's private data structure where
->>>>> struct video_device is embedded in (struct fimc_lite). But that freeing
->>>>> really needs to be synchronized with driver's remove() call, since there
->>>>> is e.g. freed interrupt which accesses the driver's private data. I can't
->>>>> use kref from struct v4l2_device as that belongs to a different driver.
->>>>> A driver's custom reference counting comes to mind, where vdev->release()
->>>>> and drv->remove() would be decrementing the reference counter. But that
->>>>> seems ugly as hell :/ And it predates devm_*.
->>>>>
->>>>> This is all getting a bit depressing :/ Deferred probing and the
->>>>> asynchronous subdev handling just made those issues more visible, i.e.
->>>>> not very good design of some parts of the v4l2-core.
->>>>
->>>> It's just not clear to me how exactly things go wrong for you. Ping me on irc
->>>> tomorrow and we can discuss it further. I have reworked refcounting in the
->>>> past (at the time it was *really* bad), so perhaps we need to rework it again,
->>>> particularly with video nodes associated with subdevices in the mix, something
->>>> that didn't exist at the time.
->>>
->>> Thanks, and sorry for holding on with that for too long.
->>>
->>> The main issue as I see it is that we need to track both driver remove() 
->>> and
->>> struct device .release() calls and free resources only when last of them
->>> executes. Data structures which are referenced in fops must not be freed in
->>> remove() and we cannot use dev_get_drvdata() in fops, e.g. not protected 
->>> with device_lock().
->>
->> You can do all that by returning 0 if probe() was partially successful (i.e.
->> one or more, but not all, nodes were created successfully) by doing what I
->> described above. I don't see another way that doesn't introduce a race condition.
-> 
-> Yes, that could be a work around for the problem. However it doesn't seem right 
-> to assume at the subsystem level. For example errors like EPROBE_DEFER should 
-> be propagated transparently by drivers so the driver core retries probing. 
-> 
-> It is all easy to trigger with the sysfs unbind feature. Regarding fixing 
-> it at the driver core, it seems there have been brave that tried it already 
-> [1]. :) It's surprising how poorly this feature is handled by many drivers or 
-> even subsystems.
-
-I really don't think the unbind issue can be solved in drivers without improved
-core support.
-
-Regards,
-
-	Hans
