@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:51476 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187Ab3I0K76 (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:49361 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538Ab3ILUrf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 06:59:58 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v9 12/13] V4L: s5k6a3: Change sensor min/max resolutions
-Date: Fri, 27 Sep 2013 16:29:17 +0530
-Message-Id: <1380279558-21651-13-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
-References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+	Thu, 12 Sep 2013 16:47:35 -0400
+Received: by mail-wg0-f46.google.com with SMTP id k14so333592wgh.25
+        for <linux-media@vger.kernel.org>; Thu, 12 Sep 2013 13:47:34 -0700 (PDT)
+Message-ID: <52322860.30106@gmail.com>
+Date: Thu, 12 Sep 2013 22:47:28 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?ISO-8859-1?Q?Frank_Sch=E4?= =?ISO-8859-1?Q?fer?=
+	<fschaefer.oss@googlemail.com>
+Subject: Re: [RFD] use-counting V4L2 clocks
+References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5k6a3 sensor has actual pixel resolution of 1408x1402 against
-the active resolution 1392x1392. The real resolution is needed
-when raw sensor SRGB data is dumped to memory by fimc-lite.
+Hi Guennadi,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/s5k6a3.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+On 09/12/2013 09:13 PM, Guennadi Liakhovetski wrote:
+> So, I think, our V4L2 clock enable / disable calls should be balanced, and
+> to enforce that a warning is helpful. Other opinions?
 
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index ccbb4fc..e70e217 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -25,10 +25,12 @@
- #include <media/v4l2-async.h>
- #include <media/v4l2-subdev.h>
- 
--#define S5K6A3_SENSOR_MAX_WIDTH		1392
--#define S5K6A3_SENSOR_MAX_HEIGHT	1392
--#define S5K6A3_SENSOR_MIN_WIDTH		32
--#define S5K6A3_SENSOR_MIN_HEIGHT	32
-+#define S5K6A3_SENSOR_MAX_WIDTH		1408
-+#define S5K6A3_SENSOR_MAX_HEIGHT	1402
-+#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
-+#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
-+#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
-+#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
- 
- #define S5K6A3_DEF_PIX_WIDTH		1296
- #define S5K6A3_DEF_PIX_HEIGHT		732
--- 
-1.7.9.5
+I'd assume we should enforce those calls balanced, but I might not be
+well aware of consequences for the all existing drivers. AFAIR all drivers
+used in embedded systems follow the convention where default power state
+is off and the s_power() calls are balanced.
 
+I never ventured much into drivers that originally used tuner.s_standby()
+before it got renamed to core.s_power(). As Mauro indicated tuner devices
+assume default device power ON state, but additional s_power(1) call should
+not break things as Frank pointed out.
+
+I'd say let's make s_power(1) calls balanced, keep the warning and revisit
+drivers one by one as they get support for explicit clock control added.
+
+--
+Regards,
+Sylwester
