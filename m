@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:17747 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756246Ab3IBJUK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 05:20:10 -0400
-Date: Mon, 2 Sep 2013 12:20:07 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] cx23885-dvb: use a better approach to hook set_frontend
-Message-ID: <20130902092006.GB30037@elgon.mountain>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:43326 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951Ab3IMQOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Sep 2013 12:14:12 -0400
+Message-ID: <523339CF.9070604@wwwdotorg.org>
+Date: Fri, 13 Sep 2013 10:14:07 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl, mark.rutland@arm.com,
+	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH v8 12/12] V4L: Add driver for s5k4e5 image sensor
+References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>  <1378987669-10870-13-git-send-email-arun.kk@samsung.com> <1379076935.4396.13.camel@pizza.hi.pengutronix.de>
+In-Reply-To: <1379076935.4396.13.camel@pizza.hi.pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro Carvalho Chehab,
+On 09/13/2013 06:55 AM, Philipp Zabel wrote:
+> Hi Arun,
+> 
+> Am Donnerstag, den 12.09.2013, 17:37 +0530 schrieb Arun Kumar K:
+>> This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
+>> Like s5k6a3, it is also another fimc-is firmware controlled
+>> sensor. This minimal sensor driver doesn't do any I2C communications
+>> as its done by ISP firmware. It can be updated if needed to a
+>> regular sensor driver by adding the I2C communication.
+... [untrimmed patch] ...
+>> +Example:
+>> +
+>> +	i2c-isp@13130000 {
+>> +		s5k4e5@20 {
+>> +			compatible = "samsung,s5k4e5";
+>> +			reg = <0x20>;
+>> +			gpios = <&gpx1 2 1>;
+> 
+> This probably should be 'reset-gpios', too.
+... [untrimmed patch] ...
+> 
+> regards
+> Philipp
 
-This is a semi-automatic email about new static checker warnings.
-
-The patch 15472faf1259: "[media] cx23885-dvb: use a better approach
-to hook set_frontend" from Aug 9, 2013, leads to the following Smatch
-complaint:
-
-drivers/media/pci/cx23885/cx23885-dvb.c:790 dvb_register()
-	 error: we previously assumed 'fe0->dvb.frontend' could be null (see line 784)
-
-drivers/media/pci/cx23885/cx23885-dvb.c
-   783						       &i2c_bus->i2c_adap);
-   784			if (fe0->dvb.frontend != NULL) {
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^
-Existing check.
-
-   785				dvb_attach(tda18271_attach, fe0->dvb.frontend,
-   786					   0x60, &dev->i2c_bus[1].i2c_adap,
-   787					   &hauppauge_hvr127x_config);
-   788			}
-   789			if (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1275)
-   790				cx23885_set_frontend_hook(port, fe0->dvb.frontend);
-                                                                ^^^^^^^^^^^^^^^^^
-Patch adds dereference.
-
-   791			break;
-   792		case CX23885_BOARD_HAUPPAUGE_HVR1255:
-
-regards,
-dan carpenter
+Please delete unnecessary context when replying so that people don't
+have to scroll through hundreds of lines of patch to see a 1-line comment.
