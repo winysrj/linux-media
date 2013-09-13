@@ -1,328 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60118 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963Ab3IKLd0 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:62593 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847Ab3IMM5u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 07:33:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	sylvester.nawrocki@gmail.com, sakari.ailus@iki.fi
-Subject: Re: [PATCH/RFC v3 06/19] video: display: OF support
-Date: Wed, 11 Sep 2013 13:33:27 +0200
-Message-ID: <2263372.8nCBHctlWT@avalon>
-In-Reply-To: <1378304498.5721.42.camel@pizza.hi.pengutronix.de>
-References: <1376089398-13322-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1376089398-13322-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1378304498.5721.42.camel@pizza.hi.pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 13 Sep 2013 08:57:50 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, kyungmin.park@samsung.com, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 1/7] V4L: Add mem2mem ioctl and file operation helpers
+Date: Fri, 13 Sep 2013 14:56:20 +0200
+Message-id: <1379076986-10446-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>
+References: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+This patch adds ioctl helpers to the V4L2 mem-to-mem API, so we
+can avoid several ioctl handlers in the mem-to-mem video node
+drivers that are simply a pass-through to the v4l2_m2m_* calls.
+These helpers will only be useful for drivers that use same mutex
+for both OUTPUT and CAPTURE queue, which is the case for all
+currently in tree v4l2 m2m drivers.
+In order to use the helpers the driver are required to use
+struct v4l2_fh.
 
-On Wednesday 04 September 2013 16:21:38 Philipp Zabel wrote:
-> Am Samstag, den 10.08.2013, 01:03 +0200 schrieb Laurent Pinchart:
-> > Extend the notifier with DT node matching support, and add helper
-> > functions to build the notifier and link entities based on a graph
-> > representation in DT.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/video/display/display-core.c     | 334 ++++++++++++++++++++++++++
-> >  drivers/video/display/display-notifier.c | 187 +++++++++++++++++
-> >  include/video/display.h                  |  45 +++++
-> >  3 files changed, 566 insertions(+)
-> > 
-> > diff --git a/drivers/video/display/display-core.c
-> > b/drivers/video/display/display-core.c index c3b47d3..328ead7 100644
-> > --- a/drivers/video/display/display-core.c
-> > +++ b/drivers/video/display/display-core.c
-> 
-> [...]
-> 
-> > @@ -420,6 +599,161 @@ int display_entity_link_graph(struct device *dev,
-> > struct list_head *entities)> 
-> >  }
-> >  EXPORT_SYMBOL_GPL(display_entity_link_graph);
-> > 
-> > +#ifdef CONFIG_OF
-> > +
-> > +static int display_of_entity_link_entity(struct device *dev,
-> > +					 struct display_entity *entity,
-> > +					 struct list_head *entities,
-> > +					 struct display_entity *root)
-> > +{
-> > +	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-> > +	const struct device_node *node = entity->dev->of_node;
-> 
-> the current device tree matching implementation only allows one display
-> entity per linux device. How about adding an of_node pointer to struct
-> display_entity directly and allow multiple display entity nodes below in a
-> single device node in the device tree?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c |  110 ++++++++++++++++++++++++++++++++
+ include/media/v4l2-fh.h                |    4 ++
+ include/media/v4l2-mem2mem.h           |   22 +++++++
+ 3 files changed, 136 insertions(+)
 
-That's a very good point. We had a similar issues in V4L2, with sensors that 
-would create several entities. However, in those cases, the sensors would be 
-connected to the rest of the pipeline through a single entity :
-
-Sensor Entity 1 -> ... -> Sensor Entity N -> V4L2 pipeline ...
-
-The core code thus had to care about a single sensor entity when building the 
-pipeline. We could solve the problem in a similar way for panels, but encoders 
-need a more elaborate solution.
-
-I see (at least) two possibilities here, either explicitly describing all 
-entities that make the device in DT (as you have proposed below), or creating 
-a hierarchy of entities, with parent entities that can contain several child 
-entities. I've CC'ed Guennadi, Hans, Sylwester and Sakari to get their opinion 
-on the matter.
-
-> lvds-encoder {
-> 	channel@0 {
-
-If I understand this correctly, your LVDS encoder has two independent 
-channels. In the general case a device made of multiple entities might have 
-those entities chained, so "channel" might not be the best term. "entity" 
-might be a better choice.
-
-> 		port@0 {
-> 			lvds0_input: endpoint {
-> 			};
-> 		};
-> 		port@1 {
-> 			lvds0_output: endpoint {
-> 			};
-> 		};
-> 	};
-> 	channel@1 {
-> 		port@0 {
-> 			lvds1_input: endpoint {
-> 			};
-> 		};
-> 		lvds1: port@1 {
-> 			lvds1_output: endpoint {
-> 			};
-> 		};
-> 	};
-> };
-> 
-> > +	struct media_entity *local = &entity->entity;
-> > +	struct device_node *ep = NULL;
-> > +	int ret = 0;
-> > +
-> > +	dev_dbg(dev, "creating links for entity %s\n", local->name);
-> > +
-> > +	while (1) {
-> > +		struct media_entity *remote = NULL;
-> > +		struct media_pad *remote_pad;
-> > +		struct media_pad *local_pad;
-> > +		struct display_of_link link;
-> > +		struct display_entity *ent;
-> > +		struct device_node *next;
-> > +
-> > +		/* Get the next endpoint and parse its link. */
-> > +		next = display_of_get_next_endpoint(node, ep);
-> > +		if (next == NULL)
-> > +			break;
-> > +
-> > +		of_node_put(ep);
-> > +		ep = next;
-> > +
-> > +		dev_dbg(dev, "processing endpoint %s\n", ep->full_name);
-> > +
-> > +		ret = display_of_parse_link(ep, &link);
-> > +		if (ret < 0) {
-> > +			dev_err(dev, "failed to parse link for %s\n",
-> > +				ep->full_name);
-> > +			continue;
-> > +		}
-> > +
-> > +		/* Skip source pads, they will be processed from the other end of
-> > +		 * the link.
-> > +		 */
-> > +		if (link.local_port >= local->num_pads) {
-> > +			dev_err(dev, "invalid port number %u on %s\n",
-> > +				link.local_port, link.local_node->full_name);
-> > +			display_of_put_link(&link);
-> > +			ret = -EINVAL;
-> > +			break;
-> > +		}
-> > +
-> > +		local_pad = &local->pads[link.local_port];
-> > +
-> > +		if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
-> > +			dev_dbg(dev, "skipping source port %s:%u\n",
-> > +				link.local_node->full_name, link.local_port);
-> > +			display_of_put_link(&link);
-> > +			continue;
-> > +		}
-> > +
-> > +		/* Find the remote entity. If not found, just skip the link as
-> > +		 * it goes out of scope of the entities handled by the notifier.
-> > +		 */
-> > +		list_for_each_entry(ent, entities, list) {
-> > +			if (ent->dev->of_node == link.remote_node) {
-> > +				remote = &ent->entity;
-> > +				break;
-> > +			}
-> > +		}
-> > +
-> > +		if (root->dev->of_node == link.remote_node)
-> > +			remote = &root->entity;
-> > +
-> > +		if (remote == NULL) {
-> > +			dev_dbg(dev, "no entity found for %s\n",
-> > +				link.remote_node->full_name);
-> > +			display_of_put_link(&link);
-> > +			continue;
-> > +		}
-> > +
-> > +		if (link.remote_port >= remote->num_pads) {
-> > +			dev_err(dev, "invalid port number %u on %s\n",
-> > +				link.remote_port, link.remote_node->full_name);
-> > +			display_of_put_link(&link);
-> > +			ret = -EINVAL;
-> > +			break;
-> > +		}
-> > +
-> > +		remote_pad = &remote->pads[link.remote_port];
-> > +
-> > +		display_of_put_link(&link);
-> > +
-> > +		/* Create the media link. */
-> > +		dev_dbg(dev, "creating %s:%u -> %s:%u link\n",
-> > +			remote->name, remote_pad->index,
-> > +			local->name, local_pad->index);
-> > +
-> > +		ret = media_entity_create_link(remote, remote_pad->index,
-> > +					       local, local_pad->index,
-> > +					       link_flags);
-> > +		if (ret < 0) {
-> > +			dev_err(dev,
-> > +				"failed to create %s:%u -> %s:%u link\n",
-> > +				remote->name, remote_pad->index,
-> > +				local->name, local_pad->index);
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	of_node_put(ep);
-> > +	return ret;
-> > +}
-> 
-> [...]
-> 
-> For example like this:
-> 
-> diff --git a/drivers/video/display/display-core.c
-> b/drivers/video/display/display-core.c index 7910c23..a04feed 100644
-> --- a/drivers/video/display/display-core.c
-> +++ b/drivers/video/display/display-core.c
-> @@ -302,6 +302,9 @@ int display_entity_init(struct display_entity *entity,
-> unsigned int num_sinks, kref_init(&entity->ref);
->  	entity->state = DISPLAY_ENTITY_STATE_OFF;
-> 
-> +	if (!entity->of_node && entity->dev)
-> +		entity->of_node = entity->dev->of_node;
-> +
->  	num_pads = num_sinks + num_sources;
->  	pads = kzalloc(sizeof(*pads) * num_pads, GFP_KERNEL);
->  	if (pads == NULL)
-> @@ -665,7 +668,7 @@ static int display_of_entity_link_entity(struct device
-> *dev, struct display_entity *root)
->  {
->  	u32 link_flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-> -	const struct device_node *node = entity->dev->of_node;
-> +	const struct device_node *node = entity->of_node;
->  	struct media_entity *local = &entity->entity;
->  	struct device_node *ep = NULL;
->  	int num_sink, ret = 0;
-> @@ -727,13 +730,13 @@ static int display_of_entity_link_entity(struct device
-> *dev, * it goes out of scope of the entities handled by the notifier. */
->  		list_for_each_entry(ent, entities, list) {
-> -			if (ent->dev->of_node == link.remote_node) {
-> +			if (ent->of_node == link.remote_node) {
->  				remote = &ent->entity;
->  				break;
->  			}
->  		}
-> 
-> -		if (root && root->dev->of_node == link.remote_node)
-> +		if (root && root->of_node == link.remote_node)
->  			remote = &root->entity;
-> 
->  		if (remote == NULL) {
-> diff --git a/drivers/video/display/display-notifier.c
-> b/drivers/video/display/display-notifier.c index a3998c7..d0da6e5 100644
-> --- a/drivers/video/display/display-notifier.c
-> +++ b/drivers/video/display/display-notifier.c
-> @@ -28,28 +28,30 @@ static DEFINE_MUTEX(display_entity_mutex);
->   * Notifiers
->   */
-> 
-> -static bool match_platform(struct device *dev,
-> +static bool match_platform(struct display_entity *entity,
->  			   struct display_entity_match *match)
->  {
->  	pr_debug("%s: matching device '%s' with name '%s'\n", __func__,
-> -		 dev_name(dev), match->match.platform.name);
-> +		 dev_name(entity->dev), match->match.platform.name);
-> 
-> -	return !strcmp(match->match.platform.name, dev_name(dev));
-> +	return !strcmp(match->match.platform.name, dev_name(entity->dev));
->  }
-> 
-> -static bool match_dt(struct device *dev, struct display_entity_match
-> *match) +static bool match_dt(struct display_entity *entity,
-> +		     struct display_entity_match *match)
->  {
->  	pr_debug("%s: matching device node '%s' with node '%s'\n", __func__,
-> -		 dev->of_node->full_name, match->match.dt.node->full_name);
-> +		 entity->of_node->full_name, match->match.dt.node->full_name);
-> 
-> -	return match->match.dt.node == dev->of_node;
-> +	return match->match.dt.node == entity->of_node;
->  }
-> 
->  static struct display_entity_match *
->  display_entity_notifier_match(struct display_entity_notifier *notifier,
->  			      struct display_entity *entity)
->  {
-> -	bool (*match_func)(struct device *, struct display_entity_match *);
-> +	bool (*match_func)(struct display_entity *,
-> +			   struct display_entity_match *);
->  	struct display_entity_match *match;
-> 
->  	pr_debug("%s: matching entity '%s' (ptr 0x%p dev '%s')\n", __func__,
-> @@ -66,7 +68,7 @@ display_entity_notifier_match(struct
-> display_entity_notifier *notifier, break;
->  		}
-> 
-> -		if (match_func(entity->dev, match))
-> +		if (match_func(entity, match))
->  			return match;
->  	}
-> 
-> diff --git a/include/video/display.h b/include/video/display.h
-> index 4c402bee..d1f8833 100644
-> --- a/include/video/display.h
-> +++ b/include/video/display.h
-> @@ -228,6 +228,7 @@ struct display_entity {
->  	struct list_head list;
->  	struct device *dev;
->  	struct module *owner;
-> +	struct device_node *of_node;
->  	struct kref ref;
-> 
->  	char name[32];
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 7c43712..dddad5b 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -544,6 +544,8 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
+ 		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
++	else if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
+ 
+ 	if (list_empty(&src_q->done_list))
+ 		poll_wait(file, &src_q->done_wq, wait);
+@@ -552,6 +554,8 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+ 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
++	else if (m2m_ctx->q_lock)
++		mutex_lock(m2m_ctx->q_lock);
+ 
+ 	spin_lock_irqsave(&src_q->done_lock, flags);
+ 	if (!list_empty(&src_q->done_list))
+@@ -679,6 +683,13 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ 
+ 	if (ret)
+ 		goto err;
++	/*
++	 * If both queues use same mutex assign it as the common buffer
++	 * queues lock to the m2m context. This lock is used in the
++	 * v4l2_m2m_ioctl_* helpers.
++	 */
++	if (out_q_ctx->q.lock == cap_q_ctx->q.lock)
++		m2m_ctx->q_lock = out_q_ctx->q.lock;
+ 
+ 	return m2m_ctx;
+ err:
+@@ -726,3 +737,102 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+ 
++/* Videobuf2 ioctl helpers */
++
++int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
++				struct v4l2_requestbuffers *rb)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_reqbufs(file, fh->m2m_ctx, rb);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_reqbufs);
++
++int v4l2_m2m_ioctl_querybuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_querybuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_querybuf);
++
++int v4l2_m2m_ioctl_qbuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_qbuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_qbuf);
++
++int v4l2_m2m_ioctl_dqbuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_dqbuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_dqbuf);
++
++int v4l2_m2m_ioctl_expbuf(struct file *file, void *priv,
++				struct v4l2_exportbuffer *eb)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_expbuf(file, fh->m2m_ctx, eb);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_expbuf);
++
++int v4l2_m2m_ioctl_streamon(struct file *file, void *priv,
++				enum v4l2_buf_type type)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_streamon(file, fh->m2m_ctx, type);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamon);
++
++int v4l2_m2m_ioctl_streamoff(struct file *file, void *priv,
++				enum v4l2_buf_type type)
++{
++	struct v4l2_fh *fh = file->private_data;
++	return v4l2_m2m_streamoff(file, fh->m2m_ctx, type);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamoff);
++
++/*
++ * v4l2_file_operations helpers. It is assumed here same lock is used
++ * for the output and the capture buffer queue.
++ */
++
++int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
++	int ret;
++
++	if (m2m_ctx->q_lock && mutex_lock_interruptible(m2m_ctx->q_lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_mmap(file, m2m_ctx, vma);
++
++	if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_fop_mmap);
++
++unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait)
++{
++	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
++	unsigned int ret;
++
++	if (m2m_ctx->q_lock)
++		mutex_lock(m2m_ctx->q_lock);
++
++	ret = v4l2_m2m_poll(file, m2m_ctx, wait);
++
++	if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_fop_poll);
++
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index a62ee18..d942f79 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -43,6 +43,10 @@ struct v4l2_fh {
+ 	struct list_head	available; /* Dequeueable event */
+ 	unsigned int		navailable;
+ 	u32			sequence;
++
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++	struct v4l2_m2m_ctx	*m2m_ctx;
++#endif
+ };
+ 
+ /*
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 44542a2..2a0e489 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -64,6 +64,9 @@ struct v4l2_m2m_queue_ctx {
+ };
+ 
+ struct v4l2_m2m_ctx {
++	/* optional cap/out vb2 queues lock */
++	struct mutex			*q_lock;
++
+ /* private: internal use only */
+ 	struct v4l2_m2m_dev		*m2m_dev;
+ 
+@@ -229,5 +232,24 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
+ }
+ 
++/* v4l2 ioctl helpers */
++
++int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
++				struct v4l2_requestbuffers *rb);
++int v4l2_m2m_ioctl_querybuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_qbuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_dqbuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_expbuf(struct file *file, void *fh,
++				struct v4l2_exportbuffer *eb);
++int v4l2_m2m_ioctl_streamon(struct file *file, void *fh,
++				enum v4l2_buf_type type);
++int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
++				enum v4l2_buf_type type);
++int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma);
++unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait);
++
+ #endif /* _MEDIA_V4L2_MEM2MEM_H */
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
