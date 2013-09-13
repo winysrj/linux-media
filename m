@@ -1,106 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:37143 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406Ab3I0N5Z (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4784 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab3IMCyu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 09:57:25 -0400
-Date: Fri, 27 Sep 2013 10:57:16 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: srinivas.kandagatla@st.com
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for remote-control
-Message-id: <20130927105716.64349f02@samsung.com>
-In-reply-to: <52458774.1060909@st.com>
-References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com>
- <20130927113458.GB18672@e106331-lin.cambridge.arm.com>
- <52458774.1060909@st.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 12 Sep 2013 22:54:50 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8D2sl8c030030
+	for <linux-media@vger.kernel.org>; Fri, 13 Sep 2013 04:54:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id B9BFE2A0764
+	for <linux-media@vger.kernel.org>; Fri, 13 Sep 2013 04:54:41 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130913025441.B9BFE2A0764@tschai.lan>
+Date: Fri, 13 Sep 2013 04:54:41 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 27 Sep 2013 14:26:12 +0100
-Srinivas KANDAGATLA <srinivas.kandagatla@st.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 27/09/13 12:34, Mark Rutland wrote:
-> 
-> >> > +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
-> >> > +	  the rx pins are wired up.
-> > I'm unsure on this. What if the device has multiple receivers that can
-> > be independently configured? What if it supports something other than
-> > "infrared" or "uhf"? What if a device can only be wired up as
-> > "infrared"? 
-> > 
-> > I'm not sure how generic these are, though we should certainly encourage
-> > bindings that can be described this way to be described in the same way.
-> > 
-> >> > +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
-> >> > +	  the tx pins are wired up.
-> > I have similar concerns here to those for the rx-mode property.
-> > 
-> Initially rx-mode and tx-mode sounded like more generic properties
-> that's the reason I ended up in this route. But after this discussion it
-> looks like its not really generic enough to cater all the use cases.
-> 
-> It make sense for me to perfix "st," for these properties in the st-rc
-> driver rather than considering them as generic properties.
+Results of the daily build of media_tree:
 
-Well, for sure the direction (TX, RX, both) is a generic property.
+date:		Fri Sep 13 04:00:19 CEST 2013
+git branch:	test
+git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-I'd say that the level 1 protocol (IR, UHF, Bluetooth, ...) is also a
-generic property. Most remotes are IR, but there are some that are
-bluetooth, and your hardware is using UHF.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Btw, we're even thinking on mapping HDMI-CEC remote controller RX/TX via
-the RC subsystem. So, another L1 protocol would be "hdmi-cec".
+Detailed results are available here:
 
-Yet, it seems unlikely that the very same remote controller IP would use
-a different protocol for RX and TX, while sharing the same registers.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-So, for example, a hardware with "hdmi-cec" and "infrared" will actually
-have two remote controller devices. Eventually, the "infrared" being
-just RX, while "hdmi-cec" being bi-directional.
+Full logs are available here:
 
-So, IMHO, this could be mapped as "l1_protocol" ("infrared", "uhf", ...)
-and another one "direction" ("rx", "tx", "bi-directional").
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-> 
-> > I think what we actually need to document is the process of creating a
-> > binding in such a way as to encourage uniformity. Something like the
-> > following steps:
-> I agree, It will help.. :-)
-> > 
-> > 1. Look to see if a binding already exists. If so, use it.
-> > 
-> > 2. Is there a binding for a compatible device? If so, use/extend it.
-> > 
-> > 3. Is there a binding for a similar (but incompatible) device? Use it as
-> >    a template, possibly factor out portions into a class binding if
-> >    those portions are truly general.
-> > 
-> > 4. Is there a binding for the class of device? If so, build around that,
-> >    possibly extending it.
-> > 
-> > 5. If there's nothing relevant, create a binding aiming for as much
-> >    commonality as possible with other devices of that class that may
-> >    have bindings later.
-> 
-> Thanks for this little guide...
-> 
-> --srini
+The Media Infrastructure API from this daily build is here:
 
-
--- 
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
