@@ -1,123 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4238 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744Ab3I0C6J (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:63988 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847Ab3IMM6F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Sep 2013 22:58:09 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8R2w69D003350
-	for <linux-media@vger.kernel.org>; Fri, 27 Sep 2013 04:58:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E27902A0764
-	for <linux-media@vger.kernel.org>; Fri, 27 Sep 2013 04:57:54 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 13 Sep 2013 08:58:05 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130927025754.E27902A0764@tschai.lan>
-Date: Fri, 27 Sep 2013 04:57:54 +0200 (CEST)
+Cc: hverkuil@xs4all.nl, kyungmin.park@samsung.com, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 3/7] exynos4-is: Use mem-to-mem ioctl helpers
+Date: Fri, 13 Sep 2013 14:56:22 +0200
+Message-id: <1379076986-10446-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>
+References: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Simplify the FIMC mem-to-mem driver by using the m2m ioctl and vb2 helpers.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-m2m.c |  119 +++-----------------------
+ 1 file changed, 14 insertions(+), 105 deletions(-)
 
-date:		Fri Sep 27 04:00:13 CEST 2013
-git branch:	test
-git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index 8d33b68..71ee871 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -226,24 +226,12 @@ static void fimc_buf_queue(struct vb2_buffer *vb)
+ 		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+ }
+ 
+-static void fimc_lock(struct vb2_queue *vq)
+-{
+-	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
+-	mutex_lock(&ctx->fimc_dev->lock);
+-}
+-
+-static void fimc_unlock(struct vb2_queue *vq)
+-{
+-	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
+-	mutex_unlock(&ctx->fimc_dev->lock);
+-}
+-
+ static struct vb2_ops fimc_qops = {
+ 	.queue_setup	 = fimc_queue_setup,
+ 	.buf_prepare	 = fimc_buf_prepare,
+ 	.buf_queue	 = fimc_buf_queue,
+-	.wait_prepare	 = fimc_unlock,
+-	.wait_finish	 = fimc_lock,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ 	.stop_streaming	 = stop_streaming,
+ 	.start_streaming = start_streaming,
+ };
+@@ -410,56 +398,6 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
+-static int fimc_m2m_reqbufs(struct file *file, void *fh,
+-			    struct v4l2_requestbuffers *reqbufs)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+-}
+-
+-static int fimc_m2m_querybuf(struct file *file, void *fh,
+-			     struct v4l2_buffer *buf)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int fimc_m2m_qbuf(struct file *file, void *fh,
+-			 struct v4l2_buffer *buf)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int fimc_m2m_dqbuf(struct file *file, void *fh,
+-			  struct v4l2_buffer *buf)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int fimc_m2m_expbuf(struct file *file, void *fh,
+-			    struct v4l2_exportbuffer *eb)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
+-}
+-
+-
+-static int fimc_m2m_streamon(struct file *file, void *fh,
+-			     enum v4l2_buf_type type)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+-}
+-
+-static int fimc_m2m_streamoff(struct file *file, void *fh,
+-			    enum v4l2_buf_type type)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+-}
+-
+ static int fimc_m2m_cropcap(struct file *file, void *fh,
+ 			    struct v4l2_cropcap *cr)
+ {
+@@ -598,13 +536,13 @@ static const struct v4l2_ioctl_ops fimc_m2m_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out_mplane	= fimc_m2m_try_fmt_mplane,
+ 	.vidioc_s_fmt_vid_cap_mplane	= fimc_m2m_s_fmt_mplane,
+ 	.vidioc_s_fmt_vid_out_mplane	= fimc_m2m_s_fmt_mplane,
+-	.vidioc_reqbufs			= fimc_m2m_reqbufs,
+-	.vidioc_querybuf		= fimc_m2m_querybuf,
+-	.vidioc_qbuf			= fimc_m2m_qbuf,
+-	.vidioc_dqbuf			= fimc_m2m_dqbuf,
+-	.vidioc_expbuf			= fimc_m2m_expbuf,
+-	.vidioc_streamon		= fimc_m2m_streamon,
+-	.vidioc_streamoff		= fimc_m2m_streamoff,
++	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
++	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
++	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
++	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
++	.vidioc_expbuf			= v4l2_m2m_ioctl_expbuf,
++	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
++	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_crop			= fimc_m2m_g_crop,
+ 	.vidioc_s_crop			= fimc_m2m_s_crop,
+ 	.vidioc_cropcap			= fimc_m2m_cropcap
+@@ -624,6 +562,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->lock = &ctx->fimc_dev->lock;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -636,6 +575,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->lock = &ctx->fimc_dev->lock;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -713,6 +653,7 @@ static int fimc_m2m_open(struct file *file)
+ 		ret = PTR_ERR(ctx->m2m_ctx);
+ 		goto error_c;
+ 	}
++	ctx->fh.m2m_ctx = ctx->m2m_ctx;
+ 
+ 	if (fimc->m2m.refcnt++ == 0)
+ 		set_bit(ST_M2M_RUN, &fimc->state);
+@@ -760,45 +701,13 @@ static int fimc_m2m_release(struct file *file)
+ 	return 0;
+ }
+ 
+-static unsigned int fimc_m2m_poll(struct file *file,
+-				  struct poll_table_struct *wait)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&fimc->lock))
+-		return -ERESTARTSYS;
+-
+-	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+-	mutex_unlock(&fimc->lock);
+-
+-	return ret;
+-}
+-
+-
+-static int fimc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&fimc->lock))
+-		return -ERESTARTSYS;
+-
+-	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+-	mutex_unlock(&fimc->lock);
+-
+-	return ret;
+-}
+-
+ static const struct v4l2_file_operations fimc_m2m_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= fimc_m2m_open,
+ 	.release	= fimc_m2m_release,
+-	.poll		= fimc_m2m_poll,
++	.poll		= v4l2_m2m_fop_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+-	.mmap		= fimc_m2m_mmap,
++	.mmap		= v4l2_m2m_fop_mmap,
+ };
+ 
+ static struct v4l2_m2m_ops m2m_ops = {
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
