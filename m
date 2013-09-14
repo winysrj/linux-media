@@ -1,78 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43863 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752631Ab3ILSCw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 14:02:52 -0400
-Message-ID: <5232018F.3000009@iki.fi>
-Date: Thu, 12 Sep 2013 21:01:51 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:57456 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829Ab3INFYP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Sep 2013 01:24:15 -0400
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@infradead.org>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH -next] staging/media: fix msi3101 build errors
-References: <20130912143402.73f77e0cef1e19576b77a6b5@canb.auug.org.au> <5231FCFC.40505@infradead.org>
-In-Reply-To: <5231FCFC.40505@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <523395DC.5080009@wwwdotorg.org>
+References: <1379073471-7244-1-git-send-email-prabhakar.csengg@gmail.com> <523395DC.5080009@wwwdotorg.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 14 Sep 2013 10:53:53 +0530
+Message-ID: <CA+V-a8sVyJ1TrTSiaj8vpaD+f_qJ5Hp287E3HuHJ_pRzzmdAvg@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: adv7343: fix the DT binding properties
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>, LDOC <linux-doc@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Randy,
-It is already fixed, waiting for Mauro's processing.
-https://patchwork.kernel.org/patch/2856771/
+Hi Stephen,
 
-regards
-Antti
+This patch should have been marked as RFC.
 
-On 09/12/2013 08:42 PM, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
->
-> Fix build error when VIDEOBUF2_CORE=m and USB_MSI3101=y.
->
-> drivers/built-in.o: In function `msi3101_buf_queue':
-> sdr-msi3101.c:(.text+0x1298d6): undefined reference to `vb2_buffer_done'
-> drivers/built-in.o: In function `msi3101_cleanup_queued_bufs':
-> sdr-msi3101.c:(.text+0x1299c7): undefined reference to `vb2_buffer_done'
-> drivers/built-in.o: In function `msi3101_isoc_handler':
-> sdr-msi3101.c:(.text+0x12a08d): undefined reference to `vb2_plane_vaddr'
-> sdr-msi3101.c:(.text+0x12a0b9): undefined reference to `vb2_buffer_done'
-> drivers/built-in.o: In function `msi3101_probe':
-> sdr-msi3101.c:(.text+0x12a1c5): undefined reference to `vb2_vmalloc_memops'
-> sdr-msi3101.c:(.text+0x12a1d7): undefined reference to `vb2_queue_init'
-> drivers/built-in.o:(.rodata+0x34cf0): undefined reference to `vb2_ioctl_reqbufs'
-> drivers/built-in.o:(.rodata+0x34cf4): undefined reference to `vb2_ioctl_querybuf'
-> drivers/built-in.o:(.rodata+0x34cf8): undefined reference to `vb2_ioctl_qbuf'
-> drivers/built-in.o:(.rodata+0x34d00): undefined reference to `vb2_ioctl_dqbuf'
-> drivers/built-in.o:(.rodata+0x34d04): undefined reference to `vb2_ioctl_create_bufs'
-> drivers/built-in.o:(.rodata+0x34d08): undefined reference to `vb2_ioctl_prepare_buf'
-> drivers/built-in.o:(.rodata+0x34d18): undefined reference to `vb2_ioctl_streamon'
-> drivers/built-in.o:(.rodata+0x34d1c): undefined reference to `vb2_ioctl_streamoff'
-> drivers/built-in.o:(.rodata+0x35580): undefined reference to `vb2_fop_read'
-> drivers/built-in.o:(.rodata+0x35588): undefined reference to `vb2_fop_poll'
-> drivers/built-in.o:(.rodata+0x35598): undefined reference to `vb2_fop_mmap'
-> drivers/built-in.o:(.rodata+0x355a0): undefined reference to `vb2_fop_release'
-> drivers/built-in.o:(.data+0x23b40): undefined reference to `vb2_ops_wait_prepare'
-> drivers/built-in.o:(.data+0x23b44): undefined reference to `vb2_ops_wait_finish'
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/staging/media/msi3101/Kconfig |    2 ++
->   1 file changed, 2 insertions(+)
->
-> --- linux-next-20130912.orig/drivers/staging/media/msi3101/Kconfig
-> +++ linux-next-20130912/drivers/staging/media/msi3101/Kconfig
-> @@ -1,3 +1,5 @@
->   config USB_MSI3101
->   	tristate "Mirics MSi3101 SDR Dongle"
->   	depends on USB && VIDEO_DEV && VIDEO_V4L2
-> +	select VIDEOBUF2_CORE
-> +	select VIDEOBUF2_VMALLOC
->
+Thanks for the review.
 
+On Sat, Sep 14, 2013 at 4:16 AM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 09/13/2013 05:57 AM, Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> This patch fixes the DT binding properties of adv7343 decoder.
+>> The pdata which was being read from the DT property, is removed
+>> as this can done internally in the driver using cable detection
+>> register.
+>>
+>> This patch also removes the pdata of ADV7343 which was passed from
+>> DA850 machine.
+>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>
+>>  Required Properties :
+>>  - compatible: Must be "adi,adv7343"
+>> +- reg: I2C device address.
+>> +- vddio-supply: I/O voltage supply.
+>> +- vddcore-supply: core voltage supply.
+>> +- vaa-supply: Analog power supply.
+>> +- pvdd-supply: PLL power supply.
+>
+> Old DTs won't contain those properties. This breaks the DT ABI if those
+> properties are required. Is that acceptable?
+>
+As of now adv7343 via DT binding is not enabled in any platforms
+so this wont break any DT ABI.
 
--- 
-http://palosaari.fi/
+> If it is, I think we should document that older versions of the binding
+> didn't require those properties, so they may in fact be missing.
+>
+> I note that this patch doesn't actually update the driver to
+> regulator_get() anything. Shouldn't it?
+>
+As of now the driver isn’t enabling/accepting the regulators,
+so should I add those in DT properties or not ?
+
+>>  Optional Properties :
+>> -- adi,power-mode-sleep-mode: on enable the current consumption is reduced to
+>> -                           micro ampere level. All DACs and the internal PLL
+>> -                           circuit are disabled.
+>> -- adi,power-mode-pll-ctrl: PLL and oversampling control. This control allows
+>> -                        internal PLL 1 circuit to be powered down and the
+>> -                        oversampling to be switched off.
+>> -- ad,adv7343-power-mode-dac: array configuring the power on/off DAC's 1..6,
+>> -                           0 = OFF and 1 = ON, Default value when this
+>> -                           property is not specified is <0 0 0 0 0 0>.
+>> -- ad,adv7343-sd-config-dac-out: array configure SD DAC Output's 1 and 2, 0 = OFF
+>> -                              and 1 = ON, Default value when this property is
+>> -                              not specified is <0 0>.
+>
+> At a very quick glance, it's not really clear why those properties are
+> being removed. They seem like HW configuration, so might be fine to put
+> into DT. What replaces these?
+
+Yes these were HW configuration but, its now internally handled in
+the driver.  The 'ad,adv7343-power-mode-dac' property which enabled the
+DAC's 1..6 , so now in the driver by default all the DAC's are enabled by
+default and enable unconnected DAC auto power down. Similarly
+'ad,adv7343-sd-config-dac-out' property enabled SD DAC's 1..2 but
+now is enabled by reading the CABLE DETECT register which tells
+the status of DAC1/2.
+
+Regards,
+--Prabhakar
