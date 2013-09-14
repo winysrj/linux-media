@@ -1,88 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:59848 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab3IFRHv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 13:07:51 -0400
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2461 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756169Ab3INDWu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Sep 2013 23:22:50 -0400
+Message-ID: <5233D681.4000802@xs4all.nl>
+Date: Sat, 14 Sep 2013 05:22:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2886273.7m0Ub6qIMh@avalon>
-References: <1378471436-7045-1-git-send-email-geert@linux-m68k.org>
-	<2886273.7m0Ub6qIMh@avalon>
-Date: Fri, 6 Sep 2013 19:07:50 +0200
-Message-ID: <CAMuHMdV6QrVcHfxwnS7EDQF6J6DjLTTZRNPP-VkWuJOv4HFweg@mail.gmail.com>
-Subject: Re: [PATCH] [media] media/v4l2: VIDEO_RENESAS_VSP1 should depend on HAS_DMA
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-kbuild <linux-kbuild@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: vkalia@codeaurora.org
+CC: linux-media@vger.kernel.org
+Subject: Re: User data propagation for video codecs
+References: <79eef80b5fa29d83a7ae9a3f7d83cea8.squirrel@www.codeaurora.org>
+In-Reply-To: <79eef80b5fa29d83a7ae9a3f7d83cea8.squirrel@www.codeaurora.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 6, 2013 at 5:20 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Friday 06 September 2013 14:43:56 Geert Uytterhoeven wrote:
->> If NO_DMA=y:
->>
->> warning: (... && VIDEO_RENESAS_VSP1 && ...) selects VIDEOBUF2_DMA_CONTIG
->> which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
->>
->> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
->> drivers/media/v4l2-core/videobuf2-dma-contig.c:202: error: implicit
->> declaration of function ‘dma_mmap_coherent’
->> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function
->> ‘vb2_dc_get_base_sgt’: drivers/media/v4l2-core/videobuf2-dma-contig.c:385:
->> error: implicit declaration of function ‘dma_get_sgtable’ make[7]: ***
->> [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
->>
->> VIDEO_RENESAS_VSP1 (which doesn't have a platform dependency) selects
->> VIDEOBUF2_DMA_CONTIG, but the latter depends on HAS_DMA.
->>
->> Make VIDEO_RENESAS_VSP1 depend on HAS_DMA to fix this.
+On 09/13/2013 11:54 PM, vkalia@codeaurora.org wrote:
+> Hi
 >
-> Is there a chance we could fix the Kconfig infrastructure instead ? It warns
-> about the unmet dependency, shouldn't it disallow selecting the driver in the
-> first place ? I have a vague feeling that this topic has been discussed before
-> though.
-
-This has come up several times before.
-Unfortunately "select" was "designed" to circumvent all dependencies of
-the target symbol.
-
-> If that's not possible,
+> For video decoder, our video driver, which is V4l2 based, exposes two
+> capabilities:
 >
->> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> 1. V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE for transaction of compressed buffers.
+> 2. V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE for transaction of
+> decoded/uncompressed buffers.
 >
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
->> ---
->>  drivers/media/platform/Kconfig |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->> index 8068d7b..fbc0611 100644
->> --- a/drivers/media/platform/Kconfig
->> +++ b/drivers/media/platform/Kconfig
->> @@ -212,7 +212,7 @@ config VIDEO_SH_VEU
->>
->>  config VIDEO_RENESAS_VSP1
->>       tristate "Renesas VSP1 Video Processing Engine"
->> -     depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->> +     depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
->>       select VIDEOBUF2_DMA_CONTIG
->>       ---help---
->>         This is a V4L2 driver for the Renesas VSP1 video processing engine.
+> We have a requirement to propagate "user specific data" from compressed
+> buffer to uncompressed buffer. We are not able to find any field in
+> "struct v4l2_buffer" which can be used for this purpose. Please suggest if
+> this can be achieved with current V4L2 framework.
 
-Gr{oetje,eeting}s,
+It depends how the user data is organized. If it is situated right
+before the actual data, then the data_offset field of v4l2_plane can be
+used. If it is an independent piece of data, then you can pass it on in
+an additional plane.
 
-                        Geert
+Regards,
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+    Hans
