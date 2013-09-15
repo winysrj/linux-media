@@ -1,125 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:57865 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930Ab3I0K7F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 06:59:05 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v9 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
-Date: Fri, 27 Sep 2013 16:29:07 +0530
-Message-Id: <1380279558-21651-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
-References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45964 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757130Ab3IOQz1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Sep 2013 12:55:27 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] msi3101: correct max videobuf2 alloc
+Date: Sun, 15 Sep 2013 19:54:38 +0300
+Message-Id: <1379264078-22951-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the DT binding documentation for Samsung
-Exynos5 SoC series imaging subsystem (FIMC-IS).
+There was too small buffers requested in worst case.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- .../devicetree/bindings/media/exynos5-fimc-is.txt  |   84 ++++++++++++++++++++
- 1 file changed, 84 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+ drivers/staging/media/msi3101/sdr-msi3101.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-new file mode 100644
-index 0000000..0525417
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-@@ -0,0 +1,84 @@
-+Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
-+------------------------------------------------------
-+
-+The camera subsystem on Samsung Exynos5 SoC has some changes relative
-+to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
-+FIMC-LITE IPs but has a much improved version of FIMC-IS which can
-+handle sensor controls and camera post-processing operations. The
-+Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
-+post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
-+dedicated scalers (SCC and SCP).
-+
-+fimc-is node
-+------------
-+
-+Required properties:
-+
-+- compatible        : must be "samsung,exynos5250-fimc-is"
-+- reg               : physical base address and size of the memory mapped
-+                      registers
-+- interrupt-parent  : parent interrupt controller
-+- interrupts        : fimc-is interrupt to the parent interrupt controller
-+- clocks            : list of clock specifiers, corresponding to entries in
-+                      clock-names property
-+- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
-+                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
-+                      matching entries in the clocks property
-+- samsung,pmu       : phandle to the Power Management Unit (PMU) node
-+
-+i2c-isp (ISP I2C bus controller) nodes
-+--------------------------------------
-+The i2c-isp node is defined as the child node of fimc-is.
-+
-+Required properties:
-+
-+- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
-+		  Exynos4412 and Exynos5250 SoCs
-+- reg		: physical base address and length of the registers set
-+- clocks	: must contain gate clock specifier for this controller
-+- clock-names	: must contain "i2c_isp" entry
-+
-+For the i2c-isp node, it is required to specify a pinctrl state named "default",
-+according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
-+
-+Device tree nodes of the image sensors controlled directly by the FIMC-IS
-+firmware must be child nodes of their corresponding ISP I2C bus controller node.
-+The data link of these image sensors must be specified using the common video
-+interfaces bindings, defined in video-interfaces.txt.
-+
-+Example:
-+
-+	fimc_is: fimc-is@13000000 {
-+		compatible = "samsung,exynos5250-fimc-is";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+		reg = <0x13000000 0x200000>;
-+		interrupt-parent = <&combiner>;
-+		interrupts = <19 1>;
-+		clocks = <&clock 346>, <&clock 347>, <&clock 512>,
-+			<&clock 513>, <&clock 514>, <&clock 515>,
-+			<&clock 516>;
-+		clock-names = "isp", "mcu_isp", "isp_div0", "isp_div1",
-+				"isp_divmpwm", "mcu_isp_div0",
-+				"mcu_isp_div1";
-+		samsung,pmu = <&pmu>;
-+
-+		i2c0_isp: i2c-isp@13130000 {
-+			compatible = "samsung,exynos4212-i2c-isp";
-+			reg = <0x13130000 0x100>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			clocks = <&clock 352>;
-+			clock-names = "i2c_isp";
-+		};
-+
-+		i2c1_isp: i2c-isp@13140000 {
-+			compatible = "samsung,exynos4212-i2c-isp";
-+			reg = <0x13140000 0x100>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			clocks = <&clock 353>;
-+			clock-names = "i2c_isp";
-+		};
-+	};
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 7715c85..4c3bf77 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1131,7 +1131,13 @@ static int msi3101_queue_setup(struct vb2_queue *vq,
+ 	/* Absolute min and max number of buffers available for mmap() */
+ 	*nbuffers = 32;
+ 	*nplanes = 1;
+-	sizes[0] = PAGE_ALIGN(3 * 3072); /* 3 * 768 * 4 */
++	/*
++	 *   3, wMaxPacketSize 3x 1024 bytes
++	 * 504, max IQ sample pairs per 1024 frame
++	 *   2, two samples, I and Q
++	 *   4, 32-bit float
++	 */
++	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 4); /* = 12096 */
+ 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
+ 			__func__, *nbuffers, sizes[0]);
+ 	return 0;
 -- 
-1.7.9.5
+1.7.11.7
 
