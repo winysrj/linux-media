@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:63943 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab3IMHOH (ORCPT
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:60942 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752787Ab3IOU6Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Sep 2013 03:14:07 -0400
-Received: by mail-oa0-f47.google.com with SMTP id g12so812456oah.20
-        for <linux-media@vger.kernel.org>; Fri, 13 Sep 2013 00:14:06 -0700 (PDT)
+	Sun, 15 Sep 2013 16:58:16 -0400
+Message-ID: <52361F61.8050207@gmail.com>
+Date: Sun, 15 Sep 2013 22:58:09 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1378816283-8164-1-git-send-email-linus.walleij@linaro.org>
-References: <1378816283-8164-1-git-send-email-linus.walleij@linaro.org>
-Date: Fri, 13 Sep 2013 09:14:06 +0200
-Message-ID: <CACRpkdaBeYTchtQn6-QThAv2XWAT=vd=YarHA1TgVZeLoLNfpA@mail.gmail.com>
-Subject: Re: [PATCH 5/7] staging: media/lirc: switch to use gpiolib
-From: Linus Walleij <linus.walleij@linaro.org>
-To: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-	Imre Kaloz <kaloz@openwrt.org>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Alexandre Courbot <acourbot@nvidia.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linus Walleij <linus.walleij@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH RFC 2/7] mem2mem_testdev: Use mem-to-mem ioctl and vb2
+ helpers
+References: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com>  <1379076986-10446-3-git-send-email-s.nawrocki@samsung.com> <1379077699.4396.16.camel@pizza.hi.pengutronix.de>
+In-Reply-To: <1379077699.4396.16.camel@pizza.hi.pengutronix.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Philipp,
 
-On Tue, Sep 10, 2013 at 2:31 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-
-> The lirc serial module has special hooks to work with NSLU2,
-> switch these over to use gpiolib, as that is available on the
-> ixp4 platform.
+On 09/13/2013 03:08 PM, Philipp Zabel wrote:
+> Am Freitag, den 13.09.2013, 14:56 +0200 schrieb Sylwester Nawrocki:
+[...]
+>> @@ -865,6 +793,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+>>   	dst_vq->ops =&m2mtest_qops;
+>>   	dst_vq->mem_ops =&vb2_vmalloc_memops;
+>>   	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+>> +	dst_vq->lock =&ctx->dev->dev_mutex;
+>>
+>>   	return vb2_queue_init(dst_vq);
+>>   }
+>> @@ -945,6 +874,7 @@ static int m2mtest_open(struct file *file)
+>>   		kfree(ctx);
+>>   		goto open_unlock;
+>>   	}
+>> +	ctx->fh.m2m_ctx = ctx->m2m_ctx;
 >
-> Not even compile tested as there is no way to select this
-> driver from menuconfig on the ixp4 platform.
->
-> Cc: Imre Kaloz <kaloz@openwrt.org>
-> Cc: Krzysztof Halasa <khc@pm.waw.pl>
-> Cc: Alexandre Courbot <acourbot@nvidia.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
-> Hi Greg: I'm seeking an ACK on this patch to take it through
-> the GPIO tree as part of a clean-up attempt to remove custom
-> GPIO APIs.
+> Since you added m2m_ctx to v4l2_fh, why not drop ctx->m2m_ctx altogether
+> and always use ctx->fh.m2m_ctx instead?
 
-Could you ACK this patch if it looks OK to you?
+Yes, that might make it a bit cleaner. I guess I wanted to minimize
+the necessary changes. I'll amend that in all drivers in this series
+for the next iteration, as they all look very similar. Thanks for the
+suggestion.
 
-Yours,
-Linus Walleij
+--
+Regards,
+Sylwester
