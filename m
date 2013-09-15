@@ -1,121 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4784 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab3IMCyu (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:34070 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756848Ab3IOA3X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 22:54:50 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8D2sl8c030030
-	for <linux-media@vger.kernel.org>; Fri, 13 Sep 2013 04:54:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id B9BFE2A0764
-	for <linux-media@vger.kernel.org>; Fri, 13 Sep 2013 04:54:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sat, 14 Sep 2013 20:29:23 -0400
+Received: from mail-in-14-z2.arcor-online.net (mail-in-14-z2.arcor-online.net [151.189.8.31])
+	by mx.arcor.de (Postfix) with ESMTP id F000526584
+	for <linux-media@vger.kernel.org>; Sun, 15 Sep 2013 02:29:21 +0200 (CEST)
+Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net [151.189.21.45])
+	by mail-in-14-z2.arcor-online.net (Postfix) with ESMTP id E958A18742
+	for <linux-media@vger.kernel.org>; Sun, 15 Sep 2013 02:29:21 +0200 (CEST)
+Received: from [192.168.2.103] (dslb-088-066-058-225.pools.arcor-ip.net [88.66.58.225])
+	(Authenticated sender: wessels.tobias@arcor.de)
+	by mail-in-05.arcor-online.net (Postfix) with ESMTPA id C0655E3B96
+	for <linux-media@vger.kernel.org>; Sun, 15 Sep 2013 02:29:21 +0200 (CEST)
+Message-ID: <1379204963.4144.24.camel@debian>
+Subject: Problems with TechniSat CableStar Combo HD CI
+From: Tobias Wessels <wessels.tobias@arcor.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130913025441.B9BFE2A0764@tschai.lan>
-Date: Fri, 13 Sep 2013 04:54:41 +0200 (CEST)
+Date: Sun, 15 Sep 2013 02:29:23 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi everyone on this list,
 
-Results of the daily build of media_tree:
+This is my first post in a mailing list and I'm not quite sure if this
+is the right place seeking help for a technical problem with a specific
+DVB-C card. But since I've searched everywhere on the net, this is my
+last chance for now to resolve a problem with the DVB-T/C card
+"TechniSat CableStar Combo HD CI".
 
-date:		Fri Sep 13 04:00:19 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+I have this card since a long time ago, but it never worked (and still
+doesn't). But just recently I've read on linuxtv.org that it is possible
+to use that card with the latest kernels (from 3.9.2 on) and modified
+drivers, so I decided to give it another try; following the instructions
+from this post:
+http://forum.ubuntuusers.de/topic/technisat-cablestar-combo-hd-benutzen/#post-5650497
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+At first, everything looked fine, since the card seems to be recognized
+and the drivers are loaded; as shown by the dmesg output:
 
-Detailed results are available here:
+[ 1322.092805] DVB: registering new adapter (Technisat Combo HD CI)
+[ 1322.095684] usb 1-2: dvb_usb_v2: MAC address: c2:f7:14:03:00:00
+[ 1322.096525] drxk: frontend initialized.
+[ 1322.096625] usb 1-2: firmware: agent loaded
+dvb-usb-terratec-h7-drxk.fw into memory
+[ 1322.096759] usb 1-2: DVB: registering adapter 0 frontend 0 (DRXK)...
+[ 1322.096869] mt2063_attach: Attaching MT2063
+[ 1322.096881] Registered IR keymap rc-nec-terratec-cinergy-xs
+[ 1322.097128] input: Technisat Combo HD CI
+as /devices/pci0000:00/0000:00:12.2/usb1/1-2/rc/rc1/input16
+[ 1322.097338] rc1: Technisat Combo HD CI
+as /devices/pci0000:00/0000:00:12.2/usb1/1-2/rc/rc1
+[ 1322.097347] usb 1-2: dvb_usb_v2: schedule remote query interval to
+400 msecs
+[ 1322.097357] usb 1-2: dvb_usb_v2: 'Technisat Combo HD CI' successfully
+initialized and connected
+[ 1322.145024] drxk: status = 0x439130d9
+[ 1322.145028] drxk: detected a drx-3913k, spin A2, xtal 27.000 MHz
+[ 1324.410428] drxk: DRXK driver version 0.9.4300
+[ 1403.954692] mt2063: detected a mt2063 B3
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Full logs are available here:
+So I've tried to run a scan for TV channels with w_scan (run as root),
+which runs through, but doesn't find any. And another look into the
+dmesg shows why:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+[ 1403.954692] mt2063: detected a mt2063 B3
+[ 1404.621902] usb 1-2: dvb_frontend_ioctl_legacy: doesn't know how to
+handle a DVBv3 call to delivery system 0
+[ 1404.854807] mt2063: detected a mt2063 B3
+[ 1405.523916] usb 1-2: dvb_frontend_ioctl_legacy: doesn't know how to
+handle a DVBv3 call to delivery system 0
+[ 1405.882456] drxk: SCU not ready
+[ 1405.882470] drxk: Error -5 on qam_reset_qam
+[ 1405.882477] drxk: Error -5 on set_qam_standard
+[ 1405.882482] drxk: Error -5 on setoperation_mode
+[ 1406.094010] drxk: SCU not ready
+[ 1406.094023] drxk: Error -5 on qam_reset_qam
+[ 1406.094028] drxk: Error -5 on set_qam
+[ 1406.094033] drxk: Error -5 on start
+[ 1406.727412] drxk: SCU not ready
+[ 1406.727425] drxk: Error -5 on get_qam_lock_status
+[ 1406.727430] drxk: Error -5 on get_lock_status
+[ 1407.088033] drxk: SCU not ready
+[ 1407.088046] drxk: Error -5 on get_qam_lock_status
+[ 1407.088052] drxk: Error -5 on get_lock_status
+<<[... and so on ...]>>
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+I've tried the newest drivers with two different kernels... the Wheezy
+stock kernel (3.2) and the newest backport kernel both in a freshly
+installed Debian Wheezy.
+
+Before I give you the rest of the relevant info one more thing. Even if
+you don't have the time now to help and fix this issue, I want to thank
+you so far for your work to make linux such a great system.
+
+So here comes the rest of the info, which hopefully helps you, and
+greeting to all of you. For further questions feel free to contact me.
+
+Tobias Wessels
+
+
+$# uname -a
+Linux debian 3.10-0.bpo.2-686-pae #1 SMP Debian 3.10.5-1~bpo70+1
+(2013-08-11) i686 GNU/Linux
+
+$# lsusb -v
+Bus 001 Device 011: ID 14f7:0003 TechniSat Digital GmbH CableStar Combo
+HD CI
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x14f7 TechniSat Digital GmbH
+  idProduct          0x0003 CableStar Combo HD CI
+  bcdDevice            0.03
+  iManufacturer           1 TechniSat Digital S.A.
+  iProduct                2 CableStar Combo HD CI
+  iSerial                 3 0008C9D90E19
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           32
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower              100mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval             100
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0001
+  Self Powered
+
+
+
+
