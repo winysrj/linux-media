@@ -1,42 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:58889 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922Ab3IAUzM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 16:55:12 -0400
-Received: by mail-wi0-f175.google.com with SMTP id ez12so591622wid.8
-        for <linux-media@vger.kernel.org>; Sun, 01 Sep 2013 13:55:11 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39704 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab3IPQSx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 12:18:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Wei Yongjun <weiyj.lk@gmail.com>, sakari.ailus@iki.fi
+Cc: m.chehab@samsung.com, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l: vsp1: fix error return code in vsp1_video_init()
+Date: Mon, 16 Sep 2013 18:18:54 +0200
+Message-ID: <1889337.27XRTukMTP@avalon>
+In-Reply-To: <CAPgLHd9fXJHqn=c50XY84xdmxC5FhAFqJ3Z5yEZReoOgLRPHbw@mail.gmail.com>
+References: <CAPgLHd9fXJHqn=c50XY84xdmxC5FhAFqJ3Z5yEZReoOgLRPHbw@mail.gmail.com>
 MIME-Version: 1.0
-From: Dark Shadow <shadowofdarkness@gmail.com>
-Date: Sun, 1 Sep 2013 14:54:51 -0600
-Message-ID: <CAMXzSMoSe5HMFgt0SrbqEh+CyxhB5BH-FtdS5yhn9x2eWCc8PA@mail.gmail.com>
-Subject: Can't get cx23885 IR to work after kernel update.
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a Hauppauge HVR-1270 tuner card that comes with a IR remote
-that seems to have problems with newer kernels.
+Hi Wei,
 
-Under my previous 3.2.0 kernel everything works perfect if I boot the
-same system with kernel 3.10.10 the remote doesn't completely work.
+Thank you for your patch.
 
-It can't be a configuration problem since I am just swapping kernels.
-Under 3.2 XBMC gets all the key presses and works like a dream.
+On Wednesday 11 September 2013 22:10:24 Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> Fix to return a negative error code from the error handling
+> case instead of 0, as done elsewhere in this function.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Under 3.10 the only response to key presses comes from mode2 which
-receives them fine but nothing else. no irw or XBMC response
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I have tried other kernels in the past that had the problem so I don't
-know exactly when it started. In the past I got tired of Googling and
-just left my system working but I would like toget it working more now
-for other hardware support in the kernel.
+I've taken the patch in my tree and will push it to v3.12.
 
+> ---
+>  drivers/media/platform/vsp1/vsp1_video.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 714c53e..4b0ac07 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -1026,8 +1026,10 @@ int vsp1_video_init(struct vsp1_video *video, struct
+> vsp1_entity *rwpf)
+> 
+>  	/* ... and the buffers queue... */
+>  	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
+> -	if (IS_ERR(video->alloc_ctx))
+> +	if (IS_ERR(video->alloc_ctx)) {
+> +		ret = PTR_ERR(video->alloc_ctx);
+>  		goto error;
+> +	}
+> 
+>  	video->queue.type = video->type;
+>  	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+-- 
+Regards,
 
-After Google searches I have tried making sure nothing like evdev is
-trying for conflicting access but that didn't work and like I say it
-has to be in the kernel itself since that is the only thing changed
-and I can use the remote again by just choosing the old kernel from
-Grub during boot.
+Laurent Pinchart
 
-I can't find anything in the logs that shows any errors.
