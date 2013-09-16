@@ -1,78 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58022 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756642Ab3ICPry (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 11:47:54 -0400
-Date: Tue, 3 Sep 2013 08:50:30 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, balbi@ti.com,
-	kyungmin.park@samsung.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	stern@rowland.harvard.edu, broonie@kernel.org,
-	tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org,
-	tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, balajitk@ti.com,
-	george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Subject: Re: [PATCH v11 0/8] PHY framework
-Message-ID: <20130903155030.GA21525@kroah.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
- <521B0E79.6060506@ti.com>
- <20130827192059.GZ3005@radagast>
- <5225FF63.6080608@ti.com>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36863 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751043Ab3IPWKB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 18:10:01 -0400
+Received: by mail-wi0-f180.google.com with SMTP id hj3so4154118wib.7
+        for <linux-media@vger.kernel.org>; Mon, 16 Sep 2013 15:09:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5225FF63.6080608@ti.com>
+In-Reply-To: <523769B0.6070908@sca-uk.com>
+References: <523769B0.6070908@sca-uk.com>
+Date: Mon, 16 Sep 2013 18:09:59 -0400
+Message-ID: <CAGoCfiwVPGKSYOObirz+X3_AN6S1LL5Eff9kcWswcHx-msguiA@mail.gmail.com>
+Subject: Re: Canvassing for Linux support for Startech PEXHDCAP
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steve Cookson <it@sca-uk.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Greg,
-> 
-> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
-> >> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
-> >>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
-> >>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-> >>> the PHY with or without using phandle.
-> >>>
-> >>> This framework will be of use only to devices that uses external PHY (PHY
-> >>> functionality is not embedded within the controller).
-> >>>
-> >>> The intention of creating this framework is to bring the phy drivers spread
-> >>> all over the Linux kernel to drivers/phy to increase code re-use and to
-> >>> increase code maintainability.
-> >>>
-> >>> Comments to make PHY as bus wasn't done because PHY devices can be part of
-> >>> other bus and making a same device attached to multiple bus leads to bad
-> >>> design.
-> >>>
-> >>> If the PHY driver has to send notification on connect/disconnect, the PHY
-> >>> driver should make use of the extcon framework. Using this susbsystem
-> >>> to use extcon framwork will have to be analysed.
-> >>>
-> >>> You can find this patch series @
-> >>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
-> >>
-> >> Looks like there are not further comments on this series. Can you take this in
-> >> your misc tree?
-> > 
-> > Do you want me to queue these for you ? There are quite a few users for
-> > this framework already and I know of at least 2 others which will show
-> > up for v3.13.
-> 
-> Can you queue this patch series? There are quite a few users already for this
-> framework.
+On Mon, Sep 16, 2013 at 4:27 PM, Steve Cookson <it@sca-uk.com> wrote:
+> Here is the spec:
+>
+> http://www.startech.com/AV/Converters/Video/PCI-Express-HD-Video-Capture-Card-1080p-HDMI-DVI-VGA-Component~PEXHDCAP#tchspcs
+>
+> But the main spec points (for me at least) are
+>
+> - It's based on the Mstar MST3367CMK chip as are many similar cards,
+> - It's PCIe connection
+> - It has inputs of:
+> --- Component Video (YPbPr)
+> --- DVI-I   (plus a vga adaptor)
+> --- HDMI
+> --- Stereo Audio
+> - Maximum Digital Resolution: 1080p30
+> - TV input resolution: 1080i/p, 720p, 576i/p, 480i/p
+> - PC input resolution: 1920x1080, 1440x900, 1280x1024, 1280x960, 1280x720,
+> 1024x768, 800x600
+> - MPEG4/H.264 hardware compression.
 
-It will have to wait for 3.13 as the merge window for new features has
-been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
-is out.
+To be clear, this card is a *raw* capture card.  It does not have any
+hardware compression for H.264.  It's done entirely in software.
 
-greg k-h
+Aside from the mstar video decoder (for which there is no public
+documentation), you would also need a driver for the saa7160 chip,
+which there have been various half-baked drivers floating around but
+nothing upstream, and none of them currently support HD capture
+(AFAIK).
+
+As always, a driver *can* be written, but it would be a rather large
+project (probably several weeks of an engineer working full time on
+it, assuming the engineer has experience in this area).  In this case
+it's worse because a significant amount of reverse engineering would
+be required.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
