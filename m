@@ -1,219 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46103 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754448Ab3I3Qvj (ORCPT
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:39665 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab3IPV7y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 12:51:39 -0400
-Date: Mon, 30 Sep 2013 17:51:26 +0100
-From: Mark Rutland <mark.rutland@arm.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for
- remote-control
-Message-ID: <20130930165125.GE22259@e106331-lin.cambridge.arm.com>
-References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com>
- <20130927113458.GB18672@e106331-lin.cambridge.arm.com>
- <20130927104719.6637368f@samsung.com>
+	Mon, 16 Sep 2013 17:59:54 -0400
+Message-ID: <52377F3C.5070508@gmail.com>
+Date: Mon, 16 Sep 2013 23:59:24 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130927104719.6637368f@samsung.com>
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
+	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH v8 02/12] [media] exynos5-fimc-is: Add driver core files
+References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com> <1378987669-10870-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1378987669-10870-3-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 27, 2013 at 02:47:19PM +0100, Mauro Carvalho Chehab wrote:
-> Em Fri, 27 Sep 2013 12:34:58 +0100
-> Mark Rutland <mark.rutland@arm.com> escreveu:
-> 
-> > On Fri, Sep 27, 2013 at 10:33:11AM +0100, Srinivas KANDAGATLA wrote:
-> > > From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> > > 
-> > > This patch attempts to collate generic bindings which can be used by
-> > > the remote control hardwares. Currently the list is not long as there
-> > > are only 2 drivers which are device tree'd.
-> > > 
-> > > Mainly this patch tries to document few bindings used by ST IRB driver
-> > > which can be generic as well. This document also add fews common
-> > > bindings used by most of the drivers like, interrupts, regs, clocks and
-> > > pinctrls.
-> > > 
-> > > This document can also be holding place to describe generic bindings
-> > > used in remote controls devices.
-> > > 
-> > > Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> > > ---
-> > > Hi All, 
-> > > Following Stephen Warren's suggestions at https://lkml.org/lkml/2013/9/24/452
-> > > this patch is an attempt to document such generic bindings in a common
-> > > document.
-> > > 
-> > > This document currently collates all the generic bindings used with
-> > > remote-controls and act as holding place to describe generic bindings for
-> > > remote controls.
-> > > 
-> > > Comments?
-> > > 
-> > > Thanks,
-> > > srini
-> > > 
-> > >  .../devicetree/bindings/media/remote-control.txt   |   31 ++++++++++++++++++++
-> > >  1 files changed, 31 insertions(+), 0 deletions(-)
-> > >  create mode 100644 Documentation/devicetree/bindings/media/remote-control.txt
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/remote-control.txt b/Documentation/devicetree/bindings/media/remote-control.txt
-> > > new file mode 100644
-> > > index 0000000..901ea56
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/remote-control.txt
-> > > @@ -0,0 +1,31 @@
-> > > +Generic device tree bindings for remote control.
-> > > +
-> > > +properties:
-> > > +	- compatible: Can contain any remote control driver compatible string.
-> > > +	  example: "st-comms-irb, "gpio-ir-receiver".
-> > 
-> > This is more generic than remote control, could this not just be left
-> > for the specific binding to describe?
-> > 
-> > > +	- reg: Base physical address of the controller and length of memory
-> > > +	  mapped region.
-> > 
-> > What if it's on a bus that isn't memory mapped (e.g. i2c, SPI)?
-> > 
-> > > +	- interrupts: Interrupt-specifier for the sole interrupt generated by
-> > > +	  the device. The interrupt specifier format depends on the
-> > > +	  interrupt controller parent. Iff the device supports interrupts.
-> > 
-> > What if it has multiple interrupts, and has interrupts-names?
-> > 
-> > It might be better to only describe the properties that relate
-> > specifically to remote controls, rather than listing all of the generic
-> > properties that device tree bidnings may have. That would match the
-> > style of the clock bindings.
-> > 
-> > > +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
-> > > +	  the rx pins are wired up.
-> > 
-> > I'm unsure on this. What if the device has multiple receivers that can
-> > be independently configured? 
-> 
-> Well, if a given remote controller hardware has more than one independent
-> receiver (or transmitter), each one should have its own devnode.
-> Likely, two entries at DT.
+On 09/12/2013 02:07 PM, Arun Kumar K wrote:
+>
+> +static int fimc_is_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev =&pdev->dev;
+> +	struct resource *res;
+> +	struct fimc_is *is;
+> +	void __iomem *regs;
+> +	struct device_node *node;
+> +	int irq, ret;
+> +	int i;
+> +
+> +	dev_dbg(dev, "FIMC-IS Probe Enter\n");
+> +
+> +	if (!pdev->dev.of_node)
 
-Why? If an IP block happens to have support for N connections, that
-doesn't mean that each must be described individually. They likely share
-a bank of registers, and depending on the device they might not even be
-assigned consistently orgranised windows of that register bank.
+nit: Could be simplified to:
 
-> 
-> > What if it supports something other than
-> > "infrared" or "uhf"? What if a device can only be wired up as
-> > "infrared"? 
-> 
-> I would say that a hardware that has both infrared and uhf has actually
-> two different devices. So, it should be mapped as two separate devnodes.
+  	if (!dev->of_node)
 
-I would say that it is still one device, one which happens to have two
-outputs. Just because we want two dev nodes does not mean the dt has to
-be structured as two devices.
+> +		return -ENODEV;
+> +
+> +	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
+> +	if (!is)
+> +		return -ENOMEM;
+> +
+> +	is->pdev = pdev;
+> +
+> +	is->drvdata = fimc_is_get_drvdata(pdev);
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	regs = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(regs))
+> +		return PTR_ERR(regs);
+> +
+> +	/* Get the PMU base */
+> +	node = of_parse_phandle(dev->of_node, "samsung,pmu", 0);
+> +	if (!node)
+> +		return -ENODEV;
+> +	is->pmu_regs = of_iomap(node, 0);
+> +	if (!is->pmu_regs)
+> +		return -ENOMEM;
+> +
+> +	irq = irq_of_parse_and_map(dev->of_node, 0);
+> +	if (irq<  0) {
+> +		dev_err(dev, "Failed to get IRQ\n");
+> +		return irq;
+> +	}
+> +
+> +	ret = fimc_is_configure_clocks(is);
+> +	if (ret<  0) {
+> +		dev_err(dev, "clocks configuration failed\n");
+> +		goto err_clk;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, is);
+> +	pm_runtime_enable(dev);
+> +
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret<  0)
+> +		goto err_pm;
 
-> 
-> > I'm not sure how generic these are, though we should certainly encourage
-> > bindings that can be described this way to be described in the same way.
-> > 
-> > > +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
-> > > +	  the tx pins are wired up.
-> > 
-> > I have similar concerns here to those for the rx-mode property.
-> > 
-> > > +
-> > > +Optional properties:
-> > > +	- linux,rc-map-name: Linux specific remote control map name. Refer to
-> > > +	  include/media/rc-map.h for full list of maps.
-> > 
-> > We shouldn't refer to Linux specifics (i.e. headers) in general in
-> > bindings. While it's possible to relax that a bit for linux,*
-> > properties, I'd prefer to explicitly list elements in the binding. That
-> > prevents the ABI from changing under our feet by someone altering what
-> > looks like a completely internal header file.
-> 
-> Well, the remote controller keymaps at include/media/rc-map.h is just a
-> bunch of string names, defined as macro to avoid duplicating those names
-> everywhere, to avoid typos and to help some userspace parsing logic to get
-> all in just one single place. I don't see why the same names couldn't be 
-> used on any other OS using DT.
+Is activating the device at this point really needed ? Perhaps you
+could drop the pm_runtime_get/put calls ?
 
-To be used by another OS, they should be defined somewhere that's not
-subject to arbitrary changes at any time at the whim of Linux
-developers, without dt-related review.
+> +	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+> +	if (IS_ERR(is->alloc_ctx)) {
+> +		ret = PTR_ERR(is->alloc_ctx);
+> +		goto err_vb;
+> +	}
+> +
+> +	/* Get IS-sensor contexts */
+> +	ret = fimc_is_parse_sensor(is);
+> +	if (ret<  0)
+> +		goto err_vb;
+> +
+> +	/* Initialize FIMC Pipeline */
+> +	for (i = 0; i<  is->drvdata->num_instances; i++) {
+> +		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
+> +		if (ret<  0)
+> +			goto err_sd;
+> +	}
+> +
+> +	/* Initialize FIMC Interface */
+> +	ret = fimc_is_interface_init(&is->interface, regs, irq);
+> +	if (ret<  0)
+> +		goto err_sd;
+> +
+> +	pm_runtime_put(dev);
+> +
+> +	dev_dbg(dev, "FIMC-IS registered successfully\n");
+> +
+> +	return 0;
+> +
+> +err_sd:
+> +	fimc_is_pipelines_destroy(is);
+> +err_vb:
+> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+> +err_pm:
+> +	pm_runtime_put(dev);
+> +err_clk:
+> +	fimc_is_put_clocks(is);
+> +
+> +	return ret;
+> +}
+> +
+> +int fimc_is_clk_enable(struct fimc_is *is)
+> +{
+> +	int ret;
+> +
+> +	ret = clk_enable(is->clock[IS_CLK_ISP]);
+> +	if (ret)
+> +		return ret;
+> +	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
 
-That's not to say we couldn't use strings the kernel happened to use.
-I'm saying that the names exposed by bindings should be well-defined,
-and should not depend on the current state of a linux-internal header
-file.
+Shouldn't you disable the first enabled clock when this call fails ?
 
-I think it would be nicer to have a way of defining the keymap in dt
-anyway, so as to handle the general case and not get into the mess of
-having an arbitrary set of strings we need to constantly update.
+> +	return ret;
+> +}
+[...]
+> +static void *fimc_is_get_drvdata(struct platform_device *pdev)
+> +{
+> +	struct fimc_is_drvdata *driver_data = NULL;
+> +
+> +	if (pdev->dev.of_node) {
 
-> 
-> The logic behind include/media/rc-map.h, is that those names are used
-> by:
-> 
-> 1) kernelspace: in order to locate a keytable with the same name, that
-> would be loaded when the device is initialized;
+pdev->dev.of_node is being tested against NULL before call to this
+function, you could make this code slightly simpler with that assumption.
 
-The kernel uses the strings, so it has them defined in its include path
-somewhere. If dt bindings wish to use the strings, they should be
-defined somewhere. That somewhere should not be a Linux-internal header
-file.
+> +		const struct of_device_id *match;
+> +		match = of_match_node(exynos5_fimc_is_match,
+> +				pdev->dev.of_node);
+> +		if (match)
+> +			driver_data = (struct fimc_is_drvdata *)match->data;
+> +	}
+> +	return driver_data;
+> +}
 
-> 
-> 2) userspace: to seek for a keytable with that name, allowing to
-> dynamically load the keymap table on userspace, instead of hardwiring
-> them on Kernelspace (or replacing the kernel's one by an user-customized
-> one).
-
-The name of each table is not exposed to userspace, they are not defined
-under include/uapi. The fact that the names may be used to request other
-data does not change the fact that the kernel has one copy, userspace
-another. The set of strings the kernel understands *is* hard-wired.
-
-> 
-> So, I would simply call it as "keymap-name", keep pointing it to 
-> include/media/rc-map.h.
-> 
-> That's said, this is actually a mandatory requirement, as without it,
-> the RC core will not be able to load a keytable, and the userspace tool
-> won't load the proper keymap, being confused on what to do.
-
-It is possible to handle setting up the mapping within the kernel, or to
-actually describe the general case, something like how gpio-keys works.
-I think that would be preferable.
-
-> 
-> It should be noticed that, from time to time, manufacturers change the
-> remote control unit, as those devices are generally manufactured by a
-> third part. So, they change, for example, when they get a new BID to
-> provide IRs for a cheaper cost, or when they need/want to provide a "deluxe"
-> remote, a simplified "thin" one and/or when they need to provide customized
-> remotes to some Cable company, for example.
-> 
-> So, it makes sense for it to be mandatory, as only with this information it
-> is possible to load the keymap that matches that specific IR unit model.
-
-While it's true that some description is necessary, I do nto believe
-this is the right one.
-
+--
 Thanks,
-Mark.
+Sylwester
