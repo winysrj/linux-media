@@ -1,137 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43573 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752795Ab3IQPoE (ORCPT
+Received: from mailex.mailcore.me ([94.136.40.61]:46156 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab3IPTN7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 11:44:04 -0400
-Date: Tue, 17 Sep 2013 10:41:07 -0500
-From: Felipe Balbi <balbi@ti.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-CC: Greg KH <gregkh@linuxfoundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>, <balbi@ti.com>,
-	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>,
-	<grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <balajitk@ti.com>,
-	<george.cherian@ti.com>, <nsekhar@ti.com>, <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v11 0/8] PHY framework
-Message-ID: <20130917154107.GH15645@radagast>
-Reply-To: <balbi@ti.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
- <521B0E79.6060506@ti.com>
- <20130827192059.GZ3005@radagast>
- <5225FF63.6080608@ti.com>
- <20130903155030.GA21525@kroah.com>
- <5226F5E2.5010409@ti.com>
+	Mon, 16 Sep 2013 15:13:59 -0400
+Message-ID: <52375871.8040004@sca-uk.com>
+Date: Mon, 16 Sep 2013 16:13:53 -0300
+From: Steve Cookson <it@sca-uk.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YPJ8CVbwFUtL7OFW"
-Content-Disposition: inline
-In-Reply-To: <5226F5E2.5010409@ti.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge ImpactVCB-e 01381 PCIe driver resolution.
+References: <5235CED8.3080804@sca-uk.com> <CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com> <52363EA6.7060402@sca-uk.com> <CAGoCfix7r_bp7w-6HyXYz_XOZz-zFk_SLUzA6-Br6Z-LLsTy-g@mail.gmail.com>
+In-Reply-To: <CAGoCfix7r_bp7w-6HyXYz_XOZz-zFk_SLUzA6-Br6Z-LLsTy-g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---YPJ8CVbwFUtL7OFW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 16/09/2013 14:38, Devin Heitmueller wrote:
 
-On Wed, Sep 04, 2013 at 02:27:06PM +0530, Kishon Vijay Abraham I wrote:
-> On Tuesday 03 September 2013 09:20 PM, Greg KH wrote:
-> > On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
-> >> Hi Greg,
-> >>
-> >> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
-> >>> Hi,
-> >>>
-> >>> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrot=
-e:
-> >>>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
-> >>>>> Added a generic PHY framework that provides a set of APIs for the P=
-HY drivers
-> >>>>> to create/destroy a PHY and APIs for the PHY users to obtain a refe=
-rence to
-> >>>>> the PHY with or without using phandle.
-> >>>>>
-> >>>>> This framework will be of use only to devices that uses external PH=
-Y (PHY
-> >>>>> functionality is not embedded within the controller).
-> >>>>>
-> >>>>> The intention of creating this framework is to bring the phy driver=
-s spread
-> >>>>> all over the Linux kernel to drivers/phy to increase code re-use an=
-d to
-> >>>>> increase code maintainability.
-> >>>>>
-> >>>>> Comments to make PHY as bus wasn't done because PHY devices can be =
-part of
-> >>>>> other bus and making a same device attached to multiple bus leads t=
-o bad
-> >>>>> design.
-> >>>>>
-> >>>>> If the PHY driver has to send notification on connect/disconnect, t=
-he PHY
-> >>>>> driver should make use of the extcon framework. Using this susbsyst=
-em
-> >>>>> to use extcon framwork will have to be analysed.
-> >>>>>
-> >>>>> You can find this patch series @
-> >>>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git =
-testing
-> >>>>
-> >>>> Looks like there are not further comments on this series. Can you ta=
-ke this in
-> >>>> your misc tree?
-> >>>
-> >>> Do you want me to queue these for you ? There are quite a few users f=
-or
-> >>> this framework already and I know of at least 2 others which will show
-> >>> up for v3.13.
-> >>
-> >> Can you queue this patch series? There are quite a few users already f=
-or this
-> >> framework.
-> >=20
-> > It will have to wait for 3.13 as the merge window for new features has
-> > been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
-> > is out.
->=20
-> Alright, thanks.
+ >
+ > I'm not sure what other cards you've tried.  Nowadays they should all
+ > deliverable comparable performance for s-video (since no chroma
+ > separation is involved), if they don't then it's almost certainly a
+ > Linux driver bug.
+ >
+ > If you have a commercial need for the device to work, we can discuss
+ > offlist doing some consulting to resolve the issue.  However if not
+ > then you're pretty much at the mercy of the community in terms of the
+ > state of quality/support.
 
-Just a gentle ping on this one...
+Well I'm not sure whether I have a commercial need yet.
 
-cheers
+What I really want is a fast, analogue RGBS 480i & 1080i capture card.
 
---=20
-balbi
+Maybe like the Epiphan VGA2USB LR (internal version), but it is sooo
+expensive.
 
---YPJ8CVbwFUtL7OFW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+For 25% of the price I can get a Blackmagic Design Intensity Pro, but
+it only does YPbPr 1080i and the decklinksrc gstreamer module is a
+bit ropey.  Actually very ropey.  But it also accepts s-video.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+So then I fall back on the old tried and tested s-video stuff.  I have to
+accept 480i but I can still have a fast response.  Dazzle is about 100
+msecs but some others, like the old ImpactVCB pci card with
+3 av ports and an s-video port, has worse quality video than the Dazzle
+and is slower.  I've tested another couple of PCI cards but they are all
+very slow and poor video quality.
 
-iQIcBAEBAgAGBQJSOHgTAAoJEIaOsuA1yqREH7QP/RrRhj27omVfupAPeHzOVlYD
-HtXIlK9wsVeD36xJP+ZjCgLWCuzLCz2lR0rXYjJDwcTw6+RiJHxVUrhdrO8dIeXT
-jvGjSmz+QtV7dSrN7vQtsNRUdYxOgvV9IOtnKRz1EgepcvDcrri16y9xz0hxH8b+
-jS1fp7shRuF5vz+/mk1hryyKmhMH34T8HK2uEz/XTQuw58V8CNP0dxNPXXeprIXv
-IGCubSvWr2igiQBmRpsKiyczoH1YgovXE3mY4VcrTLuu/M8PwcpCtddrJUP4j8vI
-jAyU2NZ3B4IsjcbQzA56R72FcXfk00D90oyg3KF1CM7ABcH9jFBkYNLNXVV87v9P
-BeZOEiGoSCZvPOyPqQ2i0sOMTrFLsqDZOSv5dIL+Ai9VT80qo1aZHz21QWJ9J522
-S/ez8SbWeuEBcqE6gqyA0CgwwubSWQEqUZYFi2ryXGBMi09JE10SOBdlhWcXMXQp
-WXMBAK/J2cFsn9iWEXgAr1tF4NdQlZyqvZ4cgppbKsy+ImpfMUXgME948Yp49fnn
-EoRXpb6BgS6cZUeazoaVWSC38lDdVdYOIvERcWLu3oxUwOE3ykQq0E6IeKjxXnHW
-21S1vvGfwFN2ODw1nYUW10UFGuFz16OfHZJ5T1Uehl1zks6UFOWcA0kdsKjheOlZ
-iWGOFMZF6lEMV8/o+A+h
-=1Rub
------END PGP SIGNATURE-----
+The one I'd really like, at about $100 on Amazon, is the Startech
+VGA capture card, I could put a synch splitter/inverter in front of it, for
+say $25, to convert RGB3 1080i to VGA HD1080.  It runs like a dream
+with a fast response.  It's Linux compatible as far as I can see, that
+is to say lspci should say something if you plug it in, but there is no
+driver for it.  The one I saw, which was not the Startech one but a
+similar one from Kato vision, was PCIe, with onboard h.264
+hardware compression and a direct memory access module.  It
+just screamed through that video signal.  I wasn't able to do any timer 
+tests
+on it, but I would guess much faster than the dazzle.  Maybe 50 msecs
+latency.
 
---YPJ8CVbwFUtL7OFW--
+Regards
+
+Steve
+
+ >
+ > Devin
+ >
+
