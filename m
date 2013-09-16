@@ -1,212 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:34007 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab3IKMNj (ORCPT
+Received: from mailex.mailcore.me ([94.136.40.61]:55619 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753Ab3IPU1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 08:13:39 -0400
-Received: by mail-ob0-f170.google.com with SMTP id eh20so8408373obb.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 05:13:39 -0700 (PDT)
+	Mon, 16 Sep 2013 16:27:37 -0400
+Received: from [177.102.42.224] (helo=[192.168.1.143])
+	by mail4.atlas.pipex.net with esmtpa (Exim 4.71)
+	(envelope-from <it@sca-uk.com>)
+	id 1VLfOP-0007F9-89
+	for linux-media@vger.kernel.org; Mon, 16 Sep 2013 21:27:33 +0100
+Message-ID: <523769B0.6070908@sca-uk.com>
+Date: Mon, 16 Sep 2013 17:27:28 -0300
+From: Steve Cookson <it@sca-uk.com>
 MIME-Version: 1.0
-In-Reply-To: <52304AC6.5020107@xs4all.nl>
-References: <CAPybu_3cOLztceJoNwyZQGuC8maNYKuunbxJRHt7X6nQHmCyhw@mail.gmail.com>
- <1378888254-5236-1-git-send-email-ricardo.ribalda@gmail.com>
- <52303233.6060504@xs4all.nl> <CAPybu_18+43UTxyxTRJ8DNqfxTOs+o3yv=32AaO7LHh9926QDg@mail.gmail.com>
- <52304AC6.5020107@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 11 Sep 2013 14:13:18 +0200
-Message-ID: <CAPybu_1cN1P2kPkAv20bM8pvPgMdYwwNQhyOEJJHNZ=r3xeokQ@mail.gmail.com>
-Subject: Re: [PATCH] RFC: Support for multiple selections
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Canvassing for Linux support for Startech PEXHDCAP
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+Hi People,
 
-On Wed, Sep 11, 2013 at 12:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Ricardo,
->
-> On 09/11/2013 11:34 AM, Ricardo Ribalda Delgado wrote:
->> Hi Hans
->>
->> Thanks for your feedback
->>
->> On Wed, Sep 11, 2013 at 11:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Ricardo,
->>>
->>> On 09/11/2013 10:30 AM, Ricardo Ribalda Delgado wrote:
->>>> A new id field is added to the struct selection. On devices that
->>>> supports multiple sections this id indicate which of the selection to
->>>> modify.
->>>>
->>>> A new control V4L2_CID_SELECTION_BITMASK selects which of the selections
->>>> are used, if the control is set to zero the default rectangles are used.
->>>>
->>>> This is needed in cases where the user has to change multiple selections
->>>> at the same time to get a valid combination.
->>>>
->>>> On devices where the control V4L2_CID_SELECTION_BITMASK does not exist,
->>>> the id field is ignored
->>>
->>> This feels like a hack to me. A big problem I have with using a control here
->>> is that with a control you can't specify for which selection target it is.
->>>
->>
->> I am not sure that I understand what you mean here.
->>
->> If you set the control to 0x1 you are using selection 0, if you set
->> the control to 0x5, you are using selection 0 and 2.
->
-> If you look here:
->
-> http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-selection-targets
->
-> you see that a selection has a 'target': i.e. does the selection define a crop
-> rectangle, a compose rectange, a default crop rectangle, etc.
->
-> You are extending the API to support multiple rectangles per target and using
-> a control to select which rectangles are active (if I understand correctly).
-> But that control does not (and cannot) specify for which target the rectangles
-> should be activated.
+I just wrote an email to this group about the Hauppauge 01381. Really it 
+was a fall-back choice.  If I can't get anything else then that might be 
+my only option left.
 
-I want to have N crop rectangles and N compose rectangles. Every crop
-rectangle has associated one compose rectangle.
+But here is my preferred choice.  The Startech PEXHDCAP.
 
-This will fit multiple purposes ie:
+It costs about $100 here:
 
-- swap two areas of an image,
-- multiple readout zones
-- different decimation per area....
+http://www.amazon.com/StarTech-com-Express-Video-Capture-1080p/dp/B007U5MGBE/ref=cm_cr_pr_product_top
 
+Here is a review of it:
 
->
->>
->>
->>> If you want to set multiple rectangles, why not just pass them directly? E.g.:
->>>
->>> struct v4l2_selection {
->>>         __u32                   type;
->>>         __u32                   target;
->>>         __u32                   flags;
->>>         union {
->>>                 struct v4l2_rect        r;
->>>                 struct v4l2_rect        *pr;
->>>         };
->>>         __u32                   rectangles;
->>>         __u32                   reserved[8];
->>> };
->>>
->>> If rectangles > 1, then pr is used.
->>>
->>
->> The structure is passed in a ioctl and I dont think that it is a good
->> idea that you let the kernel get/set a memory address not encapsulated
->> in it. I can see that it could lead to security breaches if there is a
->> mistake on the handling.
->
-> It's used in lots of places. It's OK, provided you check the memory carefully.
-> See e.g. how VIDIOC_G/S_EXT_CTRLS is handled. Usually the memory checks are done
-> in the v4l2 core and the driver doesn't need to take care of it.
->
+http://www.videogameperfection.com/av-gear/startech-pexhdcap-hdmirgbvgacomponent-capture-card-review/
 
-I agree IFF the v4l2 core does the checks. One question raises me: how
-does the user knows how big is the structure he has to allocate for
-g_selection? Do we have to make a new ioctl g_n_selections?
+Here is the spec:
 
->>> It's a bit more work to add this to the core code (VIDIOC_SUBDEV_G/S_SELECTION
->>> should probably be changed at the same time and you have to fix existing drivers
->>> to check/set the new rectangles field), but it scales much better.
->>
->> Also, we would be broking the ABI. Rectangles is not a mandatory
->> field, and has a value != 0.
->
-> The spec clearly states that:
->
-> "The flags and reserved fields of struct v4l2_selection are ignored and they must
->  be filled with zeros."
->
-> Any app not doing that is not obeying the API and hence it is an application bug.
->
-> It's standard practice inside the V4L2 API to handle reserved fields in that way,
-> as it provides a mechanism to extend the API safely in the future.
->
+http://www.startech.com/AV/Converters/Video/PCI-Express-HD-Video-Capture-Card-1080p-HDMI-DVI-VGA-Component~PEXHDCAP#tchspcs
 
-That is what I mean, the current programs are writing a 0 on that
-field, but now they are required to write a 1, so the API is broken.
-Maybe we should describe:
-if rectangles is 0, the field r is used (legacy), otherwise the pr,
-even for 1 (multi rectangle).
+But the main spec points (for me at least) are
 
->>
->> What we could do is leave the V4L2_CID_SELECTION_BITMASK  out of the
->> api, but keep the id field on the structure, so the user can define a
->> private control to do whatever he needs with the id field, wekeep the
->> ABI compatibility and no big changes are needed.
->
-> I really don't like that. It artificially limits the number of rectangles to 32
-> and makes the API just cumbersome to use.
-
-I wasn't seeing the 32 rectangles as a limitation, but if you think
-that it is limiting, then the solution that you provide looks good.
-
->
-> The changes aren't difficult, just a bit tedious, and the end result does exactly
-> what you want and, I think, is also very useful for things like face detection or
-> object detection in general where a list of rectangles (or points, which is just a
-> 1x1 rectangle) has to be returned in an atomic manner.
->
-> One thing that I am not certain about is whether v4l2_rect should be used when
-> specifying multiple rectangles. I can imagine that rectangles have an additional
-> type field (e.g. for face detection you might have rectangles for the left eye,
-> right eye and mouth).
-
-That is where the id field was handy :), you could say rectangle
-id=LEFT_EYE and then have private controls for removing red component
-from rectangles which id is *_EYE.
-
-My approach was:
-You use the s/g selection api to describe rectangles (input and
-output) and then you use bitmap controls to do things on the
-rectangles: compose,remove red eye, track.....
-
->
-> Regards,
->
->         Hans
-
-So
-
-If the 32 rectangle limitation is a nogo for you, then I would suggest:
-
-struct v4l2_selection {
-         __u32                   type;
-         __u32                   target;
-         __u32                   flags;
-          union {
-                 struct v4l2_rect        r;
-                 struct v4l2_rect        *pr;
-         };
-         __u32                   rectangles; //if 0, r is used,
-otherwise pr with rectangle components
-         __u32                   id;//0 for compose/crop , N->driver
-dependent (face tracking....)
-        __u32                   reserved[7];
-};
+- It's based on the Mstar MST3367CMK chip as are many similar cards,
+- It's PCIe connection
+- It has inputs of:
+--- Component Video (YPbPr)
+--- DVI-I   (plus a vga adaptor)
+--- HDMI
+--- Stereo Audio
+- Maximum Digital Resolution: 1080p30
+- TV input resolution: 1080i/p, 720p, 576i/p, 480i/p
+- PC input resolution: 1920x1080, 1440x900, 1280x1024, 1280x960, 
+1280x720, 1024x768, 800x600
+- MPEG4/H.264 hardware compression.
 
 But:
- -memory handling has to be done in the core
- -we have to provide the user a way to know how many rectangles are in use.
 
+- OS Compatibility Windows®
 
-If the 32 rectangle limitiation is acceptable I still like my first proposal.
-But:
-32 rectangles means 32 ioctls.
+There are already a number of positive reviews for this card around the 
+place together with it's twin the Micomsoft SC-500N1.
 
+I would like to ask for expressions of interest for putting together a 
+group of like-minded interested people to build an open source v4l2 
+driver and associated gstreamer bits and pieces, together with 
+specifying any hardware that might be required.  I'd like to identify or 
+specify any (cheap) converters, sync splitters and the like which would 
+make it work for the full range of signals (eg Composite and S-video - 
+that s-video-like mini-port in the picture is actually a YPbPr Component 
+input).
 
-Thanks for your feedback and promptly response :)
+I would be great for gaming, medical image capture, university and 
+research purposes.
 
--- 
-Ricardo Ribalda
+Please let me know what you think.
+
+Regards
+
+Steve.
