@@ -1,97 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34408 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759421Ab3ICSHn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 14:07:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1.1 3/5] media: Pads that are not connected by even a disabled link are fine
-Date: Tue, 03 Sep 2013 20:07:43 +0200
-Message-ID: <1806796.1hWpdenVOE@avalon>
-In-Reply-To: <1377966487-22565-1-git-send-email-sakari.ailus@iki.fi>
-References: <1611138.kmhZXgyzhc@avalon> <1377966487-22565-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:56629 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394Ab3IPWEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 18:04:15 -0400
+Received: by mail-wi0-f173.google.com with SMTP id hq15so4094174wib.12
+        for <linux-media@vger.kernel.org>; Mon, 16 Sep 2013 15:04:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <52375871.8040004@sca-uk.com>
+References: <5235CED8.3080804@sca-uk.com>
+	<CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com>
+	<52363EA6.7060402@sca-uk.com>
+	<CAGoCfix7r_bp7w-6HyXYz_XOZz-zFk_SLUzA6-Br6Z-LLsTy-g@mail.gmail.com>
+	<52375871.8040004@sca-uk.com>
+Date: Mon, 16 Sep 2013 18:04:14 -0400
+Message-ID: <CAGoCfixmM5f3vWShZMMW13q6ZeijVPYDxY5qxqviPTodVy2kCQ@mail.gmail.com>
+Subject: Re: Hauppauge ImpactVCB-e 01381 PCIe driver resolution.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steve Cookson <it@sca-uk.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Steve,
 
-Thank you for the patch.
+> What I really want is a fast, analogue RGBS 480i & 1080i capture card.
 
-On Saturday 31 August 2013 19:28:06 Sakari Ailus wrote:
-> Do not require a connected link to a pad if a pad has no links connected to
-> it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> Hi Laurent,
-> 
-> This goes on top of patch 2/4. I can combine the two in the end but I think
-> this is cleaner as a separate change.
+Raw HD capture is essentially non-existent under Linux.  We have a
+couple of closed source drivers, none of which are cost effective for
+non-commercial applications (we have drivers for a couple of Avermedia
+HDMI/component capture cards).
 
-Merging the patches separately could result in a bisection breakage, so I'd 
-rather combine the patches if that's OK. What about the following commit 
-message ?
+> Maybe like the Epiphan VGA2USB LR (internal version), but it is sooo
+> expensive.
+>
+> For 25% of the price I can get a Blackmagic Design Intensity Pro, but
+> it only does YPbPr 1080i and the decklinksrc gstreamer module is a
+> bit ropey.  Actually very ropey.  But it also accepts s-video.
+>
+> So then I fall back on the old tried and tested s-video stuff.  I have to
+> accept 480i but I can still have a fast response.  Dazzle is about 100
+> msecs but some others, like the old ImpactVCB pci card with
+> 3 av ports and an s-video port, has worse quality video than the Dazzle
+> and is slower.  I've tested another couple of PCI cards but they are all
+> very slow and poor video quality.
 
-"media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
+The "slow" aspect is probably just a misconfiguration in the number of
+buffers the V4L2 driver delivers.  All of the cards should support a
+minimum of two buffers, which would put latency at 60ms.  Anything
+greater is probably the application doing some prebuffering.
 
-Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is 
-connected by links that are all inactive.
+> The one I'd really like, at about $100 on Amazon, is the Startech
+> VGA capture card, I could put a synch splitter/inverter in front of it, for
+> say $25, to convert RGB3 1080i to VGA HD1080.  It runs like a dream
+> with a fast response.  It's Linux compatible as far as I can see, that
+> is to say lspci should say something if you plug it in, but there is no
+> driver for it.
 
-This patch makes it possible to avoid drivers having to check for the most
-common case of link state validation: a sink pad that must be connected."
+To be clear, the fact that it shows up in lspci is absolutely no
+indicator of being Linux compatible.  It just means the device
+conforms to the PCI standard and can thus the hardware can be
+enumerated.
 
->  drivers/media/media-entity.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index a99396b..2ad291f 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -236,6 +236,7 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity,
-> 
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
->  		DECLARE_BITMAP(active, entity->num_pads);
-> +		DECLARE_BITMAP(has_no_links, entity->num_pads);
->  		unsigned int i;
-> 
->  		entity->stream_count++;
-> @@ -250,6 +251,7 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, continue;
-> 
->  		bitmap_zero(active, entity->num_pads);
-> +		bitmap_fill(has_no_links, entity->num_pads);
-> 
->  		for (i = 0; i < entity->num_links; i++) {
->  			struct media_link *link = &entity->links[i];
-> @@ -257,6 +259,11 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, ? link->sink : link->source;
-> 
->  			/*
-> +			 * Mark that a pad is connected by a link.
-> +			 */
-> +			bitmap_clear(has_no_links, pad->index, 1);
-> +
-> +			/*
->  			 * Pads that either do not need to connect or
->  			 * are connected through an enabled link are
->  			 * fine.
-> @@ -278,6 +285,9 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, goto error;
->  		}
-> 
-> +		/* Either no links or validated links are fine. */
-> +		bitmap_or(active, active, has_no_links, entity->num_pads);
-> +
->  		if (!bitmap_full(active, entity->num_pads)) {
->  			ret = -EPIPE;
->  			goto error;
+> The one I saw, which was not the Startech one but a
+> similar one from Kato vision, was PCIe, with onboard h.264
+> hardware compression and a direct memory access module.  It
+> just screamed through that video signal.  I wasn't able to do any timer
+> tests
+> on it, but I would guess much faster than the dazzle.  Maybe 50 msecs
+> latency.
+
+Are you using the same application for capture in both cases?  They
+really shouldn't behave any differently.
+
+Raw video is essentially no latency since the card typically doesn't
+have enough memory to do any buffering (unlike compressed video where
+you can have latency of several seconds depending on the encoder
+used).  Any latency you are seeing is either in the driver or the
+application.
+
+Cheers,
+
+Devin
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
