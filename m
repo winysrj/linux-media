@@ -1,84 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58916 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865Ab3IHP2S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Sep 2013 11:28:18 -0400
-Date: Thu, 5 Sep 2013 15:32:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 0/3] V4L2: fix em28xx ov2640 support
-In-Reply-To: <Pine.LNX.4.64.1309030821050.14776@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1309051526120.785@axis700.grange>
-References: <1377696508-3190-1-git-send-email-g.liakhovetski@gmx.de>
- <5224DBB8.1010601@googlemail.com> <Pine.LNX.4.64.1309030821050.14776@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:33318 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753868Ab3IPPGM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 11:06:12 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MT80086Y4KHP8B0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Sep 2013 16:05:43 +0100 (BST)
+Message-id: <52371E46.5060007@samsung.com>
+Date: Mon, 16 Sep 2013 17:05:42 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: Patchwork is down or only for me?
+References: <CAPybu_0grDJp7tempFnJd=rxTwvRGfDy=9Knyr1oGjx9vQrEAQ@mail.gmail.com>
+ <52371C7D.60208@iki.fi> <52371DA7.6020905@samsung.com>
+In-reply-to: <52371DA7.6020905@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
-
-On Tue, 3 Sep 2013, Guennadi Liakhovetski wrote:
-
-> Hi Frank
+On 09/16/2013 05:03 PM, Sylwester Nawrocki wrote:
+> On 09/16/2013 04:58 PM, Antti Palosaari wrote:
+>> On 09/16/2013 05:48 PM, Ricardo Ribalda Delgado wrote:
+>>> Hello
+>>>
+>>> I have sent a patch and it does not appear on patchwork, it is also
+>>> slower than usual.
+>>>
+>>> Also a patch from David Jedelsky is not there.
+>>
+>> At least for now both seems to be there:
+>> https://patchwork.kernel.org/project/linux-media/list/
 > 
-> Thanks for testing! Let's have a look then:
-> 
-> On Mon, 2 Sep 2013, Frank Schäfer wrote:
-> 
-> > Am 28.08.2013 15:28, schrieb Guennadi Liakhovetski:
-> > > This patch series adds a V4L2 clock support to em28xx with an ov2640 
-> > > sensor. Only compile tested, might need fixing, please, test.
-> > >
-> > > Guennadi Liakhovetski (3):
-> > >   V4L2: add v4l2-clock helpers to register and unregister a fixed-rate
-> > >     clock
-> > >   V4L2: add a v4l2-clk helper macro to produce an I2C device ID
-> > >   V4L2: em28xx: register a V4L2 clock source
-> > >
-> > >  drivers/media/usb/em28xx/em28xx-camera.c |   41 ++++++++++++++++++++++-------
-> > >  drivers/media/usb/em28xx/em28xx-cards.c  |    3 ++
-> > >  drivers/media/usb/em28xx/em28xx.h        |    1 +
-> > >  drivers/media/v4l2-core/v4l2-clk.c       |   39 ++++++++++++++++++++++++++++
-> > >  include/media/v4l2-clk.h                 |   17 ++++++++++++
-> > >  5 files changed, 91 insertions(+), 10 deletions(-)
-> > >
-> > 
-> > Tested a few minutes ago:
+> Oops, all patches in "New" state ? :-S
 
-[snip]
+Ah, dammit, that's patchwork.kernel.org... :)
 
-> > [  104.321167] ------------[ cut here ]------------
-> > [  104.321216] WARNING: CPU: 0 PID: 517 at
-> > drivers/media/v4l2-core/v4l2-clk.c:131 v4l2_clk_disable+0x83/0x90
-> > [videodev]()
-> > [  104.321221] Unbalanced v4l2_clk_disable() on 11-0030:mclk!
-> 
-> Ok, this is because em28xx_init_dev() calls
-> 
-> 	/* Save some power by putting tuner to sleep */
-> 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> 
-> without turning the subdevice on before. Are those subdevices on by 
-> default? In principle, this warning is harmless and it should still work 
-> afterwards, but we should still clean this up - by either removing the 
-> warning, or adding a power-on before a power-off in em28xx_init_dev(), or 
-> somehow else. In fact, I think, this should indeed be done: 
-> em28xx_card_setup() performs i2c accesses, right? So, we have to power up 
-> the subdev before that.
-
-Could you re-test with the .s_power() fixup patch I've sent several 
-minutes ago?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
