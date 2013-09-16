@@ -1,121 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4560 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583Ab3IQCyw (ORCPT
+Received: from mailex.mailcore.me ([94.136.40.61]:38324 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983Ab3IPRd0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Sep 2013 22:54:52 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8H2snON053950
-	for <linux-media@vger.kernel.org>; Tue, 17 Sep 2013 04:54:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E0BCA2A0764
-	for <linux-media@vger.kernel.org>; Tue, 17 Sep 2013 04:54:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130917025441.E0BCA2A0764@tschai.lan>
-Date: Tue, 17 Sep 2013 04:54:41 +0200 (CEST)
+	Mon, 16 Sep 2013 13:33:26 -0400
+Received: from [177.102.42.224] (helo=[192.168.1.143])
+	by mail10.atlas.pipex.net with esmtpa (Exim 4.71)
+	(envelope-from <it@sca-uk.com>)
+	id 1VLcfp-0003le-Bl
+	for linux-media@vger.kernel.org; Mon, 16 Sep 2013 18:33:21 +0100
+Message-ID: <523740DA.2000107@sca-uk.com>
+Date: Mon, 16 Sep 2013 14:33:14 -0300
+From: Steve Cookson <it@sca-uk.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge ImpactVCB-e 01381 PCIe driver resolution.
+References: <5235CED8.3080804@sca-uk.com> <CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com>
+In-Reply-To: <CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+Hi Devin,
 
-date:		Tue Sep 17 04:00:20 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+Thanks for responding.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+So my question would be then, is it worth fixing?
 
-Detailed results are available here:
+I can't find any PCIe cards that give me a reasonable quality.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+If I use an external card like the Dazzle it seems quite fast and better 
+quality than many s-video cards.
 
-Full logs are available here:
+Could the ImpactVCB-e be better than the Dazzle?
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Regards
 
-The Media Infrastructure API from this daily build is here:
+Steve.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+
+On 15/09/2013 17:26, Devin Heitmueller wrote:
+ >
+ >
+ > On Sep 15, 2013 11:35 AM, "Steve Cookson" <it@sca-uk.com> wrote:
+ > >
+ > > Hi Guys,
+ > >
+ > > I seem to be having immense difficulty getting the Hauppauge 
+ImpactVCB-e 01381 PCIe card working on Linux (I'm using Kubuntu 13.04) 
+with greater than 320x240 resolution.
+ > >
+ > > This is what I've done:
+ > >
+ > > lspci recognises the card but only as a Conexant card (Vendor ID = 
+14f1:8852), not Hauppauge card (Vendor ID = 0070). Hauppauge is shown as 
+the subsystem (0070:7133).  I don't really know what this means.
+ > >
+ > > lsmod returns nothing related to the card.
+ > >
+ > > dmesg  | grep cx23885 suggested card=<n> insmod option (full output 
+from dmesg below).  So I did:
+ > >
+ > > echo cx23885 card=5 | sudo tee -a /etc/modules
+ > >
+ > > So I tried a few version numbers, but they all give me 320x240 in 
+s-video or composite mode.
+ > >
+ > > If I use a Pinnacle Dazzle, I get perfect 640x480 for about the 
+same price.  But I need an internal PCIe card, rather than a external 
+card/box.
+ > >
+ > > How can I add the card to video4Linux?
+ > >
+ > > Any help much appreciated.
+ > >
+ > > Regards
+ > >
+ > l believe the scaler is broken in the cx23885 driver.  I did a bunch 
+of work on the driver last year to fix a variety of bugs, but didn't get 
+around to making the scaler work properly.  Most likely the card only 
+works right at it's max resolution (720x480 for NTSC or 720x576 for PAL).
+ >
+ > It can probably be made to work with a few hour's worth of debugging, 
+but I didn't have a commercial customer at the time who needed it and as 
+far as I know nobody else is working on it.
+ >
+ > Devin
+
