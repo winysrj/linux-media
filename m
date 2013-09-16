@@ -1,57 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35168 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932929Ab3ICU2m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 16:28:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 04/19] uvcvideo: Create separate debugfs entries for each streaming interface.
-Date: Tue, 03 Sep 2013 22:28:41 +0200
-Message-ID: <1776624.xH4KSMJxKi@avalon>
-In-Reply-To: <1377829038-4726-5-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-5-git-send-email-posciak@chromium.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:34449 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750968Ab3IPVhh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 17:37:37 -0400
+Received: from dyn3-82-128-186-45.psoas.suomi.net ([82.128.186.45] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1VLgUB-00064U-VJ
+	for linux-media@vger.kernel.org; Tue, 17 Sep 2013 00:37:35 +0300
+Message-ID: <523779F5.8000609@iki.fi>
+Date: Tue, 17 Sep 2013 00:36:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL 3.12] e4000 and  msi3101 bug fixes
+References: <522BC414.4030403@iki.fi> <5235E745.2040006@iki.fi>
+In-Reply-To: <5235E745.2040006@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+Request updated again. That tda10071 bug fix is not regression, but it 
+is absolutely something that should go into 3.12 and maybe later stable 
+too (have to think if it is enough big bug for stable request as bug 
+does not appear very often).
 
-Thank you for the patch.
+The following changes since commit 26a20eb09d44dc064c4f5d1f024bd501c09edb4b:
 
-On Friday 30 August 2013 11:17:03 Pawel Osciak wrote:
-> Add interface number to debugfs entry name to be able to create separate
-> entries for each streaming interface for devices exposing more than one,
-> instead of failing to create more than one.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_debugfs.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_debugfs.c
-> b/drivers/media/usb/uvc/uvc_debugfs.c index 14561a5..0663fbd 100644
-> --- a/drivers/media/usb/uvc/uvc_debugfs.c
-> +++ b/drivers/media/usb/uvc/uvc_debugfs.c
-> @@ -84,7 +84,8 @@ int uvc_debugfs_init_stream(struct uvc_streaming *stream)
->  	if (uvc_debugfs_root_dir == NULL)
->  		return -ENODEV;
-> 
-> -	sprintf(dir_name, "%u-%u", udev->bus->busnum, udev->devnum);
-> +	sprintf(dir_name, "%u-%u-%u", udev->bus->busnum, udev->devnum,
+   [media] v4l: vsp1: Fix mutex double lock at streamon time (2013-08-28 
+05:40:07 -0300)
 
-What about %u-%u.%u ? The USB subsystem names devices using devnum.intfnum 
-(which can be seen in /sys/bus/usb/devices/ for instance), so I believe it 
-would be a good idea to follow the same naming conventions.
+are available in the git repository at:
 
-> +			stream->intfnum);
-> 
->  	dent = debugfs_create_dir(dir_name, uvc_debugfs_root_dir);
->  	if (IS_ERR_OR_NULL(dent)) {
+   git://linuxtv.org/anttip/media_tree.git 3.12-fixes
+
+for you to fetch changes up to 0d2fb4bd88e10359debd2ad2be59680ded77545e:
+
+   tda10071: change firmware download condition (2013-09-17 00:08:13 +0300)
+
+----------------------------------------------------------------
+Andreas Matthies (1):
+       tda10071: change firmware download condition
+
+Antti Palosaari (3):
+       e4000: fix PLL calc bug on 32-bit arch
+       msi3101: Kconfig select VIDEOBUF2_VMALLOC
+       msi3101: correct max videobuf2 alloc
+
+Fengguang Wu (1):
+       msi3101: msi3101_ioctl_ops can be static
+
+  drivers/media/dvb-frontends/tda10071.c      |  9 +--------
+  drivers/media/tuners/e4000.c                |  2 +-
+  drivers/staging/media/msi3101/Kconfig       |  1 +
+  drivers/staging/media/msi3101/sdr-msi3101.c | 10 ++++++++--
+  4 files changed, 11 insertions(+), 11 deletions(-)
+
+
+Antti
+
+On 09/15/2013 07:58 PM, Antti Palosaari wrote:
+> Request updated.
+>
+> The following changes since commit
+> 26a20eb09d44dc064c4f5d1f024bd501c09edb4b:
+>
+>    [media] v4l: vsp1: Fix mutex double lock at streamon time (2013-08-28
+> 05:40:07 -0300)
+>
+> are available in the git repository at:
+>
+>    git://linuxtv.org/anttip/media_tree.git 3.12-fixes
+>
+> for you to fetch changes up to 128bb88cf439b91afb517f81a2891f83c2480433:
+>
+>    msi3101: correct max videobuf2 alloc (2013-09-15 19:57:01 +0300)
+>
+> ----------------------------------------------------------------
+> Antti Palosaari (3):
+>        e4000: fix PLL calc bug on 32-bit arch
+>        msi3101: Kconfig select VIDEOBUF2_VMALLOC
+>        msi3101: correct max videobuf2 alloc
+>
+> Fengguang Wu (1):
+>        msi3101: msi3101_ioctl_ops can be static
+>
+>   drivers/media/tuners/e4000.c                |  2 +-
+>   drivers/staging/media/msi3101/Kconfig       |  1 +
+>   drivers/staging/media/msi3101/sdr-msi3101.c | 10 ++++++++--
+>   3 files changed, 10 insertions(+), 3 deletions(-)
+>
+>
+> Antti
+>
+> On 09/08/2013 03:25 AM, Antti Palosaari wrote:
+>> The following changes since commit
+>> 26a20eb09d44dc064c4f5d1f024bd501c09edb4b:
+>>
+>>    [media] v4l: vsp1: Fix mutex double lock at streamon time (2013-08-28
+>> 05:40:07 -0300)
+>>
+>> are available in the git repository at:
+>>
+>>    git://linuxtv.org/anttip/media_tree.git 3.12-fixes
+>>
+>> for you to fetch changes up to c3b1d3317c8b06563462710d1da2345d4de561f4:
+>>
+>>    msi3101: Kconfig select VIDEOBUF2_VMALLOC (2013-09-08 03:04:24 +0300)
+>>
+>> ----------------------------------------------------------------
+>> Antti Palosaari (2):
+>>        e4000: fix PLL calc bug on 32-bit arch
+>>        msi3101: Kconfig select VIDEOBUF2_VMALLOC
+>>
+>> Fengguang Wu (1):
+>>        msi3101: msi3101_ioctl_ops can be static
+>>
+>>   drivers/media/tuners/e4000.c                | 2 +-
+>>   drivers/staging/media/msi3101/Kconfig       | 1 +
+>>   drivers/staging/media/msi3101/sdr-msi3101.c | 2 +-
+>>   3 files changed, 3 insertions(+), 2 deletions(-)
+>>
+>
+>
+
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
