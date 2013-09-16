@@ -1,315 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:65211 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502Ab3ILMHs (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:34166 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065Ab3IPVxw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:07:48 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v8 04/12] [media] exynos5-fimc-is: Add register definition and context header
-Date: Thu, 12 Sep 2013 17:37:41 +0530
-Message-Id: <1378987669-10870-5-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
-References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
+	Mon, 16 Sep 2013 17:53:52 -0400
+Message-ID: <52377DE5.3070808@gmail.com>
+Date: Mon, 16 Sep 2013 23:53:41 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
+	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH v7 01/13] [media] exynos5-is: Adding media device driver
+ for exynos5
+References: <1377066881-5423-1-git-send-email-arun.kk@samsung.com> <1377066881-5423-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1377066881-5423-2-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the register definition file for the fimc-is driver
-and also the header file containing the main context for the driver.
+Hi,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-regs.h |  105 ++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is.h      |  160 ++++++++++++++++++++++
- 2 files changed, 265 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+On 08/21/2013 08:34 AM, Arun Kumar K wrote:
+> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+> @@ -0,0 +1,126 @@
+> +Samsung EXYNOS5 SoC Camera Subsystem
+> +------------------------------------
+> +
+> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
+> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
+> +MIPI CSIS and FIMC-IS.
+> +
+> +The sub-device nodes are referenced using phandles in the common 'camera' node
+> +which also includes common properties of the whole subsystem not really
+> +specific to any single sub-device, like common camera port pins or the common
+> +camera bus clocks.
+> +
+> +Common 'camera' node
+> +--------------------
+> +
+> +Required properties:
+> +
+> +- compatible		: must be "samsung,exynos5250-fimc"
+> +- clocks		: list of clock specifiers, corresponding to entries in
+> +                          the clock-names property
+> +- clock-names	: must contain "sclk_bayer" entry
+> +- samsung,csis	: list of phandles to the mipi-csis device nodes
+> +- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
+> +- samsung,fimc-is	: phandle to the fimc-is device node
+> +
+> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+> +to define a required pinctrl state named "default".
+> +
+> +'parallel-ports' node
+> +---------------------
+> +
+> +This node should contain child 'port' nodes specifying active parallel video
+> +input ports. It includes camera A, camera B and RGB bay inputs.
+> +'reg' property in the port nodes specifies the input type:
+> + 1 - parallel camport A
+> + 2 - parallel camport B
+> + 5 - RGB camera bay
+> +
+> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
+> +
+> +Image sensor nodes
+> +------------------
+> +
+> +The sensor device nodes should be added to their control bus controller (e.g.
+> +I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
+> +using the common video interfaces bindings, defined in video-interfaces.txt.
+> +
+> +Example:
+[...]
+> +	/* MIPI CSI-2 bus IF sensor */
+> +	s5c73m3: sensor@1a {
+		...
+> +		port {
+> +			s5c73m3_1: endpoint {
+> +				data-lanes =<1 2 3 4>;
+> +				remote-endpoint =<&csis0_ep>;
+> +			};
+> +		};
+> +	};
+> +
+> +	camera {
+> +		compatible = "samsung,exynos5250-fimc";
+> +		#address-cells =<1>;
+> +		#size-cells =<1>;
+> +		status = "okay";
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 =<&cam_port_a_clk_active>;
+> +
+> +		samsung,csis =<&csis_0>,<&csis_1>;
+> +		samsung,fimc-lite =<&fimc_lite_0>,<&fimc_lite_1>,<&fimc_lite_2>;
+> +		samsung,fimc-is =<&fimc_is>;
+> +
+> +		/* parallel camera ports */
+> +		parallel-ports {
+> +			/* camera A input */
+> +			port@1 {
+> +				reg =<1>;
+> +				camport_a_ep: endpoint {
+> +					remote-endpoint =<&s5k6aa_ep>;
+> +					bus-width =<8>;
+> +					hsync-active =<0>;
+> +					vsync-active =<1>;
+> +					pclk-sample =<1>;
+> +				};
+> +			};
+> +		};
+> +	};
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
-new file mode 100644
-index 0000000..06aa466
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
-@@ -0,0 +1,105 @@
-+/*
-+ * Samsung Exynos5 SoC series FIMC-IS driver
-+ *
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ * Kil-yeon Lim <kilyeon.im@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_IS_REGS_H
-+#define FIMC_IS_REGS_H
-+
-+/* WDT_ISP register */
-+#define WDT			0x00170000
-+/* MCUCTL register */
-+#define MCUCTL			0x00180000
-+/* MCU Controller Register */
-+#define MCUCTLR				(MCUCTL+0x00)
-+#define MCUCTLR_AXI_ISPX_AWCACHE(x)	((x) << 16)
-+#define MCUCTLR_AXI_ISPX_ARCACHE(x)	((x) << 12)
-+#define MCUCTLR_MSWRST			(1 << 0)
-+/* Boot Base OFfset Address Register */
-+#define BBOAR				(MCUCTL+0x04)
-+#define BBOAR_BBOA(x)			((x) << 0)
-+
-+/* Interrupt Generation Register 0 from Host CPU to VIC */
-+#define INTGR0				(MCUCTL+0x08)
-+#define INTGR0_INTGC(n)			(1 << ((n) + 16))
-+#define INTGR0_INTGD(n)			(1 << (n))
-+
-+/* Interrupt Clear Register 0 from Host CPU to VIC */
-+#define INTCR0				(MCUCTL+0x0c)
-+#define INTCR0_INTCC(n)			(1 << ((n) + 16))
-+#define INTCR0_INTCD(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 0 from Host CPU to VIC */
-+#define INTMR0				(MCUCTL+0x10)
-+#define INTMR0_INTMC(n)			(1 << ((n) + 16))
-+#define INTMR0_INTMD(n)			(1 << (n))
-+
-+/* Interrupt Status Register 0 from Host CPU to VIC */
-+#define INTSR0				(MCUCTL+0x14)
-+#define INTSR0_GET_INTSD(n, x)		(((x) >> (n)) & 0x1)
-+#define INTSR0_GET_INTSC(n, x)		(((x) >> ((n) + 16)) & 0x1)
-+
-+/* Interrupt Mask Status Register 0 from Host CPU to VIC */
-+#define INTMSR0				(MCUCTL+0x18)
-+#define INTMSR0_GET_INTMSD(n, x)	(((x) >> (n)) & 0x1)
-+#define INTMSR0_GET_INTMSC(n, x)	(((x) >> ((n) + 16)) & 0x1)
-+
-+/* Interrupt Generation Register 1 from ISP CPU to Host IC */
-+#define INTGR1				(MCUCTL+0x1c)
-+#define INTGR1_INTGC(n)			(1 << (n))
-+
-+/* Interrupt Clear Register 1 from ISP CPU to Host IC */
-+#define INTCR1				(MCUCTL+0x20)
-+#define INTCR1_INTCC(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 1 from ISP CPU to Host IC */
-+#define INTMR1				(MCUCTL+0x24)
-+#define INTMR1_INTMC(n)			(1 << (n))
-+
-+/* Interrupt Status Register 1 from ISP CPU to Host IC */
-+#define INTSR1				(MCUCTL+0x28)
-+/* Interrupt Mask Status Register 1 from ISP CPU to Host IC */
-+#define INTMSR1				(MCUCTL+0x2c)
-+/* Interrupt Clear Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTCR2				(MCUCTL+0x30)
-+#define INTCR2_INTCC(n)			(1 << (n))
-+
-+/* Interrupt Mask Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTMR2				(MCUCTL+0x34)
-+#define INTMR2_INTMCIS(n)		(1 << (n))
-+
-+/* Interrupt Status Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTSR2				(MCUCTL+0x38)
-+/* Interrupt Mask Status Register 2 from ISP BLK's interrupts to Host IC */
-+#define INTMSR2				(MCUCTL+0x3c)
-+/* General Purpose Output Control Register (0~17) */
-+#define GPOCTLR				(MCUCTL+0x40)
-+#define GPOCTLR_GPOG(n, x)		((x) << (n))
-+
-+/* General Purpose Pad Output Enable Register (0~17) */
-+#define GPOENCTLR			(MCUCTL+0x44)
-+#define GPOENCTLR_GPOEN0(n, x)		((x) << (n))
-+
-+/* General Purpose Input Control Register (0~17) */
-+#define GPICTLR				(MCUCTL+0x48)
-+
-+/* IS Shared Registers between ISP CPU and HOST CPU */
-+#define ISSR(n)			(MCUCTL + 0x80 + (n))
-+
-+/* PMU for FIMC-IS*/
-+#define PMUREG_CMU_RESET_ISP_SYS_PWR_REG	0x1584
-+#define PMUREG_ISP_ARM_CONFIGURATION		0x2280
-+#define PMUREG_ISP_ARM_STATUS			0x2284
-+#define PMUREG_ISP_ARM_OPTION			0x2288
-+#define PMUREG_ISP_LOW_POWER_OFF		0x0004
-+#define PMUREG_ISP_CONFIGURATION		0x4020
-+#define PMUREG_ISP_STATUS			0x4024
-+
-+#endif
-diff --git a/drivers/media/platform/exynos5-is/fimc-is.h b/drivers/media/platform/exynos5-is/fimc-is.h
-new file mode 100644
-index 0000000..136f367
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is.h
-@@ -0,0 +1,160 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_IS_H_
-+#define FIMC_IS_H_
-+
-+#include "fimc-is-err.h"
-+#include "fimc-is-core.h"
-+#include "fimc-is-param.h"
-+#include "fimc-is-pipeline.h"
-+#include "fimc-is-interface.h"
-+
-+#define fimc_interface_to_is(p) container_of(p, struct fimc_is, interface)
-+#define fimc_sensor_to_is(p) container_of(p, struct fimc_is, sensor)
-+
-+/*
-+ * Macros used by media dev to get the subdev and vfd
-+ * is - driver data from pdev
-+ * pid - pipeline index
-+ */
-+#define fimc_is_isp_get_sd(is, pid) (&is->pipeline[pid].isp.subdev)
-+#define fimc_is_isp_get_vfd(is, pid) (&is->pipeline[pid].isp.vfd)
-+#define fimc_is_scc_get_sd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCC].subdev)
-+#define fimc_is_scc_get_vfd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCC].vfd)
-+#define fimc_is_scp_get_sd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCP].subdev)
-+#define fimc_is_scp_get_vfd(is, pid) \
-+	(&is->pipeline[pid].scaler[SCALER_SCP].vfd)
-+/*
-+ * is - driver data from pdev
-+ * sid - sensor index
-+ */
-+#define fimc_is_sensor_get_sd(is, sid) (&is->sensor[sid].subdev)
-+
-+
-+/**
-+ * struct fimc_is - fimc-is driver private data
-+ * @pdev: pointer to FIMC-IS platform device
-+ * @pdata: platform data for FIMC-IS
-+ * @alloc_ctx: videobuf2 memory allocator context
-+ * @clock: FIMC-IS clocks
-+ * @pmu_regs: PMU reg base address
-+ * @num_pipelines: number of pipelines opened
-+ * @minfo: internal memory organization info
-+ * @drvdata: fimc-is driver data
-+ * @sensor: FIMC-IS sensor context
-+ * @pipeline: hardware pipeline context
-+ * @interface: hardware interface context
-+ */
-+struct fimc_is {
-+	struct platform_device		*pdev;
-+
-+	struct vb2_alloc_ctx		*alloc_ctx;
-+	struct clk			*clock[IS_CLK_MAX_NUM];
-+	void __iomem			*pmu_regs;
-+	unsigned int			num_pipelines;
-+
-+	struct fimc_is_meminfo		minfo;
-+
-+	struct fimc_is_drvdata		*drvdata;
-+	struct fimc_is_sensor		sensor[FIMC_IS_NUM_SENSORS];
-+	struct fimc_is_pipeline		pipeline[FIMC_IS_NUM_PIPELINES];
-+	struct fimc_is_interface	interface;
-+};
-+
-+/* Queue operations for ISP */
-+static inline void fimc_is_isp_wait_queue_add(struct fimc_is_isp *isp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &isp->wait_queue);
-+	isp->wait_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_isp_wait_queue_get(
-+		struct fimc_is_isp *isp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(isp->wait_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	isp->wait_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void fimc_is_isp_run_queue_add(struct fimc_is_isp *isp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &isp->run_queue);
-+	isp->run_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_isp_run_queue_get(
-+		struct fimc_is_isp *isp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(isp->run_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	isp->run_queue_cnt--;
-+	return buf;
-+}
-+
-+/* Queue operations for SCALER */
-+static inline void fimc_is_scaler_wait_queue_add(struct fimc_is_scaler *scp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &scp->wait_queue);
-+	scp->wait_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_scaler_wait_queue_get(
-+		struct fimc_is_scaler *scp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(scp->wait_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	scp->wait_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void fimc_is_scaler_run_queue_add(struct fimc_is_scaler *scp,
-+		struct fimc_is_buf *buf)
-+{
-+	list_add_tail(&buf->list, &scp->run_queue);
-+	scp->run_queue_cnt++;
-+}
-+
-+static inline struct fimc_is_buf *fimc_is_scaler_run_queue_get(
-+		struct fimc_is_scaler *scp)
-+{
-+	struct fimc_is_buf *buf;
-+	buf = list_entry(scp->run_queue.next,
-+			struct fimc_is_buf, list);
-+	list_del(&buf->list);
-+	scp->run_queue_cnt--;
-+	return buf;
-+}
-+
-+static inline void pmu_is_write(u32 v, struct fimc_is *is, unsigned int offset)
-+{
-+	writel(v, is->pmu_regs + offset);
-+}
-+
-+static inline u32 pmu_is_read(struct fimc_is *is, unsigned int offset)
-+{
-+	return readl(is->pmu_regs + offset);
-+}
-+
-+#endif
--- 
-1.7.9.5
+I'd like to propose a little re-design of this binding. The reason is that
+I've noticed issues related to the power domain and FIMC-LITE, FIMC-IS 
+clocks
+handling sequences. This lead to a failure to disable the ISP power domain
+and to complete the system suspend/resume cycle. Not sure if this happens on
+Exynos5 SoCs, nevertheless IMHO it would be more reasonable to make 
+FIMC-LITE
+device nodes child nodes of FIMC-IS. FIMC-LITE seems to be an integral part
+of the FIMC-IS subsystem.
 
+Then fimc-is node would be placed at root level, with fimc-lite nodes as its
+subnodes:
+
+fimc-is {
+	compatible = "exynos5250-fimc-is";
+	reg = <...>;
+	...
+	#address-cells = <1>;
+	#size-cells = <1>;
+	ranges;
+	
+	fimc_lite_0: fimc-lite@12390000 {
+		compatible = "samsung,exynos4212-fimc-lite";
+		...
+	};
+
+	fimc_lite_1: fimc-lite@123A0000 {
+		compatible = "samsung,exynos4212-fimc-lite";
+		...
+	};
+
+	fimc_lite_2: fimc-lite@123B0000 {
+		compatible = "samsung,exynos4212-fimc-lite";
+		...
+	};
+
+	i2c0_isp: i2c-isp@12130000 {
+		...
+	};
+
+	...
+};
+
+Once FIMC-IS driver has probed it would call of_platform_populate() and
+would instantiate all FIMC-IS subsystem sub-devices, including FIMC-LITEs.
+
+I think it's more correct from the hardware structure point of view and it
+would allow us to have the required control on the initialization and power/
+clock sequences. Especially that you might not be able to control the order
+of registration of the exynos5250-fimc-is and fimc-is-i2c drivers, once the
+I2C bus controller is outside of the exynos5-fimc-is module.
+
+Besides, I would propose to make mipi-csis nodes subnodes of the camera
+node. Then the top level camera driver would call of_platform_populate()
+to instantiate MIPI-CSIS devices. That feels better than using samsung,csis
+property pointing to mipi-csis nodes.
+
+Sorry about somewhat going in circles with that, hopefully this is the
+last change before this driver can be queued upstream.
+
+--
+Thanks,
+Sylwester
