@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:36190 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab3IETCa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Sep 2013 15:02:30 -0400
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:36284 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907Ab3IPPB4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Sep 2013 11:01:56 -0400
+Received: by mail-oa0-f52.google.com with SMTP id k18so103962oag.39
+        for <linux-media@vger.kernel.org>; Mon, 16 Sep 2013 08:01:56 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20130905112441.0a8c81d2@samsung.com>
-References: <20130905112441.0a8c81d2@samsung.com>
-Date: Thu, 5 Sep 2013 12:02:29 -0700
-Message-ID: <CA+55aFybmupGxmnDfaYfKu2L1QyBW=EYG=jA3zBa=r1vfm+_EQ@mail.gmail.com>
-Subject: Re: [GIT PULL for v3.12-rc1] media updates
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <52371C7D.60208@iki.fi>
+References: <CAPybu_0grDJp7tempFnJd=rxTwvRGfDy=9Knyr1oGjx9vQrEAQ@mail.gmail.com>
+ <52371C7D.60208@iki.fi>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 16 Sep 2013 17:01:36 +0200
+Message-ID: <CAPybu_0r5FcnAz80kLns=HNkHoKkQOOsLcFopN4PG=1YxfVZHQ@mail.gmail.com>
+Subject: Re: Patchwork is down or only for me?
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 5, 2013 at 7:24 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
+I was looking to this one:
+https://patchwork.linuxtv.org/project/linux-media/list/
+
+Where the latest patch is https://patchwork.linuxtv.org/patch/20090/
+
+On Mon, Sep 16, 2013 at 4:58 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 09/16/2013 05:48 PM, Ricardo Ribalda Delgado wrote:
+>>
+>> Hello
+>>
+>> I have sent a patch and it does not appear on patchwork, it is also
+>> slower than usual.
+>>
+>> Also a patch from David Jedelsky is not there.
 >
-> Also, a trivial conflict at s5p_mfc_dec.c and s5p_mfc_enc.c will happen as
-> a macro name got renamed from IS_MFCV6 to IS_MFCV6_PLUS.
+>
+> At least for now both seems to be there:
+> https://patchwork.kernel.org/project/linux-media/list/
+>
+> regards
+> Antti
+>
+> --
+> http://palosaari.fi/
 
-I did an "ugly merge" when fixing that conflict up, because the stupid
-code at the conflict site did this:
 
-                if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-                        mfc_err("Not supported format.\n");
-                        return -EINVAL;
-                }
-                if (!IS_MFCV6_PLUS(dev)) {
-                        if (fmt->fourcc == V4L2_PIX_FMT_VP8) {
-                                mfc_err("Not supported format.\n");
-                                return -EINVAL;
-                        }
-                }
 
-and there was no way I was going to fix up the code and not remove the
-idiotic duplication of the exact same test.
-
-I have no idea why that code was duplicated with slightly different
-syntax, but my OCD couldn't let it remain when I was editing those
-lines.
-
-              Linus
+-- 
+Ricardo Ribalda
