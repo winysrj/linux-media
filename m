@@ -1,22 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3177 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052Ab3ILCyz (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3379 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932187Ab3IPCy7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 22:54:55 -0400
+	Sun, 15 Sep 2013 22:54:59 -0400
 Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
 	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8C2sq8i025863
-	for <linux-media@vger.kernel.org>; Thu, 12 Sep 2013 04:54:54 +0200 (CEST)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8G2stAo056340
+	for <linux-media@vger.kernel.org>; Mon, 16 Sep 2013 04:54:57 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 5D4662A0764
-	for <linux-media@vger.kernel.org>; Thu, 12 Sep 2013 04:54:47 +0200 (CEST)
+	by tschai.lan (Postfix) with ESMTPSA id B44C92A0764
+	for <linux-media@vger.kernel.org>; Mon, 16 Sep 2013 04:54:43 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130912025447.5D4662A0764@tschai.lan>
-Date: Thu, 12 Sep 2013 04:54:47 +0200 (CEST)
+Message-Id: <20130916025443.B44C92A0764@tschai.lan>
+Date: Mon, 16 Sep 2013 04:54:43 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -25,7 +25,7 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Thu Sep 12 04:00:26 CEST 2013
+date:		Mon Sep 16 04:00:22 CEST 2013
 git branch:	test
 git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
 gcc version:	i686-linux-gcc (GCC) 4.8.1
@@ -110,11 +110,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
