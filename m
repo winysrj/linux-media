@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:44075 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934435Ab3IELiV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Sep 2013 07:38:21 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48006 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752921Ab3IQUOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Sep 2013 16:14:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hugues FRUCHET <hugues.fruchet@st.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
 	Pawel Osciak <posciak@chromium.org>,
-	media-workshop <media-workshop@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Thu, 5 Sep 2013 13:37:49 +0200
-Subject: RE: [media-workshop] Agenda for the Edinburgh mini-summit
-Message-ID: <7020EDD3BA6FF244B3C070FA4F02B1D8014BF87CBC46@SAFEX1MAIL2.st.com>
-References: <201308301501.25164.hverkuil@xs4all.nl>
- <1440169.4erfBAv8If@avalon>
- <CACHYQ-qDD5S5FJvzT-oUBe+Y+S=CB_ZN+QNQPpu+BFE-ZPr45g@mail.gmail.com>
- <1590738.js4VoLrYFn@avalon>
- <CA+M3ks7whrGtkboVcstoEQBRTkiLGF7Hf9nEsYEkyUD6=QPG9w@mail.gmail.com>
- <20130904074829.7ea2bfa6@samsung.com>
-In-Reply-To: <20130904074829.7ea2bfa6@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: Kernel Summit Media Mini-summit attendees on Oct 23 in Edinburgh
+Date: Tue, 17 Sep 2013 22:14:52 +0200
+Message-ID: <4260048.s1qMgHukA2@avalon>
+In-Reply-To: <52389621.5050307@schinagl.nl>
+References: <20130917140831.4cdf32a5.m.chehab@samsung.com> <52389621.5050307@schinagl.nl>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tuesday 17 September 2013 19:49:21 Oliver Schinagl wrote:
+> On 09/17/13 19:08, Mauro Carvalho Chehab wrote:
+> > Hi,
+> > 
+> > I'm trying to consolidate the list of interested people on participating
+> > at this year's the media mini-summit. From what I got from the
+> > discussions, we have, so far:
+> >
+> > 	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> > 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > 	Hans Verkuil <hverkuil@xs4all.nl>
+> > 	Hugues FRUCHET <hugues.fruchet@st.com>
+> > 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 	Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > 	Michael Krufky <mkrufky@kernellabs.com>
+> > 	Oliver Schinagl <oliver+list@schinagl.nl>
+> > 	Pawel Osciak <posciak@chromium.org>
+> > 	Peter Senna Tschudin <peter.senna@gmail.com>
+> > 	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > 	Sakari Ailus <sakari.ailus@iki.fi>
+> > 
+> > Please let me know if I'm missing someone, or if one of the above won't be
+> > able to go to the meeting, as my plan is to send the invitations tomorrow.
+> 
+> While I'd really love to go there, I was only asking a question really
+> :) and am unable to attend. Wishfully there would be a video recording
+> of sorts.
+> 
+> Will try to attend fosdem 2014 though ;)
 
-For floating point issue, we have not encountered such issue while integrating various codec (currently H264, MPEG4, VP8 of both Google G1 IP & ST IPs), could you precise which codec you experienced which required FP support ?
+Speaking of FOSDEM 2014, are there V4L2 developers interesting in having 
+meetings/brainstorming sessions there ?
 
-For user-space library, problem we encountered is that interface between parsing side (for ex. H264 SPS/PPS decoding, slice header decoding, references frame list management, ...moreover all that is needed to prepare hardware IPs call) and decoder side (hardware IPs handling) is not standardized and differs largely regarding IPs or CPU/copro partitioning.
-This means that even if we use the standard V4L2 capture interface to inject video bitstream (H264 access units for ex), some proprietary meta are needed to be attached to each buffers, making de facto "un-standard" the V4L2 interface for this driver.
-Exynos S5P MFC is not attaching any meta to capture input buffers, keeping a standard video bitstream injection interface (what is output naturally by well-known standard demuxers such as gstreamer ones or Android Stagefright ones).
-This is the way we want to go, we will so keep hardware details at kernel driver side. 
-On the other hand, this simplify drastically the integration of our video drivers on user-land multimedia middleware, reducing the time to market and support needed when reaching our end-customers. Our target is to create a unified gstreamer V4L2 decoder(encoder) plugin and a unified OMX V4L2 decoder(encoder) to fit Android, based on a single V4L2 M2M API whatever hardware IP is.
+-- 
+Regards,
 
-About mini summit, Benjamin and I are checking internally how to attend to discuss this topic. We think that about half a day is needed to discuss this, we can so share our code and discuss about other codebase you know dealing with video codecs.
+Laurent Pinchart
 
-
-Best regards,
-Hugues.
