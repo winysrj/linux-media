@@ -1,166 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:39665 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382Ab3IPV7y (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:43573 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752795Ab3IQPoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Sep 2013 17:59:54 -0400
-Message-ID: <52377F3C.5070508@gmail.com>
-Date: Mon, 16 Sep 2013 23:59:24 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 17 Sep 2013 11:44:04 -0400
+Date: Tue, 17 Sep 2013 10:41:07 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+CC: Greg KH <gregkh@linuxfoundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>, <balbi@ti.com>,
+	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>,
+	<grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <balajitk@ti.com>,
+	<george.cherian@ti.com>, <nsekhar@ti.com>, <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v11 0/8] PHY framework
+Message-ID: <20130917154107.GH15645@radagast>
+Reply-To: <balbi@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com>
+ <20130827192059.GZ3005@radagast>
+ <5225FF63.6080608@ti.com>
+ <20130903155030.GA21525@kroah.com>
+ <5226F5E2.5010409@ti.com>
 MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
-	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v8 02/12] [media] exynos5-fimc-is: Add driver core files
-References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com> <1378987669-10870-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1378987669-10870-3-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YPJ8CVbwFUtL7OFW"
+Content-Disposition: inline
+In-Reply-To: <5226F5E2.5010409@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/12/2013 02:07 PM, Arun Kumar K wrote:
->
-> +static int fimc_is_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev =&pdev->dev;
-> +	struct resource *res;
-> +	struct fimc_is *is;
-> +	void __iomem *regs;
-> +	struct device_node *node;
-> +	int irq, ret;
-> +	int i;
-> +
-> +	dev_dbg(dev, "FIMC-IS Probe Enter\n");
-> +
-> +	if (!pdev->dev.of_node)
+--YPJ8CVbwFUtL7OFW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-nit: Could be simplified to:
+On Wed, Sep 04, 2013 at 02:27:06PM +0530, Kishon Vijay Abraham I wrote:
+> On Tuesday 03 September 2013 09:20 PM, Greg KH wrote:
+> > On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
+> >> Hi Greg,
+> >>
+> >> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+> >>> Hi,
+> >>>
+> >>> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrot=
+e:
+> >>>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+> >>>>> Added a generic PHY framework that provides a set of APIs for the P=
+HY drivers
+> >>>>> to create/destroy a PHY and APIs for the PHY users to obtain a refe=
+rence to
+> >>>>> the PHY with or without using phandle.
+> >>>>>
+> >>>>> This framework will be of use only to devices that uses external PH=
+Y (PHY
+> >>>>> functionality is not embedded within the controller).
+> >>>>>
+> >>>>> The intention of creating this framework is to bring the phy driver=
+s spread
+> >>>>> all over the Linux kernel to drivers/phy to increase code re-use an=
+d to
+> >>>>> increase code maintainability.
+> >>>>>
+> >>>>> Comments to make PHY as bus wasn't done because PHY devices can be =
+part of
+> >>>>> other bus and making a same device attached to multiple bus leads t=
+o bad
+> >>>>> design.
+> >>>>>
+> >>>>> If the PHY driver has to send notification on connect/disconnect, t=
+he PHY
+> >>>>> driver should make use of the extcon framework. Using this susbsyst=
+em
+> >>>>> to use extcon framwork will have to be analysed.
+> >>>>>
+> >>>>> You can find this patch series @
+> >>>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git =
+testing
+> >>>>
+> >>>> Looks like there are not further comments on this series. Can you ta=
+ke this in
+> >>>> your misc tree?
+> >>>
+> >>> Do you want me to queue these for you ? There are quite a few users f=
+or
+> >>> this framework already and I know of at least 2 others which will show
+> >>> up for v3.13.
+> >>
+> >> Can you queue this patch series? There are quite a few users already f=
+or this
+> >> framework.
+> >=20
+> > It will have to wait for 3.13 as the merge window for new features has
+> > been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
+> > is out.
+>=20
+> Alright, thanks.
 
-  	if (!dev->of_node)
+Just a gentle ping on this one...
 
-> +		return -ENODEV;
-> +
-> +	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
-> +	if (!is)
-> +		return -ENOMEM;
-> +
-> +	is->pdev = pdev;
-> +
-> +	is->drvdata = fimc_is_get_drvdata(pdev);
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	regs = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(regs))
-> +		return PTR_ERR(regs);
-> +
-> +	/* Get the PMU base */
-> +	node = of_parse_phandle(dev->of_node, "samsung,pmu", 0);
-> +	if (!node)
-> +		return -ENODEV;
-> +	is->pmu_regs = of_iomap(node, 0);
-> +	if (!is->pmu_regs)
-> +		return -ENOMEM;
-> +
-> +	irq = irq_of_parse_and_map(dev->of_node, 0);
-> +	if (irq<  0) {
-> +		dev_err(dev, "Failed to get IRQ\n");
-> +		return irq;
-> +	}
-> +
-> +	ret = fimc_is_configure_clocks(is);
-> +	if (ret<  0) {
-> +		dev_err(dev, "clocks configuration failed\n");
-> +		goto err_clk;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, is);
-> +	pm_runtime_enable(dev);
-> +
-> +	ret = pm_runtime_get_sync(dev);
-> +	if (ret<  0)
-> +		goto err_pm;
+cheers
 
-Is activating the device at this point really needed ? Perhaps you
-could drop the pm_runtime_get/put calls ?
+--=20
+balbi
 
-> +	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-> +	if (IS_ERR(is->alloc_ctx)) {
-> +		ret = PTR_ERR(is->alloc_ctx);
-> +		goto err_vb;
-> +	}
-> +
-> +	/* Get IS-sensor contexts */
-> +	ret = fimc_is_parse_sensor(is);
-> +	if (ret<  0)
-> +		goto err_vb;
-> +
-> +	/* Initialize FIMC Pipeline */
-> +	for (i = 0; i<  is->drvdata->num_instances; i++) {
-> +		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
-> +		if (ret<  0)
-> +			goto err_sd;
-> +	}
-> +
-> +	/* Initialize FIMC Interface */
-> +	ret = fimc_is_interface_init(&is->interface, regs, irq);
-> +	if (ret<  0)
-> +		goto err_sd;
-> +
-> +	pm_runtime_put(dev);
-> +
-> +	dev_dbg(dev, "FIMC-IS registered successfully\n");
-> +
-> +	return 0;
-> +
-> +err_sd:
-> +	fimc_is_pipelines_destroy(is);
-> +err_vb:
-> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-> +err_pm:
-> +	pm_runtime_put(dev);
-> +err_clk:
-> +	fimc_is_put_clocks(is);
-> +
-> +	return ret;
-> +}
-> +
-> +int fimc_is_clk_enable(struct fimc_is *is)
-> +{
-> +	int ret;
-> +
-> +	ret = clk_enable(is->clock[IS_CLK_ISP]);
-> +	if (ret)
-> +		return ret;
-> +	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
+--YPJ8CVbwFUtL7OFW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Shouldn't you disable the first enabled clock when this call fails ?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> +	return ret;
-> +}
-[...]
-> +static void *fimc_is_get_drvdata(struct platform_device *pdev)
-> +{
-> +	struct fimc_is_drvdata *driver_data = NULL;
-> +
-> +	if (pdev->dev.of_node) {
+iQIcBAEBAgAGBQJSOHgTAAoJEIaOsuA1yqREH7QP/RrRhj27omVfupAPeHzOVlYD
+HtXIlK9wsVeD36xJP+ZjCgLWCuzLCz2lR0rXYjJDwcTw6+RiJHxVUrhdrO8dIeXT
+jvGjSmz+QtV7dSrN7vQtsNRUdYxOgvV9IOtnKRz1EgepcvDcrri16y9xz0hxH8b+
+jS1fp7shRuF5vz+/mk1hryyKmhMH34T8HK2uEz/XTQuw58V8CNP0dxNPXXeprIXv
+IGCubSvWr2igiQBmRpsKiyczoH1YgovXE3mY4VcrTLuu/M8PwcpCtddrJUP4j8vI
+jAyU2NZ3B4IsjcbQzA56R72FcXfk00D90oyg3KF1CM7ABcH9jFBkYNLNXVV87v9P
+BeZOEiGoSCZvPOyPqQ2i0sOMTrFLsqDZOSv5dIL+Ai9VT80qo1aZHz21QWJ9J522
+S/ez8SbWeuEBcqE6gqyA0CgwwubSWQEqUZYFi2ryXGBMi09JE10SOBdlhWcXMXQp
+WXMBAK/J2cFsn9iWEXgAr1tF4NdQlZyqvZ4cgppbKsy+ImpfMUXgME948Yp49fnn
+EoRXpb6BgS6cZUeazoaVWSC38lDdVdYOIvERcWLu3oxUwOE3ykQq0E6IeKjxXnHW
+21S1vvGfwFN2ODw1nYUW10UFGuFz16OfHZJ5T1Uehl1zks6UFOWcA0kdsKjheOlZ
+iWGOFMZF6lEMV8/o+A+h
+=1Rub
+-----END PGP SIGNATURE-----
 
-pdev->dev.of_node is being tested against NULL before call to this
-function, you could make this code slightly simpler with that assumption.
-
-> +		const struct of_device_id *match;
-> +		match = of_match_node(exynos5_fimc_is_match,
-> +				pdev->dev.of_node);
-> +		if (match)
-> +			driver_data = (struct fimc_is_drvdata *)match->data;
-> +	}
-> +	return driver_data;
-> +}
-
---
-Thanks,
-Sylwester
+--YPJ8CVbwFUtL7OFW--
