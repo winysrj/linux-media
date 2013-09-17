@@ -1,58 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4445 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044Ab3I3MWe (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48284 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753793Ab3IQVGf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 08:22:34 -0400
-Message-ID: <52496CFE.2090700@xs4all.nl>
-Date: Mon, 30 Sep 2013 14:22:22 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 17 Sep 2013 17:06:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hugues FRUCHET <hugues.fruchet@st.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: Kernel Summit Media Mini-summit attendees on Oct 23 in Edinburgh
+Date: Tue, 17 Sep 2013 23:06:35 +0200
+Message-ID: <1575411.Bmd9x6pGYg@avalon>
+In-Reply-To: <Pine.LNX.4.64.1309172240010.27068@axis700.grange>
+References: <20130917140831.4cdf32a5.m.chehab@samsung.com> <4260048.s1qMgHukA2@avalon> <Pine.LNX.4.64.1309172240010.27068@axis700.grange>
 MIME-Version: 1.0
-To: Jingoo Han <jg1.han@samsung.com>
-CC: "'Mauro Carvalho Chehab'" <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/10] [media] remove unnecessary pci_set_drvdata()
-References: <003601ceb7fe$462af680$d280e380$%han@samsung.com>
-In-Reply-To: <003601ceb7fe$462af680$d280e380$%han@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/23/2013 03:43 AM, Jingoo Han wrote:
-> Since commit 0998d0631001288a5974afc0b2a5f568bcdecb4d
-> (device-core: Ensure drvdata = NULL when no driver is bound),
-> the driver core clears the driver data to NULL after device_release
-> or on probe failure. Thus, it is not needed to manually clear the
-> device driver data to NULL.
+Hi Guennadi,
 
-For the whole patch series:
+On Tuesday 17 September 2013 22:41:57 Guennadi Liakhovetski wrote:
+> On Tue, 17 Sep 2013, Laurent Pinchart wrote:
+> > On Tuesday 17 September 2013 19:49:21 Oliver Schinagl wrote:
+> > > On 09/17/13 19:08, Mauro Carvalho Chehab wrote:
+> > > > Hi,
+> > > > 
+> > > > I'm trying to consolidate the list of interested people on
+> > > > participating at this year's the media mini-summit. From what I got
+> > > > from the discussions, we have, so far:
+> > > >
+> > > > 	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> > > > 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > 	Hans Verkuil <hverkuil@xs4all.nl>
+> > > > 	Hugues FRUCHET <hugues.fruchet@st.com>
+> > > > 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > 	Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > > > 	Michael Krufky <mkrufky@kernellabs.com>
+> > > > 	Oliver Schinagl <oliver+list@schinagl.nl>
+> > > > 	Pawel Osciak <posciak@chromium.org>
+> > > > 	Peter Senna Tschudin <peter.senna@gmail.com>
+> > > > 	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > > > 	Sakari Ailus <sakari.ailus@iki.fi>
+> > > > 
+> > > > Please let me know if I'm missing someone, or if one of the above
+> > > > won't be able to go to the meeting, as my plan is to send the
+> > > > invitations tomorrow.
+> > > 
+> > > While I'd really love to go there, I was only asking a question really
+> > > :) and am unable to attend. Wishfully there would be a video recording
+> > > of sorts.
+> > > 
+> > > Will try to attend fosdem 2014 though ;)
+> > 
+> > Speaking of FOSDEM 2014, are there V4L2 developers interesting in having
+> > meetings/brainstorming sessions there ?
+> 
+> Maybe we can see after the KS - what topics are left or pop up by then?
+> For one it would be easy for me to attend.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I believe most V4L2 folks won't attend the fosdem, so I don't think we should 
+make it a (mini)summit. I was rather considering some kind of hacking sessions 
+and discussions. We can wait after KS, but if we want to get a room at the 
+FOSDEM we should plan as ahead as possible.
 
+-- 
 Regards,
 
-	Hans
-
-> 
-> ---
->  drivers/media/common/saa7146/saa7146_core.c |    2 --
->  drivers/media/pci/b2c2/flexcop-pci.c        |    2 --
->  drivers/media/pci/bt8xx/bt878.c             |    1 -
->  drivers/media/pci/cx88/cx88-alsa.c          |    2 --
->  drivers/media/pci/cx88/cx88-mpeg.c          |    1 -
->  drivers/media/pci/cx88/cx88-video.c         |    1 -
->  drivers/media/pci/dm1105/dm1105.c           |    2 --
->  drivers/media/pci/mantis/mantis_pci.c       |    2 --
->  drivers/media/pci/ngene/ngene-core.c        |    2 --
->  drivers/media/pci/pluto2/pluto2.c           |    2 --
->  drivers/media/pci/pt1/pt1.c                 |    2 --
->  drivers/media/pci/saa7164/saa7164-core.c    |    1 -
->  12 files changed, 20 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
 
