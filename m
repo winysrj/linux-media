@@ -1,78 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54196 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047Ab3IFNp4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 09:45:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	media-workshop <media-workshop@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-Date: Fri, 06 Sep 2013 15:45:59 +0200
-Message-ID: <4141987.vP8rY59Aji@avalon>
-In-Reply-To: <7020EDD3BA6FF244B3C070FA4F02B1D8014BF87CBC46@SAFEX1MAIL2.st.com>
-References: <201308301501.25164.hverkuil@xs4all.nl> <20130904074829.7ea2bfa6@samsung.com> <7020EDD3BA6FF244B3C070FA4F02B1D8014BF87CBC46@SAFEX1MAIL2.st.com>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:39782 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753055Ab3IQSZW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Sep 2013 14:25:22 -0400
+Message-ID: <52389E8E.3050202@googlemail.com>
+Date: Tue, 17 Sep 2013 20:25:18 +0200
+From: Frank Dierich <frank.dierich@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-usb <linux-usb@vger.kernel.org>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	gregkh@linuxfoundation.org
+Subject: Re: [Bug] 0ac8:0321 Vimicro generic vc0321 Camera is not working
+ and causes crashes since 3.2
+References: <522C618E.6020203@googlemail.com> <522DBA8F.4090505@redhat.com> <522F6378.8000808@googlemail.com>
+In-Reply-To: <522F6378.8000808@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+> On 09/09/2013 02:09 PM, Hans de Goede wrote:
+>> Thanks for the bug report, looking at the bug reports, they all 
+>> report an error of -71 which is
+>> EPROTO, which typically means something is wrong at the USB level.
+>>
+>> And nothing has changed for the driver in question between 3.1 and 
+>> 3.2 , so I believe this regression
+>> is caused by changes to the usb sub-system, likely changes to the 
+>> EHCI driver.
+I have tested the new 3.12.0-rc1 kernel and the regression is still 
+present. It causes that Cheese crashes with a segmentation fault and I 
+get the following errors
 
-On Thursday 05 September 2013 13:37:49 Hugues FRUCHET wrote:
-> Hi Mauro,
-> 
-> For floating point issue, we have not encountered such issue while
-> integrating various codec (currently H264, MPEG4, VP8 of both Google G1 IP &
-> ST IPs), could you precise which codec you experienced which required FP
-> support ?
-> 
-> For user-space library, problem we encountered is that interface between
-> parsing side (for ex. H264 SPS/PPS decoding, slice header decoding,
-> references frame list management, ...moreover all that is needed to prepare
-> hardware IPs call) and decoder side (hardware IPs handling) is not
-> standardized and differs largely regarding IPs or CPU/copro partitioning.
-> This means that even if we use the standard V4L2 capture interface to inject
-> video bitstream (H264 access units for ex), some proprietary meta are needed
-> to be attached to each buffers, making de facto "un-standard" the V4L2
-> interface for this driver.
+[  139.868628] gspca_main: ISOC data error: [21] len=0, status=-71
+[  139.904620] gspca_main: ISOC data error: [12] len=0, status=-71
+[  139.936595] gspca_main: ISOC data error: [9] len=0, status=-71
+[  139.968576] gspca_main: ISOC data error: [17] len=0, status=-71
+[  140.036571] gspca_main: ISOC data error: [16] len=0, status=-71
+[  140.037364] video_source:sr[2570]: segfault at 8 ip 00007f0430d6868c 
+sp 00007f0406c02900 error 4 in 
+libgstreamer-0.10.so.0.30.0[7f0430d15000+de000]
+[  140.068533] gspca_main: ISOC data error: [24] len=0, status=-71
+[  140.104519] gspca_main: ISOC data error: [15] len=0, status=-71
+[  140.168474] gspca_main: ISOC data error: [20] len=0, status=-71
+[  140.200461] gspca_main: ISOC data error: [28] len=0, status=-71
 
-We're working on APIs to pass meta data from/to the kernel. The necessary 
-infrastructure is more or less there already, we "just" need to agree on 
-guidelines and standardize the process. One option that will likely be 
-implemented is to store meta-data in a plane, using the multiplanar API.
-
-The resulting plane format will be driver-specific, so we'll loose part of the 
-benefits that the V4L2 API provides. We could try to solve this by writing a 
-libv4l plugin, specific to your driver, that would handle bitstream parsing 
-and fill the meta-data planes correctly. Applications using libv4l would thus 
-only need to pass encoded frames to the library, which would create 
-multiplanar buffers with video data and meta-data, and pass them to the 
-driver. This would be fully transparent for the application.
-
-> Exynos S5P MFC is not attaching any meta to capture input buffers, keeping a
-> standard video bitstream injection interface (what is output naturally by
-> well-known standard demuxers such as gstreamer ones or Android Stagefright
-> ones). This is the way we want to go, we will so keep hardware details at
-> kernel driver side. On the other hand, this simplify drastically the
-> integration of our video drivers on user-land multimedia middleware,
-> reducing the time to market and support needed when reaching our end-
-> customers. Our target is to create a unified gstreamer V4L2 decoder(encoder)
-> plugin and a unified OMX V4L2 decoder(encoder) to fit Android, based on a
-> single V4L2 M2M API whatever hardware IP is.
-> 
-> About mini summit, Benjamin and I are checking internally how to attend to
-> discuss this topic. We think that about half a day is needed to discuss
-> this, we can so share our code and discuss about other codebase you know
-> dealing with video codecs.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Frank
