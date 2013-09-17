@@ -1,113 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4442 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870Ab3IILYC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 07:24:02 -0400
-Message-ID: <522DAFC6.9020608@xs4all.nl>
-Date: Mon, 09 Sep 2013 13:23:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:33641 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752797Ab3IQNiJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Sep 2013 09:38:09 -0400
+Received: by mail-wi0-f171.google.com with SMTP id hm2so4964882wib.16
+        for <linux-media@vger.kernel.org>; Tue, 17 Sep 2013 06:38:08 -0700 (PDT)
 MIME-Version: 1.0
-To: =?UTF-8?B?S3J6eXN6dG9mIEhhxYJhc2E=?= <khalasa@piap.pl>
-CC: linux-media@vger.kernel.org, ismael.luceno@corp.bluecherry.net
-Subject: Re: SOLO6x10 MPEG4/H.264 encoder driver
-References: <m3d2oifezy.fsf@t19.piap.pl>
-In-Reply-To: <m3d2oifezy.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1152216514.26450.1378910904534.open-xchange@email.1and1.fr>
+References: <1152216514.26450.1378910904534.open-xchange@email.1and1.fr>
+Date: Tue, 17 Sep 2013 09:38:08 -0400
+Message-ID: <CALzAhNVvz4zoBDAPw609_c+NuPc8JXFj+HqgKWzonEO9oAOMig@mail.gmail.com>
+Subject: Re: avermedia A306 / PCIe-minicard (laptop) / CX23885
+From: Steven Toth <stoth@kernellabs.com>
+To: remi <remi@remis.cc>
+Cc: Steven Toth <stoth@linuxtv.org>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krzysztof,
+> Hello
 
-I've CC-ed Ismael, the solo maintainer.
+Hello Remi!
 
-On 09/09/2013 12:47 PM, Krzysztof Hałasa wrote:
-> Hi Hans,
-> 
-> I'm trying to move to Linux 3.11 and I noticed you've made some
-> significant changes to the SOLO6x10 driver. While I don't yet have
-> the big picture, I can see some regressions here:
+Thank you for looking at the Avercard with the CX23885 driver.
 
-The big picture behind all the changes is a push to get this driver out of
-staging. It turned out that the driver in the kernel had diverged substantially
-from the driver maintainer internally by bluecherry, and the work I did
-merged those two forks as best as I could, cleaned up the code and ensured that
-all the latest internal frameworks were used.
+>
+> Antti, redirected me toward you,
 
-The only thing preventing the driver from being moved out of staging is the
-motion detection functionality. I've been working on that, but it didn't
-make 3.12.
+What exactly is your question?
 
-> 
-> - the driver doesn't even try to work on big endian systems (I'm using
->   IXP4xx-based system which is BE). For instance, you're now using
->   bitfields for frame headers (struct vop_header) and this is well known
->   to fail (unless you have a different struct for each endianness).
-> 
->   This is actually what I have fixed with commit
->   c55564fdf793797dd2740a67c35a2cedc133c9ff in 2011, and you brought the
->   old buggy version back with dcae5dacbce518513abf7776cb450b7bd95d722b.
+> And
+>
+> If it's at the least at the same "stage" as the HC81 , I think it deserve's to
+> be listed in "cards".h
 
-The problem was that the bluecherry driver had many changes as well in the
-same area, and that I could not test it on a big endian system.
+Possibly. Tell us again 1) what you have working reliably 2) what
+isn't working but the driver is exposing and 3) what the driver is
+exposing but has not been tested.
 
-I hadn't realized the problems this would cause on big endian systems, if I
-had I would have attempted to merge your changes.
+> So people will know right away, that this card has been identified by the V4L
+> community, and dont have
 
-> - you removed my dynamic building of MPEG4/H.264 VOP headers (the same
->   commit c55564fdf793797dd2740a67c35a2cedc133c9ff) and replaced it with
->   precomputed static binary headers, one for each PAL/NTSC/D1/CIF
->   combination. While I don't strictly object the precomputed data,
->   perhaps you could consider adding some tool to optionally calculate
->   them, as required by the license. For now, It seems it's practically
->   impossible to make modifications to the header data, without, for
->   example, extracting the code from older driver version.
+Anyone working on that card would arrive here on the mailing list, I
+don't think that's going to be an issue. I suggest you focus on
+getting feature of the card working reliably, produce a patchset and
+I'm sure it will get reviewed, refined then eventually merged.
 
-I took the latest bluecherry code as the basis for the changes, merging what
-I could from the kernel code. Unfortunately this was very hard to do backport,
-so I decided to take bluecherry's code.
+Other comments below.
 
-> - what was the motivation behind renaming all (C language) files in
->   drivers/staging/media/solo6x10 to solo6x10-* (commits
->   dad7fab933622ee67774a9219d5c18040d97a5e5 and
->   7bce33daeaca26a3ea3f6099fdfe4e11ea46cac6, essentially a reversion of
->   my commit ae69b22c6ca7d1d7fdccf0b664dafbc777099abe)? I'm under
->   impression that a driver file names don't need (and shouldn't) contain
->   the driver name if the directory is already named after the driver.
+> > +       [CX23885_BOARD_AVERMEDIA_A306] = {
+> > +                .name           = "AVerTV Hybrid Minicard PCIe A306",
+> > +                .tuner_type     = TUNER_XC2028,
+> > +                .tuner_addr     = 0x61, /* 0xc2 >> 1 */
+> > +                .tuner_bus      = 1,
+> > +                .porta          = CX23885_ANALOG_VIDEO,
+> > +               .portb          = CX23885_MPEG_ENCODER,
+> > +                .input          = {{
+> > +                        .type   = CX23885_VMUX_TELEVISION,
+> > +                        .vmux   = CX25840_VIN2_CH1 |
+> > +                                  CX25840_VIN5_CH2 |
+> > +                                  CX25840_NONE0_CH3 |
+> > +                                  CX25840_NONE1_CH3,
+> > +                        .amux   = CX25840_AUDIO8,
+> > +                }, {
+> > +                        .type   = CX23885_VMUX_SVIDEO,
+> > +                        .vmux   = CX25840_VIN8_CH1 |
+> > +                                  CX25840_NONE_CH2 |
+> > +                                  CX25840_VIN7_CH3 |
+> > +                                  CX25840_SVIDEO_ON,
+> > +                        .amux   = CX25840_AUDIO6,
+> > +                }, {
+> > +                        .type   = CX23885_VMUX_COMPONENT,
+> > +                        .vmux   = CX25840_VIN1_CH1 |
+> > +                                  CX25840_NONE_CH2 |
+> > +                                  CX25840_NONE0_CH3 |
+> > +                                  CX25840_NONE1_CH3,
+> > +                        .amux   = CX25840_AUDIO6,
+> > +                }},
+> > +
+> > +       }
 
-Two reasons: first of all this is the convention within drivers/media,
-secondly the backwards compatibility build system that allows people to
-compile the latest media code for older kernels requires unique filenames.
+Does the card have a MPEG2 hardware compressor and is it functioning
+properly? (/dev/video1)
 
->   This is also the case with b3c7d453a00b7dadc2a7435f68b012371ccc3a3e:
-> 
->   > [media] solo6x10: rename jpeg.h to solo6x10-jpeg.h
->   >
->   >  This header clashes with the jpeg.h in gspca when doing a compatibility
->   >  build using the media_build system.
-> 
->   What is this media_build system and why is it forcing code in
->   different directories to have unique file names?
+Are both svideo and component inputs working correctly in tvtime?
 
-See http://git.linuxtv.org/media_build.git and here:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+What about audio inputs? Does the card have any audio inputs and is
+the driver acting and exposing those features correctly?
 
-> 
-> 
-> I appreciate the switch to VB2 and other improvements (though I can't
-> test them yet), but perhaps it could be done without causing major
-> breakage?
+If not then please remove any of these sections.
 
-It's a staging driver, so by definition unstable. That said, I do apologize
-for missing the big-endian problems.
+> > +        case CX23885_BOARD_AVERMEDIA_A306:
+> > +                cx_clear(MC417_CTL, 1);
+> > +                /* GPIO-0,1,2 setup direction as output */
+> > +                cx_set(GP0_IO, 0x00070000);
+> > +                mdelay(10);
+> > +                /* AF9013 demod reset */
+> > +                cx_set(GP0_IO, 0x00010001);
+> > +                mdelay(10);
+> > +                cx_clear(GP0_IO, 0x00010001);
+> > +                mdelay(10);
+> > +                cx_set(GP0_IO, 0x00010001);
+> > +                mdelay(10);
+> > +                /* demod tune? */
+> > +                cx_clear(GP0_IO, 0x00030003);
+> > +                mdelay(10);
+> > +                cx_set(GP0_IO, 0x00020002);
+> > +                mdelay(10);
+> > +                cx_set(GP0_IO, 0x00010001);
+> > +                mdelay(10);
+> > +                cx_clear(GP0_IO, 0x00020002);
+> > +                /* XC3028L tuner reset */
+> > +                cx_set(GP0_IO, 0x00040004);
+> > +                cx_clear(GP0_IO, 0x00040004);
+> > +                cx_set(GP0_IO, 0x00040004);
+> > +                mdelay(60);
+> > +                break;
 
-> I'm thinking about a correct course of action now. I need the driver
-> functional so I'll revert the struct vop_header thing again, any
-> thoughts?
+You're setting and clearing the GPIO direction enable registers (upper
+16 bits), this isn't a good idea.
 
-That sounds reasonable. Please post it to the mailinglist so it can be
-reviewed by Ismael and I'd be happy to take it in.
+If you want to drive a GPIO in a specific direction (lower 8 bits),
+perhaps for a reset, instead do this:
 
-Regards,
+/* AF9013 demod reset */
+cx_set(GP0_IO, 0x00010001); /* Establish the direction of the GPIO and
+it's signal level)
+mdelay(10);
+cx_clear(GP0_IO, 0x00000001); /* change the signal level, drive to low */
+mdelay(10);
+cx_set(GP0_IO, 0x00000001); /* back to high */
+mdelay(10);
 
-	Hans
+Repeat this example for other other 'demod tune' and 3028 resets you
+are doing, don't toggle the upper 16bits, else you leave the GPIO
+floating, a bad idea.
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
