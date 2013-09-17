@@ -1,75 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2171 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044Ab3IIKRu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:17:50 -0400
-Message-ID: <522DA03E.8010808@xs4all.nl>
-Date: Mon, 09 Sep 2013 12:17:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:37808 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763Ab3IQKLD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Sep 2013 06:11:03 -0400
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+In-Reply-To: <52363487.6010408@gmail.com>
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
+	<1378991371-24428-3-git-send-email-shaik.ameer@samsung.com>
+	<52363487.6010408@gmail.com>
+Date: Tue, 17 Sep 2013 15:40:59 +0530
+Message-ID: <CAOD6ATpg8M9M=b+8czdVo+oUA2iVFXdvBUTVPOKncBr2Bzac6Q@mail.gmail.com>
+Subject: Re: [PATCH v3 2/4] [media] exynos-scaler: Add core functionality for
+ the SCALER driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <5584569.Fq1hO5v8IF@avalon> <522D9DD6.2080609@xs4all.nl> <26516577.dQgL4XrfDY@avalon>
-In-Reply-To: <26516577.dQgL4XrfDY@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/2013 12:10 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
->> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
->>> On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
->>>> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
->>>
->>> [snip]
->>>
->>>>> The main issue as I see it is that we need to track both driver remove()
->>>>> and struct device .release() calls and free resources only when last of
->>>>> them executes. Data structures which are referenced in fops must not be
->>>>> freed in remove() and we cannot use dev_get_drvdata() in fops, e.g. not
->>>>> protected with device_lock().
->>>>
->>>> You can do all that by returning 0 if probe() was partially successful
->>>> (i.e. one or more, but not all, nodes were created successfully) by
->>>> doing what I described above. I don't see another way that doesn't
->>>> introduce a race condition.
->>>
->>> But isn't this just plain wrong ? If probing fails, I don't see how
->>> returning success could be a good idea.
->>
->> Well, the nodes that are created are working fine. So it's partially OK :-)
->>
->> That said, yes it would be better if it could safely clean up and return an
->> error. But it is better than returning an error and introducing a race
->> condition.
->>
->>>> That doesn't mean that there isn't one, it's just that I don't know of a
->>>> better way of doing this.
->>>
->>> We might need support from the device core.
->>
->> I do come back to my main question: has anyone actually experienced this
->> error in a realistic scenario? Other than in very low-memory situations I
->> cannot imagine this happening.
-> 
-> What about running out of minors, which could very well happen with subdev 
-> nodes in complex SoCs ?
+Hi Sylwester,
 
-Is that really realistic? What's the worst-case SoC we have in terms of
-device nodes? Frankly, if this might happen then we should allow for more
-minors or make the minor allocation completely dynamic.
+Thanks for the comments.
 
-If you run into this situation then you have bigger problems than a potential
-race condition.
+On Mon, Sep 16, 2013 at 3:58 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Shaik,
+>
+> Thanks for addressing my comments, it really looks much better now.
+> I have few more comments, mostly minor issues.
+
+[...]
+
+>> +
+>> +const struct scaler_fmt *scaler_find_fmt(u32 *pixelformat,
+>> +                               u32 *mbus_code, u32 index)
+>> +{
+>> +       const struct scaler_fmt *fmt, *def_fmt = NULL;
+>> +       unsigned int i;
+>> +
+>> +       if (index>= ARRAY_SIZE(scaler_formats))
+>> +               return NULL;
+>> +
+>> +       for (i = 0; i<  ARRAY_SIZE(scaler_formats); ++i) {
+>> +               fmt = scaler_get_format(i);
+>> +               if (pixelformat&&  fmt->pixelformat == *pixelformat)
+>> +                       return fmt;
+>
+>
+>> +               if (mbus_code&&  fmt->mbus_code == *mbus_code)
+>> +                       return fmt;
+>
+>
+> is mbus_code ever used ?
+
+Yes. Currently not used. Will remove this field for now..
+
+>
+>> +               if (index == i)
+>> +                       def_fmt = fmt;
+>> +       }
+>> +
+>> +       return def_fmt;
+>> +}
+
+[...]
+
+>> +
+>> +int scaler_try_fmt_mplane(struct scaler_ctx *ctx, struct v4l2_format *f)
+>> +{
+>> +       struct scaler_dev *scaler = ctx->scaler_dev;
+>> +       struct device *dev =&scaler->pdev->dev;
+>>
+>> +       struct scaler_variant *variant = scaler->variant;
+>> +       struct v4l2_pix_format_mplane *pix_mp =&f->fmt.pix_mp;
+>>
+
+[...]
+
+>> +
+>> +       /*
+>> +        * Nothing mentioned about the colorspace in SCALER. Default value
+>> is
+>> +        * set to V4L2_COLORSPACE_REC709.
+>> +        */
+>
+>
+> Isn't scaler_hw_set_csc_coef() function configuring the colorspace ?
+
+Actually speaking this function should do the color space setting part.
+What the SCALER ip supports is CSC offset value for Y
+
+YCbCr to RGB : Zero offset of -16 offset for input
+RGB to YCbCr : Zero offset of +16 offset for output
+
+I think user should provide this information through some controls.
+Anyways, will take it later.
+
+>
+>> +       pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+>> +
+>> +       for (i = 0; i<  pix_mp->num_planes; ++i) {
+>> +               int bpl = (pix_mp->width * fmt->depth[i])>>  3;
+>> +               pix_mp->plane_fmt[i].bytesperline = bpl;
+>> +               pix_mp->plane_fmt[i].sizeimage = bpl * pix_mp->height;
+>> +
+>> +               scaler_dbg(scaler, "[%d]: bpl: %d, sizeimage: %d",
+>> +                               i, bpl, pix_mp->plane_fmt[i].sizeimage);
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+
+[...]
+
+>> +static int scaler_runtime_resume(struct device *dev)
+>> +{
+>> +       struct scaler_dev *scaler = dev_get_drvdata(dev);
+>> +       int ret = 0;
+>> +       scaler_dbg(scaler, "state: 0x%lx", scaler->state);
+>> +
+>> +       ret = clk_enable(scaler->clock);
+>> +       if (ret<  0)
+>> +               return ret;
+>> +
+>> +       scaler_sw_reset(scaler);
+>> +
+>> +       return scaler_m2m_resume(scaler);
+>
+>
+> Shouldn't there be clk_disable() when this function fails ?
+
+this funciton scaler_m2m_resume() never fails.
+
 
 Regards,
-
-	Hans
-
+Shaik Ameer Basha
