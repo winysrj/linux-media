@@ -1,93 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.61]:38324 "EHLO
+Received: from mailex.mailcore.me ([94.136.40.61]:33302 "EHLO
 	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983Ab3IPRd0 (ORCPT
+	with ESMTP id S1753177Ab3IQR4J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Sep 2013 13:33:26 -0400
-Received: from [177.102.42.224] (helo=[192.168.1.143])
-	by mail10.atlas.pipex.net with esmtpa (Exim 4.71)
-	(envelope-from <it@sca-uk.com>)
-	id 1VLcfp-0003le-Bl
-	for linux-media@vger.kernel.org; Mon, 16 Sep 2013 18:33:21 +0100
-Message-ID: <523740DA.2000107@sca-uk.com>
-Date: Mon, 16 Sep 2013 14:33:14 -0300
+	Tue, 17 Sep 2013 13:56:09 -0400
+Message-ID: <523897AF.6000202@sca-uk.com>
+Date: Tue, 17 Sep 2013 14:55:59 -0300
 From: Steve Cookson <it@sca-uk.com>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge ImpactVCB-e 01381 PCIe driver resolution.
-References: <5235CED8.3080804@sca-uk.com> <CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com>
-In-Reply-To: <CAGoCfiyuvXAhBS=n=_3bZKnCSTZYMrHFJ73MfRnoiuW44Y=zKg@mail.gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: Canvassing for Linux support for Startech PEXHDCAP
+References: <523769B0.6070908@sca-uk.com> <CAGoCfiwVPGKSYOObirz+X3_AN6S1LL5Eff9kcWswcHx-msguiA@mail.gmail.com> <5238720B.7040106@sca-uk.com> <CAGoCfiwYHXWBe-SLix-Qep9Ciu94iir66_oc9CmJSmaa8UBg7Q@mail.gmail.com>
+In-Reply-To: <CAGoCfiwYHXWBe-SLix-Qep9Ciu94iir66_oc9CmJSmaa8UBg7Q@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 17/09/2013 12:38, Devin Heitmueller wrote:
 
-Hi Devin,
+ > Nope, the opposite.  In order to compress the video you need to store
+ > enough context to look for repetition.
 
-Thanks for responding.
+Ok, quite intuitive, once you know what to look for.
 
-So my question would be then, is it worth fixing?
+ > Yup. We've been through the exercise several times with various HD 
+capture boards. Adjust the multiplier based on the level of experience 
+of the developer doing the work.
 
-I can't find any PCIe cards that give me a reasonable quality.
+So it is do-able.  That's good to know.
 
-If I use an external card like the Dazzle it seems quite fast and better 
-quality than many s-video cards.
+If I want to capture 480i/576i and 1080i analogue my alternatives seem 
+to be:
 
-Could the ImpactVCB-e be better than the Dazzle?
+- Something like Dazzle, $50 (480i/576i only - s-video and composite),
+- Intensity Pro, $200 (480i in s-video and composite, plus, 480i/576i & 
+1080i in Component but YPbPr only).  S-Video and Component in 480i/576i 
+seem to have very similar picture quality.
+
+Which leaves me with how to capture RGBS 1080i composite synch.
+
+What do you think of Epiphan VGA2USB (with the internal PCIe mounting 
+kit)?  The basic model at $299 doesn't cover RGBS, but it does do 
+1080i.  Maybe I could use a sync splitter and inverter, like the 
+LS1881n, to make the RGBS composite synch fit the VGA H+V pins. The LR 
+at $799 doesn't seem to capture 1080i.  I thought it did, but now I look 
+at the website again, I can't see it.  Have you used it?   If not those 
+then there is only the HR at $1,600 :(
+
+But Epiphan appears to support v4l2 and gstreamer.  Is it fast?  I guess 
+it doesn't do S-Video and Composite.
+
+If not Epiphan then what?  The Epixinc PIXCI® A310?
+
+It seems quite a hard problem.
 
 Regards
 
 Steve.
-
-
-
-On 15/09/2013 17:26, Devin Heitmueller wrote:
- >
- >
- > On Sep 15, 2013 11:35 AM, "Steve Cookson" <it@sca-uk.com> wrote:
- > >
- > > Hi Guys,
- > >
- > > I seem to be having immense difficulty getting the Hauppauge 
-ImpactVCB-e 01381 PCIe card working on Linux (I'm using Kubuntu 13.04) 
-with greater than 320x240 resolution.
- > >
- > > This is what I've done:
- > >
- > > lspci recognises the card but only as a Conexant card (Vendor ID = 
-14f1:8852), not Hauppauge card (Vendor ID = 0070). Hauppauge is shown as 
-the subsystem (0070:7133).  I don't really know what this means.
- > >
- > > lsmod returns nothing related to the card.
- > >
- > > dmesg  | grep cx23885 suggested card=<n> insmod option (full output 
-from dmesg below).  So I did:
- > >
- > > echo cx23885 card=5 | sudo tee -a /etc/modules
- > >
- > > So I tried a few version numbers, but they all give me 320x240 in 
-s-video or composite mode.
- > >
- > > If I use a Pinnacle Dazzle, I get perfect 640x480 for about the 
-same price.  But I need an internal PCIe card, rather than a external 
-card/box.
- > >
- > > How can I add the card to video4Linux?
- > >
- > > Any help much appreciated.
- > >
- > > Regards
- > >
- > l believe the scaler is broken in the cx23885 driver.  I did a bunch 
-of work on the driver last year to fix a variety of bugs, but didn't get 
-around to making the scaler work properly.  Most likely the card only 
-works right at it's max resolution (720x480 for NTSC or 720x576 for PAL).
- >
- > It can probably be made to work with a few hour's worth of debugging, 
-but I didn't have a commercial customer at the time who needed it and as 
-far as I know nobody else is working on it.
- >
- > Devin
-
