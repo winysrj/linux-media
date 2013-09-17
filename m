@@ -1,139 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35112 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755473Ab3ICURv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 16:17:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 01/19] uvcvideo: Add UVC query tracing.
-Date: Tue, 03 Sep 2013 22:17:51 +0200
-Message-ID: <196894181.mGvsmOyNMH@avalon>
-In-Reply-To: <1377829038-4726-2-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-2-git-send-email-posciak@chromium.org>
+Received: from mailex.mailcore.me ([94.136.40.61]:46935 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752861Ab3IQPPf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Sep 2013 11:15:35 -0400
+Message-ID: <5238720B.7040106@sca-uk.com>
+Date: Tue, 17 Sep 2013 12:15:23 -0300
+From: Steve Cookson <it@sca-uk.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	stoth@kernellabs.com
+Subject: Re: Canvassing for Linux support for Startech PEXHDCAP
+References: <523769B0.6070908@sca-uk.com> <CAGoCfiwVPGKSYOObirz+X3_AN6S1LL5Eff9kcWswcHx-msguiA@mail.gmail.com>
+In-Reply-To: <CAGoCfiwVPGKSYOObirz+X3_AN6S1LL5Eff9kcWswcHx-msguiA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+On 16/09/2013 19:09, Devin Heitmueller wrote:
+ > To be clear, this card is a *raw* capture card.  It does not have any
+ > hardware compression for H.264.  It's done entirely in software.
 
-Thank you so much for the patch (set) ! I'll probably need a couple of days to 
-review it all, let's start.
+Ok, well I misunderstood that.  And, in addition, I also thought that 
+hardware encoding *reduced* latency, something you seem to indicate is 
+not true.
 
-On Friday 30 August 2013 11:17:00 Pawel Osciak wrote:
-> Add a new trace argument enabling UVC query details and contents logging.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 45 ++++++++++++++++++++++--------------
->  drivers/media/usb/uvc/uvcvideo.h  |  9 ++++++++
->  2 files changed, 38 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 3394c34..695f6d9 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -29,22 +29,6 @@
->  /* ------------------------------------------------------------------------
-> * UVC Controls
->   */
-> -
-> -static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
-> -			__u8 intfnum, __u8 cs, void *data, __u16 size,
-> -			int timeout)
-> -{
-> -	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
-> -	unsigned int pipe;
-> -
-> -	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
-> -			      : usb_sndctrlpipe(dev->udev, 0);
-> -	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
-> -
-> -	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
-> -			unit << 8 | intfnum, data, size, timeout);
-> -}
-> -
->  static const char *uvc_query_name(__u8 query)
->  {
->  	switch (query) {
-> @@ -69,6 +53,35 @@ static const char *uvc_query_name(__u8 query)
->  	}
->  }
-> 
-> +static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
-> +			__u8 intfnum, __u8 cs, void *data, __u16 size,
-> +			int timeout)
-> +{
-> +	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
-> +	unsigned int pipe;
-> +	int ret;
-> +
-> +	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
-> +			      : usb_sndctrlpipe(dev->udev, 0);
-> +	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
-> +
-> +	uvc_trace(UVC_TRACE_QUERY,
-> +			"%s (%d): size=%d, unit=%d, cs=%d, intf=%d\n",
+If this is stored in a file, somehow it needs to be encoded, I just 
+imagined that metal was faster than code.
 
-All the fields are unsigned, shouldn't you use %u instead of %d ?
+ > Aside from the Mstar video decoder (for which there is no public
+ > documentation), you would also need a driver for the saa7160 chip,
+ > which there have been various half-baked drivers floating around but
+ > nothing upstream, and none of them currently support HD capture
+ > (AFAIK).
 
-> +			uvc_query_name(query), query, size, unit, cs, intfnum);
+Well the chip thing is confusing me.
 
-That's a pretty strange indentation :-)
+1) I don't understand the difference between the MST3367CMK-LF-170 and 
+the saa7160.  Is one analogue and one digital?  Or do they perform 
+different steps in the process (like one does encoding and one does the 
+DMA thing?
 
-> +	uvc_trace(UVC_TRACE_QUERY, "Sent:\n");
-> +	uvc_print_hex_dump(UVC_TRACE_QUERY, data, size);
-> +
-> +	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
-> +			unit << 8 | intfnum, data, size, timeout);
-> +	if (ret == -EPIPE)
-> +		uvc_trace(UVC_TRACE_QUERY, "Got device STALL on query!\n");
-> +
-> +	uvc_trace(UVC_TRACE_QUERY, "Received:\n");
-> +	uvc_print_hex_dump(UVC_TRACE_QUERY, data, size);
-> +
-> +	return ret;
-> +}
-> +
->  int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
->  			__u8 intfnum, __u8 cs, void *data, __u16 size)
->  {
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..75e0153 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -574,6 +574,7 @@ struct uvc_driver {
->  #define UVC_TRACE_VIDEO		(1 << 10)
->  #define UVC_TRACE_STATS		(1 << 11)
->  #define UVC_TRACE_CLOCK		(1 << 12)
-> +#define UVC_TRACE_QUERY		(1 << 13)
-> 
->  #define UVC_WARN_MINMAX		0
->  #define UVC_WARN_PROBE_DEF	1
-> @@ -599,6 +600,14 @@ extern unsigned int uvc_timeout_param;
->  #define uvc_printk(level, msg...) \
->  	printk(level "uvcvideo: " msg)
-> 
-> +#define uvc_print_hex_dump(flag, buf, len) \
-> +	do { \
-> +		if (uvc_trace_param & flag) { \
-> +			print_hex_dump(KERN_DEBUG, "uvcvideo: ", \
-> +				DUMP_PREFIX_NONE, 16, 1, buf, len, false); \
-> +		} \
+2) If you look here,
 
-No need for braces around the print_hex_dump() call.
+http://katocctv.en.alibaba.com/product/594834688-213880911/1080p_PCIe_Video_Grabber_Video_Capture_Card.html
 
-> +	} while (0)
-> +
->  /*
-> --------------------------------------------------------------------------
-> * Internal functions.
->   */
+You'll see a very similar card with an extra chip.  You can just see 
+that it is produced by Gennum (but I can't see the number).  There is 
+also another chip on the underside, maybe this is the saa7160? And maybe 
+it's on the underside of the PEXHDCAP too.  This is actually the one I 
+saw working.  As I say it was very fast and high quality, but under windows.
 
--- 
-Regards,
+Scroll down and you see this:
 
-Laurent Pinchart
+     Operation System: WINDOWS XP /VISTA/ 7 Linux 2.6. 14 or higher 
+(32-bit and 64-bit)
 
+Drilling into this, it appeared the statement was more aspirational than 
+actual, but that it *had* been compatible, but there was not yet an 
+available driver.  They would need to recompile something to include the 
+latest linux libraries before it would be possible to write the 
+drivers.  I've no idea what this could mean.  Although 2 clients had 
+indeed written gstreamer drivers, one was Cisco systems, but had kept 
+the code to themselves.
+
+ > and none of them currently support HD capture (AFAIK).
+
+What does this mean?  No saa7160 drivers, or no drivers period?  I have 
+the Intensity Pro doing full-screen 1080i capture with minimal latency, 
+but I hate the decklinksrc module.  It just does nearly nothing.  Maybe 
+it could be re-written for v4l2src, but anyway it only accepts YPbPr, as 
+I said before.
+
+ > As always, a driver *can* be written, but it would be a rather large
+ > project (probably several weeks of an engineer working full time on
+ > it, assuming the engineer has experience in this area).  In this case
+ > it's worse because a significant amount of reverse engineering would
+ > be required.
+
+Kato Vision agreed with you.  They were saying a few months (maybe two 
+or three).  They didn't offer to write it, but they offered technical 
+support with the driver-writing.
+
+Thanks for your input.
+
+Regards
+
+Steve
