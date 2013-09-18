@@ -1,93 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:57462 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753421Ab3ILSY1 (ORCPT
+Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:48590 "EHLO
+	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751343Ab3IRKcN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 14:24:27 -0400
-Date: Thu, 12 Sep 2013 15:24:20 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH -next] staging/media: fix msi3101 build errors
-Message-id: <20130912152420.73cd6a66@samsung.com>
-In-reply-to: <5232018F.3000009@iki.fi>
-References: <20130912143402.73f77e0cef1e19576b77a6b5@canb.auug.org.au>
- <5231FCFC.40505@infradead.org> <5232018F.3000009@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 18 Sep 2013 06:32:13 -0400
+Message-ID: <52397C51.1020608@st.com>
+Date: Wed, 18 Sep 2013 11:11:29 +0100
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Reply-To: srinivas.kandagatla@st.com
+MIME-Version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Rob Landley <rob@landley.net>,
+	"grant.likely@linaro.org" <grant.likely@linaro.org>
+Subject: Re: [PATCH v3] media: st-rc: Add ST remote control driver
+References: <1377778012-873-1-git-send-email-srinivas.kandagatla@st.com> <20130916141049.GE30650@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20130916141049.GE30650@e106331-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 12 Sep 2013 21:01:51 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Thanks Mark,
 
-> Hello Randy,
-> It is already fixed, waiting for Mauro's processing.
-> https://patchwork.kernel.org/patch/2856771/
-
-Ok. I'll handle the patches after the release of -rc1.
-
-Regards,
-Mauro
-
+On 16/09/13 15:10, Mark Rutland wrote:
+>> +
+>> > +Required properties:
+>> > +       - compatible: should be "st,comms-irb".
+> This should probably say "should contain" rather than "should be". There
+> may be future vairants of this device, which will also have a more
+> specific compatible string.
+Ok, will change it to the suggest.
 > 
-> regards
-> Antti
+>> > +       - reg: base physical address of the controller and length of memory
+>> > +       mapped  region.
+>> > +       - interrupts: interrupt number to the cpu. The interrupt specifier
+>> > +       format depends on the interrupt controller parent.
+> I don't like the phrase "interrupt number to the cpu". We already have
+> the term interrupt-specifier to precisely define this. How about:
 > 
-> On 09/12/2013 08:42 PM, Randy Dunlap wrote:
-> > From: Randy Dunlap <rdunlap@infradead.org>
-> >
-> > Fix build error when VIDEOBUF2_CORE=m and USB_MSI3101=y.
-> >
-> > drivers/built-in.o: In function `msi3101_buf_queue':
-> > sdr-msi3101.c:(.text+0x1298d6): undefined reference to `vb2_buffer_done'
-> > drivers/built-in.o: In function `msi3101_cleanup_queued_bufs':
-> > sdr-msi3101.c:(.text+0x1299c7): undefined reference to `vb2_buffer_done'
-> > drivers/built-in.o: In function `msi3101_isoc_handler':
-> > sdr-msi3101.c:(.text+0x12a08d): undefined reference to `vb2_plane_vaddr'
-> > sdr-msi3101.c:(.text+0x12a0b9): undefined reference to `vb2_buffer_done'
-> > drivers/built-in.o: In function `msi3101_probe':
-> > sdr-msi3101.c:(.text+0x12a1c5): undefined reference to `vb2_vmalloc_memops'
-> > sdr-msi3101.c:(.text+0x12a1d7): undefined reference to `vb2_queue_init'
-> > drivers/built-in.o:(.rodata+0x34cf0): undefined reference to `vb2_ioctl_reqbufs'
-> > drivers/built-in.o:(.rodata+0x34cf4): undefined reference to `vb2_ioctl_querybuf'
-> > drivers/built-in.o:(.rodata+0x34cf8): undefined reference to `vb2_ioctl_qbuf'
-> > drivers/built-in.o:(.rodata+0x34d00): undefined reference to `vb2_ioctl_dqbuf'
-> > drivers/built-in.o:(.rodata+0x34d04): undefined reference to `vb2_ioctl_create_bufs'
-> > drivers/built-in.o:(.rodata+0x34d08): undefined reference to `vb2_ioctl_prepare_buf'
-> > drivers/built-in.o:(.rodata+0x34d18): undefined reference to `vb2_ioctl_streamon'
-> > drivers/built-in.o:(.rodata+0x34d1c): undefined reference to `vb2_ioctl_streamoff'
-> > drivers/built-in.o:(.rodata+0x35580): undefined reference to `vb2_fop_read'
-> > drivers/built-in.o:(.rodata+0x35588): undefined reference to `vb2_fop_poll'
-> > drivers/built-in.o:(.rodata+0x35598): undefined reference to `vb2_fop_mmap'
-> > drivers/built-in.o:(.rodata+0x355a0): undefined reference to `vb2_fop_release'
-> > drivers/built-in.o:(.data+0x23b40): undefined reference to `vb2_ops_wait_prepare'
-> > drivers/built-in.o:(.data+0x23b44): undefined reference to `vb2_ops_wait_finish'
-> >
-> > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> > Cc: Antti Palosaari <crope@iki.fi>
-> > ---
-> >   drivers/staging/media/msi3101/Kconfig |    2 ++
-> >   1 file changed, 2 insertions(+)
-> >
-> > --- linux-next-20130912.orig/drivers/staging/media/msi3101/Kconfig
-> > +++ linux-next-20130912/drivers/staging/media/msi3101/Kconfig
-> > @@ -1,3 +1,5 @@
-> >   config USB_MSI3101
-> >   	tristate "Mirics MSi3101 SDR Dongle"
-> >   	depends on USB && VIDEO_DEV && VIDEO_V4L2
-> > +	select VIDEOBUF2_CORE
-> > +	select VIDEOBUF2_VMALLOC
-> >
+> - interrupts: interrupt-specifier for the sole interrupt generated by
+>               the device.
 > 
+TBH, I did copy them from one of the existing bindings docs.
+I will change it.
+>> > +
+>> > +Optional properties:
+>> > +       - rx-mode: can be "infrared" or "uhf".
+>> > +       - tx-mode: should be "infrared".
+> Are these required to use rx/tx?
+Yes, these are required for driver to be in rx/tx mode.
+
+One of them can be optional depending on the board setup.
+So, Is it ok to move such properties to required properties section?
 > 
+> If you don't have a tx-mode or rx-mode, I assume you can't do
+> anything...
+Yes, driver errs out.
+> 
+>> > +       - pinctrl-names, pinctrl-0: the pincontrol settings to configure
+>> > +       muxing properly for IRB pins.
+> If we're expecting names, the names we expect should be defined.
+> 
+>> > +       - clocks : phandle of clock.
+> This is not just a phandle. This is a phandle + clock-specifier pair.
+Yep, will change it.
 
+Thanks,
+srini
+> 
+> Cheers,
 
--- 
-
-Cheers,
-Mauro
