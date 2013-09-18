@@ -1,145 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:33641 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752797Ab3IQNiJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 09:38:09 -0400
-Received: by mail-wi0-f171.google.com with SMTP id hm2so4964882wib.16
-        for <linux-media@vger.kernel.org>; Tue, 17 Sep 2013 06:38:08 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:22806 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751190Ab3IRNzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Sep 2013 09:55:07 -0400
+Message-ID: <5239B0B6.9070605@redhat.com>
+Date: Wed, 18 Sep 2013 15:55:02 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1152216514.26450.1378910904534.open-xchange@email.1and1.fr>
-References: <1152216514.26450.1378910904534.open-xchange@email.1and1.fr>
-Date: Tue, 17 Sep 2013 09:38:08 -0400
-Message-ID: <CALzAhNVvz4zoBDAPw609_c+NuPc8JXFj+HqgKWzonEO9oAOMig@mail.gmail.com>
-Subject: Re: avermedia A306 / PCIe-minicard (laptop) / CX23885
-From: Steven Toth <stoth@kernellabs.com>
-To: remi <remi@remis.cc>
-Cc: Steven Toth <stoth@linuxtv.org>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Frank Dierich <frank.dierich@googlemail.com>
+CC: linux-usb <linux-usb@vger.kernel.org>, linux-media@vger.kernel.org,
+	gregkh@linuxfoundation.org
+Subject: Re: [Bug] 0ac8:0321 Vimicro generic vc0321 Camera is not working
+ and causes crashes since 3.2
+References: <522C618E.6020203@googlemail.com> <522DBA8F.4090505@redhat.com> <522F6378.8000808@googlemail.com> <52389E8E.3050202@googlemail.com>
+In-Reply-To: <52389E8E.3050202@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hello
+Hi,
 
-Hello Remi!
-
-Thank you for looking at the Avercard with the CX23885 driver.
-
+On 09/17/2013 08:25 PM, Frank Dierich wrote:
+>> On 09/09/2013 02:09 PM, Hans de Goede wrote:
+>>> Thanks for the bug report, looking at the bug reports, they all report an error of -71 which is
+>>> EPROTO, which typically means something is wrong at the USB level.
+>>>
+>>> And nothing has changed for the driver in question between 3.1 and 3.2 , so I believe this regression
+>>> is caused by changes to the usb sub-system, likely changes to the EHCI driver.
+> I have tested the new 3.12.0-rc1 kernel and the regression is still present. It causes that Cheese crashes with a segmentation fault and I get the following errors
 >
-> Antti, redirected me toward you,
+> [  139.868628] gspca_main: ISOC data error: [21] len=0, status=-71
+> [  139.904620] gspca_main: ISOC data error: [12] len=0, status=-71
+> [  139.936595] gspca_main: ISOC data error: [9] len=0, status=-71
+> [  139.968576] gspca_main: ISOC data error: [17] len=0, status=-71
+> [  140.036571] gspca_main: ISOC data error: [16] len=0, status=-71
+> [  140.037364] video_source:sr[2570]: segfault at 8 ip 00007f0430d6868c sp 00007f0406c02900 error 4 in libgstreamer-0.10.so.0.30.0[7f0430d15000+de000]
+> [  140.068533] gspca_main: ISOC data error: [24] len=0, status=-71
+> [  140.104519] gspca_main: ISOC data error: [15] len=0, status=-71
+> [  140.168474] gspca_main: ISOC data error: [20] len=0, status=-71
+> [  140.200461] gspca_main: ISOC data error: [28] len=0, status=-71
 
-What exactly is your question?
+Note I'm not claiming there is not problem, but since your testing indicated
+that things broken between 3.1 and 3.2, I'm pretty sure that the breakage
+is not caused by changes to the vimicro driver, as that driver was not
+changed between 3.1 and 3.2.
 
-> And
->
-> If it's at the least at the same "stage" as the HC81 , I think it deserve's to
-> be listed in "cards".h
+As I already said in my previous mail, the best way forward with this is probably
+to bisect the problem, and then send a mail to linux-usb@vger.kernel.org about this.
+Please CC me on this mail.
 
-Possibly. Tell us again 1) what you have working reliably 2) what
-isn't working but the driver is exposing and 3) what the driver is
-exposing but has not been tested.
+Regards,
 
-> So people will know right away, that this card has been identified by the V4L
-> community, and dont have
-
-Anyone working on that card would arrive here on the mailing list, I
-don't think that's going to be an issue. I suggest you focus on
-getting feature of the card working reliably, produce a patchset and
-I'm sure it will get reviewed, refined then eventually merged.
-
-Other comments below.
-
-> > +       [CX23885_BOARD_AVERMEDIA_A306] = {
-> > +                .name           = "AVerTV Hybrid Minicard PCIe A306",
-> > +                .tuner_type     = TUNER_XC2028,
-> > +                .tuner_addr     = 0x61, /* 0xc2 >> 1 */
-> > +                .tuner_bus      = 1,
-> > +                .porta          = CX23885_ANALOG_VIDEO,
-> > +               .portb          = CX23885_MPEG_ENCODER,
-> > +                .input          = {{
-> > +                        .type   = CX23885_VMUX_TELEVISION,
-> > +                        .vmux   = CX25840_VIN2_CH1 |
-> > +                                  CX25840_VIN5_CH2 |
-> > +                                  CX25840_NONE0_CH3 |
-> > +                                  CX25840_NONE1_CH3,
-> > +                        .amux   = CX25840_AUDIO8,
-> > +                }, {
-> > +                        .type   = CX23885_VMUX_SVIDEO,
-> > +                        .vmux   = CX25840_VIN8_CH1 |
-> > +                                  CX25840_NONE_CH2 |
-> > +                                  CX25840_VIN7_CH3 |
-> > +                                  CX25840_SVIDEO_ON,
-> > +                        .amux   = CX25840_AUDIO6,
-> > +                }, {
-> > +                        .type   = CX23885_VMUX_COMPONENT,
-> > +                        .vmux   = CX25840_VIN1_CH1 |
-> > +                                  CX25840_NONE_CH2 |
-> > +                                  CX25840_NONE0_CH3 |
-> > +                                  CX25840_NONE1_CH3,
-> > +                        .amux   = CX25840_AUDIO6,
-> > +                }},
-> > +
-> > +       }
-
-Does the card have a MPEG2 hardware compressor and is it functioning
-properly? (/dev/video1)
-
-Are both svideo and component inputs working correctly in tvtime?
-
-What about audio inputs? Does the card have any audio inputs and is
-the driver acting and exposing those features correctly?
-
-If not then please remove any of these sections.
-
-> > +        case CX23885_BOARD_AVERMEDIA_A306:
-> > +                cx_clear(MC417_CTL, 1);
-> > +                /* GPIO-0,1,2 setup direction as output */
-> > +                cx_set(GP0_IO, 0x00070000);
-> > +                mdelay(10);
-> > +                /* AF9013 demod reset */
-> > +                cx_set(GP0_IO, 0x00010001);
-> > +                mdelay(10);
-> > +                cx_clear(GP0_IO, 0x00010001);
-> > +                mdelay(10);
-> > +                cx_set(GP0_IO, 0x00010001);
-> > +                mdelay(10);
-> > +                /* demod tune? */
-> > +                cx_clear(GP0_IO, 0x00030003);
-> > +                mdelay(10);
-> > +                cx_set(GP0_IO, 0x00020002);
-> > +                mdelay(10);
-> > +                cx_set(GP0_IO, 0x00010001);
-> > +                mdelay(10);
-> > +                cx_clear(GP0_IO, 0x00020002);
-> > +                /* XC3028L tuner reset */
-> > +                cx_set(GP0_IO, 0x00040004);
-> > +                cx_clear(GP0_IO, 0x00040004);
-> > +                cx_set(GP0_IO, 0x00040004);
-> > +                mdelay(60);
-> > +                break;
-
-You're setting and clearing the GPIO direction enable registers (upper
-16 bits), this isn't a good idea.
-
-If you want to drive a GPIO in a specific direction (lower 8 bits),
-perhaps for a reset, instead do this:
-
-/* AF9013 demod reset */
-cx_set(GP0_IO, 0x00010001); /* Establish the direction of the GPIO and
-it's signal level)
-mdelay(10);
-cx_clear(GP0_IO, 0x00000001); /* change the signal level, drive to low */
-mdelay(10);
-cx_set(GP0_IO, 0x00000001); /* back to high */
-mdelay(10);
-
-Repeat this example for other other 'demod tune' and 3028 resets you
-are doing, don't toggle the upper 16bits, else you leave the GPIO
-floating, a bad idea.
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Hans
