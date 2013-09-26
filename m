@@ -1,45 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fpasia.hk ([202.130.89.98]:51063 "EHLO fpa01n0.fpasia.hk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750825Ab3I3FsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 01:48:16 -0400
-Message-ID: <52490EEB.1090806@gtsys.com.hk>
-Date: Mon, 30 Sep 2013 13:40:59 +0800
-From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60130 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252Ab3IZSvw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Sep 2013 14:51:52 -0400
+Date: Thu, 26 Sep 2013 11:51:51 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	stern@rowland.harvard.edu, broonie@kernel.org,
+	tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org,
+	tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	linux@arm.linux.org.uk
+Subject: Re: [PATCH v11 2/8] usb: phy: omap-usb2: use the new generic PHY
+ framework
+Message-ID: <20130926185151.GA8689@kroah.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <1377063973-22044-3-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Subject: iram pool not available for MX27
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1377063973-22044-3-git-send-email-kishon@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phillipp,
+On Wed, Aug 21, 2013 at 11:16:07AM +0530, Kishon Vijay Abraham I wrote:
+> Used the generic PHY framework API to create the PHY. Now the power off and
+> power on are done in omap_usb_power_off and omap_usb_power_on respectively.
+> The omap-usb2 driver is also moved to driver/phy.
+> 
+> However using the old USB PHY library cannot be completely removed
+> because OTG is intertwined with PHY and moving to the new framework
+> will break OTG. Once we have a separate OTG state machine, we
+> can get rid of the USB PHY library.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/phy/Kconfig                   |   12 +++++++++
+>  drivers/phy/Makefile                  |    1 +
+>  drivers/{usb => }/phy/phy-omap-usb2.c |   45 ++++++++++++++++++++++++++++++---
+>  drivers/usb/phy/Kconfig               |   10 --------
+>  drivers/usb/phy/Makefile              |    1 -
+>  5 files changed, 54 insertions(+), 15 deletions(-)
+>  rename drivers/{usb => }/phy/phy-omap-usb2.c (88%)
 
-hope things doing OK.
+I tried to apply this to my USB branch, but it fails.
 
-I recently update to the 3.12-rc kernel and hit this problem below.
+Kishon, you were going to refresh this patch series, right?  Please do,
+because as-is, I can't take it.
 
-[ 3.377790] coda coda-imx27.0: iram pool not available
-[ 3.383363] coda: probe of coda-imx27.0 failed with error -12
+thanks,
 
-I read your comments of the patch-set using platform data rather then 
-hard coded addresses to get
-the ocram from a SoC.
-
-I checked the imx27.dtsi for the iram (coda: coda@..) definition and 
-compare with the former hard coded address and size it matches.
-
-My .config also has the CONFIG_OF set.
-
-Any Idea what's go wrong?
-
-Chris
-
--- 
-GTSYS -
-Unit A01, 24/F Gold King Industrial Building,
-35-41 Tai Lin Pai Road, Kwai Chung,
-Hong Kong
-新界葵涌大連排道35-41號金基工業大廈24樓A01室
-
+greg k-h
