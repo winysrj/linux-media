@@ -1,98 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog113.obsmtp.com ([207.126.144.135]:44682 "EHLO
-	eu1sys200aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754321Ab3I3IbH (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40149 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab3I0Icz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 04:31:07 -0400
-Message-ID: <524935D6.1010505@st.com>
-Date: Mon, 30 Sep 2013 09:27:02 +0100
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Reply-To: srinivas.kandagatla@st.com
+	Fri, 27 Sep 2013 04:32:55 -0400
+Date: Fri, 27 Sep 2013 09:27:04 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Cc: alsa-devel@alsa-project.org, b43-dev <b43-dev@lists.infradead.org>,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+	devicetree@vger.kernel.org,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	e1000-devel@lists.sourceforge.net,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux ppc dev <linuxppc-dev@lists.ozlabs.org>,
+	linux-samsung-soc@vger.kernel.org,
+	Linux SCSI List <linux-scsi@vger.kernel.org>,
+	linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org,
+	"linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
+	Network Development <netdev@vger.kernel.org>,
+	Solarflare linux maintainers <linux-net-drivers@solarflare.com>,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH 00/51] DMA mask changes
+Message-ID: <20130927082703.GZ25647@n2100.arm.linux.org.uk>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <CACna6rxkpYzdD8_Jfi22vA2suUa3k-JM65_gCySQpp4crVCoPg@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for remote-control
-References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com> <20130927113458.GB18672@e106331-lin.cambridge.arm.com> <52458774.1060909@st.com> <20130927105716.64349f02@samsung.com>
-In-Reply-To: <20130927105716.64349f02@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CACna6rxkpYzdD8_Jfi22vA2suUa3k-JM65_gCySQpp4crVCoPg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/09/13 14:57, Mauro Carvalho Chehab wrote:
-> Em Fri, 27 Sep 2013 14:26:12 +0100
-> Srinivas KANDAGATLA <srinivas.kandagatla@st.com> escreveu:
+On Thu, Sep 26, 2013 at 10:23:08PM +0200, Rafał Miłecki wrote:
+> 2013/9/19 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> > This email is only being sent to the mailing lists in question, not to
+> > anyone personally.  The list of individuals is far to great to do that.
+> > I'm hoping no mailing lists reject the patches based on the number of
+> > recipients.
 > 
->> On 27/09/13 12:34, Mark Rutland wrote:
->>
->>>>> +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
->>>>> +	  the rx pins are wired up.
->>> I'm unsure on this. What if the device has multiple receivers that can
->>> be independently configured? What if it supports something other than
->>> "infrared" or "uhf"? What if a device can only be wired up as
->>> "infrared"? 
->>>
->>> I'm not sure how generic these are, though we should certainly encourage
->>> bindings that can be described this way to be described in the same way.
->>>
->>>>> +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
->>>>> +	  the tx pins are wired up.
->>> I have similar concerns here to those for the rx-mode property.
->>>
->> Initially rx-mode and tx-mode sounded like more generic properties
->> that's the reason I ended up in this route. But after this discussion it
->> looks like its not really generic enough to cater all the use cases.
->>
->> It make sense for me to perfix "st," for these properties in the st-rc
->> driver rather than considering them as generic properties.
+> Huh, I think it was enough to send only 3 patches to the b43-dev@. Like:
+> [PATCH 01/51] DMA-API: provide a helper to set both DMA and coherent DMA masks
+> [PATCH 14/51] DMA-API: net: b43: (...)
+> [PATCH 15/51] DMA-API: net: b43legacy: (...)
+> ;)
 > 
-> Well, for sure the direction (TX, RX, both) is a generic property.
-> 
-> I'd say that the level 1 protocol (IR, UHF, Bluetooth, ...) is also a
-> generic property. Most remotes are IR, but there are some that are
-> bluetooth, and your hardware is using UHF.
-Yes these are generic.
+> I believe Joe has some nice script for doing it that way. When fixing
+> some coding style / formatting, he sends only related patches to the
+> given ML.
 
-> 
-> Btw, we're even thinking on mapping HDMI-CEC remote controller RX/TX via
-> the RC subsystem. So, another L1 protocol would be "hdmi-cec".
-> 
-Ok.
-> Yet, it seems unlikely that the very same remote controller IP would use
-> a different protocol for RX and TX, while sharing the same registers.
+If I did that, then the mailing lists would not get the first patch,
+because almost none of the lists would be referred to by patch 1.
 
-ST IRB block has one IR processor which has both TX and RX support and
-one UHF Processor which has RX support only. However the register map
-for all these support is in single IRB IP block.
-
-So the driver can configure the IP as TX in "infrared" and RX in "uhf".
-This is supported in ST IRB IP.
-
-This case can not be represented in a single device tree node with
-l1-protocol and direction properties.
-
-IMHO, having tx-mode and rx-mode or tx-protocol and rx-protocol
-properties will give more flexibility.
-
-What do you think?
-
-> 
-> So, for example, a hardware with "hdmi-cec" and "infrared" will actually
-> have two remote controller devices. Eventually, the "infrared" being
-> just RX, while "hdmi-cec" being bi-directional.
-> 
-> So, IMHO, this could be mapped as "l1_protocol" ("infrared", "uhf", ...)
-> and another one "direction" ("rx", "tx", "bi-directional").
-> 
-
-Thanks,
-srini
+Moreover, people complain when they don't have access to the full
+patch series - they assume patches are missing for some reason, and
+they ask for the rest of the series.
