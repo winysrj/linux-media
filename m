@@ -1,69 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:48503 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248Ab3I1T3O (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33861 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132Ab3I0K7h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Sep 2013 15:29:14 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: kishon@ti.com
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH V5 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-Date: Sat, 28 Sep 2013 21:27:43 +0200
-Message-Id: <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
-References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 27 Sep 2013 06:59:37 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v9 08/13] [media] exynos5-fimc-is: Add sensor interface
+Date: Fri, 27 Sep 2013 16:29:13 +0530
+Message-Id: <1380279558-21651-9-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+Some sensors to be used with fimc-is are exclusively controlled
+by the fimc-is firmware. This minimal sensor driver provides
+the required info for the firmware to configure the sensors
+sitting on I2C bus.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index caadc02..a73eeb5 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -49,6 +49,12 @@
- 		reg = <0x10000000 0x100>;
- 	};
- 
-+	mipi_phy: video-phy@10020710 {
-+		compatible = "samsung,s5pv210-mipi-video-phy";
-+		reg = <0x10020710 8>;
-+		#phy-cells = <1>;
-+	};
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+new file mode 100644
+index 0000000..475f1c3
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+@@ -0,0 +1,45 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- 	pd_mfc: mfc-power-domain@10023C40 {
- 		compatible = "samsung,exynos4210-pd";
- 		reg = <0x10023C40 0x20>;
-@@ -161,6 +167,8 @@
- 			clock-names = "csis", "sclk_csis";
- 			bus-width = <4>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 0>;
-+			phy-names = "csis";
- 			status = "disabled";
- 			#address-cells = <1>;
- 			#size-cells = <0>;
-@@ -174,6 +182,8 @@
- 			clock-names = "csis", "sclk_csis";
- 			bus-width = <2>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 2>;
-+			phy-names = "csis";
- 			status = "disabled";
- 			#address-cells = <1>;
- 			#size-cells = <0>;
++#include "fimc-is-sensor.h"
++
++static const struct sensor_drv_data s5k6a3_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
++	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
++};
++
++static const struct sensor_drv_data s5k4e5_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
++	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
++};
++
++static const struct of_device_id fimc_is_sensor_of_ids[] = {
++	{
++		.compatible	= "samsung,s5k6a3",
++		.data		= &s5k6a3_drvdata,
++	},
++	{
++		.compatible	= "samsung,s5k4e5",
++		.data		= &s5k4e5_drvdata,
++	},
++	{  }
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node)
++{
++	const struct of_device_id *of_id;
++
++	of_id = of_match_node(fimc_is_sensor_of_ids, node);
++	return of_id ? of_id->data : NULL;
++}
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+new file mode 100644
+index 0000000..0ba5733
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+@@ -0,0 +1,65 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SENSOR_H_
++#define FIMC_IS_SENSOR_H_
++
++#include <linux/of.h>
++#include <linux/types.h>
++
++#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
++#define S5K6A3_SENSOR_WIDTH		1392
++#define S5K6A3_SENSOR_HEIGHT		1392
++
++#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
++#define S5K4E5_SENSOR_WIDTH		2560
++#define S5K4E5_SENSOR_HEIGHT		1920
++
++#define SENSOR_WIDTH_PADDING		16
++#define SENSOR_HEIGHT_PADDING		10
++
++enum fimc_is_sensor_id {
++	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
++	FIMC_IS_SENSOR_ID_S5K6A3,
++	FIMC_IS_SENSOR_ID_S5K4E5,
++	FIMC_IS_SENSOR_ID_S5K3H7,
++	FIMC_IS_SENSOR_ID_CUSTOM,
++	FIMC_IS_SENSOR_ID_END
++};
++
++struct sensor_drv_data {
++	enum fimc_is_sensor_id id;
++	/* sensor open timeout in ms */
++	unsigned short open_timeout;
++	char *setfile_name;
++};
++
++/**
++ * struct fimc_is_sensor - fimc-is sensor data structure
++ * @drvdata: a pointer to the sensor's parameters data structure
++ * @i2c_bus: ISP I2C bus index (0...1)
++ * @width: sensor active width
++ * @height: sensor active height
++ * @pixel_width: sensor effective pixel width (width + padding)
++ * @pixel_height: sensor effective pixel height (height + padding)
++ */
++struct fimc_is_sensor {
++	const struct sensor_drv_data *drvdata;
++	unsigned int i2c_bus;
++	unsigned int width;
++	unsigned int height;
++	unsigned int pixel_width;
++	unsigned int pixel_height;
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node);
++
++#endif /* FIMC_IS_SENSOR_H_ */
 -- 
-1.7.4.1
+1.7.9.5
 
