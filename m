@@ -1,58 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10321 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab3IQMsP (ORCPT
+Received: from LGEMRELSE7Q.lge.com ([156.147.1.151]:49285 "EHLO
+	LGEMRELSE7Q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819Ab3I0E6E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 08:48:15 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MT900G8ISSO0AC0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Sep 2013 13:46:43 +0100 (BST)
-Message-id: <52384F31.4060000@samsung.com>
-Date: Tue, 17 Sep 2013 14:46:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PULL] 3.12 (mostly videobuf2) fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Fri, 27 Sep 2013 00:58:04 -0400
+From: Chanho Min <chanho.min@lge.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: HyoJun Im <hyojun.im@lge.com>, Chanho Min <chanho.min@lge.com>
+Subject: [PATCH] [media] uvcvideo: fix data type for pan/tilt control
+Date: Fri, 27 Sep 2013 13:57:40 +0900
+Message-Id: <1380257860-14075-1-git-send-email-chanho.min@lge.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The pan/tilt absolute control value is signed value. If minimum value
+is minus, It will be changed to plus by clamp_t() as commit 64ae9958a62.
+([media] uvcvideo: Fix control value clamping for unsigned integer controls).
 
-Here are couple regression fixes for 3.12-rc. I'm planning to send backport 
-patches of the videobuf2-dma-contig allocator patch for -stable.
+It leads to wrong setting of the control values. For example,
+when min and max are -36000 and 36000, the setting value between of this range
+is always 36000. So, Its data type should be changed to signed.
 
-The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-  Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index a2f4501..0eb82106 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -664,7 +664,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.size		= 32,
+ 		.offset		= 0,
+ 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+-		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
+ 		.id		= V4L2_CID_TILT_ABSOLUTE,
+@@ -674,7 +674,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.size		= 32,
+ 		.offset		= 32,
+ 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+-		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
+ 		.id		= V4L2_CID_PRIVACY,
+-- 
+1.7.9.5
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git v3.12-fixes-1
-
-for you to fetch changes up to 99f2689e2d05b42d51bf087850c84da2000ded1e:
-
-  s5p-jpeg: Initialize vfd_decoder->vfl_dir field (2013-09-17 13:21:59 +0200)
-
-----------------------------------------------------------------
-Jacek Anaszewski (1):
-      s5p-jpeg: Initialize vfd_decoder->vfl_dir field
-
-Marek Szyprowski (1):
-      videobuf2-dc: Fix support for mappings without struct page in userptr mode
-
-Sylwester Nawrocki (1):
-      vb2: Allow queuing OUTPUT buffers with zeroed 'bytesused'
-
- drivers/media/platform/s5p-jpeg/jpeg-core.c    |    1 +
- drivers/media/v4l2-core/videobuf2-core.c       |    4 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c |   87 ++++++++++++++++++++++--
- 3 files changed, 86 insertions(+), 6 deletions(-)
-
---
-Regards,
-Sylwester
