@@ -1,179 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2413 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755484Ab3IBHAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 03:00:05 -0400
-Message-ID: <5224376B.8020003@xs4all.nl>
-Date: Mon, 02 Sep 2013 08:59:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-CC: Dinesh Ram <dinram@cisco.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Dino d <dinesh.ram@cern.ch>
-Subject: Re: [PATCH 3/6] si4713 : Bug fix for si4713_tx_tune_power() method
- in the i2c driver
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com> <1377862104-15429-1-git-send-email-dinram@cisco.com> <637d28441ff1e63ae72385afcba990fda11e0210.1377861337.git.dinram@cisco.com> <CAC-25o_Fk3fva7xdna=-fUv53vp2DjRt99+sEGwTwvgQn=cgkg@mail.gmail.com> <52231F3C.9000208@xs4all.nl> <CAC-25o8r4xMY_LFDMpszHZqoi0h13CR1wZYVXVHOmuorTmU=rg@mail.gmail.com>
-In-Reply-To: <CAC-25o8r4xMY_LFDMpszHZqoi0h13CR1wZYVXVHOmuorTmU=rg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:38088 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084Ab3I0SvB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 14:51:01 -0400
+Received: by mail-pb0-f48.google.com with SMTP id ma3so2905114pbc.21
+        for <linux-media@vger.kernel.org>; Fri, 27 Sep 2013 11:51:01 -0700 (PDT)
+From: Show Liu <show.liu@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, tom.gall@linaro.org,
+	t.katayama@jp.fujitsu.com, vikas.sajjan@linaro.org,
+	linaro-kernel@lists.linaro.org, tom.cooksey@arm.com,
+	Show Liu <show.liu@linaro.org>
+Subject: [PATCH/CDF RFC v3 0/3] Migrate CDFv3 into pl111 drm/kms driver
+Date: Sat, 28 Sep 2013 02:50:43 +0800
+Message-Id: <1380307846-27479-1-git-send-email-show.liu@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2013 04:57 PM, edubezval@gmail.com wrote:
-> Hello Hans,
-> 
-> On Sun, Sep 1, 2013 at 7:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 08/31/2013 01:49 PM, edubezval@gmail.com wrote:
->>> Hi Dinesh,
->>>
->>> On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
->>>> In the si4713_tx_tune_power() method, the args array element 'power' can take values between
->>>> SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0 is also valid.
->>>> All the values (0 > power < SI4713_MIN_POWER) are illegal and hence
->>>> are all mapped to SI4713_MIN_POWER.
->>>
->>> While do we need to assume min power in these cases?
-> 
-> s/While/Why! but I guess you already got it.
-> 
->>
->> It makes no sense to map 0 < powers < MIN_POWER to 0 (i.e. power off). I would never
->> expect that selecting a power > 0 would actually turn off power, so just map to the
->> lowest possible power value.
-> 
-> Hmm.. Interesting. Is this what you are seen currently?
-> 0 < power < MIN_POWER == power off?
+Hi all,
 
-Currently trying to use a power value in that range will result in the EDOM
-error. But that's quite unexpected for a control that's defined for the range
-[0..MAX_POWER]. So rather than return an error you map it internally to the
-lowest power value.
+This series patches base on Tom's "Initial drm/kms driver for pl111"[1]
+with linaro release 13.07 and migrate the CDFv3 for evaluation.
+please notes that I set VGA as default output and tested on RTSM only.
 
-> 
-> I would expect the driver to return an error code:
-> 
->     if (((power > 0) && (power < SI4713_MIN_POWER)) ||
->         power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
->         return -EDOM;
-> 
-> And that is why I am asking why are we assigning a min value when we
-> see a value out of the expected range?
+[1] http://lwn.net/Articles/561344/
 
-The hardware expects the value 0 or a value in the range [MIN_POWER..MAX_POWER].
-The control expects a value in the range [0..MAX_POWER]. In order to prevent
-the driver from returning -EDOM for values in the range [1..MIN_POWER> we
-map those values to MIN_POWER. Returning an error in this case is not allowed
-by the V4L2 specification.
+Cheers,
 
-> 
->>
->>>
->>>>
->>>> Signed-off-by: Dinesh Ram <dinram@cisco.com>
->>>> ---
->>>>  drivers/media/radio/si4713/si4713.c | 16 ++++++++--------
->>>>  1 file changed, 8 insertions(+), 8 deletions(-)
->>>>
->>>> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
->>>> index 55c4d27..5d0be87 100644
->>>> --- a/drivers/media/radio/si4713/si4713.c
->>>> +++ b/drivers/media/radio/si4713/si4713.c
->>>> @@ -550,14 +550,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
->>>>  }
->>>>
->>>>  /*
->>>> - * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
->>>> + * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
->>>>   *                     1 dB units. A value of 0x00 indicates off. The command
->>>>   *                     also sets the antenna tuning capacitance. A value of 0
->>>>   *                     indicates autotuning, and a value of 1 - 191 indicates
->>>>   *                     a manual override, which results in a tuning
->>>>   *                     capacitance of 0.25 pF x @antcap.
->>>>   * @sdev: si4713_device structure for the device we are communicating
->>>> - * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
->>>> + * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
->>>>   * @antcap: value of antenna tuning capacitor (0 - 191)
->>>>   */
->>>>  static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
->>>> @@ -571,16 +571,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
->>>>          *      .Third byte = power
->>>>          *      .Fourth byte = antcap
->>>>          */
->>>> -       const u8 args[SI4713_TXPWR_NARGS] = {
->>>> +       u8 args[SI4713_TXPWR_NARGS] = {
->>>>                 0x00,
->>>>                 0x00,
->>>>                 power,
->>>>                 antcap,
->>>>         };
->>>>
->>>> -       if (((power > 0) && (power < SI4713_MIN_POWER)) ||
->>>> -               power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
->>>> -               return -EDOM;
->>>> +       /* Map power values 1-87 to MIN_POWER (88) */
->>>> +       if (power > 0 && power < SI4713_MIN_POWER)
->>>> +               args[2] = power = SI4713_MIN_POWER;
->>>
->>> Why are you allowing antcap > SI4713_MAX_ANTCAP? and power >
->>> SI4713_MAX_POWER too?
->>
->> The control framework already checks for that so you'll never see out-of-range values
->> here. So it was an unnecessary check.
->>
-> 
-> I see. Are you sure about that?
+Show Liu
 
-I wrote the control framework, so yes, I'm sure about that. One of the reasons for the
-framework was to prevent all these checks in all the drivers.
+Show Liu (3):
+  Add display entities and pipe link for pl111
+  Add display entity and set VGA output(site MB) as default
+  add pipe link for display entity
 
-> 
-> I am just a bit concerned about regulations here. One can really get
-> in trouble if it can transmit FM for longer than 10m in some
-> countries, without a license.
+ arch/arm/boot/dts/rtsm_ve-motherboard.dtsi     |   46 +++
+ arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts |    4 +
+ drivers/gpu/drm/pl111/pl111_drm.h              |   23 +-
+ drivers/gpu/drm/pl111/pl111_drm_device.c       |  374 ++++++++++++++++++++++--
+ drivers/video/vexpress-dvi.c                   |   94 +++++-
+ 5 files changed, 503 insertions(+), 38 deletions(-)
 
-Well, I assume Nokia knew what they were doing when they wrote this driver.
-AFAIK these devices are all low power with low ranges, meant for the mobile
-market.
-
-Regards,
-
-	Hans
-
-> I know of some nasty ways to boost transmitting power, but I would
-> like to avoid making even easier with this driver. :-)
-> 
->>>
->>>>
->>>>         err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
->>>>                                   args, ARRAY_SIZE(args), val,
->>>> @@ -1457,9 +1457,9 @@ static int si4713_probe(struct i2c_client *client,
->>>>                         V4L2_CID_TUNE_PREEMPHASIS,
->>>>                         V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
->>>>         sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
->>>> -                       V4L2_CID_TUNE_POWER_LEVEL, 0, 120, 1, DEFAULT_POWER_LEVEL);
->>>> +                       V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
->>>>         sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
->>>> -                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, 191, 1, 0);
->>>> +                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
->>>>
->>>>         if (hdl->error) {
->>>>                 rval = hdl->error;
->>>> --
->>>> 1.8.4.rc2
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>>
->>
->> Regards,
->>
->>         Hans
-> 
-> 
-> 
+-- 
+1.7.9.5
 
