@@ -1,33 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:36573 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753042Ab3ILM0r convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34519 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751010Ab3I0LkW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:26:47 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	ismael.luceno@corp.bluecherry.net
-Date: Thu, 12 Sep 2013 14:26:46 +0200
-MIME-Version: 1.0
-Message-ID: <m361u6b4zd.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Subject: [PATCH] SOLO6x10: Remove unused #define SOLO_DEFAULT_GOP
+	Fri, 27 Sep 2013 07:40:22 -0400
+Message-ID: <1380282116.2388.22.camel@palomino.walls.org>
+Subject: Re: Capture driver implementation issue/questions
+From: Andy Walls <awalls@md.metrocast.net>
+To: Rick Ball <rball@AESAustin.com>
+Cc: "Linux Media Mailing List (linux-media@vger.kernel.org)"
+	<linux-media@vger.kernel.org>
+Date: Fri, 27 Sep 2013 07:41:56 -0400
+In-Reply-To: <4B8557E2E5753944B2BB2E52F7C2A30C324B268D@MAIL.AES.local>
+References: <4B8557E2E5753944B2BB2E52F7C2A30C324B268D@MAIL.AES.local>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+On Thu, 2013-09-26 at 14:57 +0000, Rick Ball wrote:
+> Hi All,
+> 
+> I'm working on a video capture driver (my first) for a custom board,
+> and I have a few questions about handling 'overflow' conditions (when
+> the application doesn't get back in time to de-queue every frame). I
+> know that one way to avoid this is to allocate additional frame
+> buffers, but I'm thinking about conditions where even this doesn't
+> provide enough of a FIFO. It looks to me (from studying the videobuf2
+> code), that if the buffers all fill up (they all end up on the 'done'
+> list), and then the application 'comes back' and starts de-queuing
+> buffers, it will get the OLDEST one first, and then, the newer buffers
+> will be returned, in the order they were originally captured. For some
+> (most?) applications, this is probably what is best, as frames only
+> get dropped when they have to, i.e., when the FIFO overflows, and the
+> app sees the maximum number of frames. But what about applications
+> that always want to see the 'newest' buffer, even if some frames are
+> dropped? 
+> 
+> What I would like to do is write my driver such that if a new frame is
+> captured before the app has de-queued an earlier frame, the older
+> capture buffer would be removed from the done list and re-queued to
+> the h/w (it's already still on the queued list, I think). The done
+> list would then always contain only 1 frame, and it would be the
+> newest frame captured (and the capture hardware would never run out of
+> capture buffers to use). I think this would be OK as far as the API is
+> concerned - the app shouldn't expect that the buffers will necessarily
+> be returned in the order they were queued, right? 
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 6f91d2e..f1bbb8c 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -94,7 +94,6 @@
- #define SOLO_ENC_MODE_HD1		1
- #define SOLO_ENC_MODE_D1		9
- 
--#define SOLO_DEFAULT_GOP		30
- #define SOLO_DEFAULT_QP			3
- 
- #ifndef V4L2_BUF_FLAG_MOTION_ON
+
+Hi Rick,
+
+> So here are the questions:
+> 
+> 1. Does this make sense, or am I wanting to do something that isn't
+> reasonable (or do I not understand the framework)?
+
+In my opinion, if a driver has to drop data, it should prefer to drop
+the oldest data.  Although for TV program video/audio, it doesn't really
+matter.
+
+Both the ivtv driver and cx18 driver, under certain circumstances,
+recover internal buffers that userspace has delayed too long in reading.
+
+ivtv_queue_move(), for example, has a "steal" argument to sometimes
+steals from the end of internal queues.
+
+cx18_stream_rotate_idx_mdls() steals from the head of its particular
+buffer queue.
+
+Both of these drivers use their own internal queueing mechanism though,
+so they don't help with understanding videobuf. 
+
+I do not think having a queue with only 1 frame in it makes sense.  I'm
+not quite sure what you're aiming to do with that.  You might end up
+inadventantly forcing synchronization of userspace to the driver (via a
+spinlock or mutex), which could be a problem with live playback.
+
+If userspace can't keep up reading buffers, you should try and examine
+your system and figure out why.
+
+> 2. Is there any way to do this within the current videobuf2 framework?
+> 3. If not, do you have any suggestions on changes to make this
+> possible? I'm thinking that we would need a new function that would be
+> called (probably from an ISR, just before calling vb2_buffer_done on
+> the new buffer) 
+
+An ISR?  From an interrupt generated by what exactly?  This doesn't
+sound like a good idea to me.
+
+Buffer manipulations shouldn't be handled from an hard IRQ (atomic)
+context anyway.  Do this in the work handler, threaded irq handler, or
+kthread, that normally handles buffer handoffs to and from the
+hardware. 
+
+The only time you need to steal buffers is when the hardware dma engine
+is starved of buffers (for incoming data) or you have no buffers for
+feeding thw hardware (to send data out).   
+
+> that would remove the older buffer from the done queue, re-increment
+> the 'queued_count', and call the 'buf_queue' function provided by the
+> driver to re-queue the older buffer to the h/w. Am I missing anything?
+
+I don't know much about videobuf[2], so I can't help with that.
+
+Regards,
+Andy
+
+> Thanks,
+> 
+> Rick
+
+
