@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:62745 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571Ab3I0K67 (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:54693 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977Ab3I0K7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 06:58:59 -0400
+	Fri, 27 Sep 2013 06:59:17 -0400
 From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
 	devicetree@vger.kernel.org
@@ -12,1540 +12,2426 @@ Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
 	a.hajda@samsung.com, sachin.kamat@linaro.org,
 	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
 	arunkk.samsung@gmail.com
-Subject: [PATCH v9 01/13] [media] exynos5-is: Adding media device driver for exynos5
-Date: Fri, 27 Sep 2013 16:29:06 +0530
-Message-Id: <1380279558-21651-2-git-send-email-arun.kk@samsung.com>
+Subject: [PATCH v9 04/13] [media] exynos5-fimc-is: Add common driver header files
+Date: Fri, 27 Sep 2013 16:29:09 +0530
+Message-Id: <1380279558-21651-5-git-send-email-arun.kk@samsung.com>
 In-Reply-To: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
 References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+This patch adds all the common header files used by the fimc-is
+driver. It includes the commands for interfacing with the firmware
+and error codes from IS firmware, metadata and command parameter
+definitions.
 
-This patch adds support for media device for EXYNOS5 SoCs.
-The current media device supports the following ips to connect
-through the media controller framework.
-
-* MIPI-CSIS
-  Support interconnection(subdev interface) between devices
-
-* FIMC-LITE
-  Support capture interface from device(Sensor, MIPI-CSIS) to memory
-  Support interconnection(subdev interface) between devices
-
-* FIMC-IS
-  Camera post-processing IP having multiple sub-nodes.
-
-G-Scaler will be added later to the current media device.
-
-The media device creates two kinds of pipelines for connecting
-the above mentioned IPs.
-The pipeline0 is uses Sensor, MIPI-CSIS and FIMC-LITE which captures
-image data and dumps to memory.
-Pipeline1 uses FIMC-IS components for doing post-processing
-operations on the captured image and give scaled YUV output.
-
-Pipeline0
-  +--------+     +-----------+     +-----------+     +--------+
-  | Sensor | --> | MIPI-CSIS | --> | FIMC-LITE | --> | Memory |
-  +--------+     +-----------+     +-----------+     +--------+
-
-Pipeline1
- +--------+      +--------+     +-----------+     +-----------+
- | Memory | -->  |  ISP   | --> |    SCC    | --> |    SCP    |
- +--------+      +--------+     +-----------+     +-----------+
-
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- .../bindings/media/exynos5250-camera.txt           |  126 ++
- drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1211 ++++++++++++++++++++
- drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
- 3 files changed, 1463 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
+ drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 ++++
+ drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++++
+ .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 ++++++++++++++++++++
+ 4 files changed, 2370 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-cmd.h b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
 new file mode 100644
-index 0000000..09420ba
+index 0000000..6250280
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
-@@ -0,0 +1,126 @@
-+Samsung EXYNOS5 SoC Camera Subsystem
-+------------------------------------
-+
-+The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
-+represented by separate device tree nodes. Currently this includes: FIMC-LITE,
-+MIPI CSIS and FIMC-IS.
-+
-+The sub-device nodes are referenced using phandles in the common 'camera' node
-+which also includes common properties of the whole subsystem not really
-+specific to any single sub-device, like common camera port pins or the common
-+camera bus clocks.
-+
-+Common 'camera' node
-+--------------------
-+
-+Required properties:
-+
-+- compatible		: must be "samsung,exynos5250-fimc"
-+- clocks		: list of clock specifiers, corresponding to entries in
-+                          the clock-names property
-+- clock-names		: must contain "sclk_bayer" entry
-+- samsung,csis		: list of phandles to the mipi-csis device nodes
-+- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
-+- samsung,fimc-is	: phandle to the fimc-is device node
-+
-+The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
-+to define a required pinctrl state named "default".
-+
-+'parallel-ports' node
-+---------------------
-+
-+This node should contain child 'port' nodes specifying active parallel video
-+input ports. It includes camera A, camera B and RGB bay inputs.
-+'reg' property in the port nodes specifies the input type:
-+ 1 - parallel camport A
-+ 2 - parallel camport B
-+ 5 - RGB camera bay
-+
-+3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
-+
-+Image sensor nodes
-+------------------
-+
-+The sensor device nodes should be added to their control bus controller (e.g.
-+I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
-+using the common video interfaces bindings, defined in video-interfaces.txt.
-+
-+Example:
-+
-+	aliases {
-+		fimc-lite0 = &fimc_lite_0
-+	};
-+
-+	/* Parallel bus IF sensor */
-+	i2c_0: i2c@13860000 {
-+		s5k6aa: sensor@3c {
-+			compatible = "samsung,s5k6aafx";
-+			reg = <0x3c>;
-+			vddio-supply = <...>;
-+
-+			clock-frequency = <24000000>;
-+			clocks = <...>;
-+			clock-names = "mclk";
-+
-+			port {
-+				s5k6aa_ep: endpoint {
-+					remote-endpoint = <&fimc0_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					vsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+	};
-+
-+	/* MIPI CSI-2 bus IF sensor */
-+	s5c73m3: sensor@1a {
-+		compatible = "samsung,s5c73m3";
-+		reg = <0x1a>;
-+		vddio-supply = <...>;
-+
-+		clock-frequency = <24000000>;
-+		clocks = <...>;
-+		clock-names = "mclk";
-+
-+		port {
-+			s5c73m3_1: endpoint {
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&csis0_ep>;
-+			};
-+		};
-+	};
-+
-+	camera {
-+		compatible = "samsung,exynos5250-fimc";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		status = "okay";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&cam_port_a_clk_active>;
-+
-+		samsung,csis = <&csis_0>, <&csis_1>;
-+		samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
-+		samsung,fimc-is = <&fimc_is>;
-+
-+		/* parallel camera ports */
-+		parallel-ports {
-+			/* camera A input */
-+			port@1 {
-+				reg = <1>;
-+				camport_a_ep: endpoint {
-+					remote-endpoint = <&s5k6aa_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					vsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+	};
-+
-+MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
-+device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
-+is defined in exynos5-fimc-is.txt.
-diff --git a/drivers/media/platform/exynos5-is/exynos5-mdev.c b/drivers/media/platform/exynos5-is/exynos5-mdev.c
-new file mode 100644
-index 0000000..1621d94
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/exynos5-mdev.c
-@@ -0,0 +1,1211 @@
++++ b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
+@@ -0,0 +1,187 @@
 +/*
-+ * EXYNOS5 SoC series camera host interface media device driver
++ * Samsung Exynos5 SoC series FIMC-IS driver
 + *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Shaik Ameer Basha <shaik.ameer@samsung.com>
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This driver is based on exynos4-is media device driver written by
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation, either version 2 of the License,
-+ * or (at your option) any later version.
-+ */
-+
-+#include <linux/bug.h>
-+#include <linux/clk.h>
-+#include <linux/clk-provider.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_device.h>
-+#include <linux/of_i2c.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+#include <media/media-device.h>
-+#include <media/s5p_fimc.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
-+
-+#include "exynos5-mdev.h"
-+#include "fimc-is.h"
-+
-+#define BAYER_CLK_NAME "sclk_bayer"
-+
-+/**
-+ * fimc_pipeline_prepare - update pipeline information with subdevice pointers
-+ * @me: media entity terminating the pipeline
-+ *
-+ * Caller holds the graph mutex.
-+ */
-+static void fimc_pipeline_prepare(struct fimc_pipeline *p,
-+				  struct media_entity *me)
-+{
-+	struct v4l2_subdev *sd;
-+	int i;
-+
-+	for (i = 0; i < IDX_MAX; i++)
-+		p->subdevs[i] = NULL;
-+
-+	while (1) {
-+		struct media_pad *pad = NULL;
-+
-+		/* Find remote source pad */
-+		for (i = 0; i < me->num_pads; i++) {
-+			struct media_pad *spad = &me->pads[i];
-+			if (!(spad->flags & MEDIA_PAD_FL_SINK))
-+				continue;
-+			pad = media_entity_remote_pad(spad);
-+			if (pad)
-+				break;
-+		}
-+
-+		if (pad == NULL ||
-+		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
-+			break;
-+		}
-+		sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+		switch (sd->grp_id) {
-+		case GRP_ID_FIMC_IS_SENSOR:
-+		case GRP_ID_SENSOR:
-+			p->subdevs[IDX_SENSOR] = sd;
-+			break;
-+		case GRP_ID_CSIS:
-+			p->subdevs[IDX_CSIS] = sd;
-+			break;
-+		case GRP_ID_FLITE:
-+			p->subdevs[IDX_FLITE] = sd;
-+			break;
-+		default:
-+			pr_warn("%s: Unknown subdev grp_id: %#x\n",
-+				__func__, sd->grp_id);
-+		}
-+		me = &sd->entity;
-+		if (me->num_pads == 1)
-+			break;
-+	}
-+
-+	/*
-+	 * For using FIMC-IS firmware controlled sensors, ISP subdev
-+	 * has to be initialized along with pipeline0 devices.
-+	 * So an ISP subdev from a free ISP pipeline is assigned to
-+	 * this pipeline.
-+	 */
-+	if (p->subdevs[IDX_SENSOR] &&
-+		(p->subdevs[IDX_SENSOR]->grp_id == GRP_ID_FIMC_IS_SENSOR)) {
-+		struct fimc_pipeline_isp *p_isp;
-+
-+		list_for_each_entry(p_isp, p->isp_pipelines, list) {
-+			if (!p_isp->in_use) {
-+				p->subdevs[IDX_FIMC_IS] =
-+					p_isp->subdevs[IDX_ISP];
-+				p_isp->in_use = true;
-+				break;
-+			}
-+		}
-+	}
-+}
-+
-+/**
-+ * __subdev_set_power - change power state of a single subdev
-+ * @sd: subdevice to change power state for
-+ * @on: 1 to enable power or 0 to disable
-+ *
-+ * Return result of s_power subdev operation or -ENXIO if sd argument
-+ * is NULL. Return 0 if the subdevice does not implement s_power.
-+ */
-+static int __subdev_set_power(struct v4l2_subdev *sd, int on)
-+{
-+	int *use_count;
-+	int ret;
-+
-+	if (sd == NULL)
-+		return -ENXIO;
-+
-+	use_count = &sd->entity.use_count;
-+	if (on && (*use_count)++ > 0)
-+		return 0;
-+	else if (!on && (*use_count == 0 || --(*use_count) > 0))
-+		return 0;
-+	ret = v4l2_subdev_call(sd, core, s_power, on);
-+
-+	return ret != -ENOIOCTLCMD ? ret : 0;
-+}
-+
-+/**
-+ * fimc_pipeline_s_power - change power state of all pipeline subdevs
-+ * @fimc: fimc device terminating the pipeline
-+ * @state: true to power on, false to power off
-+ *
-+ * Needs to be called with the graph mutex held.
-+ */
-+static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
-+{
-+	unsigned int i;
-+	int ret;
-+	struct fimc_is_isp *isp_dev;
-+
-+	if (p->subdevs[IDX_SENSOR] == NULL)
-+		return -ENXIO;
-+
-+	/*
-+	 * If sensor is firmware controlled IS-sensor,
-+	 * set sensor sd to isp context.
-+	 */
-+	if (p->subdevs[IDX_FIMC_IS]) {
-+		isp_dev = v4l2_get_subdevdata(p->subdevs[IDX_FIMC_IS]);
-+		isp_dev->sensor_sd = p->subdevs[IDX_SENSOR];
-+	}
-+
-+	for (i = 0; i < IDX_MAX; i++) {
-+		unsigned int idx = state ? i : (IDX_MAX - 1) - i;
-+
-+		ret = __subdev_set_power(p->subdevs[idx], state);
-+		if (ret < 0 && ret != -ENXIO)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * __fimc_pipeline_open - update the pipeline information, enable power
-+ *                        of all pipeline subdevs and the sensor clock
-+ * @me: media entity to start graph walk with
-+ * @prepare: true to walk the current pipeline and acquire all subdevs
-+ *
-+ * Called with the graph mutex held.
-+ */
-+static int __fimc_pipeline_open(struct exynos_media_pipeline *ep,
-+				struct media_entity *me, bool prepare)
-+{
-+	struct fimc_pipeline *p = to_fimc_pipeline(ep);
-+	struct v4l2_subdev *sd;
-+	struct fimc_source_info *si;
-+	struct fimc_md *fmd;
-+	int ret;
-+
-+	if (WARN_ON(p == NULL || me == NULL))
-+		return -EINVAL;
-+
-+	if (prepare)
-+		fimc_pipeline_prepare(p, me);
-+
-+	sd = p->subdevs[IDX_SENSOR];
-+	if (sd == NULL)
-+		return -EINVAL;
-+
-+	si = v4l2_get_subdev_hostdata(sd);
-+	fmd = entity_to_fimc_mdev(&sd->entity);
-+	ret = clk_prepare_enable(fmd->clk_bayer);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = fimc_pipeline_s_power(p, 1);
-+	if (!ret)
-+		return 0;
-+
-+	return ret;
-+}
-+
-+/**
-+ * __fimc_pipeline_close - disable the sensor clock and pipeline power
-+ * @fimc: fimc device terminating the pipeline
-+ *
-+ * Disable power of all subdevs and turn the external sensor clock off.
-+ */
-+static int __fimc_pipeline_close(struct exynos_media_pipeline *ep)
-+{
-+	struct fimc_pipeline *p = to_fimc_pipeline(ep);
-+	struct v4l2_subdev *sd = p ? p->subdevs[IDX_SENSOR] : NULL;
-+	struct fimc_source_info *si;
-+	struct fimc_md *fmd;
-+	int ret = 0;
-+
-+	if (WARN_ON(sd == NULL))
-+		return -EINVAL;
-+
-+	if (p->subdevs[IDX_SENSOR])
-+		ret = fimc_pipeline_s_power(p, 0);
-+
-+	si = v4l2_get_subdev_hostdata(sd);
-+	fmd = entity_to_fimc_mdev(&sd->entity);
-+	clk_disable_unprepare(fmd->clk_bayer);
-+
-+	if (p->subdevs[IDX_SENSOR]->grp_id == GRP_ID_FIMC_IS_SENSOR) {
-+		struct fimc_pipeline_isp *p_isp;
-+
-+		list_for_each_entry(p_isp, p->isp_pipelines, list) {
-+			if (p_isp->subdevs[IDX_ISP] ==
-+					p->subdevs[IDX_FIMC_IS]) {
-+				p->subdevs[IDX_FIMC_IS] = NULL;
-+				p_isp->in_use = false;
-+				break;
-+			}
-+		}
-+	}
-+	return ret == -ENXIO ? 0 : ret;
-+}
-+
-+/**
-+ * __fimc_pipeline_s_stream - call s_stream() on pipeline subdevs
-+ * @pipeline: video pipeline structure
-+ * @on: passed as the s_stream() callback argument
-+ */
-+static int __fimc_pipeline_s_stream(struct exynos_media_pipeline *ep, bool on)
-+{
-+	struct fimc_pipeline *p = to_fimc_pipeline(ep);
-+	int i, ret;
-+
-+	if (p->subdevs[IDX_SENSOR] == NULL)
-+		return -ENODEV;
-+
-+	for (i = 0; i < IDX_MAX; i++) {
-+		unsigned int idx = on ? i : (IDX_MAX - 1) - i;
-+
-+		ret = v4l2_subdev_call(p->subdevs[idx], video, s_stream, on);
-+
-+		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-+			return ret;
-+	}
-+	return 0;
-+}
-+
-+/* Media pipeline operations for the FIMC/FIMC-LITE video device driver */
-+static const struct exynos_media_pipeline_ops exynos5_pipeline0_ops = {
-+	.open		= __fimc_pipeline_open,
-+	.close		= __fimc_pipeline_close,
-+	.set_stream	= __fimc_pipeline_s_stream,
-+};
-+
-+static struct exynos_media_pipeline *fimc_md_pipeline_create(
-+						struct fimc_md *fmd)
-+{
-+	struct fimc_pipeline *p;
-+
-+	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return NULL;
-+
-+	list_add_tail(&p->list, &fmd->pipelines);
-+
-+	p->isp_pipelines = &fmd->isp_pipelines;
-+	p->ep.ops = &exynos5_pipeline0_ops;
-+	return &p->ep;
-+}
-+
-+static struct exynos_media_pipeline *fimc_md_isp_pipeline_create(
-+						struct fimc_md *fmd)
-+{
-+	struct fimc_pipeline_isp *p;
-+
-+	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return NULL;
-+
-+	list_add_tail(&p->list, &fmd->isp_pipelines);
-+
-+	p->in_use = false;
-+	return &p->ep;
-+}
-+
-+static void fimc_md_pipelines_free(struct fimc_md *fmd)
-+{
-+	while (!list_empty(&fmd->pipelines)) {
-+		struct fimc_pipeline *p;
-+
-+		p = list_entry(fmd->pipelines.next, typeof(*p), list);
-+		list_del(&p->list);
-+		kfree(p);
-+	}
-+	while (!list_empty(&fmd->isp_pipelines)) {
-+		struct fimc_pipeline_isp *p;
-+
-+		p = list_entry(fmd->isp_pipelines.next, typeof(*p), list);
-+		list_del(&p->list);
-+		kfree(p);
-+	}
-+}
-+
-+/* Parse port node and register as a sub-device any sensor specified there. */
-+static int fimc_md_parse_port_node(struct fimc_md *fmd,
-+				   struct device_node *port,
-+				   unsigned int index)
-+{
-+	struct device_node *rem, *ep, *np;
-+	struct fimc_source_info *pd;
-+	struct v4l2_of_endpoint endpoint;
-+
-+	pd = &fmd->sensor[index].pdata;
-+
-+	/* Assume here a port node can have only one endpoint node. */
-+	ep = of_get_next_child(port, NULL);
-+	if (!ep)
-+		return 0;
-+
-+	v4l2_of_parse_endpoint(ep, &endpoint);
-+	if (WARN_ON(endpoint.port == 0) || index >= FIMC_MAX_SENSORS)
-+		return -EINVAL;
-+
-+	pd->mux_id = (endpoint.port - 1) & 0x1;
-+
-+	rem = v4l2_of_get_remote_port_parent(ep);
-+	of_node_put(ep);
-+	if (rem == NULL) {
-+		v4l2_info(&fmd->v4l2_dev, "Remote device at %s not found\n",
-+							ep->full_name);
-+		return 0;
-+	}
-+
-+	if (fimc_input_is_parallel(endpoint.port)) {
-+		if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
-+			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
-+		else
-+			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_656;
-+		pd->flags = endpoint.bus.parallel.flags;
-+	} else if (fimc_input_is_mipi_csi(endpoint.port)) {
-+		/*
-+		 * MIPI CSI-2: only input mux selection and
-+		 * the sensor's clock frequency is needed.
-+		 */
-+		pd->sensor_bus_type = FIMC_BUS_TYPE_MIPI_CSI2;
-+	} else {
-+		v4l2_err(&fmd->v4l2_dev, "Wrong port id (%u) at node %s\n",
-+			 endpoint.port, rem->full_name);
-+	}
-+
-+	np = of_get_parent(rem);
-+
-+	if (np && !of_node_cmp(np->name, "i2c-isp"))
-+		pd->fimc_bus_type = FIMC_BUS_TYPE_ISP_WRITEBACK;
-+	else
-+		pd->fimc_bus_type = pd->sensor_bus_type;
-+
-+	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
-+		return -EINVAL;
-+
-+	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	fmd->sensor[index].asd.match.of.node = rem;
-+	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
-+
-+	fmd->num_sensors++;
-+
-+	of_node_put(rem);
-+	return 0;
-+}
-+
-+/* Register all SoC external sub-devices */
-+static int fimc_md_of_sensors_register(struct fimc_md *fmd,
-+				       struct device_node *np)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node;
-+	struct device_node *node, *ports;
-+	int index;
-+	int ret;
-+
-+	/* Attach sensors linked to MIPI CSI-2 receivers */
-+	for (index = 0; index < FIMC_NUM_MIPI_CSIS; index++) {
-+		struct device_node *port;
-+
-+		node = of_parse_phandle(parent, "samsung,csis", index);
-+		if (!node || !of_device_is_available(node))
-+			continue;
-+		/* The csis node can have only port subnode. */
-+		port = of_get_next_child(node, NULL);
-+		if (!port)
-+			continue;
-+
-+		ret = fimc_md_parse_port_node(fmd, port, index);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* Attach sensors listed in the parallel-ports node */
-+	ports = of_get_child_by_name(parent, "parallel-ports");
-+	if (!ports)
-+		return 0;
-+
-+	for_each_child_of_node(ports, node) {
-+		ret = fimc_md_parse_port_node(fmd, node, index);
-+		if (ret < 0)
-+			break;
-+		index++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __of_get_csis_id(struct device_node *np)
-+{
-+	u32 reg = 0;
-+
-+	np = of_get_child_by_name(np, "port");
-+	if (!np)
-+		return -EINVAL;
-+	of_property_read_u32(np, "reg", &reg);
-+	return reg - FIMC_INPUT_MIPI_CSI2_0;
-+}
-+
-+/*
-+ * MIPI-CSIS, FIMC-IS and FIMC-LITE platform devices registration.
-+ */
-+
-+static int register_fimc_lite_entity(struct fimc_md *fmd,
-+				     struct fimc_lite *fimc_lite)
-+{
-+	struct v4l2_subdev *sd;
-+	struct exynos_media_pipeline *ep;
-+	int ret;
-+
-+	if (WARN_ON(fimc_lite->index >= FIMC_LITE_MAX_DEVS ||
-+		    fmd->fimc_lite[fimc_lite->index]))
-+		return -EBUSY;
-+
-+	sd = &fimc_lite->subdev;
-+	sd->grp_id = GRP_ID_FLITE;
-+
-+	ep = fimc_md_pipeline_create(fmd);
-+	if (!ep)
-+		return -ENOMEM;
-+
-+	v4l2_set_subdev_hostdata(sd, ep);
-+
-+	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
-+	if (!ret)
-+		fmd->fimc_lite[fimc_lite->index] = fimc_lite;
-+	else
-+		v4l2_err(&fmd->v4l2_dev, "Failed to register FIMC.LITE%d\n",
-+			 fimc_lite->index);
-+	return ret;
-+}
-+
-+static int register_csis_entity(struct fimc_md *fmd,
-+				struct platform_device *pdev,
-+				struct v4l2_subdev *sd)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	int id, ret;
-+
-+	id = node ? __of_get_csis_id(node) : max(0, pdev->id);
-+
-+	if (WARN_ON(id < 0 || id >= CSIS_MAX_ENTITIES))
-+		return -ENOENT;
-+
-+	if (WARN_ON(fmd->csis[id].sd))
-+		return -EBUSY;
-+
-+	sd->grp_id = GRP_ID_CSIS;
-+	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
-+	if (!ret)
-+		fmd->csis[id].sd = sd;
-+	else
-+		v4l2_err(&fmd->v4l2_dev,
-+			 "Failed to register MIPI-CSIS.%d (%d)\n", id, ret);
-+	return ret;
-+}
-+
-+static int register_fimc_is_entity(struct fimc_md *fmd,
-+				     struct fimc_is *is)
-+{
-+	struct v4l2_subdev *isp, *scc, *scp;
-+	struct exynos_media_pipeline *ep;
-+	struct fimc_pipeline_isp *p;
-+	struct video_device *vdev;
-+	int ret, i;
-+
-+	for (i = 0; i < is->drvdata->num_instances; i++) {
-+		isp = fimc_is_isp_get_sd(is, i);
-+		scc = fimc_is_scc_get_sd(is, i);
-+		scp = fimc_is_scp_get_sd(is, i);
-+		isp->grp_id = GRP_ID_FIMC_IS;
-+		scc->grp_id = GRP_ID_FIMC_IS;
-+		scp->grp_id = GRP_ID_FIMC_IS;
-+
-+		ep = fimc_md_isp_pipeline_create(fmd);
-+		if (!ep)
-+			return -ENOMEM;
-+
-+		v4l2_set_subdev_hostdata(isp, ep);
-+		v4l2_set_subdev_hostdata(scc, ep);
-+		v4l2_set_subdev_hostdata(scp, ep);
-+
-+		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, isp);
-+		if (ret)
-+			v4l2_err(&fmd->v4l2_dev,
-+					"Failed to register ISP subdev\n");
-+
-+		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, scc);
-+		if (ret)
-+			v4l2_err(&fmd->v4l2_dev,
-+					"Failed to register SCC subdev\n");
-+
-+		ret = v4l2_device_register_subdev(&fmd->v4l2_dev, scp);
-+		if (ret)
-+			v4l2_err(&fmd->v4l2_dev,
-+					"Failed to register SCP subdev\n");
-+
-+		p = to_fimc_isp_pipeline(ep);
-+		p->subdevs[IDX_ISP] = isp;
-+		p->subdevs[IDX_SCC] = scc;
-+		p->subdevs[IDX_SCP] = scp;
-+
-+		/* Create default links */
-+		/* vdev -> ISP */
-+		vdev = fimc_is_isp_get_vfd(is, i);
-+		ret = media_entity_create_link(&isp->entity,
-+					ISP_SD_PAD_SINK_DMA,
-+					&vdev->entity, 0,
-+					MEDIA_LNK_FL_IMMUTABLE |
-+					MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+
-+		/* ISP -> SCC */
-+		ret = media_entity_create_link(&isp->entity,
-+					ISP_SD_PAD_SRC,
-+					&scc->entity, SCALER_SD_PAD_SINK,
-+					MEDIA_LNK_FL_IMMUTABLE |
-+					MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+
-+		/* SCC -> SCP */
-+		ret = media_entity_create_link(&scc->entity,
-+					SCALER_SD_PAD_SRC_FIFO,
-+					&scp->entity, SCALER_SD_PAD_SINK,
-+					MEDIA_LNK_FL_IMMUTABLE |
-+					MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+
-+		/* SCC -> vdev */
-+		vdev = fimc_is_scc_get_vfd(is, i);
-+		ret = media_entity_create_link(&scc->entity,
-+					SCALER_SD_PAD_SRC_DMA,
-+					&vdev->entity, 0,
-+					MEDIA_LNK_FL_IMMUTABLE |
-+					MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+
-+		/* SCP -> vdev */
-+		vdev = fimc_is_scp_get_vfd(is, i);
-+		ret = media_entity_create_link(&scp->entity,
-+					SCALER_SD_PAD_SRC_DMA,
-+					&vdev->entity, 0,
-+					MEDIA_LNK_FL_IMMUTABLE |
-+					MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+	}
-+	fmd->is = is;
-+
-+	return ret;
-+}
-+
-+static int fimc_md_register_platform_entity(struct fimc_md *fmd,
-+					    struct platform_device *pdev,
-+					    int plat_entity)
-+{
-+	struct device *dev = &pdev->dev;
-+	int ret = -EPROBE_DEFER;
-+	void *drvdata;
-+
-+	/* Lock to ensure dev->driver won't change. */
-+	device_lock(dev);
-+
-+	if (!dev->driver || !try_module_get(dev->driver->owner))
-+		goto dev_unlock;
-+
-+	drvdata = dev_get_drvdata(dev);
-+	/* Some subdev didn't probe succesfully id drvdata is NULL */
-+	if (drvdata) {
-+		switch (plat_entity) {
-+		case IDX_FLITE:
-+			ret = register_fimc_lite_entity(fmd, drvdata);
-+			break;
-+		case IDX_CSIS:
-+			ret = register_csis_entity(fmd, pdev, drvdata);
-+			break;
-+		case IDX_FIMC_IS:
-+			ret = register_fimc_is_entity(fmd, drvdata);
-+			break;
-+		default:
-+			ret = -ENODEV;
-+		}
-+	}
-+
-+	module_put(dev->driver->owner);
-+dev_unlock:
-+	device_unlock(dev);
-+	if (ret == -EPROBE_DEFER)
-+		dev_info(&fmd->pdev->dev, "deferring %s device registration\n",
-+			dev_name(dev));
-+	else if (ret < 0)
-+		dev_err(&fmd->pdev->dev, "%s device registration failed (%d)\n",
-+			dev_name(dev), ret);
-+	return ret;
-+}
-+
-+/* Register FIMC-LITE, CSIS and FIMC-IS media entities */
-+static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
-+						struct device_node *camera)
-+{
-+	struct device_node *node;
-+	struct platform_device *pdev;
-+	int ret = 0;
-+	int i;
-+
-+	/* Register MIPI-CSIS entities */
-+	for (i = 0; i < FIMC_NUM_MIPI_CSIS; i++) {
-+
-+		node = of_parse_phandle(camera, "samsung,csis", i);
-+		if (!node || !of_device_is_available(node))
-+			continue;
-+
-+		pdev = of_find_device_by_node(node);
-+		if (!pdev)
-+			continue;
-+
-+		ret = fimc_md_register_platform_entity(fmd, pdev, IDX_CSIS);
-+		put_device(&pdev->dev);
-+		if (ret < 0)
-+			break;
-+	}
-+
-+	/* Register FIMC-LITE entities */
-+	for (i = 0; i < FIMC_NUM_FIMC_LITE; i++) {
-+
-+		node = of_parse_phandle(camera, "samsung,fimc-lite", i);
-+		if (!node || !of_device_is_available(node))
-+			continue;
-+
-+		pdev = of_find_device_by_node(node);
-+		if (!pdev)
-+			continue;
-+
-+		ret = fimc_md_register_platform_entity(fmd, pdev, IDX_FLITE);
-+		put_device(&pdev->dev);
-+		if (ret < 0)
-+			break;
-+	}
-+
-+	/* Register fimc-is entity */
-+	node = of_parse_phandle(camera, "samsung,fimc-is", 0);
-+	if (!node || !of_device_is_available(node))
-+		goto exit;
-+
-+	pdev = of_find_device_by_node(node);
-+	if (!pdev)
-+		goto exit;
-+
-+	ret = fimc_md_register_platform_entity(fmd, pdev, IDX_FIMC_IS);
-+
-+	put_device(&pdev->dev);
-+exit:
-+	return ret;
-+}
-+
-+static void fimc_md_unregister_entities(struct fimc_md *fmd)
-+{
-+	int i;
-+	struct fimc_is *is;
-+
-+	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
-+		if (fmd->fimc_lite[i] == NULL)
-+			continue;
-+		v4l2_device_unregister_subdev(&fmd->fimc_lite[i]->subdev);
-+		fmd->fimc_lite[i] = NULL;
-+	}
-+	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
-+		if (fmd->csis[i].sd == NULL)
-+			continue;
-+		v4l2_device_unregister_subdev(fmd->csis[i].sd);
-+		module_put(fmd->csis[i].sd->owner);
-+		fmd->csis[i].sd = NULL;
-+	}
-+	for (i = 0; i < fmd->num_sensors; i++)
-+		fmd->sensor[i].subdev = NULL;
-+
-+	if (!fmd->is)
-+		return;
-+	/* Unregistering FIMC-IS entities */
-+	is = fmd->is;
-+	for (i = 0; i < is->drvdata->num_instances; i++) {
-+		struct v4l2_subdev *isp, *scc, *scp;
-+
-+		isp = fimc_is_isp_get_sd(is, i);
-+		scc = fimc_is_scc_get_sd(is, i);
-+		scp = fimc_is_scp_get_sd(is, i);
-+		v4l2_device_unregister_subdev(isp);
-+		v4l2_device_unregister_subdev(scc);
-+		v4l2_device_unregister_subdev(scp);
-+	}
-+
-+	v4l2_info(&fmd->v4l2_dev, "Unregistered all entities\n");
-+}
-+
-+/**
-+ * __fimc_md_create_fimc_links - create links to all FIMC entities
-+ * @fmd: fimc media device
-+ * @source: the source entity to create links to all fimc entities from
-+ * @sensor: sensor subdev linked to FIMC[fimc_id] entity, may be null
-+ * @pad: the source entity pad index
-+ * @link_mask: bitmask of the fimc devices for which link should be enabled
-+ */
-+static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
-+					    struct media_entity *source,
-+					    struct v4l2_subdev *sensor,
-+					    int pad, int link_mask)
-+{
-+	struct fimc_source_info *si = NULL;
-+	struct media_entity *sink;
-+	unsigned int flags = 0;
-+	int i, ret = 0;
-+
-+	if (sensor) {
-+		si = v4l2_get_subdev_hostdata(sensor);
-+		/* Skip direct FIMC links in the logical FIMC-IS sensor path */
-+		if (si && si->fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
-+			ret = 1;
-+	}
-+
-+	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
-+		if (!fmd->fimc_lite[i])
-+			continue;
-+
-+		flags = ((1 << i) & link_mask) ? MEDIA_LNK_FL_ENABLED : 0;
-+
-+		sink = &fmd->fimc_lite[i]->subdev.entity;
-+		ret = media_entity_create_link(source, pad, sink,
-+					       FLITE_SD_PAD_SINK, flags);
-+		if (ret)
-+			return ret;
-+
-+		/* Notify FIMC-LITE subdev entity */
-+		ret = media_entity_call(sink, link_setup, &sink->pads[0],
-+					&source->pads[pad], flags);
-+		if (ret)
-+			break;
-+
-+		v4l2_info(&fmd->v4l2_dev, "created link [%s] -> [%s]\n",
-+			  source->name, sink->name);
-+	}
-+	return 0;
-+}
-+
-+/* Create links from FIMC-LITE source pads to other entities */
-+static int __fimc_md_create_flite_source_links(struct fimc_md *fmd)
-+{
-+	struct media_entity *source, *sink;
-+	int i, ret = 0;
-+
-+	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
-+		struct fimc_lite *fimc = fmd->fimc_lite[i];
-+
-+		if (fimc == NULL)
-+			continue;
-+
-+		source = &fimc->subdev.entity;
-+		sink = &fimc->ve.vdev.entity;
-+		/* FIMC-LITE's subdev and video node */
-+		ret = media_entity_create_link(source, FLITE_SD_PAD_SOURCE_DMA,
-+					       sink, 0,
-+					       MEDIA_LNK_FL_IMMUTABLE |
-+					       MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * fimc_md_create_links - create default links between registered entities
-+ *
-+ * Parallel interface sensor entities are connected directly to FIMC capture
-+ * entities. The sensors using MIPI CSIS bus are connected through immutable
-+ * link with CSI receiver entity specified by mux_id. Any registered CSIS
-+ * entity has a link to each registered FIMC capture entity. Enabled links
-+ * are created by default between each subsequent registered sensor and
-+ * subsequent FIMC capture entity. The number of default active links is
-+ * determined by the number of available sensors or FIMC entities,
-+ * whichever is less.
-+ */
-+static int fimc_md_create_links(struct fimc_md *fmd)
-+{
-+	struct v4l2_subdev *csi_sensors[CSIS_MAX_ENTITIES] = { NULL };
-+	struct v4l2_subdev *sensor, *csis;
-+	struct fimc_source_info *pdata;
-+	struct media_entity *source;
-+	int i, pad, fimc_id = 0, ret = 0;
-+	u32 flags, link_mask = 0;
-+
-+	for (i = 0; i < fmd->num_sensors; i++) {
-+		if (fmd->sensor[i].subdev == NULL)
-+			continue;
-+
-+		sensor = fmd->sensor[i].subdev;
-+		pdata = v4l2_get_subdev_hostdata(sensor);
-+		if (!pdata)
-+			continue;
-+
-+		source = NULL;
-+
-+		switch (pdata->sensor_bus_type) {
-+		case FIMC_BUS_TYPE_MIPI_CSI2:
-+			if (WARN(pdata->mux_id >= CSIS_MAX_ENTITIES,
-+				"Wrong CSI channel id: %d\n", pdata->mux_id))
-+				return -EINVAL;
-+
-+			csis = fmd->csis[pdata->mux_id].sd;
-+			if (WARN(csis == NULL,
-+				 "MIPI-CSI interface specified "
-+				 "but s5p-csis module is not loaded!\n"))
-+				return -EINVAL;
-+
-+			pad = sensor->entity.num_pads - 1;
-+			ret = media_entity_create_link(&sensor->entity, pad,
-+					      &csis->entity, CSIS_PAD_SINK,
-+					      MEDIA_LNK_FL_IMMUTABLE |
-+					      MEDIA_LNK_FL_ENABLED);
-+			if (ret)
-+				return ret;
-+
-+			v4l2_info(&fmd->v4l2_dev, "created link [%s] => [%s]\n",
-+				  sensor->entity.name, csis->entity.name);
-+
-+			source = NULL;
-+			csi_sensors[pdata->mux_id] = sensor;
-+			break;
-+
-+		case FIMC_BUS_TYPE_ITU_601...FIMC_BUS_TYPE_ITU_656:
-+			source = &sensor->entity;
-+			pad = 0;
-+			break;
-+
-+		default:
-+			v4l2_err(&fmd->v4l2_dev, "Wrong bus_type: %x\n",
-+				 pdata->sensor_bus_type);
-+			return -EINVAL;
-+		}
-+		if (source == NULL)
-+			continue;
-+
-+		link_mask = 1 << fimc_id++;
-+		ret = __fimc_md_create_fimc_sink_links(fmd, source, sensor,
-+						       pad, link_mask);
-+	}
-+
-+	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
-+		if (fmd->csis[i].sd == NULL)
-+			continue;
-+
-+		source = &fmd->csis[i].sd->entity;
-+		pad = CSIS_PAD_SOURCE;
-+		sensor = csi_sensors[i];
-+
-+		link_mask = 1 << fimc_id++;
-+		ret = __fimc_md_create_fimc_sink_links(fmd, source, sensor,
-+						       pad, link_mask);
-+	}
-+
-+	/*
-+	 * Create immutable links between each FIMC-LITE's subdev
-+	 * and video node
-+	 */
-+	flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+
-+	ret = __fimc_md_create_flite_source_links(fmd);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
-+{
-+	struct exynos_video_entity *ve;
-+	struct fimc_pipeline *p;
-+	struct video_device *vdev;
-+	int ret;
-+
-+	vdev = media_entity_to_video_device(entity);
-+	if (vdev->entity.use_count == 0)
-+		return 0;
-+
-+	ve = vdev_to_exynos_video_entity(vdev);
-+	p = to_fimc_pipeline(ve->pipe);
-+	/*
-+	 * Nothing to do if we are disabling the pipeline, some link
-+	 * has been disconnected and p->subdevs array is cleared now.
-+	 */
-+	if (!enable && p->subdevs[IDX_SENSOR] == NULL)
-+		return 0;
-+
-+	if (enable)
-+		ret = __fimc_pipeline_open(ve->pipe, entity, true);
-+	else
-+		ret = __fimc_pipeline_close(ve->pipe);
-+
-+	if (ret == 0 && !enable)
-+		memset(p->subdevs, 0, sizeof(p->subdevs));
-+
-+	return ret;
-+}
-+
-+/* Locking: called with entity->parent->graph_mutex mutex held. */
-+static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
-+{
-+	struct media_entity *entity_err = entity;
-+	struct media_entity_graph graph;
-+	int ret;
-+
-+	/*
-+	 * Walk current graph and call the pipeline open/close routine for each
-+	 * opened video node that belongs to the graph of entities connected
-+	 * through active links. This is needed as we cannot power on/off the
-+	 * subdevs in random order.
-+	 */
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+			continue;
-+
-+		ret  = __fimc_md_modify_pipeline(entity, enable);
-+
-+		if (ret < 0)
-+			goto err;
-+	}
-+
-+	return 0;
-+ err:
-+	media_entity_graph_walk_start(&graph, entity_err);
-+
-+	while ((entity_err = media_entity_graph_walk_next(&graph))) {
-+		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
-+			continue;
-+
-+		__fimc_md_modify_pipeline(entity_err, !enable);
-+
-+		if (entity_err == entity)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
-+				unsigned int notification)
-+{
-+	struct media_entity *sink = link->sink->entity;
-+	int ret = 0;
-+
-+	/* Before link disconnection */
-+	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
-+		if (!(flags & MEDIA_LNK_FL_ENABLED))
-+			ret = __fimc_md_modify_pipelines(sink, false);
-+		else
-+			; /* TODO: Link state change validation */
-+	/* After link activation */
-+	} else if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-+		   (link->flags & MEDIA_LNK_FL_ENABLED)) {
-+		ret = __fimc_md_modify_pipelines(sink, true);
-+	}
-+
-+	return ret ? -EPIPE : 0;
-+}
-+
-+static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
-+				 struct v4l2_subdev *subdev,
-+				 struct v4l2_async_subdev *asd)
-+{
-+	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
-+	struct fimc_sensor_info *si = NULL;
-+	int i;
-+
-+	/* Find platform data for this sensor subdev */
-+	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++) {
-+		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
-+			si = &fmd->sensor[i];
-+	}
-+
-+	if (si == NULL)
-+		return -EINVAL;
-+
-+	v4l2_set_subdev_hostdata(subdev, &si->pdata);
-+
-+	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
-+		subdev->grp_id = GRP_ID_FIMC_IS_SENSOR;
-+	else
-+		subdev->grp_id = GRP_ID_SENSOR;
-+
-+	si->subdev = subdev;
-+
-+	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
-+		  subdev->name, fmd->num_sensors);
-+
-+	fmd->num_sensors++;
-+
-+	return 0;
-+}
-+
-+static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
-+{
-+	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
-+	int ret;
-+
-+	mutex_lock(&fmd->media_dev.graph_mutex);
-+
-+	ret = fimc_md_create_links(fmd);
-+	if (ret < 0)
-+		goto unlock;
-+
-+	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
-+unlock:
-+	mutex_unlock(&fmd->media_dev.graph_mutex);
-+	return ret;
-+}
-+
-+static int fimc_md_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct v4l2_device *v4l2_dev;
-+	struct fimc_md *fmd;
-+	int ret;
-+
-+	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
-+	if (!fmd)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&fmd->slock);
-+	fmd->pdev = pdev;
-+	INIT_LIST_HEAD(&fmd->pipelines);
-+	INIT_LIST_HEAD(&fmd->isp_pipelines);
-+
-+	strlcpy(fmd->media_dev.model, "SAMSUNG EXYNOS5 IS",
-+		sizeof(fmd->media_dev.model));
-+	fmd->media_dev.link_notify = fimc_md_link_notify;
-+	fmd->media_dev.dev = dev;
-+
-+	v4l2_dev = &fmd->v4l2_dev;
-+	v4l2_dev->mdev = &fmd->media_dev;
-+	strlcpy(v4l2_dev->name, "exynos5-fimc-md", sizeof(v4l2_dev->name));
-+
-+	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
-+	if (ret < 0) {
-+		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = media_device_register(&fmd->media_dev);
-+	if (ret < 0) {
-+		v4l2_err(v4l2_dev, "Failed to register media dev: %d\n", ret);
-+		goto err_md;
-+	}
-+
-+	fmd->clk_bayer = clk_get(dev, BAYER_CLK_NAME);
-+	if (IS_ERR(fmd->clk_bayer)) {
-+		v4l2_err(v4l2_dev, "Failed to get clk: %s\n", BAYER_CLK_NAME);
-+		goto err_md;
-+	}
-+
-+	platform_set_drvdata(pdev, fmd);
-+
-+	/* Protect the media graph while we're registering entities */
-+	mutex_lock(&fmd->media_dev.graph_mutex);
-+
-+	ret = fimc_md_register_of_platform_entities(fmd, dev->of_node);
-+	if (ret)
-+		goto err_unlock;
-+
-+	fmd->num_sensors = 0;
-+	ret = fimc_md_of_sensors_register(fmd, dev->of_node);
-+	if (ret)
-+		goto err_unlock;
-+
-+	mutex_unlock(&fmd->media_dev.graph_mutex);
-+
-+	fmd->subdev_notifier.subdevs = fmd->async_subdevs;
-+	fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
-+	fmd->subdev_notifier.bound = subdev_notifier_bound;
-+	fmd->subdev_notifier.complete = subdev_notifier_complete;
-+	fmd->num_sensors = 0;
-+
-+	ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
-+					   &fmd->subdev_notifier);
-+	if (ret)
-+		goto err_clk;
-+
-+	return 0;
-+
-+err_unlock:
-+	mutex_unlock(&fmd->media_dev.graph_mutex);
-+err_clk:
-+	clk_put(fmd->clk_bayer);
-+	fimc_md_unregister_entities(fmd);
-+	media_device_unregister(&fmd->media_dev);
-+err_md:
-+	v4l2_device_unregister(&fmd->v4l2_dev);
-+	return ret;
-+}
-+
-+static int fimc_md_remove(struct platform_device *pdev)
-+{
-+	struct fimc_md *fmd = platform_get_drvdata(pdev);
-+
-+	v4l2_async_notifier_unregister(&fmd->subdev_notifier);
-+
-+	fimc_md_unregister_entities(fmd);
-+	fimc_md_pipelines_free(fmd);
-+	media_device_unregister(&fmd->media_dev);
-+	clk_put(fmd->clk_bayer);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id fimc_md_of_match[] = {
-+	{ .compatible = "samsung,exynos5250-fimc" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, fimc_md_of_match);
-+
-+static struct platform_driver fimc_md_driver = {
-+	.probe		= fimc_md_probe,
-+	.remove		= fimc_md_remove,
-+	.driver = {
-+		.of_match_table = fimc_md_of_match,
-+		.name		= "exynos5-fimc-md",
-+		.owner		= THIS_MODULE,
-+	}
-+};
-+
-+static int __init fimc_md_init(void)
-+{
-+	request_module("s5p-csis");
-+	return platform_driver_register(&fimc_md_driver);
-+}
-+
-+static void __exit fimc_md_exit(void)
-+{
-+	platform_driver_unregister(&fimc_md_driver);
-+}
-+
-+module_init(fimc_md_init);
-+module_exit(fimc_md_exit);
-+
-+MODULE_AUTHOR("Shaik Ameer Basha <shaik.ameer@samsung.com>");
-+MODULE_DESCRIPTION("EXYNOS5 camera subsystem media device driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/platform/exynos5-is/exynos5-mdev.h b/drivers/media/platform/exynos5-is/exynos5-mdev.h
-new file mode 100644
-index 0000000..44e57a2
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/exynos5-mdev.h
-@@ -0,0 +1,126 @@
-+/*
-+ * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef EXYNOS5_MDEVICE_H_
-+#define EXYNOS5_MDEVICE_H_
++#ifndef FIMC_IS_CMD_H
++#define FIMC_IS_CMD_H
 +
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
-+#include <media/media-device.h>
-+#include <media/media-entity.h>
-+#include <media/s5p_fimc.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
++#define IS_COMMAND_VER 122 /* IS COMMAND VERSION 1.22 */
 +
-+#include "fimc-lite.h"
-+#include "mipi-csis.h"
-+
-+#define FIMC_MAX_SENSORS	4
-+#define FIMC_NUM_MIPI_CSIS	2
-+#define FIMC_NUM_FIMC_LITE	3
-+
-+enum fimc_subdev_index {
-+	IDX_SENSOR,
-+	IDX_CSIS,
-+	IDX_FLITE,
-+	IDX_FIMC_IS,
-+	IDX_MAX,
++enum is_cmd {
++	/* HOST -> IS */
++	HIC_PREVIEW_STILL = 0x1,
++	HIC_PREVIEW_VIDEO,
++	HIC_CAPTURE_STILL,
++	HIC_CAPTURE_VIDEO,
++	HIC_PROCESS_START,
++	HIC_PROCESS_STOP,
++	HIC_STREAM_ON,
++	HIC_STREAM_OFF,
++	HIC_SHOT,
++	HIC_GET_STATIC_METADATA,
++	HIC_SET_CAM_CONTROL,
++	HIC_GET_CAM_CONTROL,
++	HIC_SET_PARAMETER,
++	HIC_GET_PARAMETER,
++	HIC_SET_A5_MEM_ACCESS,
++	RESERVED2,
++	HIC_GET_STATUS,
++	/* SENSOR PART*/
++	HIC_OPEN_SENSOR,
++	HIC_CLOSE_SENSOR,
++	HIC_SIMMIAN_INIT,
++	HIC_SIMMIAN_WRITE,
++	HIC_SIMMIAN_READ,
++	HIC_POWER_DOWN,
++	HIC_GET_SET_FILE_ADDR,
++	HIC_LOAD_SET_FILE,
++	HIC_MSG_CONFIG,
++	HIC_MSG_TEST,
++	/* IS -> HOST */
++	IHC_GET_SENSOR_NUMBER = 0x1000,
++	/* Parameter1 : Address of space to copy a setfile */
++	/* Parameter2 : Space szie */
++	IHC_SET_SHOT_MARK,
++	/* PARAM1 : a frame number */
++	/* PARAM2 : confidence level(smile 0~100) */
++	/* PARMA3 : confidence level(blink 0~100) */
++	IHC_SET_FACE_MARK,
++	/* PARAM1 : coordinate count */
++	/* PARAM2 : coordinate buffer address */
++	IHC_FRAME_DONE,
++	/* PARAM1 : frame start number */
++	/* PARAM2 : frame count */
++	IHC_AA_DONE,
++	IHC_NOT_READY,
++	IHC_FLASH_READY
 +};
 +
-+enum fimc_isp_subdev_index {
-+	IDX_ISP,
-+	IDX_SCC,
-+	IDX_SCP,
-+	IDX_IS_MAX,
++enum is_reply {
++	ISR_DONE	= 0x2000,
++	ISR_NDONE
 +};
 +
-+struct fimc_pipeline {
-+	struct exynos_media_pipeline ep;
-+	struct list_head list;
-+	struct media_entity *vdev_entity;
-+	struct v4l2_subdev *subdevs[IDX_MAX];
-+	struct list_head *isp_pipelines;
++enum is_scenario_id {
++	ISS_PREVIEW_STILL,
++	ISS_PREVIEW_VIDEO,
++	ISS_CAPTURE_STILL,
++	ISS_CAPTURE_VIDEO,
++	ISS_END
 +};
 +
-+struct fimc_pipeline_isp {
-+	struct exynos_media_pipeline ep;
-+	struct list_head list;
-+	struct v4l2_subdev *subdevs[IDX_IS_MAX];
-+	bool in_use;
++enum is_subscenario_id {
++	ISS_SUB_SCENARIO_STILL,
++	ISS_SUB_SCENARIO_VIDEO,
++	ISS_SUB_SCENARIO_SCENE1,
++	ISS_SUB_SCENARIO_SCENE2,
++	ISS_SUB_SCENARIO_SCENE3,
++	ISS_SUB_END
 +};
 +
-+struct fimc_csis_info {
-+	struct v4l2_subdev *sd;
-+	int id;
++struct is_setfile_header_element {
++	u32 binary_addr;
++	u32 binary_size;
 +};
 +
-+/**
-+ * struct fimc_sensor_info - image data source subdev information
-+ * @pdata: sensor's atrributes passed as media device's platform data
-+ * @asd: asynchronous subdev registration data structure
-+ * @subdev: image sensor v4l2 subdev
-+ * @host: fimc device the sensor is currently linked to
++struct is_setfile_header {
++	struct is_setfile_header_element isp[ISS_END];
++	struct is_setfile_header_element drc[ISS_END];
++	struct is_setfile_header_element fd[ISS_END];
++};
++
++struct is_common_reg {
++	u32 hicmd;
++	u32 hic_sensorid;
++	u32 hic_param[4];
++
++	u32 reserved1[3];
++
++	u32 ihcmd_iflag;
++	u32 ihcmd;
++	u32 ihc_sensorid;
++	u32 ihc_param[4];
++
++	u32 reserved2[3];
++
++	u32 isp_bayer_iflag;
++	u32 isp_bayer_sensor_id;
++	u32 isp_bayer_param[2];
++
++	u32 reserved3[4];
++
++	u32 scc_iflag;
++	u32 scc_sensor_id;
++	u32 scc_param[3];
++
++	u32 reserved4[3];
++
++	u32 dnr_iflag;
++	u32 dnr_sensor_id;
++	u32 dnr_param[2];
++
++	u32 reserved5[4];
++
++	u32 scp_iflag;
++	u32 scp_sensor_id;
++	u32 scp_param[3];
++
++	u32 reserved6[1];
++
++	u32 isp_yuv_iflag;
++	u32 isp_yuv_sensor_id;
++	u32 isp_yuv_param[2];
++
++	u32 reserved7[1];
++
++	u32 shot_iflag;
++	u32 shot_sensor_id;
++	u32 shot_param[2];
++
++	u32 reserved8[1];
++
++	u32 meta_iflag;
++	u32 meta_sensor_id;
++	u32 meta_param1;
++
++	u32 reserved9[1];
++
++	u32 fcount;
++};
++
++struct is_mcuctl_reg {
++	u32 mcuctl;
++	u32 bboar;
++
++	u32 intgr0;
++	u32 intcr0;
++	u32 intmr0;
++	u32 intsr0;
++	u32 intmsr0;
++
++	u32 intgr1;
++	u32 intcr1;
++	u32 intmr1;
++	u32 intsr1;
++	u32 intmsr1;
++
++	u32 intcr2;
++	u32 intmr2;
++	u32 intsr2;
++	u32 intmsr2;
++
++	u32 gpoctrl;
++	u32 cpoenctlr;
++	u32 gpictlr;
++
++	u32 pad[0xD];
++
++	struct is_common_reg common_reg;
++};
++#endif
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-err.h b/drivers/media/platform/exynos5-is/fimc-is-err.h
+new file mode 100644
+index 0000000..e19eced
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-err.h
+@@ -0,0 +1,257 @@
++/*
++ * Samsung Exynos5 SoC series FIMC-IS driver
 + *
-+ * This data structure applies to image sensor and the writeback subdevs.
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd
++ * Arun Kumar K <arun.kk@samsung.com>
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+struct fimc_sensor_info {
-+	struct fimc_source_info pdata;
-+	struct v4l2_async_subdev asd;
-+	struct v4l2_subdev *subdev;
-+	struct fimc_dev *host;
++
++#ifndef FIMC_IS_ERR_H
++#define FIMC_IS_ERR_H
++
++#define IS_ERROR_VER 012 /* IS ERROR VERSION 0.07 */
++
++/* IS error enum */
++enum is_error {
++
++	IS_ERROR_SUCCESS = 0,
++
++	/* General 1 ~ 100 */
++	IS_ERROR_INVALID_COMMAND = 1,
++	IS_ERROR_REQUEST_FAIL,
++	IS_ERROR_INVALID_SCENARIO,
++	IS_ERROR_INVALID_SENSORID,
++	IS_ERROR_INVALID_MODE_CHANGE,
++	IS_ERROR_INVALID_MAGIC_NUMBER,
++	IS_ERROR_INVALID_SETFILE_HDR,
++	IS_ERROR_ISP_SETFILE_VERSION_MISMATCH,
++	IS_ERROR_ISP_SETFILE_REVISION_MISMATCH,
++	IS_ERROR_BUSY,
++	IS_ERROR_SET_PARAMETER,
++	IS_ERROR_INVALID_PATH,
++	IS_ERROR_OPEN_SENSOR_FAIL,
++	IS_ERROR_ENTRY_MSG_THREAD_DOWN,
++	IS_ERROR_ISP_FRAME_END_NOT_DONE,
++	IS_ERROR_DRC_FRAME_END_NOT_DONE,
++	IS_ERROR_SCALERC_FRAME_END_NOT_DONE,
++	IS_ERROR_ODC_FRAME_END_NOT_DONE,
++	IS_ERROR_DIS_FRAME_END_NOT_DONE,
++	IS_ERROR_TDNR_FRAME_END_NOT_DONE,
++	IS_ERROR_SCALERP_FRAME_END_NOT_DONE,
++	IS_ERROR_WAIT_STREAM_OFF_NOT_DONE,
++	IS_ERROR_NO_MSG_IS_RECEIVED,
++	IS_ERROR_SENSOR_MSG_FAIL,
++	IS_ERROR_ISP_MSG_FAIL,
++	IS_ERROR_DRC_MSG_FAIL,
++	IS_ERROR_SCALERC_MSG_FAIL,
++	IS_ERROR_ODC_MSG_FAIL,
++	IS_ERROR_DIS_MSG_FAIL,
++	IS_ERROR_TDNR_MSG_FAIL,
++	IS_ERROR_SCALERP_MSG_FAIL,
++	IS_ERROR_LHFD_MSG_FAIL,
++	IS_ERROR_INTERNAL_STOP,
++	IS_ERROR_UNKNOWN,
++	IS_ERROR_TIME_OUT_FLAG,
++
++	/* Sensor 100 ~ 200 */
++	IS_ERROR_SENSOR_PWRDN_FAIL = 100,
++	IS_ERROR_SENSOR_STREAM_ON_FAIL,
++	IS_ERROR_SENSOR_STREAM_OFF_FAIL,
++
++	/* ISP 200 ~ 300 */
++	IS_ERROR_ISP_PWRDN_FAIL = 200,
++	IS_ERROR_ISP_MULTIPLE_INPUT,
++	IS_ERROR_ISP_ABSENT_INPUT,
++	IS_ERROR_ISP_ABSENT_OUTPUT,
++	IS_ERROR_ISP_NONADJACENT_OUTPUT,
++	IS_ERROR_ISP_FORMAT_MISMATCH,
++	IS_ERROR_ISP_WIDTH_MISMATCH,
++	IS_ERROR_ISP_HEIGHT_MISMATCH,
++	IS_ERROR_ISP_BITWIDTH_MISMATCH,
++	IS_ERROR_ISP_FRAME_END_TIME_OUT,
++
++	/* DRC 300 ~ 400 */
++	IS_ERROR_DRC_PWRDN_FAIL = 300,
++	IS_ERROR_DRC_MULTIPLE_INPUT,
++	IS_ERROR_DRC_ABSENT_INPUT,
++	IS_ERROR_DRC_NONADJACENT_INTPUT,
++	IS_ERROR_DRC_ABSENT_OUTPUT,
++	IS_ERROR_DRC_NONADJACENT_OUTPUT,
++	IS_ERROR_DRC_FORMAT_MISMATCH,
++	IS_ERROR_DRC_WIDTH_MISMATCH,
++	IS_ERROR_DRC_HEIGHT_MISMATCH,
++	IS_ERROR_DRC_BITWIDTH_MISMATCH,
++	IS_ERROR_DRC_FRAME_END_TIME_OUT,
++
++	/*SCALERC(400~500)*/
++	IS_ERROR_SCALERC_PWRDN_FAIL = 400,
++
++	/*ODC(500~600)*/
++	IS_ERROR_ODC_PWRDN_FAIL = 500,
++
++	/*DIS(600~700)*/
++	IS_ERROR_DIS_PWRDN_FAIL = 600,
++
++	/*TDNR(700~800)*/
++	IS_ERROR_TDNR_PWRDN_FAIL = 700,
++
++	/*SCALERP(800~900)*/
++	IS_ERROR_SCALERP_PWRDN_FAIL = 800,
++
++	/*FD(900~1000)*/
++	IS_ERROR_FD_PWRDN_FAIL = 900,
++	IS_ERROR_FD_MULTIPLE_INPUT,
++	IS_ERROR_FD_ABSENT_INPUT,
++	IS_ERROR_FD_NONADJACENT_INPUT,
++	IS_ERROR_LHFD_FRAME_END_TIME_OUT,
 +};
 +
-+/**
-+ * struct fimc_md - fimc media device information
-+ * @csis: MIPI CSIS subdevs data
-+ * @sensor: array of registered sensor subdevs
-+ * @num_sensors: actual number of registered sensors
-+ * @clk_bayer: bus clk for external sensors
-+ * @fimc_lite: array of registered fimc-lite devices
-+ * @is: fimc-is data structure
-+ * @media_dev: top level media device
-+ * @v4l2_dev: top level v4l2_device holding up the subdevs
-+ * @pdev: platform device this media device is hooked up into
-+ * @slock: spinlock protecting @sensor array
-+ * @pipelines: list holding pipeline0 (sensor-mipi-flite) instances
-+ * @isp_pipelines: list holding pipeline1 (isp-scc-scp) instances
-+ */
-+struct fimc_md {
-+	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
-+	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
-+	int num_sensors;
-+	struct clk *clk_bayer;
-+	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
-+	struct fimc_is *is;
-+	struct media_device media_dev;
-+	struct v4l2_device v4l2_dev;
-+	struct platform_device *pdev;
-+	struct v4l2_async_notifier subdev_notifier;
-+	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
++/* Set parameter error enum */
++enum error {
++	/* Common error (0~99) */
++	ERROR_COMMON_NONE		= 0,
++	ERROR_COMMON_CMD		= 1,	/* Invalid command*/
++	ERROR_COMMON_PARAMETER		= 2,	/* Invalid parameter*/
++	/* setfile is not loaded before adjusting */
++	ERROR_COMMON_SETFILE_LOAD	= 3,
++	/* setfile is not Adjusted before runnng. */
++	ERROR_COMMON_SETFILE_ADJUST	= 4,
++	/* index of setfile is not valid. */
++	ERROR_COMMON_SETFILE_INDEX = 5,
++	/* Input path can be changed in ready state(stop) */
++	ERROR_COMMON_INPUT_PATH		= 6,
++	/* IP can not start if input path is not set */
++	ERROR_COMMON_INPUT_INIT		= 7,
++	/* Output path can be changed in ready state(stop) */
++	ERROR_COMMON_OUTPUT_PATH	= 8,
++	/* IP can not start if output path is not set */
++	ERROR_COMMON_OUTPUT_INIT	= 9,
 +
-+	spinlock_t slock;
-+	struct list_head pipelines;
-+	struct list_head isp_pipelines;
++	ERROR_CONTROL_NONE		= ERROR_COMMON_NONE,
++	ERROR_CONTROL_BYPASS		= 11,	/* Enable or Disable */
++	ERROR_CONTROL_BUF		= 12,	/* invalid buffer info */
++
++	ERROR_OTF_INPUT_NONE		= ERROR_COMMON_NONE,
++	/* invalid command */
++	ERROR_OTF_INPUT_CMD		= 21,
++	/* invalid format  (DRC: YUV444, FD: YUV444, 422, 420) */
++	ERROR_OTF_INPUT_FORMAT		= 22,
++	/* invalid width (DRC: 128~8192, FD: 32~8190) */
++	ERROR_OTF_INPUT_WIDTH		= 23,
++	/* invalid height (DRC: 64~8192, FD: 16~8190) */
++	ERROR_OTF_INPUT_HEIGHT		= 24,
++	/* invalid bit-width (DRC: 8~12bits, FD: 8bit) */
++	ERROR_OTF_INPUT_BIT_WIDTH	= 25,
++	/* invalid frame time for ISP */
++	ERROR_OTF_INPUT_USER_FRAMETILE = 26,
++
++	ERROR_DMA_INPUT_NONE		= ERROR_COMMON_NONE,
++	/* invalid width (DRC: 128~8192, FD: 32~8190) */
++	ERROR_DMA_INPUT_WIDTH		= 31,
++	/* invalid height (DRC: 64~8192, FD: 16~8190) */
++	ERROR_DMA_INPUT_HEIGHT		= 32,
++	/* invalid format (DRC: YUV444 or YUV422, FD: YUV444, 422, 420) */
++	ERROR_DMA_INPUT_FORMAT		= 33,
++	/* invalid bit-width (DRC: 8~12bit, FD: 8bit) */
++	ERROR_DMA_INPUT_BIT_WIDTH	= 34,
++	/* invalid order(DRC: YYCbCrorYCbYCr, FD:NO,YYCbCr,YCbYCr,CbCr,CrCb) */
++	ERROR_DMA_INPUT_ORDER		= 35,
++	/* invalid palne (DRC: 3, FD: 1, 2, 3) */
++	ERROR_DMA_INPUT_PLANE		= 36,
++
++	ERROR_OTF_OUTPUT_NONE		= ERROR_COMMON_NONE,
++	/* invalid width (DRC: 128~8192) */
++	ERROR_OTF_OUTPUT_WIDTH		= 41,
++	/* invalid height (DRC: 64~8192) */
++	ERROR_OTF_OUTPUT_HEIGHT		= 42,
++	/* invalid format (DRC: YUV444) */
++	ERROR_OTF_OUTPUT_FORMAT		= 43,
++	/* invalid bit-width (DRC: 8~12bits) */
++	ERROR_OTF_OUTPUT_BIT_WIDTH	= 44,
++	/* invalid crop size (ODC: left>2, right>10) */
++	ERROR_OTF_OUTPUT_CROP		= 45,
++
++	ERROR_DMA_OUTPUT_NONE		= ERROR_COMMON_NONE,
++	ERROR_DMA_OUTPUT_WIDTH		= 51,	/* invalid width */
++	ERROR_DMA_OUTPUT_HEIGHT		= 52,	/* invalid height */
++	ERROR_DMA_OUTPUT_FORMAT		= 53,	/* invalid format */
++	ERROR_DMA_OUTPUT_BIT_WIDTH	= 54,	/* invalid bit-width */
++	ERROR_DMA_OUTPUT_PLANE		= 55,	/* invalid plane */
++	ERROR_DMA_OUTPUT_ORDER		= 56,	/* invalid order */
++	ERROR_DMA_OUTPUT_BUF		= 57,	/* invalid buffer info */
++
++	ERROR_GLOBAL_SHOTMODE_NONE	= ERROR_COMMON_NONE,
++
++	/* SENSOR Error(100~199) */
++	ERROR_SENSOR_NONE		= ERROR_COMMON_NONE,
++	ERROR_SENSOR_I2C_FAIL		= 101,
++	ERROR_SENSOR_INVALID_FRAMERATE,
++	ERROR_SENSOR_INVALID_EXPOSURETIME,
++	ERROR_SENSOR_INVALID_SIZE,
++	ERROR_SENSOR_ACTURATOR_INIT_FAIL,
++	ERROR_SENSOR_INVALID_AF_POS,
++	ERROR_SENSOR_UNSUPPORT_FUNC,
++	ERROR_SENSOR_UNSUPPORT_PERI,
++	ERROR_SENSOR_UNSUPPORT_AF,
++	ERROR_SENSOR_FLASH_FAIL,
++	ERROR_SENSOR_START_FAIL,
++	ERROR_SENSOR_STOP_FAIL,
++
++	/* ISP Error (200~299) */
++	ERROR_ISP_AF_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_AF_BUSY		= 201,
++	ERROR_ISP_AF_INVALID_COMMAND	= 202,
++	ERROR_ISP_AF_INVALID_MODE	= 203,
++	ERROR_ISP_FLASH_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_AWB_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_IMAGE_EFFECT_NONE	= ERROR_COMMON_NONE,
++	ERROR_ISP_IMAGE_EFFECT_INVALID	= 231,
++	ERROR_ISP_ISO_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_ADJUST_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_METERING_NONE		= ERROR_COMMON_NONE,
++	ERROR_ISP_AFC_NONE		= ERROR_COMMON_NONE,
++
++	/* DRC Error (300~399) */
++
++	/* FD Error  (400~499) */
++	ERROR_FD_NONE					= ERROR_COMMON_NONE,
++	/* Invalid max number (1~16) */
++	ERROR_FD_CONFIG_MAX_NUMBER_STATE		= 401,
++	ERROR_FD_CONFIG_MAX_NUMBER_INVALID		= 402,
++	ERROR_FD_CONFIG_YAW_ANGLE_STATE			= 403,
++	ERROR_FD_CONFIG_YAW_ANGLE_INVALID		= 404,
++	ERROR_FD_CONFIG_ROLL_ANGLE_STATE		= 405,
++	ERROR_FD_CONFIG_ROLL_ANGLE_INVALID		= 406,
++	ERROR_FD_CONFIG_SMILE_MODE_INVALID		= 407,
++	ERROR_FD_CONFIG_BLINK_MODE_INVALID		= 408,
++	ERROR_FD_CONFIG_EYES_DETECT_INVALID		= 409,
++	ERROR_FD_CONFIG_MOUTH_DETECT_INVALID		= 410,
++	ERROR_FD_CONFIG_ORIENTATION_STATE		= 411,
++	ERROR_FD_CONFIG_ORIENTATION_INVALID		= 412,
++	ERROR_FD_CONFIG_ORIENTATION_VALUE_INVALID	= 413,
++	/* PARAM_FdResultStr can be only applied
++	 * in ready-state or stream off */
++	ERROR_FD_RESULT				= 414,
++	/* PARAM_FdModeStr can be only applied
++	 * in ready-state or stream off */
++	ERROR_FD_MODE					= 415,
++
++	/*SCALER ERR(500~599)*/
++	ERROR_SCALER_NONE			= ERROR_COMMON_NONE,
++	ERROR_SCALER_DMA_OUTSEL			= 501,
++	ERROR_SCALER_H_RATIO			= 502,
++	ERROR_SCALER_V_RATIO			= 503,
++	ERROR_SCALER_FRAME_BUFFER_SEQ		= 504,
++
++	ERROR_SCALER_IMAGE_EFFECT		= 510,
++
++	ERROR_SCALER_ROTATE			= 520,
++	ERROR_SCALER_FLIP			= 521,
++
 +};
 +
-+#define to_fimc_pipeline(_ep) container_of(_ep, struct fimc_pipeline, ep)
-+#define to_fimc_isp_pipeline(_ep) \
-+	container_of(_ep, struct fimc_pipeline_isp, ep)
++#endif
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-metadata.h b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+new file mode 100644
+index 0000000..02367c4
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+@@ -0,0 +1,767 @@
++/*
++ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
++ * Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+static inline struct fimc_md *entity_to_fimc_mdev(struct media_entity *me)
-+{
-+	return me->parent == NULL ? NULL :
-+		container_of(me->parent, struct fimc_md, media_dev);
-+}
++#ifndef FIMC_IS_METADATA_H_
++#define FIMC_IS_METADATA_H_
 +
-+static inline struct fimc_md *notifier_to_fimc_md(struct v4l2_async_notifier *n)
-+{
-+	return container_of(n, struct fimc_md, subdev_notifier);
-+}
++struct rational {
++	uint32_t num;
++	uint32_t den;
++};
++
++#define CAMERA2_MAX_AVAILABLE_MODE	21
++#define CAMERA2_MAX_FACES		16
++
++/*
++ * Controls/dynamic metadata
++ */
++
++enum metadata_mode {
++	METADATA_MODE_NONE,
++	METADATA_MODE_FULL
++};
++
++struct camera2_request_ctl {
++	uint32_t		id;
++	enum metadata_mode	metadatamode;
++	uint8_t			outputstreams[16];
++	uint32_t		framecount;
++};
++
++struct camera2_request_dm {
++	uint32_t		id;
++	enum metadata_mode	metadatamode;
++	uint32_t		framecount;
++};
++
++
++
++enum optical_stabilization_mode {
++	OPTICAL_STABILIZATION_MODE_OFF,
++	OPTICAL_STABILIZATION_MODE_ON
++};
++
++enum lens_facing {
++	LENS_FACING_BACK,
++	LENS_FACING_FRONT
++};
++
++struct camera2_lens_ctl {
++	uint32_t				focus_distance;
++	float					aperture;
++	float					focal_length;
++	float					filter_density;
++	enum optical_stabilization_mode		optical_stabilization_mode;
++};
++
++struct camera2_lens_dm {
++	uint32_t				focus_distance;
++	float					aperture;
++	float					focal_length;
++	float					filter_density;
++	enum optical_stabilization_mode		optical_stabilization_mode;
++	float					focus_range[2];
++};
++
++struct camera2_lens_sm {
++	float				minimum_focus_distance;
++	float				hyper_focal_distance;
++	float				available_focal_length[2];
++	float				available_apertures;
++	/* assuming 1 aperture */
++	float				available_filter_densities;
++	/* assuming 1 ND filter value */
++	enum optical_stabilization_mode	available_optical_stabilization;
++	/* assuming 1 */
++	uint32_t			shading_map_size;
++	float				shading_map[3][40][30];
++	uint32_t			geometric_correction_map_size;
++	float				geometric_correction_map[2][3][40][30];
++	enum lens_facing		facing;
++	float				position[2];
++};
++
++enum sensor_colorfilter_arrangement {
++	SENSOR_COLORFILTER_ARRANGEMENT_RGGB,
++	SENSOR_COLORFILTER_ARRANGEMENT_GRBG,
++	SENSOR_COLORFILTER_ARRANGEMENT_GBRG,
++	SENSOR_COLORFILTER_ARRANGEMENT_BGGR,
++	SENSOR_COLORFILTER_ARRANGEMENT_RGB
++};
++
++enum sensor_ref_illuminant {
++	SENSOR_ILLUMINANT_DAYLIGHT = 1,
++	SENSOR_ILLUMINANT_FLUORESCENT = 2,
++	SENSOR_ILLUMINANT_TUNGSTEN = 3,
++	SENSOR_ILLUMINANT_FLASH = 4,
++	SENSOR_ILLUMINANT_FINE_WEATHER = 9,
++	SENSOR_ILLUMINANT_CLOUDY_WEATHER = 10,
++	SENSOR_ILLUMINANT_SHADE = 11,
++	SENSOR_ILLUMINANT_DAYLIGHT_FLUORESCENT = 12,
++	SENSOR_ILLUMINANT_DAY_WHITE_FLUORESCENT = 13,
++	SENSOR_ILLUMINANT_COOL_WHITE_FLUORESCENT = 14,
++	SENSOR_ILLUMINANT_WHITE_FLUORESCENT = 15,
++	SENSOR_ILLUMINANT_STANDARD_A = 17,
++	SENSOR_ILLUMINANT_STANDARD_B = 18,
++	SENSOR_ILLUMINANT_STANDARD_C = 19,
++	SENSOR_ILLUMINANT_D55 = 20,
++	SENSOR_ILLUMINANT_D65 = 21,
++	SENSOR_ILLUMINANT_D75 = 22,
++	SENSOR_ILLUMINANT_D50 = 23,
++	SENSOR_ILLUMINANT_ISO_STUDIO_TUNGSTEN = 24
++};
++
++struct camera2_sensor_ctl {
++	/* unit : nano */
++	uint64_t	exposure_time;
++	/* unit : nano(It's min frame duration */
++	uint64_t	frame_duration;
++	/* unit : percent(need to change ISO value?) */
++	uint32_t	sensitivity;
++};
++
++struct camera2_sensor_dm {
++	uint64_t	exposure_time;
++	uint64_t	frame_duration;
++	uint32_t	sensitivity;
++	uint64_t	timestamp;
++};
++
++struct camera2_sensor_sm {
++	uint32_t	exposure_time_range[2];
++	uint32_t	max_frame_duration;
++	/* list of available sensitivities. */
++	uint32_t	available_sensitivities[10];
++	enum sensor_colorfilter_arrangement colorfilter_arrangement;
++	float		physical_size[2];
++	uint32_t	pixel_array_size[2];
++	uint32_t	active_array_size[4];
++	uint32_t	white_level;
++	uint32_t	black_level_pattern[4];
++	struct rational	color_transform1[9];
++	struct rational	color_transform2[9];
++	enum sensor_ref_illuminant	reference_illuminant1;
++	enum sensor_ref_illuminant	reference_illuminant2;
++	struct rational	forward_matrix1[9];
++	struct rational	forward_matrix2[9];
++	struct rational	calibration_transform1[9];
++	struct rational	calibration_transform2[9];
++	struct rational	base_gain_factor;
++	uint32_t	max_analog_sensitivity;
++	float		noise_model_coefficients[2];
++	uint32_t	orientation;
++};
++
++
++
++enum flash_mode {
++	CAM2_FLASH_MODE_OFF = 1,
++	CAM2_FLASH_MODE_SINGLE,
++	CAM2_FLASH_MODE_TORCH,
++	CAM2_FLASH_MODE_BEST
++};
++
++struct camera2_flash_ctl {
++	enum flash_mode		flash_mode;
++	uint32_t		firing_power;
++	uint64_t		firing_time;
++};
++
++struct camera2_flash_dm {
++	enum flash_mode		flash_mode;
++	/* 10 is max power */
++	uint32_t		firing_power;
++	/* unit : microseconds */
++	uint64_t		firing_time;
++	/* 1 : stable, 0 : unstable */
++	uint32_t		firing_stable;
++	/* 1 : success, 0 : fail */
++	uint32_t		decision;
++};
++
++struct camera2_flash_sm {
++	uint32_t	available;
++	uint64_t	charge_duration;
++};
++
++enum processing_mode {
++	PROCESSING_MODE_OFF = 1,
++	PROCESSING_MODE_FAST,
++	PROCESSING_MODE_HIGH_QUALITY
++};
++
++
++struct camera2_hotpixel_ctl {
++	enum processing_mode	mode;
++};
++
++struct camera2_hotpixel_dm {
++	enum processing_mode	mode;
++};
++
++struct camera2_demosaic_ctl {
++	enum processing_mode	mode;
++};
++
++struct camera2_demosaic_dm {
++	enum processing_mode	mode;
++};
++
++struct camera2_noise_reduction_ctl {
++	enum processing_mode	mode;
++	uint32_t		strength;
++};
++
++struct camera2_noise_reduction_dm {
++	enum processing_mode	mode;
++	uint32_t		strength;
++};
++
++struct camera2_shading_ctl {
++	enum processing_mode	mode;
++};
++
++struct camera2_shading_dm {
++	enum processing_mode	mode;
++};
++
++struct camera2_geometric_ctl {
++	enum processing_mode	mode;
++};
++
++struct camera2_geometric_dm {
++	enum processing_mode	mode;
++};
++
++enum color_correction_mode {
++	COLOR_CORRECTION_MODE_FAST = 1,
++	COLOR_CORRECTION_MODE_HIGH_QUALITY,
++	COLOR_CORRECTION_MODE_TRANSFORM_MATRIX,
++	COLOR_CORRECTION_MODE_EFFECT_MONO,
++	COLOR_CORRECTION_MODE_EFFECT_NEGATIVE,
++	COLOR_CORRECTION_MODE_EFFECT_SOLARIZE,
++	COLOR_CORRECTION_MODE_EFFECT_SEPIA,
++	COLOR_CORRECTION_MODE_EFFECT_POSTERIZE,
++	COLOR_CORRECTION_MODE_EFFECT_WHITEBOARD,
++	COLOR_CORRECTION_MODE_EFFECT_BLACKBOARD,
++	COLOR_CORRECTION_MODE_EFFECT_AQUA
++};
++
++
++struct camera2_color_correction_ctl {
++	enum color_correction_mode	mode;
++	float				transform[9];
++	uint32_t			hue;
++	uint32_t			saturation;
++	uint32_t			brightness;
++};
++
++struct camera2_color_correction_dm {
++	enum color_correction_mode	mode;
++	float				transform[9];
++	uint32_t			hue;
++	uint32_t			saturation;
++	uint32_t			brightness;
++};
++
++struct camera2_color_correction_sm {
++	/* assuming 10 supported modes */
++	uint8_t			available_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	uint32_t		hue_range[2];
++	uint32_t		saturation_range[2];
++	uint32_t		brightness_range[2];
++};
++
++enum tonemap_mode {
++	TONEMAP_MODE_FAST = 1,
++	TONEMAP_MODE_HIGH_QUALITY,
++	TONEMAP_MODE_CONTRAST_CURVE
++};
++
++struct camera2_tonemap_ctl {
++	enum tonemap_mode		mode;
++	/* assuming maxCurvePoints = 64 */
++	float				curve_red[64];
++	float				curve_green[64];
++	float				curve_blue[64];
++};
++
++struct camera2_tonemap_dm {
++	enum tonemap_mode		mode;
++	/* assuming maxCurvePoints = 64 */
++	float				curve_red[64];
++	float				curve_green[64];
++	float				curve_blue[64];
++};
++
++struct camera2_tonemap_sm {
++	uint32_t	max_curve_points;
++};
++
++struct camera2_edge_ctl {
++	enum processing_mode	mode;
++	uint32_t		strength;
++};
++
++struct camera2_edge_dm {
++	enum processing_mode	mode;
++	uint32_t		strength;
++};
++
++enum scaler_formats {
++	SCALER_FORMAT_BAYER_RAW,
++	SCALER_FORMAT_YV12,
++	SCALER_FORMAT_NV21,
++	SCALER_FORMAT_JPEG,
++	SCALER_FORMAT_UNKNOWN
++};
++
++struct camera2_scaler_ctl {
++	uint32_t	crop_region[3];
++};
++
++struct camera2_scaler_dm {
++	uint32_t	crop_region[3];
++};
++
++struct camera2_scaler_sm {
++	enum scaler_formats available_formats[4];
++	/* assuming # of availableFormats = 4 */
++	uint32_t	available_raw_sizes;
++	uint64_t	available_raw_min_durations;
++	/* needs check */
++	uint32_t	available_processed_sizes[8];
++	uint64_t	available_processed_min_durations[8];
++	uint32_t	available_jpeg_sizes[8][2];
++	uint64_t	available_jpeg_min_durations[8];
++	uint32_t	available_max_digital_zoom[8];
++};
++
++struct camera2_jpeg_ctl {
++	uint32_t	quality;
++	uint32_t	thumbnail_size[2];
++	uint32_t	thumbnail_quality;
++	double		gps_coordinates[3];
++	uint32_t	gps_processing_method;
++	uint64_t	gps_timestamp;
++	uint32_t	orientation;
++};
++
++struct camera2_jpeg_dm {
++	uint32_t	quality;
++	uint32_t	thumbnail_size[2];
++	uint32_t	thumbnail_quality;
++	double		gps_coordinates[3];
++	uint32_t	gps_processing_method;
++	uint64_t	gps_timestamp;
++	uint32_t	orientation;
++};
++
++struct camera2_jpeg_sm {
++	uint32_t	available_thumbnail_sizes[8][2];
++	uint32_t	maxsize;
++	/* assuming supported size=8 */
++};
++
++enum face_detect_mode {
++	FACEDETECT_MODE_OFF = 1,
++	FACEDETECT_MODE_SIMPLE,
++	FACEDETECT_MODE_FULL
++};
++
++enum stats_mode {
++	STATS_MODE_OFF = 1,
++	STATS_MODE_ON
++};
++
++struct camera2_stats_ctl {
++	enum face_detect_mode	face_detect_mode;
++	enum stats_mode		histogram_mode;
++	enum stats_mode		sharpness_map_mode;
++};
++
++
++struct camera2_stats_dm {
++	enum face_detect_mode	face_detect_mode;
++	uint32_t		face_rectangles[CAMERA2_MAX_FACES][4];
++	uint8_t			face_scores[CAMERA2_MAX_FACES];
++	uint32_t		face_landmarks[CAMERA2_MAX_FACES][6];
++	uint32_t		face_ids[CAMERA2_MAX_FACES];
++	enum stats_mode		histogram_mode;
++	uint32_t		histogram[3 * 256];
++	enum stats_mode		sharpness_map_mode;
++};
++
++
++struct camera2_stats_sm {
++	uint8_t		available_face_detect_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	/* assuming supported modes = 3 */
++	uint32_t	max_face_count;
++	uint32_t	histogram_bucket_count;
++	uint32_t	max_histogram_count;
++	uint32_t	sharpness_map_size[2];
++	uint32_t	max_sharpness_map_value;
++};
++
++enum aa_capture_intent {
++	AA_CAPTURE_INTENT_CUSTOM = 0,
++	AA_CAPTURE_INTENT_PREVIEW,
++	AA_CAPTURE_INTENT_STILL_CAPTURE,
++	AA_CAPTURE_INTENT_VIDEO_RECORD,
++	AA_CAPTURE_INTENT_VIDEO_SNAPSHOT,
++	AA_CAPTURE_INTENT_ZERO_SHUTTER_LAG
++};
++
++enum aa_mode {
++	AA_CONTROL_OFF = 1,
++	AA_CONTROL_AUTO,
++	AA_CONTROL_USE_SCENE_MODE
++};
++
++enum aa_scene_mode {
++	AA_SCENE_MODE_UNSUPPORTED = 1,
++	AA_SCENE_MODE_FACE_PRIORITY,
++	AA_SCENE_MODE_ACTION,
++	AA_SCENE_MODE_PORTRAIT,
++	AA_SCENE_MODE_LANDSCAPE,
++	AA_SCENE_MODE_NIGHT,
++	AA_SCENE_MODE_NIGHT_PORTRAIT,
++	AA_SCENE_MODE_THEATRE,
++	AA_SCENE_MODE_BEACH,
++	AA_SCENE_MODE_SNOW,
++	AA_SCENE_MODE_SUNSET,
++	AA_SCENE_MODE_STEADYPHOTO,
++	AA_SCENE_MODE_FIREWORKS,
++	AA_SCENE_MODE_SPORTS,
++	AA_SCENE_MODE_PARTY,
++	AA_SCENE_MODE_CANDLELIGHT,
++	AA_SCENE_MODE_BARCODE,
++	AA_SCENE_MODE_NIGHT_CAPTURE
++};
++
++enum aa_effect_mode {
++	AA_EFFECT_OFF = 1,
++	AA_EFFECT_MONO,
++	AA_EFFECT_NEGATIVE,
++	AA_EFFECT_SOLARIZE,
++	AA_EFFECT_SEPIA,
++	AA_EFFECT_POSTERIZE,
++	AA_EFFECT_WHITEBOARD,
++	AA_EFFECT_BLACKBOARD,
++	AA_EFFECT_AQUA
++};
++
++enum aa_aemode {
++	AA_AEMODE_OFF = 1,
++	AA_AEMODE_LOCKED,
++	AA_AEMODE_ON,
++	AA_AEMODE_ON_AUTO_FLASH,
++	AA_AEMODE_ON_ALWAYS_FLASH,
++	AA_AEMODE_ON_AUTO_FLASH_REDEYE
++};
++
++enum aa_ae_flashmode {
++	/* all flash control stop */
++	AA_FLASHMODE_OFF = 1,
++	/* internal 3A can control flash */
++	AA_FLASHMODE_ON,
++	/* internal 3A can do auto flash algorithm */
++	AA_FLASHMODE_AUTO,
++	/* internal 3A can fire flash by auto result */
++	AA_FLASHMODE_CAPTURE,
++	/* internal 3A can control flash forced */
++	AA_FLASHMODE_ON_ALWAYS
++
++};
++
++enum aa_ae_antibanding_mode {
++	AA_AE_ANTIBANDING_OFF = 1,
++	AA_AE_ANTIBANDING_50HZ,
++	AA_AE_ANTIBANDING_60HZ,
++	AA_AE_ANTIBANDING_AUTO
++};
++
++enum aa_awbmode {
++	AA_AWBMODE_OFF = 1,
++	AA_AWBMODE_LOCKED,
++	AA_AWBMODE_WB_AUTO,
++	AA_AWBMODE_WB_INCANDESCENT,
++	AA_AWBMODE_WB_FLUORESCENT,
++	AA_AWBMODE_WB_WARM_FLUORESCENT,
++	AA_AWBMODE_WB_DAYLIGHT,
++	AA_AWBMODE_WB_CLOUDY_DAYLIGHT,
++	AA_AWBMODE_WB_TWILIGHT,
++	AA_AWBMODE_WB_SHADE
++};
++
++enum aa_afmode {
++	AA_AFMODE_OFF = 1,
++	AA_AFMODE_AUTO,
++	AA_AFMODE_MACRO,
++	AA_AFMODE_CONTINUOUS_VIDEO,
++	AA_AFMODE_CONTINUOUS_PICTURE,
++	AA_AFMODE_EDOF
++};
++
++enum aa_afstate {
++	AA_AFSTATE_INACTIVE = 1,
++	AA_AFSTATE_PASSIVE_SCAN,
++	AA_AFSTATE_ACTIVE_SCAN,
++	AA_AFSTATE_AF_ACQUIRED_FOCUS,
++	AA_AFSTATE_AF_FAILED_FOCUS
++};
++
++enum ae_state {
++	AE_STATE_INACTIVE = 1,
++	AE_STATE_SEARCHING,
++	AE_STATE_CONVERGED,
++	AE_STATE_LOCKED,
++	AE_STATE_FLASH_REQUIRED,
++	AE_STATE_PRECAPTURE
++};
++
++enum awb_state {
++	AWB_STATE_INACTIVE = 1,
++	AWB_STATE_SEARCHING,
++	AWB_STATE_CONVERGED,
++	AWB_STATE_LOCKED
++};
++
++enum aa_isomode {
++	AA_ISOMODE_AUTO = 1,
++	AA_ISOMODE_MANUAL,
++};
++
++struct camera2_aa_ctl {
++	enum aa_capture_intent		capture_intent;
++	enum aa_mode			mode;
++	enum aa_scene_mode		scene_mode;
++	uint32_t			video_stabilization_mode;
++	enum aa_aemode			ae_mode;
++	uint32_t			ae_regions[5];
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region. */
++	int32_t				ae_exp_compensation;
++	uint32_t			ae_target_fps_range[2];
++	enum aa_ae_antibanding_mode	ae_anti_banding_mode;
++	enum aa_ae_flashmode		ae_flash_mode;
++	enum aa_awbmode			awb_mode;
++	uint32_t			awb_regions[5];
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region. */
++	enum aa_afmode			af_mode;
++	uint32_t			af_regions[5];
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region. */
++	uint32_t			af_trigger;
++	enum aa_isomode			iso_mode;
++	uint32_t			iso_value;
++
++};
++
++struct camera2_aa_dm {
++	enum aa_mode				mode;
++	enum aa_effect_mode			effect_mode;
++	enum aa_scene_mode			scene_mode;
++	uint32_t				video_stabilization_mode;
++	enum aa_aemode				ae_mode;
++	uint32_t				ae_regions[5];
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region. */
++	enum ae_state				ae_state;
++	enum aa_ae_flashmode			ae_flash_mode;
++	enum aa_awbmode				awb_mode;
++	uint32_t				awb_regions[5];
++	enum awb_state				awb_state;
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region. */
++	enum aa_afmode				af_mode;
++	uint32_t				af_regions[5];
++	/* 5 per region(x1,y1,x2,y2,weight). Currently assuming 1 region */
++	enum aa_afstate				af_state;
++	enum aa_isomode				iso_mode;
++	uint32_t				iso_value;
++};
++
++struct camera2_aa_sm {
++	uint8_t	available_scene_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	uint8_t	available_effects[CAMERA2_MAX_AVAILABLE_MODE];
++	/* Assuming # of available scene modes = 10 */
++	uint32_t max_regions;
++	uint8_t ae_available_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	/* Assuming # of available ae modes = 8 */
++	struct rational	ae_compensation_step;
++	int32_t	ae_compensation_range[2];
++	uint32_t ae_available_target_fps_ranges[CAMERA2_MAX_AVAILABLE_MODE][2];
++	uint8_t	 ae_available_antibanding_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	uint8_t	awb_available_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	/* Assuming # of awbAvailableModes = 10 */
++	uint8_t	af_available_modes[CAMERA2_MAX_AVAILABLE_MODE];
++	/* Assuming # of afAvailableModes = 4 */
++	uint8_t	available_video_stabilization_modes[4];
++	/* Assuming # of availableVideoStabilizationModes = 4 */
++	uint32_t iso_range[2];
++};
++
++struct camera2_lens_usm {
++	/* Frame delay between sending command and applying frame data */
++	uint32_t	focus_distance_frame_delay;
++};
++
++struct camera2_sensor_usm {
++	/* Frame delay between sending command and applying frame data */
++	uint32_t	exposure_time_frame_delay;
++	uint32_t	frame_duration_frame_delay;
++	uint32_t	sensitivity_frame_delay;
++};
++
++struct camera2_flash_usm {
++	/* Frame delay between sending command and applying frame data */
++	uint32_t	flash_mode_frame_delay;
++	uint32_t	firing_power_frame_delay;
++	uint64_t	firing_time_frame_delay;
++};
++
++struct camera2_ctl {
++	struct camera2_request_ctl		request;
++	struct camera2_lens_ctl			lens;
++	struct camera2_sensor_ctl		sensor;
++	struct camera2_flash_ctl		flash;
++	struct camera2_hotpixel_ctl		hotpixel;
++	struct camera2_demosaic_ctl		demosaic;
++	struct camera2_noise_reduction_ctl	noise;
++	struct camera2_shading_ctl		shading;
++	struct camera2_geometric_ctl		geometric;
++	struct camera2_color_correction_ctl	color;
++	struct camera2_tonemap_ctl		tonemap;
++	struct camera2_edge_ctl			edge;
++	struct camera2_scaler_ctl		scaler;
++	struct camera2_jpeg_ctl			jpeg;
++	struct camera2_stats_ctl		stats;
++	struct camera2_aa_ctl			aa;
++};
++
++struct camera2_dm {
++	struct camera2_request_dm		request;
++	struct camera2_lens_dm			lens;
++	struct camera2_sensor_dm		sensor;
++	struct camera2_flash_dm			flash;
++	struct camera2_hotpixel_dm		hotpixel;
++	struct camera2_demosaic_dm		demosaic;
++	struct camera2_noise_reduction_dm	noise;
++	struct camera2_shading_dm		shading;
++	struct camera2_geometric_dm		geometric;
++	struct camera2_color_correction_dm	color;
++	struct camera2_tonemap_dm		tonemap;
++	struct camera2_edge_dm			edge;
++	struct camera2_scaler_dm		scaler;
++	struct camera2_jpeg_dm			jpeg;
++	struct camera2_stats_dm			stats;
++	struct camera2_aa_dm			aa;
++};
++
++struct camera2_sm {
++	struct camera2_lens_sm			lens;
++	struct camera2_sensor_sm		sensor;
++	struct camera2_flash_sm			flash;
++	struct camera2_color_correction_sm	color;
++	struct camera2_tonemap_sm		tonemap;
++	struct camera2_scaler_sm		scaler;
++	struct camera2_jpeg_sm			jpeg;
++	struct camera2_stats_sm			stats;
++	struct camera2_aa_sm			aa;
++
++	/* User-defined(ispfw specific) static metadata. */
++	struct camera2_lens_usm			lensud;
++	struct camera2_sensor_usm		sensor_ud;
++	struct camera2_flash_usm		flash_ud;
++};
++
++/*
++ * User-defined control for lens.
++ */
++struct camera2_lens_uctl {
++	struct camera2_lens_ctl ctl;
++
++	/* It depends by af algorithm(normally 255 or 1023) */
++	uint32_t        max_pos;
++	/* Some actuator support slew rate control. */
++	uint32_t        slew_rate;
++};
++
++/*
++ * User-defined metadata for lens.
++ */
++struct camera2_lens_udm {
++	/* It depends by af algorithm(normally 255 or 1023) */
++	uint32_t        max_pos;
++	/* Some actuator support slew rate control. */
++	uint32_t        slew_rate;
++};
++
++/*
++ * User-defined control for sensor.
++ */
++struct camera2_sensor_uctl {
++	struct camera2_sensor_ctl ctl;
++	/* Dynamic frame duration.
++	 * This feature is decided to max. value between
++	 * 'sensor.exposureTime'+alpha and 'sensor.frameDuration'.
++	 */
++	uint64_t        dynamic_frame_duration;
++};
++
++struct camera2_scaler_uctl {
++	/* Target address for next frame.
++	 * [0] invalid address, stop
++	 * [others] valid address
++	 */
++	uint32_t scc_target_address[4];
++	uint32_t scp_target_address[4];
++};
++
++struct camera2_flash_uctl {
++	struct camera2_flash_ctl ctl;
++};
++
++struct camera2_uctl {
++	/* Set sensor, lens, flash control for next frame.
++	 * This flag can be combined.
++	 * [0 bit] lens
++	 * [1 bit] sensor
++	 * [2 bit] flash
++	 */
++	uint32_t u_update_bitmap;
++
++	/* For debugging */
++	uint32_t u_frame_number;
++
++	/* isp fw specific control (user-defined) of lens. */
++	struct camera2_lens_uctl	lens_ud;
++	/* isp fw specific control (user-defined) of sensor. */
++	struct camera2_sensor_uctl	sensor_ud;
++	/* isp fw specific control (user-defined) of flash. */
++	struct camera2_flash_uctl	flash_ud;
++
++	struct camera2_scaler_uctl	scaler_ud;
++};
++
++struct camera2_udm {
++	struct camera2_lens_udm		lens;
++};
++
++struct camera2_shot {
++	/* standard area */
++	struct camera2_ctl	ctl;
++	struct camera2_dm	dm;
++	/* user defined area */
++	struct camera2_uctl	uctl;
++	struct camera2_udm	udm;
++	/* magic : 23456789 */
++	uint32_t		magicnumber;
++};
++#endif
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-param.h b/drivers/media/platform/exynos5-is/fimc-is-param.h
+new file mode 100644
+index 0000000..015cc13
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-param.h
+@@ -0,0 +1,1159 @@
++/*
++ * Samsung Exynos5 SoC series FIMC-IS driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd
++ * Kil-yeon Lim <kilyeon.im@samsung.com>
++ * Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_IS_PARAM_H
++#define FIMC_IS_PARAM_H
++
++#define MAGIC_NUMBER 0x01020304
++
++#define PARAMETER_MAX_SIZE    128  /* in bytes */
++#define PARAMETER_MAX_MEMBER  (PARAMETER_MAX_SIZE / 4)
++
++enum is_param_set_bit {
++	PARAM_GLOBAL_SHOTMODE = 0,
++	PARAM_SENSOR_CONTROL,
++	PARAM_SENSOR_OTF_INPUT,
++	PARAM_SENSOR_OTF_OUTPUT,
++	PARAM_SENSOR_FRAME_RATE,
++	PARAM_SENSOR_DMA_OUTPUT,
++	PARAM_BUFFER_CONTROL,
++	PARAM_BUFFER_OTF_INPUT,
++	PARAM_BUFFER_OTF_OUTPUT,
++	PARAM_ISP_CONTROL,
++	PARAM_ISP_OTF_INPUT = 10,
++	PARAM_ISP_DMA1_INPUT,
++	PARAM_ISP_DMA2_INPUT,
++	PARAM_ISP_AA,
++	PARAM_ISP_FLASH,
++	PARAM_ISP_AWB,
++	PARAM_ISP_IMAGE_EFFECT,
++	PARAM_ISP_ISO,
++	PARAM_ISP_ADJUST,
++	PARAM_ISP_METERING,
++	PARAM_ISP_AFC = 20,
++	PARAM_ISP_OTF_OUTPUT,
++	PARAM_ISP_DMA1_OUTPUT,
++	PARAM_ISP_DMA2_OUTPUT,
++	PARAM_DRC_CONTROL,
++	PARAM_DRC_OTF_INPUT,
++	PARAM_DRC_DMA_INPUT,
++	PARAM_DRC_OTF_OUTPUT,
++	PARAM_SCALERC_CONTROL,
++	PARAM_SCALERC_OTF_INPUT,
++	PARAM_SCALERC_IMAGE_EFFECT = 30,
++	PARAM_SCALERC_INPUT_CROP,
++	PARAM_SCALERC_OUTPUT_CROP,
++	PARAM_SCALERC_OTF_OUTPUT,
++	PARAM_SCALERC_DMA_OUTPUT = 34,
++	PARAM_ODC_CONTROL,
++	PARAM_ODC_OTF_INPUT,
++	PARAM_ODC_OTF_OUTPUT,
++	PARAM_DIS_CONTROL,
++	PARAM_DIS_OTF_INPUT,
++	PARAM_DIS_OTF_OUTPUT = 40,
++	PARAM_TDNR_CONTROL,
++	PARAM_TDNR_OTF_INPUT,
++	PARAM_TDNR_1ST_FRAME,
++	PARAM_TDNR_OTF_OUTPUT,
++	PARAM_TDNR_DMA_OUTPUT,
++	PARAM_SCALERP_CONTROL,
++	PARAM_SCALERP_OTF_INPUT,
++	PARAM_SCALERP_IMAGE_EFFECT,
++	PARAM_SCALERP_INPUT_CROP,
++	PARAM_SCALERP_OUTPUT_CROP = 50,
++	PARAM_SCALERP_ROTATION,
++	PARAM_SCALERP_FLIP,
++	PARAM_SCALERP_OTF_OUTPUT,
++	PARAM_SCALERP_DMA_OUTPUT,
++	PARAM_FD_CONTROL,
++	PARAM_FD_OTF_INPUT,
++	PARAM_FD_DMA_INPUT,
++	PARAM_FD_CONFIG = 58,
++	PARAM_END,
++};
++
++/* ----------------------  Input  ----------------------------------- */
++enum control_command {
++	CONTROL_COMMAND_STOP	= 0,
++	CONTROL_COMMAND_START	= 1,
++	CONTROL_COMMAND_TEST	= 2
++};
++
++enum bypass_command {
++	CONTROL_BYPASS_DISABLE		= 0,
++	CONTROL_BYPASS_ENABLE		= 1
++};
++
++enum control_error {
++	CONTROL_ERROR_NONE		= 0
++};
++
++enum otf_input_command {
++	OTF_INPUT_COMMAND_DISABLE	= 0,
++	OTF_INPUT_COMMAND_ENABLE	= 1
++};
++
++enum otf_input_format {
++	OTF_INPUT_FORMAT_BAYER		= 0, /* 1 Channel */
++	OTF_INPUT_FORMAT_YUV444		= 1, /* 3 Channel */
++	OTF_INPUT_FORMAT_YUV422		= 2, /* 3 Channel */
++	OTF_INPUT_FORMAT_YUV420		= 3, /* 3 Channel */
++	OTF_INPUT_FORMAT_STRGEN_COLORBAR_BAYER = 10,
++	OTF_INPUT_FORMAT_BAYER_DMA	= 11,
++};
++
++enum otf_input_bitwidth {
++	OTF_INPUT_BIT_WIDTH_14BIT	= 14,
++	OTF_INPUT_BIT_WIDTH_12BIT	= 12,
++	OTF_INPUT_BIT_WIDTH_11BIT	= 11,
++	OTF_INPUT_BIT_WIDTH_10BIT	= 10,
++	OTF_INPUT_BIT_WIDTH_9BIT	= 9,
++	OTF_INPUT_BIT_WIDTH_8BIT	= 8
++};
++
++enum otf_input_order {
++	OTF_INPUT_ORDER_BAYER_GR_BG	= 0,
++	OTF_INPUT_ORDER_BAYER_RG_GB	= 1,
++	OTF_INPUT_ORDER_BAYER_BG_GR	= 2,
++	OTF_INPUT_ORDER_BAYER_GB_RG	= 3
++};
++
++enum otf_intput_error {
++	OTF_INPUT_ERROR_NONE		= 0 /* Input setting is done */
++};
++
++enum dma_input_command {
++	DMA_INPUT_COMMAND_DISABLE	= 0,
++	DMA_INPUT_COMMAND_ENABLE	= 1,
++	DMA_INPUT_COMMAND_BUF_MNGR	= 2,
++	DMA_INPUT_COMMAND_RUN_SINGLE	= 3,
++};
++
++enum dma_inut_format {
++	DMA_INPUT_FORMAT_BAYER		= 0,
++	DMA_INPUT_FORMAT_YUV444		= 1,
++	DMA_INPUT_FORMAT_YUV422		= 2,
++	DMA_INPUT_FORMAT_YUV420		= 3,
++};
++
++enum dma_input_bitwidth {
++	DMA_INPUT_BIT_WIDTH_14BIT	= 14,
++	DMA_INPUT_BIT_WIDTH_12BIT	= 12,
++	DMA_INPUT_BIT_WIDTH_11BIT	= 11,
++	DMA_INPUT_BIT_WIDTH_10BIT	= 10,
++	DMA_INPUT_BIT_WIDTH_9BIT	= 9,
++	DMA_INPUT_BIT_WIDTH_8BIT	= 8
++};
++
++enum dma_input_order {
++	DMA_INPUT_ORDER_NONE	= 0,
++	DMA_INPUT_ORDER_CBCR	= 1,
++	DMA_INPUT_ORDER_CRCB	= 2,
++	DMA_INPUT_ORDER_YCBCR	= 3,
++	DMA_INPUT_ORDER_YYCBCR	= 4,
++	DMA_INPUT_ORDER_YCBYCR	= 5,
++	DMA_INPUT_ORDER_YCRYCB	= 6,
++	DMA_INPUT_ORDER_CBYCRY	= 7,
++	DMA_INPUT_ORDER_CRYCBY	= 8,
++	DMA_INPUT_ORDER_GR_BG	= 9
++};
++
++enum dma_input_error {
++	DMA_INPUT_ERROR_NONE	= 0 /*  DMA input setting is done */
++};
++
++/* ----------------------  Output  ----------------------------------- */
++enum otf_output_crop {
++	OTF_OUTPUT_CROP_DISABLE		= 0,
++	OTF_OUTPUT_CROP_ENABLE		= 1
++};
++
++enum otf_output_command {
++	OTF_OUTPUT_COMMAND_DISABLE	= 0,
++	OTF_OUTPUT_COMMAND_ENABLE	= 1
++};
++
++enum orf_output_format {
++	OTF_OUTPUT_FORMAT_YUV444	= 1,
++	OTF_OUTPUT_FORMAT_YUV422	= 2,
++	OTF_OUTPUT_FORMAT_YUV420	= 3,
++	OTF_OUTPUT_FORMAT_RGB		= 4
++};
++
++enum otf_output_bitwidth {
++	OTF_OUTPUT_BIT_WIDTH_14BIT	= 14,
++	OTF_OUTPUT_BIT_WIDTH_12BIT	= 12,
++	OTF_OUTPUT_BIT_WIDTH_11BIT	= 11,
++	OTF_OUTPUT_BIT_WIDTH_10BIT	= 10,
++	OTF_OUTPUT_BIT_WIDTH_9BIT	= 9,
++	OTF_OUTPUT_BIT_WIDTH_8BIT	= 8
++};
++
++enum otf_output_order {
++	OTF_OUTPUT_ORDER_BAYER_GR_BG	= 0,
++};
++
++enum otf_output_error {
++	OTF_OUTPUT_ERROR_NONE = 0 /* Output Setting is done */
++};
++
++enum dma_output_command {
++	DMA_OUTPUT_COMMAND_DISABLE	= 0,
++	DMA_OUTPUT_COMMAND_ENABLE	= 1,
++	DMA_OUTPUT_COMMAND_BUF_MNGR	= 2,
++	DMA_OUTPUT_UPDATE_MASK_BITS	= 3
++};
++
++enum dma_output_format {
++	DMA_OUTPUT_FORMAT_BAYER		= 0,
++	DMA_OUTPUT_FORMAT_YUV444	= 1,
++	DMA_OUTPUT_FORMAT_YUV422	= 2,
++	DMA_OUTPUT_FORMAT_YUV420	= 3,
++	DMA_OUTPUT_FORMAT_RGB		= 4
++};
++
++enum dma_output_bitwidth {
++	DMA_OUTPUT_BIT_WIDTH_14BIT	= 14,
++	DMA_OUTPUT_BIT_WIDTH_12BIT	= 12,
++	DMA_OUTPUT_BIT_WIDTH_11BIT	= 11,
++	DMA_OUTPUT_BIT_WIDTH_10BIT	= 10,
++	DMA_OUTPUT_BIT_WIDTH_9BIT	= 9,
++	DMA_OUTPUT_BIT_WIDTH_8BIT	= 8
++};
++
++enum dma_output_order {
++	DMA_OUTPUT_ORDER_NONE		= 0,
++	DMA_OUTPUT_ORDER_CBCR		= 1,
++	DMA_OUTPUT_ORDER_CRCB		= 2,
++	DMA_OUTPUT_ORDER_YYCBCR		= 3,
++	DMA_OUTPUT_ORDER_YCBYCR		= 4,
++	DMA_OUTPUT_ORDER_YCRYCB		= 5,
++	DMA_OUTPUT_ORDER_CBYCRY		= 6,
++	DMA_OUTPUT_ORDER_CRYCBY		= 7,
++	DMA_OUTPUT_ORDER_YCBCR		= 8,
++	DMA_OUTPUT_ORDER_CRYCB		= 9,
++	DMA_OUTPUT_ORDER_CRCBY		= 10,
++	DMA_OUTPUT_ORDER_CBYCR		= 11,
++	DMA_OUTPUT_ORDER_YCRCB		= 12,
++	DMA_OUTPUT_ORDER_CBCRY		= 13,
++	DMA_OUTPUT_ORDER_BGR		= 14,
++	DMA_OUTPUT_ORDER_GB_BG		= 15
++};
++
++enum dma_output_notify_dma_done {
++	DMA_OUTPUT_NOTIFY_DMA_DONE_DISABLE	= 0,
++	DMA_OUTPUT_NOTIFY_DMA_DONE_ENBABLE	= 1,
++};
++
++enum dma_output_error {
++	DMA_OUTPUT_ERROR_NONE		= 0 /* DMA output setting is done */
++};
++
++/* ----------------------  Global  ----------------------------------- */
++enum global_shotmode_error {
++	GLOBAL_SHOTMODE_ERROR_NONE	= 0 /* shot-mode setting is done */
++};
++
++/* -------------------------  AA  ------------------------------------ */
++enum isp_lock_command {
++	ISP_AA_COMMAND_START	= 0,
++	ISP_AA_COMMAND_STOP	= 1
++};
++
++enum isp_lock_target {
++	ISP_AA_TARGET_AF	= 1,
++	ISP_AA_TARGET_AE	= 2,
++	ISP_AA_TARGET_AWB	= 4
++};
++
++enum isp_af_mode {
++	ISP_AF_MANUAL = 0,
++	ISP_AF_SINGLE,
++	ISP_AF_CONTINUOUS,
++	ISP_AF_REGION,
++	ISP_AF_SLEEP,
++	ISP_AF_INIT,
++	ISP_AF_SET_CENTER_WINDOW,
++	ISP_AF_SET_TOUCH_WINDOW,
++	ISP_AF_SET_FACE_WINDOW
++};
++
++enum isp_af_scene {
++	ISP_AF_SCENE_NORMAL		= 0,
++	ISP_AF_SCENE_MACRO		= 1
++};
++
++enum isp_af_touch {
++	ISP_AF_TOUCH_DISABLE = 0,
++	ISP_AF_TOUCH_ENABLE
++};
++
++enum isp_af_face {
++	ISP_AF_FACE_DISABLE = 0,
++	ISP_AF_FACE_ENABLE
++};
++
++enum isp_af_reponse {
++	ISP_AF_RESPONSE_PREVIEW = 0,
++	ISP_AF_RESPONSE_MOVIE
++};
++
++enum isp_af_sleep {
++	ISP_AF_SLEEP_OFF		= 0,
++	ISP_AF_SLEEP_ON			= 1
++};
++
++enum isp_af_continuous {
++	ISP_AF_CONTINUOUS_DISABLE	= 0,
++	ISP_AF_CONTINUOUS_ENABLE	= 1
++};
++
++enum isp_af_error {
++	ISP_AF_ERROR_NONE		= 0, /* AF mode change is done */
++	ISP_AF_EROOR_NO_LOCK_DONE	= 1  /* AF lock is done */
++};
++
++/* -------------------------  Flash  ------------------------------------- */
++enum isp_flash_command {
++	ISP_FLASH_COMMAND_DISABLE	= 0,
++	ISP_FLASH_COMMAND_MANUALON	= 1, /* (forced flash) */
++	ISP_FLASH_COMMAND_AUTO		= 2,
++	ISP_FLASH_COMMAND_TORCH		= 3,   /* 3 sec */
++	ISP_FLASH_COMMAND_FLASH_ON	= 4,
++	ISP_FLASH_COMMAND_CAPTURE	= 5,
++	ISP_FLASH_COMMAND_TRIGGER	= 6,
++	ISP_FLASH_COMMAND_CALIBRATION	= 7
++};
++
++enum isp_flash_redeye {
++	ISP_FLASH_REDEYE_DISABLE	= 0,
++	ISP_FLASH_REDEYE_ENABLE		= 1
++};
++
++enum isp_flash_error {
++	ISP_FLASH_ERROR_NONE		= 0 /* Flash setting is done */
++};
++
++/* --------------------------  AWB  ------------------------------------ */
++enum isp_awb_command {
++	ISP_AWB_COMMAND_AUTO		= 0,
++	ISP_AWB_COMMAND_ILLUMINATION	= 1,
++	ISP_AWB_COMMAND_MANUAL	= 2
++};
++
++enum isp_awb_illumination {
++	ISP_AWB_ILLUMINATION_DAYLIGHT		= 0,
++	ISP_AWB_ILLUMINATION_CLOUDY		= 1,
++	ISP_AWB_ILLUMINATION_TUNGSTEN		= 2,
++	ISP_AWB_ILLUMINATION_FLUORESCENT	= 3
++};
++
++enum isp_awb_error {
++	ISP_AWB_ERROR_NONE		= 0 /* AWB setting is done */
++};
++
++/* --------------------------  Effect  ----------------------------------- */
++enum isp_imageeffect_command {
++	ISP_IMAGE_EFFECT_DISABLE		= 0,
++	ISP_IMAGE_EFFECT_MONOCHROME		= 1,
++	ISP_IMAGE_EFFECT_NEGATIVE_MONO		= 2,
++	ISP_IMAGE_EFFECT_NEGATIVE_COLOR		= 3,
++	ISP_IMAGE_EFFECT_SEPIA			= 4,
++	ISP_IMAGE_EFFECT_AQUA			= 5,
++	ISP_IMAGE_EFFECT_EMBOSS			= 6,
++	ISP_IMAGE_EFFECT_EMBOSS_MONO		= 7,
++	ISP_IMAGE_EFFECT_SKETCH			= 8,
++	ISP_IMAGE_EFFECT_RED_YELLOW_POINT	= 9,
++	ISP_IMAGE_EFFECT_GREEN_POINT		= 10,
++	ISP_IMAGE_EFFECT_BLUE_POINT		= 11,
++	ISP_IMAGE_EFFECT_MAGENTA_POINT		= 12,
++	ISP_IMAGE_EFFECT_WARM_VINTAGE		= 13,
++	ISP_IMAGE_EFFECT_COLD_VINTAGE		= 14,
++	ISP_IMAGE_EFFECT_POSTERIZE		= 15,
++	ISP_IMAGE_EFFECT_SOLARIZE		= 16,
++	ISP_IMAGE_EFFECT_WASHED			= 17,
++	ISP_IMAGE_EFFECT_CCM			= 18,
++};
++
++enum isp_imageeffect_error {
++	ISP_IMAGE_EFFECT_ERROR_NONE	= 0 /* Image effect setting is done */
++};
++
++/* ---------------------------  ISO  ------------------------------------ */
++enum isp_iso_command {
++	ISP_ISO_COMMAND_AUTO		= 0,
++	ISP_ISO_COMMAND_MANUAL		= 1
++};
++
++enum iso_error {
++	ISP_ISO_ERROR_NONE		= 0 /* ISO setting is done */
++};
++
++/* --------------------------  Adjust  ----------------------------------- */
++enum iso_adjust_command {
++	ISP_ADJUST_COMMAND_AUTO			= 0,
++	ISP_ADJUST_COMMAND_MANUAL_CONTRAST	= (1 << 0),
++	ISP_ADJUST_COMMAND_MANUAL_SATURATION	= (1 << 1),
++	ISP_ADJUST_COMMAND_MANUAL_SHARPNESS	= (1 << 2),
++	ISP_ADJUST_COMMAND_MANUAL_EXPOSURE	= (1 << 3),
++	ISP_ADJUST_COMMAND_MANUAL_BRIGHTNESS	= (1 << 4),
++	ISP_ADJUST_COMMAND_MANUAL_HUE		= (1 << 5),
++	ISP_ADJUST_COMMAND_MANUAL_HOTPIXEL	= (1 << 6),
++	ISP_ADJUST_COMMAND_MANUAL_NOISEREDUCTION = (1 << 7),
++	ISP_ADJUST_COMMAND_MANUAL_SHADING	= (1 << 8),
++	ISP_ADJUST_COMMAND_MANUAL_GAMMA		= (1 << 9),
++	ISP_ADJUST_COMMAND_MANUAL_EDGEENHANCEMENT = (1 << 10),
++	ISP_ADJUST_COMMAND_MANUAL_SCENE		= (1 << 11),
++	ISP_ADJUST_COMMAND_MANUAL_FRAMETIME	= (1 << 12),
++	ISP_ADJUST_COMMAND_MANUAL_ALL		= 0x1fff
++};
++
++enum isp_adjust_scene_index {
++	ISP_ADJUST_SCENE_NORMAL			= 0,
++	ISP_ADJUST_SCENE_NIGHT_PREVIEW		= 1,
++	ISP_ADJUST_SCENE_NIGHT_CAPTURE		= 2
++};
++
++
++enum isp_adjust_error {
++	ISP_ADJUST_ERROR_NONE		= 0 /* Adjust setting is done */
++};
++
++/* -------------------------  Metering  ---------------------------------- */
++enum isp_metering_command {
++	ISP_METERING_COMMAND_AVERAGE		= 0,
++	ISP_METERING_COMMAND_SPOT		= 1,
++	ISP_METERING_COMMAND_MATRIX		= 2,
++	ISP_METERING_COMMAND_CENTER		= 3,
++	ISP_METERING_COMMAND_EXPOSURE_MODE	= (1 << 8)
++};
++
++enum isp_exposure_mode {
++	ISP_EXPOSUREMODE_OFF		= 1,
++	ISP_EXPOSUREMODE_AUTO		= 2
++};
++
++enum isp_metering_error {
++	ISP_METERING_ERROR_NONE	= 0 /* Metering setting is done */
++};
++
++/* --------------------------  AFC  ----------------------------------- */
++enum isp_afc_command {
++	ISP_AFC_COMMAND_DISABLE		= 0,
++	ISP_AFC_COMMAND_AUTO		= 1,
++	ISP_AFC_COMMAND_MANUAL		= 2
++};
++
++enum isp_afc_manual {
++	ISP_AFC_MANUAL_50HZ		= 50,
++	ISP_AFC_MANUAL_60HZ		= 60
++};
++
++enum isp_afc_error {
++	ISP_AFC_ERROR_NONE	= 0 /* AFC setting is done */
++};
++
++enum isp_scene_command {
++	ISP_SCENE_NONE		= 0,
++	ISP_SCENE_PORTRAIT	= 1,
++	ISP_SCENE_LANDSCAPE     = 2,
++	ISP_SCENE_SPORTS        = 3,
++	ISP_SCENE_PARTYINDOOR	= 4,
++	ISP_SCENE_BEACHSNOW	= 5,
++	ISP_SCENE_SUNSET	= 6,
++	ISP_SCENE_DAWN		= 7,
++	ISP_SCENE_FALL		= 8,
++	ISP_SCENE_NIGHT		= 9,
++	ISP_SCENE_AGAINSTLIGHTWLIGHT	= 10,
++	ISP_SCENE_AGAINSTLIGHTWOLIGHT	= 11,
++	ISP_SCENE_FIRE			= 12,
++	ISP_SCENE_TEXT			= 13,
++	ISP_SCENE_CANDLE		= 14
++};
++
++/* --------------------------  Scaler  --------------------------------- */
++enum scaler_imageeffect_command {
++	SCALER_IMAGE_EFFECT_COMMNAD_DISABLE	= 0,
++	SCALER_IMAGE_EFFECT_COMMNAD_SEPIA_CB	= 1,
++	SCALER_IMAGE_EFFECT_COMMAND_SEPIA_CR	= 2,
++	SCALER_IMAGE_EFFECT_COMMAND_NEGATIVE	= 3,
++	SCALER_IMAGE_EFFECT_COMMAND_ARTFREEZE	= 4,
++	SCALER_IMAGE_EFFECT_COMMAND_EMBOSSING	= 5,
++	SCALER_IMAGE_EFFECT_COMMAND_SILHOUETTE	= 6
++};
++
++enum scaler_imageeffect_error {
++	SCALER_IMAGE_EFFECT_ERROR_NONE		= 0
++};
++
++enum scaler_crop_command {
++	SCALER_CROP_COMMAND_DISABLE		= 0,
++	SCALER_CROP_COMMAND_ENABLE		= 1
++};
++
++enum scaler_crop_error {
++	SCALER_CROP_ERROR_NONE			= 0 /* crop setting is done */
++};
++
++enum scaler_scaling_command {
++	SCALER_SCALING_COMMNAD_DISABLE		= 0,
++	SCALER_SCALING_COMMAND_UP		= 1,
++	SCALER_SCALING_COMMAND_DOWN		= 2
++};
++
++enum scaler_scaling_error {
++	SCALER_SCALING_ERROR_NONE		= 0
++};
++
++enum scaler_rotation_command {
++	SCALER_ROTATION_COMMAND_DISABLE		= 0,
++	SCALER_ROTATION_COMMAND_CLOCKWISE90	= 1
++};
++
++enum scaler_rotation_error {
++	SCALER_ROTATION_ERROR_NONE		= 0
++};
++
++enum scaler_flip_command {
++	SCALER_FLIP_COMMAND_NORMAL		= 0,
++	SCALER_FLIP_COMMAND_X_MIRROR		= 1,
++	SCALER_FLIP_COMMAND_Y_MIRROR		= 2,
++	SCALER_FLIP_COMMAND_XY_MIRROR		= 3 /* (180 rotation) */
++};
++
++enum scaler_flip_error {
++	SCALER_FLIP_ERROR_NONE			= 0 /* flip setting is done */
++};
++
++/* --------------------------  3DNR  ----------------------------------- */
++enum tdnr_1st_frame_command {
++	TDNR_1ST_FRAME_COMMAND_NOPROCESSING	= 0,
++	TDNR_1ST_FRAME_COMMAND_2DNR		= 1
++};
++
++enum tdnr_1st_frame_error {
++	TDNR_1ST_FRAME_ERROR_NONE		= 0
++};
++
++/* ----------------------------  FD  ------------------------------------- */
++enum fd_config_command {
++	FD_CONFIG_COMMAND_MAXIMUM_NUMBER	= 0x1,
++	FD_CONFIG_COMMAND_ROLL_ANGLE		= 0x2,
++	FD_CONFIG_COMMAND_YAW_ANGLE		= 0x4,
++	FD_CONFIG_COMMAND_SMILE_MODE		= 0x8,
++	FD_CONFIG_COMMAND_BLINK_MODE		= 0x10,
++	FD_CONFIG_COMMAND_EYES_DETECT		= 0x20,
++	FD_CONFIG_COMMAND_MOUTH_DETECT		= 0x40,
++	FD_CONFIG_COMMAND_ORIENTATION		= 0x80,
++	FD_CONFIG_COMMAND_ORIENTATION_VALUE	= 0x100
++};
++
++enum fd_config_roll_angle {
++	FD_CONFIG_ROLL_ANGLE_BASIC		= 0,
++	FD_CONFIG_ROLL_ANGLE_PRECISE_BASIC	= 1,
++	FD_CONFIG_ROLL_ANGLE_SIDES		= 2,
++	FD_CONFIG_ROLL_ANGLE_PRECISE_SIDES	= 3,
++	FD_CONFIG_ROLL_ANGLE_FULL		= 4,
++	FD_CONFIG_ROLL_ANGLE_PRECISE_FULL	= 5,
++};
++
++enum fd_config_yaw_angle {
++	FD_CONFIG_YAW_ANGLE_0			= 0,
++	FD_CONFIG_YAW_ANGLE_45			= 1,
++	FD_CONFIG_YAW_ANGLE_90			= 2,
++	FD_CONFIG_YAW_ANGLE_45_90		= 3,
++};
++
++enum fd_config_smile_mode {
++	FD_CONFIG_SMILE_MODE_DISABLE		= 0,
++	FD_CONFIG_SMILE_MODE_ENABLE		= 1
++};
++
++enum fd_config_blink_mode {
++	FD_CONFIG_BLINK_MODE_DISABLE		= 0,
++	FD_CONFIG_BLINK_MODE_ENABLE		= 1
++};
++
++enum fd_config_eye_result {
++	FD_CONFIG_EYES_DETECT_DISABLE		= 0,
++	FD_CONFIG_EYES_DETECT_ENABLE		= 1
++};
++
++enum fd_config_mouth_result {
++	FD_CONFIG_MOUTH_DETECT_DISABLE		= 0,
++	FD_CONFIG_MOUTH_DETECT_ENABLE		= 1
++};
++
++enum fd_config_orientation {
++	FD_CONFIG_ORIENTATION_DISABLE		= 0,
++	FD_CONFIG_ORIENTATION_ENABLE		= 1
++};
++
++struct param_control {
++	u32 cmd;
++	u32 bypass;
++	u32 buffer_address;
++	u32 buffer_number;
++	/* 0: continuous, 1: single */
++	u32 run_mode;
++	u32 reserved[PARAMETER_MAX_MEMBER - 6];
++	u32 err;
++};
++
++struct param_otf_input {
++	u32 cmd;
++	u32 width;
++	u32 height;
++	u32 format;
++	u32 bitwidth;
++	u32 order;
++	u32 crop_offset_x;
++	u32 crop_offset_y;
++	u32 crop_width;
++	u32 crop_height;
++	u32 frametime_min;
++	u32 frametime_max;
++	u32 reserved[PARAMETER_MAX_MEMBER - 13];
++	u32 err;
++};
++
++struct param_dma_input {
++	u32 cmd;
++	u32 width;
++	u32 height;
++	u32 format;
++	u32 bitwidth;
++	u32 plane;
++	u32 order;
++	u32 buffer_number;
++	u32 buffer_address;
++	u32 bayer_crop_offset_x;
++	u32 bayer_crop_offset_y;
++	u32 bayer_crop_width;
++	u32 bayer_crop_height;
++	u32 dma_crop_offset_x;
++	u32 dma_crop_offset_y;
++	u32 dma_crop_width;
++	u32 dma_crop_height;
++	u32 user_min_frametime;
++	u32 user_max_frametime;
++	u32 wide_frame_gap;
++	u32 frame_gap;
++	u32 line_gap;
++	u32 reserved[PARAMETER_MAX_MEMBER - 23];
++	u32 err;
++};
++
++struct param_otf_output {
++	u32 cmd;
++	u32 width;
++	u32 height;
++	u32 format;
++	u32 bitwidth;
++	u32 order;
++	u32 crop_offset_x;
++	u32 crop_offset_y;
++	u32 reserved[PARAMETER_MAX_MEMBER - 9];
++	u32 err;
++};
++
++struct param_dma_output {
++	u32 cmd;
++	u32 width;
++	u32 height;
++	u32 format;
++	u32 bitwidth;
++	u32 plane;
++	u32 order;
++	u32 buffer_number;
++	u32 buffer_address;
++	u32 notify_dma_done;
++	u32 dma_out_mask;
++	u32 reserved[PARAMETER_MAX_MEMBER - 12];
++	u32 err;
++};
++
++struct param_global_shotmode {
++	u32 cmd;
++	u32 skip_frames;
++	u32 reserved[PARAMETER_MAX_MEMBER - 3];
++	u32 err;
++};
++
++struct param_sensor_framerate {
++	u32 frame_rate;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_isp_aa {
++	u32 cmd;
++	u32 target;
++	u32 mode;
++	u32 scene;
++	u32 af_touch;
++	u32 af_face;
++	u32 af_response;
++	u32 sleep;
++	u32 touch_x;
++	u32 touch_y;
++	u32 manual_af_setting;
++	/* 0: Legacy, 1: Camera 2.0 */
++	u32 cam_api2p0;
++	/*
++	 * For android.control.afRegions in Camera 2.0,
++	 * Resolution based on YUV output size
++	 */
++	u32 af_region_left;
++	u32 af_region_top;
++	u32 af_region_right;
++	u32 af_region_bottom;
++	u32 reserved[PARAMETER_MAX_MEMBER - 17];
++	u32 err;
++};
++
++struct param_isp_flash {
++	u32 cmd;
++	u32 redeye;
++	u32 flash_intensity;
++	u32 reserved[PARAMETER_MAX_MEMBER - 4];
++	u32 err;
++};
++
++struct param_isp_awb {
++	u32 cmd;
++	u32 illumination;
++	u32 reserved[PARAMETER_MAX_MEMBER - 3];
++	u32 err;
++};
++
++struct param_isp_imageeffect {
++	u32 cmd;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_isp_iso {
++	u32 cmd;
++	u32 value;
++	u32 reserved[PARAMETER_MAX_MEMBER - 3];
++	u32 err;
++};
++
++struct param_isp_adjust {
++	u32 cmd;
++	s32 contrast;
++	s32 saturation;
++	s32 sharpness;
++	s32 exposure;
++	s32 brightness;
++	s32 hue;
++	/* 0 or 1 */
++	u32 hotpixel_enable;
++	/* -127 ~ 127 */
++	s32 noise_reduction_strength;
++	/* 0 or 1 */
++	u32 shading_correction_enable;
++	/* 0 or 1 */
++	u32 user_gamma_enable;
++	/* -127 ~ 127 */
++	s32 edge_enhancement_strength;
++	u32 user_scene_mode;
++	u32 min_frametime;
++	u32 max_frametime;
++	u32 reserved[PARAMETER_MAX_MEMBER - 16];
++	u32 err;
++};
++
++struct param_isp_metering {
++	u32 cmd;
++	u32 win_pos_x;
++	u32 win_pos_y;
++	u32 win_width;
++	u32 win_height;
++	u32 exposure_mode;
++	/* 0: Legacy, 1: Camera 2.0 */
++	u32 cam_api2p0;
++	u32 reserved[PARAMETER_MAX_MEMBER - 8];
++	u32 err;
++};
++
++struct param_isp_afc {
++	u32 cmd;
++	u32 manual;
++	u32 reserved[PARAMETER_MAX_MEMBER - 3];
++	u32 err;
++};
++
++struct param_scaler_imageeffect {
++	u32 cmd;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_scaler_input_crop {
++	u32  cmd;
++	u32  pos_x;
++	u32  pos_y;
++	u32  crop_width;
++	u32  crop_height;
++	u32  in_width;
++	u32  in_height;
++	u32  out_width;
++	u32  out_height;
++	u32  reserved[PARAMETER_MAX_MEMBER - 10];
++	u32  err;
++};
++
++struct param_scaler_output_crop {
++	u32  cmd;
++	u32  pos_x;
++	u32  pos_y;
++	u32  crop_width;
++	u32  crop_height;
++	u32  format;
++	u32  reserved[PARAMETER_MAX_MEMBER - 7];
++	u32  err;
++};
++
++struct param_scaler_rotation {
++	u32 cmd;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_scaler_flip {
++	u32 cmd;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_3dnr_1stframe {
++	u32 cmd;
++	u32 reserved[PARAMETER_MAX_MEMBER - 2];
++	u32 err;
++};
++
++struct param_fd_config {
++	u32 cmd;
++	u32 max_number;
++	u32 roll_angle;
++	u32 yaw_angle;
++	s32 smile_mode;
++	s32 blink_mode;
++	u32 eye_detect;
++	u32 mouth_detect;
++	u32 orientation;
++	u32 orientation_value;
++	u32 reserved[PARAMETER_MAX_MEMBER - 11];
++	u32 err;
++};
++
++struct global_param {
++	struct param_global_shotmode shotmode;
++};
++
++struct sensor_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_otf_output		otf_output;
++	struct param_sensor_framerate	frame_rate;
++	struct param_dma_output		dma_output;
++};
++
++struct buffer_param {
++	struct param_control	control;
++	struct param_otf_input	otf_input;
++	struct param_otf_output	otf_output;
++};
++
++struct isp_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_dma_input		dma1_input;
++	struct param_dma_input		dma2_input;
++	struct param_isp_aa		aa;
++	struct param_isp_flash		flash;
++	struct param_isp_awb		awb;
++	struct param_isp_imageeffect	effect;
++	struct param_isp_iso		iso;
++	struct param_isp_adjust		adjust;
++	struct param_isp_metering	metering;
++	struct param_isp_afc		afc;
++	struct param_otf_output		otf_output;
++	struct param_dma_output		dma1_output;
++	struct param_dma_output		dma2_output;
++};
++
++struct drc_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_dma_input		dma_input;
++	struct param_otf_output		otf_output;
++};
++
++struct scalerc_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_scaler_imageeffect	effect;
++	struct param_scaler_input_crop	input_crop;
++	struct param_scaler_output_crop	 output_crop;
++	struct param_otf_output		otf_output;
++	struct param_dma_output		dma_output;
++};
++
++struct odc_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_otf_output		otf_output;
++};
++
++struct dis_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_otf_output		otf_output;
++};
++
++struct tdnr_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_3dnr_1stframe	frame;
++	struct param_otf_output		otf_output;
++	struct param_dma_output		dma_output;
++};
++
++struct scalerp_param {
++	struct param_control			control;
++	struct param_otf_input			otf_input;
++	struct param_scaler_imageeffect		effect;
++	struct param_scaler_input_crop		input_crop;
++	struct param_scaler_output_crop		output_crop;
++	struct param_scaler_rotation		rotation;
++	struct param_scaler_flip		flip;
++	struct param_otf_output			otf_output;
++	struct param_dma_output			dma_output;
++};
++
++struct fd_param {
++	struct param_control		control;
++	struct param_otf_input		otf_input;
++	struct param_dma_input		dma_input;
++	struct param_fd_config		config;
++};
++
++struct is_param_region {
++	struct global_param	global;
++	struct sensor_param	sensor;
++	struct buffer_param	buf;
++	struct isp_param	isp;
++	struct drc_param	drc;
++	struct scalerc_param	scalerc;
++	struct odc_param	odc;
++	struct dis_param	dis;
++	struct tdnr_param	tdnr;
++	struct scalerp_param	scalerp;
++	struct fd_param		fd;
++};
++
++#define	NUMBER_OF_GAMMA_CURVE_POINTS	32
++
++struct is_sensor_tune {
++	u32 exposure;
++	u32 analog_gain;
++	u32 frame_rate;
++	u32 actuator_pos;
++};
++
++struct is_tune_gammacurve {
++	u32 num_pts_x[NUMBER_OF_GAMMA_CURVE_POINTS];
++	u32 num_pts_y_r[NUMBER_OF_GAMMA_CURVE_POINTS];
++	u32 num_pts_y_g[NUMBER_OF_GAMMA_CURVE_POINTS];
++	u32 num_pts_y_b[NUMBER_OF_GAMMA_CURVE_POINTS];
++};
++
++struct is_isp_tune {
++	/* Brightness level: range 0~100, default: 7 */
++	u32 brightness_level;
++	/* Contrast level: range -127~127, default: 0 */
++	s32 contrast_level;
++	/* Saturation level: range -127~127, default: 0 */
++	s32 saturation_level;
++	s32 gamma_level;
++	struct is_tune_gammacurve gamma_curve[4];
++	/* Hue: range -127~127, default: 0 */
++	s32 hue;
++	/* Sharpness blur: range -127~127, default: 0 */
++	s32 sharpness_blur;
++	/* Despeckle: range -127~127, default: 0 */
++	s32 despeckle;
++	/* Edge color supression: range -127~127, default: 0 */
++	s32 edge_color_supression;
++	/* Noise reduction: range -127~127, default: 0 */
++	s32 noise_reduction;
++};
++
++struct is_tune_region {
++	struct is_sensor_tune sensor_tune;
++	struct is_isp_tune isp_tune;
++};
++
++struct rational_t {
++	u32 num;
++	u32 den;
++};
++
++struct srational_t {
++	s32 num;
++	s32 den;
++};
++
++#define FLASH_FIRED_SHIFT	0
++#define FLASH_NOT_FIRED		0
++#define FLASH_FIRED		1
++
++#define FLASH_STROBE_SHIFT				1
++#define FLASH_STROBE_NO_DETECTION			0
++#define FLASH_STROBE_RESERVED				1
++#define FLASH_STROBE_RETURN_LIGHT_NOT_DETECTED		2
++#define FLASH_STROBE_RETURN_LIGHT_DETECTED		3
++
++#define FLASH_MODE_SHIFT			3
++#define FLASH_MODE_UNKNOWN			0
++#define FLASH_MODE_COMPULSORY_FLASH_FIRING	1
++#define FLASH_MODE_COMPULSORY_FLASH_SUPPRESSION	2
++#define FLASH_MODE_AUTO_MODE			3
++
++#define FLASH_FUNCTION_SHIFT		5
++#define FLASH_FUNCTION_PRESENT		0
++#define FLASH_FUNCTION_NONE		1
++
++#define FLASH_RED_EYE_SHIFT		6
++#define FLASH_RED_EYE_DISABLED		0
++#define FLASH_RED_EYE_SUPPORTED		1
++
++struct exif_attribute {
++	struct rational_t exposure_time;
++	struct srational_t shutter_speed;
++	u32 iso_speed_rating;
++	u32 flash;
++	struct srational_t brightness;
++};
++
++struct is_frame_header {
++	u32 valid;
++	u32 bad_mark;
++	u32 captured;
++	u32 frame_number;
++	struct exif_attribute	exif;
++};
++
++struct is_face_marker {
++	u32 frame_number;
++	struct v4l2_rect face;
++	struct v4l2_rect left_eye;
++	struct v4l2_rect right_eye;
++	struct v4l2_rect mouth;
++	u32 roll_angle;
++	u32 yaw_angle;
++	u32 confidence;
++	u32 stracked;
++	u32 tracked_faceid;
++	u32 smile_level;
++	u32 blink_level;
++};
++
++#define MAX_FRAME_COUNT		8
++#define MAX_FRAME_COUNT_PREVIEW	4
++#define MAX_FRAME_COUNT_CAPTURE	1
++#define MAX_FACE_COUNT		16
++
++#define MAX_SHARED_COUNT	500
++
++struct is_region {
++	struct is_param_region	parameter;
++	struct is_tune_region	tune;
++	struct is_frame_header	header[MAX_FRAME_COUNT];
++	struct is_face_marker	face[MAX_FACE_COUNT];
++	u32			shared[MAX_SHARED_COUNT];
++};
++
++struct is_time_measure_us {
++	u32 min_time_us;
++	u32 max_time_us;
++	u32 avrg_time_us;
++	u32 current_time_us;
++};
++
++struct is_debug_frame_descriptor {
++	u32 sensor_frame_time;
++	u32 sensor_exposure_time;
++	u32 sensor_analog_gain;
++	u32 req_lei;
++};
++
++#define MAX_FRAMEDESCRIPTOR_CONTEXT_NUM	(30 * 20)	/* 600 frame */
++#define MAX_VERSION_DISPLAY_BUF		(32)
++
++struct is_share_region {
++	u32 frame_time;
++	u32 exposure_time;
++	u32 analog_gain;
++
++	u32 r_gain;
++	u32 g_gain;
++	u32 b_gain;
++
++	u32 af_position;
++	u32 af_status;
++	u32 af_scene_type;
++
++	u32 frame_descp_onoff_control;
++	u32 frame_descp_update_done;
++	u32 frame_descp_idx;
++	u32 frame_descp_max_idx;
++
++	struct is_debug_frame_descriptor
++		dbg_frame_descp_ctx[MAX_FRAMEDESCRIPTOR_CONTEXT_NUM];
++
++	u32 chip_id;
++	u32 chip_rev_no;
++	u8 ispfw_version_no[MAX_VERSION_DISPLAY_BUF];
++	u8 ispfw_version_date[MAX_VERSION_DISPLAY_BUF];
++	u8 sirc_sdk_version_no[MAX_VERSION_DISPLAY_BUF];
++	u8 sirc_sdk_revsion_no[MAX_VERSION_DISPLAY_BUF];
++	u8 sirc_sdk_version_date[MAX_VERSION_DISPLAY_BUF];
++
++	/* measure timing */
++	struct is_time_measure_us	isp_sdk_time;
++};
++
++struct is_debug_control {
++	u32 write_point;	/* 0~500KB boundary */
++	u32 assert_flag;	/* 0:Not Invoked, 1:Invoked */
++	u32 pabort_flag;	/* 0:Not Invoked, 1:Invoked */
++	u32 dabort_flag;	/* 0:Not Invoked, 1:Invoked */
++	u32 pd_ready_flag;	/* 0:Normal, 1:EnterIdle(Ready to power down) */
++	u32 isp_frame_err;	/* Frame Error Counters */
++	u32 drc_frame_err;
++	u32 scc_frame_err;
++	u32 odc_frame_err;
++	u32 dis_frame_err;
++	u32 tdnr_frame_err;
++	u32 scp_frame_err;
++	u32 fd_frame_err;
++	u32 isp_frame_drop;	/* Frame Drop Counters */
++	u32 drc_frame_drop;
++	u32 dis_frame_drop;
++	u32 uifdframedrop;
++};
++
 +#endif
 -- 
 1.7.9.5
