@@ -1,114 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:53660 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756366Ab3IDHOA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 03:14:00 -0400
-MIME-Version: 1.0
-In-Reply-To: <20130902161715.GB18206@e106331-lin.cambridge.arm.com>
-References: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
- <1374301266-26726-3-git-send-email-prabhakar.csengg@gmail.com>
- <5217A3E7.50706@samsung.com> <CA+V-a8tStFRbELAmZL=418VpR9SJgp8uo_4hrtny2UEMEoXakg@mail.gmail.com>
- <20130827152405.GQ19893@e106331-lin.cambridge.arm.com> <CA+V-a8vuYNNiXJ+iGgceaTqHdM_Q9X2dVDyiHHZPJ+-rSbJgLQ@mail.gmail.com>
- <20130902161715.GB18206@e106331-lin.cambridge.arm.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 4 Sep 2013 12:43:38 +0530
-Message-ID: <CA+V-a8vwX__S=A=fYCQpvJQLTUMx0C82p=5XdsCtpMKLF5p-TA@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] media: i2c: adv7343: add OF support
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:44393 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754386Ab3I0SvL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 14:51:11 -0400
+Received: by mail-pa0-f47.google.com with SMTP id kp14so3136049pab.6
+        for <linux-media@vger.kernel.org>; Fri, 27 Sep 2013 11:51:10 -0700 (PDT)
+From: Show Liu <show.liu@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, tom.gall@linaro.org,
+	t.katayama@jp.fujitsu.com, vikas.sajjan@linaro.org,
+	linaro-kernel@lists.linaro.org, tom.cooksey@arm.com,
+	Show Liu <show.liu@linaro.org>
+Subject: [PATCH/RFC v3 2/3] Add display entity and set VGA output(site MB) as default
+Date: Sat, 28 Sep 2013 02:50:45 +0800
+Message-Id: <1380307846-27479-3-git-send-email-show.liu@linaro.org>
+In-Reply-To: <1380307846-27479-1-git-send-email-show.liu@linaro.org>
+References: <1380307846-27479-1-git-send-email-show.liu@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mark,
+---
+ drivers/video/vexpress-dvi.c |   94 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 83 insertions(+), 11 deletions(-)
 
-On Mon, Sep 2, 2013 at 9:47 PM, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Aug 28, 2013 at 03:43:04AM +0100, Prabhakar Lad wrote:
->> Hi Mark,
->>
->> On Tue, Aug 27, 2013 at 8:54 PM, Mark Rutland <mark.rutland@arm.com> wrote:
->> > [fixing up devicetree list address]
->> >
->> Thanks!
->>
->> > On Mon, Aug 26, 2013 at 03:41:45AM +0100, Prabhakar Lad wrote:
->> >> Hi Sylwester,
->> >>
->> >> On Fri, Aug 23, 2013 at 11:33 PM, Sylwester Nawrocki
->> >> <s.nawrocki@samsung.com> wrote:
->> >> > Cc: DT binding maintainers
->> >
->> > Cheers!
->> >
->> >> >
->> >> > On 07/20/2013 08:21 AM, Lad, Prabhakar wrote:
->> >> >> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->> >> >>
->> >> >> add OF support for the adv7343 driver.
->> >> >>
->> >> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> >> >> ---
->> >> > [...]
->> >> >>  .../devicetree/bindings/media/i2c/adv7343.txt      |   48 ++++++++++++++++++++
->> >> >>  drivers/media/i2c/adv7343.c                        |   46 ++++++++++++++++++-
->> >> >>  2 files changed, 93 insertions(+), 1 deletion(-)
->> >> >>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
->> >> >>
->> >> >> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
->> >> >> new file mode 100644
->> >> >> index 0000000..5653bc2
->> >> >> --- /dev/null
->> >> >> +++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
->> >> >> @@ -0,0 +1,48 @@
->> >> >> +* Analog Devices adv7343 video encoder
->> >> >> +
->> >> >> +The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead LQFP
->> >> >> +package. Six high speed, 3.3 V, 11-bit video DACs provide support for composite
->> >> >> +(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs in standard
->> >> >> +definition (SD), enhanced definition (ED), or high definition (HD) video
->> >> >> +formats.
->> >> >> +
->> >> >> +Required Properties :
->> >> >> +- compatible: Must be "adi,adv7343"
->> >> >> +
->> >> >> +Optional Properties :
->> >> >> +- adi,power-mode-sleep-mode: on enable the current consumption is reduced to
->> >> >> +                           micro ampere level. All DACs and the internal PLL
->> >> >> +                           circuit are disabled.
->> >
->> > This seems to be a boolean property, and I couldn't find any description
->> > in the linked datasheet of the constraints under which the unit may be
->> > put into sleep mode.
->> >
->> > Why do we require this property in the dt? Can the driver not always put
->> > a adv734x into sleep mode if it wants to, and then wake it up as
->> > required?
->> >
->> The adv7343 decoder, fits on da850/dm6467 etc.. For the da850 it supports
->> only SD where as the dm6467 supports HD/SD/ED for which DAC 1-6 of
->> Register 0x0 varies for this board so I added them as the platform data
->> but I got a review comment in the ML asking to add entire register as
->> the pdata instead of DAC 1-6, so because of which it is being converted
->> in the same way for DT.
->
-> Not everything that appears in platform data should appear in the dt.
-> This seems more like a run-time decision that a description of the
-> hardware.
->
-> I don't see why we need the "adi,power-mode-sleep-mode" property.
->
-Ok I will drop "adi,power-mode-sleep-mode" and "adi,power-mode-pll-ctrl"
-property from the DT bindings and just have "adi,dac-enable",
-"adi,sd-dac-enable" properties as this cannot be handled runtime.
+diff --git a/drivers/video/vexpress-dvi.c b/drivers/video/vexpress-dvi.c
+index cbcb443..ca0e5bd 100644
+--- a/drivers/video/vexpress-dvi.c
++++ b/drivers/video/vexpress-dvi.c
+@@ -18,6 +18,12 @@
+ #include <linux/of_device.h>
+ #include <linux/vexpress.h>
+ 
++#include <linux/platform_device.h>
++#include <video/display.h>
++
++struct _mux_fpga {
++	 struct display_entity entity;
++};
+ 
+ static struct vexpress_config_func *vexpress_dvimode_func;
+ 
+@@ -146,6 +152,52 @@ static int vexpress_dvi_fb_event_notify(struct notifier_block *self,
+ 	return NOTIFY_OK;
+ }
+ 
++static int mux_fpga_set_state(struct display_entity *entity,
++							 enum display_entity_state state)
++{
++	struct media_pad *source;
++	source = media_entity_remote_pad(&entity->entity.pads[0]);
++	if (source == NULL)
++		return -EPIPE;
++	
++	switch (state) {
++	case DISPLAY_ENTITY_STATE_OFF:
++	case DISPLAY_ENTITY_STATE_STANDBY:
++			display_entity_set_stream(to_display_entity(source->entity),
++														source->index,
++														DISPLAY_ENTITY_STREAM_STOPPED);
++			break;
++	
++	case DISPLAY_ENTITY_STATE_ON:
++			display_entity_set_stream(to_display_entity(source->entity),
++														source->index,
++														DISPLAY_ENTITY_STREAM_CONTINUOUS);
++			break;
++	}
++	
++	return 0;
++}
++
++static int mux_fpga_get_params(struct display_entity *entity, unsigned int port,
++							  struct display_entity_interface_params *params)
++{
++	memset(params, 0, sizeof(*params));
++	
++	/* default using VGA interface type */
++	params->type = DISPLAY_ENTITY_INTERFACE_VGA;
++	
++	return 0;
++}
++
++static const struct display_entity_control_ops mux_fpga_control_ops = {
++		.set_state = mux_fpga_set_state,
++		.get_params = mux_fpga_get_params,
++};
++
++static const struct display_entity_ops mux_fpga_ops = {
++		.ctrl = &mux_fpga_control_ops,
++};
++
+ static struct notifier_block vexpress_dvi_fb_notifier = {
+ 	.notifier_call = vexpress_dvi_fb_event_notify,
+ };
+@@ -170,7 +222,9 @@ static int vexpress_dvi_probe(struct platform_device *pdev)
+ 	enum vexpress_dvi_func func;
+ 	const struct of_device_id *match =
+ 			of_match_device(vexpress_dvi_of_match, &pdev->dev);
+-	u32 site;
++	struct _mux_fpga	*mux_fpga = NULL;
++	
++	int ret = 0;
+ 
+ 	if (match)
+ 		func = (enum vexpress_dvi_func)match->data;
+@@ -182,18 +236,36 @@ static int vexpress_dvi_probe(struct platform_device *pdev)
+ 		vexpress_muxfpga_func =
+ 				vexpress_config_func_get_by_dev(&pdev->dev);
+ 		device_create_file(&pdev->dev, &dev_attr_fb);
+-		/* 	hard-coded for test DRM on RTSM 
+-			Set default site = 0
+-		*/
+-		if (vexpress_dvi_fb < 0){
+-			/*default site = 0*/
+-			site = 0;
+-			vexpress_config_write(vexpress_muxfpga_func, 0, site);
+-			vexpress_dvi_fb = site;
+-		}
++		
++		/* 	
++		 *	default using VEXPRESS_SITE_MB
++		 */
++		pr_info("Set Site MB as Default\n");
++		vexpress_config_write(vexpress_muxfpga_func, 0, VEXPRESS_SITE_MB);
++		vexpress_dvi_fb = VEXPRESS_SITE_MB;
++
++		/* initialize display entity */
++		mux_fpga = devm_kzalloc(&pdev->dev, sizeof(*mux_fpga), GFP_KERNEL);
++			if (mux_fpga == NULL)
++				return -ENOMEM;
++
++		mux_fpga->entity.dev = &pdev->dev;
++		mux_fpga->entity.ops = &mux_fpga_ops;
++		strlcpy(mux_fpga->entity.name, dev_name(&pdev->dev), sizeof(mux_fpga->entity.name));
++
++		ret = display_entity_init(&mux_fpga->entity, 1, 1);
++		if (ret < 0)
++			return ret;
++
++		ret = display_entity_add(&mux_fpga->entity);
++		if (ret < 0)
++			return ret;
++
++		platform_set_drvdata(pdev, mux_fpga);
+ 		break;
+ 	case FUNC_DVIMODE:
+ 		vexpress_dvimode_func =
++		
+ 				vexpress_config_func_get_by_dev(&pdev->dev);
+ 		break;
+ 	}
+@@ -205,7 +277,7 @@ static int vexpress_dvi_probe(struct platform_device *pdev)
+ 
+ 	vexpress_dvi_fb_select(vexpress_dvi_fb);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static const struct platform_device_id vexpress_dvi_id_table[] = {
+-- 
+1.7.9.5
 
-Regards,
---Prabhakar Lad
