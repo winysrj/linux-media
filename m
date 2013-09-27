@@ -1,55 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ogmios.wolfblood.net ([151.236.13.79]:50649 "EHLO
-	ogmios.wolfblood.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073Ab3I2LRc (ORCPT
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:53000 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754423Ab3I0SvQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 07:17:32 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by ogmios.wolfblood.net (Postfix) with ESMTP id D0FF01FCCC
-	for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 11:11:03 +0000 (UTC)
-Received: from ogmios.wolfblood.net ([127.0.0.1])
-	by localhost (ogmios.wolfblood.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id k64-6JnqfjKu for <linux-media@vger.kernel.org>;
-	Sun, 29 Sep 2013 11:11:03 +0000 (UTC)
-Received: from neto.wolf.local (neto.wolf.local [90.146.28.98])
-	by ogmios.wolfblood.net (Postfix) with ESMTP id A87591FCB2
-	for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 11:11:03 +0000 (UTC)
-Received: from nb1.wolf.local (unknown [192.168.0.1])
-	(Authenticated sender: benjamin@benvei.at)
-	by neto.wolf.local (Postfix) with ESMTPSA id 486F71101054
-	for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 11:11:04 +0000 (UTC)
-Message-ID: <52480AC7.6030507@benvei.at>
-Date: Sun, 29 Sep 2013 11:11:03 +0000
-From: Benjamin Veitschegger <benjamin@benvei.at>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Technisat CableStar Combi CI HD
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 27 Sep 2013 14:51:16 -0400
+Received: by mail-pb0-f42.google.com with SMTP id un15so2941439pbc.1
+        for <linux-media@vger.kernel.org>; Fri, 27 Sep 2013 11:51:16 -0700 (PDT)
+From: Show Liu <show.liu@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, tom.gall@linaro.org,
+	t.katayama@jp.fujitsu.com, vikas.sajjan@linaro.org,
+	linaro-kernel@lists.linaro.org, tom.cooksey@arm.com,
+	Show Liu <show.liu@linaro.org>
+Subject: [PATCH/RFC v3 3/3] add pipe link for display entity
+Date: Sat, 28 Sep 2013 02:50:46 +0800
+Message-Id: <1380307846-27479-4-git-send-email-show.liu@linaro.org>
+In-Reply-To: <1380307846-27479-1-git-send-email-show.liu@linaro.org>
+References: <1380307846-27479-1-git-send-email-show.liu@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+---
+ arch/arm/boot/dts/rtsm_ve-motherboard.dtsi     |   46 ++++++++++++++++++++++++
+ arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts |    4 +++
+ 2 files changed, 50 insertions(+)
 
-i'm currently trying to get a "Technisat CableStar Combo CI HD" to work 
-under debian wheezy, kernel 3.11.
-
-I've followed [1], and at first everything looked fine, the card seems 
-to be recognized, and the drivers are loaded. (dmesg)
-
-So, i've tried to scan for some dvb-c channels, and drxk started 
-spamming my dmesg.
-
-[ 1407.088033] drxk: SCU not ready
-[ 1407.088046] drxk: Error -5 on get_qam_lock_status
-[ 1407.088052] drxk: Error -5 on get_lock_status
-[.....]
-
-Does anyone have an idea, how to fix it? According to the wiki, there 
-are already people, who got the device working.
-
-Thanks.
-Benjamin
-
-[1] http://www.linuxtv.org/wiki/index.php/TechniSat_CableStar_Combo_HD_CI
+diff --git a/arch/arm/boot/dts/rtsm_ve-motherboard.dtsi b/arch/arm/boot/dts/rtsm_ve-motherboard.dtsi
+index 6d12566..b4e032a 100644
+--- a/arch/arm/boot/dts/rtsm_ve-motherboard.dtsi
++++ b/arch/arm/boot/dts/rtsm_ve-motherboard.dtsi
+@@ -166,6 +166,17 @@
+ 				mode = "VGA";
+ 				use_dma = <0>;
+ 				framebuffer = <0x18000000 0x00180000>;
++
++				ports {
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++						port@0 {
++							reg = <0>;
++							clcd_out: endpoint {
++							};
++						};
++				};
+ 			};
+ 		};
+ 
+@@ -214,6 +225,41 @@
+ 			muxfpga@0 {
+ 				compatible = "arm,vexpress-muxfpga";
+ 				arm,vexpress-sysreg,func = <7 0>;
++
++				ports {
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					port@0 {
++						reg = <0>;
++						muxfpga_in: endpoint {
++						remote-endpoint = <&clcd_out>;
++						};
++					};
++					port@1 {
++						reg = <1>;
++						muxfpga_out: endpoint {
++						remote-endpoint = <&con_vga_in>;
++						};
++					};
++
++				};
++			};
++
++			con-vga {
++				compatible = "con-vga";
++
++				ports {
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					port@0 {
++						reg = <0>;
++						con_vga_in: endpoint {
++						remote-endpoint = <&muxfpga_out>;
++						};
++					};
++				};
+ 			};
+ 
+ 			shutdown@0 {
+diff --git a/arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts b/arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts
+index c59f4b5..45a07c5 100644
+--- a/arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts
++++ b/arch/arm/boot/dts/rtsm_ve-v2p-ca15x1-ca7x1.dts
+@@ -230,4 +230,8 @@
+ 	};
+ };
+ 
++&clcd_out {
++	remote-endpoint = <&muxfpga_in>;
++};
++
+ /include/ "clcd-panels.dtsi"
+-- 
+1.7.9.5
 
