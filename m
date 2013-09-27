@@ -1,75 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:18818 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753Ab3IIJKC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 05:10:02 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MSU00M12PGH5Y40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Sep 2013 10:10:00 +0100 (BST)
-Message-id: <522D9065.3040209@samsung.com>
-Date: Mon, 09 Sep 2013 11:09:57 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Pawel Osciak' <posciak@chromium.org>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v1 16/19] v4l: Add encoding camera controls.
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org>
- <1377829038-4726-17-git-send-email-posciak@chromium.org>
- <52204058.6070008@xs4all.nl>
- <CACHYQ-oGaAS1TVLqm-wRsPSg5xDqBTuvj9PcMAmu5vEc-aVb1A@mail.gmail.com>
- <522D7E3E.8070104@xs4all.nl>
- <CACHYQ-ph7eBPkr38c__Wpr_ixPChQQi5tYJENrR3GAfyDzcThQ@mail.gmail.com>
- <04c001cead3a$f8ea0dc0$eabe2940$%debski@samsung.com>
-In-reply-to: <04c001cead3a$f8ea0dc0$eabe2940$%debski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from eu1sys200aog114.obsmtp.com ([207.126.144.137]:52107 "EHLO
+	eu1sys200aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753495Ab3I0N3R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 09:29:17 -0400
+Message-ID: <52458774.1060909@st.com>
+Date: Fri, 27 Sep 2013 14:26:12 +0100
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Reply-To: srinivas.kandagatla@st.com
+MIME-Version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for remote-control
+References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com> <20130927113458.GB18672@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20130927113458.GB18672@e106331-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/2013 11:00 AM, Kamil Debski wrote:
-[...]
->>>> We have QP controls separately for H264, H263 and MPEG4. Why is that?
->>>> Which one should I use for VP8? Shouldn't we unify them instead?
->>>
->>> I can't quite remember the details, so I've CCed Kamil since he added
->> those controls.
->>> At least the H264 QP controls are different from the others as they
->>> have a different range. What's the range for VP8?
->>
->> Yes, it differs, 0-127.
->> But I feel this is pretty unfortunate, is it a good idea to multiply
->> controls to have one per format when they have different ranges
->> depending on the selected format in general? Perhaps a custom handler
->> would be better?
->>
->>> I'm not sure why the H263/MPEG4 controls weren't unified: it might be
->>> that since the
->>> H264 range was different we decided to split it up per codec. But I
->>> seem to remember that there was another reason as well.
+On 27/09/13 12:34, Mark Rutland wrote:
+
+>> > +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
+>> > +	  the rx pins are wired up.
+> I'm unsure on this. What if the device has multiple receivers that can
+> be independently configured? What if it supports something other than
+> "infrared" or "uhf"? What if a device can only be wired up as
+> "infrared"? 
 > 
-> We had a discussion about this on linux-media mailing list. It can be found
-> here:
-> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32606
-> In short, it is a mix of two reasons: one - the valid range is different for
-> different formats and second - implementing controls which have different
-> min/max values depending on format was not easy.
+> I'm not sure how generic these are, though we should certainly encourage
+> bindings that can be described this way to be described in the same way.
+> 
+>> > +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
+>> > +	  the tx pins are wired up.
+> I have similar concerns here to those for the rx-mode property.
+> 
+Initially rx-mode and tx-mode sounded like more generic properties
+that's the reason I ended up in this route. But after this discussion it
+looks like its not really generic enough to cater all the use cases.
 
-Hmm, these seem pretty vague reasons. And since some time we have support
-for dynamic control range update [1].
+It make sense for me to perfix "st," for these properties in the st-rc
+driver rather than considering them as generic properties.
 
-> On the one hand I am thinking that now, when we have more codecs, it would
-> be better
-> to have a single control, on the other hand what about backward
-> compatibility?
-> Is there a graceful way to merge H263 and H264 QP controls?
+> I think what we actually need to document is the process of creating a
+> binding in such a way as to encourage uniformity. Something like the
+> following steps:
+I agree, It will help.. :-)
+> 
+> 1. Look to see if a binding already exists. If so, use it.
+> 
+> 2. Is there a binding for a compatible device? If so, use/extend it.
+> 
+> 3. Is there a binding for a similar (but incompatible) device? Use it as
+>    a template, possibly factor out portions into a class binding if
+>    those portions are truly general.
+> 
+> 4. Is there a binding for the class of device? If so, build around that,
+>    possibly extending it.
+> 
+> 5. If there's nothing relevant, create a binding aiming for as much
+>    commonality as possible with other devices of that class that may
+>    have bindings later.
 
-[1] https://patchwork.linuxtv.org/patch/16436/
+Thanks for this little guide...
 
---
-Regards,
-Sylwester
+--srini
