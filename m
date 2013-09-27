@@ -1,120 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2273 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab3IDCyz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 22:54:55 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r842sqsg029100
-	for <linux-media@vger.kernel.org>; Wed, 4 Sep 2013 04:54:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 347BC2A0764
-	for <linux-media@vger.kernel.org>; Wed,  4 Sep 2013 04:54:51 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130904025451.347BC2A0764@tschai.lan>
-Date: Wed,  4 Sep 2013 04:54:51 +0200 (CEST)
+Received: from moutng.kundenserver.de ([212.227.17.8]:53553 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab3I0IY6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 04:24:58 -0400
+Date: Fri, 27 Sep 2013 10:24:55 +0200 (CEST)
+From: remi <remi@remis.cc>
+Reply-To: remi <remi@remis.cc>
+To: "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <259638318.304490.1380270295589.open-xchange@email.1and1.fr>
+In-Reply-To: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com>
+References: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com>
+Subject: Re: Need help with AverMedia306 driver on linux system.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+:)
 
-Results of the daily build of media_tree:
+Also,
 
-date:		Wed Sep  4 04:00:30 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+by the time I redo the patch,
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+You must have seen how i have reached this point,
 
-Full logs are available here:
+I have actually started by insering the module with card=39 as an option,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
+So you can for now, add theses line to
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+gpunk@gpunk-Aspire-8930:~$cat /etc/modprobe.d/video-tv.conf
+
+
+options tuner-xc2028 firmware_name=xc3028-v27.fw
+options cx23885 card=39
+
+
+I called my file this way ... it's arbitrary, please check the man modprobe of
+your ditribution/kernel .
+
+
+Best regards
+
+Rémi
+
+
+
+> Le 21 septembre 2013 à 19:43, "Admin@tydaikho.com" <minhhoang1004@yahoo.com> a écrit :
+> 
+> 
+> Hi Remi!
+> I got my card but i have not finish to install driver. I follow your patch on linuxtv.org but i am not successful. it makes some mistake: "malform" and "hunk" errors.
+> =======================
+> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885.patch
+> can't find file to patch at input line 3
+> Perhaps you used the wrong -p or --strip option?
+> The text leading up to this was:
+> --------------------------
+> |--- drivers/media/pci/cx23885/cx23885.h   2013-03-25 05:45:50.000000000 +0100
+> |+++ drivers/media/pci/cx23885/cx23885.h      2013-08-21 13:55:20.010625134 +0200
+> --------------------------
+> File to patch: ./drivers/media/pci/cx23885/cx23885.h                                  
+> patching file ./drivers/media/pci/cx23885/cx23885.h
+> patch: **** malformed patch at line 4:  #define CX23885_BOARD_PROF_8000                37
+> ==========================
+> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-video.patch
+> can't find file to patch at input line 4
+> Perhaps you used the wrong -p or --strip option?
+> The text leading up to this was:
+> --------------------------
+> |--- drivers/media/pci/cx23885/cx23885-video.c     2013-08-02 05:45:59.000000000 +0200
+> |+++ drivers/media/pci/cx23885/cx23885-video.c        2013-08-21 13:55:20.017625046
+> |+0200
+> --------------------------
+> File to patch: ./drivers/media/pci/cx23885/cx23885-video.c
+> patching file ./drivers/media/pci/cx23885/cx23885-video.c
+> Hunk #1 FAILED at 511.
+> Hunk #2 FAILED at 1888.
+> 2 out of 2 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-video.c.rej
+> ============================
+> root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-cards.patch
+> can't find file to patch at input line 4
+> Perhaps you used the wrong -p or --strip option?
+> The text leading up to this was:
+> --------------------------
+> |--- drivers/media/pci/cx23885/cx23885-cards.c     2012-12-28 00:04:05.000000000 +0100
+> |+++ drivers/media/pci/cx23885/cx23885-cards.c        2013-08-21 14:15:54.173195979
+> |+0200
+> --------------------------
+> File to patch: ./drivers/media/pci/cx23885/cx23885-cards.c
+> patching file ./drivers/media/pci/cx23885/cx23885-cards.c
+> Hunk #1 FAILED at 604.
+> Hunk #2 FAILED at 841.
+> Hunk #3 FAILED at 1069.
+> Hunk #4 FAILED at 1394.
+> Hunk #5 FAILED at 1623.
+> Hunk #6 FAILED at 1758.
+> 6 out of 6 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-cards.c.rej
+> ===============================
+> 
+> If you don't mind, i need your support to get my card works well. Thank you very much!
+> 
+>  
+> ----------------------------------------------------------
+> Yahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho
+> ----------------------------------------------------------
+> 
+> (http://tydaikho.com)  VS  (http://vnluser.net)
