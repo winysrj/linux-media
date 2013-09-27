@@ -1,109 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35307 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760816Ab3ICUzv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 16:55:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 07/19] uvcvideo: Unify error reporting during format descriptor parsing.
-Date: Tue, 03 Sep 2013 22:55:51 +0200
-Message-ID: <2439294.Z6LFbPGDUj@avalon>
-In-Reply-To: <1377829038-4726-8-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-8-git-send-email-posciak@chromium.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:46492 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568Ab3I0K6y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 06:58:54 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v9 00/13] Exynos5 IS driver
+Date: Fri, 27 Sep 2013 16:29:05 +0530
+Message-Id: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+The patch series add support for Exynos5 camera subsystem. It
+re-uses mipi-csis and fimc-lite from exynos4-is and adds a new
+media device and fimc-is device drivers for exynos5.
 
-Thank you for the patch.
+Changes from v8
+---------------
+- Moved i2c-isp device nodes into the fimc-is node as suggested
+  by Sylwester
+- Addressed comments given by Sylwester and Philipp Zabel
 
-On Friday 30 August 2013 11:17:06 Pawel Osciak wrote:
-> Add common error handling paths for format parsing failures.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 35 ++++++++++++++---------------------
-> 1 file changed, 14 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index d950b40..936ddc7 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -322,13 +322,8 @@ static int uvc_parse_format(struct uvc_device *dev,
->  	case UVC_VS_FORMAT_UNCOMPRESSED:
->  	case UVC_VS_FORMAT_FRAME_BASED:
->  		n = buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED ? 27 : 28;
-> -		if (buflen < n) {
-> -			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-> -			       "interface %d FORMAT error\n",
-> -			       dev->udev->devnum,
-> -			       alts->desc.bInterfaceNumber);
-> -			return -EINVAL;
-> -		}
-> +		if (buflen < n)
-> +			goto format_error;
-> 
->  		/* Find the format descriptor from its GUID. */
->  		fmtdesc = uvc_format_by_guid(&buffer[5]);
-> @@ -356,13 +351,8 @@ static int uvc_parse_format(struct uvc_device *dev,
->  		break;
-> 
->  	case UVC_VS_FORMAT_MJPEG:
-> -		if (buflen < 11) {
-> -			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-> -			       "interface %d FORMAT error\n",
-> -			       dev->udev->devnum,
-> -			       alts->desc.bInterfaceNumber);
-> -			return -EINVAL;
-> -		}
-> +		if (buflen < 11)
-> +			goto format_error;
-> 
->  		strlcpy(format->name, "MJPEG", sizeof format->name);
->  		format->fcc = V4L2_PIX_FMT_MJPEG;
-> @@ -372,13 +362,8 @@ static int uvc_parse_format(struct uvc_device *dev,
->  		break;
-> 
->  	case UVC_VS_FORMAT_DV:
-> -		if (buflen < 9) {
-> -			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-> -			       "interface %d FORMAT error\n",
-> -			       dev->udev->devnum,
-> -			       alts->desc.bInterfaceNumber);
-> -			return -EINVAL;
-> -		}
-> +		if (buflen < 9)
-> +			goto format_error;
-> 
->  		switch (buffer[8] & 0x7f) {
->  		case 0:
-> @@ -542,6 +527,14 @@ static int uvc_parse_format(struct uvc_device *dev,
->  	}
-> 
->  	return buffer - start;
-> +
-> +format_error:
-> +	uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-> +			"interface %d FORMAT error\n",
-> +			dev->udev->devnum,
-> +			alts->desc.bInterfaceNumber);
+Changes from v7
+---------------
+- Addressed few DT related review comments from Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg66403.html
+- Few fixes added after some regression testing
 
-Could you please align the lines on UVC_TRACE_DESCR ?
+Changes from v6
+---------------
+- Addressed DT binding doc review comments from Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65771.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65772.html
 
-> +	return -EINVAL;
-> +
+Changes from v5
+---------------
+- Addressed review comments from Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65578.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg65605.html
 
-And remove the extra blank line ?
+Changes from v4
+---------------
+- Addressed all review comments from Sylwester
+- Added separate PMU node as suggested by Stephen Warren
+- Added phandle based discovery of subdevs instead of node name
 
->  }
-> 
->  static int uvc_parse_streaming(struct uvc_device *dev,
+Changes from v3
+---------------
+- Dropped the RFC tag
+- Addressed all review comments from Sylwester and Sachin
+- Removed clock provider for media dev
+- Added s5k4e5 sensor devicetree binding doc
+
+Changes from v2
+---------------
+- Added exynos5 media device driver from Shaik to this series
+- Added ISP pipeline support in media device driver
+- Based on Sylwester's latest exynos4-is development
+- Asynchronos registration of sensor subdevs
+- Made independent IS-sensor support
+- Add s5k4e5 sensor driver
+- Addressed review comments from Sylwester, Hans, Andrzej, Sachin
+
+Changes from v1
+---------------
+- Addressed all review comments from Sylwester
+- Made sensor subdevs as independent i2c devices
+- Lots of cleanup
+- Debugfs support added
+- Removed PMU global register access
+
+Arun Kumar K (12):
+  [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings
+    documentation
+  [media] exynos5-fimc-is: Add driver core files
+  [media] exynos5-fimc-is: Add common driver header files
+  [media] exynos5-fimc-is: Add register definition and context header
+  [media] exynos5-fimc-is: Add isp subdev
+  [media] exynos5-fimc-is: Add scaler subdev
+  [media] exynos5-fimc-is: Add sensor interface
+  [media] exynos5-fimc-is: Add the hardware pipeline control
+  [media] exynos5-fimc-is: Add the hardware interface module
+  [media] exynos5-is: Add Kconfig and Makefile
+  V4L: s5k6a3: Change sensor min/max resolutions
+  V4L: Add driver for s5k4e5 image sensor
+
+Shaik Ameer Basha (1):
+  [media] exynos5-is: Adding media device driver for exynos5
+
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |   84 +
+ .../bindings/media/exynos5250-camera.txt           |  126 ++
+ .../devicetree/bindings/media/i2c/s5k4e5.txt       |   45 +
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5k4e5.c                         |  347 ++++
+ drivers/media/i2c/s5k6a3.c                         |   10 +-
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/exynos5-is/Kconfig          |   20 +
+ drivers/media/platform/exynos5-is/Makefile         |    7 +
+ drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1211 ++++++++++++++
+ drivers/media/platform/exynos5-is/exynos5-mdev.h   |  126 ++
+ drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
+ drivers/media/platform/exynos5-is/fimc-is-core.c   |  410 +++++
+ drivers/media/platform/exynos5-is/fimc-is-core.h   |  132 ++
+ drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++
+ .../media/platform/exynos5-is/fimc-is-interface.c  |  810 ++++++++++
+ .../media/platform/exynos5-is/fimc-is-interface.h  |  124 ++
+ drivers/media/platform/exynos5-is/fimc-is-isp.c    |  534 ++++++
+ drivers/media/platform/exynos5-is/fimc-is-isp.h    |   90 ++
+ .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++
+ drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 +++++++++++++
+ .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1708 ++++++++++++++++++++
+ .../media/platform/exynos5-is/fimc-is-pipeline.h   |  129 ++
+ drivers/media/platform/exynos5-is/fimc-is-regs.h   |  105 ++
+ drivers/media/platform/exynos5-is/fimc-is-scaler.c |  476 ++++++
+ drivers/media/platform/exynos5-is/fimc-is-scaler.h |  106 ++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 +
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 +
+ drivers/media/platform/exynos5-is/fimc-is.h        |  160 ++
+ 31 files changed, 9247 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
+ create mode 100644 drivers/media/i2c/s5k4e5.c
+ create mode 100644 drivers/media/platform/exynos5-is/Kconfig
+ create mode 100644 drivers/media/platform/exynos5-is/Makefile
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
