@@ -1,155 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:38610 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752977Ab3I1Tah (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46851 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329Ab3I0XOq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Sep 2013 15:30:37 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: kishon@ti.com
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH V5 4/5] video: exynos_mipi_dsim: Use the generic PHY driver
-Date: Sat, 28 Sep 2013 21:27:46 +0200
-Message-Id: <1380396467-29278-5-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
-References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 27 Sep 2013 19:14:46 -0400
+Date: Fri, 27 Sep 2013 16:14:45 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Jeff P. Zacher" <ad_sicks@yahoo.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	stable <stable@vger.kernel.org>
+Subject: Re: [stable] Re: Dependency bug in the uvcvideo Kconfig
+Message-ID: <20130927231445.GC7708@kroah.com>
+References: <1828294.VXnhqsmrEo@localhost>
+ <CA+MoWDp0zFXaEhYbwsEV_uMg3H0Nabx9iu25ixyuJvgWGxi=Gg@mail.gmail.com>
+ <523A2EB4.6070407@infradead.org>
+ <1697645.iYIvpGsUS4@localhost>
+ <523B5BD6.4000500@infradead.org>
+ <523B8225.9040504@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <523B8225.9040504@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the generic PHY API instead of the platform callback
-for the MIPI DSIM DPHY enable/reset control.
+On Thu, Sep 19, 2013 at 04:00:53PM -0700, Randy Dunlap wrote:
+> On 09/19/13 13:17, Randy Dunlap wrote:
+> > On 09/18/13 20:44, Jeff P. Zacher wrote:
+> >>  
+> >>
+> >> You are correct that this problem shown in the forum was in 3.5.4. However, I am 
+> >> having wither the same or similar problem in 3.10.7.
+> >> Here is the broken config file, saved as .config-bad
+> >>
+> > 
+> > The failing kernel config file is attached.
+> 
+> For Linux 3.10.x:
+> 
+> 
+> This is already fixed in mainline but patches need to be backported.
+> Specifically these 2 commits (in this order):
+> 
+> 
+> commit a0f9354b1a319cb29c331bfd2e5a15d7f9b87fa4
+> Author: Randy Dunlap <rdunlap@infradead.org>
+> Date:   Wed May 8 17:28:13 2013 -0300
+> 
+>     [media] media/usb: fix kconfig dependencies
+> 
+> and
+> 
+> commit 5077ac3b8108007f4a2b4589f2d373cf55453206
+> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:   Wed May 22 11:25:52 2013 -0300
+> 
+>     Properly handle tristate dependencies on USB/PCI menus
+> 
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Donghwa Lee <dh09.lee@samsung.com>
----
-Changes since v4:
- - PHY label removed from the platform data structure.
----
- drivers/video/exynos/Kconfig           |    1 +
- drivers/video/exynos/exynos_mipi_dsi.c |   19 ++++++++++---------
- include/video/exynos_mipi_dsim.h       |    5 ++---
- 3 files changed, 13 insertions(+), 12 deletions(-)
+Applied, thanks.
 
-diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
-index 1b035b2..976594d 100644
---- a/drivers/video/exynos/Kconfig
-+++ b/drivers/video/exynos/Kconfig
-@@ -16,6 +16,7 @@ if EXYNOS_VIDEO
- config EXYNOS_MIPI_DSI
- 	bool "EXYNOS MIPI DSI driver support."
- 	depends on ARCH_S5PV210 || ARCH_EXYNOS
-+	select GENERIC_PHY
- 	help
- 	  This enables support for MIPI-DSI device.
-
-diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
-index 32e5406..00b3a52 100644
---- a/drivers/video/exynos/exynos_mipi_dsi.c
-+++ b/drivers/video/exynos/exynos_mipi_dsi.c
-@@ -30,6 +30,7 @@
- #include <linux/interrupt.h>
- #include <linux/kthread.h>
- #include <linux/notifier.h>
-+#include <linux/phy/phy.h>
- #include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
- #include <linux/err.h>
-@@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
- 		exynos_mipi_regulator_enable(dsim);
-
- 		/* enable MIPI-DSI PHY. */
--		if (dsim->pd->phy_enable)
--			dsim->pd->phy_enable(pdev, true);
-+		phy_power_on(dsim->phy);
-
- 		clk_enable(dsim->clock);
-
-@@ -373,6 +373,10 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
- 		return ret;
- 	}
-
-+	dsim->phy = devm_phy_get(&pdev->dev, "dsim");
-+	if (IS_ERR(dsim->phy))
-+		return PTR_ERR(dsim->phy);
-+
- 	dsim->clock = devm_clk_get(&pdev->dev, "dsim0");
- 	if (IS_ERR(dsim->clock)) {
- 		dev_err(&pdev->dev, "failed to get dsim clock source\n");
-@@ -439,8 +443,7 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
- 	exynos_mipi_regulator_enable(dsim);
-
- 	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, true);
-+	phy_power_on(dsim->phy);
-
- 	exynos_mipi_update_cfg(dsim);
-
-@@ -504,9 +507,8 @@ static int exynos_mipi_dsi_suspend(struct device *dev)
- 	if (client_drv && client_drv->suspend)
- 		client_drv->suspend(client_dev);
-
--	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, false);
-+	/* disable MIPI-DSI PHY. */
-+	phy_power_off(dsim->phy);
-
- 	clk_disable(dsim->clock);
-
-@@ -536,8 +538,7 @@ static int exynos_mipi_dsi_resume(struct device *dev)
- 	exynos_mipi_regulator_enable(dsim);
-
- 	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, true);
-+	phy_power_on(dsim->phy);
-
- 	clk_enable(dsim->clock);
-
-diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
-index 89dc88a..6a578f8 100644
---- a/include/video/exynos_mipi_dsim.h
-+++ b/include/video/exynos_mipi_dsim.h
-@@ -216,6 +216,7 @@ struct mipi_dsim_config {
-  *	automatically.
-  * @e_clk_src: select byte clock source.
-  * @pd: pointer to MIPI-DSI driver platform data.
-+ * @phy: pointer to the MIPI-DSI PHY
-  */
- struct mipi_dsim_device {
- 	struct device			*dev;
-@@ -236,6 +237,7 @@ struct mipi_dsim_device {
- 	bool				suspended;
-
- 	struct mipi_dsim_platform_data	*pd;
-+	struct phy			*phy;
- };
-
- /*
-@@ -248,7 +250,6 @@ struct mipi_dsim_device {
-  * @enabled: indicate whether mipi controller got enabled or not.
-  * @lcd_panel_info: pointer for lcd panel specific structure.
-  *	this structure specifies width, height, timing and polarity and so on.
-- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
-  */
- struct mipi_dsim_platform_data {
- 	char				lcd_panel_name[PANEL_NAME_SIZE];
-@@ -256,8 +257,6 @@ struct mipi_dsim_platform_data {
- 	struct mipi_dsim_config		*dsim_config;
- 	unsigned int			enabled;
- 	void				*lcd_panel_info;
--
--	int (*phy_enable)(struct platform_device *pdev, bool on);
- };
-
- /*
---
-1.7.4.1
-
+greg k-h
