@@ -1,103 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:52635 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758854Ab3IBQWG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Sep 2013 12:22:06 -0400
-Message-id: <5224BB26.9090902@samsung.com>
-Date: Mon, 02 Sep 2013 18:21:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	"grant.likely@linaro.org" <grant.likely@linaro.org>
-Subject: Re: [PATCH v7] s5k5baf: add camera sensor driver
-References: <1377096091-7284-1-git-send-email-a.hajda@samsung.com>
- <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
-In-reply-to: <20130827091448.GA19893@e106331-lin.cambridge.arm.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:58206 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909Ab3I0Als convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Sep 2013 20:41:48 -0400
+Date: Fri, 27 Sep 2013 02:41:45 +0200 (CEST)
+From: remi <remi@remis.cc>
+Reply-To: remi <remi@remis.cc>
+To: Anca Emanuel <anca.emanuel@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <763113790.297312.1380242505378.open-xchange@email.1and1.fr>
+In-Reply-To: <CAJL_dMtRmbfbXYSwgonHyEuYoHPMa2ZQVpmGOC1mV8EN_zk=2g@mail.gmail.com>
+References: <641271032.80124.1376921926586.open-xchange@email.1and1.fr> <52123758.4090007@iki.fi> <408826654.91086.1376994751713.open-xchange@email.1and1.fr> <1970131979.98476.1377009869066.open-xchange@email.1and1.fr> <CAJL_dMtRmbfbXYSwgonHyEuYoHPMa2ZQVpmGOC1mV8EN_zk=2g@mail.gmail.com>
+Subject: Re: avermedia A306 / PCIe-minicard (laptop)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mark,
+Hello
 
-On 08/27/2013 11:14 AM, Mark Rutland wrote:
->> +endpoint node
->> +-------------
->> +
->> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
->> +  video-interfaces.txt. This property can be only used to specify number
->> +  of data lanes, i.e. the array's content is unused, only its length is
->> +  meaningful. When this property is not specified default value of 1 lane
->> +  will be used.
-> 
-> Apologies for having not replied to the last posting, but having looked
-> at the documentation I was provided last time [1], I don't think the
-> values in the data-lanes property should be described as unused. That
-> may be the way the Linux driver functions at present, but it's not how
-> the generic video-interfaces binding documentation describes the
-> property.
-> 
-> If the CSI transmitter hardware doesn't support logical remapping of
-> lanes, then the only valid values for data-lanes would be a contiguous
-> list of lane IDs starting at 1, ending at 4 at most. Valid values for
-> the property would be one of:
-> 
-> data-lanes = <1>;
-> data-lanes = <1>, <2>;
-> data-lanes = <1>, <2>, <3>;
-> data-lanes = <1>, <2>, <3>, <4>;
-> 
-> We can mention the fact the hardware doesn't support remapping of lanes,
-> and therefore the list must start with lane 1 and end with (at most)
-> lane 4. That way a dts will match the generic binding and actually
-> describe the hardware, and it's possible for Linux (or any other OS) to
-> factor out the parsing of data-lanes later as desired.
-> 
-> I don't think we should offer freedom to encode garbage in the dt when
-> we can just as easily encourage more standard use of bindings that will
-> make our lives easier in the long-term.
 
-I entirely agree, that's a very accurate analysis.
+The firmware got fixed, the module option, needs a file-name only, no path , lol
+for once
 
-Presumably the data-lanes property's descriptions could be improved so
-it is said explicitly that array elements 0...N - 1, where N = 4, 
-correspond to logical data lanes 1...N.
 
-Then considering the values in the data-lanes property, I didn't make
-the description terribly specific about the fact that pool of indexes
-0...4 is used for the clock lane and 4 data lanes. The values could well
-be H/W specific, but it seems more sensible to enforce common range.
-It may not match exactly with documentation of various hardware. E.g.
-OMAP, see page 1661, register CSI2_COMPLEXIO_CFG [1], uses indexes 
-1..5 to indicate position of a data lane and 0 is used to mark a lane 
-as unused.
+Well, the driver says Firmware OK ,
 
-I think we should have similarly defined value 0 to indicate an unused 
-lane. None of drivers in mainline uses this line remapping feature, so 
-changing meaning of the array values wouldn't presumably have any bad 
-side effects. I'm not sure if it's OK to make a change like this now. 
-IIUC the MIPI CSI-2 standard requires consecutive data lane indexes, 
-so valid set of data lanes could be only: <1>, <1, 2>, <1, 2, 3>, 
-<1, 2, 3, 4>. So there seems to be no issue for MIPI CSI-2. But for 
-future protocols the current convention might not have been flexible 
-enough.
 
-> [1] http://www.mipi.org/specifications/camera-interface#CSI2
+I have seen the message of Mauro, he must be right a hundred percent,
 
-[2] http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=swpu231ao&fileType=pdf
+'cause we seem to have the initialisations ok, but , for me at lease no data
+coming out from the tuner ...
 
---
-Regards,
-Sylwester
+and it has GPIOs , that have to be used accordinly ...
+
+No data meaning no reaction, and no tuning .
+
+Otherwise I think we have video from the tuner ( snow ! )  and composite (
+parasites )
+
+
+
+I will as soon as i can, take macro photos heads/tails , and draw a schematic
+
+
+With the datasheets i have (all ;) ) I will find out the GPIOs where they are
+going ... :)
+
+
+will keep you all informed of course .
+
+
+
+Best regards
+
+
+
+Rémi
+
+
+###
+
+               cx25840 2-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382
+bytes)
+[    4.392762] tuner 1-0061: Tuner -1 found with type(s) Radio TV.
+[    4.395040] xc2028 1-0061: creating new instance
+[    4.395043] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[    4.395214] cx23885[0]: registered device video1 [v4l2]
+[    4.395333] cx23885[0]: registered device vbi0
+[    4.395519] cx23885[0]: registered ALSA audio device
+[    4.395870] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw,
+type: xc2028 firmware, ver 2.7
+[    4.598038] xc2028 1-0061: Loading firmware for type=BASE (1), id
+0000000000000000.
+[    5.762199] xc2028 1-0061: Loading firmware for type=(0), id
+000000000000b700.
+[    5.777471] SCODE (20000000), id 000000000000b700:
+[    5.777474] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320
+(60008000), id 0000000000008000.
+[    5.923492] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[    5.923499] cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 18, latency: 0,
+mmio: 0xd3000000
+
+
+####
+
+
+
+> Le 18 septembre 2013 à 16:44, Anca Emanuel <anca.emanuel@gmail.com> a écrit :
+> 
+> 
+> On Tue, Aug 20, 2013 at 5:44 PM, remi <remi@remis.cc> wrote:
+> > Hello
+> >
+> > FYI
+> >
+> > I digged into the firmware problem a little,
+> >
+> >
+> > xc3028L-v36.fw  gets loaded by default , and the errors are as you saw earlier
+> >
+> >
+> > forcing the /lib/firmware/xc3028-v27.fw :
+> >
+> > [ 3569.941404] xc2028 2-0061: Could not load firmware
+> > /lib/firmware/xc3028-v27.fw
+> >
+> >
+> > So i searched the original dell/windows driver :
+> >
+> >
+> > I have these files in there :
+> >
+> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070# ls -lR
+> > .:
+> > total 5468
+> > drwxr-xr-x 2 gpunk gpunk    4096 août  20 13:24 Driver_X86
+> > -rwxr-xr-x 1 gpunk gpunk 5589827 sept. 12  2007 Setup.exe
+> > -rw-r--r-- 1 gpunk gpunk     197 oct.   9  2007 setup.iss
+> >
+> > ./Driver_X86:
+> > total 1448
+> > -rw-r--r-- 1 gpunk gpunk 114338 sept.  7  2007 A885VCap_ASUS_DELL_2.inf
+> > -rw-r--r-- 1 gpunk gpunk  15850 sept. 11  2007 a885vcap.cat
+> > -rw-r--r-- 1 gpunk gpunk 733824 sept.  7  2007 A885VCap.sys
+> > -rw-r--r-- 1 gpunk gpunk 147870 avril 20  2007 cpnotify.ax
+> > -rw-r--r-- 1 gpunk gpunk 376836 avril 20  2007 cx416enc.rom
+> > -rw-r--r-- 1 gpunk gpunk  65536 avril 20  2007 cxtvrate.dll
+> > -rw-r--r-- 1 gpunk gpunk  16382 avril 20  2007 merlinC.rom
+> 
+> I think merlinC.rom is your xc3028-v27.fw
+> 
+> Compare it to http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028
+> the file extracted there.
+> 
+> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070#
+> >
+> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86# grep
+> > firmware *
+> > Fichier binaire A885VCap.sys concordant
+> > root@medeb:/home/gpunk/.wine/drive_c/dell/drivers/R169070/Driver_X86#
+> >
+> >
+> >
+> > I'll try to find a way to extract "maybe" the right firmware for what this card
+> > ,
+> >
+> > I'd love some help :)
+> 
+> Mauro replied this
+> http://www.spinics.net/lists/linux-media/msg25746.html to me in 2010.
+> 
+> Then I removed the card from my PC.
+> 
+> Some years later I tried again. This time I found this patch to give
+> me some hints: http://www.spinics.net/lists/linux-media/msg43069.html
+> After compiling several versions of the patch for the upstream kernel
+> (try and hope type) I posted what works for me.
+> 
+> Tutorial to make kernel patches: http://www.youtube.com/watch?v=LLBrBBImJt4
+> Tutorial to set git send-email correctly for git: https://coderwall.com/p/dp-gka
+> Tip for first kernel patch: send to your address first to spot any errors.
+> Tip for linux-media patchwork to automatically get yours: use labels
+> (search for discussion about this).
+> 
+> I hope this helps.
