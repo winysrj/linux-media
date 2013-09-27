@@ -1,73 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:35015 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754520Ab3I2Rlo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Sep 2013 13:41:44 -0400
-Date: Sun, 29 Sep 2013 19:41:30 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-i2c@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH 0/8] i2c: Remove redundant driver field from the
- i2c_client struct
-Message-ID: <20130929174130.GA3367@katana>
-References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36700 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754661Ab3I0WHh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Sep 2013 18:07:37 -0400
+Date: Sat, 28 Sep 2013 01:07:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, media-workshop@linuxtv.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] V2: Agenda for the Edinburgh mini-summit
+Message-ID: <20130927220734.GF3022@valkosipuli.retiisi.org.uk>
+References: <201309101134.32883.hansverk@cisco.com>
+ <4425595.0oKxXFxdQl@avalon>
+ <201309241324.25660.hansverk@cisco.com>
+ <3968462.BF6ckOWXxj@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+In-Reply-To: <3968462.BF6ckOWXxj@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans and Laurent,
 
---liOOAslEiF7prFVr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, Sep 25, 2013 at 12:39:11PM +0200, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 24 September 2013 13:24:25 Hans Verkuil wrote:
+> > On Tue 24 September 2013 12:59:44 Laurent Pinchart wrote:
+> > > On Tuesday 10 September 2013 11:34:32 Hans Verkuil wrote:
+> > > > I have collected all the ideas up to now in a V2 of the agenda.
+> > > > 
+> > > > The items are grouped by the person(s) that suggested them. As done in
+> > > > the past those who suggested a topic and who will attend the mini-summit
+> > > > are expected to prepare for it, perhaps making a (very) small
+> > > > presentation if necessary.
+> > > 
+> > > [snip]
+> > > 
+> > > > As it stands I don't think it will be possible to handle it all in one
+> > > > day. In particular the codec problem as mentioned by Oliver et al needs
+> > > > a lot of time. Should we set aside a separate day for just this? October
+> > > > 21 or 22 would work for me. I would really like to get some feedback on
+> > > > this. If we decide to go for a second day for this topic, then I can see
+> > > > if I can get a room. It looks like there is a lot of interest in getting
+> > > > this sorted, so brainstorming for a day might be quite useful.
+> > > 
+> > > I believe a second day would indeed be very useful. As the ARM kernel
+> > > summit will take place on the 22nd and 23rd, I would vote for
+> > > brainstorming on the 21st.
+> > 
+> > I'm working on the agenda and I think we have enough time to go through
+> > all the items in one day. It would be great if you can be present for either
+> > the morning or afternoon for the mini-summit. I have about 4 hours worth of
+> > topics for which your input would be much appreciated.
+> 
+> The ARM KS agenda hasn't been published yet, so I can't tell when I'll be 
+> available. I've CC'ed you on an e-mail to Olof regarding this.
+> 
+> > I would be happy to add another brainstorming day, but since Hugues won't be
+> > available on the 21st we can only do limited codec discussions, so we would
+> > need other topics as well. Proposals are welcome.
 
-On Sun, Sep 29, 2013 at 10:50:58AM +0200, Lars-Peter Clausen wrote:
+Sounds like a good idea to me. I haven't been in the meetings for a while
+but in the past the tendency has often been that there's more to discuss
+that what there's time for.
 
-> This series removes the redundant driver field from the i2c_client struct. The
-> field is redundant since the same pointer can be accessed through
-> to_i2c_driver(client->dev.driver). The commit log suggests that the field has
-> been around since forever (since before v2.6.12-rc2) and it looks as if it was
-> simply forgotten to remove it during the conversion of the i2c framework to the
-> generic device driver model.
+> Brainstorming a property-based API is one topic that would benefit from longer 
+> discussions. I'm also always free to discuss CDF and how it would be related 
 
-Great! Looks proper from a first glimpse. I'd think it makes sense to
-take all patches via I2C. So, I am looking for ACKs for other subsystems
-touched.
+What an excellent idea! :)
 
-Thanks,
+> with V4L2 in the future :-)
 
-   Wolfram
+-- 
+Kind regards,
 
-
---liOOAslEiF7prFVr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSSGZKAAoJEBQN5MwUoCm2/TkP/iB3Li27waUCgxPpQKf4gPQi
-49GJQg2lbVxpE+YpFHUiVbOrYY6sESM3Qtj4QpdsEhNulqujDJBtMK2Ie7eWyCFp
-TjyOJCjP8m0br6cUExHkxF+Pxt0YDoxbxkzKx2TGqxaNc9rCl2m7Mc8utzXWcSOd
-UIv5RhXPTwVLCtnP1aYSzRPK2kAe9R0vmZjTXYO2ogrlk7PTCTjwabekzPb/xcG9
-xJuEhgh7OguGtwDiCse6CUzCmmeNid5pPMdRDmlxz4EyvsI0n7veWLsCaNBQ9Tle
-1VY14aVx7rfMwsTDO2EBdUtqb6184wY2TD8osxtXcc9x8xwEU2RXZgPTcWspx9WB
-f+1sG/USwmFup2YEV3APVJlLQs+CyUIKDCoaDMEU1JKMFCSz9OwKnC5uoq5qf9fN
-kfSYjkqVsNFcQVsudHPrjAKhcL8QJADzmVDt7mMI/BWsAEmEy9w+VPe4MsHmYQAV
-J9blY7uTkIRSYtYYgRH2CcgxM5ucGf0taIzcgNqzMSyfHjRe6Z36s4hK2ftR6pWu
-o1lqKhk3mKdb9VS/ZNuZx7M9yqUOL/9fRIDbYbWVmFIqBVmKheZ/mNgR1wVBIZrK
-C45Tggj3qZPG5ILOB6LjowsDia+QQ8/rbUvrqoTPLhR13M0Ql8nJT9jycG/pjLtt
-Fpu3snXkRcaIxjZS7pQM
-=pXY2
------END PGP SIGNATURE-----
-
---liOOAslEiF7prFVr--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
