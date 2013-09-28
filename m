@@ -1,75 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:41512 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756278Ab3IDMEw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 08:04:52 -0400
-Received: by mail-ee0-f45.google.com with SMTP id c50so121015eek.32
-        for <linux-media@vger.kernel.org>; Wed, 04 Sep 2013 05:04:51 -0700 (PDT)
-Date: Wed, 4 Sep 2013 14:05:04 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Martin Peres <martin.peres@free.fr>
-Cc: Christopher James Halse Rogers
-	<christopher.halse.rogers@canonical.com>,
-	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace (v2)
-Message-ID: <20130904120504.GB28675@phenom.ffwll.local>
-References: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
- <52270A5B.2040600@free.fr>
+Received: from magic.merlins.org ([209.81.13.136]:59952 "EHLO
+	mail1.merlins.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911Ab3I1SIO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Sep 2013 14:08:14 -0400
+Date: Sat, 28 Sep 2013 11:08:11 -0700
+From: Marc MERLIN <marc@merlins.org>
+To: Oleksij Rempel <linux@rempel-privat.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	USB list <linux-usb@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Cannot shutdown power use from built in webcam in thinkpad T530 questions]
+Message-ID: <20130928180811.GD3177@merlins.org>
+References: <20130922193102.GA28515@merlins.org> <Pine.LNX.4.44L0.1309221623390.3257-100000@netrider.rowland.org> <20130922203622.GB28515@merlins.org> <523FFA03.7050404@rempel-privat.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <52270A5B.2040600@free.fr>
+In-Reply-To: <523FFA03.7050404@rempel-privat.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 04, 2013 at 12:24:27PM +0200, Martin Peres wrote:
-> Hi Christopher,
-> Le 04/09/2013 05:15, Christopher James Halse Rogers a écrit :
-> >Each dma-buf has an associated size and it's reasonable for userspace
-> >to want to know what it is.
-> >
-> >Since userspace already has an fd, expose the size using the
-> >size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
-> >idiom.
-> >
-> >v2: Added Daniel's sugeested documentation, with minor fixups
-> >
-> >Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
-> >Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> >Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> >---
-> >  Documentation/dma-buf-sharing.txt | 12 ++++++++++++
-> >  drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
-> >  2 files changed, 40 insertions(+)
-> >
-> >diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> >index 0b23261..849e982 100644
-> >--- a/Documentation/dma-buf-sharing.txt
-> >+++ b/Documentation/dma-buf-sharing.txt
-> >@@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
-> >     interesting ways depending upong the exporter (if userspace starts depending
-> >     upon this implicit synchronization).
-> >+Other Interfaces Exposed to Userspace on the dma-buf FD
-> >+------------------------------------------------------
-> >+
-> >+- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
-> >+  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
-> >+  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
-> >+  llseek operation will report -EINVAL.
-> >+
-> >+  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
-> Shouldn't it be "supported" instead of "support"?
+On Mon, Sep 23, 2013 at 10:21:23AM +0200, Oleksij Rempel wrote:
+> > Understood, just making sure this was still potentially useful considering
+> > what I found out since my last message.
 > 
-> Anyway, I'm just curious, in which case is it important to know the size?
-> Do we already have a way to get the dimensions (x, y and stripe)?
+> Which version of powertop are you actually using? None of current
 
-Size is an invariant part of a dma-buf. Everything else wrt metadata isn't
-tracked in the kernel, so doesn't make much sense to expose it ;-)
--Daniel
+The latest, i.e. 2.4.
+
+> versions would show you Watt usage for devices.
+
+Sure it does :)
+
+Summary: 3182.2 wakeups/second,  82.5 GPU ops/seconds, 0.0 VFS ops/sec and 33.5%
+
+Power est.              Usage       Events/s    Category       Description
+  9.82 W    100.0%                      Device         USB device: Yubico Yubike
+  2.67 W      4.1 ms/s      43.2        Process        /usr/bin/pulseaudio --sta
+  2.58 W    100.0%                      Device         USB device: Integrated Ca
+  2.35 W    100.0%                      Device         USB device: BCM20702A0 (B
+  2.32 W     32.9%                      Device         Display backlight
+  1.39 W    100.0%                      Device         Radio device: btusb
+  343 mW    100.0%                      Device         Radio device: thinkpad_ac
+
+Now, I've found those values to be often wrong or questionable.
+
+> you can use "watch grep . *" instead and check fallowing fields:
+> runtime_suspended_time - suspend time. If it is growing device is suspended
+> runtime_active_kids - if not zero, some program use it
+> control - if "on" then autosuspend is disabled.
+
+Understood.
+
+Thanks,
+Marc
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+"A mouse is a device used to point at the xterm you want to type in" - A.S.R.
+Microsoft is to operating systems ....
+                                      .... what McDonalds is to gourmet cooking
+Home page: http://marc.merlins.org/  
