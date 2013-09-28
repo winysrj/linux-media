@@ -1,114 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34519 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751010Ab3I0LkW (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3525 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754262Ab3I1C5E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 07:40:22 -0400
-Message-ID: <1380282116.2388.22.camel@palomino.walls.org>
-Subject: Re: Capture driver implementation issue/questions
-From: Andy Walls <awalls@md.metrocast.net>
-To: Rick Ball <rball@AESAustin.com>
-Cc: "Linux Media Mailing List (linux-media@vger.kernel.org)"
-	<linux-media@vger.kernel.org>
-Date: Fri, 27 Sep 2013 07:41:56 -0400
-In-Reply-To: <4B8557E2E5753944B2BB2E52F7C2A30C324B268D@MAIL.AES.local>
-References: <4B8557E2E5753944B2BB2E52F7C2A30C324B268D@MAIL.AES.local>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 27 Sep 2013 22:57:04 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8S2v0ld026007
+	for <linux-media@vger.kernel.org>; Sat, 28 Sep 2013 04:57:02 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 7FC2E2A0764
+	for <linux-media@vger.kernel.org>; Sat, 28 Sep 2013 04:56:59 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130928025659.7FC2E2A0764@tschai.lan>
+Date: Sat, 28 Sep 2013 04:56:59 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-09-26 at 14:57 +0000, Rick Ball wrote:
-> Hi All,
-> 
-> I'm working on a video capture driver (my first) for a custom board,
-> and I have a few questions about handling 'overflow' conditions (when
-> the application doesn't get back in time to de-queue every frame). I
-> know that one way to avoid this is to allocate additional frame
-> buffers, but I'm thinking about conditions where even this doesn't
-> provide enough of a FIFO. It looks to me (from studying the videobuf2
-> code), that if the buffers all fill up (they all end up on the 'done'
-> list), and then the application 'comes back' and starts de-queuing
-> buffers, it will get the OLDEST one first, and then, the newer buffers
-> will be returned, in the order they were originally captured. For some
-> (most?) applications, this is probably what is best, as frames only
-> get dropped when they have to, i.e., when the FIFO overflows, and the
-> app sees the maximum number of frames. But what about applications
-> that always want to see the 'newest' buffer, even if some frames are
-> dropped? 
-> 
-> What I would like to do is write my driver such that if a new frame is
-> captured before the app has de-queued an earlier frame, the older
-> capture buffer would be removed from the done list and re-queued to
-> the h/w (it's already still on the queued list, I think). The done
-> list would then always contain only 1 frame, and it would be the
-> newest frame captured (and the capture hardware would never run out of
-> capture buffers to use). I think this would be OK as far as the API is
-> concerned - the app shouldn't expect that the buffers will necessarily
-> be returned in the order they were queued, right? 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-Hi Rick,
+date:		Sat Sep 28 04:00:34 CEST 2013
+git branch:	test
+git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-> So here are the questions:
-> 
-> 1. Does this make sense, or am I wanting to do something that isn't
-> reasonable (or do I not understand the framework)?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-In my opinion, if a driver has to drop data, it should prefer to drop
-the oldest data.  Although for TV program video/audio, it doesn't really
-matter.
+Detailed results are available here:
 
-Both the ivtv driver and cx18 driver, under certain circumstances,
-recover internal buffers that userspace has delayed too long in reading.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-ivtv_queue_move(), for example, has a "steal" argument to sometimes
-steals from the end of internal queues.
+Full logs are available here:
 
-cx18_stream_rotate_idx_mdls() steals from the head of its particular
-buffer queue.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Both of these drivers use their own internal queueing mechanism though,
-so they don't help with understanding videobuf. 
+The Media Infrastructure API from this daily build is here:
 
-I do not think having a queue with only 1 frame in it makes sense.  I'm
-not quite sure what you're aiming to do with that.  You might end up
-inadventantly forcing synchronization of userspace to the driver (via a
-spinlock or mutex), which could be a problem with live playback.
-
-If userspace can't keep up reading buffers, you should try and examine
-your system and figure out why.
-
-> 2. Is there any way to do this within the current videobuf2 framework?
-> 3. If not, do you have any suggestions on changes to make this
-> possible? I'm thinking that we would need a new function that would be
-> called (probably from an ISR, just before calling vb2_buffer_done on
-> the new buffer) 
-
-An ISR?  From an interrupt generated by what exactly?  This doesn't
-sound like a good idea to me.
-
-Buffer manipulations shouldn't be handled from an hard IRQ (atomic)
-context anyway.  Do this in the work handler, threaded irq handler, or
-kthread, that normally handles buffer handoffs to and from the
-hardware. 
-
-The only time you need to steal buffers is when the hardware dma engine
-is starved of buffers (for incoming data) or you have no buffers for
-feeding thw hardware (to send data out).   
-
-> that would remove the older buffer from the done queue, re-increment
-> the 'queued_count', and call the 'buf_queue' function provided by the
-> driver to re-queue the older buffer to the h/w. Am I missing anything?
-
-I don't know much about videobuf[2], so I can't help with that.
-
-Regards,
-Andy
-
-> Thanks,
-> 
-> Rick
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
