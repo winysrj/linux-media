@@ -1,130 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49970 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756187Ab3ILXBE (ORCPT
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:54848 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754694Ab3I1T3U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 19:01:04 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/3] [media] siano: Fix initialization for Stellar models
-Date: Thu, 12 Sep 2013 17:00:00 -0300
-Message-Id: <1379016000-19577-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1379016000-19577-1-git-send-email-m.chehab@samsung.com>
-References: <1379016000-19577-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 28 Sep 2013 15:29:20 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: kishon@ti.com
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH V5 2/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+Date: Sat, 28 Sep 2013 21:27:44 +0200
+Message-Id: <1380396467-29278-3-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
+References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since kernel 3.8, the initialization for Stellar (sms1000)
-devices are broken.
+Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
+receiver and MIPI DSI transmitter DPHYs.
 
-Those devices have a behaviour different than usual sms1100
-and sms2270: they start with one USB ID (devices in cold state),
-but after firmware load, they get a different USB ID.
-
-This weren't docummented at the driver. So, the patches that added
-support for sms2270 broke it.
-
-Properly documment it, and provide a debug log that allows to
-follow all phases of the device initialization:
-
-	smsusb_probe: board id=13, interface number 0
-	smsusb_probe: interface 0 won't be used. Expecting interface 1 to popup
-	smsusb_probe: board id=13, interface number 1
-	smsusb_probe: smsusb_probe 1
-	smsusb_probe: endpoint 0 81 02 64
-	smsusb_probe: endpoint 1 02 02 64
-	smsusb_probe: stellar device in cold state was found at usb\4-2.
-	smsusb1_load_firmware: sent 38144(38144) bytes, rc 0
-	smsusb1_load_firmware: read FW dvbt_bda_stellar_usb.inp, size=38144
-	smsusb_probe: stellar device now in warm state
-	usbcore: registered new interface driver smsusb
-	usb 4-2: USB disconnect, device number 52
-	usb 4-2: new full-speed USB device number 53 using uhci_hcd
-	usb 4-2: New USB device found, idVendor=187f, idProduct=0100
-	usb 4-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-	usb 4-2: Product: SMS DVBT-BDA Receiver
-	usb 4-2: Manufacturer: Siano Mobile Silicon
-	smsusb_probe: board id=1, interface number 0
-	smsusb_probe: smsusb_probe 0
-	smsusb_probe: endpoint 0 81 02 64
-	smsusb_probe: endpoint 1 02 02 64
-	smsusb_init_device: in_ep = 81, out_ep = 02
-	smscore_register_device: allocated 50 buffers
-	smscore_register_device: device ffff88012a00bc00 created
-	smsusb_init_device: smsusb_start_streaming(...).
-	smscore_set_device_mode: set device mode to 4
-	smsusb1_detectmode: 4 "SMS DVBT-BDA Receiver"
-	smsusb_sendrequest: sending MSG_SMS_INIT_DEVICE_REQ(578) size: 12
-	smsusb_onresponse: received MSG_SMS_INIT_DEVICE_RES(579) size: 12
-	smscore_set_device_mode: Success setting device mode.
-	smscore_init_ir: IR port has not been detected
-	smscore_start_device: device ffff88012a00bc00 started, rc 0
-	smsusb_init_device: device 0xffff88002cfa6000 created
-	smsusb_probe: Device initialized with return code 0
-	DVB: registering new adapter (Siano Stellar Digital Receiver)
-	usb 4-2: DVB: registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...
-	smscore_register_client: ffff88012174a000 693 1
-	sms_board_dvb3_event: DVB3_EVENT_HOTPLUG
-	smsdvb_hotplug: success
-	smsdvb_module_init:
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/siano/smsusb.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+Changes since v4:
+ - updated to latest version of the PHY framework - removed PHY
+   labels.
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index 74236b8..33f3575 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -491,15 +491,26 @@ static int smsusb_probe(struct usb_interface *intf,
- 	}
+The individual driver symbols in drivers/phy/Kconfig should
+presumably be prefixed with, e.g. PHY_. This is something that
+perhaps could be done as a follow up patch.
+---
+ .../devicetree/bindings/phy/samsung-phy.txt        |   14 ++
+ drivers/phy/Kconfig                                |    6 +
+ drivers/phy/Makefile                               |    7 +-
+ drivers/phy/phy-exynos-mipi-video.c                |  176 ++++++++++++++++++++
+ 4 files changed, 200 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+
+diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+new file mode 100644
+index 0000000..5ff208c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+@@ -0,0 +1,14 @@
++Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY
++-------------------------------------------------
++
++Required properties:
++- compatible : should be "samsung,s5pv210-mipi-video-phy";
++- reg : offset and length of the MIPI DPHY register set;
++- #phy-cells : from the generic phy bindings, must be 1;
++
++For "samsung,s5pv210-mipi-video-phy" compatible PHYs the second cell in
++the PHY specifier identifies the PHY and its meaning is as follows:
++  0 - MIPI CSIS 0,
++  1 - MIPI DSIM 0,
++  2 - MIPI CSIS 1,
++  3 - MIPI DSIM 1.
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index ac239ac..0062d7e 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -15,6 +15,12 @@ config GENERIC_PHY
+ 	  phy users can obtain reference to the PHY. All the users of this
+ 	  framework should select this config.
  
- 	if (id->driver_info == SMS1XXX_BOARD_SIANO_STELLAR_ROM) {
-+		/* Detected a Siano Stellar uninitialized */
++config PHY_EXYNOS_MIPI_VIDEO
++	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
++	help
++	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung S5P
++	  and EXYNOS SoCs.
 +
- 		snprintf(devpath, sizeof(devpath), "usb\\%d-%s",
- 			 udev->bus->busnum, udev->devpath);
--		sms_info("stellar device was found.");
--		return smsusb1_load_firmware(
-+		sms_info("stellar device in cold state was found at %s.", devpath);
-+		rc = smsusb1_load_firmware(
- 				udev, smscore_registry_getmode(devpath),
- 				id->driver_info);
-+
-+		/* This device will reset and gain another USB ID */
-+		if (!rc)
-+			sms_info("stellar device now in warm state");
-+		else
-+			sms_err("Failed to put stellar in warm state. Error: %d", rc);
-+
-+		return rc;
-+	} else {
-+		rc = smsusb_init_device(intf, id->driver_info);
- 	}
+ config OMAP_USB2
+ 	tristate "OMAP USB2 PHY Driver"
+ 	depends on ARCH_OMAP2PLUS
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 0dd8a98..6344053 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for the phy drivers.
+ #
  
--	rc = smsusb_init_device(intf, id->driver_info);
- 	sms_info("Device initialized with return code %d", rc);
- 	sms_board_load_modules(id->driver_info);
- 	return rc;
-@@ -552,10 +563,13 @@ static int smsusb_resume(struct usb_interface *intf)
- }
- 
- static const struct usb_device_id smsusb_id_table[] = {
-+	/* This device is only present before firmware load */
- 	{ USB_DEVICE(0x187f, 0x0010),
--		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
-+		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR_ROM },
-+	/* This device pops up after firmware load */
- 	{ USB_DEVICE(0x187f, 0x0100),
- 		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
+-obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
+-obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
+-obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
++obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
++obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
++obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
++obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
+diff --git a/drivers/phy/phy-exynos-mipi-video.c b/drivers/phy/phy-exynos-mipi-video.c
+new file mode 100644
+index 0000000..b73b86a
+--- /dev/null
++++ b/drivers/phy/phy-exynos-mipi-video.c
+@@ -0,0 +1,176 @@
++/*
++ * Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- 	{ USB_DEVICE(0x187f, 0x0200),
- 		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_A },
- 	{ USB_DEVICE(0x187f, 0x0201),
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
++
++/* MIPI_PHYn_CONTROL register offset: n = 0..1 */
++#define EXYNOS_MIPI_PHY_CONTROL(n)	((n) * 4)
++#define EXYNOS_MIPI_PHY_ENABLE		(1 << 0)
++#define EXYNOS_MIPI_PHY_SRESETN		(1 << 1)
++#define EXYNOS_MIPI_PHY_MRESETN		(1 << 2)
++#define EXYNOS_MIPI_PHY_RESET_MASK	(3 << 1)
++
++enum exynos_mipi_phy_id {
++	EXYNOS_MIPI_PHY_ID_CSIS0,
++	EXYNOS_MIPI_PHY_ID_DSIM0,
++	EXYNOS_MIPI_PHY_ID_CSIS1,
++	EXYNOS_MIPI_PHY_ID_DSIM1,
++	EXYNOS_MIPI_PHYS_NUM
++};
++
++#define is_mipi_dsim_phy_id(id) \
++	((id) == EXYNOS_MIPI_PHY_ID_DSIM0 || (id) == EXYNOS_MIPI_PHY_ID_DSIM1)
++
++struct exynos_mipi_video_phy {
++	spinlock_t slock;
++	struct video_phy_desc {
++		struct phy *phy;
++		unsigned int index;
++	} phys[EXYNOS_MIPI_PHYS_NUM];
++	void __iomem *regs;
++};
++
++static int __set_phy_state(struct exynos_mipi_video_phy *state,
++			enum exynos_mipi_phy_id id, unsigned int on)
++{
++	void __iomem *addr;
++	u32 reg, reset;
++
++	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
++
++	if (is_mipi_dsim_phy_id(id))
++		reset = EXYNOS_MIPI_PHY_MRESETN;
++	else
++		reset = EXYNOS_MIPI_PHY_SRESETN;
++
++	spin_lock(&state->slock);
++	reg = readl(addr);
++	if (on)
++		reg |= reset;
++	else
++		reg &= ~reset;
++	writel(reg, addr);
++
++	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
++	if (on)
++		reg |= EXYNOS_MIPI_PHY_ENABLE;
++	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
++		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
++
++	writel(reg, addr);
++	spin_unlock(&state->slock);
++	return 0;
++}
++
++#define to_mipi_video_phy(desc) \
++	container_of((desc), struct exynos_mipi_video_phy, phys[(desc)->index]);
++
++static int exynos_mipi_video_phy_power_on(struct phy *phy)
++{
++	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
++	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
++
++	return __set_phy_state(state, phy_desc->index, 1);
++}
++
++static int exynos_mipi_video_phy_power_off(struct phy *phy)
++{
++	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
++	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
++
++	return __set_phy_state(state, phy_desc->index, 1);
++}
++
++static struct phy *exynos_mipi_video_phy_xlate(struct device *dev,
++					struct of_phandle_args *args)
++{
++	struct exynos_mipi_video_phy *state = dev_get_drvdata(dev);
++
++	if (WARN_ON(args->args[0] > EXYNOS_MIPI_PHYS_NUM))
++		return ERR_PTR(-ENODEV);
++
++	return state->phys[args->args[0]].phy;
++}
++
++static struct phy_ops exynos_mipi_video_phy_ops = {
++	.power_on	= exynos_mipi_video_phy_power_on,
++	.power_off	= exynos_mipi_video_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
++static int exynos_mipi_video_phy_probe(struct platform_device *pdev)
++{
++	struct exynos_mipi_video_phy *state;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct phy_provider *phy_provider;
++	unsigned int i;
++
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	state->regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(state->regs))
++		return PTR_ERR(state->regs);
++
++	dev_set_drvdata(dev, state);
++	spin_lock_init(&state->slock);
++
++	phy_provider = devm_of_phy_provider_register(dev,
++					exynos_mipi_video_phy_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	for (i = 0; i < EXYNOS_MIPI_PHYS_NUM; i++) {
++		struct phy *phy = devm_phy_create(dev,
++					&exynos_mipi_video_phy_ops, NULL);
++		if (IS_ERR(phy)) {
++			dev_err(dev, "failed to create PHY %d\n", i);
++			return PTR_ERR(phy);
++		}
++
++		state->phys[i].phy = phy;
++		state->phys[i].index = i;
++		phy_set_drvdata(phy, &state->phys[i]);
++	}
++
++	return 0;
++}
++
++static const struct of_device_id exynos_mipi_video_phy_of_match[] = {
++	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, exynos_mipi_video_phy_of_match);
++
++static struct platform_driver exynos_mipi_video_phy_driver = {
++	.probe	= exynos_mipi_video_phy_probe,
++	.driver = {
++		.of_match_table	= exynos_mipi_video_phy_of_match,
++		.name  = "exynos-mipi-video-phy",
++		.owner = THIS_MODULE,
++	}
++};
++module_platform_driver(exynos_mipi_video_phy_driver);
++
++MODULE_DESCRIPTION("Samsung S5P/EXYNOS SoC MIPI CSI-2/DSI PHY driver");
++MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-1.8.3.1
+1.7.4.1
 
