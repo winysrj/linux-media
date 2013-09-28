@@ -1,36 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36744 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751009Ab3I0Wab (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:52850 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655Ab3I1ThO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 18:30:31 -0400
-Date: Sat, 28 Sep 2013 01:30:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, media-workshop@linuxtv.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] V2: Agenda for the Edinburgh mini-summit
-Message-ID: <20130927223026.GG3022@valkosipuli.retiisi.org.uk>
-References: <201309101134.32883.hansverk@cisco.com>
- <4425595.0oKxXFxdQl@avalon>
- <201309241324.25660.hansverk@cisco.com>
- <3968462.BF6ckOWXxj@avalon>
- <20130927220734.GF3022@valkosipuli.retiisi.org.uk>
+	Sat, 28 Sep 2013 15:37:14 -0400
+Message-ID: <52472FE5.5020609@gmail.com>
+Date: Sat, 28 Sep 2013 21:37:09 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130927220734.GF3022@valkosipuli.retiisi.org.uk>
+To: linux-arm-kernel@lists.infradead.org
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, kishon@ti.com,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, tomi.valkeinen@ti.com,
+	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH V5 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
+References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com> <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 28, 2013 at 01:07:34AM +0300, Sakari Ailus wrote:
-> > > I would be happy to add another brainstorming day, but since Hugues won't be
-> > > available on the 21st we can only do limited codec discussions, so we would
-> > > need other topics as well. Proposals are welcome.
+(adding missing devicetree mailing list at Cc)
 
-Oops. I missed this. I'll arrive to Edinburgh on the afternoon 22nd so 21st
-is out of question for me. :I
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+On 09/28/2013 09:27 PM, Sylwester Nawrocki wrote:
+> Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+>
+> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> Acked-by: Felipe Balbi<balbi@ti.com>
+> ---
+>   arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
+>   1 files changed, 10 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+> index caadc02..a73eeb5 100644
+> --- a/arch/arm/boot/dts/exynos4.dtsi
+> +++ b/arch/arm/boot/dts/exynos4.dtsi
+> @@ -49,6 +49,12 @@
+>   		reg =<0x10000000 0x100>;
+>   	};
+>
+> +	mipi_phy: video-phy@10020710 {
+> +		compatible = "samsung,s5pv210-mipi-video-phy";
+> +		reg =<0x10020710 8>;
+> +		#phy-cells =<1>;
+> +	};
+> +
+>   	pd_mfc: mfc-power-domain@10023C40 {
+>   		compatible = "samsung,exynos4210-pd";
+>   		reg =<0x10023C40 0x20>;
+> @@ -161,6 +167,8 @@
+>   			clock-names = "csis", "sclk_csis";
+>   			bus-width =<4>;
+>   			samsung,power-domain =<&pd_cam>;
+> +			phys =<&mipi_phy 0>;
+> +			phy-names = "csis";
+>   			status = "disabled";
+>   			#address-cells =<1>;
+>   			#size-cells =<0>;
+> @@ -174,6 +182,8 @@
+>   			clock-names = "csis", "sclk_csis";
+>   			bus-width =<2>;
+>   			samsung,power-domain =<&pd_cam>;
+> +			phys =<&mipi_phy 2>;
+> +			phy-names = "csis";
+>   			status = "disabled";
+>   			#address-cells =<1>;
+>   			#size-cells =<0>;
