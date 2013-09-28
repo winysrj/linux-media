@@ -1,161 +1,129 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:59348 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325Ab3ILMID (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:08:03 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v8 07/12] [media] exynos5-fimc-is: Add sensor interface
-Date: Thu, 12 Sep 2013 17:37:44 +0530
-Message-Id: <1378987669-10870-8-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
-References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <nunojpg@gmail.com>) id 1VProW-0006H7-IZ
+	for linux-dvb@linuxtv.org; Sat, 28 Sep 2013 12:32:16 +0200
+Received: from mail-bk0-f49.google.com ([209.85.214.49])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-8) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1VProV-0005Vg-kQ; Sat, 28 Sep 2013 12:31:52 +0200
+Received: by mail-bk0-f49.google.com with SMTP id r7so1307952bkg.8
+	for <linux-dvb@linuxtv.org>; Sat, 28 Sep 2013 03:31:51 -0700 (PDT)
+MIME-Version: 1.0
+From: =?UTF-8?Q?Nuno_Gon=C3=A7alves?= <nunojpg@gmail.com>
+Date: Sat, 28 Sep 2013 11:31:30 +0100
+Message-ID: <CAEXMXLRG7O8isZ4bz7fq01JWZ7Qm8wo+A=k_9Wjyx=mwqDw5=w@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary=001a1133494e6b11d604e76f1cbd
+Subject: [linux-dvb] Initial scan files for PT
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Some sensors to be used with fimc-is are exclusively controlled
-by the fimc-is firmware. This minimal sensor driver provides
-the required info for the firmware to configure the sensors
-sitting on I2C bus.
+--001a1133494e6b11d604e76f1cbd
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
- 2 files changed, 110 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
+Here goes the initial scan files for Portugal DVB-T. Please commit them.
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-new file mode 100644
-index 0000000..475f1c3
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-@@ -0,0 +1,45 @@
-+/*
-+ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "fimc-is-sensor.h"
-+
-+static const struct sensor_drv_data s5k6a3_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
-+	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
-+};
-+
-+static const struct sensor_drv_data s5k4e5_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
-+	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
-+};
-+
-+static const struct of_device_id fimc_is_sensor_of_ids[] = {
-+	{
-+		.compatible	= "samsung,s5k6a3",
-+		.data		= &s5k6a3_drvdata,
-+	},
-+	{
-+		.compatible	= "samsung,s5k4e5",
-+		.data		= &s5k4e5_drvdata,
-+	},
-+	{  }
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node)
-+{
-+	const struct of_device_id *of_id;
-+
-+	of_id = of_match_node(fimc_is_sensor_of_ids, node);
-+	return of_id ? of_id->data : NULL;
-+}
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-new file mode 100644
-index 0000000..0ba5733
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-@@ -0,0 +1,65 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_SENSOR_H_
-+#define FIMC_IS_SENSOR_H_
-+
-+#include <linux/of.h>
-+#include <linux/types.h>
-+
-+#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K6A3_SENSOR_WIDTH		1392
-+#define S5K6A3_SENSOR_HEIGHT		1392
-+
-+#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K4E5_SENSOR_WIDTH		2560
-+#define S5K4E5_SENSOR_HEIGHT		1920
-+
-+#define SENSOR_WIDTH_PADDING		16
-+#define SENSOR_HEIGHT_PADDING		10
-+
-+enum fimc_is_sensor_id {
-+	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
-+	FIMC_IS_SENSOR_ID_S5K6A3,
-+	FIMC_IS_SENSOR_ID_S5K4E5,
-+	FIMC_IS_SENSOR_ID_S5K3H7,
-+	FIMC_IS_SENSOR_ID_CUSTOM,
-+	FIMC_IS_SENSOR_ID_END
-+};
-+
-+struct sensor_drv_data {
-+	enum fimc_is_sensor_id id;
-+	/* sensor open timeout in ms */
-+	unsigned short open_timeout;
-+	char *setfile_name;
-+};
-+
-+/**
-+ * struct fimc_is_sensor - fimc-is sensor data structure
-+ * @drvdata: a pointer to the sensor's parameters data structure
-+ * @i2c_bus: ISP I2C bus index (0...1)
-+ * @width: sensor active width
-+ * @height: sensor active height
-+ * @pixel_width: sensor effective pixel width (width + padding)
-+ * @pixel_height: sensor effective pixel height (height + padding)
-+ */
-+struct fimc_is_sensor {
-+	const struct sensor_drv_data *drvdata;
-+	unsigned int i2c_bus;
-+	unsigned int width;
-+	unsigned int height;
-+	unsigned int pixel_width;
-+	unsigned int pixel_height;
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node);
-+
-+#endif /* FIMC_IS_SENSOR_H_ */
--- 
-1.7.9.5
+Portugal is schedule to migrate from a SFN to a MFN, but for now this
+is how it is.
 
+Regards,
+Nuno Goncalves
+
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-Azores-Faial
+Content-Disposition: attachment; filename=pt-Azores-Faial
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8es30
+
+IyBQVCwgQXpvcmVzLCBGYWlhbAojIEdlbmVyYXRlZCBmcm9tIGh0dHA6Ly90ZHQtcG9ydHVnYWwu
+YmxvZ3Nwb3QucHQvCiMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1t
+b2RlIGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQpUIDY5ODAwMDAwMCA4TUh6ICAyLzMgTk9ORSAg
+ICBRQU02NCAgIDhrICAxLzQgTk9ORQoK
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-Azores-Pico
+Content-Disposition: attachment; filename=pt-Azores-Pico
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8esh1
+
+IyBQVCwgQXpvcmVzLCBQaWNvCiMgR2VuZXJhdGVkIGZyb20gaHR0cDovL3RkdC1wb3J0dWdhbC5i
+bG9nc3BvdC5wdC8KIyBUIGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1v
+ZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5ClQgNzU0MDAwMDAwIDhNSHogIDIvMyBOT05FICAg
+IFFBTTY0ICAgOGsgIDEvNCBOT05FCgo=
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-Azores-SaoJorge
+Content-Disposition: attachment; filename=pt-Azores-SaoJorge
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8esn2
+
+IyBQVCwgQXpvcmVzLCBTYW8gSm9yZ2UKIyBHZW5lcmF0ZWQgZnJvbSBodHRwOi8vdGR0LXBvcnR1
+Z2FsLmJsb2dzcG90LnB0LwojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Np
+b24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA2ODIwMDAwMDAgOE1IeiAgMi8zIE5P
+TkUgICAgUUFNNjQgICA4ayAgMS80IE5PTkUKCg==
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-Azores-SaoMiguel-Graciosa
+Content-Disposition: attachment; filename=pt-Azores-SaoMiguel-Graciosa
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8ess3
+
+IyBQVCwgQXpvcmVzLCBTYW8gTWlndWVsIGFuZCBHcmFjaW9zYQojIEdlbmVyYXRlZCBmcm9tIGh0
+dHA6Ly90ZHQtcG9ydHVnYWwuYmxvZ3Nwb3QucHQvCiMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8g
+bW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQpUIDY5MDAwMDAw
+MCA4TUh6ICAyLzMgTk9ORSAgICBRQU02NCAgIDhrICAxLzQgTk9ORQoK
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream;
+	name=pt-Azores-Terceira-SMaria-Flores-Corvo
+Content-Disposition: attachment;
+	filename=pt-Azores-Terceira-SMaria-Flores-Corvo
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8esx4
+
+IyBQVCwgQXpvcmVzLCBUZXJjZWlyYSBhbmQgUy4gTWFyaWEgYW5kIEdyYWNpb3NhCiMgR2VuZXJh
+dGVkIGZyb20gaHR0cDovL3RkdC1wb3J0dWdhbC5ibG9nc3BvdC5wdC8KIyBUIGZyZXEgYncgZmVj
+X2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5
+ClQgNzM4MDAwMDAwIDhNSHogIDIvMyBOT05FICAgIFFBTTY0ICAgOGsgIDEvNCBOT05FCgo=
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-Madeira
+Content-Disposition: attachment; filename=pt-Madeira
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8et25
+
+IyBQVCwgTWFkZWlyYQojIEdlbmVyYXRlZCBmcm9tIGh0dHA6Ly90ZHQtcG9ydHVnYWwuYmxvZ3Nw
+b3QucHQvCiMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1
+YXJkLWludGVydmFsIGhpZXJhcmNoeQpUIDczODAwMDAwMCA4TUh6ICAyLzMgTk9ORSAgICBRQU02
+NCAgIDhrICAxLzQgTk9ORQoK
+--001a1133494e6b11d604e76f1cbd
+Content-Type: application/octet-stream; name=pt-mainland
+Content-Disposition: attachment; filename=pt-mainland
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hm4p8et76
+
+IyBQVCwgbWFpbmxhbmQKIyBHZW5lcmF0ZWQgZnJvbSBodHRwOi8vdGR0LXBvcnR1Z2FsLmJsb2dz
+cG90LnB0LwojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBn
+dWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA2NDIwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFN
+NjQgICA4ayAgMS80IE5PTkUJIyBNb250ZSBkYSBWaXJnZW0KVCA2NzQwMDAwMDAgOE1IeiAgMi8z
+IE5PTkUgICAgUUFNNjQgICA4ayAgMS80IE5PTkUJIyBMb3VzYSAoVHJldmltKQpUIDY5ODAwMDAw
+MCA4TUh6ICAyLzMgTk9ORSAgICBRQU02NCAgIDhrICAxLzQgTk9ORQkjIE1vbnRlanVudG8KVCA3
+NTQwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4ayAgMS80IE5PTkUJIyBNYWlubGFu
+ZCBTRk4K
+--001a1133494e6b11d604e76f1cbd
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--001a1133494e6b11d604e76f1cbd--
