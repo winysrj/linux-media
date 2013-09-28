@@ -1,43 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45964 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757130Ab3IOQz1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Sep 2013 12:55:27 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] msi3101: correct max videobuf2 alloc
-Date: Sun, 15 Sep 2013 19:54:38 +0300
-Message-Id: <1379264078-22951-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:60155 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754836Ab3I1SWR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Sep 2013 14:22:17 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: linux-samsung-soc@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Kukjin Kim <kgene.kim@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sangbeom Kim <sbkim73@samsung.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Martin Schwidefsky <schwidefsky@de.ibm.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>
+Subject: [PATCH 5/5] ARM: s3c64xx: Kill CONFIG_PLAT_S3C64XX
+Date: Sat, 28 Sep 2013 20:21:37 +0200
+Message-Id: <1380392497-27406-5-git-send-email-tomasz.figa@gmail.com>
+In-Reply-To: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
+References: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was too small buffers requested in worst case.
+CONFIG_PLAT_S3C64XX has been kept in place way too long since it was
+marked as temporary in commit
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+110d85a ARM: S3C64XX: Eliminate plat-s3c64xx
+
+After fixing all users of it in previous patches, this patch finally
+kills this temporary Kconfig entry.
+
+Signed-off-by: Tomasz Figa <tomasz.figa@gmail.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/Kconfig              |  2 ++
+ arch/arm/mach-s3c64xx/Kconfig | 11 -----------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 7715c85..4c3bf77 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -1131,7 +1131,13 @@ static int msi3101_queue_setup(struct vb2_queue *vq,
- 	/* Absolute min and max number of buffers available for mmap() */
- 	*nbuffers = 32;
- 	*nplanes = 1;
--	sizes[0] = PAGE_ALIGN(3 * 3072); /* 3 * 768 * 4 */
-+	/*
-+	 *   3, wMaxPacketSize 3x 1024 bytes
-+	 * 504, max IQ sample pairs per 1024 frame
-+	 *   2, two samples, I and Q
-+	 *   4, 32-bit float
-+	 */
-+	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 4); /* = 12096 */
- 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
- 			__func__, *nbuffers, sizes[0]);
- 	return 0;
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index dc51f8a..40d5178 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -738,10 +738,12 @@ config ARCH_S3C64XX
+ 	select NEED_MACH_GPIO_H
+ 	select NO_IOPORT
+ 	select PLAT_SAMSUNG
++	select PM_GENERIC_DOMAINS
+ 	select S3C_DEV_NAND
+ 	select S3C_GPIO_TRACK
+ 	select SAMSUNG_ATAGS
+ 	select SAMSUNG_GPIOLIB_4BIT
++	select SAMSUNG_WAKEMASK
+ 	select SAMSUNG_WDT_RESET
+ 	select USB_ARCH_HAS_OHCI
+ 	help
+diff --git a/arch/arm/mach-s3c64xx/Kconfig b/arch/arm/mach-s3c64xx/Kconfig
+index 0e23910..2cb8dc5 100644
+--- a/arch/arm/mach-s3c64xx/Kconfig
++++ b/arch/arm/mach-s3c64xx/Kconfig
+@@ -5,17 +5,6 @@
+ 
+ if ARCH_S3C64XX
+ 
+-# temporary until we can eliminate all drivers using it.
+-config PLAT_S3C64XX
+-	bool
+-	depends on ARCH_S3C64XX
+-	default y
+-	select PM_GENERIC_DOMAINS
+-	select SAMSUNG_WAKEMASK
+-	help
+-	  Base platform code for any Samsung S3C64XX device
+-
+-
+ # Configuration options for the S3C6410 CPU
+ 
+ config CPU_S3C6400
 -- 
-1.7.11.7
+1.8.3.2
 
