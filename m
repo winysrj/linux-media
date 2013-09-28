@@ -1,251 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4748 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825Ab3IALBH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Sep 2013 07:01:07 -0400
-Message-ID: <52231E60.80308@xs4all.nl>
-Date: Sun, 01 Sep 2013 13:00:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:53241 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751085Ab3I1SjP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Sep 2013 14:39:15 -0400
+Received: from [192.168.2.100] ([93.218.116.97]) by mail.gmx.com (mrgmx101)
+ with ESMTPSA (Nemesis) id 0MWwp6-1VKXtV2PH2-00VzL1 for
+ <linux-media@vger.kernel.org>; Sat, 28 Sep 2013 20:39:13 +0200
+Message-ID: <5247224B.7050507@rempel-privat.de>
+Date: Sat, 28 Sep 2013 20:39:07 +0200
+From: Oleksij Rempel <linux@rempel-privat.de>
 MIME-Version: 1.0
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-CC: Dinesh Ram <dinram@cisco.com>,
-	Linux-Media <linux-media@vger.kernel.org>, dinesh.ram@cern.ch
-Subject: Re: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where
- interrupts are not used
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com> <1377862104-15429-1-git-send-email-dinram@cisco.com> <b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com> <CAC-25o_rpw3w1vBomYfYGZpr=bRV=FG8yrqruy-wgEZtcCXLCg@mail.gmail.com>
-In-Reply-To: <CAC-25o_rpw3w1vBomYfYGZpr=bRV=FG8yrqruy-wgEZtcCXLCg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Marc MERLIN <marc@merlins.org>
+CC: Alan Stern <stern@rowland.harvard.edu>,
+	USB list <linux-usb@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Cannot shutdown power use from built in webcam in thinkpad T530
+ questions]
+References: <20130922193102.GA28515@merlins.org> <Pine.LNX.4.44L0.1309221623390.3257-100000@netrider.rowland.org> <20130922203622.GB28515@merlins.org> <523FFA03.7050404@rempel-privat.de> <20130928180811.GD3177@merlins.org>
+In-Reply-To: <20130928180811.GD3177@merlins.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2013 01:32 PM, edubezval@gmail.com wrote:
-> On Fri, Aug 30, 2013 at 7:28 AM, Dinesh Ram <dinram@cisco.com> wrote:
->> Checks have been introduced at several places in the code to test if an interrupt is set or not.
->> For devices which do not use the interrupt, to get a valid response, within a specified timeout,
->> the device is polled instead.
+Am 28.09.2013 20:08, schrieb Marc MERLIN:
+> On Mon, Sep 23, 2013 at 10:21:23AM +0200, Oleksij Rempel wrote:
+>>> Understood, just making sure this was still potentially useful considering
+>>> what I found out since my last message.
 >>
->> Signed-off-by: Dinesh Ram <dinram@cisco.com>
->> ---
->>  drivers/media/radio/si4713/si4713.c | 110 ++++++++++++++++++++----------------
->>  drivers/media/radio/si4713/si4713.h |   1 +
->>  2 files changed, 63 insertions(+), 48 deletions(-)
->>
->> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
->> index ac727e3..55c4d27 100644
->> --- a/drivers/media/radio/si4713/si4713.c
->> +++ b/drivers/media/radio/si4713/si4713.c
->> @@ -27,7 +27,6 @@
->>  #include <linux/i2c.h>
->>  #include <linux/slab.h>
->>  #include <linux/gpio.h>
->> -#include <linux/regulator/consumer.h>
->>  #include <linux/module.h>
->>  #include <media/v4l2-device.h>
->>  #include <media/v4l2-ioctl.h>
->> @@ -213,6 +212,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
->>                                 u8 response[], const int respn, const int usecs)
->>  {
->>         struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
->> +       unsigned long until_jiffies;
->>         u8 data1[MAX_ARGS + 1];
->>         int err;
->>
->> @@ -228,30 +228,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
->>         if (err != argn + 1) {
->>                 v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
->>                         command);
->> -               return (err > 0) ? -EIO : err;
->> +               return err < 0 ? err : -EIO;
->>         }
->>
->> +       until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
->> +
->>         /* Wait response from interrupt */
->> -       if (!wait_for_completion_timeout(&sdev->work,
->> +       if (client->irq) {
->> +               if (!wait_for_completion_timeout(&sdev->work,
->>                                 usecs_to_jiffies(usecs) + 1))
->> -               v4l2_warn(&sdev->sd,
->> +                       v4l2_warn(&sdev->sd,
->>                                 "(%s) Device took too much time to answer.\n",
->>                                 __func__);
->> -
->> -       /* Then get the response */
->> -       err = i2c_master_recv(client, response, respn);
->> -       if (err != respn) {
->> -               v4l2_err(&sdev->sd,
->> -                       "Error while reading response for command 0x%02x\n",
->> -                       command);
->> -               return (err > 0) ? -EIO : err;
->>         }
->>
->> -       DBG_BUFFER(&sdev->sd, "Response", response, respn);
->> -       if (check_command_failed(response[0]))
->> -               return -EBUSY;
->> +       do {
->> +               err = i2c_master_recv(client, response, respn);
->> +               if (err != respn) {
->> +                       v4l2_err(&sdev->sd,
->> +                                       "Error %d while reading response for command 0x%02x\n",
->> +                                       err, command);
->> +                       return err < 0 ? err : -EIO;
->> +               }
->>
->> -       return 0;
->> +               DBG_BUFFER(&sdev->sd, "Response", response, respn);
->> +               if (!check_command_failed(response[0]))
->> +                       return 0;
->> +
->> +               if (client->irq)
->> +                       return -EBUSY;
->> +               msleep(1);
->> +       } while (jiffies <= until_jiffies);
->> +
->> +       return -EBUSY;
->>  }
->>
->>  /*
->> @@ -344,14 +353,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
->>   */
->>  static int si4713_powerup(struct si4713_device *sdev)
->>  {
->> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
->>         int err;
->>         u8 resp[SI4713_PWUP_NRESP];
->>         /*
->>          *      .First byte = Enabled interrupts and boot function
->>          *      .Second byte = Input operation mode
->>          */
->> -       const u8 args[SI4713_PWUP_NARGS] = {
->> -               SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
->> +       u8 args[SI4713_PWUP_NARGS] = {
->> +               SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
->>                 SI4713_PWUP_OPMOD_ANALOG,
->>         };
->>
->> @@ -369,18 +379,22 @@ static int si4713_powerup(struct si4713_device *sdev)
->>                 gpio_set_value(sdev->gpio_reset, 1);
->>         }
->>
->> +       if (client->irq)
->> +               args[0] |= SI4713_PWUP_CTSIEN;
->> +
->>         err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
->>                                         args, ARRAY_SIZE(args),
->>                                         resp, ARRAY_SIZE(resp),
->>                                         TIMEOUT_POWER_UP);
->> -
->> +
->>         if (!err) {
->>                 v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
->>                                 resp[0]);
->>                 v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
->>                 sdev->power_state = POWER_ON;
->>
->> -               err = si4713_write_property(sdev, SI4713_GPO_IEN,
->> +               if (client->irq)
->> +                       err = si4713_write_property(sdev, SI4713_GPO_IEN,
->>                                                 SI4713_STC_INT | SI4713_CTS);
->>         } else {
->>                 if (gpio_is_valid(sdev->gpio_reset))
->> @@ -447,7 +461,7 @@ static int si4713_checkrev(struct si4713_device *sdev)
->>         if (rval < 0)
->>                 return rval;
->>
->> -       if (resp[1] == SI4713_PRODUCT_NUMBER) {
->> +       if (resp[1] == SI4713_PRODUCT_NUMBER) {
->>                 v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
->>                                 client->addr << 1, client->adapter->name);
->>         } else {
->> @@ -465,33 +479,34 @@ static int si4713_checkrev(struct si4713_device *sdev)
->>   */
->>  static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
->>  {
->> -       int err;
->> +       struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
->>         u8 resp[SI4713_GET_STATUS_NRESP];
->> -
->> -       /* Wait response from STC interrupt */
->> -       if (!wait_for_completion_timeout(&sdev->work,
->> -                       usecs_to_jiffies(usecs) + 1))
->> -               v4l2_warn(&sdev->sd,
->> -                       "%s: device took too much time to answer (%d usec).\n",
->> -                               __func__, usecs);
->> -
->> -       /* Clear status bits */
->> -       err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
->> -                                       NULL, 0,
->> -                                       resp, ARRAY_SIZE(resp),
->> -                                       DEFAULT_TIMEOUT);
->> -
->> -       if (err < 0)
->> -               goto exit;
->> -
->> -       v4l2_dbg(1, debug, &sdev->sd,
->> -                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
->> -
->> -       if (!(resp[0] & SI4713_STC_INT))
->> -               err = -EIO;
->> -
->> -exit:
->> -       return err;
->> +       unsigned long start_jiffies = jiffies;
->> +       int err;
->> +
->> +       if (client->irq &&
->> +           !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
->> +               v4l2_warn(&sdev->sd,
->> +                       "(%s) Device took too much time to answer.\n", __func__);
->> +
->> +       for (;;) {
->> +               /* Clear status bits */
->> +               err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
->> +                               NULL, 0,
->> +                               resp, ARRAY_SIZE(resp),
->> +                               DEFAULT_TIMEOUT);
->> +
->> +               if (err >= 0) {
->> +                       v4l2_dbg(1, debug, &sdev->sd,
->> +                                       "%s: status bits: 0x%02x\n", __func__, resp[0]);
->> +
->> +                       if (resp[0] & SI4713_STC_INT)
->> +                               return 0;
->> +               }
->> +               if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
->> +                       return -EIO;
->> +               msleep(3);
->> +       }
->>  }
->>
->>  /*
->> @@ -1024,7 +1039,6 @@ static int si4713_initialize(struct si4713_device *sdev)
->>         if (rval < 0)
->>                 return rval;
->>
->> -
->>         sdev->frequency = DEFAULT_FREQUENCY;
->>         sdev->stereo = 1;
->>         sdev->tune_rnl = DEFAULT_TUNE_RNL;
->> diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
->> index c274e1f..dc0ce66 100644
->> --- a/drivers/media/radio/si4713/si4713.h
->> +++ b/drivers/media/radio/si4713/si4713.h
->> @@ -15,6 +15,7 @@
->>  #ifndef SI4713_I2C_H
->>  #define SI4713_I2C_H
->>
->> +#include <linux/regulator/consumer.h>
+>> Which version of powertop are you actually using? None of current
 > 
-> Forgot to ask, why do you need to have regulator/consumer.h in this
-> header to add polling mode to this driver.
+> The latest, i.e. 2.4.
+> 
+>> versions would show you Watt usage for devices.
+> 
+> Sure it does :)
+> 
+> Summary: 3182.2 wakeups/second,  82.5 GPU ops/seconds, 0.0 VFS ops/sec and 33.5%
+> 
+> Power est.              Usage       Events/s    Category       Description
+>   9.82 W    100.0%                      Device         USB device: Yubico Yubike
+>   2.67 W      4.1 ms/s      43.2        Process        /usr/bin/pulseaudio --sta
+>   2.58 W    100.0%                      Device         USB device: Integrated Ca
+>   2.35 W    100.0%                      Device         USB device: BCM20702A0 (B
+>   2.32 W     32.9%                      Device         Display backlight
+>   1.39 W    100.0%                      Device         Radio device: btusb
+>   343 mW    100.0%                      Device         Radio device: thinkpad_ac
 
-The header include was moved from the C-source to the header since the header
-needs it. This header will also be included by the USB driver and it is silly
-if the USB driver would have to include consumer.h when the si4713.h should do it.
+ah ok, i see, you right. In usb.cpp:
+double usbdevice::power_usage(struct result_bundle *result, struct
+parameter_bundle *bundle)
+{
+        double power;
+        double factor;
+        double util;
 
-If you want it can be split off to a separate patch.
+        if (rootport || !cached_valid)
+                return 0.0;
 
+
+        power = 0;
+        factor = get_parameter_value(index, bundle);
+        util = get_result_value(r_index, result);
+
+        power += util * factor / 100.0;
+
+        return power;
+}
+
+
+
+but, if i understand it correctly, this values are not provided by usb.
+If you start "powertop --calibrate" it will switch on/off some devices
+and measure global power usage.
+
+-- 
 Regards,
-
-	Hans
+Oleksij
