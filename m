@@ -1,76 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:60751 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752366Ab3IBBlk (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:36794 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754589Ab3I1T2G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Sep 2013 21:41:40 -0400
-Message-ID: <1378086079.25743.87.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [PATCH 2/4] [media] lirc_bt829: Fix physical address type
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org
-Date: Mon, 02 Sep 2013 02:41:19 +0100
-In-Reply-To: <CAOMZO5C_fOqe+9a1BVWxnQ3hrYZaxf5AN4WNrOacQdkng8h-Jg@mail.gmail.com>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-	 <1378082375.25743.61.camel@deadeye.wl.decadent.org.uk>
-	 <CAOMZO5C_fOqe+9a1BVWxnQ3hrYZaxf5AN4WNrOacQdkng8h-Jg@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-yvgOAdgzr1FhVTnmrQN7"
-Mime-Version: 1.0
+	Sat, 28 Sep 2013 15:28:06 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: kishon@ti.com
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH V5 0/5] Generic PHY driver for the Exynos SoC MIPI CSI-2/DSI DPHYs
+Date: Sat, 28 Sep 2013 21:27:42 +0200
+Message-Id: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch series adds a simple driver for the Samsung S5P/Exynos SoC
+series MIPI CSI-2 receiver (MIPI CSIS) and MIPI DSI transmitter (MIPI
+DSIM) DPHYs, using the generic PHY framework. Previously the MIPI
+CSIS and MIPI DSIM used a platform callback to control the PHY power
+enable and reset bits. This non-generic platform code supporting only
+limited set of SoCs is now removed.
+This completes migration to the device tree of the Exynos/S5P MIPI CSI
+slave device driver.
 
---=-yvgOAdgzr1FhVTnmrQN7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Changes since v4:
+ - updated to the latest version of the generic PHY framework - removed
+   PHY labels from the platform data structure. There is already no need
+   for non-dt support in this PHY driver so the platform data where any
+   struct phy_init_data would be passed is not added.
 
-On Sun, 2013-09-01 at 22:37 -0300, Fabio Estevam wrote:
-> On Sun, Sep 1, 2013 at 9:39 PM, Ben Hutchings <ben@decadent.org.uk> wrote=
-:
->=20
-> >         pci_addr_phys =3D pdev->resource[0].start;
-> > -       dev_info(&pdev->dev, "memory at 0x%08X\n",
-> > -                (unsigned int)pci_addr_phys);
-> > +       dev_info(&pdev->dev, "memory at 0x%08llX\n",
-> > +                (unsigned long long)pci_addr_phys);
->=20
-> You could use %pa instead for printing phys_addr_t:
->=20
-> dev_info(&pdev->dev, "memory at %pa\n", &pci_addr_phys);
+Changes since v3 (only patch 1/5):
+ - replaced spin_(un)lock_irq_{save,restore} with spin_{lock,unlock}.
+ - DT binding file renamed to samsung-phy.txt, so it can be used for
+   other PHYs as well,
+ - removed <linux/delay.h> inclusion,
+ - added missing spin_lock_init().
 
-Could do, but I'm not sure it's clearer.  And all these %p formats
-defeat type-checking anyway.
+Changes since v2:
+ - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
+ - fixed of_xlate callback to return ERR_PTR() instead of NULL,
+ - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
+ - removed phy id check in __set_phy_state().
 
-Ben.
+Changes since v1:
+ - enabled build as module and with CONFIG_OF disabled,
+ - added phy_id enum,
+ - of_address_to_resource() replaced with platform_get_resource(),
+ - adapted to changes in the PHY API v7, v8 - added phy labels,
+ - added MODULE_DEVICE_TABLE() entry,
+ - the driver file renamed to phy-exynos-mipi-video.c,
+ - changed DT compatible string to "samsung,s5pv210-mipi-video-phy",
+ - corrected the compatible property's description.
+ - patch 3/5 "video: exynos_dsi: Use generic PHY driver" replaced
+   with a patch modifying the MIPI DSIM driver which is currently
+   in mainline.
 
---=20
-Ben Hutchings
-If you seem to know what you are doing, you'll be given more to do.
+Sylwester Nawrocki (5):
+  ARM: dts: Add MIPI PHY node to exynos4.dtsi
+  phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+  [media] exynos4-is: Use the generic MIPI CSIS PHY driver
+  video: exynos_mipi_dsim: Use the generic PHY driver
+  ARM: Samsung: Remove the MIPI PHY setup code
 
---=-yvgOAdgzr1FhVTnmrQN7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+ .../devicetree/bindings/phy/samsung-phy.txt        |   14 ++
+ arch/arm/boot/dts/exynos4.dtsi                     |   10 +
+ arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
+ arch/arm/plat-samsung/Kconfig                      |    5 -
+ arch/arm/plat-samsung/Makefile                     |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c              |   60 -------
+ drivers/media/platform/exynos4-is/Kconfig          |    2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   13 +-
+ drivers/phy/Kconfig                                |    6 +
+ drivers/phy/Makefile                               |    7 +-
+ drivers/phy/phy-exynos-mipi-video.c                |  176 ++++++++++++++++++++
+ drivers/video/exynos/Kconfig                       |    1 +
+ drivers/video/exynos/exynos_mipi_dsi.c             |   19 +-
+ include/linux/platform_data/mipi-csis.h            |    9 -
+ include/video/exynos_mipi_dsim.h                   |    5 +-
+ 16 files changed, 234 insertions(+), 103 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+--
+1.7.4.1
 
-iQIVAwUAUiPsv+e/yOyVhhEJAQooOBAAttqIoG9zlESj5vQOyMcLCK3Rzgaq/JGr
-qU6hWuf5nZYzmg+qJWbxUf/V4QLGG3QM+yFizM67KGvZc+Y0m/IDgTEPpWrX3KmW
-L/stlanFo+A5QbR6EbmZ9fcq7eyVE3ZRq6M2tJE4I+Fq76vOmANUDY3tAJq/9KNq
-Fe3c7z8dn2IMw9g401lItru7m5v2Xl8VDOGhuvNDzyVJw+XGUgXrGz2FskFt18C8
-mXJLBvnPR5kppSg7sgKBw2+bERXW7tkJFJtNPSGtcuPUy03PdEerCnVt2H9FJa59
-LQVWTLAKcYagLnLrsIZmOHc0xPOiwjxx482Pma+GBfR7Bq114YCWrX3IOpNSdk/G
-rAGPmCBwju1RZ1NEGIP23YmSzOcomRyIbrKhnJMnUvx8QynSZYWNwq3T9k8eQJKL
-7wj5niYyCN84HMZlHkV9Z6/8GgM12dE6dABTFUXmadVH35dE7pu1mz+ZSEqW+nPL
-mDM11V4r3zdW3xHN3p8KNefnTsPsvLvQ08JiQZTun54vKLPHGbXZhLKL7bVmiB1h
-eFhVFVwvPpoPv49AAqXexGHMv2zVECrkH/IHGk8t/VNYBZrXFKQF6dZzeAIqaMS0
-Q40OMPx68lcKsou+HRM2l3wuDckZg0a+d77Cm+7f5ZS3U3VxdfbsadogbqevCghh
-irzmzFPPL9w=
-=m0b3
------END PGP SIGNATURE-----
-
---=-yvgOAdgzr1FhVTnmrQN7--
