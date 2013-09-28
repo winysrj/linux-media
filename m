@@ -1,201 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:43096 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912Ab3IQMXj (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:59603 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab3I1Qvw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 08:23:39 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Cc: Roger.Teague@arm.com, jesse.barker@arm.com,
-	jesse.barker@linaro.org, maarten.lankhorst@canonical.com,
-	sumit.semwal@linaro.org, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH v9 0/2] Introduce buffer synchronization framework
-Date: Tue, 17 Sep 2013 21:23:34 +0900
-Message-id: <1379420616-9194-1-git-send-email-inki.dae@samsung.com>
+	Sat, 28 Sep 2013 12:51:52 -0400
+Date: Sat, 28 Sep 2013 18:51:36 +0200 (CEST)
+From: remi <remi@remis.cc>
+Reply-To: remi <remi@remis.cc>
+To: =?UTF-8?Q?Nguy=E1=BB=85n_Minh_Ho=C3=A0ng?=
+	<minhhoang1004@yahoo.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@linuxtv.org>, Antti Palosaari <crope@iki.fi>
+Message-ID: <1691798187.333594.1380387096688.open-xchange@email.1and1.fr>
+In-Reply-To: <1915168699.332052.1380312719179.open-xchange@email.1and1.fr>
+References: <1379785395.42997.YahooMailNeo@web162903.mail.bf1.yahoo.com> <259638318.304490.1380270295589.open-xchange@email.1and1.fr> <293EC746-6C7C-4ED3-9509-1FA868AB9661@yahoo.com> <52966910.313114.1380280004856.open-xchange@email.1and1.fr> <EE60072D-11C5-4C25-B1EA-C9627DD6B3F1@yahoo.com> <1915168699.332052.1380312719179.open-xchange@email.1and1.fr>
+Subject: Re: Need help with AverMedia306 driver on linux system.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Sorry
 
-This patch set introduces a buffer synchronization framework based
-on DMA BUF[1] and based on ww-mutexes[2] for lock mechanism, and is
-rebased on linux-3.12-rc1
+I need clarify one thing,
 
-The purpose of this framework is to provide not only buffer access
-control to CPU and CPU, and CPU and DMA, and DMA and DMA but also
-easy-to-use interfaces for device drivers and user application.
-In addtion, this patch set suggests a way for enhancing performance.
 
-Changelog v9:
-- Delete only one sync object matched at DEL_OBJ_FROM_RSV macro.
-- Fix memory leak issue at dmabuf_sync_single_lock()
+For the DVB, it's not the xc3028 here,
 
-Changelog v8:
-Consider the write-and-then-read ordering pointed out by David Herrmann,
-- The ordering issue means that a task don't take a lock to the dmabuf
-  so this task would be stalled even though this task requested a lock to
-  the dmabuf between other task unlocked and tries to lock the dmabuf
-  again. For this, we have added a wait event mechanism using only generic
-  APIs, wait_event_timeout and wake_up functions.
+It's the AF9013
 
-  The below is how to handle the ordering issue using this mechanism:
-  1. Check if there is a sync object added prior to current task's one.
-  2. If exists, it unlocks the dmabuf so that other task can take a lock
-     to the dmabuf first.
-  3. Wait for the wake up event from other task: current task will be
-     waked up when other task unlocks the dmabuf.
-  4. Take a lock to the dmabuf again.
-- Code cleanups.
+I have read the phrase "available C API" in the datasheet" , I googled it and
+found this thread for example :
 
-Changelog v7:
-Fix things pointed out by Konrad Rzeszutek Wilk,
-- Use EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL.
-- Make sure to unlock and unreference all dmabuf objects
-  when dmabuf_sync_fini() is called.
-- Add more comments.
-- Code cleanups.
 
-Changelog v6:
-- Fix sync lock to multiple reads.
-- Add select system call support.
-  . Wake up poll_wait when a dmabuf is unlocked.
-- Remove unnecessary the use of mutex lock.
-- Add private backend ops callbacks.
-  . This ops has one callback for device drivers to clean up their
-    sync object resource when the sync object is freed. For this,
-    device drivers should implement the free callback properly.
-- Update document file.
+http://forum.stmlabs.com/showthread.php?tid=3404
 
-Changelog v5:
-- Rmove a dependence on reservation_object: the reservation_object is used
-  to hook up to ttm and dma-buf for easy sharing of reservations across
-  devices. However, the dmabuf sync can be used for all dma devices; v4l2
-  and drm based drivers, so doesn't need the reservation_object anymore.
-  With regared to this, it adds 'void *sync' to dma_buf structure.
-- All patches are rebased on mainline, Linux v3.10.
 
-Changelog v4:
-- Add user side interface for buffer synchronization mechanism and update
-  descriptions related to the user side interface.
+It's for raspberry and the likes linux-toy-SBC/SOC ,
 
-Changelog v3:
-- remove cache operation relevant codes and update document file.
+I will go thru it , and keep you informed .
 
-Changelog v2:
-- use atomic_add_unless to avoid potential bug.
-- add a macro for checking valid access type.
-- code clean.
 
-For generic user mode interface, we have used fcntl and select system
-call[3]. As you know, user application sees a buffer object as a dma-buf
-file descriptor. So fcntl() call with the file descriptor means to lock
-some buffer region being managed by the dma-buf object. And select() call
-means to wait for the completion of CPU or DMA access to the dma-buf
-without locking. For more detail, you can refer to the dma-buf-sync.txt
-in Documentation/
+The datasheet shows that it's accessible by i2c too, so it must be linked to the
+cx23885 by I2c ,
 
-There are some cases user-space process needs this buffer synchronization
-framework. One of which is to primarily enhance GPU rendering performance
-in case that 3D app draws somthing in a buffer using CPU, and other process
-composes the buffer with its own backbuffer using GPU.
+I think it's at the address 0x66,
 
-In case of 3D app, the app calls glFlush to submit 3d commands to GPU driver
-instead of glFinish for more performance. The reason, we call glFlush, is
-that glFinish blocks caller's task until the execution of the 3d commands is
-completed. So that makes GPU and CPU more idle. As a result, 3d rendering
-performance with glFinish is quite lower than glFlush.
+once it's "linked up" I should be able to port their code .
 
-However, the use of glFlush has one issue that the the buffer shared with
-GPU could be broken when CPU accesses the buffer just after glFlush because
-CPU cannot be aware of the completion of GPU access to the buffer.
-Of course, the app can be aware of that time using eglWaitGL but this function
-is valid only in case of the same context.
 
-The below summarizes how app's window is displayed on Tizen[4] platform:
-1. X client requests a window buffer to Xorg.
-2. X client draws something in the window buffer using CPU.
-3. X client requests SWAP to Xorg.
-4. Xorg notifies a damage event to Composite Manager.
-5. Composite Manager gets the window buffer (front buffer) through
-   DRI2GetBuffers.
-6. Composite Manager composes the window buffer and its own back buffer
-   using GPU. At this time, eglSwapBuffers is called: internally, 3d
-   commands are flushed to gpu driver.
-7. Composite Manager requests SWAP to Xorg.
-8. Xorg performs drm page flip. At this time, the window buffer is
-   displayed on screen.
+Best regards
 
-Web app based on HTML5 also has the same issue. Web browser and Web app
-are different process. The Web app can draw something in its own buffer using
-CPU, and then the Web Browser can compose the buffer with its own back buffer.
+Rémi .
 
-Thus, in such cases, a shared buffer could be broken as one process draws
-something in a buffer using CPU, when other process composes the buffer with
-its own buffer using GPU without any locking mechanism. That is why we need
-user land locking interface, fcntl system call.
 
-And last one is a deferred page flip issue. This issue is that a window
-buffer rendered can be displayed on screen in about 32ms in worst case:
-assume that the gpu rendering is completed within 16ms.
-That can be incurred when compositing a pixmap buffer with a window buffer
-using GPU and when vsync is just started. At this time, Xorg waits for
-a vblank event to get a window buffer so 3d rendering will be delayed
-up to about 16ms. As a result, the window buffer would be displayed in
-about two vsyncs (about 32ms) and in turn, that would show slow
-responsiveness.
-
-For this, we could enhance the responsiveness with locking mechanism: skipping
-one vblank wait. I guess Android, Chrome OS, and other platforms are using
-their own locking mechanisms with similar reason; Android sync driver, KDS, and
-DMA fence.
-
-The below shows the deferred page flip issue in worst case:
-
-               |------------ <- vsync signal
-               |<------ DRI2GetBuffers
-               |
-               |
-               |
-               |------------ <- vsync signal
-               |<------ Request gpu rendering
-          time |
-               |
-               |<------ Request page flip (deferred)
-               |------------ <- vsync signal
-               |<------ Displayed on screen
-               |
-               |
-               |
-               |------------ <- vsync signal
-
-Thanks,
-Inki Dae
-
-References:
-[1] http://lwn.net/Articles/470339/
-[2] https://patchwork.kernel.org/patch/2625361/
-[3] http://linux.die.net/man/2/fcntl
-[4] https://www.tizen.org/
-
-Inki Dae (2):
-  dmabuf-sync: Add a buffer synchronization framework
-  dma-buf: Add user interfaces for dmabuf sync support
-
- Documentation/dma-buf-sync.txt |  286 ++++++++++++
- drivers/base/Kconfig           |    7 +
- drivers/base/Makefile          |    1 +
- drivers/base/dma-buf.c         |   86 ++++
- drivers/base/dmabuf-sync.c     |  951 ++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h        |   16 +
- include/linux/dmabuf-sync.h    |  257 +++++++++++
- 7 files changed, 1604 insertions(+)
- create mode 100644 Documentation/dma-buf-sync.txt
- create mode 100644 drivers/base/dmabuf-sync.c
- create mode 100644 include/linux/dmabuf-sync.h
-
--- 
-1.7.9.5
-
+> Le 27 septembre 2013 à 22:11, remi <remi@remis.cc> a écrit :
+> 
+> 
+> Good news, and thank you for the feedback
+> 
+> 
+> Must be because I am in Paris/FRANCE, they went all TNT (dvb)
+> 
+> I thaught they left a channel or two in the hertzerian analog but not :( or my
+> reception is really bad ...
+> 
+> And you have the right cables if it's in it's original laptop !! :)
+> 
+> 
+> Thnx again for your help !!
+> 
+> 
+> 
+> 
+> 
+> > Le 27 septembre 2013 à 13:20, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
+> > 
+> > 
+> > Yes, you are so smart, buddy. I know you are not developer of these card driver. But you got the way to make this card worked well. So i wrote to you. I am not successful with your 306 patches because i use other revision of linuxtv driver, i tried modprobe option with card=39 too and as you say, it works as analog - no dvb. This card is hybridge, not single analog or dvb. If you get the way, help me with your way :) thank you. 
+> > 
+> > Sent from my iPhone
+> > 
+> > > On Sep 27, 2013, at 6:06 PM, remi <remi@remis.cc> wrote:
+> > > 
+> > > Oh, I am not the person who wrote the driver ... :(
+> > > 
+> > > 
+> > > I merly cloned the HC81r, gave it the proper PCI ID, and the correct firmware ,
+> > > 
+> > > I also have no DVB either,
+> > > 
+> > > Unless I get time to learn V4L API, or the mainter of the "xc2028" finds more
+> > > infos too ...
+> > > 
+> > > we are prety much at this stage, some analog, but no dvb ...
+> > > 
+> > > at my knowlodge .
+> > > 
+> > > 
+> > > Best regards
+> > > 
+> > > Rémi
+> > > 
+> > > 
+> > > 
+> > > 
+> > >>  Le 27 septembre 2013 à 12:46, Nguyễn Minh Hoàng <minhhoang1004@yahoo.com> a écrit :
+> > >>  
+> > >>  
+> > >>  Thank you for your relying. I know that your patch is not same my revision, i can't apply it. I think i should find and add your patches manually, but there are so much code to do. I am on phone now. I will send you some more detail when i am back to my computer. Pls help me. 
+> > >>  Ps: i used "option=39" before, my system got it as video and vbi device, not dvb device. Maybe i need some patches in this case as your suggestion today.
+> > >>  Thank you again!
+> > >>  
+> > >>  Sent from my iPhone
+> > >>  
+> > >>  > On Sep 27, 2013, at 3:24 PM, remi <remi@remis.cc> wrote:
+> > >>  > 
+> > >>  > :)
+> > >>  > 
+> > >>  > Also,
+> > >>  > 
+> > >>  > 
+> > >>  > by the time I redo the patch,
+> > >>  > 
+> > >>  > 
+> > >>  > You must have seen how i have reached this point,
+> > >>  > 
+> > >>  > I have actually started by insering the module with card=39 as an option,
+> > >>  > 
+> > >>  > 
+> > >>  > So you can for now, add theses line to
+> > >>  > 
+> > >>  > gpunk@gpunk-Aspire-8930:~$cat /etc/modprobe.d/video-tv.conf
+> > >>  > 
+> > >>  > 
+> > >>  > options tuner-xc2028 firmware_name=xc3028-v27.fw
+> > >>  > options cx23885 card=39
+> > >>  > 
+> > >>  > 
+> > >>  > I called my file this way ... it's arbitrary, please check the man modprobe of
+> > >>  > your ditribution/kernel .
+> > >>  > 
+> > >>  > 
+> > >>  > Best regards
+> > >>  > 
+> > >>  > Rémi
+> > >>  > 
+> > >>  > 
+> > >>  > 
+> > >>  >>  Le 21 septembre 2013 à 19:43, "Admin@tydaikho.com" <minhhoang1004@yahoo.com> a écrit :
+> > >>  >>  
+> > >>  >>  
+> > >>  >>  Hi Remi!
+> > >>  >>  I got my card but i have not finish to install driver. I follow your patch on linuxtv.org but i am not successful. it makes some mistake: "malform" and "hunk" errors.
+> > >>  >>  =======================
+> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885.patch
+> > >>  >>  can't find file to patch at input line 3
+> > >>  >>  Perhaps you used the wrong -p or --strip option?
+> > >>  >>  The text leading up to this was:
+> > >>  >>  --------------------------
+> > >>  >>  |--- drivers/media/pci/cx23885/cx23885.h   2013-03-25 05:45:50.000000000 +0100
+> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885.h      2013-08-21 13:55:20.010625134 +0200
+> > >>  >>  --------------------------
+> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885.h                                  
+> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885.h
+> > >>  >>  patch: **** malformed patch at line 4:  #define CX23885_BOARD_PROF_8000                37
+> > >>  >>  ==========================
+> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-video.patch
+> > >>  >>  can't find file to patch at input line 4
+> > >>  >>  Perhaps you used the wrong -p or --strip option?
+> > >>  >>  The text leading up to this was:
+> > >>  >>  --------------------------
+> > >>  >>  |--- drivers/media/pci/cx23885/cx23885-video.c     2013-08-02 05:45:59.000000000 +0200
+> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885-video.c        2013-08-21 13:55:20.017625046
+> > >>  >>  |+0200
+> > >>  >>  --------------------------
+> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-video.c
+> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-video.c
+> > >>  >>  Hunk #1 FAILED at 511.
+> > >>  >>  Hunk #2 FAILED at 1888.
+> > >>  >>  2 out of 2 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-video.c.rej
+> > >>  >>  ============================
+> > >>  >>  root@ty-debian:/usr/local/src/linuxtv# patch -p1 < ./cx23885-cards.patch
+> > >>  >>  can't find file to patch at input line 4
+> > >>  >>  Perhaps you used the wrong -p or --strip option?
+> > >>  >>  The text leading up to this was:
+> > >>  >>  --------------------------
+> > >>  >>  |--- drivers/media/pci/cx23885/cx23885-cards.c     2012-12-28 00:04:05.000000000 +0100
+> > >>  >>  |+++ drivers/media/pci/cx23885/cx23885-cards.c        2013-08-21 14:15:54.173195979
+> > >>  >>  |+0200
+> > >>  >>  --------------------------
+> > >>  >>  File to patch: ./drivers/media/pci/cx23885/cx23885-cards.c
+> > >>  >>  patching file ./drivers/media/pci/cx23885/cx23885-cards.c
+> > >>  >>  Hunk #1 FAILED at 604.
+> > >>  >>  Hunk #2 FAILED at 841.
+> > >>  >>  Hunk #3 FAILED at 1069.
+> > >>  >>  Hunk #4 FAILED at 1394.
+> > >>  >>  Hunk #5 FAILED at 1623.
+> > >>  >>  Hunk #6 FAILED at 1758.
+> > >>  >>  6 out of 6 hunks FAILED -- saving rejects to file ./drivers/media/pci/cx23885/cx23885-cards.c.rej
+> > >>  >>  ===============================
+> > >>  >>  
+> > >>  >>  If you don't mind, i need your support to get my card works well. Thank you very much!
+> > >>  >>  
+> > >>  >>   
+> > >>  >>  ----------------------------------------------------------
+> > >>  >>  Yahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho
+> > >>  >>  ----------------------------------------------------------
+> > >>  >>  
+> > >>  >>  (http://tydaikho.com)  VS  (http://vnluser.net)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
