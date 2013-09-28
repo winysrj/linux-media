@@ -1,64 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10321 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393Ab3IQMsQ (ORCPT
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:38610 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977Ab3I1Tah (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 08:48:16 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MT900IMAST6ILC0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Sep 2013 13:46:57 +0100 (BST)
-Message-id: <52384F40.4030304@samsung.com>
-Date: Tue, 17 Sep 2013 14:46:56 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PULL FOR 3.13] videobuf2 updates
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sat, 28 Sep 2013 15:30:37 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: kishon@ti.com
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH V5 4/5] video: exynos_mipi_dsim: Use the generic PHY driver
+Date: Sat, 28 Sep 2013 21:27:46 +0200
+Message-Id: <1380396467-29278-5-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
+References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Use the generic PHY API instead of the platform callback
+for the MIPI DSIM DPHY enable/reset control.
 
-This includes videobuf2-dma-sg allocator enhancements, videobuf-core cleanup
-and debug logs addition.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Donghwa Lee <dh09.lee@samsung.com>
+---
+Changes since v4:
+ - PHY label removed from the platform data structure.
+---
+ drivers/video/exynos/Kconfig           |    1 +
+ drivers/video/exynos/exynos_mipi_dsi.c |   19 ++++++++++---------
+ include/video/exynos_mipi_dsim.h       |    5 ++---
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
+diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
+index 1b035b2..976594d 100644
+--- a/drivers/video/exynos/Kconfig
++++ b/drivers/video/exynos/Kconfig
+@@ -16,6 +16,7 @@ if EXYNOS_VIDEO
+ config EXYNOS_MIPI_DSI
+ 	bool "EXYNOS MIPI DSI driver support."
+ 	depends on ARCH_S5PV210 || ARCH_EXYNOS
++	select GENERIC_PHY
+ 	help
+ 	  This enables support for MIPI-DSI device.
 
-  Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+index 32e5406..00b3a52 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi.c
++++ b/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -30,6 +30,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kthread.h>
+ #include <linux/notifier.h>
++#include <linux/phy/phy.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/err.h>
+@@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+ 		exynos_mipi_regulator_enable(dsim);
 
-are available in the git repository at:
+ 		/* enable MIPI-DSI PHY. */
+-		if (dsim->pd->phy_enable)
+-			dsim->pd->phy_enable(pdev, true);
++		phy_power_on(dsim->phy);
 
-  git://linuxtv.org/snawrocki/samsung.git for-v3.13-videobuf2
+ 		clk_enable(dsim->clock);
 
-for you to fetch changes up to de727541f8be1de8163bf831b38aaf2181d6284e:
+@@ -373,6 +373,10 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
 
-  videobuf2: Add debug print for the output buffer plane lengths checks
-(2013-09-17 13:46:54 +0200)
++	dsim->phy = devm_phy_get(&pdev->dev, "dsim");
++	if (IS_ERR(dsim->phy))
++		return PTR_ERR(dsim->phy);
++
+ 	dsim->clock = devm_clk_get(&pdev->dev, "dsim0");
+ 	if (IS_ERR(dsim->clock)) {
+ 		dev_err(&pdev->dev, "failed to get dsim clock source\n");
+@@ -439,8 +443,7 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 	exynos_mipi_regulator_enable(dsim);
 
-----------------------------------------------------------------
-Ricardo Ribalda (3):
-      videobuf2: Fix vb2_write prototype
-      videobuf2-dma-sg: Allocate pages as contiguous as possible
-      videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
 
-Seung-Woo Kim (1):
-      videobuf2: Add log for size checking error in __qbuf_userptr
+ 	exynos_mipi_update_cfg(dsim);
 
-Sylwester Nawrocki (1):
-      videobuf2: Add debug print for the output buffer plane lengths checks
+@@ -504,9 +507,8 @@ static int exynos_mipi_dsi_suspend(struct device *dev)
+ 	if (client_drv && client_drv->suspend)
+ 		client_drv->suspend(client_dev);
 
- drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +-
- drivers/media/v4l2-core/videobuf2-core.c           |   16 ++-
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  149 +++++++++++---------
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 +--
- include/media/videobuf2-core.h                     |    4 +-
- include/media/videobuf2-dma-sg.h                   |   10 +-
- 6 files changed, 119 insertions(+), 94 deletions(-)
+-	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, false);
++	/* disable MIPI-DSI PHY. */
++	phy_power_off(dsim->phy);
 
+ 	clk_disable(dsim->clock);
+
+@@ -536,8 +538,7 @@ static int exynos_mipi_dsi_resume(struct device *dev)
+ 	exynos_mipi_regulator_enable(dsim);
+
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
+
+ 	clk_enable(dsim->clock);
+
+diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
+index 89dc88a..6a578f8 100644
+--- a/include/video/exynos_mipi_dsim.h
++++ b/include/video/exynos_mipi_dsim.h
+@@ -216,6 +216,7 @@ struct mipi_dsim_config {
+  *	automatically.
+  * @e_clk_src: select byte clock source.
+  * @pd: pointer to MIPI-DSI driver platform data.
++ * @phy: pointer to the MIPI-DSI PHY
+  */
+ struct mipi_dsim_device {
+ 	struct device			*dev;
+@@ -236,6 +237,7 @@ struct mipi_dsim_device {
+ 	bool				suspended;
+
+ 	struct mipi_dsim_platform_data	*pd;
++	struct phy			*phy;
+ };
+
+ /*
+@@ -248,7 +250,6 @@ struct mipi_dsim_device {
+  * @enabled: indicate whether mipi controller got enabled or not.
+  * @lcd_panel_info: pointer for lcd panel specific structure.
+  *	this structure specifies width, height, timing and polarity and so on.
+- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
+  */
+ struct mipi_dsim_platform_data {
+ 	char				lcd_panel_name[PANEL_NAME_SIZE];
+@@ -256,8 +257,6 @@ struct mipi_dsim_platform_data {
+ 	struct mipi_dsim_config		*dsim_config;
+ 	unsigned int			enabled;
+ 	void				*lcd_panel_info;
+-
+-	int (*phy_enable)(struct platform_device *pdev, bool on);
+ };
+
+ /*
 --
-Regards,
-Sylwester
+1.7.4.1
+
