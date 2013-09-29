@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f180.google.com ([209.85.128.180]:33116 "EHLO
-	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862Ab3IEDFF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 23:05:05 -0400
-Received: by mail-ve0-f180.google.com with SMTP id jz11so95248veb.25
-        for <linux-media@vger.kernel.org>; Wed, 04 Sep 2013 20:05:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1378348275.27597.15.camel@deadeye.wl.decadent.org.uk>
-References: <1378348215.27597.14.camel@deadeye.wl.decadent.org.uk>
-	<1378348275.27597.15.camel@deadeye.wl.decadent.org.uk>
-Date: Thu, 5 Sep 2013 00:05:03 -0300
-Message-ID: <CAOMZO5C0n5vP1Tb8Kx=jWjN9NQ7_8S3y28vE6Jby-fugHC=Tjw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] [media] lirc_bt829: Fix physical address type
-From: Fabio Estevam <festevam@gmail.com>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
+Received: from smtp-out-220.synserver.de ([212.40.185.220]:1457 "EHLO
+	smtp-out-220.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384Ab3I2Itc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Sep 2013 04:49:32 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=UTF-8
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/8] [media] exynos4-is: Don't use i2c_client->driver
+Date: Sun, 29 Sep 2013 10:51:00 +0200
+Message-Id: <1380444666-12019-3-git-send-email-lars@metafoo.de>
+In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 4, 2013 at 11:31 PM, Ben Hutchings <ben@decadent.org.uk> wrote:
-> Use phys_addr_t and log format %pa.
->
-> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-> ---
->  drivers/staging/media/lirc/lirc_bt829.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
-> index fa31ee7..9c7be55 100644
-> --- a/drivers/staging/media/lirc/lirc_bt829.c
-> +++ b/drivers/staging/media/lirc/lirc_bt829.c
-> @@ -63,7 +63,7 @@ static bool debug;
->         } while (0)
->
->  static int atir_minor;
-> -static unsigned long pci_addr_phys;
-> +static phys_addr_t pci_addr_phys;
->  static unsigned char *pci_addr_lin;
->
->  static struct lirc_driver atir_driver;
-> @@ -78,8 +78,7 @@ static struct pci_dev *do_pci_probe(void)
->                 pci_addr_phys = 0;
->                 if (my_dev->resource[0].flags & IORESOURCE_MEM) {
->                         pci_addr_phys = my_dev->resource[0].start;
-> -                       pr_info("memory at 0x%08X\n",
-> -                              (unsigned int)pci_addr_phys);
-> +                       pr_info("memory at %pa\n", &pci_addr_phys);
+The 'driver' field of the i2c_client struct is redundant and is going to be
+removed. The results of the expressions 'client->driver.driver->field' and
+'client->dev.driver->field' are identical, so replace all occurrences of the
+former with the later.
 
-Looks much better :-)
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Reviewed-by: Fabio Estevam <fabio.estevam@freescale.com>
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index a835112..7a4ee4c 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -411,8 +411,8 @@ static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+ 
+ 	device_lock(&client->dev);
+ 
+-	if (!client->driver ||
+-	    !try_module_get(client->driver->driver.owner)) {
++	if (!client->dev.driver ||
++	    !try_module_get(client->dev.driver->owner)) {
+ 		ret = -EPROBE_DEFER;
+ 		v4l2_info(&fmd->v4l2_dev, "No driver found for %s\n",
+ 						node->full_name);
+@@ -442,7 +442,7 @@ static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+ 	fmd->num_sensors++;
+ 
+ mod_put:
+-	module_put(client->driver->driver.owner);
++	module_put(client->dev.driver->owner);
+ dev_put:
+ 	device_unlock(&client->dev);
+ 	put_device(&client->dev);
+-- 
+1.8.0
+
