@@ -1,75 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54755 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753853Ab3IFPUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 11:20:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+Received: from smtp-out-220.synserver.de ([212.40.185.220]:1422 "EHLO
+	smtp-out-220.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754881Ab3I2Itu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Sep 2013 04:49:50 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] media/v4l2: VIDEO_RENESAS_VSP1 should depend on HAS_DMA
-Date: Fri, 06 Sep 2013 17:20:18 +0200
-Message-ID: <2886273.7m0Ub6qIMh@avalon>
-In-Reply-To: <1378471436-7045-1-git-send-email-geert@linux-m68k.org>
-References: <1378471436-7045-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 8/8] i2c: Remove redundant 'driver' field from the i2c_client struct
+Date: Sun, 29 Sep 2013 10:51:06 +0200
+Message-Id: <1380444666-12019-9-git-send-email-lars@metafoo.de>
+In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+The 'driver' field of the i2c_client struct is redundant. The same data can be
+accessed through to_i2c_driver(client->dev.driver). The generated code for both
+approaches in more or less the same.
 
-On Friday 06 September 2013 14:43:56 Geert Uytterhoeven wrote:
-> If NO_DMA=y:
-> 
-> warning: (... && VIDEO_RENESAS_VSP1 && ...) selects VIDEOBUF2_DMA_CONTIG
-> which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
-> 
-> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
-> drivers/media/v4l2-core/videobuf2-dma-contig.c:202: error: implicit
-> declaration of function ‘dma_mmap_coherent’
-> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function
-> ‘vb2_dc_get_base_sgt’: drivers/media/v4l2-core/videobuf2-dma-contig.c:385:
-> error: implicit declaration of function ‘dma_get_sgtable’ make[7]: ***
-> [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
-> 
-> VIDEO_RENESAS_VSP1 (which doesn't have a platform dependency) selects
-> VIDEOBUF2_DMA_CONTIG, but the latter depends on HAS_DMA.
-> 
-> Make VIDEO_RENESAS_VSP1 depend on HAS_DMA to fix this.
+E.g. on ARM the expression client->driver->command(...) generates
 
-Is there a chance we could fix the Kconfig infrastructure instead ? It warns 
-about the unmet dependency, shouldn't it disallow selecting the driver in the 
-first place ? I have a vague feeling that this topic has been discussed before 
-though.
+		...
+		ldr     r3, [r0, #28]
+		ldr     r3, [r3, #32]
+		blx     r3
+		...
 
-If that's not possible,
+and the expression to_i2c_driver(client->dev.driver)->command(...) generates
 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+		...
+		ldr     r3, [r0, #160]
+    	ldr     r3, [r3, #-4]
+    	blx     r3
+		...
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Other architectures will generate similar code.
 
-> ---
->  drivers/media/platform/Kconfig |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 8068d7b..fbc0611 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -212,7 +212,7 @@ config VIDEO_SH_VEU
-> 
->  config VIDEO_RENESAS_VSP1
->  	tristate "Renesas VSP1 Video Processing Engine"
-> -	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
+All users of the 'driver' field outside of the I2C core have already been
+converted. So this only leaves the core itself. This patch converts the
+remaining few users in the I2C core and then removes the 'driver' field from the
+i2c_client struct.
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/i2c/i2c-core.c  | 21 ++++++++++++---------
+ drivers/i2c/i2c-smbus.c | 10 ++++++----
+ include/linux/i2c.h     |  2 --
+ 3 files changed, 18 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 29d3f04..430c001 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -248,17 +248,16 @@ static int i2c_device_probe(struct device *dev)
+ 	driver = to_i2c_driver(dev->driver);
+ 	if (!driver->probe || !driver->id_table)
+ 		return -ENODEV;
+-	client->driver = driver;
++
+ 	if (!device_can_wakeup(&client->dev))
+ 		device_init_wakeup(&client->dev,
+ 					client->flags & I2C_CLIENT_WAKE);
+ 	dev_dbg(dev, "probe\n");
+ 
+ 	status = driver->probe(client, i2c_match_id(driver->id_table, client));
+-	if (status) {
+-		client->driver = NULL;
++	if (status)
+ 		i2c_set_clientdata(client, NULL);
+-	}
++
+ 	return status;
+ }
+ 
+@@ -279,10 +278,9 @@ static int i2c_device_remove(struct device *dev)
+ 		dev->driver = NULL;
+ 		status = 0;
+ 	}
+-	if (status == 0) {
+-		client->driver = NULL;
++	if (status == 0)
+ 		i2c_set_clientdata(client, NULL);
+-	}
++
+ 	return status;
+ }
+ 
+@@ -1606,9 +1604,14 @@ static int i2c_cmd(struct device *dev, void *_arg)
+ {
+ 	struct i2c_client	*client = i2c_verify_client(dev);
+ 	struct i2c_cmd_arg	*arg = _arg;
++	struct i2c_driver	*driver;
++
++	if (!client || !client->dev.driver)
++		return 0;
+ 
+-	if (client && client->driver && client->driver->command)
+-		client->driver->command(client, arg->cmd, arg->arg);
++	driver = to_i2c_driver(client->dev.driver);
++	if (driver->command)
++		driver->command(client, arg->cmd, arg->arg);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/i2c/i2c-smbus.c b/drivers/i2c/i2c-smbus.c
+index 44d4c60..c99b229 100644
+--- a/drivers/i2c/i2c-smbus.c
++++ b/drivers/i2c/i2c-smbus.c
+@@ -46,6 +46,7 @@ static int smbus_do_alert(struct device *dev, void *addrp)
+ {
+ 	struct i2c_client *client = i2c_verify_client(dev);
+ 	struct alert_data *data = addrp;
++	struct i2c_driver *driver;
+ 
+ 	if (!client || client->addr != data->addr)
+ 		return 0;
+@@ -54,12 +55,13 @@ static int smbus_do_alert(struct device *dev, void *addrp)
+ 
+ 	/*
+ 	 * Drivers should either disable alerts, or provide at least
+-	 * a minimal handler.  Lock so client->driver won't change.
++	 * a minimal handler.  Lock so the driver won't change.
+ 	 */
+ 	device_lock(dev);
+-	if (client->driver) {
+-		if (client->driver->alert)
+-			client->driver->alert(client, data->flag);
++	if (client->dev.driver) {
++		driver = to_i2c_driver(client->dev.driver);
++		if (driver->alert)
++			driver->alert(client, data->flag);
+ 		else
+ 			dev_warn(&client->dev, "no driver alert()!\n");
+ 	} else
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 2ab11dc..eff50e0 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -205,7 +205,6 @@ struct i2c_driver {
+  * @name: Indicates the type of the device, usually a chip name that's
+  *	generic enough to hide second-sourcing and compatible revisions.
+  * @adapter: manages the bus segment hosting this I2C device
+- * @driver: device's driver, hence pointer to access routines
+  * @dev: Driver model device node for the slave.
+  * @irq: indicates the IRQ generated by this device (if any)
+  * @detected: member of an i2c_driver.clients list or i2c-core's
+@@ -222,7 +221,6 @@ struct i2c_client {
+ 					/* _LOWER_ 7 bits		*/
+ 	char name[I2C_NAME_SIZE];
+ 	struct i2c_adapter *adapter;	/* the adapter we sit on	*/
+-	struct i2c_driver *driver;	/* and our access routines	*/
+ 	struct device dev;		/* the device structure		*/
+ 	int irq;			/* irq issued by device		*/
+ 	struct list_head detected;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.0
 
