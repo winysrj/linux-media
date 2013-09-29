@@ -1,185 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53355 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab3IFLFO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Sep 2013 07:05:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
-Date: Fri, 06 Sep 2013 13:05:17 +0200
-Message-ID: <344618801.kmLM0jZvMY@avalon>
-In-Reply-To: <20130905163130.GF4493@valkosipuli.retiisi.org.uk>
-References: <201308281419.52009.hverkuil@xs4all.nl> <2062971.KPW0FZTQyQ@avalon> <20130905163130.GF4493@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3521 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753732Ab3I2C4p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Sep 2013 22:56:45 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8T2ufFS078258
+	for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 04:56:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id AA6682A0767
+	for <linux-media@vger.kernel.org>; Sun, 29 Sep 2013 04:56:35 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130929025635.AA6682A0767@tschai.lan>
+Date: Sun, 29 Sep 2013 04:56:35 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
-> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
-> > On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
-> > > On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
-> > > > On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
-> > > > > On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
-> > > > > > On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
-> > > > > > > On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
-> > > > > > > wrote:
-> > > > > > > ...
-> > > > > > > 
-> > > > > > > > > > UVC devices timestamp frames when the frame is captured,
-> > > > > > > > > > not when the first pixel is transmitted.
-> > > > > > > > > 
-> > > > > > > > > I.e. we shouldn't set the SOF flag? "When the frame is
-> > > > > > > > > captured" doesn't say much, or almost anything in terms of
-> > > > > > > > > *when*. The frames have exposure time and rolling shutter
-> > > > > > > > > makes a difference, too.
-> > > > > > > > 
-> > > > > > > > The UVC 1.1 specification defines the timestamp as
-> > > > > > > > 
-> > > > > > > > "The source clock time in native deviceclock units when the
-> > > > > > > > raw frame capture begins."
-> > > > > > > > 
-> > > > > > > > What devices do in practice may differ :-)
-> > > > > > > 
-> > > > > > > I think that this should mean start-of-frame - exposure time.
-> > > > > > > I'd really wonder if any practical implementation does that
-> > > > > > > however.
-> > > > > > 
-> > > > > > It's start-of-frame - exposure time - internal delays (UVC webcams
-> > > > > > are supposed to report their internal delay value as well).
-> > > > > 
-> > > > > Do they report it? How about the exposure time?
-> > > > 
-> > > > It's supposed to be configurable.
-> > > 
-> > > Is the exposure reported with the frame so it could be used to construct
-> > > the per-frame SOF timestamp?
-> > 
-> > Not when auto-exposure is turned on I'm afraid :-S
-> > 
-> > I believe that the capture timestamp makes more sense than the SOF
-> > timestamp for applications. SOF/EOF are more of a poor man's timestamp in
-> > case nothing else is available, but when you want to synchronize multiple
-> > audio and/or video streams the capture timestamp is what you're
-> > interested in. I don't think converting a capture timestamp to an SOF
-> > would be a good idea.
->
-> I'm not quite sure of that --- I think the SOF/EOF will be more stable than
-> the exposure start which depends on the exposure time. If you're recording a
-> video you may want to keep the time between the frames constant.
+Results of the daily build of media_tree:
 
-I can see two main use cases for timestamps. The first one is multi-stream 
-synchronization (audio and video, stereo video, ...), the second one is 
-playback rate control.
+date:		Sun Sep 29 04:00:13 CEST 2013
+git branch:	test
+git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
-To synchronize media streams you need to timestamp samples with a common 
-clock. Timestamps must be correlated to the time at which the sound and/or 
-image events occur. If we consider the speed of sound and speed of light as 
-negligible (the former could be compensated for if needed, but that's out of 
-scope), the time at which the sound or image is produced can be considered as 
-equal to the time at which they're captured. Given that we only need to 
-synchronize streams here, an offset wouldn't matter, so any clock that is 
-synchronized to the capture clock with a fixed offset would do. The SOF event, 
-in particular, will do if the capture time and device processing time is 
-constant, and if interrupt latencies are kept small enough.. So will the EOF 
-event if the transmission time is also constant.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Granted, frames are not captured at a precise point of time, as the sensor 
-needs to be exposed for a certain duration. There is thus no such thing as a 
-capture time, we instead have a capture interval. However, that's irrelevant 
-for multi-video synchronization purposes. It could matter for audio+video 
-synchronization though.
+Detailed results are available here:
 
-Regarding playback rate control, the goal is to render frames at the same rate 
-they are captured. If the frame rate isn't constant (for instance because of a 
-variable exposure time), then a time stamp is required for every frame. Here 
-we care about the difference between timestamps for two consecutive frames, 
-and the start of capture timestamp is what will give best results.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Let's consider three frames, A, B and C, captured as follows.
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-00000000001111111111222222222233333333334444444444555555555566666666667777
-01234567890123456789012345678901234567890123456789012345678901234567890123
+The Media Infrastructure API from this daily build is here:
 
-| --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
-
-On the playback side, we want to display A for a duration of 34. If we 
-timestamp the frames with the start of capture time, we will have the 
-following timestamps.
-
-A  0
-B  34
-C  57
-
-B-A = 34, which is the time during which A needs to be displayed.
-
-If we use the end of capture time, we will get
-
-A  27
-B  50
-C  73
-
-B-A = 23, which is too short.
-
-> Nevertheless --- if we don't get such a timestamp from the device this will
-> only remain speculation. Applications might be best using e.g. half the
-> frame period to get a guesstimate of the differences between the two
-> timestamps.
-
-Obviously if the device can't provide the start of capture timestamp we will 
-need to use any source of timestamps, but I believe we should aim for start of 
-capture as a first class citizen.
-
-> > > > > If you know them all you can calculate the SOF timestamp. The fewer
-> > > > > timestamps are available for user programs the better.
-> > > > > 
-> > > > > It's another matter then if there are webcams that report these
-> > > > > values wrong.
-> > > > 
-> > > > There most probably are :-)
-> > > > 
-> > > > > Then you could get timestamps that are complete garbage. But I guess
-> > > > > you could compare them to the current monotonic timestamp and detect
-> > > > > such cases.
-> > > > > 
-> > > > > > > What's your suggestion; should we use the SOF flag for this or
-> > > > > > > do you prefer the end-of-frame timestamp instead? I think it'd
-> > > > > > > be quite nice for drivers to know which one is which without
-> > > > > > > having to guess, and based on the above start-of-frame comes as
-> > > > > > > close to that definition as is meaningful.
-> > > > > > 
-> > > > > > SOF is better than EOF. Do we need a start-of-capture flag, or
-> > > > > > could we document SOF as meaning start-of-capture or start-of-
-> > > > > > reception depending on what the device can do ?
-> > > > > 
-> > > > > One possibility is to dedicate a few flags for this; by using three
-> > > > > bits we'd get eight different timestamps already. But I have to say
-> > > > > that fewer is better. :-)
-> > > > 
-> > > > Does it really need to be a per-buffer flag ? This seems to be a
-> > > > driver-wide (or at least device-wide) behaviour to me.
-> > > 
-> > > Same goes for timestamp clock sources. It was concluded to use buffer
-> > > flags for those as well.
-> > 
-> > Yes, and I don't think I was convinced, so I'm not convinced here either
-> > :-)
-> > 
-> > > Using a control for the purpose would however require quite non-zero
-> > > amount of initialisation code from each driver so that would probably
-> > > need to be sorted out first.
-> > 
-> > We could also use a capabilities flag.
-> 
-> Interesting idea. I'm fine that as well. Hans?
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
