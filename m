@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2170 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781Ab3I3MDa (ORCPT
+Received: from smtp-out-220.synserver.de ([212.40.185.220]:1439 "EHLO
+	smtp-out-220.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754159Ab3I2It3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 08:03:30 -0400
-Message-ID: <5249673B.5020705@xs4all.nl>
-Date: Mon, 30 Sep 2013 13:57:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-CC: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org,
-	devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net,
-	linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org,
-	linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org,
-	linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-	Solarflare linux maintainers <linux-net-drivers@solarflare.com>,
-	uclinux-dist-devel@blackfin.uclinux.org,
+	Sun, 29 Sep 2013 04:49:29 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace dma_set_mask()+dma_set_coherent_mask()
- with new helper
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
-In-Reply-To: <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 1/8] [media] s5c73m3: Don't use i2c_client->driver
+Date: Sun, 29 Sep 2013 10:50:59 +0200
+Message-Id: <1380444666-12019-2-git-send-email-lars@metafoo.de>
+In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
+References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/2013 11:44 PM, Russell King wrote:
-> Replace the following sequence:
-> 
-> 	dma_set_mask(dev, mask);
-> 	dma_set_coherent_mask(dev, mask);
-> 
-> with a call to the new helper dma_set_mask_and_coherent().
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+The 'driver' field of the i2c_client struct is redundant and is going to be
+removed. The results of the expressions 'client->driver.driver->field' and
+'client->dev.driver->field' are identical, so replace all occurrences of the
+former with the later.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/staging/media/dt3155v4l/dt3155v4l.c |    5 +----
->  1 files changed, 1 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> index 90d6ac4..081407b 100644
-> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> @@ -901,10 +901,7 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  	int err;
->  	struct dt3155_priv *pd;
->  
-> -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-> -	if (err)
-> -		return -ENODEV;
-> -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-> +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
->  	if (err)
->  		return -ENODEV;
->  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
-> 
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index b76ec0e..1083890 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -1581,7 +1581,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	oif_sd = &state->oif_sd;
+ 
+ 	v4l2_subdev_init(sd, &s5c73m3_subdev_ops);
+-	sd->owner = client->driver->driver.owner;
++	sd->owner = client->dev.driver->owner;
+ 	v4l2_set_subdevdata(sd, state);
+ 	strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
+ 
+-- 
+1.8.0
 
