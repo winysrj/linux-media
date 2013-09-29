@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:46548 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab3ILMIW (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:55665 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620Ab3I2Rpr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:08:22 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v8 11/12] V4L: s5k6a3: Change sensor min/max resolutions
-Date: Thu, 12 Sep 2013 17:37:48 +0530
-Message-Id: <1378987669-10870-12-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
-References: <1378987669-10870-1-git-send-email-arun.kk@samsung.com>
+	Sun, 29 Sep 2013 13:45:47 -0400
+Message-ID: <52486745.9040405@gmail.com>
+Date: Sun, 29 Sep 2013 19:45:41 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Lars-Peter Clausen <lars@metafoo.de>
+CC: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH 1/8] [media] s5c73m3: Don't use i2c_client->driver
+References: <1380444666-12019-1-git-send-email-lars@metafoo.de> <1380444666-12019-2-git-send-email-lars@metafoo.de>
+In-Reply-To: <1380444666-12019-2-git-send-email-lars@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5k6a3 sensor has actual pixel resolution of 1408x1402 against
-the active resolution 1392x1392. The real resolution is needed
-when raw sensor SRGB data is dumped to memory by fimc-lite.
+On 09/29/2013 10:50 AM, Lars-Peter Clausen wrote:
+> The 'driver' field of the i2c_client struct is redundant and is going to be
+> removed. The results of the expressions 'client->driver.driver->field' and
+> 'client->dev.driver->field' are identical, so replace all occurrences of the
+> former with the later.
+>
+> Signed-off-by: Lars-Peter Clausen<lars@metafoo.de>
+> Cc: Kyungmin Park<kyungmin.park@samsung.com>
+> Cc: Andrzej Hajda<a.hajda@samsung.com>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/s5k6a3.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index ccbb4fc..e70e217 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -25,10 +25,12 @@
- #include <media/v4l2-async.h>
- #include <media/v4l2-subdev.h>
- 
--#define S5K6A3_SENSOR_MAX_WIDTH		1392
--#define S5K6A3_SENSOR_MAX_HEIGHT	1392
--#define S5K6A3_SENSOR_MIN_WIDTH		32
--#define S5K6A3_SENSOR_MIN_HEIGHT	32
-+#define S5K6A3_SENSOR_MAX_WIDTH		1408
-+#define S5K6A3_SENSOR_MAX_HEIGHT	1402
-+#define S5K6A3_SENSOR_ACTIVE_WIDTH	1392
-+#define S5K6A3_SENSOR_ACTIVE_HEIGHT	1392
-+#define S5K6A3_SENSOR_MIN_WIDTH		(32 + 16)
-+#define S5K6A3_SENSOR_MIN_HEIGHT	(32 + 10)
- 
- #define S5K6A3_DEF_PIX_WIDTH		1296
- #define S5K6A3_DEF_PIX_HEIGHT		732
--- 
-1.7.9.5
-
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
