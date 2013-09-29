@@ -1,61 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:51062 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389Ab3ILTOh (ORCPT
+Received: from smtp-out-220.synserver.de ([212.40.185.220]:1400 "EHLO
+	smtp-out-220.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753741Ab3I2It1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 15:14:37 -0400
-Date: Thu, 12 Sep 2013 21:13:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFD] use-counting V4L2 clocks
-Message-ID: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sun, 29 Sep 2013 04:49:27 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 0/8] i2c: Remove redundant driver field from the i2c_client struct
+Date: Sun, 29 Sep 2013 10:50:58 +0200
+Message-Id: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+Hi,
 
-We've got a broken driver in 3.11 and in 3.12-rc and we don't have a clear 
-way to properly fix it. The problem has been originally reported and 
-discussed in [1], a patch-set to fix the problem has been proposed in [2], 
-which actually lead to the topic of this mail - whether or not calls to 
-v4l2_clk_enable() and v4l2_clk_disable(), or respectively to s_power(1) 
-and s_power(0) subdevice core operations should be balanced. Currently 
-they aren't in em28xx driver, and the V4L2 clock API throws warnings on 
-attempts to disable already disabled clock. Patch [3] attempted to fix 
-that. So, the question is - whether to enforce balanced power on / off 
-calls, or to remove the warning.
+This series removes the redundant driver field from the i2c_client struct. The
+field is redundant since the same pointer can be accessed through
+to_i2c_driver(client->dev.driver). The commit log suggests that the field has
+been around since forever (since before v2.6.12-rc2) and it looks as if it was
+simply forgotten to remove it during the conversion of the i2c framework to the
+generic device driver model.
 
-Let's try to have a look at other examples in the kernel:
+Nevertheless there are a still a few users of the field around. This series
+first updates all users to use an alternative method of accessing the same data
+and then the last patch removes the driver field from the i2c_client struct.
 
-1. runtime PM: pm_runtime_get*() / pm_runtime_put*() only work, if 
-balanced, but no warning is issued, if the balance is broken, AFAICS.
+Note that due to this changes on most architectures neither the code size nor
+the type of generated instructions will change. This is due to the fact that we
+aren't really interested in the pointer value itself, but rather want to
+dereference it to access one of the fields of the struct. offset_of() (and hence
+to_i2c_driver) works by subtracting a offset from the pointer, so the compiler
+can internally create the sum of these two offsets and use that to access the
+field.
 
-2. clock API: clk_enable() / clk_disable() in drivers/clk/clk.c have to be 
-balanced and a warning is issued, if clk_disable() is called for an 
-already disabled clock.
+E.g. on ARM the expression client->driver->command(...) generates
 
-3. regulator API: regulator_enable() / regulator_disable() have to be 
-balanced. A warning is issued if regulator_disable() is called for a 
-disabled regulator.
+		...
+		ldr     r3, [r0, #28]
+		ldr     r3, [r3, #32]
+		blx     r3
+		...
 
-So, I think, our V4L2 clock enable / disable calls should be balanced, and 
-to enforce that a warning is helpful. Other opinions?
+and the expression to_i2c_driver(client->dev.driver)->command(...) generates
 
-Thanks
-Guennadi
+		...
+		ldr     r3, [r0, #160]
+    	ldr     r3, [r3, #-4]
+    	blx     r3
+		...
 
-[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68028
-[2] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68510
-[3] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68864
+Other architectures will generate similar code.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The most common pattern is to use the i2c_driver to get to the device_driver
+struct embedded in it. The same struct can easily be accessed through the device
+struct embedded in the i2c_client struct.  E.g. client->driver->driver.field can
+be replaced by client->dev.driver->field. Here again the generated code is
+almost identical and only the offsets differ.
+
+E.g. on ARM the expression 'client->driver->driver.owner' generates
+
+		ldr     r3, [r0, #28]
+		ldr     r0, [r3, #44]
+
+and 'client->dev.driver->owner' generates
+
+		ldr     r3, [r0, #160]
+		ldr     r0, [r3, #8]
+
+The kernel overall code size is slightly reduced since the code that manages the
+driver field is removed and of course also the runtime memory footprint of the
+i2c_client struct is reduced.
+
+- Lars
+
+Lars-Peter Clausen (8):
+  [media] s5c73m3: Don't use i2c_client->driver
+  [media] exynos4-is: Don't use i2c_client->driver
+  [media] core: Don't use i2c_client->driver
+  drm: encoder_slave: Don't use i2c_client->driver
+  drm: nouveau: Don't use i2c_client->driver
+  ALSA: ppc: keywest: Don't use i2c_client->driver
+  ASoC: imx-wm8962: Don't use i2c_client->driver
+  i2c: Remove redundant 'driver' field from the i2c_client struct
+
+ drivers/gpu/drm/drm_encoder_slave.c            |  8 ++++----
+ drivers/gpu/drm/nouveau/core/subdev/therm/ic.c |  3 ++-
+ drivers/i2c/i2c-core.c                         | 21 ++++++++++++---------
+ drivers/i2c/i2c-smbus.c                        | 10 ++++++----
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  2 +-
+ drivers/media/platform/exynos4-is/media-dev.c  |  6 +++---
+ drivers/media/v4l2-core/tuner-core.c           |  6 +++---
+ drivers/media/v4l2-core/v4l2-common.c          | 10 +++++-----
+ include/linux/i2c.h                            |  2 --
+ include/media/v4l2-common.h                    |  2 +-
+ sound/ppc/keywest.c                            |  4 ++--
+ sound/soc/fsl/imx-wm8962.c                     |  2 +-
+ 12 files changed, 40 insertions(+), 36 deletions(-)
+
+-- 
+1.8.0
+
