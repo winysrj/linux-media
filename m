@@ -1,75 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f182.google.com ([209.85.216.182]:51067 "EHLO
-	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866Ab3IGJcA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Sep 2013 05:32:00 -0400
-Received: by mail-qc0-f182.google.com with SMTP id k18so1906423qcv.41
-        for <linux-media@vger.kernel.org>; Sat, 07 Sep 2013 02:31:59 -0700 (PDT)
-Received: by mail-qa0-f41.google.com with SMTP id hu16so970247qab.14
-        for <linux-media@vger.kernel.org>; Sat, 07 Sep 2013 02:31:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4141987.vP8rY59Aji@avalon>
-References: <201308301501.25164.hverkuil@xs4all.nl> <20130904074829.7ea2bfa6@samsung.com>
- <7020EDD3BA6FF244B3C070FA4F02B1D8014BF87CBC46@SAFEX1MAIL2.st.com> <4141987.vP8rY59Aji@avalon>
-From: Pawel Osciak <posciak@chromium.org>
-Date: Sat, 7 Sep 2013 18:31:17 +0900
-Message-ID: <CACHYQ-pPNx7WokQhALEdXaG0+Fv-sK2E0QVkSxvte6UxUHypeg@mail.gmail.com>
-Subject: Re: [media-workshop] Agenda for the Edinburgh mini-summit
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50877 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754531Ab3I3NXZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 09:23:25 -0400
+Message-ID: <1380547384.3959.12.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH 04/10] [media] coda: fix FMO value setting for CodaDx6
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	media-workshop <media-workshop@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Date: Mon, 30 Sep 2013 15:23:04 +0200
+In-Reply-To: <524964F9.80804@xs4all.nl>
+References: <1379582036-4840-1-git-send-email-p.zabel@pengutronix.de>
+	 <1379582036-4840-5-git-send-email-p.zabel@pengutronix.de>
+	 <524964F9.80804@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 6, 2013 at 10:45 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->
-> Hi Hugues,
->
-> On Thursday 05 September 2013 13:37:49 Hugues FRUCHET wrote:
-> > Hi Mauro,
-> >
-> > For floating point issue, we have not encountered such issue while
-> > integrating various codec (currently H264, MPEG4, VP8 of both Google G1 IP &
-> > ST IPs), could you precise which codec you experienced which required FP
-> > support ?
-> >
-> > For user-space library, problem we encountered is that interface between
-> > parsing side (for ex. H264 SPS/PPS decoding, slice header decoding,
-> > references frame list management, ...moreover all that is needed to prepare
-> > hardware IPs call) and decoder side (hardware IPs handling) is not
-> > standardized and differs largely regarding IPs or CPU/copro partitioning.
-> > This means that even if we use the standard V4L2 capture interface to inject
-> > video bitstream (H264 access units for ex), some proprietary meta are needed
-> > to be attached to each buffers, making de facto "un-standard" the V4L2
-> > interface for this driver.
->
-> We're working on APIs to pass meta data from/to the kernel. The necessary
-> infrastructure is more or less there already, we "just" need to agree on
-> guidelines and standardize the process. One option that will likely be
-> implemented is to store meta-data in a plane, using the multiplanar API.
+Am Montag, den 30.09.2013, 13:48 +0200 schrieb Hans Verkuil:
+> On 09/19/2013 11:13 AM, Philipp Zabel wrote:
+> > The register is only written on CodaDx6, so the temporary variable
+> > to be written only needs to be initialized on CodaDx6.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/coda.c | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> > index 53539c1..e8acff3 100644
+> > --- a/drivers/media/platform/coda.c
+> > +++ b/drivers/media/platform/coda.c
+> > @@ -2074,10 +2074,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+> >  	coda_setup_iram(ctx);
+> >  
+> >  	if (dst_fourcc == V4L2_PIX_FMT_H264) {
+> > -		value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
+> > -		value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
+> > -		value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
+> >  		if (dev->devtype->product == CODA_DX6) {
+> > +			value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
+> > +			value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
+> > +			value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
+> 
+> 0 & CODA_FMOPARAM_SLICENUM_MASK?
+> 
+> These last two lines evaluate to a nop, so that looks very weird. Is this a bug?
 
+I assume Javier added those for documentation purposes. The newer CODA
+cores don't have the FMO configuration anymore. I'll remove the no-op
+lines for now if he doesn't mind.
 
-What API is that? Is there an RFC somewhere?
+regards
+Philipp
 
-> The resulting plane format will be driver-specific, so we'll loose part of the
-> benefits that the V4L2 API provides. We could try to solve this by writing a
-> libv4l plugin, specific to your driver, that would handle bitstream parsing
-> and fill the meta-data planes correctly. Applications using libv4l would thus
-> only need to pass encoded frames to the library, which would create
-> multiplanar buffers with video data and meta-data, and pass them to the
-> driver. This would be fully transparent for the application.
-
-If V4L2 API is not hardware-independent, it's a big loss. If this
-happens, there will be need for another, middleware API, like OMX IL.
-This makes V4L2 by itself impractical for real world applications. And
-the incentives of using V4L2 are gone, because it's much easier to
-write a custom DRM driver and add any userspace API on top of it.
-Perhaps this is inevitable, given differences in hardware, but a
-plugin approach would be a way to keep V4L2 abstract and retain the
-ability to do the bulk of processing in userspace...
