@@ -1,253 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:36612 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753176Ab3ILM2I convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2899 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210Ab3I3JoP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:28:08 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	ismael.luceno@corp.bluecherry.net
-Date: Thu, 12 Sep 2013 14:28:07 +0200
+	Mon, 30 Sep 2013 05:44:15 -0400
+Message-ID: <524947D7.7010405@xs4all.nl>
+Date: Mon, 30 Sep 2013 11:43:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Message-ID: <m34n9qb4x4.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Subject: [PATCH] SOLO6x10: Fix video encoding on big-endian systems.
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	pawel@osciak.com, javier.martin@vista-silicon.com,
+	m.szyprowski@samsung.com, shaik.ameer@samsung.com,
+	arun.kk@samsung.com, k.debski@samsung.com,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH RFC 2/7] mem2mem_testdev: Use mem-to-mem ioctl and vb2
+ helpers
+References: <1379076986-10446-1-git-send-email-s.nawrocki@samsung.com> <1379076986-10446-3-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1379076986-10446-3-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+On 09/13/2013 02:56 PM, Sylwester Nawrocki wrote:
+> Simplify the driver by using the m2m ioctl and vb2 helpers.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index a4c5896..e501287 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -95,38 +95,11 @@ static unsigned char vop_6110_pal_cif[] = {
- 	0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00, 0x00,
- };
- 
--struct vop_header {
--	/* VE_STATUS0 */
--	u32 mpeg_size:20, sad_motion_flag:1, video_motion_flag:1, vop_type:2,
--		channel:5, source_fl:1, interlace:1, progressive:1;
--
--	/* VE_STATUS1 */
--	u32 vsize:8, hsize:8, last_queue:4, nop0:8, scale:4;
--
--	/* VE_STATUS2 */
--	u32 mpeg_off;
--
--	/* VE_STATUS3 */
--	u32 jpeg_off;
--
--	/* VE_STATUS4 */
--	u32 jpeg_size:20, interval:10, nop1:2;
--
--	/* VE_STATUS5/6 */
--	u32 sec, usec;
--
--	/* VE_STATUS7/8/9 */
--	u32 nop2[3];
--
--	/* VE_STATUS10 */
--	u32 mpeg_size_alt:20, nop3:12;
--
--	u32 end_nops[5];
--} __packed;
-+typedef __le32 vop_header[16];
- 
- struct solo_enc_buf {
- 	enum solo_enc_types	type;
--	struct vop_header	*vh;
-+	const vop_header	*vh;
- 	int			motion;
- };
- 
-@@ -430,8 +403,64 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
- 				 solo_enc->desc_count - 1);
- }
- 
-+/* Extract values from VOP header - VE_STATUSxx */
-+static inline int vop_interlaced(const vop_header *vh)
-+{
-+	return (__le32_to_cpu((*vh)[0]) >> 30) & 1;
-+}
-+
-+static inline u8 vop_channel(const vop_header *vh)
-+{
-+	return (__le32_to_cpu((*vh)[0]) >> 24) & 0x1F;
-+}
-+
-+static inline u8 vop_type(const vop_header *vh)
-+{
-+	return (__le32_to_cpu((*vh)[0]) >> 22) & 3;
-+}
-+
-+static inline u32 vop_mpeg_size(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[0]) & 0xFFFFF;
-+}
-+
-+static inline u8 vop_hsize(const vop_header *vh)
-+{
-+	return (__le32_to_cpu((*vh)[1]) >> 8) & 0xFF;
-+}
-+
-+static inline u8 vop_vsize(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[1]) & 0xFF;
-+}
-+
-+static inline u32 vop_mpeg_offset(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[2]);
-+}
-+
-+static inline u32 vop_jpeg_offset(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[3]);
-+}
-+
-+static inline u32 vop_jpeg_size(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[4]) & 0xFFFFF;
-+}
-+
-+static inline u32 vop_sec(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[5]);
-+}
-+
-+static inline u32 vop_usec(const vop_header *vh)
-+{
-+	return __le32_to_cpu((*vh)[6]);
-+}
-+
- static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
--		struct vb2_buffer *vb, struct vop_header *vh)
-+			  struct vb2_buffer *vb, const vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-@@ -440,29 +469,30 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 
- 	vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
- 
--	if (vb2_plane_size(vb, 0) < vh->jpeg_size + solo_enc->jpeg_len)
-+	if (vb2_plane_size(vb, 0) < vop_jpeg_size(vh) + solo_enc->jpeg_len)
- 		return -EIO;
- 
- 	sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
- 			solo_enc->jpeg_header,
- 			solo_enc->jpeg_len);
- 
--	frame_size = (vh->jpeg_size + solo_enc->jpeg_len + (DMA_ALIGN - 1))
-+	frame_size = (vop_jpeg_size(vh) + solo_enc->jpeg_len + (DMA_ALIGN - 1))
- 		& ~(DMA_ALIGN - 1);
--	vb2_set_plane_payload(vb, 0, vh->jpeg_size + solo_enc->jpeg_len);
-+	vb2_set_plane_payload(vb, 0, vop_jpeg_size(vh) + solo_enc->jpeg_len);
- 
- 	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
- 			DMA_FROM_DEVICE);
--	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf, vh->jpeg_off,
--			frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
--			SOLO_JPEG_EXT_SIZE(solo_dev));
-+	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
-+			     vop_jpeg_offset(vh) - SOLO_JPEG_EXT_ADDR(solo_dev),
-+			     frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
-+			     SOLO_JPEG_EXT_SIZE(solo_dev));
- 	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
- 			DMA_FROM_DEVICE);
- 	return ret;
- }
- 
- static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
--		struct vb2_buffer *vb, struct vop_header *vh)
-+		struct vb2_buffer *vb, const vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-@@ -470,11 +500,11 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 	int skip = 0;
- 	int ret;
- 
--	if (vb2_plane_size(vb, 0) < vh->mpeg_size)
-+	if (vb2_plane_size(vb, 0) < vop_mpeg_size(vh))
- 		return -EIO;
- 
- 	/* If this is a key frame, add extra header */
--	if (!vh->vop_type) {
-+	if (!vop_type(vh)) {
- 		sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
- 				solo_enc->vop,
- 				solo_enc->vop_len);
-@@ -482,16 +512,16 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 		skip = solo_enc->vop_len;
- 
- 		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
--		vb2_set_plane_payload(vb, 0, vh->mpeg_size + solo_enc->vop_len);
-+		vb2_set_plane_payload(vb, 0, vop_mpeg_size(vh) + solo_enc->vop_len);
- 	} else {
- 		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
--		vb2_set_plane_payload(vb, 0, vh->mpeg_size);
-+		vb2_set_plane_payload(vb, 0, vop_mpeg_size(vh));
- 	}
- 
- 	/* Now get the actual mpeg payload */
--	frame_off = (vh->mpeg_off + sizeof(*vh))
-+	frame_off = (vop_mpeg_offset(vh) - SOLO_MP4E_EXT_ADDR(solo_dev) + sizeof(*vh))
- 		% SOLO_MP4E_EXT_SIZE(solo_dev);
--	frame_size = (vh->mpeg_size + skip + (DMA_ALIGN - 1))
-+	frame_size = (vop_mpeg_size(vh) + skip + (DMA_ALIGN - 1))
- 		& ~(DMA_ALIGN - 1);
- 
- 	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-@@ -507,7 +537,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 			    struct vb2_buffer *vb, struct solo_enc_buf *enc_buf)
- {
--	struct vop_header *vh = enc_buf->vh;
-+	const vop_header *vh = enc_buf->vh;
- 	int ret;
- 
- 	/* Check for motion flags */
-@@ -531,8 +561,8 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 
- 	if (!ret) {
- 		vb->v4l2_buf.sequence = solo_enc->sequence++;
--		vb->v4l2_buf.timestamp.tv_sec = vh->sec;
--		vb->v4l2_buf.timestamp.tv_usec = vh->usec;
-+		vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
-+		vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
- 	}
- 
- 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-@@ -605,15 +635,13 @@ static void solo_handle_ring(struct solo_dev *solo_dev)
- 
- 		/* FAIL... */
- 		if (enc_get_mpeg_dma(solo_dev, solo_dev->vh_dma, off,
--				     sizeof(struct vop_header)))
-+				     sizeof(vop_header)))
- 			continue;
- 
--		enc_buf.vh = (struct vop_header *)solo_dev->vh_buf;
--		enc_buf.vh->mpeg_off -= SOLO_MP4E_EXT_ADDR(solo_dev);
--		enc_buf.vh->jpeg_off -= SOLO_JPEG_EXT_ADDR(solo_dev);
-+		enc_buf.vh = solo_dev->vh_buf;
- 
- 		/* Sanity check */
--		if (enc_buf.vh->mpeg_off != off)
-+		if (vop_mpeg_offset(enc_buf.vh) != SOLO_MP4E_EXT_ADDR(solo_dev) + off)
- 			continue;
- 
- 		if (solo_motion_detected(solo_enc))
-@@ -1329,7 +1357,7 @@ int solo_enc_v4l2_init(struct solo_dev *solo_dev, unsigned nr)
- 
- 	init_waitqueue_head(&solo_dev->ring_thread_wait);
- 
--	solo_dev->vh_size = sizeof(struct vop_header);
-+	solo_dev->vh_size = sizeof(vop_header);
- 	solo_dev->vh_buf = pci_alloc_consistent(solo_dev->pdev,
- 						solo_dev->vh_size,
- 						&solo_dev->vh_dma);
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/mem2mem_testdev.c |   94 ++++--------------------------
+>  1 file changed, 11 insertions(+), 83 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+> index 6a17676..73df44f 100644
+> --- a/drivers/media/platform/mem2mem_testdev.c
+> +++ b/drivers/media/platform/mem2mem_testdev.c
+> @@ -359,21 +359,6 @@ static void job_abort(void *priv)
+>  	ctx->aborting = 1;
+>  }
+>  
+> -static void m2mtest_lock(void *priv)
+> -{
+> -	struct m2mtest_ctx *ctx = priv;
+> -	struct m2mtest_dev *dev = ctx->dev;
+> -	mutex_lock(&dev->dev_mutex);
+> -}
+> -
+> -static void m2mtest_unlock(void *priv)
+> -{
+> -	struct m2mtest_ctx *ctx = priv;
+> -	struct m2mtest_dev *dev = ctx->dev;
+> -	mutex_unlock(&dev->dev_mutex);
+> -}
+> -
+> -
+>  /* device_run() - prepares and starts the device
+>   *
+>   * This simulates all the immediate preparations required before starting
+> @@ -648,52 +633,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+>  	return ret;
+>  }
+>  
+> -static int vidioc_reqbufs(struct file *file, void *priv,
+> -			  struct v4l2_requestbuffers *reqbufs)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+> -}
+> -
+> -static int vidioc_querybuf(struct file *file, void *priv,
+> -			   struct v4l2_buffer *buf)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+> -}
+> -
+> -static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+> -}
+> -
+> -static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+> -}
+> -
+> -static int vidioc_streamon(struct file *file, void *priv,
+> -			   enum v4l2_buf_type type)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+> -}
+> -
+> -static int vidioc_streamoff(struct file *file, void *priv,
+> -			    enum v4l2_buf_type type)
+> -{
+> -	struct m2mtest_ctx *ctx = file2ctx(file);
+> -
+> -	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+> -}
+> -
+>  static int m2mtest_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct m2mtest_ctx *ctx =
+> @@ -748,14 +687,14 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
+>  	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
+>  	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
+>  
+> -	.vidioc_reqbufs		= vidioc_reqbufs,
+> -	.vidioc_querybuf	= vidioc_querybuf,
+> +	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
+> +	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
+> +	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
+> +	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+>  
+> -	.vidioc_qbuf		= vidioc_qbuf,
+> -	.vidioc_dqbuf		= vidioc_dqbuf,
+> +	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+> +	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+>  
+> -	.vidioc_streamon	= vidioc_streamon,
+> -	.vidioc_streamoff	= vidioc_streamoff,
+>  	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+> @@ -821,24 +760,12 @@ static void m2mtest_buf_queue(struct vb2_buffer *vb)
+>  	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+>  }
+>  
+> -static void m2mtest_wait_prepare(struct vb2_queue *q)
+> -{
+> -	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
+> -	m2mtest_unlock(ctx);
+> -}
+> -
+> -static void m2mtest_wait_finish(struct vb2_queue *q)
+> -{
+> -	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
+> -	m2mtest_lock(ctx);
+> -}
+> -
+>  static struct vb2_ops m2mtest_qops = {
+>  	.queue_setup	 = m2mtest_queue_setup,
+>  	.buf_prepare	 = m2mtest_buf_prepare,
+>  	.buf_queue	 = m2mtest_buf_queue,
+> -	.wait_prepare	 = m2mtest_wait_prepare,
+> -	.wait_finish	 = m2mtest_wait_finish,
+> +	.wait_prepare	 = vb2_ops_wait_prepare,
+> +	.wait_finish	 = vb2_ops_wait_finish,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+> @@ -853,6 +780,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+>  	src_vq->ops = &m2mtest_qops;
+>  	src_vq->mem_ops = &vb2_vmalloc_memops;
+>  	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	src_vq->lock = &ctx->dev->dev_mutex;
+>  
+>  	ret = vb2_queue_init(src_vq);
+>  	if (ret)
+> @@ -865,6 +793,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+>  	dst_vq->ops = &m2mtest_qops;
+>  	dst_vq->mem_ops = &vb2_vmalloc_memops;
+>  	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	dst_vq->lock = &ctx->dev->dev_mutex;
+>  
+>  	return vb2_queue_init(dst_vq);
+>  }
+> @@ -945,6 +874,7 @@ static int m2mtest_open(struct file *file)
+>  		kfree(ctx);
+>  		goto open_unlock;
+>  	}
+> +	ctx->fh.m2m_ctx = ctx->m2m_ctx;
+>  
+>  	v4l2_fh_add(&ctx->fh);
+>  	atomic_inc(&dev->num_inst);
+> @@ -1019,8 +949,6 @@ static struct v4l2_m2m_ops m2m_ops = {
+>  	.device_run	= device_run,
+>  	.job_ready	= job_ready,
+>  	.job_abort	= job_abort,
+> -	.lock		= m2mtest_lock,
+> -	.unlock		= m2mtest_unlock,
+>  };
+>  
+>  static int m2mtest_probe(struct platform_device *pdev)
+> 
+
