@@ -1,62 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:34175 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756240Ab3IDKZU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Sep 2013 06:25:20 -0400
-Message-ID: <52270A5B.2040600@free.fr>
-Date: Wed, 04 Sep 2013 12:24:27 +0200
-From: Martin Peres <martin.peres@free.fr>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:52553 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228Ab3I3HJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 03:09:13 -0400
+Received: by mail-pa0-f44.google.com with SMTP id lf10so5477723pab.31
+        for <linux-media@vger.kernel.org>; Mon, 30 Sep 2013 00:09:13 -0700 (PDT)
 MIME-Version: 1.0
-To: Christopher James Halse Rogers
-	<christopher.halse.rogers@canonical.com>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: Expose buffer size to userspace (v2)
-References: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
-In-Reply-To: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130930030518.GA3024@localhost>
+References: <5248d26d.XCpLjin/D8FfRGFk%fengguang.wu@intel.com>
+	<20130930030518.GA3024@localhost>
+Date: Mon, 30 Sep 2013 09:09:13 +0200
+Message-ID: <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
+Subject: Re: mcam-core.c:undefined reference to `vb2_dma_sg_memops'
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Fengguang Wu <fengguang.wu@intel.com>
+Cc: kbuild-all@01.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christopher,
-Le 04/09/2013 05:15, Christopher James Halse Rogers a écrit :
-> Each dma-buf has an associated size and it's reasonable for userspace
-> to want to know what it is.
->
-> Since userspace already has an fd, expose the size using the
-> size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
-> idiom.
->
-> v2: Added Daniel's sugeested documentation, with minor fixups
->
-> Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
-> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> ---
->   Documentation/dma-buf-sharing.txt | 12 ++++++++++++
->   drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
->   2 files changed, 40 insertions(+)
->
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 0b23261..849e982 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->      interesting ways depending upong the exporter (if userspace starts depending
->      upon this implicit synchronization).
->   
-> +Other Interfaces Exposed to Userspace on the dma-buf FD
-> +------------------------------------------------------
-> +
-> +- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
-> +  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
-> +  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
-> +  llseek operation will report -EINVAL.
-> +
-> +  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
-Shouldn't it be "supported" instead of "support"?
+Hi Fengguang,
 
-Anyway, I'm just curious, in which case is it important to know the size?
-Do we already have a way to get the dimensions (x, y and stripe)?
+On Mon, Sep 30, 2013 at 5:05 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
+> FYI, kernel build failed on
+>
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> head:   15c03dd4859ab16f9212238f29dd315654aa94f6
+> commit: 866f321339988293a5bb3ec6634c2c9d8396bf54 Revert "staging/solo6x10: depend on CONFIG_FONTS"
+> date:   3 months ago
+> config: x86_64-randconfig-c5-0930 (attached as .config)
+>
+> All error/warnings:
+>
+>    drivers/built-in.o: In function `mcam_v4l_open':
+>>> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
+
+The referenced commit above is completely unrelated to this failure, as
+both CONFIG_SOLO6X10=m and CONFIG_VIDEOBUF2_DMA_SG=m,
+while this is about a missing symbol in builtin code.
+
+However, there's something wrong with the VIDEO_CAFE_CCIC dependencies.
+Untested gmail-white-space-damaged patch below (so your trick of emailing random
+people to obtain a solution worked ;-)
+
+>From 8a53ff3c33cfaa8641c9ba3e16bc5b0a35c74842 Mon Sep 17 00:00:00 2001
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 30 Sep 2013 09:03:20 +0200
+Subject: [PATCH] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
+
+If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
+
+drivers/built-in.o: In function `mcam_v4l_open':
+>> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ drivers/media/platform/marvell-ccic/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/marvell-ccic/Kconfig
+b/drivers/media/platform/marvell-ccic/Kconfig
+index bf739e3..ec4c771 100644
+--- a/drivers/media/platform/marvell-ccic/Kconfig
++++ b/drivers/media/platform/marvell-ccic/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_CAFE_CCIC
+  select VIDEO_OV7670
+  select VIDEOBUF2_VMALLOC
+  select VIDEOBUF2_DMA_CONTIG
++ select VIDEOBUF2_DMA_SG
+  ---help---
+   This is a video4linux2 driver for the Marvell 88ALP01 integrated
+   CMOS camera controller.  This is the controller found on first-
+-- 
+1.7.9.5
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
