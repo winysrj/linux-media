@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:54418 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751659Ab3IBTIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Sep 2013 15:08:47 -0400
-Received: from [192.168.1.101] ([146.52.61.147]) by mail.gmx.com (mrgmx103)
- with ESMTPSA (Nemesis) id 0LjquD-1Vs7IS3fGT-00bt5D for
- <linux-media@vger.kernel.org>; Mon, 02 Sep 2013 21:08:46 +0200
-Message-ID: <5224E23C.3060006@gmx.net>
-Date: Mon, 02 Sep 2013 21:08:44 +0200
-From: Jan Taegert <jantaegert@gmx.net>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3129 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753540Ab3I3Lsg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 07:48:36 -0400
+Message-ID: <524964F9.80804@xs4all.nl>
+Date: Mon, 30 Sep 2013 13:48:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, Jacek Konieczny <jajcus@jajcus.net>,
-	Torsten Seyffarth <t.seyffarth@gmx.de>,
-	Damien CABROL <cabrol.damien@free.fr>
-Subject: Re: [PATCH] e4000: fix PLL calc error in 32-bit arch
-References: <1378138669-22302-1-git-send-email-crope@iki.fi> <5224BC2D.2040909@iki.fi>
-In-Reply-To: <5224BC2D.2040909@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: Re: [PATCH 04/10] [media] coda: fix FMO value setting for CodaDx6
+References: <1379582036-4840-1-git-send-email-p.zabel@pengutronix.de> <1379582036-4840-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1379582036-4840-5-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks! Works like a charm here with TerraTec Cinergy T Stick RC (Rev. 
-3). And you're right, I'm running 32-bit.
+On 09/19/2013 11:13 AM, Philipp Zabel wrote:
+> The register is only written on CodaDx6, so the temporary variable
+> to be written only needs to be initialized on CodaDx6.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 53539c1..e8acff3 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -2074,10 +2074,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+>  	coda_setup_iram(ctx);
+>  
+>  	if (dst_fourcc == V4L2_PIX_FMT_H264) {
+> -		value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
+> -		value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
+> -		value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
+>  		if (dev->devtype->product == CODA_DX6) {
+> +			value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
+> +			value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
+> +			value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
+
+0 & CODA_FMOPARAM_SLICENUM_MASK?
+
+These last two lines evaluate to a nop, so that looks very weird. Is this a bug?
 
 Regards,
-jan.
 
+	Hans
 
-Am 02.09.2013 18:26, schrieb Antti Palosaari:
-> Testers?
->
-> Here is tree:
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/e4000_fix_3.11
->
->
-> I assume all of you have been running 32-bit arch as that bug is related
-> to 32-bit overflow.
->
-> regards
-> Antti
->
->
-> On 09/02/2013 07:17 PM, Antti Palosaari wrote:
->> Fix long-lasting error that causes tuning failure to some frequencies
->> on 32-bit arch.
->>
->> Special thanks goes to Damien CABROL who finally find root of the bug.
->> Also big thanks to Jacek Konieczny for donating non-working device.
->>
->> Reported-by: Jacek Konieczny <jajcus@jajcus.net>
->> Reported-by: Torsten Seyffarth <t.seyffarth@gmx.de>
->> Reported-by: Jan Taegert <jantaegert@gmx.net>
->> Reported-by: Damien CABROL <cabrol.damien@free.fr>
->> Tested-by: Damien CABROL <cabrol.damien@free.fr>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/tuners/e4000.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
->> index 1b33ed3..a88f757 100644
->> --- a/drivers/media/tuners/e4000.c
->> +++ b/drivers/media/tuners/e4000.c
->> @@ -232,7 +232,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
->>        * or more.
->>        */
->>       f_VCO = c->frequency * e4000_pll_lut[i].mul;
->> -    sigma_delta = 0x10000UL * (f_VCO % priv->cfg->clock) /
->> priv->cfg->clock;
->> +    sigma_delta = div_u64(0x10000ULL * (f_VCO % priv->cfg->clock),
->> priv->cfg->clock);
->>       buf[0] = f_VCO / priv->cfg->clock;
->>       buf[1] = (sigma_delta >> 0) & 0xff;
->>       buf[2] = (sigma_delta >> 8) & 0xff;
->>
->
->
+>  			coda_write(dev, value, CODADX6_CMD_ENC_SEQ_FMO);
+>  		} else {
+>  			coda_write(dev, ctx->iram_info.search_ram_paddr,
+> 
 
