@@ -1,121 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2792 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756867Ab3IOCyq (ORCPT
+Received: from mail-qe0-f41.google.com ([209.85.128.41]:58549 "EHLO
+	mail-qe0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590Ab3I3LNh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Sep 2013 22:54:46 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r8F2shVp032439
-	for <linux-media@vger.kernel.org>; Sun, 15 Sep 2013 04:54:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 2FA632A0764
-	for <linux-media@vger.kernel.org>; Sun, 15 Sep 2013 04:54:37 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130915025437.2FA632A0764@tschai.lan>
-Date: Sun, 15 Sep 2013 04:54:37 +0200 (CEST)
+	Mon, 30 Sep 2013 07:13:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAOD6ATpY66-nx0T6XaoT3YT8trUwt=hdr-ToZv4PH3xnxGET_g@mail.gmail.com>
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
+	<1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
+	<52493160.5030401@xs4all.nl>
+	<CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
+	<52495337.4040309@xs4all.nl>
+	<CAOD6ATpY66-nx0T6XaoT3YT8trUwt=hdr-ToZv4PH3xnxGET_g@mail.gmail.com>
+Date: Mon, 30 Sep 2013 16:43:36 +0530
+Message-ID: <CAOD6ATrAQgoExnEKU-i0gOh3LiBAOddL02D+uaw67+D=54p2QA@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
+ the SCALER driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Sep 30, 2013 at 4:18 PM, Shaik Ameer Basha
+<shaik.samsung@gmail.com> wrote:
+> Hi Hans,
+>
+>
+> On Mon, Sep 30, 2013 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 09/30/2013 11:32 AM, Shaik Ameer Basha wrote:
+>>> Hi Hans,
+>>>
+>>> Thanks for pointing it out.
+>>>
+>>>
+>>> On Mon, Sep 30, 2013 at 1:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> Hi Shaik,
+>>>>
+>>>> I have a few questions regarding the selection part...
+>>>>
+>>>> On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
+>>>>> This patch adds the Makefile and memory to memory (m2m) interface
+>>>>> functionality for the SCALER driver.
+>>>>>
+>>>>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>>>>> ---
+>>>>>  drivers/media/platform/Kconfig                    |    8 +
+>>>>>  drivers/media/platform/Makefile                   |    1 +
+>>>>>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
+>>>>>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
+>>>>>  4 files changed, 793 insertions(+)
+>>>>>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+>>>>>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+>>>>>
+>>>>
+>>>
+>>>
+>>> [...]
+>>>
+>>>
+>>>>> +
+>>>>> +static int scaler_m2m_s_selection(struct file *file, void *fh,
+>>>>> +                             struct v4l2_selection *s)
+>>>>> +{
+>>>>> +     struct scaler_frame *frame;
+>>>>> +     struct scaler_ctx *ctx = fh_to_ctx(fh);
+>>>>> +     struct v4l2_crop cr;
+>>>>> +     struct scaler_variant *variant = ctx->scaler_dev->variant;
+>>>>> +     int ret;
+>>>>> +
+>>>>> +     cr.type = s->type;
+>>>>> +     cr.c = s->r;
+>>>>> +
+>>>>> +     if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+>>>>> +         (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
+>>>>> +             return -EINVAL;
+>>>>> +
+>>>>> +     ret = scaler_try_crop(ctx, &cr);
+>>>>> +     if (ret < 0)
+>>>>> +             return ret;
+>>>>> +
+>>>>> +     if (s->flags & V4L2_SEL_FLAG_LE &&
+>>>>> +         !is_rectangle_enclosed(&cr.c, &s->r))
+>>>>> +             return -ERANGE;
+>>>>> +
+>>>>> +     if (s->flags & V4L2_SEL_FLAG_GE &&
+>>>>> +         !is_rectangle_enclosed(&s->r, &cr.c))
+>>>>> +             return -ERANGE;
+>>>>> +
+>>>>> +     s->r = cr.c;
+>>>>> +
+>>>>> +     switch (s->target) {
+>>>>> +     case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>>>>> +     case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>>>>> +     case V4L2_SEL_TGT_COMPOSE:
+>>>>> +             frame = &ctx->s_frame;
+>>>>> +             break;
+>>>>> +
+>>>>> +     case V4L2_SEL_TGT_CROP_BOUNDS:
+>>>>> +     case V4L2_SEL_TGT_CROP:
+>>>>> +     case V4L2_SEL_TGT_CROP_DEFAULT:
+>>>>> +             frame = &ctx->d_frame;
+>>>>> +             break;
+>>>>
+>>>> Similar problems as with g_selection above. Tomasz mentioned to me that the selection
+>>>> API is not implemented correctly in m2m Samsung drivers. It looks like this code is
+>>>> copied-and-pasted from other drivers, so it seems he was right.
+>>>
+>>> Sorry, after going through the documentation, I have to agree with you...
+>>> As you mentioned, this part of the code was copied while implementing
+>>> the G-Scaler driver :)
+>>>
+>>> I will change the above implementation for M2M devices (GScaler and
+>>> SCALER) as below,
+>>> I will only allow all V4L2_SEL_TGT_COMPOSE_* target requests if
+>>> 's->type' is equal to "V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE".
+>>> and all V4L2_SEL_TGT_CROP_* target requests if 's->type' is equal to
+>>> "V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE".
+>>>
+>>> I hope with the above two checkings taken in to care, there should not
+>>> be any issues with using selection APIs here.
+>>
+>> Well, that depends on what the hardware does.
+>>
+>> Using compose with a capture buffer means that the frame as delivered by
+>> the hardware is composed into a larger buffer. E.g. the hardware gives
+>> you 1280x720 which is composed into a buffer of size 1920x1080.
+>>
+>> Using crop with an output buffer means that the hardware gets a cropped
+>> part of a larger frame. E.g. you give a 1280x720 crop from a larger 1920x1080
+>> buffer.
+>>
+>> I suspect however, that in this case the hardware does the opposite for
+>> capture: you really want to crop with a capture buffer (e.g. the hardware
+>> delivers a 1280x720 frame which is cropped before DMA to 640x360).
+>>
+>> I'm not sure what you want to do with an output buffer: cropping or composing.
+>>
+>> Tomasz mentioned that the M2M + selection API was screwy, and this seems to
+>> be to be the case indeed.
+>>
+>> Which is also why I would like to know exactly what this hardware does.
+>
+> This hardware is just a M2M device.
+> It accepts one source buffer at a time and does some operations on
+> that and saves to the destination buffer.
+> Operations like Rotation, Cropping, Scaling, Color Space Conversion
+> etc are possible.
+>
+> Here when I provide the Output buffer (source buffer), I can apply all
+> V4L2_SEL_TGT_CROP_* targets on it.
+> That means I can select the whole buffer for processing or apply some
+> crop and select that area for further processing.
+>
+> similarly, On the capture buffer (output buffer), I can apply
 
-Results of the daily build of media_tree:
+similarly, On the capture buffer (destination buffer), I can apply
 
-date:		Sun Sep 15 04:00:15 CEST 2013
-git branch:	test
-git hash:	f66b2a1c7f2ae3fb0d5b67d07ab4f5055fd3cf16
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> V4L2_SEL_TGT_COMPOSE_* targets.
+> That means I can compose the final output to the complete capture
+> frame (dst frame), or I can choose some part of the destination frame.
+>
+> Regards,
+> Shaik Ameer Basha
+>
+>
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> Thanks,
+>>> Shaik Ameer Basha
+>>>
+>>>>
+>>>> The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
+>>>> since the API may actually need some adjustments to have it work the way it should.
+>>>>
+>>>> As requested above, if you can explain the exact functionality you are trying to
+>>>> implement here, then I can look over this code carefully and see how it should be done.
+>>>>
+>>>> Thanks!
+>>>>
+>>>>         Hans
+>>>>
+>>> [...]
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
