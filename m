@@ -1,73 +1,181 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <ludwig@salviamo-il-consolato.de>) id 1VCFlt-0006WE-1T
-	for linux-dvb@linuxtv.org; Wed, 21 Aug 2013 23:16:53 +0200
-Received: from mail.antar.de ([212.60.251.59])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-6) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1VCFlr-0000RQ-5r; Wed, 21 Aug 2013 23:16:52 +0200
-Received: from e182112044.adsl.alicedsl.de ([85.182.112.44]
-	helo=[192.168.1.164])
-	by mail.antar.de with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72) (envelope-from <ludwig@salviamo-il-consolato.de>)
-	id 1VCFlq-0002iY-Kn
-	for linux-dvb@linuxtv.org; Wed, 21 Aug 2013 23:16:50 +0200
-Message-ID: <52152E95.6080601@salviamo-il-consolato.de>
-Date: Wed, 21 Aug 2013 23:18:13 +0200
-From: Ludwig Meyerhoff <ludwig@salviamo-il-consolato.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3207 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753229Ab3I3IIT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 04:08:19 -0400
+Message-ID: <52493160.5030401@xs4all.nl>
+Date: Mon, 30 Sep 2013 10:08:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] FM radio with RTL8232u
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
+ the SCALER driver
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com> <1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-Hallo!
+Hi Shaik,
 
-Probably, this is not the right place to ask, but maybe this is a point 
-where to start. I have spent this evening in making some internet 
-research and did not find exhaustive information.
+I have a few questions regarding the selection part...
 
-I wanted to play around with FM radio tuners, contiously scan for radio 
-stations, check the SNR ...
-The easiest way to get such a tuner was to buy a DVB-T stick which is 
-advertised to support DVB-T, DAB/DAB+ and FM.
-So, today I bought a "TerraTec Cinergy T Stick+" which runs a rtl8232 
-chipset.
+On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
+> This patch adds the Makefile and memory to memory (m2m) interface
+> functionality for the SCALER driver.
+> 
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+> ---
+>  drivers/media/platform/Kconfig                    |    8 +
+>  drivers/media/platform/Makefile                   |    1 +
+>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
+>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
+>  4 files changed, 793 insertions(+)
+>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+> 
 
-After about one hour of research, I finally got DVB-T to run and was 
-able to watch the TV programme. Basically, the hardware works.
-The remaining evening I tried to figure out how to get FM radio to work 
-with that USB stick.
+...
 
+> +
+> +static int scaler_m2m_g_selection(struct file *file, void *fh,
+> +			struct v4l2_selection *s)
+> +{
+> +	struct scaler_frame *frame;
+> +	struct scaler_ctx *ctx = fh_to_ctx(fh);
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
+> +		return -EINVAL;
+> +
+> +	frame = ctx_get_frame(ctx, s->type);
+> +	if (IS_ERR(frame))
+> +		return PTR_ERR(frame);
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
 
-It looks like if the rtl8232 driver does not support v4l/radio. If I 
-wanted to use this, I should either use some SDR o make some extensions 
-to the existing driver.
+This can't be right: depending on s->type you either support compose or crop,
+I'm pretty sure you are not supporting both composing and cropping for both
+capture and output directions.
 
+What exactly is the functionality you attempt to implement here?
 
-What I wanted to know: is the rtl8232 driver limited to the DVB-T use 
-only? Should I use SDR for listening to FM music?
+I'm CC-ing Tomasz as well as I discussed the selection API for m2m devices with
+him during the LPC.
 
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = frame->f_width;
+> +		s->r.height = frame->f_height;
+> +		return 0;
+> +
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_CROP:
 
+Ditto.
 
-Saluti!
+> +		s->r.left = frame->crop.left;
+> +		s->r.top = frame->crop.top;
+> +		s->r.width = frame->crop.width;
+> +		s->r.height = frame->crop.height;
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int scaler_m2m_s_selection(struct file *file, void *fh,
+> +				struct v4l2_selection *s)
+> +{
+> +	struct scaler_frame *frame;
+> +	struct scaler_ctx *ctx = fh_to_ctx(fh);
+> +	struct v4l2_crop cr;
+> +	struct scaler_variant *variant = ctx->scaler_dev->variant;
+> +	int ret;
+> +
+> +	cr.type = s->type;
+> +	cr.c = s->r;
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
+> +		return -EINVAL;
+> +
+> +	ret = scaler_try_crop(ctx, &cr);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (s->flags & V4L2_SEL_FLAG_LE &&
+> +	    !is_rectangle_enclosed(&cr.c, &s->r))
+> +		return -ERANGE;
+> +
+> +	if (s->flags & V4L2_SEL_FLAG_GE &&
+> +	    !is_rectangle_enclosed(&s->r, &cr.c))
+> +		return -ERANGE;
+> +
+> +	s->r = cr.c;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		frame = &ctx->s_frame;
+> +		break;
+> +
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +		frame = &ctx->d_frame;
+> +		break;
 
-Ludwig
+Similar problems as with g_selection above. Tomasz mentioned to me that the selection
+API is not implemented correctly in m2m Samsung drivers. It looks like this code is
+copied-and-pasted from other drivers, so it seems he was right.
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
+since the API may actually need some adjustments to have it work the way it should.
+
+As requested above, if you can explain the exact functionality you are trying to
+implement here, then I can look over this code carefully and see how it should be done.
+
+Thanks!
+
+	Hans
+
+> +
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Check to see if scaling ratio is within supported range */
+> +	if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		ret = scaler_check_scaler_ratio(variant, cr.c.width,
+> +			cr.c.height, ctx->d_frame.crop.width,
+> +			ctx->d_frame.crop.height,
+> +			ctx->ctrls_scaler.rotate->val);
+> +	} else {
+> +		ret = scaler_check_scaler_ratio(variant,
+> +			ctx->s_frame.crop.width,
+> +			ctx->s_frame.crop.height, cr.c.width,
+> +			cr.c.height, ctx->ctrls_scaler.rotate->val);
+> +	}
+> +
+> +	if (ret < 0) {
+> +		scaler_dbg(ctx->scaler_dev, "Out of scaler range");
+> +		return -EINVAL;
+> +	}
+> +
+> +	frame->crop = cr.c;
+> +
+> +	scaler_ctx_state_lock_set(SCALER_PARAMS, ctx);
+> +	return 0;
+> +}
+
