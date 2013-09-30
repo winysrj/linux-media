@@ -1,68 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:47440 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752653Ab3IQRt1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 13:49:27 -0400
-Message-ID: <52389621.5050307@schinagl.nl>
-Date: Tue, 17 Sep 2013 19:49:21 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hugues FRUCHET <hugues.fruchet@st.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: Kernel Summit Media Mini-summit attendees on Oct 23 in Edinburgh
-References: <20130917140831.4cdf32a5.m.chehab@samsung.com>
-In-Reply-To: <20130917140831.4cdf32a5.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from 2a.88.344a.static.theplanet.com ([74.52.136.42]:46672 "EHLO
+	metroid.mu3d.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754147Ab3I3CC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Sep 2013 22:02:27 -0400
+From: Jean-Francois Thibert <jfthibert@google.com>
+Cc: Jean-Francois Thibert <jfthibert@google.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Add support for KWorld UB435-Q V2
+Date: Sun, 29 Sep 2013 20:45:22 -0400
+Message-Id: <1380501923-23127-2-git-send-email-jfthibert@google.com>
+In-Reply-To: <1380501923-23127-1-git-send-email-jfthibert@google.com>
+References: <1380501923-23127-1-git-send-email-jfthibert@google.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/13 19:08, Mauro Carvalho Chehab wrote:
-> Hi,
->
-> I'm trying to consolidate the list of interested people on participating at
-> this year's the media mini-summit. From what I got from the discussions, we
-> have, so far:
->
-> 	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-> 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 	Hans Verkuil <hverkuil@xs4all.nl>
-> 	Hugues FRUCHET <hugues.fruchet@st.com>
-> 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 	Michael Krufky <mkrufky@kernellabs.com>
-> 	Oliver Schinagl <oliver+list@schinagl.nl>
-> 	Pawel Osciak <posciak@chromium.org>
-> 	Peter Senna Tschudin <peter.senna@gmail.com>
-> 	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> 	Sakari Ailus <sakari.ailus@iki.fi>
->
-> Please let me know if I'm missing someone, or if one of the above won't be
-> able to go to the meeting, as my plan is to send the invitations tomorrow.
-While I'd really love to go there, I was only asking a question really 
-:) and am unable to attend. Wishfully there would be a video recording 
-of sorts.
+Signed-off-by: Jean-Francois Thibert <jfthibert@google.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   14 +++++++++++++-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |   27 +++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 3 files changed, 41 insertions(+), 1 deletions(-)
 
-Will try to attend fosdem 2014 though ;)
-
-Oliver
-
->
-> Thank you!
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index dc65742..a512909 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -174,7 +174,7 @@ static struct em28xx_reg_seq evga_indtube_digital[] = {
+ };
+ 
+ /*
+- * KWorld PlusTV 340U and UB435-Q (ATSC) GPIOs map:
++ * KWorld PlusTV 340U, UB435-Q and UB435-Q V2 (ATSC) GPIOs map:
+  * EM_GPIO_0 - currently unknown
+  * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
+  * EM_GPIO_2 - currently unknown
+@@ -2030,6 +2030,16 @@ struct em28xx_board em28xx_boards[] = {
+ 		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
+ 				EM28XX_I2C_FREQ_400_KHZ,
+ 	},
++	/* 1b80:e346 KWorld USB ATSC TV Stick UB435-Q V2
++	 * Empia EM2874B + LG DT3305 + NXP TDA18271HDC2 */
++	[EM2874_BOARD_KWORLD_UB435Q_V2] = {
++		.name       = "KWorld USB ATSC TV Stick UB435-Q V2",
++		.tuner_type = TUNER_ABSENT,
++		.has_dvb    = 1,
++		.dvb_gpio   = kworld_a340_digital,
++		.tuner_gpio = default_tuner_gpio,
++		.def_i2c_bus  = 1,
++	},
+ };
+ const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+ 
+@@ -2173,6 +2183,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2860_BOARD_GADMEI_UTV330 },
+ 	{ USB_DEVICE(0x1b80, 0xa340),
+ 			.driver_info = EM2870_BOARD_KWORLD_A340 },
++	{ USB_DEVICE(0x1b80, 0xe346),
++			.driver_info = EM2874_BOARD_KWORLD_UB435Q_V2 },
+ 	{ USB_DEVICE(0x2013, 0x024f),
+ 			.driver_info = EM28174_BOARD_PCTV_290E },
+ 	{ USB_DEVICE(0x2013, 0x024c),
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index bb1e8dc..547eea6 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -298,6 +298,18 @@ static struct lgdt3305_config em2870_lgdt3304_dev = {
+ 	.qam_if_khz         = 4000,
+ };
+ 
++static struct lgdt3305_config em2874_lgdt3305_dev = {
++	.i2c_addr           = 0x0e,
++	.demod_chip         = LGDT3305,
++	.spectral_inversion = 1,
++	.deny_i2c_rptr      = 0,
++	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
++	.tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
++	.tpvalid_polarity   = LGDT3305_TP_VALID_HIGH,
++	.vsb_if_khz         = 3250,
++	.qam_if_khz         = 4000,
++};
++
+ static struct s921_config sharp_isdbt = {
+ 	.demod_address = 0x30 >> 1
+ };
+@@ -329,6 +341,12 @@ static struct tda18271_config kworld_a340_config = {
+ 	.std_map           = &kworld_a340_std_map,
+ };
+ 
++static struct tda18271_config kworld_ub435q_v2_config = {
++	.std_map           = &kworld_a340_std_map,
++	.gate              = TDA18271_GATE_DIGITAL,
++};
++
++
+ static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
+ 	.demod_address = (0x1e >> 1),
+ 	.no_tuner = 1,
+@@ -1297,6 +1315,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			goto out_free;
+ 		}
+ 		break;
++	case EM2874_BOARD_KWORLD_UB435Q_V2:
++		dvb->fe[0] = dvb_attach(lgdt3305_attach,
++					   &em2874_lgdt3305_dev,
++					   &dev->i2c_adap[dev->def_i2c_bus]);
++		if (dvb->fe[0] != NULL)
++			dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
++				   &dev->i2c_adap[dev->def_i2c_bus], &kworld_ub435q_v2_config);
++
++		break;
+ 	default:
+ 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
+ 				" isn't supported yet\n");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 205e903..6d988ad 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -131,6 +131,7 @@
+ #define EM2884_BOARD_TERRATEC_HTC_USB_XS	  87
+ #define EM2884_BOARD_C3TECH_DIGITAL_DUO		  88
+ #define EM2874_BOARD_DELOCK_61959		  89
++#define EM2874_BOARD_KWORLD_UB435Q_V2		  90
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+-- 
+1.7.5.4
 
