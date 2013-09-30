@@ -1,194 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f44.google.com ([209.85.128.44]:55082 "EHLO
-	mail-qe0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754448Ab3I3KsD (ORCPT
+Received: from eu1sys200aog113.obsmtp.com ([207.126.144.135]:44682 "EHLO
+	eu1sys200aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754321Ab3I3IbH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 06:48:03 -0400
+	Mon, 30 Sep 2013 04:31:07 -0400
+Message-ID: <524935D6.1010505@st.com>
+Date: Mon, 30 Sep 2013 09:27:02 +0100
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Reply-To: srinivas.kandagatla@st.com
 MIME-Version: 1.0
-In-Reply-To: <52495337.4040309@xs4all.nl>
-References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com>
-	<1378991371-24428-4-git-send-email-shaik.ameer@samsung.com>
-	<52493160.5030401@xs4all.nl>
-	<CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
-	<52495337.4040309@xs4all.nl>
-Date: Mon, 30 Sep 2013 16:18:01 +0530
-Message-ID: <CAOD6ATpY66-nx0T6XaoT3YT8trUwt=hdr-ToZv4PH3xnxGET_g@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
- the SCALER driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Rob Landley <rob@landley.net>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for remote-control
+References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com> <20130927113458.GB18672@e106331-lin.cambridge.arm.com> <52458774.1060909@st.com> <20130927105716.64349f02@samsung.com>
+In-Reply-To: <20130927105716.64349f02@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 27/09/13 14:57, Mauro Carvalho Chehab wrote:
+> Em Fri, 27 Sep 2013 14:26:12 +0100
+> Srinivas KANDAGATLA <srinivas.kandagatla@st.com> escreveu:
+> 
+>> On 27/09/13 12:34, Mark Rutland wrote:
+>>
+>>>>> +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
+>>>>> +	  the rx pins are wired up.
+>>> I'm unsure on this. What if the device has multiple receivers that can
+>>> be independently configured? What if it supports something other than
+>>> "infrared" or "uhf"? What if a device can only be wired up as
+>>> "infrared"? 
+>>>
+>>> I'm not sure how generic these are, though we should certainly encourage
+>>> bindings that can be described this way to be described in the same way.
+>>>
+>>>>> +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
+>>>>> +	  the tx pins are wired up.
+>>> I have similar concerns here to those for the rx-mode property.
+>>>
+>> Initially rx-mode and tx-mode sounded like more generic properties
+>> that's the reason I ended up in this route. But after this discussion it
+>> looks like its not really generic enough to cater all the use cases.
+>>
+>> It make sense for me to perfix "st," for these properties in the st-rc
+>> driver rather than considering them as generic properties.
+> 
+> Well, for sure the direction (TX, RX, both) is a generic property.
+> 
+> I'd say that the level 1 protocol (IR, UHF, Bluetooth, ...) is also a
+> generic property. Most remotes are IR, but there are some that are
+> bluetooth, and your hardware is using UHF.
+Yes these are generic.
 
+> 
+> Btw, we're even thinking on mapping HDMI-CEC remote controller RX/TX via
+> the RC subsystem. So, another L1 protocol would be "hdmi-cec".
+> 
+Ok.
+> Yet, it seems unlikely that the very same remote controller IP would use
+> a different protocol for RX and TX, while sharing the same registers.
 
-On Mon, Sep 30, 2013 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 09/30/2013 11:32 AM, Shaik Ameer Basha wrote:
->> Hi Hans,
->>
->> Thanks for pointing it out.
->>
->>
->> On Mon, Sep 30, 2013 at 1:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Shaik,
->>>
->>> I have a few questions regarding the selection part...
->>>
->>> On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
->>>> This patch adds the Makefile and memory to memory (m2m) interface
->>>> functionality for the SCALER driver.
->>>>
->>>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->>>> ---
->>>>  drivers/media/platform/Kconfig                    |    8 +
->>>>  drivers/media/platform/Makefile                   |    1 +
->>>>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
->>>>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
->>>>  4 files changed, 793 insertions(+)
->>>>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
->>>>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
->>>>
->>>
->>
->>
->> [...]
->>
->>
->>>> +
->>>> +static int scaler_m2m_s_selection(struct file *file, void *fh,
->>>> +                             struct v4l2_selection *s)
->>>> +{
->>>> +     struct scaler_frame *frame;
->>>> +     struct scaler_ctx *ctx = fh_to_ctx(fh);
->>>> +     struct v4l2_crop cr;
->>>> +     struct scaler_variant *variant = ctx->scaler_dev->variant;
->>>> +     int ret;
->>>> +
->>>> +     cr.type = s->type;
->>>> +     cr.c = s->r;
->>>> +
->>>> +     if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
->>>> +         (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
->>>> +             return -EINVAL;
->>>> +
->>>> +     ret = scaler_try_crop(ctx, &cr);
->>>> +     if (ret < 0)
->>>> +             return ret;
->>>> +
->>>> +     if (s->flags & V4L2_SEL_FLAG_LE &&
->>>> +         !is_rectangle_enclosed(&cr.c, &s->r))
->>>> +             return -ERANGE;
->>>> +
->>>> +     if (s->flags & V4L2_SEL_FLAG_GE &&
->>>> +         !is_rectangle_enclosed(&s->r, &cr.c))
->>>> +             return -ERANGE;
->>>> +
->>>> +     s->r = cr.c;
->>>> +
->>>> +     switch (s->target) {
->>>> +     case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->>>> +     case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->>>> +     case V4L2_SEL_TGT_COMPOSE:
->>>> +             frame = &ctx->s_frame;
->>>> +             break;
->>>> +
->>>> +     case V4L2_SEL_TGT_CROP_BOUNDS:
->>>> +     case V4L2_SEL_TGT_CROP:
->>>> +     case V4L2_SEL_TGT_CROP_DEFAULT:
->>>> +             frame = &ctx->d_frame;
->>>> +             break;
->>>
->>> Similar problems as with g_selection above. Tomasz mentioned to me that the selection
->>> API is not implemented correctly in m2m Samsung drivers. It looks like this code is
->>> copied-and-pasted from other drivers, so it seems he was right.
->>
->> Sorry, after going through the documentation, I have to agree with you...
->> As you mentioned, this part of the code was copied while implementing
->> the G-Scaler driver :)
->>
->> I will change the above implementation for M2M devices (GScaler and
->> SCALER) as below,
->> I will only allow all V4L2_SEL_TGT_COMPOSE_* target requests if
->> 's->type' is equal to "V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE".
->> and all V4L2_SEL_TGT_CROP_* target requests if 's->type' is equal to
->> "V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE".
->>
->> I hope with the above two checkings taken in to care, there should not
->> be any issues with using selection APIs here.
->
-> Well, that depends on what the hardware does.
->
-> Using compose with a capture buffer means that the frame as delivered by
-> the hardware is composed into a larger buffer. E.g. the hardware gives
-> you 1280x720 which is composed into a buffer of size 1920x1080.
->
-> Using crop with an output buffer means that the hardware gets a cropped
-> part of a larger frame. E.g. you give a 1280x720 crop from a larger 1920x1080
-> buffer.
->
-> I suspect however, that in this case the hardware does the opposite for
-> capture: you really want to crop with a capture buffer (e.g. the hardware
-> delivers a 1280x720 frame which is cropped before DMA to 640x360).
->
-> I'm not sure what you want to do with an output buffer: cropping or composing.
->
-> Tomasz mentioned that the M2M + selection API was screwy, and this seems to
-> be to be the case indeed.
->
-> Which is also why I would like to know exactly what this hardware does.
+ST IRB block has one IR processor which has both TX and RX support and
+one UHF Processor which has RX support only. However the register map
+for all these support is in single IRB IP block.
 
-This hardware is just a M2M device.
-It accepts one source buffer at a time and does some operations on
-that and saves to the destination buffer.
-Operations like Rotation, Cropping, Scaling, Color Space Conversion
-etc are possible.
+So the driver can configure the IP as TX in "infrared" and RX in "uhf".
+This is supported in ST IRB IP.
 
-Here when I provide the Output buffer (source buffer), I can apply all
-V4L2_SEL_TGT_CROP_* targets on it.
-That means I can select the whole buffer for processing or apply some
-crop and select that area for further processing.
+This case can not be represented in a single device tree node with
+l1-protocol and direction properties.
 
-similarly, On the capture buffer (output buffer), I can apply
-V4L2_SEL_TGT_COMPOSE_* targets.
-That means I can compose the final output to the complete capture
-frame (dst frame), or I can choose some part of the destination frame.
+IMHO, having tx-mode and rx-mode or tx-protocol and rx-protocol
+properties will give more flexibility.
 
-Regards,
-Shaik Ameer Basha
+What do you think?
 
+> 
+> So, for example, a hardware with "hdmi-cec" and "infrared" will actually
+> have two remote controller devices. Eventually, the "infrared" being
+> just RX, while "hdmi-cec" being bi-directional.
+> 
+> So, IMHO, this could be mapped as "l1_protocol" ("infrared", "uhf", ...)
+> and another one "direction" ("rx", "tx", "bi-directional").
+> 
 
->
-> Regards,
->
->         Hans
->
->>
->> Thanks,
->> Shaik Ameer Basha
->>
->>>
->>> The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
->>> since the API may actually need some adjustments to have it work the way it should.
->>>
->>> As requested above, if you can explain the exact functionality you are trying to
->>> implement here, then I can look over this code carefully and see how it should be done.
->>>
->>> Thanks!
->>>
->>>         Hans
->>>
->> [...]
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+Thanks,
+srini
