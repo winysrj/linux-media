@@ -1,72 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:44365 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763059Ab3IECDz (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52546 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753941Ab3I3OtF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Sep 2013 22:03:55 -0400
-Message-ID: <1378346623.27597.13.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [PATCH 0/4] [media] Make lirc_bt829 a well-behaved PCI driver
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Thu, 05 Sep 2013 03:03:43 +0100
-In-Reply-To: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-References: <1378082213.25743.58.camel@deadeye.wl.decadent.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-7bCOXC2NigCGr2S7a8+K"
-Mime-Version: 1.0
+	Mon, 30 Sep 2013 10:49:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Adam Lee <adam.lee@canonical.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default on uvcvideo"
+Date: Mon, 30 Sep 2013 16:49:10 +0200
+Message-ID: <2929853.aH7hYkoiDo@avalon>
+In-Reply-To: <CAA7C2qi_1yYeSYbRBFhaLLwEmFf0k4G52jwvXVk0yLpNFFPCJA@mail.gmail.com>
+References: <1366790239-838-1-git-send-email-adam.lee@canonical.com> <1657156.ZjLeh8FSxj@avalon> <CAA7C2qi_1yYeSYbRBFhaLLwEmFf0k4G52jwvXVk0yLpNFFPCJA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---=-7bCOXC2NigCGr2S7a8+K
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 24 September 2013 08:55:19 VDR User wrote:
+> On Tue, Sep 24, 2013 at 4:34 AM, Laurent Pinchart wrote:
+> > I've discussed this issue during LPC last week, and I still believe we
+> > should enable auto-suspend. The feature really saves power, without it my
+> > C910 Logitech webcam gets hot even when unused.
+> > 
+> > If we disable auto-suspend by default and enable it from userspace only a
+> > handful of devices will get auto-suspended. Unless we can get distros to
+> > automatically test auto-suspend on unknown webcam models and report the
+> > results to update a central data base (which would grow much bigger than a
+> > quirks list in the driver in my opinion), disabling auto-suspend would be
+> > a serious regression.
+> 
+> Setting defaults which knowingly cause problems is a horrible idea. Just
+> because it works for you and your setup is no justification to force it upon
+> everyone. This is certainly a feature that, if wanted, can be enabled by the
+> user.
 
-On Mon, 2013-09-02 at 01:36 +0100, Ben Hutchings wrote:
-> I noticed lirc_bt829 didn't have a module device ID table, so I set out
-> to fix that and ended up with this series.
->=20
-> It still appears to do everything else wrong (like reinventing
-> i2c-algo-bit) though...
->=20
-> This is compile-tested only.
+It's not just my setup, auto-suspend works for the vast majority of webcams. 
+It has been enabled three years ago, with a report that Fedora had enabled it 
+by carrying a kernel patch for a while, without any user complaint.
 
-On reflection, I think it might be better to leave this driver 'badly
-behaved'.  It wants to use registers on a Mach64 VT, which has a
-separate kernel framebuffer driver (atyfb) and userland X driver
-(mach64).  If this driver is compatible with them now, changing it is
-liable to break that.
+> I don't see any reasonable argument against letting the user enable it if
+> he/she wants it.
 
-I'll repost the minor fixes.
+USB autosuspend is an important power saving feature. I would be fine with 
+enabling it in userspace if we could find a reasonable, cross-distro way to 
+create, maintain and distribute the list of devices that support USB 
+autosuspend properly.
 
-Ben.
+-- 
+Regards,
 
---=20
-Ben Hutchings
-Knowledge is power.  France is bacon.
+Laurent Pinchart
 
---=-7bCOXC2NigCGr2S7a8+K
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIVAwUAUifmf+e/yOyVhhEJAQrJvg//fY/f1KQ4pV71FmswLCC2U2i2S8rhikrk
-etzB57f50jXMvVv7ZAucvhv6Q5hzI6+adM/iKFrg9gxY67i8IPSRhzN91tOr/DXW
-1nIyb/VUewPF/tev6EbCo1RnH1+ST+/cRahnnmiQwfxzHw+HXYhsPYYN9hQ+u8tj
-3zCf2YWuT1Mxv0+EcwLX64JREYiB7qgErf11+4Ky09tqnzBlB5m7dl8xv0ZLJOUw
-CnSVi90eeE6Soli8LpnfZSaXc7d2jvKfT2iMG13c7ErGo033WU+hxMhaXx8Edy84
-F+APaqAc9P6UqA7zVRYoxyvzqemv8Kvh2QBMwh7yIKG8kx2ZxLNDDm9wjU57CrnI
-vfNff6f0eeKcjgLXLeOBrVe0YO3jgHuBL1LbrDk+gYPEPM1T6KR6XGVND4lGXrKU
-FRb54iUsPosMuVi7iSaNRGEBZWj6ofivbcL7MVYhEWxA3qCAevYbAeHBp7clM4/2
-YmxourNve9Emr7dWSrHlVV2s7E2bjnEyEaz/+hUYu5gwHKFEtau8Tu5I8A6LttuN
-Uxu9MPvModfG6Y7Zppo8HoyPh6QzbAffMyuL0ap2bWe+AAMJmryh5M3bgyU5O74B
-QokgDn56nV7QA7m5gseD7/jIYJPY4aI2aPyb6lAGujAEnsOclg9FpBFgXMZHVipv
-SBJXX/569Go=
-=KIb8
------END PGP SIGNATURE-----
-
---=-7bCOXC2NigCGr2S7a8+K--
