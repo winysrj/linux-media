@@ -1,96 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:40500 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755768Ab3I3N1X (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1102 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754211Ab3I3MoO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:27:23 -0400
+	Mon, 30 Sep 2013 08:44:14 -0400
+Message-ID: <524971FC.5030907@xs4all.nl>
+Date: Mon, 30 Sep 2013 14:43:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8u5_rhxTgkVgCbtmGpaZCt2ciu4vABW4t80aSp7csttnw@mail.gmail.com>
-References: <1379073471-7244-1-git-send-email-prabhakar.csengg@gmail.com>
- <523395DC.5080009@wwwdotorg.org> <CA+V-a8sVyJ1TrTSiaj8vpaD+f_qJ5Hp287E3HuHJ_pRzzmdAvg@mail.gmail.com>
- <523730A8.9060201@wwwdotorg.org> <CA+V-a8vY-qsdUoUUH=3HOg-UAZZPujOLPHFC_udNWFtksgzRRA@mail.gmail.com>
- <523B554A.2030701@gmail.com> <CA+V-a8s3PYr7qem6m8au0E7N2Xb_gD37_8uLcdXZjeHppBaC6g@mail.gmail.com>
- <523C1AE0.9020603@samsung.com> <CA+V-a8u5_rhxTgkVgCbtmGpaZCt2ciu4vABW4t80aSp7csttnw@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 30 Sep 2013 18:57:01 +0530
-Message-ID: <CA+V-a8sEPAFz=Jo9LdwRf5QtnY6TFXzSTrtHQuyeb3uSEYCvSQ@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: adv7343: fix the DT binding properties
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>, LDOC <linux-doc@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, s.nawrocki@samsung.com,
+	swarren@wwwdotorg.org, mark.rutland@arm.com, Pawel.Moll@arm.com,
+	galak@codeaurora.org, a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v9 09/13] [media] exynos5-fimc-is: Add the hardware pipeline
+ control
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com> <1380279558-21651-10-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1380279558-21651-10-git-send-email-arun.kk@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On 09/27/2013 12:59 PM, Arun Kumar K wrote:
+> This patch adds the crucial hardware pipeline control for the
+> fimc-is driver. All the subdev nodes will call this pipeline
+> interfaces to reach the hardware. Responsibilities of this module
+> involves configuring and maintaining the hardware pipeline involving
+> multiple sub-ips like ISP, DRC, Scalers, ODC, 3DNR, FD etc.
+> 
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1708 ++++++++++++++++++++
+>  .../media/platform/exynos5-is/fimc-is-pipeline.h   |  129 ++
+>  2 files changed, 1837 insertions(+)
+>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
+> 
+> diff --git a/drivers/media/platform/exynos5-is/fimc-is-pipeline.c b/drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+> new file mode 100644
+> index 0000000..a73d952
+> --- /dev/null
+> +++ b/drivers/media/platform/exynos5-is/fimc-is-pipeline.c
 
-On Mon, Sep 23, 2013 at 8:18 AM, Prabhakar Lad
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Sylwester,
->
-> On Fri, Sep 20, 2013 at 3:22 PM, Sylwester Nawrocki
-> <s.nawrocki@samsung.com> wrote:
->> Hi Prabhakar,
->>
->> On 09/20/2013 10:11 AM, Prabhakar Lad wrote:
->>> OK I will, just send out a fix up patch which fixes the mismatch between
->>> names for the rc-cycle, and later send out a patch which removes the
->>> platform data usage for next release with proper DT bindings.
->>
->> I think the binding need to be fully corrected now, I just meant to not
->> touch the board file, i.e. leave non-dt support unchanged.
->>
-> Ok
->
->>> I'm OK with making regulator properties as optional, But still it would
->>> change the meaning of what DT is, we know that the VDD/VDD_IO .. etc
->>> pins are required properties (but still making them as optional) :-(
->>>
->>> I think there might several devices where this situation may arise so
->>> just thinking of a alternative solution.
->>>
->>> say we have property 'software-regulator' which takes true/false(0/1)
->>> If set to true we make the regulators as required property or else we
->>> assume it is handled and ignore it ?
->>
->> I don't think this is a good idea. You would have to add a similar platform
->> data flag for non-dt, it doesn't sound right. I can see two options here:
->>
->> 1. Make the regulator properties mandatory and, e.g. define a fixed
->>    voltage GPIO regulator in DT with an empty 'gpio' property. Then
->>    pass a phandle to that regulator in the adv7343 *-supply properties.
->>    For non-dt similarly a fixed voltage regulator(s) and voltage
->>    supplies  would need to be defined in the board files.
->>
->> 2. Make the properties optional and use (devm_)regulator_get_optional()
->>    calls in the driver (a recently added function). I must admit I don't
->>    fully understand description of this function, it currently looks
->>    pretty much same as (devm_)regulator_get(). Thus the driver would
->>    need to be handling regulator supplies only when non ERR_PTR() is
->>    returned from regulator_get_optional() and otherwise assume a non
->>    critical error. There is already quite a few example occurrences of
->>    regulator_get_optional() usage.
->>
-The same question arises in case of the clock, The adv7343 encoder has
-two input clocks CLKIN_A and CLKIN_B. I case of da850 EVM the
-clock source to adv7343 encoder is fixed source which is enabled
-by default so none of the bridge nor the adv7343 driver cares of the
-clock to enable/disable.
-So in this case should I be registering  (v4l2_clk_register() /
-v4l2_clk_unregister())
-a dummy clock in the bridge driver or in the board file ?
+<snip>
+
+> +int fimc_is_pipeline_open(struct fimc_is_pipeline *pipeline,
+> +			struct fimc_is_sensor *sensor)
+> +{
+> +	struct fimc_is *is = pipeline->is;
+> +	struct is_region *region;
+> +	unsigned long index[2] = {0};
+> +	int ret;
+> +
+> +	if (!sensor)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&pipeline->pipe_lock);
+> +
+> +	if (test_bit(PIPELINE_OPEN, &pipeline->state)) {
+> +		dev_err(pipeline->dev, "Pipeline already open\n");
+> +		ret = -EINVAL;
+> +		goto err_exit;
+> +	}
+> +
+> +	pipeline->fcount = 0;
+> +	pipeline->sensor = sensor;
+> +
+> +	if (is->num_pipelines == 0) {
+> +		/* Init memory */
+> +		ret = fimc_is_pipeline_initmem(pipeline);
+> +		if (ret) {
+> +			dev_err(pipeline->dev, "Pipeline memory init failed\n");
+> +			goto err_exit;
+> +		}
+> +
+> +		/* Load firmware */
+> +		ret = fimc_is_pipeline_load_firmware(pipeline);
+> +		if (ret) {
+> +			dev_err(pipeline->dev, "Firmware load failed\n");
+> +			goto err_fw;
+> +		}
+> +
+> +		/* Power ON */
+> +		ret = fimc_is_pipeline_power(pipeline, 1);
+> +		if (ret) {
+> +			dev_err(pipeline->dev, "A5 power on failed\n");
+> +			goto err_fw;
+> +		}
+> +
+> +		/* Wait for FW Init to complete */
+> +		ret = fimc_is_itf_wait_init_state(&is->interface);
+> +		if (ret) {
+> +			dev_err(pipeline->dev, "FW init failed\n");
+> +			goto err_fw;
+> +		}
+> +	}
+> +
+> +	/* Open Sensor */
+> +	region = pipeline->is_region;
+> +	ret = fimc_is_itf_open_sensor(&is->interface,
+> +			pipeline->instance,
+> +			sensor->drvdata->id,
+> +			sensor->i2c_bus,
+> +			pipeline->minfo->shared.paddr);
+> +	if (ret) {
+> +		dev_err(pipeline->dev, "Open sensor failed\n");
+> +		goto err_exit;
+> +	}
+> +
+> +	/* Load setfile */
+> +	ret = fimc_is_pipeline_setfile(pipeline);
+> +	if (ret)
+> +		goto err_exit;
+> +
+> +	/* Stream off */
+> +	ret = fimc_is_itf_stream_off(&is->interface, pipeline->instance);
+> +	if (ret)
+> +		goto err_exit;
+> +
+> +	/* Process off */
+> +	ret = fimc_is_itf_process_off(&is->interface, pipeline->instance);
+> +	if (ret)
+> +		goto err_exit;
+> +
+> +	if (is->num_pipelines == 0) {
+> +		/* Copy init params to FW region */
+> +		memset(&region->parameter, 0x0, sizeof(struct is_param_region));
+> +
+> +		memcpy(&region->parameter.sensor, &init_sensor_param,
+> +				sizeof(struct sensor_param));
+
+How about:
+
+		region->parameter.sensor = init_sensor_param;
+
+Shorter and type-safe.
+
+Ditto for the memcpy's below.
+
+> +		memcpy(&region->parameter.isp, &init_isp_param,
+> +				sizeof(struct isp_param));
+> +		memcpy(&region->parameter.drc, &init_drc_param,
+> +				sizeof(struct drc_param));
+> +		memcpy(&region->parameter.scalerc, &init_scalerc_param,
+> +				sizeof(struct scalerc_param));
+> +		memcpy(&region->parameter.odc, &init_odc_param,
+> +				sizeof(struct odc_param));
+> +		memcpy(&region->parameter.dis, &init_dis_param,
+> +				sizeof(struct dis_param));
+> +		memcpy(&region->parameter.tdnr, &init_tdnr_param,
+> +				sizeof(struct tdnr_param));
+> +		memcpy(&region->parameter.scalerp, &init_scalerp_param,
+> +				sizeof(struct scalerp_param));
+> +		memcpy(&region->parameter.fd, &init_fd_param,
+> +				sizeof(struct fd_param));
+> +		wmb();
+> +
+> +		/* Set all init params to FW */
+> +		index[0] = 0xffffffff;
+> +		index[1] = 0xffffffff;
+> +		ret = fimc_is_itf_set_param(&is->interface, pipeline->instance,
+> +				index[0], index[1]);
+> +		if (ret) {
+> +			dev_err(pipeline->dev, "%s failed\n", __func__);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	/* Set state to OPEN */
+> +	set_bit(PIPELINE_OPEN, &pipeline->state);
+> +	is->num_pipelines++;
+> +
+> +	mutex_unlock(&pipeline->pipe_lock);
+> +	return 0;
+> +
+> +err_fw:
+> +	fimc_is_pipeline_freemem(pipeline);
+> +err_exit:
+> +	mutex_unlock(&pipeline->pipe_lock);
+> +	return ret;
+> +}
 
 Regards,
---Prabhakar Lad
+
+	Hans
+
