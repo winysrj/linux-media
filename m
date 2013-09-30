@@ -1,112 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from li226-30.members.linode.com ([173.255.216.30]:44728 "EHLO
-	mail.cooperteam.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab3IDDQN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Sep 2013 23:16:13 -0400
-From: Christopher James Halse Rogers
-	<christopher.halse.rogers@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linux-arch@vger.kernel.org,
-	robclark@gmail.com, maarten.lankhorst@canonical.com,
-	sumit.semwal@linaro.org,
-	Christopher James Halse Rogers
-	<christopher.halse.rogers@canonical.com>
-Subject: [PATCH] dma-buf: Expose buffer size to userspace (v2)
-Date: Wed,  4 Sep 2013 13:15:49 +1000
-Message-Id: <1378264549-9185-1-git-send-email-christopher.halse.rogers@canonical.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1802 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756193Ab3I3Kcn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 06:32:43 -0400
+Message-ID: <52495337.4040309@xs4all.nl>
+Date: Mon, 30 Sep 2013 12:32:23 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Shaik Ameer Basha <shaik.samsung@gmail.com>
+CC: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Inki Dae <inki.dae@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH v3 3/4] [media] exynos-scaler: Add m2m functionality for
+ the SCALER driver
+References: <1378991371-24428-1-git-send-email-shaik.ameer@samsung.com> <1378991371-24428-4-git-send-email-shaik.ameer@samsung.com> <52493160.5030401@xs4all.nl> <CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
+In-Reply-To: <CAOD6ATpssyY_955-VMYPBzQOqHWgE0OZvU0xvU62+Q2e90JW8g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each dma-buf has an associated size and it's reasonable for userspace
-to want to know what it is.
+On 09/30/2013 11:32 AM, Shaik Ameer Basha wrote:
+> Hi Hans,
+> 
+> Thanks for pointing it out.
+> 
+> 
+> On Mon, Sep 30, 2013 at 1:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Shaik,
+>>
+>> I have a few questions regarding the selection part...
+>>
+>> On 09/12/2013 03:09 PM, Shaik Ameer Basha wrote:
+>>> This patch adds the Makefile and memory to memory (m2m) interface
+>>> functionality for the SCALER driver.
+>>>
+>>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>>> ---
+>>>  drivers/media/platform/Kconfig                    |    8 +
+>>>  drivers/media/platform/Makefile                   |    1 +
+>>>  drivers/media/platform/exynos-scaler/Makefile     |    3 +
+>>>  drivers/media/platform/exynos-scaler/scaler-m2m.c |  781 +++++++++++++++++++++
+>>>  4 files changed, 793 insertions(+)
+>>>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+>>>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+>>>
+>>
+> 
+> 
+> [...]
+> 
+> 
+>>> +
+>>> +static int scaler_m2m_s_selection(struct file *file, void *fh,
+>>> +                             struct v4l2_selection *s)
+>>> +{
+>>> +     struct scaler_frame *frame;
+>>> +     struct scaler_ctx *ctx = fh_to_ctx(fh);
+>>> +     struct v4l2_crop cr;
+>>> +     struct scaler_variant *variant = ctx->scaler_dev->variant;
+>>> +     int ret;
+>>> +
+>>> +     cr.type = s->type;
+>>> +     cr.c = s->r;
+>>> +
+>>> +     if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
+>>> +         (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
+>>> +             return -EINVAL;
+>>> +
+>>> +     ret = scaler_try_crop(ctx, &cr);
+>>> +     if (ret < 0)
+>>> +             return ret;
+>>> +
+>>> +     if (s->flags & V4L2_SEL_FLAG_LE &&
+>>> +         !is_rectangle_enclosed(&cr.c, &s->r))
+>>> +             return -ERANGE;
+>>> +
+>>> +     if (s->flags & V4L2_SEL_FLAG_GE &&
+>>> +         !is_rectangle_enclosed(&s->r, &cr.c))
+>>> +             return -ERANGE;
+>>> +
+>>> +     s->r = cr.c;
+>>> +
+>>> +     switch (s->target) {
+>>> +     case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>>> +     case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>>> +     case V4L2_SEL_TGT_COMPOSE:
+>>> +             frame = &ctx->s_frame;
+>>> +             break;
+>>> +
+>>> +     case V4L2_SEL_TGT_CROP_BOUNDS:
+>>> +     case V4L2_SEL_TGT_CROP:
+>>> +     case V4L2_SEL_TGT_CROP_DEFAULT:
+>>> +             frame = &ctx->d_frame;
+>>> +             break;
+>>
+>> Similar problems as with g_selection above. Tomasz mentioned to me that the selection
+>> API is not implemented correctly in m2m Samsung drivers. It looks like this code is
+>> copied-and-pasted from other drivers, so it seems he was right.
+> 
+> Sorry, after going through the documentation, I have to agree with you...
+> As you mentioned, this part of the code was copied while implementing
+> the G-Scaler driver :)
+> 
+> I will change the above implementation for M2M devices (GScaler and
+> SCALER) as below,
+> I will only allow all V4L2_SEL_TGT_COMPOSE_* target requests if
+> 's->type' is equal to "V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE".
+> and all V4L2_SEL_TGT_CROP_* target requests if 's->type' is equal to
+> "V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE".
+> 
+> I hope with the above two checkings taken in to care, there should not
+> be any issues with using selection APIs here.
 
-Since userspace already has an fd, expose the size using the
-size = lseek(fd, SEEK_END, 0); lseek(fd, SEEK_CUR, 0);
-idiom.
+Well, that depends on what the hardware does.
 
-v2: Added Daniel's sugeested documentation, with minor fixups
+Using compose with a capture buffer means that the frame as delivered by
+the hardware is composed into a larger buffer. E.g. the hardware gives
+you 1280x720 which is composed into a buffer of size 1920x1080.
 
-Signed-off-by: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- Documentation/dma-buf-sharing.txt | 12 ++++++++++++
- drivers/base/dma-buf.c            | 28 ++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+)
+Using crop with an output buffer means that the hardware gets a cropped
+part of a larger frame. E.g. you give a 1280x720 crop from a larger 1920x1080
+buffer.
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 0b23261..849e982 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -407,6 +407,18 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
-    interesting ways depending upong the exporter (if userspace starts depending
-    upon this implicit synchronization).
- 
-+Other Interfaces Exposed to Userspace on the dma-buf FD
-+------------------------------------------------------
-+
-+- Since kernel 3.12 the dma-buf FD supports the llseek system call, but only
-+  with offset=0 and whence=SEEK_END|SEEK_SET. SEEK_SET is supported to allow
-+  the usual size discover pattern size = SEEK_END(0); SEEK_SET(0). Every other
-+  llseek operation will report -EINVAL.
-+
-+  If llseek on dma-buf FDs isn't support the kernel will report -ESPIPE for all
-+  cases. Userspace can use this to detect support for discovering the dma-buf
-+  size using llseek.
-+
- Miscellaneous notes
- -------------------
- 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 6687ba7..c33a857 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -77,9 +77,36 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
- 	return dmabuf->ops->mmap(dmabuf, vma);
- }
- 
-+static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
-+{
-+	struct dma_buf *dmabuf;
-+	loff_t base;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EBADF;
-+
-+	dmabuf = file->private_data;
-+
-+	/* only support discovering the end of the buffer,
-+	   but also allow SEEK_SET to maintain the idiomatic
-+	   SEEK_END(0), SEEK_CUR(0) pattern */
-+	if (whence == SEEK_END)
-+		base = dmabuf->size;
-+	else if (whence == SEEK_SET)
-+		base = 0;
-+	else
-+		return -EINVAL;
-+
-+	if (offset != 0)
-+		return -EINVAL;
-+
-+	return base + offset;
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
-+	.llseek		= dma_buf_llseek,
- };
- 
- /*
-@@ -133,6 +160,7 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->exp_name = exp_name;
- 
- 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
-+	file->f_mode |= FMODE_LSEEK;
- 
- 	dmabuf->file = file;
- 
--- 
-1.8.3.2
+I suspect however, that in this case the hardware does the opposite for
+capture: you really want to crop with a capture buffer (e.g. the hardware
+delivers a 1280x720 frame which is cropped before DMA to 640x360).
+
+I'm not sure what you want to do with an output buffer: cropping or composing.
+
+Tomasz mentioned that the M2M + selection API was screwy, and this seems to
+be to be the case indeed.
+
+Which is also why I would like to know exactly what this hardware does.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Shaik Ameer Basha
+> 
+>>
+>> The selection API for m2m devices will be discussed during the upcoming V4L2 mini-summit
+>> since the API may actually need some adjustments to have it work the way it should.
+>>
+>> As requested above, if you can explain the exact functionality you are trying to
+>> implement here, then I can look over this code carefully and see how it should be done.
+>>
+>> Thanks!
+>>
+>>         Hans
+>>
+> [...]
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
