@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:36430 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab3IKJe6 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2170 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754781Ab3I3MDa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Sep 2013 05:34:58 -0400
-Received: by mail-ob0-f177.google.com with SMTP id f8so8220959obp.36
-        for <linux-media@vger.kernel.org>; Wed, 11 Sep 2013 02:34:57 -0700 (PDT)
+	Mon, 30 Sep 2013 08:03:30 -0400
+Message-ID: <5249673B.5020705@xs4all.nl>
+Date: Mon, 30 Sep 2013 13:57:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <52303233.6060504@xs4all.nl>
-References: <CAPybu_3cOLztceJoNwyZQGuC8maNYKuunbxJRHt7X6nQHmCyhw@mail.gmail.com>
- <1378888254-5236-1-git-send-email-ricardo.ribalda@gmail.com> <52303233.6060504@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 11 Sep 2013 11:34:37 +0200
-Message-ID: <CAPybu_18+43UTxyxTRJ8DNqfxTOs+o3yv=32AaO7LHh9926QDg@mail.gmail.com>
-Subject: Re: [PATCH] RFC: Support for multiple selections
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+CC: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org,
+	devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net,
+	linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org,
+	linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org,
+	linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+	Solarflare linux maintainers <linux-net-drivers@solarflare.com>,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace dma_set_mask()+dma_set_coherent_mask()
+ with new helper
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
+In-Reply-To: <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+On 09/19/2013 11:44 PM, Russell King wrote:
+> Replace the following sequence:
+> 
+> 	dma_set_mask(dev, mask);
+> 	dma_set_coherent_mask(dev, mask);
+> 
+> with a call to the new helper dma_set_mask_and_coherent().
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Thanks for your feedback
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Sep 11, 2013 at 11:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Ricardo,
->
-> On 09/11/2013 10:30 AM, Ricardo Ribalda Delgado wrote:
->> A new id field is added to the struct selection. On devices that
->> supports multiple sections this id indicate which of the selection to
->> modify.
->>
->> A new control V4L2_CID_SELECTION_BITMASK selects which of the selections
->> are used, if the control is set to zero the default rectangles are used.
->>
->> This is needed in cases where the user has to change multiple selections
->> at the same time to get a valid combination.
->>
->> On devices where the control V4L2_CID_SELECTION_BITMASK does not exist,
->> the id field is ignored
->
-> This feels like a hack to me. A big problem I have with using a control here
-> is that with a control you can't specify for which selection target it is.
->
+Regards,
 
-I am not sure that I understand what you mean here.
+	Hans
 
-If you set the control to 0x1 you are using selection 0, if you set
-the control to 0x5, you are using selection 0 and 2.
+> ---
+>  drivers/staging/media/dt3155v4l/dt3155v4l.c |    5 +----
+>  1 files changed, 1 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> index 90d6ac4..081407b 100644
+> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> @@ -901,10 +901,7 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  	int err;
+>  	struct dt3155_priv *pd;
+>  
+> -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+> -	if (err)
+> -		return -ENODEV;
+> -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+> +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+>  	if (err)
+>  		return -ENODEV;
+>  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+> 
 
-
-> If you want to set multiple rectangles, why not just pass them directly? E.g.:
->
-> struct v4l2_selection {
->         __u32                   type;
->         __u32                   target;
->         __u32                   flags;
->         union {
->                 struct v4l2_rect        r;
->                 struct v4l2_rect        *pr;
->         };
->         __u32                   rectangles;
->         __u32                   reserved[8];
-> };
->
-> If rectangles > 1, then pr is used.
->
-
-The structure is passed in a ioctl and I dont think that it is a good
-idea that you let the kernel get/set a memory address not encapsulated
-in it. I can see that it could lead to security breaches if there is a
-mistake on the handling.
-
-> It's a bit more work to add this to the core code (VIDIOC_SUBDEV_G/S_SELECTION
-> should probably be changed at the same time and you have to fix existing drivers
-> to check/set the new rectangles field), but it scales much better.
-
-Also, we would be broking the ABI. Rectangles is not a mandatory
-field, and has a value != 0.
-
-What we could do is leave the V4L2_CID_SELECTION_BITMASK  out of the
-api, but keep the id field on the structure, so the user can define a
-private control to do whatever he needs with the id field, wekeep the
-ABI compatibility and no big changes are needed.
-
-
-Thaks!
-
->
-> Regards,
->
->         Hans
->
->>
