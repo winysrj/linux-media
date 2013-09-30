@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45479 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52493 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445Ab3IIKKB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Sep 2013 06:10:01 -0400
+	with ESMTP id S1754499Ab3I3Old (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 10:41:33 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Drop meaningless video_is_registered() call in v4l2_open()
-Date: Mon, 09 Sep 2013 12:10:05 +0200
-Message-ID: <26516577.dQgL4XrfDY@avalon>
-In-Reply-To: <522D9DD6.2080609@xs4all.nl>
-References: <1375446449-27066-1-git-send-email-s.nawrocki@samsung.com> <5584569.Fq1hO5v8IF@avalon> <522D9DD6.2080609@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>, LDOC <linux-doc@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: i2c: adv7343: fix the DT binding properties
+Date: Mon, 30 Sep 2013 16:41:38 +0200
+Message-ID: <12127401.nFSuWlICDy@avalon>
+In-Reply-To: <CA+V-a8sEPAFz=Jo9LdwRf5QtnY6TFXzSTrtHQuyeb3uSEYCvSQ@mail.gmail.com>
+References: <1379073471-7244-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8u5_rhxTgkVgCbtmGpaZCt2ciu4vABW4t80aSp7csttnw@mail.gmail.com> <CA+V-a8sEPAFz=Jo9LdwRf5QtnY6TFXzSTrtHQuyeb3uSEYCvSQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Prabhakar,
 
-On Monday 09 September 2013 12:07:18 Hans Verkuil wrote:
-> On 09/09/2013 12:00 PM, Laurent Pinchart wrote:
-> > On Monday 09 September 2013 11:07:43 Hans Verkuil wrote:
-> >> On 09/06/2013 12:33 AM, Sylwester Nawrocki wrote:
-> >
-> > [snip]
-> > 
-> >>> The main issue as I see it is that we need to track both driver remove()
-> >>> and struct device .release() calls and free resources only when last of
-> >>> them executes. Data structures which are referenced in fops must not be
-> >>> freed in remove() and we cannot use dev_get_drvdata() in fops, e.g. not
-> >>> protected with device_lock().
+On Monday 30 September 2013 18:57:01 Prabhakar Lad wrote:
+> On Mon, Sep 23, 2013 at 8:18 AM, Prabhakar Lad wrote:
+> > On Fri, Sep 20, 2013 at 3:22 PM, Sylwester Nawrocki wrote:
+> >> On 09/20/2013 10:11 AM, Prabhakar Lad wrote:
+> >>> OK I will, just send out a fix up patch which fixes the mismatch between
+> >>> names for the rc-cycle, and later send out a patch which removes the
+> >>> platform data usage for next release with proper DT bindings.
 > >> 
-> >> You can do all that by returning 0 if probe() was partially successful
-> >> (i.e. one or more, but not all, nodes were created successfully) by
-> >> doing what I described above. I don't see another way that doesn't
-> >> introduce a race condition.
+> >> I think the binding need to be fully corrected now, I just meant to not
+> >> touch the board file, i.e. leave non-dt support unchanged.
 > > 
-> > But isn't this just plain wrong ? If probing fails, I don't see how
-> > returning success could be a good idea.
-> 
-> Well, the nodes that are created are working fine. So it's partially OK :-)
-> 
-> That said, yes it would be better if it could safely clean up and return an
-> error. But it is better than returning an error and introducing a race
-> condition.
->
-> >> That doesn't mean that there isn't one, it's just that I don't know of a
-> >> better way of doing this.
+> > Ok
 > > 
-> > We might need support from the device core.
+> >>> I'm OK with making regulator properties as optional, But still it would
+> >>> change the meaning of what DT is, we know that the VDD/VDD_IO .. etc
+> >>> pins are required properties (but still making them as optional) :-(
+> >>> 
+> >>> I think there might several devices where this situation may arise so
+> >>> just thinking of a alternative solution.
+> >>> 
+> >>> say we have property 'software-regulator' which takes true/false(0/1)
+> >>> If set to true we make the regulators as required property or else we
+> >>> assume it is handled and ignore it ?
+> >> 
+> >> I don't think this is a good idea. You would have to add a similar
+> >> platform data flag for non-dt, it doesn't sound right. I can see two
+> >> options here:
+> >> 
+> >> 1. Make the regulator properties mandatory and, e.g. define a fixed
+> >>    voltage GPIO regulator in DT with an empty 'gpio' property. Then
+> >>    pass a phandle to that regulator in the adv7343 *-supply properties.
+> >>    For non-dt similarly a fixed voltage regulator(s) and voltage
+> >>    supplies  would need to be defined in the board files.
+> >> 
+> >> 2. Make the properties optional and use (devm_)regulator_get_optional()
+> >>    calls in the driver (a recently added function). I must admit I don't
+> >>    fully understand description of this function, it currently looks
+> >>    pretty much same as (devm_)regulator_get(). Thus the driver would
+> >>    need to be handling regulator supplies only when non ERR_PTR() is
+> >>    returned from regulator_get_optional() and otherwise assume a non
+> >>    critical error. There is already quite a few example occurrences of
+> >>    regulator_get_optional() usage.
 > 
-> I do come back to my main question: has anyone actually experienced this
-> error in a realistic scenario? Other than in very low-memory situations I
-> cannot imagine this happening.
+> The same question arises in case of the clock, The adv7343 encoder has two
+> input clocks CLKIN_A and CLKIN_B. I case of da850 EVM the clock source to
+> adv7343 encoder is fixed source which is enabled by default so none of the
+> bridge nor the adv7343 driver cares of the clock to enable/disable. So in
+> this case should I be registering  (v4l2_clk_register() /
+> v4l2_clk_unregister()) a dummy clock in the bridge driver or in the board
+> file ?
 
-What about running out of minors, which could very well happen with subdev 
-nodes in complex SoCs ?
-
-> I'm not sure whether you want to spend a lot of time trying to fix this all
-> perfectly. That's why I am suggesting just unregistering everything and
-> returning 0 in probe(). Not ideal, but at least it's safe (as far as I can
-> tell).
+The fixed clock (which is a real clock, not a dummy clock) should be 
+registered in board file, preferably using the common clock framework if 
+that's available on your platform.
 
 -- 
 Regards,
