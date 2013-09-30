@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3156 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab3I3NHu (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2296 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023Ab3I3MaF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Sep 2013 09:07:50 -0400
-Message-ID: <5249779D.8020205@xs4all.nl>
-Date: Mon, 30 Sep 2013 15:07:41 +0200
+	Mon, 30 Sep 2013 08:30:05 -0400
+Message-ID: <52496E9E.6080500@xs4all.nl>
+Date: Mon, 30 Sep 2013 14:29:18 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Dinesh Ram <Dinesh.Ram@cern.ch>
-CC: "edubezval@gmail.com" <edubezval@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/6] si4713 : Modified i2c driver to handle cases where
- interrupts are not used
-References: <a661e3d7ccefe3baa8134888a0471ce1e5463f47.1377861337.git.dinram@cisco.com> <1377862104-15429-1-git-send-email-dinram@cisco.com> <b1680e68e86967955634fab0d4054a8e8100d422.1377861337.git.dinram@cisco.com> <CAC-25o9OW1nmuzbmRX6dW4pLwaJHaFTxXTr_nzaGXk1HDzcdzA@mail.gmail.com> <52231DA0.20307@xs4all.nl> <CAC-25o-+u5u7yNiJ8PY40FQ9EMdLvga+NKXJaELJHT6oEBUzKg@mail.gmail.com>,<52243A18.1010209@xs4all.nl> <C40DBE54484849439FC5081A05AEF5F5979DEC6D@PLOXCHG23.cern.ch>
-In-Reply-To: <C40DBE54484849439FC5081A05AEF5F5979DEC6D@PLOXCHG23.cern.ch>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] stk1135: fix two warnings added by changeset
+ 76e0598
+References: <1380192149-27995-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1380192149-27995-1-git-send-email-m.chehab@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/2013 12:29 PM, Dinesh Ram wrote:
-> Hi Hans and Eduardo,
+On 09/26/2013 12:42 PM, Mauro Carvalho Chehab wrote:
+> drivers/media/usb/gspca/stk1135.c:615:6: warning: no previous prototype for 'stk1135_try_fmt' [-Wmissing-prototypes]
+>  void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
+>       ^
+> drivers/media/usb/gspca/stk1135.c:627:5: warning: no previous prototype for 'stk1135_enum_framesizes' [-Wmissing-prototypes]
+>  int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
 > 
-> Sorry for my radio silence. I was infact travelling and didn't have much opportunity to check my mails.
-> I will go through the list of comments in the thread and try to fix / justify them in the next few days. 
-> Hans, probably at the end you might have to test it as I don't have the hardware anymore.
-> 
-> Regards,
-> Dinesh
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Dinesh,
-
-Do you plan on finalizing this, or should I take over?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
+
+> ---
+>  drivers/media/usb/gspca/stk1135.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/gspca/stk1135.c b/drivers/media/usb/gspca/stk1135.c
+> index 8add2f7..1fc80af 100644
+> --- a/drivers/media/usb/gspca/stk1135.c
+> +++ b/drivers/media/usb/gspca/stk1135.c
+> @@ -612,7 +612,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+>  	return 0;
+>  }
+>  
+> -void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
+> +static void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
+>  {
+>  	fmt->fmt.pix.width = clamp(fmt->fmt.pix.width, 32U, 1280U);
+>  	fmt->fmt.pix.height = clamp(fmt->fmt.pix.height, 32U, 1024U);
+> @@ -624,7 +624,7 @@ void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
+>  	fmt->fmt.pix.sizeimage = fmt->fmt.pix.width * fmt->fmt.pix.height;
+>  }
+>  
+> -int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
+> +static int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
+>  			struct v4l2_frmsizeenum *fsize)
+>  {
+>  	if (fsize->index != 0 || fsize->pixel_format != V4L2_PIX_FMT_SBGGR8)
+> 
+
