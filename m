@@ -1,220 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50151 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3IOGWS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Sep 2013 02:22:18 -0400
-Date: Sun, 15 Sep 2013 08:22:14 +0200 (CEST)
-From: remi <remi@remis.cc>
-Reply-To: remi <remi@remis.cc>
-To: Anca Emanuel <anca.emanuel@gmail.com>, linux-media@vger.kernel.org
-Cc: stoth@linuxtv.org, crope@iki.fi
-Message-ID: <1883022208.120091.1379226134224.open-xchange@email.1and1.fr>
-In-Reply-To: <1379082492-3749-1-git-send-email-anca.emanuel@gmail.com>
-References: <1379082492-3749-1-git-send-email-anca.emanuel@gmail.com>
-Subject: Re: [PATCH] [media] cx23885: Add Leadtek Winfast PxPVR2200 & see
- avermadia 306 patch
+Received: from mga02.intel.com ([134.134.136.20]:36258 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751399Ab3I3IMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 04:12:30 -0400
+Date: Mon, 30 Sep 2013 16:12:24 +0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: kbuild-all@01.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: mcam-core.c:undefined reference to `vb2_dma_sg_memops'
+Message-ID: <20130930081224.GA27870@localhost>
+References: <5248d26d.XCpLjin/D8FfRGFk%fengguang.wu@intel.com>
+ <20130930030518.GA3024@localhost>
+ <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWj2BBQ88Wrx_sNNELVG5LiupsaG+RxWpidC2HC-=Y8MA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Mon, Sep 30, 2013 at 09:09:13AM +0200, Geert Uytterhoeven wrote:
+> Hi Fengguang,
+> 
+> On Mon, Sep 30, 2013 at 5:05 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
+> > FYI, kernel build failed on
+> >
+> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> > head:   15c03dd4859ab16f9212238f29dd315654aa94f6
+> > commit: 866f321339988293a5bb3ec6634c2c9d8396bf54 Revert "staging/solo6x10: depend on CONFIG_FONTS"
+> > date:   3 months ago
+> > config: x86_64-randconfig-c5-0930 (attached as .config)
+> >
+> > All error/warnings:
+> >
+> >    drivers/built-in.o: In function `mcam_v4l_open':
+> >>> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
+> 
+> The referenced commit above is completely unrelated to this failure, as
+> both CONFIG_SOLO6X10=m and CONFIG_VIDEOBUF2_DMA_SG=m,
+> while this is about a missing symbol in builtin code.
 
+You are probably right.. However I tried manually reproduce this error
+and find that 866f3213 is the first bad commit (for whatever reason),
+so I decided to email the report out.
 
-I dont know if my emails are beeing flagged as spam, but device number Fourty
-has been reserved by me
+> However, there's something wrong with the VIDEO_CAFE_CCIC dependencies.
+> Untested gmail-white-space-damaged patch below (so your trick of emailing random
+> people to obtain a solution worked ;-)
 
-You can see in my emails adding the avermedia 306 ...
+Yeah, indeed! :)
 
+Thanks,
+Fengguang
 
-If you dont see it PLEASE tell me, in that case , i'd ll love to know what is
-happening !!!
-
-OR, am I doing it the wrong way ? if so, NOONE advised me !! no one even
-AKNOLEGED it .
-
-
-If You are having some kind of reactions, please Advise me, and tell me what you
-did, Or who you
-are that made it happend .
-
-
-I am a linux user since the last century adapting drivers and kernels ...without
-so no pretentions i didnt
-
-send anypatches anywere ... but spending hours or even days getting a Product
-that is beeing sold and baught by
-
-users kinda getting harder and harder, and for once I said : gee what if it was
-a new comer to Linux, he'll run away
-
-his hardware is not supported, and guess what, that what makes Linux or anyother
-OS , get actually run and installed
-
-on a machine, and hence, make YOU v4l team use an OS that actually other pepeol
-use too ! isnt the goal ?
-
-if not, dont give public access to this list, you (linux-media) make me think
-it's a forgery of some commecial linux
-
-corporation, LoL just joking ... but see, I we "give" you a "supported" new
-product ... and you seem ... like you dont care :p
-
-
-
-
-
-
-Best regards
-
-
-
-> Le 13 septembre 2013 à 16:28, Anca Emanuel <anca.emanuel@gmail.com> a écrit :
->
->
-> Tested:
-> Composite: http://imgur.com/Rb1TCF3
-> TV: http://imgur.com/KNrfsmv
-> Firmware used: xc3028-v27.fw
->
-> Not tested: audio, component, s-video, mpeg2 encoder, FM radio.
-> For audio it uses an CD style cable to connect to the analog "CD_IN" on the
-> motherboard.
-> I didn't found how to unmute it (alsamixer do not show an CD or AUX channel).
->
-> Signed-off-by: Anca Emanuel <anca.emanuel@gmail.com>
+> >From 8a53ff3c33cfaa8641c9ba3e16bc5b0a35c74842 Mon Sep 17 00:00:00 2001
+> From: Geert Uytterhoeven <geert@linux-m68k.org>
+> Date: Mon, 30 Sep 2013 09:03:20 +0200
+> Subject: [PATCH] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
+> 
+> If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
+> 
+> drivers/built-in.o: In function `mcam_v4l_open':
+> >> mcam-core.c:(.text+0x3bf73a): undefined reference to `vb2_dma_sg_memops'
+> 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 > ---
->  drivers/media/pci/cx23885/cx23885-cards.c | 41
->+++++++++++++++++++++++++++++++
->  drivers/media/pci/cx23885/cx23885-video.c |  3 ++-
->  drivers/media/pci/cx23885/cx23885.h       |  1 +
->  3 files changed, 44 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c
-> b/drivers/media/pci/cx23885/cx23885-cards.c
-> index 6a71a96..4bbb126 100644
-> --- a/drivers/media/pci/cx23885/cx23885-cards.c
-> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
-> @@ -223,6 +223,39 @@ struct cx23885_board cx23885_boards[] = {
->            .name           = "Leadtek Winfast PxDVR3200 H",
->            .portc          = CX23885_MPEG_DVB,
->    },
-> +  [CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200] = {
-> +          .name           = "Leadtek Winfast PxPVR2200",
-> +          .porta          = CX23885_ANALOG_VIDEO,
-> +          .tuner_type     = TUNER_XC2028,
-> +          .tuner_addr     = 0x61,
-> +          .tuner_bus      = 1,
-> +          .input          = {{
-> +                  .type   = CX23885_VMUX_TELEVISION,
-> +                  .vmux   = CX25840_VIN2_CH1 |
-> +                            CX25840_VIN5_CH2,
-> +                  .amux   = CX25840_AUDIO8,
-> +                  .gpio0  = 0x704040,
-> +          }, {
-> +                  .type   = CX23885_VMUX_COMPOSITE1,
-> +                  .vmux   = CX25840_COMPOSITE1,
-> +                  .amux   = CX25840_AUDIO7,
-> +                  .gpio0  = 0x704040,
-> +          }, {
-> +                  .type   = CX23885_VMUX_SVIDEO,
-> +                  .vmux   = CX25840_SVIDEO_LUMA3 |
-> +                            CX25840_SVIDEO_CHROMA4,
-> +                  .amux   = CX25840_AUDIO7,
-> +                  .gpio0  = 0x704040,
-> +          }, {
-> +                  .type   = CX23885_VMUX_COMPONENT,
-> +                  .vmux   = CX25840_VIN7_CH1 |
-> +                            CX25840_VIN6_CH2 |
-> +                            CX25840_VIN8_CH3 |
-> +                            CX25840_COMPONENT_ON,
-> +                  .amux   = CX25840_AUDIO7,
-> +                  .gpio0  = 0x704040,
-> +          } },
-> +  },
->    [CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000] = {
->            .name           = "Leadtek Winfast PxDVR3200 H XC4000",
->            .porta          = CX23885_ANALOG_VIDEO,
-> @@ -688,6 +721,10 @@ struct cx23885_subid cx23885_subids[] = {
->            .card      = CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H,
->    }, {
->            .subvendor = 0x107d,
-> +          .subdevice = 0x6f21,
-> +          .card      = CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200,
-> +  }, {
-> +          .subvendor = 0x107d,
->            .subdevice = 0x6f39,
->            .card      = CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000,
->    }, {
-> @@ -1043,6 +1080,7 @@ int cx23885_tuner_callback(void *priv, int component,
-> int command, int arg)
->    case CX23885_BOARD_HAUPPAUGE_HVR1500:
->    case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-> +  case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
-> @@ -1208,6 +1246,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
->            cx_set(GP0_IO, 0x000f000f);
->            break;
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-> +  case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
-> @@ -1704,6 +1743,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->    case CX23885_BOARD_HAUPPAUGE_HVR1700:
->    case CX23885_BOARD_HAUPPAUGE_HVR1400:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-> +  case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
->    case CX23885_BOARD_HAUPPAUGE_HVR1270:
-> @@ -1733,6 +1773,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->    case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
->    case CX23885_BOARD_HAUPPAUGE_HVR1700:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-> +  case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
->    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
->    case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
->    case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
-> diff --git a/drivers/media/pci/cx23885/cx23885-video.c
-> b/drivers/media/pci/cx23885/cx23885-video.c
-> index 1616868..7891f34 100644
-> --- a/drivers/media/pci/cx23885/cx23885-video.c
-> +++ b/drivers/media/pci/cx23885/cx23885-video.c
-> @@ -1865,7 +1865,8 @@ int cx23885_video_register(struct cx23885_dev *dev)
-> 
->                    v4l2_subdev_call(sd, tuner, s_type_addr, &tun_setup);
-> 
-> -                  if (dev->board == CX23885_BOARD_LEADTEK_WINFAST_PXTV1200) {
-> +                  if ((dev->board == CX23885_BOARD_LEADTEK_WINFAST_PXTV1200)
-> ||
-> +                      (dev->board ==
-> CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200)) {
->                            struct xc2028_ctrl ctrl = {
->                                    .fname = XC2028_DEFAULT_FIRMWARE,
->                                    .max_len = 64
-> diff --git a/drivers/media/pci/cx23885/cx23885.h
-> b/drivers/media/pci/cx23885/cx23885.h
-> index 038caf5..b0b47a6 100644
-> --- a/drivers/media/pci/cx23885/cx23885.h
-> +++ b/drivers/media/pci/cx23885/cx23885.h
-> @@ -93,6 +93,7 @@
->  #define CX23885_BOARD_PROF_8000                37
->  #define CX23885_BOARD_HAUPPAUGE_HVR4400        38
->  #define CX23885_BOARD_AVERMEDIA_HC81R          39
-> +#define CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200 40
-> 
->  #define GPIO_0 0x00000001
->  #define GPIO_1 0x00000002
+>  drivers/media/platform/marvell-ccic/Kconfig |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/Kconfig
+> b/drivers/media/platform/marvell-ccic/Kconfig
+> index bf739e3..ec4c771 100644
+> --- a/drivers/media/platform/marvell-ccic/Kconfig
+> +++ b/drivers/media/platform/marvell-ccic/Kconfig
+> @@ -4,6 +4,7 @@ config VIDEO_CAFE_CCIC
+>   select VIDEO_OV7670
+>   select VIDEOBUF2_VMALLOC
+>   select VIDEOBUF2_DMA_CONTIG
+> + select VIDEOBUF2_DMA_SG
+>   ---help---
+>    This is a video4linux2 driver for the Marvell 88ALP01 integrated
+>    CMOS camera controller.  This is the controller found on first-
+> -- 
+> 1.7.9.5
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
 > --
-> 1.8.3.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
