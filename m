@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:52124 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052Ab3IGHQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Sep 2013 03:16:12 -0400
-Received: by mail-wi0-f171.google.com with SMTP id hm2so1702041wib.10
-        for <linux-media@vger.kernel.org>; Sat, 07 Sep 2013 00:16:11 -0700 (PDT)
+Received: from mail.fpasia.hk ([202.130.89.98]:44456 "EHLO fpa01n0.fpasia.hk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753128Ab3I3JHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Sep 2013 05:07:18 -0400
+Message-ID: <52493F77.2020602@gtsys.com.hk>
+Date: Mon, 30 Sep 2013 17:08:07 +0800
+From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
 MIME-Version: 1.0
-In-Reply-To: <A1C27CCF8AE7654C92DB070B5400692B0A465E@PELCOEMAIL.pelco.org>
-References: <52299218.2060002@ti.com> <A1C27CCF8AE7654C92DB070B5400692B0A465E@PELCOEMAIL.pelco.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 7 Sep 2013 12:45:51 +0530
-Message-ID: <CA+V-a8szA-YGNH6OWhVETYaoao22A_MmU6bsLEw=pG7GsUQa4A@mail.gmail.com>
-Subject: Re: DM365 VPFE Staging Driver
-To: "Neff, Bryan" <Bryan.Neff@schneider-electric.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: iram pool not available for MX27
+References: <52490EEB.1090806@gtsys.com.hk> <1380529823.3959.1.camel@pizza.hi.pengutronix.de>
+In-Reply-To: <1380529823.3959.1.camel@pizza.hi.pengutronix.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+Hi Philipp,
 
-Thank you for showing interest in using this driver.
-
-Hopefully I'll get this driver out from staging directory to its actual place.
-
-On Fri, Sep 6, 2013 at 9:37 PM, Neff, Bryan
-<Bryan.Neff@schneider-electric.com> wrote:
-> Hello Prabhakar,
+On Monday, September 30, 2013 04:30 PM, Philipp Zabel wrote:
+> Hi Chris,
 >
-[Snip]
+> Am Montag, den 30.09.2013, 13:40 +0800 schrieb Chris Ruehl:
+>> Hi Phillipp,
 >>
->> If you have a few spare minutes, could you explain what I need to do?
->> I've followed the TODO doc and copied the .h files to their respective
->> locations, but I'm unsure about how to modify the Kbuild:
+>> hope things doing OK.
 >>
->> 30 - copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
->> 31   include/media/davinci/ folder for building the uImage.
->> 32 - copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
->> 33   include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild
->> (required
->> 34   for building application).
->> 35 - copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
->> 36   include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
->> 37   for building application).
+>> I recently update to the 3.12-rc kernel and hit this problem below.
 >>
+>> [ 3.377790] coda coda-imx27.0: iram pool not available
+>> [ 3.383363] coda: probe of coda-imx27.0 failed with error -12
 >>
->> After I add this, do I need to create a device node or anything else to
->> get this to work?
+>> I read your comments of the patch-set using platform data rather then
+>> hard coded addresses to get
+>> the ocram from a SoC.
 >>
+>> I checked the imx27.dtsi for the iram (coda: coda@..) definition and
+>> compare with the former hard coded address and size it matches.
 >>
-The current vanilla kernel contains only the driver and _no_ platform changes
-required for DM365. The patch [1] adds the platform changes required for the
-driver to work , The platform changes patch adds support for tvp514x/tvp7002
-and mt9p031 sensor, the patch[2] you can look at the Kbuild changes required.
+>> My .config also has the CONFIG_OF set.
+>>
+>> Any Idea what's go wrong?
+> do you have the mmio-sram driver enabled (CONFIG_SRAM=y)?
+>
+> regards
+> Philipp
+>
 
-Let me know if you still need any information.
+No, I didn't,  and I found out that my device is not yet ported to use 
+"Device Tree Support"
 
-[1] http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/commitdiff/1fff194a826e97f9562f0a633945220917d24eec
-[2] http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/commitdiff/06c2d1e1fa7acdbc5b887d896a287bb02e584913
+for the moment I will quick add the CONFIG_SRAM  and see what happen,
+but on the long term I move my code (clone of mach-mx27ads.c)
+to DTS which makes absolute sense when I see how nice that code works.
 
-Regards,
---Prabhakar Lad
+Thanks for the reply!
+Chris
+
