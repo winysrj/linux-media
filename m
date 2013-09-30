@@ -1,30 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:33715 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003Ab3IQUtZ (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1939 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754044Ab3I3MT6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Sep 2013 16:49:25 -0400
-Received: by mail-ob0-f178.google.com with SMTP id uy5so6427070obc.9
-        for <linux-media@vger.kernel.org>; Tue, 17 Sep 2013 13:49:24 -0700 (PDT)
+	Mon, 30 Sep 2013 08:19:58 -0400
+Message-ID: <52496C64.8090606@xs4all.nl>
+Date: Mon, 30 Sep 2013 14:19:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Wed, 18 Sep 2013 02:19:24 +0530
-Message-ID: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-Subject: ivtv 1.4.2/1.4.3 broken in recent kernels?
-From: Rajil Saraswat <rajil.s@gmail.com>
-To: linux-media@vger.kernel.org
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+CC: linux-media@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] saa7134: Fix crash when device is closed before streamoff
+References: <1379697328-9990-1-git-send-email-simon.farnsworth@onelan.co.uk>
+In-Reply-To: <1379697328-9990-1-git-send-email-simon.farnsworth@onelan.co.uk>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 09/20/2013 07:15 PM, Simon Farnsworth wrote:
+> pm_qos_remove_request was not called on video_release, resulting in the PM
+> core's list of requests being corrupted when the file handle was freed.
+> 
+> This has no immediate symptoms, but later in operation, the kernel will
+> panic as the PM core dereferences a dangling pointer.
+> 
+> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+> Cc: stable@vger.kernel.org
 
- I have a couple of PVR-500's which have additional tuners connected
-to them (using daughter cards). The audio is not usable on either
-1.4.2 or 1.4.3 ivtv drivers. The issue is described at
-http://ivtvdriver.org/pipermail/ivtv-users/2013-September/010462.html
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Is there anything i can do to make kernel 3.10.7 (ivtv 1.4.3) play
-nice with my card?
+Regards,
 
+	Hans
 
-Thanks
+> ---
+> 
+> I didn't notice this when I first implemented the pm_qos_request as the
+> userspace I was using always called streamoff before closing the
+> device. I've since changed userspace components, and hit the kernel panic.
+> 
+>  drivers/media/pci/saa7134/saa7134-video.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index e12bbd8..fb60da8 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -1455,6 +1455,7 @@ static int video_release(struct file *file)
+>  
+>  	/* stop video capture */
+>  	if (res_check(fh, RESOURCE_VIDEO)) {
+> +		pm_qos_remove_request(&dev->qos_request);
+>  		videobuf_streamoff(&fh->cap);
+>  		res_free(dev,fh,RESOURCE_VIDEO);
+>  	}
+> 
+
