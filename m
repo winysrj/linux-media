@@ -1,55 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from LGEMRELSE7Q.lge.com ([156.147.1.151]:49285 "EHLO
-	LGEMRELSE7Q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819Ab3I0E6E (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1429 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752181Ab3I3Hvy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Sep 2013 00:58:04 -0400
-From: Chanho Min <chanho.min@lge.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: HyoJun Im <hyojun.im@lge.com>, Chanho Min <chanho.min@lge.com>
-Subject: [PATCH] [media] uvcvideo: fix data type for pan/tilt control
-Date: Fri, 27 Sep 2013 13:57:40 +0900
-Message-Id: <1380257860-14075-1-git-send-email-chanho.min@lge.com>
+	Mon, 30 Sep 2013 03:51:54 -0400
+Message-ID: <52492D91.1030806@xs4all.nl>
+Date: Mon, 30 Sep 2013 09:51:45 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: =?UTF-8?B?S3J6eXN6dG9mIEhhxYJhc2E=?= <khalasa@piap.pl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	ismael.luceno@corp.bluecherry.net
+Subject: Re: [PATCH] SOLO6x10: don't do DMA from stack in solo_dma_vin_region().
+References: <m37gemb51b.fsf@t19.piap.pl>
+In-Reply-To: <m37gemb51b.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pan/tilt absolute control value is signed value. If minimum value
-is minus, It will be changed to plus by clamp_t() as commit 64ae9958a62.
-([media] uvcvideo: Fix control value clamping for unsigned integer controls).
+Ismael,
 
-It leads to wrong setting of the control values. For example,
-when min and max are -36000 and 36000, the setting value between of this range
-is always 36000. So, Its data type should be changed to signed.
+Can you Ack these four patches?
 
-Signed-off-by: Chanho Min <chanho.min@lge.com>
----
- drivers/media/usb/uvc/uvc_ctrl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index a2f4501..0eb82106 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -664,7 +664,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.size		= 32,
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
--		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
- 	},
- 	{
- 		.id		= V4L2_CID_TILT_ABSOLUTE,
-@@ -674,7 +674,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.size		= 32,
- 		.offset		= 32,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
--		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
- 	},
- 	{
- 		.id		= V4L2_CID_PRIVACY,
--- 
-1.7.9.5
+	Hans
+
+On 09/12/2013 02:25 PM, Krzysztof Hałasa wrote:
+> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+> 
+> diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
+> index 32d9953..884512e 100644
+> --- a/drivers/staging/media/solo6x10/solo6x10-disp.c
+> +++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
+> @@ -176,18 +176,26 @@ static void solo_vout_config(struct solo_dev *solo_dev)
+>  static int solo_dma_vin_region(struct solo_dev *solo_dev, u32 off,
+>  			       u16 val, int reg_size)
+>  {
+> -	u16 buf[64];
+> -	int i;
+> -	int ret = 0;
+> +	u16 *buf;
+> +	const int n = 64, size = n * sizeof(*buf);
+> +	int i, ret = 0;
+> +
+> +	if (!(buf = kmalloc(size, GFP_KERNEL)))
+> +		return -ENOMEM;
+>  
+> -	for (i = 0; i < sizeof(buf) >> 1; i++)
+> +	for (i = 0; i < n; i++)
+>  		buf[i] = cpu_to_le16(val);
+>  
+> -	for (i = 0; i < reg_size; i += sizeof(buf))
+> -		ret |= solo_p2m_dma(solo_dev, 1, buf,
+> -				    SOLO_MOTION_EXT_ADDR(solo_dev) + off + i,
+> -				    sizeof(buf), 0, 0);
+> +	for (i = 0; i < reg_size; i += size) {
+> +		ret = solo_p2m_dma(solo_dev, 1, buf,
+> +				   SOLO_MOTION_EXT_ADDR(solo_dev) + off + i,
+> +				   size, 0, 0);
+> +
+> +		if (ret)
+> +			break;
+> +	}
+>  
+> +	kfree(buf);
+>  	return ret;
+>  }
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
