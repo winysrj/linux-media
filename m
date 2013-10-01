@@ -1,155 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52822 "EHLO arroyo.ext.ti.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:34510 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760949Ab3JPQ2w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 12:28:52 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>
-CC: <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
-	<kishon@ti.com>
-Subject: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
-Date: Wed, 16 Oct 2013 21:58:12 +0530
-Message-ID: <1381940896-9355-4-git-send-email-kishon@ti.com>
-In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
-References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+	id S1750966Ab3JAFe2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Oct 2013 01:34:28 -0400
+Message-ID: <524A5EDF.8070904@gentoo.org>
+Date: Tue, 01 Oct 2013 07:34:23 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, Ulf <mopp@gmx.net>
+Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi>
+In-Reply-To: <52444AA3.8020205@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+On 26.09.2013 16:54, Antti Palosaari wrote:
+> On 25.09.2013 07:50, Matthias Schwarzott wrote:
+>> On 17.08.2013 13:30, Ulf wrote:
+>>> Hi,
+>>>
+>>> I know the topic Hauppauge HVR-900 HD and HVR 930C-HD with si2165
+>>> demodulator was already discussed
+>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/40982 
+>>>
+>>> and
+>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266. 
+>>>
+>>>
+>>> Just for me as a confirmation nobody plans to work on a driver for
+>>> si2165.
+>>> Is there any chance how to push the development?
+>>>
+>>> Ulf
+>> Hi!
+>>
+>> I also bought one of these to find out it is not supported.
+>> But my plan is to try to write a driver for this.
+>> I want to get DVB-C working, but I also have DVB-T and analog reception
+>> available.
+>>
+>> My current status is I got it working in windows in qemu and did a usb
+>> snoop.
+>> I also have a second system to test it in windows vista directly on the
+>> hardware.
+>>
+>> Current status is documented here.
+>> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C-HD
+>>
+>> Until now I only have a component list summarized from this list.
+>>
+>>   * Conexant <http://www.linuxtv.org/wiki/index.php/Conexant> CX231xx
+>> <http://www.linuxtv.org/wiki/index.php/Conexant_CX2310x>
+>>   * Silicon Labs
+>>
+>> <http://www.linuxtv.org/wiki/index.php?title=Silicon_Labs&action=edit&redlink=1> 
+>>
+>>
+>>     si2165 <http://www.linuxtv.org/wiki/index.php/Silicon_Labs_si2165>
+>>     (Multi-Standard DVB-T and DVB-C Demodulator)
+>>   * NXP TDA18271
+>> <http://www.linuxtv.org/wiki/index.php/NXP/Philips_TDA182xx>
+>>     (silicon tuner IC, most likely i2c-addr: 0x60)
+>>   * eeprom (windows driver reads 1kb, i2c-addr: 0x50)
+>>
+>>
+>> Is this correct?
+>> Did anyone open his device and can show pictures?
+>>
+>> I now need to know which component is at which i2c address.
+>> Windows driver does upload file hcw10mlD.rom of 16kb to device 0x44.
+>
+> I have opened it. There was similar sandwich PCB than used by rev1 
+> too. So you cannot see all the chip unless you use metal saw to 
+> separate PCBs.
+>
+> PCB side A:
+> TDA18271HDC2
+> 16.000 MHz
+>
+> Si2165-GM
+> 16.000 MHz
+>
+>
+> PCB side B:
+> 24C02H
+>
+> regards
+> Antti
+>
+Hi Antti,
 
-Use the generic PHY API instead of the platform callback
-for the MIPI DSIM DPHY enable/reset control.
+thanks for that information.
+The only real new information for me is the 16.000MHz xtal value.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Donghwa Lee <dh09.lee@samsung.com>
-Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/video/exynos/Kconfig           |    1 +
- drivers/video/exynos/exynos_mipi_dsi.c |   19 ++++++++++---------
- include/video/exynos_mipi_dsim.h       |    5 ++---
- 3 files changed, 13 insertions(+), 12 deletions(-)
+Sad to know that the other chips are hidden.
+I assigned more i2c addresses to functions, but not yet all (no idea if 
+more addresses are real, or bad interpretations of snooped data).
 
-diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
-index 1b035b2..976594d 100644
---- a/drivers/video/exynos/Kconfig
-+++ b/drivers/video/exynos/Kconfig
-@@ -16,6 +16,7 @@ if EXYNOS_VIDEO
- config EXYNOS_MIPI_DSI
- 	bool "EXYNOS MIPI DSI driver support."
- 	depends on ARCH_S5PV210 || ARCH_EXYNOS
-+	select GENERIC_PHY
- 	help
- 	  This enables support for MIPI-DSI device.
- 
-diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
-index 32e5406..00b3a52 100644
---- a/drivers/video/exynos/exynos_mipi_dsi.c
-+++ b/drivers/video/exynos/exynos_mipi_dsi.c
-@@ -30,6 +30,7 @@
- #include <linux/interrupt.h>
- #include <linux/kthread.h>
- #include <linux/notifier.h>
-+#include <linux/phy/phy.h>
- #include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
- #include <linux/err.h>
-@@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
- 		exynos_mipi_regulator_enable(dsim);
- 
- 		/* enable MIPI-DSI PHY. */
--		if (dsim->pd->phy_enable)
--			dsim->pd->phy_enable(pdev, true);
-+		phy_power_on(dsim->phy);
- 
- 		clk_enable(dsim->clock);
- 
-@@ -373,6 +373,10 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	dsim->phy = devm_phy_get(&pdev->dev, "dsim");
-+	if (IS_ERR(dsim->phy))
-+		return PTR_ERR(dsim->phy);
-+
- 	dsim->clock = devm_clk_get(&pdev->dev, "dsim0");
- 	if (IS_ERR(dsim->clock)) {
- 		dev_err(&pdev->dev, "failed to get dsim clock source\n");
-@@ -439,8 +443,7 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
- 	exynos_mipi_regulator_enable(dsim);
- 
- 	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, true);
-+	phy_power_on(dsim->phy);
- 
- 	exynos_mipi_update_cfg(dsim);
- 
-@@ -504,9 +507,8 @@ static int exynos_mipi_dsi_suspend(struct device *dev)
- 	if (client_drv && client_drv->suspend)
- 		client_drv->suspend(client_dev);
- 
--	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, false);
-+	/* disable MIPI-DSI PHY. */
-+	phy_power_off(dsim->phy);
- 
- 	clk_disable(dsim->clock);
- 
-@@ -536,8 +538,7 @@ static int exynos_mipi_dsi_resume(struct device *dev)
- 	exynos_mipi_regulator_enable(dsim);
- 
- 	/* enable MIPI-DSI PHY. */
--	if (dsim->pd->phy_enable)
--		dsim->pd->phy_enable(pdev, true);
-+	phy_power_on(dsim->phy);
- 
- 	clk_enable(dsim->clock);
- 
-diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
-index 89dc88a..6a578f8 100644
---- a/include/video/exynos_mipi_dsim.h
-+++ b/include/video/exynos_mipi_dsim.h
-@@ -216,6 +216,7 @@ struct mipi_dsim_config {
-  *	automatically.
-  * @e_clk_src: select byte clock source.
-  * @pd: pointer to MIPI-DSI driver platform data.
-+ * @phy: pointer to the MIPI-DSI PHY
-  */
- struct mipi_dsim_device {
- 	struct device			*dev;
-@@ -236,6 +237,7 @@ struct mipi_dsim_device {
- 	bool				suspended;
- 
- 	struct mipi_dsim_platform_data	*pd;
-+	struct phy			*phy;
- };
- 
- /*
-@@ -248,7 +250,6 @@ struct mipi_dsim_device {
-  * @enabled: indicate whether mipi controller got enabled or not.
-  * @lcd_panel_info: pointer for lcd panel specific structure.
-  *	this structure specifies width, height, timing and polarity and so on.
-- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
-  */
- struct mipi_dsim_platform_data {
- 	char				lcd_panel_name[PANEL_NAME_SIZE];
-@@ -256,8 +257,6 @@ struct mipi_dsim_platform_data {
- 	struct mipi_dsim_config		*dsim_config;
- 	unsigned int			enabled;
- 	void				*lcd_panel_info;
--
--	int (*phy_enable)(struct platform_device *pdev, bool on);
- };
- 
- /*
--- 
-1.7.10.4
+I now try to check what already works:
+- This is video via composite input.
+- Next is to try video via analog input - see I see if the tuner in 
+general works in this device.
+
+In parallel I try to capture usb in different setups.
+1. kvm+tcpdump (using usbmon)
+2. usbsnoop on windows vista
+
+Only setup 1 does provide a real list of usb packets.
+
+Regards
+Matthias
 
