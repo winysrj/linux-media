@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:60639 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086Ab3J3Ann (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 20:43:43 -0400
-Message-ID: <5270563A.5080605@gmail.com>
-Date: Wed, 30 Oct 2013 01:43:38 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-qe0-f50.google.com ([209.85.128.50]:47549 "EHLO
+	mail-qe0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab3JAJNg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 05:13:36 -0400
+Received: by mail-qe0-f50.google.com with SMTP id a11so4703539qen.37
+        for <linux-media@vger.kernel.org>; Tue, 01 Oct 2013 02:13:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Donghwa Lee <dh09.lee@samsung.com>
-CC: Tomasz Figa <t.figa@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Olof Johansson <olof@lixom.net>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	inki.dae@samsung.com
-Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
-References: <1381940896-9355-1-git-send-email-kishon@ti.com> <526997BC.8070602@gmail.com> <526E0038.7050805@samsung.com> <23467785.uRr31aFEN8@amdc1227> <526F7412.60004@samsung.com>
-In-Reply-To: <526F7412.60004@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 1 Oct 2013 11:13:35 +0200
+Message-ID: <CAL9G6WWT-a-kGM3MruRyTUa9rrsq86c3tiq9LMKGuwTb8oifJw@mail.gmail.com>
+Subject: af9013 i2c errors
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/29/2013 09:38 AM, Donghwa Lee wrote:
-> On Tue, OCT 28, 2013 21:24, Tomasz Figa wrote:
->> On Monday 28 of October 2013 15:12:08 Donghwa Lee wrote:
-[...]
->> First of all, the exynos_mipi_dsim driver has currently no users in
->> mainline kernel, so it is essentially dead code. In addition, on
->> a platform that is the primary candidate for using it, which is Exynos,
->> there is no way to use it, due to no DT support.
->
-> As I mentioned above, patches are submitted sometimes and I will update
-> this driver as soon as possible to support DT.
->
->> As for the driver itself, it is not really a great example of good code.
->> It contains a hacks, like calling msleep() without any clear reason and
->> also many coding style issues. I'd prefer to replace it with the new
->> exynos-dsi driver rewritten completely in SRPOL, when CDF is finished.
->
-> Yes, I know this drivers had been changed about only minor issues and
-> it is not really good code style. And CDF is more good and light.
-> But discussion for CDF is still remaining a kind of requests. If it is merged
-> into linux kernel and many users use it, existing MIPI DSI drivers will be
-> replaced with the new drivers naturally, isn't it?
+Hello, I don't know if this is a bug, but I have problems with my
+device: http://www.linuxtv.org/wiki/index.php/KWorld_USB_Dual_DVB-T_TV_Stick_(DVB-T_399U)
 
-Not necessarily. Our goal should be to have fairly stable DT binding at the
-SoC side so all available panels can possibly be used with any SoC without
-problems.
+I am using it in a Debian Wheezy machine: Linux server 3.2.0-4-amd64
+#1 SMP Debian 3.2.46-1+deb7u1 x86_64 GNU/Linux
 
-Then please refrain for a while from pushing entirely vendor specific DT
-bindings upstream. Let's focus instead on an as much as possible common
-framework and the DT bindings. Whether the CDF will be part of DRM or not
-the DT bindings are supposed to be generic, so they work with whatever
-driver architecture.
+With this firmware:
+http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/dvb-usb-af9015.fw
 
-I guess you could try to come up with an unstable DT binding for the
-MIPI DSIM and display panels it is used with, but at this stage it seems
-just a waste of time.
-If there were no SoC specific panel drivers in the kernel there would be
-now much less trouble with DT support.
+The problem is that I have glitches when watching channels.
 
---
-Thanks,
-Sylwester
+This is the kernel logs:
+
+# tail /var/log/messages
+Oct  1 11:01:35 server kernel: [149863.986812] af9013: I2C read failed reg:d07d
+Oct  1 11:01:41 server kernel: [149870.513600] af9013: I2C read failed reg:d2e6
+Oct  1 11:02:03 server kernel: [149891.697286] af9013: I2C read failed reg:d2e6
+Oct  1 11:02:17 server kernel: [149906.348441] af9013: I2C read failed reg:d333
+Oct  1 11:02:24 server kernel: [149912.894103] af9013: I2C read failed reg:d507
+Oct  1 11:02:36 server kernel: [149925.169533] af9013: I2C read failed reg:d2e6
+Oct  1 11:03:15 server kernel: [149964.404593] af9013: I2C read failed reg:d2e5
+Oct  1 11:03:22 server kernel: [149970.917832] af9013: I2C read failed reg:d507
+Oct  1 11:04:13 server kernel: [150022.431228] af9013: I2C read failed reg:d07c
+Oct  1 11:04:20 server kernel: [150028.955682] af9013: I2C read failed reg:d2e5
+
+Is this really a bug?
+
+Thanks.
+
+-- 
+Josu Lazkano
