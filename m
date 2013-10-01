@@ -1,60 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:56093 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754368Ab3JGVEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 17:04:33 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH v2] [media] dvb_demux: fix deadlock in dmx_section_feed_release_filter()
-Date: Tue,  8 Oct 2013 01:04:21 +0400
-Message-Id: <1381179861-16408-1-git-send-email-khoroshilov@ispras.ru>
-In-Reply-To: <20130926140808.729bad49@samsung.com>
-References: <20130926140808.729bad49@samsung.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2442 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513Ab3JAGj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 02:39:59 -0400
+Message-ID: <524A6E2B.6040605@xs4all.nl>
+Date: Tue, 01 Oct 2013 08:39:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+Subject: Re: [PATCH 1/9] [media] pci: flexcop: Remove redundant pci_set_drvdata
+References: <1379666181-19546-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1379666181-19546-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dmx_section_feed_release_filter() locks dvbdmx->mutex and
-if the feed is still filtering, it calls feed->stop_filtering(feed).
-stop_filtering() is implemented by dmx_section_feed_stop_filtering()
-that first of all try to lock the same mutex: dvbdmx->mutex.
-That leads to a deadlock.
+On 09/20/2013 10:36 AM, Sachin Kamat wrote:
+> Driver core sets driver data to NULL upon failure or remove.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> Cc: Patrick Boettcher <patrick.boettcher@desy.de>
 
-It does not happen often in practice because all callers of
-release_filter() stop filtering by themselves.
-So the problem can happen in case of race condition only.
+For this patch series:
 
-The patch releases dvbdmx->mutex before call to feed->stop_filtering(feed)
-and reacquires the mutex after that.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Found by Linux Driver Verification project (linuxtesting.org).
+Regards,
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/dvb-core/dvb_demux.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+	Hans
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 3485655..6de3bd0 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -1027,8 +1027,13 @@ static int dmx_section_feed_release_filter(struct dmx_section_feed *feed,
- 		return -EINVAL;
- 	}
- 
--	if (feed->is_filtering)
-+	if (feed->is_filtering) {
-+		/* release dvbdmx->mutex as far as 
-+		   it is acquired by stop_filtering() itself */
-+		mutex_unlock(&dvbdmx->mutex);
- 		feed->stop_filtering(feed);
-+		mutex_lock(&dvbdmx->mutex);
-+	}
- 
- 	spin_lock_irq(&dvbdmx->lock);
- 	f = dvbdmxfeed->filter;
--- 
-1.8.1.2
+> ---
+>  drivers/media/pci/b2c2/flexcop-pci.c |    2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
+> index 447afbd..8b5e0b3 100644
+> --- a/drivers/media/pci/b2c2/flexcop-pci.c
+> +++ b/drivers/media/pci/b2c2/flexcop-pci.c
+> @@ -319,7 +319,6 @@ static int flexcop_pci_init(struct flexcop_pci *fc_pci)
+>  
+>  err_pci_iounmap:
+>  	pci_iounmap(fc_pci->pdev, fc_pci->io_mem);
+> -	pci_set_drvdata(fc_pci->pdev, NULL);
+>  err_pci_release_regions:
+>  	pci_release_regions(fc_pci->pdev);
+>  err_pci_disable_device:
+> @@ -332,7 +331,6 @@ static void flexcop_pci_exit(struct flexcop_pci *fc_pci)
+>  	if (fc_pci->init_state & FC_PCI_INIT) {
+>  		free_irq(fc_pci->pdev->irq, fc_pci);
+>  		pci_iounmap(fc_pci->pdev, fc_pci->io_mem);
+> -		pci_set_drvdata(fc_pci->pdev, NULL);
+>  		pci_release_regions(fc_pci->pdev);
+>  		pci_disable_device(fc_pci->pdev);
+>  	}
+> 
 
