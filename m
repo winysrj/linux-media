@@ -1,42 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:38411 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754515Ab3JDQEv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 12:04:51 -0400
-Received: by mail-qc0-f174.google.com with SMTP id n9so2942255qcw.33
-        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 09:04:49 -0700 (PDT)
-Date: Fri, 4 Oct 2013 12:04:46 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL BUG FIX] cx24117: prevent mutex to be stuck on locked
- state if FE init fails
-Message-ID: <20131004120446.3b041f11@raring>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1177 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751477Ab3JAGjn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 02:39:43 -0400
+Message-ID: <524A6E1D.6040700@xs4all.nl>
+Date: Tue, 01 Oct 2013 08:39:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCH 1/3] [media] pci: cx88-alsa: Use module_pci_driver
+References: <1379665927-18497-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1379665927-18497-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71:
+On 09/20/2013 10:32 AM, Sachin Kamat wrote:
+> module_pci_driver removes some boilerplate and makes code simpler.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-  [media] cx24117: use hybrid_tuner_request/release_state to share
-  state between multiple instances (2013-10-03 07:40:12 -0300)
+For this patch series:
 
-are available in the git repository at:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-  git://linuxtv.org/mkrufky/dvb cx24117
+Regards,
 
-for you to fetch changes up to 3f9c6e0698debcdbfc1568e16eb3cc45d320cc56:
+	Hans
 
-  cx24117: prevent mutex to be stuck on locked state if FE init fails
-  (2013-10-04 11:13:47 -0400)
+> ---
+>  drivers/media/pci/cx88/cx88-alsa.c |   25 +------------------------
+>  1 file changed, 1 insertion(+), 24 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+> index 05428bf..11d0692 100644
+> --- a/drivers/media/pci/cx88/cx88-alsa.c
+> +++ b/drivers/media/pci/cx88/cx88-alsa.c
+> @@ -949,27 +949,4 @@ static struct pci_driver cx88_audio_pci_driver = {
+>  	.remove   = cx88_audio_finidev,
+>  };
+>  
+> -/****************************************************************************
+> -				LINUX MODULE INIT
+> - ****************************************************************************/
+> -
+> -/*
+> - * module init
+> - */
+> -static int __init cx88_audio_init(void)
+> -{
+> -	printk(KERN_INFO "cx2388x alsa driver version %s loaded\n",
+> -	       CX88_VERSION);
+> -	return pci_register_driver(&cx88_audio_pci_driver);
+> -}
+> -
+> -/*
+> - * module remove
+> - */
+> -static void __exit cx88_audio_fini(void)
+> -{
+> -	pci_unregister_driver(&cx88_audio_pci_driver);
+> -}
+> -
+> -module_init(cx88_audio_init);
+> -module_exit(cx88_audio_fini);
+> +module_pci_driver(cx88_audio_pci_driver);
+> 
 
-----------------------------------------------------------------
-Luis Alves (1):
-      cx24117: prevent mutex to be stuck on locked state if FE init
-fails
-
- drivers/media/dvb-frontends/cx24117.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
