@@ -1,32 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:59763 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753031Ab3JGLd4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 07:33:56 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	ismael.luceno@corp.bluecherry.net
-Date: Mon, 07 Oct 2013 13:33:55 +0200
+Received: from mail-la0-f54.google.com ([209.85.215.54]:48737 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab3JAFjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 01:39:49 -0400
+Received: by mail-la0-f54.google.com with SMTP id ea20so5308586lab.41
+        for <linux-media@vger.kernel.org>; Mon, 30 Sep 2013 22:39:47 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID: <m3pprh8gd8.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Subject: [PATCH] SOLO6x10: Fix video frame type (I/P/B).
+In-Reply-To: <1379666181-19546-8-git-send-email-sachin.kamat@linaro.org>
+References: <1379666181-19546-1-git-send-email-sachin.kamat@linaro.org>
+	<1379666181-19546-8-git-send-email-sachin.kamat@linaro.org>
+Date: Tue, 1 Oct 2013 11:09:47 +0530
+Message-ID: <CAHFNz9+S8oUk+ixQghD2fehj38RgkgCvVB_g2Qy1qRonpjJPhQ@mail.gmail.com>
+Subject: Re: [PATCH 8/9] [media] pci: bt878: Remove redundant pci_set_drvdata
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	m.chehab@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
-
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 7a2fd98..27e9a0a 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -506,6 +506,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 		return -EIO;
- 
- 	/* If this is a key frame, add extra header */
-+	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME);
- 	if (!vop_type(vh)) {
- 		skip = solo_enc->vop_len;
- 		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
+On Fri, Sep 20, 2013 at 2:06 PM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> Driver core sets driver data to NULL upon failure or remove.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Manu Abraham <manu@linuxtv.org>
+> ---
+>  drivers/media/pci/bt8xx/bt878.c |    1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/pci/bt8xx/bt878.c b/drivers/media/pci/bt8xx/bt878.c
+> index 66eb0ba..2bd2483 100644
+> --- a/drivers/media/pci/bt8xx/bt878.c
+> +++ b/drivers/media/pci/bt8xx/bt878.c
+> @@ -563,7 +563,6 @@ static void bt878_remove(struct pci_dev *pci_dev)
+>         bt->shutdown = 1;
+>         bt878_mem_free(bt);
+>
+> -       pci_set_drvdata(pci_dev, NULL);
+>         pci_disable_device(pci_dev);
+>         return;
+>  }
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
