@@ -1,55 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45103 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40168 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759343Ab3JOPfl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 11:35:41 -0400
+	with ESMTP id S1753759Ab3JBTlH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 15:41:07 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH] v4l: vsp1: Replace ioread32/iowrite32 I/O accessors with readl/writel
-Date: Tue, 15 Oct 2013 17:35:54 +0200
-Message-Id: <1381851354-11925-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Jan Kara <jack@suse.cz>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/26] omap3isp: Make isp_video_buffer_prepare_user() use get_user_pages_fast()
+Date: Wed, 02 Oct 2013 21:41:10 +0200
+Message-ID: <11048370.rLWI050cLv@avalon>
+In-Reply-To: <1380724087-13927-6-git-send-email-jack@suse.cz>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz> <1380724087-13927-6-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ioread32() and iowrite32() I/O accessors are not available on all
-architectures. Replace them with readl() and writel() to avoid
-compilation failures. Although VSP1 devices are only available on
-Renesas ARM platforms, allowing the driver to compile on all
-architectures is useful to catch compilation-time issues.
+Hi Jan,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-This fix is a candidate for v3.12, as building the kernel with allyesconfig
-on architectures without ioread32/iowrite32 support currently fails on
-v3.12-rc5.
+On Wednesday 02 October 2013 16:27:46 Jan Kara wrote:
+> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> CC: linux-media@vger.kernel.org
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-I'll send a pull request to the media tree shortly along with another v3.12
-fix that has previously been posted to the linux-media mailing list.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index d6c6ecd..7dab256 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -63,12 +63,12 @@ void vsp1_device_put(struct vsp1_device *vsp1);
- 
- static inline u32 vsp1_read(struct vsp1_device *vsp1, u32 reg)
- {
--	return ioread32(vsp1->mmio + reg);
-+	return readl(vsp1->mmio + reg);
- }
- 
- static inline void vsp1_write(struct vsp1_device *vsp1, u32 reg, u32 data)
- {
--	iowrite32(data, vsp1->mmio + reg);
-+	writel(data, vsp1->mmio + reg);
- }
- 
- #endif /* __VSP1_H__ */
+Could you briefly explain where you're headed with this ? The V4L2 subsystem 
+has suffered for quite a long time from potentiel AB-BA deadlocks, due the 
+drivers taking the mmap_sem semaphore while holding the V4L2 buffers queue 
+lock in the code path below, and taking them in reverse order in the mmap() 
+path (as the mm core takes the mmap_sem semaphore before calling the mmap() 
+operation). We've solved that by releasing the V4L2 buffers queue lock before 
+taking the mmap_sem lock below and taking it back after releasing the mmap_sem 
+lock. Having an explicit indication that the mmap_sem lock was taken helped 
+keeping the problem in mind. I'm not against hiding it in 
+get_user_pages_fast(), but I'd like to know what the next step is. Maybe it 
+would also be worth it adding a /* get_user_pages_fast() takes the mmap_sem */ 
+comment before the call ?
+
+> ---
+>  drivers/media/platform/omap3isp/ispqueue.c | 10 +++-------
+>  1 file changed, 3 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispqueue.c
+> b/drivers/media/platform/omap3isp/ispqueue.c index
+> e15f01342058..bed380395e6c 100644
+> --- a/drivers/media/platform/omap3isp/ispqueue.c
+> +++ b/drivers/media/platform/omap3isp/ispqueue.c
+> @@ -331,13 +331,9 @@ static int isp_video_buffer_prepare_user(struct
+> isp_video_buffer *buf) if (buf->pages == NULL)
+>  		return -ENOMEM;
+> 
+> -	down_read(&current->mm->mmap_sem);
+> -	ret = get_user_pages(current, current->mm, data & PAGE_MASK,
+> -			     buf->npages,
+> -			     buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
+> -			     buf->pages, NULL);
+> -	up_read(&current->mm->mmap_sem);
+> -
+> +	ret = get_user_pages_fast(data & PAGE_MASK, buf->npages,
+> +				  buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +				  buf->pages);
+>  	if (ret != buf->npages) {
+>  		buf->npages = ret < 0 ? 0 : ret;
+>  		isp_video_buffer_cleanup(buf);
 -- 
+Regards,
+
 Laurent Pinchart
 
