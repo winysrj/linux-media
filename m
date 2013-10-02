@@ -1,36 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:59707 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751368Ab3JGLbi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 07:31:38 -0400
-Received: from ni.piap.pl (localhost.localdomain [127.0.0.1])
-	by ni.piap.pl (Postfix) with ESMTP id C19FD440DB8
-	for <linux-media@vger.kernel.org>; Mon,  7 Oct 2013 13:31:36 +0200 (CEST)
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-media <linux-media@vger.kernel.org>
-Date: Mon, 07 Oct 2013 13:31:36 +0200
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4645 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753409Ab3JBOA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 10:00:27 -0400
+Message-ID: <524C26EE.2010109@xs4all.nl>
+Date: Wed, 02 Oct 2013 16:00:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Message-ID: <m3txgt8gh3.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: V4L2_BUF_FLAG_NO_CACHE_*
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	teemux.tuominen@intel.com
+Subject: Re: [RFC v2 0/4]
+References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 10/02/13 15:45, Sakari Ailus wrote:
+> Hi all,
+>
+> This is the second RFC set after the initial patch that makes poll return
+> POLLERR if no events are subscribed. There are other issues as well which
+> these patches address.
+>
+> The original RFC patch is here:
+>
+> <URL:http://www.spinics.net/lists/linux-media/msg68077.html>
+>
+> poll(2) and select(2) can both be used for I/O multiplexing. While both
+> provide slightly different semantics. man 2 select:
+>
+>         select() and  pselect()  allow  a  program  to  monitor  multiple  file
+>         descriptors,  waiting  until one or more of the file descriptors become
+>         "ready" for some class of I/O operation (e.g., input possible).  A file
+>         descriptor  is considered ready if it is possible to perform the corre‐
+>         sponding I/O operation (e.g., read(2)) without blocking.
+>
+> The two system calls provide slightly different semantics: poll(2) can
+> signal POLLERR related to a file handle but select(2) does not: instead, on
+> POLLERR it sets a bit corresponding to a file handle in the read and write
+> sets. This is somewhat confusing since with the original patch --- using
+> select(2) would suggest that there's something to read or write instead of
+> knowing no further exceptions are coming.
+>
+> Thus, also denying polling a subdev file handle using select(2) will mean
+> the POLLERR never gets through in any form.
+>
+> So the meaningful alternatives I can think of are:
+>
+> 1) Use POLLERR | POLLPRI. When the last event subscription is gone and
+> select(2) IOCTL is issued, all file descriptor sets are set for a file
+> handle. Users of poll(2) will directly see both of the flags, making the
+> case visible to the user immediately in some cases. On sub-devices this is
+> obvious but on V4L2 devices the user should poll(2) (or select(2)) again to
+> know whether there's I/O waiting to be read, written or whether buffers are
+> ready.
+>
+> 2) Use POLLPRI only. While this does not differ from any regular event at
+> the level of poll(2) or select(2), the POLLIN or POLLOUT flags are not
+> adversely affected.
+>
+> In each of the cases to ascertain oneself in a generic way of whether events
+> cannot no longer be obtained one has to call VIDIOC_DQEVENT IOCTL, which
+> currently may block. A patch in the set makes VIDIOC_DQEVENT to signal EIO
+> error code if no events are subscribed.
+>
+> The videobuf2 changes are untested at the moment since I didn't have a
+> device using videobuf2 at hand right now.
 
-found them looking for my V4L2 + mmap + MIPS solution... Is the
-following intentional? Some out-of-tree code maybe?
+You can use vivi for testing.
 
-$ grep V4L2_BUF_FLAG_NO_CACHE_ * -r
-
-Documentation/DocBook/media/v4l/io.xml:     <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
-Documentation/DocBook/media/v4l/io.xml:     <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
-Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml:<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
-Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml:<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
-include/uapi/linux/videodev2.h:#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE        0x0800
-include/uapi/linux/videodev2.h:#define V4L2_BUF_FLAG_NO_CACHE_CLEAN             0x1000
--- 
-Krzysztof Halasa
-
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+	Hans
