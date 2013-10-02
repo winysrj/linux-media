@@ -1,62 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:44012 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756675Ab3JPRTZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51777 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753650Ab3JBXLH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 13:19:25 -0400
-Received: by mail-pd0-f172.google.com with SMTP id z10so1244984pdj.3
-        for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 10:19:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20131016190953.7b2070b4@endymion.delvare>
-References: <1381876264-20342-1-git-send-email-crope@iki.fi>
-	<20131015203305.7dd5e55a.m.chehab@samsung.com>
-	<CAOcJUby9LnEUVFm1HFxOE6mJaSPi-2DAyH16zNDvRHACqbOkPw@mail.gmail.com>
-	<525EC23B.2020506@iki.fi>
-	<CAOcJUbxEycDwYV56cb3gSPHcbFvXYUnvFe53DhOndEigwdD73Q@mail.gmail.com>
-	<CAOcJUbxutEoBj56SCESPPyoHPkj3Z=VF-BtWsQdGYpsLGDX1zg@mail.gmail.com>
-	<20131016190953.7b2070b4@endymion.delvare>
-Date: Wed, 16 Oct 2013 13:19:24 -0400
-Message-ID: <CAOcJUbxz2FT9vohNLoij97awmKgM8wFKx3Pfjom-e4t3ynNkUg@mail.gmail.com>
-Subject: Re: [PATCH REVIEW] e4000: convert DVB tuner to I2C driver model
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 2 Oct 2013 19:11:07 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com,
+	a.hajda@samsung.com
+Subject: [PATCH v2 3/4] omap3isp: Mark which pads must connect
+Date: Thu,  3 Oct 2013 02:17:52 +0300
+Message-Id: <1380755873-25835-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1380755873-25835-1-git-send-email-sakari.ailus@iki.fi>
+References: <1380755873-25835-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 16, 2013 at 1:09 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Michael,
->
-> On Wed, 16 Oct 2013 13:04:42 -0400, Michael Krufky wrote:
->> YIKES!!  i2c_new_probed_device() does indeed probe the hardware --
->> this is unacceptable, as such an action can damage the ic.
->>
->> Is there some additional information that I'm missing that lets this
->> perform an attach without probe?
->
-> Oh, i2c_new_probed_device() probes the device, what a surprise! :D
->
-> Try, I don't know, i2c_new_device() maybe if you don't want the
-> probe? ;)
->
-> --
-> Jean Delvare
+Mark pads that must be connected.
 
-OK, so to confirm that I follow correctly, one can use
-i2c_new_device() to attach the sub-driver without probing, and the
-line that ensures that the correct sub-driver gets attached is
-"strlcpy(info.type, "e4000", I2C_NAME_SIZE);"  ??
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispccdc.c    |    3 ++-
+ drivers/media/platform/omap3isp/ispccp2.c    |    3 ++-
+ drivers/media/platform/omap3isp/ispcsi2.c    |    3 ++-
+ drivers/media/platform/omap3isp/isppreview.c |    3 ++-
+ drivers/media/platform/omap3isp/ispresizer.c |    3 ++-
+ drivers/media/platform/omap3isp/ispstat.c    |    2 +-
+ drivers/media/platform/omap3isp/ispvideo.c   |    6 ++++--
+ 7 files changed, 15 insertions(+), 8 deletions(-)
 
-We're matching based on a string?  I think that's kinda yucky, but if
-that's what we're doing in i2c nowadays then I'm OK with it.
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 907a205..561c991 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2484,7 +2484,8 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
+ 	v4l2_set_subdevdata(sd, ccdc);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++				    | MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[CCDC_PAD_SOURCE_VP].flags = MEDIA_PAD_FL_SOURCE;
+ 	pads[CCDC_PAD_SOURCE_OF].flags = MEDIA_PAD_FL_SOURCE;
+ 
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index e716514..e84fe05 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -1076,7 +1076,8 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
+ 	v4l2_set_subdevdata(sd, ccp2);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[CCP2_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CCP2_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++				    | MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[CCP2_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &ccp2_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 6db245d..6205608 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -1245,7 +1245,8 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	pads[CSI2_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+-	pads[CSI2_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CSI2_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++				    | MEDIA_PAD_FL_MUST_CONNECT;
+ 
+ 	me->ops = &csi2_media_ops;
+ 	ret = media_entity_init(me, CSI2_PADS_NUM, pads, 0);
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index cd8831a..1c776c1 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -2283,7 +2283,8 @@ static int preview_init_entities(struct isp_prev_device *prev)
+ 	v4l2_ctrl_handler_setup(&prev->ctrls);
+ 	sd->ctrl_handler = &prev->ctrls;
+ 
+-	pads[PREV_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[PREV_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++				    | MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[PREV_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &preview_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index d11fb26..fa35f2c 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1701,7 +1701,8 @@ static int resizer_init_entities(struct isp_res_device *res)
+ 	v4l2_set_subdevdata(sd, res);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[RESZ_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[RESZ_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++				    | MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[RESZ_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &resizer_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 61e17f9..a75407c 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -1067,7 +1067,7 @@ static int isp_stat_init_entities(struct ispstat *stat, const char *name,
+ 	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	v4l2_set_subdevdata(subdev, stat);
+ 
+-	stat->pad.flags = MEDIA_PAD_FL_SINK;
++	stat->pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
+ 	me->ops = NULL;
+ 
+ 	return media_entity_init(me, 1, &stat->pad, 0);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a908d00..d45af5c 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1335,11 +1335,13 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 	switch (video->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 		direction = "output";
+-		video->pad.flags = MEDIA_PAD_FL_SINK;
++		video->pad.flags = MEDIA_PAD_FL_SINK
++				   | MEDIA_PAD_FL_MUST_CONNECT;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 		direction = "input";
+-		video->pad.flags = MEDIA_PAD_FL_SOURCE;
++		video->pad.flags = MEDIA_PAD_FL_SOURCE
++				   | MEDIA_PAD_FL_MUST_CONNECT;
+ 		video->video.vfl_dir = VFL_DIR_TX;
+ 		break;
+ 
+-- 
+1.7.10.4
 
-If not, what prevents the wrong sub-driver from attaching to a device?
- ...or conversely, how does the right sub-driver know which device to
-attach to?
-
-Again, if I'm asking "stupid questions" just point me to the documentation.
-
--Mike
