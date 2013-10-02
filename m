@@ -1,51 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41755 "EHLO mail.kapsi.fi"
+Received: from mga09.intel.com ([134.134.136.24]:27430 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754435Ab3JaOyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Oct 2013 10:54:13 -0400
-Received: from [82.128.187.194] (helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1VbtdT-0001Od-Td
-	for linux-media@vger.kernel.org; Thu, 31 Oct 2013 16:54:11 +0200
-Message-ID: <52726F13.8050703@iki.fi>
-Date: Thu, 31 Oct 2013 16:54:11 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1754429Ab3JBNot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Oct 2013 09:44:49 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	teemux.tuominen@intel.com
+Subject: [RFC v2 0/4]
+Date: Wed,  2 Oct 2013 16:45:12 +0300
+Message-Id: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.13] RTL2830 I2C adapter crash
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It does not crash anymore as I2C routines are fixed. Anyhow, every I2C 
-adapter should have a parent. So pull it for 3.13 as enhancement.
+Hi all,
 
+This is the second RFC set after the initial patch that makes poll return
+POLLERR if no events are subscribed. There are other issues as well which
+these patches address.
 
-The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
+The original RFC patch is here:
 
-   [media] media: st-rc: Add ST remote control driver (2013-10-31 
-08:20:08 -0200)
+<URL:http://www.spinics.net/lists/linux-media/msg68077.html>
 
-are available in the git repository at:
+poll(2) and select(2) can both be used for I/O multiplexing. While both
+provide slightly different semantics. man 2 select:
 
-   git://linuxtv.org/anttip/media_tree.git i2c_adapter_crash
+       select() and  pselect()  allow  a  program  to  monitor  multiple  file
+       descriptors,  waiting  until one or more of the file descriptors become
+       "ready" for some class of I/O operation (e.g., input possible).  A file
+       descriptor  is considered ready if it is possible to perform the corre‐
+       sponding I/O operation (e.g., read(2)) without blocking.
 
-for you to fetch changes up to 56a885df5f6c96f8b609a2399aa71b9757271ee4:
+The two system calls provide slightly different semantics: poll(2) can
+signal POLLERR related to a file handle but select(2) does not: instead, on
+POLLERR it sets a bit corresponding to a file handle in the read and write
+sets. This is somewhat confusing since with the original patch --- using
+select(2) would suggest that there's something to read or write instead of
+knowing no further exceptions are coming.
 
-   rtl2830: add parent for I2C adapter (2013-10-31 16:50:16 +0200)
+Thus, also denying polling a subdev file handle using select(2) will mean
+the POLLERR never gets through in any form.
 
-----------------------------------------------------------------
-Antti Palosaari (1):
-       rtl2830: add parent for I2C adapter
+So the meaningful alternatives I can think of are:
 
-  drivers/media/dvb-frontends/rtl2830.c | 1 +
-  1 file changed, 1 insertion(+)
+1) Use POLLERR | POLLPRI. When the last event subscription is gone and
+select(2) IOCTL is issued, all file descriptor sets are set for a file
+handle. Users of poll(2) will directly see both of the flags, making the
+case visible to the user immediately in some cases. On sub-devices this is
+obvious but on V4L2 devices the user should poll(2) (or select(2)) again to
+know whether there's I/O waiting to be read, written or whether buffers are
+ready.
 
+2) Use POLLPRI only. While this does not differ from any regular event at
+the level of poll(2) or select(2), the POLLIN or POLLOUT flags are not
+adversely affected.
 
-regards
-Antti
+In each of the cases to ascertain oneself in a generic way of whether events
+cannot no longer be obtained one has to call VIDIOC_DQEVENT IOCTL, which
+currently may block. A patch in the set makes VIDIOC_DQEVENT to signal EIO
+error code if no events are subscribed.
+
+The videobuf2 changes are untested at the moment since I didn't have a
+device using videobuf2 at hand right now.
+
+Comments and questions are very welcome.
+
 -- 
-http://palosaari.fi/
+Kind regards,
+Sakari
+
+
