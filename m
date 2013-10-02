@@ -1,60 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:30727 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757220Ab3JQRKN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 13:10:13 -0400
-Message-id: <526019F0.3070406@samsung.com>
-Date: Thu, 17 Oct 2013 19:10:08 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org
-Cc: hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
-	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
-	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v9 13/13] V4L: Add driver for s5k4e5 image sensor
-References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
- <1380279558-21651-14-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1380279558-21651-14-git-send-email-arun.kk@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39724 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753050Ab3JBSPR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 14:15:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teemux.tuominen@intel.com
+Subject: Re: [RFC v2 0/4]
+Date: Wed, 02 Oct 2013 20:15:25 +0200
+Message-ID: <13152311.59C5UI1BDX@avalon>
+In-Reply-To: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/09/13 12:59, Arun Kumar K wrote:
-> This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
-> Like s5k6a3, it is also another fimc-is firmware controlled
-> sensor. This minimal sensor driver doesn't do any I2C communications
-> as its done by ISP firmware. It can be updated if needed to a
-> regular sensor driver by adding the I2C communication.
+Hi Sakari,
+
+On Wednesday 02 October 2013 16:45:12 Sakari Ailus wrote:
+> Hi all,
 > 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  .../devicetree/bindings/media/i2c/s5k4e5.txt       |   45 +++
->  drivers/media/i2c/Kconfig                          |    8 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/s5k4e5.c                         |  347 ++++++++++++++++++++
->  4 files changed, 401 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
->  create mode 100644 drivers/media/i2c/s5k4e5.c
+> This is the second RFC set after the initial patch that makes poll return
+> POLLERR if no events are subscribed. There are other issues as well which
+> these patches address.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt b/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
-> new file mode 100644
-> index 0000000..0fca087
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
+> The original RFC patch is here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg68077.html>
+> 
+> poll(2) and select(2) can both be used for I/O multiplexing. While both
+> provide slightly different semantics. man 2 select:
+> 
+>        select() and  pselect()  allow  a  program  to  monitor  multiple 
+> file descriptors,  waiting  until one or more of the file descriptors
+> become "ready" for some class of I/O operation (e.g., input possible).  A
+> file descriptor  is considered ready if it is possible to perform the
+> corre‐ sponding I/O operation (e.g., read(2)) without blocking.
+> 
+> The two system calls provide slightly different semantics: poll(2) can
+> signal POLLERR related to a file handle but select(2) does not: instead, on
+> POLLERR it sets a bit corresponding to a file handle in the read and write
+> sets. This is somewhat confusing since with the original patch --- using
+> select(2) would suggest that there's something to read or write instead of
+> knowing no further exceptions are coming.
+> 
+> Thus, also denying polling a subdev file handle using select(2) will mean
+> the POLLERR never gets through in any form.
+> 
+> So the meaningful alternatives I can think of are:
+> 
+> 1) Use POLLERR | POLLPRI. When the last event subscription is gone and
+> select(2) IOCTL is issued, all file descriptor sets are set for a file
+> handle. Users of poll(2) will directly see both of the flags, making the
+> case visible to the user immediately in some cases. On sub-devices this is
+> obvious but on V4L2 devices the user should poll(2) (or select(2)) again to
+> know whether there's I/O waiting to be read, written or whether buffers are
+> ready.
+> 
+> 2) Use POLLPRI only. While this does not differ from any regular event at
+> the level of poll(2) or select(2), the POLLIN or POLLOUT flags are not
+> adversely affected.
+> 
+> In each of the cases to ascertain oneself in a generic way of whether events
+> cannot no longer be obtained one has to call VIDIOC_DQEVENT IOCTL, which
+> currently may block. A patch in the set makes VIDIOC_DQEVENT to signal EIO
+> error code if no events are subscribed.
+> 
+> The videobuf2 changes are untested at the moment since I didn't have a
+> device using videobuf2 at hand right now.
+> 
+> Comments and questions are very welcome.
 
-Could you make a separate patch adding DT binding only ?
-And can you please rename this file to:
-Documentation/devicetree/bindings/media/samsung-s5k4e5.txt, like
-it's done in case of other sensors ?
+What's the behaviour of select(2) and poll(2) after this patch set when 
+polling an fd for both read and events, when no event has been subscribed to ?
 
-Should I apply patches 02...11/13 already or would you like send 
-the whole series updated ? AFAICS there are minor things pointed 
-out by Hans not addressed yet ?
-
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
