@@ -1,55 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:47460 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab3JTSZ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Oct 2013 14:25:28 -0400
-Message-ID: <5264200E.5060706@gmail.com>
-Date: Sun, 20 Oct 2013 20:25:18 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from outrelay02.libero.it ([212.52.84.102]:39310 "EHLO
+	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754044Ab3JBSrg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 14:47:36 -0400
+Message-ID: <41886535.807191380739322257.JavaMail.defaultUser@defaultHost>
+Date: Wed, 2 Oct 2013 20:42:02 +0200 (CEST)
+From: Glory Kuku <glorykuku@libero.it>
+Reply-To: glory01boo@yahoo.com
+Subject: Hello My Dear,New Friend
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.samsung@gmail.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Arun Kumar K <arun.kk@samsung.com>,
-	Pawel Osciak <posciak@google.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH v4 1/4] [media] exynos-scaler: Add new driver for Exynos5
- SCALER
-References: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com> <1380889594-10448-2-git-send-email-shaik.ameer@samsung.com> <5260F7F3.20802@samsung.com> <CAOD6ATqPrt8FsTFA-YR8-AJDrwFmQ=vYCGYO_bVi3rt-Ra7Ocg@mail.gmail.com>
-In-Reply-To: <CAOD6ATqPrt8FsTFA-YR8-AJDrwFmQ=vYCGYO_bVi3rt-Ra7Ocg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shaik,
 
-On 10/20/2013 02:33 PM, Shaik Ameer Basha wrote:
-> On Fri, Oct 18, 2013 at 5:57 PM, Sylwester Nawrocki
-> <s.nawrocki@samsung.com>  wrote:
->> >  Hi,
->> >
->> >  I have couple minor comments. These could be addressed in follow up
->> >  patches, it you won't manage to do it today. Sorry for being late with
->> >  this.
->
-> Sorry for the late reply.
->
-> Currently I am on travel and I don't have the environment to rebase
-> and test this driver.
-> I will address your comments in follow up patches.
->
-> Can you please queue this driver to your branch and send a pull
-> request for 3.13 ?
+Hello My Dear,New Friend
+How are you today??
+My name is Miss Glory Kuku, I like to be your friends ok; 
+Please send me your e-mail to my inbox at 
+(glory01boo@yahoo.com) so i will send you my Photos to you
 
-The driver seems to be in quite a good shape now and I think it would
-have been bad not to merge it in this release. I'll let Kamil handle
-it as he's a sub-maintainer of the v4l2 mem-to-mem drivers.
-
-Regards,
-Sylwester
