@@ -1,113 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:63435 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3JZUEh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Oct 2013 16:04:37 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-Date: Sat, 26 Oct 2013 22:04:33 +0200
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Nils Faerber <nils.faerber@kernelconcepts.de>,
-	Joni Lapilainen <joni.lapilainen@gmail.com>
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <525D5A77.4050704@xs4all.nl> <201310172131.05106@pali>
-In-Reply-To: <201310172131.05106@pali>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8983902.qnRnZYVcHx";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201310262204.33674@pali>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:39098 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983Ab3JBWJc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 18:09:32 -0400
+Received: by mail-wi0-f181.google.com with SMTP id ex4so1666353wid.2
+        for <linux-media@vger.kernel.org>; Wed, 02 Oct 2013 15:09:31 -0700 (PDT)
+From: Luis Alves <ljalvs@gmail.com>
+To: mkrufky@linuxtv.org
+Cc: crope@iki.fi, linux-media@vger.kernel.org, mchehab@infradead.org,
+	Luis Alves <ljalvs@gmail.com>
+Subject: [PATCH 2/2] cx24117: Removed from cx23885 the no longer needed frontend pointer from the dvb_attach function.
+Date: Wed,  2 Oct 2013 23:09:27 +0100
+Message-Id: <1380751767-4891-1-git-send-email-ljalvs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart8983902.qnRnZYVcHx
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+cx23885 changes: to be used against mkrufky/cx24117 branch
 
-Hans, so can it be added to drivers/staging/media tree?
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-On Thursday 17 October 2013 21:31:04 Pali Roh=C3=A1r wrote:
-> Hello,
->=20
-> so what do you suggest? Add it to staging for now (or not)?
->=20
-> On Tuesday 15 October 2013 17:08:39 Hans Verkuil wrote:
-> > Hi Pali,
-> >=20
-> > Thanks for the patch, but I am afraid it will need some work
-> > to make this acceptable for inclusion into the kernel.
-> >=20
-> > The main thing you need to do is to implement all the
-> > controls using the control framework (see
-> > Documentation/video4linux/v4l2-controls.txt). Most drivers
-> > are by now converted to the control framework, so you will
-> > find many examples of how to do this in drivers/media/radio.
-> >=20
-> > The sysfs stuff should be replaced by controls as well. A
-> > lot of the RDS support is now available as controls
-> > (although there may well be some missing features, but that
-> > is easy enough to add). Since the RDS data is actually
-> > read() from the device I am not sure whether the RDS
-> > properties/controls should be there at all.
-> >=20
-> > Finally this driver should probably be split up into two
-> > parts: one v4l2_subdev-based core driver and one platform
-> > driver. See e.g. radio-si4713/si4713-i2c.c as a good
-> > example. But I would wait with that until the rest of the
-> > driver is cleaned up. Then I have a better idea of whether
-> > this is necessary or not.
-> >=20
-> > It's also very useful to run v4l2-compliance (available in
-> > the v4l-utils.git repo on git.linuxtv.org). That does lots
-> > of sanity checks.
-> >=20
-> > Another option is to add the driver as-is to
-> > drivers/staging/media, and clean it up bit by bit.
-> >=20
-> > Regards,
-> >=20
-> > 	Hans
-> >=20
-> > On 10/15/2013 04:26 PM, Pali Roh=C3=A1r wrote:
-> > > This adds support for the BCM2048 radio module found in
-> > > Nokia N900
-> > >=20
-> > > Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> > > Signed-off-by: Nils Faerber
-> > > <nils.faerber@kernelconcepts.de> Signed-off-by: Joni
-> > > Lapilainen <joni.lapilainen@gmail.com> Signed-off-by:
-> > > Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > > ---
-> > >=20
-> > >  drivers/media/radio/Kconfig         |   10 +
-> > >  drivers/media/radio/Makefile        |    1 +
-> > >  drivers/media/radio/radio-bcm2048.c | 2744
-> > >  +++++++++++++++++++++++++++++++++++
-> > >  include/media/radio-bcm2048.h       |   30 +
-> > >  4 files changed, 2785 insertions(+)
-> > >  create mode 100644 drivers/media/radio/radio-bcm2048.c
-> > >  create mode 100644 include/media/radio-bcm2048.h
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 34120db..0549205 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1058,20 +1058,13 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		case 1:
+ 			fe0->dvb.frontend = dvb_attach(cx24117_attach,
+ 					&tbs_cx24117_config,
+-					&i2c_bus->i2c_adap, NULL);
++					&i2c_bus->i2c_adap);
+ 			break;
+ 		/* PORT C */
+ 		case 2:
+-			/* use fe1 pointer as temporary holder */
+-			/* for the first frontend */
+-			fe1 = videobuf_dvb_get_frontend(
+-				&port->dev->ts1.frontends, 1);
+-
+ 			fe0->dvb.frontend = dvb_attach(cx24117_attach,
+ 					&tbs_cx24117_config,
+-					&i2c_bus->i2c_adap, fe1->dvb.frontend);
+-			/* we're done, so clear fe1 pointer */
+-			fe1 = NULL;
++					&i2c_bus->i2c_adap);
+ 			break;
+ 		}
+ 		break;
+-- 
+1.7.9.5
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart8983902.qnRnZYVcHx
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlJsIFEACgkQi/DJPQPkQ1IzRwCgvzogkCSN5gobetxsnEaT0g0S
-c6oAoLJvGRlntKdmoiylBNGFiazd+rux
-=hAP8
------END PGP SIGNATURE-----
-
---nextPart8983902.qnRnZYVcHx--
