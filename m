@@ -1,80 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52986 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076Ab3JYKgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Oct 2013 06:36:11 -0400
-Message-ID: <526A4959.1040405@ti.com>
-Date: Fri, 25 Oct 2013 16:05:05 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<dagriego@biglakesoftware.com>, <dale@farnsworth.org>,
-	<pawel@osciak.com>, <m.szyprowski@samsung.com>,
-	<hverkuil@xs4all.nl>, <tomi.valkeinen@ti.com>,
-	Rajendra Nayak <rnayak@ti.com>,
-	Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 6/6] experimental: arm: dts: dra7xx: Add a DT node for
- VPE
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-7-git-send-email-archit@ti.com> <16994189.3ZRYT6i8Y5@avalon>
-In-Reply-To: <16994189.3ZRYT6i8Y5@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Received: from bombadil.infradead.org ([198.137.202.9]:45815 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009Ab3JBWQa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 18:16:30 -0400
+Date: Wed, 2 Oct 2013 19:16:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: mkrufky@linuxtv.org, crope@iki.fi, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] cx24117: Changed the way common data struct was
+ being passed to the demod.
+Message-ID: <20131002191604.242a5e95@infradead.org>
+In-Reply-To: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
+References: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Wed,  2 Oct 2013 23:09:11 +0100
+Luis Alves <ljalvs@gmail.com> escreveu:
 
-Sorry about the late response, I had scrapped the DT patch out of the 
-VPE series since there were dependencies on crossbar drivers and some 
-other baseport stuff. Comments below.
+> Hi Mike,
+> 
+> It's done (also tested and apparently working good)!
+> 
+> I didn't know if two separated patches were needed (one for the cx24117 and the other for the cx23885) but I've splited it.
 
-On Friday 09 August 2013 03:41 AM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> Thank you for the patch.
->
-> On Friday 02 August 2013 19:33:43 Archit Taneja wrote:
->> Add a DT node for VPE in dra7.dtsi. This is experimental because we might
->> need to split the VPE address space a bit more, and also because the IRQ
->> line described is accessible the IRQ crossbar driver is added for DRA7XX.
->>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Sricharan R <r.sricharan@ti.com>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
->
-> Documentation is missing :-) As this is an experimental patch you can probably
-> document the bindings later.
+If the patch causes regression or breaks compilation, it should be folded.
 
-Yes, I will work on that.
+I suspect that this is the case, as you're changing the interface here.
 
->
->>   1 file changed, 11 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index ce9a0f0..3237972 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -484,6 +484,17 @@
->>   			dmas = <&sdma 70>, <&sdma 71>;
->>   			dma-names = "tx0", "rx0";
->>   		};
->> +
->> +		vpe {
->> +			compatible = "ti,vpe";
->> +			ti,hwmods = "vpe";
->> +			reg = <0x489d0000 0xd000>, <0x489dd000 0x400>;
->> +			reg-names = "vpe", "vpdma";
->> +			interrupts = <0 159 0x4>;
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->
-> Are #address-cells and #size-cells really needed ?
+> As you pointed out, this series of patches are to be used against your cx24117 branch.
+> 
+> Regards,
+> Luis
+> 
+> Signed-off-by: Luis Alves <ljalvs@gmail.com>
+> ---
+>  drivers/media/dvb-frontends/cx24117.c |   72 +++++++++++++++++++++++----------
+>  drivers/media/dvb-frontends/cx24117.h |    4 +-
+>  2 files changed, 53 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
+> index 3b63913..9087309 100644
+> --- a/drivers/media/dvb-frontends/cx24117.c
+> +++ b/drivers/media/dvb-frontends/cx24117.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/init.h>
+>  #include <linux/firmware.h>
+>  
+> +#include "tuner-i2c.h"
+>  #include "dvb_frontend.h"
+>  #include "cx24117.h"
+>  
+> @@ -145,6 +146,9 @@ enum cmds {
+>  	CMD_TUNERSLEEP  = 0x36,
+>  };
+>  
+> +static LIST_HEAD(hybrid_tuner_instance_list);
+> +static DEFINE_MUTEX(cx24117_list_mutex);
+> +
+>  /* The Demod/Tuner can't easily provide these, we cache them */
+>  struct cx24117_tuning {
+>  	u32 frequency;
+> @@ -176,9 +180,11 @@ struct cx24117_priv {
+>  	u8 demod_address;
+>  	struct i2c_adapter *i2c;
+>  	u8 skip_fw_load;
+> -
+>  	struct mutex fe_lock;
+> -	atomic_t fe_nr;
+> +
+> +	/* Used for sharing this struct between demods */
+> +	struct tuner_i2c_props i2c_props;
+> +	struct list_head hybrid_tuner_instance_list;
+>  };
+>  
+>  /* one per each fe */
+> @@ -536,7 +542,7 @@ static int cx24117_load_firmware(struct dvb_frontend *fe,
+>  	dev_dbg(&state->priv->i2c->dev,
+>  		"%s() demod%d FW is %zu bytes (%02x %02x .. %02x %02x)\n",
+>  		__func__, state->demod, fw->size, fw->data[0], fw->data[1],
+> -		fw->data[fw->size-2], fw->data[fw->size-1]);
+> +		fw->data[fw->size - 2], fw->data[fw->size - 1]);
+>  
+>  	cx24117_writereg(state, 0xea, 0x00);
+>  	cx24117_writereg(state, 0xea, 0x01);
+> @@ -1116,37 +1122,64 @@ static int cx24117_diseqc_send_burst(struct dvb_frontend *fe,
+>  	return 0;
+>  }
+>  
+> +static int cx24117_get_priv(struct cx24117_priv **priv,
+> +	struct i2c_adapter *i2c, u8 client_address)
+> +{
+> +	int ret;
+> +
+> +	mutex_lock(&cx24117_list_mutex);
+> +	ret = hybrid_tuner_request_state(struct cx24117_priv, (*priv),
+> +		hybrid_tuner_instance_list, i2c, client_address, "cx24117");
+> +	mutex_unlock(&cx24117_list_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static void cx24117_release_priv(struct cx24117_priv *priv)
+> +{
+> +	mutex_lock(&cx24117_list_mutex);
+> +	if (priv != NULL)
+> +		hybrid_tuner_release_state(priv);
+> +	mutex_unlock(&cx24117_list_mutex);
+> +}
+> +
+>  static void cx24117_release(struct dvb_frontend *fe)
+>  {
+>  	struct cx24117_state *state = fe->demodulator_priv;
+>  	dev_dbg(&state->priv->i2c->dev, "%s demod%d\n",
+>  		__func__, state->demod);
+> -	if (!atomic_dec_and_test(&state->priv->fe_nr))
+> -		kfree(state->priv);
+> +	cx24117_release_priv(state->priv);
+>  	kfree(state);
+>  }
+>  
+>  static struct dvb_frontend_ops cx24117_ops;
+>  
+>  struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
+> +	struct i2c_adapter *i2c)
+>  {
+>  	struct cx24117_state *state = NULL;
+>  	struct cx24117_priv *priv = NULL;
+>  	int demod = 0;
+>  
+> -	/* first frontend attaching */
+> -	/* allocate shared priv struct */
+> -	if (fe == NULL) {
+> -		priv = kzalloc(sizeof(struct cx24117_priv), GFP_KERNEL);
+> -		if (priv == NULL)
+> -			goto error1;
+> +	/* get the common data struct for both demods */
+> +	demod = cx24117_get_priv(&priv, i2c, config->demod_address);
+> +
+> +	switch (demod) {
+> +	case 0:
+> +		dev_err(&state->priv->i2c->dev,
+> +			"%s: Error attaching frontend %d\n",
+> +			KBUILD_MODNAME, demod);
+> +		goto error1;
+> +		break;
+> +	case 1:
+> +		/* new priv instance */
+>  		priv->i2c = i2c;
+>  		priv->demod_address = config->demod_address;
+>  		mutex_init(&priv->fe_lock);
+> -	} else {
+> -		demod = 1;
+> -		priv = ((struct cx24117_state *) fe->demodulator_priv)->priv;
+> +		break;
+> +	default:
+> +		/* existing priv instance */
+> +		break;
+>  	}
+>  
+>  	/* allocate memory for the internal state */
+> @@ -1154,7 +1187,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>  	if (state == NULL)
+>  		goto error2;
+>  
+> -	state->demod = demod;
+> +	state->demod = demod - 1;
+>  	state->priv = priv;
+>  
+>  	/* test i2c bus for ack */
+> @@ -1163,12 +1196,9 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>  			goto error3;
+>  	}
+>  
+> -	/* nr of frontends using the module */
+> -	atomic_inc(&priv->fe_nr);
+> -
+>  	dev_info(&state->priv->i2c->dev,
+>  		"%s: Attaching frontend %d\n",
+> -		KBUILD_MODNAME, demod);
+> +		KBUILD_MODNAME, state->demod);
+>  
+>  	/* create dvb_frontend */
+>  	memcpy(&state->frontend.ops, &cx24117_ops,
+> @@ -1179,7 +1209,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>  error3:
+>  	kfree(state);
+>  error2:
+> -	kfree(priv);
+> +	cx24117_release_priv(priv);
+>  error1:
+>  	return NULL;
+>  }
+> diff --git a/drivers/media/dvb-frontends/cx24117.h b/drivers/media/dvb-frontends/cx24117.h
+> index 5bc8f11..4e59e95 100644
+> --- a/drivers/media/dvb-frontends/cx24117.h
+> +++ b/drivers/media/dvb-frontends/cx24117.h
+> @@ -33,11 +33,11 @@ struct cx24117_config {
+>  #if IS_ENABLED(CONFIG_DVB_CX24117)
+>  extern struct dvb_frontend *cx24117_attach(
+>  	const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe);
+> +	struct i2c_adapter *i2c);
+>  #else
+>  static inline struct dvb_frontend *cx24117_attach(
+>  	const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
+> +	struct i2c_adapter *i2c)
+>  {
+>  	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+>  	return NULL;
 
-These aren't needed, vpe derives the address info from it's parent(ocp). 
-I didn't know that the child nodes inherit these params from the parent.
 
-Archit
 
+
+Cheers,
+Mauro
