@@ -1,44 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fpasia.hk ([202.130.89.98]:48858 "EHLO fpa01n0.fpasia.hk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752050Ab3J1MlA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Oct 2013 08:41:00 -0400
-Message-ID: <526E5BA0.2030300@gtsys.com.hk>
-Date: Mon, 28 Oct 2013 20:42:08 +0800
-From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41258 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089Ab3JBX3a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 19:29:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, sylwester.nawrocki@gmail.com,
+	a.hajda@samsung.com
+Subject: Re: [PATCH v2 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
+Date: Thu, 03 Oct 2013 01:29:34 +0200
+Message-ID: <5005169.gE657Xh6K1@avalon>
+In-Reply-To: <1380755873-25835-2-git-send-email-sakari.ailus@iki.fi>
+References: <1380755873-25835-1-git-send-email-sakari.ailus@iki.fi> <1380755873-25835-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Fabio Estevam <festevam@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: imx27.dtsi usbotg/usbh2 oops in fsl_usb2_mph_dr_of_probe
-References: <526E55DA.3070007@gtsys.com.hk> <CAOMZO5A6iMEzyRd81wogoO6NzDH3VqnaU9gH4-eh-SDQQMJ=Ww@mail.gmail.com>
-In-Reply-To: <CAOMZO5A6iMEzyRd81wogoO6NzDH3VqnaU9gH4-eh-SDQQMJ=Ww@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, October 28, 2013 08:25 PM, Fabio Estevam wrote:
-> On Mon, Oct 28, 2013 at 10:17 AM, Chris Ruehl <chris.ruehl@gtsys.com.hk> wrote:
->> Hi,
->>
->> when tried to activate the USB-OTG or USBH2 with the FDT the system oops
-> You should have posted this to the linux-usb list instead :-)
->
->
->> config: (imx27.dtsi)
->>
->>              usbotg: usb@10024000 {
->>                  compatible = "fsl-usb2-dr";
-> You should use compatible ="fsl,imx27-usb" so that it uses the
-> chipidea usb driver.
-I didn't get USB detected with
+Hi Sakari,
 
-compatible ="fsl,imx27-usb"
+Thank you for the patch.
 
-nothing happen.
+On Thursday 03 October 2013 02:17:50 Sakari Ailus wrote:
+> Pads that set this flag must be connected by an active link for the entity
+> to stream.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  Documentation/DocBook/media/v4l/media-ioc-enum-links.xml |   10 ++++++++++
+>  include/uapi/linux/media.h                               |    1 +
+>  2 files changed, 11 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+> b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml index
+> 355df43..e357dc9 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+> @@ -134,6 +134,16 @@
+>  	    <entry>Output pad, relative to the entity. Output pads source data
+>  	    and are origins of links.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>MEDIA_PAD_FL_MUST_CONNECT</constant></entry>
+> +	    <entry>If this flag is set and the pad is linked to any other
+> +	    pad, then at least one of those links must be enabled for the
+> +	    entity to be able to stream. There could be temporary reasons
+> +	    (e.g. device configuration dependent) for the pad to need
+> +	    enabled links even when this flag isn't set; the absence of the
+> +	    flag doesn't imply there is none. The flag has no effect on pads
+> +	    without connected links.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index ed49574..d847c76 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -98,6 +98,7 @@ struct media_entity_desc {
+> 
+>  #define MEDIA_PAD_FL_SINK		(1 << 0)
+>  #define MEDIA_PAD_FL_SOURCE		(1 << 1)
+> +#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
+> 
+>  struct media_pad_desc {
+>  	__u32 entity;		/* entity ID */
+-- 
+Regards,
+
+Laurent Pinchart
 
