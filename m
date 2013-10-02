@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4784 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758902Ab3JONwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 09:52:13 -0400
-Message-ID: <525D487B.1000903@xs4all.nl>
-Date: Tue, 15 Oct 2013 15:51:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:40524 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753716Ab3JBUSl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Oct 2013 16:18:41 -0400
+Date: Wed, 2 Oct 2013 22:18:38 +0200
+From: Jan Kara <jack@suse.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jan Kara <jack@suse.cz>, LKML <linux-kernel@vger.kernel.org>,
+	linux-mm@kvack.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/26] omap3isp: Make isp_video_buffer_prepare_user() use
+ get_user_pages_fast()
+Message-ID: <20131002201838.GE16998@quack.suse.cz>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+ <1380724087-13927-6-git-send-email-jack@suse.cz>
+ <11048370.rLWI050cLv@avalon>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>
-CC: Archit Taneja <archit@ti.com>, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com> <5257ACD1.9010501@xs4all.nl> <525D477F.10606@ti.com>
-In-Reply-To: <525D477F.10606@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <11048370.rLWI050cLv@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kamil,
-
-Can you take this driver as m2m maintainer or should I take it?
-
-Regards,
-
-	Hans
-
-On 10/15/2013 03:47 PM, Archit Taneja wrote:
-> Hi Hans,
+On Wed 02-10-13 21:41:10, Laurent Pinchart wrote:
+> Hi Jan,
 > 
-> On Friday 11 October 2013 01:16 PM, Hans Verkuil wrote:
->> On 10/09/2013 04:29 PM, Archit Taneja wrote:
->>> VPE is a block which consists of a single memory to memory path which can
->>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->>> interleaved video formats.
->>>
->>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->>> The de-interlacer, scaler and color space converter are all bypassed for now
->>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->>> conversion beteen different YUV formats is possible.
->>>
->>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->>> a VPDMA descriptor list to which configuration and data descriptors are added.
->>>
->>> Based on the information received via v4l2 ioctls for the source and
->>> destination queues, the driver configures the values for the MMRs, and stores
->>> them in the buffer. There are also some VPDMA parameters like frame start and
->>> line mode which needs to be configured, these are configured by direct register
->>> writes via the VPDMA helper functions.
->>>
->>> The driver's device_run() mem2mem op will add each descriptor based on how the
->>> source and destination queues are set up for the given ctx, once the list is
->>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->>> upload MMR registers, start DMA of video buffers on the various input and output
->>> clients/ports.
->>>
->>> When the list is parsed completely(and the DMAs on all the output ports done),
->>> an interrupt is generated which we use to notify that the source and destination
->>> buffers are done.
->>>
->>> The rest of the driver is quite similar to other mem2mem drivers, we use the
->>> multiplane v4l2 ioctls as the HW support coplanar formats.
->>>
->>> Signed-off-by: Archit Taneja <archit@ti.com>
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
+> Thank you for the patch.
 > 
-> Thanks for the Acks. Is it possible to queue these for 3.13?
+> On Wednesday 02 October 2013 16:27:46 Jan Kara wrote:
+> > CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > CC: linux-media@vger.kernel.org
+> > Signed-off-by: Jan Kara <jack@suse.cz>
 > 
-> Archit
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+  Thanks!
 > 
+> Could you briefly explain where you're headed with this ?
+  My motivation is that currently filesystems have to workaround locking
+problems with ->page_mkwrite() (the write page fault handler) being called
+with mmap_sem held. The plan is to provide ability to ->page_mkwrite()
+handler to drop mmap_sem. And that needs an audit of all get_user_pages()
+callers to verify they won't be broken by this locking change. So I've
+started with making this audit simpler.
 
+> The V4L2 subsystem has suffered for quite a long time from potentiel
+> AB-BA deadlocks, due the drivers taking the mmap_sem semaphore while
+> holding the V4L2 buffers queue lock in the code path below, and taking
+> them in reverse order in the mmap() path (as the mm core takes the
+> mmap_sem semaphore before calling the mmap() operation).
+  Yeah, I've read about this in some comment in V4L2. Also there are some
+places (drivers/media/platform/omap/omap_vout.c and
+drivers/media/v4l2-core/) which acquire mmap_sem pretty early to avoid lock
+inversion with the queue lock. These are actually causing me quite some
+headache :)
+
+> We've solved that by releasing the V4L2 buffers queue lock before 
+> taking the mmap_sem lock below and taking it back after releasing the mmap_sem 
+> lock. Having an explicit indication that the mmap_sem lock was taken helped 
+> keeping the problem in mind. I'm not against hiding it in 
+> get_user_pages_fast(), but I'd like to know what the next step is. Maybe it 
+> would also be worth it adding a /* get_user_pages_fast() takes the mmap_sem */ 
+> comment before the call ?
+  OK, I can add the comment. Thanks for review.
+
+								Honza
+
+> > ---
+> >  drivers/media/platform/omap3isp/ispqueue.c | 10 +++-------
+> >  1 file changed, 3 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispqueue.c
+> > b/drivers/media/platform/omap3isp/ispqueue.c index
+> > e15f01342058..bed380395e6c 100644
+> > --- a/drivers/media/platform/omap3isp/ispqueue.c
+> > +++ b/drivers/media/platform/omap3isp/ispqueue.c
+> > @@ -331,13 +331,9 @@ static int isp_video_buffer_prepare_user(struct
+> > isp_video_buffer *buf) if (buf->pages == NULL)
+> >  		return -ENOMEM;
+> > 
+> > -	down_read(&current->mm->mmap_sem);
+> > -	ret = get_user_pages(current, current->mm, data & PAGE_MASK,
+> > -			     buf->npages,
+> > -			     buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
+> > -			     buf->pages, NULL);
+> > -	up_read(&current->mm->mmap_sem);
+> > -
+> > +	ret = get_user_pages_fast(data & PAGE_MASK, buf->npages,
+> > +				  buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> > +				  buf->pages);
+> >  	if (ret != buf->npages) {
+> >  		buf->npages = ret < 0 ? 0 : ret;
+> >  		isp_video_buffer_cleanup(buf);
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+-- 
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
