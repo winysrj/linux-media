@@ -1,147 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mms1.broadcom.com ([216.31.210.17]:3171 "EHLO mms1.broadcom.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:43951 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755472Ab3JGKrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 06:47:49 -0400
-From: "Bert Kenward" <bert.kenward@broadcom.com>
-To: "Andrzej Hajda" <a.hajda@samsung.com>,
-	"Laurent Pinchart" <laurent.pinchart+renesas@ideasonboard.com>
-cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [RFC PATCH 1/4] mipi-dsi-bus: add MIPI DSI bus support
-Date: Mon, 7 Oct 2013 10:47:38 +0000
-Message-ID: <F5FE6E5E9429DA44B1C6B8A1A883D135041E001F@SJEXCHMB13.corp.ad.broadcom.com>
-References: <1380032596-18612-1-git-send-email-a.hajda@samsung.com>
- <1380032596-18612-2-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1380032596-18612-2-git-send-email-a.hajda@samsung.com>
-Content-Language: en-US
+	id S1753393Ab3JBWh7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Oct 2013 18:37:59 -0400
+Message-ID: <524CA043.8080205@iki.fi>
+Date: Thu, 03 Oct 2013 01:37:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: base64
+To: Luis Alves <ljalvs@gmail.com>, mkrufky@linuxtv.org
+CC: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH 1/2] cx24117: Changed the way common data struct was being
+ passed to the demod.
+References: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
+In-Reply-To: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gVHVlc2RheSBTZXB0ZW1iZXIgMjQgMjAxMyBhdCAxNToyMywgQW5kcnplaiBIYWpkYSB3cm90
-ZToNCj4gTUlQSSBEU0kgaXMgYSBoaWdoLXNwZWVkIHNlcmlhbCBpbnRlcmZhY2UgdG8gdHJhbnNt
-aXQNCj4gZGF0YSBmcm9tL3RvIGhvc3QgdG8gZGlzcGxheSBtb2R1bGUuDQo+IA0KPiBTaWduZWQt
-b2ZmLWJ5OiBBbmRyemVqIEhhamRhIDxhLmhhamRhQHNhbXN1bmcuY29tPg0KPiBTaWduZWQtb2Zm
-LWJ5OiBLeXVuZ21pbiBQYXJrIDxreXVuZ21pbi5wYXJrQHNhbXN1bmcuY29tPg0KPiAtLS0NCj4g
-IGRyaXZlcnMvdmlkZW8vZGlzcGxheS9LY29uZmlnICAgICAgICB8ICAgNCArDQo+ICBkcml2ZXJz
-L3ZpZGVvL2Rpc3BsYXkvTWFrZWZpbGUgICAgICAgfCAgIDEgKw0KPiAgZHJpdmVycy92aWRlby9k
-aXNwbGF5L21pcGktZHNpLWJ1cy5jIHwgMzMyDQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrDQo+ICBpbmNsdWRlL3ZpZGVvL2Rpc3BsYXkuaCAgICAgICAgICAgICAgfCAgIDMg
-Kw0KPiAgaW5jbHVkZS92aWRlby9taXBpLWRzaS1idXMuaCAgICAgICAgIHwgMTQ0ICsrKysrKysr
-KysrKysrKw0KPiAgNSBmaWxlcyBjaGFuZ2VkLCA0ODQgaW5zZXJ0aW9ucygrKQ0KDQo8c25pcHBl
-ZCBhcyBmYXIgYXMgbWlwaS1kc2ktYnVzLmgNCg0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS92aWRl
-by9taXBpLWRzaS1idXMuaCBiL2luY2x1ZGUvdmlkZW8vbWlwaS1kc2ktYnVzLmgNCj4gbmV3IGZp
-bGUgbW9kZSAxMDA2NDQNCj4gaW5kZXggMDAwMDAwMC4uYTc4NzkyZA0KPiAtLS0gL2Rldi9udWxs
-DQo+ICsrKyBiL2luY2x1ZGUvdmlkZW8vbWlwaS1kc2ktYnVzLmgNCj4gQEAgLTAsMCArMSwxNDQg
-QEANCj4gKy8qDQo+ICsgKiBNSVBJIERTSSBCdXMNCj4gKyAqDQo+ICsgKiBDb3B5cmlnaHQgKEMp
-IDIwMTMsIFNhbXN1bmcgRWxlY3Ryb25pY3MsIENvLiwgTHRkLg0KPiArICogQW5kcnplaiBIYWpk
-YSA8YS5oYWpkYUBzYW1zdW5nLmNvbT4NCj4gKyAqDQo+ICsgKiBUaGlzIHByb2dyYW0gaXMgZnJl
-ZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQ0KPiArICog
-aXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJz
-aW9uIDIgYXMNCj4gKyAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9u
-Lg0KPiArICovDQo+ICsNCj4gKyNpZm5kZWYgX19NSVBJX0RTSV9CVVNfSF9fDQo+ICsjZGVmaW5l
-IF9fTUlQSV9EU0lfQlVTX0hfXw0KPiArDQo+ICsjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+DQo+
-ICsjaW5jbHVkZSA8dmlkZW8vdmlkZW9tb2RlLmg+DQo+ICsNCj4gK3N0cnVjdCBtaXBpX2RzaV9i
-dXM7DQo+ICtzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlOw0KPiArDQo+ICtzdHJ1Y3QgbWlwaV9kc2lf
-YnVzX29wcyB7DQo+ICsJaW50ICgqc2V0X3Bvd2VyKShzdHJ1Y3QgbWlwaV9kc2lfYnVzICpidXMs
-IHN0cnVjdCBtaXBpX2RzaV9kZXZpY2UNCj4gKmRldiwNCj4gKwkJCSBib29sIG9uKTsNCj4gKwlp
-bnQgKCpzZXRfc3RyZWFtKShzdHJ1Y3QgbWlwaV9kc2lfYnVzICpidXMsIHN0cnVjdCBtaXBpX2Rz
-aV9kZXZpY2UNCj4gKmRldiwNCj4gKwkJCSAgYm9vbCBvbik7DQo+ICsJaW50ICgqdHJhbnNmZXIp
-KHN0cnVjdCBtaXBpX2RzaV9idXMgKmJ1cywgc3RydWN0IG1pcGlfZHNpX2RldmljZQ0KPiAqZGV2
-LA0KPiArCQkJdTggdHlwZSwgY29uc3QgdTggKnR4X2J1Ziwgc2l6ZV90IHR4X2xlbiwgdTggKnJ4
-X2J1ZiwNCj4gKwkJCXNpemVfdCByeF9sZW4pOw0KPiArfTsNCj4gKw0KPiArI2RlZmluZSBEU0lf
-TU9ERV9WSURFTwkJCSgxIDw8IDApDQo+ICsjZGVmaW5lIERTSV9NT0RFX1ZJREVPX0JVUlNUCQko
-MSA8PCAxKQ0KPiArI2RlZmluZSBEU0lfTU9ERV9WSURFT19TWU5DX1BVTFNFCSgxIDw8IDIpDQo+
-ICsjZGVmaW5lIERTSV9NT0RFX1ZJREVPX0FVVE9fVkVSVAkoMSA8PCAzKQ0KPiArI2RlZmluZSBE
-U0lfTU9ERV9WSURFT19IU0UJCSgxIDw8IDQpDQo+ICsjZGVmaW5lIERTSV9NT0RFX1ZJREVPX0hG
-UAkJKDEgPDwgNSkNCj4gKyNkZWZpbmUgRFNJX01PREVfVklERU9fSEJQCQkoMSA8PCA2KQ0KPiAr
-I2RlZmluZSBEU0lfTU9ERV9WSURFT19IU0EJCSgxIDw8IDcpDQo+ICsjZGVmaW5lIERTSV9NT0RF
-X1ZTWU5DX0ZMVVNICQkoMSA8PCA4KQ0KPiArI2RlZmluZSBEU0lfTU9ERV9FT1RfUEFDS0VUCQko
-MSA8PCA5KQ0KPiArDQo+ICtlbnVtIG1pcGlfZHNpX3BpeGVsX2Zvcm1hdCB7DQo+ICsJRFNJX0ZN
-VF9SR0I4ODgsDQo+ICsJRFNJX0ZNVF9SR0I2NjYsDQo+ICsJRFNJX0ZNVF9SR0I2NjZfUEFDS0VE
-LA0KPiArCURTSV9GTVRfUkdCNTY1LA0KPiArfTsNCj4gKw0KPiArc3RydWN0IG1pcGlfZHNpX2lu
-dGVyZmFjZV9wYXJhbXMgew0KPiArCWVudW0gbWlwaV9kc2lfcGl4ZWxfZm9ybWF0IGZvcm1hdDsN
-Cj4gKwl1bnNpZ25lZCBsb25nIG1vZGU7DQo+ICsJdW5zaWduZWQgbG9uZyBoc19jbGtfZnJlcTsN
-Cj4gKwl1bnNpZ25lZCBsb25nIGVzY19jbGtfZnJlcTsNCj4gKwl1bnNpZ25lZCBjaGFyIGRhdGFf
-bGFuZXM7DQo+ICsJdW5zaWduZWQgY2hhciBjbWRfYWxsb3c7DQo+ICt9Ow0KPiArDQo+ICtzdHJ1
-Y3QgbWlwaV9kc2lfYnVzIHsNCj4gKwlzdHJ1Y3QgZGV2aWNlICpkZXY7DQo+ICsJY29uc3Qgc3Ry
-dWN0IG1pcGlfZHNpX2J1c19vcHMgKm9wczsNCj4gK307DQo+ICsNCj4gKyNkZWZpbmUgTUlQSV9E
-U0lfTU9EVUxFX1BSRUZJWAkJIm1pcGktZHNpOiINCj4gKyNkZWZpbmUgTUlQSV9EU0lfTkFNRV9T
-SVpFCQkzMg0KPiArDQo+ICtzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlX2lkIHsNCj4gKwljaGFyIG5h
-bWVbTUlQSV9EU0lfTkFNRV9TSVpFXTsNCj4gKwlfX2tlcm5lbF91bG9uZ190IGRyaXZlcl9kYXRh
-CS8qIERhdGEgcHJpdmF0ZSB0byB0aGUgZHJpdmVyICovDQo+ICsJCQlfX2FsaWduZWQoc2l6ZW9m
-KF9fa2VybmVsX3Vsb25nX3QpKTsNCj4gK307DQo+ICsNCj4gK3N0cnVjdCBtaXBpX2RzaV9kZXZp
-Y2Ugew0KPiArCWNoYXIgbmFtZVtNSVBJX0RTSV9OQU1FX1NJWkVdOw0KPiArCWludCBpZDsNCj4g
-KwlzdHJ1Y3QgZGV2aWNlIGRldjsNCj4gKw0KPiArCWNvbnN0IHN0cnVjdCBtaXBpX2RzaV9kZXZp
-Y2VfaWQgKmlkX2VudHJ5Ow0KPiArCXN0cnVjdCBtaXBpX2RzaV9idXMgKmJ1czsNCj4gKwlzdHJ1
-Y3QgdmlkZW9tb2RlIHZtOw0KPiArCXN0cnVjdCBtaXBpX2RzaV9pbnRlcmZhY2VfcGFyYW1zIHBh
-cmFtczsNCj4gK307DQo+ICsNCj4gKyNkZWZpbmUgdG9fbWlwaV9kc2lfZGV2aWNlKGQpCWNvbnRh
-aW5lcl9vZihkLCBzdHJ1Y3QNCj4gbWlwaV9kc2lfZGV2aWNlLCBkZXYpDQo+ICsNCj4gK2ludCBt
-aXBpX2RzaV9kZXZpY2VfcmVnaXN0ZXIoc3RydWN0IG1pcGlfZHNpX2RldmljZSAqZGV2LA0KPiAr
-CQkJICAgICBzdHJ1Y3QgbWlwaV9kc2lfYnVzICpidXMpOw0KPiArdm9pZCBtaXBpX2RzaV9kZXZp
-Y2VfdW5yZWdpc3RlcihzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlICpkZXYpOw0KPiArDQo+ICtzdHJ1
-Y3QgbWlwaV9kc2lfZHJpdmVyIHsNCj4gKwlpbnQoKnByb2JlKShzdHJ1Y3QgbWlwaV9kc2lfZGV2
-aWNlICopOw0KPiArCWludCgqcmVtb3ZlKShzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlICopOw0KPiAr
-CXN0cnVjdCBkZXZpY2VfZHJpdmVyIGRyaXZlcjsNCj4gKwljb25zdCBzdHJ1Y3QgbWlwaV9kc2lf
-ZGV2aWNlX2lkICppZF90YWJsZTsNCj4gK307DQo+ICsNCj4gKyNkZWZpbmUgdG9fbWlwaV9kc2lf
-ZHJpdmVyKGQpCWNvbnRhaW5lcl9vZihkLCBzdHJ1Y3QNCj4gbWlwaV9kc2lfZHJpdmVyLCBkcml2
-ZXIpDQo+ICsNCj4gK2ludCBtaXBpX2RzaV9kcml2ZXJfcmVnaXN0ZXIoc3RydWN0IG1pcGlfZHNp
-X2RyaXZlciAqZHJ2KTsNCj4gK3ZvaWQgbWlwaV9kc2lfZHJpdmVyX3VucmVnaXN0ZXIoc3RydWN0
-IG1pcGlfZHNpX2RyaXZlciAqZHJ2KTsNCj4gKw0KPiArc3RhdGljIGlubGluZSB2b2lkICptaXBp
-X2RzaV9nZXRfZHJ2ZGF0YShjb25zdCBzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlDQo+ICpkZXYpDQo+
-ICt7DQo+ICsJcmV0dXJuIGRldl9nZXRfZHJ2ZGF0YSgmZGV2LT5kZXYpOw0KPiArfQ0KPiArDQo+
-ICtzdGF0aWMgaW5saW5lIHZvaWQgbWlwaV9kc2lfc2V0X2RydmRhdGEoc3RydWN0IG1pcGlfZHNp
-X2RldmljZSAqZGV2LA0KPiArCQkJCQl2b2lkICpkYXRhKQ0KPiArew0KPiArCWRldl9zZXRfZHJ2
-ZGF0YSgmZGV2LT5kZXYsIGRhdGEpOw0KPiArfQ0KPiArDQo+ICtpbnQgb2ZfbWlwaV9kc2lfcmVn
-aXN0ZXJfZGV2aWNlcyhzdHJ1Y3QgbWlwaV9kc2lfYnVzICpidXMpOw0KPiArdm9pZCBtaXBpX2Rz
-aV91bnJlZ2lzdGVyX2RldmljZXMoc3RydWN0IG1pcGlfZHNpX2J1cyAqYnVzKTsNCj4gKw0KPiAr
-LyogbW9kdWxlX21pcGlfZHNpX2RyaXZlcigpIC0gSGVscGVyIG1hY3JvIGZvciBkcml2ZXJzIHRo
-YXQgZG9uJ3QgZG8NCj4gKyAqIGFueXRoaW5nIHNwZWNpYWwgaW4gbW9kdWxlIGluaXQvZXhpdC4g
-IFRoaXMgZWxpbWluYXRlcyBhIGxvdCBvZg0KPiArICogYm9pbGVycGxhdGUuICBFYWNoIG1vZHVs
-ZSBtYXkgb25seSB1c2UgdGhpcyBtYWNybyBvbmNlLCBhbmQNCj4gKyAqIGNhbGxpbmcgaXQgcmVw
-bGFjZXMgbW9kdWxlX2luaXQoKSBhbmQgbW9kdWxlX2V4aXQoKQ0KPiArICovDQo+ICsjZGVmaW5l
-IG1vZHVsZV9taXBpX2RzaV9kcml2ZXIoX19taXBpX2RzaV9kcml2ZXIpIFwNCj4gKwltb2R1bGVf
-ZHJpdmVyKF9fbWlwaV9kc2lfZHJpdmVyLCBtaXBpX2RzaV9kcml2ZXJfcmVnaXN0ZXIsIFwNCj4g
-KwkJCW1pcGlfZHNpX2RyaXZlcl91bnJlZ2lzdGVyKQ0KPiArDQo+ICtpbnQgbWlwaV9kc2lfc2V0
-X3Bvd2VyKHN0cnVjdCBtaXBpX2RzaV9kZXZpY2UgKmRldiwgYm9vbCBvbik7DQo+ICtpbnQgbWlw
-aV9kc2lfc2V0X3N0cmVhbShzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlICpkZXYsIGJvb2wgb24pOw0K
-PiAraW50IG1pcGlfZHNpX2Rjc193cml0ZShzdHJ1Y3QgbWlwaV9kc2lfZGV2aWNlICpkZXYsIGlu
-dCBjaGFubmVsLCBjb25zdCB1OA0KPiAqZGF0YSwNCj4gKwkJICAgICAgIHNpemVfdCBsZW4pOw0K
-PiAraW50IG1pcGlfZHNpX2Rjc19yZWFkKHN0cnVjdCBtaXBpX2RzaV9kZXZpY2UgKmRldiwgaW50
-IGNoYW5uZWwsIHU4IGNtZCwNCj4gKwkJICAgICAgdTggKmRhdGEsIHNpemVfdCBsZW4pOw0KPiAr
-DQo+ICsjZGVmaW5lIG1pcGlfZHNpX2Rjc193cml0ZV9zZXEoZGV2LCBjaGFubmVsLCBzZXEuLi4p
-IFwNCj4gKyh7XA0KPiArCWNvbnN0IHU4IGRbXSA9IHsgc2VxIH07XA0KPiArCUJVSUxEX0JVR19P
-Tl9NU0coQVJSQVlfU0laRShkKSA+IDY0LCAiRENTIHNlcXVlbmNlIHRvbyBsb25nIGZvcg0KPiBz
-dGFjayIpO1wNCj4gKwltaXBpX2RzaV9kY3Nfd3JpdGUoZGV2LCBjaGFubmVsLCBkLCBBUlJBWV9T
-SVpFKGQpKTtcDQo+ICt9KQ0KPiArDQo+ICsjZGVmaW5lIG1pcGlfZHNpX2Rjc193cml0ZV9zdGF0
-aWNfc2VxKGRldiwgY2hhbm5lbCwgc2VxLi4uKSBcDQo+ICsoe1wNCj4gKwlzdGF0aWMgY29uc3Qg
-dTggZFtdID0geyBzZXEgfTtcDQo+ICsJbWlwaV9kc2lfZGNzX3dyaXRlKGRldiwgY2hhbm5lbCwg
-ZCwgQVJSQVlfU0laRShkKSk7XA0KPiArfSkNCj4gKw0KPiArI2VuZGlmIC8qIF9fTUlQSV9EU0lf
-QlVTX18gKi8NCg0KSSBtYXkgd2VsbCBoYXZlIG1pc3NlZCBzb21ldGhpbmcsIGJ1dCBJIGNhbid0
-IHNlZSBleGFjdGx5IGhvdyBhIGNvbW1hbmQgbW9kZQ0KdXBkYXRlIHdvdWxkIGJlIGRvbmUgd2l0
-aCB0aGlzIGludGVyZmFjZS4gV291bGQgdGhpcyByZXF1aXJlIHJlcGVhdGVkIGNhbGxzIHRvDQou
-dHJhbnNmZXI/IFN1Y2ggdHJhbnNmZXJzIHdvdWxkIG5lZWQgdG8gYmUgZmxhZ2dlZCBhcyByZXF1
-aXJpbmcNCnN5bmNocm9uaXNhdGlvbiB3aXRoIGEgdGVhcmluZyBlZmZlY3QgY29udHJvbCBzaWdu
-YWwgLSBlaXRoZXIgdGhlIGluYmFuZA0KbWV0aG9kIG9yIGEgZGVkaWNhdGVkIGxpbmUuIEkgc3Vz
-cGVjdCBtYW55IGhhcmR3YXJlIGltcGxlbWVudGF0aW9ucyB3aWxsIGhhdmUNCmEgc3BlY2lmaWMg
-bWV0aG9kIGZvciB0cmFuc2ZlcnJpbmcgcGl4ZWwgZGF0YSBpbiBhIERTSSBjb21tYW5kIG1vZGUg
-dHJhbnNmZXIuDQoNClRoZSBjb21tYW5kIHNlbmRpbmcgcGVyaW9kIGR1cmluZyB2aWRlbyBtb2Rl
-IHNob3VsZCBwcm9iYWJseSBiZSBjb25maWd1cmFibGUNCm9uIGEgcGVyLXRyYW5zZmVyIGJhc2lz
-LiBTb21lIGNvbW1hbmRzIGhhdmUgdG8gYmUgc3luY2hyb25pc2VkIHdpdGggdmVydGljYWwNCmJs
-YW5raW5nLCBvdGhlcnMgZG8gbm90LiBUaGlzIGNvdWxkIHBlcmhhcHMgYmUgY29tYmluZWQgd2l0
-aCBhIHdpZGVyDQpjb25maWd1cmF0aW9uIG9wdGlvbiBmb3IgYSBnaXZlbiBwYW5lbCBvciBpbnRl
-cmZhY2UuIFNpbWlsYXJseSwgc2VsZWN0aW9uIG9mDQpsb3cgcG93ZXIgKExQKSBhbmQgaGlnaCBz
-cGVlZCAoSFMpIG1vZGUgb24gYSBwZXItdHJhbnNmZXIgYmFzaXMgY2FuIGJlIG5lZWRlZA0KZm9y
-IHNvbWUgcGFuZWxzLg0KDQpJcyB0aGVyZSBhIG1lY2hhbmlzbSBmb3IgY29udHJvbGxpbmcgdWx0
-cmEtbG93IHBvd2VyIHN0YXRlIChVTFBTKSBlbnRyeT8gQWxzbywNCmlzIHRoZXJlIGEgbWV0aG9k
-IGZvciBzZW5kaW5nIGFyYml0cmFyeSB0cmlnZ2VyIG1lc3NhZ2VzIChlZyB0aGUgcmVzZXQNCnRy
-aWdnZXIpPw0KDQpUaGFua3MsDQoNCkJlcnQuDQotLSANCkJlcnQgS2Vud2FyZA0KU29mdHdhcmUg
-RW5naW5lZXINCkJyb2FkY29tIE1vYmlsZSBQbGF0Zm9ybSBTb2x1dGlvbnMNCkNhbWJyaWRnZSwg
-VUsNCg==
+On 03.10.2013 01:09, Luis Alves wrote:
+> Hi Mike,
+>
+> It's done (also tested and apparently working good)!
+>
+> I didn't know if two separated patches were needed (one for the cx24117 and the other for the cx23885) but I've splited it.
+> As you pointed out, this series of patches are to be used against your cx24117 branch.
+>
+> Regards,
+> Luis
+>
+> Signed-off-by: Luis Alves <ljalvs@gmail.com>
 
+I am not very familiar how that hybrid tuner request works, but it seems 
+to be based of driver global list.
+
+I wonder if that works as it should. What happens when you have two 
+cx24117 demods equipped, having total of 4 frontends? Does it block 
+access only for one demod at the time (as it should block only one per 
+chip)?
+
+regards
+Antti
+
+
+> ---
+>   drivers/media/dvb-frontends/cx24117.c |   72 +++++++++++++++++++++++----------
+>   drivers/media/dvb-frontends/cx24117.h |    4 +-
+>   2 files changed, 53 insertions(+), 23 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
+> index 3b63913..9087309 100644
+> --- a/drivers/media/dvb-frontends/cx24117.c
+> +++ b/drivers/media/dvb-frontends/cx24117.c
+> @@ -31,6 +31,7 @@
+>   #include <linux/init.h>
+>   #include <linux/firmware.h>
+>
+> +#include "tuner-i2c.h"
+>   #include "dvb_frontend.h"
+>   #include "cx24117.h"
+>
+> @@ -145,6 +146,9 @@ enum cmds {
+>   	CMD_TUNERSLEEP  = 0x36,
+>   };
+>
+> +static LIST_HEAD(hybrid_tuner_instance_list);
+> +static DEFINE_MUTEX(cx24117_list_mutex);
+> +
+>   /* The Demod/Tuner can't easily provide these, we cache them */
+>   struct cx24117_tuning {
+>   	u32 frequency;
+> @@ -176,9 +180,11 @@ struct cx24117_priv {
+>   	u8 demod_address;
+>   	struct i2c_adapter *i2c;
+>   	u8 skip_fw_load;
+> -
+>   	struct mutex fe_lock;
+> -	atomic_t fe_nr;
+> +
+> +	/* Used for sharing this struct between demods */
+> +	struct tuner_i2c_props i2c_props;
+> +	struct list_head hybrid_tuner_instance_list;
+>   };
+>
+>   /* one per each fe */
+> @@ -536,7 +542,7 @@ static int cx24117_load_firmware(struct dvb_frontend *fe,
+>   	dev_dbg(&state->priv->i2c->dev,
+>   		"%s() demod%d FW is %zu bytes (%02x %02x .. %02x %02x)\n",
+>   		__func__, state->demod, fw->size, fw->data[0], fw->data[1],
+> -		fw->data[fw->size-2], fw->data[fw->size-1]);
+> +		fw->data[fw->size - 2], fw->data[fw->size - 1]);
+>
+>   	cx24117_writereg(state, 0xea, 0x00);
+>   	cx24117_writereg(state, 0xea, 0x01);
+> @@ -1116,37 +1122,64 @@ static int cx24117_diseqc_send_burst(struct dvb_frontend *fe,
+>   	return 0;
+>   }
+>
+> +static int cx24117_get_priv(struct cx24117_priv **priv,
+> +	struct i2c_adapter *i2c, u8 client_address)
+> +{
+> +	int ret;
+> +
+> +	mutex_lock(&cx24117_list_mutex);
+> +	ret = hybrid_tuner_request_state(struct cx24117_priv, (*priv),
+> +		hybrid_tuner_instance_list, i2c, client_address, "cx24117");
+> +	mutex_unlock(&cx24117_list_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static void cx24117_release_priv(struct cx24117_priv *priv)
+> +{
+> +	mutex_lock(&cx24117_list_mutex);
+> +	if (priv != NULL)
+> +		hybrid_tuner_release_state(priv);
+> +	mutex_unlock(&cx24117_list_mutex);
+> +}
+> +
+>   static void cx24117_release(struct dvb_frontend *fe)
+>   {
+>   	struct cx24117_state *state = fe->demodulator_priv;
+>   	dev_dbg(&state->priv->i2c->dev, "%s demod%d\n",
+>   		__func__, state->demod);
+> -	if (!atomic_dec_and_test(&state->priv->fe_nr))
+> -		kfree(state->priv);
+> +	cx24117_release_priv(state->priv);
+>   	kfree(state);
+>   }
+>
+>   static struct dvb_frontend_ops cx24117_ops;
+>
+>   struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
+> +	struct i2c_adapter *i2c)
+>   {
+>   	struct cx24117_state *state = NULL;
+>   	struct cx24117_priv *priv = NULL;
+>   	int demod = 0;
+>
+> -	/* first frontend attaching */
+> -	/* allocate shared priv struct */
+> -	if (fe == NULL) {
+> -		priv = kzalloc(sizeof(struct cx24117_priv), GFP_KERNEL);
+> -		if (priv == NULL)
+> -			goto error1;
+> +	/* get the common data struct for both demods */
+> +	demod = cx24117_get_priv(&priv, i2c, config->demod_address);
+> +
+> +	switch (demod) {
+> +	case 0:
+> +		dev_err(&state->priv->i2c->dev,
+> +			"%s: Error attaching frontend %d\n",
+> +			KBUILD_MODNAME, demod);
+> +		goto error1;
+> +		break;
+> +	case 1:
+> +		/* new priv instance */
+>   		priv->i2c = i2c;
+>   		priv->demod_address = config->demod_address;
+>   		mutex_init(&priv->fe_lock);
+> -	} else {
+> -		demod = 1;
+> -		priv = ((struct cx24117_state *) fe->demodulator_priv)->priv;
+> +		break;
+> +	default:
+> +		/* existing priv instance */
+> +		break;
+>   	}
+>
+>   	/* allocate memory for the internal state */
+> @@ -1154,7 +1187,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>   	if (state == NULL)
+>   		goto error2;
+>
+> -	state->demod = demod;
+> +	state->demod = demod - 1;
+>   	state->priv = priv;
+>
+>   	/* test i2c bus for ack */
+> @@ -1163,12 +1196,9 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>   			goto error3;
+>   	}
+>
+> -	/* nr of frontends using the module */
+> -	atomic_inc(&priv->fe_nr);
+> -
+>   	dev_info(&state->priv->i2c->dev,
+>   		"%s: Attaching frontend %d\n",
+> -		KBUILD_MODNAME, demod);
+> +		KBUILD_MODNAME, state->demod);
+>
+>   	/* create dvb_frontend */
+>   	memcpy(&state->frontend.ops, &cx24117_ops,
+> @@ -1179,7 +1209,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
+>   error3:
+>   	kfree(state);
+>   error2:
+> -	kfree(priv);
+> +	cx24117_release_priv(priv);
+>   error1:
+>   	return NULL;
+>   }
+> diff --git a/drivers/media/dvb-frontends/cx24117.h b/drivers/media/dvb-frontends/cx24117.h
+> index 5bc8f11..4e59e95 100644
+> --- a/drivers/media/dvb-frontends/cx24117.h
+> +++ b/drivers/media/dvb-frontends/cx24117.h
+> @@ -33,11 +33,11 @@ struct cx24117_config {
+>   #if IS_ENABLED(CONFIG_DVB_CX24117)
+>   extern struct dvb_frontend *cx24117_attach(
+>   	const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe);
+> +	struct i2c_adapter *i2c);
+>   #else
+>   static inline struct dvb_frontend *cx24117_attach(
+>   	const struct cx24117_config *config,
+> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
+> +	struct i2c_adapter *i2c)
+>   {
+>   	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+>   	return NULL;
+>
+
+
+-- 
+http://palosaari.fi/
