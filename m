@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:36403 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754936Ab3JXPmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Oct 2013 11:42:11 -0400
-Received: by mail-oa0-f41.google.com with SMTP id o9so2604718oag.14
-        for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 08:42:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
-References: <1381940896-9355-1-git-send-email-kishon@ti.com>
-	<1381940896-9355-4-git-send-email-kishon@ti.com>
-	<CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
-Date: Thu, 24 Oct 2013 21:12:09 +0530
-Message-ID: <CAK9yfHxaLsdFGXiCxvs+HpMSuY6xWd=CGPv-YfSkJqWSxE+f-w@mail.gmail.com>
-Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Olof Johansson <olof@lixom.net>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:21576 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab3JBRLa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 13:11:30 -0400
+Date: Wed, 02 Oct 2013 14:11:23 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Xenia Ragiadakou <burzalodowa@gmail.com>,
+	linux-usb@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: New USB core API to change interval and max packet size
+Message-id: <20131002141123.1c8d2e3b@samsung.com>
+In-reply-to: <Pine.LNX.4.44L0.1310021234510.1293-100000@iolanthe.rowland.org>
+References: <20131002131550.38f90611@samsung.com>
+ <Pine.LNX.4.44L0.1310021234510.1293-100000@iolanthe.rowland.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olof,
+Em Wed, 02 Oct 2013 12:38:14 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> escreveu:
 
-On 24 October 2013 20:00, Olof Johansson <olof@lixom.net> wrote:
-> Hi Kishon,
->
-> On Wed, Oct 16, 2013 at 9:28 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
->> index 32e5406..00b3a52 100644
->> --- a/drivers/video/exynos/exynos_mipi_dsi.c
->> +++ b/drivers/video/exynos/exynos_mipi_dsi.c
->> @@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
->>                 exynos_mipi_regulator_enable(dsim);
->>
->>                 /* enable MIPI-DSI PHY. */
->> -               if (dsim->pd->phy_enable)
->> -                       dsim->pd->phy_enable(pdev, true);
->> +               phy_power_on(dsim->phy);
->>
->>                 clk_enable(dsim->clock);
->>
->
-> This introduces the below with exynos_defconfig:
->
-> ../../drivers/video/exynos/exynos_mipi_dsi.c: In function
-> 'exynos_mipi_dsi_blank_mode':
-> ../../drivers/video/exynos/exynos_mipi_dsi.c:144:26: warning: unused
-> variable 'pdev' [-Wunused-variable]
->   struct platform_device *pdev = to_platform_device(dsim->dev);
->
+> On Wed, 2 Oct 2013, Mauro Carvalho Chehab wrote:
+> 
+> > > > So, there's no need to call usb_change_ep_bandwidth().
+> > > 
+> > > That's right.
+> > > 
+> > > > If so, then usb_change_ep_bandwidth() as a quirk, if bInterval
+> > > > or wMaxPacketSize were improperly filled.
+> > > > 
+> > > > Right?
+> > > 
+> > > Or if the values are correct, but the driver wants to use something 
+> > > different for its own reasons (for example, to get lower latency or 
+> > > because it knows that it will never use packets as large as the 
+> > > descriptor allows).  Right.
+> > 
+> > Ok, so, in this case, usb_change_ep_bandwidth() could be called
+> > just before usb_alloc_urb(), in order to make it to use the packet
+> > size that would be expected for that kind of ISOC traffic that
+> > userspace indirectly selected, by adjusting the streaming
+> > video resolution selected, right?
+> 
+> We haven't decided on the final API yet.  However, note that
+> usb_alloc_urb() doesn't depend on the packet size.  It requires you to
+> specify only the number of packets, not their sizes.  Therefore it
+> doesn't matter whether you call usb_change_ep_bandwidth() before or
+> after usb_alloc_urb().
 
-I have already submitted a patch to fix this [1]
+Sure, but, at least on almost all V4L2 drivers, the number of packets
+and their sizes should be calculated to be able to receive all URBs
+needed to store a complete image frame (that generally arrives on 
+every 1/60 Hz or 1/50 Hz - depending on the frames per second rate).
 
-[1] http://marc.info/?l=linux-fbdev&m=138233359617936&w=2
+On those drivers, the transfer_buffer is allocated at the same loop 
+where usb_alloc_urb() is called.
 
+So, it makes sense for them to specify the bandwidth parameters at
+the function that calls usb_alloc_coherent() and usb_alloc_urb().
 
--- 
-With warm regards,
-Sachin
+Regards,
+Mauro
