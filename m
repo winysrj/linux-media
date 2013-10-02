@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52433 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203Ab3JRUaW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 16:30:22 -0400
-Date: Fri, 18 Oct 2013 22:30:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-cc: m.chehab@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: make sure that all subdevices are powered on
- when needed
-In-Reply-To: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1310182228130.12288@axis700.grange>
-References: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mga09.intel.com ([134.134.136.24]:27430 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754416Ab3JBNos (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Oct 2013 09:44:48 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	teemux.tuominen@intel.com
+Subject: [RFC v2 2/4] v4l: vb2: Only poll for events if the user is interested in them
+Date: Wed,  2 Oct 2013 16:45:14 +0300
+Message-Id: <1380721516-488-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank
+Also poll_wait() before checking the events since otherwise it's possible to
+go to sleep and not getting woken up if the event arrives between the two
+operations.
 
-Thanks for the patch
-
-On Wed, 16 Oct 2013, Frank Schäfer wrote:
-
-> Commit 622b828ab7 ("v4l2_subdev: rename tuner s_standby operation to
-> core s_power") replaced the tuner s_standby call in the em28xx driver with
-> a (s_power, 0) call which suspends all subdevices.
-> But it neglected to add corresponding (s_power, 1) calls to make sure that
-> the subdevices are powered on again when needed.
-> 
-> This patch fixes this issue by adding a (s_power, 1) call to
-> function em28xx_wake_i2c().
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |    1 +
->  1 Datei geändert, 1 Zeile hinzugefügt(+)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index fc157af..8896789 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -1243,6 +1243,7 @@ EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
->   */
->  void em28xx_wake_i2c(struct em28xx *dev)
->  {
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  s_power, 1);
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
->  			INPUT(dev->ctl_input)->vmux, 0, 0);
-
-Do I understand it right, that you're proposing this as an alternative to 
-my power-balancing patch? It's certainly smaller and simpler, have you 
-also tested it with the ov2640 and my clock patches to see, whether this 
-really balances calls to .s_power() perfectly?
-
-Thanks
-Guennadi
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/v4l2-core/videobuf2-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 594c75e..79acf5e 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2003,13 +2003,14 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	unsigned int res = 0;
+ 	unsigned long flags;
+ 
+-	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	    req_events & POLLPRI) {
+ 		struct v4l2_fh *fh = file->private_data;
+ 
++		poll_wait(file, &fh->wait, wait);
++
+ 		if (v4l2_event_pending(fh))
+ 			res = POLLPRI;
+-		else if (req_events & POLLPRI)
+-			poll_wait(file, &fh->wait, wait);
+ 	}
+ 
+ 	if (!V4L2_TYPE_IS_OUTPUT(q->type) && !(req_events & (POLLIN | POLLRDNORM)))
+-- 
+1.8.3.2
+
