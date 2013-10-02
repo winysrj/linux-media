@@ -1,43 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:63204 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755855Ab3JRDIQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 23:08:16 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so3890618pdi.33
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:08:16 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4090 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600Ab3JBC4z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 22:56:55 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r922uqFw085473
+	for <linux-media@vger.kernel.org>; Wed, 2 Oct 2013 04:56:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 215AA2A0768
+	for <linux-media@vger.kernel.org>; Wed,  2 Oct 2013 04:56:44 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, sachin.kamat@linaro.org,
-	m.chehab@samsung.com
-Subject: [PATCH 5/6] [media] tvp7002: Include linux/of.h header
-Date: Fri, 18 Oct 2013 08:37:14 +0530
-Message-Id: <1382065635-27855-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131002025644.215AA2A0768@tschai.lan>
+Date: Wed,  2 Oct 2013 04:56:44 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'of_match_ptr' is defined in linux/of.h. Include it explicitly to
-avoid build breakage in the future.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/i2c/tvp7002.c |    1 +
- 1 file changed, 1 insertion(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 24a08fa..912e1cc 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -29,6 +29,7 @@
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/tvp7002.h>
- #include <media/v4l2-async.h>
--- 
-1.7.9.5
+date:		Wed Oct  2 04:00:16 CEST 2013
+git branch:	test
+git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.10.1
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.10.1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
