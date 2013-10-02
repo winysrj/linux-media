@@ -1,89 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37414 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754136Ab3JJCTJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Oct 2013 22:19:09 -0400
-Message-ID: <1381371651.1889.21.camel@palomino.walls.org>
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Rajil Saraswat <rajil.s@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 09 Oct 2013 22:20:51 -0400
-In-Reply-To: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:65404 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753398Ab3JBKqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 06:46:52 -0400
+Received: by mail-ie0-f172.google.com with SMTP id x13so1325049ief.31
+        for <linux-media@vger.kernel.org>; Wed, 02 Oct 2013 03:46:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1380392497-27406-2-git-send-email-tomasz.figa@gmail.com>
+References: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
+	<1380392497-27406-2-git-send-email-tomasz.figa@gmail.com>
+Date: Wed, 2 Oct 2013 12:46:51 +0200
+Message-ID: <CACRpkdZXOGpTspPucd=d0=Ws9Ccx19h4UYTTdgZceoofhuq0Kw@mail.gmail.com>
+Subject: Re: [PATCH 2/5] gpio: samsung: Use CONFIG_ARCH_S3C64XX to check for
+ S3C64xx support
+From: Linus Walleij <linus.walleij@linaro.org>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Ben Dooks <ben-linux@fluff.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sangbeom Kim <sbkim73@samsung.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Martin Schwidefsky <schwidefsky@de.ibm.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-09-18 at 02:19 +0530, Rajil Saraswat wrote:
-> Hi,
-> 
->  I have a couple of PVR-500's which have additional tuners connected
-> to them (using daughter cards).
+On Sat, Sep 28, 2013 at 8:21 PM, Tomasz Figa <tomasz.figa@gmail.com> wrote:
 
-The PVR-500's don't have daughter cards with additional tuners AFAIK. 
+> Since CONFIG_PLAT_S3C64XX is going to be removed, this patch modifies
+> the gpio-samsung driver to use the proper way of checking for S3C64xx
+> support - CONFIG_ARCH_S3C64XX.
+>
+> Signed-off-by: Tomasz Figa <tomasz.figa@gmail.com>
 
-There is this however:
-http://www.hauppauge.com/site/webstore2/webstore_avcable-pci.asp
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Make sure you have any jumpers set properly and the cable connectors
-seated properly.
+I assume that this will go through ARM SoC?
 
-Also make sure the cable is routed aways from any electrically noisy
-cards and high speed data busses: disk controller cards, graphics cards,
-etc.  
-
->  The audio is not usable on either
-> 1.4.2 or 1.4.3 ivtv drivers. The issue is described at
-> http://ivtvdriver.org/pipermail/ivtv-users/2013-September/010462.html
-
-With your previous working kernel and with the non-working kernel, what
-is the output of
-
-$ v4l2-ctl -d /dev/videoX --log-status
-
-after you have set up the inputs properly and have a known good signal
-going into the input in question?
-
-I'm speculating this is a problem with the cx25840 driver or the wm8775
-driver, since they change more often than the ivtv driver.
-
-BTW, I have very little time to fix things nowadays.
-
-Also my development machine with PCI slots is tied up running simulation
-experiments for 4 more weeks.  I can't test any fixes until those
-simulations are done.
-
-> Is there anything i can do to make kernel 3.10.7 (ivtv 1.4.3) play
-> nice with my card?
-
-1. Differential analysis of the v4l2-ctl --log-status output
-
-2. Differential analysis of the kernel source code for the ivtv, cx2580,
-and wm8775 drivers.
-
-3. git bisection of the kernel starting from known good and bad kernel
-versions, compile kernel, test, repeat.
-http://git-scm.com/book/en/Git-Tools-Debugging-with-Git#Binary-Search
-http://lwn.net/Articles/317154/
-
-That's what I'd have to do, but it takes time and a setup that is able
-to reporduce the problem reliably.
-
-The git bisect is guaranteed to terminate on the problem change, if it
-is a software change that caused the problem.
-
-Although it doesn't sound like a hardware problem so far:
-
-If it is a hardware problem induced by a change in hardware, or the way
-the hardware is being driven, then verify your cables and any jumpers
-and take steps to reduce EMI on the audio lines (move the cables away
-from potential noise sources).  Also, if you suspect hardware, remove
-*all* the PCI cards, blow the dust out of the PCI slots and reseat them.
-
-Regards,
-Andy
-
+Yours,
+Linus Walleij
