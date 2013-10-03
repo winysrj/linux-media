@@ -1,108 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4709 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854Ab3JHDAQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 23:00:16 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9830D68087412
-	for <linux-media@vger.kernel.org>; Tue, 8 Oct 2013 05:00:15 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 315C52A04DF
-	for <linux-media@vger.kernel.org>; Tue,  8 Oct 2013 05:00:12 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131008030012.315C52A04DF@tschai.lan>
-Date: Tue,  8 Oct 2013 05:00:12 +0200 (CEST)
+Received: from ni.piap.pl ([195.187.100.4]:45719 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753801Ab3JCOAu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Oct 2013 10:00:50 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: linux-mips@linux-mips.org, linux-media@vger.kernel.org
+Date: Thu, 03 Oct 2013 16:00:47 +0200
+MIME-Version: 1.0
+Message-ID: <m3eh82a1yo.fsf@t19.piap.pl>
+Content-Type: text/plain
+Subject: Suspected cache coherency problem on V4L2 and AR7100 CPU
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+I'm debugging a problem with a SOLO6110-based H.264 PCI video encoder on
+Atheros AR7100-based (MIPS, big-endian) platform.
 
-date:		Tue Oct  8 04:00:21 CEST 2013
-git branch:	test
-git hash:	d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-4.slh.2-amd64
+The problem manifests itself with stale data being returned by the
+driver (using ioctl VIDIOC_DQBUF). The stale date always starts and ends
+on 32-byte cache line boundary.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+The driver is drivers/staging/media/solo6x10.
 
-Detailed results are available here:
+Initially I thought the encoder hardware is at fault (though it works on
+i686 and on (both endians) ARM). But I've eliminated actual DMA accesses
+from the driver and the problems still persists.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+The control flow is now basically the following:
+- userspace program initializes the adapter and allocates 192 KB long
+  buffers (at least 2 of them):
+	open(/dev/video1);
 
-Full logs are available here:
+	various ioctl() calls
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+	for (cnt = 0; cnt < buffer_count; cnt++) {
+		struct v4l2_buffer buf = {
+			.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+			.memory = V4L2_MEMORY_MMAP,
+			.index = cnt,
+		};
+		ioctl(stream->fd, VIDIOC_QUERYBUF, &buf);
+		mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, stream->fd, buf.m.offset);
+        }
 
-The Media Infrastructure API from this daily build is here:
+and then:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	for (cnt = 0; cnt < buffer_count; cnt++) {
+		struct v4l2_buffer buf = {
+			.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+			.memory = V4L2_MEMORY_MMAP,
+			.index = cnt,
+		ioctl(stream->fd, VIDIOC_QBUF, &buf);
+	}
+
+The buffers are now queued. The driver (upon receiving an encoded frame)
+now mostly does:
+
+	various spin_lock() etc.
+	vb = list_first_entry(&solo_enc->vidq_active, struct solo_vb2_buf, list);
+	list_del(&vb->list);
+
+	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+
+        /* now we have vbuf->sglist which corresponds to a single
+	userspace 192-KB buffer */
+
+	vb2_set_plane_payload(vb, 0, 1024 /* bytes */);
+
+	static u32 n = 0; /* a counter to mark each buffer */
+
+        /* the following is normally done using dma_map_sg() and DMA,
+        and also with sg_copy_from_buffer() - eliminated for now */
+
+	/* I do the following instead */
+	struct page *page = sg_page(vbuf->sglist);
+	u32 *addr = kmap_atomic(page);
+
+	/* 4 times as large, I know, the buffer is much longer though */
+	for (i = 0; i < 1024; i++)
+		addr[i] = n;
+
+	flush_dcache_page(page); /* and/or */
+	flush_kernel_dcache_page(page);
+
+	kunmap_atomic(addr);
+
+	vb->v4l2_buf.sequence = solo_enc->sequence++;
+	vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
+	vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
+
+	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+
+The userspace server now does ioctl(VIDIOC_DQBUF), sends it using UDP,
+and populates buffer pool again with ioctl(VIDIOC_QBUF).
+
+The driver uses directly-mapped cached (kernel) pointers to access the
+buffers (0x80000000->0x9FFFFFFF kseg0 region) while (obviously)
+userspace uses TLB-mapped pointers.
+
+I have verified with a JTAG-based debugger (OpenOCD) that the buffers
+are flushed to DRAM (0xAxxxxxxx uncached directly-mapped region has
+valid data), however the userspace TLB-mapped buffers (which correspond
+to the same physical DRAM addresses) partially contain old cached data
+(from previous iterations).
+
+The question is which part of the code is at fault, and how do I fix it.
+I understand invalidating (and perhaps first flushing) userspace buffers
+(cache) should generally fix the problem.
+
+This could also be a simple bug rather than API/platform incompatibility
+because usually (though not always) only 1 of the buffers gets corrupted
+(the second one of two).
+
+It looks like this - valid buffer, counter n = 0x499, a fragment
+of actual UDP packet:
+        0x0030:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0040:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0050:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0060:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0070:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0080:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x0090:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x00a0:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+        0x00b0:  0000 0499 0000 0499 0000 0499 0000 0499  ................
+
+next buffer is corrupted, n = 0x49A:
+        0x0030:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x0040:  0000 049a 0000 0468 0000 0468 0000 0468  .......h...h...h
+        0x0050:  0000 0468 0000 0468 0000 0468 0000 0468  ...h...h...h...h
+        0x0060:  0000 0468 0000 049a 0000 049a 0000 049a  ...h............
+        0x0070:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x0080:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x0090:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x00a0:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x00b0:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x00c0:  0000 049a 0000 0478 0000 0478 0000 0478  .......x...x...x
+        0x00d0:  0000 0478 0000 0478 0000 0478 0000 0478  ...x...x...x...x
+        0x00e0:  0000 0478 0000 049a 0000 049a 0000 049a  ...x............
+        0x00f0:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+        0x0100:  0000 049a 0000 049a 0000 049a 0000 049a  ................
+
+Additional details: Ubiquity RouterStation Pro, gcc-4.7.3, Linux v3.11.
+
+Any ideas?
+-- 
+Krzysztof Halasa
+
+Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
