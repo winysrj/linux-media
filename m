@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:56232 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752670Ab3JMGFO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 02:05:14 -0400
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: edubezval@gmail.com, m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] [media] radio-si4713: remove deprecated IRQF_DISABLED
-Date: Sun, 13 Oct 2013 08:05:11 +0200
-Message-Id: <1381644311-9151-1-git-send-email-michael.opdenacker@free-electrons.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47935 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755451Ab3JCV7g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 17:59:36 -0400
+Received: from avalon.ideasonboard.com (191.Red-2-143-34.dynamicIP.rima-tde.net [2.143.34.191])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7DF9C35A47
+	for <linux-media@vger.kernel.org>; Thu,  3 Oct 2013 23:58:59 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l2-fh: Include linux/videodev2.h for enum v4l2_priority definition
+Date: Thu,  3 Oct 2013 23:59:30 +0200
+Message-Id: <1380837570-7515-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch proposes to remove the use of the IRQF_DISABLED flag
+struct v4l2_fh has an enum v4l2_priority field. Make sure the enum
+definition is available by including linux/videodev2.h.
 
-It's a NOOP since 2.6.35 and it will be removed one day.
-
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/radio/si4713-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/v4l2-fh.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
-index fe16088..9ec48cc 100644
---- a/drivers/media/radio/si4713-i2c.c
-+++ b/drivers/media/radio/si4713-i2c.c
-@@ -1456,7 +1456,7 @@ static int si4713_probe(struct i2c_client *client,
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 0d92208..528cdaf 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -28,6 +28,7 @@
  
- 	if (client->irq) {
- 		rval = request_irq(client->irq,
--			si4713_handler, IRQF_TRIGGER_FALLING | IRQF_DISABLED,
-+			si4713_handler, IRQF_TRIGGER_FALLING,
- 			client->name, sdev);
- 		if (rval < 0) {
- 			v4l2_err(&sdev->sd, "Could not request IRQ\n");
+ #include <linux/fs.h>
+ #include <linux/list.h>
++#include <linux/videodev2.h>
+ 
+ struct video_device;
+ struct v4l2_ctrl_handler;
 -- 
-1.8.1.2
+Regards,
+
+Laurent Pinchart
 
