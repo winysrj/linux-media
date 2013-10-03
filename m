@@ -1,112 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:50358 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753296Ab3JWXC5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Oct 2013 19:02:57 -0400
-Received: from [192.168.1.56] ([84.26.254.29]) by mail.gmx.com (mrgmx002)
- with ESMTPSA (Nemesis) id 0Mb7lL-1VG5Qa34UF-00KkpK for
- <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 01:02:55 +0200
-Message-ID: <526855DC.6010909@gmx.net>
-Date: Thu, 24 Oct 2013 01:03:56 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44129 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab3JCJ2k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 05:28:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 0/6] OMAP4 ISS driver
+Date: Thu, 03 Oct 2013 11:28:45 +0200
+Message-ID: <3636088.L4VZVRSHAj@avalon>
+In-Reply-To: <524D15F7.5070102@xs4all.nl>
+References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com> <524D15F7.5070102@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: EM28xx - MSI Digivox Trio - almost working.
-References: <51C28FA2.70004@gmx.net> <5202E82E.50400@gmx.net>
-In-Reply-To: <5202E82E.50400@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/08/2013 02:37 AM, P. van Gaans wrote:
-> On 20-06-13 07:14, P. van Gaans wrote:
->> Hi all,
->>
->> (device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio)
->>
->> Thanks to the message from Philip Pemberton I was able to try loading
->> the em28xx driver myself using:
->>
->> sudo modprobe em28xx card=NUMBER
->> echo eb1a 2885 | sudo tee /sys/bus/usb/drivers/em28xx/new_id
->>
->> Here are the results for NUMBER:
->>
->> Card=79 (Terratec Cinergy H5): works, less corruption than card=87, just
->> some blocks every few seconds. Attenuators didn't help.
->> Card=81 (Hauppauge WinTV HVR 930C): doesn't work, no /dev/dvb adapter
->> Card=82 (Terratec Cinergy HTC Stick): similar to card=87
->> Card=85 (PCTV QuatroStick (510e)): constantly producing i2c read errors,
->> doesn't work
->> Card=86 (PCTV QuatroStick nano (520e): same
->> Card=87 (Terratec Cinergy HTC USB XS): stick works and scans channels,
->> but reception is bugged with corruption. It's like having a DVB-T
->> antenna that's just not good enough, except this is DVB-C and my signal
->> is excellent. Attenuators didn't help.
->> Card=88 (C3 Tech Digital Duo HDTV/SDTV USB): doesn't work, no /dev/dvb
->> adapter
->>
->> So with card=79 it's really close to working. What else can I do?
->>
->> Best regareds,
->>
->> P. van Gaans
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> Hi all,
->
-> Success!
->
-> While I never succeeded in figuring out how the sniffing is supposed to
-> be done (how to get any output from those scripts anyway? how to load
-> the debug module in such away it actually works? run on native linux, or
-> a windows VM on linux, or snoop in windows en run the script on linux?
-> you get the picture) I just noticed a little notice on the DVB-C USB
-> wiki page:
->
-> "If you are experiencing problems with USB devices, it may not be the
-> fault of the tuner. For example AMD 700 series chipsets (e.g. 780G) have
-> a problem with USB ports which results in tuners working or partially
-> working or not working at all."
->
-> I was actually not even testing on an AMD 700 series but on an AMD 600
-> series. And a somewhat older kernel, with latest v4l-dvb compiled.
->
-> So here's what I did: I took the Digivox Trio, plugged it in an Ivy
-> Bridgy computer with Lubuntu 13.04 (stock kernel, stock v4l-dvb, Lubuntu
-> appears to come with the firmware preloaded), load the em28xx driver as
-> if the Digivox were a Terratec H5 and watched 5 minutes or so, flawless.
->
-> I will continue to test and watch some longer programs, but right now it
-> appears it is safe to say the Digivox Trio can be supported by simply
-> treating as an H5.
->
-> Best regards,
->
-> P. van Gaans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Hi Hans,
 
-It's been a while I've been using this setup and I haven't found any 
-obvious flaws.
+On Thursday 03 October 2013 09:00:07 Hans Verkuil wrote:
+> On 10/03/2013 01:55 AM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > The OMAP4 ISS driver has lived out of tree for more than two years now.
+> > This situation is both sad and resource-wasting, as the driver has been
+> > used (and thus) hacked since then with nowhere to send patches to. Time
+> > has come to fix the problem.
+> > 
+> > As the code is mostly, but not quite ready for prime time, I'd like to
+> > request its addition to drivers/staging/. I've added a (pretty small)
+> > TODO file and I commit to cleaning up the code and get it to
+> > drivers/media/ where it belongs.
+> > 
+> > I've split the driver in six patches to avoid getting caught in vger's
+> > size
+> > and to make review slightly easier. Sergio Aguirre is the driver author
+> > (huge thanks for that!), I've thus kept his authorship on patches 1/6 to
+> > 5/6.
+> > 
+> > I don't have much else to add here, let's get this beast to mainline and
+> > allow other developers to use the driver and contribute patches.
+> 
+> Thanks for the patch series! Much appreciated.
+> 
+> For this patch series:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> I've posted a few comments for the first two patches (nothing jumped out to
+> me for the other patches) that you may want to address in a follow-up
+> patch, particularly the missing timestamp_type for vb2_queue will give a
+> lot of WARN_ON messages in the kernel log.
 
-I've added this to my own linux/drivers/media/usb/em28xx/em28xx-cards.c:
+Sure, I'll fix those. I wanted to send the code in with as little 
+modifications as possible (I've only made sure that it would compile, as 
+that's the main staging criteria nowadays), I'll tell send follow-up patches 
+to clean the driver and fix problems before moving it to drivers/media/
 
-	{ USB_DEVICE(0xeb1a, 0x2885),	/* MSI Digivox Trio */
-			.driver_info = EM2884_BOARD_TERRATEC_H5 },
+> > Laurent Pinchart (1):
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - Build system
+> > 
+> > Sergio Aguirre (5):
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - Core
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)
+> >   v4l: omap4iss: Add support for OMAP4 camera interface - Resizer
+> >  
+> >  Documentation/video4linux/omap4_camera.txt   |   63 ++
+> >  drivers/staging/media/Kconfig                |    2 +
+> >  drivers/staging/media/Makefile               |    1 +
+> >  drivers/staging/media/omap4iss/Kconfig       |   12 +
+> >  drivers/staging/media/omap4iss/Makefile      |    6 +
+> >  drivers/staging/media/omap4iss/TODO          |    4 +
+> >  drivers/staging/media/omap4iss/iss.c         | 1477 +++++++++++++++++++++
+> >  drivers/staging/media/omap4iss/iss.h         |  153 +++
+> >  drivers/staging/media/omap4iss/iss_csi2.c    | 1368 +++++++++++++++++++++
+> >  drivers/staging/media/omap4iss/iss_csi2.h    |  156 +++
+> >  drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++
+> >  drivers/staging/media/omap4iss/iss_csiphy.h  |   51 +
+> >  drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++
+> >  drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
+> >  drivers/staging/media/omap4iss/iss_ipipeif.c |  847 +++++++++++++++
+> >  drivers/staging/media/omap4iss/iss_ipipeif.h |   92 ++
+> >  drivers/staging/media/omap4iss/iss_regs.h    |  883 +++++++++++++++
+> >  drivers/staging/media/omap4iss/iss_resizer.c |  905 ++++++++++++++++
+> >  drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
+> >  drivers/staging/media/omap4iss/iss_video.c   | 1129 ++++++++++++++++++++
+> >  drivers/staging/media/omap4iss/iss_video.h   |  201 ++++
+> >  include/media/omap4iss.h                     |   65 ++
+> >  22 files changed, 8416 insertions(+)
+> >  create mode 100644 Documentation/video4linux/omap4_camera.txt
+> >  create mode 100644 drivers/staging/media/omap4iss/Kconfig
+> >  create mode 100644 drivers/staging/media/omap4iss/Makefile
+> >  create mode 100644 drivers/staging/media/omap4iss/TODO
+> >  create mode 100644 drivers/staging/media/omap4iss/iss.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_video.c
+> >  create mode 100644 drivers/staging/media/omap4iss/iss_video.h
+> >  create mode 100644 include/media/omap4iss.h
+-- 
+Regards,
 
-So it would load automatically. I've been using two of these with tvheadend.
+Laurent Pinchart
 
-So can this device be added? Any more info needed?
-
-Best regards,
-
-P. van Gaans
