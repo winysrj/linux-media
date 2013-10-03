@@ -1,79 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3722 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab3JCJtn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 05:49:43 -0400
-Message-ID: <524D3DA8.80705@xs4all.nl>
-Date: Thu, 03 Oct 2013 11:49:28 +0200
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3391 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab3JCHA0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 03:00:26 -0400
+Message-ID: <524D15F7.5070102@xs4all.nl>
+Date: Thu, 03 Oct 2013 09:00:07 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teemux.tuominen@intel.com
-Subject: Re: [RFC v2 4/4] v4l: events: Don't sleep in dequeue if none are
- subscribed
-References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com> <1380721516-488-5-git-send-email-sakari.ailus@linux.intel.com> <524C27F6.4040002@xs4all.nl> <524C2B30.9050605@linux.intel.com> <524C2F9A.80806@xs4all.nl> <524C3280.5030406@linux.intel.com>
-In-Reply-To: <524C3280.5030406@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 0/6] OMAP4 ISS driver
+References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/13 16:49, Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> ...
->>>>> +        if (!subscribed) {
->>>>> +            ret = -EIO;
->>>>
->>>> Shouldn't this be -ENOENT?
->>>
->>> If I use -ENOENT, having no events subscribed is indistinguishable
->>> form no events pending condition. Combine that with using select(2),
->>> and you can no longer distinguish having no events subscribed from
->>> the case where you got an event but someone else (another thread or
->>> process) dequeued it.
->>
->> OK, but then your commit message is out of sync with the actual patch since
->> the commit log says ENOENT.
->>
->>> -EIO makes that explicit --- this also mirrors the behaviour of
->>> VIDIOC_DQBUF. (And it must be documented as well, which is missing
->>> from the patch currently.)
->>
->> I don't like using EIO for this. EIO generally is returned if a hardware
->> error or an unexpected hardware condition occurs. How about -ENOMSG? Or
->> perhaps EPIPE? (As in: "the pipe containing events is gone").
+Hi Laurent,
+
+On 10/03/2013 01:55 AM, Laurent Pinchart wrote:
+> Hello,
 > 
-> Thinking about this some more, -ENOENT is probably what we should
-> return. *But* when there are no events to dequeue, we should instead
-> return -EAGAIN (i.e. EWOULDBLOCK) which VIDIOC_DQBUF also uses.
+> The OMAP4 ISS driver has lived out of tree for more than two years now. This
+> situation is both sad and resource-wasting, as the driver has been used (and
+> thus) hacked since then with nowhere to send patches to. Time has come to fix
+> the problem.
 > 
-> However I'm not sure if anything depends on -ENOENT currently
-> (probably not really) so changing this might require some
-> consideration. No error codes are currently defined for
-> VIDIOC_DQEVENT; was planning to fix that while we're at this.
+> As the code is mostly, but not quite ready for prime time, I'd like to request
+> its addition to drivers/staging/. I've added a (pretty small) TODO file and I
+> commit to cleaning up the code and get it to drivers/media/ where it belongs.
 > 
+> I've split the driver in six patches to avoid getting caught in vger's size
+> and to make review slightly easier. Sergio Aguirre is the driver author (huge
+> thanks for that!), I've thus kept his authorship on patches 1/6 to 5/6.
+> 
+> I don't have much else to add here, let's get this beast to mainline and allow
+> other developers to use the driver and contribute patches.
 
-Urgh, this is messy. In non-blocking mode DQEVENT should indeed return
--EAGAIN if you have subscribed events but no events are pending.
+Thanks for the patch series! Much appreciated.
 
-If you have no subscribed events, then -ENOENT would be IMHO the most
-suitable return value.
+For this patch series:
 
-This means that DQEVENT's behavior changes in the non-blocking case.
-On the other hand, this is actually what you would expect based on the
-EAGAIN description in the spec: "It is also returned when the ioctl
-would need to wait for an event, but the device was opened in non-blocking
-mode."
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-That said, I don't think we can change it. It's been around for too long
-and you have no idea how it is used in embedded systems that are out there
-(and that's where you would see this used in practice).
-
-I would just document the ENOENT error code (perhaps with a note that it
-should have been EAGAIN) and add a new error (EPERM?) for when no events
-are subscribed.
+I've posted a few comments for the first two patches (nothing jumped out to me for
+the other patches) that you may want to address in a follow-up patch, particularly
+the missing timestamp_type for vb2_queue will give a lot of WARN_ON messages in the
+kernel log.
 
 Regards,
 
 	Hans
+
+> 
+> Laurent Pinchart (1):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Build system
+> 
+> Sergio Aguirre (5):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Core
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
+>   v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
+>   v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Resizer
+> 
+>  Documentation/video4linux/omap4_camera.txt   |   63 ++
+>  drivers/staging/media/Kconfig                |    2 +
+>  drivers/staging/media/Makefile               |    1 +
+>  drivers/staging/media/omap4iss/Kconfig       |   12 +
+>  drivers/staging/media/omap4iss/Makefile      |    6 +
+>  drivers/staging/media/omap4iss/TODO          |    4 +
+>  drivers/staging/media/omap4iss/iss.c         | 1477 ++++++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss.h         |  153 +++
+>  drivers/staging/media/omap4iss/iss_csi2.c    | 1368 ++++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_csi2.h    |  156 +++
+>  drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++
+>  drivers/staging/media/omap4iss/iss_csiphy.h  |   51 +
+>  drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
+>  drivers/staging/media/omap4iss/iss_ipipeif.c |  847 +++++++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipeif.h |   92 ++
+>  drivers/staging/media/omap4iss/iss_regs.h    |  883 +++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.c |  905 ++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
+>  drivers/staging/media/omap4iss/iss_video.c   | 1129 ++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_video.h   |  201 ++++
+>  include/media/omap4iss.h                     |   65 ++
+>  22 files changed, 8416 insertions(+)
+>  create mode 100644 Documentation/video4linux/omap4_camera.txt
+>  create mode 100644 drivers/staging/media/omap4iss/Kconfig
+>  create mode 100644 drivers/staging/media/omap4iss/Makefile
+>  create mode 100644 drivers/staging/media/omap4iss/TODO
+>  create mode 100644 drivers/staging/media/omap4iss/iss.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.h
+>  create mode 100644 include/media/omap4iss.h
+> 
+
