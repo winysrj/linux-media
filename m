@@ -1,50 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:51244 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903Ab3JFAJn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Oct 2013 20:09:43 -0400
-Message-ID: <5250AA3F.6030701@samsung.com>
-Date: Sun, 06 Oct 2013 09:09:35 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
-MIME-Version: 1.0
-To: Kishon Vijay Abraham I <kishon@ti.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-fbdev@vger.kernel.org, kgene.kim@samsung.com,
-	gregkh@linuxfoundation.org, jg1.han@samsung.com,
-	dh09.lee@samsung.com, linux-samsung-soc@vger.kernel.org,
-	kyungmin.park@samsung.com, tomi.valkeinen@ti.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH V5 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com> <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com> <524A5D68.8080904@ti.com> <524B3B04.3000704@gmail.com> <524AE9BC.6060103@ti.com>
-In-Reply-To: <524AE9BC.6060103@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47919 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755151Ab3JCVz6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 17:55:58 -0400
+Received: from avalon.ideasonboard.com (191.Red-2-143-34.dynamicIP.rima-tde.net [2.143.34.191])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1D5FE35A47
+	for <linux-media@vger.kernel.org>; Thu,  3 Oct 2013 23:55:20 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l2-fh: Include linux/fs.h for struct file definition
+Date: Thu,  3 Oct 2013 23:55:52 +0200
+Message-Id: <1380837352-29950-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+v4l2-fh.h dereferences struct file, the structure must thus be defined.
+Pull in its definition by including linux/fs.h.
 
-On 10/02/13 00:26, Kishon Vijay Abraham I wrote:
-> On Wednesday 02 October 2013 02:43 AM, Sylwester Nawrocki wrote:
->> On 10/01/2013 07:28 AM, Kishon Vijay Abraham I wrote:
->>> On Sunday 29 September 2013 12:57 AM, Sylwester Nawrocki wrote:
->>>>>   Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
->>>>>
->>>>>   Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>>>>   Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>>>   Acked-by: Felipe Balbi<balbi@ti.com>
->>>
->>> Can this patch be taken through exynos dt tree?
->>
->> Yes, that makes more sense indeed. Kukjin, would you mind taking
->> this patch to your tree ?
->
-Sure. Applied this whole series.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-fh.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-> FWIW
-> Acked-by: Kishon Vijay Abraham I<kishon@ti.com>
->>
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index a62ee18..0d92208 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -26,6 +26,7 @@
+ #ifndef V4L2_FH_H
+ #define V4L2_FH_H
+ 
++#include <linux/fs.h>
+ #include <linux/list.h>
+ 
+ struct video_device;
+-- 
+Regards,
 
-Thanks,
-Kukjin
+Laurent Pinchart
+
