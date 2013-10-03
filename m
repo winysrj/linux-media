@@ -1,105 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4021 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766Ab3JZUWR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Oct 2013 16:22:17 -0400
-Message-ID: <2099a1da904181598455905c79a7921d.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201310262204.33674@pali>
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com>
-    <525D5A77.4050704@xs4all.nl> <201310172131.05106@pali>
-    <201310262204.33674@pali>
-Date: Sat, 26 Oct 2013 22:22:09 +0200
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: Pali =?iso-8859-1?Q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: "Mauro Carvalho Chehab" <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	"Eero Nurkkala" <ext-eero.nurkkala@nokia.com>,
-	"Nils Faerber" <nils.faerber@kernelconcepts.de>,
-	"Joni Lapilainen" <joni.lapilainen@gmail.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4672 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab3JCJ3g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 05:29:36 -0400
+Message-ID: <524D38EB.2060002@xs4all.nl>
+Date: Thu, 03 Oct 2013 11:29:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	teemux.tuominen@intel.com
+Subject: Re: [RFC v2 4/4] v4l: events: Don't sleep in dequeue if none are
+ subscribed
+References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com> <1380721516-488-5-git-send-email-sakari.ailus@linux.intel.com> <524C27F6.4040002@xs4all.nl> <524C2B30.9050605@linux.intel.com> <524C2F9A.80806@xs4all.nl> <524C31A6.2040208@linux.intel.com>
+In-Reply-To: <524C31A6.2040208@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hans, so can it be added to drivers/staging/media tree?
+On 10/02/13 16:45, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Hans Verkuil wrote:
+>> On 10/02/13 16:18, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> Thanks for the comments!
+>>>
+>>> Hans Verkuil wrote:
+>>>> On 10/02/13 15:45, Sakari Ailus wrote:
+>>>>> Dequeueing events was is entirely possible even if none are subscribed,
+>>>>> leading to sleeping indefinitely. Fix this by returning -ENOENT when no
+>>>>> events are subscribed.
+>>>>>
+>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>>> ---
+>>>>>    drivers/media/v4l2-core/v4l2-event.c | 11 +++++++++--
+>>>>>    1 file changed, 9 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/v4l2-core/v4l2-event.c
+>>>>> b/drivers/media/v4l2-core/v4l2-event.c
+>>>>> index b53897e..553a800 100644
+>>>>> --- a/drivers/media/v4l2-core/v4l2-event.c
+>>>>> +++ b/drivers/media/v4l2-core/v4l2-event.c
+>>>>> @@ -77,10 +77,17 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct
+>>>>> v4l2_event *event,
+>>>>>            mutex_unlock(fh->vdev->lock);
+>>>>>
+>>>>>        do {
+>>>>> -        ret = wait_event_interruptible(fh->wait,
+>>>>> -                           fh->navailable != 0);
+>>>>> +        bool subscribed;
+>>>>
+>>>> Can you add an empty line here?
+>>>
+>>> Sure.
+>>>
+>>>>> +        ret = wait_event_interruptible(
+>>>>> +            fh->wait,
+>>>>> +            fh->navailable != 0 ||
+>>>>> +            !(subscribed = v4l2_event_has_subscribed(fh)));
+>>>>>            if (ret < 0)
+>>>>>                break;
+>>>>> +        if (!subscribed) {
+>>>>> +            ret = -EIO;
+>>>>
+>>>> Shouldn't this be -ENOENT?
+>>>
+>>> If I use -ENOENT, having no events subscribed is indistinguishable
+>>> form no events pending condition. Combine that with using select(2),
+>>> and you can no longer distinguish having no events subscribed from
+>>> the case where you got an event but someone else (another thread or
+>>> process) dequeued it.
+>>
+>> OK, but then your commit message is out of sync with the actual patch since
+>> the commit log says ENOENT.
+> 
+> Right. The error code was the last thing I changed before sending the
+> patch, and I ignored it was also present in the commit message. :-P
+> 
+>>> -EIO makes that explicit --- this also mirrors the behaviour of
+>>> VIDIOC_DQBUF. (And it must be documented as well, which is missing
+>>> from the patch currently.)
+>>
+>> I don't like using EIO for this. EIO generally is returned if a hardware
+>> error or an unexpected hardware condition occurs. How about -ENOMSG? Or
+>> perhaps EPIPE? (As in: "the pipe containing events is gone").
+> 
+> There is no pipe (or at least wasn't; it's a queue or rather is
+> implemented as a fifo :)) so of the two I prefer -ENOMSG. What would
+> you think of -ENODATA or -EPERM (which is used e.g. when writing
+> read-only controls)?
+> 
 
-Yes, that is an option. It's up to you to decide what you want. Note that
-if no cleanup work is done on the staging driver for a long time, then it
-can be removed again.
+I don't like ENODATA, mostly because it is so close in meaning to ENOENT.
+EPERM would work for me. It's probably a bit better than ENOMSG.
 
 Regards,
 
-    Hans
-
->
-> On Thursday 17 October 2013 21:31:04 Pali Rohár wrote:
->> Hello,
->>
->> so what do you suggest? Add it to staging for now (or not)?
->>
->> On Tuesday 15 October 2013 17:08:39 Hans Verkuil wrote:
->> > Hi Pali,
->> >
->> > Thanks for the patch, but I am afraid it will need some work
->> > to make this acceptable for inclusion into the kernel.
->> >
->> > The main thing you need to do is to implement all the
->> > controls using the control framework (see
->> > Documentation/video4linux/v4l2-controls.txt). Most drivers
->> > are by now converted to the control framework, so you will
->> > find many examples of how to do this in drivers/media/radio.
->> >
->> > The sysfs stuff should be replaced by controls as well. A
->> > lot of the RDS support is now available as controls
->> > (although there may well be some missing features, but that
->> > is easy enough to add). Since the RDS data is actually
->> > read() from the device I am not sure whether the RDS
->> > properties/controls should be there at all.
->> >
->> > Finally this driver should probably be split up into two
->> > parts: one v4l2_subdev-based core driver and one platform
->> > driver. See e.g. radio-si4713/si4713-i2c.c as a good
->> > example. But I would wait with that until the rest of the
->> > driver is cleaned up. Then I have a better idea of whether
->> > this is necessary or not.
->> >
->> > It's also very useful to run v4l2-compliance (available in
->> > the v4l-utils.git repo on git.linuxtv.org). That does lots
->> > of sanity checks.
->> >
->> > Another option is to add the driver as-is to
->> > drivers/staging/media, and clean it up bit by bit.
->> >
->> > Regards,
->> >
->> > 	Hans
->> >
->> > On 10/15/2013 04:26 PM, Pali Rohár wrote:
->> > > This adds support for the BCM2048 radio module found in
->> > > Nokia N900
->> > >
->> > > Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
->> > > Signed-off-by: Nils Faerber
->> > > <nils.faerber@kernelconcepts.de> Signed-off-by: Joni
->> > > Lapilainen <joni.lapilainen@gmail.com> Signed-off-by:
->> > > Pali Rohár <pali.rohar@gmail.com>
->> > > ---
->> > >
->> > >  drivers/media/radio/Kconfig         |   10 +
->> > >  drivers/media/radio/Makefile        |    1 +
->> > >  drivers/media/radio/radio-bcm2048.c | 2744
->> > >  +++++++++++++++++++++++++++++++++++
->> > >  include/media/radio-bcm2048.h       |   30 +
->> > >  4 files changed, 2785 insertions(+)
->> > >  create mode 100644 drivers/media/radio/radio-bcm2048.c
->> > >  create mode 100644 include/media/radio-bcm2048.h
->
-> --
-> Pali Rohár
-> pali.rohar@gmail.com
->
-
-
+	Hans
