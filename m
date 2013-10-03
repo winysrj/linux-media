@@ -1,95 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f41.google.com ([209.85.216.41]:53884 "EHLO
-	mail-qa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823Ab3JKBL4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 21:11:56 -0400
-Received: by mail-qa0-f41.google.com with SMTP id f11so253094qae.0
-        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 18:11:55 -0700 (PDT)
-Received: by mail-qe0-f44.google.com with SMTP id 6so2796553qeb.17
-        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 18:11:52 -0700 (PDT)
+Received: from sauhun.de ([89.238.76.85]:55635 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755436Ab3JCUiK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Oct 2013 16:38:10 -0400
+Date: Thu, 3 Oct 2013 22:38:00 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-i2c@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 0/8] i2c: Remove redundant driver field from the
+ i2c_client struct
+Message-ID: <20131003203800.GA4563@katana>
+References: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
-In-Reply-To: <20130920075032.0ecfe5ad@concha.lan>
-References: <20130917140831.4cdf32a5.m.chehab@samsung.com> <4260048.s1qMgHukA2@avalon>
- <Pine.LNX.4.64.1309172240010.27068@axis700.grange> <1575411.Bmd9x6pGYg@avalon>
- <5239A4F4.8060803@xs4all.nl> <523C0060.5040608@redhat.com> <20130920075032.0ecfe5ad@concha.lan>
-From: Pawel Osciak <posciak@chromium.org>
-Date: Fri, 11 Oct 2013 10:11:12 +0900
-Message-ID: <CACHYQ-rRNmgBUMhKxmNBz4qfLSmBGH8Y3Je6CL96-Deu83PuFw@mail.gmail.com>
-Subject: Re: [media-workshop] Kernel Summit Media Mini-summit attendees on Oct
- 23 in Edinburgh
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
+Content-Disposition: inline
+In-Reply-To: <1380444666-12019-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm sorry everyone, I unfortunately won't be able to make it after all
-due to schedule conflicts.
-Best regards,
-Pawel
 
-On Fri, Sep 20, 2013 at 7:50 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Em Fri, 20 Sep 2013 09:59:28 +0200
-> Hans de Goede <hdegoede@redhat.com> escreveu:
->
->> Hi,
->>
->> Sorry for replying in the midst of the thread I deleted
->> the beginning before realizing I should respond.
->>
->> >>>>> On 09/17/13 19:08, Mauro Carvalho Chehab wrote:
->> >>>>>> Hi,
->> >>>>>>
->> >>>>>> I'm trying to consolidate the list of interested people on
->> >>>>>> participating at this year's the media mini-summit. From what I got
->> >>>>>> from the discussions, we have, so far:
->> >>>>>>
->> >>>>>>        Benjamin Gaignard <benjamin.gaignard@linaro.org>
->> >>>>>>        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> >>>>>>        Hans Verkuil <hverkuil@xs4all.nl>
->> >>>>>>        Hugues FRUCHET <hugues.fruchet@st.com>
->> >>>>>>        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> >>>>>>        Mauro Carvalho Chehab <m.chehab@samsung.com>
->> >>>>>>        Michael Krufky <mkrufky@kernellabs.com>
->> >>>>>>        Oliver Schinagl <oliver+list@schinagl.nl>
->> >>>>>>        Pawel Osciak <posciak@chromium.org>
->> >>>>>>        Peter Senna Tschudin <peter.senna@gmail.com>
->> >>>>>>        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> >>>>>>        Sakari Ailus <sakari.ailus@iki.fi>
->> >>>>>>
->> >>>>>> Please let me know if I'm missing someone, or if one of the above
->> >>>>>> won't be able to go to the meeting, as my plan is to send the
->> >>>>>> invitations tomorrow.
->>
->> I'll be in Edinburgh for kvm-forum and I would like to attend the meeting,
->> at least the parts about the userspace libraries.
->
-> Ok.
->
-> I'll add your name to the list of atendees.
->
-> Regards,
-> Mauro
->
->>
->> Regards,
->>
->> Hans (de Goede)
->>
->> _______________________________________________
->> media-workshop mailing list
->> media-workshop@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
->
->
->
->
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Sep 29, 2013 at 10:50:58AM +0200, Lars-Peter Clausen wrote:
+> Hi,
+>=20
+> This series removes the redundant driver field from the i2c_client struct=
+=2E The
+> field is redundant since the same pointer can be accessed through
+> to_i2c_driver(client->dev.driver). The commit log suggests that the field=
+ has
+> been around since forever (since before v2.6.12-rc2) and it looks as if i=
+t was
+> simply forgotten to remove it during the conversion of the i2c framework =
+to the
+> generic device driver model.
+
+Applied to for-next with great pleasure, thanks!
+
+
+--W/nzBZO5zC0uMSeA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSTdWnAAoJEBQN5MwUoCm2YmUP/iibuIQXef2UeEPAuVBr4S/G
+GX0ZBM947XqiUZ6c6KHYmsNuXKQI4KUrq8D+jqnk0pZmyTAQ9kyatNHZeXPnCDxR
+ogjSqA7jVrp0lJqI/Fhw6v4v1LWhhcbBNvTnyHtmXkXuGyqyPgv2I2kpRG8P3WKS
+qh9Xbk7kf1cw1HKnT1c3giGDr8ISvA/AHa02M8VbbBk1PFV4PmzAdXCx8b9Drju6
+QfCJUKqoE1gRFn+wyYhBjQYkhrPPr47O0+1hoOCFtL+kBxRGvI0FoQ8eVuaa00Zf
+2yb7Njr/5ALk/bgc0Odm8foFVD4QkFXpSZ5692hZutZhrifAVCOzpWFZhG2s98dw
+K+6yuARazPQrQoth0XUULCY14x8n7sI4eFzN4UUlG0YgSkyHB3GXQgoR4M1ong1E
++vNTcr+lghurvlAt0NQcsXov6xC6XxV6L7aXsT9+E7FFe7b+I8roeK51NqJ2CaIG
+aRseWEIuWhvaUU3J+IPLy0X/2T/5t1ktXQNMSPJECaAxsnaX5BcI+sQugnsCfAra
+/y+sotn64DYD9D4yyNly2O+ytqvrV5jooi02BdNEV7mWZskxTiJHf6erLOTpctEI
+sEpmygJtnIZ9GSTk1wfLRGNzhUkknz4xqrVvdRfmn4EEkTBYVQf8shy07rW8OWEL
+bqVLYxEJ7w1CKmOgiDdE
+=UFw1
+-----END PGP SIGNATURE-----
+
+--W/nzBZO5zC0uMSeA--
