@@ -1,195 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:59838 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab3JLMcW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 08:32:22 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
-	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 05/10] mx2-emmaprp: Use struct v4l2_fh
-Date: Sat, 12 Oct 2013 14:31:55 +0200
-Message-Id: <1381581120-26883-6-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
-References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2021 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752741Ab3JDKhv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 06:37:51 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r94AbmRi009561
+	for <linux-media@vger.kernel.org>; Fri, 4 Oct 2013 12:37:50 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DA9BD2A0769
+	for <linux-media@vger.kernel.org>; Fri,  4 Oct 2013 12:37:43 +0200 (CEST)
+Message-ID: <524E9A77.7090205@xs4all.nl>
+Date: Fri, 04 Oct 2013 12:37:43 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.13] Various fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/mx2_emmaprp.c |   54 ++++++++++++++++++++++-----------
- 1 files changed, 36 insertions(+), 18 deletions(-)
+Hi Mauro,
 
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index c690435..e91a4d5 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -221,9 +221,12 @@ struct emmaprp_ctx {
- 	/* Abort requested by m2m */
- 	int			aborting;
- 	struct emmaprp_q_data	q_data[2];
-+	struct v4l2_fh		fh;
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- };
+Just a bunch of various fixes. Most notably the solo fixes for big-endian systems:
+these fixes were removed when I did the large sync to the Bluecherry code base for the
+solo driver. Many thanks to Krzysztof for doing this work again.
 
-+#define fh_to_ctx(__fh) container_of(__fh, struct emmaprp_ctx, fh)
-+
- static struct emmaprp_q_data *get_q_data(struct emmaprp_ctx *ctx,
- 					 enum v4l2_buf_type type)
- {
-@@ -478,13 +481,15 @@ static int vidioc_g_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
- static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
--	return vidioc_g_fmt(priv, f);
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
-+	return vidioc_g_fmt(ctx, f);
- }
+Regards,
 
- static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
--	return vidioc_g_fmt(priv, f);
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
-+	return vidioc_g_fmt(ctx, f);
- }
+	Hans
 
- static int vidioc_try_fmt(struct v4l2_format *f)
-@@ -524,8 +529,8 @@ static int vidioc_try_fmt(struct v4l2_format *f)
- static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
- 	struct emmaprp_fmt *fmt;
--	struct emmaprp_ctx *ctx = priv;
+The following changes since commit d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71:
 
- 	fmt = find_format(f);
- 	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
-@@ -541,8 +546,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
- 	struct emmaprp_fmt *fmt;
--	struct emmaprp_ctx *ctx = priv;
+  [media] cx24117: use hybrid_tuner_request/release_state to share state between multiple instances (2013-10-03 07:40:12 -0300)
 
- 	fmt = find_format(f);
- 	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
-@@ -561,7 +566,7 @@ static int vidioc_s_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
- 	struct vb2_queue *vq;
- 	int ret;
+are available in the git repository at:
 
--	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
- 	if (!vq)
- 		return -EINVAL;
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.13
 
-@@ -596,25 +601,27 @@ static int vidioc_s_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
- 	int ret;
+for you to fetch changes up to fffc9c8a324c7b43db9e359ae4710176fa66f432:
 
- 	ret = vidioc_try_fmt_vid_cap(file, priv, f);
- 	if (ret)
- 		return ret;
+  radio-sf16fmr2: Remove redundant dev_set_drvdata (2013-10-04 12:32:42 +0200)
 
--	return vidioc_s_fmt(priv, f);
-+	return vidioc_s_fmt(ctx, f);
- }
+----------------------------------------------------------------
+Dan Carpenter (1):
+      snd_tea575x: precedence bug in fmr2_tea575x_get_pins()
 
- static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
-+	struct emmaprp_ctx *ctx = fh_to_ctx(priv);
- 	int ret;
+Krzysztof Hałasa (4):
+      SOLO6x10: don't do DMA from stack in solo_dma_vin_region().
+      SOLO6x10: Remove unused #define SOLO_DEFAULT_GOP
+      SOLO6x10: Fix video encoding on big-endian systems.
+      SOLO6x10: Fix video headers on certain hardware.
 
- 	ret = vidioc_try_fmt_vid_out(file, priv, f);
- 	if (ret)
- 		return ret;
+Michael Opdenacker (1):
+      davinci: remove deprecated IRQF_DISABLED
 
--	return vidioc_s_fmt(priv, f);
-+	return vidioc_s_fmt(ctx, f);
- }
+Sachin Kamat (1):
+      radio-sf16fmr2: Remove redundant dev_set_drvdata
 
- static int vidioc_reqbufs(struct file *file, void *priv,
-@@ -790,27 +797,28 @@ static int emmaprp_open(struct file *file)
- {
- 	struct emmaprp_dev *pcdev = video_drvdata(file);
- 	struct emmaprp_ctx *ctx;
-+	int ret;
+Sylwester Nawrocki (1):
+      v4l2-ctrls: Correct v4l2_ctrl_get_int_menu() function prototype
 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
-
--	file->private_data = ctx;
--	ctx->dev = pcdev;
--
- 	if (mutex_lock_interruptible(&pcdev->dev_mutex)) {
--		kfree(ctx);
--		return -ERESTARTSYS;
-+		ret = -ERESTARTSYS;
-+		goto err_free;
- 	}
-
-+	v4l2_fh_init(&ctx->fh, pcdev->vfd);
-+	file->private_data = &ctx->fh;
-+	v4l2_fh_add(&ctx->fh);
-+
-+	ctx->dev = pcdev;
-+
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx, &queue_init);
-
- 	if (IS_ERR(ctx->m2m_ctx)) {
--		int ret = PTR_ERR(ctx->m2m_ctx);
--
--		mutex_unlock(&pcdev->dev_mutex);
--		kfree(ctx);
--		return ret;
-+		ret = PTR_ERR(ctx->m2m_ctx);
-+		goto err_fh;
- 	}
-
- 	clk_prepare_enable(pcdev->clk_emma_ipg);
-@@ -822,12 +830,20 @@ static int emmaprp_open(struct file *file)
- 	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
-
- 	return 0;
-+
-+err_fh:
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
-+err_free:
-+	kfree(ctx);
-+	mutex_unlock(&pcdev->dev_mutex);
-+	return ret;
- }
-
- static int emmaprp_release(struct file *file)
- {
-+	struct emmaprp_ctx *ctx = fh_to_ctx(file->private_data);
- 	struct emmaprp_dev *pcdev = video_drvdata(file);
--	struct emmaprp_ctx *ctx = file->private_data;
-
- 	dprintk(pcdev, "Releasing instance %p\n", ctx);
-
-@@ -835,6 +851,8 @@ static int emmaprp_release(struct file *file)
- 	clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	clk_disable_unprepare(pcdev->clk_emma_ipg);
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
- 	mutex_unlock(&pcdev->dev_mutex);
- 	kfree(ctx);
-
---
-1.7.4.1
-
+ drivers/media/platform/davinci/vpbe_display.c      |   2 +-
+ drivers/media/platform/davinci/vpfe_capture.c      |   4 +-
+ drivers/media/radio/radio-sf16fmr2.c               |   5 +--
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   6 +--
+ drivers/staging/media/solo6x10/solo6x10-disp.c     |  24 ++++++++----
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 153 ++++++++++++++++++++++++++++++++++++++++++++-----------------------------
+ drivers/staging/media/solo6x10/solo6x10.h          |   1 -
+ include/media/v4l2-common.h                        |   2 +-
+ 8 files changed, 117 insertions(+), 80 deletions(-)
