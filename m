@@ -1,31 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:55357 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752569Ab3JHKq5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Oct 2013 06:46:57 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ralf Baechle <ralf@linux-mips.org>
-Cc: linux-mips@linux-mips.org, linux-media@vger.kernel.org
-References: <m3eh82a1yo.fsf@t19.piap.pl> <m361t9a31i.fsf@t19.piap.pl>
-	<20131007142429.GG3098@linux-mips.org>
-Date: Tue, 08 Oct 2013 12:46:55 +0200
-In-Reply-To: <20131007142429.GG3098@linux-mips.org> (Ralf Baechle's message of
-	"Mon, 7 Oct 2013 16:24:29 +0200")
-MIME-Version: 1.0
-Message-ID: <m3hacs82g0.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: Re: Suspected cache coherency problem on V4L2 and AR7100 CPU
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4148 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753928Ab3JDODO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:03:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mike Isely <isely@pobox.com>
+Subject: [PATCH 02/14] pvrusb2: fix sparse warning
+Date: Fri,  4 Oct 2013 16:01:40 +0200
+Message-Id: <1380895312-30863-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ralf Baechle <ralf@linux-mips.org> writes:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> That's fine.  You just need to ensure that there are no virtual aliases.
-> One way to do so is to increase the page size to 16kB.
+drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2871:13: warning: symbol 'pvr2_hdw_get_detected_std' was not declared. Should it be static?
 
-Checked, this thing works fine with 16 KB pages.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mike Isely <isely@pobox.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index c4d51d7..ea05f67 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -2868,7 +2868,7 @@ static void pvr2_subdev_set_control(struct pvr2_hdw *hdw, int id,
+ 		pvr2_subdev_set_control(hdw, id, #lab, (hdw)->lab##_val); \
+ 	}
+ 
+-v4l2_std_id pvr2_hdw_get_detected_std(struct pvr2_hdw *hdw)
++static v4l2_std_id pvr2_hdw_get_detected_std(struct pvr2_hdw *hdw)
+ {
+ 	v4l2_std_id std;
+ 	std = (v4l2_std_id)hdw->std_mask_avail;
 -- 
-Krzysztof Halasa
+1.8.3.2
 
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
