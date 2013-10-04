@@ -1,108 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2674 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382Ab3JFDED (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Oct 2013 23:04:03 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9633xb2091054
-	for <linux-media@vger.kernel.org>; Sun, 6 Oct 2013 05:04:01 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 333712A0769
-	for <linux-media@vger.kernel.org>; Sun,  6 Oct 2013 05:03:59 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131006030359.333712A0769@tschai.lan>
-Date: Sun,  6 Oct 2013 05:03:59 +0200 (CEST)
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:53467 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754357Ab3JDMXq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 08:23:46 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	hverkuil@xs4all.nl, shaik.ameer@samsung.com
+Subject: [PATCH v4 4/4] [media] exynos-scaler: Add DT bindings for SCALER driver
+Date: Fri,  4 Oct 2013 17:56:34 +0530
+Message-Id: <1380889594-10448-5-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com>
+References: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds the DT binding documentation for the
+Exynos5420/5410 based SCALER device driver.
 
-Results of the daily build of media_tree:
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ .../devicetree/bindings/media/exynos5-scaler.txt   |   22 ++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
 
-date:		Sun Oct  6 04:05:49 CEST 2013
-git branch:	test
-git hash:	d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+new file mode 100644
+index 0000000..f620baf
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+@@ -0,0 +1,22 @@
++* Samsung Exynos5 SCALER device
++
++SCALER is used for scaling, blending, color fill and color space
++conversion on EXYNOS[5420/5410] SoCs.
++
++Required properties:
++- compatible: should be "samsung,exynos5420-scaler" or
++			"samsung,exynos5410-scaler"
++- reg: should contain SCALER physical address location and length.
++- interrupts: should contain SCALER interrupt number
++- clocks: should contain the SCALER clock specifier, from the
++			common clock bindings
++- clock-names: should be "scaler"
++
++Example:
++	scaler_0: scaler@0x12800000 {
++		compatible = "samsung,exynos5420-scaler";
++		reg = <0x12800000 0x1000>;
++		interrupts = <0 220 0>;
++		clocks = <&clock 381>;
++		clock-names = "scaler";
++	};
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
