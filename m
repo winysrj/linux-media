@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41258 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089Ab3JBX3a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 19:29:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, sylwester.nawrocki@gmail.com,
-	a.hajda@samsung.com
-Subject: Re: [PATCH v2 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-Date: Thu, 03 Oct 2013 01:29:34 +0200
-Message-ID: <5005169.gE657Xh6K1@avalon>
-In-Reply-To: <1380755873-25835-2-git-send-email-sakari.ailus@iki.fi>
-References: <1380755873-25835-1-git-send-email-sakari.ailus@iki.fi> <1380755873-25835-2-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1453 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754830Ab3JDOCP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 07/14] drxk_hard: fix sparse warnings
+Date: Fri,  4 Oct 2013 16:01:45 +0200
+Message-Id: <1380895312-30863-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+drivers/media/dvb-frontends/drxk_hard.c:1086:62: warning: Using plain integer as NULL pointer
+drivers/media/dvb-frontends/drxk_hard.c:2784:63: warning: Using plain integer as NULL pointer
 
-On Thursday 03 October 2013 02:17:50 Sakari Ailus wrote:
-> Pads that set this flag must be connected by an active link for the entity
-> to stream.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/drxk_hard.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  Documentation/DocBook/media/v4l/media-ioc-enum-links.xml |   10 ++++++++++
->  include/uapi/linux/media.h                               |    1 +
->  2 files changed, 11 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-> b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml index
-> 355df43..e357dc9 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-> @@ -134,6 +134,16 @@
->  	    <entry>Output pad, relative to the entity. Output pads source data
->  	    and are origins of links.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_PAD_FL_MUST_CONNECT</constant></entry>
-> +	    <entry>If this flag is set and the pad is linked to any other
-> +	    pad, then at least one of those links must be enabled for the
-> +	    entity to be able to stream. There could be temporary reasons
-> +	    (e.g. device configuration dependent) for the pad to need
-> +	    enabled links even when this flag isn't set; the absence of the
-> +	    flag doesn't imply there is none. The flag has no effect on pads
-> +	    without connected links.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index ed49574..d847c76 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -98,6 +98,7 @@ struct media_entity_desc {
-> 
->  #define MEDIA_PAD_FL_SINK		(1 << 0)
->  #define MEDIA_PAD_FL_SOURCE		(1 << 1)
-> +#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
-> 
->  struct media_pad_desc {
->  	__u32 entity;		/* entity ID */
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index 082014d..d416c15 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -1083,7 +1083,7 @@ static int hi_cfg_command(struct drxk_state *state)
+ 			 SIO_HI_RA_RAM_PAR_1_PAR1_SEC_KEY);
+ 	if (status < 0)
+ 		goto error;
+-	status = hi_command(state, SIO_HI_RA_RAM_CMD_CONFIG, 0);
++	status = hi_command(state, SIO_HI_RA_RAM_CMD_CONFIG, NULL);
+ 	if (status < 0)
+ 		goto error;
+ 
+@@ -2781,7 +2781,7 @@ static int ConfigureI2CBridge(struct drxk_state *state, bool b_enable_bridge)
+ 			goto error;
+ 	}
+ 
+-	status = hi_command(state, SIO_HI_RA_RAM_CMD_BRDCTRL, 0);
++	status = hi_command(state, SIO_HI_RA_RAM_CMD_BRDCTRL, NULL);
+ 
+ error:
+ 	if (status < 0)
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
