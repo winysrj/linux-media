@@ -1,39 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44461 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752588Ab3JOSwR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 14:52:17 -0400
-Message-ID: <525D8ED2.7000609@gentoo.org>
-Date: Tue, 15 Oct 2013 20:52:02 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:18742 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465Ab3JDIRD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 04:17:03 -0400
+Date: Fri, 4 Oct 2013 11:16:38 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: devel@driverdev.osuosl.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] v4l: omap4iss: Add support for OMAP4 camera
+ interface - Video devices
+Message-ID: <20131004081638.GA6192@mwanda>
+References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1380758133-16866-3-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: pierigno <pierigno@gmail.com>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Ulf <mopp@gmx.net>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi> <524A5EDF.8070904@gentoo.org> <524AE01E.9040300@iki.fi> <52530BC1.9010200@gentoo.org> <CAN7fRVvNExBoAbXxBM0bheB2mCRsZcdKTG-FFkN9AuNdJWBXLw@mail.gmail.com>
-In-Reply-To: <CAN7fRVvNExBoAbXxBM0bheB2mCRsZcdKTG-FFkN9AuNdJWBXLw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380758133-16866-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.10.2013 22:21, pierigno wrote:
-> Hi Matthias,
->
-> I went through a similar path in the past, using USBLyzer on a
-> virtualized windows environment, and developed this simple awk script
-> to adapt the csv output of USBLyzer to usbsnoop format. Hope it helps
-> :)
->
-Hi pierigno,
-thank you.
-Yes, your script worked as far as it is possible.
-But it turned out, usblyzer does not write the setup packet information 
-to csv nor to xml output.
-And only seeing it in the gui is not helpful for a few thousand register 
-writes.
+On Thu, Oct 03, 2013 at 01:55:29AM +0200, Laurent Pinchart wrote:
+> +
+> +	ret = vb2_streamon(&vfh->queue, type);
+> +	if (ret < 0)
+> +		goto err_iss_video_check_format;
+> +
+> +	/* In sensor-to-memory mode, the stream can be started synchronously
+> +	 * to the stream on command. In memory-to-memory mode, it will be
+> +	 * started when buffers are queued on both the input and output.
+> +	 */
+> +	if (pipe->input == NULL) {
+> +		unsigned long flags;
+> +		ret = omap4iss_pipeline_set_stream(pipe,
+> +					      ISS_PIPELINE_STREAM_CONTINUOUS);
+> +		if (ret < 0)
+> +			goto err_omap4iss_set_stream;
+> +		spin_lock_irqsave(&video->qlock, flags);
+> +		if (list_empty(&video->dmaqueue))
+> +			video->dmaqueue_flags |= ISS_VIDEO_DMAQUEUE_UNDERRUN;
+> +		spin_unlock_irqrestore(&video->qlock, flags);
+> +	}
+> +
+> +	if (ret < 0) {
+> +err_omap4iss_set_stream:
+> +		vb2_streamoff(&vfh->queue, type);
+> +err_iss_video_check_format:
+> +		media_entity_pipeline_stop(&video->video.entity);
+> +err_media_entity_pipeline_start:
+> +		if (video->iss->pdata->set_constraints)
+> +			video->iss->pdata->set_constraints(video->iss, false);
+> +		video->queue = NULL;
+> +	}
+> +
+> +	if (!ret)
+> +		video->streaming = 1;
+> +
+> +	mutex_unlock(&video->stream_lock);
+> +	return ret;
+> +}
 
-Regards
-Matthias
+This driver is mostly really nice code, but this error handling is
+spaghetti-al-nasty.  Just split up the success and failure returns.
+
+	video->streaming = 1;
+	mutex_unlock(&video->stream_lock);
+	return 0;
+
+err_omap4iss_set_stream:
+	vb2_streamoff(&vfh->queue, type);
+err_iss_video_check_format:
+	media_entity_pipeline_stop(&video->video.entity);
+err_media_entity_pipeline_start:
+	if (video->iss->pdata->set_constraints)
+		video->iss->pdata->set_constraints(video->iss, false);
+	video->queue = NULL;
+
+	mutex_unlock(&video->stream_lock);
+	return ret;
+}
+
+regards,
+dan carpenter
+
 
