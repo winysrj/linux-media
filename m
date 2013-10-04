@@ -1,158 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57431 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015Ab3JHKHJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 06:07:09 -0400
-Message-ID: <1381226795.4013.16.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH] [media] v4l: vb2-dma-contig: add support for file
- access mode flags for DMABUF exporting
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	kernel@pengutronix.de
-Date: Tue, 08 Oct 2013 12:06:35 +0200
-In-Reply-To: <52303E57.8070102@samsung.com>
-References: <1369123895-10574-1-git-send-email-p.zabel@pengutronix.de>
-	 <52303E57.8070102@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1170 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754828Ab3JDOCN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH 14/14] siano: fix sparse warnings
+Date: Fri,  4 Oct 2013 16:01:52 +0200
+Message-Id: <1380895312-30863-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 11.09.2013, 11:56 +0200 schrieb Sylwester Nawrocki:
-> Tomasz, Marek,
-> 
-> Can you review/ack this patch ? I can't see nothing wrong in it and
-> it has been sat on the ML for quite long. I would add it to my pull
-> request once it is reviewed.
-> 
-> Thanks,
-> Sylwester
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ping?
+drivers/media/common/siano/smsdvb-main.c:47:5: warning: symbol 'sms_to_guard_interval_table' was not declared. Should it be static?
+drivers/media/common/siano/smsdvb-main.c:54:5: warning: symbol 'sms_to_code_rate_table' was not declared. Should it be static?
+drivers/media/common/siano/smsdvb-main.c:63:5: warning: symbol 'sms_to_hierarchy_table' was not declared. Should it be static?
+drivers/media/common/siano/smsdvb-main.c:70:5: warning: symbol 'sms_to_modulation_table' was not declared. Should it be static?
+drivers/media/common/siano/smscoreapi.c:925:35: warning: cast to restricted __le32
+drivers/media/common/siano/smscoreapi.c:926:28: warning: cast to restricted __le32
 
-This patch is needed to map videobuf2 exported dmabuf fds writeable from
-userspace, for example for timestamp software rendering into frames
-passing from a v4l2 capture device to a v4l2 output device.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/common/siano/smscoreapi.c  | 4 ++--
+ drivers/media/common/siano/smsdvb-main.c | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-regards
-Philipp
-
-> On 05/21/2013 10:11 AM, Philipp Zabel wrote:
-> > Currently it is not possible for userspace to map a DMABUF exported buffer
-> > with write permissions. This patch allows to also pass O_RDONLY/O_RDWR when
-> > exporting the buffer, so that userspace may map it with write permissions.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  Documentation/DocBook/media/v4l/vidioc-expbuf.xml | 8 +++++---
-> >  drivers/media/v4l2-core/videobuf2-core.c          | 8 ++++----
-> >  drivers/media/v4l2-core/videobuf2-dma-contig.c    | 4 ++--
-> >  include/media/videobuf2-core.h                    | 2 +-
-> >  4 files changed, 12 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> > index e287c8f..4165e7b 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> > @@ -73,7 +73,8 @@ range from zero to the maximal number of valid planes for the currently active
-> >  format. For the single-planar API, applications must set <structfield> plane
-> >  </structfield> to zero.  Additional flags may be posted in the <structfield>
-> >  flags </structfield> field.  Refer to a manual for open() for details.
-> > -Currently only O_CLOEXEC is supported.  All other fields must be set to zero.
-> > +Currently only O_CLOEXEC, O_RDONLY, O_WRONLY, and O_RDWR are supported.  All
-> > +other fields must be set to zero.
-> >  In the case of multi-planar API, every plane is exported separately using
-> >  multiple <constant> VIDIOC_EXPBUF </constant> calls. </para>
-> >  
-> > @@ -170,8 +171,9 @@ multi-planar API. Otherwise this value must be set to zero. </entry>
-> >  	    <entry>__u32</entry>
-> >  	    <entry><structfield>flags</structfield></entry>
-> >  	    <entry>Flags for the newly created file, currently only <constant>
-> > -O_CLOEXEC </constant> is supported, refer to the manual of open() for more
-> > -details.</entry>
-> > +O_CLOEXEC </constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY
-> > +</constant>, and <constant>O_RDWR</constant> are supported, refer to the manual
-> > +of open() for more details.</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry>__s32</entry>
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 7d833ee..5f7ae44 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1785,8 +1785,8 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > -	if (eb->flags & ~O_CLOEXEC) {
-> > -		dprintk(1, "Queue does support only O_CLOEXEC flag\n");
-> > +	if (eb->flags & ~(O_CLOEXEC | O_ACCMODE)) {
-> > +		dprintk(1, "Queue does support only O_CLOEXEC and access mode flags\n");
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > @@ -1809,14 +1809,14 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
-> >  
-> >  	vb_plane = &vb->planes[eb->plane];
-> >  
-> > -	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
-> > +	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
-> >  	if (IS_ERR_OR_NULL(dbuf)) {
-> >  		dprintk(1, "Failed to export buffer %d, plane %d\n",
-> >  			eb->index, eb->plane);
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > -	ret = dma_buf_fd(dbuf, eb->flags);
-> > +	ret = dma_buf_fd(dbuf, eb->flags & ~O_ACCMODE);
-> >  	if (ret < 0) {
-> >  		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
-> >  			eb->index, eb->plane, ret);
-> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > index fd56f25..e443df5 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > @@ -393,7 +393,7 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-> >  	return sgt;
-> >  }
-> >  
-> > -static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
-> > +static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
-> >  {
-> >  	struct vb2_dc_buf *buf = buf_priv;
-> >  	struct dma_buf *dbuf;
-> > @@ -404,7 +404,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
-> >  	if (WARN_ON(!buf->sgt_base))
-> >  		return NULL;
-> >  
-> > -	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, 0);
-> > +	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags);
-> >  	if (IS_ERR(dbuf))
-> >  		return NULL;
-> >  
-> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> > index d88a098..41709a8 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -83,7 +83,7 @@ struct vb2_fileio_data;
-> >  struct vb2_mem_ops {
-> >  	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
-> >  	void		(*put)(void *buf_priv);
-> > -	struct dma_buf *(*get_dmabuf)(void *buf_priv);
-> > +	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
-> >  
-> >  	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
-> >  					unsigned long size, int write);
-> > 
-> 
-> 
-
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index a142f79..9df2410 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -922,8 +922,8 @@ static int smscore_load_firmware_family2(struct smscore_device_t *coredev,
+ 	u32 i, *ptr;
+ 	u8 *payload = firmware->payload;
+ 	int rc = 0;
+-	firmware->start_address = le32_to_cpu(firmware->start_address);
+-	firmware->length = le32_to_cpu(firmware->length);
++	firmware->start_address = le32_to_cpup((__le32 *)&firmware->start_address);
++	firmware->length = le32_to_cpup((__le32 *)&firmware->length);
+ 
+ 	mem_address = firmware->start_address;
+ 
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index 63676a8..85151ef 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -44,14 +44,14 @@ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
+ 
+-u32 sms_to_guard_interval_table[] = {
++static u32 sms_to_guard_interval_table[] = {
+ 	[0] = GUARD_INTERVAL_1_32,
+ 	[1] = GUARD_INTERVAL_1_16,
+ 	[2] = GUARD_INTERVAL_1_8,
+ 	[3] = GUARD_INTERVAL_1_4,
+ };
+ 
+-u32 sms_to_code_rate_table[] = {
++static u32 sms_to_code_rate_table[] = {
+ 	[0] = FEC_1_2,
+ 	[1] = FEC_2_3,
+ 	[2] = FEC_3_4,
+@@ -60,14 +60,14 @@ u32 sms_to_code_rate_table[] = {
+ };
+ 
+ 
+-u32 sms_to_hierarchy_table[] = {
++static u32 sms_to_hierarchy_table[] = {
+ 	[0] = HIERARCHY_NONE,
+ 	[1] = HIERARCHY_1,
+ 	[2] = HIERARCHY_2,
+ 	[3] = HIERARCHY_4,
+ };
+ 
+-u32 sms_to_modulation_table[] = {
++static u32 sms_to_modulation_table[] = {
+ 	[0] = QPSK,
+ 	[1] = QAM_16,
+ 	[2] = QAM_64,
+-- 
+1.8.3.2
 
