@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:51143 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753635Ab3JHQYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 12:24:06 -0400
-Received: by mail-ea0-f179.google.com with SMTP id b10so4029007eae.24
-        for <linux-media@vger.kernel.org>; Tue, 08 Oct 2013 09:24:05 -0700 (PDT)
-Message-ID: <525431B7.6050000@googlemail.com>
-Date: Tue, 08 Oct 2013 18:24:23 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38151 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754664Ab3JDOgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Oct 2013 10:36:49 -0400
+Message-ID: <524ED27F.2010803@iki.fi>
+Date: Fri, 04 Oct 2013 17:36:47 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jean-Francois Thibert <jfthibert@google.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add support for KWorld UB435-Q V2
-References: <1380501923-23127-1-git-send-email-jfthibert@google.com>
-In-Reply-To: <1380501923-23127-1-git-send-email-jfthibert@google.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 05/14] cxd2820r_core: fix sparse warnings
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl> <1380895312-30863-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-6-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 30.09.2013 02:45, schrieb Jean-Francois Thibert:
-> This adds support for the UB435-Q V2. It seems that you might need to
-> use the device once with the official driver to reprogram the device
-> descriptors. Thanks to Jarod Wilson for the initial attempt at adding
-> support for this device.
-Could you please elaborate on this ?
-What's the "official" driver and what changes after using it ?
-Are these changes permanent ?
-
-The commit message should be included in the patch and not be sent as a
-separate message.
-Can you fix the patch and resend it ?
-
-Regards,
-Frank Schäfer
-
-> Jean-Francois Thibert (1):
->   Add support for KWorld UB435-Q V2
+On 04.10.2013 17:01, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
->  drivers/media/usb/em28xx/em28xx-cards.c |   14 +++++++++++++-
->  drivers/media/usb/em28xx/em28xx-dvb.c   |   27 +++++++++++++++++++++++++++
->  drivers/media/usb/em28xx/em28xx.h       |    1 +
->  3 files changed, 41 insertions(+), 1 deletions(-)
+> drivers/media/dvb-frontends/cxd2820r_core.c:34:32: error: cannot size expression
+> drivers/media/dvb-frontends/cxd2820r_core.c:68:32: error: cannot size expression
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+
+
+> Cc: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/cxd2820r_core.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
+> index 7ca5c69..d9eeeb1 100644
+> --- a/drivers/media/dvb-frontends/cxd2820r_core.c
+> +++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+> @@ -31,7 +31,7 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   		{
+>   			.addr = i2c,
+>   			.flags = 0,
+> -			.len = sizeof(buf),
+> +			.len = len + 1,
+>   			.buf = buf,
+>   		}
+>   	};
+> @@ -65,7 +65,7 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   		}, {
+>   			.addr = i2c,
+>   			.flags = I2C_M_RD,
+> -			.len = sizeof(buf),
+> +			.len = len,
+>   			.buf = buf,
+>   		}
+>   	};
 >
 
+
+-- 
+http://palosaari.fi/
