@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:39197 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab3JOHoV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 03:44:21 -0400
-Message-id: <525CF251.1040003@samsung.com>
-Date: Tue, 15 Oct 2013 09:44:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Seung-Woo Kim <sw0312.kim@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	m.chehab@samsung.com
-Subject: Re: [PATCH v2] s5p-jpeg: fix uninitialized use in hdr parse
-References: <525918C1.7090704@gmail.com>
- <1381725810-20202-1-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1381725810-20202-1-git-send-email-sw0312.kim@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2350 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754789Ab3JDOCK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH 12/14] tlg2300: fix sparse warning
+Date: Fri,  4 Oct 2013 16:01:50 +0200
+Message-Id: <1380895312-30863-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Seung-Woo,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 14/10/13 06:43, Seung-Woo Kim wrote:
-> For hdr parse error, it can return false without any assignments
-> which cause following build warning.
-> 
-> drivers/media/platform/s5p-jpeg/jpeg-core.c: In function 's5p_jpeg_parse_hdr':
-> drivers/media/platform/s5p-jpeg/jpeg-core.c:432: warning: 'components' may be used uninitialized in this function
-> drivers/media/platform/s5p-jpeg/jpeg-core.c:433: warning: 'height' may be used uninitialized in this function
-> drivers/media/platform/s5p-jpeg/jpeg-core.c:433: warning: 'width' may be used uninitialized in this function
-> 
-> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> ---
-> change from v1
-> - add build warning to commit message
+drivers/media/usb/tlg2300/pd-main.c:235:25: warning: incorrect type in assignment (different base types)
 
-Thanks for amending it, the patch added to my tree for v3.13.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Huang Shijie <shijie8@gmail.com>
+---
+ drivers/media/usb/tlg2300/pd-main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
+index 95f94e5..3316caa 100644
+--- a/drivers/media/usb/tlg2300/pd-main.c
++++ b/drivers/media/usb/tlg2300/pd-main.c
+@@ -232,7 +232,7 @@ static int firmware_download(struct usb_device *udev)
+ 		goto out;
+ 	}
+ 
+-	max_packet_size = udev->ep_out[0x1]->desc.wMaxPacketSize;
++	max_packet_size = le16_to_cpu(udev->ep_out[0x1]->desc.wMaxPacketSize);
+ 	log("\t\t download size : %d", (int)max_packet_size);
+ 
+ 	for (offset = 0; offset < fwlength; offset += max_packet_size) {
+-- 
+1.8.3.2
+
