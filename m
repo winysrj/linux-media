@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:65404 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398Ab3JBKqw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 06:46:52 -0400
-Received: by mail-ie0-f172.google.com with SMTP id x13so1325049ief.31
-        for <linux-media@vger.kernel.org>; Wed, 02 Oct 2013 03:46:51 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:58290 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753755Ab3JDOkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Oct 2013 10:40:53 -0400
+Message-ID: <524ED372.2080504@iki.fi>
+Date: Fri, 04 Oct 2013 17:40:50 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1380392497-27406-2-git-send-email-tomasz.figa@gmail.com>
-References: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com>
-	<1380392497-27406-2-git-send-email-tomasz.figa@gmail.com>
-Date: Wed, 2 Oct 2013 12:46:51 +0200
-Message-ID: <CACRpkdZXOGpTspPucd=d0=Ws9Ccx19h4UYTTdgZceoofhuq0Kw@mail.gmail.com>
-Subject: Re: [PATCH 2/5] gpio: samsung: Use CONFIG_ARCH_S3C64XX to check for
- S3C64xx support
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sangbeom Kim <sbkim73@samsung.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Martin Schwidefsky <schwidefsky@de.ibm.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 07/14] drxk_hard: fix sparse warnings
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl> <1380895312-30863-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-8-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 28, 2013 at 8:21 PM, Tomasz Figa <tomasz.figa@gmail.com> wrote:
-
-> Since CONFIG_PLAT_S3C64XX is going to be removed, this patch modifies
-> the gpio-samsung driver to use the proper way of checking for S3C64xx
-> support - CONFIG_ARCH_S3C64XX.
+On 04.10.2013 17:01, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
-> Signed-off-by: Tomasz Figa <tomasz.figa@gmail.com>
+> drivers/media/dvb-frontends/drxk_hard.c:1086:62: warning: Using plain integer as NULL pointer
+> drivers/media/dvb-frontends/drxk_hard.c:2784:63: warning: Using plain integer as NULL pointer
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-I assume that this will go through ARM SoC?
 
-Yours,
-Linus Walleij
+> Cc: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/drxk_hard.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+> index 082014d..d416c15 100644
+> --- a/drivers/media/dvb-frontends/drxk_hard.c
+> +++ b/drivers/media/dvb-frontends/drxk_hard.c
+> @@ -1083,7 +1083,7 @@ static int hi_cfg_command(struct drxk_state *state)
+>   			 SIO_HI_RA_RAM_PAR_1_PAR1_SEC_KEY);
+>   	if (status < 0)
+>   		goto error;
+> -	status = hi_command(state, SIO_HI_RA_RAM_CMD_CONFIG, 0);
+> +	status = hi_command(state, SIO_HI_RA_RAM_CMD_CONFIG, NULL);
+>   	if (status < 0)
+>   		goto error;
+>
+> @@ -2781,7 +2781,7 @@ static int ConfigureI2CBridge(struct drxk_state *state, bool b_enable_bridge)
+>   			goto error;
+>   	}
+>
+> -	status = hi_command(state, SIO_HI_RA_RAM_CMD_BRDCTRL, 0);
+> +	status = hi_command(state, SIO_HI_RA_RAM_CMD_BRDCTRL, NULL);
+>
+>   error:
+>   	if (status < 0)
+>
+
+
+-- 
+http://palosaari.fi/
