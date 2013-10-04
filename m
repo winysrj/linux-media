@@ -1,675 +1,737 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:38997 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab3JRFiP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 01:38:15 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v10 05/12] exynos5-fimc-is: Add isp subdev
-Date: Fri, 18 Oct 2013 11:07:32 +0530
-Message-Id: <1382074659-31130-6-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
-References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:43771 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309Ab3JDMXg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 08:23:36 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, inki.dae@samsung.com,
+	hverkuil@xs4all.nl, shaik.ameer@samsung.com
+Subject: [PATCH v4 1/4] [media] exynos-scaler: Add new driver for Exynos5 SCALER
+Date: Fri,  4 Oct 2013 17:56:31 +0530
+Message-Id: <1380889594-10448-2-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com>
+References: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fimc-is driver takes video data input from the ISP video node
-which is added in this patch. This node accepts Bayer input
-buffers which is given from the IS sensors.
+This patch adds support for SCALER device which is a new device
+for scaling, blending, color fill  and color space conversion
+on EXYNOS5410 and EXYNOS5420 SoCs.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This device supports the followings as key feature.
+    input image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888, L8A8 and L8
+    output image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888
+    input rotation
+        - 0/90/180/270 degree, X/Y/XY Flip
+    scale ratio
+        - 1/4 scale down to 16 scale up
+    color space conversion
+        - RGB to YUV / YUV to RGB
+    Size - Exynos5420
+        - Input : 16x16 to 8192x8192
+        - Output:   4x4 to 8192x8192
+    Size - Exynos5410
+        - Input/Output: 4x4 to 4096x4096
+    alpha blending, color fill
+
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 ---
- drivers/media/platform/exynos5-is/fimc-is-isp.c |  534 +++++++++++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-isp.h |   90 ++++
- 2 files changed, 624 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
+ drivers/media/platform/exynos-scaler/scaler-regs.c |  336 ++++++++++++++++++++
+ drivers/media/platform/exynos-scaler/scaler-regs.h |  331 +++++++++++++++++++
+ 2 files changed, 667 insertions(+)
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.c b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+diff --git a/drivers/media/platform/exynos-scaler/scaler-regs.c b/drivers/media/platform/exynos-scaler/scaler-regs.c
 new file mode 100644
-index 0000000..7bd603f
+index 0000000..ae4a548
 --- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-isp.c
-@@ -0,0 +1,534 @@
++++ b/drivers/media/platform/exynos-scaler/scaler-regs.c
+@@ -0,0 +1,336 @@
 +/*
-+ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com
 + *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
++ * Samsung EXYNOS5 SoC series SCALER driver
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-dma-contig.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
 +
-+#include "fimc-is.h"
++#include "scaler-regs.h"
 +
-+#define ISP_DRV_NAME "fimc-is-isp"
++/* Scaler reset timeout in milliseconds */
++#define SCALER_RESET_TIMEOUT	50
 +
-+static const struct fimc_is_fmt formats[] = {
-+	{
-+		.name           = "Bayer GR-BG 8bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG8,
-+		.depth		= { 8 },
-+		.num_planes     = 1,
-+	},
-+	{
-+		.name           = "Bayer GR-BG 10bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG10,
-+		.depth		= { 16 },
-+		.num_planes     = 1,
-+	},
-+	{
-+		.name           = "Bayer GR-BG 12bits",
-+		.fourcc         = V4L2_PIX_FMT_SGRBG12,
-+		.depth		= { 16 },
-+		.num_planes     = 1,
-+	},
-+};
-+#define NUM_FORMATS ARRAY_SIZE(formats)
-+
-+static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
++void scaler_hw_set_sw_reset(struct scaler_dev *dev)
 +{
-+	unsigned int i;
++	u32 cfg;
 +
-+	for (i = 0; i < NUM_FORMATS; i++)
-+		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
-+			return &formats[i];
-+	return NULL;
++	cfg = scaler_read(dev, SCALER_CFG);
++	cfg |= SCALER_CFG_SOFT_RESET;
++
++	scaler_write(dev, SCALER_CFG, cfg);
 +}
 +
-+static int isp_video_output_start_streaming(struct vb2_queue *vq,
-+					unsigned int count)
++int scaler_wait_reset(struct scaler_dev *dev)
 +{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+
-+	set_bit(STATE_RUNNING, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_video_output_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	struct fimc_is_buf *buf;
-+
-+	/* Release unused buffers */
-+	while (!list_empty(&isp->wait_queue)) {
-+		buf = fimc_is_isp_wait_queue_get(isp);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	while (!list_empty(&isp->run_queue)) {
-+		buf = fimc_is_isp_run_queue_get(isp);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+
-+	clear_bit(STATE_RUNNING, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_video_output_queue_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *pfmt,
-+			unsigned int *num_buffers, unsigned int *num_planes,
-+			unsigned int sizes[], void *allocators[])
-+{
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	const struct fimc_is_fmt *fmt = isp->fmt;
-+	unsigned int wh, i;
-+
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	*num_planes = fmt->num_planes;
-+	wh = isp->width * isp->height;
-+
-+	for (i = 0; i < *num_planes; i++) {
-+		allocators[i] = isp->alloc_ctx;
-+		sizes[i] = (wh * fmt->depth[i]) / 8;
-+	}
-+	return 0;
-+}
-+
-+static int isp_video_output_buffer_init(struct vb2_buffer *vb)
-+{
-+	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
-+
-+	buf->paddr[0] = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	return 0;
-+}
-+
-+static int isp_video_output_buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	unsigned long size;
-+
-+	size = (isp->width * isp->height * isp->fmt->depth[0]) / 8;
-+	if (vb2_plane_size(vb, 0) < size) {
-+		v4l2_err(&isp->subdev, "User buffer too small (%ld < %ld)\n",
-+			 vb2_plane_size(vb, 0), size);
-+		return -EINVAL;
-+	}
-+	vb2_set_plane_payload(vb, 0, size);
-+
-+	return 0;
-+}
-+
-+static void isp_video_output_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
-+	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
-+
-+	fimc_is_pipeline_buf_lock(isp->pipeline);
-+	fimc_is_isp_wait_queue_add(isp, buf);
-+	fimc_is_pipeline_buf_unlock(isp->pipeline);
-+
-+	/* Call shot command */
-+	fimc_is_pipeline_shot_safe(isp->pipeline);
-+}
-+
-+static const struct vb2_ops isp_video_output_qops = {
-+	.queue_setup	 = isp_video_output_queue_setup,
-+	.buf_init	 = isp_video_output_buffer_init,
-+	.buf_prepare	 = isp_video_output_buffer_prepare,
-+	.buf_queue	 = isp_video_output_buffer_queue,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
-+	.start_streaming = isp_video_output_start_streaming,
-+	.stop_streaming	 = isp_video_output_stop_streaming,
-+};
-+
-+static const struct v4l2_file_operations isp_video_output_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= v4l2_fh_open,
-+	.release	= vb2_fop_release,
-+	.poll		= vb2_fop_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+	.mmap		= vb2_fop_mmap,
-+};
-+
-+/*
-+ * Video node ioctl operations
-+ */
-+static int isp_querycap_output(struct file *file, void *priv,
-+					struct v4l2_capability *cap)
-+{
-+	strncpy(cap->driver, ISP_DRV_NAME, sizeof(cap->driver) - 1);
-+	strncpy(cap->card, ISP_DRV_NAME, sizeof(cap->card) - 1);
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+			ISP_DRV_NAME);
-+	cap->device_caps = V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	return 0;
-+}
-+
-+static int isp_enum_fmt_mplane(struct file *file, void *priv,
-+				     struct v4l2_fmtdesc *f)
-+{
-+	const struct fimc_is_fmt *fmt;
-+
-+	if (f->index >= NUM_FORMATS)
-+		return -EINVAL;
-+
-+	fmt = &formats[f->index];
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+
-+static int isp_g_fmt_mplane(struct file *file, void *fh,
-+				  struct v4l2_format *f)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
-+	const struct fimc_is_fmt *fmt = isp->fmt;
-+
-+	plane_fmt->bytesperline = (isp->width * fmt->depth[0]) / 8;
-+	plane_fmt->sizeimage = plane_fmt->bytesperline * isp->height;
-+	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
-+
-+	pixm->num_planes = fmt->num_planes;
-+	pixm->pixelformat = fmt->fourcc;
-+	pixm->width = isp->width;
-+	pixm->height = isp->height;
-+	pixm->field = V4L2_FIELD_NONE;
-+	pixm->colorspace = V4L2_COLORSPACE_JPEG;
-+	memset(pixm->reserved, 0, sizeof(pixm->reserved));
-+
-+	return 0;
-+}
-+
-+static int isp_try_fmt_mplane(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	const struct fimc_is_fmt *fmt;
-+	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
-+
-+	fmt = find_format(f);
-+	if (!fmt)
-+		fmt = (struct fimc_is_fmt *) &formats[0];
-+
-+	v4l_bound_align_image(&pixm->width,
-+			ISP_MIN_WIDTH + SENSOR_WIDTH_PADDING,
-+			ISP_MAX_WIDTH + SENSOR_WIDTH_PADDING, 0,
-+			&pixm->height,
-+			ISP_MIN_HEIGHT + SENSOR_HEIGHT_PADDING,
-+			ISP_MAX_HEIGHT + SENSOR_HEIGHT_PADDING, 0,
-+			0);
-+
-+	plane_fmt->bytesperline = (pixm->width * fmt->depth[0]) / 8;
-+	plane_fmt->sizeimage = (pixm->width * pixm->height *
-+				fmt->depth[0]) / 8;
-+	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
-+
-+	pixm->num_planes = fmt->num_planes;
-+	pixm->pixelformat = fmt->fourcc;
-+	pixm->colorspace = V4L2_COLORSPACE_JPEG;
-+	pixm->field = V4L2_FIELD_NONE;
-+	memset(pixm->reserved, 0, sizeof(pixm->reserved));
-+
-+	return 0;
-+}
-+
-+static int isp_s_fmt_mplane(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	const struct fimc_is_fmt *fmt;
-+	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-+	int ret;
-+
-+	ret = isp_try_fmt_mplane(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	/* Get format type */
-+	fmt = find_format(f);
-+	if (!fmt) {
-+		fmt = &formats[0];
-+		pixm->pixelformat = fmt->fourcc;
-+		pixm->num_planes = fmt->num_planes;
-+	}
-+
-+	isp->fmt = fmt;
-+	isp->width = pixm->width;
-+	isp->height = pixm->height;
-+	isp->size_image = pixm->plane_fmt[0].sizeimage;
-+	set_bit(STATE_INIT, &isp->output_state);
-+	return 0;
-+}
-+
-+static int isp_reqbufs(struct file *file, void *priv,
-+		struct v4l2_requestbuffers *reqbufs)
-+{
-+	struct fimc_is_isp *isp = video_drvdata(file);
-+	int ret;
-+
-+	reqbufs->count = max_t(u32, FIMC_IS_ISP_REQ_BUFS_MIN, reqbufs->count);
-+	ret = vb2_reqbufs(&isp->vbq, reqbufs);
-+	if (ret) {
-+		v4l2_err(&isp->subdev, "vb2 req buffers failed\n");
-+		return ret;
-+	}
-+
-+	if (reqbufs->count < FIMC_IS_ISP_REQ_BUFS_MIN) {
-+		reqbufs->count = 0;
-+		vb2_reqbufs(&isp->vbq, reqbufs);
-+		return -ENOMEM;
-+	}
-+	set_bit(STATE_BUFS_ALLOCATED, &isp->output_state);
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops isp_video_output_ioctl_ops = {
-+	.vidioc_querycap		= isp_querycap_output,
-+	.vidioc_enum_fmt_vid_out_mplane	= isp_enum_fmt_mplane,
-+	.vidioc_try_fmt_vid_out_mplane	= isp_try_fmt_mplane,
-+	.vidioc_s_fmt_vid_out_mplane	= isp_s_fmt_mplane,
-+	.vidioc_g_fmt_vid_out_mplane	= isp_g_fmt_mplane,
-+	.vidioc_reqbufs			= isp_reqbufs,
-+	.vidioc_querybuf		= vb2_ioctl_querybuf,
-+	.vidioc_qbuf			= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_streamon		= vb2_ioctl_streamon,
-+	.vidioc_streamoff		= vb2_ioctl_streamoff,
-+};
-+
-+static int isp_subdev_registered(struct v4l2_subdev *sd)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct vb2_queue *q = &isp->vbq;
-+	struct video_device *vfd = &isp->vfd;
-+	int ret;
-+
-+	mutex_init(&isp->video_lock);
-+
-+	memset(vfd, 0, sizeof(*vfd));
-+	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.output");
-+
-+	vfd->fops = &isp_video_output_fops;
-+	vfd->ioctl_ops = &isp_video_output_ioctl_ops;
-+	vfd->v4l2_dev = sd->v4l2_dev;
-+	vfd->release = video_device_release_empty;
-+	vfd->lock = &isp->video_lock;
-+	vfd->queue = q;
-+	vfd->vfl_dir = VFL_DIR_TX;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
-+
-+	memset(q, 0, sizeof(*q));
-+	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF;
-+	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->ops = &isp_video_output_qops;
-+	q->mem_ops = &vb2_dma_contig_memops;
-+	q->buf_struct_size = sizeof(struct fimc_is_buf);
-+	q->drv_priv = isp;
-+
-+	ret = vb2_queue_init(q);
-+	if (ret < 0)
-+		return ret;
-+
-+	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	video_set_drvdata(vfd, isp);
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
-+	if (ret < 0) {
-+		media_entity_cleanup(&vfd->entity);
-+		return ret;
-+	}
-+
-+	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
-+		  vfd->name, video_device_node_name(vfd));
-+	return 0;
-+}
-+
-+static void isp_subdev_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+
-+	if (isp && video_is_registered(&isp->vfd))
-+		video_unregister_device(&isp->vfd);
-+}
-+
-+static const struct v4l2_subdev_internal_ops isp_subdev_internal_ops = {
-+	.registered = isp_subdev_registered,
-+	.unregistered = isp_subdev_unregistered,
-+};
-+
-+static struct fimc_is_sensor *fimc_is_get_sensor(struct fimc_is *is,
-+		int sensor_id)
-+{
-+	int i;
-+
-+	for (i = 0; i < FIMC_IS_NUM_SENSORS; i++) {
-+		if (is->sensor[i].drvdata->id == sensor_id)
-+			return &is->sensor[i];
-+	}
-+	return NULL;
-+}
-+
-+static int isp_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct fimc_is *is = isp->pipeline->is;
-+	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
-+	struct fimc_is_sensor *sensor;
-+	const struct sensor_drv_data *sdata;
-+	int ret;
-+
-+	if (!sensor_sd)
-+		return -EINVAL;
-+
-+	if (on) {
-+		ret = pm_runtime_get_sync(&is->pdev->dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
-+		sensor = fimc_is_get_sensor(is, sdata->id);
-+
-+		ret = fimc_is_pipeline_open(isp->pipeline, sensor);
-+		if (ret)
-+			v4l2_err(&isp->subdev, "Pipeline open failed\n");
-+	} else {
-+		ret = fimc_is_pipeline_close(isp->pipeline);
-+		if (ret)
-+			v4l2_err(&isp->subdev, "Pipeline close failed\n");
-+		pm_runtime_put_sync(&is->pdev->dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static struct v4l2_subdev_core_ops isp_core_ops = {
-+	.s_power = isp_s_power,
-+};
-+
-+static int isp_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
-+	struct fimc_is *is = isp->pipeline->is;
-+	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
-+	struct v4l2_subdev_format fmt;
-+	const struct sensor_drv_data *sdata;
-+	struct fimc_is_sensor *sensor;
-+	int ret;
-+
-+	if (!sensor_sd)
-+		return -EINVAL;
-+
-+	if (enable) {
-+		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
-+		sensor = fimc_is_get_sensor(is, sdata->id);
-+		/* Retrieve the sensor format */
-+		fmt.pad = 0;
-+		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		ret = v4l2_subdev_call(sensor_sd, pad, get_fmt, NULL, &fmt);
-+		if (ret)
-+			return ret;
-+
-+		sensor->width = fmt.format.width - SENSOR_WIDTH_PADDING;
-+		sensor->height = fmt.format.height - SENSOR_HEIGHT_PADDING;
-+		sensor->pixel_width = fmt.format.width;
-+		sensor->pixel_height = fmt.format.height;
-+
-+		/* Check sensor resolution match */
-+		if ((sensor->pixel_width != isp->width) ||
-+			(sensor->pixel_height != isp->height)) {
-+			v4l2_err(sd, "Resolution mismatch\n");
-+			return -EPIPE;
++	unsigned long end = jiffies + msecs_to_jiffies(SCALER_RESET_TIMEOUT);
++	u32 cfg, reset_done = 0;
++
++	while (time_before(jiffies, end)) {
++		cfg = scaler_read(dev, SCALER_CFG);
++		if (!(cfg & SCALER_CFG_SOFT_RESET)) {
++			reset_done = 1;
++			break;
 +		}
-+
-+		ret = fimc_is_pipeline_start(isp->pipeline, 1);
-+		if (ret)
-+			v4l2_err(sd, "Pipeline start failed.\n");
-+	} else {
-+		ret = fimc_is_pipeline_stop(isp->pipeline, 1);
-+		if (ret)
-+			v4l2_err(sd, "Pipeline stop failed.\n");
++		usleep_range(10, 20);
 +	}
 +
-+	return ret;
++	/*
++	 * Write any value to read/write register and read it back.
++	 * If the written and read value matches, then the reset process is
++	 * succeeded.
++	 */
++	while (reset_done) {
++
++		/*
++		 * TODO: need to define number of tries before returning
++		 * -EBUSY to the caller
++		 */
++
++		scaler_write(dev, SCALER_CFG_SOFT_RESET_CHECK_REG,
++				SCALER_CFG_SOFT_RESET_CHECK_VAL);
++		if (SCALER_CFG_SOFT_RESET_CHECK_VAL ==
++			scaler_read(dev, SCALER_CFG_SOFT_RESET_CHECK_REG))
++			return 0;
++	}
++
++	return -EBUSY;
 +}
 +
-+static const struct v4l2_subdev_video_ops isp_video_ops = {
-+	.s_stream       = isp_s_stream,
-+};
-+
-+static struct v4l2_subdev_ops isp_subdev_ops = {
-+	.core = &isp_core_ops,
-+	.video = &isp_video_ops,
-+};
-+
-+int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
-+		struct vb2_alloc_ctx *alloc_ctx,
-+		struct fimc_is_pipeline *pipeline)
++void scaler_hw_set_irq(struct scaler_dev *dev, int irq_num, bool enable)
 +{
-+	struct v4l2_ctrl_handler *handler = &isp->ctrl_handler;
-+	struct v4l2_subdev *sd = &isp->subdev;
-+	int ret;
++	u32 cfg;
 +
-+	isp->alloc_ctx = alloc_ctx;
-+	isp->pipeline = pipeline;
-+	isp->fmt = &formats[1];
-+	INIT_LIST_HEAD(&isp->wait_queue);
-+	INIT_LIST_HEAD(&isp->run_queue);
-+	isp->width = ISP_DEF_WIDTH;
-+	isp->height = ISP_DEF_HEIGHT;
++	if ((irq_num < SCALER_INT_FRAME_END) ||
++	    (irq_num > SCALER_INT_TIMEOUT))
++		return;
 +
-+	v4l2_subdev_init(sd, &isp_subdev_ops);
-+	sd->owner = THIS_MODULE;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	snprintf(sd->name, sizeof(sd->name), ISP_DRV_NAME);
-+
-+	isp->subdev_pads[ISP_SD_PAD_SINK_DMA].flags = MEDIA_PAD_FL_SINK;
-+	isp->subdev_pads[ISP_SD_PAD_SINK_OTF].flags = MEDIA_PAD_FL_SINK;
-+	isp->subdev_pads[ISP_SD_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
-+			isp->subdev_pads, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_ctrl_handler_init(handler, 1);
-+	if (handler->error)
-+		goto err_ctrl;
-+
-+	sd->ctrl_handler = handler;
-+	sd->internal_ops = &isp_subdev_internal_ops;
-+	v4l2_set_subdevdata(sd, isp);
-+
-+	return 0;
-+
-+err_ctrl:
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_ctrl_handler_free(handler);
-+	return ret;
++	cfg = scaler_read(dev, SCALER_INT_EN);
++	if (enable)
++		cfg |= (1 << irq_num);
++	else
++		cfg &= ~(1 << irq_num);
++	scaler_write(dev, SCALER_INT_EN, cfg);
 +}
 +
-+void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp)
++void scaler_hw_set_input_addr(struct scaler_dev *dev, struct scaler_addr *addr)
 +{
-+	struct v4l2_subdev *sd = &isp->subdev;
-+
-+	v4l2_device_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_ctrl_handler_free(&isp->ctrl_handler);
-+	v4l2_set_subdevdata(sd, NULL);
++	scaler_dbg(dev, "src_buf: 0x%x, cb: 0x%x, cr: 0x%x",
++				addr->y, addr->cb, addr->cr);
++	scaler_write(dev, SCALER_SRC_Y_BASE, addr->y);
++	scaler_write(dev, SCALER_SRC_CB_BASE, addr->cb);
++	scaler_write(dev, SCALER_SRC_CR_BASE, addr->cr);
 +}
 +
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.h b/drivers/media/platform/exynos5-is/fimc-is-isp.h
++void scaler_hw_set_output_addr(struct scaler_dev *dev,
++			     struct scaler_addr *addr)
++{
++	scaler_dbg(dev, "dst_buf: 0x%x, cb: 0x%x, cr: 0x%x",
++			addr->y, addr->cb, addr->cr);
++	scaler_write(dev, SCALER_DST_Y_BASE, addr->y);
++	scaler_write(dev, SCALER_DST_CB_BASE, addr->cb);
++	scaler_write(dev, SCALER_DST_CR_BASE, addr->cr);
++}
++
++void scaler_hw_set_in_size(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	struct scaler_frame *frame = &ctx->s_frame;
++	u32 cfg;
++
++	/* set input pixel offset */
++	cfg = (frame->selection.left & SCALER_SRC_YH_POS_MASK) <<
++				  SCALER_SRC_YH_POS_SHIFT;
++	cfg |= ((frame->selection.top & SCALER_SRC_YV_POS_MASK) <<
++				   SCALER_SRC_YV_POS_SHIFT);
++	scaler_write(dev, SCALER_SRC_Y_POS, cfg);
++
++	/* TODO: calculate 'C' plane h/v offset using 'Y' plane h/v offset */
++
++	/* Set input span */
++	cfg = (frame->f_width & SCALER_SRC_Y_SPAN_MASK) <<
++				SCALER_SRC_Y_SPAN_SHIFT;
++	if (is_yuv420_2p(frame->fmt))
++		cfg |= ((frame->f_width & SCALER_SRC_C_SPAN_MASK) <<
++					  SCALER_SRC_C_SPAN_SHIFT);
++	else /* TODO: Verify */
++		cfg |= ((frame->f_width & SCALER_SRC_C_SPAN_MASK) <<
++					  SCALER_SRC_C_SPAN_SHIFT);
++
++	scaler_write(dev, SCALER_SRC_SPAN, cfg);
++
++	/* Set input cropped size */
++	cfg = (frame->selection.width & SCALER_SRC_WIDTH_MASK) <<
++				   SCALER_SRC_WIDTH_SHIFT;
++	cfg |= ((frame->selection.height & SCALER_SRC_HEIGHT_MASK) <<
++				      SCALER_SRC_HEIGHT_SHIFT);
++	scaler_write(dev, SCALER_SRC_WH, cfg);
++
++	scaler_dbg(dev, "src: posx: %d, posY: %d, spanY: %d, spanC: %d, cropX: %d, cropY: %d\n",
++		frame->selection.left, frame->selection.top,
++		frame->f_width, frame->f_width, frame->selection.width,
++		frame->selection.height);
++}
++
++void scaler_hw_set_in_image_format(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	struct scaler_frame *frame = &ctx->s_frame;
++	u32 cfg;
++
++	cfg = scaler_read(dev, SCALER_SRC_CFG);
++	cfg &= ~(SCALER_SRC_COLOR_FORMAT_MASK << SCALER_SRC_COLOR_FORMAT_SHIFT);
++	cfg |= ((frame->fmt->scaler_color & SCALER_SRC_COLOR_FORMAT_MASK) <<
++					   SCALER_SRC_COLOR_FORMAT_SHIFT);
++
++	/* Setting tiled/linear format */
++	if (is_tiled_fmt(frame->fmt))
++		cfg |= SCALER_SRC_TILE_EN;
++	else
++		cfg &= ~SCALER_SRC_TILE_EN;
++
++	scaler_write(dev, SCALER_SRC_CFG, cfg);
++}
++
++void scaler_hw_set_out_size(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	struct scaler_frame *frame = &ctx->d_frame;
++	u32 cfg;
++
++	/* Set output pixel offset */
++	cfg = (frame->selection.left & SCALER_DST_H_POS_MASK) <<
++				  SCALER_DST_H_POS_SHIFT;
++	cfg |= (frame->selection.top & SCALER_DST_V_POS_MASK) <<
++				  SCALER_DST_V_POS_SHIFT;
++	scaler_write(dev, SCALER_DST_POS, cfg);
++
++	/* Set output span */
++	cfg = (frame->f_width & SCALER_DST_Y_SPAN_MASK) <<
++				SCALER_DST_Y_SPAN_SHIFT;
++	if (is_yuv420_2p(frame->fmt))
++		cfg |= (((frame->f_width / 2) & SCALER_DST_C_SPAN_MASK) <<
++					     SCALER_DST_C_SPAN_SHIFT);
++	else
++		cfg |= (((frame->f_width) & SCALER_DST_C_SPAN_MASK) <<
++					     SCALER_DST_C_SPAN_SHIFT);
++	scaler_write(dev, SCALER_DST_SPAN, cfg);
++
++	/* Set output scaled size */
++	cfg = (frame->selection.width & SCALER_DST_WIDTH_MASK) <<
++				   SCALER_DST_WIDTH_SHIFT;
++	cfg |= (frame->selection.height & SCALER_DST_HEIGHT_MASK) <<
++				     SCALER_DST_HEIGHT_SHIFT;
++	scaler_write(dev, SCALER_DST_WH, cfg);
++
++	scaler_dbg(dev, "dst: pos X: %d, pos Y: %d, span Y: %d, span C: %d, crop X: %d, crop Y: %d\n",
++		frame->selection.left, frame->selection.top,
++		frame->f_width, frame->f_width, frame->selection.width,
++		frame->selection.height);
++}
++
++void scaler_hw_set_out_image_format(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	struct scaler_frame *frame = &ctx->d_frame;
++	u32 cfg;
++
++	cfg = scaler_read(dev, SCALER_DST_CFG);
++	cfg &= ~SCALER_DST_COLOR_FORMAT_MASK;
++	cfg |= (frame->fmt->scaler_color & SCALER_DST_COLOR_FORMAT_MASK);
++
++	scaler_write(dev, SCALER_DST_CFG, cfg);
++}
++
++void scaler_hw_set_scaler_ratio(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	struct scaler_scaler *sc = &ctx->scaler;
++	u32 cfg;
++
++	cfg = (sc->hratio & SCALER_H_RATIO_MASK) << SCALER_H_RATIO_SHIFT;
++	scaler_write(dev, SCALER_H_RATIO, cfg);
++
++	cfg = (sc->vratio & SCALER_V_RATIO_MASK) << SCALER_V_RATIO_SHIFT;
++	scaler_write(dev, SCALER_V_RATIO, cfg);
++}
++
++void scaler_hw_set_rotation(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	u32 cfg = 0;
++
++	cfg = ((ctx->ctrls_scaler.rotate->val / 90) & SCALER_ROTMODE_MASK) <<
++						      SCALER_ROTMODE_SHIFT;
++
++	if (ctx->ctrls_scaler.hflip->val)
++		cfg |= SCALER_FLIP_X_EN;
++
++	if (ctx->ctrls_scaler.vflip->val)
++		cfg |= SCALER_FLIP_Y_EN;
++
++	scaler_write(dev, SCALER_ROT_CFG, cfg);
++}
++
++void scaler_hw_set_csc_coeff(struct scaler_ctx *ctx)
++{
++	struct scaler_dev *dev = ctx->scaler_dev;
++	enum scaler_csc_coeff type;
++	u32 cfg = 0;
++	int i, j;
++	static const u32 csc_coeff[SCALER_CSC_COEFF_MAX][3][3] = {
++		{ /* YCbCr to RGB */
++			{0x254, 0x000, 0x331},
++			{0x254, 0xec8, 0xFA0},
++			{0x254, 0x409, 0x000}
++		},
++		{ /* RGB to YCbCr */
++			{0x084, 0x102, 0x032},
++			{0xe4c, 0xe95, 0x0e1},
++			{0x0e1, 0xebc, 0xe24}
++		} };
++
++	/* TODO: add check for BT.601,BT.709 narrow/wide ranges */
++	if (is_rgb(ctx->s_frame.fmt) == is_rgb(ctx->d_frame.fmt)) {
++		type = SCALER_CSC_COEFF_NONE;
++	} else if (is_rgb(ctx->d_frame.fmt)) {
++		type = SCALER_CSC_COEFF_YCBCR_TO_RGB;
++		scaler_hw_src_y_offset_en(ctx->scaler_dev, true);
++	} else {
++		type = SCALER_CSC_COEFF_RGB_TO_YCBCR;
++		scaler_hw_src_y_offset_en(ctx->scaler_dev, true);
++	}
++
++	if (type == ctx->scaler_dev->coeff_type || type >= SCALER_CSC_COEFF_MAX)
++		return;
++
++	for (i = 0; i < 3; i++) {
++		for (j = 0; j < 3; j++) {
++			cfg = csc_coeff[type][i][j];
++			scaler_write(dev, SCALER_CSC_COEF(i, j), cfg);
++		}
++	}
++
++	ctx->scaler_dev->coeff_type = type;
++}
++
++void scaler_hw_src_y_offset_en(struct scaler_dev *dev, bool on)
++{
++	u32 cfg;
++
++	cfg = scaler_read(dev, SCALER_CFG);
++	if (on)
++		cfg |= SCALER_CFG_CSC_Y_OFFSET_SRC_EN;
++	else
++		cfg &= ~SCALER_CFG_CSC_Y_OFFSET_SRC_EN;
++
++	scaler_write(dev, SCALER_CFG, cfg);
++}
++
++void scaler_hw_dst_y_offset_en(struct scaler_dev *dev, bool on)
++{
++	u32 cfg;
++
++	cfg = scaler_read(dev, SCALER_CFG);
++	if (on)
++		cfg |= SCALER_CFG_CSC_Y_OFFSET_DST_EN;
++	else
++		cfg &= ~SCALER_CFG_CSC_Y_OFFSET_DST_EN;
++
++	scaler_write(dev, SCALER_CFG, cfg);
++}
++
++void scaler_hw_enable_control(struct scaler_dev *dev, bool on)
++{
++	u32 cfg;
++
++	if (on)
++		scaler_write(dev, SCALER_INT_EN, 0xffffffff);
++
++	cfg = scaler_read(dev, SCALER_CFG);
++	cfg |= SCALER_CFG_16_BURST_MODE;
++	if (on)
++		cfg |= SCALER_CFG_START_CMD;
++	else
++		cfg &= ~SCALER_CFG_START_CMD;
++
++	scaler_dbg(dev, "%s: SCALER_CFG:0x%x\n", __func__, cfg);
++
++	scaler_write(dev, SCALER_CFG, cfg);
++}
++
++unsigned int scaler_hw_get_irq_status(struct scaler_dev *dev)
++{
++	return scaler_read(dev, SCALER_INT_STATUS);
++}
++
++void scaler_hw_clear_irq(struct scaler_dev *dev, unsigned int irq)
++{
++	scaler_write(dev, SCALER_INT_STATUS, irq);
++}
+diff --git a/drivers/media/platform/exynos-scaler/scaler-regs.h b/drivers/media/platform/exynos-scaler/scaler-regs.h
 new file mode 100644
-index 0000000..fdb6d86
+index 0000000..2170df5
 --- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-isp.h
-@@ -0,0 +1,90 @@
++++ b/drivers/media/platform/exynos-scaler/scaler-regs.h
+@@ -0,0 +1,331 @@
 +/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com
 + *
-+ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
++ * Samsung EXYNOS5 SoC series SCALER driver
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
-+#ifndef FIMC_IS_ISP_H_
-+#define FIMC_IS_ISP_H_
 +
-+#include "fimc-is-core.h"
-+#include "fimc-is-pipeline.h"
++#ifndef REGS_SCALER_H_
++#define REGS_SCALER_H_
 +
-+#define FIMC_IS_ISP_REQ_BUFS_MIN	2
++#include "scaler.h"
 +
-+#define ISP_SD_PAD_SINK_DMA	0
-+#define ISP_SD_PAD_SINK_OTF	1
-+#define ISP_SD_PAD_SRC		2
-+#define ISP_SD_PADS_NUM		3
++/* SCALER status */
++#define SCALER_STATUS				0x00
++#define SCALER_STATUS_RUNNING			(1 << 1)
++#define SCALER_STATUS_READY_CLK_DOWN		(1 << 0)
 +
-+#define ISP_DEF_WIDTH		1296
-+#define ISP_DEF_HEIGHT		732
++/* SCALER config */
++#define SCALER_CFG				0x04
++#define SCALER_CFG_FILL_EN			(1 << 24)
++#define SCALER_CFG_BLEND_CLR_DIV_ALPHA_EN	(1 << 17)
++#define SCALER_CFG_BLEND_EN			(1 << 16)
++#define SCALER_CFG_CSC_Y_OFFSET_SRC_EN		(1 << 10)
++#define SCALER_CFG_CSC_Y_OFFSET_DST_EN		(1 << 9)
++#define SCALER_CFG_16_BURST_MODE		(1 << 8)
++#define SCALER_CFG_SOFT_RESET			(1 << 1)
++#define SCALER_CFG_START_CMD			(1 << 0)
 +
-+#define ISP_MAX_WIDTH		4808
-+#define ISP_MAX_HEIGHT		3356
-+#define ISP_MIN_WIDTH		32
-+#define ISP_MIN_HEIGHT		32
++/* SCALER interrupts */
++#define SCALER_INT_TIMEOUT			31
++#define SCALER_INT_ILLEGAL_BLEND		24
++#define SCALER_INT_ILLEGAL_RATIO		23
++#define SCALER_INT_ILLEGAL_DST_HEIGHT		22
++#define SCALER_INT_ILLEGAL_DST_WIDTH		21
++#define SCALER_INT_ILLEGAL_DST_V_POS		20
++#define SCALER_INT_ILLEGAL_DST_H_POS		19
++#define SCALER_INT_ILLEGAL_DST_C_SPAN		18
++#define SCALER_INT_ILLEGAL_DST_Y_SPAN		17
++#define SCALER_INT_ILLEGAL_DST_CR_BASE		16
++#define SCALER_INT_ILLEGAL_DST_CB_BASE		15
++#define SCALER_INT_ILLEGAL_DST_Y_BASE		14
++#define SCALER_INT_ILLEGAL_DST_COLOR		13
++#define SCALER_INT_ILLEGAL_SRC_HEIGHT		12
++#define SCALER_INT_ILLEGAL_SRC_WIDTH		11
++#define SCALER_INT_ILLEGAL_SRC_CV_POS		10
++#define SCALER_INT_ILLEGAL_SRC_CH_POS		9
++#define SCALER_INT_ILLEGAL_SRC_YV_POS		8
++#define SCALER_INT_ILLEGAL_SRC_YH_POS		7
++#define SCALER_INT_ILLEGAL_SRC_C_SPAN		6
++#define SCALER_INT_ILLEGAL_SRC_Y_SPAN		5
++#define SCALER_INT_ILLEGAL_SRC_CR_BASE		4
++#define SCALER_INT_ILLEGAL_SRC_CB_BASE		3
++#define SCALER_INT_ILLEGAL_SRC_Y_BASE		2
++#define SCALER_INT_ILLEGAL_SRC_COLOR		1
++#define SCALER_INT_FRAME_END			0
 +
-+#define ISP_MAX_BUFS		2
++/* SCALER interrupt enable */
++#define SCALER_INT_EN				0x08
++#define SCALER_INT_EN_DEFAULT			0x81ffffff
 +
-+/**
-+ * struct fimc_is_isp - ISP context
-+ * @vfd: video device node
-+ * @fh: v4l2 file handle
-+ * @alloc_ctx: videobuf2 memory allocator context
-+ * @subdev: fimc-is-isp subdev
-+ * @vd_pad: media pad for the output video node
-+ * @subdev_pads: the subdev media pads
-+ * @ctrl_handler: v4l2 control handler
-+ * @video_lock: video lock mutex
-+ * @sensor_sd: sensor subdev used with this isp instance
-+ * @pipeline: pipeline instance for this isp context
-+ * @vbq: vb2 buffers queue for ISP output video node
-+ * @wait_queue: list holding buffers waiting to be queued to HW
-+ * @wait_queue_cnt: wait queue number of buffers
-+ * @run_queue: list holding buffers queued to HW
-+ * @run_queue_cnt: run queue number of buffers
-+ * @output_bufs: isp output buffers array
-+ * @out_buf_cnt: number of output buffers in use
-+ * @fmt: output plane format for isp
-+ * @width: user configured input width
-+ * @height: user configured input height
-+ * @size_image: image size in bytes
-+ * @output_state: state of the output video node operations
++/* SCALER interrupt status */
++#define SCALER_INT_STATUS			0x0c
++#define SCALER_INT_STATUS_CLEAR			0xffffffff
++#define SCALER_INT_STATUS_ERROR			0x81fffffe
++
++/* SCALER source format configuration */
++#define SCALER_SRC_CFG				0x10
++#define SCALER_SRC_TILE_EN			(0x1 << 10)
++#define SCALER_SRC_BYTE_SWAP_MASK		0x3
++#define SCALER_SRC_BYTE_SWAP_SHIFT		5
++#define SCALER_SRC_COLOR_FORMAT_MASK		0xf
++#define SCALER_SRC_COLOR_FORMAT_SHIFT		0
++
++/* SCALER source y-base */
++#define SCALER_SRC_Y_BASE			0x14
++
++/* SCALER source cb-base */
++#define SCALER_SRC_CB_BASE			0x18
++
++/* SCALER source cr-base */
++#define SCALER_SRC_CR_BASE			0x294
++
++/* SCALER source span */
++#define SCALER_SRC_SPAN				0x1c
++#define SCALER_SRC_C_SPAN_MASK			0x3fff
++#define SCALER_SRC_C_SPAN_SHIFT			16
++#define SCALER_SRC_Y_SPAN_MASK			0x3fff
++#define SCALER_SRC_Y_SPAN_SHIFT			0
++
++/*
++ * SCALER source y-position
++ * 14.2 fixed-point format
++ *      - 14 bits at the MSB are for the integer part.
++ *      - 2 bits at LSB are for fractional part and always has to be set to 0.
 + */
-+struct fimc_is_isp {
-+	struct video_device		vfd;
-+	struct v4l2_fh			fh;
-+	struct vb2_alloc_ctx		*alloc_ctx;
-+	struct v4l2_subdev		subdev;
-+	struct media_pad		vd_pad;
-+	struct media_pad		subdev_pads[ISP_SD_PADS_NUM];
-+	struct v4l2_ctrl_handler	ctrl_handler;
-+	struct mutex			video_lock;
++#define SCALER_SRC_Y_POS			0x20
++#define SCALER_SRC_YH_POS_MASK			0xfffc
++#define SCALER_SRC_YH_POS_SHIFT			16
++#define SCALER_SRC_YV_POS_MASK			0xfffc
++#define SCALER_SRC_YV_POS_SHIFT			0
 +
-+	struct v4l2_subdev		*sensor_sd;
-+	struct fimc_is_pipeline		*pipeline;
++/* SCALER source width/height */
++#define SCALER_SRC_WH				0x24
++#define SCALER_SRC_WIDTH_MASK			0x3fff
++#define SCALER_SRC_WIDTH_SHIFT			16
++#define SCALER_SRC_HEIGHT_MASK			0x3fff
++#define SCALER_SRC_HEIGHT_SHIFT			0
 +
-+	struct vb2_queue		vbq;
-+	struct list_head		wait_queue;
-+	unsigned int			wait_queue_cnt;
-+	struct list_head		run_queue;
-+	unsigned int			run_queue_cnt;
++/*
++ * SCALER source c-position
++ * 14.2 fixed-point format
++ *      - 14 bits at the MSB are for the integer part.
++ *      - 2 bits at LSB are for fractional part and always has to be set to 0.
++ */
++#define SCALER_SRC_C_POS			0x28
++#define SCALER_SRC_CH_POS_MASK			0xfffc
++#define SCALER_SRC_CH_POS_SHIFT			16
++#define SCALER_SRC_CV_POS_MASK			0xfffc
++#define SCALER_SRC_CV_POS_SHIFT			0
 +
-+	const struct fimc_is_fmt	*fmt;
-+	unsigned int			width;
-+	unsigned int			height;
-+	unsigned int			size_image;
-+	unsigned long			output_state;
++/* SCALER destination format configuration */
++#define SCALER_DST_CFG				0x30
++#define SCALER_DST_BYTE_SWAP_MASK		0x3
++#define SCALER_DST_BYTE_SWAP_SHIFT		5
++#define SCALER_DST_COLOR_FORMAT_MASK		0xf
++
++/* SCALER destination y-base */
++#define SCALER_DST_Y_BASE			0x34
++
++/* SCALER destination cb-base */
++#define SCALER_DST_CB_BASE			0x38
++
++/* SCALER destination cr-base */
++#define SCALER_DST_CR_BASE			0x298
++
++/* SCALER destination span */
++#define SCALER_DST_SPAN				0x3c
++#define SCALER_DST_C_SPAN_MASK			0x3fff
++#define SCALER_DST_C_SPAN_SHIFT			16
++#define SCALER_DST_Y_SPAN_MASK			0x3fff
++#define SCALER_DST_Y_SPAN_SHIFT			0
++
++/* SCALER destination width/height */
++#define SCALER_DST_WH				0x40
++#define SCALER_DST_WIDTH_MASK			0x3fff
++#define SCALER_DST_WIDTH_SHIFT			16
++#define SCALER_DST_HEIGHT_MASK			0x3fff
++#define SCALER_DST_HEIGHT_SHIFT			0
++
++/* SCALER destination position */
++#define SCALER_DST_POS				0x44
++#define SCALER_DST_H_POS_MASK			0x3fff
++#define SCALER_DST_H_POS_SHIFT			16
++#define SCALER_DST_V_POS_MASK			0x3fff
++#define SCALER_DST_V_POS_SHIFT			0
++
++/* SCALER horizontal scale ratio */
++#define SCALER_H_RATIO				0x50
++#define SCALER_H_RATIO_MASK			0x7ffff
++#define SCALER_H_RATIO_SHIFT			0
++
++/* SCALER vertical scale ratio */
++#define SCALER_V_RATIO				0x54
++#define SCALER_V_RATIO_MASK			0x7ffff
++#define SCALER_V_RATIO_SHIFT			0
++
++/* SCALER rotation config */
++#define SCALER_ROT_CFG				0x58
++#define SCALER_FLIP_X_EN			(1 << 3)
++#define SCALER_FLIP_Y_EN			(1 << 2)
++#define SCALER_ROTMODE_MASK			0x3
++#define SCALER_ROTMODE_SHIFT			0
++
++/* SCALER csc coefficients */
++#define SCALER_CSC_COEF(x, y)			(0x220 + ((x * 12) + (y * 4)))
++
++/* SCALER dither config */
++#define SCALER_DITH_CFG				0x250
++#define SCALER_DITHER_R_TYPE_MASK		0x7
++#define SCALER_DITHER_R_TYPE_SHIFT		6
++#define SCALER_DITHER_G_TYPE_MASK		0x7
++#define SCALER_DITHER_G_TYPE_SHIFT		3
++#define SCALER_DITHER_B_TYPE_MASK		0x7
++#define SCALER_DITHER_B_TYPE_SHIFT		0
++
++/* SCALER src blend color */
++#define SCALER_SRC_BLEND_COLOR			0x280
++#define SCALER_SRC_COLOR_SEL_INV		(1 << 31)
++#define SCALER_SRC_COLOR_SEL_MASK		0x3
++#define SCALER_SRC_COLOR_SEL_SHIFT		29
++#define SCALER_SRC_COLOR_OP_SEL_INV		(1 << 28)
++#define SCALER_SRC_COLOR_OP_SEL_MASK		0xf
++#define SCALER_SRC_COLOR_OP_SEL_SHIFT		24
++#define SCALER_SRC_GLOBAL_COLOR0_MASK		0xff
++#define SCALER_SRC_GLOBAL_COLOR0_SHIFT		16
++#define SCALER_SRC_GLOBAL_COLOR1_MASK		0xff
++#define SCALER_SRC_GLOBAL_COLOR1_SHIFT		8
++#define SCALER_SRC_GLOBAL_COLOR2_MASK		0xff
++#define SCALER_SRC_GLOBAL_COLOR2_SHIFT		0
++
++/* SCALER src blend alpha */
++#define SCALER_SRC_BLEND_ALPHA			0x284
++#define SCALER_SRC_ALPHA_SEL_INV		(1 << 31)
++#define SCALER_SRC_ALPHA_SEL_MASK		0x3
++#define SCALER_SRC_ALPHA_SEL_SHIFT		29
++#define SCALER_SRC_ALPHA_OP_SEL_INV		(1 << 28)
++#define SCALER_SRC_ALPHA_OP_SEL_MASK		0xf
++#define SCALER_SRC_ALPHA_OP_SEL_SHIFT		24
++#define SCALER_SRC_GLOBAL_ALPHA_MASK		0xff
++#define SCALER_SRC_GLOBAL_ALPHA_SHIFT		0
++
++/* SCALER dst blend color */
++#define SCALER_DST_BLEND_COLOR			0x288
++#define SCALER_DST_COLOR_SEL_INV		(1 << 31)
++#define SCALER_DST_COLOR_SEL_MASK		0x3
++#define SCALER_DST_COLOR_SEL_SHIFT		29
++#define SCALER_DST_COLOR_OP_SEL_INV		(1 << 28)
++#define SCALER_DST_COLOR_OP_SEL_MASK		0xf
++#define SCALER_DST_COLOR_OP_SEL_SHIFT		24
++#define SCALER_DST_GLOBAL_COLOR0_MASK		0xff
++#define SCALER_DST_GLOBAL_COLOR0_SHIFT		16
++#define SCALER_DST_GLOBAL_COLOR1_MASK		0xff
++#define SCALER_DST_GLOBAL_COLOR1_SHIFT		8
++#define SCALER_DST_GLOBAL_COLOR2_MASK		0xff
++#define SCALER_DST_GLOBAL_COLOR2_SHIFT		0
++
++/* SCALER dst blend alpha */
++#define SCALER_DST_BLEND_ALPHA			0x28c
++#define SCALER_DST_ALPHA_SEL_INV		(1 << 31)
++#define SCALER_DST_ALPHA_SEL_MASK		0x3
++#define SCALER_DST_ALPHA_SEL_SHIFT		29
++#define SCALER_DST_ALPHA_OP_SEL_INV		(1 << 28)
++#define SCALER_DST_ALPHA_OP_SEL_MASK		0xf
++#define SCALER_DST_ALPHA_OP_SEL_SHIFT		24
++#define SCALER_DST_GLOBAL_ALPHA_MASK		0xff
++#define SCALER_DST_GLOBAL_ALPHA_SHIFT		0
++
++/* SCALER fill color */
++#define SCALER_FILL_COLOR			0x290
++#define SCALER_FILL_ALPHA_MASK			0xff
++#define SCALER_FILL_ALPHA_SHIFT			24
++#define SCALER_FILL_COLOR0_MASK			0xff
++#define SCALER_FILL_COLOR0_SHIFT		16
++#define SCALER_FILL_COLOR1_MASK			0xff
++#define SCALER_FILL_COLOR1_SHIFT		8
++#define SCALER_FILL_COLOR2_MASK			0xff
++#define SCALER_FILL_COLOR2_SHIFT		0
++
++/* SCALER address queue config */
++#define SCALER_ADDR_QUEUE_CONFIG		0x2a0
++#define SCALER_ADDR_QUEUE_RST			0x1
++
++/* Arbitrary R/W register and value to check if soft reset succeeded */
++#define SCALER_CFG_SOFT_RESET_CHECK_REG		SCALER_SRC_CFG
++#define SCALER_CFG_SOFT_RESET_CHECK_VAL		0x3
++
++struct scaler_error {
++	u32 irq_num;
++	const char * const name;
 +};
 +
-+int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
-+		struct vb2_alloc_ctx *alloc_ctx,
-+		struct fimc_is_pipeline *pipeline);
-+void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp);
++static const struct scaler_error scaler_errors[] = {
++	{SCALER_INT_TIMEOUT,			"Timeout"},
++	{SCALER_INT_ILLEGAL_BLEND,		"Illegal Blend setting"},
++	{SCALER_INT_ILLEGAL_RATIO,		"Illegal Scale ratio setting"},
++	{SCALER_INT_ILLEGAL_DST_HEIGHT,		"Illegal Dst Height"},
++	{SCALER_INT_ILLEGAL_DST_WIDTH,		"Illegal Dst Width"},
++	{SCALER_INT_ILLEGAL_DST_V_POS,		"Illegal Dst V-Pos"},
++	{SCALER_INT_ILLEGAL_DST_H_POS,		"Illegal Dst H-Pos"},
++	{SCALER_INT_ILLEGAL_DST_C_SPAN,		"Illegal Dst C-Span"},
++	{SCALER_INT_ILLEGAL_DST_Y_SPAN,		"Illegal Dst Y-span"},
++	{SCALER_INT_ILLEGAL_DST_CR_BASE,	"Illegal Dst Cr-base"},
++	{SCALER_INT_ILLEGAL_DST_CB_BASE,	"Illegal Dst Cb-base"},
++	{SCALER_INT_ILLEGAL_DST_Y_BASE,		"Illegal Dst Y-base"},
++	{SCALER_INT_ILLEGAL_DST_COLOR,		"Illegal Dst Color"},
++	{SCALER_INT_ILLEGAL_SRC_HEIGHT,		"Illegal Src Height"},
++	{SCALER_INT_ILLEGAL_SRC_WIDTH,		"Illegal Src Width"},
++	{SCALER_INT_ILLEGAL_SRC_CV_POS,		"Illegal Src Chroma V-pos"},
++	{SCALER_INT_ILLEGAL_SRC_CH_POS,		"Illegal Src Chroma H-pos"},
++	{SCALER_INT_ILLEGAL_SRC_YV_POS,		"Illegal Src Luma V-pos"},
++	{SCALER_INT_ILLEGAL_SRC_YH_POS,		"Illegal Src Luma H-pos"},
++	{SCALER_INT_ILLEGAL_SRC_C_SPAN,		"Illegal Src C-span"},
++	{SCALER_INT_ILLEGAL_SRC_Y_SPAN,		"Illegal Src Y-span"},
++	{SCALER_INT_ILLEGAL_SRC_CR_BASE,	"Illegal Src Cr-base"},
++	{SCALER_INT_ILLEGAL_SRC_CB_BASE,	"Illegal Src Cb-base"},
++	{SCALER_INT_ILLEGAL_SRC_Y_BASE,		"Illegal Src Y-base"},
++	{SCALER_INT_ILLEGAL_SRC_COLOR,		"Illegal Src Color setting"},
++};
 +
-+#endif /* FIMC_IS_ISP_H_ */
++#define SCALER_NUM_ERRORS	ARRAY_SIZE(scaler_errors)
++
++static inline u32 scaler_read(struct scaler_dev *dev, u32 offset)
++{
++	return readl(dev->regs + offset);
++}
++
++static inline void scaler_write(struct scaler_dev *dev, u32 offset, u32 value)
++{
++	writel(value, dev->regs + offset);
++}
++
++static inline void scaler_hw_address_queue_reset(struct scaler_ctx *ctx)
++{
++	scaler_write(ctx->scaler_dev, SCALER_ADDR_QUEUE_CONFIG,
++					SCALER_ADDR_QUEUE_RST);
++}
++
++void scaler_hw_set_sw_reset(struct scaler_dev *dev);
++int scaler_wait_reset(struct scaler_dev *dev);
++void scaler_hw_set_irq(struct scaler_dev *dev, int interrupt, bool mask);
++void scaler_hw_set_input_addr(struct scaler_dev *dev, struct scaler_addr *addr);
++void scaler_hw_set_output_addr(struct scaler_dev *dev,
++				struct scaler_addr *addr);
++void scaler_hw_set_in_size(struct scaler_ctx *ctx);
++void scaler_hw_set_in_image_format(struct scaler_ctx *ctx);
++void scaler_hw_set_out_size(struct scaler_ctx *ctx);
++void scaler_hw_set_out_image_format(struct scaler_ctx *ctx);
++void scaler_hw_set_scaler_ratio(struct scaler_ctx *ctx);
++void scaler_hw_set_rotation(struct scaler_ctx *ctx);
++void scaler_hw_set_csc_coeff(struct scaler_ctx *ctx);
++void scaler_hw_src_y_offset_en(struct scaler_dev *dev, bool on);
++void scaler_hw_dst_y_offset_en(struct scaler_dev *dev, bool on);
++void scaler_hw_enable_control(struct scaler_dev *dev, bool on);
++unsigned int scaler_hw_get_irq_status(struct scaler_dev *dev);
++void scaler_hw_clear_irq(struct scaler_dev *dev, unsigned int irq);
++
++#endif /* REGS_SCALER_H_ */
 -- 
 1.7.9.5
 
