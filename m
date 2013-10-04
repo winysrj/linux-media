@@ -1,50 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tttech.com ([188.20.77.195]:57296 "EHLO mail.tttech.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752626Ab3JUNHR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Oct 2013 09:07:17 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.tttech.com (Postfix) with ESMTP id 994C33EEBB
-	for <linux-media@vger.kernel.org>; Mon, 21 Oct 2013 15:01:10 +0200 (CEST)
-Received: from mail.tttech.com ([127.0.0.1])
-	by localhost (tttmaildmz.vie.at.tttech.ttt [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 5ICqTiOU84YH for <linux-media@vger.kernel.org>;
-	Mon, 21 Oct 2013 15:01:10 +0200 (CEST)
-Received: from domino01.vie.at.tttech.ttt (unknown [10.100.10.4])
-	by mail.tttech.com (Postfix) with ESMTP id 8828C3EEBA
-	for <linux-media@vger.kernel.org>; Mon, 21 Oct 2013 15:01:10 +0200 (CEST)
-Message-ID: <52652594.4010102@tttech.com>
-Date: Mon, 21 Oct 2013 15:01:08 +0200
-From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias.waechter@tttech.com>
-MIME-Version: 1.0
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1963 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754763Ab3JDOCK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: I/O USERPTR for videobuf2-dma-sg
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH 08/14] fmdrv_common: fix sparse warning
+Date: Fri,  4 Oct 2013 16:01:46 +0200
+Message-Id: <1380895312-30863-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I’m in the process of providing a driver for a camera input and have 
-just finished SG DMA operation to work in hardware and driver. Now I’m 
-quite surprised that videobuf2-dma-sg is lacking basic support for user 
-pointers to I/O memory (i.e., to graphics card). However, 
-videobuf2-dma-contig does have support for it, at least from reading the 
-code I see that vb2_dc_get_userptr() can tell I/O memory from RAM and as 
-such do the right thing for I/O. OTOH, vb2_dma_sg_get_userptr() just 
-does plain get_user_pages() which is not returning any page information 
-for I/O memory.
+drivers/media/radio/wl128x/fmdrv_common.c:178:6: warning: symbol 'g_st_write' was not declared. Should it be static?
 
-Is this missing just because no-one has bothered to do it, or is there a 
-known problem ? Right now it seems that only one driver in the kernel 
-tree is actually using videobuf2-dma-sg, so maybe it hasn’t been worth 
-the effort. Similarly, DMABUF has not been implemented in videobuf2-dma-sg.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Would a patch for adding I/O USERPTR functionality similar to 
-vb2_dc_get/put_userptr() be accepted? Any known problems with this task 
-I’m going to face?
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index 253f307..4b2e9e8 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -175,7 +175,7 @@ static int_handler_prototype int_handler_table[] = {
+ 	fm_irq_handle_intmsk_cmd_resp
+ };
+ 
+-long (*g_st_write) (struct sk_buff *skb);
++static long (*g_st_write) (struct sk_buff *skb);
+ static struct completion wait_for_fmdrv_reg_comp;
+ 
+ static inline void fm_irq_call(struct fmdev *fmdev)
+-- 
+1.8.3.2
 
-Thanks,
-– Matthias
