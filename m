@@ -1,32 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49011 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753647Ab3JJPD0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 11:03:26 -0400
-Date: Thu, 10 Oct 2013 18:02:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [Trivial PATCH] media: Remove unnecessary semicolons
-Message-ID: <20131010150250.GC6732@valkosipuli.retiisi.org.uk>
-References: <1381274948.23937.17.camel@joe-AO722>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1381274948.23937.17.camel@joe-AO722>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:38411 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515Ab3JDQEv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 12:04:51 -0400
+Received: by mail-qc0-f174.google.com with SMTP id n9so2942255qcw.33
+        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 09:04:49 -0700 (PDT)
+Date: Fri, 4 Oct 2013 12:04:46 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: [GIT PULL BUG FIX] cx24117: prevent mutex to be stuck on locked
+ state if FE init fails
+Message-ID: <20131004120446.3b041f11@raring>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 08, 2013 at 04:29:08PM -0700, Joe Perches wrote:
-> These aren't necessary after switch and while statements.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+The following changes since commit
+d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71:
 
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+  [media] cx24117: use hybrid_tuner_request/release_state to share
+  state between multiple instances (2013-10-03 07:40:12 -0300)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+are available in the git repository at:
+
+  git://linuxtv.org/mkrufky/dvb cx24117
+
+for you to fetch changes up to 3f9c6e0698debcdbfc1568e16eb3cc45d320cc56:
+
+  cx24117: prevent mutex to be stuck on locked state if FE init fails
+  (2013-10-04 11:13:47 -0400)
+
+----------------------------------------------------------------
+Luis Alves (1):
+      cx24117: prevent mutex to be stuck on locked state if FE init
+fails
+
+ drivers/media/dvb-frontends/cx24117.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
