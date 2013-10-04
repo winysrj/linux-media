@@ -1,78 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:35371 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751498Ab3J3QCh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Oct 2013 12:02:37 -0400
-Date: Wed, 30 Oct 2013 17:02:34 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] rtl2830: add parent for I2C adapter
-Message-ID: <20131030160234.GE3663@katana>
-References: <1382386335-3879-1-git-send-email-crope@iki.fi>
- <52658CA7.5080104@iki.fi>
- <20131030151620.GB3663@katana>
- <52712787.3010408@iki.fi>
- <20131030154553.GC3663@katana>
- <52712AF4.5020503@iki.fi>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:63764 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747Ab3JDPfC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 11:35:02 -0400
+Received: by mail-pa0-f50.google.com with SMTP id fb1so4330493pad.9
+        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 08:35:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="47eKBCiAZYFK5l32"
-Content-Disposition: inline
-In-Reply-To: <52712AF4.5020503@iki.fi>
+In-Reply-To: <524ED27F.2010803@iki.fi>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+	<1380895312-30863-6-git-send-email-hverkuil@xs4all.nl>
+	<524ED27F.2010803@iki.fi>
+Date: Fri, 4 Oct 2013 11:35:01 -0400
+Message-ID: <CAOcJUbycPvr-Ts2xHMAaWO8nZvnaNfLbUOZZwEVhzQzYA3nU8w@mail.gmail.com>
+Subject: Re: [PATCH 05/14] cxd2820r_core: fix sparse warnings
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Oct 4, 2013 at 10:36 AM, Antti Palosaari <crope@iki.fi> wrote:
+> On 04.10.2013 17:01, Hans Verkuil wrote:
+>>
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> drivers/media/dvb-frontends/cxd2820r_core.c:34:32: error: cannot size
+>> expression
+>> drivers/media/dvb-frontends/cxd2820r_core.c:68:32: error: cannot size
+>> expression
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+>
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+>
+>
+>> Cc: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/dvb-frontends/cxd2820r_core.c | 4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c
+>> b/drivers/media/dvb-frontends/cxd2820r_core.c
+>> index 7ca5c69..d9eeeb1 100644
+>> --- a/drivers/media/dvb-frontends/cxd2820r_core.c
+>> +++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+>> @@ -31,7 +31,7 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv
+>> *priv, u8 i2c, u8 reg,
+>>                 {
+>>                         .addr = i2c,
+>>                         .flags = 0,
+>> -                       .len = sizeof(buf),
+>> +                       .len = len + 1,
+>>                         .buf = buf,
+>>                 }
+>>         };
+>> @@ -65,7 +65,7 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv
+>> *priv, u8 i2c, u8 reg,
+>>                 }, {
+>>                         .addr = i2c,
+>>                         .flags = I2C_M_RD,
+>> -                       .len = sizeof(buf),
+>> +                       .len = len,
+>>                         .buf = buf,
+>>                 }
+>>         };
+>>
+>
+>
+> --
+> http://palosaari.fi/
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---47eKBCiAZYFK5l32
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-> >Well, I intentionally asked for revert not bisect. Removing the #ifdef
-> >can easily be done by hand if needed and will just need one recompile to
-> >make sure.
->=20
-> Yes, but compiling whole Kernel is always pain. I dont certainly
-> want to do that just for testing some patches.
-
-Well, if you ask for support for debugging, you should be prepared to do
-exactly that.
-
-> Jean jsut pointed out on IRC that this patch likely fixes the issue:
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=
-=3D47b6e477ed4ecacddd1f82d04d686026e08dc3db
-
-Yup, he is right. You have ACPI enabled.
-
-> As that patch is already applied to 3.12 it should be fine. I was
-> running media master which is based 3.12-rc2.
-
-Asking you to build the latest kernel might have been another thing I'd
-ask you to do.
-
-
---47eKBCiAZYFK5l32
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJScS2aAAoJEBQN5MwUoCm2JPcQAJ+pyryL4Ou5evYfKYNcs2Ss
-bvjO0BfsDTuW45iXk4jtQrhhfGEG86s6CAu4JwGamf3ArbgMSEbResvh0/stk2SC
-C62Yppnm2nwlvB7OjBv1bMlY8m+5IhgLiiXTMdSZXCliSRuJE0Ju+C58kA7CFUS5
-5cvtI895hwL4/ShIH1zPgHSlXxY1qYMW7DYbLIaUcCU9/pXNe2uM1b/EviWhf3ZW
-dt3HN41uaKEZXoBUydaQVhPMFXtxvONfjxWYjdaceBCk0o9Sto86yxYgj22ymME7
-rJIDqpcuR5t3YO2vElA7RpTyGwpYcEjXS3k/ByOdMBDdJY1TEZKz8+ygGcHPyiyJ
-GBvYMl7Vxb6gmApxUMeuHpPHGh9efIOuEfNkLr5R6OMRXNBBp8unPPeLla7AfdTc
-Udt19WqAxF+lHywDZa06yjo8eMTJAeOP8ZLuKwHaODfWBlcHFO1W2EicMC9olNWo
-ETdJXzwUh7rp6i0mSRecWoVxEfD+kaZ5uoJcnNQcHtLHDf4746M5R29ms2ZREEjL
-/VAdy6kjNFV0lG2Tavj5oqjxccGY3kt16H/fnQ3Hk7xwdRlOiLz2qcUfxL8APu/E
-1gdk2VYMQWaeI15er3+HZrFqnijWvYkWM1FEJLLcnqaHJ7qghi41MLPLltkFt0AC
-wk9l6K+SDxQHVBmXV90A
-=W77T
------END PGP SIGNATURE-----
-
---47eKBCiAZYFK5l32--
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
