@@ -1,33 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:48824 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898Ab3JRD5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 23:57:15 -0400
-Received: by mail-wi0-f182.google.com with SMTP id ez12so348983wid.15
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:57:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1382065635-27855-5-git-send-email-sachin.kamat@linaro.org>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org> <1382065635-27855-5-git-send-email-sachin.kamat@linaro.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 18 Oct 2013 09:26:54 +0530
-Message-ID: <CA+V-a8uZSbKP=vHGvLBjPBAEs3HbEa=Y-QiT=fdccuyZ=9PRQw@mail.gmail.com>
-Subject: Re: [PATCH 5/6] [media] tvp7002: Include linux/of.h header
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4183 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754613Ab3JDOCI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 11/14] cx231xx: fix sparse warnings
+Date: Fri,  4 Oct 2013 16:01:49 +0200
+Message-Id: <1380895312-30863-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 18, 2013 at 8:37 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to
-> avoid build breakage in the future.
->
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c:31:19: warning: symbol 'cx231xx_Scenario' was not declared. Should it be static?
+drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c:675:23: warning: cast to restricted __le32
 
-Regrads,
---Prabhakar Lad
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
+index d7308ab..2a34cee 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
++++ b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
+@@ -28,7 +28,7 @@ MODULE_PARM_DESC(pcb_debug, "enable pcb config debug messages [video]");
+ 
+ /******************************************************************************/
+ 
+-struct pcb_config cx231xx_Scenario[] = {
++static struct pcb_config cx231xx_Scenario[] = {
+ 	{
+ 	 INDEX_SELFPOWER_DIGITAL_ONLY,	/* index */
+ 	 USB_SELF_POWER,	/* power_type */
+@@ -672,7 +672,7 @@ u32 initialize_cx231xx(struct cx231xx *dev)
+ 	pcb config it is related to */
+ 	cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, BOARD_CFG_STAT, data, 4);
+ 
+-	config_info = le32_to_cpu(*((u32 *) data));
++	config_info = le32_to_cpu(*((__le32 *)data));
+ 	usb_speed = (u8) (config_info & 0x1);
+ 
+ 	/* Verify this device belongs to Bus power or Self power device */
+-- 
+1.8.3.2
+
