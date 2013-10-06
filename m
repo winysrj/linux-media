@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:62923 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752873Ab3JWXQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Oct 2013 19:16:15 -0400
-Received: from [192.168.1.56] ([84.26.254.29]) by mail.gmx.com (mrgmx101)
- with ESMTPSA (Nemesis) id 0Ldcv0-1W0FCO18Ec-00igrm for
- <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 01:16:14 +0200
-Message-ID: <52685900.3010608@gmx.net>
-Date: Thu, 24 Oct 2013 01:17:20 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:50675 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526Ab3JFAMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Oct 2013 20:12:06 -0400
+Message-ID: <5250AACF.1030003@samsung.com>
+Date: Sun, 06 Oct 2013 09:11:59 +0900
+From: Kukjin Kim <kgene.kim@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB-S2 USB device: DVBsky, Technotrend or Tevii?
+To: Kukjin Kim <kgene.kim@samsung.com>
+CC: Kishon Vijay Abraham I <kishon@ti.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-fbdev@vger.kernel.org, gregkh@linuxfoundation.org,
+	jg1.han@samsung.com, dh09.lee@samsung.com,
+	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
+	tomi.valkeinen@ti.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH V5 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
+References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com> <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com> <524A5D68.8080904@ti.com> <524B3B04.3000704@gmail.com> <524AE9BC.6060103@ti.com> <5250AA3F.6030701@samsung.com>
+In-Reply-To: <5250AA3F.6030701@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 10/06/13 09:09, Kukjin Kim wrote:
+>
+> On 10/02/13 00:26, Kishon Vijay Abraham I wrote:
+>> On Wednesday 02 October 2013 02:43 AM, Sylwester Nawrocki wrote:
+>>> On 10/01/2013 07:28 AM, Kishon Vijay Abraham I wrote:
+>>>> On Sunday 29 September 2013 12:57 AM, Sylwester Nawrocki wrote:
+>>>>>> Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+>>>>>>
+>>>>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>>>>> Acked-by: Felipe Balbi<balbi@ti.com>
+>>>>
+>>>> Can this patch be taken through exynos dt tree?
+>>>
+>>> Yes, that makes more sense indeed. Kukjin, would you mind taking
+>>> this patch to your tree ?
+>>
+> Sure. Applied this whole series.
+>
+Oops, sorry. Only this patch ;-)
 
-I want to buy a DVB-S2 USB device. The following are available here (all 
-Montage tuner/demod):
+>> FWIW
+>> Acked-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>>
 
-Mystique SaTiX-S2 (DVBsky S860 clone) (M88TS2020/M88DS3000)
-Mystique SaTiX-S2 v2 (DVBsky S960 clone) (M88TS2022/M88DS3103)
-TechnoTrend Connect S2-4600  (M88TS2022/M88DS3103)
-TeVii S660 (M88TS2020/M88DS3000)
-
-Wiki links:
-http://linuxtv.org/wiki/index.php/DVBSKY_S860
-http://linuxtv.org/wiki/index.php/DVBSKY_S960
-http://linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-4600
-http://linuxtv.org/wiki/index.php/TeVii_S660
-
-Only the S660 is supported, but it has serious DiSEqC issues according 
-to wiki, plus it's the most expensive, so it's not very attractive.
-
-Is there any hope/chance one of the others could be made to work with 
-v4l-dvb? I've noticed liplian supports everything, but I don't think 
-that's the most future-proof option.
-
-Best regards,
-
-P. van Gaans
+Thanks,
+Kukjin
