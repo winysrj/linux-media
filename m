@@ -1,102 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4672 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab3JCJ3g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 05:29:36 -0400
-Message-ID: <524D38EB.2060002@xs4all.nl>
-Date: Thu, 03 Oct 2013 11:29:15 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.106]:36077
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751524Ab3JGGic convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 02:38:32 -0400
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teemux.tuominen@intel.com
-Subject: Re: [RFC v2 4/4] v4l: events: Don't sleep in dequeue if none are
- subscribed
-References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com> <1380721516-488-5-git-send-email-sakari.ailus@linux.intel.com> <524C27F6.4040002@xs4all.nl> <524C2B30.9050605@linux.intel.com> <524C2F9A.80806@xs4all.nl> <524C31A6.2040208@linux.intel.com>
-In-Reply-To: <524C31A6.2040208@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Congratulations !!!
+To: Recipients <office1@Offer813.onmicrosoft.com>
+From: <office1@Offer813.onmicrosoft.com>
+Date: Mon, 7 Oct 2013 12:08:08 +0530
+Reply-To: <colaclaims13@msn.com>
+Message-ID: <673d85b0-0ba1-4fca-9f95-b7b6eedd3ce5@AMXPR03MB167.eurprd03.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/13 16:45, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Hans Verkuil wrote:
->> On 10/02/13 16:18, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> Thanks for the comments!
->>>
->>> Hans Verkuil wrote:
->>>> On 10/02/13 15:45, Sakari Ailus wrote:
->>>>> Dequeueing events was is entirely possible even if none are subscribed,
->>>>> leading to sleeping indefinitely. Fix this by returning -ENOENT when no
->>>>> events are subscribed.
->>>>>
->>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>> ---
->>>>>    drivers/media/v4l2-core/v4l2-event.c | 11 +++++++++--
->>>>>    1 file changed, 9 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-event.c
->>>>> b/drivers/media/v4l2-core/v4l2-event.c
->>>>> index b53897e..553a800 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-event.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-event.c
->>>>> @@ -77,10 +77,17 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct
->>>>> v4l2_event *event,
->>>>>            mutex_unlock(fh->vdev->lock);
->>>>>
->>>>>        do {
->>>>> -        ret = wait_event_interruptible(fh->wait,
->>>>> -                           fh->navailable != 0);
->>>>> +        bool subscribed;
->>>>
->>>> Can you add an empty line here?
->>>
->>> Sure.
->>>
->>>>> +        ret = wait_event_interruptible(
->>>>> +            fh->wait,
->>>>> +            fh->navailable != 0 ||
->>>>> +            !(subscribed = v4l2_event_has_subscribed(fh)));
->>>>>            if (ret < 0)
->>>>>                break;
->>>>> +        if (!subscribed) {
->>>>> +            ret = -EIO;
->>>>
->>>> Shouldn't this be -ENOENT?
->>>
->>> If I use -ENOENT, having no events subscribed is indistinguishable
->>> form no events pending condition. Combine that with using select(2),
->>> and you can no longer distinguish having no events subscribed from
->>> the case where you got an event but someone else (another thread or
->>> process) dequeued it.
->>
->> OK, but then your commit message is out of sync with the actual patch since
->> the commit log says ENOENT.
-> 
-> Right. The error code was the last thing I changed before sending the
-> patch, and I ignored it was also present in the commit message. :-P
-> 
->>> -EIO makes that explicit --- this also mirrors the behaviour of
->>> VIDIOC_DQBUF. (And it must be documented as well, which is missing
->>> from the patch currently.)
->>
->> I don't like using EIO for this. EIO generally is returned if a hardware
->> error or an unexpected hardware condition occurs. How about -ENOMSG? Or
->> perhaps EPIPE? (As in: "the pipe containing events is gone").
-> 
-> There is no pipe (or at least wasn't; it's a queue or rather is
-> implemented as a fifo :)) so of the two I prefer -ENOMSG. What would
-> you think of -ENODATA or -EPERM (which is used e.g. when writing
-> read-only controls)?
-> 
+Ticket Number: 7PWYZ2008
+Ballot Number: BT:12052008/20
+Draw:#1471
 
-I don't like ENODATA, mostly because it is so close in meaning to ENOENT.
-EPERM would work for me. It's probably a bit better than ENOMSG.
+Special Notification to you,You are receiving this email because you have just been picked for a total grand prize of One Million Dollars in the top 10 winners of the Coca-Cola Consumer`s Award for the year 2013: kindly send your:
 
-Regards,
+Name:
+Address:
+Country:
+Phone Number:
 
-	Hans
+To Mr. Bruce Morgan
+via Email: colaclaims13@msn.com
+Telephone Number:+44701006909
