@@ -1,374 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48679 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932406Ab3JPLli (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 07:41:38 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MUR00DEWF42S470@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Oct 2013 12:41:36 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Javier Martin' <javier.martin@vista-silicon.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>, kernel@pengutronix.de
-References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
- <1380548093-22313-8-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1380548093-22313-8-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH v2 07/10] [media] coda: prefix v4l2_ioctl_ops with coda_
- instead of vidioc_
-Date: Wed, 16 Oct 2013 13:41:35 +0200
-Message-id: <064a01ceca64$abd052a0$0370f7e0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail.ispras.ru ([83.149.199.45]:56116 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755425Ab3JGVGe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Oct 2013 17:06:34 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] cx231xx: fix double free and leaks on failure path in cx231xx_usb_probe()
+Date: Tue,  8 Oct 2013 01:06:04 +0400
+Message-Id: <1381179964-16451-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+There are numerous issues in error handling code of cx231xx initialization.
+Double free (when cx231xx_init_dev() calls kfree(dev) via cx231xx_release_resources()
+and then cx231xx_usb_probe() does the same) and memory leaks
+(e.g. usb_get_dev() before (ifnum != 1) check in cx231xx_usb_probe())
+are just a few of them.
 
-A small comment inline.
+The patch fixes the issues in cx231xx_usb_probe() and cx231xx_init_dev()
+by moving usb_get_dev(interface_to_usbdev(interface)) below in code and
+implementing proper error handling.
 
-Best wishes,
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 110 ++++++++++++++++--------------
+ 1 file changed, 57 insertions(+), 53 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index a384f80..e9d017b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -978,7 +978,6 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 			    int minor)
+ {
+ 	int retval = -ENOMEM;
+-	int errCode;
+ 	unsigned int maxh, maxw;
+ 
+ 	dev->udev = udev;
+@@ -1014,8 +1013,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	/* Cx231xx pre card setup */
+ 	cx231xx_pre_card_setup(dev);
+ 
+-	errCode = cx231xx_config(dev);
+-	if (errCode) {
++	retval = cx231xx_config(dev);
++	if (retval) {
+ 		cx231xx_errdev("error configuring device\n");
+ 		return -ENOMEM;
+ 	}
+@@ -1024,12 +1023,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	dev->norm = dev->board.norm;
+ 
+ 	/* register i2c bus */
+-	errCode = cx231xx_dev_init(dev);
+-	if (errCode < 0) {
+-		cx231xx_dev_uninit(dev);
++	retval = cx231xx_dev_init(dev);
++	if (retval) {
+ 		cx231xx_errdev("%s: cx231xx_i2c_register - errCode [%d]!\n",
+-			       __func__, errCode);
+-		return errCode;
++			       __func__, retval);
++		goto err_dev_init;
+ 	}
+ 
+ 	/* Do board specific init */
+@@ -1047,11 +1045,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	dev->interlaced = 0;
+ 	dev->video_input = 0;
+ 
+-	errCode = cx231xx_config(dev);
+-	if (errCode < 0) {
++	retval = cx231xx_config(dev);
++	if (retval) {
+ 		cx231xx_errdev("%s: cx231xx_config - errCode [%d]!\n",
+-			       __func__, errCode);
+-		return errCode;
++			       __func__, retval);
++		goto err_dev_init;
+ 	}
+ 
+ 	/* init video dma queues */
+@@ -1075,9 +1073,9 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	}
+ 
+ 	retval = cx231xx_register_analog_devices(dev);
+-	if (retval < 0) {
+-		cx231xx_release_resources(dev);
+-		return retval;
++	if (retval) {
++		cx231xx_release_analog_resources(dev);
++		goto err_analog;
+ 	}
+ 
+ 	cx231xx_ir_init(dev);
+@@ -1085,6 +1083,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	cx231xx_init_extension(dev);
+ 
+ 	return 0;
++err_analog:
++	cx231xx_remove_from_devlist(dev);
++err_dev_init:
++	cx231xx_dev_uninit(dev);
++	return retval;
+ }
+ 
+ #if defined(CONFIG_MODULES) && defined(MODULE)
+@@ -1132,7 +1135,6 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	char *speed;
+ 	struct usb_interface_assoc_descriptor *assoc_desc;
+ 
+-	udev = usb_get_dev(interface_to_usbdev(interface));
+ 	ifnum = interface->altsetting[0].desc.bInterfaceNumber;
+ 
+ 	/*
+@@ -1161,6 +1163,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 		return -ENOMEM;
+ 	}
+ 
++	udev = usb_get_dev(interface_to_usbdev(interface));
++
+ 	snprintf(dev->name, 29, "cx231xx #%d", nr);
+ 	dev->devno = nr;
+ 	dev->model = id->driver_info;
+@@ -1223,10 +1227,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	if (assoc_desc->bFirstInterface != ifnum) {
+ 		cx231xx_err(DRIVER_NAME ": Not found "
+ 			    "matching IAD interface\n");
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		kfree(dev);
+-		dev = NULL;
+-		return -ENODEV;
++		retval = -ENODEV;
++		goto err_if;
+ 	}
+ 
+ 	cx231xx_info("registering interface %d\n", ifnum);
+@@ -1242,22 +1244,13 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		cx231xx_errdev("v4l2_device_register failed\n");
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		kfree(dev);
+-		dev = NULL;
+-		return -EIO;
++		retval = -EIO;
++		goto err_v4l2;
+ 	}
+ 	/* allocate device struct */
+ 	retval = cx231xx_init_dev(dev, udev, nr);
+-	if (retval) {
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		v4l2_device_unregister(&dev->v4l2_dev);
+-		kfree(dev);
+-		dev = NULL;
+-		usb_set_intfdata(interface, NULL);
+-
+-		return retval;
+-	}
++	if (retval)
++		goto err_init;
+ 
+ 	/* compute alternate max packet sizes for video */
+ 	uif = udev->actconfig->interface[dev->current_pcb_config.
+@@ -1275,11 +1268,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->video_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		v4l2_device_unregister(&dev->v4l2_dev);
+-		kfree(dev);
+-		dev = NULL;
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto err_video_alt;
+ 	}
+ 
+ 	for (i = 0; i < dev->video_mode.num_alt; i++) {
+@@ -1309,11 +1299,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->vbi_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		v4l2_device_unregister(&dev->v4l2_dev);
+-		kfree(dev);
+-		dev = NULL;
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto err_vbi_alt;
+ 	}
+ 
+ 	for (i = 0; i < dev->vbi_mode.num_alt; i++) {
+@@ -1344,11 +1331,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->sliced_cc_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		clear_bit(dev->devno, &cx231xx_devused);
+-		v4l2_device_unregister(&dev->v4l2_dev);
+-		kfree(dev);
+-		dev = NULL;
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto err_sliced_cc_alt;
+ 	}
+ 
+ 	for (i = 0; i < dev->sliced_cc_mode.num_alt; i++) {
+@@ -1380,11 +1364,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 		if (dev->ts1_mode.alt_max_pkt_size == NULL) {
+ 			cx231xx_errdev("out of memory!\n");
+-			clear_bit(dev->devno, &cx231xx_devused);
+-			v4l2_device_unregister(&dev->v4l2_dev);
+-			kfree(dev);
+-			dev = NULL;
+-			return -ENOMEM;
++			retval = -ENOMEM;
++			goto err_ts1_alt;
+ 		}
+ 
+ 		for (i = 0; i < dev->ts1_mode.num_alt; i++) {
+@@ -1411,6 +1392,29 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	request_modules(dev);
+ 
+ 	return 0;
++err_ts1_alt:
++	kfree(dev->sliced_cc_mode.alt_max_pkt_size);
++err_sliced_cc_alt:
++	kfree(dev->vbi_mode.alt_max_pkt_size);
++err_vbi_alt:
++	kfree(dev->video_mode.alt_max_pkt_size);
++err_video_alt:
++	/* cx231xx_uninit_dev: */
++	cx231xx_close_extension(dev);
++	cx231xx_ir_exit(dev);
++	cx231xx_release_analog_resources(dev);
++	cx231xx_417_unregister(dev);
++	cx231xx_remove_from_devlist(dev);
++	cx231xx_dev_uninit(dev);
++err_init:
++	v4l2_device_unregister(&dev->v4l2_dev);
++err_v4l2:
++	usb_set_intfdata(interface, NULL);
++err_if:
++	usb_put_dev(udev);
++	kfree(dev);
++	clear_bit(dev->devno, &cx231xx_devused);
++	return retval;
+ }
+ 
+ /*
 -- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Philipp Zabel
-> Sent: Monday, September 30, 2013 3:35 PM
-> To: linux-media@vger.kernel.org
-> Cc: Mauro Carvalho Chehab; Kamil Debski; Javier Martin; Hans Verkuil;
-> kernel@pengutronix.de; Philipp Zabel
-> Subject: [PATCH v2 07/10] [media] coda: prefix v4l2_ioctl_ops with
-> coda_ instead of vidioc_
-> 
-> Moving the ioctl handler callbacks into the coda namespace helps
-> tremendously to make sense of backtraces.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v1:
->  - Use coda_ instead of coda_vidioc_ prefix
-> ---
->  drivers/media/platform/coda.c | 123 +++++++++++++++++++++-------------
-> --------
->  1 file changed, 63 insertions(+), 60 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda.c
-> b/drivers/media/platform/coda.c index 82049f8..6286133 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -412,8 +412,8 @@ static char *coda_product_name(int product)
->  /*
->   * V4L2 ioctl() operations.
->   */
-> -static int vidioc_querycap(struct file *file, void *priv,
-> -			   struct v4l2_capability *cap)
-> +static int coda_querycap(struct file *file, void *priv,
-> +			 struct v4l2_capability *cap)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
-> @@ -484,8 +484,8 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc
-> *f,
->  	return -EINVAL;
->  }
-> 
-> -static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> -				   struct v4l2_fmtdesc *f)
-> +static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
-> +				 struct v4l2_fmtdesc *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	struct vb2_queue *src_vq;
-> @@ -503,13 +503,14 @@ static int vidioc_enum_fmt_vid_cap(struct file
-> *file, void *priv,
->  	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0);  }
-> 
-> -static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-> -				   struct v4l2_fmtdesc *f)
-> +static int coda_enum_fmt_vid_out(struct file *file, void *priv,
-> +				 struct v4l2_fmtdesc *f)
->  {
->  	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_OUTPUT, 0);  }
-> 
-> -static int vidioc_g_fmt(struct file *file, void *priv, struct
-> v4l2_format *f)
-> +static int coda_g_fmt(struct file *file, void *priv,
-> +		      struct v4l2_format *f)
->  {
->  	struct vb2_queue *vq;
->  	struct coda_q_data *q_data;
-> @@ -536,7 +537,7 @@ static int vidioc_g_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  	return 0;
->  }
-> 
-> -static int vidioc_try_fmt(struct coda_codec *codec, struct v4l2_format
-> *f)
-> +static int coda_try_fmt(struct coda_codec *codec, struct v4l2_format
-> +*f)
->  {
->  	unsigned int max_w, max_h;
->  	enum v4l2_field field;
-> @@ -575,8 +576,8 @@ static int vidioc_try_fmt(struct coda_codec *codec,
-> struct v4l2_format *f)
->  	return 0;
->  }
-> 
-> -static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> -				  struct v4l2_format *f)
-> +static int coda_try_fmt_vid_cap(struct file *file, void *priv,
-> +				struct v4l2_format *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	struct coda_codec *codec;
-> @@ -604,7 +605,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file,
-> void *priv,
-> 
->  	f->fmt.pix.colorspace = ctx->colorspace;
-> 
-> -	ret = vidioc_try_fmt(codec, f);
-> +	ret = coda_try_fmt(codec, f);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -620,8 +621,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file,
-> void *priv,
->  	return 0;
->  }
-> 
-> -static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-> -				  struct v4l2_format *f)
-> +static int coda_try_fmt_vid_out(struct file *file, void *priv,
-> +				struct v4l2_format *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	struct coda_codec *codec;
-> @@ -633,10 +634,10 @@ static int vidioc_try_fmt_vid_out(struct file
-> *file, void *priv,
->  	if (!f->fmt.pix.colorspace)
->  		f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
-> 
-> -	return vidioc_try_fmt(codec, f);
-> +	return coda_try_fmt(codec, f);
->  }
-> 
-> -static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
-> +static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
->  {
->  	struct coda_q_data *q_data;
->  	struct vb2_queue *vq;
-> @@ -666,61 +667,62 @@ static int vidioc_s_fmt(struct coda_ctx *ctx,
-> struct v4l2_format *f)
->  	return 0;
->  }
-> 
-> -static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> -				struct v4l2_format *f)
-> +static int coda_s_fmt_vid_cap(struct file *file, void *priv,
-> +			      struct v4l2_format *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	int ret;
-> 
-> -	ret = vidioc_try_fmt_vid_cap(file, priv, f);
-> +	ret = coda_try_fmt_vid_cap(file, priv, f);
->  	if (ret)
->  		return ret;
-> 
-> -	return vidioc_s_fmt(ctx, f);
-> +	return coda_s_fmt(ctx, f);
->  }
-> 
-> -static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-> -				struct v4l2_format *f)
-> +static int coda_s_fmt_vid_out(struct file *file, void *priv,
-> +			      struct v4l2_format *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	int ret;
-> 
-> -	ret = vidioc_try_fmt_vid_out(file, priv, f);
-> +	ret = coda_try_fmt_vid_out(file, priv, f);
->  	if (ret)
->  		return ret;
-> 
-> -	ret = vidioc_s_fmt(ctx, f);
-> +	ret = coda_s_fmt(ctx, f);
->  	if (ret)
->  		ctx->colorspace = f->fmt.pix.colorspace;
-> 
->  	return ret;
->  }
-> 
-> -static int vidioc_reqbufs(struct file *file, void *priv,
-> -			  struct v4l2_requestbuffers *reqbufs)
-> +static int coda_reqbufs(struct file *file, void *priv,
-> +			struct v4l2_requestbuffers *reqbufs)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
->  	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);  }
-> 
-> -static int vidioc_querybuf(struct file *file, void *priv,
-> -			   struct v4l2_buffer *buf)
-> +static int coda_querybuf(struct file *file, void *priv,
-> +			 struct v4l2_buffer *buf)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
->  	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);  }
-> 
-> -static int vidioc_qbuf(struct file *file, void *priv, struct
-> v4l2_buffer *buf)
-> +static int coda_qbuf(struct file *file, void *priv,
-> +		     struct v4l2_buffer *buf)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
->  	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);  }
-> 
-> -static int vidioc_expbuf(struct file *file, void *priv,
-> -			 struct v4l2_exportbuffer *eb)
-> +static int coda_expbuf(struct file *file, void *priv,
-> +		       struct v4l2_exportbuffer *eb)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
-> @@ -738,7 +740,8 @@ static bool coda_buf_is_end_of_stream(struct
-> coda_ctx *ctx,
->  		(buf->sequence == (ctx->qsequence - 1)));  }
-> 
-> -static int vidioc_dqbuf(struct file *file, void *priv, struct
-> v4l2_buffer *buf)
-> +static int coda_dqbuf(struct file *file, void *priv,
-> +		      struct v4l2_buffer *buf)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	int ret;
-> @@ -758,24 +761,24 @@ static int vidioc_dqbuf(struct file *file, void
-> *priv, struct v4l2_buffer *buf)
->  	return ret;
->  }
-> 
-> -static int vidioc_create_bufs(struct file *file, void *priv,
-> -			      struct v4l2_create_buffers *create)
-> +static int coda_create_bufs(struct file *file, void *priv,
-> +			    struct v4l2_create_buffers *create)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
->  	return v4l2_m2m_create_bufs(file, ctx->m2m_ctx, create);  }
-> 
-> -static int vidioc_streamon(struct file *file, void *priv,
-> -			   enum v4l2_buf_type type)
-> +static int coda_streamon(struct file *file, void *priv,
-> +			 enum v4l2_buf_type type)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
-> 
->  	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);  }
-> 
-> -static int vidioc_streamoff(struct file *file, void *priv,
-> -			    enum v4l2_buf_type type)
-> +static int coda_streamoff(struct file *file, void *priv,
-> +			  enum v4l2_buf_type type)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	int ret;
-> @@ -792,8 +795,8 @@ static int vidioc_streamoff(struct file *file, void
-> *priv,
->  	return ret;
->  }
-> 
-> -static int vidioc_decoder_cmd(struct file *file, void *fh,
-> -			      struct v4l2_decoder_cmd *dc)
-> +static int coda_decoder_cmd(struct file *file, void *fh,
-> +				   struct v4l2_decoder_cmd *dc)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(fh);
-> 
-> @@ -816,8 +819,8 @@ static int vidioc_decoder_cmd(struct file *file,
-> void *fh,
->  	return 0;
->  }
-> 
-> -static int vidioc_subscribe_event(struct v4l2_fh *fh,
-> -				  const struct v4l2_event_subscription *sub)
-> +static int coda_subscribe_event(struct v4l2_fh *fh,
-> +			        const struct v4l2_event_subscription *sub)
-
-Here checkpatch.pl reports a whitespace error, I will correct it, but next
-time please ensure that it is clean.
-
->  {
->  	switch (sub->type) {
->  	case V4L2_EVENT_EOS:
-> @@ -828,32 +831,32 @@ static int vidioc_subscribe_event(struct v4l2_fh
-> *fh,  }
-> 
->  static const struct v4l2_ioctl_ops coda_ioctl_ops = {
-> -	.vidioc_querycap	= vidioc_querycap,
-> +	.vidioc_querycap	= coda_querycap,
-> 
-> -	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-> -	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt,
-> -	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
-> -	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap = coda_enum_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap	= coda_g_fmt,
-> +	.vidioc_try_fmt_vid_cap	= coda_try_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap	= coda_s_fmt_vid_cap,
-> 
-> -	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
-> -	.vidioc_g_fmt_vid_out	= vidioc_g_fmt,
-> -	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
-> -	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
-> +	.vidioc_enum_fmt_vid_out = coda_enum_fmt_vid_out,
-> +	.vidioc_g_fmt_vid_out	= coda_g_fmt,
-> +	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
-> +	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
-> 
-> -	.vidioc_reqbufs		= vidioc_reqbufs,
-> -	.vidioc_querybuf	= vidioc_querybuf,
-> +	.vidioc_reqbufs		= coda_reqbufs,
-> +	.vidioc_querybuf	= coda_querybuf,
-> 
-> -	.vidioc_qbuf		= vidioc_qbuf,
-> -	.vidioc_expbuf		= vidioc_expbuf,
-> -	.vidioc_dqbuf		= vidioc_dqbuf,
-> -	.vidioc_create_bufs	= vidioc_create_bufs,
-> +	.vidioc_qbuf		= coda_qbuf,
-> +	.vidioc_expbuf		= coda_expbuf,
-> +	.vidioc_dqbuf		= coda_dqbuf,
-> +	.vidioc_create_bufs	= coda_create_bufs,
-> 
-> -	.vidioc_streamon	= vidioc_streamon,
-> -	.vidioc_streamoff	= vidioc_streamoff,
-> +	.vidioc_streamon	= coda_streamon,
-> +	.vidioc_streamoff	= coda_streamoff,
-> 
-> -	.vidioc_decoder_cmd	= vidioc_decoder_cmd,
-> +	.vidioc_decoder_cmd	= coda_decoder_cmd,
-> 
-> -	.vidioc_subscribe_event = vidioc_subscribe_event,
-> +	.vidioc_subscribe_event = coda_subscribe_event,
->  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,  };
-> 
-> --
-> 1.8.4.rc3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+1.8.1.2
 
