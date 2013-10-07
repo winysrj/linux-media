@@ -1,86 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41114 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753652Ab3JHHWl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 03:22:41 -0400
-Message-id: <5253B2BE.5090209@samsung.com>
-Date: Tue, 08 Oct 2013 09:22:38 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] vb2: Allow STREAMOFF for io emulator
-References: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from ni.piap.pl ([195.187.100.4]:59763 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753031Ab3JGLd4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 07:33:56 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	ismael.luceno@corp.bluecherry.net
+Date: Mon, 07 Oct 2013 13:33:55 +0200
+MIME-Version: 1.0
+Message-ID: <m3pprh8gd8.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Subject: [PATCH] SOLO6x10: Fix video frame type (I/P/B).
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-On 2013-10-04 15:49, Ricardo Ribalda Delgado wrote:
-> A video device opened and streaming in io emulator mode can only stop
-> streamming if its file descriptor is closed.
->
-> There are some parameters that can only be changed if the device is not
-> streaming. Also, the power consumption of a device streaming could be
-> different than one not streaming.
->
-> With this patch a video device opened in io emulator can be stopped on
-> demand.
->
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-
-Read/write-based io mode must not be mixed with ioctrl-based IO, so I 
-really cannot accept this patch. Check V4L2 documentation for more details.
-
-> ---
->   drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++-----
->   1 file changed, 6 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 9fc4bab..097fba8 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1686,6 +1686,7 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->   }
->   EXPORT_SYMBOL_GPL(vb2_streamon);
->   
-> +static int __vb2_cleanup_fileio(struct vb2_queue *q);
->   
->   /**
->    * vb2_streamoff - stop streaming
-> @@ -1704,11 +1705,6 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
->    */
->   int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->   {
-> -	if (q->fileio) {
-> -		dprintk(1, "streamoff: file io in progress\n");
-> -		return -EBUSY;
-> -	}
-> -
->   	if (type != q->type) {
->   		dprintk(1, "streamoff: invalid stream type\n");
->   		return -EINVAL;
-> @@ -1719,6 +1715,11 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->   		return -EINVAL;
->   	}
->   
-> +	if (q->fileio) {
-> +		__vb2_cleanup_fileio(q);
-> +		return 0;
-> +	}
-> +
->   	/*
->   	 * Cancel will pause streaming and remove all buffers from the driver
->   	 * and videobuf, effectively returning control over them to userspace.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung R&D Institute Poland
-
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index 7a2fd98..27e9a0a 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -506,6 +506,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 		return -EIO;
+ 
+ 	/* If this is a key frame, add extra header */
++	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME);
+ 	if (!vop_type(vh)) {
+ 		skip = solo_enc->vop_len;
+ 		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
