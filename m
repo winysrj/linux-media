@@ -1,279 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:46966 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499Ab3JLMcb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 08:32:31 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
-	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 10/10] s5p-g2d: Use mem-to-mem ioctl helpers
-Date: Sat, 12 Oct 2013 14:32:00 +0200
-Message-Id: <1381581120-26883-11-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
-References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15451 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752100Ab3JGP0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Oct 2013 11:26:00 -0400
+Message-ID: <5252D276.3010004@redhat.com>
+Date: Mon, 07 Oct 2013 17:25:42 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Alan Stern <stern@rowland.harvard.edu>
+CC: Xenia Ragiadakou <burzalodowa@gmail.com>,
+	linux-usb@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: New USB core API to change interval and max packet size
+References: <20131001204554.GB15395@xanatos> <Pine.LNX.4.44L0.1310021007110.1293-100000@iolanthe.rowland.org> <20131002183905.GG15395@xanatos>
+In-Reply-To: <20131002183905.GG15395@xanatos>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the driver by using the m2m ioctl and vb2 helpers.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v1:
- - use m2m context pointer from struct v4l2_fh.
----
- drivers/media/platform/s5p-g2d/g2d.c |  124 ++++++----------------------------
- drivers/media/platform/s5p-g2d/g2d.h |    1 -
- 2 files changed, 21 insertions(+), 104 deletions(-)
+On 10/02/2013 08:39 PM, Sarah Sharp wrote:
+> On Wed, Oct 02, 2013 at 10:22:52AM -0400, Alan Stern wrote:
 
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index fd6289d..9c12008 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -136,10 +136,9 @@ static int g2d_buf_prepare(struct vb2_buffer *vb)
- static void g2d_buf_queue(struct vb2_buffer *vb)
- {
- 	struct g2d_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
--	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
- }
- 
--
- static struct vb2_ops g2d_qops = {
- 	.queue_setup	= g2d_queue_setup,
- 	.buf_prepare	= g2d_buf_prepare,
-@@ -159,6 +158,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->lock = &ctx->dev->mutex;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -171,6 +171,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->lock = &ctx->dev->mutex;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -253,9 +254,9 @@ static int g2d_open(struct file *file)
- 		kfree(ctx);
- 		return -ERESTARTSYS;
- 	}
--	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
--	if (IS_ERR(ctx->m2m_ctx)) {
--		ret = PTR_ERR(ctx->m2m_ctx);
-+	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
-+	if (IS_ERR(ctx->fh.m2m_ctx)) {
-+		ret = PTR_ERR(ctx->fh.m2m_ctx);
- 		mutex_unlock(&dev->mutex);
- 		kfree(ctx);
- 		return ret;
-@@ -324,7 +325,7 @@ static int vidioc_g_fmt(struct file *file, void *prv, struct v4l2_format *f)
- 	struct vb2_queue *vq;
- 	struct g2d_frame *frm;
- 
--	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
- 	if (!vq)
- 		return -EINVAL;
- 	frm = get_frame(ctx, f->type);
-@@ -384,7 +385,7 @@ static int vidioc_s_fmt(struct file *file, void *prv, struct v4l2_format *f)
- 	ret = vidioc_try_fmt(file, prv, f);
- 	if (ret)
- 		return ret;
--	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
- 	if (vb2_is_busy(vq)) {
- 		v4l2_err(&dev->v4l2_dev, "queue (%d) bust\n", f->type);
- 		return -EBUSY;
-@@ -410,72 +411,6 @@ static int vidioc_s_fmt(struct file *file, void *prv, struct v4l2_format *f)
- 	return 0;
- }
- 
--static unsigned int g2d_poll(struct file *file, struct poll_table_struct *wait)
--{
--	struct g2d_ctx *ctx = fh2ctx(file->private_data);
--	struct g2d_dev *dev = ctx->dev;
--	unsigned int res;
--
--	mutex_lock(&dev->mutex);
--	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
--	mutex_unlock(&dev->mutex);
--	return res;
--}
--
--static int g2d_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct g2d_ctx *ctx = fh2ctx(file->private_data);
--	struct g2d_dev *dev = ctx->dev;
--	int ret;
--
--	if (mutex_lock_interruptible(&dev->mutex))
--		return -ERESTARTSYS;
--	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
--	mutex_unlock(&dev->mutex);
--	return ret;
--}
--
--static int vidioc_reqbufs(struct file *file, void *priv,
--			struct v4l2_requestbuffers *reqbufs)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
--}
--
--static int vidioc_querybuf(struct file *file, void *priv,
--			struct v4l2_buffer *buf)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
--}
--
--static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
--}
--
--static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
--}
--
--
--static int vidioc_streamon(struct file *file, void *priv,
--					enum v4l2_buf_type type)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
--}
--
--static int vidioc_streamoff(struct file *file, void *priv,
--					enum v4l2_buf_type type)
--{
--	struct g2d_ctx *ctx = priv;
--	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
--}
--
- static int vidioc_cropcap(struct file *file, void *priv,
- 					struct v4l2_cropcap *cr)
- {
-@@ -551,20 +486,6 @@ static int vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop *c
- 	return 0;
- }
- 
--static void g2d_lock(void *prv)
--{
--	struct g2d_ctx *ctx = prv;
--	struct g2d_dev *dev = ctx->dev;
--	mutex_lock(&dev->mutex);
--}
--
--static void g2d_unlock(void *prv)
--{
--	struct g2d_ctx *ctx = prv;
--	struct g2d_dev *dev = ctx->dev;
--	mutex_unlock(&dev->mutex);
--}
--
- static void job_abort(void *prv)
- {
- 	struct g2d_ctx *ctx = prv;
-@@ -589,8 +510,8 @@ static void device_run(void *prv)
- 
- 	dev->curr = ctx;
- 
--	src = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
--	dst = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-+	src = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-+	dst = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
- 
- 	clk_enable(dev->gate);
- 	g2d_reset(dev);
-@@ -631,8 +552,8 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 
- 	BUG_ON(ctx == NULL);
- 
--	src = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
--	dst = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-+	src = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+	dst = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 
- 	BUG_ON(src == NULL);
- 	BUG_ON(dst == NULL);
-@@ -642,7 +563,7 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
--	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
-+	v4l2_m2m_job_finish(dev->m2m_dev, ctx->fh.m2m_ctx);
- 
- 	dev->curr = NULL;
- 	wake_up(&dev->irq_queue);
-@@ -653,9 +574,9 @@ static const struct v4l2_file_operations g2d_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= g2d_open,
- 	.release	= g2d_release,
--	.poll		= g2d_poll,
-+	.poll		= v4l2_m2m_fop_poll,
- 	.unlocked_ioctl	= video_ioctl2,
--	.mmap		= g2d_mmap,
-+	.mmap		= v4l2_m2m_fop_mmap,
- };
- 
- static const struct v4l2_ioctl_ops g2d_ioctl_ops = {
-@@ -671,14 +592,13 @@ static const struct v4l2_ioctl_ops g2d_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out		= vidioc_try_fmt,
- 	.vidioc_s_fmt_vid_out		= vidioc_s_fmt,
- 
--	.vidioc_reqbufs			= vidioc_reqbufs,
--	.vidioc_querybuf		= vidioc_querybuf,
--
--	.vidioc_qbuf			= vidioc_qbuf,
--	.vidioc_dqbuf			= vidioc_dqbuf,
-+	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
-+	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
-+	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
-+	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
- 
--	.vidioc_streamon		= vidioc_streamon,
--	.vidioc_streamoff		= vidioc_streamoff,
-+	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
-+	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
- 
- 	.vidioc_g_crop			= vidioc_g_crop,
- 	.vidioc_s_crop			= vidioc_s_crop,
-@@ -697,8 +617,6 @@ static struct video_device g2d_videodev = {
- static struct v4l2_m2m_ops g2d_m2m_ops = {
- 	.device_run	= device_run,
- 	.job_abort	= job_abort,
--	.lock		= g2d_lock,
--	.unlock		= g2d_unlock,
- };
- 
- static const struct of_device_id exynos_g2d_match[];
-diff --git a/drivers/media/platform/s5p-g2d/g2d.h b/drivers/media/platform/s5p-g2d/g2d.h
-index 300ca05..b0e52ab 100644
---- a/drivers/media/platform/s5p-g2d/g2d.h
-+++ b/drivers/media/platform/s5p-g2d/g2d.h
-@@ -57,7 +57,6 @@ struct g2d_frame {
- struct g2d_ctx {
- 	struct v4l2_fh fh;
- 	struct g2d_dev		*dev;
--	struct v4l2_m2m_ctx	*m2m_ctx;
- 	struct g2d_frame	in;
- 	struct g2d_frame	out;
- 	struct v4l2_ctrl	*ctrl_hflip;
--- 
-1.7.4.1
+<snip>
 
+>> We should consider this before rushing into a new API.
+>
+> Yes, I agree. :)  That's why I'd like to see some cases in the media
+> drivers code where it could benefit from changing the interval or
+> maxpacket size, so that we can see what use cases we have.  Mauro, can
+> you point is to places in drivers that would need this?
+
+Allow me to jump in here. As you may remember I pointed out the media
+side of this in the ubs-mini summit during the 2nd plumbers conference
+in Portland.
+
+I don't know about any media drivers which want to change interval, but
+it make sense that there are those who will want to do that too, esp in
+the hid area.
+
+I can give 2 examples who want to change the maxpacketsize in media
+land. Both for quite old usb-1 webcam chipsets. The manufacturers of
+these chip-sets decided that having X alt-settings was too limiting, so
+they have only 2. Alt 0 with no isoc endpoints, and alt 1 with 1 isoc
+endpoint with a maxpacketsize of 1023. This means that if these device
+somehow end up sharing usb-1 bandwidth with anything else (through
+say 1 single tt usb-2 hub) they eat up all the periodic bandwidth, or
+try to and fail.
+
+Technically these devices actually have an almost unlimited number of
+alt-settings, as they have a register through which the maxpacketsize
+they will actually use can be configured.
+
+Since we don't always need the full 1000 (interval 1) * 1023 bytes /
+second bandwidth their alt-setting 1 gives us, currently their drivers
+employ the following hack:
+
+alt = &gspca_dev->dev->actconfig->intf_cache[0]->altsetting[1];
+alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(packet_size);
+
+Before calling usb_set_interface(), so that they can start streaming
+successfully even though the full usb-1 bandwidth which their alt1
+descriptor claims it needs is not available, at least on ohci and ehci
+this hack has that result, not sure if it works for xhci too (I can test
+if people are interested).
+
+For people who want to actually see the code for this admittedly ugly
+hack, see:
+
+drivers/media/usb/gspca/xirlink_cit.c
+
+and:
+
+drivers/media/usb/gspca/stv06xx/stv06xx.c
+
+Note that their are several other chipsets which have a maxpacketsize
+register too. But their descriptors do properly contain multiple
+alt-settings with different maxpacketsizes (for the benefit of the OS
+I assume), so all we do their is simply write the current wMaxPacketSize
+to the register see ie: drivers/media/usb/gspca/ov519.c at line 3500 ,
+technically we could use the discussed functionality there too, to do
+finer grained bandwidth management but I don't really see a need for this.
+
+>
+>> In particular, do we want to go around changing single endpoints, one
+>> at a time?  Or do we want to change all the endpoints in an interface
+>> at once?
+>>
+>> Given that a change to one endpoint may require the entire schedule to
+>> be recomputed, it seems to make more sense to do all of them at once.
+>> For example, drivers could call a routine to set the desired endpoint
+>> parameters, and then the new parameters could take effect when the
+>> driver calls usb_set_interface().
+>
+> I think it makes sense to change several endpoints, and then ask the
+> host to recompute the schedule.  Perhaps the driver could issue several
+> calls to usb_change_ep_bandwidth and then ask the USB core to update the
+> host's schedule?
+>
+> I'm not sure that usb_set_interface() is the right function for the new
+> parameters to take effect.  What if the driver is trying to modify the
+> current alt setting?  Would they need to call usb_set_interface() again?
+
+What the 2 media drivers in question currently do is:
+
+1) Determine an optimal wMaxPacketSize for the resolution + framerate
+userspace has selected (so one where we can actually reach the framerate
+with no framedrop or image degradation due to over aggressive compression).
+Also determine a minimum wMaxPacketSize, below which streaming simply
+won't work reliabe, even with frame drop, etc.
+2) Put the wMaxPacketSize in the intf_cache for the alt1 alt-setting
+3) Try a usb_set_interface(dev, iface, 1)
+4) If 3). fails, reduce wMaxPacketSize in the intf_cache for the alt1 alt-setting
+by 100 bytes, until we hit the minimum, then goto 3, or bail if the last
+try was with the minimum already.
+
+They are basically doing the same as other webcam drivers, except that
+other drivers determine an optimal and minimum alt-setting with which
+to work and then try set_interface with alt-settings with decreasing
+wMaxPacketSize, where as these drivers keep retrying with the same
+alt-setting, while changing the wMaxPacketSize of that alt-setting.
+
+So from a media (specifically webcam driver) pov, the suggested approach
+of first calling usb_change_ep_bandwidth 1 or more times, and then calling
+usb_set_interface makes a lot of sense.
+
+Note that in the hid case however where we are likely talking about
+cases where the descriptors say something stupid like "poll this mouse
+8000 times / second", or "poll this joystick 1 / second", normally the
+driver will not call usb_set_interface() at all, because these
+devices normally have only 1 alt-setting (only alt0).
+
+Still since this is a special case for quirk handling, I think it is
+reasonable that drivers have to call usb_set_interface() after calling
+usb_change_ep_bandwidth(), for the changes to go into effect.
+
+>> In any case, the question about what to do when the interface setting
+>> gets switched never really arises.  Each usb_host_endpoint structure is
+>> referenced from only one altsetting.  If the driver wants the new
+>> parameters applied to an endpoint in several altsettings, it will have
+>> to change each altsetting separately.
+>
+> Ok, so it sounds like we want to keep the changes the endpoints across
+> alt setting changes.
+
+At a minimum we want to keep them until the first usb_set_interface call,
+which comes automatically with the transaction like interface Alan suggested
+(so the usb_change_ep_bandwidth() calls just store a value some where and are
+otherwise nops).
+
+This makes me realize that the original suggestion to just have a
+usb_change_ep_bandwidth() call which would change just that one ep and
+immediately apply the changes, is not usable for the webcam case, since
+in some cases the usb_set_interface call can only succeed with the
+modified wMaxPacketSize and/or interval, so we would never be able to
+move cur_altsetting to alt-setting 1, and thus would never be able to
+change the wMaxPacketSize in there.
+
+TBH I don't see much reason to keep the changes beyond the first set_interface
+call, nor do I see much reason not too (except on driver unbind). Implementation
+wise it might be easiest to just keep the override values until the first
+call. This could be as simple as an array with 30 wMaxPacketSize override
+values, and 30 interval overrides to be applied at the first set_interface
+call.
+
+ > But we still want to reset the values after the driver unbinds, correct?
+
+Yes we definitely want to reset the values after an unbind.
+
+Regards,
+
+Hans
