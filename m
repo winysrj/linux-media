@@ -1,120 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44129 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab3JCJ2k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 05:28:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 0/6] OMAP4 ISS driver
-Date: Thu, 03 Oct 2013 11:28:45 +0200
-Message-ID: <3636088.L4VZVRSHAj@avalon>
-In-Reply-To: <524D15F7.5070102@xs4all.nl>
-References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com> <524D15F7.5070102@xs4all.nl>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2684 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796Ab3JGJe6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 05:34:58 -0400
+Message-ID: <52528039.1080901@xs4all.nl>
+Date: Mon, 07 Oct 2013 11:34:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Archit Taneja <archit@ti.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+Subject: Re: [PATCH v4 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-4-git-send-email-archit@ti.com> <525268F9.90409@xs4all.nl> <52527BFF.3060603@ti.com>
+In-Reply-To: <52527BFF.3060603@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 10/07/2013 11:16 AM, Archit Taneja wrote:
+> On Monday 07 October 2013 01:25 PM, Hans Verkuil wrote:
+>> Hi Archit,
+>>
+>> I've got a few comments below...
+>>
+>> On 09/06/2013 12:12 PM, Archit Taneja wrote:
+>>> VPE is a block which consists of a single memory to memory path which can
+>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>>> interleaved video formats.
+>>>
+>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>>> The de-interlacer, scaler and color space converter are all bypassed for now
+>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>>> conversion beteen different YUV formats is possible.
+>>>
+>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>>
+>>> Based on the information received via v4l2 ioctls for the source and
+>>> destination queues, the driver configures the values for the MMRs, and stores
+>>> them in the buffer. There are also some VPDMA parameters like frame start and
+>>> line mode which needs to be configured, these are configured by direct register
+>>> writes via the VPDMA helper functions.
+>>>
+>>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>>> source and destination queues are set up for the given ctx, once the list is
+>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>>> upload MMR registers, start DMA of video buffers on the various input and output
+>>> clients/ports.
+>>>
+>>> When the list is parsed completely(and the DMAs on all the output ports done),
+>>> an interrupt is generated which we use to notify that the source and destination
+>>> buffers are done.
+>>>
+>>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>>
+>>> Signed-off-by: Archit Taneja <archit@ti.com>
+>>> ---
+>>>   drivers/media/platform/Kconfig           |   16 +
+>>>   drivers/media/platform/Makefile          |    2 +
+>>>   drivers/media/platform/ti-vpe/Makefile   |    5 +
+>>>   drivers/media/platform/ti-vpe/vpe.c      | 1750 ++++++++++++++++++++++++++++++
+>>>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>>>   include/uapi/linux/v4l2-controls.h       |    4 +
+>>>   6 files changed, 2273 insertions(+)
+>>>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
+>>>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>>>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>>
+>>
+>> <snip>
+>>
+>>> +
+>>> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>> +{
+>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>>> +	struct vpe_ctx *ctx = file2ctx(file);
+>>> +	struct vb2_queue *vq;
+>>> +	struct vpe_q_data *q_data;
+>>> +	int i;
+>>> +
+>>> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+>>> +	if (!vq)
+>>> +		return -EINVAL;
+>>> +
+>>> +	q_data = get_q_data(ctx, f->type);
+>>> +
+>>> +	pix->width = q_data->width;
+>>> +	pix->height = q_data->height;
+>>> +	pix->pixelformat = q_data->fmt->fourcc;
+>>> +	pix->colorspace = q_data->colorspace;
+>>> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
+>>> +
+>>> +	for (i = 0; i < pix->num_planes; i++) {
+>>> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
+>>> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>>> +		       struct vpe_fmt *fmt, int type)
+>>> +{
+>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>>> +	struct v4l2_plane_pix_format *plane_fmt;
+>>> +	int i;
+>>> +
+>>> +	if (!fmt || !(fmt->types & type)) {
+>>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+>>> +			pix->pixelformat);
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	pix->field = V4L2_FIELD_NONE;
+>>> +
+>>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+>>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+>>> +			      S_ALIGN);
+>>> +
+>>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+>>> +	pix->pixelformat = fmt->fourcc;
+>>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>>
+>> You do this only for capture. Output sets the colorspace, so try_fmt should
+>> leave the colorspace field untouched for the output direction.
+>>
+>>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+> 
+> The input to the VPE block can be various YUV formats, and the VPE can 
+> generate both RGB and YUV formats.
+> 
+> So, I guess the output(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) side has 
+> choice only to set V4L2_COLORSPACE_SMPTE170M. And in the 
+> capture(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) capture side we have both 
+> SRG and SMPTE170M options.
+> 
+> One thing I am not clear about is whether the userspace application has 
+> to set the colorspace in the v4l2 format for OUTPUT or CAPTURE or both?
 
-On Thursday 03 October 2013 09:00:07 Hans Verkuil wrote:
-> On 10/03/2013 01:55 AM, Laurent Pinchart wrote:
-> > Hello,
-> > 
-> > The OMAP4 ISS driver has lived out of tree for more than two years now.
-> > This situation is both sad and resource-wasting, as the driver has been
-> > used (and thus) hacked since then with nowhere to send patches to. Time
-> > has come to fix the problem.
-> > 
-> > As the code is mostly, but not quite ready for prime time, I'd like to
-> > request its addition to drivers/staging/. I've added a (pretty small)
-> > TODO file and I commit to cleaning up the code and get it to
-> > drivers/media/ where it belongs.
-> > 
-> > I've split the driver in six patches to avoid getting caught in vger's
-> > size
-> > and to make review slightly easier. Sergio Aguirre is the driver author
-> > (huge thanks for that!), I've thus kept his authorship on patches 1/6 to
-> > 5/6.
-> > 
-> > I don't have much else to add here, let's get this beast to mainline and
-> > allow other developers to use the driver and contribute patches.
-> 
-> Thanks for the patch series! Much appreciated.
-> 
-> For this patch series:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I've posted a few comments for the first two patches (nothing jumped out to
-> me for the other patches) that you may want to address in a follow-up
-> patch, particularly the missing timestamp_type for vb2_queue will give a
-> lot of WARN_ON messages in the kernel log.
+The spec today says that the colorspace field is filled in by the driver.
+It does not differentiate between output and capture. This is patently wrong,
+since for output it should be set by the application since that's who is
+telling the driver what colorspace the image has. The driver may change it
+if it doesn't support that colorspace, but otherwise it should leave it as
+is.
 
-Sure, I'll fix those. I wanted to send the code in with as little 
-modifications as possible (I've only made sure that it would compile, as 
-that's the main staging criteria nowadays), I'll tell send follow-up patches 
-to clean the driver and fix problems before moving it to drivers/media/
+A mem-to-mem device that doesn't care about the colorspace should just copy
+the colorspace field from the output value into the capture.
 
-> > Laurent Pinchart (1):
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - Build system
-> > 
-> > Sergio Aguirre (5):
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - Core
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)
-> >   v4l: omap4iss: Add support for OMAP4 camera interface - Resizer
-> >  
-> >  Documentation/video4linux/omap4_camera.txt   |   63 ++
-> >  drivers/staging/media/Kconfig                |    2 +
-> >  drivers/staging/media/Makefile               |    1 +
-> >  drivers/staging/media/omap4iss/Kconfig       |   12 +
-> >  drivers/staging/media/omap4iss/Makefile      |    6 +
-> >  drivers/staging/media/omap4iss/TODO          |    4 +
-> >  drivers/staging/media/omap4iss/iss.c         | 1477 +++++++++++++++++++++
-> >  drivers/staging/media/omap4iss/iss.h         |  153 +++
-> >  drivers/staging/media/omap4iss/iss_csi2.c    | 1368 +++++++++++++++++++++
-> >  drivers/staging/media/omap4iss/iss_csi2.h    |  156 +++
-> >  drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++
-> >  drivers/staging/media/omap4iss/iss_csiphy.h  |   51 +
-> >  drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++
-> >  drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
-> >  drivers/staging/media/omap4iss/iss_ipipeif.c |  847 +++++++++++++++
-> >  drivers/staging/media/omap4iss/iss_ipipeif.h |   92 ++
-> >  drivers/staging/media/omap4iss/iss_regs.h    |  883 +++++++++++++++
-> >  drivers/staging/media/omap4iss/iss_resizer.c |  905 ++++++++++++++++
-> >  drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
-> >  drivers/staging/media/omap4iss/iss_video.c   | 1129 ++++++++++++++++++++
-> >  drivers/staging/media/omap4iss/iss_video.h   |  201 ++++
-> >  include/media/omap4iss.h                     |   65 ++
-> >  22 files changed, 8416 insertions(+)
-> >  create mode 100644 Documentation/video4linux/omap4_camera.txt
-> >  create mode 100644 drivers/staging/media/omap4iss/Kconfig
-> >  create mode 100644 drivers/staging/media/omap4iss/Makefile
-> >  create mode 100644 drivers/staging/media/omap4iss/TODO
-> >  create mode 100644 drivers/staging/media/omap4iss/iss.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_video.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_video.h
-> >  create mode 100644 include/media/omap4iss.h
--- 
+What is missing in today's API is a way to do colorspace conversion in a m2m
+device since there is no way today to tell the driver the desired colorspace
+that it should get back from the m2m device.
+
+> 
+>  From what I understood, the code should be as below.
+> 
+> For output:
+> 
+> if (!pix->colorspace)
+> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
+
+I would leave off the 'if' part. If this colorspace is all you support on the
+output, then always set it.
+
+However, since it can convert YUV to RGB, doesn't the hardware have to know
+about the various YUV colorspaces? SDTV and HDTV have different colorspaces.
+
+> 
+> And for capture:
+> 	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+> 		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+> 
+> Does this look correct?
+
+Yes, unless the hardware can take SDTV/HDTV YUV colorspaces into account. In
+that case I need to think how the API should be improved.
+
+> 
+>>
+>> Zero pix->priv as well:
+>>
+>> 	pix->priv = 0;
+> 
+> pix here is of the type v4l2_pix_format_mplane, so there isn't a private 
+> field here.
+
+Oops, my fault. I hadn't noticed that.
+
+> 
+> Thanks,
+> Archit
+> 
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
