@@ -1,109 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4348 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752194Ab3JKC7g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 22:59:36 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9B2xWQk099821
-	for <linux-media@vger.kernel.org>; Fri, 11 Oct 2013 04:59:34 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 932522A04DF
-	for <linux-media@vger.kernel.org>; Fri, 11 Oct 2013 04:59:31 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131011025931.932522A04DF@tschai.lan>
-Date: Fri, 11 Oct 2013 04:59:31 +0200 (CEST)
+Received: from devils.ext.ti.com ([198.47.26.153]:57136 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751734Ab3JGOeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 10:34:18 -0400
+Message-ID: <5252C661.3040608@ti.com>
+Date: Mon, 7 Oct 2013 20:04:09 +0530
+From: Archit Taneja <a0393947@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v4 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-4-git-send-email-archit@ti.com> <525268F9.90409@xs4all.nl> <52527BFF.3060603@ti.com> <52528039.1080901@xs4all.nl> <52528B6D.5080500@ti.com> <5252BEE9.9020200@xs4all.nl>
+In-Reply-To: <5252BEE9.9020200@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Monday 07 October 2013 07:32 PM, Hans Verkuil wrote:
+> On 10/07/2013 12:22 PM, Archit Taneja wrote:
+>> On Monday 07 October 2013 03:04 PM, Hans Verkuil wrote:
+>>> On 10/07/2013 11:16 AM, Archit Taneja wrote:
+>>>> On Monday 07 October 2013 01:25 PM, Hans Verkuil wrote:
+>>>>> Hi Archit,
+>>>>>
+>>>>> I've got a few comments below...
+>>>>>
+>>>>> On 09/06/2013 12:12 PM, Archit Taneja wrote:
+>>>>>> VPE is a block which consists of a single memory to memory path which can
+>>>>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>>>>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>>>>>> interleaved video formats.
+>>>>>>
+>>>>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>>>>>> The de-interlacer, scaler and color space converter are all bypassed for now
+>>>>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>>>>>> conversion beteen different YUV formats is possible.
+>>>>>>
+>>>>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>>>>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>>>>>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>>>>>
+>>>>>> Based on the information received via v4l2 ioctls for the source and
+>>>>>> destination queues, the driver configures the values for the MMRs, and stores
+>>>>>> them in the buffer. There are also some VPDMA parameters like frame start and
+>>>>>> line mode which needs to be configured, these are configured by direct register
+>>>>>> writes via the VPDMA helper functions.
+>>>>>>
+>>>>>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>>>>>> source and destination queues are set up for the given ctx, once the list is
+>>>>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>>>>>> upload MMR registers, start DMA of video buffers on the various input and output
+>>>>>> clients/ports.
+>>>>>>
+>>>>>> When the list is parsed completely(and the DMAs on all the output ports done),
+>>>>>> an interrupt is generated which we use to notify that the source and destination
+>>>>>> buffers are done.
+>>>>>>
+>>>>>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>>>>>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>>>>>
+>>>>>> Signed-off-by: Archit Taneja <archit@ti.com>
+>>>>>> ---
+>>>>>>     drivers/media/platform/Kconfig           |   16 +
+>>>>>>     drivers/media/platform/Makefile          |    2 +
+>>>>>>     drivers/media/platform/ti-vpe/Makefile   |    5 +
+>>>>>>     drivers/media/platform/ti-vpe/vpe.c      | 1750 ++++++++++++++++++++++++++++++
+>>>>>>     drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>>>>>>     include/uapi/linux/v4l2-controls.h       |    4 +
+>>>>>>     6 files changed, 2273 insertions(+)
+>>>>>>     create mode 100644 drivers/media/platform/ti-vpe/Makefile
+>>>>>>     create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>>>>>>     create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>>>>>
+>>>>>
+>>>>> <snip>
+>>>>>
+>>>>>> +
+>>>>>> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>>>>> +{
+>>>>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>>>>>> +	struct vpe_ctx *ctx = file2ctx(file);
+>>>>>> +	struct vb2_queue *vq;
+>>>>>> +	struct vpe_q_data *q_data;
+>>>>>> +	int i;
+>>>>>> +
+>>>>>> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+>>>>>> +	if (!vq)
+>>>>>> +		return -EINVAL;
+>>>>>> +
+>>>>>> +	q_data = get_q_data(ctx, f->type);
+>>>>>> +
+>>>>>> +	pix->width = q_data->width;
+>>>>>> +	pix->height = q_data->height;
+>>>>>> +	pix->pixelformat = q_data->fmt->fourcc;
+>>>>>> +	pix->colorspace = q_data->colorspace;
+>>>>>> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
+>>>>>> +
+>>>>>> +	for (i = 0; i < pix->num_planes; i++) {
+>>>>>> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
+>>>>>> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	return 0;
+>>>>>> +}
+>>>>>> +
+>>>>>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>>>>>> +		       struct vpe_fmt *fmt, int type)
+>>>>>> +{
+>>>>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>>>>>> +	struct v4l2_plane_pix_format *plane_fmt;
+>>>>>> +	int i;
+>>>>>> +
+>>>>>> +	if (!fmt || !(fmt->types & type)) {
+>>>>>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+>>>>>> +			pix->pixelformat);
+>>>>>> +		return -EINVAL;
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	pix->field = V4L2_FIELD_NONE;
+>>>>>> +
+>>>>>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+>>>>>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+>>>>>> +			      S_ALIGN);
+>>>>>> +
+>>>>>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+>>>>>> +	pix->pixelformat = fmt->fourcc;
+>>>>>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>>>>>
+>>>>> You do this only for capture. Output sets the colorspace, so try_fmt should
+>>>>> leave the colorspace field untouched for the output direction.
+>>>>>
+>>>>>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+>>>>
+>>>> The input to the VPE block can be various YUV formats, and the VPE can
+>>>> generate both RGB and YUV formats.
+>>>>
+>>>> So, I guess the output(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) side has
+>>>> choice only to set V4L2_COLORSPACE_SMPTE170M. And in the
+>>>> capture(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) capture side we have both
+>>>> SRG and SMPTE170M options.
+>>>>
+>>>> One thing I am not clear about is whether the userspace application has
+>>>> to set the colorspace in the v4l2 format for OUTPUT or CAPTURE or both?
+>>>
+>>> The spec today says that the colorspace field is filled in by the driver.
+>>> It does not differentiate between output and capture. This is patently wrong,
+>>> since for output it should be set by the application since that's who is
+>>> telling the driver what colorspace the image has. The driver may change it
+>>> if it doesn't support that colorspace, but otherwise it should leave it as
+>>> is.
+>>>
+>>> A mem-to-mem device that doesn't care about the colorspace should just copy
+>>> the colorspace field from the output value into the capture.
+>>>
+>>> What is missing in today's API is a way to do colorspace conversion in a m2m
+>>> device since there is no way today to tell the driver the desired colorspace
+>>> that it should get back from the m2m device.
+>>>
+>>>>
+>>>>    From what I understood, the code should be as below.
+>>>>
+>>>> For output:
+>>>>
+>>>> if (!pix->colorspace)
+>>>> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>>>
+>>> I would leave off the 'if' part. If this colorspace is all you support on the
+>>> output, then always set it.
+>>>
+>>> However, since it can convert YUV to RGB, doesn't the hardware have to know
+>>> about the various YUV colorspaces? SDTV and HDTV have different colorspaces.
+>>>
+>>>>
+>>>> And for capture:
+>>>> 	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>>>> 		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+>>>>
+>>>> Does this look correct?
+>>>
+>>> Yes, unless the hardware can take SDTV/HDTV YUV colorspaces into account. In
+>>> that case I need to think how the API should be improved.
+>>
+>> The hardware can't convert one YUV color space to another. But it has a
+>> programmable CSC block for YUV->RGB conversion in which we can program
+>> coefficients based on the input YUV color space.
+>>
+>> The color space conversion block isn't implemented by the driver yet. So
+>> I didn't look too much into it.
+>>
+>> I guess it will be eventually important to consider the output
+>> colorspace. It doesn't need to be only SMPTE170M, it could be REC709 or
+>> SMPTE240M based on what the user says.
+>>
+>> When the color space conversion block is implemented and the capture
+>> colorspace is RGB, the driver should see the input colorspace and choose
+>> the coefficients accordingly.
+>>
+>> With this new information about the hardware (:)), I guess it should be
+>> as below for now:
+>>
+>> output:
+>> /* inserted this check back since multiple YUV spaces supported */
+>> if (!pix->colorspace)	
+>> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>>
+>> capture:
+>> /* removed SRGB sicne we don't support CSC yet */
+>> pix->colorspace = s_q_data->colorspace;
+>>
+>> However, the above would imply that we need to s_fmt ioctl is called for
+>> OUTPUT first, followed by s_fmt for CAPTURE. I don't think that's
+>> something necessary according to the v4l spec.
+>
+> Well, s_fmt(OUTPUT) influences the colorspace field returned by *_fmt(CAPTURE).
+> Which I think is OK. You can use either order, but to see the actual colorspace
+> used by capture you will have to call g_fmt(CAPTURE) after calling s_fmt(OUTPUT).
+>
+> It's the logical order anyway for a m2m device to start with the output first.
 
-Results of the daily build of media_tree:
+Okay, that makes sense.
 
-date:		Fri Oct 11 04:00:36 CEST 2013
-git branch:	test
-git hash:	d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-4.slh.2-amd64
+>
+>> Besides this, I noticed a series "V4L2 mem-to-mem ioctl helpers" which I
+>> should take use of. Do you suggest I base my patches over that?
+>
+> I don't know when that will be merged. It might be easier to just add a new
+> patch converting the driver to the helpers, then we can apply all patches except
+> that last one if the helpers aren't merged yet.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+That's a good idea. Will add a new patch in the next version.
 
-Detailed results are available here:
+Thanks for the review.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Archit
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
