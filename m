@@ -1,171 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:62012 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751994Ab3JHIhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Oct 2013 04:37:19 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37816 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752563Ab3JGVG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Oct 2013 17:06:28 -0400
+Date: Tue, 8 Oct 2013 00:06:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>, linux-leds@vger.kernel.org,
+	linux-pwm@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: V2: Agenda for the Edinburgh mini-summit
+Message-ID: <20131007210623.GB6732@valkosipuli.retiisi.org.uk>
+References: <201309101134.32883.hansverk@cisco.com>
+ <52405427.6000002@samsung.com>
+ <52406E5C.2020709@schinagl.nl>
+ <5240A41A.6050207@gmail.com>
+ <20130924092053.GB13971@ulmo>
 MIME-Version: 1.0
-Message-ID: <trinity-623ffc78-64ca-42cb-a0a4-08df812feb4a-1381221437598@msvc021>
-From: dezifit@gmx.de
-To: linux-media@vger.kernel.org
-Subject: em28xx: regression - Hauppauge 65018
-Content-Type: multipart/mixed;
- boundary=knika-e2455309-c4e6-4306-8258-0bb03873af01
-Date: Tue, 8 Oct 2013 10:37:17 +0200 (CEST)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130924092053.GB13971@ulmo>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---knika-e2455309-c4e6-4306-8258-0bb03873af01
-Content-Type: text/plain; charset=UTF-8
+Hi Thierry and Sylwester,
 
-Hello,
+My apologies for the late answer.
 
-analog TV of WinTV HVR-900 R2 did work at least until 2.6.35 (yesterday
-tested again) and now audio access fails with USB freezes in 3.11.2, see
-attached logs, both refering to the very same device.
+On Tue, Sep 24, 2013 at 11:20:53AM +0200, Thierry Reding wrote:
+> On Mon, Sep 23, 2013 at 10:27:06PM +0200, Sylwester Nawrocki wrote:
+> > On 09/23/2013 06:37 PM, Oliver Schinagl wrote:
+> > >On 09/23/13 16:45, Sylwester Nawrocki wrote:
+> > >>Hi,
+> > >>
+> > >>I would like to have a short discussion on LED flash devices support
+> > >>in the kernel. Currently there are two APIs: the V4L2 and LED class
+> > >>API exposed by the kernel, which I believe is not good from user space
+> > >>POV. Generic applications will need to implement both APIs. I think we
+> > >>should decide whether to extend the led class API to add support for
+> > >>more advanced LED controllers there or continue to use the both APIs
+> > >>with overlapping functionality.
+> > >>There has been some discussion about this on the ML, but without any
+> > >>consensus reached [1].
+> > >
+> > >What about the linux-pwm framework and its support for the backlight via
+> > >dts?
+> > >
+> > >Or am I talking way to uninformed here. Copying backlight to flashlight
+> > >with some minor modification sounds sensible in a way...
+> > 
+> > I'd assume we don't need yet another user interface for the LEDs ;) AFAICS
+> > the PWM subsystem exposes pretty much raw interface in sysfs. The PWM LED
+> > controllers are already handled in the leds-class API, there is the
+> > leds_pwm
+> > driver (drivers/leds/leds-pwm.c).
+> > 
+> > I'm adding linux-pwm and linux-leds maintainers at Cc so someone may correct
+> > me if I got anything wrong.
+> 
+> The PWM subsystem is most definitely not a good fit for this. The only
+> thing it provides is a way for other drivers to access a PWM device and
+> use it for some specific purpose (pwm-backlight, leds-pwm).
+> 
+> The sysfs support is a convenience for people that needs to use a PWM in
+> a way for which no driver framework exists, or for which it doesn't make
+> sense to write a driver. Or for testing.
+> 
+> > Presumably, what we need is a few enhancements to support in a standard way
+> > devices like MAX77693, LM3560 or MAX8997.  There is already a led
+> > class driver
+> > for the MAX8997 LED controller (drivers/leds/leds-max8997.c), but it
+> > uses some
+> > device-specific sysfs attributes.
+> > 
+> > Thus similar devices are currently being handled by different subsystems.
+> > The split between the V4L2 Flash and the leds class API WRT to Flash LED
+> > controller drivers is included in RFC [1], it seems still up to date.
+> > 
+> > 
+> > >>[1] http://www.spinics.net/lists/linux-leds/msg00899.html
+> 
+> Perhaps it would make sense for V4L2 to be able to use a LED as exposed
+> by the LED subsystem and wrap it so that it can be integrated with V4L2?
+> If functionality is missing from the LED subsystem I suppose that could
+> be added.
 
-I already wrote about the USB freeze, which occurs on any access of the
-alsa capture card provided by em28xx_alsa.
+The V4L2 flash API supports also xenon flashes, not only LED ones. That
+said, I agree there's a common subset of functionality most LED flash
+controllers implement.
 
-Any hints about the cause of this regression? I am willing to perform any
-suggested code modification or test and would provide more information
-if needed.
+> If I understand correctly, the V4L2 subsystem uses LEDs as flashes for
+> camera devices. I can easily imagine that there are devices out there
+> which provide functionality beyond what a regular LED will provide. So
+> perhaps for things such as mobile phones, which typically use a plain
+> LED to illuminate the surroundings, an LED wrapped into something that
+> emulates the flash functionality could work. But I doubt that the LED
+> subsystem is a good fit for anything beyond that.
 
-All feedback welcome.
+I originally thought one way to do this could be to make it as easy as
+possible to support both APIs in driver which some aregued, to which I
+agree, is rather poor desing.
 
-Regards,
-Dieter
---knika-e2455309-c4e6-4306-8258-0bb03873af01
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=syslog-current
+Does the LED API have a user space interface library like libv4l2? If yes,
+one option oculd be to implement the wrapper between the V4L2 and LED APIs
+there so that the applications using the LED API could also access those
+devices that implement the V4L2 flash API. Torch mode functionality is
+common between the two right now AFAIU,
 
-Oct  5 10:07:10 dezifit kernel: [38693.651508] usb 3-9: new high-speed USB device number 11 using xhci_hcd
-Oct  5 10:07:10 dezifit mtp-probe: checking bus 3, device 11: "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-9"
-Oct  5 10:07:10 dezifit mtp-probe: bus: 3, device: 11 was not an MTP device
-Oct  5 10:07:10 dezifit kernel: [38693.711072] Linux video capture interface: v2.00
-Oct  5 10:07:10 dezifit kernel: [38693.713087] em28xx: New device  WinTV HVR-900 @ 480 Mbps (2040:6502, interface 0, class 0)
-Oct  5 10:07:10 dezifit kernel: [38693.713088] em28xx: Audio interface 0 found (Vendor Class)
-Oct  5 10:07:10 dezifit kernel: [38693.713089] em28xx: Video interface 0 found: isoc
-Oct  5 10:07:10 dezifit kernel: [38693.713090] em28xx: DVB interface 0 found: isoc
-Oct  5 10:07:10 dezifit kernel: [38693.713119] em28xx: chip ID is em2882/3
-Oct  5 10:07:11 dezifit kernel: [38693.881149] em2882/3 #0: i2c eeprom 00: 1a eb 67 95 40 20 02 65 d0 12 5c 03 82 1e 6a 18
-Oct  5 10:07:11 dezifit kernel: [38693.881155] em2882/3 #0: i2c eeprom 10: 00 00 24 57 66 07 01 00 00 00 00 00 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881161] em2882/3 #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b e0 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881166] em2882/3 #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 01 01 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881171] em2882/3 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881176] em2882/3 #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881181] em2882/3 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 18 03 34 00 30 00
-Oct  5 10:07:11 dezifit kernel: [38693.881186] em2882/3 #0: i2c eeprom 70: 32 00 37 00 36 00 36 00 39 00 35 00 38 00 38 00
-Oct  5 10:07:11 dezifit kernel: [38693.881191] em2882/3 #0: i2c eeprom 80: 00 00 1e 03 57 00 69 00 6e 00 54 00 56 00 20 00
-Oct  5 10:07:11 dezifit kernel: [38693.881196] em2882/3 #0: i2c eeprom 90: 48 00 56 00 52 00 2d 00 39 00 30 00 30 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881201] em2882/3 #0: i2c eeprom a0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
-Oct  5 10:07:11 dezifit kernel: [38693.881206] em2882/3 #0: i2c eeprom b0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 54 5c
-Oct  5 10:07:11 dezifit kernel: [38693.881211] em2882/3 #0: i2c eeprom c0: 11 f0 74 02 01 00 01 79 89 00 00 00 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881216] em2882/3 #0: i2c eeprom d0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
-Oct  5 10:07:11 dezifit kernel: [38693.881221] em2882/3 #0: i2c eeprom e0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 54 5c
-Oct  5 10:07:11 dezifit kernel: [38693.881226] em2882/3 #0: i2c eeprom f0: 11 f0 74 02 01 00 01 79 89 00 00 00 00 00 00 00
-Oct  5 10:07:11 dezifit kernel: [38693.881232] em2882/3 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x6dff3add
-Oct  5 10:07:11 dezifit kernel: [38693.881234] em2882/3 #0: EEPROM info:
-Oct  5 10:07:11 dezifit kernel: [38693.881234] em2882/3 #0: 	AC97 audio (5 sample rates)
-Oct  5 10:07:11 dezifit kernel: [38693.881235] em2882/3 #0: 	500mA max power
-Oct  5 10:07:11 dezifit kernel: [38693.881236] em2882/3 #0: 	Table at offset 0x24, strings=0x1e82, 0x186a, 0x0000
-Oct  5 10:07:11 dezifit kernel: [38693.881238] em2882/3 #0: Identified as Hauppauge WinTV HVR 900 (R2) (card=18)
-Oct  5 10:07:11 dezifit kernel: [38693.882088] tveeprom 9-0050: Hauppauge model 65018, rev B2C0, serial# 1137748
-Oct  5 10:07:11 dezifit kernel: [38693.882090] tveeprom 9-0050: tuner model is Xceive XC3028 (idx 120, type 71)
-Oct  5 10:07:11 dezifit kernel: [38693.882091] tveeprom 9-0050: TV standards PAL(B/G) PAL(I) PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xd4)
-Oct  5 10:07:11 dezifit kernel: [38693.882093] tveeprom 9-0050: audio processor is None (idx 0)
-Oct  5 10:07:11 dezifit kernel: [38693.882094] tveeprom 9-0050: has radio
-Oct  5 10:07:11 dezifit kernel: [38693.948109] tvp5150 9-005c: chip found @ 0xb8 (em2882/3 #0)
-Oct  5 10:07:11 dezifit kernel: [38693.948117] tvp5150 9-005c: tvp5150am1 detected.
-Oct  5 10:07:11 dezifit kernel: [38693.971880] tuner 9-0061: Tuner -1 found with type(s) Radio TV.
-Oct  5 10:07:11 dezifit kernel: [38693.975175] xc2028 9-0061: creating new instance
-Oct  5 10:07:11 dezifit kernel: [38693.975183] xc2028 9-0061: type set to XCeive xc2028/xc3028 tuner
-Oct  5 10:07:11 dezifit kernel: [38693.975369] em2882/3 #0: Config register raw data: 0xd0
-Oct  5 10:07:11 dezifit kernel: [38693.975602] em2882/3 #0: AC97 vendor ID = 0x4f39ffff
-Oct  5 10:07:11 dezifit kernel: [38693.975794] em2882/3 #0: AC97 features = 0x6a90
-Oct  5 10:07:11 dezifit kernel: [38693.975800] em2882/3 #0: Unknown AC97 audio processor detected!
-Oct  5 10:07:11 dezifit kernel: [38693.975898] xc2028 9-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-Oct  5 10:07:11 dezifit kernel: [38694.124644] em2882/3 #0: v4l2 driver version 0.2.0
-Oct  5 10:07:11 dezifit kernel: [38694.171872] xc2028 9-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
-Oct  5 10:07:12 dezifit kernel: [38695.086017] MTS (4), id 00000000000000ff:
-Oct  5 10:07:12 dezifit kernel: [38695.086029] xc2028 9-0061: Loading firmware for type=MTS (4), id 0000000100000007.
-Oct  5 10:07:12 dezifit kernel: [38695.418759] em2882/3 #0: V4L2 video device registered as video0
-Oct  5 10:07:12 dezifit kernel: [38695.418767] em2882/3 #0: V4L2 VBI device registered as vbi0
-Oct  5 10:07:12 dezifit kernel: [38695.419267] em2882/3 #0: analog set to isoc mode.
-Oct  5 10:07:12 dezifit kernel: [38695.419270] em2882/3 #0: dvb set to isoc mode.
-Oct  5 10:07:12 dezifit kernel: [38695.419541] usbcore: registered new interface driver em28xx
-Oct  5 10:07:12 dezifit kernel: [38695.424291] em28xx-audio.c: probing for em28xx Audio Vendor Class
-Oct  5 10:07:12 dezifit kernel: [38695.424298] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-Oct  5 10:07:12 dezifit kernel: [38695.424302] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
-Oct  5 10:07:12 dezifit kernel: [38695.425879] Em28xx: Initialized (Em28xx Audio Extension) extension
-Oct  5 10:07:12 dezifit kernel: [38695.456893] Registered IR keymap rc-hauppauge
-Oct  5 10:07:12 dezifit kernel: [38695.456968] input: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-9/rc/rc0/input24
-Oct  5 10:07:12 dezifit kernel: [38695.457035] rc0: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-9/rc/rc0
-Oct  5 10:07:12 dezifit kernel: [38695.457149] Em28xx: Initialized (Em28xx Input Extension) extension
-Oct  5 10:07:12 dezifit kernel: [38695.554260] xc2028 9-0061: Error on line 1293: -19
-Oct  5 10:07:12 dezifit kernel: [38695.606852] tvp5150 9-005c: i2c i/o error: rc == -19 (should be 2)
-Oct  5 10:07:12 dezifit kernel: [38695.774411] xc2028 9-0061: Error on line 1293: -19
-Oct  5 10:07:13 dezifit rtkit-daemon[2590]: Successfully made thread 28186 of process 2587 (n/a) owned by '1000' RT at priority 5.
-Oct  5 10:07:13 dezifit rtkit-daemon[2590]: Supervising 9 threads of 3 processes of 1 users.
+The V4L2 flash API also provides a way to strobe the flash using an external
+trigger which typically connected to the sensor (and the user can choose
+between that and software strobe). I guess that and Xenon flashes aren't
+currently covered by the LED API.
 
+-- 
+Kind regards,
 
---knika-e2455309-c4e6-4306-8258-0bb03873af01
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=syslog-2.6.35
-
-Oct  7 19:50:24 localhost kernel: [ 5161.312276] usb 1-2: new high speed USB device using ehci_hcd and address 2
-Oct  7 19:50:24 localhost kernel: [ 5161.449864] usb 1-2: configuration #1 chosen from 1 choice
-Oct  7 19:50:24 localhost kernel: [ 5161.710155] Linux video capture interface: v2.00
-Oct  7 19:50:24 localhost kernel: [ 5161.759574] em28xx: New device WinTV HVR-900 @ 480 Mbps (2040:6502, interface 0, class 0)
-Oct  7 19:50:24 localhost kernel: [ 5161.759676] em28xx #0: chip ID is em2882/em2883
-Oct  7 19:50:24 localhost kernel: [ 5161.937042] em28xx #0: i2c eeprom 00: 1a eb 67 95 40 20 02 65 d0 12 5c 03 82 1e 6a 18
-Oct  7 19:50:24 localhost kernel: [ 5161.937078] em28xx #0: i2c eeprom 10: 00 00 24 57 66 07 01 00 00 00 00 00 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937110] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b e0 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937141] em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 01 01 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937173] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937204] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937235] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 18 03 34 00 30 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937266] em28xx #0: i2c eeprom 70: 32 00 37 00 36 00 36 00 39 00 35 00 38 00 38 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937298] em28xx #0: i2c eeprom 80: 00 00 1e 03 57 00 69 00 6e 00 54 00 56 00 20 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937329] em28xx #0: i2c eeprom 90: 48 00 56 00 52 00 2d 00 39 00 30 00 30 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937360] em28xx #0: i2c eeprom a0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
-Oct  7 19:50:24 localhost kernel: [ 5161.937392] em28xx #0: i2c eeprom b0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 54 5c
-Oct  7 19:50:24 localhost kernel: [ 5161.937424] em28xx #0: i2c eeprom c0: 11 f0 74 02 01 00 01 79 89 00 00 00 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937455] em28xx #0: i2c eeprom d0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
-Oct  7 19:50:24 localhost kernel: [ 5161.937487] em28xx #0: i2c eeprom e0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 54 5c
-Oct  7 19:50:24 localhost kernel: [ 5161.937518] em28xx #0: i2c eeprom f0: 11 f0 74 02 01 00 01 79 89 00 00 00 00 00 00 00
-Oct  7 19:50:24 localhost kernel: [ 5161.937555] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x6dff3add
-Oct  7 19:50:24 localhost kernel: [ 5161.937562] em28xx #0: EEPROM info:
-Oct  7 19:50:24 localhost kernel: [ 5161.937567] em28xx #0:	AC97 audio (5 sample rates)
-Oct  7 19:50:24 localhost kernel: [ 5161.937573] em28xx #0:	500mA max power
-Oct  7 19:50:24 localhost kernel: [ 5161.937581] em28xx #0:	Table at 0x24, strings=0x1e82, 0x186a, 0x0000
-Oct  7 19:50:24 localhost kernel: [ 5161.938273] em28xx #0: Identified as Hauppauge WinTV HVR 900 (R2) (card=18)
-Oct  7 19:50:24 localhost kernel: [ 5161.957804] tveeprom 1-0050: Hauppauge model 65018, rev B2C0, serial# 1137748
-Oct  7 19:50:24 localhost kernel: [ 5161.957809] tveeprom 1-0050: tuner model is Xceive XC3028 (idx 120, type 71)
-Oct  7 19:50:24 localhost kernel: [ 5161.957814] tveeprom 1-0050: TV standards PAL(B/G) PAL(I) PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xd4)
-Oct  7 19:50:24 localhost kernel: [ 5161.957818] tveeprom 1-0050: audio processor is None (idx 0)
-Oct  7 19:50:24 localhost kernel: [ 5161.957821] tveeprom 1-0050: has radio
-Oct  7 19:50:24 localhost kernel: [ 5161.966473] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
-Oct  7 19:50:24 localhost kernel: [ 5161.997352] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
-Oct  7 19:50:24 localhost kernel: [ 5162.033151] xc2028 1-0061: creating new instance
-Oct  7 19:50:24 localhost kernel: [ 5162.033159] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-Oct  7 19:50:24 localhost kernel: [ 5162.033176] usb 1-2: firmware: requesting xc3028-v27.fw
-Oct  7 19:50:24 localhost kernel: [ 5162.108766] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-Oct  7 19:50:24 localhost kernel: [ 5162.108974] input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1d.7/usb1/1-2/input/input8
-Oct  7 19:50:24 localhost kernel: [ 5162.110477] em28xx #0: Config register raw data: 0xd0
-Oct  7 19:50:24 localhost kernel: [ 5162.113628] em28xx #0: AC97 vendor ID = 0xffffffff
-Oct  7 19:50:24 localhost kernel: [ 5162.113991] em28xx #0: AC97 features = 0x6a90
-Oct  7 19:50:24 localhost kernel: [ 5162.113998] em28xx #0: Empia 202 AC97 audio processor detected
-Oct  7 19:50:25 localhost kernel: [ 5162.252479] tvp5150 1-005c: tvp5150am1 detected.
-Oct  7 19:50:25 localhost kernel: [ 5162.364815] em28xx #0: v4l2 driver version 0.1.2
-Oct  7 19:50:25 localhost kernel: [ 5162.451526] em28xx #0: V4L2 video device registered as /dev/video0
-Oct  7 19:50:25 localhost kernel: [ 5162.451535] em28xx #0: V4L2 VBI device registered as /dev/vbi0
-Oct  7 19:50:25 localhost kernel: [ 5162.468101] usbcore: registered new interface driver em28xx
-Oct  7 19:50:25 localhost kernel: [ 5162.468111] em28xx driver loaded
-Oct  7 19:50:25 localhost kernel: [ 5162.562435] em28xx-audio.c: probing for em28x1 non standard usbaudio
-Oct  7 19:50:25 localhost kernel: [ 5162.562445] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-Oct  7 19:50:25 localhost kernel: [ 5162.576736] Em28xx: Initialized (Em28xx Audio Extension) extension
-Oct  7 19:50:25 localhost kernel: [ 5162.608650] tvp5150 1-005c: tvp5150am1 detected.
-Oct  7 19:50:25 localhost kernel: [ 5162.908472] tvp5150 1-005c: tvp5150am1 detected.
-
-
---knika-e2455309-c4e6-4306-8258-0bb03873af01--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
