@@ -1,102 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:57667 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651Ab3J2AGe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Oct 2013 20:06:34 -0400
-Message-ID: <526EFC06.70101@gmail.com>
-Date: Tue, 29 Oct 2013 01:06:30 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:54903 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751851Ab3JGRW1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Oct 2013 13:22:27 -0400
+Date: Mon, 7 Oct 2013 19:22:24 +0200
+From: Jan Kara <jack@suse.cz>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Jan Kara <jack@suse.cz>, LKML <linux-kernel@vger.kernel.org>,
+	linux-mm@kvack.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 19/26] ivtv: Convert driver to use
+ get_user_pages_unlocked()
+Message-ID: <20131007172224.GC30441@quack.suse.cz>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+ <1380724087-13927-20-git-send-email-jack@suse.cz>
+ <1380974541.1905.12.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	Mark Rutland <Mark.Rutland@arm.com>
-Subject: Re: [GIT PULL FOR 3.13] Exynos5 SoC FIMC-IS imaging subsystem driver
-References: <5261967E.6010001@samsung.com> <20131028201136.6f66d3f7@samsung.com>
-In-Reply-To: <20131028201136.6f66d3f7@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380974541.1905.12.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+  Hello,
 
-On 10/28/2013 11:11 PM, Mauro Carvalho Chehab wrote:
->> The following changes since commit 8ca5d2d8e58df7235b77ed435e63c484e123fede:
->> >
->> >     [media] uvcvideo: Fix data type for pan/tilt control (2013-10-17 06:55:29 -0300)
->> >
->> >  are available in the git repository at:
->> >
->> >     git://linuxtv.org/snawrocki/samsung.git for-v3.13-2
->> >
->> >  for you to fetch changes up to 6eb89d71b27e6731755ab5722f3cdc0f6e8273f2:
->> >
->> >     V4L: Add s5k4e5 sensor driver (2013-10-18 21:36:42 +0200)
->> >
->> >  ----------------------------------------------------------------
->> >  Arun Kumar K (12):
->> >         exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
->
-> As agreed during KS, the subsystem maintainers should wait for a documentation
-> review on DT by the DT maintainers, at least for a while.
->
-> So, I'd like to see either their reviews on this patch:
-> 	https://patchwork.linuxtv.org/patch/20439/
->
-> Or their ack for us to apply it.
+On Sat 05-10-13 08:02:21, Andy Walls wrote:
+> <rant>
+> This patch alone does not have suffcient information for me to evaluate
+> it.  get_user_pages_unlocked() is added in another patch which I did not
+> receive, and which I cannot find in any list archives.
+> 
+> I wasted quite a bit of time looking for this additional patch:
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/jack/linux-fs.git/commit/?h=get_user_pages&id=624fc1bfb70fb65d32d31fbd16427ad9c234653e
+> 
+> </rant>
+  Sorry, I should have CCed that patch to driver maintainers as well.
 
-I agree with you on that. Just please note the first version of this patch
-has been posted *5 months* ago https://patchwork.linuxtv.org/patch/18684
+> If I found the correct patch for adding get_user_pages_unlocked(), then
+> the patch below looks fine.
+> 
+> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+> Acked-by: Andy Walls <awalls@md.metrocast.net>
+  Thanks.
 
-Stephen has reviewed subsequent version about 3 months ago:
-https://patchwork.linuxtv.org/patch/19521
+								Honza
 
-Then we got no more comments from DT maintainers, I have reviewed this patch
-multiple times on the mailing lists:
-https://patchwork.linuxtv.org/patch/19715
-https://patchwork.linuxtv.org/patch/19749
-
-And explicitly asked for an Ack:
-https://patchwork.linuxtv.org/patch/19832
-
-Then those 2 versions passed silently:
-https://patchwork.linuxtv.org/patch/20055
-https://patchwork.linuxtv.org/patch/20225
-
-And...huh...we got another review, I didn't notice it until now:
-https://patchwork.linuxtv.org/patch/20439 Thanks Mark.
-
-Arun, care to address those review comments and send us an updated
-binding documentation patch ?
-
-Hence I think we have waited for a while. ;)
-
->> >         exynos5-fimc-is: Add driver core files
->> >         exynos5-fimc-is: Add common driver header files
->> >         exynos5-fimc-is: Add register definition and context header
->> >         exynos5-fimc-is: Add isp subdev
->> >         exynos5-fimc-is: Add scaler subdev
->> >         exynos5-fimc-is: Add sensor interface
->> >         exynos5-fimc-is: Add the hardware pipeline control
->> >         exynos5-fimc-is: Add the hardware interface module
->> >         exynos5-is: Add Kconfig and Makefile
->> >         V4L: Add DT binding doc for s5k4e5 image sensor
->
-> Same applies to this patch:
-> 	https://patchwork.linuxtv.org/patch/20448/
-
-This one also have been on the mailing list for quite some time and it
-uses already standard bindings, so I assumed it is OK to merge it.
-
-https://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=s5k4e5
-
-But if there must be an Ack then we shall wait, it will probably won't
-make a big difference now, if this patch is postponed by 3 more months.
-
---
-Thanks,
-Sylwester
+> On Wed, 2013-10-02 at 16:28 +0200, Jan Kara wrote:
+> > CC: Andy Walls <awalls@md.metrocast.net>
+> > CC: linux-media@vger.kernel.org
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  drivers/media/pci/ivtv/ivtv-udma.c |  6 ++----
+> >  drivers/media/pci/ivtv/ivtv-yuv.c  | 12 ++++++------
+> >  2 files changed, 8 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
+> > index 7338cb2d0a38..6012e5049076 100644
+> > --- a/drivers/media/pci/ivtv/ivtv-udma.c
+> > +++ b/drivers/media/pci/ivtv/ivtv-udma.c
+> > @@ -124,10 +124,8 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
+> >  	}
+> >  
+> >  	/* Get user pages for DMA Xfer */
+> > -	down_read(&current->mm->mmap_sem);
+> > -	err = get_user_pages(current, current->mm,
+> > -			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
+> > -	up_read(&current->mm->mmap_sem);
+> > +	err = get_user_pages_unlocked(current, current->mm, user_dma.uaddr,
+> > +				      user_dma.page_count, 0, 1, dma->map);
+> >  
+> >  	if (user_dma.page_count != err) {
+> >  		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
+> > diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
+> > index 2ad65eb29832..9365995917d8 100644
+> > --- a/drivers/media/pci/ivtv/ivtv-yuv.c
+> > +++ b/drivers/media/pci/ivtv/ivtv-yuv.c
+> > @@ -75,15 +75,15 @@ static int ivtv_yuv_prep_user_dma(struct ivtv *itv, struct ivtv_user_dma *dma,
+> >  	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
+> >  
+> >  	/* Get user pages for DMA Xfer */
+> > -	down_read(&current->mm->mmap_sem);
+> > -	y_pages = get_user_pages(current, current->mm, y_dma.uaddr, y_dma.page_count, 0, 1, &dma->map[0], NULL);
+> > +	y_pages = get_user_pages_unlocked(current, current->mm, y_dma.uaddr,
+> > +					  y_dma.page_count, 0, 1, &dma->map[0]);
+> >  	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
+> >  	if (y_pages == y_dma.page_count) {
+> > -		uv_pages = get_user_pages(current, current->mm,
+> > -					  uv_dma.uaddr, uv_dma.page_count, 0, 1,
+> > -					  &dma->map[y_pages], NULL);
+> > +		uv_pages = get_user_pages_unlocked(current, current->mm,
+> > +						   uv_dma.uaddr,
+> > +						   uv_dma.page_count, 0, 1,
+> > +						   &dma->map[y_pages]);
+> >  	}
+> > -	up_read(&current->mm->mmap_sem);
+> >  
+> >  	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
+> >  		int rc = -EFAULT;
+> 
+> 
+-- 
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
