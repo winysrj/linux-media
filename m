@@ -1,109 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2160 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086Ab3JaDhW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Oct 2013 23:37:22 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9V3bIhI085126
-	for <linux-media@vger.kernel.org>; Thu, 31 Oct 2013 04:37:20 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id C91972A04FE
-	for <linux-media@vger.kernel.org>; Thu, 31 Oct 2013 04:37:16 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131031033716.C91972A04FE@tschai.lan>
-Date: Thu, 31 Oct 2013 04:37:16 +0100 (CET)
+Received: from mail.ispras.ru ([83.149.199.45]:56093 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754368Ab3JGVEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Oct 2013 17:04:33 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH v2] [media] dvb_demux: fix deadlock in dmx_section_feed_release_filter()
+Date: Tue,  8 Oct 2013 01:04:21 +0400
+Message-Id: <1381179861-16408-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <20130926140808.729bad49@samsung.com>
+References: <20130926140808.729bad49@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+dmx_section_feed_release_filter() locks dvbdmx->mutex and
+if the feed is still filtering, it calls feed->stop_filtering(feed).
+stop_filtering() is implemented by dmx_section_feed_stop_filtering()
+that first of all try to lock the same mutex: dvbdmx->mutex.
+That leads to a deadlock.
 
-Results of the daily build of media_tree:
+It does not happen often in practice because all callers of
+release_filter() stop filtering by themselves.
+So the problem can happen in case of race condition only.
 
-date:		Thu Oct 31 04:00:30 CET 2013
-git branch:	for-v3.13c
-git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-4.slh.2-amd64
+The patch releases dvbdmx->mutex before call to feed->stop_filtering(feed)
+and reacquires the mutex after that.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Detailed results are available here:
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/dvb-core/dvb_demux.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 3485655..6de3bd0 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -1027,8 +1027,13 @@ static int dmx_section_feed_release_filter(struct dmx_section_feed *feed,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (feed->is_filtering)
++	if (feed->is_filtering) {
++		/* release dvbdmx->mutex as far as 
++		   it is acquired by stop_filtering() itself */
++		mutex_unlock(&dvbdmx->mutex);
+ 		feed->stop_filtering(feed);
++		mutex_lock(&dvbdmx->mutex);
++	}
+ 
+ 	spin_lock_irq(&dvbdmx->lock);
+ 	f = dvbdmxfeed->filter;
+-- 
+1.8.1.2
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
