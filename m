@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:47808 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab3J3DJr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 23:09:47 -0400
-Received: by mail-bk0-f49.google.com with SMTP id w14so290157bkz.8
-        for <linux-media@vger.kernel.org>; Tue, 29 Oct 2013 20:09:44 -0700 (PDT)
+Received: from ni.piap.pl ([195.187.100.4]:51707 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754959Ab3JHIYR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Oct 2013 04:24:17 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Ralf Baechle <ralf@linux-mips.org>
+Cc: linux-mips@linux-mips.org, linux-media@vger.kernel.org
+References: <m3eh82a1yo.fsf@t19.piap.pl> <m361t9a31i.fsf@t19.piap.pl>
+	<20131007142429.GG3098@linux-mips.org>
+Date: Tue, 08 Oct 2013 10:24:13 +0200
+In-Reply-To: <20131007142429.GG3098@linux-mips.org> (Ralf Baechle's message of
+	"Mon, 7 Oct 2013 16:24:29 +0200")
 MIME-Version: 1.0
-Date: Wed, 30 Oct 2013 11:09:44 +0800
-Message-ID: <CAPgLHd8N8H+Otga8Ay_DyTdK258v2K09xkn-78RBpjsDh31ieg@mail.gmail.com>
-Subject: [PATCH -next] [media] v4l: ti-vpe: use module_platform_driver to
- simplify the code
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: m.chehab@samsung.com, grant.likely@linaro.org,
-	rob.herring@calxeda.com, archit@ti.com, hans.verkuil@cisco.com,
-	k.debski@samsung.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Message-ID: <m3li24891u.fsf@t19.piap.pl>
+Content-Type: text/plain
+Subject: Re: Suspected cache coherency problem on V4L2 and AR7100 CPU
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Ralf Baechle <ralf@linux-mips.org> writes:
 
-module_platform_driver() makes the code simpler by eliminating
-boilerplate code.
+> That's fine.  You just need to ensure that there are no virtual
+> aliases.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/ti-vpe/vpe.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+Does this include virtual aliasing between a 4 KB TLB-mapped page and
+a kseg0 address? I don't really have two TLBs pointing to the same page.
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 4e58069..89658a3 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2081,18 +2081,7 @@ static struct platform_driver vpe_pdrv = {
- 	},
- };
- 
--static void __exit vpe_exit(void)
--{
--	platform_driver_unregister(&vpe_pdrv);
--}
--
--static int __init vpe_init(void)
--{
--	return platform_driver_register(&vpe_pdrv);
--}
--
--module_init(vpe_init);
--module_exit(vpe_exit);
-+module_platform_driver(vpe_pdrv);
- 
- MODULE_DESCRIPTION("TI VPE driver");
- MODULE_AUTHOR("Dale Farnsworth, <dale@farnsworth.org>");
+> One way to do so is to increase the page size to 16kB.
 
+Right, this way we will have a unique mapping from the virtual address
+to the data cache, as the cache size (per way) is 8 KB here. Is it the
+correct fix in this situation?
+
+> Note that there is a variant of the 24K which has a VIPT cache but uses
+> hardware to resolve cache aliases.  That is, from a kernel cache management
+> perspective it behaves like a PIPT cache.
+
+It seems it's not the case here. What I have here is:
+CPU revision is: 00019374 (MIPS 24Kc)
+SoC: Atheros AR7161 rev 2
+Primary instruction cache 64kB, VIPT, 4-way, linesize 32 bytes.
+Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+
+> However as I understand what you're mapping to userspace is actually
+> device memory, right?
+
+Not exactly - I'm using PCI DMA to userspace SG buffers in RAM.
+
+The userspace first allocates the buffers in normal RAM (with vmalloc()
+or something, there is an mmap ioctl() for this), the address returned
+is 0x7xxxxxxx. Then the buffers (which consist of several pages each)
+are presented to the hw driver which obtains separate (kernel) mapping
+for each page (kseg0) and does dma_map_sg() and so on. The driver also
+simply writes to the buffers. This isn't a problem, though - only the
+incoherence between TLB and kseg0 is.
+
+The problem is the userspace doesn't see the kernel writes - The
+0x7xxxxxxx TLB-mapped pages are read-cached and not invalidated while
+the kernel writes to the same pages using kseg0 addresses.
+
+Thanks for looking at this.
+-- 
+Krzysztof Halasa
+
+Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
