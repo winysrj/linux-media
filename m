@@ -1,76 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:61609 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932171Ab3J1Xyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Oct 2013 19:54:49 -0400
-Date: Mon, 28 Oct 2013 23:54:23 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"swarren@wwwdotorg.org" <swarren@wwwdotorg.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	"galak@codeaurora.org" <galak@codeaurora.org>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	"sachin.kamat@linaro.org" <sachin.kamat@linaro.org>,
-	"shaik.ameer@samsung.com" <shaik.ameer@samsung.com>,
-	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>,
-	"arunkk.samsung@gmail.com" <arunkk.samsung@gmail.com>
-Subject: Re: [PATCH v10 11/12] V4L: Add DT binding doc for s5k4e5 image sensor
-Message-ID: <20131028235423.GD4763@kartoffel>
-References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
- <1382074659-31130-12-git-send-email-arun.kk@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1382074659-31130-12-git-send-email-arun.kk@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:41114 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753652Ab3JHHWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 03:22:41 -0400
+Message-id: <5253B2BE.5090209@samsung.com>
+Date: Tue, 08 Oct 2013 09:22:38 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] vb2: Allow STREAMOFF for io emulator
+References: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 18, 2013 at 06:37:38AM +0100, Arun Kumar K wrote:
-> S5K4E5 is a Samsung raw image sensor controlled via I2C.
-> This patch adds the DT binding documentation for the same.
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Hello,
+
+On 2013-10-04 15:49, Ricardo Ribalda Delgado wrote:
+> A video device opened and streaming in io emulator mode can only stop
+> streamming if its file descriptor is closed.
+>
+> There are some parameters that can only be changed if the device is not
+> streaming. Also, the power consumption of a device streaming could be
+> different than one not streaming.
+>
+> With this patch a video device opened in io emulator can be stopped on
+> demand.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+
+Read/write-based io mode must not be mixed with ioctrl-based IO, so I 
+really cannot accept this patch. Check V4L2 documentation for more details.
+
 > ---
->  .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 ++++++++++++++++++++
->  1 file changed, 45 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-> new file mode 100644
-> index 0000000..0fca087
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-> @@ -0,0 +1,45 @@
-> +* Samsung S5K4E5 Raw Image Sensor
+>   drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++-----
+>   1 file changed, 6 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 9fc4bab..097fba8 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1686,6 +1686,7 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_streamon);
+>   
+> +static int __vb2_cleanup_fileio(struct vb2_queue *q);
+>   
+>   /**
+>    * vb2_streamoff - stop streaming
+> @@ -1704,11 +1705,6 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
+>    */
+>   int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+>   {
+> -	if (q->fileio) {
+> -		dprintk(1, "streamoff: file io in progress\n");
+> -		return -EBUSY;
+> -	}
+> -
+>   	if (type != q->type) {
+>   		dprintk(1, "streamoff: invalid stream type\n");
+>   		return -EINVAL;
+> @@ -1719,6 +1715,11 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+>   		return -EINVAL;
+>   	}
+>   
+> +	if (q->fileio) {
+> +		__vb2_cleanup_fileio(q);
+> +		return 0;
+> +	}
 > +
-> +S5K4E5 is a raw image sensor with maximum resolution of 2560x1920
-> +pixels. Data transfer is carried out via MIPI CSI-2 port and controls
-> +via I2C bus.
-> +
-> +Required Properties:
-> +- compatible	: must be "samsung,s5k4e5"
+>   	/*
+>   	 * Cancel will pause streaming and remove all buffers from the driver
+>   	 * and videobuf, effectively returning control over them to userspace.
 
-s/must be/should contain/
+Best regards
+-- 
+Marek Szyprowski
+Samsung R&D Institute Poland
 
-> +- reg		: I2C device address
-> +- reset-gpios	: specifier of a GPIO connected to the RESET pin
-> +- clocks	: should contain the sensor's EXTCLK clock specifier, from
-> +		  the common clock bindings
-
-I would reword this to reference clock-names so as to make the ordering
-relationship explicit.
-
-With that, as everything else looks sane:
-
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-
-Thanks
-Mark.
