@@ -1,147 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:61043 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757660Ab3J1Xc1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Oct 2013 19:32:27 -0400
-Date: Mon, 28 Oct 2013 23:32:06 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"swarren@wwwdotorg.org" <swarren@wwwdotorg.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	"galak@codeaurora.org" <galak@codeaurora.org>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	"sachin.kamat@linaro.org" <sachin.kamat@linaro.org>,
-	"shaik.ameer@samsung.com" <shaik.ameer@samsung.com>,
-	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>,
-	"arunkk.samsung@gmail.com" <arunkk.samsung@gmail.com>
-Subject: Re: [PATCH v10 01/12] exynos5-fimc-is: Add Exynos5 FIMC-IS device
- tree bindings documentation
-Message-ID: <20131028233205.GC4763@kartoffel>
-References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
- <1382074659-31130-2-git-send-email-arun.kk@samsung.com>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:42596 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754794Ab3JHH6n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 03:58:43 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1382074659-31130-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <5253B2BE.5090209@samsung.com>
+References: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com> <5253B2BE.5090209@samsung.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 8 Oct 2013 09:58:23 +0200
+Message-ID: <CAPybu_0-b2BfuTVd09B4dreFHCsYSg=SjjrDCHXKrqNGzFSX2w@mail.gmail.com>
+Subject: Re: [PATCH] vb2: Allow STREAMOFF for io emulator
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Marek
 
-Apologies for the late reply. I have a few comments, but nothing major.
+Thanks for your comments. I was just trying to find a way to stop
+streaming while in read/write mode without having to close the
+descriptor. I thought reusing streamoff was more clever than creating
+a new ioctl.
 
-On Fri, Oct 18, 2013 at 06:37:28AM +0100, Arun Kumar K wrote:
-> The patch adds the DT binding documentation for Samsung
-> Exynos5 SoC series imaging subsystem (FIMC-IS).
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  .../devicetree/bindings/media/exynos5-fimc-is.txt  |   84 ++++++++++++++++++++
->  1 file changed, 84 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-> new file mode 100644
-> index 0000000..0525417
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-> @@ -0,0 +1,84 @@
-> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
-> +------------------------------------------------------
-> +
-> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
-> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
-> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
-> +handle sensor controls and camera post-processing operations. The
-> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
-> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
-> +dedicated scalers (SCC and SCP).
-> +
-> +fimc-is node
-> +------------
-> +
-> +Required properties:
-> +
-> +- compatible        : must be "samsung,exynos5250-fimc-is"
+Thanks!
 
-s/must be/should contain/
+On Tue, Oct 8, 2013 at 9:22 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Hello,
+>
+>
+> On 2013-10-04 15:49, Ricardo Ribalda Delgado wrote:
+>>
+>> A video device opened and streaming in io emulator mode can only stop
+>> streamming if its file descriptor is closed.
+>>
+>> There are some parameters that can only be changed if the device is not
+>> streaming. Also, the power consumption of a device streaming could be
+>> different than one not streaming.
+>>
+>> With this patch a video device opened in io emulator can be stopped on
+>> demand.
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+>
+> Read/write-based io mode must not be mixed with ioctrl-based IO, so I really
+> cannot accept this patch. Check V4L2 documentation for more details.
+>
+>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++-----
+>>   1 file changed, 6 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>> b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 9fc4bab..097fba8 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -1686,6 +1686,7 @@ int vb2_streamon(struct vb2_queue *q, enum
+>> v4l2_buf_type type)
+>>   }
+>>   EXPORT_SYMBOL_GPL(vb2_streamon);
+>>   +static int __vb2_cleanup_fileio(struct vb2_queue *q);
+>>     /**
+>>    * vb2_streamoff - stop streaming
+>> @@ -1704,11 +1705,6 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
+>>    */
+>>   int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+>>   {
+>> -       if (q->fileio) {
+>> -               dprintk(1, "streamoff: file io in progress\n");
+>> -               return -EBUSY;
+>> -       }
+>> -
+>>         if (type != q->type) {
+>>                 dprintk(1, "streamoff: invalid stream type\n");
+>>                 return -EINVAL;
+>> @@ -1719,6 +1715,11 @@ int vb2_streamoff(struct vb2_queue *q, enum
+>> v4l2_buf_type type)
+>>                 return -EINVAL;
+>>         }
+>>   +     if (q->fileio) {
+>> +               __vb2_cleanup_fileio(q);
+>> +               return 0;
+>> +       }
+>> +
+>>         /*
+>>          * Cancel will pause streaming and remove all buffers from the
+>> driver
+>>          * and videobuf, effectively returning control over them to
+>> userspace.
+>
+>
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung R&D Institute Poland
+>
 
-> +- reg               : physical base address and size of the memory mapped
-> +                      registers
-> +- interrupt-parent  : parent interrupt controller
 
-I don't think this is actually required in all cases. It's a standard property
-that people can add if it happens to be required in a particular instance.
 
-> +- interrupts        : fimc-is interrupt to the parent interrupt controller
-
-Is this the only interrupt the device generates? If so:
-
-- interrupts: interrupt-specifier for the fimc-is interrupt.
-
-> +- clocks            : list of clock specifiers, corresponding to entries in
-> +                      clock-names property
-> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
-> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
-> +                      matching entries in the clocks property
-> +- samsung,pmu       : phandle to the Power Management Unit (PMU) node
-> +
-> +i2c-isp (ISP I2C bus controller) nodes
-> +--------------------------------------
-> +The i2c-isp node is defined as the child node of fimc-is.
-
-There are multiple of these, so how about the following instead:
-
-The i2c-isp nodes should be children of the fimc-is node.
-
-It might be worth pointing out that ranges, #address-cells, and #size-cells
-should be present as appropriate.
-
-> +
-> +Required properties:
-> +
-> +- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
-> +		  Exynos4412 and Exynos5250 SoCs
-
-Similarly, s/should be/must contain/
-
-> +- reg		: physical base address and length of the registers set
-> +- clocks	: must contain gate clock specifier for this controller
-> +- clock-names	: must contain "i2c_isp" entry
-
-I'd prefer clocks to be described as for the simc-is, with clock names being
-something like:
-
-- clock-names: should contain "i2c_isp" for the gate clock.
-
-> +
-> +For the i2c-isp node, it is required to specify a pinctrl state named "default",
-> +according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
-
-I'd prefer a mention of pinctrl-0 and pinctrl-names, as that's what most other
-bindings do.
-
-Also, as this is described as required it should be in the example.
-
-> +
-> +Device tree nodes of the image sensors controlled directly by the FIMC-IS
-> +firmware must be child nodes of their corresponding ISP I2C bus controller node.
-> +The data link of these image sensors must be specified using the common video
-> +interfaces bindings, defined in video-interfaces.txt.
-
-These don't seem to be in the example and probably should be.
-
-Otherwise, this looks fine. With those points fixed up:
-
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-
-Thanks,
-Mark.
+-- 
+Ricardo Ribalda
