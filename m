@@ -1,65 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34744 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755564Ab3JJSbp (ORCPT
+Received: from smtprelay0018.hostedemail.com ([216.40.44.18]:58062 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755341Ab3JHX3M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 14:31:45 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c13so1352253eek.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 11:31:43 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
-	stable@kernel.org
-Subject: [PATCH] em28xx: fix error path in em28xx_start_analog_streaming()
-Date: Thu, 10 Oct 2013 20:31:53 +0200
-Message-Id: <1381429913-6308-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 8 Oct 2013 19:29:12 -0400
+Message-ID: <1381274948.23937.17.camel@joe-AO722>
+Subject: [Trivial PATCH] media: Remove unnecessary semicolons
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Date: Tue, 08 Oct 2013 16:29:08 -0700
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Increase the streaming_users count only if streaming start succeeds.
+These aren't necessary after switch and while statements.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Cc: stable@kernel.org
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |    7 ++++---
- 1 Datei geändert, 4 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+ drivers/media/common/b2c2/flexcop-sram.c         | 6 +++---
+ drivers/media/dvb-frontends/cx24110.c            | 2 +-
+ drivers/media/dvb-frontends/cx24123.c            | 2 +-
+ drivers/media/dvb-frontends/tda8083.c            | 4 ++--
+ drivers/media/i2c/soc_camera/ov9640.c            | 2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.c     | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c  | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c  | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c  | 2 +-
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c  | 2 +-
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c   | 2 +-
+ drivers/media/radio/si470x/radio-si470x-common.c | 2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c             | 2 +-
+ 13 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 9d10334..fc5d60e 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -638,7 +638,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (rc)
- 		return rc;
+diff --git a/drivers/media/common/b2c2/flexcop-sram.c b/drivers/media/common/b2c2/flexcop-sram.c
+index f2199e4..185c285 100644
+--- a/drivers/media/common/b2c2/flexcop-sram.c
++++ b/drivers/media/common/b2c2/flexcop-sram.c
+@@ -85,7 +85,7 @@ static void flexcop_sram_write(struct adapter *adapter, u32 bank, u32 addr, u8 *
+ 		while (((read_reg_dw(adapter, 0x700) & 0x80000000) != 0) && (retries > 0)) {
+ 			mdelay(1);
+ 			retries--;
+-		};
++		}
  
--	if (dev->streaming_users++ == 0) {
-+	if (dev->streaming_users == 0) {
- 		/* First active streaming user, so allocate all the URBs */
+ 		if (retries == 0)
+ 			printk("%s: SRAM timeout\n", __func__);
+@@ -110,7 +110,7 @@ static void flex_sram_read(struct adapter *adapter, u32 bank, u32 addr, u8 *buf,
+ 		while (((read_reg_dw(adapter, 0x700) & 0x80000000) != 0) && (retries > 0)) {
+ 			mdelay(1);
+ 			retries--;
+-		};
++		}
  
- 		/* Allocate the USB bandwidth */
-@@ -657,7 +657,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 					  dev->packet_multiplier,
- 					  em28xx_urb_data_copy);
- 		if (rc < 0)
--			goto fail;
-+			return rc;
+ 		if (retries == 0)
+ 			printk("%s: SRAM timeout\n", __func__);
+@@ -122,7 +122,7 @@ static void flex_sram_read(struct adapter *adapter, u32 bank, u32 addr, u8 *buf,
+ 		while (((read_reg_dw(adapter, 0x700) & 0x80000000) != 0) && (retries > 0)) {
+ 			mdelay(1);
+ 			retries--;
+-		};
++		}
  
- 		/*
- 		 * djh: it's not clear whether this code is still needed.  I'm
-@@ -675,7 +675,8 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
- 	}
- 
--fail:
-+	dev->streaming_users++;
-+
- 	return rc;
+ 		if (retries == 0)
+ 			printk("%s: SRAM timeout\n", __func__);
+diff --git a/drivers/media/dvb-frontends/cx24110.c b/drivers/media/dvb-frontends/cx24110.c
+index 0cd6927..95b981c 100644
+--- a/drivers/media/dvb-frontends/cx24110.c
++++ b/drivers/media/dvb-frontends/cx24110.c
+@@ -378,7 +378,7 @@ static int cx24110_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t voltag
+ 		return cx24110_writereg(state,0x76,(cx24110_readreg(state,0x76)&0x3b)|0x40);
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
  }
  
--- 
-1.7.10.4
+ static int cx24110_diseqc_send_burst(struct dvb_frontend* fe, fe_sec_mini_cmd_t burst)
+diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
+index a771da3..72fb583 100644
+--- a/drivers/media/dvb-frontends/cx24123.c
++++ b/drivers/media/dvb-frontends/cx24123.c
+@@ -739,7 +739,7 @@ static int cx24123_set_voltage(struct dvb_frontend *fe,
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb-frontends/tda8083.c b/drivers/media/dvb-frontends/tda8083.c
+index 9d08350..69e62f4 100644
+--- a/drivers/media/dvb-frontends/tda8083.c
++++ b/drivers/media/dvb-frontends/tda8083.c
+@@ -189,7 +189,7 @@ static int tda8083_set_tone (struct tda8083_state* state, fe_sec_tone_mode_t ton
+ 		return tda8083_writereg (state, 0x29, 0x80);
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
+ }
+ 
+ static int tda8083_set_voltage (struct tda8083_state* state, fe_sec_voltage_t voltage)
+@@ -201,7 +201,7 @@ static int tda8083_set_voltage (struct tda8083_state* state, fe_sec_voltage_t vo
+ 		return tda8083_writereg (state, 0x20, 0x11);
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
+ }
+ 
+ static int tda8083_send_diseqc_burst (struct tda8083_state* state, fe_sec_mini_cmd_t burst)
+diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
+index e968c3f..bc74224 100644
+--- a/drivers/media/i2c/soc_camera/ov9640.c
++++ b/drivers/media/i2c/soc_camera/ov9640.c
+@@ -371,7 +371,7 @@ static void ov9640_alter_regs(enum v4l2_mbus_pixelcode code,
+ 		alt->com13	= OV9640_COM13_RGB_AVG;
+ 		alt->com15	= OV9640_COM15_RGB_565;
+ 		break;
+-	};
++	}
+ }
+ 
+ /* Setup registers according to resolution and color encoding */
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index d2e6cba..f3c6136 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -511,7 +511,7 @@ static int __ctrl_set_metering(struct fimc_is *is, unsigned int value)
+ 		break;
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
+ 
+ 	__is_set_isp_metering(is, IS_METERING_CONFIG_CMD, val);
+ 	return 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+index ad4f1df..9a6efd6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+@@ -111,7 +111,7 @@ static int s5p_mfc_open_inst_cmd_v5(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	default:
+ 		h2r_args.arg[0] = S5P_FIMV_CODEC_NONE;
+-	};
++	}
+ 	h2r_args.arg[1] = 0; /* no crc & no pixelcache */
+ 	h2r_args.arg[2] = ctx->ctx.ofs;
+ 	h2r_args.arg[3] = ctx->ctx.size;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index db796c8..ec1a594 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -113,7 +113,7 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	default:
+ 		codec_type = S5P_FIMV_CODEC_NONE_V6;
+-	};
++	}
+ 	mfc_write(dev, codec_type, S5P_FIMV_CODEC_TYPE_V6);
+ 	mfc_write(dev, ctx->ctx.dma, S5P_FIMV_CONTEXT_MEM_ADDR_V6);
+ 	mfc_write(dev, ctx->ctx.size, S5P_FIMV_CONTEXT_MEM_SIZE_V6);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index 368582b..58ec7bb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -1582,7 +1582,7 @@ static int s5p_mfc_get_int_reason_v5(struct s5p_mfc_dev *dev)
+ 		break;
+ 	default:
+ 		reason = S5P_MFC_R2H_CMD_EMPTY;
+-	};
++	}
+ 	return reason;
+ }
+ 
+diff --git a/drivers/media/platform/s5p-tv/mixer_grp_layer.c b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
+index b93a21f..74344c7 100644
+--- a/drivers/media/platform/s5p-tv/mixer_grp_layer.c
++++ b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
+@@ -226,7 +226,7 @@ static void mxr_graph_fix_geometry(struct mxr_layer *layer,
+ 			src->width + src->x_offset, 32767);
+ 		src->full_height = clamp_val(src->full_height,
+ 			src->height + src->y_offset, 2047);
+-	};
++	}
+ }
+ 
+ /* PUBLIC API */
+diff --git a/drivers/media/platform/s5p-tv/mixer_vp_layer.c b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
+index 3d13a63..c9388c4 100644
+--- a/drivers/media/platform/s5p-tv/mixer_vp_layer.c
++++ b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
+@@ -197,7 +197,7 @@ static void mxr_vp_fix_geometry(struct mxr_layer *layer,
+ 			ALIGN(src->width + src->x_offset, 8), 8192U);
+ 		src->full_height = clamp(src->full_height,
+ 			src->height + src->y_offset, 8192U);
+-	};
++	}
+ }
+ 
+ /* PUBLIC API */
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 5c57e5b..4a7a1cc 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -254,7 +254,7 @@ static unsigned int si470x_get_step(struct si470x_device *radio)
+ 	/* 2:  50 kHz */
+ 	default:
+ 		return 50 * 16;
+-	};
++	}
+ }
+ 
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c3f0803..df3a67b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -583,7 +583,7 @@ const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
+ 	default:
+ 		*len = 0;
+ 		return NULL;
+-	};
++	}
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
+ 
+
 
