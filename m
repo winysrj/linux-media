@@ -1,45 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40980 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754380Ab3JMLQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 07:16:31 -0400
-Date: Sun, 13 Oct 2013 12:16:13 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Gianluca Gennari <gennarone@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media/i2c: ths8200: fix build failure with gcc 4.5.4
-Message-ID: <20131013111613.GC25034@n2100.arm.linux.org.uk>
-References: <20131013101333.GA25034@n2100.arm.linux.org.uk> <525A7797.6000605@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <525A7797.6000605@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57431 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015Ab3JHKHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 06:07:09 -0400
+Message-ID: <1381226795.4013.16.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH] [media] v4l: vb2-dma-contig: add support for file
+ access mode flags for DMABUF exporting
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	kernel@pengutronix.de
+Date: Tue, 08 Oct 2013 12:06:35 +0200
+In-Reply-To: <52303E57.8070102@samsung.com>
+References: <1369123895-10574-1-git-send-email-p.zabel@pengutronix.de>
+	 <52303E57.8070102@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 13, 2013 at 12:36:07PM +0200, Gianluca Gennari wrote:
-> Il 13/10/2013 12:13, Russell King - ARM Linux ha scritto:
-> > v3.12-rc fails to build with this error:
-> > 
-> > drivers/media/i2c/ths8200.c:49:2: error: unknown field 'bt' specified in initializer
-> > drivers/media/i2c/ths8200.c:50:3: error: field name not in record or union initializer
-> > drivers/media/i2c/ths8200.c:50:3: error: (near initialization for 'ths8200_timings_cap.reserved')
-> > drivers/media/i2c/ths8200.c:51:3: error: field name not in record or union initializer
-> > drivers/media/i2c/ths8200.c:51:3: error: (near initialization for 'ths8200_timings_cap.reserved')
-> > ...
-> > 
-> > with gcc 4.5.4.  This error was not detected in builds prior to v3.12-rc.
-> > This patch fixes this.
+Am Mittwoch, den 11.09.2013, 11:56 +0200 schrieb Sylwester Nawrocki:
+> Tomasz, Marek,
 > 
-> Hi Russel,
-> this error is already fixed by this patch:
+> Can you review/ack this patch ? I can't see nothing wrong in it and
+> it has been sat on the ML for quite long. I would add it to my pull
+> request once it is reviewed.
 > 
-> https://patchwork.linuxtv.org/patch/20002/
-> 
-> that has been already accepted and is queued for kernel 3.12.
+> Thanks,
+> Sylwester
 
-It would be a good idea to have the comment updated - given that gcc 4.5.4
-also has a problem, it's not only a problem for gcc < 4.4.6 as that patch
-claims.
+Ping?
+
+This patch is needed to map videobuf2 exported dmabuf fds writeable from
+userspace, for example for timestamp software rendering into frames
+passing from a v4l2 capture device to a v4l2 output device.
+
+regards
+Philipp
+
+> On 05/21/2013 10:11 AM, Philipp Zabel wrote:
+> > Currently it is not possible for userspace to map a DMABUF exported buffer
+> > with write permissions. This patch allows to also pass O_RDONLY/O_RDWR when
+> > exporting the buffer, so that userspace may map it with write permissions.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  Documentation/DocBook/media/v4l/vidioc-expbuf.xml | 8 +++++---
+> >  drivers/media/v4l2-core/videobuf2-core.c          | 8 ++++----
+> >  drivers/media/v4l2-core/videobuf2-dma-contig.c    | 4 ++--
+> >  include/media/videobuf2-core.h                    | 2 +-
+> >  4 files changed, 12 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> > index e287c8f..4165e7b 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> > @@ -73,7 +73,8 @@ range from zero to the maximal number of valid planes for the currently active
+> >  format. For the single-planar API, applications must set <structfield> plane
+> >  </structfield> to zero.  Additional flags may be posted in the <structfield>
+> >  flags </structfield> field.  Refer to a manual for open() for details.
+> > -Currently only O_CLOEXEC is supported.  All other fields must be set to zero.
+> > +Currently only O_CLOEXEC, O_RDONLY, O_WRONLY, and O_RDWR are supported.  All
+> > +other fields must be set to zero.
+> >  In the case of multi-planar API, every plane is exported separately using
+> >  multiple <constant> VIDIOC_EXPBUF </constant> calls. </para>
+> >  
+> > @@ -170,8 +171,9 @@ multi-planar API. Otherwise this value must be set to zero. </entry>
+> >  	    <entry>__u32</entry>
+> >  	    <entry><structfield>flags</structfield></entry>
+> >  	    <entry>Flags for the newly created file, currently only <constant>
+> > -O_CLOEXEC </constant> is supported, refer to the manual of open() for more
+> > -details.</entry>
+> > +O_CLOEXEC </constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY
+> > +</constant>, and <constant>O_RDWR</constant> are supported, refer to the manual
+> > +of open() for more details.</entry>
+> >  	  </row>
+> >  	  <row>
+> >  	    <entry>__s32</entry>
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index 7d833ee..5f7ae44 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -1785,8 +1785,8 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > -	if (eb->flags & ~O_CLOEXEC) {
+> > -		dprintk(1, "Queue does support only O_CLOEXEC flag\n");
+> > +	if (eb->flags & ~(O_CLOEXEC | O_ACCMODE)) {
+> > +		dprintk(1, "Queue does support only O_CLOEXEC and access mode flags\n");
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > @@ -1809,14 +1809,14 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+> >  
+> >  	vb_plane = &vb->planes[eb->plane];
+> >  
+> > -	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
+> > +	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
+> >  	if (IS_ERR_OR_NULL(dbuf)) {
+> >  		dprintk(1, "Failed to export buffer %d, plane %d\n",
+> >  			eb->index, eb->plane);
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > -	ret = dma_buf_fd(dbuf, eb->flags);
+> > +	ret = dma_buf_fd(dbuf, eb->flags & ~O_ACCMODE);
+> >  	if (ret < 0) {
+> >  		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
+> >  			eb->index, eb->plane, ret);
+> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > index fd56f25..e443df5 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> > @@ -393,7 +393,7 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+> >  	return sgt;
+> >  }
+> >  
+> > -static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
+> > +static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+> >  {
+> >  	struct vb2_dc_buf *buf = buf_priv;
+> >  	struct dma_buf *dbuf;
+> > @@ -404,7 +404,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
+> >  	if (WARN_ON(!buf->sgt_base))
+> >  		return NULL;
+> >  
+> > -	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, 0);
+> > +	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags);
+> >  	if (IS_ERR(dbuf))
+> >  		return NULL;
+> >  
+> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> > index d88a098..41709a8 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -83,7 +83,7 @@ struct vb2_fileio_data;
+> >  struct vb2_mem_ops {
+> >  	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
+> >  	void		(*put)(void *buf_priv);
+> > -	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+> > +	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+> >  
+> >  	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+> >  					unsigned long size, int write);
+> > 
+> 
+> 
+
+
