@@ -1,161 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:52858 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab3JRFi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 01:38:26 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v10 07/12] exynos5-fimc-is: Add sensor interface
-Date: Fri, 18 Oct 2013 11:07:34 +0530
-Message-Id: <1382074659-31130-8-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
-References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:42688 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479Ab3JHUdh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 16:33:37 -0400
+Date: Wed, 9 Oct 2013 05:33:27 +0900
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFD] use-counting V4L2 clocks
+Message-ID: <20131009053327.091686f3@concha.lan>
+In-Reply-To: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
+References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors to be used with fimc-is are exclusively controlled
-by the fimc-is firmware. This minimal sensor driver provides
-the required info for the firmware to configure the sensors
-sitting on I2C bus.
+Em Thu, 12 Sep 2013 21:13:49 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
- 2 files changed, 110 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
+> Hi all
+> 
+> We've got a broken driver in 3.11 and in 3.12-rc and we don't have a clear 
+> way to properly fix it. The problem has been originally reported and 
+> discussed in [1], a patch-set to fix the problem has been proposed in [2], 
+> which actually lead to the topic of this mail - whether or not calls to 
+> v4l2_clk_enable() and v4l2_clk_disable(), or respectively to s_power(1) 
+> and s_power(0) subdevice core operations should be balanced. Currently 
+> they aren't in em28xx driver, and the V4L2 clock API throws warnings on 
+> attempts to disable already disabled clock. Patch [3] attempted to fix 
+> that. So, the question is - whether to enforce balanced power on / off 
+> calls, or to remove the warning.
+> 
+> Let's try to have a look at other examples in the kernel:
+> 
+> 1. runtime PM: pm_runtime_get*() / pm_runtime_put*() only work, if 
+> balanced, but no warning is issued, if the balance is broken, AFAICS.
+> 
+> 2. clock API: clk_enable() / clk_disable() in drivers/clk/clk.c have to be 
+> balanced and a warning is issued, if clk_disable() is called for an 
+> already disabled clock.
+> 
+> 3. regulator API: regulator_enable() / regulator_disable() have to be 
+> balanced. A warning is issued if regulator_disable() is called for a 
+> disabled regulator.
+> 
+> So, I think, our V4L2 clock enable / disable calls should be balanced, and 
+> to enforce that a warning is helpful. Other opinions?
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-new file mode 100644
-index 0000000..475f1c3
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
-@@ -0,0 +1,45 @@
-+/*
-+ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "fimc-is-sensor.h"
-+
-+static const struct sensor_drv_data s5k6a3_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
-+	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
-+};
-+
-+static const struct sensor_drv_data s5k4e5_drvdata = {
-+	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
-+	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
-+	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
-+};
-+
-+static const struct of_device_id fimc_is_sensor_of_ids[] = {
-+	{
-+		.compatible	= "samsung,s5k6a3",
-+		.data		= &s5k6a3_drvdata,
-+	},
-+	{
-+		.compatible	= "samsung,s5k4e5",
-+		.data		= &s5k4e5_drvdata,
-+	},
-+	{  }
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node)
-+{
-+	const struct of_device_id *of_id;
-+
-+	of_id = of_match_node(fimc_is_sensor_of_ids, node);
-+	return of_id ? of_id->data : NULL;
-+}
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-new file mode 100644
-index 0000000..0ba5733
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
-@@ -0,0 +1,65 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_SENSOR_H_
-+#define FIMC_IS_SENSOR_H_
-+
-+#include <linux/of.h>
-+#include <linux/types.h>
-+
-+#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K6A3_SENSOR_WIDTH		1392
-+#define S5K6A3_SENSOR_HEIGHT		1392
-+
-+#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
-+#define S5K4E5_SENSOR_WIDTH		2560
-+#define S5K4E5_SENSOR_HEIGHT		1920
-+
-+#define SENSOR_WIDTH_PADDING		16
-+#define SENSOR_HEIGHT_PADDING		10
-+
-+enum fimc_is_sensor_id {
-+	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
-+	FIMC_IS_SENSOR_ID_S5K6A3,
-+	FIMC_IS_SENSOR_ID_S5K4E5,
-+	FIMC_IS_SENSOR_ID_S5K3H7,
-+	FIMC_IS_SENSOR_ID_CUSTOM,
-+	FIMC_IS_SENSOR_ID_END
-+};
-+
-+struct sensor_drv_data {
-+	enum fimc_is_sensor_id id;
-+	/* sensor open timeout in ms */
-+	unsigned short open_timeout;
-+	char *setfile_name;
-+};
-+
-+/**
-+ * struct fimc_is_sensor - fimc-is sensor data structure
-+ * @drvdata: a pointer to the sensor's parameters data structure
-+ * @i2c_bus: ISP I2C bus index (0...1)
-+ * @width: sensor active width
-+ * @height: sensor active height
-+ * @pixel_width: sensor effective pixel width (width + padding)
-+ * @pixel_height: sensor effective pixel height (height + padding)
-+ */
-+struct fimc_is_sensor {
-+	const struct sensor_drv_data *drvdata;
-+	unsigned int i2c_bus;
-+	unsigned int width;
-+	unsigned int height;
-+	unsigned int pixel_width;
-+	unsigned int pixel_height;
-+};
-+
-+const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
-+			struct device_node *node);
-+
-+#endif /* FIMC_IS_SENSOR_H_ */
--- 
-1.7.9.5
+Guennadi,
 
+On non-embedded hardware, the clocks and power supply are typically
+controlled by GPIO pins that are part of the driver initialization
+sequence.
+
+The only control that most of those devices have is to either enable
+or disable the clock line.
+
+Actually, the way most such devices work is with a circuit like:
+                 _______
+                 |      )
+     CLK ----->  |       )
+                 | AND   )---->
+NOT(RST) ----->  |______)
+
+and the clock is hardwired (either it is a XTAL or a clock obtained from
+some bridge clock line). On Several of those devices, there's just one
+allowed CLK frequency. For example, on most analog TV devices, the clock
+is just a 27MHz XTAL.
+
+In other words:
+	1) the clock is directly wired inside the I2C chips;
+	2) it can be disabled by rising the RST pin;
+	3) there's just one possible clock frequency, due to the hardware
+limitation.
+
+Of course, there are some devices where the above doesn't apply or only
+applies partially.
+
+On the drivers where the 3 above conditions apply, the device initialization
+logic sends the needed GPIO sequence to reset the device and to let the clock
+flow into them, by simply writing some value to GPIO, enabling all the chips
+inside the board at the same time.
+
+When the driver puts some devices on power saving mode, it rises
+the RST pin of the sub-devices, with prevents the clock signal to flow
+internally into the chips, making them to (almost) not consume power.
+
+Not all sub-devices have it through. For example, on most devices,
+you can't disable the clock of the I2C eeprom devices: those eeproms
+are always on.
+
+Nobody ever cared to split the GPIO pins individually and to document 
+what GPIO pins are used to enable each device inside a hardware.
+
+Also, nobody cared to document what sub-devices are always powered
+and have the clock always wired and the ones that don't.
+
+Due to that, V4L2 drivers always assumed that the default is to have the
+RST pin disabled at device's initialization, so the device gets powered
+on during device's probe().
+
+On modern hardware (mostly USB ones), where power consumption can be an 
+issue, an API was added to allow disabling the power on the sub-devices.
+On most cases, calling that sub-device API actually disables the clock
+there, by rising the RST pin (although a few sub-devices have a separate
+GPIO to put the device on standby mode, plus the RST line).
+
+So, that API callback was actually .sleep() (or a similar naming - I don't 
+remember the exact callback name).
+
+Later on, someone renamed that callback to s_power(), adding a boolean there
+to allow to use the same API call to enable or disable the power/clock on
+those sub-devices.
+
+That change introduced one issue, through:
+
+- on embedded devices, s_power() assumes that the original state is
+  to have the sub-device disabled. So, s_power() is what you call "balanced",
+  e. g. the device is assumed to be on POWER OFF mode. So, the first call is
+  to enable it, and a second call is used to disable it, when the device is
+  not needed anymore, or need to be put in power saving mode.
+
+- on the existing PC drivers on that time where sleep() was used, the 
+  s_power() support were added on a different way. On those, the default is
+  that the RST and standby pins are by default not enabled. So, the initial
+  state of the device is to be in POWER ON mode. Still, s_power()
+  is balanced, but on the reverse way: the driver calls it to make the device
+  to power off (for example, during S1/S3 suspend), calling it again to power
+  it on at resume.
+
+- newer PC drivers after that patch in general uses the POWER ON default, but
+  I won't doubt that a few could be assuming the POWER OFF default.
+
+In other words, what you're actually proposing is to change the default used
+by most drivers since 1997 from a POWER ON/CLOCK ON default, into a POWER OFF/
+CLOCK OFF default.
+
+Well, for me, it sounds that someone will need to re-test all supported devices,
+to be sure that such change won't cause regressions.
+
+If you are willing to do such tests (and to get all those hardware to be sure
+that nothing will break) or to find someone to do it for you, I'm ok with
+such change.
+
+Otherwise, we should stick with the present behavior, as otherwise we will cause
+regressions.
+
+Regards,
+Mauro
