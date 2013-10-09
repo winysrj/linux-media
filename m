@@ -1,222 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45815 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009Ab3JBWQa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 18:16:30 -0400
-Date: Wed, 2 Oct 2013 19:16:04 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: mkrufky@linuxtv.org, crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] cx24117: Changed the way common data struct was
- being passed to the demod.
-Message-ID: <20131002191604.242a5e95@infradead.org>
-In-Reply-To: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
-References: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
-Mime-Version: 1.0
+Received: from emea01-am1-ndr.ptr.protection.outlook.com ([157.56.116.103]:9470
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753384Ab3JIIID convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 04:08:03 -0400
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Congratulations !!!
+To: Recipients <office4@Offer575.onmicrosoft.com>
+From: <office4@Offer575.onmicrosoft.com>
+Date: Wed, 9 Oct 2013 13:37:21 +0530
+Reply-To: <colaclaims13@msn.com>
+Message-ID: <a640480d-2cf3-49cc-aaf2-e59c539ba54e@AMSPR04MB225.eurprd04.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  2 Oct 2013 23:09:11 +0100
-Luis Alves <ljalvs@gmail.com> escreveu:
+Ticket Number: 7PWYZ2008
+Ballot Number: BT:12052008/20
+Draw:#1471
 
-> Hi Mike,
-> 
-> It's done (also tested and apparently working good)!
-> 
-> I didn't know if two separated patches were needed (one for the cx24117 and the other for the cx23885) but I've splited it.
+Special Notification to you,You are receiving this email because you have just been picked for a total grand prize of One Million Dollars in the top 10 winners of the Coca-Cola Consumer`s Award for the year 2013: kindly send your:
 
-If the patch causes regression or breaks compilation, it should be folded.
+Name:
+Address:
+Country:
+Phone Number:
 
-I suspect that this is the case, as you're changing the interface here.
-
-> As you pointed out, this series of patches are to be used against your cx24117 branch.
-> 
-> Regards,
-> Luis
-> 
-> Signed-off-by: Luis Alves <ljalvs@gmail.com>
-> ---
->  drivers/media/dvb-frontends/cx24117.c |   72 +++++++++++++++++++++++----------
->  drivers/media/dvb-frontends/cx24117.h |    4 +-
->  2 files changed, 53 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-> index 3b63913..9087309 100644
-> --- a/drivers/media/dvb-frontends/cx24117.c
-> +++ b/drivers/media/dvb-frontends/cx24117.c
-> @@ -31,6 +31,7 @@
->  #include <linux/init.h>
->  #include <linux/firmware.h>
->  
-> +#include "tuner-i2c.h"
->  #include "dvb_frontend.h"
->  #include "cx24117.h"
->  
-> @@ -145,6 +146,9 @@ enum cmds {
->  	CMD_TUNERSLEEP  = 0x36,
->  };
->  
-> +static LIST_HEAD(hybrid_tuner_instance_list);
-> +static DEFINE_MUTEX(cx24117_list_mutex);
-> +
->  /* The Demod/Tuner can't easily provide these, we cache them */
->  struct cx24117_tuning {
->  	u32 frequency;
-> @@ -176,9 +180,11 @@ struct cx24117_priv {
->  	u8 demod_address;
->  	struct i2c_adapter *i2c;
->  	u8 skip_fw_load;
-> -
->  	struct mutex fe_lock;
-> -	atomic_t fe_nr;
-> +
-> +	/* Used for sharing this struct between demods */
-> +	struct tuner_i2c_props i2c_props;
-> +	struct list_head hybrid_tuner_instance_list;
->  };
->  
->  /* one per each fe */
-> @@ -536,7 +542,7 @@ static int cx24117_load_firmware(struct dvb_frontend *fe,
->  	dev_dbg(&state->priv->i2c->dev,
->  		"%s() demod%d FW is %zu bytes (%02x %02x .. %02x %02x)\n",
->  		__func__, state->demod, fw->size, fw->data[0], fw->data[1],
-> -		fw->data[fw->size-2], fw->data[fw->size-1]);
-> +		fw->data[fw->size - 2], fw->data[fw->size - 1]);
->  
->  	cx24117_writereg(state, 0xea, 0x00);
->  	cx24117_writereg(state, 0xea, 0x01);
-> @@ -1116,37 +1122,64 @@ static int cx24117_diseqc_send_burst(struct dvb_frontend *fe,
->  	return 0;
->  }
->  
-> +static int cx24117_get_priv(struct cx24117_priv **priv,
-> +	struct i2c_adapter *i2c, u8 client_address)
-> +{
-> +	int ret;
-> +
-> +	mutex_lock(&cx24117_list_mutex);
-> +	ret = hybrid_tuner_request_state(struct cx24117_priv, (*priv),
-> +		hybrid_tuner_instance_list, i2c, client_address, "cx24117");
-> +	mutex_unlock(&cx24117_list_mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static void cx24117_release_priv(struct cx24117_priv *priv)
-> +{
-> +	mutex_lock(&cx24117_list_mutex);
-> +	if (priv != NULL)
-> +		hybrid_tuner_release_state(priv);
-> +	mutex_unlock(&cx24117_list_mutex);
-> +}
-> +
->  static void cx24117_release(struct dvb_frontend *fe)
->  {
->  	struct cx24117_state *state = fe->demodulator_priv;
->  	dev_dbg(&state->priv->i2c->dev, "%s demod%d\n",
->  		__func__, state->demod);
-> -	if (!atomic_dec_and_test(&state->priv->fe_nr))
-> -		kfree(state->priv);
-> +	cx24117_release_priv(state->priv);
->  	kfree(state);
->  }
->  
->  static struct dvb_frontend_ops cx24117_ops;
->  
->  struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
-> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
-> +	struct i2c_adapter *i2c)
->  {
->  	struct cx24117_state *state = NULL;
->  	struct cx24117_priv *priv = NULL;
->  	int demod = 0;
->  
-> -	/* first frontend attaching */
-> -	/* allocate shared priv struct */
-> -	if (fe == NULL) {
-> -		priv = kzalloc(sizeof(struct cx24117_priv), GFP_KERNEL);
-> -		if (priv == NULL)
-> -			goto error1;
-> +	/* get the common data struct for both demods */
-> +	demod = cx24117_get_priv(&priv, i2c, config->demod_address);
-> +
-> +	switch (demod) {
-> +	case 0:
-> +		dev_err(&state->priv->i2c->dev,
-> +			"%s: Error attaching frontend %d\n",
-> +			KBUILD_MODNAME, demod);
-> +		goto error1;
-> +		break;
-> +	case 1:
-> +		/* new priv instance */
->  		priv->i2c = i2c;
->  		priv->demod_address = config->demod_address;
->  		mutex_init(&priv->fe_lock);
-> -	} else {
-> -		demod = 1;
-> -		priv = ((struct cx24117_state *) fe->demodulator_priv)->priv;
-> +		break;
-> +	default:
-> +		/* existing priv instance */
-> +		break;
->  	}
->  
->  	/* allocate memory for the internal state */
-> @@ -1154,7 +1187,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
->  	if (state == NULL)
->  		goto error2;
->  
-> -	state->demod = demod;
-> +	state->demod = demod - 1;
->  	state->priv = priv;
->  
->  	/* test i2c bus for ack */
-> @@ -1163,12 +1196,9 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
->  			goto error3;
->  	}
->  
-> -	/* nr of frontends using the module */
-> -	atomic_inc(&priv->fe_nr);
-> -
->  	dev_info(&state->priv->i2c->dev,
->  		"%s: Attaching frontend %d\n",
-> -		KBUILD_MODNAME, demod);
-> +		KBUILD_MODNAME, state->demod);
->  
->  	/* create dvb_frontend */
->  	memcpy(&state->frontend.ops, &cx24117_ops,
-> @@ -1179,7 +1209,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
->  error3:
->  	kfree(state);
->  error2:
-> -	kfree(priv);
-> +	cx24117_release_priv(priv);
->  error1:
->  	return NULL;
->  }
-> diff --git a/drivers/media/dvb-frontends/cx24117.h b/drivers/media/dvb-frontends/cx24117.h
-> index 5bc8f11..4e59e95 100644
-> --- a/drivers/media/dvb-frontends/cx24117.h
-> +++ b/drivers/media/dvb-frontends/cx24117.h
-> @@ -33,11 +33,11 @@ struct cx24117_config {
->  #if IS_ENABLED(CONFIG_DVB_CX24117)
->  extern struct dvb_frontend *cx24117_attach(
->  	const struct cx24117_config *config,
-> -	struct i2c_adapter *i2c, struct dvb_frontend *fe);
-> +	struct i2c_adapter *i2c);
->  #else
->  static inline struct dvb_frontend *cx24117_attach(
->  	const struct cx24117_config *config,
-> -	struct i2c_adapter *i2c, struct dvb_frontend *fe)
-> +	struct i2c_adapter *i2c)
->  {
->  	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
->  	return NULL;
-
-
-
-
-Cheers,
-Mauro
+To Mr. Bruce Morgan
+via Email: colaclaims13@msn.com
+Telephone Number:+447010069098
