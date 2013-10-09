@@ -1,70 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:41515 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224Ab3JDOsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:48:32 -0400
-Received: by mail-we0-f171.google.com with SMTP id p61so4745635wes.30
-        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 07:48:30 -0700 (PDT)
-From: Luis Alves <ljalvs@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:47031 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752735Ab3JIKVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Oct 2013 06:21:41 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VTqte-0005v2-AV
+	for linux-media@vger.kernel.org; Wed, 09 Oct 2013 12:21:38 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 12:21:38 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 12:21:38 +0200
 To: linux-media@vger.kernel.org
-Cc: mkrufky@linuxtv.org, crope@iki.fi, mchehab@infradead.org,
-	Luis Alves <ljalvs@gmail.com>
-Subject: [PATCH] cx24117: Prevent mutex to be stuck on locked state if FE init fails.
-Date: Fri,  4 Oct 2013 15:48:35 +0100
-Message-Id: <1380898115-30071-1-git-send-email-ljalvs@gmail.com>
+From: Tom <Bassai_Dai@gmx.net>
+Subject: ov3640 driver tested with media-ctl and yavta
+Date: Wed, 9 Oct 2013 10:21:18 +0000 (UTC)
+Message-ID: <loom.20131009T122055-332@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-This patch will fix the situation where the mutex was left in a locked state if for some reason the FE init failed.
-
-Regards,
-Luis
-
-
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
----
- drivers/media/dvb-frontends/cx24117.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-index 9087309..476b422 100644
---- a/drivers/media/dvb-frontends/cx24117.c
-+++ b/drivers/media/dvb-frontends/cx24117.c
-@@ -1238,11 +1238,11 @@ static int cx24117_initfe(struct dvb_frontend *fe)
- 	cmd.len = 3;
- 	ret = cx24117_cmd_execute_nolock(fe, &cmd);
- 	if (ret != 0)
--		return ret;
-+		goto exit;
+Hello,
+I tried to use the ov3640 camera driver from Laurent Pinchart with the
+media-ctl and the yavta tools. I configured the pipeline as sensor -> ccdc
+->memory. First I got problems with the CCDC module. it always said that the
+"ccdc won't become idle!", but it didn't restart by itself. So for testing I
+removed the waiting function which waits for the ccdc to become idle and
+tried again. Now I received some data from the buffers but the image is just
+black.
+Any idea what my problem could be?
  
- 	ret = cx24117_diseqc_init(fe);
- 	if (ret != 0)
--		return ret;
-+		goto exit;
- 
- 	/* CMD 3C */
- 	cmd.args[0] = 0x3c;
-@@ -1252,7 +1252,7 @@ static int cx24117_initfe(struct dvb_frontend *fe)
- 	cmd.len = 4;
- 	ret = cx24117_cmd_execute_nolock(fe, &cmd);
- 	if (ret != 0)
--		return ret;
-+		goto exit;
- 
- 	/* CMD 34 */
- 	cmd.args[0] = 0x34;
-@@ -1260,9 +1260,8 @@ static int cx24117_initfe(struct dvb_frontend *fe)
- 	cmd.args[2] = CX24117_OCC;
- 	cmd.len = 3;
- 	ret = cx24117_cmd_execute_nolock(fe, &cmd);
--	if (ret != 0)
--		return ret;
- 
-+exit:
- 	mutex_unlock(&state->priv->fe_lock);
- 
- 	return ret;
--- 
-1.7.9.5
+Best Regards, Tom
 
