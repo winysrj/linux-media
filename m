@@ -1,43 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:56208 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751873Ab3JMF6n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 01:58:43 -0400
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, m.chehab@samsung.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] [media] s5p-mfc: remove deprecated IRQF_DISABLED
-Date: Sun, 13 Oct 2013 07:58:39 +0200
-Message-Id: <1381643919-9016-1-git-send-email-michael.opdenacker@free-electrons.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3165 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755859Ab3JIGm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 02:42:58 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r996gsVd077491
+	for <linux-media@vger.kernel.org>; Wed, 9 Oct 2013 08:42:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6A89E2A04DF
+	for <linux-media@vger.kernel.org>; Wed,  9 Oct 2013 08:42:48 +0200 (CEST)
+Message-ID: <5254FAE8.3090203@xs4all.nl>
+Date: Wed, 09 Oct 2013 08:42:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Working on videobuf2-dvb.c
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch proposes to remove the use of the IRQF_DISABLED flag
+Hi all,
 
-It's a NOOP since 2.6.35 and it will be removed one day.
+Just to prevent multiple people working on the same thing: I'm working on
+a vb2 variant of videobuf-dvb.c.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I need the same mechanism for an alsa driver, and it was easy to extend it
+to a videobuf2-dvb.c.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 084263d..4660d24 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1101,7 +1101,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	}
- 	dev->irq = res->start;
- 	ret = devm_request_irq(&pdev->dev, dev->irq, s5p_mfc_irq,
--					IRQF_DISABLED, pdev->name, dev);
-+					0, pdev->name, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
- 		goto err_res;
--- 
-1.8.1.2
+I hope to post an RFC patch series soon.
 
+Regards,
+
+	Hans
