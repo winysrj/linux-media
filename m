@@ -1,116 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:34510 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966Ab3JAFe2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Oct 2013 01:34:28 -0400
-Message-ID: <524A5EDF.8070904@gentoo.org>
-Date: Tue, 01 Oct 2013 07:34:23 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33988 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752584Ab3JJAGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 20:06:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFD] use-counting V4L2 clocks
+Date: Thu, 10 Oct 2013 02:06:22 +0200
+Message-ID: <38373771.lqz4Seg2Ij@avalon>
+In-Reply-To: <Pine.LNX.4.64.1310082334430.5846@axis700.grange>
+References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange> <20131009053327.091686f3@concha.lan> <Pine.LNX.4.64.1310082334430.5846@axis700.grange>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, Ulf <mopp@gmx.net>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi>
-In-Reply-To: <52444AA3.8020205@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26.09.2013 16:54, Antti Palosaari wrote:
-> On 25.09.2013 07:50, Matthias Schwarzott wrote:
->> On 17.08.2013 13:30, Ulf wrote:
->>> Hi,
->>>
->>> I know the topic Hauppauge HVR-900 HD and HVR 930C-HD with si2165
->>> demodulator was already discussed
->>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/40982 
->>>
->>> and
->>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266. 
->>>
->>>
->>> Just for me as a confirmation nobody plans to work on a driver for
->>> si2165.
->>> Is there any chance how to push the development?
->>>
->>> Ulf
->> Hi!
->>
->> I also bought one of these to find out it is not supported.
->> But my plan is to try to write a driver for this.
->> I want to get DVB-C working, but I also have DVB-T and analog reception
->> available.
->>
->> My current status is I got it working in windows in qemu and did a usb
->> snoop.
->> I also have a second system to test it in windows vista directly on the
->> hardware.
->>
->> Current status is documented here.
->> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C-HD
->>
->> Until now I only have a component list summarized from this list.
->>
->>   * Conexant <http://www.linuxtv.org/wiki/index.php/Conexant> CX231xx
->> <http://www.linuxtv.org/wiki/index.php/Conexant_CX2310x>
->>   * Silicon Labs
->>
->> <http://www.linuxtv.org/wiki/index.php?title=Silicon_Labs&action=edit&redlink=1> 
->>
->>
->>     si2165 <http://www.linuxtv.org/wiki/index.php/Silicon_Labs_si2165>
->>     (Multi-Standard DVB-T and DVB-C Demodulator)
->>   * NXP TDA18271
->> <http://www.linuxtv.org/wiki/index.php/NXP/Philips_TDA182xx>
->>     (silicon tuner IC, most likely i2c-addr: 0x60)
->>   * eeprom (windows driver reads 1kb, i2c-addr: 0x50)
->>
->>
->> Is this correct?
->> Did anyone open his device and can show pictures?
->>
->> I now need to know which component is at which i2c address.
->> Windows driver does upload file hcw10mlD.rom of 16kb to device 0x44.
->
-> I have opened it. There was similar sandwich PCB than used by rev1 
-> too. So you cannot see all the chip unless you use metal saw to 
-> separate PCBs.
->
-> PCB side A:
-> TDA18271HDC2
-> 16.000 MHz
->
-> Si2165-GM
-> 16.000 MHz
->
->
-> PCB side B:
-> 24C02H
->
-> regards
-> Antti
->
-Hi Antti,
+Hi Guennadi and Mauro,
 
-thanks for that information.
-The only real new information for me is the 16.000MHz xtal value.
+On Tuesday 08 October 2013 23:57:55 Guennadi Liakhovetski wrote:
+> Hi Mauro,
+> 
+> Thanks for your long detailed mail. For the sake of brevity however I'll
+> drop most of it in this my reply, everybody interested should be able to
+> read the original.
+> 
+> On Wed, 9 Oct 2013, Mauro Carvalho Chehab wrote:
+> 
+> [snip]
+> 
+> > In other words, what you're actually proposing is to change the default
+> > used by most drivers since 1997 from a POWER ON/CLOCK ON default, into a
+> > POWER OFF/ CLOCK OFF default.
+> 
+> To remind, we are now trying to fix a problem, present in the current
+> kernel. In one specific driver. And the proposed fix only affects one
+> specific (family of) driver(s) - the em28xx USB driver. The two patches
+> are quite simple:
+> 
+> (1) the first patch adds a clock to the em28xx driver, which only
+> affects ov2640, because only it uses that clock
+> 
+> (2) the second patch adds a call to subdev's .s_power(1) method. And I
+> cannot see how this change can be a problem either. Firstly I haven't
+> found many subdevices, used by em28xx, that implement .s_power().
+> Secondly, I don't think any of them does any kind of depth-counting in
+> that method, apart from the one, that we're trying to fix - ov2640.
+> 
+> > Well, for me, it sounds that someone will need to re-test all supported
+> > devices, to be sure that such change won't cause regressions.
+> > 
+> > If you are willing to do such tests (and to get all those hardware to be
+> > sure that nothing will break) or to find someone to do it for you, I'm ok
+> > with such change.
+> 
+> I'm willing to try to identify all subdevices, used by em28xx, look at
+> their .s_power() methods and report my analysis, whether calling
+> .s_power(1) for those respective drivers could cause problems. Would this
+> suffice?
 
-Sad to know that the other chips are hidden.
-I assigned more i2c addresses to functions, but not yet all (no idea if 
-more addresses are real, or bad interpretations of snooped data).
+>From a high level point of view, I believe that's the way to go. V4L2 clock 
+enable/disable calls must be balanced, as we will later switch to the non-V4L2 
+clock API that requires calls to be balanced.
 
-I now try to check what already works:
-- This is video via composite input.
-- Next is to try video via analog input - see I see if the tuner in 
-general works in this device.
+This pushes the problem back to the .s_power() implementation that call the 
+clock enable/disable functions. As a temporary measure, we could add a use 
+count to the .s_power() handlers of drivers used by both power-unbalanced and 
+power-balanced bridges that call the clock API or the regulator API in their 
+.s_power() implementation (that's just ov2640 if I'm not mistaken). This would 
+ensure that clock calls are always balanced, even if the .s_power() calls are 
+not.
 
-In parallel I try to capture usb in different setups.
-1. kvm+tcpdump (using usbmon)
-2. usbsnoop on windows vista
+Now I'd like to avoid that as possible: In the long term I believe we should 
+switch all .s_power() calls to  balanced mode, a detailed analysis of the 
+subdevices used by em28xx would thus have my preference. However, if it helps 
+solving the issue right now, buying us time to fix the problem correctly, I 
+could live with it.
 
-Only setup 1 does provide a real list of usb packets.
+> > Otherwise, we should stick with the present behavior, as otherwise we will
+> > cause regressions.
 
-Regards
-Matthias
+-- 
+Regards,
+
+Laurent Pinchart
 
