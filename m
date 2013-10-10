@@ -1,37 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51211 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932115Ab3JQVXd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 17:23:33 -0400
-Date: Thu, 17 Oct 2013 23:23:31 +0200
-From: Jan Kara <jack@suse.cz>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Handling of user address in vb2_dc_get_userptr()
-Message-ID: <20131017212331.GA14677@quack.suse.cz>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49011 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753647Ab3JJPD0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 11:03:26 -0400
+Date: Thu, 10 Oct 2013 18:02:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [Trivial PATCH] media: Remove unnecessary semicolons
+Message-ID: <20131010150250.GC6732@valkosipuli.retiisi.org.uk>
+References: <1381274948.23937.17.camel@joe-AO722>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <1381274948.23937.17.camel@joe-AO722>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello,
+On Tue, Oct 08, 2013 at 04:29:08PM -0700, Joe Perches wrote:
+> These aren't necessary after switch and while statements.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-  I'm auditing get_user_pages() users and when looking into
-vb2_dc_get_userptr() I was wondering about the following: The address this
-function works with is an arbitrary user-provided address. However the
-function vb2_dc_get_user_pages() uses pfn_to_page() on the pfn obtained
-from VM_IO | VM_PFNMAP vma. That isn't really safe for arbitrary vma of
-this type (such vmas don't have to have struct page associated at all). I
-expect this works because userspace always passes a pointer to either a
-regular vma or VM_FIXMAP vma where struct page is associated with pfn. Am
-I right? Or for on which vmas this code is supposed to work? Thanks in
-advance for clarification.
-
-								Honza
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
