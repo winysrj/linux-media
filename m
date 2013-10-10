@@ -1,117 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4836 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931Ab3JNHqu (ORCPT
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:42146 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756102Ab3JJS5Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Oct 2013 03:46:50 -0400
-Message-ID: <525BA14D.4050801@xs4all.nl>
-Date: Mon, 14 Oct 2013 09:46:21 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 10 Oct 2013 14:57:24 -0400
+Received: by mail-ea0-f176.google.com with SMTP id q16so1372135ead.35
+        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 11:57:23 -0700 (PDT)
+Message-ID: <5256F8A6.1020202@googlemail.com>
+Date: Thu, 10 Oct 2013 20:57:42 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] videobuf2: Add missing lock held on vb2_fop_relase
-References: <Hans Verkuil <hverkuil@xs4all.nl> <1381736489-27852-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1381736489-27852-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+References: <520E76E7.30201@googlemail.com> <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <52543116.60509@googlemail.com> <Pine.LNX.4.64.1310081834030.31629@axis700.grange> <5256ACB9.6030800@googlemail.com> <Pine.LNX.4.64.1310101539500.20787@axis700.grange> <5256E0C4.8060102@googlemail.com> <Pine.LNX.4.64.1310101919580.20787@axis700.grange> <5256F40A.20503@googlemail.com>
+In-Reply-To: <5256F40A.20503@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/13 09:41, Ricardo Ribalda Delgado wrote:
-> vb2_fop_relase does not held the lock although it is modifying the
-> queue->owner field.
-> 
-> This could lead to race conditions on the vb2_perform_io function
-> when multiple applications are accessing the video device via
-> read/write API:
-> 
-> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
-> 0000000000000260
-> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-> [videobuf2_core]
-> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
-> [ 308.297812] Oops: 0000 #1 SMP
-> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
-> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
-> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
-> spi_xilinx spi_bitbang qt5023
-> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
-> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
-> PM_2.1.0.309 X64 05/23/2013
-> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
-> ffff88014dc02000
-> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
-> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
-> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
-> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
-> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
-> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
-> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
-> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
-> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
-> knlGS:0000000000000000
-> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
-> [ 308.298064] Stack:
-> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
-> ffff880100000001
-> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
-> ffff880154904718
-> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
-> ffff88014dc03f50
-> [ 308.298116] Call Trace:
-> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
-> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
-> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
-> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
-> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
-> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
-> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
-> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
-> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
-> 89
-> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-> [videobuf2_core]
-> [ 308.298507] RSP <ffff88014dc03df8>
-> [ 308.298514] CR2: 0000000000000260
-> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Am 10.10.2013 20:38, schrieb Frank Schäfer:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+[...]
+>>>> "Hmm... your patch didn't change this, but:
+>>>> Why do we call these functions only in case of V4L2_BUF_TYPE_VIDEO_CAPTURE ?
+>>>> Isn't it needed for VBI capturing, too ?
+>>>> em28xx_wake_i2c() is probably also needed for radio mode..."
+>>>>
+>>>> Right, my patch doesn't change this, so, this is unrelated.
+>>> Ok, I have to admit that I wasn't clear enough in this case:
+>>> IMHO these are bugs that should be fixed, but I'm not 100% sure.
+>>> In that case, there is no need to split the if-caluse containing the
+>>> V4L2_BUF_TYPE_VIDEO_CAPTURE check, just remove this check while you're
+>>> at it.
+>> No! It shouldn't be changed "while at it." If it should be changed, it 
+>> _certainly_ has to be a separate patch! And it is unrelated.
+> If you want the fix as a separate patch, then it would make sense to do
+> this before the s_power change.
+> IMHO it doesn't make sense to complicate the code just to keep a bug
+> which can be fixed easily.
+Looking into the code again, I think there are even more things which
+need to be fixed. :(
+Will try to send a patch tomorrow.
 
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 9fc4bab..3a961ee 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2588,8 +2588,15 @@ int vb2_fop_release(struct file *file)
->  	struct video_device *vdev = video_devdata(file);
->  
->  	if (file->private_data == vdev->queue->owner) {
-> +		struct mutex *lock;
-> +
-> +		lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
-> +		if (lock)
-> +			mutex_lock(lock);
->  		vb2_queue_release(vdev->queue);
->  		vdev->queue->owner = NULL;
-> +		if (lock)
-> +			mutex_unlock(lock);
->  	}
->  	return v4l2_fh_release(file);
->  }
-> 
+Regards,
+Frank
 
