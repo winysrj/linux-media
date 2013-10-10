@@ -1,40 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44610 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756362Ab3JNRtb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Oct 2013 13:49:31 -0400
-Received: from dyn3-82-128-185-216.psoas.suomi.net ([82.128.185.216] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1VVmGn-0004SM-KJ
-	for linux-media@vger.kernel.org; Mon, 14 Oct 2013 20:49:29 +0300
-Message-ID: <525C2EA9.2090008@iki.fi>
-Date: Mon, 14 Oct 2013 20:49:29 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:57141 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab3JJRVY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 13:21:24 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e52so1309660eek.2
+        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 10:21:23 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/2] v4l2-ctrls: fix typo in header file media/v4l2-ctrls.h
+Date: Thu, 10 Oct 2013 19:21:32 +0200
+Message-Id: <1381425692-5023-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [RFC] general I2C RF-tuner model
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently there is multiple tuner models used withing V4L and DVB, most 
-notably DVB tuners, analog tuners and hybrid tuners that implements both 
-internal APIs.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ include/media/v4l2-ctrls.h |    2 +-
+ 1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
 
-Now I need some more low level tuner properties for SDR usage. One 
-possibility is to add new needed callbacks to analog and dvb tuners, but 
-I think those drivers goes even more messy. So I have started to 
-thinking idea about one genral tuner model which fits the all. Drop all 
-relations to DVB and V4L API and offer just plain tuner API without any 
-realtions to existings TV APIs.
-
-What you think?
-
-regards
-Antti
-
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 47ada23..16f7f26 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -571,7 +571,7 @@ static inline void v4l2_ctrl_lock(struct v4l2_ctrl *ctrl)
+ 	mutex_lock(ctrl->handler->lock);
+ }
+ 
+-/** v4l2_ctrl_lock() - Helper function to unlock the handler
++/** v4l2_ctrl_unlock() - Helper function to unlock the handler
+   * associated with the control.
+   * @ctrl:	The control to unlock.
+   */
 -- 
-http://palosaari.fi/
+1.7.10.4
+
