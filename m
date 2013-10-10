@@ -1,191 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:50034 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961Ab3JSQIV (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14041 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab3JJJ5x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Oct 2013 12:08:21 -0400
-From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org (open list:SAMSUNG S5P/EXYNO...),
-	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
-	AR...),
-	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2] videobuf2: Add missing lock held on vb2_fop_relase
-Date: Sat, 19 Oct 2013 18:07:57 +0200
-Message-Id: <1382198877-27164-1-git-send-email-ricardo.ribalda@gmail.com>
+	Thu, 10 Oct 2013 05:57:53 -0400
+Message-id: <52567A1C.8060609@samsung.com>
+Date: Thu, 10 Oct 2013 11:57:48 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Bert Kenward <bert.kenward@broadcom.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 1/4] mipi-dsi-bus: add MIPI DSI bus support
+References: <1380032596-18612-1-git-send-email-a.hajda@samsung.com>
+ <1380032596-18612-2-git-send-email-a.hajda@samsung.com>
+ <F5FE6E5E9429DA44B1C6B8A1A883D135041E001F@SJEXCHMB13.corp.ad.broadcom.com>
+In-reply-to: <F5FE6E5E9429DA44B1C6B8A1A883D135041E001F@SJEXCHMB13.corp.ad.broadcom.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2_fop_relase does not held the lock although it is modifying the
-queue->owner field.
+On 10/07/2013 12:47 PM, Bert Kenward wrote:
+> On Tuesday September 24 2013 at 15:23, Andrzej Hajda wrote:
+>> MIPI DSI is a high-speed serial interface to transmit
+>> data from/to host to display module.
+>>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  drivers/video/display/Kconfig        |   4 +
+>>  drivers/video/display/Makefile       |   1 +
+>>  drivers/video/display/mipi-dsi-bus.c | 332
+>> +++++++++++++++++++++++++++++++++++
+>>  include/video/display.h              |   3 +
+>>  include/video/mipi-dsi-bus.h         | 144 +++++++++++++++
+>>  5 files changed, 484 insertions(+)
+> <snipped as far as mipi-dsi-bus.h
+>
+>> diff --git a/include/video/mipi-dsi-bus.h b/include/video/mipi-dsi-bus.h
+>> new file mode 100644
+>> index 0000000..a78792d
+>> --- /dev/null
+>> +++ b/include/video/mipi-dsi-bus.h
+>> @@ -0,0 +1,144 @@
+>> +/*
+>> + * MIPI DSI Bus
+>> + *
+>> + * Copyright (C) 2013, Samsung Electronics, Co., Ltd.
+>> + * Andrzej Hajda <a.hajda@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef __MIPI_DSI_BUS_H__
+>> +#define __MIPI_DSI_BUS_H__
+>> +
+>> +#include <linux/device.h>
+>> +#include <video/videomode.h>
+>> +
+>> +struct mipi_dsi_bus;
+>> +struct mipi_dsi_device;
+>> +
+>> +struct mipi_dsi_bus_ops {
+>> +	int (*set_power)(struct mipi_dsi_bus *bus, struct mipi_dsi_device
+>> *dev,
+>> +			 bool on);
+>> +	int (*set_stream)(struct mipi_dsi_bus *bus, struct mipi_dsi_device
+>> *dev,
+>> +			  bool on);
+>> +	int (*transfer)(struct mipi_dsi_bus *bus, struct mipi_dsi_device
+>> *dev,
+>> +			u8 type, const u8 *tx_buf, size_t tx_len, u8 *rx_buf,
+>> +			size_t rx_len);
+>> +};
+>> +
+>> +#define DSI_MODE_VIDEO			(1 << 0)
+>> +#define DSI_MODE_VIDEO_BURST		(1 << 1)
+>> +#define DSI_MODE_VIDEO_SYNC_PULSE	(1 << 2)
+>> +#define DSI_MODE_VIDEO_AUTO_VERT	(1 << 3)
+>> +#define DSI_MODE_VIDEO_HSE		(1 << 4)
+>> +#define DSI_MODE_VIDEO_HFP		(1 << 5)
+>> +#define DSI_MODE_VIDEO_HBP		(1 << 6)
+>> +#define DSI_MODE_VIDEO_HSA		(1 << 7)
+>> +#define DSI_MODE_VSYNC_FLUSH		(1 << 8)
+>> +#define DSI_MODE_EOT_PACKET		(1 << 9)
+>> +
+>> +enum mipi_dsi_pixel_format {
+>> +	DSI_FMT_RGB888,
+>> +	DSI_FMT_RGB666,
+>> +	DSI_FMT_RGB666_PACKED,
+>> +	DSI_FMT_RGB565,
+>> +};
+>> +
+>> +struct mipi_dsi_interface_params {
+>> +	enum mipi_dsi_pixel_format format;
+>> +	unsigned long mode;
+>> +	unsigned long hs_clk_freq;
+>> +	unsigned long esc_clk_freq;
+>> +	unsigned char data_lanes;
+>> +	unsigned char cmd_allow;
+>> +};
+>> +
+>> +struct mipi_dsi_bus {
+>> +	struct device *dev;
+>> +	const struct mipi_dsi_bus_ops *ops;
+>> +};
+>> +
+>> +#define MIPI_DSI_MODULE_PREFIX		"mipi-dsi:"
+>> +#define MIPI_DSI_NAME_SIZE		32
+>> +
+>> +struct mipi_dsi_device_id {
+>> +	char name[MIPI_DSI_NAME_SIZE];
+>> +	__kernel_ulong_t driver_data	/* Data private to the driver */
+>> +			__aligned(sizeof(__kernel_ulong_t));
+>> +};
+>> +
+>> +struct mipi_dsi_device {
+>> +	char name[MIPI_DSI_NAME_SIZE];
+>> +	int id;
+>> +	struct device dev;
+>> +
+>> +	const struct mipi_dsi_device_id *id_entry;
+>> +	struct mipi_dsi_bus *bus;
+>> +	struct videomode vm;
+>> +	struct mipi_dsi_interface_params params;
+>> +};
+>> +
+>> +#define to_mipi_dsi_device(d)	container_of(d, struct
+>> mipi_dsi_device, dev)
+>> +
+>> +int mipi_dsi_device_register(struct mipi_dsi_device *dev,
+>> +			     struct mipi_dsi_bus *bus);
+>> +void mipi_dsi_device_unregister(struct mipi_dsi_device *dev);
+>> +
+>> +struct mipi_dsi_driver {
+>> +	int(*probe)(struct mipi_dsi_device *);
+>> +	int(*remove)(struct mipi_dsi_device *);
+>> +	struct device_driver driver;
+>> +	const struct mipi_dsi_device_id *id_table;
+>> +};
+>> +
+>> +#define to_mipi_dsi_driver(d)	container_of(d, struct
+>> mipi_dsi_driver, driver)
+>> +
+>> +int mipi_dsi_driver_register(struct mipi_dsi_driver *drv);
+>> +void mipi_dsi_driver_unregister(struct mipi_dsi_driver *drv);
+>> +
+>> +static inline void *mipi_dsi_get_drvdata(const struct mipi_dsi_device
+>> *dev)
+>> +{
+>> +	return dev_get_drvdata(&dev->dev);
+>> +}
+>> +
+>> +static inline void mipi_dsi_set_drvdata(struct mipi_dsi_device *dev,
+>> +					void *data)
+>> +{
+>> +	dev_set_drvdata(&dev->dev, data);
+>> +}
+>> +
+>> +int of_mipi_dsi_register_devices(struct mipi_dsi_bus *bus);
+>> +void mipi_dsi_unregister_devices(struct mipi_dsi_bus *bus);
+>> +
+>> +/* module_mipi_dsi_driver() - Helper macro for drivers that don't do
+>> + * anything special in module init/exit.  This eliminates a lot of
+>> + * boilerplate.  Each module may only use this macro once, and
+>> + * calling it replaces module_init() and module_exit()
+>> + */
+>> +#define module_mipi_dsi_driver(__mipi_dsi_driver) \
+>> +	module_driver(__mipi_dsi_driver, mipi_dsi_driver_register, \
+>> +			mipi_dsi_driver_unregister)
+>> +
+>> +int mipi_dsi_set_power(struct mipi_dsi_device *dev, bool on);
+>> +int mipi_dsi_set_stream(struct mipi_dsi_device *dev, bool on);
+>> +int mipi_dsi_dcs_write(struct mipi_dsi_device *dev, int channel, const u8
+>> *data,
+>> +		       size_t len);
+>> +int mipi_dsi_dcs_read(struct mipi_dsi_device *dev, int channel, u8 cmd,
+>> +		      u8 *data, size_t len);
+>> +
+>> +#define mipi_dsi_dcs_write_seq(dev, channel, seq...) \
+>> +({\
+>> +	const u8 d[] = { seq };\
+>> +	BUILD_BUG_ON_MSG(ARRAY_SIZE(d) > 64, "DCS sequence too long for
+>> stack");\
+>> +	mipi_dsi_dcs_write(dev, channel, d, ARRAY_SIZE(d));\
+>> +})
+>> +
+>> +#define mipi_dsi_dcs_write_static_seq(dev, channel, seq...) \
+>> +({\
+>> +	static const u8 d[] = { seq };\
+>> +	mipi_dsi_dcs_write(dev, channel, d, ARRAY_SIZE(d));\
+>> +})
+>> +
+>> +#endif /* __MIPI_DSI_BUS__ */
+> I may well have missed something,
+>  but I can't see exactly how a command mode
+> update would be done with this interface. Would this require repeated calls to
+> .transfer? Such transfers would need to be flagged as requiring
+> synchronisation with a tearing effect control signal - either the inband
+> method or a dedicated line. I suspect many hardware implementations will have
+> a specific method for transferring pixel data in a DSI command mode transfer.
+>
+> The command sending period during video mode should probably be configurable
+> on a per-transfer basis. Some commands have to be synchronised with vertical
+> blanking, others do not. This could perhaps be combined with a wider
+> configuration option for a given panel or interface. Similarly, selection of
+> low power (LP) and high speed (HS) mode on a per-transfer basis can be needed
+> for some panels.
+>
+> Is there a mechanism for controlling ultra-low power state (ULPS) entry? Also,
+> is there a method for sending arbitrary trigger messages (eg the reset
+> trigger)?
+Thanks for the feedback.
+The current dsi bus implementation was just made to work with the
+hw I have. It should be extended to be more generic, but I hope
+now it is just matter of adding good opses and parameters.
+Feel free to propose new opses.
 
-This could lead to race conditions on the vb2_perform_io function
-when multiple applications are accessing the video device via
-read/write API:
-
-[ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
-0000000000000260
-[ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-[videobuf2_core]
-[ 308.297794] PGD 159719067 PUD 158119067 PMD 0
-[ 308.297812] Oops: 0000 #1 SMP
-[ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
-qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
-qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
-spi_xilinx spi_bitbang qt5023
-[ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
-[ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
-PM_2.1.0.309 X64 05/23/2013
-[ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
-ffff88014dc02000
-[ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
-vb2_perform_fileio+0x372/0x610 [videobuf2_core]
-[ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
-[ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
-[ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
-[ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
-[ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
-[ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
-[ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
-knlGS:0000000000000000
-[ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
-[ 308.298064] Stack:
-[ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
-ffff880100000001
-[ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
-ffff880154904718
-[ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
-ffff88014dc03f50
-[ 308.298116] Call Trace:
-[ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
-[ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
-[ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
-[ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
-[ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
-[ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
-[ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
-44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
-44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
-89
-[ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-[videobuf2_core]
-[ 308.298507] RSP <ffff88014dc03df8>
-[ 308.298514] CR2: 0000000000000260
-[ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
-
-v2: Add bug found by Sylvester Nawrocki
-
-fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
-Therefore a new __vb2_fop_release function has been created to be used by
-drivers that overload the release function.
-
-Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
----
- drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
- drivers/media/usb/em28xx/em28xx-video.c          |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c         | 18 +++++++++++++++++-
- include/media/videobuf2-core.h                   |  2 ++
- 5 files changed, 22 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index fb27ff7..c38d247c 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
- 		vc->streaming = false;
- 	}
- 
--	ret = vb2_fop_release(file);
-+	ret = __vb2_fop_release(file, true);
- 
- 	if (close) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index e5798f7..021d804 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
- 		mutex_unlock(&entity->parent->graph_mutex);
- 	}
- 
--	vb2_fop_release(file);
-+	__vb2_fop_release(file, true);
- 	pm_runtime_put(&fimc->pdev->dev);
- 	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 9d10334..6a5c147 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1664,7 +1664,7 @@ static int em28xx_v4l2_close(struct file *filp)
- 	em28xx_videodbg("users=%d\n", dev->users);
- 
- 	mutex_lock(&dev->lock);
--	vb2_fop_release(filp);
-+	__vb2_fop_release(filp, false);
- 
- 	if (dev->users == 1) {
- 		/* the device is already disconnect,
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 594c75e..ce309a8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2619,16 +2619,32 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
- }
- EXPORT_SYMBOL_GPL(vb2_fop_mmap);
- 
--int vb2_fop_release(struct file *file)
-+int __vb2_fop_release(struct file *file, bool lock_is_held)
- {
- 	struct video_device *vdev = video_devdata(file);
-+	struct mutex *lock;
- 
- 	if (file->private_data == vdev->queue->owner) {
-+		if (lock_is_held)
-+			lock = NULL;
-+		else
-+			lock = vdev->queue->lock ?
-+				vdev->queue->lock : vdev->lock;
-+		if (lock)
-+			mutex_lock(lock);
- 		vb2_queue_release(vdev->queue);
- 		vdev->queue->owner = NULL;
-+		if (lock)
-+			mutex_unlock(lock);
- 	}
- 	return v4l2_fh_release(file);
- }
-+EXPORT_SYMBOL_GPL(__vb2_fop_release);
-+
-+int vb2_fop_release(struct file *file)
-+{
-+	return __vb2_fop_release(file, false);
-+}
- EXPORT_SYMBOL_GPL(vb2_fop_release);
- 
- ssize_t vb2_fop_write(struct file *file, char __user *buf,
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 6781258..cd1e4d5 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -491,6 +491,8 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
- 
- int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
- int vb2_fop_release(struct file *file);
-+/* must be used if the lock is held. */
-+int __vb2_fop_release(struct file *file, bool lock_is_held);
- ssize_t vb2_fop_write(struct file *file, char __user *buf,
- 		size_t count, loff_t *ppos);
- ssize_t vb2_fop_read(struct file *file, char __user *buf,
--- 
-1.8.3.2
+Andrzej
+>
+> Thanks,
+>
+> Bert.
 
