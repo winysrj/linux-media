@@ -1,195 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32823 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752299Ab3JGUQk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 16:16:40 -0400
-Message-ID: <525316A6.3010608@iki.fi>
-Date: Mon, 07 Oct 2013 23:16:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:59157 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752978Ab3JJNmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 09:42:09 -0400
+Received: by mail-ee0-f54.google.com with SMTP id e53so1164365eek.41
+        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 06:42:07 -0700 (PDT)
+Message-ID: <5256AEC2.4020501@googlemail.com>
+Date: Thu, 10 Oct 2013 15:42:26 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>
-CC: linux-media@vger.kernel.org, Ulf <mopp@gmx.net>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi> <524A5EDF.8070904@gentoo.org> <524AE01E.9040300@iki.fi> <52530BC1.9010200@gentoo.org>
-In-Reply-To: <52530BC1.9010200@gentoo.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Thibert <jfthibert@google.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] Add support for KWorld UB435-Q V2
+References: <CACxGHmPH_hLd5OM+1em_m_o8AK3z9_zTcEs5UieQ13A2_cy-8Q@mail.gmail.com>
+In-Reply-To: <CACxGHmPH_hLd5OM+1em_m_o8AK3z9_zTcEs5UieQ13A2_cy-8Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.10.2013 22:30, Matthias Schwarzott wrote:
-> On 01.10.2013 16:45, Antti Palosaari wrote:
->> On 01.10.2013 08:34, Matthias Schwarzott wrote:
->>> On 26.09.2013 16:54, Antti Palosaari wrote:
->>>> On 25.09.2013 07:50, Matthias Schwarzott wrote:
->>>>> On 17.08.2013 13:30, Ulf wrote:
->>>>>> Hi,
->>>>>>
->>>>>> I know the topic Hauppauge HVR-900 HD and HVR 930C-HD with si2165
->>>>>> demodulator was already discussed
->>>>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/40982
->>>>>>
->>>>>>
->>>>>> and
->>>>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266.
->>>>>>
->>>>>>
->>>>>>
->>>>>> Just for me as a confirmation nobody plans to work on a driver for
->>>>>> si2165.
->>>>>> Is there any chance how to push the development?
->>>>>>
->>>>>> Ulf
->>>>> Hi!
->>>>>
->>>>> I also bought one of these to find out it is not supported.
->>>>> But my plan is to try to write a driver for this.
->>>>> I want to get DVB-C working, but I also have DVB-T and analog
->>>>> reception
->>>>> available.
->>>>>
->>>>> My current status is I got it working in windows in qemu and did a usb
->>>>> snoop.
->>>>> I also have a second system to test it in windows vista directly on
->>>>> the
->>>>> hardware.
->>>>>
->>>>> Current status is documented here.
->>>>> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C-HD
->>>>>
->>>>> Until now I only have a component list summarized from this list.
->>>>>
->>>>>   * Conexant <http://www.linuxtv.org/wiki/index.php/Conexant> CX231xx
->>>>> <http://www.linuxtv.org/wiki/index.php/Conexant_CX2310x>
->>>>>   * Silicon Labs
->>>>>
->>>>> <http://www.linuxtv.org/wiki/index.php?title=Silicon_Labs&action=edit&redlink=1>
->>>>>
->>>>>
->>>>>
->>>>>     si2165 <http://www.linuxtv.org/wiki/index.php/Silicon_Labs_si2165>
->>>>>     (Multi-Standard DVB-T and DVB-C Demodulator)
->>>>>   * NXP TDA18271
->>>>> <http://www.linuxtv.org/wiki/index.php/NXP/Philips_TDA182xx>
->>>>>     (silicon tuner IC, most likely i2c-addr: 0x60)
->>>>>   * eeprom (windows driver reads 1kb, i2c-addr: 0x50)
->>>>>
->>>>>
->>>>> Is this correct?
->>>>> Did anyone open his device and can show pictures?
->>>>>
->>>>> I now need to know which component is at which i2c address.
->>>>> Windows driver does upload file hcw10mlD.rom of 16kb to device 0x44.
->>>>
->>>> I have opened it. There was similar sandwich PCB than used by rev1
->>>> too. So you cannot see all the chip unless you use metal saw to
->>>> separate PCBs.
->>>>
->>>> PCB side A:
->>>> TDA18271HDC2
->>>> 16.000 MHz
->>>>
->>>> Si2165-GM
->>>> 16.000 MHz
->>>>
->>>>
->>>> PCB side B:
->>>> 24C02H
->>>>
->>>> regards
->>>> Antti
->>>>
->>> Hi Antti,
->>>
->>> thanks for that information.
->>> The only real new information for me is the 16.000MHz xtal value.
->>>
->>> Sad to know that the other chips are hidden.
->>> I assigned more i2c addresses to functions, but not yet all (no idea if
->>> more addresses are real, or bad interpretations of snooped data).
->>>
->>> I now try to check what already works:
->>> - This is video via composite input.
->>> - Next is to try video via analog input - see I see if the tuner in
->>> general works in this device.
->>>
->>> In parallel I try to capture usb in different setups.
->>> 1. kvm+tcpdump (using usbmon)
->>> 2. usbsnoop on windows vista
->>>
->>> Only setup 1 does provide a real list of usb packets.
->>
->> Matthias, you likely try to do things too complex :) I am not going to
->> comment analog side as I simply has no experience. Missing piece of
->> code from the DTV point of view is only si2165 demod driver.
->>
->> My technique is to make successful tune one channel and take sniffs.
->> From sniffs I generate C-code register writes (and sometimes reads
->> too) using scripts. Reading that "C-code" is much more visual and
->> easier than looking correct bytes from the raw sniffs. It is essential
->> to find out from the sniffs what are tuner register writes, what are
->> demod register writes and what are for USB-bridge itself. There may be
->> some other chips which are needed to init in order to operate, like in
->> cases I2C bus is connected through analog demodulator to digital
->> demodulator.
->>
->> Usually it is rather trivial to make skeleton driver from the code
->> generated from sniffs which just shows that single channel sniffs were
->> taken.
->>
->> I have been looking simple example for "reverse-engineer demodulator
->> driver how-to" blog post, but I haven't found suitable device yet.
->> That was one device I looked, but I given-up as simplest sniff after
->> parsing was over 1MB. Looks like there is multiple firmwares to
->> download and also CX231xx usb protocol generates a lot of I/O => not
->> very good example for simple how-to.
->>
->> Take a look of that post to see some practical example about sniffing
->> and code generation.
->> http://blog.palosaari.fi/2013/07/generating-rtl2832u-driver-code.html
->>
->> regards
->> Antti
->>
-> Hi Antti,
+Am 09.10.2013 16:18, schrieb Jean-Francois Thibert:
+> This patch adds support for the UB435-Q V2. You might need to
+> use the device once with the Windows driver provided by KWorld
+> in order to permanently reprogram the device descriptors. Thanks
+> to Jarod Wilson for the initial attempt at adding support for this
+> device.
 >
-> my real problem currently is, that I cannot get a good usb dump:
-> 1. In virtual machine (win xp under kvm) it finds one transponder when
-> scanning DVB-T, but does not get a picture.
-
-I think demod locks (== means signal is OK and demod streams data), but 
-stream got lost somewhere on kvm. I have had similar experiences many 
-years back when I tested some virtual machines.
-
-> 2. On real machine with vista I can tune perfectly, but usb snooping
-> does not work (at least not the ones I tried).
-
-SniffUSB2.0 does not support any newer than XP :/ Thats really bad. We 
-have to find out new solution...
-
-> 3. The only sniffer that seemed to produce enough data on vista was
-> usblyzer.
-> But there is not script to convert the output to usbsnoop format.
-
-There is actually script and it is quite simple. I have got it someone 
-when we discussed AF9035 driver earlier. I just sent mail to that person 
-and asked if he could share that script.
-
-> Should I install windows xp on real hardware to try usbsnoop there? What
-> hw/sw/os are you using?
-
-I use native XP on my laptop and SniffUSB2.0.
-
-Lets wait day or two if we can get that conversion script.
-
+> Signed-off-by: Jean-Francois Thibert <jfthibert@google.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c |   14 +++++++++++++-
+>  drivers/media/usb/em28xx/em28xx-dvb.c   |   27 +++++++++++++++++++++++++++
+>  drivers/media/usb/em28xx/em28xx.h       |    1 +
+>  3 files changed, 41 insertions(+), 1 deletions(-)
 >
-> At least I found out something that is working.
-> By adding the correct ids to the mceusb driver,
-> the ir part works correctly and all keys of the remote are correctly
-> recognized with the existing Hauppauge keymap.
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c
+> b/drivers/media/usb/em28xx/em28xx-cards.c
+> index dc65742..a512909 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -174,7 +174,7 @@ static struct em28xx_reg_seq evga_indtube_digital[] = {
+>  };
+>
+>  /*
+> - * KWorld PlusTV 340U and UB435-Q (ATSC) GPIOs map:
+> + * KWorld PlusTV 340U, UB435-Q and UB435-Q V2 (ATSC) GPIOs map:
+>   * EM_GPIO_0 - currently unknown
+>   * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
+>   * EM_GPIO_2 - currently unknown
+> @@ -2030,6 +2030,16 @@ struct em28xx_board em28xx_boards[] = {
+>   .i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
+>   EM28XX_I2C_FREQ_400_KHZ,
+>   },
+> + /* 1b80:e346 KWorld USB ATSC TV Stick UB435-Q V2
+> + * Empia EM2874B + LG DT3305 + NXP TDA18271HDC2 */
+> + [EM2874_BOARD_KWORLD_UB435Q_V2] = {
+> + .name       = "KWorld USB ATSC TV Stick UB435-Q V2",
+> + .tuner_type = TUNER_ABSENT,
+> + .has_dvb    = 1,
+> + .dvb_gpio   = kworld_a340_digital,
+> + .tuner_gpio = default_tuner_gpio,
+> + .def_i2c_bus  = 1,
+> + },
+>  };
+>  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+>
+> @@ -2173,6 +2183,8 @@ struct usb_device_id em28xx_id_table[] = {
+>   .driver_info = EM2860_BOARD_GADMEI_UTV330 },
+>   { USB_DEVICE(0x1b80, 0xa340),
+>   .driver_info = EM2870_BOARD_KWORLD_A340 },
+> + { USB_DEVICE(0x1b80, 0xe346),
+> + .driver_info = EM2874_BOARD_KWORLD_UB435Q_V2 },
+>   { USB_DEVICE(0x2013, 0x024f),
+>   .driver_info = EM28174_BOARD_PCTV_290E },
+>   { USB_DEVICE(0x2013, 0x024c),
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c
+> b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index bb1e8dc..547eea6 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -298,6 +298,18 @@ static struct lgdt3305_config em2870_lgdt3304_dev = {
+>   .qam_if_khz         = 4000,
+>  };
+>
+> +static struct lgdt3305_config em2874_lgdt3305_dev = {
+> + .i2c_addr           = 0x0e,
+> + .demod_chip         = LGDT3305,
+> + .spectral_inversion = 1,
+> + .deny_i2c_rptr      = 0,
+> + .mpeg_mode          = LGDT3305_MPEG_SERIAL,
+> + .tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
+> + .tpvalid_polarity   = LGDT3305_TP_VALID_HIGH,
+> + .vsb_if_khz         = 3250,
+> + .qam_if_khz         = 4000,
+> +};
+> +
+>  static struct s921_config sharp_isdbt = {
+>   .demod_address = 0x30 >> 1
+>  };
+> @@ -329,6 +341,12 @@ static struct tda18271_config kworld_a340_config = {
+>   .std_map           = &kworld_a340_std_map,
+>  };
+>
+> +static struct tda18271_config kworld_ub435q_v2_config = {
+> + .std_map           = &kworld_a340_std_map,
+> + .gate              = TDA18271_GATE_DIGITAL,
 
-regards
-Antti
+TDA18271_GATE_AUTO doesn't work ? Then you could use kworld_a340_config.
+Or the other way around: wouldn't TDA18271_GATE_DIGITAL also work for
+the A340 ?
 
--- 
-http://palosaari.fi/
+Apart from that:
+
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+
+Regards,
+Frank
+
+> +};
+> +
+> +
+>  static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
+>   .demod_address = (0x1e >> 1),
+>   .no_tuner = 1,
+> @@ -1297,6 +1315,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>   goto out_free;
+>   }
+>   break;
+> + case EM2874_BOARD_KWORLD_UB435Q_V2:
+> + dvb->fe[0] = dvb_attach(lgdt3305_attach,
+> +   &em2874_lgdt3305_dev,
+> +   &dev->i2c_adap[dev->def_i2c_bus]);
+> + if (dvb->fe[0] != NULL)
+> + dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
+> +   &dev->i2c_adap[dev->def_i2c_bus], &kworld_ub435q_v2_config);
+> +
+> + break;
+>   default:
+>   em28xx_errdev("/2: The frontend of your DVB/ATSC card"
+>   " isn't supported yet\n");
+> diff --git a/drivers/media/usb/em28xx/em28xx.h
+> b/drivers/media/usb/em28xx/em28xx.h
+> index 205e903..6d988ad 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -131,6 +131,7 @@
+>  #define EM2884_BOARD_TERRATEC_HTC_USB_XS  87
+>  #define EM2884_BOARD_C3TECH_DIGITAL_DUO  88
+>  #define EM2874_BOARD_DELOCK_61959  89
+> +#define EM2874_BOARD_KWORLD_UB435Q_V2  90
+>
+>  /* Limits minimum and default number of buffers */
+>  #define EM28XX_MIN_BUF 4
+
