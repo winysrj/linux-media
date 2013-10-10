@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:51208 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751404Ab3JFGX2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Oct 2013 02:23:28 -0400
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: m.chehab@samsung.com, gregkh@linuxfoundation.org
-Cc: prabhakar.csengg@gmail.com, yongjun_wei@trendmicro.com.cn,
-	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] [media] davinci: vpfe: remove deprecated IRQF_DISABLED
-Date: Sun,  6 Oct 2013 08:23:20 +0200
-Message-Id: <1381040600-12683-1-git-send-email-michael.opdenacker@free-electrons.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:16198 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125Ab3JJHGl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 03:06:41 -0400
+From: Seung-Woo Kim <sw0312.kim@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.chehab@samsung.com, s.nawrocki@samsung.com
+Cc: sw0312.kim@samsung.com
+Subject: [PATCH] s5p-jpeg: fix uninitialized use in hdr parse
+Date: Thu, 10 Oct 2013 16:06:31 +0900
+Message-id: <1381388791-1828-1-git-send-email-sw0312.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch proposes to remove the use of the IRQF_DISABLED flag
+For hdr parse error, it can return false without any assignments
+which cause build warning.
 
-It's a NOOP since 2.6.35 and it will be removed one day.
-
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-index d8ce20d..cda8388c 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-@@ -298,7 +298,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
- {
- 	int ret = 0;
- 
--	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
-+	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, 0,
- 			  "vpfe_capture0", vpfe_dev);
- 	if (ret < 0) {
- 		v4l2_err(&vpfe_dev->v4l2_dev,
-@@ -306,7 +306,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
- 		return ret;
- 	}
- 
--	ret = request_irq(vpfe_dev->ccdc_irq1, vpfe_vdint1_isr, IRQF_DISABLED,
-+	ret = request_irq(vpfe_dev->ccdc_irq1, vpfe_vdint1_isr, 0,
- 			  "vpfe_capture1", vpfe_dev);
- 	if (ret < 0) {
- 		v4l2_err(&vpfe_dev->v4l2_dev,
-@@ -316,7 +316,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
- 	}
- 
- 	ret = request_irq(vpfe_dev->imp_dma_irq, vpfe_imp_dma_isr,
--			  IRQF_DISABLED, "Imp_Sdram_Irq", vpfe_dev);
-+			  0, "Imp_Sdram_Irq", vpfe_dev);
- 	if (ret < 0) {
- 		v4l2_err(&vpfe_dev->v4l2_dev,
- 			 "Error: requesting IMP IRQ interrupt\n");
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 15d2396..7db374e 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -442,14 +442,14 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+ 	while (notfound) {
+ 		c = get_byte(&jpeg_buffer);
+ 		if (c == -1)
+-			break;
++			return false;
+ 		if (c != 0xff)
+ 			continue;
+ 		do
+ 			c = get_byte(&jpeg_buffer);
+ 		while (c == 0xff);
+ 		if (c == -1)
+-			break;
++			return false;
+ 		if (c == 0)
+ 			continue;
+ 		length = 0;
 -- 
-1.8.1.2
+1.7.4.1
 
