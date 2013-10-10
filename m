@@ -1,82 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60943 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754980Ab3JDOoI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Oct 2013 10:44:08 -0400
-Message-ID: <524ED436.6030001@iki.fi>
-Date: Fri, 04 Oct 2013 17:44:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ea0-f171.google.com ([209.85.215.171]:47773 "EHLO
+	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755772Ab3JJTUP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 15:20:15 -0400
+Received: by mail-ea0-f171.google.com with SMTP id n15so1399412ead.30
+        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 12:20:13 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com, hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH] em28xx: fix device initialization in em28xx_v4l2_open() for radio and VBI mode
+Date: Thu, 10 Oct 2013 21:20:24 +0200
+Message-Id: <1381432824-7395-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 06/14] drxd_hard: fix sparse warnings
-References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl> <1380895312-30863-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1380895312-30863-7-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04.10.2013 17:01, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> drivers/media/dvb-frontends/drxd_hard.c:1017:70: warning: Using plain integer as NULL pointer
-> drivers/media/dvb-frontends/drxd_hard.c:1038:69: warning: Using plain integer as NULL pointer
-> drivers/media/dvb-frontends/drxd_hard.c:2836:33: warning: Using plain integer as NULL pointer
-> drivers/media/dvb-frontends/drxd_hard.c:2972:30: warning: Using plain integer as NULL pointer
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+- bail out on unsupported VFL_TYPE
+- em28xx_set_mode() needs to be called for VBI and radio mode, too
+- em28xx_wake_i2c() needs to be called for VBI and radio mode, too
+- em28xx_resolution_set() also needs to be called for VBI
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Compilation tested only and should be reviewed thoroughly !
 
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   17 +++++++++++------
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
 
-> Cc: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/media/dvb-frontends/drxd_hard.c | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-> index cbd7c92..959ae36 100644
-> --- a/drivers/media/dvb-frontends/drxd_hard.c
-> +++ b/drivers/media/dvb-frontends/drxd_hard.c
-> @@ -1014,7 +1014,7 @@ static int HI_CfgCommand(struct drxd_state *state)
->   		status = Write16(state, HI_RA_RAM_SRV_CMD__A,
->   				 HI_RA_RAM_SRV_CMD_CONFIG, 0);
->   	else
-> -		status = HI_Command(state, HI_RA_RAM_SRV_CMD_CONFIG, 0);
-> +		status = HI_Command(state, HI_RA_RAM_SRV_CMD_CONFIG, NULL);
->   	mutex_unlock(&state->mutex);
->   	return status;
->   }
-> @@ -1035,7 +1035,7 @@ static int HI_ResetCommand(struct drxd_state *state)
->   	status = Write16(state, HI_RA_RAM_SRV_RST_KEY__A,
->   			 HI_RA_RAM_SRV_RST_KEY_ACT, 0);
->   	if (status == 0)
-> -		status = HI_Command(state, HI_RA_RAM_SRV_CMD_RESET, 0);
-> +		status = HI_Command(state, HI_RA_RAM_SRV_CMD_RESET, NULL);
->   	mutex_unlock(&state->mutex);
->   	msleep(1);
->   	return status;
-> @@ -2833,7 +2833,7 @@ static int drxd_init(struct dvb_frontend *fe)
->   	int err = 0;
->
->   /*	if (request_firmware(&state->fw, "drxd.fw", state->dev)<0) */
-> -	return DRXD_init(state, 0, 0);
-> +	return DRXD_init(state, NULL, 0);
->
->   	err = DRXD_init(state, state->fw->data, state->fw->size);
->   	release_firmware(state->fw);
-> @@ -2969,7 +2969,7 @@ struct dvb_frontend *drxd_attach(const struct drxd_config *config,
->
->   	mutex_init(&state->mutex);
->
-> -	if (Read16(state, 0, 0, 0) < 0)
-> +	if (Read16(state, 0, NULL, 0) < 0)
->   		goto error;
->
->   	state->frontend.ops = drxd_ops;
->
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index fc5d60e..962f4b2 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1570,13 +1570,16 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	case VFL_TYPE_VBI:
+ 		fh_type = V4L2_BUF_TYPE_VBI_CAPTURE;
+ 		break;
++	case VFL_TYPE_RADIO:
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	em28xx_videodbg("open dev=%s type=%s users=%d\n",
+ 			video_device_node_name(vdev), v4l2_type_names[fh_type],
+ 			dev->users);
+ 
+-
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+ 	fh = kzalloc(sizeof(struct em28xx_fh), GFP_KERNEL);
+@@ -1590,15 +1593,17 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	fh->type = fh_type;
+ 	filp->private_data = fh;
+ 
+-	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
++	if (dev->users == 0) {
+ 		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+-		em28xx_resolution_set(dev);
+ 
+-		/* Needed, since GPIO might have disabled power of
+-		   some i2c device
++		if (vdev->vfl_type != VFL_TYPE_RADIO)
++			em28xx_resolution_set(dev);
++
++		/*
++		 * Needed, since GPIO might have disabled power of
++		 * some i2c devices
+ 		 */
+ 		em28xx_wake_i2c(dev);
+-
+ 	}
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO) {
 -- 
-http://palosaari.fi/
+1.7.10.4
+
