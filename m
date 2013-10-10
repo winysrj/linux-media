@@ -1,170 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49396 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753586Ab3JBNY3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 09:24:29 -0400
-Message-ID: <524C1E78.6030508@ti.com>
-Date: Wed, 2 Oct 2013 16:24:08 +0300
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>
-CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	Jesse Barnes <jesse.barnes@intel.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Mark Zhang <markz@nvidia.com>,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Sunil Joshi <joshi@samsung.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Marcus Lorentzon <marcus.lorentzon@huawei.com>
-Subject: Re: [PATCH/RFC v3 00/19] Common Display Framework
-References: <1376068510-30363-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <52498146.4050600@ti.com> <524C1058.2050500@samsung.com>
-In-Reply-To: <524C1058.2050500@samsung.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="HcKWl3BC7JP9ldlbPvb3JOx09gkQG3PMf"
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2919 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754416Ab3JJC7a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 22:59:30 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9A2xRQ0005389
+	for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 04:59:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 6B2052A04DF
+	for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 04:59:26 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131010025926.6B2052A04DF@tschai.lan>
+Date: Thu, 10 Oct 2013 04:59:26 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---HcKWl3BC7JP9ldlbPvb3JOx09gkQG3PMf
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi Andrzej,
+Results of the daily build of media_tree:
 
-On 02/10/13 15:23, Andrzej Hajda wrote:
+date:		Thu Oct 10 04:00:19 CEST 2013
+git branch:	test
+git hash:	d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-4.slh.2-amd64
 
->> Using Linux buses for DBI/DSI
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
->>
->> I still don't see how it would work. I've covered this multiple times =
-in
->> previous posts so I'm not going into more details now.
->>
->> I implemented DSI (just command mode for now) as a video bus but with =
-bunch of
->> extra ops for sending the control messages.
->=20
-> Could you post the list of ops you have to create.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-I'd rather not post the ops I have in my prototype, as it's still a
-total hack. However, they are very much based on the current OMAP DSS's
-ops, so I'll describe them below. I hope I find time to polish my CDF
-hacks more, so that I can publish them.
+Detailed results are available here:
 
-> I have posted some time ago my implementation of DSI bus:
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/=
-69358/focus=3D69362
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-A note about the DT data on your series, as I've been stuggling to
-figure out the DT data for OMAP: some of the DT properties look like
-configuration, not hardware description. For example,
-"samsung,bta-timeout" doesn't describe hardware.
+Full logs are available here:
 
-> I needed three quite generic ops to make it working:
-> - set_power(on/off),
-> - set_stream(on/off),
-> - transfer(dsi_transaction_type, tx_buf, tx_len, rx_buf, rx_len)
-> I have recently replaced set_power by PM_RUNTIME callbacks,
-> but I had to add .initialize ops.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-We have a bit more on omap:
+The Media Infrastructure API from this daily build is here:
 
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/inclu=
-de/video/omapdss.h#n648
-
-Some of those should be removed and some should be omap DSI's internal
-matters, not part of the API. But it gives an idea of the ops we use.
-Shortly about the ops:
-
-- (dis)connect, which might be similar to your initialize. connect is
-meant to "connect" the pipeline, reserving the video ports used, etc.
-
-- enable/disable, enable the DSI bus. If the DSI peripheral requires a
-continous DSI clock, it's also started at this point.
-
-- set_config configures the DSI bus (like, command/video mode, etc.).
-
-- configure_pins can be ignored, I think that function is not needed.
-
-- enable_hs and enable_te, used to enable/disable HS mode and
-tearing-elimination
-
-- update, which does a single frame transfer
-
-- bus_lock/unlock can be ignored
-
-- enable_video_output starts the video stream, when using DSI video mode
-
-- the request_vc, set_vc_id, release_vc can be ignored
-
-- Bunch of transfer funcs. Perhaps a single func could be used, as you
-do. We have sync write funcs, which do a BTA at the end of the write and
-wait for reply, and nosync version, which just pushes the packet to the
-TX buffers.
-
-- bta_sync, which sends a BTA and waits for the peripheral to reply
-
-- set_max_rx_packet_size, used to configure the max rx packet size.
-
-> Regarding the discussion how and where to implement control bus I have
-> though about different alternatives:
-> 1. Implement DSI-master as a parent dev which will create DSI-slave
-> platform dev in a similar way as for MFD devices (ssbi.c seems to me a
-> good example).
-> 2. Create universal mipi-display-bus which will cover DSI, DBI and
-> possibly other buses - they have have few common things - for example
-> MIPI-DCS commands.
->=20
-> I am not really convinced to either solution all have some advantages
-> and disadvantages.
-
-I think a dedicated DSI bus and your alternatives all have the same
-issues with splitting the DSI control into two. I've shared some of my
-thoughts here:
-
-http://article.gmane.org/gmane.comp.video.dri.devel/90651
-http://article.gmane.org/gmane.comp.video.dri.devel/91269
-http://article.gmane.org/gmane.comp.video.dri.devel/91272
-
-I still think that it's best to consider DSI and DBI as a video bus (not
-as a separate video bus and a control bus), and provide the packet
-transfer methods as part of the video ops.
-
- Tomi
-
-
-
---HcKWl3BC7JP9ldlbPvb3JOx09gkQG3PMf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSTB54AAoJEPo9qoy8lh71r/EP/3eJ+9ZB888hqyiG5bvceFAG
-C0vMm0LNqTKUPSxWjt87jUYaN0nh+SwqjKsVV3YYwjOG8Eh4kdNOrnuB6D0LrwJd
-iOXYWq4aeGD7kDTkQNd0RRJkobDbqERGVJ7/27vCBbZPJENacK1dTy4SXoxpbVvV
-yFtIXAhpmjxbeiddOrHWd1uBjbNKDwZc1+qXKsfbVyawfdX/ELA0zBYXyolyIB6n
-+Ejnt9LB3Uod1yt0NXo7dygHTc2iF9cIaK41h9M9y7QAcJL2zYbzayZy/FyJbN+Z
-VmSJTOgTEOMYrF+mbGecMcO5+y6UUkGjjJC0dG1g6cCtgwCCN8phyTk1QOS2Bqqc
-If/mWD+HJQ6XOSVVxRzOoKOrSF2U/SmUWTyB5tBxC4h24NpGKnd2CTHGho5WFqe7
-BgdhzTS5XQ8cT4D/GszauTqhxoopw7HweqKtBH+H1oR7OySTpXnd8lcVlPTjT7Lc
-febVi8jRw/lnsXidD7BUR39z0MzXRou6P3awLkcw7ODBIoSP6agXb59XDG4XruAY
-Oc+OE4b2JCd3cdJiVn4otX5Fd8FpyTccnL1X0btobOkb4ARSHBCUVzIqoCcqkCT2
-rivn/J/3wCLJJESwwQFIfdBHvPhNT53JDe7LDABys5PFlsXK73doePfq0e/NX+Ez
-eSW109c3VYEtAFNX6zzO
-=+zvp
------END PGP SIGNATURE-----
-
---HcKWl3BC7JP9ldlbPvb3JOx09gkQG3PMf--
+http://www.xs4all.nl/~hverkuil/spec/media.html
