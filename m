@@ -1,238 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57136 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734Ab3JGOeS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 10:34:18 -0400
-Message-ID: <5252C661.3040608@ti.com>
-Date: Mon, 7 Oct 2013 20:04:09 +0530
-From: Archit Taneja <a0393947@ti.com>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:45682 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043Ab3JKAHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Oct 2013 20:07:43 -0400
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-4-git-send-email-archit@ti.com> <525268F9.90409@xs4all.nl> <52527BFF.3060603@ti.com> <52528039.1080901@xs4all.nl> <52528B6D.5080500@ti.com> <5252BEE9.9020200@xs4all.nl>
-In-Reply-To: <5252BEE9.9020200@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20130521105436.GB2041@valkosipuli.retiisi.org.uk>
+References: <1367832828-30771-1-git-send-email-a.hajda@samsung.com>
+ <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
+ <1958801.k4UEk5OhXt@avalon> <5189FF81.5030405@samsung.com>
+ <20130512211244.GC6748@valkosipuli.retiisi.org.uk> <519B31AD.90408@samsung.com>
+ <20130521105436.GB2041@valkosipuli.retiisi.org.uk>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Thu, 10 Oct 2013 17:07:22 -0700
+Message-ID: <CAK5ve-LLkGtG9hVcsJgbgT+O-rdhOLNEw-eONSbJWs7aNJ0NOQ@mail.gmail.com>
+Subject: Re: [RFC 0/2] V4L2 API for exposing flash subdevs as LED class device
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Kim, Milo" <Milo.Kim@ti.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"hj210.choi@samsung.com" <hj210.choi@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 07 October 2013 07:32 PM, Hans Verkuil wrote:
-> On 10/07/2013 12:22 PM, Archit Taneja wrote:
->> On Monday 07 October 2013 03:04 PM, Hans Verkuil wrote:
->>> On 10/07/2013 11:16 AM, Archit Taneja wrote:
->>>> On Monday 07 October 2013 01:25 PM, Hans Verkuil wrote:
->>>>> Hi Archit,
->>>>>
->>>>> I've got a few comments below...
->>>>>
->>>>> On 09/06/2013 12:12 PM, Archit Taneja wrote:
->>>>>> VPE is a block which consists of a single memory to memory path which can
->>>>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->>>>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->>>>>> interleaved video formats.
->>>>>>
->>>>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->>>>>> The de-interlacer, scaler and color space converter are all bypassed for now
->>>>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->>>>>> conversion beteen different YUV formats is possible.
->>>>>>
->>>>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->>>>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->>>>>> a VPDMA descriptor list to which configuration and data descriptors are added.
->>>>>>
->>>>>> Based on the information received via v4l2 ioctls for the source and
->>>>>> destination queues, the driver configures the values for the MMRs, and stores
->>>>>> them in the buffer. There are also some VPDMA parameters like frame start and
->>>>>> line mode which needs to be configured, these are configured by direct register
->>>>>> writes via the VPDMA helper functions.
->>>>>>
->>>>>> The driver's device_run() mem2mem op will add each descriptor based on how the
->>>>>> source and destination queues are set up for the given ctx, once the list is
->>>>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->>>>>> upload MMR registers, start DMA of video buffers on the various input and output
->>>>>> clients/ports.
->>>>>>
->>>>>> When the list is parsed completely(and the DMAs on all the output ports done),
->>>>>> an interrupt is generated which we use to notify that the source and destination
->>>>>> buffers are done.
->>>>>>
->>>>>> The rest of the driver is quite similar to other mem2mem drivers, we use the
->>>>>> multiplane v4l2 ioctls as the HW support coplanar formats.
->>>>>>
->>>>>> Signed-off-by: Archit Taneja <archit@ti.com>
->>>>>> ---
->>>>>>     drivers/media/platform/Kconfig           |   16 +
->>>>>>     drivers/media/platform/Makefile          |    2 +
->>>>>>     drivers/media/platform/ti-vpe/Makefile   |    5 +
->>>>>>     drivers/media/platform/ti-vpe/vpe.c      | 1750 ++++++++++++++++++++++++++++++
->>>>>>     drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
->>>>>>     include/uapi/linux/v4l2-controls.h       |    4 +
->>>>>>     6 files changed, 2273 insertions(+)
->>>>>>     create mode 100644 drivers/media/platform/ti-vpe/Makefile
->>>>>>     create mode 100644 drivers/media/platform/ti-vpe/vpe.c
->>>>>>     create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
->>>>>>
->>>>>
->>>>> <snip>
->>>>>
->>>>>> +
->>>>>> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>>>>> +{
->>>>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->>>>>> +	struct vpe_ctx *ctx = file2ctx(file);
->>>>>> +	struct vb2_queue *vq;
->>>>>> +	struct vpe_q_data *q_data;
->>>>>> +	int i;
->>>>>> +
->>>>>> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
->>>>>> +	if (!vq)
->>>>>> +		return -EINVAL;
->>>>>> +
->>>>>> +	q_data = get_q_data(ctx, f->type);
->>>>>> +
->>>>>> +	pix->width = q_data->width;
->>>>>> +	pix->height = q_data->height;
->>>>>> +	pix->pixelformat = q_data->fmt->fourcc;
->>>>>> +	pix->colorspace = q_data->colorspace;
->>>>>> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
->>>>>> +
->>>>>> +	for (i = 0; i < pix->num_planes; i++) {
->>>>>> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
->>>>>> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
->>>>>> +	}
->>>>>> +
->>>>>> +	return 0;
->>>>>> +}
->>>>>> +
->>>>>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->>>>>> +		       struct vpe_fmt *fmt, int type)
->>>>>> +{
->>>>>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->>>>>> +	struct v4l2_plane_pix_format *plane_fmt;
->>>>>> +	int i;
->>>>>> +
->>>>>> +	if (!fmt || !(fmt->types & type)) {
->>>>>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
->>>>>> +			pix->pixelformat);
->>>>>> +		return -EINVAL;
->>>>>> +	}
->>>>>> +
->>>>>> +	pix->field = V4L2_FIELD_NONE;
->>>>>> +
->>>>>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
->>>>>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
->>>>>> +			      S_ALIGN);
->>>>>> +
->>>>>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
->>>>>> +	pix->pixelformat = fmt->fourcc;
->>>>>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
->>>>>
->>>>> You do this only for capture. Output sets the colorspace, so try_fmt should
->>>>> leave the colorspace field untouched for the output direction.
->>>>>
->>>>>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
->>>>
->>>> The input to the VPE block can be various YUV formats, and the VPE can
->>>> generate both RGB and YUV formats.
->>>>
->>>> So, I guess the output(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) side has
->>>> choice only to set V4L2_COLORSPACE_SMPTE170M. And in the
->>>> capture(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) capture side we have both
->>>> SRG and SMPTE170M options.
->>>>
->>>> One thing I am not clear about is whether the userspace application has
->>>> to set the colorspace in the v4l2 format for OUTPUT or CAPTURE or both?
->>>
->>> The spec today says that the colorspace field is filled in by the driver.
->>> It does not differentiate between output and capture. This is patently wrong,
->>> since for output it should be set by the application since that's who is
->>> telling the driver what colorspace the image has. The driver may change it
->>> if it doesn't support that colorspace, but otherwise it should leave it as
->>> is.
->>>
->>> A mem-to-mem device that doesn't care about the colorspace should just copy
->>> the colorspace field from the output value into the capture.
->>>
->>> What is missing in today's API is a way to do colorspace conversion in a m2m
->>> device since there is no way today to tell the driver the desired colorspace
->>> that it should get back from the m2m device.
->>>
->>>>
->>>>    From what I understood, the code should be as below.
->>>>
->>>> For output:
->>>>
->>>> if (!pix->colorspace)
->>>> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
->>>
->>> I would leave off the 'if' part. If this colorspace is all you support on the
->>> output, then always set it.
->>>
->>> However, since it can convert YUV to RGB, doesn't the hardware have to know
->>> about the various YUV colorspaces? SDTV and HDTV have different colorspaces.
->>>
->>>>
->>>> And for capture:
->>>> 	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
->>>> 		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
->>>>
->>>> Does this look correct?
->>>
->>> Yes, unless the hardware can take SDTV/HDTV YUV colorspaces into account. In
->>> that case I need to think how the API should be improved.
->>
->> The hardware can't convert one YUV color space to another. But it has a
->> programmable CSC block for YUV->RGB conversion in which we can program
->> coefficients based on the input YUV color space.
->>
->> The color space conversion block isn't implemented by the driver yet. So
->> I didn't look too much into it.
->>
->> I guess it will be eventually important to consider the output
->> colorspace. It doesn't need to be only SMPTE170M, it could be REC709 or
->> SMPTE240M based on what the user says.
->>
->> When the color space conversion block is implemented and the capture
->> colorspace is RGB, the driver should see the input colorspace and choose
->> the coefficients accordingly.
->>
->> With this new information about the hardware (:)), I guess it should be
->> as below for now:
->>
->> output:
->> /* inserted this check back since multiple YUV spaces supported */
->> if (!pix->colorspace)	
->> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
->>
->> capture:
->> /* removed SRGB sicne we don't support CSC yet */
->> pix->colorspace = s_q_data->colorspace;
->>
->> However, the above would imply that we need to s_fmt ioctl is called for
->> OUTPUT first, followed by s_fmt for CAPTURE. I don't think that's
->> something necessary according to the v4l spec.
+On Tue, May 21, 2013 at 3:54 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Andrzej,
 >
-> Well, s_fmt(OUTPUT) influences the colorspace field returned by *_fmt(CAPTURE).
-> Which I think is OK. You can use either order, but to see the actual colorspace
-> used by capture you will have to call g_fmt(CAPTURE) after calling s_fmt(OUTPUT).
+> On Tue, May 21, 2013 at 10:34:53AM +0200, Andrzej Hajda wrote:
+>> On 12.05.2013 23:12, Sakari Ailus wrote:
+>> > On Wed, May 08, 2013 at 09:32:17AM +0200, Andrzej Hajda wrote:
+>> >> On 07.05.2013 17:07, Laurent Pinchart wrote:
+>> >>> On Tuesday 07 May 2013 02:11:27 Kim, Milo wrote:
+>> >>>> On Monday, May 06, 2013 6:34 PM Andrzej Hajda wrote:
+>> >>>>> This RFC proposes generic API for exposing flash subdevices via LED
+>> >>>>> framework.
+>> >>>>>
+>> >>>>> Rationale
+>> >>>>>
+>> >>>>> Currently there are two frameworks which are used for exposing LED
+>> >>>>> flash to user space:
+>> >>>>> - V4L2 flash controls,
+>> >>>>> - LED framework(with custom sysfs attributes).
+>> >>>>>
+>> >>>>> The list below shows flash drivers in mainline kernel with initial
+>> >>>>> commit date and typical chip application (according to producer):
+>> >>>>>
+>> >>>>> LED API:
+>> >>>>>     lm3642: 2012-09-12, Cameras
+>> >>>>>     lm355x: 2012-09-05, Cameras
+>> >>>>>     max8997: 2011-12-14, Cameras (?)
+>> >>>>>     lp3944: 2009-06-19, Cameras, Lights, Indicators, Toys
+>> >>>>>     pca955x: 2008-07-16, Cameras, Indicators (?)
+>> >>>>>
+>> >>>>> V4L2 API:
+>> >>>>>     as3645a:  2011-05-05, Cameras
+>> >>>>>     adp1653: 2011-05-05, Cameras
+>> >>>>>
+>> >>>>> V4L2 provides richest functionality, but there is often demand from
+>> >>>>> application developers to provide already established LED API. We would
+>> >>>>> like to have an unified user interface for flash devices. Some of devices
+>> >>>>> already have the LED API driver exposing limited set of a Flash IC
+>> >>>>> functionality. In order to support all required features the LED API
+>> >>>>> would have to be extended or the V4L2 API would need to be used. However
+>> >>>>> when switching from a LED to a V4L2 Flash driver existing LED API
+>> >>>>> interface would need to be retained.
+>> >>>>>
+>> >>>>> Proposed solution
+>> >>>>>
+>> >>>>> This patch adds V4L2 helper functions to register existing V4L2 flash
+>> >>>>> subdev as LED class device. After registration via v4l2_leddev_register
+>> >>>>> appropriate entry in /sys/class/leds/ is created. During registration all
+>> >>>>> V4L2 flash controls are enumerated and corresponding attributes are added.
+>> >>>>>
+>> >>>>> I have attached also patch with new max77693-led driver using v4l2_leddev.
+>> >>>>> This patch requires presence of the patch "max77693: added device tree
+>> >>>>> support": https://patchwork.kernel.org/patch/2414351/ .
+>> >>>>>
+>> >>>>> Additional features
+>> >>>>>
+>> >>>>> - simple API to access all V4L2 flash controls via sysfs,
+>> >>>>> - V4L2 subdevice should not be registered by V4L2 device to use it,
+>> >>>>> - LED triggers API can be used to control the device,
+>> >>>>> - LED device is optional - it will be created only if V4L2_LEDDEV
+>> >>>>>   configuration option is enabled and the subdev driver calls
+>> >>>>>   v4l2_leddev_register.
+>> >>>>>
+>> >>>>> Doubts
+>> >>>>>
+>> >>>>> This RFC is a result of a uncertainty which API developers should expose
+>> >>>>> by their flash drivers. It is a try to gluing together both APIs. I am not
+>> >>>>> sure if it is the best solution, but I hope there will be some discussion
+>> >>>>> and hopefully some decisions will be taken which way we should follow.
+>> >>>> The LED subsystem provides similar APIs for the Camera driver.
+>> >>>> With LED trigger event, flash and torch are enabled/disabled.
+>> >>>> I'm not sure this is applicable for you.
+>> >>>> Could you take a look at LED camera trigger feature?
+>> >>>>
+>> >>>> For the camera LED trigger,
+>> >>>> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
+>> >>>> ?h=f or-next&id=48a1d032c954b9b06c3adbf35ef4735dd70ab757
+>> >>>>
+>> >>>> Example of camera flash driver,
+>> >>>> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
+>> >>>> ?h=f or-next&id=313bf0b1a0eaeaac17ea8c4b748f16e28fce8b7a
+>> >>> I think we should decide on one API. Implementing two APIs for a single device
+>> >>> is usually messy, and will result in different feature sets (and different
+>> >>> bugs) being implemented through each API, depending on the driver.
+>> >>> Interactions between the APIs are also a pain point on the kernel side to
+>> >>> properly synchronize calls.
+>> > I don't like having two APIs either. Especially we shouldn't have multiple
+>> > drivers implementing different APIs for the same device.
+>> >
+>> > That said, I wonder if it's possible to support camera-related use cases
+>> > using the LED API: it's originally designed for quite different devices.
+>> > Even if you could handle flash strobing using the LED API, the functionality
+>> > provided by the Media controller and subdev APIs will always be missing:
+>> > device enumeration and association with the right camera.
+>> Is there a generic way to associate flash and camera subdevs in
+>> current V4L2 API? The only ways I see now are:
+>> - both belongs to the same media controller, but this is not enough if there
+>> is more than one camera subdev in that controller,
 >
-> It's the logical order anyway for a m2m device to start with the output first.
-
-Okay, that makes sense.
-
+> Yes, there is. That's the group_id field in struct media_entity_desc. The
+> lens subdev is associated to the rest of the devices the same way.
 >
->> Besides this, I noticed a series "V4L2 mem-to-mem ioctl helpers" which I
->> should take use of. Do you suggest I base my patches over that?
+>> - using media links/pads - at first sight it seems to be overkill/abuse...
 >
-> I don't know when that will be merged. It might be easier to just add a new
-> patch converting the driver to the helpers, then we can apply all patches except
-> that last one if the helpers aren't merged yet.
+> No. Links describe the flow of data, not relations between entities.
+>
+> ...
+>
+>> >>> The LED API is too limited for torch and flash usage, but I'm definitely open
+>> >>> to moving flash devices to the LED API is we can extend it in a way that it
+>> >>> covers all the use cases.
+>> >>>
+>> >> Extending LED API IMHO seems to be quite straightforward - by adding
+>> >> attributes for supported functionalities. We just need a specification for
+>> >> standard flash/torch attributes.
+>> >> I could prepare an RFC about it if there is a will to explore this
+>> >> direction.
+>> > I'm leaning towards providing a wrapper that provides torch functionality
+>> > using V4L2 flash API unless it's really proven to be insane. ;-) The code
+>> > supporting that in an individual flash driver should be minimal --- which is
+>> > what the patchset essentially already does.
+>> Providing only torch functionality do not require adding new attributes
+>> (besides the ones already present in the led_classdev), so the patch will
+>> be much simpler.
+>
+> Yes. Attributes could be added later on to the LED API to support flash and
+> the wrapper could be extended accordingly. My thinking is however that the
+> main use case is torch, not strobing flash, so it would be fulfilled already
+> without extensions to the LED API.
+>
 
-That's a good idea. Will add a new patch in the next version.
+Sorry for replying so late.
 
-Thanks for the review.
+I think Milo Kim did some work in our LED subsystem by add LED Flash
+trigger for camera device. I agree it doesn't satisfy the usage of
+V4L2 Flash API and what I'm thinking about is expanding the LED Flash
+trigger driver to export a well defined sysfs interface, so user space
+libv4l2 can wrap it for applications.
 
-Archit
-
+Thanks,
+-Bryan
