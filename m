@@ -1,49 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:59150 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757896Ab3JOKuX convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4348 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab3JKC7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 06:50:23 -0400
-Received: by mail-ie0-f180.google.com with SMTP id e14so9641057iej.39
-        for <linux-media@vger.kernel.org>; Tue, 15 Oct 2013 03:50:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAKnK8-T-Ac1-bWL_0Sr4bvg7wWErrTXP-mb7RH-DvftWZ41CAA@mail.gmail.com>
-References: <CAKnK8-T-Ac1-bWL_0Sr4bvg7wWErrTXP-mb7RH-DvftWZ41CAA@mail.gmail.com>
-Date: Tue, 15 Oct 2013 12:50:22 +0200
-Message-ID: <CA+MoWDoEBZr9TYWypSDj4ObOdWR902p1ehAabjRCBzTDJQyDkw@mail.gmail.com>
-Subject: Re: Submitting kernel module device driver
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: =?UTF-8?B?0JHRg9C00Lgg0KDQvtC80LDQvdGC0L4=?= <bud@are.ma>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 10 Oct 2013 22:59:36 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9B2xWQk099821
+	for <linux-media@vger.kernel.org>; Fri, 11 Oct 2013 04:59:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 932522A04DF
+	for <linux-media@vger.kernel.org>; Fri, 11 Oct 2013 04:59:31 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131011025931.932522A04DF@tschai.lan>
+Date: Fri, 11 Oct 2013 04:59:31 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 15, 2013 at 4:56 AM, Буди Романто <bud@are.ma> wrote:
-> Hello
-> I've developed a DVB device driver for Earthsoft PT3 (PCIE) card
->
-> & want to ask where/how to submit it.
-Usually drivers are sent in a list of incremental patches, but this is
-not a rule. After sending the first version, there should be reviews
-and comments on the patches.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-There are some general information at:
-http://linuxtv.org/wiki/index.php/Development:_Submitting_Drivers
+Results of the daily build of media_tree:
 
-And one example:
-http://lwn.net/Articles/500201/
+date:		Fri Oct 11 04:00:36 CEST 2013
+git branch:	test
+git hash:	d10e8280c4c2513d3e7350c27d8e6f0fa03a5f71
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-4.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> Thanks for your help
-> -Bud
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
 
--- 
-Peter
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
