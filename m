@@ -1,41 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:34892 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753528Ab3JRDIH (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3812 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751704Ab3JKHqf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 23:08:07 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so1690110pdj.22
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:08:07 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, sachin.kamat@linaro.org,
-	m.chehab@samsung.com
-Subject: [PATCH 1/6] [media] adv7343: Include linux/of.h header
-Date: Fri, 18 Oct 2013 08:37:10 +0530
-Message-Id: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+	Fri, 11 Oct 2013 03:46:35 -0400
+Message-ID: <5257ACD1.9010501@xs4all.nl>
+Date: Fri, 11 Oct 2013 09:46:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com>
+In-Reply-To: <1381328975-18244-1-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'of_match_ptr' is defined in linux/of.h. Include it explicitly to
-avoid build breakage in the future.
+On 10/09/2013 04:29 PM, Archit Taneja wrote:
+> VPE is a block which consists of a single memory to memory path which can
+> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+> interleaved video formats.
+> 
+> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+> The de-interlacer, scaler and color space converter are all bypassed for now
+> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+> conversion beteen different YUV formats is possible.
+> 
+> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+> a VPDMA descriptor list to which configuration and data descriptors are added.
+> 
+> Based on the information received via v4l2 ioctls for the source and
+> destination queues, the driver configures the values for the MMRs, and stores
+> them in the buffer. There are also some VPDMA parameters like frame start and
+> line mode which needs to be configured, these are configured by direct register
+> writes via the VPDMA helper functions.
+> 
+> The driver's device_run() mem2mem op will add each descriptor based on how the
+> source and destination queues are set up for the given ctx, once the list is
+> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+> upload MMR registers, start DMA of video buffers on the various input and output
+> clients/ports.
+> 
+> When the list is parsed completely(and the DMAs on all the output ports done),
+> an interrupt is generated which we use to notify that the source and destination
+> buffers are done.
+> 
+> The rest of the driver is quite similar to other mem2mem drivers, we use the
+> multiplane v4l2 ioctls as the HW support coplanar formats.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/i2c/adv7343.c |    1 +
- 1 file changed, 1 insertion(+)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index aeb56c5..d4e15a6 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -25,6 +25,7 @@
- #include <linux/module.h>
- #include <linux/videodev2.h>
- #include <linux/uaccess.h>
-+#include <linux/of.h>
- 
- #include <media/adv7343.h>
- #include <media/v4l2-async.h>
--- 
-1.7.9.5
+Regards,
+
+	Hans
 
