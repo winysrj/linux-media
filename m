@@ -1,30 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f180.google.com ([209.85.216.180]:60477 "EHLO
-	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756375Ab3JQQ2j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 12:28:39 -0400
-Received: by mail-qc0-f180.google.com with SMTP id e9so740959qcy.25
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 09:28:38 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CADY_UEcuaon16kNJF1Y5G+H+ejL=YT+2CERtzDoQZyd=Upmv2A@mail.gmail.com>
-References: <CADY_UEd0NO1qXJF0daKpd1ZKGtvKJacFDcxV6eO7pa3uroXnAg@mail.gmail.com>
-	<CADY_UEcTazFTr88atbEOZX=cVgXPyOvgjWe4CKSoSp02uY960w@mail.gmail.com>
-	<CADY_UEcuaon16kNJF1Y5G+H+ejL=YT+2CERtzDoQZyd=Upmv2A@mail.gmail.com>
-Date: Thu, 17 Oct 2013 21:58:37 +0530
-Message-ID: <CADY_UEdYV7TOpBaw5orkuHaR5oR21jtV123zEKQtdFvU=_kEiQ@mail.gmail.com>
-Subject: Re: how to play raw video captured using http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-From: satya gowtham kudupudi <satyagowtham.k@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39967 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755036Ab3JLBUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Oct 2013 21:20:16 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/3] em28xx: MaxMedia UB425-TC switch RF tuner driver to another
+Date: Sat, 12 Oct 2013 04:20:00 +0300
+Message-Id: <1381540801-23645-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1381540801-23645-1-git-send-email-crope@iki.fi>
+References: <1381540801-23645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-help me plzz
+tda18271c2dd => tda18271
+tda18271 is more complete than tda18271c2dd.
 
-Gowtham
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index f8a2212..0697aad 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1229,8 +1229,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			dvb->fe[0]->ops.i2c_gate_ctrl = NULL;
+ 
+ 			/* attach tuner */
+-			if (!dvb_attach(tda18271c2dd_attach, dvb->fe[0],
+-					&dev->i2c_adap[dev->def_i2c_bus], 0x60)) {
++			if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
++					&dev->i2c_adap[dev->def_i2c_bus],
++					&em28xx_cxd2820r_tda18271_config)) {
+ 				dvb_frontend_detach(dvb->fe[0]);
+ 				result = -EINVAL;
+ 				goto out_free;
 -- 
-Gowtham
+1.8.3.1
+
