@@ -1,63 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3812 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704Ab3JKHqf (ORCPT
+Received: from mail-we0-f181.google.com ([74.125.82.181]:51971 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab3JLMc1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Oct 2013 03:46:35 -0400
-Message-ID: <5257ACD1.9010501@xs4all.nl>
-Date: Fri, 11 Oct 2013 09:46:25 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com>
-In-Reply-To: <1381328975-18244-1-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 12 Oct 2013 08:32:27 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 08/10] exynos-gsc: Remove GSC_{SRC, DST}_FMT flags
+Date: Sat, 12 Oct 2013 14:31:58 +0200
+Message-Id: <1381581120-26883-9-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/09/2013 04:29 PM, Archit Taneja wrote:
-> VPE is a block which consists of a single memory to memory path which can
-> perform chrominance up/down sampling, de-interlacing, scaling, and color space
-> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
-> interleaved video formats.
-> 
-> We create a mem2mem driver based primarily on the mem2mem-testdev example.
-> The de-interlacer, scaler and color space converter are all bypassed for now
-> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
-> conversion beteen different YUV formats is possible.
-> 
-> Each mem2mem context allocates a buffer for VPE MMR values which it will use
-> when it gets access to the VPE HW via the mem2mem queue, it also allocates
-> a VPDMA descriptor list to which configuration and data descriptors are added.
-> 
-> Based on the information received via v4l2 ioctls for the source and
-> destination queues, the driver configures the values for the MMRs, and stores
-> them in the buffer. There are also some VPDMA parameters like frame start and
-> line mode which needs to be configured, these are configured by direct register
-> writes via the VPDMA helper functions.
-> 
-> The driver's device_run() mem2mem op will add each descriptor based on how the
-> source and destination queues are set up for the given ctx, once the list is
-> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
-> upload MMR registers, start DMA of video buffers on the various input and output
-> clients/ports.
-> 
-> When the list is parsed completely(and the DMAs on all the output ports done),
-> an interrupt is generated which we use to notify that the source and destination
-> buffers are done.
-> 
-> The rest of the driver is quite similar to other mem2mem drivers, we use the
-> multiplane v4l2 ioctls as the HW support coplanar formats.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+The GSC_SRC_FMT, GSC_DST_FMT flags are currently set in VIDIOC_S_FMT ioctl
+and cleared in VIDIOC_REQBUFS(0). In between the flags are used to figure out
+if scaling ratio check need to be performed. This an incorrect behaviour as
+it should be assumed there is always a valid configuration on a video device.
+Fix this by removing those flags and also remove an unused 'frame' local
+variable.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   10 ++----
+ drivers/media/platform/exynos-gsc/gsc-core.h |    2 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |   46 +++++++++-----------------
+ 3 files changed, 19 insertions(+), 39 deletions(-)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9d0cc04..d0bba73 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -698,7 +698,6 @@ static int __gsc_s_ctrl(struct gsc_ctx *ctx, struct v4l2_ctrl *ctrl)
+ {
+ 	struct gsc_dev *gsc = ctx->gsc_dev;
+ 	struct gsc_variant *variant = gsc->variant;
+-	unsigned int flags = GSC_DST_FMT | GSC_SRC_FMT;
+ 	int ret = 0;
+ 
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
+@@ -714,18 +713,15 @@ static int __gsc_s_ctrl(struct gsc_ctx *ctx, struct v4l2_ctrl *ctrl)
+ 		break;
+ 
+ 	case V4L2_CID_ROTATE:
+-		if ((ctx->state & flags) == flags) {
+-			ret = gsc_check_scaler_ratio(variant,
++		ret = gsc_check_scaler_ratio(variant,
+ 					ctx->s_frame.crop.width,
+ 					ctx->s_frame.crop.height,
+ 					ctx->d_frame.crop.width,
+ 					ctx->d_frame.crop.height,
+ 					ctx->gsc_ctrls.rotate->val,
+ 					ctx->out_path);
+-
+-			if (ret)
+-				return -EINVAL;
+-		}
++		if (ret < 0)
++			return ret;
+ 
+ 		ctx->rotation = ctrl->val;
+ 		break;
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index 76435d3..c79b3cb 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -41,8 +41,6 @@
+ #define DEFAULT_CSC_RANGE		1
+ 
+ #define GSC_PARAMS			(1 << 0)
+-#define GSC_SRC_FMT			(1 << 1)
+-#define GSC_DST_FMT			(1 << 2)
+ #define GSC_CTX_M2M			(1 << 3)
+ #define GSC_CTX_STOP_REQ		(1 << 6)
+ 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 48e1c34..78bcb92 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -341,11 +341,7 @@ static int gsc_m2m_s_fmt_mplane(struct file *file, void *fh,
+ 		frame->payload[i] = pix->plane_fmt[i].sizeimage;
+ 
+ 	gsc_set_frame_size(frame, pix->width, pix->height);
+-
+-	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+-		gsc_ctx_state_lock_set(GSC_PARAMS | GSC_DST_FMT, ctx);
+-	else
+-		gsc_ctx_state_lock_set(GSC_PARAMS | GSC_SRC_FMT, ctx);
++	gsc_ctx_state_lock_set(GSC_PARAMS, ctx);
+ 
+ 	pr_debug("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
+ 
+@@ -357,22 +353,14 @@ static int gsc_m2m_reqbufs(struct file *file, void *fh,
+ {
+ 	struct gsc_ctx *ctx = fh_to_ctx(fh);
+ 	struct gsc_dev *gsc = ctx->gsc_dev;
+-	struct gsc_frame *frame;
+ 	u32 max_cnt;
+ 
+ 	max_cnt = (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ?
+ 		gsc->variant->in_buf_cnt : gsc->variant->out_buf_cnt;
+ 	if (reqbufs->count > max_cnt) {
+ 		return -EINVAL;
+-	} else if (reqbufs->count == 0) {
+-		if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-			gsc_ctx_state_lock_clear(GSC_SRC_FMT, ctx);
+-		else
+-			gsc_ctx_state_lock_clear(GSC_DST_FMT, ctx);
+ 	}
+ 
+-	frame = ctx_get_frame(ctx, reqbufs->type);
+-
+ 	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+ }
+ 
+@@ -527,24 +515,22 @@ static int gsc_m2m_s_selection(struct file *file, void *fh,
+ 	}
+ 
+ 	/* Check to see if scaling ratio is within supported range */
+-	if (gsc_ctx_state_is_set(GSC_DST_FMT | GSC_SRC_FMT, ctx)) {
+-		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+-			ret = gsc_check_scaler_ratio(variant, cr.c.width,
+-				cr.c.height, ctx->d_frame.crop.width,
+-				ctx->d_frame.crop.height,
+-				ctx->gsc_ctrls.rotate->val, ctx->out_path);
+-		} else {
+-			ret = gsc_check_scaler_ratio(variant,
+-				ctx->s_frame.crop.width,
+-				ctx->s_frame.crop.height, cr.c.width,
+-				cr.c.height, ctx->gsc_ctrls.rotate->val,
+-				ctx->out_path);
+-		}
++	if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		ret = gsc_check_scaler_ratio(variant, cr.c.width,
++			cr.c.height, ctx->d_frame.crop.width,
++			ctx->d_frame.crop.height,
++			ctx->gsc_ctrls.rotate->val, ctx->out_path);
++	} else {
++		ret = gsc_check_scaler_ratio(variant,
++			ctx->s_frame.crop.width,
++			ctx->s_frame.crop.height, cr.c.width,
++			cr.c.height, ctx->gsc_ctrls.rotate->val,
++			ctx->out_path);
++	}
+ 
+-		if (ret) {
+-			pr_err("Out of scaler range");
+-			return -EINVAL;
+-		}
++	if (ret < 0) {
++		pr_err("Out of scaler range");
++		return ret;
+ 	}
+ 
+ 	frame->crop = cr.c;
+-- 
+1.7.4.1
 
