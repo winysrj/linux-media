@@ -1,63 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:39283 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341Ab3JMMzy (ORCPT
+Received: from mail-qe0-f50.google.com ([209.85.128.50]:38114 "EHLO
+	mail-qe0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab3JLJI4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 08:55:54 -0400
-Received: by mail-ea0-f181.google.com with SMTP id d10so2851779eaj.12
-        for <linux-media@vger.kernel.org>; Sun, 13 Oct 2013 05:55:53 -0700 (PDT)
-Message-ID: <525A9855.7050701@gmail.com>
-Date: Sun, 13 Oct 2013 14:55:49 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+	Sat, 12 Oct 2013 05:08:56 -0400
+Received: by mail-qe0-f50.google.com with SMTP id 1so1643877qee.37
+        for <linux-media@vger.kernel.org>; Sat, 12 Oct 2013 02:08:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media/i2c: ths8200: fix build failure with gcc 4.5.4
-References: <20131013101333.GA25034@n2100.arm.linux.org.uk> <525A7797.6000605@gmail.com> <20131013111613.GC25034@n2100.arm.linux.org.uk>
-In-Reply-To: <20131013111613.GC25034@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <52590184.5030806@xs4all.nl>
+References: <1381362589-32237-1-git-send-email-sheu@google.com>
+	<1381362589-32237-4-git-send-email-sheu@google.com>
+	<52564DE6.6090709@xs4all.nl>
+	<CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com>
+	<CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
+	<52590184.5030806@xs4all.nl>
+Date: Sat, 12 Oct 2013 02:08:55 -0700
+Message-ID: <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com>
+Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for
+ VIDIOC_{G,S}_CROP to encoder
+From: John Sheu <sheu@google.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 13/10/2013 13:16, Russell King - ARM Linux ha scritto:
-> On Sun, Oct 13, 2013 at 12:36:07PM +0200, Gianluca Gennari wrote:
->> Il 13/10/2013 12:13, Russell King - ARM Linux ha scritto:
->>> v3.12-rc fails to build with this error:
->>>
->>> drivers/media/i2c/ths8200.c:49:2: error: unknown field 'bt' specified in initializer
->>> drivers/media/i2c/ths8200.c:50:3: error: field name not in record or union initializer
->>> drivers/media/i2c/ths8200.c:50:3: error: (near initialization for 'ths8200_timings_cap.reserved')
->>> drivers/media/i2c/ths8200.c:51:3: error: field name not in record or union initializer
->>> drivers/media/i2c/ths8200.c:51:3: error: (near initialization for 'ths8200_timings_cap.reserved')
->>> ...
->>>
->>> with gcc 4.5.4.  This error was not detected in builds prior to v3.12-rc.
->>> This patch fixes this.
->>
->> Hi Russel,
->> this error is already fixed by this patch:
->>
->> https://patchwork.linuxtv.org/patch/20002/
->>
->> that has been already accepted and is queued for kernel 3.12.
-> 
-> It would be a good idea to have the comment updated - given that gcc 4.5.4
-> also has a problem, it's not only a problem for gcc < 4.4.6 as that patch
-> claims.
-> 
+I thought you were not making sense for a bit.  Then I walked away,
+came back, and I think you're making sense now.  So:
 
-Yep, the fact is that there are 2 different compatibility problems:
-- gcc < 4.4.6 requires additional curly brackets to initialize anonymous
-structs (see v4l2-dv-timings.h);
-- some gcc version requires that structure members are initialized in
-the same order they are defined, even if you specify the member name;
+* Crop always refers to the source image
+* Compose always refers to the destination image
 
-The second issue is the one you are facing, but I don't know how to
-track it down to a specific gcc version. If you can get the exact
-version number and provide a patch, you're welcome!
+On Sat, Oct 12, 2013 at 1:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 10/12/2013 01:48 AM, John Sheu wrote:
+>> On Wed, Oct 9, 2013 at 11:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> In all cases, the crop boundary refers to the area in the source
+>> image; for a CAPTURE device, this is the (presumably analog) sensor,
+>
+> Correct.
+>
+>> and for an OUTPUT device, this is the memory buffer.
+>
+> Correct.
 
-Regards,
-Gianluca
+Here you are referring to the crop boundary, which is _not_ always
+what {G,S}_CROP refers to.  (Confusing part).  {G,S}_CROP refers to
+the crop boundary only for a CAPTURE queue.
+
+>> My particular
+>> case is a memory-to-memory device, with both CAPTURE and OUTPUT
+>> queues.  In this case, {G,S}_CROP on either the CAPTURE or OUTPUT
+>> queues should effect exactly the same operation: cropping on the
+>> source image, i.e. whatever image buffer I'm providing to the OUTPUT
+>> queue.
+>
+> Incorrect.
+>
+> S_CROP on an OUTPUT queue does the inverse: it refers to the area in
+> the sink image.
+
+This confused me for a bit (seeming contradiction with the above),
+until I realized that you're referring to the S_CROP ioctl here, which
+is _not_ the "crop boundary"; on an OUTPUT queue it refers to the
+compose boundary.
+
+> No, it adds the compose operation for capture and the crop operation for
+> output, and it uses the terms 'cropping' and 'composing' correctly
+> without the inversion that S_CROP introduced on the output side.
+>
+> Bottom line: S_CROP for capture is equivalent to S_SELECTION(V4L2_SEL_TGT_CROP).
+> S_CROP for output is equivalent to S_SELECTION(V4L2_SEL_TGT_COMPOSE).
+
+So yes.  By adding the {G,S}_SELECTION ioctls we can now refer to the
+compose boundary for CAPTURE, and crop boundary for OUTPUT.
+
+
+Now, here's a question.  It seems that for a mem2mem device, since
+{G,S}_CROP on the CAPTURE queue covers the crop boundary, and
+{G,S}_CROP on the OUTPUT queue capture the compose boundary, is there
+any missing functionality that {G,S}_SELECTION is covering here.  In
+other words: for a mem2mem device, the crop and compose boundaries
+should be identical for the CAPTURE and OUTPUT queues?
+
+-John Sheu
