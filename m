@@ -1,71 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58438 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755775Ab3J1UZ5 (ORCPT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:48257 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab3JLMc0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Oct 2013 16:25:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux@arm.linux.org.uk, mturquette@linaro.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, jiada_wang@mentor.com,
-	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	t.figa@samsung.com, g.liakhovetski@gmx.de,
-	linux-kernel@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-sh@vger.kernel.org, LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v6 0/5] clk: clock deregistration support
-Date: Mon, 28 Oct 2013 21:26:22 +0100
-Message-ID: <1918100.pYljUktTbF@avalon>
-In-Reply-To: <525D9FC1.2040204@gmail.com>
-References: <1377874402-2944-1-git-send-email-s.nawrocki@samsung.com> <3160771.O1gFkR91vK@avalon> <525D9FC1.2040204@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 12 Oct 2013 08:32:26 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 07/10] exynos-gsc: Configure default image format at device open()
+Date: Sat, 12 Oct 2013 14:31:57 +0200
+Message-Id: <1381581120-26883-8-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+There should be always some valid image format set on a video device.
 
-On Tuesday 15 October 2013 22:04:17 Sylwester Nawrocki wrote:
-> Hi,
-> 
-> (adding linux-media mailing list at Cc)
-> 
-> On 09/25/2013 11:47 AM, Laurent Pinchart wrote:
-> > On Tuesday 24 September 2013 23:38:44 Sylwester Nawrocki wrote:
-> [...]
-> 
-> >> The only issue I found might be at the omap3isp driver, which provides
-> >> clock to its sub-drivers and takes reference on the sub-driver modules.
-> >> When sub-driver calls clk_get() all modules would get locked in memory,
-> >> due to circular reference. One solution to that could be to pass NULL
-> >> struct device pointer, as in the below patch.
-> > 
-> > Doesn't that introduce race conditions ? If the sub-drivers require the
-> > clock, they want to be sure that the clock won't disappear beyond their
-> > backs. I agree that the circular dependency needs to be solved somehow,
-> > but we probably need a more generic solution. The problem will become
-> > more widespread in the future with DT-based device instantiation in both
-> > V4L2 and KMS.
-> 
-> I'm wondering whether subsystems and drivers itself should be written so
-> they deal with such dependencies they are aware of.
-> 
-> There is similar situation in the regulator API, regulator_get() simply
-> takes a reference on a module providing the regulator object.
-> 
-> Before a "more generic solution" is available, what do you think about
-> keeping obtaining a reference on a clock provider module in clk_get() and
-> doing clk_get(), clk_prepare_enable(), ..., clk_unprepare_disable(),
-> clk_put() in sub-driver whenever a clock is actively used, to avoid
-> permanent circular reference ?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |   34 ++++++++++++++++++++++++++-
+ 1 files changed, 33 insertions(+), 1 deletions(-)
 
-That's a workaround I can live with in the short term, as long as we work on a 
-generic solution to this problem. It will bite us back in the not too distant 
-future if we pretend to forget about it.
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index e576ff2..48e1c34 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -605,6 +605,32 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	return vb2_queue_init(dst_vq);
+ }
+ 
++static int gsc_m2m_set_default_format(struct gsc_ctx *ctx)
++{
++	struct v4l2_pix_format_mplane pixm = {
++		.pixelformat	= V4L2_PIX_FMT_RGB32,
++		.width		= 800,
++		.height		= 600,
++		.plane_fmt[0]	= {
++			.bytesperline = 800 * 4,
++			.sizeimage = 800 * 4 * 600,
++		},
++	};
++	const struct gsc_fmt *fmt;
++
++	fmt = find_fmt(&pixm.pixelformat, NULL, 0);
++	if (!fmt)
++		return -EINVAL;
++
++	gsc_set_frame_size(&ctx->s_frame, pixm.width, pixm.height);
++	ctx->s_frame.payload[0] = pixm.plane_fmt[0].sizeimage;
++
++	gsc_set_frame_size(&ctx->d_frame, pixm.width, pixm.height);
++	ctx->d_frame.payload[0] = pixm.plane_fmt[0].sizeimage;
++
++	return 0;
++}
++
+ static int gsc_m2m_open(struct file *file)
+ {
+ 	struct gsc_dev *gsc = video_drvdata(file);
+@@ -638,7 +664,7 @@ static int gsc_m2m_open(struct file *file)
+ 	ctx->d_frame.fmt = get_format(0);
+ 	/* Setup the device context for mem2mem mode. */
+ 	ctx->state = GSC_CTX_M2M;
+-	ctx->flags = 0;
++	ctx->flags = GSC_PARAMS;
+ 	ctx->in_path = GSC_DMA;
+ 	ctx->out_path = GSC_DMA;
+ 
+@@ -652,11 +678,17 @@ static int gsc_m2m_open(struct file *file)
+ 	if (gsc->m2m.refcnt++ == 0)
+ 		set_bit(ST_M2M_OPEN, &gsc->state);
+ 
++	ret = gsc_m2m_set_default_format(ctx);
++	if (ret)
++		goto error_m2m_rel;
++
+ 	pr_debug("gsc m2m driver is opened, ctx(0x%p)", ctx);
+ 
+ 	mutex_unlock(&gsc->lock);
+ 	return 0;
+ 
++error_m2m_rel:
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ error_ctrls:
+ 	gsc_ctrls_delete(ctx);
+ error_fh:
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
