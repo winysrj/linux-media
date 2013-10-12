@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:59646 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:58393 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752085Ab3JYJ5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Oct 2013 05:57:15 -0400
-Received: from [192.168.0.22] ([79.215.137.247]) by mail.gmx.com (mrgmx003)
- with ESMTPSA (Nemesis) id 0ML7NR-1VZvFw0SR7-000Jat for
- <linux-media@vger.kernel.org>; Fri, 25 Oct 2013 11:57:13 +0200
-Message-ID: <526A4090.6020008@gmx.net>
-Date: Fri, 25 Oct 2013 11:57:36 +0200
-From: JPT <j-p-t@gmx.net>
-MIME-Version: 1.0
-To: =?windows-1252?Q?Honza_Petrou=9A?= <jpetrous@gmail.com>
-CC: Jannis <jannis-lists@kripserver.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: NAS for recording DVB-S2
-References: <52663659.3040205@gmx.net> <526A1864.7020800@kripserver.net> <CAJbz7-1J2=Fz7sB0Uu2iCEDG-MNiJWJPQgbFN7XQHZsCFohK1A@mail.gmail.com>
-In-Reply-To: <CAJbz7-1J2=Fz7sB0Uu2iCEDG-MNiJWJPQgbFN7XQHZsCFohK1A@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	id S1755024Ab3JLBUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Oct 2013 21:20:16 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/3] em28xx: MaxMedia UB425-TC offer firmware for demodulator
+Date: Sat, 12 Oct 2013 04:19:59 +0300
+Message-Id: <1381540801-23645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Downloading new firmware for DRX-K demodulator is not obligatory but
+usually it offers important bug fixes compared to default firmware
+burned into chip rom. DRX-K demod driver will continue even without
+the firmware, but in that case it will print warning to system log
+to tip user he should install firmware.
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Am 25.10.2013 09:46, schrieb Honza Petrouš:
-> 2013/10/25 Jannis <jannis-lists@kripserver.net>:
->> Hi,
->>
->> Am 22.10.2013 10:24, schrieb JPT:
->>> I want my NAS to record from USB DVB-S2.
->>> [...]
->>> I should buy either a Tevii S660 or a Terratec Cynergy S2 Stick.
->>>
->>> I don't want to have another power supply, so I am going to "steal" the
->>> power from the nas somehow.
->>> The Tevii uses 7,5 V which is odd...
->>> I cannot find the voltage the Terratec requires. Does anyone own one?
->>
->> Yesterday I recommended the Technisat SkyStar USB HD to s.o. else on
->> this list. Though I'm not beeing employed by or affiliated with
->> Technisat, you might also want to consider it:
->> http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
->> The driver is in mainline kernel (no patching' around), should work well
->> with ARM (If you want me to test it, I could. There are several
->> ARM-boards (armv6j-hf, armv7-hf) floating around here, I just didn't yet
->> bother to try).
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index bb1e8dc..f8a2212 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -384,6 +384,8 @@ static struct drxk_config maxmedia_ub425_tc_drxk = {
+ 	.adr = 0x29,
+ 	.single_master = 1,
+ 	.no_i2c_bridge = 1,
++	.microcode_name = "dvb-demod-drxk-01.fw",
++	.chunk_size = 62,
+ 	.load_firmware_sync = true,
+ };
+ 
+@@ -1234,11 +1236,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 				goto out_free;
+ 			}
+ 		}
+-
+-		/* TODO: we need drx-3913k firmware in order to support DVB-T */
+-		em28xx_info("MaxMedia UB425-TC/Delock 61959: only DVB-C " \
+-				"supported by that driver version\n");
+-
+ 		break;
+ 	case EM2884_BOARD_PCTV_510E:
+ 	case EM2884_BOARD_PCTV_520E:
+-- 
+1.8.3.1
 
-Thanks, I will give it a try.
-This device wasn't listed at my favorite price comparison agent, only
-the successor "TechniSat SkyStar USB 2 HD CI" (which doesn't work with
-linux) at nearly double price.
-
-I think I will trust both your statements that it's likeley to work, so
-it's not necessary to test. Thanks. :)
-
->> The power-supply reads 12V, 1.5A for one device. As you didn't state at
->> what voltage your NAS runs at, it might just fit or be too high (the 12
->> Volts) for your application. I have a slightly larger NAS (more a less a
->> full blown PC with low-enery components) and I power two of the
->> technisat's off the PC's power supply's 12V rail.
-
-12 V should be fine. Any device powering hard-drives should offer 12 V
-somewhere.
-
-> From linux perspective, the ARM architecture is very stable. At least
-> I have never had any problem running anything on linux-arm devices.
-> For you solution you have to check if USB subsystem on your device
-> is working stable enough, especially if you are sharing the same
-> USB bus with other speedy devices (like external hard drive or so).
-
-great, thanks!
-I won't have any other devices attached that generate a lot of traffic.
-I believe USB 2.0 and USB 3.0 busses are separate, so it would be a good
-solution to use one for DVB and the other for anything else in case
-problems occur.
-Currently there doesn't exist a kernel for the NAS yet, so I cannot test.
-
-regars,
-
-Jan
