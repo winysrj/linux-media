@@ -1,168 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:56174 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751283Ab3JMFto (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:41937 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338Ab3JLDqF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 01:49:44 -0400
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] [media] misc drivers: remove deprecated IRQF_DISABLED
-Date: Sun, 13 Oct 2013 07:49:29 +0200
-Message-Id: <1381643369-8611-1-git-send-email-michael.opdenacker@free-electrons.com>
+	Fri, 11 Oct 2013 23:46:05 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MUJ007YHEGROU10@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Oct 2013 23:46:03 -0400 (EDT)
+Date: Sat, 12 Oct 2013 06:45:55 +0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+Message-id: <20131012064555.380f692e.m.chehab@samsung.com>
+In-reply-to: <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
+References: <520E76E7.30201@googlemail.com>
+ <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost>
+ <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com>
+ <52543116.60509@googlemail.com>
+ <Pine.LNX.4.64.1310081834030.31629@axis700.grange>
+ <5256ACB9.6030800@googlemail.com>
+ <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch proposes to remove the use of the IRQF_DISABLED flag
+Em Thu, 10 Oct 2013 15:50:15 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-It's a NOOP since 2.6.35 and it will be removed one day.
+> Hi Frank,
+> 
+> On Thu, 10 Oct 2013, Frank Schäfer wrote:
+> 
+> > Am 08.10.2013 18:38, schrieb Guennadi Liakhovetski:
+> > > Hi Frank,
+> > >
+> > > On Tue, 8 Oct 2013, Frank SchÃ€fer wrote:
+> > >
+> > >> Am 18.08.2013 17:20, schrieb Mauro Carvalho Chehab:
+> > >>> Em Sun, 18 Aug 2013 13:40:25 +0200
+> > >>> Frank SchÃ€fer <fschaefer.oss@googlemail.com> escreveu:
+> > >>>
+> > >>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
+> > >>>>> Hi Frank,
+> > >>>>> As I mentioned on the list, I'm currently on a holiday, so, replying briefly. 
+> > >>>> Sorry, I missed that (can't read all mails on the list).
+> > >>>>
+> > >>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to its components including the ov2640 sensor. So, yes, I think the driver should export a V4L2 clock.
+> > >>>> Ok, so it's mandatory on purpose ?
+> > >>>> I'll take a deeper into the v4l2-clk code and the
+> > >>>> em28xx/ov2640/soc-camera interaction this week.
+> > >>>> Have a nice holiday !
+> > >>> commit 9aea470b399d797e88be08985c489855759c6c60
+> > >>> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >>> Date:   Fri Dec 21 13:01:55 2012 -0300
+> > >>>
+> > >>>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
+> > >>>     
+> > >>>     Instead of centrally enabling and disabling subdevice master clocks in
+> > >>>     soc-camera core, let subdevice drivers do that themselves, using the
+> > >>>     V4L2 clock API and soc-camera convenience wrappers.
+> > >>>     
+> > >>>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >>>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > >>>
+> > >>>
+> > >>> (c/c the ones that acked with this broken changeset)
+> > >>>
+> > >>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
+> > >>> cameras are currently broken on 3.10.
+> > >>>
+> > >>> I'll also reject other ports to the async API if the drivers are
+> > >>> used outside an embedded driver, as no PC driver currently defines 
+> > >>> any clock source. The same applies to regulators.
+> > >>>
+> > >>> Guennadi,
+> > >>>
+> > >>> Next time, please check if the i2c drivers are used outside soc_camera
+> > >>> and apply the fixes where needed, as no regressions are allowed.
+> > >>>
+> > >>> Regards,
+> > >>> Mauro
+> > >> FYI: 8 weeks have passed by now and this regression has still not been
+> > >> fixed.
+> > >> Does anybody care about it ? WONTFIX ?
+> > > You replied to my patch "em28xx: balance subdevice power-off calls" with a 
+> > > few non-essential IMHO comments but you didn't test it.
+> > 
+> > Non-essential comments ?
+> > Maybe you disagree or don't care about them, but that's something different.
+> 
+> Firstly, I did say "IMHO," didn't I? Secondly, sure, let's have a look at 
+> them:
+> 
+> "I wonder if we should make the (s_power, 1) call part of em28xx_wake_i2c()."
+> 
+> Is this an essential comment? Is it essential where to put an operation 
+> after a function or after it?
+> 
+> "em28xx_set_mode() calls em28xx_gpio_set(dev,
+> INPUT(dev->ctl_input)->gpio) and I'm not sure if this could disable
+> subdevice power again..."
+> 
+> You aren't sure about that. Me neither, so, there's no evidence 
+> whatsoever. This is just a guess. And I would consider switching subdevice 
+> power in a *_set_mode() function by explicitly toggling a GPIO in 
+> presence of proper APIs... not the best design perhaps. I consider this 
+> comment non-essential too then.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
----
- drivers/media/pci/bt8xx/bt878.c          | 3 +--
- drivers/media/pci/bt8xx/bttv-driver.c    | 2 +-
- drivers/media/pci/cx23885/cx23885-core.c | 2 +-
- drivers/media/pci/cx88/cx88-alsa.c       | 2 +-
- drivers/media/pci/cx88/cx88-mpeg.c       | 2 +-
- drivers/media/pci/cx88/cx88-video.c      | 2 +-
- drivers/media/pci/meye/meye.c            | 2 +-
- drivers/media/pci/saa7134/saa7134-alsa.c | 2 +-
- drivers/media/pci/saa7134/saa7134-core.c | 2 +-
- drivers/media/pci/saa7164/saa7164-core.c | 2 +-
- 10 files changed, 10 insertions(+), 11 deletions(-)
+Changing the input will likely power on the device. The design of the
+old suspend callback were to call it when the device is not being used.
+Any try to use the device makes it to wake up, as it makes no sense to
+use a device in standby state.
 
-diff --git a/drivers/media/pci/bt8xx/bt878.c b/drivers/media/pci/bt8xx/bt878.c
-index 66eb0ba..c2c8752 100644
---- a/drivers/media/pci/bt8xx/bt878.c
-+++ b/drivers/media/pci/bt8xx/bt878.c
-@@ -488,8 +488,7 @@ static int bt878_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	btwrite(0, BT848_INT_MASK);
- 
- 	result = request_irq(bt->irq, bt878_irq,
--			     IRQF_SHARED | IRQF_DISABLED, "bt878",
--			     (void *) bt);
-+			     IRQF_SHARED, "bt878", (void *) bt);
- 	if (result == -EINVAL) {
- 		printk(KERN_ERR "bt878(%d): Bad irq number or handler\n",
- 		       bt878_num);
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index c6532de..a3b1ee9 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -4086,7 +4086,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	/* disable irqs, register irq handler */
- 	btwrite(0, BT848_INT_MASK);
- 	result = request_irq(btv->c.pci->irq, bttv_irq,
--	    IRQF_SHARED | IRQF_DISABLED, btv->c.v4l2_dev.name, (void *)btv);
-+	    IRQF_SHARED, btv->c.v4l2_dev.name, (void *)btv);
- 	if (result < 0) {
- 		pr_err("%d: can't get IRQ %d\n",
- 		       bttv_num, btv->c.pci->irq);
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 9f63d93..edcd79d 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -2129,7 +2129,7 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	}
- 
- 	err = request_irq(pci_dev->irq, cx23885_irq,
--			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-+			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n",
- 		       dev->name, pci_dev->irq);
-diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
-index aba5b1c..b2e519a 100644
---- a/drivers/media/pci/cx88/cx88-alsa.c
-+++ b/drivers/media/pci/cx88/cx88-alsa.c
-@@ -834,7 +834,7 @@ static int snd_cx88_create(struct snd_card *card, struct pci_dev *pci,
- 
- 	/* get irq */
- 	err = request_irq(chip->pci->irq, cx8801_irq,
--			  IRQF_SHARED | IRQF_DISABLED, chip->core->name, chip);
-+			  IRQF_SHARED, chip->core->name, chip);
- 	if (err < 0) {
- 		dprintk(0, "%s: can't get IRQ %d\n",
- 		       chip->core->name, chip->pci->irq);
-diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-index 2d3507e..11da03e 100644
---- a/drivers/media/pci/cx88/cx88-mpeg.c
-+++ b/drivers/media/pci/cx88/cx88-mpeg.c
-@@ -499,7 +499,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
- 
- 	/* get irq */
- 	err = request_irq(dev->pci->irq, cx8802_irq,
--			  IRQF_SHARED | IRQF_DISABLED, dev->core->name, dev);
-+			  IRQF_SHARED, dev->core->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n",
- 		       dev->core->name, dev->pci->irq);
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index ecf21d9..2769485 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1738,7 +1738,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	/* get irq */
- 	err = request_irq(pci_dev->irq, cx8800_irq,
--			  IRQF_SHARED | IRQF_DISABLED, core->name, dev);
-+			  IRQF_SHARED, core->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s/0: can't get IRQ %d\n",
- 		       core->name,pci_dev->irq);
-diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-index 2381b05..54d5c82 100644
---- a/drivers/media/pci/meye/meye.c
-+++ b/drivers/media/pci/meye/meye.c
-@@ -1698,7 +1698,7 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
- 
- 	meye.mchip_irq = pcidev->irq;
- 	if (request_irq(meye.mchip_irq, meye_irq,
--			IRQF_DISABLED | IRQF_SHARED, "meye", meye_irq)) {
-+			IRQF_SHARED, "meye", meye_irq)) {
- 		v4l2_err(v4l2_dev, "request_irq failed\n");
- 		goto outreqirq;
- 	}
-diff --git a/drivers/media/pci/saa7134/saa7134-alsa.c b/drivers/media/pci/saa7134/saa7134-alsa.c
-index dbcdfbf..dd67c8a 100644
---- a/drivers/media/pci/saa7134/saa7134-alsa.c
-+++ b/drivers/media/pci/saa7134/saa7134-alsa.c
-@@ -1096,7 +1096,7 @@ static int alsa_card_saa7134_create(struct saa7134_dev *dev, int devnum)
- 
- 
- 	err = request_irq(dev->pci->irq, saa7134_alsa_irq,
--				IRQF_SHARED | IRQF_DISABLED, dev->name,
-+				IRQF_SHARED, dev->name,
- 				(void*) &dev->dmasound);
- 
- 	if (err < 0) {
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 45f0aca..27d7ee7 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -992,7 +992,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 
- 	/* get irq */
- 	err = request_irq(pci_dev->irq, saa7134_irq,
--			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-+			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n",
- 		       dev->name,pci_dev->irq);
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index d37ee37..6759c2b 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -1232,7 +1232,7 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
- 	}
- 
- 	err = request_irq(pci_dev->irq, saa7164_irq,
--		IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-+		IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n", dev->name,
- 			pci_dev->irq);
+Also, changing the power states is a requirement, when switching the
+mode between analog, digital TV (or capture without tuner - although I
+think em28xx will turn the analog tuner on in this case, even not being
+required).
+
+The patches that just rename the previous standby callback to s_power 
+callback did a crap job, as it didn't consider the nuances of the API
+used on that time nor they didn't change the drivers to move the GPIO
+bits into s_power().
+
+Looking with today's view, it would likely be better if those patches
+were just adding a power callback without touching the standby callback.
+
+I suspect that the solution would be to fork s_power into two different
+callbacks: one asymetric to just put the device into suspend mode (as
+before), and another symmetric one, where the device needs to be explicitly
+enabled before its usage and disabled at suspend or driver exit.
+
+> 
+> "Hmm... your patch didn't change this, but:
+> Why do we call these functions only in case of V4L2_BUF_TYPE_VIDEO_CAPTURE ?
+> Isn't it needed for VBI capturing, too ?
+> em28xx_wake_i2c() is probably also needed for radio mode..."
+> 
+> Right, my patch doesn't change this, so, this is unrelated.
+> 
+> Have I missed anything?
+> 
+> > > Could you test, please?
+> > 
+> > Yes, this patch will make the warnings disappear and works at least for
+> > my em28xx+ov2640 device.
+> 
+> Good, thanks for testing!
+> 
+> > What about Mauros an my concerns with regards to all other em28xx devices ?
+> 
+> This is still under discussion:
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg66566.html
+> 
+> > And what about the em28xx v4l2-clk patches ?
+> 
+> Their acceptance is related to the above.
+> 
+> Thanks
+> Guennadi
+> 
+> > It's pretty simple: someone (usually the maintainer ;) ) needs to decide
+> > which way to go.
+> > Either accept and apply the existing patches or request new ones with
+> > changes.
+> > But IMHO doing nothing for 2 months isn't the right way to handle
+> > regressions.
+> > 
+> > Regards,
+> > Frank
+> > 
+> > > In the meantime I'm still waiting for more comments to my "[RFD] 
+> > > use-counting V4L2 clocks" mail, so far only Sylwester has replied. Without 
+> > > all these we don't seem to progress very well.
+> > >
+> > > Thanks
+> > > Guennadi
+> > >
+> > >>>>> -----Original Message-----
+> > >>>>> From: "Frank SchÃ€fer" <fschaefer.oss@googlemail.com>
+> > >>>>> To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>
+> > >>>>> Sent: Fr., 16 Aug 2013 21:03
+> > >>>>> Subject: em28xx + ov2640 and v4l2-clk
+> > >>>>>
+> > >>>>> Hi Guennadi,
+> > >>>>>
+> > >>>>> since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
+> > >>>>> switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
+> > >>>>> to register the ov2640 subdevice (if needed).
+> > >>>>> The reason is that v4l2_clk_get() fails in ov2640_probe().
+> > >>>>> Does the em28xx driver have to register a (pseudo ?) clock first ?
+> > >>>>>
+> > >>>>> Regards,
+> > >>>>> Frank
+> > > ---
+> > > Guennadi Liakhovetski, Ph.D.
+> > > Freelance Open-Source Software Developer
+> > > http://www.open-technology.de/
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+
 -- 
-1.8.1.2
 
+Cheers,
+Mauro
