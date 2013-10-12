@@ -1,168 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m07.mx.aol.com ([64.12.143.81]:43268 "EHLO
-	omr-m07.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174Ab3JDTH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 15:07:27 -0400
-Message-ID: <524F0F57.5020605@netscape.net>
-Date: Fri, 04 Oct 2013 15:56:23 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
-MIME-Version: 1.0
-To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>,
-	linux-media@vger.kernel.org,
-	=?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.m@email.cz>
-Subject: Re: cx23885: Add basic analog radio support
-References: <CAEN_-SBR5qGJfUk6h+n04Q4zP-zofiLO+Jr6pOBJU2nqYBuDWQ@mail.gmail.com>
-In-Reply-To: <CAEN_-SBR5qGJfUk6h+n04Q4zP-zofiLO+Jr6pOBJU2nqYBuDWQ@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------060506000907060905090002"
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:32869 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706Ab3JLMiz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Oct 2013 08:38:55 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2.1 01/10] V4L: Add mem2mem ioctl and file operation helpers
+Date: Sat, 12 Oct 2013 14:38:38 +0200
+Message-Id: <1381581518-7022-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1381581120-26883-2-git-send-email-s.nawrocki@samsung.com>
+References: <1381581120-26883-2-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060506000907060905090002
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+This patch adds ioctl helpers to the V4L2 mem-to-mem API, so we can avoid
+several ioctl handlers in the mem-to-mem video node drivers that are simply
+a pass-through to the v4l2_m2m_* calls. These helpers will only be useful
+for drivers that use same mutex for both OUTPUT and CAPTURE queue, which
+is the case for all currently in tree v4l2 m2m drivers. In order to use
+the helpers the drivers are required to use struct v4l2_fh.
 
-Hi all
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Changes since v1:
+ - added v4l2_m2m_ioctl_create_buf().
 
+This time with the whitespace adjustments I missed to merge into
+the first patch.
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c |  126 ++++++++++++++++++++++++++++++++
+ include/media/v4l2-fh.h                |    4 +
+ include/media/v4l2-mem2mem.h           |   24 ++++++
+ 3 files changed, 154 insertions(+), 0 deletions(-)
 
-El 14/01/12 15:25, Miroslav Slugeň escribió:
-> New version of patch, fixed video modes for DVR3200 tuners and working
-> audio mux.
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 7c43712..7494ee3 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -544,6 +544,8 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
 
-I tested this patch (https://linuxtv.org/patch/9498/) with the latest 
-versions of git (September 28, 2013) with my TV card (Mygica X8507) and 
-it works.
-I found some issue, although it may be through a bad implementation of mine.
+ 	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
+ 		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
++	else if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
 
-Details of them:
+ 	if (list_empty(&src_q->done_list))
+ 		poll_wait(file, &src_q->done_wq, wait);
+@@ -552,6 +554,8 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
 
-1) Some warning when compiling
+ 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+ 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
++	else if (m2m_ctx->q_lock)
++		mutex_lock(m2m_ctx->q_lock);
 
-...
-   CC [M] 
-/home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.o
-/home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1910:8: 
-: initialization from incompatible pointer type [enabled by default]
-/home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1910:8: 
-warning: (near initialization for 'radio_ioctl_ops.vidioc_s_tuner') 
-[enabled by default]
-/home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1911:8: 
-warning: initialization from incompatible pointer type [enabled by default]
-/home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1911:8: 
-warning: (near initialization for 'radio_ioctl_ops.vidioc_s_audio') 
-[enabled by default]
-   CC [M] /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-vbi.o
-...
+ 	spin_lock_irqsave(&src_q->done_lock, flags);
+ 	if (!list_empty(&src_q->done_list))
+@@ -679,6 +683,13 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
 
---------------------------------------------------------
-static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	if (ret)
+ 		goto err;
++	/*
++	 * If both queues use same mutex assign it as the common buffer
++	 * queues lock to the m2m context. This lock is used in the
++	 * v4l2_m2m_ioctl_* helpers.
++	 */
++	if (out_q_ctx->q.lock == cap_q_ctx->q.lock)
++		m2m_ctx->q_lock = out_q_ctx->q.lock;
 
-        .vidioc_s_tuner       = radio_s_tuner, /* line 1910 */
-        .vidioc_s_audio       = radio_s_audio, /* line 1911 */
+ 	return m2m_ctx;
+ err:
+@@ -726,3 +737,118 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
 
---------------------------------------------------------
-
-2)
-No reports signal strength or stereo signal with KRadio. XC5000 neither 
-reported (modprobe xc5000 debug=1). Maybe a feature XC5000.
-To listen in stereo, sometimes, you have to turn on the Digital TV then 
-Analog TV and then radio.
-
-3)
-To listen Analog TV I need changed to NTSC standard and then PAL-Nc (the 
-norm in my country is PAL-Nc). If I leave the tune in NTSC no problem 
-with sound.
-The patch (https://linuxtv.org/patch/9505/) corrects the latter, if used 
-tvtime with xawtv not always.
-If I see-Digital TV (ISDB-T), then so as to listen the radio I have 
-first put the TV-Analog, because I hear very low and a strong white noise.
-The latter is likely to be corrected by resetting the tuner, I have to 
-study it more.
-
-I put below attached the patch applied to the plate: X8507.
-
-Have you done any update of this patch?
-
-Thanks
-
---------------060506000907060905090002
-Content-Type: text/x-patch;
- name="X8507-radio.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="X8507-radio.patch"
-
- .../media/pci/cx23885/{ => }/media/pci/cx23885/cx23885-cards.c   |    6 ++++++
- drivers/media/pci/cx23885/{ => }/media/pci/cx23885/cx23885-dvb.c |    1 +
- 2 files changed, 7 insertions(+)
-
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 6a71a96..324809a 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -526,16 +526,18 @@ struct cx23885_board cx23885_boards[] = {
- 			.amux   = CX25840_AUDIO7,
- 			.gpio0  = 0,
- 		} },
- 	},
- 	[CX23885_BOARD_MYGICA_X8507] = {
- 		.name		= "Mygica X8502/X8507 ISDB-T",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
-+		.radio_type	= TUNER_XC5000,
-+		.radio_addr	= 0x61,
- 		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
- 		.input		= {
- 			{
- 				.type   = CX23885_VMUX_TELEVISION,
- 				.vmux   = CX25840_COMPOSITE2,
- 				.amux   = CX25840_AUDIO8,
-@@ -555,16 +557,20 @@ struct cx23885_board cx23885_boards[] = {
- 				.type   = CX23885_VMUX_COMPONENT,
- 				.vmux   = CX25840_COMPONENT_ON |
- 					CX25840_VIN1_CH1 |
- 					CX25840_VIN6_CH2 |
- 					CX25840_VIN7_CH3,
- 				.amux   = CX25840_AUDIO7,
- 			},
- 		},
-+		.radio = {
-+				.type= CX23885_RADIO,
-+				.amux= CX25840_AUDIO8,
-+			},
- 	},
- 	[CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
- 		.name		= "TerraTec Cinergy T PCIe Dual",
- 		.portb		= CX23885_MPEG_DVB,
- 		.portc		= CX23885_MPEG_DVB,
- 	},
- 	[CX23885_BOARD_TEVII_S471] = {
- 		.name		= "TeVii S471",
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 971e4ff..4e946b2 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -495,16 +495,17 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
- 
- static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
- 	.demod_address = 0x10,
++/* Videobuf2 ioctl helpers */
++
++int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
++				struct v4l2_requestbuffers *rb)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_reqbufs(file, fh->m2m_ctx, rb);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_reqbufs);
++
++int v4l2_m2m_ioctl_create_bufs(struct file *file, void *priv,
++				struct v4l2_create_buffers *create)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_create_bufs(file, fh->m2m_ctx, create);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_create_bufs);
++
++int v4l2_m2m_ioctl_querybuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_querybuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_querybuf);
++
++int v4l2_m2m_ioctl_qbuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_qbuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_qbuf);
++
++int v4l2_m2m_ioctl_dqbuf(struct file *file, void *priv,
++				struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_dqbuf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_dqbuf);
++
++int v4l2_m2m_ioctl_expbuf(struct file *file, void *priv,
++				struct v4l2_exportbuffer *eb)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_expbuf(file, fh->m2m_ctx, eb);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_expbuf);
++
++int v4l2_m2m_ioctl_streamon(struct file *file, void *priv,
++				enum v4l2_buf_type type)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_streamon(file, fh->m2m_ctx, type);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamon);
++
++int v4l2_m2m_ioctl_streamoff(struct file *file, void *priv,
++				enum v4l2_buf_type type)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_streamoff(file, fh->m2m_ctx, type);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamoff);
++
++/*
++ * v4l2_file_operations helpers. It is assumed here same lock is used
++ * for the output and the capture buffer queue.
++ */
++
++int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
++	int ret;
++
++	if (m2m_ctx->q_lock && mutex_lock_interruptible(m2m_ctx->q_lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_mmap(file, m2m_ctx, vma);
++
++	if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_fop_mmap);
++
++unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait)
++{
++	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
++	unsigned int ret;
++
++	if (m2m_ctx->q_lock)
++		mutex_lock(m2m_ctx->q_lock);
++
++	ret = v4l2_m2m_poll(file, m2m_ctx, wait);
++
++	if (m2m_ctx->q_lock)
++		mutex_unlock(m2m_ctx->q_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_fop_poll);
++
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index a62ee18..d942f79 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -43,6 +43,10 @@ struct v4l2_fh {
+ 	struct list_head	available; /* Dequeueable event */
+ 	unsigned int		navailable;
+ 	u32			sequence;
++
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++	struct v4l2_m2m_ctx	*m2m_ctx;
++#endif
  };
- 
- static struct xc5000_config mygica_x8507_xc5000_config = {
- 	.i2c_address = 0x61,
- 	.if_khz = 4000,
-+	.radio_input = XC5000_RADIO_FM1,
- };
- 
- static struct stv090x_config prof_8000_stv090x_config = {
- 	.device                 = STV0903,
- 	.demod_mode             = STV090x_SINGLE,
- 	.clk_mode               = STV090x_CLK_EXT,
- 	.xtal                   = 27000000,
- 	.address                = 0x6A,
 
---------------060506000907060905090002--
+ /*
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 44542a2..12ea5a6 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -64,6 +64,9 @@ struct v4l2_m2m_queue_ctx {
+ };
+
+ struct v4l2_m2m_ctx {
++	/* optional cap/out vb2 queues lock */
++	struct mutex			*q_lock;
++
+ /* private: internal use only */
+ 	struct v4l2_m2m_dev		*m2m_dev;
+
+@@ -229,5 +232,26 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
+ }
+
++/* v4l2 ioctl helpers */
++
++int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
++				struct v4l2_requestbuffers *rb);
++int v4l2_m2m_ioctl_create_bufs(struct file *file, void *fh,
++				struct v4l2_create_buffers *create);
++int v4l2_m2m_ioctl_querybuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_expbuf(struct file *file, void *fh,
++				struct v4l2_exportbuffer *eb);
++int v4l2_m2m_ioctl_qbuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_dqbuf(struct file *file, void *fh,
++				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_streamon(struct file *file, void *fh,
++				enum v4l2_buf_type type);
++int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
++				enum v4l2_buf_type type);
++int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma);
++unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait);
++
+ #endif /* _MEDIA_V4L2_MEM2MEM_H */
+
+--
+1.7.4.1
+
