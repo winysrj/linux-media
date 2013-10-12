@@ -1,192 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58016 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753753Ab3JMI4Z (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:44316 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752558Ab3JLMcY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 04:56:25 -0400
-Date: Sun, 13 Oct 2013 11:56:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Kim, Milo" <Milo.Kim@ti.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"hj210.choi@samsung.com" <hj210.choi@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>
-Subject: Re: [RFC 0/2] V4L2 API for exposing flash subdevs as LED class device
-Message-ID: <20131013085619.GB7584@valkosipuli.retiisi.org.uk>
-References: <1367832828-30771-1-git-send-email-a.hajda@samsung.com>
- <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
- <1958801.k4UEk5OhXt@avalon>
- <5189FF81.5030405@samsung.com>
- <20130512211244.GC6748@valkosipuli.retiisi.org.uk>
- <519B31AD.90408@samsung.com>
- <20130521105436.GB2041@valkosipuli.retiisi.org.uk>
- <CAK5ve-LLkGtG9hVcsJgbgT+O-rdhOLNEw-eONSbJWs7aNJ0NOQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK5ve-LLkGtG9hVcsJgbgT+O-rdhOLNEw-eONSbJWs7aNJ0NOQ@mail.gmail.com>
+	Sat, 12 Oct 2013 08:32:24 -0400
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, pawel@osciak.com,
+	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 06/10] mx2-emmaprp: Use mem-to-mem ioctl helpers
+Date: Sat, 12 Oct 2013 14:31:56 +0200
+Message-Id: <1381581120-26883-7-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+Simplify the driver by using the m2m ioctl and vb2 helpers.
 
-On Thu, Oct 10, 2013 at 05:07:22PM -0700, Bryan Wu wrote:
-> On Tue, May 21, 2013 at 3:54 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Hi Andrzej,
-> >
-> > On Tue, May 21, 2013 at 10:34:53AM +0200, Andrzej Hajda wrote:
-> >> On 12.05.2013 23:12, Sakari Ailus wrote:
-> >> > On Wed, May 08, 2013 at 09:32:17AM +0200, Andrzej Hajda wrote:
-> >> >> On 07.05.2013 17:07, Laurent Pinchart wrote:
-> >> >>> On Tuesday 07 May 2013 02:11:27 Kim, Milo wrote:
-> >> >>>> On Monday, May 06, 2013 6:34 PM Andrzej Hajda wrote:
-> >> >>>>> This RFC proposes generic API for exposing flash subdevices via LED
-> >> >>>>> framework.
-> >> >>>>>
-> >> >>>>> Rationale
-> >> >>>>>
-> >> >>>>> Currently there are two frameworks which are used for exposing LED
-> >> >>>>> flash to user space:
-> >> >>>>> - V4L2 flash controls,
-> >> >>>>> - LED framework(with custom sysfs attributes).
-> >> >>>>>
-> >> >>>>> The list below shows flash drivers in mainline kernel with initial
-> >> >>>>> commit date and typical chip application (according to producer):
-> >> >>>>>
-> >> >>>>> LED API:
-> >> >>>>>     lm3642: 2012-09-12, Cameras
-> >> >>>>>     lm355x: 2012-09-05, Cameras
-> >> >>>>>     max8997: 2011-12-14, Cameras (?)
-> >> >>>>>     lp3944: 2009-06-19, Cameras, Lights, Indicators, Toys
-> >> >>>>>     pca955x: 2008-07-16, Cameras, Indicators (?)
-> >> >>>>>
-> >> >>>>> V4L2 API:
-> >> >>>>>     as3645a:  2011-05-05, Cameras
-> >> >>>>>     adp1653: 2011-05-05, Cameras
-> >> >>>>>
-> >> >>>>> V4L2 provides richest functionality, but there is often demand from
-> >> >>>>> application developers to provide already established LED API. We would
-> >> >>>>> like to have an unified user interface for flash devices. Some of devices
-> >> >>>>> already have the LED API driver exposing limited set of a Flash IC
-> >> >>>>> functionality. In order to support all required features the LED API
-> >> >>>>> would have to be extended or the V4L2 API would need to be used. However
-> >> >>>>> when switching from a LED to a V4L2 Flash driver existing LED API
-> >> >>>>> interface would need to be retained.
-> >> >>>>>
-> >> >>>>> Proposed solution
-> >> >>>>>
-> >> >>>>> This patch adds V4L2 helper functions to register existing V4L2 flash
-> >> >>>>> subdev as LED class device. After registration via v4l2_leddev_register
-> >> >>>>> appropriate entry in /sys/class/leds/ is created. During registration all
-> >> >>>>> V4L2 flash controls are enumerated and corresponding attributes are added.
-> >> >>>>>
-> >> >>>>> I have attached also patch with new max77693-led driver using v4l2_leddev.
-> >> >>>>> This patch requires presence of the patch "max77693: added device tree
-> >> >>>>> support": https://patchwork.kernel.org/patch/2414351/ .
-> >> >>>>>
-> >> >>>>> Additional features
-> >> >>>>>
-> >> >>>>> - simple API to access all V4L2 flash controls via sysfs,
-> >> >>>>> - V4L2 subdevice should not be registered by V4L2 device to use it,
-> >> >>>>> - LED triggers API can be used to control the device,
-> >> >>>>> - LED device is optional - it will be created only if V4L2_LEDDEV
-> >> >>>>>   configuration option is enabled and the subdev driver calls
-> >> >>>>>   v4l2_leddev_register.
-> >> >>>>>
-> >> >>>>> Doubts
-> >> >>>>>
-> >> >>>>> This RFC is a result of a uncertainty which API developers should expose
-> >> >>>>> by their flash drivers. It is a try to gluing together both APIs. I am not
-> >> >>>>> sure if it is the best solution, but I hope there will be some discussion
-> >> >>>>> and hopefully some decisions will be taken which way we should follow.
-> >> >>>> The LED subsystem provides similar APIs for the Camera driver.
-> >> >>>> With LED trigger event, flash and torch are enabled/disabled.
-> >> >>>> I'm not sure this is applicable for you.
-> >> >>>> Could you take a look at LED camera trigger feature?
-> >> >>>>
-> >> >>>> For the camera LED trigger,
-> >> >>>> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
-> >> >>>> ?h=f or-next&id=48a1d032c954b9b06c3adbf35ef4735dd70ab757
-> >> >>>>
-> >> >>>> Example of camera flash driver,
-> >> >>>> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
-> >> >>>> ?h=f or-next&id=313bf0b1a0eaeaac17ea8c4b748f16e28fce8b7a
-> >> >>> I think we should decide on one API. Implementing two APIs for a single device
-> >> >>> is usually messy, and will result in different feature sets (and different
-> >> >>> bugs) being implemented through each API, depending on the driver.
-> >> >>> Interactions between the APIs are also a pain point on the kernel side to
-> >> >>> properly synchronize calls.
-> >> > I don't like having two APIs either. Especially we shouldn't have multiple
-> >> > drivers implementing different APIs for the same device.
-> >> >
-> >> > That said, I wonder if it's possible to support camera-related use cases
-> >> > using the LED API: it's originally designed for quite different devices.
-> >> > Even if you could handle flash strobing using the LED API, the functionality
-> >> > provided by the Media controller and subdev APIs will always be missing:
-> >> > device enumeration and association with the right camera.
-> >> Is there a generic way to associate flash and camera subdevs in
-> >> current V4L2 API? The only ways I see now are:
-> >> - both belongs to the same media controller, but this is not enough if there
-> >> is more than one camera subdev in that controller,
-> >
-> > Yes, there is. That's the group_id field in struct media_entity_desc. The
-> > lens subdev is associated to the rest of the devices the same way.
-> >
-> >> - using media links/pads - at first sight it seems to be overkill/abuse...
-> >
-> > No. Links describe the flow of data, not relations between entities.
-> >
-> > ...
-> >
-> >> >>> The LED API is too limited for torch and flash usage, but I'm definitely open
-> >> >>> to moving flash devices to the LED API is we can extend it in a way that it
-> >> >>> covers all the use cases.
-> >> >>>
-> >> >> Extending LED API IMHO seems to be quite straightforward - by adding
-> >> >> attributes for supported functionalities. We just need a specification for
-> >> >> standard flash/torch attributes.
-> >> >> I could prepare an RFC about it if there is a will to explore this
-> >> >> direction.
-> >> > I'm leaning towards providing a wrapper that provides torch functionality
-> >> > using V4L2 flash API unless it's really proven to be insane. ;-) The code
-> >> > supporting that in an individual flash driver should be minimal --- which is
-> >> > what the patchset essentially already does.
-> >> Providing only torch functionality do not require adding new attributes
-> >> (besides the ones already present in the led_classdev), so the patch will
-> >> be much simpler.
-> >
-> > Yes. Attributes could be added later on to the LED API to support flash and
-> > the wrapper could be extended accordingly. My thinking is however that the
-> > main use case is torch, not strobing flash, so it would be fulfilled already
-> > without extensions to the LED API.
-> >
-> 
-> Sorry for replying so late.
-> 
-> I think Milo Kim did some work in our LED subsystem by add LED Flash
-> trigger for camera device. I agree it doesn't satisfy the usage of
-> V4L2 Flash API and what I'm thinking about is expanding the LED Flash
-> trigger driver to export a well defined sysfs interface, so user space
-> libv4l2 can wrap it for applications.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v1:
+ - dropped m2m_ctx member of struct emmaprp_ctx; the patch is now
+   complete and there are better chances it actually works.
+---
+ drivers/media/platform/mx2_emmaprp.c |  135 ++++++----------------------------
+ 1 files changed, 24 insertions(+), 111 deletions(-)
 
-libv4l2 currently provides a V4L2 API only, not V4L2 subdev API which is
-implemented by the existing flash drivers which in turn are used in embedded
-systems where the user space accesses V4L2 subdev API directly.
-
-So using libv4l2 could be workable but only in a subset of use cases for
-those chips (where regular V4L2 API is sufficient). I think we'd need to
-cover all to avoid writing double set of drivers.
-
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index e91a4d5..43a437c 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -222,7 +222,6 @@ struct emmaprp_ctx {
+ 	int			aborting;
+ 	struct emmaprp_q_data	q_data[2];
+ 	struct v4l2_fh		fh;
+-	struct v4l2_m2m_ctx	*m2m_ctx;
+ };
+ 
+ #define fh_to_ctx(__fh) container_of(__fh, struct emmaprp_ctx, fh)
+@@ -253,21 +252,7 @@ static void emmaprp_job_abort(void *priv)
+ 
+ 	dprintk(pcdev, "Aborting task\n");
+ 
+-	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
+-}
+-
+-static void emmaprp_lock(void *priv)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-	struct emmaprp_dev *pcdev = ctx->dev;
+-	mutex_lock(&pcdev->dev_mutex);
+-}
+-
+-static void emmaprp_unlock(void *priv)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-	struct emmaprp_dev *pcdev = ctx->dev;
+-	mutex_unlock(&pcdev->dev_mutex);
++	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->fh.m2m_ctx);
+ }
+ 
+ static inline void emmaprp_dump_regs(struct emmaprp_dev *pcdev)
+@@ -302,8 +287,8 @@ static void emmaprp_device_run(void *priv)
+ 	dma_addr_t p_in, p_out;
+ 	u32 tmp;
+ 
+-	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 
+ 	s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	s_width	= s_q_data->width;
+@@ -377,8 +362,8 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
+ 			pr_err("PrP bus error occurred, this transfer is probably corrupted\n");
+ 			writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
+ 		} else if (irqst & PRP_INTR_ST_CH2B1CI) { /* buffer ready */
+-			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
+-			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
++			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->fh.m2m_ctx);
++			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->fh.m2m_ctx);
+ 
+ 			src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
+ 			src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
+@@ -390,7 +375,7 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
+ 		}
+ 	}
+ 
+-	v4l2_m2m_job_finish(pcdev->m2m_dev, curr_ctx->m2m_ctx);
++	v4l2_m2m_job_finish(pcdev->m2m_dev, curr_ctx->fh.m2m_ctx);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -459,7 +444,7 @@ static int vidioc_g_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
+ 	struct vb2_queue *vq;
+ 	struct emmaprp_q_data *q_data;
+ 
+-	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+ 	if (!vq)
+ 		return -EINVAL;
+ 
+@@ -624,52 +609,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+ 	return vidioc_s_fmt(ctx, f);
+ }
+ 
+-static int vidioc_reqbufs(struct file *file, void *priv,
+-			  struct v4l2_requestbuffers *reqbufs)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+-}
+-
+-static int vidioc_querybuf(struct file *file, void *priv,
+-			   struct v4l2_buffer *buf)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vidioc_streamon(struct file *file, void *priv,
+-			   enum v4l2_buf_type type)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+-}
+-
+-static int vidioc_streamoff(struct file *file, void *priv,
+-			    enum v4l2_buf_type type)
+-{
+-	struct emmaprp_ctx *ctx = priv;
+-
+-	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+-}
+-
+ static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
+ 	.vidioc_querycap	= vidioc_querycap,
+ 
+@@ -683,14 +622,13 @@ static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
+ 	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
+ 
+-	.vidioc_reqbufs		= vidioc_reqbufs,
+-	.vidioc_querybuf	= vidioc_querybuf,
+-
+-	.vidioc_qbuf		= vidioc_qbuf,
+-	.vidioc_dqbuf		= vidioc_dqbuf,
++	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
++	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
++	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
++	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+ 
+-	.vidioc_streamon	= vidioc_streamon,
+-	.vidioc_streamoff	= vidioc_streamoff,
++	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
++	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+ };
+ 
+ 
+@@ -752,7 +690,7 @@ static int emmaprp_buf_prepare(struct vb2_buffer *vb)
+ static void emmaprp_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+ }
+ 
+ static struct vb2_ops emmaprp_qops = {
+@@ -774,6 +712,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &emmaprp_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->lock = &ctx->dev->dev_mutex;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -786,6 +725,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &emmaprp_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->lock = &ctx->dev->dev_mutex;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -814,10 +754,10 @@ static int emmaprp_open(struct file *file)
+ 
+ 	ctx->dev = pcdev;
+ 
+-	ctx->m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx, &queue_init);
++	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx, &queue_init);
+ 
+-	if (IS_ERR(ctx->m2m_ctx)) {
+-		ret = PTR_ERR(ctx->m2m_ctx);
++	if (IS_ERR(ctx->fh.m2m_ctx)) {
++		ret = PTR_ERR(ctx->fh.m2m_ctx);
+ 		goto err_fh;
+ 	}
+ 
+@@ -827,7 +767,8 @@ static int emmaprp_open(struct file *file)
+ 	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
+ 	mutex_unlock(&pcdev->dev_mutex);
+ 
+-	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
++	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n",
++		ctx, ctx->fh.m2m_ctx);
+ 
+ 	return 0;
+ 
+@@ -850,7 +791,7 @@ static int emmaprp_release(struct file *file)
+ 	mutex_lock(&pcdev->dev_mutex);
+ 	clk_disable_unprepare(pcdev->clk_emma_ahb);
+ 	clk_disable_unprepare(pcdev->clk_emma_ipg);
+-	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 	mutex_unlock(&pcdev->dev_mutex);
+@@ -859,39 +800,13 @@ static int emmaprp_release(struct file *file)
+ 	return 0;
+ }
+ 
+-static unsigned int emmaprp_poll(struct file *file,
+-				 struct poll_table_struct *wait)
+-{
+-	struct emmaprp_dev *pcdev = video_drvdata(file);
+-	struct emmaprp_ctx *ctx = file->private_data;
+-	unsigned int res;
+-
+-	mutex_lock(&pcdev->dev_mutex);
+-	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+-	mutex_unlock(&pcdev->dev_mutex);
+-	return res;
+-}
+-
+-static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct emmaprp_dev *pcdev = video_drvdata(file);
+-	struct emmaprp_ctx *ctx = file->private_data;
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pcdev->dev_mutex))
+-		return -ERESTARTSYS;
+-	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+-	mutex_unlock(&pcdev->dev_mutex);
+-	return ret;
+-}
+-
+ static const struct v4l2_file_operations emmaprp_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= emmaprp_open,
+ 	.release	= emmaprp_release,
+-	.poll		= emmaprp_poll,
++	.poll		= v4l2_m2m_fop_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+-	.mmap		= emmaprp_mmap,
++	.mmap		= v4l2_m2m_fop_mmap,
+ };
+ 
+ static struct video_device emmaprp_videodev = {
+@@ -906,8 +821,6 @@ static struct video_device emmaprp_videodev = {
+ static struct v4l2_m2m_ops m2m_ops = {
+ 	.device_run	= emmaprp_device_run,
+ 	.job_abort	= emmaprp_job_abort,
+-	.lock		= emmaprp_lock,
+-	.unlock		= emmaprp_unlock,
+ };
+ 
+ static int emmaprp_probe(struct platform_device *pdev)
 -- 
-Kind regards,
+1.7.4.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
