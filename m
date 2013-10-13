@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:55819 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897Ab3J2FGh (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:47818 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215Ab3JMLN2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 01:06:37 -0400
-Date: Tue, 29 Oct 2013 14:06:35 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Valentine Barshak <valentine.barshak@cogentembedded.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH] media: rcar_vin: Add preliminary r8a7790 support
-Message-ID: <20131029050635.GG20432@verge.net.au>
-References: <1380896452-10687-1-git-send-email-valentine.barshak@cogentembedded.com>
+	Sun, 13 Oct 2013 07:13:28 -0400
+Message-ID: <525A8053.9020409@gmail.com>
+Date: Sun, 13 Oct 2013 13:13:23 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1380896452-10687-1-git-send-email-valentine.barshak@cogentembedded.com>
+To: Roel Kluin <roel.kluin@gmail.com>
+CC: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: exynos4: index out of bounds if no pixelcode found
+References: <alpine.DEB.2.02.1310131204550.11060@Z>
+In-Reply-To: <alpine.DEB.2.02.1310131204550.11060@Z>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 04, 2013 at 06:20:52PM +0400, Valentine Barshak wrote:
-> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+Hi Roel,
 
-This looks entirely sane to me.
+On 10/13/2013 12:16 PM, Roel Kluin wrote:
+> In case no valid pixelcode is found, an i of -1 after the loop is out of
+> bounds for the array.
+>
+> Signed-off-by: Roel Kluin<roel.kluin@gmail.com>
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Thank you for the fix, I have applied this patch to my tree for 3.13.
+However it seems to be mangled (at least line wrapped) and didn't
+apply cleanly. The patchwork also didn't catch it properly:
+https://patchwork.linuxtv.org/patch/20380/
 
-Mauro, would you consider taking this?
+I'd suggest using git send-email in future.
 
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index d02a7e0..b21f777 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -105,6 +105,7 @@
->  #define VIN_MAX_HEIGHT		2048
->  
->  enum chip_id {
-> +	RCAR_H2,
->  	RCAR_H1,
->  	RCAR_M1,
->  	RCAR_E1,
-> @@ -300,7 +301,8 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  		dmr = 0;
->  		break;
->  	case V4L2_PIX_FMT_RGB32:
-> -		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
-> +		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
-> +		    priv->chip == RCAR_E1) {
->  			dmr = VNDMR_EXRGB;
->  			break;
->  		}
-> @@ -1381,6 +1383,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
->  };
->  
->  static struct platform_device_id rcar_vin_id_table[] = {
-> +	{ "r8a7790-vin",  RCAR_H2 },
->  	{ "r8a7779-vin",  RCAR_H1 },
->  	{ "r8a7778-vin",  RCAR_M1 },
->  	{ "uPD35004-vin", RCAR_E1 },
-> -- 
-> 1.8.3.1
-> 
+Thanks,
+Sylwester
