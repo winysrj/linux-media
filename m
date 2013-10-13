@@ -1,29 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.104]:4599
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754548Ab3JCUFj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 16:05:39 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: looking for loan
-To: Recipients <yin01@aijaz527.onmicrosoft.com>
-From: Aijaz Lending <yin01@aijaz527.onmicrosoft.com>
-Date: Fri, 4 Oct 2013 01:35:09 +0530
-Reply-To: <sg.loan.sg@outlook.com>
-Message-ID: <6b7829c1-be18-4f3e-9feb-9711ebda27c1@HKXPR02MB213.apcprd02.prod.outlook.com>
+Received: from top.free-electrons.com ([176.31.233.9]:56232 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752670Ab3JMGFO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Oct 2013 02:05:14 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: edubezval@gmail.com, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] radio-si4713: remove deprecated IRQF_DISABLED
+Date: Sun, 13 Oct 2013 08:05:11 +0200
+Message-Id: <1381644311-9151-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do you have a firm or company that need loan to start up a business or need,personal loan, Debt consolidation? For more information,Contact us now for a guarantee loan with low interest rate. We will provide you with loan to meet your needs. For more information contact us with the following information's.
-Full name:
-country:
-Address:
-Phone Number:
-Amount needed:
-Duration of loan:
+This patch proposes to remove the use of the IRQF_DISABLED flag
 
-sg.loan.sg@outlook.com
-Kind regards
+It's a NOOP since 2.6.35 and it will be removed one day.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/radio/si4713-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
+index fe16088..9ec48cc 100644
+--- a/drivers/media/radio/si4713-i2c.c
++++ b/drivers/media/radio/si4713-i2c.c
+@@ -1456,7 +1456,7 @@ static int si4713_probe(struct i2c_client *client,
+ 
+ 	if (client->irq) {
+ 		rval = request_irq(client->irq,
+-			si4713_handler, IRQF_TRIGGER_FALLING | IRQF_DISABLED,
++			si4713_handler, IRQF_TRIGGER_FALLING,
+ 			client->name, sdev);
+ 		if (rval < 0) {
+ 			v4l2_err(&sdev->sd, "Could not request IRQ\n");
+-- 
+1.8.1.2
+
