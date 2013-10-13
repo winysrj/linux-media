@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33881 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751196Ab3JVW3J (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:56208 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751873Ab3JMF6n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Oct 2013 18:29:09 -0400
-Message-ID: <5266FC42.30403@iki.fi>
-Date: Wed, 23 Oct 2013 01:29:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-Subject: Re: [media-workshop] [ANN] Final agenda for the V4L/DVB mini-summit
-References: <52664996.1050206@xs4all.nl>
-In-Reply-To: <52664996.1050206@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sun, 13 Oct 2013 01:58:43 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, m.chehab@samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] s5p-mfc: remove deprecated IRQF_DISABLED
+Date: Sun, 13 Oct 2013 07:58:39 +0200
+Message-Id: <1381643919-9016-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch proposes to remove the use of the IRQF_DISABLED flag
 
-Hans Verkuil wrote:
-...
-> 14:10 Sakari Ailus
-> 
-> - Multi-format frames and metadata. Support would be needed on video nodes
->   and V4L2 subdev nodes. I'll prepare the RFC for the former; the latter has
->   an RFC here: http://www.spinics.net/lists/linux-media/msg67295.html
+It's a NOOP since 2.6.35 and it will be removed one day.
 
-My foils on this can be found here:
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-<URL:http://www.retiisi.org.uk/v4l2/foil/v4l2-multi-format.pdf>
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 084263d..4660d24 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1101,7 +1101,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	}
+ 	dev->irq = res->start;
+ 	ret = devm_request_irq(&pdev->dev, dev->irq, s5p_mfc_irq,
+-					IRQF_DISABLED, pdev->name, dev);
++					0, pdev->name, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
+ 		goto err_res;
 -- 
-Kind regards,
+1.8.1.2
 
-Sakari Ailus
-sakari.ailus@iki.fi
