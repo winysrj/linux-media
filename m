@@ -1,40 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:55213 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755168Ab3JGIiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 04:38:51 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-mips@linux-mips.org
-Cc: linux-media@vger.kernel.org
-References: <m3eh82a1yo.fsf@t19.piap.pl>
-Date: Mon, 07 Oct 2013 10:38:49 +0200
-In-Reply-To: <m3eh82a1yo.fsf@t19.piap.pl> ("Krzysztof =?utf-8?Q?Ha=C5=82as?=
- =?utf-8?Q?a=22's?= message of
-	"Thu, 03 Oct 2013 16:00:47 +0200")
-MIME-Version: 1.0
-Message-ID: <m361t9a31i.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: Re: Suspected cache coherency problem on V4L2 and AR7100 CPU
+Received: from top.free-electrons.com ([176.31.233.9]:56225 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751833Ab3JMGBx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Oct 2013 02:01:53 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: g.liakhovetski@gmx.de, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] sh_mobile_ceu_camera: remove deprecated IRQF_DISABLED
+Date: Sun, 13 Oct 2013 08:01:46 +0200
+Message-Id: <1381644106-9086-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please forgive me my MIPS TLB ignorance.
+This patch proposes to remove the use of the IRQF_DISABLED flag
 
-It seems there is a TLB entry pointing to the userspace buffer at the
-time the kernel pointer (kseg0) is used. Is is an allowed situation on
-MIPS 24K?
+It's a NOOP since 2.6.35 and it will be removed one day.
 
-buffer: len 0x1000 (first page),
-	userspace pointer 0x77327000,
-	kernel pointer 0x867ac000 (physical address = 0x067ac000)
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-TLB Index: 15 pgmask=4kb va=77326000 asid=be
-       [pa=01149000 c=3 d=1 v=1 g=0] [pa=067ac000 c=3 d=1 v=1 g=0]
-
-Should the TLB entry be deleted before using the kernel pointer (which
-points at the same page)?
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 8df22f7..150bd4d 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -1800,7 +1800,7 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 
+ 	/* request irq */
+ 	err = devm_request_irq(&pdev->dev, pcdev->irq, sh_mobile_ceu_irq,
+-			       IRQF_DISABLED, dev_name(&pdev->dev), pcdev);
++			       0, dev_name(&pdev->dev), pcdev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "Unable to register CEU interrupt.\n");
+ 		goto exit_release_mem;
 -- 
-Krzysztof Halasa
+1.8.1.2
 
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
