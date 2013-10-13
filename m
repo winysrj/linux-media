@@ -1,34 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:56498 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab3JRIhN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 04:37:13 -0400
-Message-ID: <5260814B.5020306@schinagl.nl>
-Date: Fri, 18 Oct 2013 02:31:07 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: nuclear <nuclear@jvitals.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-apps/scan: initial scan file for Sofia, Bulgaria
-References: <CABmVWRHctVBegCVQ6nMpogd_pGGeFADL86fb4tKyAG=Bi=+G5Q@mail.gmail.com>
-In-Reply-To: <CABmVWRHctVBegCVQ6nMpogd_pGGeFADL86fb4tKyAG=Bi=+G5Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from top.free-electrons.com ([176.31.233.9]:56246 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752670Ab3JMGLP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Oct 2013 02:11:15 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: david@hardeman.nu, m.chehab@samsung.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] winbond-cir: remove deprecated IRQF_DISABLED
+Date: Sun, 13 Oct 2013 08:11:12 +0200
+Message-Id: <1381644672-9283-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17-10-13 12:46, nuclear wrote:
-> Hello all,
-> I would like to contribute an initial scan file for Sofia, Bulgaria.
-> Please find it attached.
-Thank you nuclear, but how is it different from the one in the tree? I 
-only see some whitespace changes near the comments.
+This patch proposes to remove the use of the IRQF_DISABLED flag
 
-The last commit was in may, maybe you are using an older version?
+It's a NOOP since 2.6.35 and it will be removed one day.
 
-oliver
->
-> Best Regards
-> nuclear
->
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/rc/winbond-cir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 98bd496..904baf4 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1110,7 +1110,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	}
+ 
+ 	err = request_irq(data->irq, wbcir_irq_handler,
+-			  IRQF_DISABLED, DRVNAME, device);
++			  0, DRVNAME, device);
+ 	if (err) {
+ 		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
+ 		err = -EBUSY;
+-- 
+1.8.1.2
 
