@@ -1,31 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4528 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465Ab3JDLPG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 07:15:06 -0400
-Message-ID: <524EA330.8010700@xs4all.nl>
-Date: Fri, 04 Oct 2013 13:14:56 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: libtool warning in libdvbv5
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from top.free-electrons.com ([176.31.233.9]:56139 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750863Ab3JMF1w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Oct 2013 01:27:52 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: hverkuil@xs4all.nl, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] [media] saa7146: remove deprecated IRQF_DISABLED
+Date: Sun, 13 Oct 2013 07:27:49 +0200
+Message-Id: <1381642069-7770-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+This patch proposes to remove the use of the IRQF_DISABLED flag
 
-When linking libdvbv5.la I get the following warning from libtool:
+It's a NOOP since 2.6.35 and it will be removed one day.
 
-  CCLD     libdvbv5.la
-libtool: link: warning: `-version-info/-version-number' is ignored for convenience libraries
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ drivers/media/common/saa7146/saa7146_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Other libs don't give that warning, but I don't see any obvious differences.
+diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
+index bb6ee51..291a598 100644
+--- a/drivers/media/common/saa7146/saa7146_core.c
++++ b/drivers/media/common/saa7146/saa7146_core.c
+@@ -411,7 +411,7 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 	saa7146_write(dev, MC2, 0xf8000000);
+ 
+ 	/* request an interrupt for the saa7146 */
+-	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED | IRQF_DISABLED,
++	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED,
+ 			  dev->name, dev);
+ 	if (err < 0) {
+ 		ERR("request_irq() failed\n");
+-- 
+1.8.1.2
 
-Do you know what might cause this?
-
-Regards,
-
-	Hans
