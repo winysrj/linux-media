@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:35675 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754417Ab3JBNot (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Oct 2013 09:44:49 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	teemux.tuominen@intel.com
-Subject: [RFC v2 4/4] v4l: events: Don't sleep in dequeue if none are subscribed
-Date: Wed,  2 Oct 2013 16:45:16 +0300
-Message-Id: <1380721516-488-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:38745 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932106Ab3JNUkU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Oct 2013 16:40:20 -0400
+Received: by mail-pd0-f172.google.com with SMTP id z10so7891845pdj.31
+        for <linux-media@vger.kernel.org>; Mon, 14 Oct 2013 13:40:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1381568085-2407-1-git-send-email-ljalvs@gmail.com>
+References: <1381568085-2407-1-git-send-email-ljalvs@gmail.com>
+Date: Mon, 14 Oct 2013 16:40:19 -0400
+Message-ID: <CAOcJUbxMjw0naKFtTJauunvuaNwqTNeHHPaOE9GWUSHegaex2w@mail.gmail.com>
+Subject: Re: [PATCH] cx24117: Fix/enhance set_voltage function.
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dequeueing events was is entirely possible even if none are subscribed,
-leading to sleeping indefinitely. Fix this by returning -ENOENT when no
-events are subscribed.
+On Sat, Oct 12, 2013 at 4:54 AM, Luis Alves <ljalvs@gmail.com> wrote:
+> Hi,
+>
+> On this patch:
+> Added a few defines to describe what every constant in the set_voltage function.
+> Added the description to the CX24117 GPIO control commands.
+> Moved the GPIODIR setup to the initfe function.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-event.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Luis,
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index b53897e..553a800 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -77,10 +77,17 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
- 		mutex_unlock(fh->vdev->lock);
- 
- 	do {
--		ret = wait_event_interruptible(fh->wait,
--					       fh->navailable != 0);
-+		bool subscribed;
-+		ret = wait_event_interruptible(
-+			fh->wait,
-+			fh->navailable != 0 ||
-+			!(subscribed = v4l2_event_has_subscribed(fh)));
- 		if (ret < 0)
- 			break;
-+		if (!subscribed) {
-+			ret = -EIO;
-+			break;
-+		}
- 
- 		ret = __v4l2_event_dequeue(fh, event);
- 	} while (ret == -ENOENT);
--- 
-1.8.3.2
+It is generally not preferred to send multiple changes in a single
+patch, even if the changes themselves are small.
 
+I know it's not such a huge patch, but, it is preferred for each patch
+to contain only one single change, provided that the patch remains
+atomic in nature.  I don't think it would be such a problem to merge
+these changes as-is, but I do think it would be better to try to
+enforce the idea of "one change per atomic patch" when possible.
+
+Can you re-spin this into two (or three) smaller patches?
+
+The first patch should handle the cosmetics, "Added a few defines to
+describe every constant in the set_voltage function" & "Added the
+description to the CX24117 GPIO control commands" ...  As you see,
+these two bits change the code slightly but do not alter the behavior
+of the driver.
+
+The final patch should be the one that does alter the driver's
+behavior, "Moved the GPIODIR setup to the initfe function"
+
+Doing this can potentially help to quicken the review & merge process,
+while also enhancing the readability of the change history within the
+kernel.
+
+Cheers,
+
+Mike Krufky
