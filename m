@@ -1,60 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:46401 "EHLO
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:47304 "EHLO
 	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753489Ab3JLK1r (ORCPT
+	with ESMTP id S1757070Ab3JNXIW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 06:27:47 -0400
-Message-ID: <5259241F.6060203@gmail.com>
-Date: Sat, 12 Oct 2013 12:27:43 +0200
+	Mon, 14 Oct 2013 19:08:22 -0400
+Received: by mail-wi0-f182.google.com with SMTP id ez12so1866850wid.15
+        for <linux-media@vger.kernel.org>; Mon, 14 Oct 2013 16:08:21 -0700 (PDT)
 From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	m.chehab@samsung.com, t.figa@samsung.com,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 4/4] media: s5p-tv: Fix mixer driver to work with CCF
-References: <1379775649-6331-1-git-send-email-m.krawczuk@partner.samsung.com> <1379775649-6331-5-git-send-email-m.krawczuk@partner.samsung.com> <52430AB6.8020307@samsung.com>
-In-Reply-To: <52430AB6.8020307@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, hverkuil@xs4all.nl,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arun Kumar <arun.kk@samsung.com>
+Subject: [PATCH v2] v4l2-ctrls: Correct v4l2_ctrl_get_int_menu() function's return type
+Date: Tue, 15 Oct 2013 01:08:03 +0200
+Message-Id: <1381792083-19513-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <20131014092839.6049ee6a@samsung.com>
+References: <20131014092839.6049ee6a@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/25/2013 06:09 PM, Tomasz Stanislawski wrote:
-> rename to 'media: s5p-tv: mixer: integrate with CCF'
->
-> On 09/21/2013 05:00 PM, Mateusz Krawczuk wrote:
->> >  Replace clk_enable by clock_enable_prepare and clk_disable with clk_disable_unprepare.
->> >  Clock prepare is required by Clock Common Framework, and old clock driver didn`t support it.
->> >  Without it Common Clock Framework prints a warning.
->> >
->> >  Signed-off-by: Mateusz Krawczuk<m.krawczuk@partner.samsung.com>
->> >  Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->
-> Acked-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+Remove the redundant 'const' qualifiers from the function
+signature and from the qmenu_int arrays' declarations.
 
-Patch applied with following commit log:
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Arun Kumar <arun.kk@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |    6 +++---
+ include/media/v4l2-common.h          |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-commit 526ec3cc57a0751ff087e93acd1566e6d063fb17
-Author: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-Date:   Sat Sep 21 14:00:49 2013 +0000
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c3f0803..f4e2a1e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -565,13 +565,13 @@ EXPORT_SYMBOL(v4l2_ctrl_get_menu);
+  * Returns NULL or an s64 type array containing the menu for given
+  * control ID. The total number of the menu items is returned in @len.
+  */
+-const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
++const s64 *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
+ {
+-	static const s64 const qmenu_int_vpx_num_partitions[] = {
++	static const s64 qmenu_int_vpx_num_partitions[] = {
+ 		1, 2, 4, 8,
+ 	};
+ 
+-	static const s64 const qmenu_int_vpx_num_ref_frames[] = {
++	static const s64 qmenu_int_vpx_num_ref_frames[] = {
+ 		1, 2, 3,
+ 	};
+ 
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 16550c4..b87692c 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -86,7 +86,7 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
+ 		const char * const *menu_items);
+ const char *v4l2_ctrl_get_name(u32 id);
+ const char * const *v4l2_ctrl_get_menu(u32 id);
+-const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len);
++const s64 *v4l2_ctrl_get_int_menu(u32 id, u32 *len);
+ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
+ int v4l2_ctrl_query_menu(struct v4l2_querymenu *qmenu,
+ 		struct v4l2_queryctrl *qctrl, const char * const *menu_items);
+-- 
+1.7.4.1
 
-     s5p-tv: mixer: Prepare for common clock framework
-
-     Replace clk_enable() by clock_enable_prepare() and clk_disable()
-     with clk_disable_unprepare(). clk_{prepare/unprepare} calls are
-     required by common clock framework and this driver was missed while
-     converting all users of the Samsung original clocks driver to its
-     new implementation based on the common clock API.
-
-     Signed-off-by: Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
-     Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-     Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-     [s.nawrocki@samsung.com: edited commit description]
-     Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
---
-Regards,
-Sylwester
