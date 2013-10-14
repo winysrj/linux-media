@@ -1,91 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:45521 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753855Ab3JBSjG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Oct 2013 14:39:06 -0400
-Date: Wed, 2 Oct 2013 11:39:05 -0700
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Xenia Ragiadakou <burzalodowa@gmail.com>,
-	linux-usb@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: New USB core API to change interval and max packet size
-Message-ID: <20131002183905.GG15395@xanatos>
-References: <20131001204554.GB15395@xanatos>
- <Pine.LNX.4.44L0.1310021007110.1293-100000@iolanthe.rowland.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4836 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750931Ab3JNHqu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Oct 2013 03:46:50 -0400
+Message-ID: <525BA14D.4050801@xs4all.nl>
+Date: Mon, 14 Oct 2013 09:46:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1310021007110.1293-100000@iolanthe.rowland.org>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] videobuf2: Add missing lock held on vb2_fop_relase
+References: <Hans Verkuil <hverkuil@xs4all.nl> <1381736489-27852-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1381736489-27852-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 02, 2013 at 10:22:52AM -0400, Alan Stern wrote:
-> On Tue, 1 Oct 2013, Sarah Sharp wrote:
+On 10/14/13 09:41, Ricardo Ribalda Delgado wrote:
+> vb2_fop_relase does not held the lock although it is modifying the
+> queue->owner field.
 > 
-> > > When you say a new API, what do you mean? New functions in usbcore
-> > > to be used by usb device drivers?
-> > 
-> > Yes.  You would export the function in the USB core, and put a prototype
-> > in a USB include file (probably in include/linux/usb.h).  Let's say that
-> > function is called usb_change_ep_bandwidth.
-> > 
-> > Drivers could call into that function when they needed to change either
-> > the bInterval or wMaxPacketSize of a particular endpoint.  This could be
-> > during the driver's probe function, or before switching alternate
-> > interface settings, or even after the alt setting is in place, but
-> > userspace dictates the driver use a different bandwidth.
-> > 
-> > Drivers should pass usb_change_ep_bandwidth a pointer to the endpoint
-> > they need to change, along with the bInterval and wMaxPacketSize values
-> > they would like the endpoint to have.  Those values could be stored as
-> > new values in struct usb_host_endpoint.
-> > 
-> > usb_change_ep_bandwidth would then call into the xHCI driver to drop the
-> > endpoint, re-add it, and then issue a bandwidth change.  The xHCI driver
-> > would have to be changed to look at the new fields in usb_host_endpoint,
-> > and set up the endpoint contexts with the interval and packet size from
-> > those fields, instead of the endpoint descriptor.
-> > 
-> > We should probably set the new values in usb_host_endpoint to zero after
-> > the driver unbinds from the device.  Not sure if they should be reset
-> > after the driver switches interfaces.  I would have to see the use cases
-> > in the driver.
+> This could lead to race conditions on the vb2_perform_io function
+> when multiple applications are accessing the video device via
+> read/write API:
 > 
-> We should consider this before rushing into a new API.
-
-Yes, I agree. :)  That's why I'd like to see some cases in the media
-drivers code where it could benefit from changing the interval or
-maxpacket size, so that we can see what use cases we have.  Mauro, can
-you point is to places in drivers that would need this?
-
-> In particular, do we want to go around changing single endpoints, one 
-> at a time?  Or do we want to change all the endpoints in an interface 
-> at once?
+> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
+> 0000000000000260
+> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
+> [videobuf2_core]
+> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
+> [ 308.297812] Oops: 0000 #1 SMP
+> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
+> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
+> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
+> spi_xilinx spi_bitbang qt5023
+> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
+> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
+> PM_2.1.0.309 X64 05/23/2013
+> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
+> ffff88014dc02000
+> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
+> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
+> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
+> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
+> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
+> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
+> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
+> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
+> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
+> knlGS:0000000000000000
+> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
+> [ 308.298064] Stack:
+> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
+> ffff880100000001
+> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
+> ffff880154904718
+> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
+> ffff88014dc03f50
+> [ 308.298116] Call Trace:
+> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
+> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
+> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
+> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
+> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
+> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
+> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
+> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
+> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
+> 89
+> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
+> [videobuf2_core]
+> [ 308.298507] RSP <ffff88014dc03df8>
+> [ 308.298514] CR2: 0000000000000260
+> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
 > 
-> Given that a change to one endpoint may require the entire schedule to 
-> be recomputed, it seems to make more sense to do all of them at once.  
-> For example, drivers could call a routine to set the desired endpoint 
-> parameters, and then the new parameters could take effect when the 
-> driver calls usb_set_interface().
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-I think it makes sense to change several endpoints, and then ask the
-host to recompute the schedule.  Perhaps the driver could issue several
-calls to usb_change_ep_bandwidth and then ask the USB core to update the
-host's schedule?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm not sure that usb_set_interface() is the right function for the new
-parameters to take effect.  What if the driver is trying to modify the
-current alt setting?  Would they need to call usb_set_interface() again?
+Thanks!
 
-> In any case, the question about what to do when the interface setting
-> gets switched never really arises.  Each usb_host_endpoint structure is
-> referenced from only one altsetting.  If the driver wants the new 
-> parameters applied to an endpoint in several altsettings, it will have 
-> to change each altsetting separately.
+	Hans
 
-Ok, so it sounds like we want to keep the changes the endpoints across
-alt setting changes.  But we still want to reset the values after the
-driver unbinds, correct?
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 9fc4bab..3a961ee 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2588,8 +2588,15 @@ int vb2_fop_release(struct file *file)
+>  	struct video_device *vdev = video_devdata(file);
+>  
+>  	if (file->private_data == vdev->queue->owner) {
+> +		struct mutex *lock;
+> +
+> +		lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
+> +		if (lock)
+> +			mutex_lock(lock);
+>  		vb2_queue_release(vdev->queue);
+>  		vdev->queue->owner = NULL;
+> +		if (lock)
+> +			mutex_unlock(lock);
+>  	}
+>  	return v4l2_fh_release(file);
+>  }
+> 
 
-Sarah Sharp
