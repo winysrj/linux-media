@@ -1,211 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:57632 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3JJRPd (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43893 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757696Ab3JOLpU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 13:15:33 -0400
-Received: by mail-ea0-f172.google.com with SMTP id r16so1319757ead.17
-        for <linux-media@vger.kernel.org>; Thu, 10 Oct 2013 10:15:31 -0700 (PDT)
-Message-ID: <5256E0C4.8060102@googlemail.com>
-Date: Thu, 10 Oct 2013 19:15:48 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
+	Tue, 15 Oct 2013 07:45:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-References: <520E76E7.30201@googlemail.com> <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <52543116.60509@googlemail.com> <Pine.LNX.4.64.1310081834030.31629@axis700.grange> <5256ACB9.6030800@googlemail.com> <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFD] use-counting V4L2 clocks
+Date: Tue, 15 Oct 2013 13:45:36 +0200
+Message-ID: <2086760.XpLDTRAYT5@avalon>
+In-Reply-To: <Pine.LNX.4.64.1310150938040.5601@axis700.grange>
+References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange> <38373771.lqz4Seg2Ij@avalon> <Pine.LNX.4.64.1310150938040.5601@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.10.2013 15:50, schrieb Guennadi Liakhovetski:
-> Hi Frank,
->
-> On Thu, 10 Oct 2013, Frank Sch�fer wrote:
->
->> Am 08.10.2013 18:38, schrieb Guennadi Liakhovetski:
->>> Hi Frank,
->>>
->>> On Tue, 8 Oct 2013, Frank Schäfer wrote:
->>>
->>>> Am 18.08.2013 17:20, schrieb Mauro Carvalho Chehab:
->>>>> Em Sun, 18 Aug 2013 13:40:25 +0200
->>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>>>
->>>>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
->>>>>>> Hi Frank,
->>>>>>> As I mentioned on the list, I'm currently on a holiday, so, replying briefly. 
->>>>>> Sorry, I missed that (can't read all mails on the list).
->>>>>>
->>>>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to its components including the ov2640 sensor. So, yes, I think the driver should export a V4L2 clock.
->>>>>> Ok, so it's mandatory on purpose ?
->>>>>> I'll take a deeper into the v4l2-clk code and the
->>>>>> em28xx/ov2640/soc-camera interaction this week.
->>>>>> Have a nice holiday !
->>>>> commit 9aea470b399d797e88be08985c489855759c6c60
->>>>> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>>>> Date:   Fri Dec 21 13:01:55 2012 -0300
->>>>>
->>>>>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
->>>>>     
->>>>>     Instead of centrally enabling and disabling subdevice master clocks in
->>>>>     soc-camera core, let subdevice drivers do that themselves, using the
->>>>>     V4L2 clock API and soc-camera convenience wrappers.
->>>>>     
->>>>>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>>>>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>>
->>>>>
->>>>> (c/c the ones that acked with this broken changeset)
->>>>>
->>>>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
->>>>> cameras are currently broken on 3.10.
->>>>>
->>>>> I'll also reject other ports to the async API if the drivers are
->>>>> used outside an embedded driver, as no PC driver currently defines 
->>>>> any clock source. The same applies to regulators.
->>>>>
->>>>> Guennadi,
->>>>>
->>>>> Next time, please check if the i2c drivers are used outside soc_camera
->>>>> and apply the fixes where needed, as no regressions are allowed.
->>>>>
->>>>> Regards,
->>>>> Mauro
->>>> FYI: 8 weeks have passed by now and this regression has still not been
->>>> fixed.
->>>> Does anybody care about it ? WONTFIX ?
->>> You replied to my patch "em28xx: balance subdevice power-off calls" with a 
->>> few non-essential IMHO comments but you didn't test it.
->> Non-essential comments ?
->> Maybe you disagree or don't care about them, but that's something different.
-> Firstly, I did say "IMHO," didn't I? Secondly, sure, let's have a look at 
-> them:
->
-> "I wonder if we should make the (s_power, 1) call part of em28xx_wake_i2c()."
->
-> Is this an essential comment? Is it essential where to put an operation 
-> after a function or after it?
+Hi Guennadi,
 
-It's a proposal.
+On Tuesday 15 October 2013 10:05:45 Guennadi Liakhovetski wrote:
+> On Thu, 10 Oct 2013, Laurent Pinchart wrote:
+> > On Tuesday 08 October 2013 23:57:55 Guennadi Liakhovetski wrote:
+> > > Hi Mauro,
+> > > 
+> > > Thanks for your long detailed mail. For the sake of brevity however I'll
+> > > drop most of it in this my reply, everybody interested should be able to
+> > > read the original.
+> > > 
+> > > On Wed, 9 Oct 2013, Mauro Carvalho Chehab wrote:
+> > > 
+> > > [snip]
+> > > 
+> > > > In other words, what you're actually proposing is to change the
+> > > > default used by most drivers since 1997 from a POWER ON/CLOCK ON
+> > > > default, into a POWER OFF/ CLOCK OFF default.
+> > > 
+> > > To remind, we are now trying to fix a problem, present in the current
+> > > kernel. In one specific driver. And the proposed fix only affects one
+> > > specific (family of) driver(s) - the em28xx USB driver. The two patches
+> > > are quite simple:
+> > > 
+> > > (1) the first patch adds a clock to the em28xx driver, which only
+> > > affects ov2640, because only it uses that clock
+> > > 
+> > > (2) the second patch adds a call to subdev's .s_power(1) method. And I
+> > > cannot see how this change can be a problem either. Firstly I haven't
+> > > found many subdevices, used by em28xx, that implement .s_power().
+> > > Secondly, I don't think any of them does any kind of depth-counting in
+> > > that method, apart from the one, that we're trying to fix - ov2640.
+> > > 
+> > > > Well, for me, it sounds that someone will need to re-test all
+> > > > supported devices, to be sure that such change won't cause
+> > > > regressions.
+> > > > 
+> > > > If you are willing to do such tests (and to get all those hardware to
+> > > > be sure that nothing will break) or to find someone to do it for you,
+> > > > I'm ok with such change.
+> > > 
+> > > I'm willing to try to identify all subdevices, used by em28xx, look at
+> > > their .s_power() methods and report my analysis, whether calling
+> > > .s_power(1) for those respective drivers could cause problems. Would
+> > > this suffice?
+> >
+> > From a high level point of view, I believe that's the way to go. V4L2
+> > clock enable/disable calls must be balanced, as we will later switch to
+> > the non-V4L2 clock API that requires calls to be balanced.
+> > 
+> > This pushes the problem back to the .s_power() implementation that call
+> > the clock enable/disable functions. As a temporary measure, we could add a
+> > use count to the .s_power() handlers of drivers used by both power-
+> > unbalanced and power-balanced bridges that call the clock API or the
+> > regulator API in their .s_power() implementation (that's just ov2640 if
+> > I'm not mistaken). This would ensure that clock calls are always balanced,
+> > even if the .s_power() calls are not.
+> > 
+> > Now I'd like to avoid that as possible: In the long term I believe we
+> > should switch all .s_power() calls to  balanced mode, a detailed analysis
+> > of the subdevices used by em28xx would thus have my preference. However,
+> > if it helps solving the issue right now, buying us time to fix the
+> > problem correctly, I could live with it.
+> 
+> Please, correct me if I'm wrong, but I seem to remember, that we wanted to
+> eliminate .s_power() methods completely eventually. We could try to find
+> that old discussion, but it would need some searching. In short - only
+> subdevice drivers know, when their devices need power or clock. Higher
+> layers just request specific functions - setting parameters, starting or
+> stopping streaming etc., and subdev drivers decide when they have to
+> access (I2C) registers, which regulators they have to turn on for that,
+> when they have to power on the sensor array and activate the data
+> interface... IIRC we were thinking about some exceptions like SoC internal
+> subdevices, which are initialised by the main SoC camera interface driver.
+> It was then suggested, that that central camera interface driver also
+> knows when those internal subdevices should be turned up and down.
+> Although I'm not sure even that would be needed.
+> 
+> Shall we not maybe move in that direction?
 
-> "em28xx_set_mode() calls em28xx_gpio_set(dev,
-> INPUT(dev->ctl_input)->gpio) and I'm not sure if this could disable
-> subdevice power again..."
->
-> You aren't sure about that. Me neither, so, there's no evidence 
-> whatsoever. This is just a guess. And I would consider switching subdevice 
-> power in a *_set_mode() function by explicitly toggling a GPIO in 
-> presence of proper APIs... not the best design perhaps. I consider this 
-> comment non-essential too then.
-It's a warning/indicator that the whole s_power thing is very dangerous
-because of the various GPIO-sequences used everywhere in the driver.
-And it substantiates what Mauro tries to explain you.
+I believe you remember correctly, and that's indeed a good idea. However, now 
+might not be the best time to do so, we need to fix the em28xx problem. What's 
+your preferred solution there ?
 
-> "Hmm... your patch didn't change this, but:
-> Why do we call these functions only in case of V4L2_BUF_TYPE_VIDEO_CAPTURE ?
-> Isn't it needed for VBI capturing, too ?
-> em28xx_wake_i2c() is probably also needed for radio mode..."
->
-> Right, my patch doesn't change this, so, this is unrelated.
-
-Ok, I have to admit that I wasn't clear enough in this case:
-IMHO these are bugs that should be fixed, but I'm not 100% sure.
-In that case, there is no need to split the if-caluse containing the
-V4L2_BUF_TYPE_VIDEO_CAPTURE check, just remove this check while you're
-at it.
-
-> Have I missed anything?
-
-It seems we have a different understanding about the meaning of the word
-"(non)-essential".
-I wouldn't use it in the context of review feedbacks.
-I'm not in the position to force you to consider my remarks, so from
-your point of view they are certainly "optional" (and that's no problem
-for me).
-Maybe that's what you mean with non-essential ? ;)
-
->>> Could you test, please?
->> Yes, this patch will make the warnings disappear and works at least for
->> my em28xx+ov2640 device.
-> Good, thanks for testing!
->
->> What about Mauros an my concerns with regards to all other em28xx devices ?
-> This is still under discussion:
-
-How long are you going to discuss this ?
-We are not talking about a new feature or improvement/extension.
-This is about fixing a regression, which should always have highest
-priority.
-8 weeks IMHO should be more than enough.
-
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg66566.html
->
->> And what about the em28xx v4l2-clk patches ?
-> Their acceptance is related to the above.
-
-Why ?
-The 3 patches patches you've sent implement support for fixed (dummy)
-clocks an makes the em28xx driver using them.
-Whether on/off switches should be forced to be balanced or not is AFAICS
-a separate issue.
-
+-- 
 Regards,
-Frank
 
-> Thanks
-> Guennadi
->
->> It's pretty simple: someone (usually the maintainer ;) ) needs to decide
->> which way to go.
->> Either accept and apply the existing patches or request new ones with
->> changes.
->> But IMHO doing nothing for 2 months isn't the right way to handle
->> regressions.
->>
->> Regards,
->> Frank
->>
->>> In the meantime I'm still waiting for more comments to my "[RFD] 
->>> use-counting V4L2 clocks" mail, so far only Sylwester has replied. Without 
->>> all these we don't seem to progress very well.
->>>
->>> Thanks
->>> Guennadi
->>>
->>>>>>> -----Original Message-----
->>>>>>> From: "Frank Schäfer" <fschaefer.oss@googlemail.com>
->>>>>>> To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>
->>>>>>> Sent: Fr., 16 Aug 2013 21:03
->>>>>>> Subject: em28xx + ov2640 and v4l2-clk
->>>>>>>
->>>>>>> Hi Guennadi,
->>>>>>>
->>>>>>> since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
->>>>>>> switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
->>>>>>> to register the ov2640 subdevice (if needed).
->>>>>>> The reason is that v4l2_clk_get() fails in ov2640_probe().
->>>>>>> Does the em28xx driver have to register a (pseudo ?) clock first ?
->>>>>>>
->>>>>>> Regards,
->>>>>>> Frank
->>> ---
->>> Guennadi Liakhovetski, Ph.D.
->>> Freelance Open-Source Software Developer
->>> http://www.open-technology.de/
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Laurent Pinchart
 
