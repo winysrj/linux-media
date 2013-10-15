@@ -1,275 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48250 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932542Ab3JPLbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 07:31:10 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
+Received: from hardeman.nu ([95.142.160.32]:35962 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932802Ab3JOWAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 18:00:11 -0400
+Date: Tue, 15 Oct 2013 23:59:43 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Tom Gundersen <teg@jklm.no>
+Cc: "Juan J. Garcia de Soria" <skandalfo@gmail.com>,
+	Sean Young <sean@mess.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
 	linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
-	javier.martin@vista-silicon.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1381581120-26883-2-git-send-email-s.nawrocki@samsung.com>
- <1381581518-7022-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1381581518-7022-1-git-send-email-s.nawrocki@samsung.com>
-Subject: RE: [PATCH RFC v2.1 01/10] V4L: Add mem2mem ioctl and file operation
- helpers
-Date: Wed, 16 Oct 2013 13:31:06 +0200
-Message-id: <064401ceca63$34ce2020$9e6a6060$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Subject: Re: WPC8769L (WEC1020) support in winbond-cir?
+Message-ID: <20131015215943.GC26542@hardeman.nu>
+References: <CAG-2HqX-TO7h8zJ6F01r2LfRVjQtb0pK_1wKGsYVKzB0zC7TQA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAG-2HqX-TO7h8zJ6F01r2LfRVjQtb0pK_1wKGsYVKzB0zC7TQA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sylwester Nawrocki
-> Sent: Saturday, October 12, 2013 2:39 PM
-> Subject: [PATCH RFC v2.1 01/10] V4L: Add mem2mem ioctl and file
-> operation helpers
-> 
-> This patch adds ioctl helpers to the V4L2 mem-to-mem API, so we can
-> avoid several ioctl handlers in the mem-to-mem video node drivers that
-> are simply a pass-through to the v4l2_m2m_* calls. These helpers will
-> only be useful for drivers that use same mutex for both OUTPUT and
-> CAPTURE queue, which is the case for all currently in tree v4l2 m2m
-> drivers. In order to use the helpers the drivers are required to use
-> struct v4l2_fh.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Oct 14, 2013 at 03:16:20PM +0200, Tom Gundersen wrote:
+>Hi David and Juan,
+>
+>I'm going through the various out-of-tree LIRC drivers to see if we
+>can stop shipping them in Arch Linux [0]. So far it appears we can
+>drop all except for lirc_wpc8769l [1] (PnP id WEC1020).
+>
+>I noticed the comment in windownd-cir [2]:
+>
+> *  Currently supports the Winbond WPCD376i chip (PNP id WEC1022), but
+> *  could probably support others (Winbond WEC102X, NatSemi, etc)
+> *  with minor modifications.
+>
+>What are your thoughts on adding support for WEC1020 upstream? Is
+>anyone interested in doing this work (I sadly don't have the correct
+>device, so can't really do it myself)?
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+IIRC, Juan had a hacked-up version of the winbond-cir driver working on
+his hardware back in March (the hardware seems similar enough, basically
+the WEC1022 adds some additional Wake-On-IR functionality...I seem to
+recall).
 
-> ---
-> Changes since v1:
->  - added v4l2_m2m_ioctl_create_buf().
-> 
-> This time with the whitespace adjustments I missed to merge into the
-> first patch.
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c |  126
-> ++++++++++++++++++++++++++++++++
->  include/media/v4l2-fh.h                |    4 +
->  include/media/v4l2-mem2mem.h           |   24 ++++++
->  3 files changed, 154 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 7c43712..7494ee3 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -544,6 +544,8 @@ unsigned int v4l2_m2m_poll(struct file *file,
-> struct v4l2_m2m_ctx *m2m_ctx,
-> 
->  	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
->  		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
-> +	else if (m2m_ctx->q_lock)
-> +		mutex_unlock(m2m_ctx->q_lock);
-> 
->  	if (list_empty(&src_q->done_list))
->  		poll_wait(file, &src_q->done_wq, wait); @@ -552,6 +554,8 @@
-> unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx
-> *m2m_ctx,
-> 
->  	if (m2m_ctx->m2m_dev->m2m_ops->lock)
->  		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-> +	else if (m2m_ctx->q_lock)
-> +		mutex_lock(m2m_ctx->q_lock);
-> 
->  	spin_lock_irqsave(&src_q->done_lock, flags);
->  	if (!list_empty(&src_q->done_list))
-> @@ -679,6 +683,13 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct
-> v4l2_m2m_dev *m2m_dev,
-> 
->  	if (ret)
->  		goto err;
-> +	/*
-> +	 * If both queues use same mutex assign it as the common buffer
-> +	 * queues lock to the m2m context. This lock is used in the
-> +	 * v4l2_m2m_ioctl_* helpers.
-> +	 */
-> +	if (out_q_ctx->q.lock == cap_q_ctx->q.lock)
-> +		m2m_ctx->q_lock = out_q_ctx->q.lock;
-> 
->  	return m2m_ctx;
->  err:
-> @@ -726,3 +737,118 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx
-> *m2m_ctx, struct vb2_buffer *vb)  }
-> EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
-> 
-> +/* Videobuf2 ioctl helpers */
-> +
-> +int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
-> +				struct v4l2_requestbuffers *rb)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_reqbufs(file, fh->m2m_ctx, rb); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_reqbufs);
-> +
-> +int v4l2_m2m_ioctl_create_bufs(struct file *file, void *priv,
-> +				struct v4l2_create_buffers *create) {
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_create_bufs(file, fh->m2m_ctx, create); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_create_bufs);
-> +
-> +int v4l2_m2m_ioctl_querybuf(struct file *file, void *priv,
-> +				struct v4l2_buffer *buf)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_querybuf(file, fh->m2m_ctx, buf); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_querybuf);
-> +
-> +int v4l2_m2m_ioctl_qbuf(struct file *file, void *priv,
-> +				struct v4l2_buffer *buf)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_qbuf(file, fh->m2m_ctx, buf); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_qbuf);
-> +
-> +int v4l2_m2m_ioctl_dqbuf(struct file *file, void *priv,
-> +				struct v4l2_buffer *buf)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_dqbuf(file, fh->m2m_ctx, buf); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_dqbuf);
-> +
-> +int v4l2_m2m_ioctl_expbuf(struct file *file, void *priv,
-> +				struct v4l2_exportbuffer *eb)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_expbuf(file, fh->m2m_ctx, eb); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_expbuf);
-> +
-> +int v4l2_m2m_ioctl_streamon(struct file *file, void *priv,
-> +				enum v4l2_buf_type type)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_streamon(file, fh->m2m_ctx, type); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamon);
-> +
-> +int v4l2_m2m_ioctl_streamoff(struct file *file, void *priv,
-> +				enum v4l2_buf_type type)
-> +{
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	return v4l2_m2m_streamoff(file, fh->m2m_ctx, type); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_streamoff);
-> +
-> +/*
-> + * v4l2_file_operations helpers. It is assumed here same lock is used
-> + * for the output and the capture buffer queue.
-> + */
-> +
-> +int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma) {
-> +	struct v4l2_fh *fh = file->private_data;
-> +	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
-> +	int ret;
-> +
-> +	if (m2m_ctx->q_lock && mutex_lock_interruptible(m2m_ctx->q_lock))
-> +		return -ERESTARTSYS;
-> +
-> +	ret = v4l2_m2m_mmap(file, m2m_ctx, vma);
-> +
-> +	if (m2m_ctx->q_lock)
-> +		mutex_unlock(m2m_ctx->q_lock);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_fop_mmap);
-> +
-> +unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait) {
-> +	struct v4l2_fh *fh = file->private_data;
-> +	struct v4l2_m2m_ctx *m2m_ctx = fh->m2m_ctx;
-> +	unsigned int ret;
-> +
-> +	if (m2m_ctx->q_lock)
-> +		mutex_lock(m2m_ctx->q_lock);
-> +
-> +	ret = v4l2_m2m_poll(file, m2m_ctx, wait);
-> +
-> +	if (m2m_ctx->q_lock)
-> +		mutex_unlock(m2m_ctx->q_lock);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_fop_poll);
-> +
-> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h index
-> a62ee18..d942f79 100644
-> --- a/include/media/v4l2-fh.h
-> +++ b/include/media/v4l2-fh.h
-> @@ -43,6 +43,10 @@ struct v4l2_fh {
->  	struct list_head	available; /* Dequeueable event */
->  	unsigned int		navailable;
->  	u32			sequence;
-> +
-> +#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-> +	struct v4l2_m2m_ctx	*m2m_ctx;
-> +#endif
->  };
-> 
->  /*
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-
-> mem2mem.h index 44542a2..12ea5a6 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -64,6 +64,9 @@ struct v4l2_m2m_queue_ctx {  };
-> 
->  struct v4l2_m2m_ctx {
-> +	/* optional cap/out vb2 queues lock */
-> +	struct mutex			*q_lock;
-> +
->  /* private: internal use only */
->  	struct v4l2_m2m_dev		*m2m_dev;
-> 
-> @@ -229,5 +232,26 @@ static inline void *v4l2_m2m_dst_buf_remove(struct
-> v4l2_m2m_ctx *m2m_ctx)
->  	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
->  }
-> 
-> +/* v4l2 ioctl helpers */
-> +
-> +int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
-> +				struct v4l2_requestbuffers *rb);
-> +int v4l2_m2m_ioctl_create_bufs(struct file *file, void *fh,
-> +				struct v4l2_create_buffers *create); int
-> +v4l2_m2m_ioctl_querybuf(struct file *file, void *fh,
-> +				struct v4l2_buffer *buf);
-> +int v4l2_m2m_ioctl_expbuf(struct file *file, void *fh,
-> +				struct v4l2_exportbuffer *eb);
-> +int v4l2_m2m_ioctl_qbuf(struct file *file, void *fh,
-> +				struct v4l2_buffer *buf);
-> +int v4l2_m2m_ioctl_dqbuf(struct file *file, void *fh,
-> +				struct v4l2_buffer *buf);
-> +int v4l2_m2m_ioctl_streamon(struct file *file, void *fh,
-> +				enum v4l2_buf_type type);
-> +int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
-> +				enum v4l2_buf_type type);
-> +int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma);
-> +unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait);
-> +
->  #endif /* _MEDIA_V4L2_MEM2MEM_H */
-> 
-> --
-> 1.7.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+But I think Juan is the one to talk to. I don't have the WEC1020
+hardware and I don't have his experience of adding support for it...
 
+-- 
+David Härdeman
