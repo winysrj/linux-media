@@ -1,147 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36879 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752810Ab3JAOpx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Oct 2013 10:45:53 -0400
-Message-ID: <524AE01E.9040300@iki.fi>
-Date: Tue, 01 Oct 2013 17:45:50 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-out.m-online.net ([212.18.0.9]:35540 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759273Ab3JOPmm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 11:42:42 -0400
+Date: Tue, 15 Oct 2013 17:42:36 +0200
+From: Luc Verhaegen <libv@skynet.be>
+To: mesa-dev@lists.freedesktop.org, xorg-devel@lists.x.org,
+	dri-devel@lists.freedesktop.org, xorg@lists.x.org,
+	wayland-devel@lists.freedesktop.org,
+	xorg-announce@lists.freedesktop.org, mir-devel@lists.ubuntu.com,
+	directfb-dev@directfb.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: FOSDEM14: Graphics DevRoom: call for speakers.
+Message-ID: <20131015154236.GA18182@skynet.be>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>
-CC: linux-media@vger.kernel.org, Ulf <mopp@gmx.net>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi> <524A5EDF.8070904@gentoo.org>
-In-Reply-To: <524A5EDF.8070904@gentoo.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.10.2013 08:34, Matthias Schwarzott wrote:
-> On 26.09.2013 16:54, Antti Palosaari wrote:
->> On 25.09.2013 07:50, Matthias Schwarzott wrote:
->>> On 17.08.2013 13:30, Ulf wrote:
->>>> Hi,
->>>>
->>>> I know the topic Hauppauge HVR-900 HD and HVR 930C-HD with si2165
->>>> demodulator was already discussed
->>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/40982
->>>>
->>>> and
->>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/46266.
->>>>
->>>>
->>>> Just for me as a confirmation nobody plans to work on a driver for
->>>> si2165.
->>>> Is there any chance how to push the development?
->>>>
->>>> Ulf
->>> Hi!
->>>
->>> I also bought one of these to find out it is not supported.
->>> But my plan is to try to write a driver for this.
->>> I want to get DVB-C working, but I also have DVB-T and analog reception
->>> available.
->>>
->>> My current status is I got it working in windows in qemu and did a usb
->>> snoop.
->>> I also have a second system to test it in windows vista directly on the
->>> hardware.
->>>
->>> Current status is documented here.
->>> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C-HD
->>>
->>> Until now I only have a component list summarized from this list.
->>>
->>>   * Conexant <http://www.linuxtv.org/wiki/index.php/Conexant> CX231xx
->>> <http://www.linuxtv.org/wiki/index.php/Conexant_CX2310x>
->>>   * Silicon Labs
->>>
->>> <http://www.linuxtv.org/wiki/index.php?title=Silicon_Labs&action=edit&redlink=1>
->>>
->>>
->>>     si2165 <http://www.linuxtv.org/wiki/index.php/Silicon_Labs_si2165>
->>>     (Multi-Standard DVB-T and DVB-C Demodulator)
->>>   * NXP TDA18271
->>> <http://www.linuxtv.org/wiki/index.php/NXP/Philips_TDA182xx>
->>>     (silicon tuner IC, most likely i2c-addr: 0x60)
->>>   * eeprom (windows driver reads 1kb, i2c-addr: 0x50)
->>>
->>>
->>> Is this correct?
->>> Did anyone open his device and can show pictures?
->>>
->>> I now need to know which component is at which i2c address.
->>> Windows driver does upload file hcw10mlD.rom of 16kb to device 0x44.
->>
->> I have opened it. There was similar sandwich PCB than used by rev1
->> too. So you cannot see all the chip unless you use metal saw to
->> separate PCBs.
->>
->> PCB side A:
->> TDA18271HDC2
->> 16.000 MHz
->>
->> Si2165-GM
->> 16.000 MHz
->>
->>
->> PCB side B:
->> 24C02H
->>
->> regards
->> Antti
->>
-> Hi Antti,
->
-> thanks for that information.
-> The only real new information for me is the 16.000MHz xtal value.
->
-> Sad to know that the other chips are hidden.
-> I assigned more i2c addresses to functions, but not yet all (no idea if
-> more addresses are real, or bad interpretations of snooped data).
->
-> I now try to check what already works:
-> - This is video via composite input.
-> - Next is to try video via analog input - see I see if the tuner in
-> general works in this device.
->
-> In parallel I try to capture usb in different setups.
-> 1. kvm+tcpdump (using usbmon)
-> 2. usbsnoop on windows vista
->
-> Only setup 1 does provide a real list of usb packets.
+Hi,
 
-Matthias, you likely try to do things too complex :) I am not going to 
-comment analog side as I simply has no experience. Missing piece of code 
-from the DTV point of view is only si2165 demod driver.
+At FOSDEM on the 1st and 2nd of February 2014, there will be a graphics 
+DevRoom. URL https://fosdem.org/2014/
 
-My technique is to make successful tune one channel and take sniffs. 
- From sniffs I generate C-code register writes (and sometimes reads too) 
-using scripts. Reading that "C-code" is much more visual and easier than 
-looking correct bytes from the raw sniffs. It is essential to find out 
-from the sniffs what are tuner register writes, what are demod register 
-writes and what are for USB-bridge itself. There may be some other chips 
-which are needed to init in order to operate, like in cases I2C bus is 
-connected through analog demodulator to digital demodulator.
+The focus of this DevRoom is the same as the X.org DevRooms of yore; 
+anything to do with graphics on open source software goes.
 
-Usually it is rather trivial to make skeleton driver from the code 
-generated from sniffs which just shows that single channel sniffs were 
-taken.
+This includes:
+* Graphics drivers: from display to media to 3d drivers, both in kernel 
+  or userspace. Be it part of DRM, KMS, (direct)FB, V4L, Xorg, Mesa...
+* Input drivers: kernel and userspace.
+* Windowing systems: X, Wayland, Mir, directFB, ...
+* Even colour management and other areas which i might have overlooked 
+  above are accepted.
 
-I have been looking simple example for "reverse-engineer demodulator 
-driver how-to" blog post, but I haven't found suitable device yet. That 
-was one device I looked, but I given-up as simplest sniff after parsing 
-was over 1MB. Looks like there is multiple firmwares to download and 
-also CX231xx usb protocol generates a lot of I/O => not very good 
-example for simple how-to.
+Slots are 1 hour long. This partly to avoid confusion and people running 
+all over the place all the time. As a speaker, you do not have to fill 
+your whole hour, smallish gaps are never wasted time.
 
-Take a look of that post to see some practical example about sniffing 
-and code generation.
-http://blog.palosaari.fi/2013/07/generating-rtl2832u-driver-code.html
+Slots will be handed out on a first come, first serve basis. The best 
+slots will go to those who apply the soonest. The amount of slots is 
+currently not known yet, but i expect there to be around 16 available (8 
+on each day), so act quickly.
 
-regards
-Antti
+Talk Submission:
+----------------
 
--- 
-http://palosaari.fi/
+New this year is that speakers are expected to submit proposals to the 
+FOSDEM organizers scheduling system directly (pentabarf). This reduces 
+overhead for all involved (especially me - but this directive came from 
+the FOSDEM team), but holds a few caveats.
+
+The biggest advantage is that you will be able to adjust your own 
+information and your talk information directly. And you can therefor 
+yourself make sure that the information is correct and complete, and you 
+can even make it match the structure of the FOSDEM website. This is a 
+vast improvement over the freeform emails i used to get, which i then 
+had to form up (somewhat) nicely. This does mean that i will end up 
+having to chase people more...
+
+Remember that FOSDEM is not like XDC, it's not some 50 odd people 
+meeting with a sliding schedule which only gets filled in on the last 
+day. Upwards of 7000 people are visiting this event, and most of them 
+get a printed booklet or use the schedule on the FOSDEM website or an 
+app for their phone to figure out what to watch or participate in next. 
+So please put some effort in your talk submission and details.
+
+As for deadlines, i hope to have a pretty much complete schedule between 
+christmas and the new year. The rockhard printed schedule deadline is 
+probably January 10th, after that you will not be featured in the 
+booklet and you will have a lot less visitors. I will find out to what 
+extent i will be able to lock down entries and descriptions during those 
+final days. Don't count on this deadline though. First come first serve, 
+and there are perhaps only 16 slots.
+
+Submission Caveat #1:
+---------------------
+
+The first caveat is that all speakers who spoke at FOSDEM from 2011 on 
+should not simply create an account. If you have talked recently you 
+should come to me first, so i can get your details up to date, and so 
+that i can poke the pentabarf admin to create you an account linked to 
+the previous speaker entry. This saves me and the fosdem people 
+overhead, and will allow you to recycle your previous data.
+
+The known speakers are:
+  Connor Abbott (*)
+  Eric Anholt
+  Marc Balmer
+  Jesse Barnes
+  Kai-Uwe Behrmann
+  Donnie Berkholz
+  Rob Bradford
+  Robert Bragg
+  Rob Clark
+  Ander Conselvan de Oliviera
+  Michael Hasselman
+  Matthieu Herrb
+  David Herrmann
+  Kristian Høgsberg
+  Peter Hutterer
+  Francisco Jerez
+  Sirko Kemter
+  Alon Levy
+  Chris Lilley
+  Peter Linnell
+  Keith Packard
+  Martin Peres
+  Timothée Ravier
+  Neil Roberts
+  Ian Romanick
+  Lucas Stach
+  Daniel Stone
+  Ville Syrjala
+  Daniel Vetter (*)
+  Chris Wilson
+
+(*) Since Daniel Vetter and Connor Abbott are known speakers for 2014 
+already, they will be contacted soon with account details. They have the 
+questionable honour of being the guinea pigs :)
+
+If you are not on the above list, then you can just start at:
+https://penta.fosdem.org/submission/FOSDEM14
+
+If you are on the above list, then you need to email me or poke me 
+(libv) on freenode.
+
+Submission Caveat #2:
+---------------------
+
+The second caveat is what i need to see filled in when you apply for a 
+devroom before i consider it a valid submission. Remember: first come, 
+first serve. The best slots are for the earliest submissions and there 
+are only around 16 slots.
+
+On your personal page:
+* General:
+  * First and last name
+  * Nickname
+  * Image
+* Contact:
+  * email
+  * mobile number (this is a very hard requirement as there will be no 
+    other reliable form of emergency communication on the day)
+* Description:
+  * Abstract
+  * Description
+
+Create an event:
+* On the General page:
+  * Event title
+  * Event subtitle.
+  * Track: Graphics Devroom
+  * Event type: Lecture (talk) or Meeting (BoF)
+* Persons:
+  * Add yourself as speaker.
+* Description:
+  * Abstract:
+  * Full Description
+* Links:
+  * Add relevant links.
+
+Everything else can be ignored or will be filled in by me or the FOSDEM 
+organizers.
+
+That's about it. Hope to see you all at FOSDEM :)
+
+Luc Verhaegen.
