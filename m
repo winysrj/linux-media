@@ -1,89 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58755 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754721Ab3JQNKN (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55955 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758756Ab3JONsi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 09:10:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/6] v4l: omap4iss: Add support for OMAP4 camera interface - Core
-Date: Thu, 17 Oct 2013 15:10:32 +0200
-Message-ID: <22658506.hDujbKj41r@avalon>
-In-Reply-To: <20131017094857.3e97b9b1@samsung.com>
-References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com> <1380758133-16866-2-git-send-email-laurent.pinchart@ideasonboard.com> <20131017094857.3e97b9b1@samsung.com>
+	Tue, 15 Oct 2013 09:48:38 -0400
+Message-ID: <525D477F.10606@ti.com>
+Date: Tue, 15 Oct 2013 19:17:43 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com> <5257ACD1.9010501@xs4all.nl>
+In-Reply-To: <5257ACD1.9010501@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-On Thursday 17 October 2013 09:48:57 Mauro Carvalho Chehab wrote:
-> Em Thu,  3 Oct 2013 01:55:28 +0200 Laurent Pinchart escreveu:
-> > From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> > 
-> > This adds a very simplistic driver to utilize the CSI2A interface inside
-> > the ISS subsystem in OMAP4, and dump the data to memory.
-> > 
-> > Check Documentation/video4linux/omap4_camera.txt for details.
-> > 
-> > This commit adds the driver core, registers definitions and
-> > documentation.
-> > 
-> > Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> > 
-> > [Port the driver to v3.12-rc3, including the following changes
-> > - Don't include plat/ headers
-> > - Don't use cpu_is_omap44xx() macro
-> > - Don't depend on EXPERIMENTAL
-> > - Fix s_crop operation prototype
-> > - Update link_notify prototype
-> > - Rename media_entity_remote_source to media_entity_remote_pad]
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Checkpatch has a few compliants on the version that it is on your pull
-> request:
+On Friday 11 October 2013 01:16 PM, Hans Verkuil wrote:
+> On 10/09/2013 04:29 PM, Archit Taneja wrote:
+>> VPE is a block which consists of a single memory to memory path which can
+>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>> interleaved video formats.
+>>
+>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>> The de-interlacer, scaler and color space converter are all bypassed for now
+>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>> conversion beteen different YUV formats is possible.
+>>
+>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>
+>> Based on the information received via v4l2 ioctls for the source and
+>> destination queues, the driver configures the values for the MMRs, and stores
+>> them in the buffer. There are also some VPDMA parameters like frame start and
+>> line mode which needs to be configured, these are configured by direct register
+>> writes via the VPDMA helper functions.
+>>
+>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>> source and destination queues are set up for the given ctx, once the list is
+>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>> upload MMR registers, start DMA of video buffers on the various input and output
+>> clients/ports.
+>>
+>> When the list is parsed completely(and the DMAs on all the output ports done),
+>> an interrupt is generated which we use to notify that the source and destination
+>> buffers are done.
+>>
+>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
 
-[snip]
+Thanks for the Acks. Is it possible to queue these for 3.13?
 
-> WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...
->  to printk(KERN_ERR ... #1240: FILE:
-> drivers/staging/media/omap4iss/iss.c:1126:
-> +		printk(KERN_ERR "%s: Media device registration failed (%d)\n",
-
-No, I won't rewrite the driver as a net device ;-)
-
-[snip]
-
-> The 80-cols warnings above seem just bogus, as fixing them on this specific
-> case would produce a worse to read code, but the other warnings make some
-> sense on my eyes.
-> 
-> Care to address them or to justify why to not address them?
-> 
-> Also, both Hans and Sakari's comments on this patch seem pertinent.
-> 
-> Could you please either add some extra patches to this series addressing
-> the pointed issues or to send another git pull request considering
-> those?
-
-I plan to fix all that in extra patches (I believe that keeping the driver 
-history is interesting, so I'd like to avoid squashing the fixes into these 
-patches) for v3.14 (the v3.13 merge window is just too close).
-
-Given that the driver goes to staging first, would it be a problem to take it 
-as-is for v3.13 if I commit to fix the problems in the very near future ? I've 
-been made aware of quite a lot of interest on the OMAP4 ISS lately, and I'd 
-like to get the driver to mainline without much delay to let people contribute 
-(if they can and want obviously).
-
--- 
-Regards,
-
-Laurent Pinchart
+Archit
 
