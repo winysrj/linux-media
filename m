@@ -1,79 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:32931 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177Ab3JMTOQ (ORCPT
+Received: from cernmx30.cern.ch ([137.138.144.177]:27339 "EHLO
+	CERNMX30.cern.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933096Ab3JOPZE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 15:14:16 -0400
-Received: by mail-la0-f49.google.com with SMTP id ev20so5001690lab.36
-        for <linux-media@vger.kernel.org>; Sun, 13 Oct 2013 12:14:14 -0700 (PDT)
+	Tue, 15 Oct 2013 11:25:04 -0400
+From: Dinesh Ram <dinesh.ram@cern.ch>
+To: <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, <edubezval@gmail.com>,
+	<dinesh.ram086@gmail.com>, Dinesh Ram <dinesh.ram@cern.ch>
+Subject: [REVIEW PATCH 4/9] si4713 : Bug fix for si4713_tx_tune_power() method in the i2c driver
+Date: Tue, 15 Oct 2013 17:24:40 +0200
+Message-ID: <fb14d949fe47e9b46d0c829dd338885d365f403a.1381850640.git.dinesh.ram@cern.ch>
+In-Reply-To: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
+References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
 MIME-Version: 1.0
-In-Reply-To: <1381668541.2209.14.camel@palomino.walls.org>
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-	<1381371651.1889.21.camel@palomino.walls.org>
-	<CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
-	<1381620192.22245.18.camel@palomino.walls.org>
-	<1381668541.2209.14.camel@palomino.walls.org>
-Date: Sun, 13 Oct 2013 20:14:14 +0100
-Message-ID: <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-From: Rajil Saraswat <rajil.s@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> OK, I just tested with my Wii game console connected to the PVR-500 unit
-> #2, Fedora 17, kernel 3.6.10-2.fc17.x86_64.
->
-> 1. With the unit set to 'Input 2, Composite 1', cx25840 'Composite 3':
-> Good video, good audio
->
-> 2. With the unit set to 'Input 4, Composite 2', cx25840 'Composite 4':
-> No video, distorted audio.
->
+In the si4713_tx_tune_power() method, the args array element 'power'
+can take values between SI4713_MIN_POWER and SI4713_MAX_POWER. power = 0
+is also valid. All the values (0 > power < SI4713_MIN_POWER) are illegal
+and hence are all mapped to SI4713_MIN_POWER.
 
-This is what i used to changed the input
+Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
+---
+ drivers/media/radio/si4713/si4713.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-v4l2-ctl -d /dev/video1 --set-input 4
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 1da9364..d297a5b 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -555,14 +555,14 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
+ }
+ 
+ /*
+- * si4713_tx_tune_power - Sets the RF voltage level between 88 and 115 dBuV in
++ * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
+  * 			1 dB units. A value of 0x00 indicates off. The command
+  * 			also sets the antenna tuning capacitance. A value of 0
+  * 			indicates autotuning, and a value of 1 - 191 indicates
+  * 			a manual override, which results in a tuning
+  * 			capacitance of 0.25 pF x @antcap.
+  * @sdev: si4713_device structure for the device we are communicating
+- * @power: tuning power (88 - 115 dBuV, unit/step 1 dB)
++ * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
+  * @antcap: value of antenna tuning capacitor (0 - 191)
+  */
+ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+@@ -576,16 +576,16 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+ 	 * 	.Third byte = power
+ 	 * 	.Fourth byte = antcap
+ 	 */
+-	const u8 args[SI4713_TXPWR_NARGS] = {
++	u8 args[SI4713_TXPWR_NARGS] = {
+ 		0x00,
+ 		0x00,
+ 		power,
+ 		antcap,
+ 	};
+ 
+-	if (((power > 0) && (power < SI4713_MIN_POWER)) ||
+-		power > SI4713_MAX_POWER || antcap > SI4713_MAX_ANTCAP)
+-		return -EDOM;
++	/* Map power values 1-87 to MIN_POWER (88) */
++	if (power > 0 && power < SI4713_MIN_POWER)
++		args[2] = power = SI4713_MIN_POWER;
+ 
+ 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
+ 				  args, ARRAY_SIZE(args), val,
+@@ -1462,9 +1462,9 @@ static int si4713_probe(struct i2c_client *client,
+ 			V4L2_CID_TUNE_PREEMPHASIS,
+ 			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+ 	sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+-			V4L2_CID_TUNE_POWER_LEVEL, 0, 120, 1, DEFAULT_POWER_LEVEL);
++			V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
+ 	sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+-			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, 191, 1, 0);
++			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
+ 
+ 	if (hdl->error) {
+ 		rval = hdl->error;
+-- 
+1.7.9.5
 
-With this 2.6.35 gives me perfect video/audio. Kernel 3.10.7 on the
-other hand gives good video but distorted audio. On this cards primary
-input (/dev/video0), i use the radio so i cant use input 2 of this
-card. My composite cable is connected to the 'extra-input' card which
-should be composite 2.
-
-My understanding is input 4 is #2 composite, and input 2 is #1
-composite. Is that not right?
-
-This is what i tried in kernel 2.6.35:
-
-1. v4l2-ctl -d /dev/video1 --set-input 2
-Video input set to 2 (Composite 1: ok)
-No video
-
-2. v4l2-ctl -d /dev/video1 --set-input 4
-Video input set to 4 (Composite 2: ok)
-Good video
-
-As i mentioned in kernel 2.6.35, mythtv/mplayer give me both good
-video/audio if i use 2 above.
-
-> AFAICT:
-> You're using the wrong input.
-> You weren't checking the video, only the audio.
-
-What inputs do you think i should use with v4l2-ctl?
-
-
->> > Unfortunately, i cannot do a git bisect since it is a remote system
->> > with a slow internet connection.
->
-> Is this system for personal or professional use?  I don't know of any
-> home users who have remote sites.
-
-Your know one user now!. Yes it is for personal use. It was for my old
-folks who live in another country and i manage their mythtv/htpc
-remotely.
-
--Rajil
