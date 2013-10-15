@@ -1,79 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46295 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751174Ab3JAJR0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Oct 2013 05:17:26 -0400
-Date: Tue, 1 Oct 2013 12:17:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, sylwester.nawrocki@gmail.com
-Subject: Re: [PATCH 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-Message-ID: <20131001091721.GJ3022@valkosipuli.retiisi.org.uk>
-References: <1379541668-23085-1-git-send-email-sakari.ailus@iki.fi>
- <2051351.luZaPOfRE8@avalon>
- <20130930232823.GI3022@valkosipuli.retiisi.org.uk>
- <2921276.foMJNxPg5I@avalon>
+Received: from cernmx32.cern.ch ([137.138.144.178]:2343 "EHLO CERNMX32.cern.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933141Ab3JOPZF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 11:25:05 -0400
+From: Dinesh Ram <dinesh.ram@cern.ch>
+To: <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, <edubezval@gmail.com>,
+	<dinesh.ram086@gmail.com>, Dinesh Ram <dinesh.ram@cern.ch>
+Subject: [REVIEW PATCH 2/9] si4713 : Modified i2c driver to handle cases where interrupts are not used
+Date: Tue, 15 Oct 2013 17:24:38 +0200
+Message-ID: <2f90947b4ca40f9a5c6d87cecd7bc0b7a5f27d22.1381850640.git.dinesh.ram@cern.ch>
+In-Reply-To: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
+References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2921276.foMJNxPg5I@avalon>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Checks have been introduced at several places in the code to test if an interrupt is set or not.
+For devices which do not use the interrupt, to get a valid response, within a specified timeout,
+the device is polled instead.
 
-On Tue, Oct 01, 2013 at 10:55:04AM +0200, Laurent Pinchart wrote:
-> On Tuesday 01 October 2013 02:28:23 Sakari Ailus wrote:
-> > On Tue, Oct 01, 2013 at 01:21:58AM +0200, Laurent Pinchart wrote:
-> > > On Tuesday 01 October 2013 02:08:47 Sakari Ailus wrote:
-> > > > On Fri, Sep 20, 2013 at 11:08:47PM +0200, Laurent Pinchart wrote:
-> > > > > On Thursday 19 September 2013 01:01:05 Sakari Ailus wrote:
-> > > > > > Pads that set this flag must be connected by an active link for the
-> > > > > > entity to stream.
-> > > > > > 
-> > > > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > > > Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> 
-> [snip]
-> 
-> > > What about
-> > > 
-> > > If the pad is linked to any other pad, at least one of the links must be
-> > > enabled for the entity to be able to stream. There could be temporary
-> > > reasons (e.g. device configuration dependent) for the pad to need enabled
-> > > links; the absence of the flag doesn't imply there is none. The flag has
-> > > no effect on pads without connected links.
-> > 
-> > Thinking about this again, I'd add before the comma: "and this flag is set".
-> > 
-> > And if you put it like that then the last sentence is redundat --- I'd drop
-> > it.
-> > 
-> > What do you think?
-> 
-> What about
-> 
-> "When this flag is set, if the pad is linked to any other pad then at least 
+Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
+---
+ drivers/media/radio/si4713/si4713.c |  108 +++++++++++++++++++++--------------
+ 1 file changed, 64 insertions(+), 44 deletions(-)
 
-How about:
-
-"If this flag is set and the pad is linked to any other pad, then"...
-
-I think it's cleaner like that.
-
-> one of those links must be enabled for the entity to be able to stream. There 
-> could be temporary reasons (e.g. device configuration dependent) for the pad 
-> to need enabled links even when this flag isn't set; the absence of the flag 
-> doesn't imply there is none. The flag has no effect on pads without connected 
-> links."
-> 
-> Feel free to drop the last sentence.
-
-Thinking about it again, I'm fine keeping it. :-)
-
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index ac727e3..24ae41d 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -27,11 +27,11 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/module.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include "si4713.h"
+ 
+@@ -213,6 +213,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+ 				u8 response[], const int respn, const int usecs)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
++	unsigned long until_jiffies;
+ 	u8 data1[MAX_ARGS + 1];
+ 	int err;
+ 
+@@ -228,30 +229,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+ 	if (err != argn + 1) {
+ 		v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
+ 			command);
+-		return (err > 0) ? -EIO : err;
++		return err < 0 ? err : -EIO;
+ 	}
+ 
++	until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
++
+ 	/* Wait response from interrupt */
+-	if (!wait_for_completion_timeout(&sdev->work,
++	if (client->irq) {
++		if (!wait_for_completion_timeout(&sdev->work,
+ 				usecs_to_jiffies(usecs) + 1))
+-		v4l2_warn(&sdev->sd,
++			v4l2_warn(&sdev->sd,
+ 				"(%s) Device took too much time to answer.\n",
+ 				__func__);
+-
+-	/* Then get the response */
+-	err = i2c_master_recv(client, response, respn);
+-	if (err != respn) {
+-		v4l2_err(&sdev->sd,
+-			"Error while reading response for command 0x%02x\n",
+-			command);
+-		return (err > 0) ? -EIO : err;
+ 	}
+ 
+-	DBG_BUFFER(&sdev->sd, "Response", response, respn);
+-	if (check_command_failed(response[0]))
+-		return -EBUSY;
++	do {
++		err = i2c_master_recv(client, response, respn);
++		if (err != respn) {
++			v4l2_err(&sdev->sd,
++				"Error %d while reading response for command 0x%02x\n",
++				err, command);
++			return err < 0 ? err : -EIO;
++		}
++
++		DBG_BUFFER(&sdev->sd, "Response", response, respn);
++		if (!check_command_failed(response[0]))
++			return 0;
+ 
+-	return 0;
++		if (client->irq)
++			return -EBUSY;
++		msleep(1);
++	} while (jiffies <= until_jiffies);
++
++	return -EBUSY;
+ }
+ 
+ /*
+@@ -344,14 +354,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
+  */
+ static int si4713_powerup(struct si4713_device *sdev)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+ 	int err;
+ 	u8 resp[SI4713_PWUP_NRESP];
+ 	/*
+ 	 * 	.First byte = Enabled interrupts and boot function
+ 	 * 	.Second byte = Input operation mode
+ 	 */
+-	const u8 args[SI4713_PWUP_NARGS] = {
+-		SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
++	u8 args[SI4713_PWUP_NARGS] = {
++		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
+ 		SI4713_PWUP_OPMOD_ANALOG,
+ 	};
+ 
+@@ -369,6 +380,9 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 		gpio_set_value(sdev->gpio_reset, 1);
+ 	}
+ 
++	if (client->irq)
++		args[0] |= SI4713_PWUP_CTSIEN;
++
+ 	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
+ 					args, ARRAY_SIZE(args),
+ 					resp, ARRAY_SIZE(resp),
+@@ -380,7 +394,8 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 		v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+ 		sdev->power_state = POWER_ON;
+ 
+-		err = si4713_write_property(sdev, SI4713_GPO_IEN,
++		if (client->irq)
++			err = si4713_write_property(sdev, SI4713_GPO_IEN,
+ 						SI4713_STC_INT | SI4713_CTS);
+ 	} else {
+ 		if (gpio_is_valid(sdev->gpio_reset))
+@@ -465,33 +480,39 @@ static int si4713_checkrev(struct si4713_device *sdev)
+  */
+ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
+ {
+-	int err;
++	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
+ 	u8 resp[SI4713_GET_STATUS_NRESP];
++	unsigned long start_jiffies = jiffies;
++	int err;
+ 
+-	/* Wait response from STC interrupt */
+-	if (!wait_for_completion_timeout(&sdev->work,
+-			usecs_to_jiffies(usecs) + 1))
++	if (client->irq &&
++	    !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
+ 		v4l2_warn(&sdev->sd,
+-			"%s: device took too much time to answer (%d usec).\n",
+-				__func__, usecs);
+-
+-	/* Clear status bits */
+-	err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
+-					NULL, 0,
+-					resp, ARRAY_SIZE(resp),
+-					DEFAULT_TIMEOUT);
+-
+-	if (err < 0)
+-		goto exit;
+-
+-	v4l2_dbg(1, debug, &sdev->sd,
+-			"%s: status bits: 0x%02x\n", __func__, resp[0]);
+-
+-	if (!(resp[0] & SI4713_STC_INT))
+-		err = -EIO;
+-
+-exit:
+-	return err;
++			"(%s) Device took too much time to answer.\n", __func__);
++
++	for (;;) {
++		/* Clear status bits */
++		err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
++				NULL, 0,
++				resp, ARRAY_SIZE(resp),
++				DEFAULT_TIMEOUT);
++		/* The USB device returns errors when it waits for the
++		 * STC bit to be set. Hence polling */
++		if (err >= 0) {
++			v4l2_dbg(1, debug, &sdev->sd,
++				"%s: status bits: 0x%02x\n", __func__, resp[0]);
++
++			if (resp[0] & SI4713_STC_INT)
++				return 0;
++		}
++		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
++			return err < 0 ? err : -EIO;
++		/* We sleep here for 3 ms in order to avoid flooding the device
++		 * with USB requests. The si4713 USB driver was developed
++		 * by reverse engineering the Windows USB driver. The windows
++		 * driver also has a ~2.5 ms delay between responses. */
++		msleep(3);
++	}
+ }
+ 
+ /*
+@@ -1024,7 +1045,6 @@ static int si4713_initialize(struct si4713_device *sdev)
+ 	if (rval < 0)
+ 		return rval;
+ 
+-
+ 	sdev->frequency = DEFAULT_FREQUENCY;
+ 	sdev->stereo = 1;
+ 	sdev->tune_rnl = DEFAULT_TUNE_RNL;
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
