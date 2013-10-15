@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38800 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38823 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933674Ab3JOVmW (ORCPT
+	by vger.kernel.org with ESMTP id S933657Ab3JOVrb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 17:42:22 -0400
-Date: Wed, 16 Oct 2013 00:41:46 +0300
+	Tue, 15 Oct 2013 17:47:31 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, sylwester.nawrocki@gmail.com,
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sylwester.nawrocki@gmail.com,
 	a.hajda@samsung.com
-Subject: Re: [PATCH v2.1 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-Message-ID: <20131015214146.GD7584@valkosipuli.retiisi.org.uk>
-References: <524DEC22.5090107@gmail.com>
- <1381661924-26365-1-git-send-email-sakari.ailus@iki.fi>
- <20131013110313.GC7584@valkosipuli.retiisi.org.uk>
- <3422963.Ua6Z8kTtzN@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: [PATCH v2.2 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
+Date: Wed, 16 Oct 2013 00:46:57 +0300
+Message-Id: <1381873617-5481-1-git-send-email-sakari.ailus@iki.fi>
 In-Reply-To: <3422963.Ua6Z8kTtzN@avalon>
+References: <3422963.Ua6Z8kTtzN@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 15, 2013 at 05:22:50PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Sunday 13 October 2013 14:03:13 Sakari Ailus wrote:
-> > On Sun, Oct 13, 2013 at 01:58:43PM +0300, Sakari Ailus wrote:
-> > > Pads that set this flag must be connected by an active link for the entity
-> > > to stream.
-> > 
-> > Oh --- btw. what has changed since v2:
-> > 
-> > - Rmoved the last sentence of MEDIA_PAD_FL_MUST_CONNECT documentation. The
-> >   sentence was about the flag having no effect on pads w/o links.
-> 
-> That change is part of 2/4. I believe that's a mistake.
+Pads that set this flag must be connected by an active link for the entity
+to stream.
 
-Indeed. I'll resend in a moment.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ Documentation/DocBook/media/v4l/media-ioc-enum-links.xml |    9 +++++++++
+ include/uapi/linux/media.h                               |    1 +
+ 2 files changed, 10 insertions(+)
 
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+index 355df43..cf85485 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+@@ -134,6 +134,15 @@
+ 	    <entry>Output pad, relative to the entity. Output pads source data
+ 	    and are origins of links.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>MEDIA_PAD_FL_MUST_CONNECT</constant></entry>
++	    <entry>If this flag is set and the pad is linked to any other
++	    pad, then at least one of those links must be enabled for the
++	    entity to be able to stream. There could be temporary reasons
++	    (e.g. device configuration dependent) for the pad to need
++	    enabled links even when this flag isn't set; the absence of the
++	    flag doesn't imply there is none.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ed49574..d847c76 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -98,6 +98,7 @@ struct media_entity_desc {
+ 
+ #define MEDIA_PAD_FL_SINK		(1 << 0)
+ #define MEDIA_PAD_FL_SOURCE		(1 << 1)
++#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
+ 
+ struct media_pad_desc {
+ 	__u32 entity;		/* entity ID */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
