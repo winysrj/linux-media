@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27250 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286Ab3JBOS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Oct 2013 10:18:28 -0400
-Message-ID: <524C2B30.9050605@linux.intel.com>
-Date: Wed, 02 Oct 2013 17:18:24 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from cernmx30.cern.ch ([137.138.144.177]:27339 "EHLO
+	CERNMX30.cern.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933105Ab3JOPZD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 11:25:03 -0400
+From: Dinesh Ram <dinesh.ram@cern.ch>
+To: <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, <edubezval@gmail.com>,
+	<dinesh.ram086@gmail.com>, Dinesh Ram <dinesh.ram@cern.ch>
+Subject: [REVIEW PATCH 3/9] si4713 : Reorganized includes in si4713.c/h
+Date: Tue, 15 Oct 2013 17:24:39 +0200
+Message-ID: <5616278fea088e7f34d3456ced8b0f3e8295b24f.1381850640.git.dinesh.ram@cern.ch>
+In-Reply-To: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
+References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teemux.tuominen@intel.com
-Subject: Re: [RFC v2 4/4] v4l: events: Don't sleep in dequeue if none are
- subscribed
-References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com> <1380721516-488-5-git-send-email-sakari.ailus@linux.intel.com> <524C27F6.4040002@xs4all.nl>
-In-Reply-To: <524C27F6.4040002@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Moved the header <linux/regulator/consumer.h> from si4713.c to si4713.h
 
-Thanks for the comments!
+Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
+---
+ drivers/media/radio/si4713/si4713.c |    1 -
+ drivers/media/radio/si4713/si4713.h |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-Hans Verkuil wrote:
-> On 10/02/13 15:45, Sakari Ailus wrote:
->> Dequeueing events was is entirely possible even if none are subscribed,
->> leading to sleeping indefinitely. Fix this by returning -ENOENT when no
->> events are subscribed.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>   drivers/media/v4l2-core/v4l2-event.c | 11 +++++++++--
->>   1 file changed, 9 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-event.c
->> b/drivers/media/v4l2-core/v4l2-event.c
->> index b53897e..553a800 100644
->> --- a/drivers/media/v4l2-core/v4l2-event.c
->> +++ b/drivers/media/v4l2-core/v4l2-event.c
->> @@ -77,10 +77,17 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct
->> v4l2_event *event,
->>           mutex_unlock(fh->vdev->lock);
->>
->>       do {
->> -        ret = wait_event_interruptible(fh->wait,
->> -                           fh->navailable != 0);
->> +        bool subscribed;
->
-> Can you add an empty line here?
-
-Sure.
-
->> +        ret = wait_event_interruptible(
->> +            fh->wait,
->> +            fh->navailable != 0 ||
->> +            !(subscribed = v4l2_event_has_subscribed(fh)));
->>           if (ret < 0)
->>               break;
->> +        if (!subscribed) {
->> +            ret = -EIO;
->
-> Shouldn't this be -ENOENT?
-
-If I use -ENOENT, having no events subscribed is indistinguishable form 
-no events pending condition. Combine that with using select(2), and you 
-can no longer distinguish having no events subscribed from the case 
-where you got an event but someone else (another thread or process) 
-dequeued it.
-
--EIO makes that explicit --- this also mirrors the behaviour of 
-VIDIOC_DQBUF. (And it must be documented as well, which is missing from 
-the patch currently.)
-
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 24ae41d..1da9364 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -31,7 +31,6 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
+-#include <linux/regulator/consumer.h>
+ 
+ #include "si4713.h"
+ 
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index c274e1f..dc0ce66 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -15,6 +15,7 @@
+ #ifndef SI4713_I2C_H
+ #define SI4713_I2C_H
+ 
++#include <linux/regulator/consumer.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/si4713.h>
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+1.7.9.5
 
