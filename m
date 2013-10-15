@@ -1,49 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:49336 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754599Ab3JaSHe (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45103 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759343Ab3JOPfl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Oct 2013 14:07:34 -0400
-Message-ID: <52729C60.6000408@infradead.org>
-Date: Thu, 31 Oct 2013 11:07:28 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-CC: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH -next] media/platform/marvell-ccic: fix cafe_ccic build error
-References: <20131031210027.cb3604b9589e0b7a1599dbd2@canb.auug.org.au>
-In-Reply-To: <20131031210027.cb3604b9589e0b7a1599dbd2@canb.auug.org.au>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 15 Oct 2013 11:35:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH] v4l: vsp1: Replace ioread32/iowrite32 I/O accessors with readl/writel
+Date: Tue, 15 Oct 2013 17:35:54 +0200
+Message-Id: <1381851354-11925-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+The ioread32() and iowrite32() I/O accessors are not available on all
+architectures. Replace them with readl() and writel() to avoid
+compilation failures. Although VSP1 devices are only available on
+Renesas ARM platforms, allowing the driver to compile on all
+architectures is useful to catch compilation-time issues.
 
-The cafe_ccic driver (the mcam-core.c part of it) uses dma_sg
-interfaces so it needs to select VIDEOBUF2_DMA_SG to prevent
-build errors.
-
-drivers/built-in.o: In function `mcam_v4l_open':
-mcam-core.c:(.text+0x14643e): undefined reference to `vb2_dma_sg_memops'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/marvell-ccic/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/vsp1/vsp1.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- linux-next-20131031.orig/drivers/media/platform/marvell-ccic/Kconfig
-+++ linux-next-20131031/drivers/media/platform/marvell-ccic/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_CAFE_CCIC
- 	select VIDEO_OV7670
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEOBUF2_DMA_SG
- 	---help---
- 	  This is a video4linux2 driver for the Marvell 88ALP01 integrated
- 	  CMOS camera controller.  This is the controller found on first-
+This fix is a candidate for v3.12, as building the kernel with allyesconfig
+on architectures without ioread32/iowrite32 support currently fails on
+v3.12-rc5.
+
+I'll send a pull request to the media tree shortly along with another v3.12
+fix that has previously been posted to the linux-media mailing list.
+
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index d6c6ecd..7dab256 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -63,12 +63,12 @@ void vsp1_device_put(struct vsp1_device *vsp1);
+ 
+ static inline u32 vsp1_read(struct vsp1_device *vsp1, u32 reg)
+ {
+-	return ioread32(vsp1->mmio + reg);
++	return readl(vsp1->mmio + reg);
+ }
+ 
+ static inline void vsp1_write(struct vsp1_device *vsp1, u32 reg, u32 data)
+ {
+-	iowrite32(data, vsp1->mmio + reg);
++	writel(data, vsp1->mmio + reg);
+ }
+ 
+ #endif /* __VSP1_H__ */
+-- 
+Laurent Pinchart
+
