@@ -1,81 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:33997 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753752Ab3J3PQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Oct 2013 11:16:25 -0400
-Date: Wed, 30 Oct 2013 16:16:20 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Phil Carmody <phil.carmody@partner.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] rtl2830: add parent for I2C adapter
-Message-ID: <20131030151620.GB3663@katana>
-References: <1382386335-3879-1-git-send-email-crope@iki.fi>
- <52658CA7.5080104@iki.fi>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:55177 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932499Ab3JOUEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 16:04:23 -0400
+Message-ID: <525D9FC1.2040204@gmail.com>
+Date: Tue, 15 Oct 2013 22:04:17 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
-Content-Disposition: inline
-In-Reply-To: <52658CA7.5080104@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux@arm.linux.org.uk, mturquette@linaro.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, jiada_wang@mentor.com,
+	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	t.figa@samsung.com, g.liakhovetski@gmx.de,
+	linux-kernel@vger.kernel.org, linux-mips@linux-mips.org,
+	linux-sh@vger.kernel.org, LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v6 0/5] clk: clock deregistration support
+References: <1377874402-2944-1-git-send-email-s.nawrocki@samsung.com> <52420664.2040604@gmail.com> <3160771.O1gFkR91vK@avalon>
+In-Reply-To: <3160771.O1gFkR91vK@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---St7VIuEGZ6dlpu13
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
 Hi,
 
-sorry for the delay. The Kernel Summit made a pretty busy time out of
-the last weeks...
+(adding linux-media mailing list at Cc)
 
-> I found one of my drivers was crashing when DTV USB stick was
-> plugged. Patch in that mail patch fixes the problem.
+On 09/25/2013 11:47 AM, Laurent Pinchart wrote:
+> On Tuesday 24 September 2013 23:38:44 Sylwester Nawrocki wrote:
+[...]
+>> The only issue I found might be at the omap3isp driver, which provides
+>> clock to its sub-drivers and takes reference on the sub-driver modules.
+>> When sub-driver calls clk_get() all modules would get locked in memory,
+>> due to circular reference. One solution to that could be to pass NULL
+>> struct device pointer, as in the below patch.
+>
+> Doesn't that introduce race conditions ? If the sub-drivers require the clock,
+> they want to be sure that the clock won't disappear beyond their backs. I
+> agree that the circular dependency needs to be solved somehow, but we probably
+> need a more generic solution. The problem will become more widespread in the
+> future with DT-based device instantiation in both V4L2 and KMS.
 
-Well, if you have a parent, it should be set. This is always a good
-idea. Can't really tell why not having it causes the BUG, though.
+I'm wondering whether subsystems and drivers itself should be written so
+they deal with such dependencies they are aware of.
 
-> I quickly looked possible I2C patches causing the problem and saw
-> that one as most suspicions:
->=20
-> commit 3923172b3d700486c1ca24df9c4c5405a83e2309
-> i2c: reduce parent checking to a NOOP in non-I2C_MUX case
+There is similar situation in the regulator API, regulator_get() simply
+takes a reference on a module providing the regulator object.
 
-Did you try reverting it? I am not sure this is the one.
+Before a "more generic solution" is available, what do you think about
+keeping obtaining a reference on a clock provider module in clk_get() and
+doing clk_get(), clk_prepare_enable(), ..., clk_unprepare_disable(),
+clk_put() in sub-driver whenever a clock is actively used, to avoid
+permanent circular reference ?
 
-> >i2c i2c-6: adapter [RTL2830 tuner I2C adapter] registered
-> >BUG: unable to handle kernel NULL pointer dereference at 0000000000000220
-> >IP: [<ffffffffa0002900>] i2c_register_adapter+0x130/0x390 [i2c_core]
+--
+Thanks,
+Sylwester
 
-Can we have the full BUG output?
-
-Regards,
-
-   Wolfram
-
-
---St7VIuEGZ6dlpu13
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJScSLDAAoJEBQN5MwUoCm2K+gP/3ZREG1A1ff3Hrz4RD+K8TPv
-CoJQYcsHUgQ1Ct8AUkigqX1xAP5EdzIEG4Y3n2de5KmUjgKo+tdJz+vAnj4w7lsg
-s1+KeRicrZYZlbkbr3w7JW0DzTjs+oiNnZsRBD9HU/FWlBGpNrwi6SNaTyy/bcu2
-QzeIK/qOHZ74+gBOaYbkrY0pp7sfUknXwrGp9F7/W+T1fB7xYA/hs+NZsvEQkw8r
-fyQ5UbApm4RLor5oNguGSJNPvs76sGqHiRToEOJxRZ6WgWUImYAy66RA8nv5xWEX
-VOtA44waBOge61Huoq3pK4tJ8U3FVa6R3tDoFPc9Rymdc8p/heC4kfO+SeeK7wGl
-Qhu0exUkqTSU9XGlaEzxc3Va2nbi9vaMZYWddXmJ9ma+m2CwBZVSCApvV9NfhfJ1
-S+vXmVdIO7kpj61VnNC4KUrz+3wozHE6d1E4nT9oO1+/3IGqIJkuZzONoYxaXocQ
-W6xaYzpZEJNMreaxg69SO1GuAEUJkQE9W5Hq8Zb5jpc3fa6y39+bBAqWN/WBnSV6
-WpIBWYotXR0IDkRJXSqyK0AHJLWCVZLF+tl2CYnlB3xIJQ73Cldbb6CSNQQwh/x2
-CJi0/uQYWGQgaAFwe9+pEQFHgpCV165ZPny2PTY28eOynUlKd8vTwNBQsh8BX3/s
-LMQa8696JmV/l9zY3RvY
-=AAm9
------END PGP SIGNATURE-----
-
---St7VIuEGZ6dlpu13--
+>> ---------8<------------------
+>>   From ca5963041aad67e31324cb5d4d5e2cfce1706d4f Mon Sep 17 00:00:00 2001
+>> From: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Date: Thu, 19 Sep 2013 23:52:04 +0200
+>> Subject: [PATCH] omap3isp: Pass NULL device pointer to clk_register()
+>>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> ---
+>>    drivers/media/platform/omap3isp/isp.c |   15 ++++++++++-----
+>>    drivers/media/platform/omap3isp/isp.h |    1 +
+>>    2 files changed, 11 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isp.c
+>> b/drivers/media/platform/omap3isp/isp.c
+>> index df3a0ec..d7f3c98 100644
+>> --- a/drivers/media/platform/omap3isp/isp.c
+>> +++ b/drivers/media/platform/omap3isp/isp.c
+>> @@ -290,9 +290,11 @@ static int isp_xclk_init(struct isp_device *isp)
+>>    	struct clk_init_data init;
+>>    	unsigned int i;
+>>
+>> +	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i)
+>> +		isp->xclks[i] = ERR_PTR(-EINVAL);
+>> +
+>>    	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
+>>    		struct isp_xclk *xclk =&isp->xclks[i];
+>> -		struct clk *clk;
+>>
+>>    		xclk->isp = isp;
+>>    		xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
+>> @@ -306,9 +308,9 @@ static int isp_xclk_init(struct isp_device *isp)
+>>
+>>    		xclk->hw.init =&init;
+>>
+>> -		clk = devm_clk_register(isp->dev,&xclk->hw);
+>> -		if (IS_ERR(clk))
+>> -			return PTR_ERR(clk);
+>> +		xclk->clk = clk_register(NULL,&xclk->hw);
+>> +		if (IS_ERR(xclk->clk))
+>> +			return PTR_ERR(xclk->clk);
+>>
+>>    		if (pdata->xclks[i].con_id == NULL&&
+>>    		pdata->xclks[i].dev_id == NULL)
+>> @@ -320,7 +322,7 @@ static int isp_xclk_init(struct isp_device *isp)
+>>
+>>    		xclk->lookup->con_id = pdata->xclks[i].con_id;
+>>    		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+>> -		xclk->lookup->clk = clk;
+>> +		xclk->lookup->clk = xclk->clk;
+>>
+>>    		clkdev_add(xclk->lookup);
+>>    	}
+>> @@ -335,6 +337,9 @@ static void isp_xclk_cleanup(struct isp_device *isp)
+>>    	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
+>>    		struct isp_xclk *xclk =&isp->xclks[i];
+>>
+>> +		if (!IS_ERR(xclk->clk))
+>> +			clk_unregister(xclk->clk);
+>> +
+>>    		if (xclk->lookup)
+>>    			clkdev_drop(xclk->lookup);
+>>    	}
+>> diff --git a/drivers/media/platform/omap3isp/isp.h
+>> b/drivers/media/platform/omap3isp/isp.h
+>> index cd3eff4..1498f2b 100644
+>> --- a/drivers/media/platform/omap3isp/isp.h
+>> +++ b/drivers/media/platform/omap3isp/isp.h
+>> @@ -135,6 +135,7 @@ struct isp_xclk {
+>>    	struct isp_device *isp;
+>>    	struct clk_hw hw;
+>>    	struct clk_lookup *lookup;
+>> +	struct clk *clk;
+>>    	enum isp_xclk_id id;
+>>
+>>    	spinlock_t lock;	/* Protects enabled and divider */
+>> ---------8<------------------
