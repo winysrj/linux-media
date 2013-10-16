@@ -1,109 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3400 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758478Ab3JPCu5 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:37885 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760949Ab3JPQ2r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 22:50:57 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9G2okJf016684
-	for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 04:50:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 225BB2A04EA
-	for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 04:50:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131016025041.225BB2A04EA@tschai.lan>
-Date: Wed, 16 Oct 2013 04:50:41 +0200 (CEST)
+	Wed, 16 Oct 2013 12:28:47 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>
+CC: <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+	<kishon@ti.com>
+Subject: [PATCH 1/7] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+Date: Wed, 16 Oct 2013 21:58:10 +0530
+Message-ID: <1381940896-9355-2-git-send-email-kishon@ti.com>
+In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-Results of the daily build of media_tree:
+Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
+receiver and MIPI DSI transmitter DPHYs.
 
-date:		Wed Oct 16 04:00:23 CEST 2013
-git branch:	for-v3.13c
-git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-4.slh.2-amd64
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ .../devicetree/bindings/phy/samsung-phy.txt        |   14 ++
+ drivers/phy/Kconfig                                |    6 +
+ drivers/phy/Makefile                               |    7 +-
+ drivers/phy/phy-exynos-mipi-video.c                |  176 ++++++++++++++++++++
+ 4 files changed, 200 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+new file mode 100644
+index 0000000..5ff208c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+@@ -0,0 +1,14 @@
++Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY
++-------------------------------------------------
++
++Required properties:
++- compatible : should be "samsung,s5pv210-mipi-video-phy";
++- reg : offset and length of the MIPI DPHY register set;
++- #phy-cells : from the generic phy bindings, must be 1;
++
++For "samsung,s5pv210-mipi-video-phy" compatible PHYs the second cell in
++the PHY specifier identifies the PHY and its meaning is as follows:
++  0 - MIPI CSIS 0,
++  1 - MIPI DSIM 0,
++  2 - MIPI CSIS 1,
++  3 - MIPI DSIM 1.
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index ac239ac..0062d7e 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -15,6 +15,12 @@ config GENERIC_PHY
+ 	  phy users can obtain reference to the PHY. All the users of this
+ 	  framework should select this config.
+ 
++config PHY_EXYNOS_MIPI_VIDEO
++	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
++	help
++	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung S5P
++	  and EXYNOS SoCs.
++
+ config OMAP_USB2
+ 	tristate "OMAP USB2 PHY Driver"
+ 	depends on ARCH_OMAP2PLUS
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 0dd8a98..6344053 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for the phy drivers.
+ #
+ 
+-obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
+-obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
+-obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
++obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
++obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
++obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
++obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
+diff --git a/drivers/phy/phy-exynos-mipi-video.c b/drivers/phy/phy-exynos-mipi-video.c
+new file mode 100644
+index 0000000..b73b86a
+--- /dev/null
++++ b/drivers/phy/phy-exynos-mipi-video.c
+@@ -0,0 +1,176 @@
++/*
++ * Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
++
++/* MIPI_PHYn_CONTROL register offset: n = 0..1 */
++#define EXYNOS_MIPI_PHY_CONTROL(n)	((n) * 4)
++#define EXYNOS_MIPI_PHY_ENABLE		(1 << 0)
++#define EXYNOS_MIPI_PHY_SRESETN		(1 << 1)
++#define EXYNOS_MIPI_PHY_MRESETN		(1 << 2)
++#define EXYNOS_MIPI_PHY_RESET_MASK	(3 << 1)
++
++enum exynos_mipi_phy_id {
++	EXYNOS_MIPI_PHY_ID_CSIS0,
++	EXYNOS_MIPI_PHY_ID_DSIM0,
++	EXYNOS_MIPI_PHY_ID_CSIS1,
++	EXYNOS_MIPI_PHY_ID_DSIM1,
++	EXYNOS_MIPI_PHYS_NUM
++};
++
++#define is_mipi_dsim_phy_id(id) \
++	((id) == EXYNOS_MIPI_PHY_ID_DSIM0 || (id) == EXYNOS_MIPI_PHY_ID_DSIM1)
++
++struct exynos_mipi_video_phy {
++	spinlock_t slock;
++	struct video_phy_desc {
++		struct phy *phy;
++		unsigned int index;
++	} phys[EXYNOS_MIPI_PHYS_NUM];
++	void __iomem *regs;
++};
++
++static int __set_phy_state(struct exynos_mipi_video_phy *state,
++			enum exynos_mipi_phy_id id, unsigned int on)
++{
++	void __iomem *addr;
++	u32 reg, reset;
++
++	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
++
++	if (is_mipi_dsim_phy_id(id))
++		reset = EXYNOS_MIPI_PHY_MRESETN;
++	else
++		reset = EXYNOS_MIPI_PHY_SRESETN;
++
++	spin_lock(&state->slock);
++	reg = readl(addr);
++	if (on)
++		reg |= reset;
++	else
++		reg &= ~reset;
++	writel(reg, addr);
++
++	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
++	if (on)
++		reg |= EXYNOS_MIPI_PHY_ENABLE;
++	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
++		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
++
++	writel(reg, addr);
++	spin_unlock(&state->slock);
++	return 0;
++}
++
++#define to_mipi_video_phy(desc) \
++	container_of((desc), struct exynos_mipi_video_phy, phys[(desc)->index]);
++
++static int exynos_mipi_video_phy_power_on(struct phy *phy)
++{
++	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
++	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
++
++	return __set_phy_state(state, phy_desc->index, 1);
++}
++
++static int exynos_mipi_video_phy_power_off(struct phy *phy)
++{
++	struct video_phy_desc *phy_desc = phy_get_drvdata(phy);
++	struct exynos_mipi_video_phy *state = to_mipi_video_phy(phy_desc);
++
++	return __set_phy_state(state, phy_desc->index, 1);
++}
++
++static struct phy *exynos_mipi_video_phy_xlate(struct device *dev,
++					struct of_phandle_args *args)
++{
++	struct exynos_mipi_video_phy *state = dev_get_drvdata(dev);
++
++	if (WARN_ON(args->args[0] > EXYNOS_MIPI_PHYS_NUM))
++		return ERR_PTR(-ENODEV);
++
++	return state->phys[args->args[0]].phy;
++}
++
++static struct phy_ops exynos_mipi_video_phy_ops = {
++	.power_on	= exynos_mipi_video_phy_power_on,
++	.power_off	= exynos_mipi_video_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
++static int exynos_mipi_video_phy_probe(struct platform_device *pdev)
++{
++	struct exynos_mipi_video_phy *state;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct phy_provider *phy_provider;
++	unsigned int i;
++
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	state->regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(state->regs))
++		return PTR_ERR(state->regs);
++
++	dev_set_drvdata(dev, state);
++	spin_lock_init(&state->slock);
++
++	phy_provider = devm_of_phy_provider_register(dev,
++					exynos_mipi_video_phy_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	for (i = 0; i < EXYNOS_MIPI_PHYS_NUM; i++) {
++		struct phy *phy = devm_phy_create(dev,
++					&exynos_mipi_video_phy_ops, NULL);
++		if (IS_ERR(phy)) {
++			dev_err(dev, "failed to create PHY %d\n", i);
++			return PTR_ERR(phy);
++		}
++
++		state->phys[i].phy = phy;
++		state->phys[i].index = i;
++		phy_set_drvdata(phy, &state->phys[i]);
++	}
++
++	return 0;
++}
++
++static const struct of_device_id exynos_mipi_video_phy_of_match[] = {
++	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, exynos_mipi_video_phy_of_match);
++
++static struct platform_driver exynos_mipi_video_phy_driver = {
++	.probe	= exynos_mipi_video_phy_probe,
++	.driver = {
++		.of_match_table	= exynos_mipi_video_phy_of_match,
++		.name  = "exynos-mipi-video-phy",
++		.owner = THIS_MODULE,
++	}
++};
++module_platform_driver(exynos_mipi_video_phy_driver);
++
++MODULE_DESCRIPTION("Samsung S5P/EXYNOS SoC MIPI CSI-2/DSI PHY driver");
++MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
