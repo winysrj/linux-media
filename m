@@ -1,208 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51891 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752983Ab3JBWJS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 18:09:18 -0400
-Received: by mail-we0-f174.google.com with SMTP id q58so1749724wes.33
-        for <linux-media@vger.kernel.org>; Wed, 02 Oct 2013 15:09:16 -0700 (PDT)
-From: Luis Alves <ljalvs@gmail.com>
-To: mkrufky@linuxtv.org
-Cc: crope@iki.fi, linux-media@vger.kernel.org, mchehab@infradead.org,
-	Luis Alves <ljalvs@gmail.com>
-Subject: [PATCH 1/2] cx24117: Changed the way common data struct was being passed to the demod.
-Date: Wed,  2 Oct 2013 23:09:11 +0100
-Message-Id: <1380751751-4842-1-git-send-email-ljalvs@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3400 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758478Ab3JPCu5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 22:50:57 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9G2okJf016684
+	for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 04:50:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 225BB2A04EA
+	for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 04:50:41 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131016025041.225BB2A04EA@tschai.lan>
+Date: Wed, 16 Oct 2013 04:50:41 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It's done (also tested and apparently working good)!
+Results of the daily build of media_tree:
 
-I didn't know if two separated patches were needed (one for the cx24117 and the other for the cx23885) but I've splited it.
-As you pointed out, this series of patches are to be used against your cx24117 branch.
+date:		Wed Oct 16 04:00:23 CEST 2013
+git branch:	for-v3.13c
+git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-4.slh.2-amd64
 
-Regards,
-Luis
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
----
- drivers/media/dvb-frontends/cx24117.c |   72 +++++++++++++++++++++++----------
- drivers/media/dvb-frontends/cx24117.h |    4 +-
- 2 files changed, 53 insertions(+), 23 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-index 3b63913..9087309 100644
---- a/drivers/media/dvb-frontends/cx24117.c
-+++ b/drivers/media/dvb-frontends/cx24117.c
-@@ -31,6 +31,7 @@
- #include <linux/init.h>
- #include <linux/firmware.h>
- 
-+#include "tuner-i2c.h"
- #include "dvb_frontend.h"
- #include "cx24117.h"
- 
-@@ -145,6 +146,9 @@ enum cmds {
- 	CMD_TUNERSLEEP  = 0x36,
- };
- 
-+static LIST_HEAD(hybrid_tuner_instance_list);
-+static DEFINE_MUTEX(cx24117_list_mutex);
-+
- /* The Demod/Tuner can't easily provide these, we cache them */
- struct cx24117_tuning {
- 	u32 frequency;
-@@ -176,9 +180,11 @@ struct cx24117_priv {
- 	u8 demod_address;
- 	struct i2c_adapter *i2c;
- 	u8 skip_fw_load;
--
- 	struct mutex fe_lock;
--	atomic_t fe_nr;
-+
-+	/* Used for sharing this struct between demods */
-+	struct tuner_i2c_props i2c_props;
-+	struct list_head hybrid_tuner_instance_list;
- };
- 
- /* one per each fe */
-@@ -536,7 +542,7 @@ static int cx24117_load_firmware(struct dvb_frontend *fe,
- 	dev_dbg(&state->priv->i2c->dev,
- 		"%s() demod%d FW is %zu bytes (%02x %02x .. %02x %02x)\n",
- 		__func__, state->demod, fw->size, fw->data[0], fw->data[1],
--		fw->data[fw->size-2], fw->data[fw->size-1]);
-+		fw->data[fw->size - 2], fw->data[fw->size - 1]);
- 
- 	cx24117_writereg(state, 0xea, 0x00);
- 	cx24117_writereg(state, 0xea, 0x01);
-@@ -1116,37 +1122,64 @@ static int cx24117_diseqc_send_burst(struct dvb_frontend *fe,
- 	return 0;
- }
- 
-+static int cx24117_get_priv(struct cx24117_priv **priv,
-+	struct i2c_adapter *i2c, u8 client_address)
-+{
-+	int ret;
-+
-+	mutex_lock(&cx24117_list_mutex);
-+	ret = hybrid_tuner_request_state(struct cx24117_priv, (*priv),
-+		hybrid_tuner_instance_list, i2c, client_address, "cx24117");
-+	mutex_unlock(&cx24117_list_mutex);
-+
-+	return ret;
-+}
-+
-+static void cx24117_release_priv(struct cx24117_priv *priv)
-+{
-+	mutex_lock(&cx24117_list_mutex);
-+	if (priv != NULL)
-+		hybrid_tuner_release_state(priv);
-+	mutex_unlock(&cx24117_list_mutex);
-+}
-+
- static void cx24117_release(struct dvb_frontend *fe)
- {
- 	struct cx24117_state *state = fe->demodulator_priv;
- 	dev_dbg(&state->priv->i2c->dev, "%s demod%d\n",
- 		__func__, state->demod);
--	if (!atomic_dec_and_test(&state->priv->fe_nr))
--		kfree(state->priv);
-+	cx24117_release_priv(state->priv);
- 	kfree(state);
- }
- 
- static struct dvb_frontend_ops cx24117_ops;
- 
- struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
--	struct i2c_adapter *i2c, struct dvb_frontend *fe)
-+	struct i2c_adapter *i2c)
- {
- 	struct cx24117_state *state = NULL;
- 	struct cx24117_priv *priv = NULL;
- 	int demod = 0;
- 
--	/* first frontend attaching */
--	/* allocate shared priv struct */
--	if (fe == NULL) {
--		priv = kzalloc(sizeof(struct cx24117_priv), GFP_KERNEL);
--		if (priv == NULL)
--			goto error1;
-+	/* get the common data struct for both demods */
-+	demod = cx24117_get_priv(&priv, i2c, config->demod_address);
-+
-+	switch (demod) {
-+	case 0:
-+		dev_err(&state->priv->i2c->dev,
-+			"%s: Error attaching frontend %d\n",
-+			KBUILD_MODNAME, demod);
-+		goto error1;
-+		break;
-+	case 1:
-+		/* new priv instance */
- 		priv->i2c = i2c;
- 		priv->demod_address = config->demod_address;
- 		mutex_init(&priv->fe_lock);
--	} else {
--		demod = 1;
--		priv = ((struct cx24117_state *) fe->demodulator_priv)->priv;
-+		break;
-+	default:
-+		/* existing priv instance */
-+		break;
- 	}
- 
- 	/* allocate memory for the internal state */
-@@ -1154,7 +1187,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
- 	if (state == NULL)
- 		goto error2;
- 
--	state->demod = demod;
-+	state->demod = demod - 1;
- 	state->priv = priv;
- 
- 	/* test i2c bus for ack */
-@@ -1163,12 +1196,9 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
- 			goto error3;
- 	}
- 
--	/* nr of frontends using the module */
--	atomic_inc(&priv->fe_nr);
--
- 	dev_info(&state->priv->i2c->dev,
- 		"%s: Attaching frontend %d\n",
--		KBUILD_MODNAME, demod);
-+		KBUILD_MODNAME, state->demod);
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &cx24117_ops,
-@@ -1179,7 +1209,7 @@ struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
- error3:
- 	kfree(state);
- error2:
--	kfree(priv);
-+	cx24117_release_priv(priv);
- error1:
- 	return NULL;
- }
-diff --git a/drivers/media/dvb-frontends/cx24117.h b/drivers/media/dvb-frontends/cx24117.h
-index 5bc8f11..4e59e95 100644
---- a/drivers/media/dvb-frontends/cx24117.h
-+++ b/drivers/media/dvb-frontends/cx24117.h
-@@ -33,11 +33,11 @@ struct cx24117_config {
- #if IS_ENABLED(CONFIG_DVB_CX24117)
- extern struct dvb_frontend *cx24117_attach(
- 	const struct cx24117_config *config,
--	struct i2c_adapter *i2c, struct dvb_frontend *fe);
-+	struct i2c_adapter *i2c);
- #else
- static inline struct dvb_frontend *cx24117_attach(
- 	const struct cx24117_config *config,
--	struct i2c_adapter *i2c, struct dvb_frontend *fe)
-+	struct i2c_adapter *i2c)
- {
- 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
--- 
-1.7.9.5
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
