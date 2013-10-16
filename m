@@ -1,2726 +1,2419 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41388 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104Ab3JBXzl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 19:55:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: devel@driverdev.osuosl.org
-Cc: linux-media@vger.kernel.org,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 1/6] v4l: omap4iss: Add support for OMAP4 camera interface - Core
-Date: Thu,  3 Oct 2013 01:55:28 +0200
-Message-Id: <1380758133-16866-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47037 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752835Ab3JPFh6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 01:37:58 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Wed, 16 Oct 2013 11:06:47 +0530
+Message-ID: <1381901808-25119-4-git-send-email-archit@ti.com>
+In-Reply-To: <1381901808-25119-1-git-send-email-archit@ti.com>
+References: <1378462346-10880-1-git-send-email-archit@ti.com>
+ <1381901808-25119-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+VPE is a block which consists of a single memory to memory path which can
+perform chrominance up/down sampling, de-interlacing, scaling, and color space
+conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+interleaved video formats.
 
-This adds a very simplistic driver to utilize the CSI2A interface inside
-the ISS subsystem in OMAP4, and dump the data to memory.
+We create a mem2mem driver based primarily on the mem2mem-testdev example.
+The de-interlacer, scaler and color space converter are all bypassed for now
+to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+conversion beteen different YUV formats is possible.
 
-Check Documentation/video4linux/omap4_camera.txt for details.
+Each mem2mem context allocates a buffer for VPE MMR values which it will use
+when it gets access to the VPE HW via the mem2mem queue, it also allocates
+a VPDMA descriptor list to which configuration and data descriptors are added.
 
-This commit adds the driver core, registers definitions and
-documentation.
+Based on the information received via v4l2 ioctls for the source and
+destination queues, the driver configures the values for the MMRs, and stores
+them in the buffer. There are also some VPDMA parameters like frame start and
+line mode which needs to be configured, these are configured by direct register
+writes via the VPDMA helper functions.
 
-Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+The driver's device_run() mem2mem op will add each descriptor based on how the
+source and destination queues are set up for the given ctx, once the list is
+prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+upload MMR registers, start DMA of video buffers on the various input and output
+clients/ports.
 
-[Port the driver to v3.12-rc3, including the following changes
-- Don't include plat/ headers
-- Don't use cpu_is_omap44xx() macro
-- Don't depend on EXPERIMENTAL
-- Fix s_crop operation prototype
-- Update link_notify prototype
-- Rename media_entity_remote_source to media_entity_remote_pad]
+When the list is parsed completely(and the DMAs on all the output ports done),
+an interrupt is generated which we use to notify that the source and destination
+buffers are done.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The rest of the driver is quite similar to other mem2mem drivers, we use the
+multiplane v4l2 ioctls as the HW support coplanar formats.
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- Documentation/video4linux/omap4_camera.txt |   63 ++
- drivers/staging/media/omap4iss/iss.c       | 1477 ++++++++++++++++++++++++++++
- drivers/staging/media/omap4iss/iss.h       |  153 +++
- drivers/staging/media/omap4iss/iss_regs.h  |  883 +++++++++++++++++
- include/media/omap4iss.h                   |   65 ++
- 5 files changed, 2641 insertions(+)
- create mode 100644 Documentation/video4linux/omap4_camera.txt
- create mode 100644 drivers/staging/media/omap4iss/iss.c
- create mode 100644 drivers/staging/media/omap4iss/iss.h
- create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
- create mode 100644 include/media/omap4iss.h
+ drivers/media/platform/Kconfig           |   16 +
+ drivers/media/platform/Makefile          |    2 +
+ drivers/media/platform/ti-vpe/Makefile   |    5 +
+ drivers/media/platform/ti-vpe/vpe.c      | 1775 ++++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+ include/uapi/linux/v4l2-controls.h       |    4 +
+ 6 files changed, 2298 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
 
-diff --git a/Documentation/video4linux/omap4_camera.txt b/Documentation/video4linux/omap4_camera.txt
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c7caf94..fc84d99 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -220,6 +220,22 @@ config VIDEO_RENESAS_VSP1
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called vsp1.
+ 
++config VIDEO_TI_VPE
++	tristate "TI VPE (Video Processing Engine) driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_DRA7XX
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	default n
++	---help---
++	  Support for the TI VPE(Video Processing Engine) block
++	  found on DRA7XX SoC.
++
++config VIDEO_TI_VPE_DEBUG
++	bool "VPE debug messages"
++	depends on VIDEO_TI_VPE
++	---help---
++	  Enable debug messages on VPE driver.
++
+ endif # V4L_MEM2MEM_DRIVERS
+ 
+ menuconfig V4L_TEST_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 4e4da48..1348ba1 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -22,6 +22,8 @@ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
+ 
+ obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
+ 
++obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
++
+ obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
+ obj-$(CONFIG_VIDEO_CODA) 		+= coda.o
+ 
+diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
 new file mode 100644
-index 0000000..2ebbd1d
+index 0000000..cbf0a80
 --- /dev/null
-+++ b/Documentation/video4linux/omap4_camera.txt
-@@ -0,0 +1,63 @@
-+                              OMAP4 ISS Driver
-+                              ================
++++ b/drivers/media/platform/ti-vpe/Makefile
+@@ -0,0 +1,5 @@
++obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
 +
-+Introduction
-+------------
++ti-vpe-y := vpe.o vpdma.o
 +
-+The OMAP44XX family of chips contains the Imaging SubSystem (a.k.a. ISS),
-+Which contains several components that can be categorized in 3 big groups:
-+
-+- Interfaces (2 Interfaces: CSI2-A & CSI2-B/CCP2)
-+- ISP (Image Signal Processor)
-+- SIMCOP (Still Image Coprocessor)
-+
-+For more information, please look in [1] for latest version of:
-+	"OMAP4430 Multimedia Device Silicon Revision 2.x"
-+
-+As of Revision AB, the ISS is described in detail in section 8.
-+
-+This driver is supporting _only_ the CSI2-A/B interfaces for now.
-+
-+It makes use of the Media Controller framework [2], and inherited most of the
-+code from OMAP3 ISP driver (found under drivers/media/video/omap3isp/*), except
-+that it doesn't need an IOMMU now for ISS buffers memory mapping.
-+
-+Supports usage of MMAP buffers only (for now).
-+
-+IMPORTANT: It is recommended to have this patchset:
-+  Contiguous Memory Allocator (v22) [3].
-+
-+Tested platforms
-+----------------
-+
-+- OMAP4430SDP, w/ ES2.1 GP & SEVM4430-CAM-V1-0 (Contains IMX060 & OV5640, in
-+  which only the last one is supported, outputting YUV422 frames).
-+
-+- TI Blaze MDP, w/ OMAP4430 ES2.2 EMU (Contains 1 IMX060 & 2 OV5650 sensors, in
-+  which only the OV5650 are supported, outputting RAW10 frames).
-+
-+- PandaBoard, Rev. A2, w/ OMAP4430 ES2.1 GP & OV adapter board, tested with
-+  following sensors:
-+  * OV5640
-+  * OV5650
-+
-+- Tested on mainline kernel:
-+
-+	http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=summary
-+
-+  Tag: v3.3 (commit c16fa4f2ad19908a47c63d8fa436a1178438c7e7)
-+
-+File list
-+---------
-+drivers/media/video/omap4iss/
-+include/media/omap4iss.h
-+
-+References
-+----------
-+
-+[1] http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?navigationId=12037&templateId=6123#62
-+[2] http://lwn.net/Articles/420485/
-+[3] http://www.spinics.net/lists/linux-media/msg44370.html
-+--
-+Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-+Copyright (C) 2012, Texas Instruments
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
++ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
 new file mode 100644
-index 0000000..d054d9b
+index 0000000..3bd9ca6
 --- /dev/null
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -0,0 +1,1477 @@
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -0,0 +1,1775 @@
 +/*
-+ * TI OMAP4 ISS V4L2 Driver
++ * TI VPE mem2mem driver, based on the virtual v4l2-mem2mem example driver
 + *
-+ * Copyright (C) 2012, Texas Instruments
++ * Copyright (c) 2013 Texas Instruments Inc.
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
 + *
-+ * Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
++ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
++ * Pawel Osciak, <pawel@osciak.com>
++ * Marek Szyprowski, <m.szyprowski@samsung.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Based on the virtual v4l2-mem2mem example device
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation
 + */
 +
-+#include <linux/clk.h>
 +#include <linux/delay.h>
-+#include <linux/device.h>
 +#include <linux/dma-mapping.h>
-+#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/fs.h>
 +#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/ioctl.h>
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/slab.h>
++#include <linux/pm_runtime.h>
 +#include <linux/sched.h>
-+#include <linux/vmalloc.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
 +
 +#include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
 +#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-dma-contig.h>
 +
-+#include "iss.h"
-+#include "iss_regs.h"
++#include "vpdma.h"
++#include "vpe_regs.h"
 +
-+#define ISS_PRINT_REGISTER(iss, name)\
-+	dev_dbg(iss->dev, "###ISS " #name "=0x%08x\n", \
-+		readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_##name))
++#define VPE_MODULE_NAME "vpe"
 +
-+static void iss_print_status(struct iss_device *iss)
-+{
-+	dev_dbg(iss->dev, "-------------ISS HL Register dump-------------\n");
++/* minimum and maximum frame sizes */
++#define MIN_W		128
++#define MIN_H		128
++#define MAX_W		1920
++#define MAX_H		1080
 +
-+	ISS_PRINT_REGISTER(iss, HL_REVISION);
-+	ISS_PRINT_REGISTER(iss, HL_SYSCONFIG);
-+	ISS_PRINT_REGISTER(iss, HL_IRQSTATUS_5);
-+	ISS_PRINT_REGISTER(iss, HL_IRQENABLE_5_SET);
-+	ISS_PRINT_REGISTER(iss, HL_IRQENABLE_5_CLR);
-+	ISS_PRINT_REGISTER(iss, CTRL);
-+	ISS_PRINT_REGISTER(iss, CLKCTRL);
-+	ISS_PRINT_REGISTER(iss, CLKSTAT);
++/* required alignments */
++#define S_ALIGN		0	/* multiple of 1 */
++#define H_ALIGN		1	/* multiple of 2 */
++#define W_ALIGN		1	/* multiple of 2 */
 +
-+	dev_dbg(iss->dev, "-----------------------------------------------\n");
-+}
++/* multiple of 128 bits, line stride, 16 bytes */
++#define L_ALIGN		4
 +
-+/*
-+ * omap4iss_flush - Post pending L3 bus writes by doing a register readback
-+ * @iss: OMAP4 ISS device
-+ *
-+ * In order to force posting of pending writes, we need to write and
-+ * readback the same register, in this case the revision register.
-+ *
-+ * See this link for reference:
-+ *   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08149.html
-+ */
-+void omap4iss_flush(struct iss_device *iss)
-+{
-+	writel(0, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_REVISION);
-+	readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_REVISION);
-+}
++/* flags that indicate a format can be used for capture/output */
++#define VPE_FMT_TYPE_CAPTURE	(1 << 0)
++#define VPE_FMT_TYPE_OUTPUT	(1 << 1)
++
++/* used as plane indices */
++#define VPE_MAX_PLANES	2
++#define VPE_LUMA	0
++#define VPE_CHROMA	1
++
++/* per m2m context info */
++#define VPE_DEF_BUFS_PER_JOB	1	/* default one buffer per batch job */
 +
 +/*
-+ * iss_enable_interrupts - Enable ISS interrupts.
-+ * @iss: OMAP4 ISS device
++ * each VPE context can need up to 3 config desciptors, 7 input descriptors,
++ * 3 output descriptors, and 10 control descriptors
 + */
-+static void iss_enable_interrupts(struct iss_device *iss)
-+{
-+	static const u32 hl_irq = ISS_HL_IRQ_CSIA | ISS_HL_IRQ_CSIB | ISS_HL_IRQ_ISP(0);
-+
-+	/* Enable HL interrupts */
-+	writel(hl_irq, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_IRQSTATUS_5);
-+	writel(hl_irq, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_IRQENABLE_5_SET);
-+
-+}
-+
-+/*
-+ * iss_disable_interrupts - Disable ISS interrupts.
-+ * @iss: OMAP4 ISS device
-+ */
-+static void iss_disable_interrupts(struct iss_device *iss)
-+{
-+	writel(-1, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_IRQENABLE_5_CLR);
-+}
-+
-+/*
-+ * iss_isp_enable_interrupts - Enable ISS ISP interrupts.
-+ * @iss: OMAP4 ISS device
-+ */
-+void omap4iss_isp_enable_interrupts(struct iss_device *iss)
-+{
-+	static const u32 isp_irq = ISP5_IRQ_OCP_ERR |
-+				   ISP5_IRQ_RSZ_FIFO_IN_BLK |
-+				   ISP5_IRQ_RSZ_FIFO_OVF |
-+				   ISP5_IRQ_RSZ_INT_DMA |
-+				   ISP5_IRQ_ISIF0;
-+
-+	/* Enable ISP interrupts */
-+	writel(isp_irq, iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_IRQSTATUS(0));
-+	writel(isp_irq, iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_IRQENABLE_SET(0));
-+}
-+
-+/*
-+ * iss_isp_disable_interrupts - Disable ISS interrupts.
-+ * @iss: OMAP4 ISS device
-+ */
-+void omap4iss_isp_disable_interrupts(struct iss_device *iss)
-+{
-+	writel(-1, iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_IRQENABLE_CLR(0));
-+}
-+
-+int omap4iss_get_external_info(struct iss_pipeline *pipe,
-+			       struct media_link *link)
-+{
-+	struct iss_device *iss =
-+		container_of(pipe, struct iss_video, pipe)->iss;
-+	struct v4l2_subdev_format fmt;
-+	struct v4l2_ext_controls ctrls;
-+	struct v4l2_ext_control ctrl;
-+	int ret;
-+
-+	if (!pipe->external)
-+		return 0;
-+
-+	if (pipe->external_rate)
-+		return 0;
-+
-+	memset(&fmt, 0, sizeof(fmt));
-+
-+	fmt.pad = link->source->index;
-+	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(link->sink->entity),
-+			       pad, get_fmt, NULL, &fmt);
-+	if (ret < 0)
-+		return -EPIPE;
-+
-+	pipe->external_bpp = omap4iss_video_format_info(fmt.format.code)->bpp;
-+
-+	memset(&ctrls, 0, sizeof(ctrls));
-+	memset(&ctrl, 0, sizeof(ctrl));
-+
-+	ctrl.id = V4L2_CID_PIXEL_RATE;
-+
-+	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
-+	ctrls.count = 1;
-+	ctrls.controls = &ctrl;
-+
-+	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+	if (ret < 0) {
-+		dev_warn(iss->dev, "no pixel rate control in subdev %s\n",
-+			 pipe->external->name);
-+		return ret;
-+	}
-+
-+	pipe->external_rate = ctrl.value64;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Configure the bridge. Valid inputs are
-+ *
-+ * IPIPEIF_INPUT_CSI2A: CSI2a receiver
-+ * IPIPEIF_INPUT_CSI2B: CSI2b receiver
-+ *
-+ * The bridge and lane shifter are configured according to the selected input
-+ * and the ISP platform data.
-+ */
-+void omap4iss_configure_bridge(struct iss_device *iss,
-+			       enum ipipeif_input_entity input)
-+{
-+	u32 issctrl_val;
-+	u32 isp5ctrl_val;
-+
-+	issctrl_val  = readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_CTRL);
-+	issctrl_val &= ~ISS_CTRL_INPUT_SEL_MASK;
-+	issctrl_val &= ~ISS_CTRL_CLK_DIV_MASK;
-+
-+	isp5ctrl_val  = readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL);
-+
-+	switch (input) {
-+	case IPIPEIF_INPUT_CSI2A:
-+		issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2A;
-+		isp5ctrl_val |= ISP5_CTRL_VD_PULSE_EXT;
-+		break;
-+
-+	case IPIPEIF_INPUT_CSI2B:
-+		issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2B;
-+		isp5ctrl_val |= ISP5_CTRL_VD_PULSE_EXT;
-+		break;
-+
-+	default:
-+		return;
-+	}
-+
-+	issctrl_val |= ISS_CTRL_SYNC_DETECT_VS_RAISING;
-+
-+	isp5ctrl_val |= ISP5_CTRL_PSYNC_CLK_SEL | ISP5_CTRL_SYNC_ENABLE;
-+
-+	writel(issctrl_val, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_CTRL);
-+	writel(isp5ctrl_val, iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL);
-+}
-+
-+static inline void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
-+{
-+	static const char *name[] = {
-+		"ISP_IRQ0",
-+		"ISP_IRQ1",
-+		"ISP_IRQ2",
-+		"ISP_IRQ3",
-+		"CSIA_IRQ",
-+		"CSIB_IRQ",
-+		"CCP2_IRQ0",
-+		"CCP2_IRQ1",
-+		"CCP2_IRQ2",
-+		"CCP2_IRQ3",
-+		"CBUFF_IRQ",
-+		"BTE_IRQ",
-+		"SIMCOP_IRQ0",
-+		"SIMCOP_IRQ1",
-+		"SIMCOP_IRQ2",
-+		"SIMCOP_IRQ3",
-+		"CCP2_IRQ8",
-+		"HS_VS_IRQ",
-+		"res18",
-+		"res19",
-+		"res20",
-+		"res21",
-+		"res22",
-+		"res23",
-+		"res24",
-+		"res25",
-+		"res26",
-+		"res27",
-+		"res28",
-+		"res29",
-+		"res30",
-+		"res31",
-+	};
-+	int i;
-+
-+	dev_dbg(iss->dev, "ISS IRQ: ");
-+
-+	for (i = 0; i < ARRAY_SIZE(name); i++) {
-+		if ((1 << i) & irqstatus)
-+			pr_cont("%s ", name[i]);
-+	}
-+	pr_cont("\n");
-+}
-+
-+/*
-+ * iss_isr - Interrupt Service Routine for ISS module.
-+ * @irq: Not used currently.
-+ * @_iss: Pointer to the OMAP4 ISS device
-+ *
-+ * Handles the corresponding callback if plugged in.
-+ *
-+ * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
-+ * IRQ wasn't handled.
-+ */
-+static irqreturn_t iss_isr(int irq, void *_iss)
-+{
-+	static const u32 ipipeif_events = ISP5_IRQ_IPIPEIF |
-+					  ISP5_IRQ_ISIF0;
-+	static const u32 resizer_events = ISP5_IRQ_RSZ_FIFO_IN_BLK |
-+					  ISP5_IRQ_RSZ_FIFO_OVF |
-+					  ISP5_IRQ_RSZ_INT_DMA;
-+	struct iss_device *iss = _iss;
-+	u32 irqstatus;
-+
-+	irqstatus = readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_IRQSTATUS_5);
-+	writel(irqstatus, iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_IRQSTATUS_5);
-+
-+	if (irqstatus & ISS_HL_IRQ_CSIA)
-+		omap4iss_csi2_isr(&iss->csi2a);
-+
-+	if (irqstatus & ISS_HL_IRQ_CSIB)
-+		omap4iss_csi2_isr(&iss->csi2b);
-+
-+	if (irqstatus & ISS_HL_IRQ_ISP(0)) {
-+		u32 isp_irqstatus = readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] +
-+					  ISP5_IRQSTATUS(0));
-+		writel(isp_irqstatus, iss->regs[OMAP4_ISS_MEM_ISP_SYS1] +
-+			ISP5_IRQSTATUS(0));
-+
-+		if (isp_irqstatus & ISP5_IRQ_OCP_ERR)
-+			dev_dbg(iss->dev, "ISP5 OCP Error!\n");
-+
-+		if (isp_irqstatus & ipipeif_events) {
-+			omap4iss_ipipeif_isr(&iss->ipipeif,
-+					     isp_irqstatus & ipipeif_events);
-+		}
-+
-+		if (isp_irqstatus & resizer_events)
-+			omap4iss_resizer_isr(&iss->resizer,
-+					     isp_irqstatus & resizer_events);
-+	}
-+
-+	omap4iss_flush(iss);
-+
-+#if defined(DEBUG) && defined(ISS_ISR_DEBUG)
-+	iss_isr_dbg(iss, irqstatus);
-+#endif
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Pipeline power management
-+ *
-+ * Entities must be powered up when part of a pipeline that contains at least
-+ * one open video device node.
-+ *
-+ * To achieve this use the entity use_count field to track the number of users.
-+ * For entities corresponding to video device nodes the use_count field stores
-+ * the users count of the node. For entities corresponding to subdevs the
-+ * use_count field stores the total number of users of all video device nodes
-+ * in the pipeline.
-+ *
-+ * The omap4iss_pipeline_pm_use() function must be called in the open() and
-+ * close() handlers of video device nodes. It increments or decrements the use
-+ * count of all subdev entities in the pipeline.
-+ *
-+ * To react to link management on powered pipelines, the link setup notification
-+ * callback updates the use count of all entities in the source and sink sides
-+ * of the link.
-+ */
-+
-+/*
-+ * iss_pipeline_pm_use_count - Count the number of users of a pipeline
-+ * @entity: The entity
-+ *
-+ * Return the total number of users of all video device nodes in the pipeline.
-+ */
-+static int iss_pipeline_pm_use_count(struct media_entity *entity)
-+{
-+	struct media_entity_graph graph;
-+	int use = 0;
-+
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
-+			use += entity->use_count;
-+	}
-+
-+	return use;
-+}
-+
-+/*
-+ * iss_pipeline_pm_power_one - Apply power change to an entity
-+ * @entity: The entity
-+ * @change: Use count change
-+ *
-+ * Change the entity use count by @change. If the entity is a subdev update its
-+ * power state by calling the core::s_power operation when the use count goes
-+ * from 0 to != 0 or from != 0 to 0.
-+ *
-+ * Return 0 on success or a negative error code on failure.
-+ */
-+static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
-+{
-+	struct v4l2_subdev *subdev;
-+
-+	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
-+	       ? media_entity_to_v4l2_subdev(entity) : NULL;
-+
-+	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
-+		int ret;
-+
-+		ret = v4l2_subdev_call(subdev, core, s_power, 1);
-+		if (ret < 0 && ret != -ENOIOCTLCMD)
-+			return ret;
-+	}
-+
-+	entity->use_count += change;
-+	WARN_ON(entity->use_count < 0);
-+
-+	if (entity->use_count == 0 && change < 0 && subdev != NULL)
-+		v4l2_subdev_call(subdev, core, s_power, 0);
-+
-+	return 0;
-+}
-+
-+/*
-+ * iss_pipeline_pm_power - Apply power change to all entities in a pipeline
-+ * @entity: The entity
-+ * @change: Use count change
-+ *
-+ * Walk the pipeline to update the use count and the power state of all non-node
-+ * entities.
-+ *
-+ * Return 0 on success or a negative error code on failure.
-+ */
-+static int iss_pipeline_pm_power(struct media_entity *entity, int change)
-+{
-+	struct media_entity_graph graph;
-+	struct media_entity *first = entity;
-+	int ret = 0;
-+
-+	if (!change)
-+		return 0;
-+
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
-+		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+			ret = iss_pipeline_pm_power_one(entity, change);
-+
-+	if (!ret)
-+		return 0;
-+
-+	media_entity_graph_walk_start(&graph, first);
-+
-+	while ((first = media_entity_graph_walk_next(&graph))
-+	       && first != entity)
-+		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
-+			iss_pipeline_pm_power_one(first, -change);
-+
-+	return ret;
-+}
-+
-+/*
-+ * omap4iss_pipeline_pm_use - Update the use count of an entity
-+ * @entity: The entity
-+ * @use: Use (1) or stop using (0) the entity
-+ *
-+ * Update the use count of all entities in the pipeline and power entities on or
-+ * off accordingly.
-+ *
-+ * Return 0 on success or a negative error code on failure. Powering entities
-+ * off is assumed to never fail. No failure can occur when the use parameter is
-+ * set to 0.
-+ */
-+int omap4iss_pipeline_pm_use(struct media_entity *entity, int use)
-+{
-+	int change = use ? 1 : -1;
-+	int ret;
-+
-+	mutex_lock(&entity->parent->graph_mutex);
-+
-+	/* Apply use count to node. */
-+	entity->use_count += change;
-+	WARN_ON(entity->use_count < 0);
-+
-+	/* Apply power change to connected non-nodes. */
-+	ret = iss_pipeline_pm_power(entity, change);
-+	if (ret < 0)
-+		entity->use_count -= change;
-+
-+	mutex_unlock(&entity->parent->graph_mutex);
-+
-+	return ret;
-+}
-+
-+/*
-+ * iss_pipeline_link_notify - Link management notification callback
-+ * @link: The link
-+ * @flags: New link flags that will be applied
-+ *
-+ * React to link management on powered pipelines by updating the use count of
-+ * all entities in the source and sink sides of the link. Entities are powered
-+ * on or off accordingly.
-+ *
-+ * Return 0 on success or a negative error code on failure. Powering entities
-+ * off is assumed to never fail. This function will not fail for disconnection
-+ * events.
-+ */
-+static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
-+				    unsigned int notification)
-+{
-+	struct media_entity *source = link->source->entity;
-+	struct media_entity *sink = link->sink->entity;
-+	int source_use = iss_pipeline_pm_use_count(source);
-+	int sink_use = iss_pipeline_pm_use_count(sink);
-+	int ret;
-+
-+	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-+	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
-+		/* Powering off entities is assumed to never fail. */
-+		iss_pipeline_pm_power(source, -sink_use);
-+		iss_pipeline_pm_power(sink, -source_use);
-+		return 0;
-+	}
-+
-+	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-+		(flags & MEDIA_LNK_FL_ENABLED)) {
-+		ret = iss_pipeline_pm_power(source, sink_use);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret = iss_pipeline_pm_power(sink, source_use);
-+		if (ret < 0)
-+			iss_pipeline_pm_power(source, -sink_use);
-+
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Pipeline stream management
-+ */
-+
-+/*
-+ * iss_pipeline_enable - Enable streaming on a pipeline
-+ * @pipe: ISS pipeline
-+ * @mode: Stream mode (single shot or continuous)
-+ *
-+ * Walk the entities chain starting at the pipeline output video node and start
-+ * all modules in the chain in the given mode.
-+ *
-+ * Return 0 if successful, or the return value of the failed video::s_stream
-+ * operation otherwise.
-+ */
-+static int iss_pipeline_enable(struct iss_pipeline *pipe,
-+			       enum iss_pipeline_stream_state mode)
-+{
-+	struct media_entity *entity;
-+	struct media_pad *pad;
-+	struct v4l2_subdev *subdev;
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state &= ~(ISS_PIPELINE_IDLE_INPUT | ISS_PIPELINE_IDLE_OUTPUT);
-+	spin_unlock_irqrestore(&pipe->lock, flags);
-+
-+	pipe->do_propagation = false;
-+
-+	entity = &pipe->output->video.entity;
-+	while (1) {
-+		pad = &entity->pads[0];
-+		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-+			break;
-+
-+		pad = media_entity_remote_pad(pad);
-+		if (pad == NULL ||
-+		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			break;
-+
-+		entity = pad->entity;
-+		subdev = media_entity_to_v4l2_subdev(entity);
-+
-+		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
-+		if (ret < 0 && ret != -ENOIOCTLCMD)
-+			return ret;
-+	}
-+	iss_print_status(pipe->output->iss);
-+	return 0;
-+}
-+
-+/*
-+ * iss_pipeline_disable - Disable streaming on a pipeline
-+ * @pipe: ISS pipeline
-+ *
-+ * Walk the entities chain starting at the pipeline output video node and stop
-+ * all modules in the chain. Wait synchronously for the modules to be stopped if
-+ * necessary.
-+ */
-+static int iss_pipeline_disable(struct iss_pipeline *pipe)
-+{
-+	struct media_entity *entity;
-+	struct media_pad *pad;
-+	struct v4l2_subdev *subdev;
-+	int failure = 0;
-+
-+	entity = &pipe->output->video.entity;
-+	while (1) {
-+		pad = &entity->pads[0];
-+		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-+			break;
-+
-+		pad = media_entity_remote_pad(pad);
-+		if (pad == NULL ||
-+		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			break;
-+
-+		entity = pad->entity;
-+		subdev = media_entity_to_v4l2_subdev(entity);
-+
-+		v4l2_subdev_call(subdev, video, s_stream, 0);
-+	}
-+
-+	return failure;
-+}
-+
-+/*
-+ * omap4iss_pipeline_set_stream - Enable/disable streaming on a pipeline
-+ * @pipe: ISS pipeline
-+ * @state: Stream state (stopped, single shot or continuous)
-+ *
-+ * Set the pipeline to the given stream state. Pipelines can be started in
-+ * single-shot or continuous mode.
-+ *
-+ * Return 0 if successful, or the return value of the failed video::s_stream
-+ * operation otherwise. The pipeline state is not updated when the operation
-+ * fails, except when stopping the pipeline.
-+ */
-+int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
-+				 enum iss_pipeline_stream_state state)
-+{
-+	int ret;
-+
-+	if (state == ISS_PIPELINE_STREAM_STOPPED)
-+		ret = iss_pipeline_disable(pipe);
-+	else
-+		ret = iss_pipeline_enable(pipe, state);
-+
-+	if (ret == 0 || state == ISS_PIPELINE_STREAM_STOPPED)
-+		pipe->stream_state = state;
-+
-+	return ret;
-+}
-+
-+/*
-+ * iss_pipeline_is_last - Verify if entity has an enabled link to the output
-+ *			  video node
-+ * @me: ISS module's media entity
-+ *
-+ * Returns 1 if the entity has an enabled link to the output video node or 0
-+ * otherwise. It's true only while pipeline can have no more than one output
-+ * node.
-+ */
-+static int iss_pipeline_is_last(struct media_entity *me)
-+{
-+	struct iss_pipeline *pipe;
-+	struct media_pad *pad;
-+
-+	if (!me->pipe)
-+		return 0;
-+	pipe = to_iss_pipeline(me);
-+	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED)
-+		return 0;
-+	pad = media_entity_remote_pad(&pipe->output->pad);
-+	return pad->entity == me;
-+}
-+
-+static int iss_reset(struct iss_device *iss)
-+{
-+	unsigned long timeout = 0;
-+
-+	writel(readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_SYSCONFIG) |
-+		ISS_HL_SYSCONFIG_SOFTRESET,
-+		iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_SYSCONFIG);
-+
-+	while (readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_SYSCONFIG) &
-+			ISS_HL_SYSCONFIG_SOFTRESET) {
-+		if (timeout++ > 10000) {
-+			dev_alert(iss->dev, "cannot reset ISS\n");
-+			return -ETIMEDOUT;
-+		}
-+		udelay(1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int iss_isp_reset(struct iss_device *iss)
-+{
-+	unsigned long timeout = 0;
-+
-+	/* Fist, ensure that the ISP is IDLE (no transactions happening) */
-+	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_SYSCONFIG) &
-+		~ISP5_SYSCONFIG_STANDBYMODE_MASK) |
-+		ISP5_SYSCONFIG_STANDBYMODE_SMART,
-+		iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_SYSCONFIG);
-+
-+	writel(readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL) |
-+		ISP5_CTRL_MSTANDBY,
-+		iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL);
-+
-+	for (;;) {
-+		if (readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL) &
-+				ISP5_CTRL_MSTANDBY_WAIT)
-+			break;
-+		if (timeout++ > 1000) {
-+			dev_alert(iss->dev, "cannot set ISP5 to standby\n");
-+			return -ETIMEDOUT;
-+		}
-+		msleep(1);
-+	}
-+
-+	/* Now finally, do the reset */
-+	writel(readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_SYSCONFIG) |
-+		ISP5_SYSCONFIG_SOFTRESET,
-+		iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_SYSCONFIG);
-+
-+	timeout = 0;
-+	while (readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_SYSCONFIG) &
-+			ISP5_SYSCONFIG_SOFTRESET) {
-+		if (timeout++ > 1000) {
-+			dev_alert(iss->dev, "cannot reset ISP5\n");
-+			return -ETIMEDOUT;
-+		}
-+		msleep(1);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * iss_module_sync_idle - Helper to sync module with its idle state
-+ * @me: ISS submodule's media entity
-+ * @wait: ISS submodule's wait queue for streamoff/interrupt synchronization
-+ * @stopping: flag which tells module wants to stop
-+ *
-+ * This function checks if ISS submodule needs to wait for next interrupt. If
-+ * yes, makes the caller to sleep while waiting for such event.
-+ */
-+int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-+			      atomic_t *stopping)
-+{
-+	struct iss_pipeline *pipe = to_iss_pipeline(me);
-+	struct iss_video *video = pipe->output;
-+	unsigned long flags;
-+
-+	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED ||
-+	    (pipe->stream_state == ISS_PIPELINE_STREAM_SINGLESHOT &&
-+	     !iss_pipeline_ready(pipe)))
-+		return 0;
-+
-+	/*
-+	 * atomic_set() doesn't include memory barrier on ARM platform for SMP
-+	 * scenario. We'll call it here to avoid race conditions.
-+	 */
-+	atomic_set(stopping, 1);
-+	smp_wmb();
-+
-+	/*
-+	 * If module is the last one, it's writing to memory. In this case,
-+	 * it's necessary to check if the module is already paused due to
-+	 * DMA queue underrun or if it has to wait for next interrupt to be
-+	 * idle.
-+	 * If it isn't the last one, the function won't sleep but *stopping
-+	 * will still be set to warn next submodule caller's interrupt the
-+	 * module wants to be idle.
-+	 */
-+	if (!iss_pipeline_is_last(me))
-+		return 0;
-+
-+	spin_lock_irqsave(&video->qlock, flags);
-+	if (video->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_UNDERRUN) {
-+		spin_unlock_irqrestore(&video->qlock, flags);
-+		atomic_set(stopping, 0);
-+		smp_wmb();
-+		return 0;
-+	}
-+	spin_unlock_irqrestore(&video->qlock, flags);
-+	if (!wait_event_timeout(*wait, !atomic_read(stopping),
-+				msecs_to_jiffies(1000))) {
-+		atomic_set(stopping, 0);
-+		smp_wmb();
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * omap4iss_module_sync_is_stopped - Helper to verify if module was stopping
-+ * @wait: ISS submodule's wait queue for streamoff/interrupt synchronization
-+ * @stopping: flag which tells module wants to stop
-+ *
-+ * This function checks if ISS submodule was stopping. In case of yes, it
-+ * notices the caller by setting stopping to 0 and waking up the wait queue.
-+ * Returns 1 if it was stopping or 0 otherwise.
-+ */
-+int omap4iss_module_sync_is_stopping(wait_queue_head_t *wait,
-+				     atomic_t *stopping)
-+{
-+	if (atomic_cmpxchg(stopping, 1, 0)) {
-+		wake_up(wait);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/* --------------------------------------------------------------------------
-+ * Clock management
-+ */
-+
-+#define ISS_CLKCTRL_MASK	(ISS_CLKCTRL_CSI2_A |\
-+				 ISS_CLKCTRL_CSI2_B |\
-+				 ISS_CLKCTRL_ISP)
-+
-+static int __iss_subclk_update(struct iss_device *iss)
-+{
-+	u32 clk = 0;
-+	int ret = 0, timeout = 1000;
-+
-+	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_CSI2_A)
-+		clk |= ISS_CLKCTRL_CSI2_A;
-+
-+	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_CSI2_B)
-+		clk |= ISS_CLKCTRL_CSI2_B;
-+
-+	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_ISP)
-+		clk |= ISS_CLKCTRL_ISP;
-+
-+	writel((readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_CLKCTRL) &
-+		~ISS_CLKCTRL_MASK) | clk,
-+		iss->regs[OMAP4_ISS_MEM_TOP] + ISS_CLKCTRL);
-+
-+	/* Wait for HW assertion */
-+	while (--timeout > 0) {
-+		udelay(1);
-+		if ((readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_CLKSTAT) &
-+		     ISS_CLKCTRL_MASK) == clk)
-+			break;
-+	}
-+
-+	if (!timeout)
-+		ret = -EBUSY;
-+
-+	return ret;
-+}
-+
-+int omap4iss_subclk_enable(struct iss_device *iss,
-+			    enum iss_subclk_resource res)
-+{
-+	iss->subclk_resources |= res;
-+
-+	return __iss_subclk_update(iss);
-+}
-+
-+int omap4iss_subclk_disable(struct iss_device *iss,
-+			     enum iss_subclk_resource res)
-+{
-+	iss->subclk_resources &= ~res;
-+
-+	return __iss_subclk_update(iss);
-+}
-+
-+#define ISS_ISP5_CLKCTRL_MASK	(ISP5_CTRL_BL_CLK_ENABLE |\
-+				 ISP5_CTRL_ISIF_CLK_ENABLE |\
-+				 ISP5_CTRL_H3A_CLK_ENABLE |\
-+				 ISP5_CTRL_RSZ_CLK_ENABLE |\
-+				 ISP5_CTRL_IPIPE_CLK_ENABLE |\
-+				 ISP5_CTRL_IPIPEIF_CLK_ENABLE)
-+
-+static int __iss_isp_subclk_update(struct iss_device *iss)
-+{
-+	u32 clk = 0;
-+
-+	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_ISIF)
-+		clk |= ISP5_CTRL_ISIF_CLK_ENABLE;
-+
-+	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_H3A)
-+		clk |= ISP5_CTRL_H3A_CLK_ENABLE;
-+
-+	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_RSZ)
-+		clk |= ISP5_CTRL_RSZ_CLK_ENABLE;
-+
-+	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_IPIPE)
-+		clk |= ISP5_CTRL_IPIPE_CLK_ENABLE;
-+
-+	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_IPIPEIF)
-+		clk |= ISP5_CTRL_IPIPEIF_CLK_ENABLE;
-+
-+	if (clk)
-+		clk |= ISP5_CTRL_BL_CLK_ENABLE;
-+
-+	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL) &
-+		~ISS_ISP5_CLKCTRL_MASK) | clk,
-+		iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_CTRL);
-+
-+	return 0;
-+}
-+
-+int omap4iss_isp_subclk_enable(struct iss_device *iss,
-+				enum iss_isp_subclk_resource res)
-+{
-+	iss->isp_subclk_resources |= res;
-+
-+	return __iss_isp_subclk_update(iss);
-+}
-+
-+int omap4iss_isp_subclk_disable(struct iss_device *iss,
-+				enum iss_isp_subclk_resource res)
-+{
-+	iss->isp_subclk_resources &= ~res;
-+
-+	return __iss_isp_subclk_update(iss);
-+}
-+
-+/*
-+ * iss_enable_clocks - Enable ISS clocks
-+ * @iss: OMAP4 ISS device
-+ *
-+ * Return 0 if successful, or clk_enable return value if any of tthem fails.
-+ */
-+static int iss_enable_clocks(struct iss_device *iss)
-+{
-+	int r;
-+
-+	r = clk_enable(iss->iss_fck);
-+	if (r) {
-+		dev_err(iss->dev, "clk_enable iss_fck failed\n");
-+		return r;
-+	}
-+
-+	r = clk_enable(iss->iss_ctrlclk);
-+	if (r) {
-+		dev_err(iss->dev, "clk_enable iss_ctrlclk failed\n");
-+		goto out_clk_enable_ctrlclk;
-+	}
-+	return 0;
-+
-+out_clk_enable_ctrlclk:
-+	clk_disable(iss->iss_fck);
-+	return r;
-+}
-+
-+/*
-+ * iss_disable_clocks - Disable ISS clocks
-+ * @iss: OMAP4 ISS device
-+ */
-+static void iss_disable_clocks(struct iss_device *iss)
-+{
-+	clk_disable(iss->iss_ctrlclk);
-+	clk_disable(iss->iss_fck);
-+}
-+
-+static void iss_put_clocks(struct iss_device *iss)
-+{
-+	if (iss->iss_fck) {
-+		clk_put(iss->iss_fck);
-+		iss->iss_fck = NULL;
-+	}
-+
-+	if (iss->iss_ctrlclk) {
-+		clk_put(iss->iss_ctrlclk);
-+		iss->iss_ctrlclk = NULL;
-+	}
-+}
-+
-+static int iss_get_clocks(struct iss_device *iss)
-+{
-+	iss->iss_fck = clk_get(iss->dev, "iss_fck");
-+	if (IS_ERR(iss->iss_fck)) {
-+		dev_err(iss->dev, "Unable to get iss_fck clock info\n");
-+		iss_put_clocks(iss);
-+		return PTR_ERR(iss->iss_fck);
-+	}
-+
-+	iss->iss_ctrlclk = clk_get(iss->dev, "iss_ctrlclk");
-+	if (IS_ERR(iss->iss_ctrlclk)) {
-+		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
-+		iss_put_clocks(iss);
-+		return PTR_ERR(iss->iss_fck);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * omap4iss_get - Acquire the ISS resource.
-+ *
-+ * Initializes the clocks for the first acquire.
-+ *
-+ * Increment the reference count on the ISS. If the first reference is taken,
-+ * enable clocks and power-up all submodules.
-+ *
-+ * Return a pointer to the ISS device structure, or NULL if an error occurred.
-+ */
-+struct iss_device *omap4iss_get(struct iss_device *iss)
-+{
-+	struct iss_device *__iss = iss;
-+
-+	if (iss == NULL)
-+		return NULL;
-+
-+	mutex_lock(&iss->iss_mutex);
-+	if (iss->ref_count > 0)
-+		goto out;
-+
-+	if (iss_enable_clocks(iss) < 0) {
-+		__iss = NULL;
-+		goto out;
-+	}
-+
-+	iss_enable_interrupts(iss);
-+
-+out:
-+	if (__iss != NULL)
-+		iss->ref_count++;
-+	mutex_unlock(&iss->iss_mutex);
-+
-+	return __iss;
-+}
-+
-+/*
-+ * omap4iss_put - Release the ISS
-+ *
-+ * Decrement the reference count on the ISS. If the last reference is released,
-+ * power-down all submodules, disable clocks and free temporary buffers.
-+ */
-+void omap4iss_put(struct iss_device *iss)
-+{
-+	if (iss == NULL)
-+		return;
-+
-+	mutex_lock(&iss->iss_mutex);
-+	BUG_ON(iss->ref_count == 0);
-+	if (--iss->ref_count == 0) {
-+		iss_disable_interrupts(iss);
-+		iss_disable_clocks(iss);
-+	}
-+	mutex_unlock(&iss->iss_mutex);
-+}
-+
-+static int iss_map_mem_resource(struct platform_device *pdev,
-+				struct iss_device *iss,
-+				enum iss_mem_resources res)
-+{
-+	struct resource *mem;
-+
-+	/* request the mem region for the camera registers */
-+
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
-+	if (!mem) {
-+		dev_err(iss->dev, "no mem resource?\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
-+		dev_err(iss->dev,
-+			"cannot reserve camera register I/O region\n");
-+		return -ENODEV;
-+	}
-+	iss->res[res] = mem;
-+
-+	/* map the region */
-+	iss->regs[res] = ioremap_nocache(mem->start, resource_size(mem));
-+	if (!iss->regs[res]) {
-+		dev_err(iss->dev, "cannot map camera register I/O region\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void iss_unregister_entities(struct iss_device *iss)
-+{
-+	omap4iss_resizer_unregister_entities(&iss->resizer);
-+	omap4iss_ipipe_unregister_entities(&iss->ipipe);
-+	omap4iss_ipipeif_unregister_entities(&iss->ipipeif);
-+	omap4iss_csi2_unregister_entities(&iss->csi2a);
-+	omap4iss_csi2_unregister_entities(&iss->csi2b);
-+
-+	v4l2_device_unregister(&iss->v4l2_dev);
-+	media_device_unregister(&iss->media_dev);
-+}
-+
-+/*
-+ * iss_register_subdev_group - Register a group of subdevices
-+ * @iss: OMAP4 ISS device
-+ * @board_info: I2C subdevs board information array
-+ *
-+ * Register all I2C subdevices in the board_info array. The array must be
-+ * terminated by a NULL entry, and the first entry must be the sensor.
-+ *
-+ * Return a pointer to the sensor media entity if it has been successfully
-+ * registered, or NULL otherwise.
-+ */
-+static struct v4l2_subdev *
-+iss_register_subdev_group(struct iss_device *iss,
-+		     struct iss_subdev_i2c_board_info *board_info)
-+{
-+	struct v4l2_subdev *sensor = NULL;
-+	unsigned int first;
-+
-+	if (board_info->board_info == NULL)
-+		return NULL;
-+
-+	for (first = 1; board_info->board_info; ++board_info, first = 0) {
-+		struct v4l2_subdev *subdev;
-+		struct i2c_adapter *adapter;
-+
-+		adapter = i2c_get_adapter(board_info->i2c_adapter_id);
-+		if (adapter == NULL) {
-+			dev_err(iss->dev, "%s: Unable to get I2C adapter %d for "
-+				"device %s\n", __func__,
-+				board_info->i2c_adapter_id,
-+				board_info->board_info->type);
-+			continue;
-+		}
-+
-+		subdev = v4l2_i2c_new_subdev_board(&iss->v4l2_dev, adapter,
-+				board_info->board_info, NULL);
-+		if (subdev == NULL) {
-+			dev_err(iss->dev, "%s: Unable to register subdev %s\n",
-+				__func__, board_info->board_info->type);
-+			continue;
-+		}
-+
-+		if (first)
-+			sensor = subdev;
-+	}
-+
-+	return sensor;
-+}
-+
-+static int iss_register_entities(struct iss_device *iss)
-+{
-+	struct iss_platform_data *pdata = iss->pdata;
-+	struct iss_v4l2_subdevs_group *subdevs;
-+	int ret;
-+
-+	iss->media_dev.dev = iss->dev;
-+	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
-+		sizeof(iss->media_dev.model));
-+	iss->media_dev.hw_revision = iss->revision;
-+	iss->media_dev.link_notify = iss_pipeline_link_notify;
-+	ret = media_device_register(&iss->media_dev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: Media device registration failed (%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	iss->v4l2_dev.mdev = &iss->media_dev;
-+	ret = v4l2_device_register(iss->dev, &iss->v4l2_dev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: V4L2 device registration failed (%d)\n",
-+			__func__, ret);
-+		goto done;
-+	}
-+
-+	/* Register internal entities */
-+	ret = omap4iss_csi2_register_entities(&iss->csi2a, &iss->v4l2_dev);
-+	if (ret < 0)
-+		goto done;
-+
-+	ret = omap4iss_csi2_register_entities(&iss->csi2b, &iss->v4l2_dev);
-+	if (ret < 0)
-+		goto done;
-+
-+	ret = omap4iss_ipipeif_register_entities(&iss->ipipeif, &iss->v4l2_dev);
-+	if (ret < 0)
-+		goto done;
-+
-+	ret = omap4iss_ipipe_register_entities(&iss->ipipe, &iss->v4l2_dev);
-+	if (ret < 0)
-+		goto done;
-+
-+	ret = omap4iss_resizer_register_entities(&iss->resizer, &iss->v4l2_dev);
-+	if (ret < 0)
-+		goto done;
-+
-+	/* Register external entities */
-+	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
-+		struct v4l2_subdev *sensor;
-+		struct media_entity *input;
-+		unsigned int flags;
-+		unsigned int pad;
-+
-+		sensor = iss_register_subdev_group(iss, subdevs->subdevs);
-+		if (sensor == NULL)
-+			continue;
-+
-+		sensor->host_priv = subdevs;
-+
-+		/* Connect the sensor to the correct interface module.
-+		 * CSI2a receiver through CSIPHY1, or
-+		 * CSI2b receiver through CSIPHY2
-+		 */
-+		switch (subdevs->interface) {
-+		case ISS_INTERFACE_CSI2A_PHY1:
-+			input = &iss->csi2a.subdev.entity;
-+			pad = CSI2_PAD_SINK;
-+			flags = MEDIA_LNK_FL_IMMUTABLE
-+			      | MEDIA_LNK_FL_ENABLED;
-+			break;
-+
-+		case ISS_INTERFACE_CSI2B_PHY2:
-+			input = &iss->csi2b.subdev.entity;
-+			pad = CSI2_PAD_SINK;
-+			flags = MEDIA_LNK_FL_IMMUTABLE
-+			      | MEDIA_LNK_FL_ENABLED;
-+			break;
-+
-+		default:
-+			printk(KERN_ERR "%s: invalid interface type %u\n",
-+			       __func__, subdevs->interface);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+
-+		ret = media_entity_create_link(&sensor->entity, 0, input, pad,
-+					       flags);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	ret = v4l2_device_register_subdev_nodes(&iss->v4l2_dev);
-+
-+done:
-+	if (ret < 0)
-+		iss_unregister_entities(iss);
-+
-+	return ret;
-+}
-+
-+static void iss_cleanup_modules(struct iss_device *iss)
-+{
-+	omap4iss_csi2_cleanup(iss);
-+	omap4iss_ipipeif_cleanup(iss);
-+	omap4iss_ipipe_cleanup(iss);
-+	omap4iss_resizer_cleanup(iss);
-+}
-+
-+static int iss_initialize_modules(struct iss_device *iss)
-+{
-+	int ret;
-+
-+	ret = omap4iss_csiphy_init(iss);
-+	if (ret < 0) {
-+		dev_err(iss->dev, "CSI PHY initialization failed\n");
-+		goto error_csiphy;
-+	}
-+
-+	ret = omap4iss_csi2_init(iss);
-+	if (ret < 0) {
-+		dev_err(iss->dev, "CSI2 initialization failed\n");
-+		goto error_csi2;
-+	}
-+
-+	ret = omap4iss_ipipeif_init(iss);
-+	if (ret < 0) {
-+		dev_err(iss->dev, "ISP IPIPEIF initialization failed\n");
-+		goto error_ipipeif;
-+	}
-+
-+	ret = omap4iss_ipipe_init(iss);
-+	if (ret < 0) {
-+		dev_err(iss->dev, "ISP IPIPE initialization failed\n");
-+		goto error_ipipe;
-+	}
-+
-+	ret = omap4iss_resizer_init(iss);
-+	if (ret < 0) {
-+		dev_err(iss->dev, "ISP RESIZER initialization failed\n");
-+		goto error_resizer;
-+	}
-+
-+	/* Connect the submodules. */
-+	ret = media_entity_create_link(
-+			&iss->csi2a.subdev.entity, CSI2_PAD_SOURCE,
-+			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	ret = media_entity_create_link(
-+			&iss->csi2b.subdev.entity, CSI2_PAD_SOURCE,
-+			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	ret = media_entity_create_link(
-+			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
-+			&iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	ret = media_entity_create_link(
-+			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
-+			&iss->ipipe.subdev.entity, IPIPE_PAD_SINK, 0);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	ret = media_entity_create_link(
-+			&iss->ipipe.subdev.entity, IPIPE_PAD_SOURCE_VP,
-+			&iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	return 0;
-+
-+error_link:
-+	omap4iss_resizer_cleanup(iss);
-+error_resizer:
-+	omap4iss_ipipe_cleanup(iss);
-+error_ipipe:
-+	omap4iss_ipipeif_cleanup(iss);
-+error_ipipeif:
-+	omap4iss_csi2_cleanup(iss);
-+error_csi2:
-+error_csiphy:
-+	return ret;
-+}
-+
-+static int iss_probe(struct platform_device *pdev)
-+{
-+	struct iss_platform_data *pdata = pdev->dev.platform_data;
-+	struct iss_device *iss;
-+	int i, ret;
-+
-+	if (pdata == NULL)
-+		return -EINVAL;
-+
-+	iss = kzalloc(sizeof(*iss), GFP_KERNEL);
-+	if (!iss) {
-+		dev_err(&pdev->dev, "Could not allocate memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	mutex_init(&iss->iss_mutex);
-+
-+	iss->dev = &pdev->dev;
-+	iss->pdata = pdata;
-+	iss->ref_count = 0;
-+
-+	iss->raw_dmamask = DMA_BIT_MASK(32);
-+	iss->dev->dma_mask = &iss->raw_dmamask;
-+	iss->dev->coherent_dma_mask = DMA_BIT_MASK(32);
-+
-+	platform_set_drvdata(pdev, iss);
-+
-+	/* Clocks */
-+	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = iss_get_clocks(iss);
-+	if (ret < 0)
-+		goto error;
-+
-+	if (omap4iss_get(iss) == NULL)
-+		goto error;
-+
-+	ret = iss_reset(iss);
-+	if (ret < 0)
-+		goto error_iss;
-+
-+	iss->revision = readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_REVISION);
-+	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
-+
-+	for (i = 1; i < OMAP4_ISS_MEM_LAST; i++) {
-+		ret = iss_map_mem_resource(pdev, iss, i);
-+		if (ret)
-+			goto error_iss;
-+	}
-+
-+	/* Configure BTE BW_LIMITER field to max recommended value (1 GB) */
-+	writel((readl(iss->regs[OMAP4_ISS_MEM_BTE] + BTE_CTRL) & ~BTE_CTRL_BW_LIMITER_MASK) |
-+		(18 << BTE_CTRL_BW_LIMITER_SHIFT),
-+		iss->regs[OMAP4_ISS_MEM_BTE] + BTE_CTRL);
-+
-+	/* Perform ISP reset */
-+	ret = omap4iss_subclk_enable(iss, OMAP4_ISS_SUBCLK_ISP);
-+	if (ret < 0)
-+		goto error_iss;
-+
-+	ret = iss_isp_reset(iss);
-+	if (ret < 0)
-+		goto error_iss;
-+
-+	dev_info(iss->dev, "ISP Revision %08x found\n",
-+		 readl(iss->regs[OMAP4_ISS_MEM_ISP_SYS1] + ISP5_REVISION));
-+
-+	/* Interrupt */
-+	iss->irq_num = platform_get_irq(pdev, 0);
-+	if (iss->irq_num <= 0) {
-+		dev_err(iss->dev, "No IRQ resource\n");
-+		ret = -ENODEV;
-+		goto error_iss;
-+	}
-+
-+	if (request_irq(iss->irq_num, iss_isr, IRQF_SHARED, "OMAP4 ISS", iss)) {
-+		dev_err(iss->dev, "Unable to request IRQ\n");
-+		ret = -EINVAL;
-+		goto error_iss;
-+	}
-+
-+	/* Entities */
-+	ret = iss_initialize_modules(iss);
-+	if (ret < 0)
-+		goto error_irq;
-+
-+	ret = iss_register_entities(iss);
-+	if (ret < 0)
-+		goto error_modules;
-+
-+	omap4iss_put(iss);
-+
-+	return 0;
-+
-+error_modules:
-+	iss_cleanup_modules(iss);
-+error_irq:
-+	free_irq(iss->irq_num, iss);
-+error_iss:
-+	omap4iss_put(iss);
-+error:
-+	iss_put_clocks(iss);
-+
-+	for (i = 0; i < OMAP4_ISS_MEM_LAST; i++) {
-+		if (iss->regs[i]) {
-+			iounmap(iss->regs[i]);
-+			iss->regs[i] = NULL;
-+		}
-+
-+		if (iss->res[i]) {
-+			release_mem_region(iss->res[i]->start,
-+					   resource_size(iss->res[i]));
-+			iss->res[i] = NULL;
-+		}
-+	}
-+	platform_set_drvdata(pdev, NULL);
-+
-+	mutex_destroy(&iss->iss_mutex);
-+	kfree(iss);
-+
-+	return ret;
-+}
-+
-+static int iss_remove(struct platform_device *pdev)
-+{
-+	struct iss_device *iss = platform_get_drvdata(pdev);
-+	int i;
-+
-+	iss_unregister_entities(iss);
-+	iss_cleanup_modules(iss);
-+
-+	free_irq(iss->irq_num, iss);
-+	iss_put_clocks(iss);
-+
-+	for (i = 0; i < OMAP4_ISS_MEM_LAST; i++) {
-+		if (iss->regs[i]) {
-+			iounmap(iss->regs[i]);
-+			iss->regs[i] = NULL;
-+		}
-+
-+		if (iss->res[i]) {
-+			release_mem_region(iss->res[i]->start,
-+					   resource_size(iss->res[i]));
-+			iss->res[i] = NULL;
-+		}
-+	}
-+
-+	kfree(iss);
-+
-+	return 0;
-+}
-+
-+static struct platform_device_id omap4iss_id_table[] = {
-+	{ "omap4iss", 0 },
-+	{ },
++#define VPE_DESC_LIST_SIZE	(10 * VPDMA_DTD_DESC_SIZE +	\
++					13 * VPDMA_CFD_CTD_DESC_SIZE)
++
++#define vpe_dbg(vpedev, fmt, arg...)	\
++		dev_dbg((vpedev)->v4l2_dev.dev, fmt, ##arg)
++#define vpe_err(vpedev, fmt, arg...)	\
++		dev_err((vpedev)->v4l2_dev.dev, fmt, ##arg)
++
++struct vpe_us_coeffs {
++	unsigned short	anchor_fid0_c0;
++	unsigned short	anchor_fid0_c1;
++	unsigned short	anchor_fid0_c2;
++	unsigned short	anchor_fid0_c3;
++	unsigned short	interp_fid0_c0;
++	unsigned short	interp_fid0_c1;
++	unsigned short	interp_fid0_c2;
++	unsigned short	interp_fid0_c3;
++	unsigned short	anchor_fid1_c0;
++	unsigned short	anchor_fid1_c1;
++	unsigned short	anchor_fid1_c2;
++	unsigned short	anchor_fid1_c3;
++	unsigned short	interp_fid1_c0;
++	unsigned short	interp_fid1_c1;
++	unsigned short	interp_fid1_c2;
++	unsigned short	interp_fid1_c3;
 +};
-+MODULE_DEVICE_TABLE(platform, omap4iss_id_table);
 +
-+static struct platform_driver iss_driver = {
-+	.probe		= iss_probe,
-+	.remove		= iss_remove,
-+	.id_table	= omap4iss_id_table,
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "omap4iss",
++/*
++ * Default upsampler coefficients
++ */
++static const struct vpe_us_coeffs us_coeffs[] = {
++	{
++		/* Coefficients for progressive input */
++		0x00C8, 0x0348, 0x0018, 0x3FD8, 0x3FB8, 0x0378, 0x00E8, 0x3FE8,
++		0x00C8, 0x0348, 0x0018, 0x3FD8, 0x3FB8, 0x0378, 0x00E8, 0x3FE8,
 +	},
 +};
 +
-+module_platform_driver(iss_driver);
++/*
++ * The port_data structure contains per-port data.
++ */
++struct vpe_port_data {
++	enum vpdma_channel channel;	/* VPDMA channel */
++	u8	vb_part;		/* plane index for co-panar formats */
++};
 +
-+MODULE_DESCRIPTION("TI OMAP4 ISS driver");
-+MODULE_AUTHOR("Sergio Aguirre <sergio.a.aguirre@gmail.com>");
++/*
++ * Define indices into the port_data tables
++ */
++#define VPE_PORT_LUMA1_IN	0
++#define VPE_PORT_CHROMA1_IN	1
++#define VPE_PORT_LUMA_OUT	8
++#define VPE_PORT_CHROMA_OUT	9
++#define VPE_PORT_RGB_OUT	10
++
++static const struct vpe_port_data port_data[11] = {
++	[VPE_PORT_LUMA1_IN] = {
++		.channel	= VPE_CHAN_LUMA1_IN,
++		.vb_part	= VPE_LUMA,
++	},
++	[VPE_PORT_CHROMA1_IN] = {
++		.channel	= VPE_CHAN_CHROMA1_IN,
++		.vb_part	= VPE_CHROMA,
++	},
++	[VPE_PORT_LUMA_OUT] = {
++		.channel	= VPE_CHAN_LUMA_OUT,
++		.vb_part	= VPE_LUMA,
++	},
++	[VPE_PORT_CHROMA_OUT] = {
++		.channel	= VPE_CHAN_CHROMA_OUT,
++		.vb_part	= VPE_CHROMA,
++	},
++	[VPE_PORT_RGB_OUT] = {
++		.channel	= VPE_CHAN_RGB_OUT,
++		.vb_part	= VPE_LUMA,
++	},
++};
++
++
++/* driver info for each of the supported video formats */
++struct vpe_fmt {
++	char	*name;			/* human-readable name */
++	u32	fourcc;			/* standard format identifier */
++	u8	types;			/* CAPTURE and/or OUTPUT */
++	u8	coplanar;		/* set for unpacked Luma and Chroma */
++	/* vpdma format info for each plane */
++	struct vpdma_data_format const *vpdma_fmt[VPE_MAX_PLANES];
++};
++
++static struct vpe_fmt vpe_formats[] = {
++	{
++		.name		= "YUV 422 co-planar",
++		.fourcc		= V4L2_PIX_FMT_NV16,
++		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
++		.coplanar	= 1,
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_Y444],
++				    &vpdma_yuv_fmts[VPDMA_DATA_FMT_C444],
++				  },
++	},
++	{
++		.name		= "YUV 420 co-planar",
++		.fourcc		= V4L2_PIX_FMT_NV12,
++		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
++		.coplanar	= 1,
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_Y420],
++				    &vpdma_yuv_fmts[VPDMA_DATA_FMT_C420],
++				  },
++	},
++	{
++		.name		= "YUYV 422 packed",
++		.fourcc		= V4L2_PIX_FMT_YUYV,
++		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YC422],
++				  },
++	},
++	{
++		.name		= "UYVY 422 packed",
++		.fourcc		= V4L2_PIX_FMT_UYVY,
++		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
++				  },
++	},
++};
++
++/*
++ * per-queue, driver-specific private data.
++ * there is one source queue and one destination queue for each m2m context.
++ */
++struct vpe_q_data {
++	unsigned int		width;				/* frame width */
++	unsigned int		height;				/* frame height */
++	unsigned int		bytesperline[VPE_MAX_PLANES];	/* bytes per line in memory */
++	enum v4l2_colorspace	colorspace;
++	unsigned int		flags;
++	unsigned int		sizeimage[VPE_MAX_PLANES];	/* image size in memory */
++	struct v4l2_rect	c_rect;				/* crop/compose rectangle */
++	struct vpe_fmt		*fmt;				/* format info */
++};
++
++/* vpe_q_data flag bits */
++#define	Q_DATA_FRAME_1D		(1 << 0)
++#define	Q_DATA_MODE_TILED	(1 << 1)
++
++enum {
++	Q_DATA_SRC = 0,
++	Q_DATA_DST = 1,
++};
++
++/* find our format description corresponding to the passed v4l2_format */
++static struct vpe_fmt *find_format(struct v4l2_format *f)
++{
++	struct vpe_fmt *fmt;
++	unsigned int k;
++
++	for (k = 0; k < ARRAY_SIZE(vpe_formats); k++) {
++		fmt = &vpe_formats[k];
++		if (fmt->fourcc == f->fmt.pix.pixelformat)
++			return fmt;
++	}
++
++	return NULL;
++}
++
++/*
++ * there is one vpe_dev structure in the driver, it is shared by
++ * all instances.
++ */
++struct vpe_dev {
++	struct v4l2_device	v4l2_dev;
++	struct video_device	vfd;
++	struct v4l2_m2m_dev	*m2m_dev;
++
++	atomic_t		num_instances;	/* count of driver instances */
++	dma_addr_t		loaded_mmrs;	/* shadow mmrs in device */
++	struct mutex		dev_mutex;
++	spinlock_t		lock;
++
++	int			irq;
++	void __iomem		*base;
++
++	struct vb2_alloc_ctx	*alloc_ctx;
++	struct vpdma_data	*vpdma;		/* vpdma data handle */
++};
++
++/*
++ * There is one vpe_ctx structure for each m2m context.
++ */
++struct vpe_ctx {
++	struct v4l2_fh		fh;
++	struct vpe_dev		*dev;
++	struct v4l2_m2m_ctx	*m2m_ctx;
++	struct v4l2_ctrl_handler hdl;
++
++	unsigned int		sequence;		/* current frame/field seq */
++	unsigned int		aborting;		/* abort after next irq */
++
++	unsigned int		bufs_per_job;		/* input buffers per batch */
++	unsigned int		bufs_completed;		/* bufs done in this batch */
++
++	struct vpe_q_data	q_data[2];		/* src & dst queue data */
++	struct vb2_buffer	*src_vb;
++	struct vb2_buffer	*dst_vb;
++
++	struct vpdma_buf	mmr_adb;		/* shadow reg addr/data block */
++	struct vpdma_desc_list	desc_list;		/* DMA descriptor list */
++
++	bool			load_mmrs;		/* have new shadow reg values */
++};
++
++
++/*
++ * M2M devices get 2 queues.
++ * Return the queue given the type.
++ */
++static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
++				     enum v4l2_buf_type type)
++{
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		return &ctx->q_data[Q_DATA_SRC];
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		return &ctx->q_data[Q_DATA_DST];
++	default:
++		BUG();
++	}
++	return NULL;
++}
++
++static u32 read_reg(struct vpe_dev *dev, int offset)
++{
++	return ioread32(dev->base + offset);
++}
++
++static void write_reg(struct vpe_dev *dev, int offset, u32 value)
++{
++	iowrite32(value, dev->base + offset);
++}
++
++/* register field read/write helpers */
++static int get_field(u32 value, u32 mask, int shift)
++{
++	return (value & (mask << shift)) >> shift;
++}
++
++static int read_field_reg(struct vpe_dev *dev, int offset, u32 mask, int shift)
++{
++	return get_field(read_reg(dev, offset), mask, shift);
++}
++
++static void write_field(u32 *valp, u32 field, u32 mask, int shift)
++{
++	u32 val = *valp;
++
++	val &= ~(mask << shift);
++	val |= (field & mask) << shift;
++	*valp = val;
++}
++
++static void write_field_reg(struct vpe_dev *dev, int offset, u32 field,
++		u32 mask, int shift)
++{
++	u32 val = read_reg(dev, offset);
++
++	write_field(&val, field, mask, shift);
++
++	write_reg(dev, offset, val);
++}
++
++/*
++ * DMA address/data block for the shadow registers
++ */
++struct vpe_mmr_adb {
++	struct vpdma_adb_hdr	out_fmt_hdr;
++	u32			out_fmt_reg[1];
++	u32			out_fmt_pad[3];
++	struct vpdma_adb_hdr	us1_hdr;
++	u32			us1_regs[8];
++	struct vpdma_adb_hdr	us2_hdr;
++	u32			us2_regs[8];
++	struct vpdma_adb_hdr	us3_hdr;
++	u32			us3_regs[8];
++	struct vpdma_adb_hdr	dei_hdr;
++	u32			dei_regs[1];
++	u32			dei_pad[3];
++	struct vpdma_adb_hdr	sc_hdr;
++	u32			sc_regs[1];
++	u32			sc_pad[3];
++	struct vpdma_adb_hdr	csc_hdr;
++	u32			csc_regs[6];
++	u32			csc_pad[2];
++};
++
++#define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
++	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs, offset_a)
++/*
++ * Set the headers for all of the address/data block structures.
++ */
++static void init_adb_hdrs(struct vpe_ctx *ctx)
++{
++	VPE_SET_MMR_ADB_HDR(ctx, out_fmt_hdr, out_fmt_reg, VPE_CLK_FORMAT_SELECT);
++	VPE_SET_MMR_ADB_HDR(ctx, us1_hdr, us1_regs, VPE_US1_R0);
++	VPE_SET_MMR_ADB_HDR(ctx, us2_hdr, us2_regs, VPE_US2_R0);
++	VPE_SET_MMR_ADB_HDR(ctx, us3_hdr, us3_regs, VPE_US3_R0);
++	VPE_SET_MMR_ADB_HDR(ctx, dei_hdr, dei_regs, VPE_DEI_FRAME_SIZE);
++	VPE_SET_MMR_ADB_HDR(ctx, sc_hdr, sc_regs, VPE_SC_MP_SC0);
++	VPE_SET_MMR_ADB_HDR(ctx, csc_hdr, csc_regs, VPE_CSC_CSC00);
++};
++
++/*
++ * Enable or disable the VPE clocks
++ */
++static void vpe_set_clock_enable(struct vpe_dev *dev, bool on)
++{
++	u32 val = 0;
++
++	if (on)
++		val = VPE_DATA_PATH_CLK_ENABLE | VPE_VPEDMA_CLK_ENABLE;
++	write_reg(dev, VPE_CLK_ENABLE, val);
++}
++
++static void vpe_top_reset(struct vpe_dev *dev)
++{
++
++	write_field_reg(dev, VPE_CLK_RESET, 1, VPE_DATA_PATH_CLK_RESET_MASK,
++		VPE_DATA_PATH_CLK_RESET_SHIFT);
++
++	usleep_range(100, 150);
++
++	write_field_reg(dev, VPE_CLK_RESET, 0, VPE_DATA_PATH_CLK_RESET_MASK,
++		VPE_DATA_PATH_CLK_RESET_SHIFT);
++}
++
++static void vpe_top_vpdma_reset(struct vpe_dev *dev)
++{
++	write_field_reg(dev, VPE_CLK_RESET, 1, VPE_VPDMA_CLK_RESET_MASK,
++		VPE_VPDMA_CLK_RESET_SHIFT);
++
++	usleep_range(100, 150);
++
++	write_field_reg(dev, VPE_CLK_RESET, 0, VPE_VPDMA_CLK_RESET_MASK,
++		VPE_VPDMA_CLK_RESET_SHIFT);
++}
++
++/*
++ * Load the correct of upsampler coefficients into the shadow MMRs
++ */
++static void set_us_coefficients(struct vpe_ctx *ctx)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *us1_reg = &mmr_adb->us1_regs[0];
++	u32 *us2_reg = &mmr_adb->us2_regs[0];
++	u32 *us3_reg = &mmr_adb->us3_regs[0];
++	const unsigned short *cp, *end_cp;
++
++	cp = &us_coeffs[0].anchor_fid0_c0;
++
++	end_cp = cp + sizeof(us_coeffs[0]) / sizeof(*cp);
++
++	while (cp < end_cp) {
++		write_field(us1_reg, *cp++, VPE_US_C0_MASK, VPE_US_C0_SHIFT);
++		write_field(us1_reg, *cp++, VPE_US_C1_MASK, VPE_US_C1_SHIFT);
++		*us2_reg++ = *us1_reg;
++		*us3_reg++ = *us1_reg++;
++	}
++	ctx->load_mmrs = true;
++}
++
++/*
++ * Set the upsampler config mode and the VPDMA line mode in the shadow MMRs.
++ */
++static void set_cfg_and_line_modes(struct vpe_ctx *ctx)
++{
++	struct vpe_fmt *fmt = ctx->q_data[Q_DATA_SRC].fmt;
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *us1_reg0 = &mmr_adb->us1_regs[0];
++	u32 *us2_reg0 = &mmr_adb->us2_regs[0];
++	u32 *us3_reg0 = &mmr_adb->us3_regs[0];
++	int line_mode = 1;
++	int cfg_mode = 1;
++
++	/*
++	 * Cfg Mode 0: YUV420 source, enable upsampler, DEI is de-interlacing.
++	 * Cfg Mode 1: YUV422 source, disable upsampler, DEI is de-interlacing.
++	 */
++
++	if (fmt->fourcc == V4L2_PIX_FMT_NV12) {
++		cfg_mode = 0;
++		line_mode = 0;		/* double lines to line buffer */
++	}
++
++	write_field(us1_reg0, cfg_mode, VPE_US_MODE_MASK, VPE_US_MODE_SHIFT);
++	write_field(us2_reg0, cfg_mode, VPE_US_MODE_MASK, VPE_US_MODE_SHIFT);
++	write_field(us3_reg0, cfg_mode, VPE_US_MODE_MASK, VPE_US_MODE_SHIFT);
++
++	/* regs for now */
++	vpdma_set_line_mode(ctx->dev->vpdma, line_mode, VPE_CHAN_CHROMA1_IN);
++
++	/* frame start for input luma */
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_LUMA1_IN);
++
++	/* frame start for input chroma */
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_CHROMA1_IN);
++
++	ctx->load_mmrs = true;
++}
++
++/*
++ * Set the shadow registers that are modified when the source
++ * format changes.
++ */
++static void set_src_registers(struct vpe_ctx *ctx)
++{
++	set_us_coefficients(ctx);
++}
++
++/*
++ * Set the shadow registers that are modified when the destination
++ * format changes.
++ */
++static void set_dst_registers(struct vpe_ctx *ctx)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	struct vpe_fmt *fmt = ctx->q_data[Q_DATA_DST].fmt;
++	u32 val = 0;
++
++	/* select RGB path when color space conversion is supported in future */
++	if (fmt->fourcc == V4L2_PIX_FMT_RGB24)
++		val |= VPE_RGB_OUT_SELECT | VPE_CSC_SRC_DEI_SCALER;
++	else if (fmt->fourcc == V4L2_PIX_FMT_NV16)
++		val |= VPE_COLOR_SEPARATE_422;
++
++	/* The source of CHR_DS is always the scaler, whether it's used or not */
++	val |= VPE_DS_SRC_DEI_SCALER;
++
++	if (fmt->fourcc != V4L2_PIX_FMT_NV12)
++		val |= VPE_DS_BYPASS;
++
++	mmr_adb->out_fmt_reg[0] = val;
++
++	ctx->load_mmrs = true;
++}
++
++/*
++ * Set the de-interlacer shadow register values
++ */
++static void set_dei_regs_bypass(struct vpe_ctx *ctx)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	struct vpe_q_data *s_q_data = &ctx->q_data[Q_DATA_SRC];
++	unsigned int src_h = s_q_data->c_rect.height;
++	unsigned int src_w = s_q_data->c_rect.width;
++	u32 *dei_mmr0 = &mmr_adb->dei_regs[0];
++	u32 val = 0;
++
++	/*
++	 * according to TRM, we should set DEI in progressive bypass mode when
++	 * the input content is progressive, however, DEI is bypassed correctly
++	 * for both progressive and interlace content in interlace bypass mode.
++	 * It has been recommended not to use progressive bypass mode.
++	 */
++	val = VPE_DEI_INTERLACE_BYPASS;
++
++	val |= (src_h << VPE_DEI_HEIGHT_SHIFT) |
++		(src_w << VPE_DEI_WIDTH_SHIFT) |
++		VPE_DEI_FIELD_FLUSH;
++
++	*dei_mmr0 = val;
++
++	ctx->load_mmrs = true;
++}
++
++static void set_csc_coeff_bypass(struct vpe_ctx *ctx)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *shadow_csc_reg5 = &mmr_adb->csc_regs[5];
++
++	*shadow_csc_reg5 |= VPE_CSC_BYPASS;
++
++	ctx->load_mmrs = true;
++}
++
++static void set_sc_regs_bypass(struct vpe_ctx *ctx)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *sc_reg0 = &mmr_adb->sc_regs[0];
++	u32 val = 0;
++
++	val |= VPE_SC_BYPASS;
++	*sc_reg0 = val;
++
++	ctx->load_mmrs = true;
++}
++
++/*
++ * Set the shadow registers whose values are modified when either the
++ * source or destination format is changed.
++ */
++static int set_srcdst_params(struct vpe_ctx *ctx)
++{
++	ctx->sequence = 0;
++
++	set_cfg_and_line_modes(ctx);
++	set_dei_regs_bypass(ctx);
++	set_csc_coeff_bypass(ctx);
++	set_sc_regs_bypass(ctx);
++
++	return 0;
++}
++
++/*
++ * Return the vpe_ctx structure for a given struct file
++ */
++static struct vpe_ctx *file2ctx(struct file *file)
++{
++	return container_of(file->private_data, struct vpe_ctx, fh);
++}
++
++/*
++ * mem2mem callbacks
++ */
++
++/**
++ * job_ready() - check whether an instance is ready to be scheduled to run
++ */
++static int job_ready(void *priv)
++{
++	struct vpe_ctx *ctx = priv;
++	int needed = ctx->bufs_per_job;
++
++	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
++		return 0;
++
++	return 1;
++}
++
++static void job_abort(void *priv)
++{
++	struct vpe_ctx *ctx = priv;
++
++	/* Will cancel the transaction in the next interrupt handler */
++	ctx->aborting = 1;
++}
++
++/*
++ * Lock access to the device
++ */
++static void vpe_lock(void *priv)
++{
++	struct vpe_ctx *ctx = priv;
++	struct vpe_dev *dev = ctx->dev;
++	mutex_lock(&dev->dev_mutex);
++}
++
++static void vpe_unlock(void *priv)
++{
++	struct vpe_ctx *ctx = priv;
++	struct vpe_dev *dev = ctx->dev;
++	mutex_unlock(&dev->dev_mutex);
++}
++
++static void vpe_dump_regs(struct vpe_dev *dev)
++{
++#define DUMPREG(r) vpe_dbg(dev, "%-35s %08x\n", #r, read_reg(dev, VPE_##r))
++
++	vpe_dbg(dev, "VPE Registers:\n");
++
++	DUMPREG(PID);
++	DUMPREG(SYSCONFIG);
++	DUMPREG(INT0_STATUS0_RAW);
++	DUMPREG(INT0_STATUS0);
++	DUMPREG(INT0_ENABLE0);
++	DUMPREG(INT0_STATUS1_RAW);
++	DUMPREG(INT0_STATUS1);
++	DUMPREG(INT0_ENABLE1);
++	DUMPREG(CLK_ENABLE);
++	DUMPREG(CLK_RESET);
++	DUMPREG(CLK_FORMAT_SELECT);
++	DUMPREG(CLK_RANGE_MAP);
++	DUMPREG(US1_R0);
++	DUMPREG(US1_R1);
++	DUMPREG(US1_R2);
++	DUMPREG(US1_R3);
++	DUMPREG(US1_R4);
++	DUMPREG(US1_R5);
++	DUMPREG(US1_R6);
++	DUMPREG(US1_R7);
++	DUMPREG(US2_R0);
++	DUMPREG(US2_R1);
++	DUMPREG(US2_R2);
++	DUMPREG(US2_R3);
++	DUMPREG(US2_R4);
++	DUMPREG(US2_R5);
++	DUMPREG(US2_R6);
++	DUMPREG(US2_R7);
++	DUMPREG(US3_R0);
++	DUMPREG(US3_R1);
++	DUMPREG(US3_R2);
++	DUMPREG(US3_R3);
++	DUMPREG(US3_R4);
++	DUMPREG(US3_R5);
++	DUMPREG(US3_R6);
++	DUMPREG(US3_R7);
++	DUMPREG(DEI_FRAME_SIZE);
++	DUMPREG(MDT_BYPASS);
++	DUMPREG(MDT_SF_THRESHOLD);
++	DUMPREG(EDI_CONFIG);
++	DUMPREG(DEI_EDI_LUT_R0);
++	DUMPREG(DEI_EDI_LUT_R1);
++	DUMPREG(DEI_EDI_LUT_R2);
++	DUMPREG(DEI_EDI_LUT_R3);
++	DUMPREG(DEI_FMD_WINDOW_R0);
++	DUMPREG(DEI_FMD_WINDOW_R1);
++	DUMPREG(DEI_FMD_CONTROL_R0);
++	DUMPREG(DEI_FMD_CONTROL_R1);
++	DUMPREG(DEI_FMD_STATUS_R0);
++	DUMPREG(DEI_FMD_STATUS_R1);
++	DUMPREG(DEI_FMD_STATUS_R2);
++	DUMPREG(SC_MP_SC0);
++	DUMPREG(SC_MP_SC1);
++	DUMPREG(SC_MP_SC2);
++	DUMPREG(SC_MP_SC3);
++	DUMPREG(SC_MP_SC4);
++	DUMPREG(SC_MP_SC5);
++	DUMPREG(SC_MP_SC6);
++	DUMPREG(SC_MP_SC8);
++	DUMPREG(SC_MP_SC9);
++	DUMPREG(SC_MP_SC10);
++	DUMPREG(SC_MP_SC11);
++	DUMPREG(SC_MP_SC12);
++	DUMPREG(SC_MP_SC13);
++	DUMPREG(SC_MP_SC17);
++	DUMPREG(SC_MP_SC18);
++	DUMPREG(SC_MP_SC19);
++	DUMPREG(SC_MP_SC20);
++	DUMPREG(SC_MP_SC21);
++	DUMPREG(SC_MP_SC22);
++	DUMPREG(SC_MP_SC23);
++	DUMPREG(SC_MP_SC24);
++	DUMPREG(SC_MP_SC25);
++	DUMPREG(CSC_CSC00);
++	DUMPREG(CSC_CSC01);
++	DUMPREG(CSC_CSC02);
++	DUMPREG(CSC_CSC03);
++	DUMPREG(CSC_CSC04);
++	DUMPREG(CSC_CSC05);
++#undef DUMPREG
++}
++
++static void add_out_dtd(struct vpe_ctx *ctx, int port)
++{
++	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
++	const struct vpe_port_data *p_data = &port_data[port];
++	struct vb2_buffer *vb = ctx->dst_vb;
++	struct v4l2_rect *c_rect = &q_data->c_rect;
++	struct vpe_fmt *fmt = q_data->fmt;
++	const struct vpdma_data_format *vpdma_fmt;
++	int plane = fmt->coplanar ? p_data->vb_part : 0;
++	dma_addr_t dma_addr;
++	u32 flags = 0;
++
++	vpdma_fmt = fmt->vpdma_fmt[plane];
++	dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
++	if (!dma_addr) {
++		vpe_err(ctx->dev,
++			"acquiring output buffer(%d) dma_addr failed\n",
++			port);
++		return;
++	}
++
++	if (q_data->flags & Q_DATA_FRAME_1D)
++		flags |= VPDMA_DATA_FRAME_1D;
++	if (q_data->flags & Q_DATA_MODE_TILED)
++		flags |= VPDMA_DATA_MODE_TILED;
++
++	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
++		p_data->channel, flags);
++}
++
++static void add_in_dtd(struct vpe_ctx *ctx, int port)
++{
++	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
++	const struct vpe_port_data *p_data = &port_data[port];
++	struct vb2_buffer *vb = ctx->src_vb;
++	struct v4l2_rect *c_rect = &q_data->c_rect;
++	struct vpe_fmt *fmt = q_data->fmt;
++	const struct vpdma_data_format *vpdma_fmt;
++	int plane = fmt->coplanar ? p_data->vb_part : 0;
++	int field = 0;
++	dma_addr_t dma_addr;
++	u32 flags = 0;
++
++	vpdma_fmt = fmt->vpdma_fmt[plane];
++
++	dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
++	if (!dma_addr) {
++		vpe_err(ctx->dev,
++			"acquiring input buffer(%d) dma_addr failed\n",
++			port);
++		return;
++	}
++
++	if (q_data->flags & Q_DATA_FRAME_1D)
++		flags |= VPDMA_DATA_FRAME_1D;
++	if (q_data->flags & Q_DATA_MODE_TILED)
++		flags |= VPDMA_DATA_MODE_TILED;
++
++	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
++		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
++}
++
++/*
++ * Enable the expected IRQ sources
++ */
++static void enable_irqs(struct vpe_ctx *ctx)
++{
++	write_reg(ctx->dev, VPE_INT0_ENABLE0_SET, VPE_INT0_LIST0_COMPLETE);
++	write_reg(ctx->dev, VPE_INT0_ENABLE1_SET, VPE_DS1_UV_ERROR_INT);
++
++	vpdma_enable_list_complete_irq(ctx->dev->vpdma, 0, true);
++}
++
++static void disable_irqs(struct vpe_ctx *ctx)
++{
++	write_reg(ctx->dev, VPE_INT0_ENABLE0_CLR, 0xffffffff);
++	write_reg(ctx->dev, VPE_INT0_ENABLE1_CLR, 0xffffffff);
++
++	vpdma_enable_list_complete_irq(ctx->dev->vpdma, 0, false);
++}
++
++/* device_run() - prepares and starts the device
++ *
++ * This function is only called when both the source and destination
++ * buffers are in place.
++ */
++static void device_run(void *priv)
++{
++	struct vpe_ctx *ctx = priv;
++	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
++
++	ctx->src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++	WARN_ON(ctx->src_vb == NULL);
++	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
++	WARN_ON(ctx->dst_vb == NULL);
++
++	/* config descriptors */
++	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
++		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
++		vpdma_add_cfd_adb(&ctx->desc_list, CFD_MMR_CLIENT, &ctx->mmr_adb);
++		ctx->dev->loaded_mmrs = ctx->mmr_adb.dma_addr;
++		ctx->load_mmrs = false;
++	}
++
++	add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
++	if (d_q_data->fmt->coplanar)
++		add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
++
++	add_in_dtd(ctx, VPE_PORT_LUMA1_IN);
++	add_in_dtd(ctx, VPE_PORT_CHROMA1_IN);
++
++	/* sync on channel control descriptors for input ports */
++	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA1_IN);
++	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA1_IN);
++
++	/* sync on channel control descriptors for output ports */
++	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA_OUT);
++	if (d_q_data->fmt->coplanar)
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA_OUT);
++
++	enable_irqs(ctx);
++
++	vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->desc_list.buf);
++	vpdma_submit_descs(ctx->dev->vpdma, &ctx->desc_list);
++}
++
++static void ds1_uv_error(struct vpe_ctx *ctx)
++{
++	dev_warn(ctx->dev->v4l2_dev.dev,
++		"received downsampler error interrupt\n");
++}
++
++static irqreturn_t vpe_irq(int irq_vpe, void *data)
++{
++	struct vpe_dev *dev = (struct vpe_dev *)data;
++	struct vpe_ctx *ctx;
++	struct vb2_buffer *s_vb, *d_vb;
++	struct v4l2_buffer *s_buf, *d_buf;
++	unsigned long flags;
++	u32 irqst0, irqst1;
++
++	irqst0 = read_reg(dev, VPE_INT0_STATUS0);
++	if (irqst0) {
++		write_reg(dev, VPE_INT0_STATUS0_CLR, irqst0);
++		vpe_dbg(dev, "INT0_STATUS0 = 0x%08x\n", irqst0);
++	}
++
++	irqst1 = read_reg(dev, VPE_INT0_STATUS1);
++	if (irqst1) {
++		write_reg(dev, VPE_INT0_STATUS1_CLR, irqst1);
++		vpe_dbg(dev, "INT0_STATUS1 = 0x%08x\n", irqst1);
++	}
++
++	ctx = v4l2_m2m_get_curr_priv(dev->m2m_dev);
++	if (!ctx) {
++		vpe_err(dev, "instance released before end of transaction\n");
++		goto handled;
++	}
++
++	if (irqst1 & VPE_DS1_UV_ERROR_INT) {
++		irqst1 &= ~VPE_DS1_UV_ERROR_INT;
++		ds1_uv_error(ctx);
++	}
++
++	if (irqst0) {
++		if (irqst0 & VPE_INT0_LIST0_COMPLETE)
++			vpdma_clear_list_stat(ctx->dev->vpdma);
++
++		irqst0 &= ~(VPE_INT0_LIST0_COMPLETE);
++	}
++
++	if (irqst0 | irqst1) {
++		dev_warn(dev->v4l2_dev.dev, "Unexpected interrupt: "
++			"INT0_STATUS0 = 0x%08x, INT0_STATUS1 = 0x%08x\n",
++			irqst0, irqst1);
++	}
++
++	disable_irqs(ctx);
++
++	vpdma_unmap_desc_buf(dev->vpdma, &ctx->desc_list.buf);
++	vpdma_unmap_desc_buf(dev->vpdma, &ctx->mmr_adb);
++
++	vpdma_reset_desc_list(&ctx->desc_list);
++
++	if (ctx->aborting)
++		goto finished;
++
++	s_vb = ctx->src_vb;
++	d_vb = ctx->dst_vb;
++	s_buf = &s_vb->v4l2_buf;
++	d_buf = &d_vb->v4l2_buf;
++
++	d_buf->timestamp = s_buf->timestamp;
++	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
++		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
++		d_buf->timecode = s_buf->timecode;
++	}
++
++	d_buf->sequence = ctx->sequence;
++
++	ctx->sequence++;
++
++	spin_lock_irqsave(&dev->lock, flags);
++	v4l2_m2m_buf_done(s_vb, VB2_BUF_STATE_DONE);
++	v4l2_m2m_buf_done(d_vb, VB2_BUF_STATE_DONE);
++	spin_unlock_irqrestore(&dev->lock, flags);
++
++	ctx->bufs_completed++;
++	if (ctx->bufs_completed < ctx->bufs_per_job) {
++		device_run(ctx);
++		goto handled;
++	}
++
++finished:
++	vpe_dbg(ctx->dev, "finishing transaction\n");
++	ctx->bufs_completed = 0;
++	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
++handled:
++	return IRQ_HANDLED;
++}
++
++/*
++ * video ioctls
++ */
++static int vpe_querycap(struct file *file, void *priv,
++			struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
++	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
++	cap->device_caps  = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int __enum_fmt(struct v4l2_fmtdesc *f, u32 type)
++{
++	int i, index;
++	struct vpe_fmt *fmt = NULL;
++
++	index = 0;
++	for (i = 0; i < ARRAY_SIZE(vpe_formats); ++i) {
++		if (vpe_formats[i].types & type) {
++			if (index == f->index) {
++				fmt = &vpe_formats[i];
++				break;
++			}
++			index++;
++		}
++	}
++
++	if (!fmt)
++		return -EINVAL;
++
++	strncpy(f->description, fmt->name, sizeof(f->description) - 1);
++	f->pixelformat = fmt->fourcc;
++	return 0;
++}
++
++static int vpe_enum_fmt(struct file *file, void *priv,
++				struct v4l2_fmtdesc *f)
++{
++	if (V4L2_TYPE_IS_OUTPUT(f->type))
++		return __enum_fmt(f, VPE_FMT_TYPE_OUTPUT);
++
++	return __enum_fmt(f, VPE_FMT_TYPE_CAPTURE);
++}
++
++static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
++{
++	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vb2_queue *vq;
++	struct vpe_q_data *q_data;
++	int i;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, f->type);
++
++	pix->width = q_data->width;
++	pix->height = q_data->height;
++	pix->pixelformat = q_data->fmt->fourcc;
++
++	if (V4L2_TYPE_IS_OUTPUT(f->type)) {
++		pix->colorspace = q_data->colorspace;
++	} else {
++		struct vpe_q_data *s_q_data;
++
++		/* get colorspace from the source queue */
++		s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++
++		pix->colorspace = s_q_data->colorspace;
++	}
++
++	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
++
++	for (i = 0; i < pix->num_planes; i++) {
++		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
++		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
++	}
++
++	return 0;
++}
++
++static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
++		       struct vpe_fmt *fmt, int type)
++{
++	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt;
++	int i;
++
++	if (!fmt || !(fmt->types & type)) {
++		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
++			pix->pixelformat);
++		return -EINVAL;
++	}
++
++	pix->field = V4L2_FIELD_NONE;
++
++	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
++			      &pix->height, MIN_H, MAX_H, H_ALIGN,
++			      S_ALIGN);
++
++	pix->num_planes = fmt->coplanar ? 2 : 1;
++	pix->pixelformat = fmt->fourcc;
++
++	if (type == VPE_FMT_TYPE_CAPTURE) {
++		struct vpe_q_data *s_q_data;
++
++		/* get colorspace from the source queue */
++		s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++
++		pix->colorspace = s_q_data->colorspace;
++	} else {
++		if (!pix->colorspace)
++			pix->colorspace = V4L2_COLORSPACE_SMPTE240M;
++	}
++
++	for (i = 0; i < pix->num_planes; i++) {
++		int depth;
++
++		plane_fmt = &pix->plane_fmt[i];
++		depth = fmt->vpdma_fmt[i]->depth;
++
++		if (i == VPE_LUMA)
++			plane_fmt->bytesperline =
++					round_up((pix->width * depth) >> 3,
++						1 << L_ALIGN);
++		else
++			plane_fmt->bytesperline = pix->width;
++
++		plane_fmt->sizeimage =
++				(pix->height * pix->width * depth) >> 3;
++	}
++
++	return 0;
++}
++
++static int vpe_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vpe_fmt *fmt = find_format(f);
++
++	if (V4L2_TYPE_IS_OUTPUT(f->type))
++		return __vpe_try_fmt(ctx, f, fmt, VPE_FMT_TYPE_OUTPUT);
++	else
++		return __vpe_try_fmt(ctx, f, fmt, VPE_FMT_TYPE_CAPTURE);
++}
++
++static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
++{
++	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt;
++	struct vpe_q_data *q_data;
++	struct vb2_queue *vq;
++	int i;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	if (vb2_is_busy(vq)) {
++		vpe_err(ctx->dev, "queue busy\n");
++		return -EBUSY;
++	}
++
++	q_data = get_q_data(ctx, f->type);
++	if (!q_data)
++		return -EINVAL;
++
++	q_data->fmt		= find_format(f);
++	q_data->width		= pix->width;
++	q_data->height		= pix->height;
++	q_data->colorspace	= pix->colorspace;
++
++	for (i = 0; i < pix->num_planes; i++) {
++		plane_fmt = &pix->plane_fmt[i];
++
++		q_data->bytesperline[i]	= plane_fmt->bytesperline;
++		q_data->sizeimage[i]	= plane_fmt->sizeimage;
++	}
++
++	q_data->c_rect.left	= 0;
++	q_data->c_rect.top	= 0;
++	q_data->c_rect.width	= q_data->width;
++	q_data->c_rect.height	= q_data->height;
++
++	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
++		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
++		q_data->bytesperline[VPE_LUMA]);
++	if (q_data->fmt->coplanar)
++		vpe_dbg(ctx->dev, " bpl_uv %d\n",
++			q_data->bytesperline[VPE_CHROMA]);
++
++	return 0;
++}
++
++static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
++{
++	int ret;
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	ret = vpe_try_fmt(file, priv, f);
++	if (ret)
++		return ret;
++
++	ret = __vpe_s_fmt(ctx, f);
++	if (ret)
++		return ret;
++
++	if (V4L2_TYPE_IS_OUTPUT(f->type))
++		set_src_registers(ctx);
++	else
++		set_dst_registers(ctx);
++
++	return set_srcdst_params(ctx);
++}
++
++static int vpe_reqbufs(struct file *file, void *priv,
++		       struct v4l2_requestbuffers *reqbufs)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
++}
++
++static int vpe_querybuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vpe_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vpe_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
++}
++
++static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	vpe_dump_regs(ctx->dev);
++	vpdma_dump_regs(ctx->dev->vpdma);
++
++	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
++}
++
++/*
++ * defines number of buffers/frames a context can process with VPE before
++ * switching to a different context. default value is 1 buffer per context
++ */
++#define V4L2_CID_VPE_BUFS_PER_JOB		(V4L2_CID_USER_TI_VPE_BASE + 0)
++
++static int vpe_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vpe_ctx *ctx =
++		container_of(ctrl->handler, struct vpe_ctx, hdl);
++
++	switch (ctrl->id) {
++	case V4L2_CID_VPE_BUFS_PER_JOB:
++		ctx->bufs_per_job = ctrl->val;
++		break;
++
++	default:
++		vpe_err(ctx->dev, "Invalid control\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vpe_ctrl_ops = {
++	.s_ctrl = vpe_s_ctrl,
++};
++
++static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
++	.vidioc_querycap	= vpe_querycap,
++
++	.vidioc_enum_fmt_vid_cap_mplane = vpe_enum_fmt,
++	.vidioc_g_fmt_vid_cap_mplane	= vpe_g_fmt,
++	.vidioc_try_fmt_vid_cap_mplane	= vpe_try_fmt,
++	.vidioc_s_fmt_vid_cap_mplane	= vpe_s_fmt,
++
++	.vidioc_enum_fmt_vid_out_mplane = vpe_enum_fmt,
++	.vidioc_g_fmt_vid_out_mplane	= vpe_g_fmt,
++	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
++	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
++
++	.vidioc_reqbufs		= vpe_reqbufs,
++	.vidioc_querybuf	= vpe_querybuf,
++
++	.vidioc_qbuf		= vpe_qbuf,
++	.vidioc_dqbuf		= vpe_dqbuf,
++
++	.vidioc_streamon	= vpe_streamon,
++	.vidioc_streamoff	= vpe_streamoff,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++};
++
++/*
++ * Queue operations
++ */
++static int vpe_queue_setup(struct vb2_queue *vq,
++			   const struct v4l2_format *fmt,
++			   unsigned int *nbuffers, unsigned int *nplanes,
++			   unsigned int sizes[], void *alloc_ctxs[])
++{
++	int i;
++	struct vpe_ctx *ctx = vb2_get_drv_priv(vq);
++	struct vpe_q_data *q_data;
++
++	q_data = get_q_data(ctx, vq->type);
++
++	*nplanes = q_data->fmt->coplanar ? 2 : 1;
++
++	for (i = 0; i < *nplanes; i++) {
++		sizes[i] = q_data->sizeimage[i];
++		alloc_ctxs[i] = ctx->dev->alloc_ctx;
++	}
++
++	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
++		sizes[VPE_LUMA]);
++	if (q_data->fmt->coplanar)
++		vpe_dbg(ctx->dev, " and %d\n", sizes[VPE_CHROMA]);
++
++	return 0;
++}
++
++static int vpe_buf_prepare(struct vb2_buffer *vb)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpe_q_data *q_data;
++	int i, num_planes;
++
++	vpe_dbg(ctx->dev, "type: %d\n", vb->vb2_queue->type);
++
++	q_data = get_q_data(ctx, vb->vb2_queue->type);
++	num_planes = q_data->fmt->coplanar ? 2 : 1;
++
++	for (i = 0; i < num_planes; i++) {
++		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
++			vpe_err(ctx->dev,
++				"data will not fit into plane (%lu < %lu)\n",
++				vb2_plane_size(vb, i),
++				(long) q_data->sizeimage[i]);
++			return -EINVAL;
++		}
++	}
++
++	for (i = 0; i < num_planes; i++)
++		vb2_set_plane_payload(vb, i, q_data->sizeimage[i]);
++
++	return 0;
++}
++
++static void vpe_buf_queue(struct vb2_buffer *vb)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++}
++
++static void vpe_wait_prepare(struct vb2_queue *q)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
++	vpe_unlock(ctx);
++}
++
++static void vpe_wait_finish(struct vb2_queue *q)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
++	vpe_lock(ctx);
++}
++
++static struct vb2_ops vpe_qops = {
++	.queue_setup	 = vpe_queue_setup,
++	.buf_prepare	 = vpe_buf_prepare,
++	.buf_queue	 = vpe_buf_queue,
++	.wait_prepare	 = vpe_wait_prepare,
++	.wait_finish	 = vpe_wait_finish,
++};
++
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++		      struct vb2_queue *dst_vq)
++{
++	struct vpe_ctx *ctx = priv;
++	int ret;
++
++	memset(src_vq, 0, sizeof(*src_vq));
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	src_vq->io_modes = VB2_MMAP;
++	src_vq->drv_priv = ctx;
++	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->ops = &vpe_qops;
++	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++
++	ret = vb2_queue_init(src_vq);
++	if (ret)
++		return ret;
++
++	memset(dst_vq, 0, sizeof(*dst_vq));
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->drv_priv = ctx;
++	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->ops = &vpe_qops;
++	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++
++	return vb2_queue_init(dst_vq);
++}
++
++static const struct v4l2_ctrl_config vpe_bufs_per_job = {
++	.ops = &vpe_ctrl_ops,
++	.id = V4L2_CID_VPE_BUFS_PER_JOB,
++	.name = "Buffers Per Transaction",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = VPE_DEF_BUFS_PER_JOB,
++	.min = 1,
++	.max = VIDEO_MAX_FRAME,
++	.step = 1,
++};
++
++/*
++ * File operations
++ */
++static int vpe_open(struct file *file)
++{
++	struct vpe_dev *dev = video_drvdata(file);
++	struct vpe_ctx *ctx = NULL;
++	struct vpe_q_data *s_q_data;
++	struct v4l2_ctrl_handler *hdl;
++	int ret;
++
++	vpe_dbg(dev, "vpe_open\n");
++
++	if (!dev->vpdma->ready) {
++		vpe_err(dev, "vpdma firmware not loaded\n");
++		return -ENODEV;
++	}
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++
++	ctx->dev = dev;
++
++	if (mutex_lock_interruptible(&dev->dev_mutex)) {
++		ret = -ERESTARTSYS;
++		goto free_ctx;
++	}
++
++	ret = vpdma_create_desc_list(&ctx->desc_list, VPE_DESC_LIST_SIZE,
++			VPDMA_LIST_TYPE_NORMAL);
++	if (ret != 0)
++		goto unlock;
++
++	ret = vpdma_alloc_desc_buf(&ctx->mmr_adb, sizeof(struct vpe_mmr_adb));
++	if (ret != 0)
++		goto free_desc_list;
++
++	init_adb_hdrs(ctx);
++
++	v4l2_fh_init(&ctx->fh, video_devdata(file));
++	file->private_data = &ctx->fh;
++
++	hdl = &ctx->hdl;
++	v4l2_ctrl_handler_init(hdl, 1);
++	v4l2_ctrl_new_custom(hdl, &vpe_bufs_per_job, NULL);
++	if (hdl->error) {
++		ret = hdl->error;
++		goto exit_fh;
++	}
++	ctx->fh.ctrl_handler = hdl;
++	v4l2_ctrl_handler_setup(hdl);
++
++	s_q_data = &ctx->q_data[Q_DATA_SRC];
++	s_q_data->fmt = &vpe_formats[2];
++	s_q_data->width = 1920;
++	s_q_data->height = 1080;
++	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
++			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
++	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
++	s_q_data->c_rect.left = 0;
++	s_q_data->c_rect.top = 0;
++	s_q_data->c_rect.width = s_q_data->width;
++	s_q_data->c_rect.height = s_q_data->height;
++	s_q_data->flags = 0;
++
++	ctx->q_data[Q_DATA_DST] = *s_q_data;
++
++	set_src_registers(ctx);
++	set_dst_registers(ctx);
++	ret = set_srcdst_params(ctx);
++	if (ret)
++		goto exit_fh;
++
++	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
++
++	if (IS_ERR(ctx->m2m_ctx)) {
++		ret = PTR_ERR(ctx->m2m_ctx);
++		goto exit_fh;
++	}
++
++	v4l2_fh_add(&ctx->fh);
++
++	/*
++	 * for now, just report the creation of the first instance, we can later
++	 * optimize the driver to enable or disable clocks when the first
++	 * instance is created or the last instance released
++	 */
++	if (atomic_inc_return(&dev->num_instances) == 1)
++		vpe_dbg(dev, "first instance created\n");
++
++	ctx->bufs_per_job = VPE_DEF_BUFS_PER_JOB;
++
++	ctx->load_mmrs = true;
++
++	vpe_dbg(dev, "created instance %p, m2m_ctx: %p\n",
++		ctx, ctx->m2m_ctx);
++
++	mutex_unlock(&dev->dev_mutex);
++
++	return 0;
++exit_fh:
++	v4l2_ctrl_handler_free(hdl);
++	v4l2_fh_exit(&ctx->fh);
++	vpdma_free_desc_buf(&ctx->mmr_adb);
++free_desc_list:
++	vpdma_free_desc_list(&ctx->desc_list);
++unlock:
++	mutex_unlock(&dev->dev_mutex);
++free_ctx:
++	kfree(ctx);
++	return ret;
++}
++
++static int vpe_release(struct file *file)
++{
++	struct vpe_dev *dev = video_drvdata(file);
++	struct vpe_ctx *ctx = file2ctx(file);
++
++	vpe_dbg(dev, "releasing instance %p\n", ctx);
++
++	mutex_lock(&dev->dev_mutex);
++	vpdma_free_desc_list(&ctx->desc_list);
++	vpdma_free_desc_buf(&ctx->mmr_adb);
++
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++	v4l2_ctrl_handler_free(&ctx->hdl);
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++
++	kfree(ctx);
++
++	/*
++	 * for now, just report the release of the last instance, we can later
++	 * optimize the driver to enable or disable clocks when the first
++	 * instance is created or the last instance released
++	 */
++	if (atomic_dec_return(&dev->num_instances) == 0)
++		vpe_dbg(dev, "last instance released\n");
++
++	mutex_unlock(&dev->dev_mutex);
++
++	return 0;
++}
++
++static unsigned int vpe_poll(struct file *file,
++			     struct poll_table_struct *wait)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vpe_dev *dev = ctx->dev;
++	int ret;
++
++	mutex_lock(&dev->dev_mutex);
++	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_unlock(&dev->dev_mutex);
++	return ret;
++}
++
++static int vpe_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vpe_dev *dev = ctx->dev;
++	int ret;
++
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
++	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	mutex_unlock(&dev->dev_mutex);
++	return ret;
++}
++
++static const struct v4l2_file_operations vpe_fops = {
++	.owner		= THIS_MODULE,
++	.open		= vpe_open,
++	.release	= vpe_release,
++	.poll		= vpe_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vpe_mmap,
++};
++
++static struct video_device vpe_videodev = {
++	.name		= VPE_MODULE_NAME,
++	.fops		= &vpe_fops,
++	.ioctl_ops	= &vpe_ioctl_ops,
++	.minor		= -1,
++	.release	= video_device_release,
++	.vfl_dir	= VFL_DIR_M2M,
++};
++
++static struct v4l2_m2m_ops m2m_ops = {
++	.device_run	= device_run,
++	.job_ready	= job_ready,
++	.job_abort	= job_abort,
++	.lock		= vpe_lock,
++	.unlock		= vpe_unlock,
++};
++
++static int vpe_runtime_get(struct platform_device *pdev)
++{
++	int r;
++
++	dev_dbg(&pdev->dev, "vpe_runtime_get\n");
++
++	r = pm_runtime_get_sync(&pdev->dev);
++	WARN_ON(r < 0);
++	return r < 0 ? r : 0;
++}
++
++static void vpe_runtime_put(struct platform_device *pdev)
++{
++
++	int r;
++
++	dev_dbg(&pdev->dev, "vpe_runtime_put\n");
++
++	r = pm_runtime_put_sync(&pdev->dev);
++	WARN_ON(r < 0 && r != -ENOSYS);
++}
++
++static int vpe_probe(struct platform_device *pdev)
++{
++	struct vpe_dev *dev;
++	struct video_device *vfd;
++	struct resource *res;
++	int ret, irq, func;
++
++	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
++	if (IS_ERR(dev))
++		return PTR_ERR(dev);
++
++	spin_lock_init(&dev->lock);
++
++	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
++	if (ret)
++		return ret;
++
++	atomic_set(&dev->num_instances, 0);
++	mutex_init(&dev->dev_mutex);
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpe_top");
++	/*
++	 * HACK: we get resource info from device tree in the form of a list of
++	 * VPE sub blocks, the driver currently uses only the base of vpe_top
++	 * for register access, the driver should be changed later to access
++	 * registers based on the sub block base addresses
++	 */
++	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_32K);
++	if (IS_ERR(dev->base)) {
++		ret = PTR_ERR(dev->base);
++		goto v4l2_dev_unreg;
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	ret = devm_request_irq(&pdev->dev, irq, vpe_irq, 0, VPE_MODULE_NAME,
++			dev);
++	if (ret)
++		goto v4l2_dev_unreg;
++
++	platform_set_drvdata(pdev, dev);
++
++	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(dev->alloc_ctx)) {
++		vpe_err(dev, "Failed to alloc vb2 context\n");
++		ret = PTR_ERR(dev->alloc_ctx);
++		goto v4l2_dev_unreg;
++	}
++
++	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(dev->m2m_dev)) {
++		vpe_err(dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(dev->m2m_dev);
++		goto rel_ctx;
++	}
++
++	pm_runtime_enable(&pdev->dev);
++
++	ret = vpe_runtime_get(pdev);
++	if (ret)
++		goto rel_m2m;
++
++	/* Perform clk enable followed by reset */
++	vpe_set_clock_enable(dev, 1);
++
++	vpe_top_reset(dev);
++
++	func = read_field_reg(dev, VPE_PID, VPE_PID_FUNC_MASK,
++		VPE_PID_FUNC_SHIFT);
++	vpe_dbg(dev, "VPE PID function %x\n", func);
++
++	vpe_top_vpdma_reset(dev);
++
++	dev->vpdma = vpdma_create(pdev);
++	if (IS_ERR(dev->vpdma))
++		goto runtime_put;
++
++	vfd = &dev->vfd;
++	*vfd = vpe_videodev;
++	vfd->lock = &dev->dev_mutex;
++	vfd->v4l2_dev = &dev->v4l2_dev;
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		vpe_err(dev, "Failed to register video device\n");
++		goto runtime_put;
++	}
++
++	video_set_drvdata(vfd, dev);
++	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
++	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
++		vfd->num);
++
++	return 0;
++
++runtime_put:
++	vpe_runtime_put(pdev);
++rel_m2m:
++	pm_runtime_disable(&pdev->dev);
++	v4l2_m2m_release(dev->m2m_dev);
++rel_ctx:
++	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
++v4l2_dev_unreg:
++	v4l2_device_unregister(&dev->v4l2_dev);
++
++	return ret;
++}
++
++static int vpe_remove(struct platform_device *pdev)
++{
++	struct vpe_dev *dev =
++		(struct vpe_dev *) platform_get_drvdata(pdev);
++
++	v4l2_info(&dev->v4l2_dev, "Removing " VPE_MODULE_NAME);
++
++	v4l2_m2m_release(dev->m2m_dev);
++	video_unregister_device(&dev->vfd);
++	v4l2_device_unregister(&dev->v4l2_dev);
++	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
++
++	vpe_set_clock_enable(dev, 0);
++	vpe_runtime_put(pdev);
++	pm_runtime_disable(&pdev->dev);
++
++	return 0;
++}
++
++#if defined(CONFIG_OF)
++static const struct of_device_id vpe_of_match[] = {
++	{
++		.compatible = "ti,vpe",
++	},
++	{},
++};
++#else
++#define vpe_of_match NULL
++#endif
++
++static struct platform_driver vpe_pdrv = {
++	.probe		= vpe_probe,
++	.remove		= vpe_remove,
++	.driver		= {
++		.name	= VPE_MODULE_NAME,
++		.owner	= THIS_MODULE,
++		.of_match_table = vpe_of_match,
++	},
++};
++
++static void __exit vpe_exit(void)
++{
++	platform_driver_unregister(&vpe_pdrv);
++}
++
++static int __init vpe_init(void)
++{
++	return platform_driver_register(&vpe_pdrv);
++}
++
++module_init(vpe_init);
++module_exit(vpe_exit);
++
++MODULE_DESCRIPTION("TI VPE driver");
++MODULE_AUTHOR("Dale Farnsworth, <dale@farnsworth.org>");
 +MODULE_LICENSE("GPL");
-+MODULE_VERSION(ISS_VIDEO_DRIVER_VERSION);
-diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+diff --git a/drivers/media/platform/ti-vpe/vpe_regs.h b/drivers/media/platform/ti-vpe/vpe_regs.h
 new file mode 100644
-index 0000000..cc24f1a
+index 0000000..ed214e8
 --- /dev/null
-+++ b/drivers/staging/media/omap4iss/iss.h
-@@ -0,0 +1,153 @@
++++ b/drivers/media/platform/ti-vpe/vpe_regs.h
+@@ -0,0 +1,496 @@
 +/*
-+ * TI OMAP4 ISS V4L2 Driver
++ * Copyright (c) 2013 Texas Instruments Inc.
 + *
-+ * Copyright (C) 2012 Texas Instruments.
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
 + *
-+ * Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
 + */
 +
-+#ifndef _OMAP4_ISS_H_
-+#define _OMAP4_ISS_H_
-+
-+#include <media/v4l2-device.h>
-+#include <linux/device.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/wait.h>
-+
-+#include <media/omap4iss.h>
-+
-+#include "iss_regs.h"
-+#include "iss_csiphy.h"
-+#include "iss_csi2.h"
-+#include "iss_ipipeif.h"
-+#include "iss_ipipe.h"
-+#include "iss_resizer.h"
-+
-+#define to_iss_device(ptr_module)				\
-+	container_of(ptr_module, struct iss_device, ptr_module)
-+#define to_device(ptr_module)						\
-+	(to_iss_device(ptr_module)->dev)
-+
-+enum iss_mem_resources {
-+	OMAP4_ISS_MEM_TOP,
-+	OMAP4_ISS_MEM_CSI2_A_REGS1,
-+	OMAP4_ISS_MEM_CAMERARX_CORE1,
-+	OMAP4_ISS_MEM_CSI2_B_REGS1,
-+	OMAP4_ISS_MEM_CAMERARX_CORE2,
-+	OMAP4_ISS_MEM_BTE,
-+	OMAP4_ISS_MEM_ISP_SYS1,
-+	OMAP4_ISS_MEM_ISP_RESIZER,
-+	OMAP4_ISS_MEM_ISP_IPIPE,
-+	OMAP4_ISS_MEM_ISP_ISIF,
-+	OMAP4_ISS_MEM_ISP_IPIPEIF,
-+	OMAP4_ISS_MEM_LAST,
-+};
-+
-+enum iss_subclk_resource {
-+	OMAP4_ISS_SUBCLK_SIMCOP		= (1 << 0),
-+	OMAP4_ISS_SUBCLK_ISP		= (1 << 1),
-+	OMAP4_ISS_SUBCLK_CSI2_A		= (1 << 2),
-+	OMAP4_ISS_SUBCLK_CSI2_B		= (1 << 3),
-+	OMAP4_ISS_SUBCLK_CCP2		= (1 << 4),
-+};
-+
-+enum iss_isp_subclk_resource {
-+	OMAP4_ISS_ISP_SUBCLK_BL		= (1 << 0),
-+	OMAP4_ISS_ISP_SUBCLK_ISIF	= (1 << 1),
-+	OMAP4_ISS_ISP_SUBCLK_H3A	= (1 << 2),
-+	OMAP4_ISS_ISP_SUBCLK_RSZ	= (1 << 3),
-+	OMAP4_ISS_ISP_SUBCLK_IPIPE	= (1 << 4),
-+	OMAP4_ISS_ISP_SUBCLK_IPIPEIF	= (1 << 5),
-+};
-+
-+/*
-+ * struct iss_reg - Structure for ISS register values.
-+ * @reg: 32-bit Register address.
-+ * @val: 32-bit Register value.
-+ */
-+struct iss_reg {
-+	enum iss_mem_resources mmio_range;
-+	u32 reg;
-+	u32 val;
-+};
-+
-+struct iss_device {
-+	struct v4l2_device v4l2_dev;
-+	struct media_device media_dev;
-+	struct device *dev;
-+	u32 revision;
-+
-+	/* platform HW resources */
-+	struct iss_platform_data *pdata;
-+	unsigned int irq_num;
-+
-+	struct resource *res[OMAP4_ISS_MEM_LAST];
-+	void __iomem *regs[OMAP4_ISS_MEM_LAST];
-+
-+	u64 raw_dmamask;
-+
-+	struct mutex iss_mutex;	/* For handling ref_count field */
-+	int has_context;
-+	int ref_count;
-+
-+	struct clk *iss_fck;
-+	struct clk *iss_ctrlclk;
-+
-+	/* ISS modules */
-+	struct iss_csi2_device csi2a;
-+	struct iss_csi2_device csi2b;
-+	struct iss_csiphy csiphy1;
-+	struct iss_csiphy csiphy2;
-+	struct iss_ipipeif_device ipipeif;
-+	struct iss_ipipe_device ipipe;
-+	struct iss_resizer_device resizer;
-+
-+	unsigned int subclk_resources;
-+	unsigned int isp_subclk_resources;
-+};
-+
-+#define v4l2_dev_to_iss_device(dev) \
-+	container_of(dev, struct iss_device, v4l2_dev)
-+
-+int omap4iss_get_external_info(struct iss_pipeline *pipe,
-+			       struct media_link *link);
-+
-+int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-+			      atomic_t *stopping);
-+
-+int omap4iss_module_sync_is_stopping(wait_queue_head_t *wait,
-+				     atomic_t *stopping);
-+
-+int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
-+				 enum iss_pipeline_stream_state state);
-+
-+void omap4iss_configure_bridge(struct iss_device *iss,
-+			       enum ipipeif_input_entity input);
-+
-+struct iss_device *omap4iss_get(struct iss_device *iss);
-+void omap4iss_put(struct iss_device *iss);
-+int omap4iss_subclk_enable(struct iss_device *iss,
-+			   enum iss_subclk_resource res);
-+int omap4iss_subclk_disable(struct iss_device *iss,
-+			    enum iss_subclk_resource res);
-+int omap4iss_isp_subclk_enable(struct iss_device *iss,
-+				enum iss_isp_subclk_resource res);
-+int omap4iss_isp_subclk_disable(struct iss_device *iss,
-+				enum iss_isp_subclk_resource res);
-+
-+void omap4iss_isp_enable_interrupts(struct iss_device *iss);
-+void omap4iss_isp_disable_interrupts(struct iss_device *iss);
-+
-+int omap4iss_pipeline_pm_use(struct media_entity *entity, int use);
-+
-+int omap4iss_register_entities(struct platform_device *pdev,
-+			       struct v4l2_device *v4l2_dev);
-+void omap4iss_unregister_entities(struct platform_device *pdev);
-+
-+#endif /* _OMAP4_ISS_H_ */
-diff --git a/drivers/staging/media/omap4iss/iss_regs.h b/drivers/staging/media/omap4iss/iss_regs.h
-new file mode 100644
-index 0000000..7327d0c
---- /dev/null
-+++ b/drivers/staging/media/omap4iss/iss_regs.h
-@@ -0,0 +1,883 @@
-+/*
-+ * TI OMAP4 ISS V4L2 Driver - Register defines
-+ *
-+ * Copyright (C) 2012 Texas Instruments.
-+ *
-+ * Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef _OMAP4_ISS_REGS_H_
-+#define _OMAP4_ISS_REGS_H_
-+
-+/* ISS */
-+#define ISS_HL_REVISION					0x0
-+
-+#define ISS_HL_SYSCONFIG				0x10
-+#define ISS_HL_SYSCONFIG_IDLEMODE_SHIFT			2
-+#define ISS_HL_SYSCONFIG_IDLEMODE_FORCEIDLE		0x0
-+#define ISS_HL_SYSCONFIG_IDLEMODE_NOIDLE		0x1
-+#define ISS_HL_SYSCONFIG_IDLEMODE_SMARTIDLE		0x2
-+#define ISS_HL_SYSCONFIG_SOFTRESET			(1 << 0)
-+
-+#define ISS_HL_IRQSTATUS_5				(0x24 + (0x10 * 5))
-+#define ISS_HL_IRQENABLE_5_SET				(0x28 + (0x10 * 5))
-+#define ISS_HL_IRQENABLE_5_CLR				(0x2C + (0x10 * 5))
-+
-+#define ISS_HL_IRQ_BTE					(1 << 11)
-+#define ISS_HL_IRQ_CBUFF				(1 << 10)
-+#define ISS_HL_IRQ_CSIB					(1 << 5)
-+#define ISS_HL_IRQ_CSIA					(1 << 4)
-+#define ISS_HL_IRQ_ISP(i)				(1 << (i))
-+
-+#define ISS_CTRL					0x80
-+#define ISS_CTRL_CLK_DIV_MASK				(3 << 4)
-+#define ISS_CTRL_INPUT_SEL_MASK				(3 << 2)
-+#define ISS_CTRL_INPUT_SEL_CSI2A			(0 << 2)
-+#define ISS_CTRL_INPUT_SEL_CSI2B			(1 << 2)
-+#define ISS_CTRL_SYNC_DETECT_VS_RAISING			(3 << 0)
-+
-+#define ISS_CLKCTRL					0x84
-+#define ISS_CLKCTRL_VPORT2_CLK				(1 << 30)
-+#define ISS_CLKCTRL_VPORT1_CLK				(1 << 29)
-+#define ISS_CLKCTRL_VPORT0_CLK				(1 << 28)
-+#define ISS_CLKCTRL_CCP2				(1 << 4)
-+#define ISS_CLKCTRL_CSI2_B				(1 << 3)
-+#define ISS_CLKCTRL_CSI2_A				(1 << 2)
-+#define ISS_CLKCTRL_ISP					(1 << 1)
-+#define ISS_CLKCTRL_SIMCOP				(1 << 0)
-+
-+#define ISS_CLKSTAT					0x88
-+#define ISS_CLKSTAT_VPORT2_CLK				(1 << 30)
-+#define ISS_CLKSTAT_VPORT1_CLK				(1 << 29)
-+#define ISS_CLKSTAT_VPORT0_CLK				(1 << 28)
-+#define ISS_CLKSTAT_CCP2				(1 << 4)
-+#define ISS_CLKSTAT_CSI2_B				(1 << 3)
-+#define ISS_CLKSTAT_CSI2_A				(1 << 2)
-+#define ISS_CLKSTAT_ISP					(1 << 1)
-+#define ISS_CLKSTAT_SIMCOP				(1 << 0)
-+
-+#define ISS_PM_STATUS					0x8C
-+#define ISS_PM_STATUS_CBUFF_PM_MASK			(3 << 12)
-+#define ISS_PM_STATUS_BTE_PM_MASK			(3 << 10)
-+#define ISS_PM_STATUS_SIMCOP_PM_MASK			(3 << 8)
-+#define ISS_PM_STATUS_ISP_PM_MASK			(3 << 6)
-+#define ISS_PM_STATUS_CCP2_PM_MASK			(3 << 4)
-+#define ISS_PM_STATUS_CSI2_B_PM_MASK			(3 << 2)
-+#define ISS_PM_STATUS_CSI2_A_PM_MASK			(3 << 0)
-+
-+#define REGISTER0					0x0
-+#define REGISTER0_HSCLOCKCONFIG				(1 << 24)
-+#define REGISTER0_THS_TERM_MASK				(0xFF << 8)
-+#define REGISTER0_THS_TERM_SHIFT			8
-+#define REGISTER0_THS_SETTLE_MASK			(0xFF << 0)
-+#define REGISTER0_THS_SETTLE_SHIFT			0
-+
-+#define REGISTER1					0x4
-+#define REGISTER1_RESET_DONE_CTRLCLK			(1 << 29)
-+#define REGISTER1_CLOCK_MISS_DETECTOR_STATUS		(1 << 25)
-+#define REGISTER1_TCLK_TERM_MASK			(0x3F << 18)
-+#define REGISTER1_TCLK_TERM_SHIFT			18
-+#define REGISTER1_DPHY_HS_SYNC_PATTERN_SHIFT		10
-+#define REGISTER1_CTRLCLK_DIV_FACTOR_MASK		(0x3 << 8)
-+#define REGISTER1_CTRLCLK_DIV_FACTOR_SHIFT		8
-+#define REGISTER1_TCLK_SETTLE_MASK			(0xFF << 0)
-+#define REGISTER1_TCLK_SETTLE_SHIFT			0
-+
-+#define REGISTER2					0x8
-+
-+#define CSI2_SYSCONFIG					0x10
-+#define CSI2_SYSCONFIG_MSTANDBY_MODE_MASK		(3 << 12)
-+#define CSI2_SYSCONFIG_MSTANDBY_MODE_FORCE		(0 << 12)
-+#define CSI2_SYSCONFIG_MSTANDBY_MODE_NO			(1 << 12)
-+#define CSI2_SYSCONFIG_MSTANDBY_MODE_SMART		(2 << 12)
-+#define CSI2_SYSCONFIG_SOFT_RESET			(1 << 1)
-+#define CSI2_SYSCONFIG_AUTO_IDLE			(1 << 0)
-+
-+#define CSI2_SYSSTATUS					0x14
-+#define CSI2_SYSSTATUS_RESET_DONE			(1 << 0)
-+
-+#define CSI2_IRQSTATUS					0x18
-+#define CSI2_IRQENABLE					0x1C
-+
-+/* Shared bits across CSI2_IRQENABLE and IRQSTATUS */
-+
-+#define CSI2_IRQ_OCP_ERR				(1 << 14)
-+#define CSI2_IRQ_SHORT_PACKET				(1 << 13)
-+#define CSI2_IRQ_ECC_CORRECTION				(1 << 12)
-+#define CSI2_IRQ_ECC_NO_CORRECTION			(1 << 11)
-+#define CSI2_IRQ_COMPLEXIO_ERR				(1 << 9)
-+#define CSI2_IRQ_FIFO_OVF				(1 << 8)
-+#define CSI2_IRQ_CONTEXT0				(1 << 0)
-+
-+#define CSI2_CTRL					0x40
-+#define CSI2_CTRL_MFLAG_LEVH_MASK			(7 << 20)
-+#define CSI2_CTRL_MFLAG_LEVH_SHIFT			20
-+#define CSI2_CTRL_MFLAG_LEVL_MASK			(7 << 17)
-+#define CSI2_CTRL_MFLAG_LEVL_SHIFT			17
-+#define CSI2_CTRL_BURST_SIZE_EXPAND			(1 << 16)
-+#define CSI2_CTRL_VP_CLK_EN				(1 << 15)
-+#define CSI2_CTRL_NON_POSTED_WRITE			(1 << 13)
-+#define CSI2_CTRL_VP_ONLY_EN				(1 << 11)
-+#define CSI2_CTRL_VP_OUT_CTRL_MASK			(3 << 8)
-+#define CSI2_CTRL_VP_OUT_CTRL_SHIFT			8
-+#define CSI2_CTRL_DBG_EN				(1 << 7)
-+#define CSI2_CTRL_BURST_SIZE_MASK			(3 << 5)
-+#define CSI2_CTRL_ENDIANNESS				(1 << 4)
-+#define CSI2_CTRL_FRAME					(1 << 3)
-+#define CSI2_CTRL_ECC_EN				(1 << 2)
-+#define CSI2_CTRL_IF_EN					(1 << 0)
-+
-+#define CSI2_DBG_H					0x44
-+
-+#define CSI2_COMPLEXIO_CFG				0x50
-+#define CSI2_COMPLEXIO_CFG_RESET_CTRL			(1 << 30)
-+#define CSI2_COMPLEXIO_CFG_RESET_DONE			(1 << 29)
-+#define CSI2_COMPLEXIO_CFG_PWD_CMD_MASK			(3 << 27)
-+#define CSI2_COMPLEXIO_CFG_PWD_CMD_OFF			(0 << 27)
-+#define CSI2_COMPLEXIO_CFG_PWD_CMD_ON			(1 << 27)
-+#define CSI2_COMPLEXIO_CFG_PWD_CMD_ULP			(2 << 27)
-+#define CSI2_COMPLEXIO_CFG_PWD_STATUS_MASK		(3 << 25)
-+#define CSI2_COMPLEXIO_CFG_PWD_STATUS_OFF		(0 << 25)
-+#define CSI2_COMPLEXIO_CFG_PWD_STATUS_ON		(1 << 25)
-+#define CSI2_COMPLEXIO_CFG_PWD_STATUS_ULP		(2 << 25)
-+#define CSI2_COMPLEXIO_CFG_PWR_AUTO			(1 << 24)
-+#define CSI2_COMPLEXIO_CFG_DATA_POL(i)			(1 << (((i) * 4) + 3))
-+#define CSI2_COMPLEXIO_CFG_DATA_POSITION_MASK(i)	(7 << ((i) * 4))
-+#define CSI2_COMPLEXIO_CFG_DATA_POSITION_SHIFT(i)	((i) * 4)
-+#define CSI2_COMPLEXIO_CFG_CLOCK_POL			(1 << 3)
-+#define CSI2_COMPLEXIO_CFG_CLOCK_POSITION_MASK		(7 << 0)
-+#define CSI2_COMPLEXIO_CFG_CLOCK_POSITION_SHIFT		0
-+
-+#define CSI2_COMPLEXIO_IRQSTATUS			0x54
-+
-+#define CSI2_SHORT_PACKET				0x5C
-+
-+#define CSI2_COMPLEXIO_IRQENABLE			0x60
-+
-+/* Shared bits across CSI2_COMPLEXIO_IRQENABLE and IRQSTATUS */
-+#define CSI2_COMPLEXIO_IRQ_STATEALLULPMEXIT		(1 << 26)
-+#define CSI2_COMPLEXIO_IRQ_STATEALLULPMENTER		(1 << 25)
-+#define CSI2_COMPLEXIO_IRQ_STATEULPM5			(1 << 24)
-+#define CSI2_COMPLEXIO_IRQ_STATEULPM4			(1 << 23)
-+#define CSI2_COMPLEXIO_IRQ_STATEULPM3			(1 << 22)
-+#define CSI2_COMPLEXIO_IRQ_STATEULPM2			(1 << 21)
-+#define CSI2_COMPLEXIO_IRQ_STATEULPM1			(1 << 20)
-+#define CSI2_COMPLEXIO_IRQ_ERRCONTROL5			(1 << 19)
-+#define CSI2_COMPLEXIO_IRQ_ERRCONTROL4			(1 << 18)
-+#define CSI2_COMPLEXIO_IRQ_ERRCONTROL3			(1 << 17)
-+#define CSI2_COMPLEXIO_IRQ_ERRCONTROL2			(1 << 16)
-+#define CSI2_COMPLEXIO_IRQ_ERRCONTROL1			(1 << 15)
-+#define CSI2_COMPLEXIO_IRQ_ERRESC5			(1 << 14)
-+#define CSI2_COMPLEXIO_IRQ_ERRESC4			(1 << 13)
-+#define CSI2_COMPLEXIO_IRQ_ERRESC3			(1 << 12)
-+#define CSI2_COMPLEXIO_IRQ_ERRESC2			(1 << 11)
-+#define CSI2_COMPLEXIO_IRQ_ERRESC1			(1 << 10)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTSYNCHS5		(1 << 9)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTSYNCHS4		(1 << 8)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTSYNCHS3		(1 << 7)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTSYNCHS2		(1 << 6)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTSYNCHS1		(1 << 5)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTHS5			(1 << 4)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTHS4			(1 << 3)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTHS3			(1 << 2)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTHS2			(1 << 1)
-+#define CSI2_COMPLEXIO_IRQ_ERRSOTHS1			(1 << 0)
-+
-+#define CSI2_DBG_P					0x68
-+
-+#define CSI2_TIMING					0x6C
-+#define CSI2_TIMING_FORCE_RX_MODE_IO1			(1 << 15)
-+#define CSI2_TIMING_STOP_STATE_X16_IO1			(1 << 14)
-+#define CSI2_TIMING_STOP_STATE_X4_IO1			(1 << 13)
-+#define CSI2_TIMING_STOP_STATE_COUNTER_IO1_MASK		(0x1FFF << 0)
-+#define CSI2_TIMING_STOP_STATE_COUNTER_IO1_SHIFT	0
-+
-+#define CSI2_CTX_CTRL1(i)				(0x70 + (0x20 * i))
-+#define CSI2_CTX_CTRL1_GENERIC				(1 << 30)
-+#define CSI2_CTX_CTRL1_TRANSCODE			(0xF << 24)
-+#define CSI2_CTX_CTRL1_FEC_NUMBER_MASK			(0xFF << 16)
-+#define CSI2_CTX_CTRL1_COUNT_MASK			(0xFF << 8)
-+#define CSI2_CTX_CTRL1_COUNT_SHIFT			8
-+#define CSI2_CTX_CTRL1_EOF_EN				(1 << 7)
-+#define CSI2_CTX_CTRL1_EOL_EN				(1 << 6)
-+#define CSI2_CTX_CTRL1_CS_EN				(1 << 5)
-+#define CSI2_CTX_CTRL1_COUNT_UNLOCK			(1 << 4)
-+#define CSI2_CTX_CTRL1_PING_PONG			(1 << 3)
-+#define CSI2_CTX_CTRL1_CTX_EN				(1 << 0)
-+
-+#define CSI2_CTX_CTRL2(i)				(0x74 + (0x20 * i))
-+#define CSI2_CTX_CTRL2_USER_DEF_MAP_SHIFT		13
-+#define CSI2_CTX_CTRL2_USER_DEF_MAP_MASK		\
-+		(0x3 << CSI2_CTX_CTRL2_USER_DEF_MAP_SHIFT)
-+#define CSI2_CTX_CTRL2_VIRTUAL_ID_MASK			(3 << 11)
-+#define CSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT			11
-+#define CSI2_CTX_CTRL2_DPCM_PRED			(1 << 10)
-+#define CSI2_CTX_CTRL2_FORMAT_MASK			(0x3FF << 0)
-+#define CSI2_CTX_CTRL2_FORMAT_SHIFT			0
-+
-+#define CSI2_CTX_DAT_OFST(i)				(0x78 + (0x20 * i))
-+#define CSI2_CTX_DAT_OFST_MASK				(0xFFF << 5)
-+
-+#define CSI2_CTX_PING_ADDR(i)				(0x7C + (0x20 * i))
-+#define CSI2_CTX_PING_ADDR_MASK				0xFFFFFFE0
-+
-+#define CSI2_CTX_PONG_ADDR(i)				(0x80 + (0x20 * i))
-+#define CSI2_CTX_PONG_ADDR_MASK				CSI2_CTX_PING_ADDR_MASK
-+
-+#define CSI2_CTX_IRQENABLE(i)				(0x84 + (0x20 * i))
-+#define CSI2_CTX_IRQSTATUS(i)				(0x88 + (0x20 * i))
-+
-+#define CSI2_CTX_CTRL3(i)				(0x8C + (0x20 * i))
-+#define CSI2_CTX_CTRL3_ALPHA_SHIFT			5
-+#define CSI2_CTX_CTRL3_ALPHA_MASK			\
-+		(0x3fff << CSI2_CTX_CTRL3_ALPHA_SHIFT)
-+
-+/* Shared bits across CSI2_CTX_IRQENABLE and IRQSTATUS */
-+#define CSI2_CTX_IRQ_ECC_CORRECTION			(1 << 8)
-+#define CSI2_CTX_IRQ_LINE_NUMBER			(1 << 7)
-+#define CSI2_CTX_IRQ_FRAME_NUMBER			(1 << 6)
-+#define CSI2_CTX_IRQ_CS					(1 << 5)
-+#define CSI2_CTX_IRQ_LE					(1 << 3)
-+#define CSI2_CTX_IRQ_LS					(1 << 2)
-+#define CSI2_CTX_IRQ_FE					(1 << 1)
-+#define CSI2_CTX_IRQ_FS					(1 << 0)
-+
-+/* ISS BTE */
-+#define BTE_CTRL					(0x0030)
-+#define BTE_CTRL_BW_LIMITER_MASK			(0x3FF << 22)
-+#define BTE_CTRL_BW_LIMITER_SHIFT			22
-+
-+/* ISS ISP_SYS1 */
-+#define ISP5_REVISION					(0x0000)
-+#define ISP5_SYSCONFIG					(0x0010)
-+#define ISP5_SYSCONFIG_STANDBYMODE_MASK			(3 << 4)
-+#define ISP5_SYSCONFIG_STANDBYMODE_FORCE		(0 << 4)
-+#define ISP5_SYSCONFIG_STANDBYMODE_NO			(1 << 4)
-+#define ISP5_SYSCONFIG_STANDBYMODE_SMART		(2 << 4)
-+#define ISP5_SYSCONFIG_SOFTRESET			(1 << 1)
-+
-+#define ISP5_IRQSTATUS(i)				(0x0028 + (0x10 * (i)))
-+#define ISP5_IRQENABLE_SET(i)				(0x002C + (0x10 * (i)))
-+#define ISP5_IRQENABLE_CLR(i)				(0x0030 + (0x10 * (i)))
-+
-+/* Bits shared for ISP5_IRQ* registers */
-+#define ISP5_IRQ_OCP_ERR				(1 << 31)
-+#define ISP5_IRQ_RSZ_INT_EOF0				(1 << 22)
-+#define ISP5_IRQ_RSZ_FIFO_IN_BLK			(1 << 19)
-+#define ISP5_IRQ_RSZ_FIFO_OVF				(1 << 18)
-+#define ISP5_IRQ_RSZ_INT_CYC_RSZA			(1 << 16)
-+#define ISP5_IRQ_RSZ_INT_DMA				(1 << 15)
-+#define ISP5_IRQ_IPIPEIF				(1 << 9)
-+#define ISP5_IRQ_ISIF3					(1 << 3)
-+#define ISP5_IRQ_ISIF2					(1 << 2)
-+#define ISP5_IRQ_ISIF1					(1 << 1)
-+#define ISP5_IRQ_ISIF0					(1 << 0)
-+
-+#define ISP5_CTRL					(0x006C)
-+#define ISP5_CTRL_MSTANDBY				(1 << 24)
-+#define ISP5_CTRL_VD_PULSE_EXT				(1 << 23)
-+#define ISP5_CTRL_MSTANDBY_WAIT				(1 << 20)
-+#define ISP5_CTRL_BL_CLK_ENABLE				(1 << 15)
-+#define ISP5_CTRL_ISIF_CLK_ENABLE			(1 << 14)
-+#define ISP5_CTRL_H3A_CLK_ENABLE			(1 << 13)
-+#define ISP5_CTRL_RSZ_CLK_ENABLE			(1 << 12)
-+#define ISP5_CTRL_IPIPE_CLK_ENABLE			(1 << 11)
-+#define ISP5_CTRL_IPIPEIF_CLK_ENABLE			(1 << 10)
-+#define ISP5_CTRL_SYNC_ENABLE				(1 << 9)
-+#define ISP5_CTRL_PSYNC_CLK_SEL				(1 << 8)
-+
-+/* ISS ISP ISIF register offsets */
-+#define ISIF_SYNCEN					(0x0000)
-+#define ISIF_SYNCEN_DWEN				(1 << 1)
-+#define ISIF_SYNCEN_SYEN				(1 << 0)
-+
-+#define ISIF_MODESET					(0x0004)
-+#define ISIF_MODESET_INPMOD_MASK			(3 << 12)
-+#define ISIF_MODESET_INPMOD_RAW				(0 << 12)
-+#define ISIF_MODESET_INPMOD_YCBCR16			(1 << 12)
-+#define ISIF_MODESET_INPMOD_YCBCR8			(2 << 12)
-+#define ISIF_MODESET_CCDW_MASK				(7 << 8)
-+#define ISIF_MODESET_CCDW_2BIT				(2 << 8)
-+#define ISIF_MODESET_CCDMD				(1 << 7)
-+#define ISIF_MODESET_SWEN				(1 << 5)
-+#define ISIF_MODESET_HDPOL				(1 << 3)
-+#define ISIF_MODESET_VDPOL				(1 << 2)
-+
-+#define ISIF_SPH					(0x0018)
-+#define ISIF_SPH_MASK					(0x7FFF)
-+
-+#define ISIF_LNH					(0x001C)
-+#define ISIF_LNH_MASK					(0x7FFF)
-+
-+#define ISIF_LNV					(0x0028)
-+#define ISIF_LNV_MASK					(0x7FFF)
-+
-+#define ISIF_HSIZE					(0x0034)
-+#define ISIF_HSIZE_ADCR					(1 << 12)
-+#define ISIF_HSIZE_HSIZE_MASK				(0xFFF)
-+
-+#define ISIF_CADU					(0x003C)
-+#define ISIF_CADU_MASK					(0x7FF)
-+
-+#define ISIF_CADL					(0x0040)
-+#define ISIF_CADL_MASK					(0xFFFF)
-+
-+#define ISIF_CCOLP					(0x004C)
-+#define ISIF_CCOLP_CP0_F0_R				(0 << 6)
-+#define ISIF_CCOLP_CP0_F0_GR				(1 << 6)
-+#define ISIF_CCOLP_CP0_F0_B				(3 << 6)
-+#define ISIF_CCOLP_CP0_F0_GB				(2 << 6)
-+#define ISIF_CCOLP_CP1_F0_R				(0 << 4)
-+#define ISIF_CCOLP_CP1_F0_GR				(1 << 4)
-+#define ISIF_CCOLP_CP1_F0_B				(3 << 4)
-+#define ISIF_CCOLP_CP1_F0_GB				(2 << 4)
-+#define ISIF_CCOLP_CP2_F0_R				(0 << 2)
-+#define ISIF_CCOLP_CP2_F0_GR				(1 << 2)
-+#define ISIF_CCOLP_CP2_F0_B				(3 << 2)
-+#define ISIF_CCOLP_CP2_F0_GB				(2 << 2)
-+#define ISIF_CCOLP_CP3_F0_R				(0 << 0)
-+#define ISIF_CCOLP_CP3_F0_GR				(1 << 0)
-+#define ISIF_CCOLP_CP3_F0_B				(3 << 0)
-+#define ISIF_CCOLP_CP3_F0_GB				(2 << 0)
-+
-+#define ISIF_VDINT0					(0x0070)
-+#define ISIF_VDINT0_MASK				(0x7FFF)
-+
-+#define ISIF_CGAMMAWD					(0x0080)
-+#define ISIF_CGAMMAWD_GWDI_MASK				(0xF << 1)
-+#define ISIF_CGAMMAWD_GWDI_BIT11			(0x4 << 1)
-+
-+#define ISIF_CCDCFG					(0x0088)
-+#define ISIF_CCDCFG_Y8POS				(1 << 11)
-+
-+/* ISS ISP IPIPEIF register offsets */
-+#define IPIPEIF_ENABLE					(0x0000)
-+
-+#define IPIPEIF_CFG1					(0x0004)
-+#define IPIPEIF_CFG1_INPSRC1_MASK			(3 << 14)
-+#define IPIPEIF_CFG1_INPSRC1_VPORT_RAW			(0 << 14)
-+#define IPIPEIF_CFG1_INPSRC1_SDRAM_RAW			(1 << 14)
-+#define IPIPEIF_CFG1_INPSRC1_ISIF_DARKFM		(2 << 14)
-+#define IPIPEIF_CFG1_INPSRC1_SDRAM_YUV			(3 << 14)
-+#define IPIPEIF_CFG1_INPSRC2_MASK			(3 << 2)
-+#define IPIPEIF_CFG1_INPSRC2_ISIF			(0 << 2)
-+#define IPIPEIF_CFG1_INPSRC2_SDRAM_RAW			(1 << 2)
-+#define IPIPEIF_CFG1_INPSRC2_ISIF_DARKFM		(2 << 2)
-+#define IPIPEIF_CFG1_INPSRC2_SDRAM_YUV			(3 << 2)
-+
-+#define IPIPEIF_CFG2					(0x0030)
-+#define IPIPEIF_CFG2_YUV8P				(1 << 7)
-+#define IPIPEIF_CFG2_YUV8				(1 << 6)
-+#define IPIPEIF_CFG2_YUV16				(1 << 3)
-+#define IPIPEIF_CFG2_VDPOL				(1 << 2)
-+#define IPIPEIF_CFG2_HDPOL				(1 << 1)
-+#define IPIPEIF_CFG2_INTSW				(1 << 0)
-+
-+#define IPIPEIF_CLKDIV					(0x0040)
-+
-+/* ISS ISP IPIPE register offsets */
-+#define IPIPE_SRC_EN					(0x0000)
-+#define IPIPE_SRC_EN_EN					(1 << 0)
-+
-+#define IPIPE_SRC_MODE					(0x0004)
-+#define IPIPE_SRC_MODE_WRT				(1 << 1)
-+#define IPIPE_SRC_MODE_OST				(1 << 0)
-+
-+#define IPIPE_SRC_FMT					(0x0008)
-+#define IPIPE_SRC_FMT_RAW2YUV				(0 << 0)
-+#define IPIPE_SRC_FMT_RAW2RAW				(1 << 0)
-+#define IPIPE_SRC_FMT_RAW2STATS				(2 << 0)
-+#define IPIPE_SRC_FMT_YUV2YUV				(3 << 0)
-+
-+#define IPIPE_SRC_COL					(0x000C)
-+#define IPIPE_SRC_COL_OO_R				(0 << 6)
-+#define IPIPE_SRC_COL_OO_GR				(1 << 6)
-+#define IPIPE_SRC_COL_OO_B				(3 << 6)
-+#define IPIPE_SRC_COL_OO_GB				(2 << 6)
-+#define IPIPE_SRC_COL_OE_R				(0 << 4)
-+#define IPIPE_SRC_COL_OE_GR				(1 << 4)
-+#define IPIPE_SRC_COL_OE_B				(3 << 4)
-+#define IPIPE_SRC_COL_OE_GB				(2 << 4)
-+#define IPIPE_SRC_COL_EO_R				(0 << 2)
-+#define IPIPE_SRC_COL_EO_GR				(1 << 2)
-+#define IPIPE_SRC_COL_EO_B				(3 << 2)
-+#define IPIPE_SRC_COL_EO_GB				(2 << 2)
-+#define IPIPE_SRC_COL_EE_R				(0 << 0)
-+#define IPIPE_SRC_COL_EE_GR				(1 << 0)
-+#define IPIPE_SRC_COL_EE_B				(3 << 0)
-+#define IPIPE_SRC_COL_EE_GB				(2 << 0)
-+
-+#define IPIPE_SRC_VPS					(0x0010)
-+#define IPIPE_SRC_VPS_MASK				(0xFFFF)
-+
-+#define IPIPE_SRC_VSZ					(0x0014)
-+#define IPIPE_SRC_VSZ_MASK				(0x1FFF)
-+
-+#define IPIPE_SRC_HPS					(0x0018)
-+#define IPIPE_SRC_HPS_MASK				(0xFFFF)
-+
-+#define IPIPE_SRC_HSZ					(0x001C)
-+#define IPIPE_SRC_HSZ_MASK				(0x1FFE)
-+
-+#define IPIPE_SEL_SBU					(0x0020)
-+
-+#define IPIPE_SRC_STA					(0x0024)
-+
-+#define IPIPE_GCK_MMR					(0x0028)
-+#define IPIPE_GCK_MMR_REG				(1 << 0)
-+
-+#define IPIPE_GCK_PIX					(0x002C)
-+#define IPIPE_GCK_PIX_G3				(1 << 3)
-+#define IPIPE_GCK_PIX_G2				(1 << 2)
-+#define IPIPE_GCK_PIX_G1				(1 << 1)
-+#define IPIPE_GCK_PIX_G0				(1 << 0)
-+
-+#define IPIPE_DPC_LUT_EN				(0x0034)
-+#define IPIPE_DPC_LUT_SEL				(0x0038)
-+#define IPIPE_DPC_LUT_ADR				(0x003C)
-+#define IPIPE_DPC_LUT_SIZ				(0x0040)
-+
-+#define IPIPE_DPC_OTF_EN				(0x0044)
-+#define IPIPE_DPC_OTF_TYP				(0x0048)
-+#define IPIPE_DPC_OTF_2_D_THR_R				(0x004C)
-+#define IPIPE_DPC_OTF_2_D_THR_GR			(0x0050)
-+#define IPIPE_DPC_OTF_2_D_THR_GB			(0x0054)
-+#define IPIPE_DPC_OTF_2_D_THR_B				(0x0058)
-+#define IPIPE_DPC_OTF_2_C_THR_R				(0x005C)
-+#define IPIPE_DPC_OTF_2_C_THR_GR			(0x0060)
-+#define IPIPE_DPC_OTF_2_C_THR_GB			(0x0064)
-+#define IPIPE_DPC_OTF_2_C_THR_B				(0x0068)
-+#define IPIPE_DPC_OTF_3_SHF				(0x006C)
-+#define IPIPE_DPC_OTF_3_D_THR				(0x0070)
-+#define IPIPE_DPC_OTF_3_D_SPL				(0x0074)
-+#define IPIPE_DPC_OTF_3_D_MIN				(0x0078)
-+#define IPIPE_DPC_OTF_3_D_MAX				(0x007C)
-+#define IPIPE_DPC_OTF_3_C_THR				(0x0080)
-+#define IPIPE_DPC_OTF_3_C_SLP				(0x0084)
-+#define IPIPE_DPC_OTF_3_C_MIN				(0x0088)
-+#define IPIPE_DPC_OTF_3_C_MAX				(0x008C)
-+
-+#define IPIPE_LSC_VOFT					(0x0090)
-+#define IPIPE_LSC_VA2					(0x0094)
-+#define IPIPE_LSC_VA1					(0x0098)
-+#define IPIPE_LSC_VS					(0x009C)
-+#define IPIPE_LSC_HOFT					(0x00A0)
-+#define IPIPE_LSC_HA2					(0x00A4)
-+#define IPIPE_LSC_HA1					(0x00A8)
-+#define IPIPE_LSC_HS					(0x00AC)
-+#define IPIPE_LSC_GAN_R					(0x00B0)
-+#define IPIPE_LSC_GAN_GR				(0x00B4)
-+#define IPIPE_LSC_GAN_GB				(0x00B8)
-+#define IPIPE_LSC_GAN_B					(0x00BC)
-+#define IPIPE_LSC_OFT_R					(0x00C0)
-+#define IPIPE_LSC_OFT_GR				(0x00C4)
-+#define IPIPE_LSC_OFT_GB				(0x00C8)
-+#define IPIPE_LSC_OFT_B					(0x00CC)
-+#define IPIPE_LSC_SHF					(0x00D0)
-+#define IPIPE_LSC_MAX					(0x00D4)
-+
-+#define IPIPE_D2F_1ST_EN				(0x00D8)
-+#define IPIPE_D2F_1ST_TYP				(0x00DC)
-+#define IPIPE_D2F_1ST_THR_00				(0x00E0)
-+#define IPIPE_D2F_1ST_THR_01				(0x00E4)
-+#define IPIPE_D2F_1ST_THR_02				(0x00E8)
-+#define IPIPE_D2F_1ST_THR_03				(0x00EC)
-+#define IPIPE_D2F_1ST_THR_04				(0x00F0)
-+#define IPIPE_D2F_1ST_THR_05				(0x00F4)
-+#define IPIPE_D2F_1ST_THR_06				(0x00F8)
-+#define IPIPE_D2F_1ST_THR_07				(0x00FC)
-+#define IPIPE_D2F_1ST_STR_00				(0x0100)
-+#define IPIPE_D2F_1ST_STR_01				(0x0104)
-+#define IPIPE_D2F_1ST_STR_02				(0x0108)
-+#define IPIPE_D2F_1ST_STR_03				(0x010C)
-+#define IPIPE_D2F_1ST_STR_04				(0x0110)
-+#define IPIPE_D2F_1ST_STR_05				(0x0114)
-+#define IPIPE_D2F_1ST_STR_06				(0x0118)
-+#define IPIPE_D2F_1ST_STR_07				(0x011C)
-+#define IPIPE_D2F_1ST_SPR_00				(0x0120)
-+#define IPIPE_D2F_1ST_SPR_01				(0x0124)
-+#define IPIPE_D2F_1ST_SPR_02				(0x0128)
-+#define IPIPE_D2F_1ST_SPR_03				(0x012C)
-+#define IPIPE_D2F_1ST_SPR_04				(0x0130)
-+#define IPIPE_D2F_1ST_SPR_05				(0x0134)
-+#define IPIPE_D2F_1ST_SPR_06				(0x0138)
-+#define IPIPE_D2F_1ST_SPR_07				(0x013C)
-+#define IPIPE_D2F_1ST_EDG_MIN				(0x0140)
-+#define IPIPE_D2F_1ST_EDG_MAX				(0x0144)
-+#define IPIPE_D2F_2ND_EN				(0x0148)
-+#define IPIPE_D2F_2ND_TYP				(0x014C)
-+#define IPIPE_D2F_2ND_THR00				(0x0150)
-+#define IPIPE_D2F_2ND_THR01				(0x0154)
-+#define IPIPE_D2F_2ND_THR02				(0x0158)
-+#define IPIPE_D2F_2ND_THR03				(0x015C)
-+#define IPIPE_D2F_2ND_THR04				(0x0160)
-+#define IPIPE_D2F_2ND_THR05				(0x0164)
-+#define IPIPE_D2F_2ND_THR06				(0x0168)
-+#define IPIPE_D2F_2ND_THR07				(0x016C)
-+#define IPIPE_D2F_2ND_STR_00				(0x0170)
-+#define IPIPE_D2F_2ND_STR_01				(0x0174)
-+#define IPIPE_D2F_2ND_STR_02				(0x0178)
-+#define IPIPE_D2F_2ND_STR_03				(0x017C)
-+#define IPIPE_D2F_2ND_STR_04				(0x0180)
-+#define IPIPE_D2F_2ND_STR_05				(0x0184)
-+#define IPIPE_D2F_2ND_STR_06				(0x0188)
-+#define IPIPE_D2F_2ND_STR_07				(0x018C)
-+#define IPIPE_D2F_2ND_SPR_00				(0x0190)
-+#define IPIPE_D2F_2ND_SPR_01				(0x0194)
-+#define IPIPE_D2F_2ND_SPR_02				(0x0198)
-+#define IPIPE_D2F_2ND_SPR_03				(0x019C)
-+#define IPIPE_D2F_2ND_SPR_04				(0x01A0)
-+#define IPIPE_D2F_2ND_SPR_05				(0x01A4)
-+#define IPIPE_D2F_2ND_SPR_06				(0x01A8)
-+#define IPIPE_D2F_2ND_SPR_07				(0x01AC)
-+#define IPIPE_D2F_2ND_EDG_MIN				(0x01B0)
-+#define IPIPE_D2F_2ND_EDG_MAX				(0x01B4)
-+
-+#define IPIPE_GIC_EN					(0x01B8)
-+#define IPIPE_GIC_TYP					(0x01BC)
-+#define IPIPE_GIC_GAN					(0x01C0)
-+#define IPIPE_GIC_NFGAIN				(0x01C4)
-+#define IPIPE_GIC_THR					(0x01C8)
-+#define IPIPE_GIC_SLP					(0x01CC)
-+
-+#define IPIPE_WB2_OFT_R					(0x01D0)
-+#define IPIPE_WB2_OFT_GR				(0x01D4)
-+#define IPIPE_WB2_OFT_GB				(0x01D8)
-+#define IPIPE_WB2_OFT_B					(0x01DC)
-+
-+#define IPIPE_WB2_WGN_R					(0x01E0)
-+#define IPIPE_WB2_WGN_GR				(0x01E4)
-+#define IPIPE_WB2_WGN_GB				(0x01E8)
-+#define IPIPE_WB2_WGN_B					(0x01EC)
-+
-+#define IPIPE_CFA_MODE					(0x01F0)
-+#define IPIPE_CFA_2DIR_HPF_THR				(0x01F4)
-+#define IPIPE_CFA_2DIR_HPF_SLP				(0x01F8)
-+#define IPIPE_CFA_2DIR_MIX_THR				(0x01FC)
-+#define IPIPE_CFA_2DIR_MIX_SLP				(0x0200)
-+#define IPIPE_CFA_2DIR_DIR_TRH				(0x0204)
-+#define IPIPE_CFA_2DIR_DIR_SLP				(0x0208)
-+#define IPIPE_CFA_2DIR_NDWT				(0x020C)
-+#define IPIPE_CFA_MONO_HUE_FRA				(0x0210)
-+#define IPIPE_CFA_MONO_EDG_THR				(0x0214)
-+#define IPIPE_CFA_MONO_THR_MIN				(0x0218)
-+
-+#define IPIPE_CFA_MONO_THR_SLP				(0x021C)
-+#define IPIPE_CFA_MONO_SLP_MIN				(0x0220)
-+#define IPIPE_CFA_MONO_SLP_SLP				(0x0224)
-+#define IPIPE_CFA_MONO_LPWT				(0x0228)
-+
-+#define IPIPE_RGB1_MUL_RR				(0x022C)
-+#define IPIPE_RGB1_MUL_GR				(0x0230)
-+#define IPIPE_RGB1_MUL_BR				(0x0234)
-+#define IPIPE_RGB1_MUL_RG				(0x0238)
-+#define IPIPE_RGB1_MUL_GG				(0x023C)
-+#define IPIPE_RGB1_MUL_BG				(0x0240)
-+#define IPIPE_RGB1_MUL_RB				(0x0244)
-+#define IPIPE_RGB1_MUL_GB				(0x0248)
-+#define IPIPE_RGB1_MUL_BB				(0x024C)
-+#define IPIPE_RGB1_OFT_OR				(0x0250)
-+#define IPIPE_RGB1_OFT_OG				(0x0254)
-+#define IPIPE_RGB1_OFT_OB				(0x0258)
-+#define IPIPE_GMM_CFG					(0x025C)
-+#define IPIPE_RGB2_MUL_RR				(0x0260)
-+#define IPIPE_RGB2_MUL_GR				(0x0264)
-+#define IPIPE_RGB2_MUL_BR				(0x0268)
-+#define IPIPE_RGB2_MUL_RG				(0x026C)
-+#define IPIPE_RGB2_MUL_GG				(0x0270)
-+#define IPIPE_RGB2_MUL_BG				(0x0274)
-+#define IPIPE_RGB2_MUL_RB				(0x0278)
-+#define IPIPE_RGB2_MUL_GB				(0x027C)
-+#define IPIPE_RGB2_MUL_BB				(0x0280)
-+#define IPIPE_RGB2_OFT_OR				(0x0284)
-+#define IPIPE_RGB2_OFT_OG				(0x0288)
-+#define IPIPE_RGB2_OFT_OB				(0x028C)
-+
-+#define IPIPE_YUV_ADJ					(0x0294)
-+#define IPIPE_YUV_MUL_RY				(0x0298)
-+#define IPIPE_YUV_MUL_GY				(0x029C)
-+#define IPIPE_YUV_MUL_BY				(0x02A0)
-+#define IPIPE_YUV_MUL_RCB				(0x02A4)
-+#define IPIPE_YUV_MUL_GCB				(0x02A8)
-+#define IPIPE_YUV_MUL_BCB				(0x02AC)
-+#define IPIPE_YUV_MUL_RCR				(0x02B0)
-+#define IPIPE_YUV_MUL_GCR				(0x02B4)
-+#define IPIPE_YUV_MUL_BCR				(0x02B8)
-+#define IPIPE_YUV_OFT_Y					(0x02BC)
-+#define IPIPE_YUV_OFT_CB				(0x02C0)
-+#define IPIPE_YUV_OFT_CR				(0x02C4)
-+
-+#define IPIPE_YUV_PHS					(0x02C8)
-+#define IPIPE_YUV_PHS_LPF				(1 << 1)
-+#define IPIPE_YUV_PHS_POS				(1 << 0)
-+
-+#define IPIPE_YEE_EN					(0x02D4)
-+#define IPIPE_YEE_TYP					(0x02D8)
-+#define IPIPE_YEE_SHF					(0x02DC)
-+#define IPIPE_YEE_MUL_00				(0x02E0)
-+#define IPIPE_YEE_MUL_01				(0x02E4)
-+#define IPIPE_YEE_MUL_02				(0x02E8)
-+#define IPIPE_YEE_MUL_10				(0x02EC)
-+#define IPIPE_YEE_MUL_11				(0x02F0)
-+#define IPIPE_YEE_MUL_12				(0x02F4)
-+#define IPIPE_YEE_MUL_20				(0x02F8)
-+#define IPIPE_YEE_MUL_21				(0x02FC)
-+#define IPIPE_YEE_MUL_22				(0x0300)
-+#define IPIPE_YEE_THR					(0x0304)
-+#define IPIPE_YEE_E_GAN					(0x0308)
-+#define IPIPE_YEE_E_THR_1				(0x030C)
-+#define IPIPE_YEE_E_THR_2				(0x0310)
-+#define IPIPE_YEE_G_GAN					(0x0314)
-+#define IPIPE_YEE_G_OFT					(0x0318)
-+
-+#define IPIPE_CAR_EN					(0x031C)
-+#define IPIPE_CAR_TYP					(0x0320)
-+#define IPIPE_CAR_SW					(0x0324)
-+#define IPIPE_CAR_HPF_TYP				(0x0328)
-+#define IPIPE_CAR_HPF_SHF				(0x032C)
-+#define IPIPE_CAR_HPF_THR				(0x0330)
-+#define IPIPE_CAR_GN1_GAN				(0x0334)
-+#define IPIPE_CAR_GN1_SHF				(0x0338)
-+#define IPIPE_CAR_GN1_MIN				(0x033C)
-+#define IPIPE_CAR_GN2_GAN				(0x0340)
-+#define IPIPE_CAR_GN2_SHF				(0x0344)
-+#define IPIPE_CAR_GN2_MIN				(0x0348)
-+#define IPIPE_CGS_EN					(0x034C)
-+#define IPIPE_CGS_GN1_L_THR				(0x0350)
-+#define IPIPE_CGS_GN1_L_GAIN				(0x0354)
-+#define IPIPE_CGS_GN1_L_SHF				(0x0358)
-+#define IPIPE_CGS_GN1_L_MIN				(0x035C)
-+#define IPIPE_CGS_GN1_H_THR				(0x0360)
-+#define IPIPE_CGS_GN1_H_GAIN				(0x0364)
-+#define IPIPE_CGS_GN1_H_SHF				(0x0368)
-+#define IPIPE_CGS_GN1_H_MIN				(0x036C)
-+#define IPIPE_CGS_GN2_L_THR				(0x0370)
-+#define IPIPE_CGS_GN2_L_GAIN				(0x0374)
-+#define IPIPE_CGS_GN2_L_SHF				(0x0378)
-+#define IPIPE_CGS_GN2_L_MIN				(0x037C)
-+
-+#define IPIPE_BOX_EN					(0x0380)
-+#define IPIPE_BOX_MODE					(0x0384)
-+#define IPIPE_BOX_TYP					(0x0388)
-+#define IPIPE_BOX_SHF					(0x038C)
-+#define IPIPE_BOX_SDR_SAD_H				(0x0390)
-+#define IPIPE_BOX_SDR_SAD_L				(0x0394)
-+
-+#define IPIPE_HST_EN					(0x039C)
-+#define IPIPE_HST_MODE					(0x03A0)
-+#define IPIPE_HST_SEL					(0x03A4)
-+#define IPIPE_HST_PARA					(0x03A8)
-+#define IPIPE_HST_0_VPS					(0x03AC)
-+#define IPIPE_HST_0_VSZ					(0x03B0)
-+#define IPIPE_HST_0_HPS					(0x03B4)
-+#define IPIPE_HST_0_HSZ					(0x03B8)
-+#define IPIPE_HST_1_VPS					(0x03BC)
-+#define IPIPE_HST_1_VSZ					(0x03C0)
-+#define IPIPE_HST_1_HPS					(0x03C4)
-+#define IPIPE_HST_1_HSZ					(0x03C8)
-+#define IPIPE_HST_2_VPS					(0x03CC)
-+#define IPIPE_HST_2_VSZ					(0x03D0)
-+#define IPIPE_HST_2_HPS					(0x03D4)
-+#define IPIPE_HST_2_HSZ					(0x03D8)
-+#define IPIPE_HST_3_VPS					(0x03DC)
-+#define IPIPE_HST_3_VSZ					(0x03E0)
-+#define IPIPE_HST_3_HPS					(0x03E4)
-+#define IPIPE_HST_3_HSZ					(0x03E8)
-+#define IPIPE_HST_TBL					(0x03EC)
-+#define IPIPE_HST_MUL_R					(0x03F0)
-+#define IPIPE_HST_MUL_GR				(0x03F4)
-+#define IPIPE_HST_MUL_GB				(0x03F8)
-+#define IPIPE_HST_MUL_B					(0x03FC)
-+
-+#define IPIPE_BSC_EN					(0x0400)
-+#define IPIPE_BSC_MODE					(0x0404)
-+#define IPIPE_BSC_TYP					(0x0408)
-+#define IPIPE_BSC_ROW_VCT				(0x040C)
-+#define IPIPE_BSC_ROW_SHF				(0x0410)
-+#define IPIPE_BSC_ROW_VPO				(0x0414)
-+#define IPIPE_BSC_ROW_VNU				(0x0418)
-+#define IPIPE_BSC_ROW_VSKIP				(0x041C)
-+#define IPIPE_BSC_ROW_HPO				(0x0420)
-+#define IPIPE_BSC_ROW_HNU				(0x0424)
-+#define IPIPE_BSC_ROW_HSKIP				(0x0428)
-+#define IPIPE_BSC_COL_VCT				(0x042C)
-+#define IPIPE_BSC_COL_SHF				(0x0430)
-+#define IPIPE_BSC_COL_VPO				(0x0434)
-+#define IPIPE_BSC_COL_VNU				(0x0438)
-+#define IPIPE_BSC_COL_VSKIP				(0x043C)
-+#define IPIPE_BSC_COL_HPO				(0x0440)
-+#define IPIPE_BSC_COL_HNU				(0x0444)
-+#define IPIPE_BSC_COL_HSKIP				(0x0448)
-+
-+#define IPIPE_BSC_EN					(0x0400)
-+
-+/* ISS ISP Resizer register offsets */
-+#define RSZ_REVISION					(0x0000)
-+#define RSZ_SYSCONFIG					(0x0004)
-+#define RSZ_SYSCONFIG_RSZB_CLK_EN			(1 << 9)
-+#define RSZ_SYSCONFIG_RSZA_CLK_EN			(1 << 8)
-+
-+#define RSZ_IN_FIFO_CTRL				(0x000C)
-+#define RSZ_IN_FIFO_CTRL_THRLD_LOW_MASK			(0x1FF << 16)
-+#define RSZ_IN_FIFO_CTRL_THRLD_LOW_SHIFT		16
-+#define RSZ_IN_FIFO_CTRL_THRLD_HIGH_MASK		(0x1FF << 0)
-+#define RSZ_IN_FIFO_CTRL_THRLD_HIGH_SHIFT		0
-+
-+#define RSZ_FRACDIV					(0x0008)
-+#define RSZ_FRACDIV_MASK				(0xFFFF)
-+
-+#define RSZ_SRC_EN					(0x0020)
-+#define RSZ_SRC_EN_SRC_EN				(1 << 0)
-+
-+#define RSZ_SRC_MODE					(0x0024)
-+#define RSZ_SRC_MODE_OST				(1 << 0)
-+#define RSZ_SRC_MODE_WRT				(1 << 1)
-+
-+#define RSZ_SRC_FMT0					(0x0028)
-+#define RSZ_SRC_FMT0_BYPASS				(1 << 1)
-+#define RSZ_SRC_FMT0_SEL				(1 << 0)
-+
-+#define RSZ_SRC_FMT1					(0x002C)
-+#define RSZ_SRC_FMT1_IN420				(1 << 1)
-+
-+#define RSZ_SRC_VPS					(0x0030)
-+#define RSZ_SRC_VSZ					(0x0034)
-+#define RSZ_SRC_HPS					(0x0038)
-+#define RSZ_SRC_HSZ					(0x003C)
-+#define RSZ_DMA_RZA					(0x0040)
-+#define RSZ_DMA_RZB					(0x0044)
-+#define RSZ_DMA_STA					(0x0048)
-+#define RSZ_GCK_MMR					(0x004C)
-+#define RSZ_GCK_MMR_MMR					(1 << 0)
-+
-+#define RSZ_GCK_SDR					(0x0054)
-+#define RSZ_GCK_SDR_CORE				(1 << 0)
-+
-+#define RSZ_IRQ_RZA					(0x0058)
-+#define RSZ_IRQ_RZA_MASK				(0x1FFF)
-+
-+#define RSZ_IRQ_RZB					(0x005C)
-+#define RSZ_IRQ_RZB_MASK				(0x1FFF)
-+
-+#define RSZ_YUV_Y_MIN					(0x0060)
-+#define RSZ_YUV_Y_MAX					(0x0064)
-+#define RSZ_YUV_C_MIN					(0x0068)
-+#define RSZ_YUV_C_MAX					(0x006C)
-+
-+#define RSZ_SEQ						(0x0074)
-+#define RSZ_SEQ_HRVB					(1 << 2)
-+#define RSZ_SEQ_HRVA					(1 << 0)
-+
-+#define RZA_EN						(0x0078)
-+#define RZA_MODE					(0x007C)
-+#define RZA_MODE_ONE_SHOT				(1 << 0)
-+
-+#define RZA_420						(0x0080)
-+#define RZA_I_VPS					(0x0084)
-+#define RZA_I_HPS					(0x0088)
-+#define RZA_O_VSZ					(0x008C)
-+#define RZA_O_HSZ					(0x0090)
-+#define RZA_V_PHS_Y					(0x0094)
-+#define RZA_V_PHS_C					(0x0098)
-+#define RZA_V_DIF					(0x009C)
-+#define RZA_V_TYP					(0x00A0)
-+#define RZA_V_LPF					(0x00A4)
-+#define RZA_H_PHS					(0x00A8)
-+#define RZA_H_DIF					(0x00B0)
-+#define RZA_H_TYP					(0x00B4)
-+#define RZA_H_LPF					(0x00B8)
-+#define RZA_DWN_EN					(0x00BC)
-+#define RZA_SDR_Y_BAD_H					(0x00D0)
-+#define RZA_SDR_Y_BAD_L					(0x00D4)
-+#define RZA_SDR_Y_SAD_H					(0x00D8)
-+#define RZA_SDR_Y_SAD_L					(0x00DC)
-+#define RZA_SDR_Y_OFT					(0x00E0)
-+#define RZA_SDR_Y_PTR_S					(0x00E4)
-+#define RZA_SDR_Y_PTR_E					(0x00E8)
-+#define RZA_SDR_C_BAD_H					(0x00EC)
-+#define RZA_SDR_C_BAD_L					(0x00F0)
-+#define RZA_SDR_C_SAD_H					(0x00F4)
-+#define RZA_SDR_C_SAD_L					(0x00F8)
-+#define RZA_SDR_C_OFT					(0x00FC)
-+#define RZA_SDR_C_PTR_S					(0x0100)
-+#define RZA_SDR_C_PTR_E					(0x0104)
-+
-+#define RZB_EN						(0x0108)
-+#define RZB_MODE					(0x010C)
-+#define RZB_420						(0x0110)
-+#define RZB_I_VPS					(0x0114)
-+#define RZB_I_HPS					(0x0118)
-+#define RZB_O_VSZ					(0x011C)
-+#define RZB_O_HSZ					(0x0120)
-+
-+#define RZB_V_DIF					(0x012C)
-+#define RZB_V_TYP					(0x0130)
-+#define RZB_V_LPF					(0x0134)
-+
-+#define RZB_H_DIF					(0x0140)
-+#define RZB_H_TYP					(0x0144)
-+#define RZB_H_LPF					(0x0148)
-+
-+#define RZB_SDR_Y_BAD_H					(0x0160)
-+#define RZB_SDR_Y_BAD_L					(0x0164)
-+#define RZB_SDR_Y_SAD_H					(0x0168)
-+#define RZB_SDR_Y_SAD_L					(0x016C)
-+#define RZB_SDR_Y_OFT					(0x0170)
-+#define RZB_SDR_Y_PTR_S					(0x0174)
-+#define RZB_SDR_Y_PTR_E					(0x0178)
-+#define RZB_SDR_C_BAD_H					(0x017C)
-+#define RZB_SDR_C_BAD_L					(0x0180)
-+#define RZB_SDR_C_SAD_H					(0x0184)
-+#define RZB_SDR_C_SAD_L					(0x0188)
-+
-+#define RZB_SDR_C_PTR_S					(0x0190)
-+#define RZB_SDR_C_PTR_E					(0x0194)
-+
-+/* Shared Bitmasks between RZA & RZB */
-+#define RSZ_EN_EN					(1 << 0)
-+
-+#define RSZ_420_CEN					(1 << 1)
-+#define RSZ_420_YEN					(1 << 0)
-+
-+#define RSZ_I_VPS_MASK					(0x1FFF)
-+
-+#define RSZ_I_HPS_MASK					(0x1FFF)
-+
-+#define RSZ_O_VSZ_MASK					(0x1FFF)
-+
-+#define RSZ_O_HSZ_MASK					(0x1FFE)
-+
-+#define RSZ_V_PHS_Y_MASK				(0x3FFF)
-+
-+#define RSZ_V_PHS_C_MASK				(0x3FFF)
-+
-+#define RSZ_V_DIF_MASK					(0x3FFF)
-+
-+#define RSZ_V_TYP_C					(1 << 1)
-+#define RSZ_V_TYP_Y					(1 << 0)
-+
-+#define RSZ_V_LPF_C_MASK				(0x3F << 6)
-+#define RSZ_V_LPF_C_SHIFT				6
-+#define RSZ_V_LPF_Y_MASK				(0x3F << 0)
-+#define RSZ_V_LPF_Y_SHIFT				0
-+
-+#define RSZ_H_PHS_MASK					(0x3FFF)
-+
-+#define RSZ_H_DIF_MASK					(0x3FFF)
-+
-+#define RSZ_H_TYP_C					(1 << 1)
-+#define RSZ_H_TYP_Y					(1 << 0)
-+
-+#define RSZ_H_LPF_C_MASK				(0x3F << 6)
-+#define RSZ_H_LPF_C_SHIFT				6
-+#define RSZ_H_LPF_Y_MASK				(0x3F << 0)
-+#define RSZ_H_LPF_Y_SHIFT				0
-+
-+#define RSZ_DWN_EN_DWN_EN				(1 << 0)
-+
-+#endif /* _OMAP4_ISS_REGS_H_ */
-diff --git a/include/media/omap4iss.h b/include/media/omap4iss.h
-new file mode 100644
-index 0000000..0d7620d
---- /dev/null
-+++ b/include/media/omap4iss.h
-@@ -0,0 +1,65 @@
-+#ifndef ARCH_ARM_PLAT_OMAP4_ISS_H
-+#define ARCH_ARM_PLAT_OMAP4_ISS_H
-+
-+#include <linux/i2c.h>
-+
-+struct iss_device;
-+
-+enum iss_interface_type {
-+	ISS_INTERFACE_CSI2A_PHY1,
-+	ISS_INTERFACE_CSI2B_PHY2,
-+};
-+
-+/**
-+ * struct iss_csiphy_lane: CSI2 lane position and polarity
-+ * @pos: position of the lane
-+ * @pol: polarity of the lane
-+ */
-+struct iss_csiphy_lane {
-+	u8 pos;
-+	u8 pol;
-+};
-+
-+#define ISS_CSIPHY1_NUM_DATA_LANES	4
-+#define ISS_CSIPHY2_NUM_DATA_LANES	1
-+
-+/**
-+ * struct iss_csiphy_lanes_cfg - CSI2 lane configuration
-+ * @data: Configuration of one or two data lanes
-+ * @clk: Clock lane configuration
-+ */
-+struct iss_csiphy_lanes_cfg {
-+	struct iss_csiphy_lane data[ISS_CSIPHY1_NUM_DATA_LANES];
-+	struct iss_csiphy_lane clk;
-+};
-+
-+/**
-+ * struct iss_csi2_platform_data - CSI2 interface platform data
-+ * @crc: Enable the cyclic redundancy check
-+ * @vpclk_div: Video port output clock control
-+ */
-+struct iss_csi2_platform_data {
-+	unsigned crc:1;
-+	unsigned vpclk_div:2;
-+	struct iss_csiphy_lanes_cfg lanecfg;
-+};
-+
-+struct iss_subdev_i2c_board_info {
-+	struct i2c_board_info *board_info;
-+	int i2c_adapter_id;
-+};
-+
-+struct iss_v4l2_subdevs_group {
-+	struct iss_subdev_i2c_board_info *subdevs;
-+	enum iss_interface_type interface;
-+	union {
-+		struct iss_csi2_platform_data csi2;
-+	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
-+};
-+
-+struct iss_platform_data {
-+	struct iss_v4l2_subdevs_group *subdevs;
-+	void (*set_constraints)(struct iss_device *iss, bool enable);
-+};
++#ifndef __TI_VPE_REGS_H
++#define __TI_VPE_REGS_H
++
++/* VPE register offsets and field selectors */
++
++/* VPE top level regs */
++#define VPE_PID				0x0000
++#define VPE_PID_MINOR_MASK		0x3f
++#define VPE_PID_MINOR_SHIFT		0
++#define VPE_PID_CUSTOM_MASK		0x03
++#define VPE_PID_CUSTOM_SHIFT		6
++#define VPE_PID_MAJOR_MASK		0x07
++#define VPE_PID_MAJOR_SHIFT		8
++#define VPE_PID_RTL_MASK		0x1f
++#define VPE_PID_RTL_SHIFT		11
++#define VPE_PID_FUNC_MASK		0xfff
++#define VPE_PID_FUNC_SHIFT		16
++#define VPE_PID_SCHEME_MASK		0x03
++#define VPE_PID_SCHEME_SHIFT		30
++
++#define VPE_SYSCONFIG			0x0010
++#define VPE_SYSCONFIG_IDLE_MASK		0x03
++#define VPE_SYSCONFIG_IDLE_SHIFT	2
++#define VPE_SYSCONFIG_STANDBY_MASK	0x03
++#define VPE_SYSCONFIG_STANDBY_SHIFT	4
++#define VPE_FORCE_IDLE_MODE		0
++#define VPE_NO_IDLE_MODE		1
++#define VPE_SMART_IDLE_MODE		2
++#define VPE_SMART_IDLE_WAKEUP_MODE	3
++#define VPE_FORCE_STANDBY_MODE		0
++#define VPE_NO_STANDBY_MODE		1
++#define VPE_SMART_STANDBY_MODE		2
++#define VPE_SMART_STANDBY_WAKEUP_MODE	3
++
++#define VPE_INT0_STATUS0_RAW_SET	0x0020
++#define VPE_INT0_STATUS0_RAW		VPE_INT0_STATUS0_RAW_SET
++#define VPE_INT0_STATUS0_CLR		0x0028
++#define VPE_INT0_STATUS0		VPE_INT0_STATUS0_CLR
++#define VPE_INT0_ENABLE0_SET		0x0030
++#define VPE_INT0_ENABLE0		VPE_INT0_ENABLE0_SET
++#define VPE_INT0_ENABLE0_CLR		0x0038
++#define VPE_INT0_LIST0_COMPLETE		(1 << 0)
++#define VPE_INT0_LIST0_NOTIFY		(1 << 1)
++#define VPE_INT0_LIST1_COMPLETE		(1 << 2)
++#define VPE_INT0_LIST1_NOTIFY		(1 << 3)
++#define VPE_INT0_LIST2_COMPLETE		(1 << 4)
++#define VPE_INT0_LIST2_NOTIFY		(1 << 5)
++#define VPE_INT0_LIST3_COMPLETE		(1 << 6)
++#define VPE_INT0_LIST3_NOTIFY		(1 << 7)
++#define VPE_INT0_LIST4_COMPLETE		(1 << 8)
++#define VPE_INT0_LIST4_NOTIFY		(1 << 9)
++#define VPE_INT0_LIST5_COMPLETE		(1 << 10)
++#define VPE_INT0_LIST5_NOTIFY		(1 << 11)
++#define VPE_INT0_LIST6_COMPLETE		(1 << 12)
++#define VPE_INT0_LIST6_NOTIFY		(1 << 13)
++#define VPE_INT0_LIST7_COMPLETE		(1 << 14)
++#define VPE_INT0_LIST7_NOTIFY		(1 << 15)
++#define VPE_INT0_DESCRIPTOR		(1 << 16)
++#define VPE_DEI_FMD_INT			(1 << 18)
++
++#define VPE_INT0_STATUS1_RAW_SET	0x0024
++#define VPE_INT0_STATUS1_RAW		VPE_INT0_STATUS1_RAW_SET
++#define VPE_INT0_STATUS1_CLR		0x002c
++#define VPE_INT0_STATUS1		VPE_INT0_STATUS1_CLR
++#define VPE_INT0_ENABLE1_SET		0x0034
++#define VPE_INT0_ENABLE1		VPE_INT0_ENABLE1_SET
++#define VPE_INT0_ENABLE1_CLR		0x003c
++#define VPE_INT0_CHANNEL_GROUP0		(1 << 0)
++#define VPE_INT0_CHANNEL_GROUP1		(1 << 1)
++#define VPE_INT0_CHANNEL_GROUP2		(1 << 2)
++#define VPE_INT0_CHANNEL_GROUP3		(1 << 3)
++#define VPE_INT0_CHANNEL_GROUP4		(1 << 4)
++#define VPE_INT0_CHANNEL_GROUP5		(1 << 5)
++#define VPE_INT0_CLIENT			(1 << 7)
++#define VPE_DEI_ERROR_INT		(1 << 16)
++#define VPE_DS1_UV_ERROR_INT		(1 << 22)
++
++#define VPE_INTC_EOI			0x00a0
++
++#define VPE_CLK_ENABLE			0x0100
++#define VPE_VPEDMA_CLK_ENABLE		(1 << 0)
++#define VPE_DATA_PATH_CLK_ENABLE	(1 << 1)
++
++#define VPE_CLK_RESET			0x0104
++#define VPE_VPDMA_CLK_RESET_MASK	0x1
++#define VPE_VPDMA_CLK_RESET_SHIFT	0
++#define VPE_DATA_PATH_CLK_RESET_MASK	0x1
++#define VPE_DATA_PATH_CLK_RESET_SHIFT	1
++#define VPE_MAIN_RESET_MASK		0x1
++#define VPE_MAIN_RESET_SHIFT		31
++
++#define VPE_CLK_FORMAT_SELECT		0x010c
++#define VPE_CSC_SRC_SELECT_MASK		0x03
++#define VPE_CSC_SRC_SELECT_SHIFT	0
++#define VPE_RGB_OUT_SELECT		(1 << 8)
++#define VPE_DS_SRC_SELECT_MASK		0x07
++#define VPE_DS_SRC_SELECT_SHIFT		9
++#define VPE_DS_BYPASS			(1 << 16)
++#define VPE_COLOR_SEPARATE_422		(1 << 18)
++
++#define VPE_DS_SRC_DEI_SCALER		(5 << VPE_DS_SRC_SELECT_SHIFT)
++#define VPE_CSC_SRC_DEI_SCALER		(3 << VPE_CSC_SRC_SELECT_SHIFT)
++
++#define VPE_CLK_RANGE_MAP		0x011c
++#define VPE_RANGE_RANGE_MAP_Y_MASK	0x07
++#define VPE_RANGE_RANGE_MAP_Y_SHIFT	0
++#define VPE_RANGE_RANGE_MAP_UV_MASK	0x07
++#define VPE_RANGE_RANGE_MAP_UV_SHIFT	3
++#define VPE_RANGE_MAP_ON		(1 << 6)
++#define VPE_RANGE_REDUCTION_ON		(1 << 28)
++
++/* VPE chrominance upsampler regs */
++#define VPE_US1_R0			0x0304
++#define VPE_US2_R0			0x0404
++#define VPE_US3_R0			0x0504
++#define VPE_US_C1_MASK			0x3fff
++#define VPE_US_C1_SHIFT			2
++#define VPE_US_C0_MASK			0x3fff
++#define VPE_US_C0_SHIFT			18
++#define VPE_US_MODE_MASK		0x03
++#define VPE_US_MODE_SHIFT		16
++#define VPE_ANCHOR_FID0_C1_MASK		0x3fff
++#define VPE_ANCHOR_FID0_C1_SHIFT	2
++#define VPE_ANCHOR_FID0_C0_MASK		0x3fff
++#define VPE_ANCHOR_FID0_C0_SHIFT	18
++
++#define VPE_US1_R1			0x0308
++#define VPE_US2_R1			0x0408
++#define VPE_US3_R1			0x0508
++#define VPE_ANCHOR_FID0_C3_MASK		0x3fff
++#define VPE_ANCHOR_FID0_C3_SHIFT	2
++#define VPE_ANCHOR_FID0_C2_MASK		0x3fff
++#define VPE_ANCHOR_FID0_C2_SHIFT	18
++
++#define VPE_US1_R2			0x030c
++#define VPE_US2_R2			0x040c
++#define VPE_US3_R2			0x050c
++#define VPE_INTERP_FID0_C1_MASK		0x3fff
++#define VPE_INTERP_FID0_C1_SHIFT	2
++#define VPE_INTERP_FID0_C0_MASK		0x3fff
++#define VPE_INTERP_FID0_C0_SHIFT	18
++
++#define VPE_US1_R3			0x0310
++#define VPE_US2_R3			0x0410
++#define VPE_US3_R3			0x0510
++#define VPE_INTERP_FID0_C3_MASK		0x3fff
++#define VPE_INTERP_FID0_C3_SHIFT	2
++#define VPE_INTERP_FID0_C2_MASK		0x3fff
++#define VPE_INTERP_FID0_C2_SHIFT	18
++
++#define VPE_US1_R4			0x0314
++#define VPE_US2_R4			0x0414
++#define VPE_US3_R4			0x0514
++#define VPE_ANCHOR_FID1_C1_MASK		0x3fff
++#define VPE_ANCHOR_FID1_C1_SHIFT	2
++#define VPE_ANCHOR_FID1_C0_MASK		0x3fff
++#define VPE_ANCHOR_FID1_C0_SHIFT	18
++
++#define VPE_US1_R5			0x0318
++#define VPE_US2_R5			0x0418
++#define VPE_US3_R5			0x0518
++#define VPE_ANCHOR_FID1_C3_MASK		0x3fff
++#define VPE_ANCHOR_FID1_C3_SHIFT	2
++#define VPE_ANCHOR_FID1_C2_MASK		0x3fff
++#define VPE_ANCHOR_FID1_C2_SHIFT	18
++
++#define VPE_US1_R6			0x031c
++#define VPE_US2_R6			0x041c
++#define VPE_US3_R6			0x051c
++#define VPE_INTERP_FID1_C1_MASK		0x3fff
++#define VPE_INTERP_FID1_C1_SHIFT	2
++#define VPE_INTERP_FID1_C0_MASK		0x3fff
++#define VPE_INTERP_FID1_C0_SHIFT	18
++
++#define VPE_US1_R7			0x0320
++#define VPE_US2_R7			0x0420
++#define VPE_US3_R7			0x0520
++#define VPE_INTERP_FID0_C3_MASK		0x3fff
++#define VPE_INTERP_FID0_C3_SHIFT	2
++#define VPE_INTERP_FID0_C2_MASK		0x3fff
++#define VPE_INTERP_FID0_C2_SHIFT	18
++
++/* VPE de-interlacer regs */
++#define VPE_DEI_FRAME_SIZE		0x0600
++#define VPE_DEI_WIDTH_MASK		0x07ff
++#define VPE_DEI_WIDTH_SHIFT		0
++#define VPE_DEI_HEIGHT_MASK		0x07ff
++#define VPE_DEI_HEIGHT_SHIFT		16
++#define VPE_DEI_INTERLACE_BYPASS	(1 << 29)
++#define VPE_DEI_FIELD_FLUSH		(1 << 30)
++#define VPE_DEI_PROGRESSIVE		(1 << 31)
++
++#define VPE_MDT_BYPASS			0x0604
++#define VPE_MDT_TEMPMAX_BYPASS		(1 << 0)
++#define VPE_MDT_SPATMAX_BYPASS		(1 << 1)
++
++#define VPE_MDT_SF_THRESHOLD		0x0608
++#define VPE_MDT_SF_SC_THR1_MASK		0xff
++#define VPE_MDT_SF_SC_THR1_SHIFT	0
++#define VPE_MDT_SF_SC_THR2_MASK		0xff
++#define VPE_MDT_SF_SC_THR2_SHIFT	0
++#define VPE_MDT_SF_SC_THR3_MASK		0xff
++#define VPE_MDT_SF_SC_THR3_SHIFT	0
++
++#define VPE_EDI_CONFIG			0x060c
++#define VPE_EDI_INP_MODE_MASK		0x03
++#define VPE_EDI_INP_MODE_SHIFT		0
++#define VPE_EDI_ENABLE_3D		(1 << 2)
++#define VPE_EDI_ENABLE_CHROMA_3D	(1 << 3)
++#define VPE_EDI_CHROMA3D_COR_THR_MASK	0xff
++#define VPE_EDI_CHROMA3D_COR_THR_SHIFT	8
++#define VPE_EDI_DIR_COR_LOWER_THR_MASK	0xff
++#define VPE_EDI_DIR_COR_LOWER_THR_SHIFT	16
++#define VPE_EDI_COR_SCALE_FACTOR_MASK	0xff
++#define VPE_EDI_COR_SCALE_FACTOR_SHIFT	23
++
++#define VPE_DEI_EDI_LUT_R0		0x0610
++#define VPE_EDI_LUT0_MASK		0x1f
++#define VPE_EDI_LUT0_SHIFT		0
++#define VPE_EDI_LUT1_MASK		0x1f
++#define VPE_EDI_LUT1_SHIFT		8
++#define VPE_EDI_LUT2_MASK		0x1f
++#define VPE_EDI_LUT2_SHIFT		16
++#define VPE_EDI_LUT3_MASK		0x1f
++#define VPE_EDI_LUT3_SHIFT		24
++
++#define VPE_DEI_EDI_LUT_R1		0x0614
++#define VPE_EDI_LUT0_MASK		0x1f
++#define VPE_EDI_LUT0_SHIFT		0
++#define VPE_EDI_LUT1_MASK		0x1f
++#define VPE_EDI_LUT1_SHIFT		8
++#define VPE_EDI_LUT2_MASK		0x1f
++#define VPE_EDI_LUT2_SHIFT		16
++#define VPE_EDI_LUT3_MASK		0x1f
++#define VPE_EDI_LUT3_SHIFT		24
++
++#define VPE_DEI_EDI_LUT_R2		0x0618
++#define VPE_EDI_LUT4_MASK		0x1f
++#define VPE_EDI_LUT4_SHIFT		0
++#define VPE_EDI_LUT5_MASK		0x1f
++#define VPE_EDI_LUT5_SHIFT		8
++#define VPE_EDI_LUT6_MASK		0x1f
++#define VPE_EDI_LUT6_SHIFT		16
++#define VPE_EDI_LUT7_MASK		0x1f
++#define VPE_EDI_LUT7_SHIFT		24
++
++#define VPE_DEI_EDI_LUT_R3		0x061c
++#define VPE_EDI_LUT8_MASK		0x1f
++#define VPE_EDI_LUT8_SHIFT		0
++#define VPE_EDI_LUT9_MASK		0x1f
++#define VPE_EDI_LUT9_SHIFT		8
++#define VPE_EDI_LUT10_MASK		0x1f
++#define VPE_EDI_LUT10_SHIFT		16
++#define VPE_EDI_LUT11_MASK		0x1f
++#define VPE_EDI_LUT11_SHIFT		24
++
++#define VPE_DEI_FMD_WINDOW_R0		0x0620
++#define VPE_FMD_WINDOW_MINX_MASK	0x07ff
++#define VPE_FMD_WINDOW_MINX_SHIFT	0
++#define VPE_FMD_WINDOW_MAXX_MASK	0x07ff
++#define VPE_FMD_WINDOW_MAXX_SHIFT	16
++#define VPE_FMD_WINDOW_ENABLE		(1 << 31)
++
++#define VPE_DEI_FMD_WINDOW_R1		0x0624
++#define VPE_FMD_WINDOW_MINY_MASK	0x07ff
++#define VPE_FMD_WINDOW_MINY_SHIFT	0
++#define VPE_FMD_WINDOW_MAXY_MASK	0x07ff
++#define VPE_FMD_WINDOW_MAXY_SHIFT	16
++
++#define VPE_DEI_FMD_CONTROL_R0		0x0628
++#define VPE_FMD_ENABLE			(1 << 0)
++#define VPE_FMD_LOCK			(1 << 1)
++#define VPE_FMD_JAM_DIR			(1 << 2)
++#define VPE_FMD_BED_ENABLE		(1 << 3)
++#define VPE_FMD_CAF_FIELD_THR_MASK	0xff
++#define VPE_FMD_CAF_FIELD_THR_SHIFT	16
++#define VPE_FMD_CAF_LINE_THR_MASK	0xff
++#define VPE_FMD_CAF_LINE_THR_SHIFT	24
++
++#define VPE_DEI_FMD_CONTROL_R1		0x062c
++#define VPE_FMD_CAF_THR_MASK		0x000fffff
++#define VPE_FMD_CAF_THR_SHIFT		0
++
++#define VPE_DEI_FMD_STATUS_R0		0x0630
++#define VPE_FMD_CAF_MASK		0x000fffff
++#define VPE_FMD_CAF_SHIFT		0
++#define VPE_FMD_RESET			(1 << 24)
++
++#define VPE_DEI_FMD_STATUS_R1		0x0634
++#define VPE_FMD_FIELD_DIFF_MASK		0x0fffffff
++#define VPE_FMD_FIELD_DIFF_SHIFT	0
++
++#define VPE_DEI_FMD_STATUS_R2		0x0638
++#define VPE_FMD_FRAME_DIFF_MASK		0x000fffff
++#define VPE_FMD_FRAME_DIFF_SHIFT	0
++
++/* VPE scaler regs */
++#define VPE_SC_MP_SC0			0x0700
++#define VPE_INTERLACE_O			(1 << 0)
++#define VPE_LINEAR			(1 << 1)
++#define VPE_SC_BYPASS			(1 << 2)
++#define VPE_INVT_FID			(1 << 3)
++#define VPE_USE_RAV			(1 << 4)
++#define VPE_ENABLE_EV			(1 << 5)
++#define VPE_AUTO_HS			(1 << 6)
++#define VPE_DCM_2X			(1 << 7)
++#define VPE_DCM_4X			(1 << 8)
++#define VPE_HP_BYPASS			(1 << 9)
++#define VPE_INTERLACE_I			(1 << 10)
++#define VPE_ENABLE_SIN2_VER_INTP	(1 << 11)
++#define VPE_Y_PK_EN			(1 << 14)
++#define VPE_TRIM			(1 << 15)
++#define VPE_SELFGEN_FID			(1 << 16)
++
++#define VPE_SC_MP_SC1			0x0704
++#define VPE_ROW_ACC_INC_MASK		0x07ffffff
++#define VPE_ROW_ACC_INC_SHIFT		0
++
++#define VPE_SC_MP_SC2			0x0708
++#define VPE_ROW_ACC_OFFSET_MASK		0x0fffffff
++#define VPE_ROW_ACC_OFFSET_SHIFT	0
++
++#define VPE_SC_MP_SC3			0x070c
++#define VPE_ROW_ACC_OFFSET_B_MASK	0x0fffffff
++#define VPE_ROW_ACC_OFFSET_B_SHIFT	0
++
++#define VPE_SC_MP_SC4			0x0710
++#define VPE_TAR_H_MASK			0x07ff
++#define VPE_TAR_H_SHIFT			0
++#define VPE_TAR_W_MASK			0x07ff
++#define VPE_TAR_W_SHIFT			12
++#define VPE_LIN_ACC_INC_U_MASK		0x07
++#define VPE_LIN_ACC_INC_U_SHIFT		24
++#define VPE_NLIN_ACC_INIT_U_MASK	0x07
++#define VPE_NLIN_ACC_INIT_U_SHIFT	28
++
++#define VPE_SC_MP_SC5			0x0714
++#define VPE_SRC_H_MASK			0x07ff
++#define VPE_SRC_H_SHIFT			0
++#define VPE_SRC_W_MASK			0x07ff
++#define VPE_SRC_W_SHIFT			12
++#define VPE_NLIN_ACC_INC_U_MASK		0x07
++#define VPE_NLIN_ACC_INC_U_SHIFT	24
++
++#define VPE_SC_MP_SC6			0x0718
++#define VPE_ROW_ACC_INIT_RAV_MASK	0x03ff
++#define VPE_ROW_ACC_INIT_RAV_SHIFT	0
++#define VPE_ROW_ACC_INIT_RAV_B_MASK	0x03ff
++#define VPE_ROW_ACC_INIT_RAV_B_SHIFT	10
++
++#define VPE_SC_MP_SC8			0x0720
++#define VPE_NLIN_LEFT_MASK		0x07ff
++#define VPE_NLIN_LEFT_SHIFT		0
++#define VPE_NLIN_RIGHT_MASK		0x07ff
++#define VPE_NLIN_RIGHT_SHIFT		12
++
++#define VPE_SC_MP_SC9			0x0724
++#define VPE_LIN_ACC_INC			VPE_SC_MP_SC9
++
++#define VPE_SC_MP_SC10			0x0728
++#define VPE_NLIN_ACC_INIT		VPE_SC_MP_SC10
++
++#define VPE_SC_MP_SC11			0x072c
++#define VPE_NLIN_ACC_INC		VPE_SC_MP_SC11
++
++#define VPE_SC_MP_SC12			0x0730
++#define VPE_COL_ACC_OFFSET_MASK		0x01ffffff
++#define VPE_COL_ACC_OFFSET_SHIFT	0
++
++#define VPE_SC_MP_SC13			0x0734
++#define VPE_SC_FACTOR_RAV_MASK		0x03ff
++#define VPE_SC_FACTOR_RAV_SHIFT		0
++#define VPE_CHROMA_INTP_THR_MASK	0x03ff
++#define VPE_CHROMA_INTP_THR_SHIFT	12
++#define VPE_DELTA_CHROMA_THR_MASK	0x0f
++#define VPE_DELTA_CHROMA_THR_SHIFT	24
++
++#define VPE_SC_MP_SC17			0x0744
++#define VPE_EV_THR_MASK			0x03ff
++#define VPE_EV_THR_SHIFT		12
++#define VPE_DELTA_LUMA_THR_MASK		0x0f
++#define VPE_DELTA_LUMA_THR_SHIFT	24
++#define VPE_DELTA_EV_THR_MASK		0x0f
++#define VPE_DELTA_EV_THR_SHIFT		28
++
++#define VPE_SC_MP_SC18			0x0748
++#define VPE_HS_FACTOR_MASK		0x03ff
++#define VPE_HS_FACTOR_SHIFT		0
++#define VPE_CONF_DEFAULT_MASK		0x01ff
++#define VPE_CONF_DEFAULT_SHIFT		16
++
++#define VPE_SC_MP_SC19			0x074c
++#define VPE_HPF_COEFF0_MASK		0xff
++#define VPE_HPF_COEFF0_SHIFT		0
++#define VPE_HPF_COEFF1_MASK		0xff
++#define VPE_HPF_COEFF1_SHIFT		8
++#define VPE_HPF_COEFF2_MASK		0xff
++#define VPE_HPF_COEFF2_SHIFT		16
++#define VPE_HPF_COEFF3_MASK		0xff
++#define VPE_HPF_COEFF3_SHIFT		23
++
++#define VPE_SC_MP_SC20			0x0750
++#define VPE_HPF_COEFF4_MASK		0xff
++#define VPE_HPF_COEFF4_SHIFT		0
++#define VPE_HPF_COEFF5_MASK		0xff
++#define VPE_HPF_COEFF5_SHIFT		8
++#define VPE_HPF_NORM_SHIFT_MASK		0x07
++#define VPE_HPF_NORM_SHIFT_SHIFT	16
++#define VPE_NL_LIMIT_MASK		0x1ff
++#define VPE_NL_LIMIT_SHIFT		20
++
++#define VPE_SC_MP_SC21			0x0754
++#define VPE_NL_LO_THR_MASK		0x01ff
++#define VPE_NL_LO_THR_SHIFT		0
++#define VPE_NL_LO_SLOPE_MASK		0xff
++#define VPE_NL_LO_SLOPE_SHIFT		16
++
++#define VPE_SC_MP_SC22			0x0758
++#define VPE_NL_HI_THR_MASK		0x01ff
++#define VPE_NL_HI_THR_SHIFT		0
++#define VPE_NL_HI_SLOPE_SH_MASK		0x07
++#define VPE_NL_HI_SLOPE_SH_SHIFT	16
++
++#define VPE_SC_MP_SC23			0x075c
++#define VPE_GRADIENT_THR_MASK		0x07ff
++#define VPE_GRADIENT_THR_SHIFT		0
++#define VPE_GRADIENT_THR_RANGE_MASK	0x0f
++#define VPE_GRADIENT_THR_RANGE_SHIFT	12
++#define VPE_MIN_GY_THR_MASK		0xff
++#define VPE_MIN_GY_THR_SHIFT		16
++#define VPE_MIN_GY_THR_RANGE_MASK	0x0f
++#define VPE_MIN_GY_THR_RANGE_SHIFT	28
++
++#define VPE_SC_MP_SC24			0x0760
++#define VPE_ORG_H_MASK			0x07ff
++#define VPE_ORG_H_SHIFT			0
++#define VPE_ORG_W_MASK			0x07ff
++#define VPE_ORG_W_SHIFT			16
++
++#define VPE_SC_MP_SC25			0x0764
++#define VPE_OFF_H_MASK			0x07ff
++#define VPE_OFF_H_SHIFT			0
++#define VPE_OFF_W_MASK			0x07ff
++#define VPE_OFF_W_SHIFT			16
++
++/* VPE color space converter regs */
++#define VPE_CSC_CSC00			0x5700
++#define VPE_CSC_A0_MASK			0x1fff
++#define VPE_CSC_A0_SHIFT		0
++#define VPE_CSC_B0_MASK			0x1fff
++#define VPE_CSC_B0_SHIFT		16
++
++#define VPE_CSC_CSC01			0x5704
++#define VPE_CSC_C0_MASK			0x1fff
++#define VPE_CSC_C0_SHIFT		0
++#define VPE_CSC_A1_MASK			0x1fff
++#define VPE_CSC_A1_SHIFT		16
++
++#define VPE_CSC_CSC02			0x5708
++#define VPE_CSC_B1_MASK			0x1fff
++#define VPE_CSC_B1_SHIFT		0
++#define VPE_CSC_C1_MASK			0x1fff
++#define VPE_CSC_C1_SHIFT		16
++
++#define VPE_CSC_CSC03			0x570c
++#define VPE_CSC_A2_MASK			0x1fff
++#define VPE_CSC_A2_SHIFT		0
++#define VPE_CSC_B2_MASK			0x1fff
++#define VPE_CSC_B2_SHIFT		16
++
++#define VPE_CSC_CSC04			0x5710
++#define VPE_CSC_C2_MASK			0x1fff
++#define VPE_CSC_C2_SHIFT		0
++#define VPE_CSC_D0_MASK			0x0fff
++#define VPE_CSC_D0_SHIFT		16
++
++#define VPE_CSC_CSC05			0x5714
++#define VPE_CSC_D1_MASK			0x0fff
++#define VPE_CSC_D1_SHIFT		0
++#define VPE_CSC_D2_MASK			0x0fff
++#define VPE_CSC_D2_SHIFT		16
++#define VPE_CSC_BYPASS			(1 << 28)
 +
 +#endif
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 083bb5a..1666aab 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -160,6 +160,10 @@ enum v4l2_colorfx {
+  * of controls. Total of 16 controls is reserved for this driver */
+ #define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1040)
+ 
++/* The base for the TI VPE driver controls. Total of 16 controls is reserved for
++ * this driver */
++#define V4L2_CID_USER_TI_VPE_BASE		(V4L2_CID_USER_BASE + 0x1050)
++
+ /* MPEG-class control IDs */
+ /* The MPEG controls are applicable to all codec controls
+  * and the 'MPEG' part of the define is historical */
 -- 
-1.8.1.5
+1.8.1.2
 
