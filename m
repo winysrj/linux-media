@@ -1,84 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:63764 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754747Ab3JDPfC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 11:35:02 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb1so4330493pad.9
-        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 08:35:01 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:37893 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760949Ab3JPQ2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 12:28:55 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>
+CC: <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+	<kishon@ti.com>
+Subject: [PATCH 4/7] ARM: Samsung: Remove the MIPI PHY setup code
+Date: Wed, 16 Oct 2013 21:58:13 +0530
+Message-ID: <1381940896-9355-5-git-send-email-kishon@ti.com>
+In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <524ED27F.2010803@iki.fi>
-References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
-	<1380895312-30863-6-git-send-email-hverkuil@xs4all.nl>
-	<524ED27F.2010803@iki.fi>
-Date: Fri, 4 Oct 2013 11:35:01 -0400
-Message-ID: <CAOcJUbycPvr-Ts2xHMAaWO8nZvnaNfLbUOZZwEVhzQzYA3nU8w@mail.gmail.com>
-Subject: Re: [PATCH 05/14] cxd2820r_core: fix sparse warnings
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 4, 2013 at 10:36 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 04.10.2013 17:01, Hans Verkuil wrote:
->>
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> drivers/media/dvb-frontends/cxd2820r_core.c:34:32: error: cannot size
->> expression
->> drivers/media/dvb-frontends/cxd2820r_core.c:68:32: error: cannot size
->> expression
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
->
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
->
->
->
->> Cc: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/dvb-frontends/cxd2820r_core.c | 4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c
->> b/drivers/media/dvb-frontends/cxd2820r_core.c
->> index 7ca5c69..d9eeeb1 100644
->> --- a/drivers/media/dvb-frontends/cxd2820r_core.c
->> +++ b/drivers/media/dvb-frontends/cxd2820r_core.c
->> @@ -31,7 +31,7 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv
->> *priv, u8 i2c, u8 reg,
->>                 {
->>                         .addr = i2c,
->>                         .flags = 0,
->> -                       .len = sizeof(buf),
->> +                       .len = len + 1,
->>                         .buf = buf,
->>                 }
->>         };
->> @@ -65,7 +65,7 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv
->> *priv, u8 i2c, u8 reg,
->>                 }, {
->>                         .addr = i2c,
->>                         .flags = I2C_M_RD,
->> -                       .len = sizeof(buf),
->> +                       .len = len,
->>                         .buf = buf,
->>                 }
->>         };
->>
->
->
-> --
-> http://palosaari.fi/
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
+DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+In case there is any board file for S5PV210 platforms using MIPI
+CSIS/DSIM (not any upstream currently) it should use the generic
+PHY API to bind the PHYs to respective PHY consumer drivers and
+a platform device for the PHY provider should be defined.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-exynos/include/mach/regs-pmu.h    |    5 --
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h |    4 --
+ arch/arm/plat-samsung/Kconfig                   |    5 --
+ arch/arm/plat-samsung/Makefile                  |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c           |   60 -----------------------
+ 5 files changed, 75 deletions(-)
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+
+diff --git a/arch/arm/mach-exynos/include/mach/regs-pmu.h b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+index 57344b7..2cdb63e 100644
+--- a/arch/arm/mach-exynos/include/mach/regs-pmu.h
++++ b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+@@ -44,11 +44,6 @@
+ #define S5P_DAC_PHY_CONTROL			S5P_PMUREG(0x070C)
+ #define S5P_DAC_PHY_ENABLE			(1 << 0)
+ 
+-#define S5P_MIPI_DPHY_CONTROL(n)		S5P_PMUREG(0x0710 + (n) * 4)
+-#define S5P_MIPI_DPHY_ENABLE			(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN			(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN			(1 << 2)
+-
+ #define S5P_INFORM0				S5P_PMUREG(0x0800)
+ #define S5P_INFORM1				S5P_PMUREG(0x0804)
+ #define S5P_INFORM2				S5P_PMUREG(0x0808)
+diff --git a/arch/arm/mach-s5pv210/include/mach/regs-clock.h b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+index 032de66..e345584 100644
+--- a/arch/arm/mach-s5pv210/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+@@ -147,10 +147,6 @@
+ #define S5P_HDMI_PHY_CONTROL	S5P_CLKREG(0xE804)
+ #define S5P_USB_PHY_CONTROL	S5P_CLKREG(0xE80C)
+ #define S5P_DAC_PHY_CONTROL	S5P_CLKREG(0xE810)
+-#define S5P_MIPI_DPHY_CONTROL(x) S5P_CLKREG(0xE814)
+-#define S5P_MIPI_DPHY_ENABLE	(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN	(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN	(1 << 2)
+ 
+ #define S5P_INFORM0		S5P_CLKREG(0xF000)
+ #define S5P_INFORM1		S5P_CLKREG(0xF004)
+diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
+index 7dfba93..ec882ad 100644
+--- a/arch/arm/plat-samsung/Kconfig
++++ b/arch/arm/plat-samsung/Kconfig
+@@ -395,11 +395,6 @@ config S3C24XX_PWM
+ 	  Support for exporting the PWM timer blocks via the pwm device
+ 	  system
+ 
+-config S5P_SETUP_MIPIPHY
+-	bool
+-	help
+-	  Compile in common setup code for MIPI-CSIS and MIPI-DSIM devices
+-
+ config S3C_SETUP_CAMIF
+ 	bool
+ 	help
+diff --git a/arch/arm/plat-samsung/Makefile b/arch/arm/plat-samsung/Makefile
+index 498c7c2..9267d29 100644
+--- a/arch/arm/plat-samsung/Makefile
++++ b/arch/arm/plat-samsung/Makefile
+@@ -38,7 +38,6 @@ obj-$(CONFIG_S5P_DEV_UART)	+= s5p-dev-uart.o
+ obj-$(CONFIG_SAMSUNG_DEV_BACKLIGHT)	+= dev-backlight.o
+ 
+ obj-$(CONFIG_S3C_SETUP_CAMIF)	+= setup-camif.o
+-obj-$(CONFIG_S5P_SETUP_MIPIPHY)	+= setup-mipiphy.o
+ 
+ # DMA support
+ 
+diff --git a/arch/arm/plat-samsung/setup-mipiphy.c b/arch/arm/plat-samsung/setup-mipiphy.c
+deleted file mode 100644
+index 66df315..0000000
+--- a/arch/arm/plat-samsung/setup-mipiphy.c
++++ /dev/null
+@@ -1,60 +0,0 @@
+-/*
+- * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+- *
+- * S5P - Helper functions for MIPI-CSIS and MIPI-DSIM D-PHY control
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/export.h>
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/io.h>
+-#include <linux/spinlock.h>
+-#include <mach/regs-clock.h>
+-
+-static int __s5p_mipi_phy_control(int id, bool on, u32 reset)
+-{
+-	static DEFINE_SPINLOCK(lock);
+-	void __iomem *addr;
+-	unsigned long flags;
+-	u32 cfg;
+-
+-	id = max(0, id);
+-	if (id > 1)
+-		return -EINVAL;
+-
+-	addr = S5P_MIPI_DPHY_CONTROL(id);
+-
+-	spin_lock_irqsave(&lock, flags);
+-
+-	cfg = __raw_readl(addr);
+-	cfg = on ? (cfg | reset) : (cfg & ~reset);
+-	__raw_writel(cfg, addr);
+-
+-	if (on) {
+-		cfg |= S5P_MIPI_DPHY_ENABLE;
+-	} else if (!(cfg & (S5P_MIPI_DPHY_SRESETN |
+-			    S5P_MIPI_DPHY_MRESETN) & ~reset)) {
+-		cfg &= ~S5P_MIPI_DPHY_ENABLE;
+-	}
+-
+-	__raw_writel(cfg, addr);
+-	spin_unlock_irqrestore(&lock, flags);
+-
+-	return 0;
+-}
+-
+-int s5p_csis_phy_enable(int id, bool on)
+-{
+-	return __s5p_mipi_phy_control(id, on, S5P_MIPI_DPHY_SRESETN);
+-}
+-EXPORT_SYMBOL(s5p_csis_phy_enable);
+-
+-int s5p_dsim_phy_enable(struct platform_device *pdev, bool on)
+-{
+-	return __s5p_mipi_phy_control(pdev->id, on, S5P_MIPI_DPHY_MRESETN);
+-}
+-EXPORT_SYMBOL(s5p_dsim_phy_enable);
+-- 
+1.7.10.4
+
