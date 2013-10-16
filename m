@@ -1,160 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50223 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755735Ab3JNCb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 22:31:27 -0400
-Received: from dyn3-82-128-185-216.psoas.suomi.net ([82.128.185.216] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1VVXwL-0007P6-VD
-	for linux-media@vger.kernel.org; Mon, 14 Oct 2013 05:31:25 +0300
-Message-ID: <525B577D.2050105@iki.fi>
-Date: Mon, 14 Oct 2013 05:31:25 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: cannot ret error from probe - switch tuner to I2C driver model
-References: <1381709450-14345-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1381709450-14345-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:48679 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932406Ab3JPLli (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 07:41:38 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MUR00DEWF42S470@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Oct 2013 12:41:36 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	'Javier Martin' <javier.martin@vista-silicon.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>, kernel@pengutronix.de
+References: <1380548093-22313-1-git-send-email-p.zabel@pengutronix.de>
+ <1380548093-22313-8-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1380548093-22313-8-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [PATCH v2 07/10] [media] coda: prefix v4l2_ioctl_ops with coda_
+ instead of vidioc_
+Date: Wed, 16 Oct 2013 13:41:35 +0200
+Message-id: <064a01ceca64$abd052a0$0370f7e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14.10.2013 03:10, Antti Palosaari wrote:
-> kernel: usb 1-2: rtl2832u_tuner_attach:
-> kernel: e4000 5-0064: e4000_probe:
-> kernel: usb 1-2: rtl2832u_tuner_attach: client ptr ffff88030a849000
->
-> See attached patch.
->
-> Is there any way to return error to caller?
->
-> Abuse platform data ptr from struct i2c_board_info and call i2c_unregister_device() ?
+Hi Philipp,
 
-Answer to myself: best option seems to be check i2c_get_clientdata() 
-pointer after i2c_new_device().
+A small comment inline.
 
-client = i2c_new_device(&d->i2c_adap, &info);
-if (client)
-     if (i2c_get_clientdata(client) == NULL)
-         // OOPS, I2C probe fails
-
-That is because it is set NULL in error case by really_probe() in 
-drivers/base/dd.c. Error status is also cleared there with comment:
-/*
-  * Ignore errors returned by ->probe so that the next driver can try
-  * its luck.
-  */
-
-That is told in I2C documentation too:
-Note that starting with kernel 2.6.34, you don't have to set the `data' 
-field
-to NULL in remove() or if probe() failed anymore. The i2c-core does this
-automatically on these occasions. Those are also the only times the core 
-will
-touch this field.
-
-
-
-But maybe the comment for actual function, i2c_new_device, is still a 
-bit misleading as it says NULL is returned for the error. All the other 
-errors yes, but not for the I2C .probe() as it is reseted by device core.
-
-* This returns the new i2c client, which may be saved for later use with
-  * i2c_unregister_device(); or NULL to indicate an error.
-  */
-struct i2c_client *
-i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
-
-
-regards
-Antti
-
-
->
-> regards
-> Antti
->
-> ---
->   drivers/media/tuners/e4000.c            | 31 +++++++++++++++++++++++++++++++
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 18 ++++++++++++++++--
->   2 files changed, 47 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 54e2d8a..f4e0567 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -442,6 +442,37 @@ err:
->   }
->   EXPORT_SYMBOL(e4000_attach);
->
-> +static int e4000_probe(struct i2c_client *client, const struct i2c_device_id *did)
-> +{
-> +	dev_info(&client->dev, "%s:\n", __func__);
-> +	return -ENODEV;
-> +}
-> +
-> +static int e4000_remove(struct i2c_client *client)
-> +{
-> +	dev_info(&client->dev, "%s:\n", __func__);
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id e4000_id[] = {
-> +	{"e4000", 0},
-> +	{}
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, e4000_id);
-> +
-> +static struct i2c_driver e4000_driver = {
-> +	.driver = {
-> +		.owner	= THIS_MODULE,
-> +		.name	= "e4000",
-> +	},
-> +	.probe		= e4000_probe,
-> +	.remove		= e4000_remove,
-> +	.id_table	= e4000_id,
-> +};
-> +
-> +module_i2c_driver(e4000_driver);
-> +
->   MODULE_DESCRIPTION("Elonics E4000 silicon tuner driver");
->   MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
->   MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index defc491..fbbe867 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -898,8 +898,22 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
->   				adap->fe[0]->ops.tuner_ops.get_rf_strength;
->   		return 0;
->   	case TUNER_RTL2832_E4000:
-> -		fe = dvb_attach(e4000_attach, adap->fe[0], &d->i2c_adap,
-> -				&rtl2832u_e4000_config);
-> +//		fe = dvb_attach(e4000_attach, adap->fe[0], &d->i2c_adap,
-> +//				&rtl2832u_e4000_config);
-> +		{
-> +			static const struct i2c_board_info info = {
-> +				.type = "e4000",
-> +				.addr = 0x64,
-> +			};
-> +			struct i2c_client *client;
-> +
-> +			fe = NULL;
-> +			client = i2c_new_device(&d->i2c_adap, &info);
-> +			if (IS_ERR_OR_NULL(client))
-> +				dev_err(&d->udev->dev, "e4000 probe failed\n");
-> +
-> +			dev_dbg(&d->udev->dev, "%s: client ptr %p\n", __func__, client);
-> +		}
->   		break;
->   	case TUNER_RTL2832_FC2580:
->   		fe = dvb_attach(fc2580_attach, adap->fe[0], &d->i2c_adap,
->
-
-
+Best wishes,
 -- 
-http://palosaari.fi/
+Kamil Debski
+Linux Kernel Developer
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Philipp Zabel
+> Sent: Monday, September 30, 2013 3:35 PM
+> To: linux-media@vger.kernel.org
+> Cc: Mauro Carvalho Chehab; Kamil Debski; Javier Martin; Hans Verkuil;
+> kernel@pengutronix.de; Philipp Zabel
+> Subject: [PATCH v2 07/10] [media] coda: prefix v4l2_ioctl_ops with
+> coda_ instead of vidioc_
+> 
+> Moving the ioctl handler callbacks into the coda namespace helps
+> tremendously to make sense of backtraces.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>  - Use coda_ instead of coda_vidioc_ prefix
+> ---
+>  drivers/media/platform/coda.c | 123 +++++++++++++++++++++-------------
+> --------
+>  1 file changed, 63 insertions(+), 60 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c
+> b/drivers/media/platform/coda.c index 82049f8..6286133 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -412,8 +412,8 @@ static char *coda_product_name(int product)
+>  /*
+>   * V4L2 ioctl() operations.
+>   */
+> -static int vidioc_querycap(struct file *file, void *priv,
+> -			   struct v4l2_capability *cap)
+> +static int coda_querycap(struct file *file, void *priv,
+> +			 struct v4l2_capability *cap)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+> @@ -484,8 +484,8 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc
+> *f,
+>  	return -EINVAL;
+>  }
+> 
+> -static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
+> -				   struct v4l2_fmtdesc *f)
+> +static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
+> +				 struct v4l2_fmtdesc *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	struct vb2_queue *src_vq;
+> @@ -503,13 +503,14 @@ static int vidioc_enum_fmt_vid_cap(struct file
+> *file, void *priv,
+>  	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0);  }
+> 
+> -static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
+> -				   struct v4l2_fmtdesc *f)
+> +static int coda_enum_fmt_vid_out(struct file *file, void *priv,
+> +				 struct v4l2_fmtdesc *f)
+>  {
+>  	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_OUTPUT, 0);  }
+> 
+> -static int vidioc_g_fmt(struct file *file, void *priv, struct
+> v4l2_format *f)
+> +static int coda_g_fmt(struct file *file, void *priv,
+> +		      struct v4l2_format *f)
+>  {
+>  	struct vb2_queue *vq;
+>  	struct coda_q_data *q_data;
+> @@ -536,7 +537,7 @@ static int vidioc_g_fmt(struct file *file, void
+> *priv, struct v4l2_format *f)
+>  	return 0;
+>  }
+> 
+> -static int vidioc_try_fmt(struct coda_codec *codec, struct v4l2_format
+> *f)
+> +static int coda_try_fmt(struct coda_codec *codec, struct v4l2_format
+> +*f)
+>  {
+>  	unsigned int max_w, max_h;
+>  	enum v4l2_field field;
+> @@ -575,8 +576,8 @@ static int vidioc_try_fmt(struct coda_codec *codec,
+> struct v4l2_format *f)
+>  	return 0;
+>  }
+> 
+> -static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> -				  struct v4l2_format *f)
+> +static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+> +				struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	struct coda_codec *codec;
+> @@ -604,7 +605,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file,
+> void *priv,
+> 
+>  	f->fmt.pix.colorspace = ctx->colorspace;
+> 
+> -	ret = vidioc_try_fmt(codec, f);
+> +	ret = coda_try_fmt(codec, f);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -620,8 +621,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file,
+> void *priv,
+>  	return 0;
+>  }
+> 
+> -static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+> -				  struct v4l2_format *f)
+> +static int coda_try_fmt_vid_out(struct file *file, void *priv,
+> +				struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	struct coda_codec *codec;
+> @@ -633,10 +634,10 @@ static int vidioc_try_fmt_vid_out(struct file
+> *file, void *priv,
+>  	if (!f->fmt.pix.colorspace)
+>  		f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
+> 
+> -	return vidioc_try_fmt(codec, f);
+> +	return coda_try_fmt(codec, f);
+>  }
+> 
+> -static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+> +static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+>  {
+>  	struct coda_q_data *q_data;
+>  	struct vb2_queue *vq;
+> @@ -666,61 +667,62 @@ static int vidioc_s_fmt(struct coda_ctx *ctx,
+> struct v4l2_format *f)
+>  	return 0;
+>  }
+> 
+> -static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+> -				struct v4l2_format *f)
+> +static int coda_s_fmt_vid_cap(struct file *file, void *priv,
+> +			      struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	int ret;
+> 
+> -	ret = vidioc_try_fmt_vid_cap(file, priv, f);
+> +	ret = coda_try_fmt_vid_cap(file, priv, f);
+>  	if (ret)
+>  		return ret;
+> 
+> -	return vidioc_s_fmt(ctx, f);
+> +	return coda_s_fmt(ctx, f);
+>  }
+> 
+> -static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+> -				struct v4l2_format *f)
+> +static int coda_s_fmt_vid_out(struct file *file, void *priv,
+> +			      struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	int ret;
+> 
+> -	ret = vidioc_try_fmt_vid_out(file, priv, f);
+> +	ret = coda_try_fmt_vid_out(file, priv, f);
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = vidioc_s_fmt(ctx, f);
+> +	ret = coda_s_fmt(ctx, f);
+>  	if (ret)
+>  		ctx->colorspace = f->fmt.pix.colorspace;
+> 
+>  	return ret;
+>  }
+> 
+> -static int vidioc_reqbufs(struct file *file, void *priv,
+> -			  struct v4l2_requestbuffers *reqbufs)
+> +static int coda_reqbufs(struct file *file, void *priv,
+> +			struct v4l2_requestbuffers *reqbufs)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+>  	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);  }
+> 
+> -static int vidioc_querybuf(struct file *file, void *priv,
+> -			   struct v4l2_buffer *buf)
+> +static int coda_querybuf(struct file *file, void *priv,
+> +			 struct v4l2_buffer *buf)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+>  	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);  }
+> 
+> -static int vidioc_qbuf(struct file *file, void *priv, struct
+> v4l2_buffer *buf)
+> +static int coda_qbuf(struct file *file, void *priv,
+> +		     struct v4l2_buffer *buf)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+>  	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);  }
+> 
+> -static int vidioc_expbuf(struct file *file, void *priv,
+> -			 struct v4l2_exportbuffer *eb)
+> +static int coda_expbuf(struct file *file, void *priv,
+> +		       struct v4l2_exportbuffer *eb)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+> @@ -738,7 +740,8 @@ static bool coda_buf_is_end_of_stream(struct
+> coda_ctx *ctx,
+>  		(buf->sequence == (ctx->qsequence - 1)));  }
+> 
+> -static int vidioc_dqbuf(struct file *file, void *priv, struct
+> v4l2_buffer *buf)
+> +static int coda_dqbuf(struct file *file, void *priv,
+> +		      struct v4l2_buffer *buf)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	int ret;
+> @@ -758,24 +761,24 @@ static int vidioc_dqbuf(struct file *file, void
+> *priv, struct v4l2_buffer *buf)
+>  	return ret;
+>  }
+> 
+> -static int vidioc_create_bufs(struct file *file, void *priv,
+> -			      struct v4l2_create_buffers *create)
+> +static int coda_create_bufs(struct file *file, void *priv,
+> +			    struct v4l2_create_buffers *create)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+>  	return v4l2_m2m_create_bufs(file, ctx->m2m_ctx, create);  }
+> 
+> -static int vidioc_streamon(struct file *file, void *priv,
+> -			   enum v4l2_buf_type type)
+> +static int coda_streamon(struct file *file, void *priv,
+> +			 enum v4l2_buf_type type)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> 
+>  	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);  }
+> 
+> -static int vidioc_streamoff(struct file *file, void *priv,
+> -			    enum v4l2_buf_type type)
+> +static int coda_streamoff(struct file *file, void *priv,
+> +			  enum v4l2_buf_type type)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+>  	int ret;
+> @@ -792,8 +795,8 @@ static int vidioc_streamoff(struct file *file, void
+> *priv,
+>  	return ret;
+>  }
+> 
+> -static int vidioc_decoder_cmd(struct file *file, void *fh,
+> -			      struct v4l2_decoder_cmd *dc)
+> +static int coda_decoder_cmd(struct file *file, void *fh,
+> +				   struct v4l2_decoder_cmd *dc)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(fh);
+> 
+> @@ -816,8 +819,8 @@ static int vidioc_decoder_cmd(struct file *file,
+> void *fh,
+>  	return 0;
+>  }
+> 
+> -static int vidioc_subscribe_event(struct v4l2_fh *fh,
+> -				  const struct v4l2_event_subscription *sub)
+> +static int coda_subscribe_event(struct v4l2_fh *fh,
+> +			        const struct v4l2_event_subscription *sub)
+
+Here checkpatch.pl reports a whitespace error, I will correct it, but next
+time please ensure that it is clean.
+
+>  {
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_EOS:
+> @@ -828,32 +831,32 @@ static int vidioc_subscribe_event(struct v4l2_fh
+> *fh,  }
+> 
+>  static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+> -	.vidioc_querycap	= vidioc_querycap,
+> +	.vidioc_querycap	= coda_querycap,
+> 
+> -	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+> -	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt,
+> -	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
+> -	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
+> +	.vidioc_enum_fmt_vid_cap = coda_enum_fmt_vid_cap,
+> +	.vidioc_g_fmt_vid_cap	= coda_g_fmt,
+> +	.vidioc_try_fmt_vid_cap	= coda_try_fmt_vid_cap,
+> +	.vidioc_s_fmt_vid_cap	= coda_s_fmt_vid_cap,
+> 
+> -	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
+> -	.vidioc_g_fmt_vid_out	= vidioc_g_fmt,
+> -	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
+> -	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
+> +	.vidioc_enum_fmt_vid_out = coda_enum_fmt_vid_out,
+> +	.vidioc_g_fmt_vid_out	= coda_g_fmt,
+> +	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
+> +	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
+> 
+> -	.vidioc_reqbufs		= vidioc_reqbufs,
+> -	.vidioc_querybuf	= vidioc_querybuf,
+> +	.vidioc_reqbufs		= coda_reqbufs,
+> +	.vidioc_querybuf	= coda_querybuf,
+> 
+> -	.vidioc_qbuf		= vidioc_qbuf,
+> -	.vidioc_expbuf		= vidioc_expbuf,
+> -	.vidioc_dqbuf		= vidioc_dqbuf,
+> -	.vidioc_create_bufs	= vidioc_create_bufs,
+> +	.vidioc_qbuf		= coda_qbuf,
+> +	.vidioc_expbuf		= coda_expbuf,
+> +	.vidioc_dqbuf		= coda_dqbuf,
+> +	.vidioc_create_bufs	= coda_create_bufs,
+> 
+> -	.vidioc_streamon	= vidioc_streamon,
+> -	.vidioc_streamoff	= vidioc_streamoff,
+> +	.vidioc_streamon	= coda_streamon,
+> +	.vidioc_streamoff	= coda_streamoff,
+> 
+> -	.vidioc_decoder_cmd	= vidioc_decoder_cmd,
+> +	.vidioc_decoder_cmd	= coda_decoder_cmd,
+> 
+> -	.vidioc_subscribe_event = vidioc_subscribe_event,
+> +	.vidioc_subscribe_event = coda_subscribe_event,
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,  };
+> 
+> --
+> 1.8.4.rc3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+
