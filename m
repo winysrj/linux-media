@@ -1,45 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:37766 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3JINsw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 09:48:52 -0400
-Received: by mail-we0-f169.google.com with SMTP id q58so994335wes.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 06:48:51 -0700 (PDT)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37384 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755718Ab3JPUto (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 16:49:44 -0400
+Date: Wed, 16 Oct 2013 13:49:43 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 0/7] video phy's adaptation to *generic phy framework*
+Message-ID: <20131016204943.GA32000@kroah.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <525431B7.6050000@googlemail.com>
-References: <1380501923-23127-1-git-send-email-jfthibert@google.com>
-	<525431B7.6050000@googlemail.com>
-Date: Wed, 9 Oct 2013 09:48:51 -0400
-Message-ID: <CACxGHmN6Vj9sN1XB7W6-24MLCarSvhpxyMYNZHin5+uB9Rr6rQ@mail.gmail.com>
-Subject: Re: [PATCH] Add support for KWorld UB435-Q V2
-From: Jean-Francois Thibert <jfthibert@google.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 8, 2013 at 12:24 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> > This adds support for the UB435-Q V2. It seems that you might need to
-> > use the device once with the official driver to reprogram the device
-> > descriptors. Thanks to Jarod Wilson for the initial attempt at adding
-> > support for this device.
-> Could you please elaborate on this ?
-> What's the "official" driver and what changes after using it ?
-> Are these changes permanent ?
+On Wed, Oct 16, 2013 at 09:58:09PM +0530, Kishon Vijay Abraham I wrote:
+> Hi Greg,
+> 
+> This series includes video PHY adaptation to Generic PHY Framework.
+> With the adaptation they were able to get rid of plat data callbacks.
+> 
+> Since you've taken the Generic PHY Framework, I think this series should
+> also go into your tree.
 
->From what I understand the Windows driver provided by KWorld will reprogram
-the eeprom so that the device descriptors are properly describing an Isochronous
-endpoint instead of Bulk. This only needs to be done once since it is permanent.
-I don't know if this is required since I don't have a device in the other state.
+All now applied, thanks.
 
-> The commit message should be included in the patch and not be sent as a
-> separate message.
-> Can you fix the patch and resend it ?
-
-Sure, I will resend the patch with the message included.
-
-Regards
-Jean-Francois
+greg k-h
