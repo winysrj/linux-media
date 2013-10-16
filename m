@@ -1,33 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37384 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755718Ab3JPUto (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:44012 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756675Ab3JPRTZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 16:49:44 -0400
-Date: Wed, 16 Oct 2013 13:49:43 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 0/7] video phy's adaptation to *generic phy framework*
-Message-ID: <20131016204943.GA32000@kroah.com>
-References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+	Wed, 16 Oct 2013 13:19:25 -0400
+Received: by mail-pd0-f172.google.com with SMTP id z10so1244984pdj.3
+        for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 10:19:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
+In-Reply-To: <20131016190953.7b2070b4@endymion.delvare>
+References: <1381876264-20342-1-git-send-email-crope@iki.fi>
+	<20131015203305.7dd5e55a.m.chehab@samsung.com>
+	<CAOcJUby9LnEUVFm1HFxOE6mJaSPi-2DAyH16zNDvRHACqbOkPw@mail.gmail.com>
+	<525EC23B.2020506@iki.fi>
+	<CAOcJUbxEycDwYV56cb3gSPHcbFvXYUnvFe53DhOndEigwdD73Q@mail.gmail.com>
+	<CAOcJUbxutEoBj56SCESPPyoHPkj3Z=VF-BtWsQdGYpsLGDX1zg@mail.gmail.com>
+	<20131016190953.7b2070b4@endymion.delvare>
+Date: Wed, 16 Oct 2013 13:19:24 -0400
+Message-ID: <CAOcJUbxz2FT9vohNLoij97awmKgM8wFKx3Pfjom-e4t3ynNkUg@mail.gmail.com>
+Subject: Re: [PATCH REVIEW] e4000: convert DVB tuner to I2C driver model
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 16, 2013 at 09:58:09PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Greg,
-> 
-> This series includes video PHY adaptation to Generic PHY Framework.
-> With the adaptation they were able to get rid of plat data callbacks.
-> 
-> Since you've taken the Generic PHY Framework, I think this series should
-> also go into your tree.
+On Wed, Oct 16, 2013 at 1:09 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> Hi Michael,
+>
+> On Wed, 16 Oct 2013 13:04:42 -0400, Michael Krufky wrote:
+>> YIKES!!  i2c_new_probed_device() does indeed probe the hardware --
+>> this is unacceptable, as such an action can damage the ic.
+>>
+>> Is there some additional information that I'm missing that lets this
+>> perform an attach without probe?
+>
+> Oh, i2c_new_probed_device() probes the device, what a surprise! :D
+>
+> Try, I don't know, i2c_new_device() maybe if you don't want the
+> probe? ;)
+>
+> --
+> Jean Delvare
 
-All now applied, thanks.
+OK, so to confirm that I follow correctly, one can use
+i2c_new_device() to attach the sub-driver without probing, and the
+line that ensures that the correct sub-driver gets attached is
+"strlcpy(info.type, "e4000", I2C_NAME_SIZE);"  ??
 
-greg k-h
+We're matching based on a string?  I think that's kinda yucky, but if
+that's what we're doing in i2c nowadays then I'm OK with it.
+
+If not, what prevents the wrong sub-driver from attaching to a device?
+ ...or conversely, how does the right sub-driver know which device to
+attach to?
+
+Again, if I'm asking "stupid questions" just point me to the documentation.
+
+-Mike
