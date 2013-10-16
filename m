@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cernmx32.cern.ch ([137.138.144.178]:2343 "EHLO CERNMX32.cern.ch"
+Received: from mail.kapsi.fi ([217.30.184.167]:43496 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933103Ab3JOPZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 11:25:08 -0400
-From: Dinesh Ram <dinesh.ram@cern.ch>
-To: <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, <edubezval@gmail.com>,
-	<dinesh.ram086@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 9/9] si4713: si4713_set_rds_radio_text overwrites terminating \0
-Date: Tue, 15 Oct 2013 17:24:45 +0200
-Message-ID: <33e68401729566bf501bcd02d2b2a2fddbe6b937.1381850640.git.dinesh.ram@cern.ch>
-In-Reply-To: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
-References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
+	id S1761202Ab3JPRXC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 13:23:02 -0400
+Message-ID: <525ECB70.3000206@iki.fi>
+Date: Wed, 16 Oct 2013 20:22:56 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	Jean Delvare <khali@linux-fr.org>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH REVIEW] e4000: convert DVB tuner to I2C driver model
+References: <1381876264-20342-1-git-send-email-crope@iki.fi>	<20131015203305.7dd5e55a.m.chehab@samsung.com>	<CAOcJUby9LnEUVFm1HFxOE6mJaSPi-2DAyH16zNDvRHACqbOkPw@mail.gmail.com>	<525EC23B.2020506@iki.fi>	<CAOcJUbxEycDwYV56cb3gSPHcbFvXYUnvFe53DhOndEigwdD73Q@mail.gmail.com>	<CAOcJUbxutEoBj56SCESPPyoHPkj3Z=VF-BtWsQdGYpsLGDX1zg@mail.gmail.com>	<20131016190953.7b2070b4@endymion.delvare> <CAOcJUbxz2FT9vohNLoij97awmKgM8wFKx3Pfjom-e4t3ynNkUg@mail.gmail.com>
+In-Reply-To: <CAOcJUbxz2FT9vohNLoij97awmKgM8wFKx3Pfjom-e4t3ynNkUg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-si4713_set_rds_radio_text will overwrite the terminating zero at the
-end of the rds radio text string in order to send out a carriage return
-as per the RDS spec.
+On 16.10.2013 20:19, Michael Krufky wrote:
+> On Wed, Oct 16, 2013 at 1:09 PM, Jean Delvare <khali@linux-fr.org> wrote:
+>> Hi Michael,
+>>
+>> On Wed, 16 Oct 2013 13:04:42 -0400, Michael Krufky wrote:
+>>> YIKES!!  i2c_new_probed_device() does indeed probe the hardware --
+>>> this is unacceptable, as such an action can damage the ic.
+>>>
+>>> Is there some additional information that I'm missing that lets this
+>>> perform an attach without probe?
+>>
+>> Oh, i2c_new_probed_device() probes the device, what a surprise! :D
+>>
+>> Try, I don't know, i2c_new_device() maybe if you don't want the
+>> probe? ;)
+>>
+>> --
+>> Jean Delvare
+>
+> OK, so to confirm that I follow correctly, one can use
+> i2c_new_device() to attach the sub-driver without probing, and the
+> line that ensures that the correct sub-driver gets attached is
+> "strlcpy(info.type, "e4000", I2C_NAME_SIZE);"  ??
+>
+> We're matching based on a string?  I think that's kinda yucky, but if
+> that's what we're doing in i2c nowadays then I'm OK with it.
+>
+> If not, what prevents the wrong sub-driver from attaching to a device?
+>   ...or conversely, how does the right sub-driver know which device to
+> attach to?
 
-Use a separate char buffer for the CR instead of corrupting the control
-string.
+Yes, it is that string. Driver has that string as a ID table entry. Then 
+you issue i2c_new_device() call with string and it attachs driver when 
+strings match.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/si4713/si4713.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> Again, if I'm asking "stupid questions" just point me to the documentation.
+>
+> -Mike
+>
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 920dfa5..aadecb5 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -831,8 +831,9 @@ static int si4713_set_rds_ps_name(struct si4713_device *sdev, char *ps_name)
- 	return rval;
- }
- 
--static int si4713_set_rds_radio_text(struct si4713_device *sdev, char *rt)
-+static int si4713_set_rds_radio_text(struct si4713_device *sdev, const char *rt)
- {
-+	static const char cr[RDS_RADIOTEXT_BLK_SIZE] = { RDS_CARRIAGE_RETURN, 0 };
- 	int rval = 0, i;
- 	u16 t_index = 0;
- 	u8 b_index = 0, cr_inserted = 0;
-@@ -856,7 +857,7 @@ static int si4713_set_rds_radio_text(struct si4713_device *sdev, char *rt)
- 			for (i = 0; i < RDS_RADIOTEXT_BLK_SIZE; i++) {
- 				if (!rt[t_index + i] ||
- 				    rt[t_index + i] == RDS_CARRIAGE_RETURN) {
--					rt[t_index + i] = RDS_CARRIAGE_RETURN;
-+					rt = cr;
- 					cr_inserted = 1;
- 					break;
- 				}
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
