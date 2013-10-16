@@ -1,86 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f50.google.com ([209.85.128.50]:38114 "EHLO
-	mail-qe0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab3JLJI4 (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:39460 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754308Ab3JPHVa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 05:08:56 -0400
-Received: by mail-qe0-f50.google.com with SMTP id 1so1643877qee.37
-        for <linux-media@vger.kernel.org>; Sat, 12 Oct 2013 02:08:56 -0700 (PDT)
+	Wed, 16 Oct 2013 03:21:30 -0400
+Received: from localhost (pD9E8127E.dip0.t-ipconnect.de [217.232.18.126])
+	by smtp.strato.de (RZmta 32.8 DYNA|AUTH)
+	with (TLSv1.2:DHE-RSA-AES128-GCM-SHA256 encrypted) ESMTPSA id z05aecp9G6OHrr
+	for <linux-media@vger.kernel.org>;
+	Wed, 16 Oct 2013 09:21:28 +0200 (CEST)
+Date: Wed, 16 Oct 2013 09:21:28 +0200
+From: Johannes Koch <johannes@ortsraum.de>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] cx23885-dvb: fix ds3000 ts2020 split for TEVII S471
+Message-ID: <20131016072128.GA13505@Loki.fritz.box>
+References: <1376513927-6217-1-git-send-email-cv@cv-sv.de>
+ <20130926135157.2a26f245@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <52590184.5030806@xs4all.nl>
-References: <1381362589-32237-1-git-send-email-sheu@google.com>
-	<1381362589-32237-4-git-send-email-sheu@google.com>
-	<52564DE6.6090709@xs4all.nl>
-	<CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com>
-	<CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
-	<52590184.5030806@xs4all.nl>
-Date: Sat, 12 Oct 2013 02:08:55 -0700
-Message-ID: <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com>
-Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for
- VIDIOC_{G,S}_CROP to encoder
-From: John Sheu <sheu@google.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130926135157.2a26f245@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I thought you were not making sense for a bit.  Then I walked away,
-came back, and I think you're making sense now.  So:
+Hi  Mauro,
 
-* Crop always refers to the source image
-* Compose always refers to the destination image
+On Thu, Sep 26, 2013 at 01:51:57PM -0300, Mauro Carvalho Chehab wrote:
+> The difference between your patch and the applied one is:
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 971e4ff..8ed7b94 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -1055,7 +1055,6 @@ static int dvb_register(struct cx23885_tsport *port)
+>  				&tevii_ts2020_config, &i2c_bus->i2c_adap);
+>  			fe0->dvb.frontend->ops.set_voltage = f300_set_voltage;
+>  		}
+> -
+>  		break;
+>  	case CX23885_BOARD_DVBWORLD_2005:
+>  		i2c_bus = &dev->i2c_bus[1];
+> @@ -1285,6 +1284,7 @@ static int dvb_register(struct cx23885_tsport *port)
+>  		if (fe0->dvb.frontend != NULL) {
+>  			dvb_attach(ts2020_attach, fe0->dvb.frontend,
+>  				&tevii_ts2020_config, &i2c_bus->i2c_adap);
+> +			fe0->dvb.frontend->ops.set_voltage = f300_set_voltage;
+>  		}
+>  		break;
+>  	case CX23885_BOARD_PROF_8000:
+> 
+> 
+> So, basically, on our patch, you're also filling ops.set_voltage. 
+> 
+> As I don't know the board details, I can't tell if this is required or
+> not.
+> 
+> Christian/Johannes,
+> 
+> Could you please double-check it? If this is needed, please send me a new
+> patch, rebased on the top of linux-media git tree.
 
-On Sat, Oct 12, 2013 at 1:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 10/12/2013 01:48 AM, John Sheu wrote:
->> On Wed, Oct 9, 2013 at 11:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> In all cases, the crop boundary refers to the area in the source
->> image; for a CAPTURE device, this is the (presumably analog) sensor,
->
-> Correct.
->
->> and for an OUTPUT device, this is the memory buffer.
->
-> Correct.
+no, setting the voltage via dvb.frontend->ops.set_voltage is not needed for
+the TeVii S471. See also the patch that introduced S471 support:
+https://linuxtv.org/patch/11189/.
 
-Here you are referring to the crop boundary, which is _not_ always
-what {G,S}_CROP refers to.  (Confusing part).  {G,S}_CROP refers to
-the crop boundary only for a CAPTURE queue.
+Best regards
+ Johannes
 
->> My particular
->> case is a memory-to-memory device, with both CAPTURE and OUTPUT
->> queues.  In this case, {G,S}_CROP on either the CAPTURE or OUTPUT
->> queues should effect exactly the same operation: cropping on the
->> source image, i.e. whatever image buffer I'm providing to the OUTPUT
->> queue.
->
-> Incorrect.
->
-> S_CROP on an OUTPUT queue does the inverse: it refers to the area in
-> the sink image.
-
-This confused me for a bit (seeming contradiction with the above),
-until I realized that you're referring to the S_CROP ioctl here, which
-is _not_ the "crop boundary"; on an OUTPUT queue it refers to the
-compose boundary.
-
-> No, it adds the compose operation for capture and the crop operation for
-> output, and it uses the terms 'cropping' and 'composing' correctly
-> without the inversion that S_CROP introduced on the output side.
->
-> Bottom line: S_CROP for capture is equivalent to S_SELECTION(V4L2_SEL_TGT_CROP).
-> S_CROP for output is equivalent to S_SELECTION(V4L2_SEL_TGT_COMPOSE).
-
-So yes.  By adding the {G,S}_SELECTION ioctls we can now refer to the
-compose boundary for CAPTURE, and crop boundary for OUTPUT.
-
-
-Now, here's a question.  It seems that for a mem2mem device, since
-{G,S}_CROP on the CAPTURE queue covers the crop boundary, and
-{G,S}_CROP on the OUTPUT queue capture the compose boundary, is there
-any missing functionality that {G,S}_SELECTION is covering here.  In
-other words: for a mem2mem device, the crop and compose boundaries
-should be identical for the CAPTURE and OUTPUT queues?
-
--John Sheu
