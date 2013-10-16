@@ -1,121 +1,365 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:38475 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930Ab3JAOuB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 10:50:01 -0400
-Date: Tue, 01 Oct 2013 11:49:49 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: srinivas.kandagatla@st.com
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFC] media: rc: OF: Add Generic bindings for remote-control
-Message-id: <20131001114949.5a26dd70.m.chehab@samsung.com>
-In-reply-to: <524935D6.1010505@st.com>
-References: <1380274391-26577-1-git-send-email-srinivas.kandagatla@st.com>
- <20130927113458.GB18672@e106331-lin.cambridge.arm.com>
- <52458774.1060909@st.com> <20130927105716.64349f02@samsung.com>
- <524935D6.1010505@st.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-la0-f45.google.com ([209.85.215.45]:34057 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759672Ab3JPXzF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 19:55:05 -0400
+MIME-Version: 1.0
+In-Reply-To: <525F2311.8000509@ti.com>
+References: <201309101134.32883.hansverk@cisco.com> <3335821.8epFKWiJXY@avalon>
+ <CAK5ve-JHEaNrNiYwdMdEiEsD0LnqHG-MEAQv4D-962fYK0=g4A@mail.gmail.com>
+ <2523390.YEHU3IBNqR@avalon> <CAK5ve-+N=GyNk-ryR0LbiUcT0TErFTwK60-vHNEf7112dNyh_A@mail.gmail.com>
+ <525DF0C7.9090407@ti.com> <CAK5ve-K481KMXZJW9Ah8N_NaOYNNgdxABvewqiTOhquUAzr-UA@mail.gmail.com>
+ <525F2311.8000509@ti.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Wed, 16 Oct 2013 16:54:42 -0700
+Message-ID: <CAK5ve-+8m1vTG4nosnweqgKMXBU+xMB=Ov_r=zOET29EHr9hMw@mail.gmail.com>
+Subject: Re: [media-workshop] V2: Agenda for the Edinburgh mini-summit
+To: Milo Kim <milo.kim@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	media-workshop@linuxtv.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	linux-pwm@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Sep 2013 09:27:02 +0100
-Srinivas KANDAGATLA <srinivas.kandagatla@st.com> escreveu:
+On Wed, Oct 16, 2013 at 4:36 PM, Milo Kim <milo.kim@ti.com> wrote:
+>
+> Hi Bryan,
+>
+>
+> On 10/17/2013 02:17 AM, Bryan Wu wrote:
+>>
+>> On Tue, Oct 15, 2013 at 6:49 PM, Milo Kim <milo.kim@ti.com> wrote:
+>>>
+>>> Hi Bryan,
+>>>
+>>>
+>>> On 10/16/2013 03:37 AM, Bryan Wu wrote:
+>>>>
+>>>>
+>>>> On Fri, Oct 11, 2013 at 12:38 AM, Laurent Pinchart
+>>>> <laurent.pinchart@ideasonboard.com> wrote:
+>>>>>
+>>>>>
+>>>>> Hi Bryan,
+>>>>>
+>>>>> On Thursday 10 October 2013 17:02:18 Bryan Wu wrote:
+>>>>>>
+>>>>>>
+>>>>>> On Mon, Oct 7, 2013 at 3:24 PM, Laurent Pinchart wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On Tuesday 08 October 2013 00:06:23 Sakari Ailus wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Tue, Sep 24, 2013 at 11:20:53AM +0200, Thierry Reding wrote:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> On Mon, Sep 23, 2013 at 10:27:06PM +0200, Sylwester Nawrocki wrote:
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> On 09/23/2013 06:37 PM, Oliver Schinagl wrote:
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> On 09/23/13 16:45, Sylwester Nawrocki wrote:
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>> Hi,
+>>>>>>>>>>>>
+>>>>>>>>>>>> I would like to have a short discussion on LED flash devices
+>>>>>>>>>>>> support
+>>>>>>>>>>>> in the kernel. Currently there are two APIs: the V4L2 and LED
+>>>>>>>>>>>> class
+>>>>>>>>>>>> API exposed by the kernel, which I believe is not good from user
+>>>>>>>>>>>> space POV. Generic applications will need to implement both
+>>>>>>>>>>>> APIs.
+>>>>>>>>>>>> I
+>>>>>>>>>>>> think we should decide whether to extend the led class API to
+>>>>>>>>>>>> add
+>>>>>>>>>>>> support for more advanced LED controllers there or continue to
+>>>>>>>>>>>> use
+>>>>>>>>>>>> the both APIs with overlapping functionality. There has been
+>>>>>>>>>>>> some
+>>>>>>>>>>>> discussion about this on the ML, but without any consensus
+>>>>>>>>>>>> reached
+>>>>>>>>>>>> [1].
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> What about the linux-pwm framework and its support for the
+>>>>>>>>>>> backlight
+>>>>>>>>>>> via dts?
+>>>>>>>>>>>
+>>>>>>>>>>> Or am I talking way to uninformed here. Copying backlight to
+>>>>>>>>>>> flashlight with some minor modification sounds sensible in a
+>>>>>>>>>>> way...
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> I'd assume we don't need yet another user interface for the LEDs
+>>>>>>>>>> ;)
+>>>>>>>>>> AFAICS the PWM subsystem exposes pretty much raw interface in
+>>>>>>>>>> sysfs.
+>>>>>>>>>> The PWM LED controllers are already handled in the leds-class API,
+>>>>>>>>>> there is the leds_pwm driver (drivers/leds/leds-pwm.c).
+>>>>>>>>>>
+>>>>>>>>>> I'm adding linux-pwm and linux-leds maintainers at Cc so someone
+>>>>>>>>>> may
+>>>>>>>>>> correct me if I got anything wrong.
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> The PWM subsystem is most definitely not a good fit for this. The
+>>>>>>>>> only
+>>>>>>>>> thing it provides is a way for other drivers to access a PWM device
+>>>>>>>>> and
+>>>>>>>>> use it for some specific purpose (pwm-backlight, leds-pwm).
+>>>>>>>>>
+>>>>>>>>> The sysfs support is a convenience for people that needs to use a
+>>>>>>>>> PWM
+>>>>>>>>> in a way for which no driver framework exists, or for which it
+>>>>>>>>> doesn't
+>>>>>>>>> make sense to write a driver. Or for testing.
+>>>>>>>>>
+>>>>>>>>>> Presumably, what we need is a few enhancements to support in a
+>>>>>>>>>> standard way devices like MAX77693, LM3560 or MAX8997.  There is
+>>>>>>>>>> already a led class driver for the MAX8997 LED controller
+>>>>>>>>>> (drivers/leds/leds-max8997.c), but it uses some device-specific
+>>>>>>>>>> sysfs
+>>>>>>>>>> attributes.
+>>>>>>>>>>
+>>>>>>>>>> Thus similar devices are currently being handled by different
+>>>>>>>>>> subsystems. The split between the V4L2 Flash and the leds class
+>>>>>>>>>> API
+>>>>>>>>>> WRT to Flash LED controller drivers is included in RFC [1], it
+>>>>>>>>>> seems
+>>>>>>>>>> still up to date.
+>>>>>>>>>>
+>>>>>>>>>>>> [1] http://www.spinics.net/lists/linux-leds/msg00899.html
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Perhaps it would make sense for V4L2 to be able to use a LED as
+>>>>>>>>> exposed
+>>>>>>>>> by the LED subsystem and wrap it so that it can be integrated with
+>>>>>>>>> V4L2? If functionality is missing from the LED subsystem I suppose
+>>>>>>>>> that
+>>>>>>>>> could be added.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> The V4L2 flash API supports also xenon flashes, not only LED ones.
+>>>>>>>> That
+>>>>>>>> said, I agree there's a common subset of functionality most LED
+>>>>>>>> flash
+>>>>>>>> controllers implement.
+>>>>>>>>
+>>>>>>>>> If I understand correctly, the V4L2 subsystem uses LEDs as flashes
+>>>>>>>>> for
+>>>>>>>>> camera devices. I can easily imagine that there are devices out
+>>>>>>>>> there
+>>>>>>>>> which provide functionality beyond what a regular LED will provide.
+>>>>>>>>> So
+>>>>>>>>> perhaps for things such as mobile phones, which typically use a
+>>>>>>>>> plain
+>>>>>>>>> LED to illuminate the surroundings, an LED wrapped into something
+>>>>>>>>> that
+>>>>>>>>> emulates the flash functionality could work. But I doubt that the
+>>>>>>>>> LED
+>>>>>>>>> subsystem is a good fit for anything beyond that.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> I originally thought one way to do this could be to make it as easy
+>>>>>>>> as
+>>>>>>>> possible to support both APIs in driver which some aregued, to which
+>>>>>>>> I
+>>>>>>>> agree, is rather poor desing.
+>>>>>>>>
+>>>>>>>> Does the LED API have a user space interface library like libv4l2?
+>>>>>>>> If
+>>>>>>>> yes, one option oculd be to implement the wrapper between the V4L2
+>>>>>>>> and
+>>>>>>>> LED APIs there so that the applications using the LED API could also
+>>>>>>>> access those devices that implement the V4L2 flash API. Torch mode
+>>>>>>>> functionality is common between the two right now AFAIU,
+>>>>>>>>
+>>>>>>>> The V4L2 flash API also provides a way to strobe the flash using an
+>>>>>>>> external trigger which typically connected to the sensor (and the
+>>>>>>>> user
+>>>>>>>> can choose between that and software strobe). I guess that and Xenon
+>>>>>>>> flashes aren't currently covered by the LED API.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> The issue is that we have a LED API targetted at controlling LEDs, a
+>>>>>>> V4L2
+>>>>>>> flash API targetted at controlling flashes, and hardware devices
+>>>>>>> somewhere
+>>>>>>> in the middle that can be used to provide LED or flash function.
+>>>>>>> Merging
+>>>>>>> the two APIs on the kernel side, with a compatibility layer for both
+>>>>>>> kernel space and user space APIs, might be an idea worth
+>>>>>>> investigating.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> I'm so sorry for jumping in the discussion so late. Some how the
+>>>>>> emails from linux-media was archived in my Gmail and I haven't
+>>>>>> checkout this for several weeks.
+>>>>>>
+>>>>>> I agree right now LED API doesn't  quite fit for the usage of V4L2
+>>>>>> Flash API. But I'd also like to see a unified API.
+>>>>>>
+>>>>>> Currently, LED API are exported to user space as sysfs interface,
+>>>>>> while V4L2 Flash APIs are like IOCTL and user space library. We also
+>>>>>> merged some LED Flash trigger into LED subsystem. My basic idea is
+>>>>>> what about creating or expanding the LED Flash trigger driver and
+>>>>>> provide a well defined sysfs interface, which can be wrapped into user
+>>>>>> space libv4l2.
+>>>>>
+>>>>>
+>>>>>
+>>>>> The biggest reason why we're not fond of sysfs-based APIs for media
+>>>>> devices is
+>>>>> that they can't provide atomicity. There's no way to set multiple
+>>>>> parameters
+>>>>> in a single operation.
+>>>>>
+>>>>> We can't get rid of the sysfs LEDs API, but maybe we could have a
+>>>>> unified
+>>>>> kernel LED/flash subsystem that would provide both a sysfs-based API to
+>>>>> ensure
+>>>>> compatibility with current userspace software and an ioctl-based API
+>>>>> (possibly
+>>>>> through V4L2 controls). That way LED/flash devices would be registered
+>>>>> with a
+>>>>> single subsystem, and the corresponding drivers won't have to care
+>>>>> about
+>>>>> the
+>>>>> API exposed to userspace. That would require a major refactoring of the
+>>>>> in-
+>>>>> kernel APIs though.
+>>>>>
+>>>>
+>>>> I agree this. I'm thinking about expanding the ledtrig-camera.c
+>>>> created by Milo Kim. This trigger will provide flashing and strobing
+>>>> control of a LED device and for sure the LED device driver like
+>>>> drivers/leds/leds-lm355x.c.
+>>>>
+>>>> So we basically can do this:
+>>>> 1. add V4L2 Flash subdev into ledtrig-camera.c. So this trigger driver
+>>>> can provide trigger API to kernel drivers as well as V4L2 Flash API to
+>>>> userspace.
+>>>> 2. add the real flash torch functions into LED device driver like
+>>>> leds-lm355x.c, this driver will still provide sysfs interface and
+>>>> extended flash/torch control sysfs interface as well.
+>>>>
+>>>> I'm not sure about whether we need some change in V4L2 internally. But
+>>>> actually Andrzej Hajda's patchset is quite straightforward, but we
+>>>> just need put those V4L2 Flash API into a LED trigger driver and the
+>>>> real flash/torch operation in a LED device driver.
+>>>>
+>>>> Milo, could you please give some comments here?
+>>>
+>>>
+>>>
+>>> General LED trigger APIs were created not for the application interface
+>>> but
+>>> for any kernel space driver.
+>>> The LED camera trigger APIs are used by a camera driver, not application.
+>>>
+>>
+>> That's basically correct, but trigger sometime can also provide sysfs
+>> interface which might be used by user space app.
+>>
+>> Actually this camera flash/torch trigger API can also be used by V4L2
+>> Flash subdev.
+>> We create a V4L2 Flash subdev in the driver, which will expose V4L2
+>> API to user space. And this V4L2 Flash subdev will use this
+>> flash/torch trigger API to talk with our LED core and it really
+>> doesn't need to know the details about the LED flash/torch chip, if we
+>> can provide a good interface between trigger and LED device driver.
+>>
+>> So benefits are
+>> a) one trigger/V4L2 Flash subdev driver can be used by multiple LED chips
+>> b) LED chip driver just need to provide standard or extended LED API
+>> to support flash/torch
+>> c) LED chip driver still keep those LED sysfs interface to user space
+>> and won't break user space application
+>>
+>>> Some LED devices provide basic LED functionalities and high current
+>>> features
+>>> like a flash and a torch.(eg. LM3554, LM3642)
+>>> The reason why I added the LED camera trigger is
+>>>    "for providing multiple operations(LEDs, flash and torch) by one LED
+>>> device driver".
+>>>
+>>> For example,
+>>> A LED indicator is controlled via the LED sysfs.
+>>> And flash and torch are controlled by a camera driver - calls exported
+>>> LED
+>>> trigger function, ledtrig_flash_ctrl().
+>>>
+>>> My understanding is the V4L2 subsystem provides rich IOCTLs for the media
+>>> device.
+>>> I agree that the V4L2 is more proper interface for camera *application*.
+>>>
+>>> So, my suggestion is:
+>>>    - If a device has only flash/torch functionalities, then register the
+>>> driver as the V4L2 sub-device.
+>>>    - If a device provides not only flash/torch but also LED features,
+>>> then
+>>> create the driver as the MFD.
+>>>
+>>
+>> We really don't need to separate them, one LED device driver can
+>> provide flash/torch/normal functions in on driver. I think LED device
+>> driver is trying to provide the LED chip's hardware functions, like
+>> flash/torch/indicator etc. how to use it, we can choose different
+>> trigger. That gives us the maxim flexibility.
+>>
+>>> For example, LM3555 (and AS3645A) is used only for the camera.
+>>> Then, this driver is registered as the V4L2 sub-device.
+>>> (drivers/media/i2c/as3645a.c) - no change at all.
+>>>
+>>
+>> That's current solution, we plan to unify this two API since those
+>> chip are basically LED.
+>>
+>>> On the other hands, LM3642 has an indicator mode with flash/torch.
+>>> Then, it will consist of 3 parts - MFD core, LED(indicator) and
+>>> V4L2(flash/torch).
+>>>
+>>
+>> So if one LED device driver can support that, we don't need these 3 parts.
+>
+>
+> Let me clarify our discussion briefly.
+>
+> For the flash and torch, there are scattered user-space APIs.
+> We need to unify them.
+>
+> We are considering supporting V4L2 structures in the LED camera trigger.
+> Then, camera application controls the flash/torch via not the LED sysfs but
+> the V4L2 ioctl interface.
+> So, changing point is the ledtrig-camera.c. No chip driver changes at all.
+>
 
-> On 27/09/13 14:57, Mauro Carvalho Chehab wrote:
-> > Em Fri, 27 Sep 2013 14:26:12 +0100
-> > Srinivas KANDAGATLA <srinivas.kandagatla@st.com> escreveu:
-> > 
-> >> On 27/09/13 12:34, Mark Rutland wrote:
-> >>
-> >>>>> +	- rx-mode: Can be "infrared" or "uhf". rx-mode should be present iff
-> >>>>> +	  the rx pins are wired up.
-> >>> I'm unsure on this. What if the device has multiple receivers that can
-> >>> be independently configured? What if it supports something other than
-> >>> "infrared" or "uhf"? What if a device can only be wired up as
-> >>> "infrared"? 
-> >>>
-> >>> I'm not sure how generic these are, though we should certainly encourage
-> >>> bindings that can be described this way to be described in the same way.
-> >>>
-> >>>>> +	- tx-mode: Can be "infrared" or "uhf". tx-mode should be present iff
-> >>>>> +	  the tx pins are wired up.
-> >>> I have similar concerns here to those for the rx-mode property.
-> >>>
-> >> Initially rx-mode and tx-mode sounded like more generic properties
-> >> that's the reason I ended up in this route. But after this discussion it
-> >> looks like its not really generic enough to cater all the use cases.
-> >>
-> >> It make sense for me to perfix "st," for these properties in the st-rc
-> >> driver rather than considering them as generic properties.
-> > 
-> > Well, for sure the direction (TX, RX, both) is a generic property.
-> > 
-> > I'd say that the level 1 protocol (IR, UHF, Bluetooth, ...) is also a
-> > generic property. Most remotes are IR, but there are some that are
-> > bluetooth, and your hardware is using UHF.
-> Yes these are generic.
-> 
-> > 
-> > Btw, we're even thinking on mapping HDMI-CEC remote controller RX/TX via
-> > the RC subsystem. So, another L1 protocol would be "hdmi-cec".
-> > 
-> Ok.
-> > Yet, it seems unlikely that the very same remote controller IP would use
-> > a different protocol for RX and TX, while sharing the same registers.
-> 
-> ST IRB block has one IR processor which has both TX and RX support and
-> one UHF Processor which has RX support only. However the register map
-> for all these support is in single IRB IP block.
-> 
-> So the driver can configure the IP as TX in "infrared" and RX in "uhf".
-> This is supported in ST IRB IP.
-> 
-> This case can not be represented in a single device tree node with
-> l1-protocol and direction properties.
-> 
-> IMHO, having tx-mode and rx-mode or tx-protocol and rx-protocol
-> properties will give more flexibility.
-> 
-> What do you think?
+Yeah, my proposal is to add V4L2 interface into ledtrig-camera.c. For
+existing chip driver like yours LM3555, I guess we don't need to big
+change but for future support for new chip or adding flash/torch to
+existing chip, we need to create or change chip driver. Because
+eventually those flash/torch/indicator operation happens in chip
+driver.
 
-Yeah, if they're using the same registers, then your proposal works
-better.
-
-I would prefer to not call it as just protocol, as IR has an
-upper layer protocol that defines how the bits are encoded, e. g.
-RC5, RC6, NEC, SONY, ..., with is what we generally call as protocol
-on rc-core. 
-
-A proper naming for it is hard to find. Well, for IR/UHF, it is actually
-specifying the medium, but for Bluetooth, HDMI-CEC, it defines a
-protocol stack to be used, with covers not only the physical layer of
-the OSI model.
-
-Perhaps the better would be to call it as: tx-proto-stack/rx-proto-stack.
-
-> 
-> > 
-> > So, for example, a hardware with "hdmi-cec" and "infrared" will actually
-> > have two remote controller devices. Eventually, the "infrared" being
-> > just RX, while "hdmi-cec" being bi-directional.
-> > 
-> > So, IMHO, this could be mapped as "l1_protocol" ("infrared", "uhf", ...)
-> > and another one "direction" ("rx", "tx", "bi-directional").
-> > 
-> 
-> Thanks,
-> srini
-
-Regards,
-Mauro
+Thanks,
+-Bryan
