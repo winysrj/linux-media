@@ -1,165 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42084 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755319Ab3JMXlf (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:46716 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757192Ab3JPTjc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 19:41:35 -0400
-Message-ID: <1381707800.1875.63.camel@palomino.walls.org>
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Rajil Saraswat <rajil.s@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 13 Oct 2013 19:43:20 -0400
-In-Reply-To: <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-	 <1381371651.1889.21.camel@palomino.walls.org>
-	 <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
-	 <1381620192.22245.18.camel@palomino.walls.org>
-	 <1381668541.2209.14.camel@palomino.walls.org>
-	 <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 16 Oct 2013 15:39:32 -0400
+Received: by mail-ea0-f182.google.com with SMTP id o10so599180eaj.13
+        for <linux-media@vger.kernel.org>; Wed, 16 Oct 2013 12:39:31 -0700 (PDT)
+Message-ID: <525EEB88.8050309@googlemail.com>
+Date: Wed, 16 Oct 2013 21:39:52 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx + ov2640 and v4l2-clk
+References: <520E76E7.30201@googlemail.com> <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com> <52543116.60509@googlemail.com> <Pine.LNX.4.64.1310081834030.31629@axis700.grange> <5256ACB9.6030800@googlemail.com> <Pine.LNX.4.64.1310101539500.20787@axis700.grange> <20131012064555.380f692e.m.chehab@samsung.com> <525AA791.1080306@googlemail.com>
+In-Reply-To: <525AA791.1080306@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2013-10-13 at 20:14 +0100, Rajil Saraswat wrote:
-> > OK, I just tested with my Wii game console connected to the PVR-500 unit
-> > #2, Fedora 17, kernel 3.6.10-2.fc17.x86_64.
-> >
-> > 1. With the unit set to 'Input 2, Composite 1', cx25840 'Composite 3':
-> > Good video, good audio
-> >
-> > 2. With the unit set to 'Input 4, Composite 2', cx25840 'Composite 4':
-> > No video, distorted audio.
-> >
-> 
-> This is what i used to changed the input
-> 
-> v4l2-ctl -d /dev/video1 --set-input 4
-> 
-> With this 2.6.35 gives me perfect video/audio. Kernel 3.10.7 on the
-> other hand gives good video but distorted audio. On this cards primary
-> input (/dev/video0), i use the radio so i cant use input 2 of this
-> card. My composite cable is connected to the 'extra-input' card which
-> should be composite 2.
-> 
-> My understanding is input 4 is #2 composite, and input 2 is #1
-> composite. Is that not right?
+Am 13.10.2013 16:00, schrieb Frank Schäfer:
+> [snip]
+>
+> Am 12.10.2013 05:45, schrieb Mauro Carvalho Chehab:
+>> Changing the input will likely power on the device. The design of the
+>> old suspend callback were to call it when the device is not being used.
+>> Any try to use the device makes it to wake up, as it makes no sense to
+>> use a device in standby state.
+>>
+>> Also, changing the power states is a requirement, when switching the
+>> mode between analog, digital TV (or capture without tuner - although I
+>> think em28xx will turn the analog tuner on in this case, even not being
+>> required).
+>>
+>> The patches that just rename the previous standby callback to s_power 
+>> callback did a crap job, as it didn't consider the nuances of the API
+>> used on that time nor they didn't change the drivers to move the GPIO
+>> bits into s_power().
+>>
+>> Looking with today's view, it would likely be better if those patches
+>> were just adding a power callback without touching the standby callback.
+> The main problem is, that since commit 622b828ab7 ("v4l2_subdev: rename
+> tuner s_standby operation to core s_power") all subdevices are powered
+> down, not only the tuners.
+> But other subdevices may not wake up automatically when needed, so this
+> commit should also have introduced (s_power, 1) calls.
+> At least for em28xx it seems that this din't cause any regressions up to
+> now, because none of the subdevs used by this driver did anything
+> essential in its s_power callbacks (most of them don't support it at all).
+> But it's of course a ticking bomb.
+> The introduction of v4l2-clk enabling/disabling in the sensor subdevs'
+> (soc_cameras') s_power callbacks now let this bomb in em28xx explode.
+> This time, it only caused scary warnings/traces, but it could be
+> non-working (never waking up) devices next time.
+>
+>> I suspect that the solution would be to fork s_power into two different
+>> callbacks: one asymetric to just put the device into suspend mode (as
+>> before), and another symmetric one, where the device needs to be explicitly
+>> enabled before its usage and disabled at suspend or driver exit.
+>>
+> Or, if we want to keep the API as is, we have to introduce (s_power, 1)
+> calls in the affected drivers to avoid regressions due to future subdev
+> changes.
+>
+> Regards,
+> Frank
 
-For my PVR-500, it doesn't appear to be.  Here's how I believ it is
-wired up:
+Ok, I've spent some time digging deeper into the code, checking em28xx,
+the subdev drivers (msp3400, saa7115_auto, tvp5150, tvaudio, tuner,
+mt9v011, ov2640) an and all the places where we're applying GPIO-sequences.
 
-PVR-500 Left/First half (aka Unit #1)
-Tuner TV Composite out          ---> CX25843 Analog Input 7    --+ 
-SVideo 1    (rear bracket)      ---> CX25843 Analog Inputs 1,5 --+
-Composite 1 (rear bracket)      ---> CX25843 Analog Input 3    --+-- CX25843 VIP out --> CX23416 VIP In
-SVideo 2    (white connector)   ---> CX25843 Analog Inputs 2,6 --+
-Composite 2 (white connector)   ---> CX25843 Analog Input 4    --+
+The em28xx driver is already at least partially aware of the problem,
+that GPIO-sequences might change the power states of the subdevices or
+reset them.
+That's why em28xx_wake_i2c() is called in several places after GPIO
+sequences have been applied (see code comments).
+As the name already implies, these are places where we want to make sure
+that the subdevices are in power-on state.
+So adding a (s_power, 1) call at the beginning of this function would be
+a good starting point. AFAICS, this can't break things.
+This would also make sure that (s_power, 1) is called before the first
+(s_power, 0) call and silence the warning about unbalanced
+v4l2_clk_disable() calls.
 
-Tuner SIF audio out           ---> CX25843 Analog Input 8    --------------------------------+  
-                                                                                             |  
-Tuner TV mono-audio out       ---> WM8775 AIN1 L,R --+                                       |  
-Audio 1 L,R (rear bracket)    ---> WM8775 AIN2 L,R --+- WM8775 I2S out --> CX25843 I2S 1 In -+-> CX25843 I2S out --> CX23416 I2S In
-Audio 2 L,R (white connector) ---> WM8775 AIN3 L,R --+
-Tuner FM audio out L,R        ---> WM8775 AIN4 L,R --+
+However, I doubt we'll ever get the s_power calls really balanced.
+Due to the GPIO-problems, there will likely always be more power-on
+calls than power-off calls and hence more v4l2_clk_enable() than
+v4l2_clk_disable() calls.
 
-
-PVR-500 Right/Second half (aka Unit #2)
-Tuner TV Composite out          ---> CX25843 Analog Input 7    --+ 
-SVideo 1    (white connector)   ---> CX25843 Analog Inputs 1,5 --+
-Composite 1 (white connector)   ---> CX25843 Analog Input 3    --+-- CX25843 VIP out --> CX23416 VIP In
-
-Tuner SIF audio out           ---> CX25843 Analog Input 8    --------------------------------+  
-                                                                                             |  
-Tuner TV mono-audio out       ---> WM8775 AIN1 L,R --+                                       |  
-Audio 1 L,R (white connector) ---> WM8775 AIN2 L,R --+- WM8775 I2S out --> CX25843 I2S 1 In -+-> CX25843 I2S out --> CX23416 I2S In
-
-So for my PVR-500,
-unit #1 Composite 1 is on the card's bracket.
-unit #1 Composite 2 is on the white connector.
-unit #2 Composite 1 is on the white connector.
-unit #2 Composite 2 is not available
-
-
-> This is what i tried in kernel 2.6.35:
-> 
-> 1. v4l2-ctl -d /dev/video1 --set-input 2
-> Video input set to 2 (Composite 1: ok)
-> No video
-> 
-> 2. v4l2-ctl -d /dev/video1 --set-input 4
-> Video input set to 4 (Composite 2: ok)
-> Good video
-
-If /dev/video1 referes to unit #2 of your PVR-500 (according to v4l2-ctl
--d /dev/video1 --log-status) then it appears your unit is wired
-differently than mine.
-
-
-> As i mentioned in kernel 2.6.35, mythtv/mplayer give me both good
-> video/audio if i use 2 above.
-
-$ git diff --color v2.6.35 v2.6.37 drivers/media/video/wm8775.c
-
-Shows me no really good reason why the wm8775 driver should have broken.
-
-$ git diff --color v2.6.35 v2.6.37 drivers/media/video/cx25840/*[ch]
-
-Show a few conceptually simple changes to the cx25840 driver.  Something
-may have broken, but I doubt it.
-
-$ git diff --color v2.6.35 v2.6.37 drivers/media/video/cx2341x.c
-
-Shows changes to the control handling.  The ones regarding audio
-sampling frequency may be at fault.
-
-$ git diff --color v2.6.35 v2.6.37 drivers/media/video/ivtv/ivtv*[ch]
-
-Shows changes to the irq handling and the control handling.  Again the
-controls realted to audio mode and audio sampling rate stand out as
-potential causes.
-
-None of the above changes would explain to me why audio on input 3 of
-the WM8775 works (for me) but audio on input 4 of the WM8775 does not
-work (for you).
-
-I'll have to try additional tests with unit #1 of my PVR-500 later this
-week.
-
-> > AFAICT:
-> > You're using the wrong input.
-> > You weren't checking the video, only the audio.
-> 
-> What inputs do you think i should use with v4l2-ctl?
-
-I have no recommendation at the moment.
-
-If you can do a git bisect please try.
-There are 11,117 commits to bisect: that's 15 steps.  Each
-bisect/compile/install/test iteration I would estimate takes about 2
-hours.
-
-If I can reproduce your problem on a PVR-150 or on unit #1 of my
-PVR-500, then I can try to bisect.  But I have no idea when I would have
-time to perform the bisection.
-
-
-> >> > Unfortunately, i cannot do a git bisect since it is a remote system
-> >> > with a slow internet connection.
-> >
-> > Is this system for personal or professional use?  I don't know of any
-> > home users who have remote sites.
-> 
-> Your know one user now!. Yes it is for personal use. It was for my old
-> folks who live in another country and i manage their mythtv/htpc
-> remotely.
-
-Ah.
-
--Regards,
-Andy
-
-> -Rajil
-
+Regards,
+Frank
 
