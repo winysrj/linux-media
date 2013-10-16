@@ -1,116 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:44089 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753928Ab3JDOQ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:16:59 -0400
+Received: from mail-la0-f48.google.com ([209.85.215.48]:61835 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759727Ab3JPAKC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Oct 2013 20:10:02 -0400
+Received: by mail-la0-f48.google.com with SMTP id er20so4318lab.35
+        for <linux-media@vger.kernel.org>; Tue, 15 Oct 2013 17:10:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <524ECC06.2000706@xs4all.nl>
-References: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com> <524ECC06.2000706@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 4 Oct 2013 16:16:38 +0200
-Message-ID: <CAPybu_2mA7DDK+QMjLGqqXwWytfxLDQ5yydExi0UwWToQud23Q@mail.gmail.com>
-Subject: Re: [PATCH] vb2: Allow STREAMOFF for io emulator
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <1381707800.1875.63.camel@palomino.walls.org>
+References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
+	<1381371651.1889.21.camel@palomino.walls.org>
+	<CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
+	<1381620192.22245.18.camel@palomino.walls.org>
+	<1381668541.2209.14.camel@palomino.walls.org>
+	<CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
+	<1381707800.1875.63.camel@palomino.walls.org>
+Date: Wed, 16 Oct 2013 01:10:00 +0100
+Message-ID: <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>
+Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
+From: Rajil Saraswat <rajil.s@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+I was finally able to carry out a git bisect. Had to do a git pull on
+a fast internet hooked machine and ftp the files over to the remote
+machine.
 
-I am implementing a test application for our camera, think of
-v4l2-compliance but for testing the hardware (average of pixels,
-rotation...) . I am implementing it using python (because of numpy and
-matplotlib).
+I started with 'git bisect bad v2.6.36.4' and 'git bisect good v2.6.35.10'.
 
-I dont really care about perferomance, I only care about the data
-correctness, so the fileio fits perfectly my needs.
+And the result was:
 
-On the fileio api we dont have a way to tell the camera to stop, this
-was an attempt to solve this "issue". But if it is only an issue for
-me we can forget about it :).
+5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79 is the first bad commit
+commit 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79
+Author: Hans Verkuil <hverkuil@xs4all.nl>
+Date:   Sat Apr 24 08:23:53 2010 -0300
 
-BTW, do you know about a complete v4l2 library for python? I am using
-https://pypi.python.org/pypi/v4l2 , but it is quite old.
+    V4L/DVB: wm8775: convert to the new control framework
 
-Thanks!
+    Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+:040000 040000 37847ffe592f255c6a9d9daedaf7bbfd3cd7b055
+2f094df6f65d7fb296657619c1ad6f93fe085a75 M    drivers
 
-On Fri, Oct 4, 2013 at 4:09 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Ricardo,
->
-> On 10/04/2013 03:49 PM, Ricardo Ribalda Delgado wrote:
->> A video device opened and streaming in io emulator mode can only stop
->> streamming if its file descriptor is closed.
->>
->> There are some parameters that can only be changed if the device is not
->> streaming. Also, the power consumption of a device streaming could be
->> different than one not streaming.
->>
->> With this patch a video device opened in io emulator can be stopped on
->> demand.
->
-> Why would you want this? If you can call STREAMOFF, why not use stream I/O
-> all the way? That's much more efficient than read() anyway.
->
-> Unless there is a very good use-case, I don't see a good reason for mixing
-> file I/O with streaming I/O ioctls.
->
-> Regards,
->
->         Hans
->
->>
->> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++-----
->>  1 file changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 9fc4bab..097fba8 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1686,6 +1686,7 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_streamon);
->>
->> +static int __vb2_cleanup_fileio(struct vb2_queue *q);
->>
->>  /**
->>   * vb2_streamoff - stop streaming
->> @@ -1704,11 +1705,6 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
->>   */
->>  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->>  {
->> -     if (q->fileio) {
->> -             dprintk(1, "streamoff: file io in progress\n");
->> -             return -EBUSY;
->> -     }
->> -
->>       if (type != q->type) {
->>               dprintk(1, "streamoff: invalid stream type\n");
->>               return -EINVAL;
->> @@ -1719,6 +1715,11 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->>               return -EINVAL;
->>       }
->>
->> +     if (q->fileio) {
->> +             __vb2_cleanup_fileio(q);
->> +             return 0;
->> +     }
->> +
->>       /*
->>        * Cancel will pause streaming and remove all buffers from the driver
->>        * and videobuf, effectively returning control over them to userspace.
->>
->
+I then removed the patch from linux-2.6.36-gentoo-r8 which are gentoo
+sources, and confirmed that video/audio now works fine on v4l2-ctl -d
+/dev/video1 --set-input 4
 
+I wasnt able to remove the patch in 3.10.7 which is gentoo stable
+kernel. Any idea how can i do that?
 
-
--- 
-Ricardo Ribalda
+Regards
+Rajil
