@@ -1,134 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:50854 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695Ab3JRPDk (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:28844 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760240Ab3JPKYO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 11:03:40 -0400
-Received: from svr-orw-exc-10.mgc.mentorg.com ([147.34.98.58])
-	by relay1.mentorg.com with esmtp
-	id 1VXBaU-0007Ih-QL from wade_farnsworth@mentor.com
-	for linux-media@vger.kernel.org; Fri, 18 Oct 2013 08:03:38 -0700
-Message-ID: <52614DB9.8090908@mentor.com>
-Date: Fri, 18 Oct 2013 08:03:21 -0700
-From: Wade Farnsworth <wade_farnsworth@mentor.com>
-MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-Subject: [RFC][PATCH] v4l2-dev: Add tracepoints for QBUF and DQBUF
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+	Wed, 16 Oct 2013 06:24:14 -0400
+Message-id: <525E6949.5010805@samsung.com>
+Date: Wed, 16 Oct 2013 12:24:09 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Milo Kim <milo.kim@ti.com>, Bryan Wu <cooloney@gmail.com>
+Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
+	linux-pwm@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Bryan Wu <bryan.wu@canonical.com>, media-workshop@linuxtv.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] V2: Agenda for the Edinburgh mini-summit
+References: <201309101134.32883.hansverk@cisco.com> <3335821.8epFKWiJXY@avalon>
+ <CAK5ve-JHEaNrNiYwdMdEiEsD0LnqHG-MEAQv4D-962fYK0=g4A@mail.gmail.com>
+ <2523390.YEHU3IBNqR@avalon>
+ <CAK5ve-+N=GyNk-ryR0LbiUcT0TErFTwK60-vHNEf7112dNyh_A@mail.gmail.com>
+ <525DF0C7.9090407@ti.com>
+In-reply-to: <525DF0C7.9090407@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
+Hi,
 
-We've found this patch helpful for making some simple performance measurements on 
-V4L2 systems using the standard Linux tracers (FTRACE, LTTng, etc.), and were 
-wondering if the larger community would find it useful to have this in mainline as 
-well.
+On 16/10/13 03:49, Milo Kim wrote:
+> General LED trigger APIs were created not for the application interface 
+> but for any kernel space driver.
+> The LED camera trigger APIs are used by a camera driver, not application.
+> 
+> Some LED devices provide basic LED functionalities and high current 
+> features like a flash and a torch.(eg. LM3554, LM3642)
+> The reason why I added the LED camera trigger is
+>    "for providing multiple operations(LEDs, flash and torch) by one LED 
+> device driver".
+> 
+> For example,
+> A LED indicator is controlled via the LED sysfs.
+> And flash and torch are controlled by a camera driver - calls exported 
+> LED trigger function, ledtrig_flash_ctrl().
+> 
+> My understanding is the V4L2 subsystem provides rich IOCTLs for the 
+> media device.
+> I agree that the V4L2 is more proper interface for camera *application*.
+> 
+> So, my suggestion is:
+>    - If a device has only flash/torch functionalities, then register the 
+> driver as the V4L2 sub-device.
 
-This patch adds two tracepoints for the VIDIOC_DQBUF and VIDIOC_QBUF ioctls.  We've 
-identified two ways we can use this information to measure performance, though this  
-is likely not an exhaustive list:
+Presumably it's not something we want. I think a core module is needed
+so drivers can expose both sysfs LED API and V4L2 Flash API with minimal
+effort for a single device. Then LED API would be extended with standard
+attributes for Torch/Flash and user applications can use either sysfs
+or V4L2 subdev/controls API. No need to worry that for some of the devices
+the kernel will expose only the sysfs and for some only the V4L2 interface.
 
-1. Measuring the difference in timestamps between QBUF events on a display device 
-   provides a throughput (framerate) measurement for the display.
-2. Measuring the difference between the timestamps on a DQBUF event for a capture 
-   device and a corresponding timestamp on a QBUF event on a display device provides 
-   a rough approximation of the latency of that particular frame.  However, this 
-   tends to only work for simple video pipelines where captured and displayed 
-   frames can be correlated in such a fashion.
+Also for some multifunction devices integrating features like PMIC,
+clock generator, Flash/Torch LED driver, etc. the LED might be used for
+different purpose than originally intended. E.g. Torch LED as an
+indicator. So it is not correct IMO to select a specific API based on
+device's primary purpose only. I think there should be more flexibility.
 
-Comments are welcome.  If there is interest, I'll post another patch suitable
-for merge.
+>    - If a device provides not only flash/torch but also LED features, 
+> then create the driver as the MFD.
+> 
+> For example, LM3555 (and AS3645A) is used only for the camera.
+> Then, this driver is registered as the V4L2 sub-device.
+> (drivers/media/i2c/as3645a.c) - no change at all.
+> 
+> On the other hands, LM3642 has an indicator mode with flash/torch.
+> Then, it will consist of 3 parts - MFD core, LED(indicator) and 
+> V4L2(flash/torch).
+> 
+> Then, ledtrig-camera will be removed after we complete to change the 
+> driver structure.
 
-Signed-off-by: Wade Farnsworth <wade_farnsworth@mentor.com>
----
- drivers/media/v4l2-core/v4l2-dev.c |    9 ++++++
- include/trace/events/v4l2.h        |   48 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 57 insertions(+), 0 deletions(-)
- create mode 100644 include/trace/events/v4l2.h
+I'm not sure it needs to be removed. We will still have hardware and
+software triggered Flash LEDs. What would provide ledtrig-camera's
+current functionality when you remove it ?
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index b5aaaac..1cc1749 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -31,6 +31,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- 
-+
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/v4l2.h>
-+
- #define VIDEO_NUM_DEVICES	256
- #define VIDEO_NAME              "video4linux"
- 
-@@ -391,6 +395,11 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	} else
- 		ret = -ENOTTY;
- 
-+	if (cmd == VIDIOC_DQBUF)
-+		trace_v4l2_dqbuf(vdev->minor, (struct v4l2_buffer *)arg);
-+	else if (cmd == VIDIOC_QBUF)
-+		trace_v4l2_qbuf(vdev->minor, (struct v4l2_buffer *)arg);
-+
- 	return ret;
- }
- 
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-new file mode 100644
-index 0000000..1697441
---- /dev/null
-+++ b/include/trace/events/v4l2.h
-@@ -0,0 +1,48 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM v4l2
-+
-+#if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_V4L2_H
-+
-+#include <linux/tracepoint.h>
-+
-+TRACE_EVENT(v4l2_dqbuf,
-+	TP_PROTO(int minor, struct v4l2_buffer *buf),
-+
-+	TP_ARGS(minor, buf),
-+
-+	TP_STRUCT__entry(
-+		__field(int, minor)
-+		__field(s64, ts)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->minor = minor;
-+		__entry->ts = timeval_to_ns(&buf->timestamp);
-+	),
-+
-+	TP_printk("%d [%lld]", __entry->minor, __entry->ts)
-+);
-+
-+TRACE_EVENT(v4l2_qbuf,
-+	TP_PROTO(int minor, struct v4l2_buffer *buf),
-+
-+	TP_ARGS(minor, buf),
-+
-+	TP_STRUCT__entry(
-+		__field(int, minor)
-+		__field(s64, ts)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->minor = minor;
-+		__entry->ts = timeval_to_ns(&buf->timestamp);
-+	),
-+
-+	TP_printk("%d [%lld]", __entry->minor, __entry->ts)
-+);
-+
-+#endif /* if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ) */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
--- 
-1.7.0.4
-
+--
+Regards,
+Sylwester
