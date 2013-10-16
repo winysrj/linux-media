@@ -1,113 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43893 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757696Ab3JOLpU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 07:45:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFD] use-counting V4L2 clocks
-Date: Tue, 15 Oct 2013 13:45:36 +0200
-Message-ID: <2086760.XpLDTRAYT5@avalon>
-In-Reply-To: <Pine.LNX.4.64.1310150938040.5601@axis700.grange>
-References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange> <38373771.lqz4Seg2Ij@avalon> <Pine.LNX.4.64.1310150938040.5601@axis700.grange>
+Received: from comal.ext.ti.com ([198.47.26.152]:46593 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761002Ab3JPQ26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Oct 2013 12:28:58 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>
+CC: <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+	<kishon@ti.com>
+Subject: [PATCH 7/7] video: exynos_dp: Use the generic PHY driver
+Date: Wed, 16 Oct 2013 21:58:16 +0530
+Message-ID: <1381940896-9355-8-git-send-email-kishon@ti.com>
+In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Jingoo Han <jg1.han@samsung.com>
 
-On Tuesday 15 October 2013 10:05:45 Guennadi Liakhovetski wrote:
-> On Thu, 10 Oct 2013, Laurent Pinchart wrote:
-> > On Tuesday 08 October 2013 23:57:55 Guennadi Liakhovetski wrote:
-> > > Hi Mauro,
-> > > 
-> > > Thanks for your long detailed mail. For the sake of brevity however I'll
-> > > drop most of it in this my reply, everybody interested should be able to
-> > > read the original.
-> > > 
-> > > On Wed, 9 Oct 2013, Mauro Carvalho Chehab wrote:
-> > > 
-> > > [snip]
-> > > 
-> > > > In other words, what you're actually proposing is to change the
-> > > > default used by most drivers since 1997 from a POWER ON/CLOCK ON
-> > > > default, into a POWER OFF/ CLOCK OFF default.
-> > > 
-> > > To remind, we are now trying to fix a problem, present in the current
-> > > kernel. In one specific driver. And the proposed fix only affects one
-> > > specific (family of) driver(s) - the em28xx USB driver. The two patches
-> > > are quite simple:
-> > > 
-> > > (1) the first patch adds a clock to the em28xx driver, which only
-> > > affects ov2640, because only it uses that clock
-> > > 
-> > > (2) the second patch adds a call to subdev's .s_power(1) method. And I
-> > > cannot see how this change can be a problem either. Firstly I haven't
-> > > found many subdevices, used by em28xx, that implement .s_power().
-> > > Secondly, I don't think any of them does any kind of depth-counting in
-> > > that method, apart from the one, that we're trying to fix - ov2640.
-> > > 
-> > > > Well, for me, it sounds that someone will need to re-test all
-> > > > supported devices, to be sure that such change won't cause
-> > > > regressions.
-> > > > 
-> > > > If you are willing to do such tests (and to get all those hardware to
-> > > > be sure that nothing will break) or to find someone to do it for you,
-> > > > I'm ok with such change.
-> > > 
-> > > I'm willing to try to identify all subdevices, used by em28xx, look at
-> > > their .s_power() methods and report my analysis, whether calling
-> > > .s_power(1) for those respective drivers could cause problems. Would
-> > > this suffice?
-> >
-> > From a high level point of view, I believe that's the way to go. V4L2
-> > clock enable/disable calls must be balanced, as we will later switch to
-> > the non-V4L2 clock API that requires calls to be balanced.
-> > 
-> > This pushes the problem back to the .s_power() implementation that call
-> > the clock enable/disable functions. As a temporary measure, we could add a
-> > use count to the .s_power() handlers of drivers used by both power-
-> > unbalanced and power-balanced bridges that call the clock API or the
-> > regulator API in their .s_power() implementation (that's just ov2640 if
-> > I'm not mistaken). This would ensure that clock calls are always balanced,
-> > even if the .s_power() calls are not.
-> > 
-> > Now I'd like to avoid that as possible: In the long term I believe we
-> > should switch all .s_power() calls to  balanced mode, a detailed analysis
-> > of the subdevices used by em28xx would thus have my preference. However,
-> > if it helps solving the issue right now, buying us time to fix the
-> > problem correctly, I could live with it.
-> 
-> Please, correct me if I'm wrong, but I seem to remember, that we wanted to
-> eliminate .s_power() methods completely eventually. We could try to find
-> that old discussion, but it would need some searching. In short - only
-> subdevice drivers know, when their devices need power or clock. Higher
-> layers just request specific functions - setting parameters, starting or
-> stopping streaming etc., and subdev drivers decide when they have to
-> access (I2C) registers, which regulators they have to turn on for that,
-> when they have to power on the sensor array and activate the data
-> interface... IIRC we were thinking about some exceptions like SoC internal
-> subdevices, which are initialised by the main SoC camera interface driver.
-> It was then suggested, that that central camera interface driver also
-> knows when those internal subdevices should be turned up and down.
-> Although I'm not sure even that would be needed.
-> 
-> Shall we not maybe move in that direction?
+Use the generic PHY API to control the DP PHY.
 
-I believe you remember correctly, and that's indeed a good idea. However, now 
-might not be the best time to do so, we need to fix the em28xx problem. What's 
-your preferred solution there ?
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/devicetree/bindings/video/exynos_dp.txt |   17 +++++++++--------
+ drivers/video/exynos/exynos_dp_core.c                 |   16 ++++++++++++----
+ drivers/video/exynos/exynos_dp_core.h                 |    1 +
+ 3 files changed, 22 insertions(+), 12 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
+index 84f10c1..3289d76 100644
+--- a/Documentation/devicetree/bindings/video/exynos_dp.txt
++++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
+@@ -6,10 +6,10 @@ We use two nodes:
+ 	-dptx-phy node(defined inside dp-controller node)
+ 
+ For the DP-PHY initialization, we use the dptx-phy node.
+-Required properties for dptx-phy:
+-	-reg:
++Required properties for dptx-phy: deprecated, use phys and phy-names
++	-reg: deprecated
+ 		Base address of DP PHY register.
+-	-samsung,enable-mask:
++	-samsung,enable-mask: deprecated
+ 		The bit-mask used to enable/disable DP PHY.
+ 
+ For the Panel initialization, we read data from dp-controller node.
+@@ -27,6 +27,10 @@ Required properties for dp-controller:
+ 		from common clock binding: Shall be "dp".
+ 	-interrupt-parent:
+ 		phandle to Interrupt combiner node.
++	-phys:
++		from general PHY binding: the phandle for the PHY device.
++	-phy-names:
++		from general PHY binding: Should be "dp".
+ 	-samsung,color-space:
+ 		input video data format.
+ 			COLOR_RGB = 0, COLOR_YCBCR422 = 1, COLOR_YCBCR444 = 2
+@@ -68,11 +72,8 @@ SOC specific portion:
+ 		clocks = <&clock 342>;
+ 		clock-names = "dp";
+ 
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
+-
++		phys = <&dp_phy>;
++		phy-names = "dp";
+ 	};
+ 
+ Board Specific portion:
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 05fed7d..5e1a715 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ 
+ #include "exynos_dp_core.h"
+ 
+@@ -960,8 +961,11 @@ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+ 
+ 	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
+ 	if (!dp_phy_node) {
+-		dev_err(dp->dev, "could not find dptx-phy node\n");
+-		return -ENODEV;
++		dp->phy = devm_phy_get(dp->dev, "dp");
++		if (IS_ERR(dp->phy))
++			return PTR_ERR(dp->phy);
++		else
++			return 0;
+ 	}
+ 
+ 	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
+@@ -992,7 +996,9 @@ err:
+ 
+ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_on(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+@@ -1003,7 +1009,9 @@ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ 
+ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_off(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 56cfec8..607e36d 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -151,6 +151,7 @@ struct exynos_dp_device {
+ 	struct video_info	*video_info;
+ 	struct link_train	link_train;
+ 	struct work_struct	hotplug_work;
++	struct phy		*phy;
+ };
+ 
+ /* exynos_dp_reg.c */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
