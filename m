@@ -1,90 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4093 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab3JDOJj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:09:39 -0400
-Message-ID: <524ECC06.2000706@xs4all.nl>
-Date: Fri, 04 Oct 2013 16:09:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] vb2: Allow STREAMOFF for io emulator
-References: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1380894598-11242-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:30727 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757220Ab3JQRKN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 13:10:13 -0400
+Message-id: <526019F0.3070406@samsung.com>
+Date: Thu, 17 Oct 2013 19:10:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org
+Cc: hverkuil@xs4all.nl, swarren@wwwdotorg.org, mark.rutland@arm.com,
+	Pawel.Moll@arm.com, galak@codeaurora.org, a.hajda@samsung.com,
+	sachin.kamat@linaro.org, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH v9 13/13] V4L: Add driver for s5k4e5 image sensor
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+ <1380279558-21651-14-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1380279558-21651-14-git-send-email-arun.kk@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
-
-On 10/04/2013 03:49 PM, Ricardo Ribalda Delgado wrote:
-> A video device opened and streaming in io emulator mode can only stop
-> streamming if its file descriptor is closed.
+On 27/09/13 12:59, Arun Kumar K wrote:
+> This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
+> Like s5k6a3, it is also another fimc-is firmware controlled
+> sensor. This minimal sensor driver doesn't do any I2C communications
+> as its done by ISP firmware. It can be updated if needed to a
+> regular sensor driver by adding the I2C communication.
 > 
-> There are some parameters that can only be changed if the device is not
-> streaming. Also, the power consumption of a device streaming could be
-> different than one not streaming.
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  .../devicetree/bindings/media/i2c/s5k4e5.txt       |   45 +++
+>  drivers/media/i2c/Kconfig                          |    8 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/s5k4e5.c                         |  347 ++++++++++++++++++++
+>  4 files changed, 401 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
+>  create mode 100644 drivers/media/i2c/s5k4e5.c
 > 
-> With this patch a video device opened in io emulator can be stopped on
-> demand.
+> diff --git a/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt b/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
+> new file mode 100644
+> index 0000000..0fca087
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/s5k4e5.txt
 
-Why would you want this? If you can call STREAMOFF, why not use stream I/O
-all the way? That's much more efficient than read() anyway.
+Could you make a separate patch adding DT binding only ?
+And can you please rename this file to:
+Documentation/devicetree/bindings/media/samsung-s5k4e5.txt, like
+it's done in case of other sensors ?
 
-Unless there is a very good use-case, I don't see a good reason for mixing
-file I/O with streaming I/O ioctls.
+Should I apply patches 02...11/13 already or would you like send 
+the whole series updated ? AFAICS there are minor things pointed 
+out by Hans not addressed yet ?
 
 Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 9fc4bab..097fba8 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1686,6 +1686,7 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  }
->  EXPORT_SYMBOL_GPL(vb2_streamon);
->  
-> +static int __vb2_cleanup_fileio(struct vb2_queue *q);
->  
->  /**
->   * vb2_streamoff - stop streaming
-> @@ -1704,11 +1705,6 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
->   */
->  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
-> -	if (q->fileio) {
-> -		dprintk(1, "streamoff: file io in progress\n");
-> -		return -EBUSY;
-> -	}
-> -
->  	if (type != q->type) {
->  		dprintk(1, "streamoff: invalid stream type\n");
->  		return -EINVAL;
-> @@ -1719,6 +1715,11 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->  		return -EINVAL;
->  	}
->  
-> +	if (q->fileio) {
-> +		__vb2_cleanup_fileio(q);
-> +		return 0;
-> +	}
-> +
->  	/*
->  	 * Cancel will pause streaming and remove all buffers from the driver
->  	 * and videobuf, effectively returning control over them to userspace.
-> 
-
+Sylwester
