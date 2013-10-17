@@ -1,225 +1,551 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:41937 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab3JLDqF convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15296 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758355Ab3JQSIV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Oct 2013 23:46:05 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MUJ007YHEGROU10@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Oct 2013 23:46:03 -0400 (EDT)
-Date: Sat, 12 Oct 2013 06:45:55 +0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-Message-id: <20131012064555.380f692e.m.chehab@samsung.com>
-In-reply-to: <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
-References: <520E76E7.30201@googlemail.com>
- <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost>
- <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com>
- <52543116.60509@googlemail.com>
- <Pine.LNX.4.64.1310081834030.31629@axis700.grange>
- <5256ACB9.6030800@googlemail.com>
- <Pine.LNX.4.64.1310101539500.20787@axis700.grange>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Thu, 17 Oct 2013 14:08:21 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH v3 3/6] V4L: s5c73m3: Add device tree support
+Date: Thu, 17 Oct 2013 20:06:48 +0200
+Message-id: <1382033211-32329-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com>
+References: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Oct 2013 15:50:15 +0200 (CEST)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+This patch adds the V4L2 asynchronous subdev registration and
+device tree support. Common clock API is used to control the
+sensor master clock from within the subdev.
 
-> Hi Frank,
-> 
-> On Thu, 10 Oct 2013, Frank Schäfer wrote:
-> 
-> > Am 08.10.2013 18:38, schrieb Guennadi Liakhovetski:
-> > > Hi Frank,
-> > >
-> > > On Tue, 8 Oct 2013, Frank SchÃ€fer wrote:
-> > >
-> > >> Am 18.08.2013 17:20, schrieb Mauro Carvalho Chehab:
-> > >>> Em Sun, 18 Aug 2013 13:40:25 +0200
-> > >>> Frank SchÃ€fer <fschaefer.oss@googlemail.com> escreveu:
-> > >>>
-> > >>>> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
-> > >>>>> Hi Frank,
-> > >>>>> As I mentioned on the list, I'm currently on a holiday, so, replying briefly. 
-> > >>>> Sorry, I missed that (can't read all mails on the list).
-> > >>>>
-> > >>>>> Since em28xx is a USB device, I conclude, that it's supplying clock to its components including the ov2640 sensor. So, yes, I think the driver should export a V4L2 clock.
-> > >>>> Ok, so it's mandatory on purpose ?
-> > >>>> I'll take a deeper into the v4l2-clk code and the
-> > >>>> em28xx/ov2640/soc-camera interaction this week.
-> > >>>> Have a nice holiday !
-> > >>> commit 9aea470b399d797e88be08985c489855759c6c60
-> > >>> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >>> Date:   Fri Dec 21 13:01:55 2012 -0300
-> > >>>
-> > >>>     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
-> > >>>     
-> > >>>     Instead of centrally enabling and disabling subdevice master clocks in
-> > >>>     soc-camera core, let subdevice drivers do that themselves, using the
-> > >>>     V4L2 clock API and soc-camera convenience wrappers.
-> > >>>     
-> > >>>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >>>     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>>     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > >>>
-> > >>>
-> > >>> (c/c the ones that acked with this broken changeset)
-> > >>>
-> > >>> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
-> > >>> cameras are currently broken on 3.10.
-> > >>>
-> > >>> I'll also reject other ports to the async API if the drivers are
-> > >>> used outside an embedded driver, as no PC driver currently defines 
-> > >>> any clock source. The same applies to regulators.
-> > >>>
-> > >>> Guennadi,
-> > >>>
-> > >>> Next time, please check if the i2c drivers are used outside soc_camera
-> > >>> and apply the fixes where needed, as no regressions are allowed.
-> > >>>
-> > >>> Regards,
-> > >>> Mauro
-> > >> FYI: 8 weeks have passed by now and this regression has still not been
-> > >> fixed.
-> > >> Does anybody care about it ? WONTFIX ?
-> > > You replied to my patch "em28xx: balance subdevice power-off calls" with a 
-> > > few non-essential IMHO comments but you didn't test it.
-> > 
-> > Non-essential comments ?
-> > Maybe you disagree or don't care about them, but that's something different.
-> 
-> Firstly, I did say "IMHO," didn't I? Secondly, sure, let's have a look at 
-> them:
-> 
-> "I wonder if we should make the (s_power, 1) call part of em28xx_wake_i2c()."
-> 
-> Is this an essential comment? Is it essential where to put an operation 
-> after a function or after it?
-> 
-> "em28xx_set_mode() calls em28xx_gpio_set(dev,
-> INPUT(dev->ctl_input)->gpio) and I'm not sure if this could disable
-> subdevice power again..."
-> 
-> You aren't sure about that. Me neither, so, there's no evidence 
-> whatsoever. This is just a guess. And I would consider switching subdevice 
-> power in a *_set_mode() function by explicitly toggling a GPIO in 
-> presence of proper APIs... not the best design perhaps. I consider this 
-> comment non-essential too then.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+--
+Changes since v2:
+ - call clk_get() before enabling the clock and clk_put() after
+   each clk_disable().
+---
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   95 +++++++++
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  208 +++++++++++++++-----
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ 4 files changed, 263 insertions(+), 50 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
 
-Changing the input will likely power on the device. The design of the
-old suspend callback were to call it when the device is not being used.
-Any try to use the device makes it to wake up, as it makes no sense to
-use a device in standby state.
-
-Also, changing the power states is a requirement, when switching the
-mode between analog, digital TV (or capture without tuner - although I
-think em28xx will turn the analog tuner on in this case, even not being
-required).
-
-The patches that just rename the previous standby callback to s_power 
-callback did a crap job, as it didn't consider the nuances of the API
-used on that time nor they didn't change the drivers to move the GPIO
-bits into s_power().
-
-Looking with today's view, it would likely be better if those patches
-were just adding a power callback without touching the standby callback.
-
-I suspect that the solution would be to fork s_power into two different
-callbacks: one asymetric to just put the device into suspend mode (as
-before), and another symmetric one, where the device needs to be explicitly
-enabled before its usage and disabled at suspend or driver exit.
-
-> 
-> "Hmm... your patch didn't change this, but:
-> Why do we call these functions only in case of V4L2_BUF_TYPE_VIDEO_CAPTURE ?
-> Isn't it needed for VBI capturing, too ?
-> em28xx_wake_i2c() is probably also needed for radio mode..."
-> 
-> Right, my patch doesn't change this, so, this is unrelated.
-> 
-> Have I missed anything?
-> 
-> > > Could you test, please?
-> > 
-> > Yes, this patch will make the warnings disappear and works at least for
-> > my em28xx+ov2640 device.
-> 
-> Good, thanks for testing!
-> 
-> > What about Mauros an my concerns with regards to all other em28xx devices ?
-> 
-> This is still under discussion:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg66566.html
-> 
-> > And what about the em28xx v4l2-clk patches ?
-> 
-> Their acceptance is related to the above.
-> 
-> Thanks
-> Guennadi
-> 
-> > It's pretty simple: someone (usually the maintainer ;) ) needs to decide
-> > which way to go.
-> > Either accept and apply the existing patches or request new ones with
-> > changes.
-> > But IMHO doing nothing for 2 months isn't the right way to handle
-> > regressions.
-> > 
-> > Regards,
-> > Frank
-> > 
-> > > In the meantime I'm still waiting for more comments to my "[RFD] 
-> > > use-counting V4L2 clocks" mail, so far only Sylwester has replied. Without 
-> > > all these we don't seem to progress very well.
-> > >
-> > > Thanks
-> > > Guennadi
-> > >
-> > >>>>> -----Original Message-----
-> > >>>>> From: "Frank SchÃ€fer" <fschaefer.oss@googlemail.com>
-> > >>>>> To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>
-> > >>>>> Sent: Fr., 16 Aug 2013 21:03
-> > >>>>> Subject: em28xx + ov2640 and v4l2-clk
-> > >>>>>
-> > >>>>> Hi Guennadi,
-> > >>>>>
-> > >>>>> since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
-> > >>>>> switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
-> > >>>>> to register the ov2640 subdevice (if needed).
-> > >>>>> The reason is that v4l2_clk_get() fails in ov2640_probe().
-> > >>>>> Does the em28xx driver have to register a (pseudo ?) clock first ?
-> > >>>>>
-> > >>>>> Regards,
-> > >>>>> Frank
-> > > ---
-> > > Guennadi Liakhovetski, Ph.D.
-> > > Freelance Open-Source Software Developer
-> > > http://www.open-technology.de/
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+new file mode 100644
+index 0000000..d419e4e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+@@ -0,0 +1,95 @@
++Samsung S5C73M3 8Mp camera ISP
++------------------------------
++
++The S5C73M3 camera ISP supports MIPI CSI-2 and parallel (ITU-R BT.656) video
++data busses. The I2C bus is the main control bus and additionally the SPI bus
++is used, mostly for transferring the firmware to and from the device. Two
++slave device nodes corresponding to these control bus interfaces are required
++and should be placed under respective bus controller nodes.
++
++I2C slave device node
++---------------------
++
++Required properties:
++
++- compatible	    : "samsung,s5c73m3";
++- reg		    : I2C slave address of the sensor;
++- vdd-int-supply    : digital power supply (1.2V);
++- vdda-supply	    : analog power supply (1.2V);
++- vdd-reg-supply    : regulator input power supply (2.8V);
++- vddio-host-supply : host I/O power supply (1.8V to 2.8V);
++- vddio-cis-supply  : CIS I/O power supply (1.2V to 1.8V);
++- vdd-af-supply	    : lens power supply (2.8V);
++- xshutdown-gpios   : specifier of GPIO connected to the XSHUTDOWN pin;
++- standby-gpios     : specifier of GPIO connected to the STANDBY pin;
++- clocks	    : should contain the sensor's CIS_EXTCLK clock specifier;
++- clock-names	    : should contain "cis_extclk" entry;
++
++Optional properties:
++
++- clock-frequency   : the frequency at which the "cis_extclk" clock should be
++		      configured to operate, in Hz; if this property is not
++		      specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be used
++to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
++device node should contain one 'port' child node with an 'endpoint' subnode for
++this purpose. The data link from a raw image sensor to the S5C73M3 can be
++similarly specified, but it is optional since the S5C73M3 ISP and a raw image
++sensor are usually inseparable and form a hybrid module.
++
++Following properties are valid for the endpoint node(s):
++
++endpoint subnode
++----------------
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt. This sensor doesn't support data lane remapping
++  and physical lane indexes in subsequent elements of the array should
++  be only consecutive ascending values.
++
++SPI device node
++---------------
++
++Required properties:
++
++- compatible	    : "samsung,s5c73m3";
++
++For more details see description of the SPI busses bindings
++(../spi/spi-bus.txt) and bindings of a specific bus controller.
++
++Example:
++
++i2c@138A000000 {
++	...
++	s5c73m3@3c {
++		compatible = "samsung,s5c73m3";
++		reg = <0x3c>;
++		vdd-int-supply = <&buck9_reg>;
++		vdda-supply = <&ldo17_reg>;
++		vdd-reg-supply = <&cam_io_reg>;
++		vddio-host-supply = <&ldo18_reg>;
++		vddio-cis-supply = <&ldo9_reg>;
++		vdd-af-supply = <&cam_af_reg>;
++		clock-frequency = <24000000>;
++		clocks = <&clk 0>;
++		clock-names = "cis_extclk";
++		reset-gpios = <&gpf1 3 1>;
++		standby-gpios = <&gpm0 1 1>;
++		port {
++			s5c73m3_ep: endpoint {
++				remote-endpoint = <&csis0_ep>;
++				data-lanes = <1 2 3 4>;
++			};
++		};
++	};
++};
++
++spi@1392000 {
++	...
++	s5c73m3_spi: s5c73m3 {
++		compatible = "samsung,s5c73m3";
++		reg = <0>;
++		...
++	};
++};
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index b76ec0e..9ea10c7 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -15,7 +15,7 @@
+  * GNU General Public License for more details.
+  */
+ 
+-#include <linux/sizes.h>
++#include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+ #include <linux/gpio.h>
+@@ -23,7 +23,9 @@
+ #include <linux/init.h>
+ #include <linux/media.h>
+ #include <linux/module.h>
++#include <linux/of_gpio.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/spi/spi.h>
+ #include <linux/videodev2.h>
+@@ -33,6 +35,7 @@
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/s5c73m3.h>
++#include <media/v4l2-of.h>
+ 
+ #include "s5c73m3.h"
+ 
+@@ -46,6 +49,8 @@ static int update_fw;
+ module_param(update_fw, int, 0644);
+ 
+ #define S5C73M3_EMBEDDED_DATA_MAXLEN	SZ_4K
++#define S5C73M3_MIPI_DATA_LANES		4
++#define S5C73M3_CLK_NAME		"cis_extclk"
+ 
+ static const char * const s5c73m3_supply_names[S5C73M3_MAX_SUPPLIES] = {
+ 	"vdd-int",	/* Digital Core supply (1.2V), CAM_ISP_CORE_1.2V */
+@@ -1352,12 +1357,27 @@ static int __s5c73m3_power_on(struct s5c73m3 *state)
+ {
+ 	int i, ret;
+ 
++	state->clock = clk_get(&state->i2c_client->dev, S5C73M3_CLK_NAME);
++	if (IS_ERR(state->clock))
++		return -EPROBE_DEFER;
++
+ 	for (i = 0; i < S5C73M3_MAX_SUPPLIES; i++) {
+ 		ret = regulator_enable(state->supplies[i].consumer);
+ 		if (ret)
+-			goto err;
++			goto err_reg_dis;
+ 	}
+ 
++	ret = clk_set_rate(state->clock, state->mclk_frequency);
++	if (ret < 0)
++		goto err_reg_dis;
++
++	ret = clk_prepare_enable(state->clock);
++	if (ret < 0)
++		goto err_reg_dis;
++
++	v4l2_dbg(1, s5c73m3_dbg, &state->oif_sd, "clock frequency: %ld\n",
++					clk_get_rate(state->clock));
++
+ 	s5c73m3_gpio_deassert(state, STBY);
+ 	usleep_range(100, 200);
+ 
+@@ -1365,7 +1385,8 @@ static int __s5c73m3_power_on(struct s5c73m3 *state)
+ 	usleep_range(50, 100);
+ 
+ 	return 0;
+-err:
++
++err_reg_dis:
+ 	for (--i; i >= 0; i--)
+ 		regulator_disable(state->supplies[i].consumer);
+ 	return ret;
+@@ -1380,6 +1401,9 @@ static int __s5c73m3_power_off(struct s5c73m3 *state)
+ 
+ 	if (s5c73m3_gpio_assert(state, STBY))
+ 		usleep_range(100, 200);
++
++	clk_disable_unprepare(state->clock);
++
+ 	state->streaming = 0;
+ 	state->isp_ready = 0;
+ 
+@@ -1388,6 +1412,8 @@ static int __s5c73m3_power_off(struct s5c73m3 *state)
+ 		if (ret)
+ 			goto err;
+ 	}
++
++	clk_put(state->clock);
+ 	return 0;
+ err:
+ 	for (++i; i < S5C73M3_MAX_SUPPLIES; i++) {
+@@ -1396,6 +1422,8 @@ err:
+ 			v4l2_err(&state->oif_sd, "Failed to reenable %s: %d\n",
+ 				 state->supplies[i].supply, r);
+ 	}
++
++	clk_prepare_enable(state->clock);
+ 	return ret;
+ }
+ 
+@@ -1451,17 +1479,6 @@ static int s5c73m3_oif_registered(struct v4l2_subdev *sd)
+ 			S5C73M3_JPEG_PAD, &state->oif_sd.entity, OIF_JPEG_PAD,
+ 			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
+ 
+-	mutex_lock(&state->lock);
+-	ret = __s5c73m3_power_on(state);
+-	if (ret == 0)
+-		s5c73m3_get_fw_version(state);
+-
+-	__s5c73m3_power_off(state);
+-	mutex_unlock(&state->lock);
+-
+-	v4l2_dbg(1, s5c73m3_dbg, sd, "%s: Booting %s (%d)\n",
+-		 __func__, ret ? "failed" : "succeded", ret);
+-
+ 	return ret;
+ }
+ 
+@@ -1519,41 +1536,108 @@ static const struct v4l2_subdev_ops oif_subdev_ops = {
+ 	.video	= &s5c73m3_oif_video_ops,
+ };
+ 
+-static int s5c73m3_configure_gpios(struct s5c73m3 *state,
+-				   const struct s5c73m3_platform_data *pdata)
++static int s5c73m3_configure_gpios(struct s5c73m3 *state)
++{
++	static const char * const gpio_names[] = {
++		"S5C73M3_STBY", "S5C73M3_RST"
++	};
++	struct i2c_client *c = state->i2c_client;
++	struct s5c73m3_gpio *g = state->gpio;
++	int ret, i;
++
++	for (i = 0; i < GPIO_NUM; ++i) {
++		unsigned int flags = GPIOF_DIR_OUT;
++		if (g[i].level)
++			flags |= GPIOF_INIT_HIGH;
++		ret = devm_gpio_request_one(&c->dev, g[i].gpio, flags,
++					    gpio_names[i]);
++		if (ret) {
++			v4l2_err(c, "failed to request gpio %s\n",
++				 gpio_names[i]);
++			return ret;
++		}
++	}
++	return 0;
++}
++
++static int s5c73m3_parse_gpios(struct s5c73m3 *state)
++{
++	static const char * const prop_names[] = {
++		"standby-gpios", "xshutdown-gpios",
++	};
++	struct device *dev = &state->i2c_client->dev;
++	struct device_node *node = dev->of_node;
++	int ret, i;
++
++	for (i = 0; i < GPIO_NUM; ++i) {
++		enum of_gpio_flags of_flags;
++
++		ret = of_get_named_gpio_flags(node, prop_names[i],
++					      0, &of_flags);
++		if (ret < 0) {
++			dev_err(dev, "failed to parse %s DT property\n",
++				prop_names[i]);
++			return -EINVAL;
++		}
++		state->gpio[i].gpio = ret;
++		state->gpio[i].level = !(of_flags & OF_GPIO_ACTIVE_LOW);
++	}
++	return 0;
++}
++
++static int s5c73m3_get_platform_data(struct s5c73m3 *state)
+ {
+ 	struct device *dev = &state->i2c_client->dev;
+-	const struct s5c73m3_gpio *gpio;
+-	unsigned long flags;
++	const struct s5c73m3_platform_data *pdata = dev->platform_data;
++	struct device_node *node = dev->of_node;
++	struct device_node *node_ep;
++	struct v4l2_of_endpoint ep;
+ 	int ret;
+ 
+-	state->gpio[STBY].gpio = -EINVAL;
+-	state->gpio[RST].gpio  = -EINVAL;
++	if (!node) {
++		if (!pdata) {
++			dev_err(dev, "Platform data not specified\n");
++			return -EINVAL;
++		}
+ 
+-	gpio = &pdata->gpio_stby;
+-	if (gpio_is_valid(gpio->gpio)) {
+-		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
+-		      | GPIOF_EXPORT;
+-		ret = devm_gpio_request_one(dev, gpio->gpio, flags,
+-					    "S5C73M3_STBY");
+-		if (ret < 0)
+-			return ret;
++		state->mclk_frequency = pdata->mclk_frequency;
++		state->gpio[STBY] = pdata->gpio_stby;
++		state->gpio[RST] = pdata->gpio_reset;
++		return 0;
++	}
+ 
+-		state->gpio[STBY] = *gpio;
++	if (of_property_read_u32(node, "clock-frequency",
++				 &state->mclk_frequency)) {
++		state->mclk_frequency = S5C73M3_DEFAULT_MCLK_FREQ;
++		dev_info(dev, "using default %u Hz clock frequency\n",
++					state->mclk_frequency);
+ 	}
+ 
+-	gpio = &pdata->gpio_reset;
+-	if (gpio_is_valid(gpio->gpio)) {
+-		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
+-		      | GPIOF_EXPORT;
+-		ret = devm_gpio_request_one(dev, gpio->gpio, flags,
+-					    "S5C73M3_RST");
+-		if (ret < 0)
+-			return ret;
++	ret = s5c73m3_parse_gpios(state);
++	if (ret < 0)
++		return -EINVAL;
+ 
+-		state->gpio[RST] = *gpio;
++	node_ep = v4l2_of_get_next_endpoint(node, NULL);
++	if (!node_ep) {
++		dev_warn(dev, "no endpoint defined for node: %s\n",
++						node->full_name);
++		return 0;
+ 	}
+ 
++	v4l2_of_parse_endpoint(node_ep, &ep);
++	of_node_put(node_ep);
++
++	if (ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "unsupported bus type\n");
++		return -EINVAL;
++	}
++	/*
++	 * Number of MIPI CSI-2 data lanes is currently not configurable,
++	 * always a default value of 4 lanes is used.
++	 */
++	if (ep.bus.mipi_csi2.num_data_lanes != S5C73M3_MIPI_DATA_LANES)
++		dev_info(dev, "falling back to 4 MIPI CSI-2 data lanes\n");
++
+ 	return 0;
+ }
+ 
+@@ -1561,21 +1645,20 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
+ {
+ 	struct device *dev = &client->dev;
+-	const struct s5c73m3_platform_data *pdata = client->dev.platform_data;
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev *oif_sd;
+ 	struct s5c73m3 *state;
+ 	int ret, i;
+ 
+-	if (pdata == NULL) {
+-		dev_err(&client->dev, "Platform data not specified\n");
+-		return -EINVAL;
+-	}
+-
+ 	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+ 	if (!state)
+ 		return -ENOMEM;
+ 
++	state->i2c_client = client;
++	ret = s5c73m3_get_platform_data(state);
++	if (ret < 0)
++		return ret;
++
+ 	mutex_init(&state->lock);
+ 	sd = &state->sensor_sd;
+ 	oif_sd = &state->oif_sd;
+@@ -1613,11 +1696,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	state->mclk_frequency = pdata->mclk_frequency;
+-	state->bus_type = pdata->bus_type;
+-	state->i2c_client = client;
+-
+-	ret = s5c73m3_configure_gpios(state, pdata);
++	ret = s5c73m3_configure_gpios(state);
+ 	if (ret)
+ 		goto out_err;
+ 
+@@ -1651,9 +1730,29 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto out_err;
+ 
++	oif_sd->dev = dev;
++
++	ret = __s5c73m3_power_on(state);
++	if (ret < 0)
++		goto out_err1;
++
++	ret = s5c73m3_get_fw_version(state);
++	__s5c73m3_power_off(state);
++
++	if (ret < 0) {
++		dev_err(dev, "Device detection failed: %d\n", ret);
++		goto out_err1;
++	}
++
++	ret = v4l2_async_register_subdev(oif_sd);
++	if (ret < 0)
++		goto out_err1;
++
+ 	v4l2_info(sd, "%s: completed succesfully\n", __func__);
+ 	return 0;
+ 
++out_err1:
++	s5c73m3_unregister_spi_driver(state);
+ out_err:
+ 	media_entity_cleanup(&sd->entity);
+ 	return ret;
+@@ -1665,7 +1764,7 @@ static int s5c73m3_remove(struct i2c_client *client)
+ 	struct s5c73m3 *state = oif_sd_to_s5c73m3(oif_sd);
+ 	struct v4l2_subdev *sensor_sd = &state->sensor_sd;
+ 
+-	v4l2_device_unregister_subdev(oif_sd);
++	v4l2_async_unregister_subdev(oif_sd);
+ 
+ 	v4l2_ctrl_handler_free(oif_sd->ctrl_handler);
+ 	media_entity_cleanup(&oif_sd->entity);
+@@ -1684,8 +1783,17 @@ static const struct i2c_device_id s5c73m3_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, s5c73m3_id);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id s5c73m3_of_match[] = {
++	{ .compatible = "samsung,s5c73m3" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, s5c73m3_of_match);
++#endif
++
+ static struct i2c_driver s5c73m3_i2c_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(s5c73m3_of_match),
+ 		.name	= DRIVER_NAME,
+ 	},
+ 	.probe		= s5c73m3_probe,
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+index 8079e26..f60b265 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+@@ -27,6 +27,11 @@
+ 
+ #define S5C73M3_SPI_DRV_NAME "S5C73M3-SPI"
+ 
++static const struct of_device_id s5c73m3_spi_ids[] = {
++	{ .compatible = "samsung,s5c73m3" },
++	{ }
++};
++
+ enum spi_direction {
+ 	SPI_DIR_RX,
+ 	SPI_DIR_TX
+@@ -146,6 +151,7 @@ int s5c73m3_register_spi_driver(struct s5c73m3 *state)
+ 	spidrv->driver.name = S5C73M3_SPI_DRV_NAME;
+ 	spidrv->driver.bus = &spi_bus_type;
+ 	spidrv->driver.owner = THIS_MODULE;
++	spidrv->driver.of_match_table = s5c73m3_spi_ids;
+ 
+ 	return spi_register_driver(spidrv);
+ }
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3.h b/drivers/media/i2c/s5c73m3/s5c73m3.h
+index 9d2c086..2917857 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3.h
++++ b/drivers/media/i2c/s5c73m3/s5c73m3.h
+@@ -17,6 +17,7 @@
+ #ifndef S5C73M3_H_
+ #define S5C73M3_H_
+ 
++#include <linux/clk.h>
+ #include <linux/kernel.h>
+ #include <linux/regulator/consumer.h>
+ #include <media/v4l2-common.h>
+@@ -321,6 +322,7 @@ enum s5c73m3_oif_pads {
+ 
+ 
+ #define S5C73M3_MAX_SUPPLIES			6
++#define S5C73M3_DEFAULT_MCLK_FREQ		24000000U
+ 
+ struct s5c73m3_ctrls {
+ 	struct v4l2_ctrl_handler handler;
+@@ -391,6 +393,8 @@ struct s5c73m3 {
+ 	struct regulator_bulk_data supplies[S5C73M3_MAX_SUPPLIES];
+ 	struct s5c73m3_gpio gpio[GPIO_NUM];
+ 
++	struct clk *clock;
++
+ 	/* External master clock frequency */
+ 	u32 mclk_frequency;
+ 	/* Video bus type - MIPI-CSI2/paralell */
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
