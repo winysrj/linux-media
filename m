@@ -1,166 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:51971 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606Ab3JLMc1 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2108 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756803Ab3JQR1p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 08:32:27 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
+	Thu, 17 Oct 2013 13:27:45 -0400
+Message-ID: <5b441bfc95ea3d9500c0eb7b68134c51.squirrel@webmail.xs4all.nl>
+In-Reply-To: <52601C1B.6080802@samsung.com>
+References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+    <52601C1B.6080802@samsung.com>
+Date: Thu, 17 Oct 2013 19:27:33 +0200
+Subject: Re: [PATCH RFC v2 00/10] V4L2 mem-to-mem ioctl helpers
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Sylwester Nawrocki" <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
 	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
 	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
 	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 08/10] exynos-gsc: Remove GSC_{SRC, DST}_FMT flags
-Date: Sat, 12 Oct 2013 14:31:58 +0200
-Message-Id: <1381581120-26883-9-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
-References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+	linux-samsung-soc@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The GSC_SRC_FMT, GSC_DST_FMT flags are currently set in VIDIOC_S_FMT ioctl
-and cleared in VIDIOC_REQBUFS(0). In between the flags are used to figure out
-if scaling ratio check need to be performed. This an incorrect behaviour as
-it should be assumed there is always a valid configuration on a video device.
-Fix this by removing those flags and also remove an unused 'frame' local
-variable.
+Hi Sylwester,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c |   10 ++----
- drivers/media/platform/exynos-gsc/gsc-core.h |    2 -
- drivers/media/platform/exynos-gsc/gsc-m2m.c  |   46 +++++++++-----------------
- 3 files changed, 19 insertions(+), 39 deletions(-)
+> Hi Hans,
+>
+> Can I still add your Ack to updated patches 2, 3, 4, 10 ?
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 9d0cc04..d0bba73 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -698,7 +698,6 @@ static int __gsc_s_ctrl(struct gsc_ctx *ctx, struct v4l2_ctrl *ctrl)
- {
- 	struct gsc_dev *gsc = ctx->gsc_dev;
- 	struct gsc_variant *variant = gsc->variant;
--	unsigned int flags = GSC_DST_FMT | GSC_SRC_FMT;
- 	int ret = 0;
- 
- 	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
-@@ -714,18 +713,15 @@ static int __gsc_s_ctrl(struct gsc_ctx *ctx, struct v4l2_ctrl *ctrl)
- 		break;
- 
- 	case V4L2_CID_ROTATE:
--		if ((ctx->state & flags) == flags) {
--			ret = gsc_check_scaler_ratio(variant,
-+		ret = gsc_check_scaler_ratio(variant,
- 					ctx->s_frame.crop.width,
- 					ctx->s_frame.crop.height,
- 					ctx->d_frame.crop.width,
- 					ctx->d_frame.crop.height,
- 					ctx->gsc_ctrls.rotate->val,
- 					ctx->out_path);
--
--			if (ret)
--				return -EINVAL;
--		}
-+		if (ret < 0)
-+			return ret;
- 
- 		ctx->rotation = ctrl->val;
- 		break;
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index 76435d3..c79b3cb 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -41,8 +41,6 @@
- #define DEFAULT_CSC_RANGE		1
- 
- #define GSC_PARAMS			(1 << 0)
--#define GSC_SRC_FMT			(1 << 1)
--#define GSC_DST_FMT			(1 << 2)
- #define GSC_CTX_M2M			(1 << 3)
- #define GSC_CTX_STOP_REQ		(1 << 6)
- 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 48e1c34..78bcb92 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -341,11 +341,7 @@ static int gsc_m2m_s_fmt_mplane(struct file *file, void *fh,
- 		frame->payload[i] = pix->plane_fmt[i].sizeimage;
- 
- 	gsc_set_frame_size(frame, pix->width, pix->height);
--
--	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
--		gsc_ctx_state_lock_set(GSC_PARAMS | GSC_DST_FMT, ctx);
--	else
--		gsc_ctx_state_lock_set(GSC_PARAMS | GSC_SRC_FMT, ctx);
-+	gsc_ctx_state_lock_set(GSC_PARAMS, ctx);
- 
- 	pr_debug("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
- 
-@@ -357,22 +353,14 @@ static int gsc_m2m_reqbufs(struct file *file, void *fh,
- {
- 	struct gsc_ctx *ctx = fh_to_ctx(fh);
- 	struct gsc_dev *gsc = ctx->gsc_dev;
--	struct gsc_frame *frame;
- 	u32 max_cnt;
- 
- 	max_cnt = (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ?
- 		gsc->variant->in_buf_cnt : gsc->variant->out_buf_cnt;
- 	if (reqbufs->count > max_cnt) {
- 		return -EINVAL;
--	} else if (reqbufs->count == 0) {
--		if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
--			gsc_ctx_state_lock_clear(GSC_SRC_FMT, ctx);
--		else
--			gsc_ctx_state_lock_clear(GSC_DST_FMT, ctx);
- 	}
- 
--	frame = ctx_get_frame(ctx, reqbufs->type);
--
- 	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
- }
- 
-@@ -527,24 +515,22 @@ static int gsc_m2m_s_selection(struct file *file, void *fh,
- 	}
- 
- 	/* Check to see if scaling ratio is within supported range */
--	if (gsc_ctx_state_is_set(GSC_DST_FMT | GSC_SRC_FMT, ctx)) {
--		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--			ret = gsc_check_scaler_ratio(variant, cr.c.width,
--				cr.c.height, ctx->d_frame.crop.width,
--				ctx->d_frame.crop.height,
--				ctx->gsc_ctrls.rotate->val, ctx->out_path);
--		} else {
--			ret = gsc_check_scaler_ratio(variant,
--				ctx->s_frame.crop.width,
--				ctx->s_frame.crop.height, cr.c.width,
--				cr.c.height, ctx->gsc_ctrls.rotate->val,
--				ctx->out_path);
--		}
-+	if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ret = gsc_check_scaler_ratio(variant, cr.c.width,
-+			cr.c.height, ctx->d_frame.crop.width,
-+			ctx->d_frame.crop.height,
-+			ctx->gsc_ctrls.rotate->val, ctx->out_path);
-+	} else {
-+		ret = gsc_check_scaler_ratio(variant,
-+			ctx->s_frame.crop.width,
-+			ctx->s_frame.crop.height, cr.c.width,
-+			cr.c.height, ctx->gsc_ctrls.rotate->val,
-+			ctx->out_path);
-+	}
- 
--		if (ret) {
--			pr_err("Out of scaler range");
--			return -EINVAL;
--		}
-+	if (ret < 0) {
-+		pr_err("Out of scaler range");
-+		return ret;
- 	}
- 
- 	frame->crop = cr.c;
--- 
-1.7.4.1
+Yes, that's OK.
+
+Regards,
+
+    Hans
+
+>
+> Thanks,
+> Sylwester
+>
+> On 12/10/13 14:31, Sylwester Nawrocki wrote:
+>> Hello,
+>>
+>> This patch set adds ioctl helpers to the v4l2-mem2mem module so the
+>> video mem-to-mem drivers can be simplified by removing functions that
+>> are only a pass-through to the v4l2_m2m_* calls. In addition some of
+>> the vb2 helper functions can be used as well.
+>>
+>> These helpers are similar to the videobuf2 ioctl helpers introduced
+>> in commit 4c1ffcaad5 "[media] videobuf2-core: add helper functions".
+>>
+>> Currently the requirements to use helper function introduced in this
+>> patch set is that both OUTPUT and CAPTURE vb2 buffer queues must use
+>> same lock and the driver uses struct v4l2_fh.
+>>
+>> I have only tested the first four patches in this series, Tested-by
+>> for the mx2-emmaprp, exynos-gsc, s5p-g2d drivers are appreciated.
+>>
+>> This patch series can be also found at:
+>>  git://linuxtv.org/snawrocki/samsung.git m2m-helpers-v3
+>>
+>> Changes since original version include addition of related cleanup
+>> patches, added helper function for create_buf ioctl and m2m context
+>> pointer from struct v4l2_fh is now reused and related field from the
+>> drivers' private data structure is removed.
+>>
+>> Thank you for all reviews. I plan to queue the first four patches for
+>> next kernel release early this week. For the mx2-emmaprp, exynos-gsc,
+>> s5p-g2d driver feedback is needed from someone who can actually test
+>> the changes. Any Tested-by for those drivers would be appreciated.
+>>
+>> Thanks,
+>> Sylwester
+>>
+>> Sylwester Nawrocki (10):
+>>   V4L: Add mem2mem ioctl and file operation helpers
+>>   mem2mem_testdev: Use mem-to-mem ioctl and vb2 helpers
+>>   exynos4-is: Use mem-to-mem ioctl helpers
+>>   s5p-jpeg: Use mem-to-mem ioctl helpers
+>>   mx2-emmaprp: Use struct v4l2_fh
+>>   mx2-emmaprp: Use mem-to-mem ioctl helpers
+>>   exynos-gsc: Configure default image format at device open()
+>>   exynos-gsc: Remove GSC_{SRC, DST}_FMT flags
+>>   exynos-gsc: Use mem-to-mem ioctl helpers
+>>   s5p-g2d: Use mem-to-mem ioctl helpers
+>>
+>>  drivers/media/platform/exynos-gsc/gsc-core.c  |   10 +-
+>>  drivers/media/platform/exynos-gsc/gsc-core.h  |   14 --
+>>  drivers/media/platform/exynos-gsc/gsc-m2m.c   |  232
+>> ++++++++-----------------
+>>  drivers/media/platform/exynos4-is/fimc-core.h |    2 -
+>>  drivers/media/platform/exynos4-is/fimc-m2m.c  |  148 +++-------------
+>>  drivers/media/platform/mem2mem_testdev.c      |  152 +++-------------
+>>  drivers/media/platform/mx2_emmaprp.c          |  185
+>> ++++++--------------
+>>  drivers/media/platform/s5p-g2d/g2d.c          |  124 +++-----------
+>>  drivers/media/platform/s5p-g2d/g2d.h          |    1 -
+>>  drivers/media/platform/s5p-jpeg/jpeg-core.c   |  134 +++------------
+>>  drivers/media/platform/s5p-jpeg/jpeg-core.h   |    2 -
+>>  drivers/media/v4l2-core/v4l2-mem2mem.c        |  118 +++++++++++++
+>>  include/media/v4l2-fh.h                       |    4 +
+>>  include/media/v4l2-mem2mem.h                  |   24 +++
+>>  14 files changed, 382 insertions(+), 768 deletions(-)
+>>
+>> --
+>> 1.7.4.1
+>
+> --
+> Sylwester Nawrocki
+> Samsung R&D Institute Poland
+>
+
 
