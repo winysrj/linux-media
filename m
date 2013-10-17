@@ -1,104 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54903 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751851Ab3JGRW1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Oct 2013 13:22:27 -0400
-Date: Mon, 7 Oct 2013 19:22:24 +0200
-From: Jan Kara <jack@suse.cz>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Jan Kara <jack@suse.cz>, LKML <linux-kernel@vger.kernel.org>,
-	linux-mm@kvack.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 19/26] ivtv: Convert driver to use
- get_user_pages_unlocked()
-Message-ID: <20131007172224.GC30441@quack.suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
- <1380724087-13927-20-git-send-email-jack@suse.cz>
- <1380974541.1905.12.camel@palomino.walls.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58755 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754721Ab3JQNKN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 09:10:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/6] v4l: omap4iss: Add support for OMAP4 camera interface - Core
+Date: Thu, 17 Oct 2013 15:10:32 +0200
+Message-ID: <22658506.hDujbKj41r@avalon>
+In-Reply-To: <20131017094857.3e97b9b1@samsung.com>
+References: <1380758133-16866-1-git-send-email-laurent.pinchart@ideasonboard.com> <1380758133-16866-2-git-send-email-laurent.pinchart@ideasonboard.com> <20131017094857.3e97b9b1@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1380974541.1905.12.camel@palomino.walls.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello,
+Hi Mauro,
 
-On Sat 05-10-13 08:02:21, Andy Walls wrote:
-> <rant>
-> This patch alone does not have suffcient information for me to evaluate
-> it.  get_user_pages_unlocked() is added in another patch which I did not
-> receive, and which I cannot find in any list archives.
-> 
-> I wasted quite a bit of time looking for this additional patch:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/jack/linux-fs.git/commit/?h=get_user_pages&id=624fc1bfb70fb65d32d31fbd16427ad9c234653e
-> 
-> </rant>
-  Sorry, I should have CCed that patch to driver maintainers as well.
-
-> If I found the correct patch for adding get_user_pages_unlocked(), then
-> the patch below looks fine.
-> 
-> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-> Acked-by: Andy Walls <awalls@md.metrocast.net>
-  Thanks.
-
-								Honza
-
-> On Wed, 2013-10-02 at 16:28 +0200, Jan Kara wrote:
-> > CC: Andy Walls <awalls@md.metrocast.net>
-> > CC: linux-media@vger.kernel.org
-> > Signed-off-by: Jan Kara <jack@suse.cz>
-> > ---
-> >  drivers/media/pci/ivtv/ivtv-udma.c |  6 ++----
-> >  drivers/media/pci/ivtv/ivtv-yuv.c  | 12 ++++++------
-> >  2 files changed, 8 insertions(+), 10 deletions(-)
+On Thursday 17 October 2013 09:48:57 Mauro Carvalho Chehab wrote:
+> Em Thu,  3 Oct 2013 01:55:28 +0200 Laurent Pinchart escreveu:
+> > From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
 > > 
-> > diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
-> > index 7338cb2d0a38..6012e5049076 100644
-> > --- a/drivers/media/pci/ivtv/ivtv-udma.c
-> > +++ b/drivers/media/pci/ivtv/ivtv-udma.c
-> > @@ -124,10 +124,8 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
-> >  	}
-> >  
-> >  	/* Get user pages for DMA Xfer */
-> > -	down_read(&current->mm->mmap_sem);
-> > -	err = get_user_pages(current, current->mm,
-> > -			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
-> > -	up_read(&current->mm->mmap_sem);
-> > +	err = get_user_pages_unlocked(current, current->mm, user_dma.uaddr,
-> > +				      user_dma.page_count, 0, 1, dma->map);
-> >  
-> >  	if (user_dma.page_count != err) {
-> >  		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
-> > diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
-> > index 2ad65eb29832..9365995917d8 100644
-> > --- a/drivers/media/pci/ivtv/ivtv-yuv.c
-> > +++ b/drivers/media/pci/ivtv/ivtv-yuv.c
-> > @@ -75,15 +75,15 @@ static int ivtv_yuv_prep_user_dma(struct ivtv *itv, struct ivtv_user_dma *dma,
-> >  	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
-> >  
-> >  	/* Get user pages for DMA Xfer */
-> > -	down_read(&current->mm->mmap_sem);
-> > -	y_pages = get_user_pages(current, current->mm, y_dma.uaddr, y_dma.page_count, 0, 1, &dma->map[0], NULL);
-> > +	y_pages = get_user_pages_unlocked(current, current->mm, y_dma.uaddr,
-> > +					  y_dma.page_count, 0, 1, &dma->map[0]);
-> >  	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
-> >  	if (y_pages == y_dma.page_count) {
-> > -		uv_pages = get_user_pages(current, current->mm,
-> > -					  uv_dma.uaddr, uv_dma.page_count, 0, 1,
-> > -					  &dma->map[y_pages], NULL);
-> > +		uv_pages = get_user_pages_unlocked(current, current->mm,
-> > +						   uv_dma.uaddr,
-> > +						   uv_dma.page_count, 0, 1,
-> > +						   &dma->map[y_pages]);
-> >  	}
-> > -	up_read(&current->mm->mmap_sem);
-> >  
-> >  	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
-> >  		int rc = -EFAULT;
+> > This adds a very simplistic driver to utilize the CSI2A interface inside
+> > the ISS subsystem in OMAP4, and dump the data to memory.
+> > 
+> > Check Documentation/video4linux/omap4_camera.txt for details.
+> > 
+> > This commit adds the driver core, registers definitions and
+> > documentation.
+> > 
+> > Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+> > 
+> > [Port the driver to v3.12-rc3, including the following changes
+> > - Don't include plat/ headers
+> > - Don't use cpu_is_omap44xx() macro
+> > - Don't depend on EXPERIMENTAL
+> > - Fix s_crop operation prototype
+> > - Update link_notify prototype
+> > - Rename media_entity_remote_source to media_entity_remote_pad]
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > 
+> Checkpatch has a few compliants on the version that it is on your pull
+> request:
+
+[snip]
+
+> WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...
+>  to printk(KERN_ERR ... #1240: FILE:
+> drivers/staging/media/omap4iss/iss.c:1126:
+> +		printk(KERN_ERR "%s: Media device registration failed (%d)\n",
+
+No, I won't rewrite the driver as a net device ;-)
+
+[snip]
+
+> The 80-cols warnings above seem just bogus, as fixing them on this specific
+> case would produce a worse to read code, but the other warnings make some
+> sense on my eyes.
 > 
+> Care to address them or to justify why to not address them?
+> 
+> Also, both Hans and Sakari's comments on this patch seem pertinent.
+> 
+> Could you please either add some extra patches to this series addressing
+> the pointed issues or to send another git pull request considering
+> those?
+
+I plan to fix all that in extra patches (I believe that keeping the driver 
+history is interesting, so I'd like to avoid squashing the fixes into these 
+patches) for v3.14 (the v3.13 merge window is just too close).
+
+Given that the driver goes to staging first, would it be a problem to take it 
+as-is for v3.13 if I commit to fix the problems in the very near future ? I've 
+been made aware of quite a lot of interest on the OMAP4 ISS lately, and I'd 
+like to get the driver to mainline without much delay to let people contribute 
+(if they can and want obviously).
+
 -- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+Regards,
+
+Laurent Pinchart
+
