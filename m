@@ -1,84 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39724 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753050Ab3JBSPR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 14:15:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teemux.tuominen@intel.com
-Subject: Re: [RFC v2 0/4]
-Date: Wed, 02 Oct 2013 20:15:25 +0200
-Message-ID: <13152311.59C5UI1BDX@avalon>
-In-Reply-To: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1380721516-488-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from mailout4.samsung.com ([203.254.224.34]:29104 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758168Ab3JQSI6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 14:08:58 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 1/6] V4L: s5k6a3: Add DT binding documentation
+Date: Thu, 17 Oct 2013 20:06:46 +0200
+Message-id: <1382033211-32329-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com>
+References: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This patch adds binding documentation for the Samsung S5K6A3(YX)
+raw image sensor.
 
-On Wednesday 02 October 2013 16:45:12 Sakari Ailus wrote:
-> Hi all,
-> 
-> This is the second RFC set after the initial patch that makes poll return
-> POLLERR if no events are subscribed. There are other issues as well which
-> these patches address.
-> 
-> The original RFC patch is here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg68077.html>
-> 
-> poll(2) and select(2) can both be used for I/O multiplexing. While both
-> provide slightly different semantics. man 2 select:
-> 
->        select() and  pselect()  allow  a  program  to  monitor  multiple 
-> file descriptors,  waiting  until one or more of the file descriptors
-> become "ready" for some class of I/O operation (e.g., input possible).  A
-> file descriptor  is considered ready if it is possible to perform the
-> corre‐ sponding I/O operation (e.g., read(2)) without blocking.
-> 
-> The two system calls provide slightly different semantics: poll(2) can
-> signal POLLERR related to a file handle but select(2) does not: instead, on
-> POLLERR it sets a bit corresponding to a file handle in the read and write
-> sets. This is somewhat confusing since with the original patch --- using
-> select(2) would suggest that there's something to read or write instead of
-> knowing no further exceptions are coming.
-> 
-> Thus, also denying polling a subdev file handle using select(2) will mean
-> the POLLERR never gets through in any form.
-> 
-> So the meaningful alternatives I can think of are:
-> 
-> 1) Use POLLERR | POLLPRI. When the last event subscription is gone and
-> select(2) IOCTL is issued, all file descriptor sets are set for a file
-> handle. Users of poll(2) will directly see both of the flags, making the
-> case visible to the user immediately in some cases. On sub-devices this is
-> obvious but on V4L2 devices the user should poll(2) (or select(2)) again to
-> know whether there's I/O waiting to be read, written or whether buffers are
-> ready.
-> 
-> 2) Use POLLPRI only. While this does not differ from any regular event at
-> the level of poll(2) or select(2), the POLLIN or POLLOUT flags are not
-> adversely affected.
-> 
-> In each of the cases to ascertain oneself in a generic way of whether events
-> cannot no longer be obtained one has to call VIDIOC_DQEVENT IOCTL, which
-> currently may block. A patch in the set makes VIDIOC_DQEVENT to signal EIO
-> error code if no events are subscribed.
-> 
-> The videobuf2 changes are untested at the moment since I didn't have a
-> device using videobuf2 at hand right now.
-> 
-> Comments and questions are very welcome.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v2:
+ - added AF regulator supply.
+---
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   32 ++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
 
-What's the behaviour of select(2) and poll(2) after this patch set when 
-polling an fd for both read and events, when no event has been subscribed to ?
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+new file mode 100644
+index 0000000..3806e77
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+@@ -0,0 +1,32 @@
++Samsung S5K6A3(YX) raw image sensor
++---------------------------------
++
++S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
++
++Required properties:
++
++- compatible	: "samsung,s5k6a3";
++- reg		: I2C slave address of the sensor;
++- svdda-supply	: core voltage supply;
++- svddio-supply	: I/O voltage supply;
++- afvdd-supply	: AF (actuator) voltage supply;
++- gpios		: specifier of a GPIO connected to the RESET pin;
++- clocks	: should contain the sensor's EXTCLK clock specifier,
++		  from common clock bindings;
++- clock-names	: should contain "extclk" entry;
++
++Optional properties:
++
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The S5K6A3(YX) device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only one data lane.
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
