@@ -1,31 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:56762 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526Ab3JLJlF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 05:41:05 -0400
-Message-ID: <5259192E.9030304@gmail.com>
-Date: Sat, 12 Oct 2013 11:41:02 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Seung-Woo Kim <sw0312.kim@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	m.chehab@samsung.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH] s5p-jpeg: fix encoder and decoder video dev names
-References: <1381394756-17651-1-git-send-email-sw0312.kim@samsung.com>
-In-Reply-To: <1381394756-17651-1-git-send-email-sw0312.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga14.intel.com ([143.182.124.37]:50786 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753065Ab3JQIOw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 04:14:52 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id E42D8200D2
+	for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 11:14:49 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: subdev: Check for pads in [gs]_frame_interval
+Date: Thu, 17 Oct 2013 11:15:54 +0300
+Message-Id: <1381997754-3348-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/10/2013 10:45 AM, Seung-Woo Kim wrote:
-> It is hard to distinguish between decoder and encoder video device
-> because their names are same. So this patch fixes the names.
->
-> Signed-off-by: Seung-Woo Kim<sw0312.kim@samsung.com>
+The validity of the pad field in struct v4l2_subdev_frame_interval was not
+ensured by the V4L2 subdev IOCTL helper. Fix this.
 
-Patch queued for 3.13.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-Thanks,
-Sylwester
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..3fa1907 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -305,11 +305,23 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 					fse);
+ 	}
+ 
+-	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
++	case VIDIOC_SUBDEV_G_FRAME_INTERVAL: {
++		struct v4l2_subdev_frame_interval *fi = arg;
++
++		if (fi->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
+ 		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
++	}
++
++	case VIDIOC_SUBDEV_S_FRAME_INTERVAL: {
++		struct v4l2_subdev_frame_interval *fi = arg;
++
++		if (fi->pad >= sd->entity.num_pads)
++			return -EINVAL;
+ 
+-	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
+ 		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
++	}
+ 
+ 	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
+ 		struct v4l2_subdev_frame_interval_enum *fie = arg;
+-- 
+1.8.3.2
+
