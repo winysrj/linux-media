@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kripserver.net ([91.143.80.239]:33983 "EHLO mail.kripserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754939Ab3JXSqi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Oct 2013 14:46:38 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.kripserver.net (Postfix) with ESMTP id 57D2B3AE08F
-	for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 18:39:07 +0000 (UTC)
-Received: from mail.kripserver.net ([91.143.80.239])
-	by localhost (mail.kripserver.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id BZliEAJo11Fx for <linux-media@vger.kernel.org>;
-	Thu, 24 Oct 2013 18:39:06 +0000 (UTC)
-Received: from [192.168.189.220] (p5B0D01FD.dip0.t-ipconnect.de [91.13.1.253])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.kripserver.net (Postfix) with ESMTPSA id E5E943AE08E
-	for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 18:39:05 +0000 (UTC)
-Message-ID: <52696948.5080506@kripserver.net>
-Date: Thu, 24 Oct 2013 20:39:04 +0200
-From: Jannis <jannis-lists@kripserver.net>
-MIME-Version: 1.0
+Received: from mailout2.samsung.com ([203.254.224.25]:15270 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758563Ab3JQSH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 14:07:27 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: Re: DVB-S2 USB device: DVBsky, Technotrend or Tevii?
-References: <52685900.3010608@gmx.net>
-In-Reply-To: <52685900.3010608@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 0/6] Add device tree support for Exynos4 SoC camera subsystem
+Date: Thu, 17 Oct 2013 20:06:45 +0200
+Message-id: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This series is intended to add device tree support for both cameras
+on the Exynos4412 SoC Trats 2 board. It converts related drivers to use
+the v4l2-async API and expose the sensor's master clock, supplied by the
+camera host interface, through the common clock API.
 
-Am 24.10.2013 01:17, schrieb P. van Gaans:
-> I want to buy a DVB-S2 USB device. The following are available here (all
-> Montage tuner/demod):
+This changeset is an updated version of my patch series [1]. I didn't
+receive any feedback until then and the changes in this iteration are
+rather minor. I'm going to send a pull request including those patches
+this week.
 
-I know that it's not on your list but I have two of those (working very
-well here) and the driver is in mainline linux since at least 2.6.39:
-http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
+[1] http://www.spinics.net/lists/linux-media/msg67574.html
 
-I personally don't use DiSEqC at all but other users reported that it
-should work.
-Maybe you want to consider buying it from abroad?
+Thanks,
+Sylwester
 
-Best regards,
-	Jannis
+Sylwester Nawrocki (6):
+  V4L: s5k6a3: Add DT binding documentation
+  V4L: Add driver for s5k6a3 image sensor
+  V4L: s5c73m3: Add device tree support
+  exynos4-is: Add clock provider for the external clocks
+  exynos4-is: Use external s5k6a3 sensor driver
+  exynos4-is: Add support for asynchronous subdevices registration
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |   19 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   95 +++++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   32 ++
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  208 ++++++++---
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ drivers/media/i2c/s5k6a3.c                         |  387 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
+ drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
+ drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  327 ++++++++++++-----
+ drivers/media/platform/exynos4-is/media-dev.h      |   31 +-
+ 16 files changed, 1024 insertions(+), 531 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+
+--
+1.7.9.5
+
