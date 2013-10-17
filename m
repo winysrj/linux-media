@@ -1,33 +1,47 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:65503 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937Ab3JRD5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 23:57:55 -0400
-Received: by mail-we0-f182.google.com with SMTP id t61so3205557wes.13
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:57:53 -0700 (PDT)
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <nuclear@jvitals.com>) id 1VWlCu-0007kg-HH
+	for linux-dvb@linuxtv.org; Thu, 17 Oct 2013 12:53:33 +0200
+Received: from smtp-out.jvhosting.net ([72.29.65.52])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-7) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1VWlCs-00039N-2I; Thu, 17 Oct 2013 12:53:32 +0200
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:64756)
+	by server.jvhosting.net with esmtpsa (TLSv1:RC4-SHA:128) (Exim 4.71)
+	(envelope-from <nuclear@jvitals.com>) id 1VWlCq-0001wn-IO
+	for linux-dvb@linuxtv.org; Thu, 17 Oct 2013 06:53:28 -0400
+Received: by mail-lb0-f169.google.com with SMTP id z5so1730294lbh.14
+	for <linux-dvb@linuxtv.org>; Thu, 17 Oct 2013 03:53:26 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1382065635-27855-4-git-send-email-sachin.kamat@linaro.org>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org> <1382065635-27855-4-git-send-email-sachin.kamat@linaro.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 18 Oct 2013 09:27:33 +0530
-Message-ID: <CA+V-a8u1dOJfDxzeNzVmSme1oOPaXSx2Dh-zJnQLv5BPEj0VFA@mail.gmail.com>
-Subject: Re: [PATCH 4/6] [media] tvp514x: Include linux/of.h header
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+From: nuclear <nuclear@jvitals.com>
+Date: Thu, 17 Oct 2013 13:53:05 +0300
+Message-ID: <CABmVWRHesA3DFzKM960MxXhkd_roUmeYo3tk9v-KN7xZj1Hk0g@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] dvb-apps/scan: initial scan file for Sofia, Bulgaria
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Oct 18, 2013 at 8:37 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to
-> avoid build breakage in the future.
->
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Hello all,
+I would like to contribute an initial scan file for Sofia, Bulgaria.
+Please find it attached.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Best Regards
+nuclear
 
-Regrads,
---Prabhakar Lad
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
