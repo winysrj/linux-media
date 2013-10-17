@@ -1,108 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4090 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab3JBC4z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 22:56:55 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r922uqFw085473
-	for <linux-media@vger.kernel.org>; Wed, 2 Oct 2013 04:56:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 215AA2A0768
-	for <linux-media@vger.kernel.org>; Wed,  2 Oct 2013 04:56:44 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131002025644.215AA2A0768@tschai.lan>
-Date: Wed,  2 Oct 2013 04:56:44 +0200 (CEST)
+Received: from moutng.kundenserver.de ([212.227.17.10]:62427 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762241Ab3JQSYi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 14:24:38 -0400
+Date: Thu, 17 Oct 2013 20:24:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data
+ type
+In-Reply-To: <201304191026.34360.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+ <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange>
+ <201304191026.34360.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans
 
-Results of the daily build of media_tree:
+Sorry for reviving this old thread. I was going to resubmit a part of 
+those patches for mainlining and then I found this your comment, which I 
+didn't reply to back then.
 
-date:		Wed Oct  2 04:00:16 CEST 2013
-git branch:	test
-git hash:	ffee921033e64edf8579a3b21c7f15d1a6c3ef71
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.10.1
+On Fri, 19 Apr 2013, Hans Verkuil wrote:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.10.1-i686: OK
-linux-3.1.10-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+> On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
+> > Hi Hans
+> > 
+> > Thanks for reviewing.
+> > 
+> > On Fri, 19 Apr 2013, Hans Verkuil wrote:
+> > 
+> > > On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
+> > > > This struct shall be used by subdevice drivers to pass per-subdevice data,
+> > > > e.g. power supplies, to generic V4L2 methods, at the same time allowing
+> > > > optional host-specific extensions via the host_priv pointer. To avoid
+> > > > having to pass two pointers to those methods, add a pointer to this new
+> > > > struct to struct v4l2_subdev.
+> > > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > >  include/media/v4l2-subdev.h |   13 +++++++++++++
+> > > >  1 files changed, 13 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > > > index eb91366..b15c6e0 100644
+> > > > --- a/include/media/v4l2-subdev.h
+> > > > +++ b/include/media/v4l2-subdev.h
+> > > > @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
+> > > >  /* Set this flag if this subdev generates events. */
+> > > >  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+> > > >  
+> > > > +struct regulator_bulk_data;
+> > > > +
+> > > > +struct v4l2_subdev_platform_data {
+> > > > +	/* Optional regulators uset to power on/off the subdevice */
+> > > > +	struct regulator_bulk_data *regulators;
+> > > > +	int num_regulators;
+> > > > +
+> > > > +	/* Per-subdevice data, specific for a certain video host device */
+> > > > +	void *host_priv;
+> > > > +};
+> > > > +
+> > > >  /* Each instance of a subdev driver should create this struct, either
+> > > >     stand-alone or embedded in a larger struct.
+> > > >   */
+> > > > @@ -589,6 +600,8 @@ struct v4l2_subdev {
+> > > >  	/* pointer to the physical device */
+> > > >  	struct device *dev;
+> > > >  	struct v4l2_async_subdev_list asdl;
+> > > > +	/* common part of subdevice platform data */
+> > > > +	struct v4l2_subdev_platform_data *pdata;
+> > > >  };
+> > > >  
+> > > >  static inline struct v4l2_subdev *v4l2_async_to_subdev(
+> > > > 
+> > > 
+> > > Sorry, this is the wrong approach.
+> > > 
+> > > This is data that is of no use to the subdev driver itself. It really is
+> > > v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
+> > > driver.
+> > 
+> > I don't think so. It has been discussed and agreed upon, that only 
+> > subdevice drivers know when to switch power on and off, because only they 
+> > know when they need to access the hardware. So, they have to manage 
+> > regulators. In fact, those regulators supply power to respective 
+> > subdevices, e.g. a camera sensor. Why should the bridge driver manage 
+> > them? The V4L2 core can (and probably should) provide helper functions for 
+> > that, like soc-camera currently does, but in any case it's the subdevice 
+> > driver, that has to call them.
+> 
+> Ah, OK. I just realized I missed some context there. I didn't pay much
+> attention to the regulator discussions since that's not my area of expertise.
+> 
+> In that case my only comment is to drop the host_priv pointer since that just
+> duplicates v4l2_get/set_subdev_hostdata().
 
-Detailed results are available here:
+I think it's different. This is _platform_ data, whereas struct 
+v4l2_subdev::host_priv is more like run-time data. This field is for the 
+per-subdevice host-specific data, that the platform has to pass to the 
+host driver. In the soc-camera case this is the largest bulk of the data, 
+that platforms currently pass to the soc-camera framework in the host part 
+of struct soc_camera_link. This data most importantly includes I2C 
+information. Yes, this _could_ be passed to soc-camera separately from the 
+host driver, but that would involve quite some refactoring of the "legacy" 
+synchronous probing mode, which I'd like to avoid if possible. This won't 
+be used in the asynchronous case. Do you think we can keep this pointer in 
+this sruct? We could rename it to avoid confusion with the field, that you 
+told about.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Thanks
+Guennadi
 
-Full logs are available here:
+> > > It can use v4l2_get/set_subdev_hostdata() to associate this struct with a
+> > > subdev, though.
+> > > 
+> > > Regards,
+> > > 
+> > > 	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
