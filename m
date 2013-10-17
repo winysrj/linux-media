@@ -1,93 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51298 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab3JaOGW convert rfc822-to-8bit (ORCPT
+Received: from smtp-out.jvhosting.net ([72.29.65.52]:51794 "EHLO
+	smtp-out.jvhosting.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752668Ab3JQMCH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Oct 2013 10:06:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Denis Carikli <denis@eukrea.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Eric =?ISO-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	devicetree@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	driverdev-devel@linuxdriverproject.org,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [Patch v2][ 04/37] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
-Date: Thu, 31 Oct 2013 15:06:45 +0100
-Message-ID: <27124564.ioQJs5F4eu@avalon>
-In-Reply-To: <20131031111806.72b6856b@samsung.com>
-References: <1382022155-21954-1-git-send-email-denis@eukrea.com> <1382022155-21954-5-git-send-email-denis@eukrea.com> <20131031111806.72b6856b@samsung.com>
+	Thu, 17 Oct 2013 08:02:07 -0400
+Received: from mail-la0-f54.google.com ([209.85.215.54]:36394)
+	by server.jvhosting.net with esmtpsa (TLSv1:RC4-SHA:128)
+	(Exim 4.71)
+	(envelope-from <nuclear@jvitals.com>)
+	id 1VWl6c-0001o8-Uf
+	for linux-media@vger.kernel.org; Thu, 17 Oct 2013 06:47:03 -0400
+Received: by mail-la0-f54.google.com with SMTP id ea20so1677028lab.13
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 03:47:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+From: nuclear <nuclear@jvitals.com>
+Date: Thu, 17 Oct 2013 13:46:40 +0300
+Message-ID: <CABmVWRHctVBegCVQ6nMpogd_pGGeFADL86fb4tKyAG=Bi=+G5Q@mail.gmail.com>
+Subject: dvb-apps/scan: initial scan file for Sofia, Bulgaria
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001a11c34f5c9b74a004e8ed89c6
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 31 October 2013 11:18:06 Mauro Carvalho Chehab wrote:
-> Em Thu, 17 Oct 2013 17:02:02 +0200
-> 
-> Denis Carikli <denis@eukrea.com> escreveu:
-> > That new macro is needed by the imx_drm staging driver
-> > 
-> >   for supporting the QVGA display of the eukrea-cpuimx51 board.
-> > 
-> > Cc: Rob Herring <rob.herring@calxeda.com>
-> > Cc: Pawel Moll <pawel.moll@arm.com>
-> > Cc: Mark Rutland <mark.rutland@arm.com>
-> > Cc: Stephen Warren <swarren@wwwdotorg.org>
-> > Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> > Cc: devicetree@vger.kernel.org
-> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Cc: driverdev-devel@linuxdriverproject.org
-> > Cc: David Airlie <airlied@linux.ie>
-> > Cc: dri-devel@lists.freedesktop.org
-> > Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: linux-media@vger.kernel.org
-> > Cc: Sascha Hauer <kernel@pengutronix.de>
-> > Cc: linux-arm-kernel@lists.infradead.org
-> > Cc: Eric Bénard <eric@eukrea.com>
-> > Signed-off-by: Denis Carikli <denis@eukrea.com>
-> 
-> It seems better to apply this one together with the other DRM patches via
-> DRM tree. So:
-> 	Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+--001a11c34f5c9b74a004e8ed89c6
+Content-Type: text/plain; charset=ISO-8859-1
 
-Actually, if I might, I'd like to nak this patch, as adding new pixel formats 
-requires updating the documentation as well (see 
-Documentation/DocBook/media/v4l/pixfmt*.xml).
+Hello all,
+I would like to contribute an initial scan file for Sofia, Bulgaria.
+Please find it attached.
 
-> > ---
-> > 
-> >  include/uapi/linux/videodev2.h |    1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index 437f1b0..e8ff410 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -294,6 +294,7 @@ struct v4l2_pix_format {
-> > 
-> >  #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16 
-> >  RGB-5-5-5 BE  */ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B',
-> >  'R') /* 16  RGB-5-6-5 BE  */ #define V4L2_PIX_FMT_BGR666 
-> >  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */> 
-> > +#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18 
-> > RGB-6-6-6	  */> 
-> >  #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24 
-> >  BGR-8-8-8     */ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B',
-> >  '3') /* 24  RGB-8-8-8     */ #define V4L2_PIX_FMT_BGR32  
-> >  v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
--- 
-Regards,
+Best Regards
+nuclear
 
-Laurent Pinchart
+--001a11c34f5c9b74a004e8ed89c6
+Content-Type: application/octet-stream; name=bg-Sofia
+Content-Disposition: attachment; filename=bg-Sofia
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hmvv3t6z0
 
+Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
+d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
+CiMhIDx3X3NjYW4+IDIwMTMwMzMxIDEgMCBURVJSRVNUUklBTCBCRyA8L3dfc2Nhbj4KIy0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQojIGxvY2F0aW9uIGFuZCBwcm92aWRlcjogU29maWEsIEJ1bGdhcmlh
+CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDEzLTEwLTEzCiMgcHJvdmlkZWQgYnkgKG9wdCkg
+ICAgOiBudWNsZWFyLWhlYWQgbnVjbGVhckBqdml0YWxzLmNvbQojCiMgVFsyXSBbcGxwX2lkXSBb
+c3lzdGVtX2lkXSA8ZnJlcT4gPGJ3PiA8ZmVjX2hpPiA8ZmVjX2xvPiA8bW9kPiA8dG0+IDxndWFy
+ZD4gPGhpPiBbIyBjb21tZW50XQojLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClQgNDkwMDAwMDAwIDhN
+SHogIDIvMyBOT05FICAgIFFBTTY0ICAgOGsgIDEvNCBOT05FCSMgTlVSVFMgRGlnaXRhbApUIDYy
+NjAwMDAwMCA4TUh6ICAyLzMgTk9ORSAgICBRQU02NCAgIDhrICAxLzQgTk9ORQkjIE5VUlRTIERp
+Z2l0YWwKVCA3MjIwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4ayAgMS80IE5PTkUJ
+IyBGaXJzdCBEaWdpdGFsClQgODE4MDAwMDAwIDhNSHogIDIvMyBOT05FICAgIFFBTTE2ICAgOGsg
+MS8xNiBOT05FCSMgTlVSVFMK
+--001a11c34f5c9b74a004e8ed89c6--
