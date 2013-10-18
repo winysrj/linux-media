@@ -1,53 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3809 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754782Ab3JDOCK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:52629 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab3JRD6X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 23:58:23 -0400
+Received: by mail-wg0-f48.google.com with SMTP id b13so3120006wgh.3
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:58:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1382065635-27855-3-git-send-email-sachin.kamat@linaro.org>
+References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org> <1382065635-27855-3-git-send-email-sachin.kamat@linaro.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 18 Oct 2013 09:28:02 +0530
+Message-ID: <CA+V-a8v5E-V70HA5emCLnAGkopyCsG9L=-E3tL8=tCjPDOBY3g@mail.gmail.com>
+Subject: Re: [PATCH 3/6] [media] ths8200: Include linux/of.h header
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH 04/14] tuner-xs2028.c: fix sparse warnings
-Date: Fri,  4 Oct 2013 16:01:42 +0200
-Message-Id: <1380895312-30863-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
-References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Oct 18, 2013 at 8:37 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to
+> avoid build breakage in the future.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-drivers/media/tuners/tuner-xc2028.c:575:24: warning: cast to restricted __le16
-drivers/media/tuners/tuner-xc2028.c:686:21: warning: cast to restricted __le16
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/tuners/tuner-xc2028.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index 878d2c4..e287a74 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -572,7 +572,7 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
- 			return -EINVAL;
- 		}
- 
--		size = le16_to_cpu(*(__u16 *) p);
-+		size = le16_to_cpu(*(__le16 *) p);
- 		p += sizeof(size);
- 
- 		if (size == 0xffff)
-@@ -683,7 +683,7 @@ static int load_scode(struct dvb_frontend *fe, unsigned int type,
- 		/* 16 SCODE entries per file; each SCODE entry is 12 bytes and
- 		 * has a 2-byte size header in the firmware format. */
- 		if (priv->firm[pos].size != 14 * 16 || scode >= 16 ||
--		    le16_to_cpu(*(__u16 *)(p + 14 * scode)) != 12)
-+		    le16_to_cpu(*(__le16 *)(p + 14 * scode)) != 12)
- 			return -EINVAL;
- 		p += 14 * scode + 2;
- 	}
--- 
-1.8.3.2
-
+Regrads,
+--Prabhakar Lad
