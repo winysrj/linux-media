@@ -1,137 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:64720 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab3J2X54 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:52433 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203Ab3JRUaW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 19:57:56 -0400
-Message-ID: <52704B80.2040507@gmail.com>
-Date: Wed, 30 Oct 2013 00:57:52 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Fri, 18 Oct 2013 16:30:22 -0400
+Date: Fri, 18 Oct 2013 22:30:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+cc: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: make sure that all subdevices are powered on
+ when needed
+In-Reply-To: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com>
+Message-ID: <Pine.LNX.4.64.1310182228130.12288@axis700.grange>
+References: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, mturquette@linaro.org,
-	linux@arm.linux.org.uk, jiada_wang@mentor.com,
-	kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org, linux-mips@linux-mips.org,
-	linux-sh@vger.kernel.org, LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v7 1/5] omap3isp: Modify clocks registration to avoid
- circular references
-References: <1383076268-8984-1-git-send-email-s.nawrocki@samsung.com> <1383076268-8984-2-git-send-email-s.nawrocki@samsung.com> <16467881.81yEf9zq68@avalon>
-In-Reply-To: <16467881.81yEf9zq68@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Frank
 
-(adding Mauro and LMML at Cc)
+Thanks for the patch
 
-On 10/29/2013 11:28 PM, Laurent Pinchart wrote:
-> Hi Sylwester,
->
-> Thank you for the patch.
->
-> On Tuesday 29 October 2013 20:51:04 Sylwester Nawrocki wrote:
->> The clock core code is going to be modified so clk_get() takes
->> reference on the clock provider module. Until the potential circular
->> reference issue is properly addressed, we pass NULL as as the first
->> argument to clk_register(), in order to disallow sub-devices taking
->> a reference on the ISP module back trough clk_get(). This should
->> prevent locking the modules in memory.
->>
->> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->
-> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
->
-> Do you plan to push this to mainline as part of this patch series ? I don't
-> have pending patches for the omap3isp that would conflict with this patch, so
-> that would be fine with me.
+On Wed, 16 Oct 2013, Frank Schäfer wrote:
 
-Thanks, yes I thought this patch might be merged together through the clk
-tree, if Mike is willing to take it and we get yours and Mauro's Ack on it.
+> Commit 622b828ab7 ("v4l2_subdev: rename tuner s_standby operation to
+> core s_power") replaced the tuner s_standby call in the em28xx driver with
+> a (s_power, 0) call which suspends all subdevices.
+> But it neglected to add corresponding (s_power, 1) calls to make sure that
+> the subdevices are powered on again when needed.
+> 
+> This patch fixes this issue by adding a (s_power, 1) call to
+> function em28xx_wake_i2c().
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-core.c |    1 +
+>  1 Datei geändert, 1 Zeile hinzugefügt(+)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+> index fc157af..8896789 100644
+> --- a/drivers/media/usb/em28xx/em28xx-core.c
+> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+> @@ -1243,6 +1243,7 @@ EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
+>   */
+>  void em28xx_wake_i2c(struct em28xx *dev)
+>  {
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  s_power, 1);
+>  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
+>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+>  			INPUT(dev->ctl_input)->vmux, 0, 0);
 
->> ---
->> This patch has been "compile tested" only.
->>
->> ---
->>   drivers/media/platform/omap3isp/isp.c |   22 ++++++++++++++++------
->>   drivers/media/platform/omap3isp/isp.h |    1 +
->>   2 files changed, 17 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/isp.c
->> b/drivers/media/platform/omap3isp/isp.c index df3a0ec..286027a 100644
->> --- a/drivers/media/platform/omap3isp/isp.c
->> +++ b/drivers/media/platform/omap3isp/isp.c
->> @@ -290,9 +290,11 @@ static int isp_xclk_init(struct isp_device *isp)
->>   	struct clk_init_data init;
->>   	unsigned int i;
->>
->> +	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i)
->> +		isp->xclks[i].clk = ERR_PTR(-EINVAL);
->> +
->>   	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
->>   		struct isp_xclk *xclk =&isp->xclks[i];
->> -		struct clk *clk;
->>
->>   		xclk->isp = isp;
->>   		xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
->> @@ -305,10 +307,15 @@ static int isp_xclk_init(struct isp_device *isp)
->>   		init.num_parents = 1;
->>
->>   		xclk->hw.init =&init;
->> -
->> -		clk = devm_clk_register(isp->dev,&xclk->hw);
->> -		if (IS_ERR(clk))
->> -			return PTR_ERR(clk);
->> +		/*
->> +		 * The first argument is NULL in order to avoid circular
->> +		 * reference, as this driver takes reference on the
->> +		 * sensor subdevice modules and the sensors would take
->> +		 * reference on this module through clk_get().
->> +		 */
->> +		xclk->clk = clk_register(NULL,&xclk->hw);
->> +		if (IS_ERR(xclk->clk))
->> +			return PTR_ERR(xclk->clk);
->>
->>   		if (pdata->xclks[i].con_id == NULL&&
->>   		pdata->xclks[i].dev_id == NULL)
->> @@ -320,7 +327,7 @@ static int isp_xclk_init(struct isp_device *isp)
->>
->>   		xclk->lookup->con_id = pdata->xclks[i].con_id;
->>   		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
->> -		xclk->lookup->clk = clk;
->> +		xclk->lookup->clk = xclk->clk;
->>
->>   		clkdev_add(xclk->lookup);
->>   	}
->> @@ -335,6 +342,9 @@ static void isp_xclk_cleanup(struct isp_device *isp)
->>   	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
->>   		struct isp_xclk *xclk =&isp->xclks[i];
->>
->> +		if (!IS_ERR(xclk->clk))
->> +			clk_unregister(xclk->clk);
->> +
->>   		if (xclk->lookup)
->>   			clkdev_drop(xclk->lookup);
->>   	}
->> diff --git a/drivers/media/platform/omap3isp/isp.h
->> b/drivers/media/platform/omap3isp/isp.h index cd3eff4..1498f2b 100644
->> --- a/drivers/media/platform/omap3isp/isp.h
->> +++ b/drivers/media/platform/omap3isp/isp.h
->> @@ -135,6 +135,7 @@ struct isp_xclk {
->>   	struct isp_device *isp;
->>   	struct clk_hw hw;
->>   	struct clk_lookup *lookup;
->> +	struct clk *clk;
->>   	enum isp_xclk_id id;
->>
->>   	spinlock_t lock;	/* Protects enabled and divider */
+Do I understand it right, that you're proposing this as an alternative to 
+my power-balancing patch? It's certainly smaller and simpler, have you 
+also tested it with the ov2640 and my clock patches to see, whether this 
+really balances calls to .s_power() perfectly?
 
---
-Regards,
-Sylwester
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
