@@ -1,33 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:36171 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728Ab3JDIGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Oct 2013 04:06:48 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-mips@linux-mips.org
-Cc: linux-media@vger.kernel.org
-References: <m3eh82a1yo.fsf@t19.piap.pl>
-Date: Fri, 04 Oct 2013 10:06:45 +0200
-In-Reply-To: <m3eh82a1yo.fsf@t19.piap.pl> ("Krzysztof =?utf-8?Q?Ha=C5=82as?=
- =?utf-8?Q?a=22's?= message of
-	"Thu, 03 Oct 2013 16:00:47 +0200")
-MIME-Version: 1.0
-Message-ID: <m3a9ipa296.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: Re: Suspected cache coherency problem on V4L2 and AR7100 CPU
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:44965 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab3JRFir (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Oct 2013 01:38:47 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v10 11/12] V4L: Add DT binding doc for s5k4e5 image sensor
+Date: Fri, 18 Oct 2013 11:07:38 +0530
+Message-Id: <1382074659-31130-12-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I'm debugging a problem with a SOLO6110-based H.264 PCI video encoder on
-> Atheros AR7100-based (MIPS, big-endian) platform.
+S5K4E5 is a Samsung raw image sensor controlled via I2C.
+This patch adds the DT binding documentation for the same.
 
-BTW this CPU obviously has VIPT data cache, this means a physical page
-with multiple virtual addresses (e.g. mapped multiple times) may and
-will be cached multiple times.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 ++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
 
-AR7100 = arch/mips/ath79.
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+new file mode 100644
+index 0000000..0fca087
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+@@ -0,0 +1,45 @@
++* Samsung S5K4E5 Raw Image Sensor
++
++S5K4E5 is a raw image sensor with maximum resolution of 2560x1920
++pixels. Data transfer is carried out via MIPI CSI-2 port and controls
++via I2C bus.
++
++Required Properties:
++- compatible	: must be "samsung,s5k4e5"
++- reg		: I2C device address
++- reset-gpios	: specifier of a GPIO connected to the RESET pin
++- clocks	: should contain the sensor's EXTCLK clock specifier, from
++		  the common clock bindings
++- clock-names	: should contain "extclk" entry
++- svdda-supply	: core voltage supply
++- svddio-supply	: I/O voltage supply
++
++Optional Properties:
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used
++
++The device node should be added to respective control bus controller
++(e.g. I2C0) nodes and linked to the csis port node, using the common
++video interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	i2c-isp@13130000 {
++		s5k4e5@20 {
++			compatible = "samsung,s5k4e5";
++			reg = <0x20>;
++			reset-gpios = <&gpx1 2 1>;
++			clock-frequency = <24000000>;
++			clocks = <&clock 129>;
++			clock-names = "extclk"
++			svdda-supply = <...>;
++			svddio-supply = <...>;
++			port {
++				is_s5k4e5_ep: endpoint {
++					data-lanes = <1 2 3 4>;
++					remote-endpoint = <&csis0_ep>;
++				};
++			};
++		};
++	};
 -- 
-Krzysztof Halasa
+1.7.9.5
 
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
