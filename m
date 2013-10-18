@@ -1,48 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:25805 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371Ab3JVW5u (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:52858 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab3JRFi0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Oct 2013 18:57:50 -0400
-Received: from morden (ip-5-146-184-27.unitymediagroup.de [5.146.184.27])
-	by smtp.strato.de (RZmta 32.10 DYNA|AUTH)
-	with (TLSv1.2:DHE-RSA-AES256-SHA256 encrypted) ESMTPSA id j01f33p9MM0mx9
-	for <linux-media@vger.kernel.org>;
-	Wed, 23 Oct 2013 00:57:48 +0200 (CEST)
-Received: from rjkm by morden with local (Exim 4.80)
-	(envelope-from <rjkm@morden.metzler>)
-	id 1VYktY-0002HT-2y
-	for linux-media@vger.kernel.org; Wed, 23 Oct 2013 00:57:48 +0200
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <21095.747.879743.551447@morden.metzler>
-Date: Wed, 23 Oct 2013 00:57:47 +0200
-To: linux-media@vger.kernel.org
-Subject: DVB-C2
-In-Reply-To: <1382462076-29121-1-git-send-email-guest@puma.are.ma>
-References: <1382462076-29121-1-git-send-email-guest@puma.are.ma>
+	Fri, 18 Oct 2013 01:38:26 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v10 07/12] exynos5-fimc-is: Add sensor interface
+Date: Fri, 18 Oct 2013 11:07:34 +0530
+Message-Id: <1382074659-31130-8-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Some sensors to be used with fimc-is are exclusively controlled
+by the fimc-is firmware. This minimal sensor driver provides
+the required info for the firmware to configure the sensors
+sitting on I2C bus.
 
-I am wondering if anybody looked into API extensions for DVB-C2 yet?
-Obviously, we need some more modulations, guard intervals, etc. 
-even if the demod I use does not actually let me set those (only auto).
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
 
-But I do need to set the PLP and slice ID.
-I currently set them (8 bit each) by combining them into the 32 bit 
-stream_id (DTV_STREAM_ID parameter).
-
-By using the stream id like this and not having (or being able) to set
-the rest of the new parameters I only have to add SYS_DVBC2 to the delivery systems
-right now. But the new parameters should be added for completeness and if we want to
-be able to scan we will need calls to read out L1 signalling information.
-
-Any thoughts?
-
-Regards,
-Ralph
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+new file mode 100644
+index 0000000..475f1c3
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+@@ -0,0 +1,45 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "fimc-is-sensor.h"
++
++static const struct sensor_drv_data s5k6a3_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
++	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
++};
++
++static const struct sensor_drv_data s5k4e5_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
++	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
++};
++
++static const struct of_device_id fimc_is_sensor_of_ids[] = {
++	{
++		.compatible	= "samsung,s5k6a3",
++		.data		= &s5k6a3_drvdata,
++	},
++	{
++		.compatible	= "samsung,s5k4e5",
++		.data		= &s5k4e5_drvdata,
++	},
++	{  }
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node)
++{
++	const struct of_device_id *of_id;
++
++	of_id = of_match_node(fimc_is_sensor_of_ids, node);
++	return of_id ? of_id->data : NULL;
++}
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+new file mode 100644
+index 0000000..0ba5733
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+@@ -0,0 +1,65 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SENSOR_H_
++#define FIMC_IS_SENSOR_H_
++
++#include <linux/of.h>
++#include <linux/types.h>
++
++#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
++#define S5K6A3_SENSOR_WIDTH		1392
++#define S5K6A3_SENSOR_HEIGHT		1392
++
++#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
++#define S5K4E5_SENSOR_WIDTH		2560
++#define S5K4E5_SENSOR_HEIGHT		1920
++
++#define SENSOR_WIDTH_PADDING		16
++#define SENSOR_HEIGHT_PADDING		10
++
++enum fimc_is_sensor_id {
++	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
++	FIMC_IS_SENSOR_ID_S5K6A3,
++	FIMC_IS_SENSOR_ID_S5K4E5,
++	FIMC_IS_SENSOR_ID_S5K3H7,
++	FIMC_IS_SENSOR_ID_CUSTOM,
++	FIMC_IS_SENSOR_ID_END
++};
++
++struct sensor_drv_data {
++	enum fimc_is_sensor_id id;
++	/* sensor open timeout in ms */
++	unsigned short open_timeout;
++	char *setfile_name;
++};
++
++/**
++ * struct fimc_is_sensor - fimc-is sensor data structure
++ * @drvdata: a pointer to the sensor's parameters data structure
++ * @i2c_bus: ISP I2C bus index (0...1)
++ * @width: sensor active width
++ * @height: sensor active height
++ * @pixel_width: sensor effective pixel width (width + padding)
++ * @pixel_height: sensor effective pixel height (height + padding)
++ */
++struct fimc_is_sensor {
++	const struct sensor_drv_data *drvdata;
++	unsigned int i2c_bus;
++	unsigned int width;
++	unsigned int height;
++	unsigned int pixel_width;
++	unsigned int pixel_height;
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node);
++
++#endif /* FIMC_IS_SENSOR_H_ */
+-- 
+1.7.9.5
 
