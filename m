@@ -1,67 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:37759 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681Ab3J3HLr (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:48363 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939Ab3JRD4S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Oct 2013 03:11:47 -0400
-Received: by mail-ob0-f176.google.com with SMTP id uy5so1030497obc.21
-        for <linux-media@vger.kernel.org>; Wed, 30 Oct 2013 00:11:46 -0700 (PDT)
+	Thu, 17 Oct 2013 23:56:18 -0400
+Received: by mail-wi0-f181.google.com with SMTP id l12so352989wiv.2
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:56:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1383111636-19743-4-git-send-email-crope@iki.fi>
-References: <1383111636-19743-1-git-send-email-crope@iki.fi>
-	<1383111636-19743-4-git-send-email-crope@iki.fi>
-Date: Wed, 30 Oct 2013 08:11:46 +0100
-Message-ID: <CAJbz7-27Jc7iCK2g2SQAwtpJzf_B4Phwko895=ZgoCNVC+3_cw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] rtl28xxu: add 15f4:0131 Astrometa DVB-T2
-From: =?ISO-8859-2?Q?Honza_Petrou=B9?= <jpetrous@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 18 Oct 2013 09:25:57 +0530
+Message-ID: <CA+V-a8vBtCq=S6gr0zT5Za8EZ5p2oJeWDL3f47ihaSATohq1dQ@mail.gmail.com>
+Subject: Re: [PATCH 1/6] [media] adv7343: Include linux/of.h header
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti,
-BTW
-
-
-2013/10/30 Antti Palosaari <crope@iki.fi>:
-> Components are RTL2832P + R828D + MN88472.
+On Fri, Oct 18, 2013 at 8:37 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to
+> avoid build breakage in the future.
 >
-> Currently support only DVB-T as there is no driver for MN88472 demod.
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-I just (accidentally) found something:
-http://code.google.com/p/tdt-amiko/source/browse/tdt/cvs/driver/frontends/spark7162/6158/MN88472_register.c?r=c90ff15db81b1635ce000d89115a31e21a3e5544
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-It is part of fork of Duckbox project, which is using Linux DVB API,
-so it may be worth to try?
-
-/Honza
-
-
->
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 8c600b7..ecca036 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1427,6 +1427,9 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->                 &rtl2832u_props, "Leadtek WinFast DTV Dongle mini", NULL) },
->         { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_CPYTO_REDI_PC50A,
->                 &rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
-> +
-> +       { DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
-> +               &rtl2832u_props, "Astrometa DVB-T2", NULL) },
->         { }
->  };
->  MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regrads,
+--Prabhakar Lad
