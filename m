@@ -1,41 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47919 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755151Ab3JCVz6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Oct 2013 17:55:58 -0400
-Received: from avalon.ideasonboard.com (191.Red-2-143-34.dynamicIP.rima-tde.net [2.143.34.191])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1D5FE35A47
-	for <linux-media@vger.kernel.org>; Thu,  3 Oct 2013 23:55:20 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4l2-fh: Include linux/fs.h for struct file definition
-Date: Thu,  3 Oct 2013 23:55:52 +0200
-Message-Id: <1380837352-29950-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:48824 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898Ab3JRD5P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 23:57:15 -0400
+Received: by mail-wi0-f182.google.com with SMTP id ez12so348983wid.15
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:57:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1382065635-27855-5-git-send-email-sachin.kamat@linaro.org>
+References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org> <1382065635-27855-5-git-send-email-sachin.kamat@linaro.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 18 Oct 2013 09:26:54 +0530
+Message-ID: <CA+V-a8uZSbKP=vHGvLBjPBAEs3HbEa=Y-QiT=fdccuyZ=9PRQw@mail.gmail.com>
+Subject: Re: [PATCH 5/6] [media] tvp7002: Include linux/of.h header
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-fh.h dereferences struct file, the structure must thus be defined.
-Pull in its definition by including linux/fs.h.
+On Fri, Oct 18, 2013 at 8:37 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to
+> avoid build breakage in the future.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-fh.h | 1 +
- 1 file changed, 1 insertion(+)
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-index a62ee18..0d92208 100644
---- a/include/media/v4l2-fh.h
-+++ b/include/media/v4l2-fh.h
-@@ -26,6 +26,7 @@
- #ifndef V4L2_FH_H
- #define V4L2_FH_H
- 
-+#include <linux/fs.h>
- #include <linux/list.h>
- 
- struct video_device;
--- 
-Regards,
-
-Laurent Pinchart
-
+Regrads,
+--Prabhakar Lad
