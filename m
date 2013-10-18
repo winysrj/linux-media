@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:46602 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab3JKNNo (ORCPT
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:57399 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755855Ab3JRDIM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Oct 2013 09:13:44 -0400
-Message-ID: <5257F983.9060904@gmail.com>
-Date: Fri, 11 Oct 2013 15:13:39 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Tomasz Figa <tomasz.figa@gmail.com>
-CC: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Kukjin Kim <kgene.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Ben Dooks <ben-linux@fluff.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sangbeom Kim <sbkim73@samsung.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Martin Schwidefsky <schwidefsky@de.ibm.com>
-Subject: Re: [PATCH 3/5] [media] s3c-camif: Use CONFIG_ARCH_S3C64XX to check
- for S3C64xx support
-References: <1380392497-27406-1-git-send-email-tomasz.figa@gmail.com> <1380392497-27406-3-git-send-email-tomasz.figa@gmail.com>
-In-Reply-To: <1380392497-27406-3-git-send-email-tomasz.figa@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 17 Oct 2013 23:08:12 -0400
+Received: by mail-pd0-f180.google.com with SMTP id p10so1667039pdj.25
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:08:11 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, sachin.kamat@linaro.org,
+	m.chehab@samsung.com
+Subject: [PATCH 3/6] [media] ths8200: Include linux/of.h header
+Date: Fri, 18 Oct 2013 08:37:12 +0530
+Message-Id: <1382065635-27855-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2013 08:21 PM, Tomasz Figa wrote:
-> Since CONFIG_PLAT_S3C64XX is going to be removed, this patch modifies
-> the Kconfig entry of s3c-camif driver to use the proper way of checking
-> for S3C64xx support - CONFIG_ARCH_S3C64XX.
->
-> Signed-off-by: Tomasz Figa<tomasz.figa@gmail.com>
+'of_match_ptr' is defined in linux/of.h. Include it explicitly to
+avoid build breakage in the future.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/i2c/ths8200.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index a58a8f6..51e1964 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -19,6 +19,7 @@
+ 
+ #include <linux/i2c.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/v4l2-dv-timings.h>
+ 
+ #include <media/v4l2-dv-timings.h>
+-- 
+1.7.9.5
+
