@@ -1,194 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:37950 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843Ab3JSKW4 (ORCPT
+Received: from mail-ve0-f177.google.com ([209.85.128.177]:37971 "EHLO
+	mail-ve0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785Ab3JREsh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Oct 2013 06:22:56 -0400
+	Fri, 18 Oct 2013 00:48:37 -0400
 MIME-Version: 1.0
-In-Reply-To: <526256F5.1060404@gmail.com>
-References: <hverkuil@xs4all.nl> <1381736489-27852-1-git-send-email-ricardo.ribalda@gmail.com>
- <526256F5.1060404@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Sat, 19 Oct 2013 12:22:35 +0200
-Message-ID: <CAPybu_0NxSS2CyPL7sv0NOn8_1HcPPBsWyqV6Hi2=b7oRezKYQ@mail.gmail.com>
-Subject: Re: [PATCH] videobuf2: Add missing lock held on vb2_fop_relase
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <524971FC.5030907@xs4all.nl>
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+	<1380279558-21651-10-git-send-email-arun.kk@samsung.com>
+	<524971FC.5030907@xs4all.nl>
+Date: Fri, 18 Oct 2013 10:18:36 +0530
+Message-ID: <CALt3h7-F91rz4xP_2K=WExiKkYbRNW2v=4i2XMiq6LoYgOJ2Nw@mail.gmail.com>
+Subject: Re: [PATCH v9 09/13] [media] exynos5-fimc-is: Add the hardware
+ pipeline control
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	kilyeon.im@samsung.com
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester
+Hi Hans,
 
-On Sat, Oct 19, 2013 at 11:55 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Ricardo,
->
->
-> On 10/14/2013 09:41 AM, Ricardo Ribalda Delgado wrote:
+Thank you for the review.
+
+On Mon, Sep 30, 2013 at 6:13 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 09/27/2013 12:59 PM, Arun Kumar K wrote:
+>> This patch adds the crucial hardware pipeline control for the
+>> fimc-is driver. All the subdev nodes will call this pipeline
+>> interfaces to reach the hardware. Responsibilities of this module
+>> involves configuring and maintaining the hardware pipeline involving
+>> multiple sub-ips like ISP, DRC, Scalers, ODC, 3DNR, FD etc.
 >>
->> vb2_fop_relase does not held the lock although it is modifying the
->> queue->owner field.
->
-> [...]
->
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->> b/drivers/media/v4l2-core/videobuf2-core.c
->> index 9fc4bab..3a961ee 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -2588,8 +2588,15 @@ int vb2_fop_release(struct file *file)
->>         struct video_device *vdev = video_devdata(file);
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1708 ++++++++++++++++++++
+>>  .../media/platform/exynos5-is/fimc-is-pipeline.h   |  129 ++
+>>  2 files changed, 1837 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
 >>
->>         if (file->private_data == vdev->queue->owner) {
->> +               struct mutex *lock;
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-pipeline.c b/drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+>> new file mode 100644
+>> index 0000000..a73d952
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+>
+> <snip>
+>
+>> +int fimc_is_pipeline_open(struct fimc_is_pipeline *pipeline,
+>> +                     struct fimc_is_sensor *sensor)
+>> +{
+>> +     struct fimc_is *is = pipeline->is;
+>> +     struct is_region *region;
+>> +     unsigned long index[2] = {0};
+>> +     int ret;
 >> +
->> +               lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
->> +               if (lock)
->> +                       mutex_lock(lock);
->>                 vb2_queue_release(vdev->queue);
->>                 vdev->queue->owner = NULL;
->> +               if (lock)
->> +                       mutex_unlock(lock);
->>         }
->>         return v4l2_fh_release(file);
->>   }
+>> +     if (!sensor)
+>> +             return -EINVAL;
+>> +
+>> +     mutex_lock(&pipeline->pipe_lock);
+>> +
+>> +     if (test_bit(PIPELINE_OPEN, &pipeline->state)) {
+>> +             dev_err(pipeline->dev, "Pipeline already open\n");
+>> +             ret = -EINVAL;
+>> +             goto err_exit;
+>> +     }
+>> +
+>> +     pipeline->fcount = 0;
+>> +     pipeline->sensor = sensor;
+>> +
+>> +     if (is->num_pipelines == 0) {
+>> +             /* Init memory */
+>> +             ret = fimc_is_pipeline_initmem(pipeline);
+>> +             if (ret) {
+>> +                     dev_err(pipeline->dev, "Pipeline memory init failed\n");
+>> +                     goto err_exit;
+>> +             }
+>> +
+>> +             /* Load firmware */
+>> +             ret = fimc_is_pipeline_load_firmware(pipeline);
+>> +             if (ret) {
+>> +                     dev_err(pipeline->dev, "Firmware load failed\n");
+>> +                     goto err_fw;
+>> +             }
+>> +
+>> +             /* Power ON */
+>> +             ret = fimc_is_pipeline_power(pipeline, 1);
+>> +             if (ret) {
+>> +                     dev_err(pipeline->dev, "A5 power on failed\n");
+>> +                     goto err_fw;
+>> +             }
+>> +
+>> +             /* Wait for FW Init to complete */
+>> +             ret = fimc_is_itf_wait_init_state(&is->interface);
+>> +             if (ret) {
+>> +                     dev_err(pipeline->dev, "FW init failed\n");
+>> +                     goto err_fw;
+>> +             }
+>> +     }
+>> +
+>> +     /* Open Sensor */
+>> +     region = pipeline->is_region;
+>> +     ret = fimc_is_itf_open_sensor(&is->interface,
+>> +                     pipeline->instance,
+>> +                     sensor->drvdata->id,
+>> +                     sensor->i2c_bus,
+>> +                     pipeline->minfo->shared.paddr);
+>> +     if (ret) {
+>> +             dev_err(pipeline->dev, "Open sensor failed\n");
+>> +             goto err_exit;
+>> +     }
+>> +
+>> +     /* Load setfile */
+>> +     ret = fimc_is_pipeline_setfile(pipeline);
+>> +     if (ret)
+>> +             goto err_exit;
+>> +
+>> +     /* Stream off */
+>> +     ret = fimc_is_itf_stream_off(&is->interface, pipeline->instance);
+>> +     if (ret)
+>> +             goto err_exit;
+>> +
+>> +     /* Process off */
+>> +     ret = fimc_is_itf_process_off(&is->interface, pipeline->instance);
+>> +     if (ret)
+>> +             goto err_exit;
+>> +
+>> +     if (is->num_pipelines == 0) {
+>> +             /* Copy init params to FW region */
+>> +             memset(&region->parameter, 0x0, sizeof(struct is_param_region));
+>> +
+>> +             memcpy(&region->parameter.sensor, &init_sensor_param,
+>> +                             sizeof(struct sensor_param));
 >
+> How about:
 >
-> It seems you didn't inspect all users of vb2_fop_release(). There are 3
-> drivers
-> that don't assign vb2_fop_release() to struct v4l2_file_operations directly
-> but
-> instead call it from within its own release() handler. Two of them do call
-> vb2_fop_release() with the video queue lock already held.
+>                 region->parameter.sensor = init_sensor_param;
 >
-> $ git grep -n vb2_fop_rel -- drivers/media/
+> Shorter and type-safe.
 >
-> drivers/media/platform/exynos4-is/fimc-capture.c:552:   ret =
-> vb2_fop_release(file);
-> drivers/media/platform/exynos4-is/fimc-lite.c:549: vb2_fop_release(file);
+> Ditto for the memcpy's below.
 >
-Very good catch, thanks!
 
-> A rather ugly solution would be to open code the vb2_fop_release() function
-> in those driver, like in below patch (untested). Unless there are better
-> proposals I would queue the patch as below together with the $subject patch
-> upstream.
+Yes this would make nicer code.
+Will make this change.
 
-IMHO this will lead to the same type of mistakes in the future.
-
- What about creating a function __vb2_fop_release that does exactly
-the same as the original function but with an extra parameter bool
-lock_held
-
-vb2_fop_release will be a wrapper for that funtion with lock_held== false
-
-drivers that overload the fop_release and need to hold the lock will
-call the __ function with lock_held= true
-
-What do you think?
-
-Thanks!
-
->
->
-> From 3617684d759bb021e3cf1d862a91cb6e18d12052 Mon Sep 17 00:00:00 2001
-> From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Date: Sat, 19 Oct 2013 11:48:10 +0200
-> Subject: [PATCH] exynos4-is: Do not call vb2_fop_release() with queue lock
-> held
->
-> Currently vb2_fop_release() function doesn't take the queue lock,
-> but it is going to change and then there would happen a deadlock
-> in fimc_capture_release() and fimc_lite_release(), since these
-> function take the video queue lock prior to calling vb2_fop_release().
->
-> To avoid a deadlock open code the vb2_fop_release() function in those
-> drivers.
->
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/platform/exynos4-is/fimc-capture.c |   11 ++++++++---
->  drivers/media/platform/exynos4-is/fimc-lite.c    |    8 +++++++-
->  2 files changed, 15 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c
-> b/drivers/media/platform/exynos4-is/fimc-capture.c
-> index fb27ff7..e9a5c90 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-> @@ -537,6 +537,7 @@ static int fimc_capture_release(struct file *file)
->  {
->         struct fimc_dev *fimc = video_drvdata(file);
->         struct fimc_vid_cap *vc = &fimc->vid_cap;
-> +       struct video_device *vdev = &vc->ve.vdev;
->         bool close = v4l2_fh_is_singular_file(file);
->         int ret;
->
-> @@ -545,11 +546,15 @@ static int fimc_capture_release(struct file *file)
->         mutex_lock(&fimc->lock);
->
->         if (close && vc->streaming) {
-> -               media_entity_pipeline_stop(&vc->ve.vdev.entity);
-> +               media_entity_pipeline_stop(&vdev->entity);
->                 vc->streaming = false;
->         }
->
-> -       ret = vb2_fop_release(file);
-> +       if (file->private_data == vdev->queue->owner) {
-> +               vb2_queue_release(vdev->queue);
-> +               vdev->queue->owner = NULL;
-> +       }
-> +       ret = v4l2_fh_release(file);
->
->         if (close) {
->                 clear_bit(ST_CAPT_BUSY, &fimc->state);
-> @@ -557,7 +562,7 @@ static int fimc_capture_release(struct file *file)
->                 clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
->
->                 fimc_md_graph_lock(&vc->ve);
-> -               vc->ve.vdev.entity.use_count--;
-> +               vdev->entity.use_count--;
->                 fimc_md_graph_unlock(&vc->ve);
->         }
->
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
-> b/drivers/media/platform/exynos4-is/fimc-lite.c
-> index e5798f7..182db3c 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -528,6 +528,7 @@ static int fimc_lite_release(struct file *file)
->  {
->         struct fimc_lite *fimc = video_drvdata(file);
->         struct media_entity *entity = &fimc->ve.vdev.entity;
-> +       struct video_device *vdev = &fimc->ve.vdev;
->
->         mutex_lock(&fimc->lock);
->
-> @@ -546,7 +547,12 @@ static int fimc_lite_release(struct file *file)
->                 mutex_unlock(&entity->parent->graph_mutex);
->         }
->
-> -       vb2_fop_release(file);
-> +       if (file->private_data == vdev->queue->owner) {
-> +               vb2_queue_release(vdev->queue);
-> +               vdev->queue->owner = NULL;
-> +       }
-> +       v4l2_fh_release(file);
-> +
->         pm_runtime_put(&fimc->pdev->dev);
->         clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
->
-> --
-> 1.7.4.1
-
-
-
--- 
-Ricardo Ribalda
+Regards
+Arun
