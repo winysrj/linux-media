@@ -1,201 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2684 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab3JGJe6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 05:34:58 -0400
-Message-ID: <52528039.1080901@xs4all.nl>
-Date: Mon, 07 Oct 2013 11:34:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
-Subject: Re: [PATCH v4 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-4-git-send-email-archit@ti.com> <525268F9.90409@xs4all.nl> <52527BFF.3060603@ti.com>
-In-Reply-To: <52527BFF.3060603@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:9281 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969Ab3JRLzW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Oct 2013 07:55:22 -0400
+Message-id: <526121A3.3060000@samsung.com>
+Date: Fri, 18 Oct 2013 13:55:15 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Jesse Barnes <jesse.barnes@intel.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Zhang <markz@nvidia.com>,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Sunil Joshi <joshi@samsung.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Marcus Lorentzon <marcus.lorentzon@huawei.com>
+Subject: Re: [PATCH/RFC v3 00/19] Common Display Framework
+References: <1376068510-30363-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <52498146.4050600@ti.com> <524C1058.2050500@samsung.com>
+ <524C1E78.6030508@ti.com> <52556370.1050102@samsung.com>
+ <52579CB2.8050601@ti.com> <5257DEB5.6000708@samsung.com>
+ <5257EF6A.4020005@ti.com> <5258084A.9000509@samsung.com>
+ <52580EFF.2020401@ti.com> <525F9660.3010408@samsung.com>
+ <525F9D4D.4000702@ti.com> <525FD760.20506@samsung.com>
+ <525FDE54.2070909@ti.com>
+In-reply-to: <525FDE54.2070909@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/07/2013 11:16 AM, Archit Taneja wrote:
-> On Monday 07 October 2013 01:25 PM, Hans Verkuil wrote:
->> Hi Archit,
->>
->> I've got a few comments below...
->>
->> On 09/06/2013 12:12 PM, Archit Taneja wrote:
->>> VPE is a block which consists of a single memory to memory path which can
->>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->>> interleaved video formats.
+On 10/17/2013 02:55 PM, Tomi Valkeinen wrote:
+> On 17/10/13 15:26, Andrzej Hajda wrote:
+>
+>> I am not sure what exactly the encoder performs, if this is only image
+>> transport from dispc to panel CDF pipeline in both cases should look like:
+>> dispc ----> panel
+>> The only difference is that panels will be connected via different Linux bus
+>> adapters, but it will be irrelevant to CDF itself. In this case I would say
+>> this is DSI-master rather than encoder, or at least that the only
+>> function of the
+>> encoder is DSI.
+> Yes, as I said, it's up to the driver writer how he wants to use CDF. If
+> he doesn't see the point of representing the SoC's DSI encoder as a
+> separate CDF entity, nobody forces him to do that.
+Having it as an entity would cause the 'problem' of two APIs as you
+described below :)
+One API via control bus, another one via CDF.
+>
+> On OMAP, we have single DISPC with multiple parallel outputs, and a
+> bunch of encoder IPs (MIPI DPI, DSI, DBI, etc). Each encoder IP can be
+> connected to some of the DISPC's output. In this case, even if the DSI
+> encoder does nothing special, I see it much better to represent the DSI
+> encoder as a CDF entity so that the links between DISPC, DSI, and the
+> DSI peripherals are all there.
+>
+>> If display_timings on input and output differs, I suppose it should be
+>> modeled
+>> as display_entity, as this is an additional functionality(not covered by
+>> DSI standard AFAIK).
+> Well, DSI standard is about the DSI output. Not about the encoder's
+> input, or the internal operation of the encoder.
+>
+>>>> Of course there are some settings which are not panel dependent and those
+>>>> should reside in DSI node.
+>>> Exactly. And when the two panels require different non-panel-dependent
+>>> settings, how do you represent them in the DT data?
+>> non-panel-dependent setting cannot depend on panel, by definition :)
+> With "non-panel-dependent" setting I meant something that is a property
+> of the DSI master device, but still needs to be configured differently
+> for each panel.
+>
+> Say, pin configuration. When using panel A, the first pin of the DSI
+> block could be clock+. With panel B, the first pin could be clock-. This
+> configuration is about DSI master, but it is different for each panel.
+>
+> If we have separate endpoint in the DSI master for each panel, this data
+> can be there. If we don't have the endpoint, as is the case with
+> separate control bus, where is that data?
+I am open to propositions. For me it seems somehow similar to clock mapping
+in DT (clock-names are mapped to provider clocks), so I think it could
+be put in panel node and it will be parsed by DSI-master.
+>
+>>>> Could you describe such scenario?
+>>> If we have two independent APIs, ctrl and video, that affect the same
+>>> underlying hardware, the DSI bus, we could have a scenario like this:
 >>>
->>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->>> The de-interlacer, scaler and color space converter are all bypassed for now
->>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->>> conversion beteen different YUV formats is possible.
+>>> thread 1:
 >>>
->>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>> ctrl->op_foo();
+>>> ctrl->op_bar();
 >>>
->>> Based on the information received via v4l2 ioctls for the source and
->>> destination queues, the driver configures the values for the MMRs, and stores
->>> them in the buffer. There are also some VPDMA parameters like frame start and
->>> line mode which needs to be configured, these are configured by direct register
->>> writes via the VPDMA helper functions.
+>>> thread 2:
 >>>
->>> The driver's device_run() mem2mem op will add each descriptor based on how the
->>> source and destination queues are set up for the given ctx, once the list is
->>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->>> upload MMR registers, start DMA of video buffers on the various input and output
->>> clients/ports.
+>>> video->op_baz();
 >>>
->>> When the list is parsed completely(and the DMAs on all the output ports done),
->>> an interrupt is generated which we use to notify that the source and destination
->>> buffers are done.
+>>> Even if all those ops do locking properly internally, the fact that
+>>> op_baz() can be called in between op_foo() and op_bar() may cause problems.
 >>>
->>> The rest of the driver is quite similar to other mem2mem drivers, we use the
->>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>> To avoid that issue with two APIs we'd need something like:
 >>>
->>> Signed-off-by: Archit Taneja <archit@ti.com>
->>> ---
->>>   drivers/media/platform/Kconfig           |   16 +
->>>   drivers/media/platform/Makefile          |    2 +
->>>   drivers/media/platform/ti-vpe/Makefile   |    5 +
->>>   drivers/media/platform/ti-vpe/vpe.c      | 1750 ++++++++++++++++++++++++++++++
->>>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
->>>   include/uapi/linux/v4l2-controls.h       |    4 +
->>>   6 files changed, 2273 insertions(+)
->>>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
->>>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
->>>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>> thread 1:
 >>>
->>
->> <snip>
->>
->>> +
->>> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>> +{
->>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->>> +	struct vpe_ctx *ctx = file2ctx(file);
->>> +	struct vb2_queue *vq;
->>> +	struct vpe_q_data *q_data;
->>> +	int i;
->>> +
->>> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
->>> +	if (!vq)
->>> +		return -EINVAL;
->>> +
->>> +	q_data = get_q_data(ctx, f->type);
->>> +
->>> +	pix->width = q_data->width;
->>> +	pix->height = q_data->height;
->>> +	pix->pixelformat = q_data->fmt->fourcc;
->>> +	pix->colorspace = q_data->colorspace;
->>> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
->>> +
->>> +	for (i = 0; i < pix->num_planes; i++) {
->>> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
->>> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
->>> +	}
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->>> +		       struct vpe_fmt *fmt, int type)
->>> +{
->>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->>> +	struct v4l2_plane_pix_format *plane_fmt;
->>> +	int i;
->>> +
->>> +	if (!fmt || !(fmt->types & type)) {
->>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
->>> +			pix->pixelformat);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	pix->field = V4L2_FIELD_NONE;
->>> +
->>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
->>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
->>> +			      S_ALIGN);
->>> +
->>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
->>> +	pix->pixelformat = fmt->fourcc;
->>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
->>
->> You do this only for capture. Output sets the colorspace, so try_fmt should
->> leave the colorspace field untouched for the output direction.
->>
->>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
-> 
-> The input to the VPE block can be various YUV formats, and the VPE can 
-> generate both RGB and YUV formats.
-> 
-> So, I guess the output(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) side has 
-> choice only to set V4L2_COLORSPACE_SMPTE170M. And in the 
-> capture(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) capture side we have both 
-> SRG and SMPTE170M options.
-> 
-> One thing I am not clear about is whether the userspace application has 
-> to set the colorspace in the v4l2 format for OUTPUT or CAPTURE or both?
+>>> ctrl->lock();
+>>> ctrl->op_foo();
+>>> ctrl->op_bar();
+>>> ctrl->unlock();
+>>>
+>>> thread 2:
+>>>
+>>> video->lock();
+>>> video->op_baz();
+>>> video->unlock();
+>> I should mention I was asking for real hw/drivers configuration.
+>> I do not know what do you mean with video->op_baz() ?
+>> DSI-master is not modeled in CDF, and only CDF provides video
+>> operations.
+> It was just an example of the additional complexity with regarding
+> locking when using two APIs.
+>
+> The point is that if the panel driver has two pointers (i.e. API), one
+> for the control bus, one for the video bus, and ops on both buses affect
+> the same hardware, the locking is not easy.
+>
+> If, on the other hand, the panel driver only has one API to use, it's
+> simple to require the caller to handle any locking.
+I guess you are describing scenario with DSI-master having its own entity.
+In such case its video ops are accessible at least to all pipeline
+neightbourgs and
+to pipeline controler, so I do not see how the client side locking would
+work anyway.
+Additionally multiple panels connected to one DSI also makes it harder.
+Thus I do not see that 'client lock' apporach would work anyway, even
+using video-source approach.
 
-The spec today says that the colorspace field is filled in by the driver.
-It does not differentiate between output and capture. This is patently wrong,
-since for output it should be set by the application since that's who is
-telling the driver what colorspace the image has. The driver may change it
-if it doesn't support that colorspace, but otherwise it should leave it as
-is.
+Andrzej
 
-A mem-to-mem device that doesn't care about the colorspace should just copy
-the colorspace field from the output value into the capture.
 
-What is missing in today's API is a way to do colorspace conversion in a m2m
-device since there is no way today to tell the driver the desired colorspace
-that it should get back from the m2m device.
-
-> 
->  From what I understood, the code should be as below.
-> 
-> For output:
-> 
-> if (!pix->colorspace)
-> 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-
-I would leave off the 'if' part. If this colorspace is all you support on the
-output, then always set it.
-
-However, since it can convert YUV to RGB, doesn't the hardware have to know
-about the various YUV colorspaces? SDTV and HDTV have different colorspaces.
-
-> 
-> And for capture:
-> 	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
-> 		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
-> 
-> Does this look correct?
-
-Yes, unless the hardware can take SDTV/HDTV YUV colorspaces into account. In
-that case I need to think how the API should be improved.
-
-> 
->>
->> Zero pix->priv as well:
->>
->> 	pix->priv = 0;
-> 
-> pix here is of the type v4l2_pix_format_mplane, so there isn't a private 
-> field here.
-
-Oops, my fault. I hadn't noticed that.
-
-> 
-> Thanks,
-> Archit
-> 
-
-Regards,
-
-	Hans
