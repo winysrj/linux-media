@@ -1,110 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:58372 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759631Ab3JQTbK (ORCPT
+Received: from mail-vb0-f44.google.com ([209.85.212.44]:37519 "EHLO
+	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755783Ab3JRCpV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 15:31:10 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-Date: Thu, 17 Oct 2013 21:31:04 +0200
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Nils Faerber <nils.faerber@kernelconcepts.de>,
-	Joni Lapilainen <joni.lapilainen@gmail.com>
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <525D5A77.4050704@xs4all.nl>
-In-Reply-To: <525D5A77.4050704@xs4all.nl>
+	Thu, 17 Oct 2013 22:45:21 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2126331.EpyfVm5nKJ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201310172131.05106@pali>
+In-Reply-To: <5260186C.1040109@samsung.com>
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+	<1380279558-21651-13-git-send-email-arun.kk@samsung.com>
+	<5260186C.1040109@samsung.com>
+Date: Fri, 18 Oct 2013 08:15:20 +0530
+Message-ID: <CALt3h7_pMQsfXcEtr6VRUU1P561qAV=2XtfUfQXD-3zpdn1T+g@mail.gmail.com>
+Subject: Re: [PATCH v9 12/13] V4L: s5k6a3: Change sensor min/max resolutions
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	devicetree@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	kilyeon.im@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart2126331.EpyfVm5nKJ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Sylwester,
 
-Hello,
+On Thu, Oct 17, 2013 at 10:33 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi Arun,
+>
+> My apologies for the delay.
+>
+> On 27/09/13 12:59, Arun Kumar K wrote:
+>> s5k6a3 sensor has actual pixel resolution of 1408x1402 against
+>> the active resolution 1392x1392. The real resolution is needed
+>> when raw sensor SRGB data is dumped to memory by fimc-lite.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  drivers/media/i2c/s5k6a3.c |   10 ++++++----
+>>  1 file changed, 6 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+>> index ccbb4fc..e70e217 100644
+>> --- a/drivers/media/i2c/s5k6a3.c
+>> +++ b/drivers/media/i2c/s5k6a3.c
+>> @@ -25,10 +25,12 @@
+>>  #include <media/v4l2-async.h>
+>>  #include <media/v4l2-subdev.h>
+>>
+>> -#define S5K6A3_SENSOR_MAX_WIDTH              1392
+>> -#define S5K6A3_SENSOR_MAX_HEIGHT     1392
+>> -#define S5K6A3_SENSOR_MIN_WIDTH              32
+>> -#define S5K6A3_SENSOR_MIN_HEIGHT     32
+>> +#define S5K6A3_SENSOR_MAX_WIDTH              1408
+>> +#define S5K6A3_SENSOR_MAX_HEIGHT     1402
+>
+> Where these numbers come from ? I digged in the datasheet and the pixel
+> array size for S5K6A3YX is 1412 x 1412 pixels. I will use this value
+> in my updated s5k6a3 driver patch I'm going to post today. And I will
+> drop this patch from this series.
+>
 
-so what do you suggest? Add it to staging for now (or not)?
+These are the numbers used in the the reference driver. I will check if
+the values 1412x1412 works or not. There are also limitations imposed by the
+fimc-is firmware too as we just pass on the sensor_id to the firmware and I can
+see from the firmware log that it assumes max size of 1408x1402 for 6a3.
 
-On Tuesday 15 October 2013 17:08:39 Hans Verkuil wrote:
-> Hi Pali,
->=20
-> Thanks for the patch, but I am afraid it will need some work
-> to make this acceptable for inclusion into the kernel.
->=20
-> The main thing you need to do is to implement all the controls
-> using the control framework (see
-> Documentation/video4linux/v4l2-controls.txt). Most drivers
-> are by now converted to the control framework, so you will
-> find many examples of how to do this in drivers/media/radio.
->=20
-> The sysfs stuff should be replaced by controls as well. A lot
-> of the RDS support is now available as controls (although
-> there may well be some missing features, but that is easy
-> enough to add). Since the RDS data is actually read() from
-> the device I am not sure whether the RDS properties/controls
-> should be there at all.
->=20
-> Finally this driver should probably be split up into two
-> parts: one v4l2_subdev-based core driver and one platform
-> driver. See e.g. radio-si4713/si4713-i2c.c as a good example.
-> But I would wait with that until the rest of the driver is
-> cleaned up. Then I have a better idea of whether this is
-> necessary or not.
->=20
-> It's also very useful to run v4l2-compliance (available in the
-> v4l-utils.git repo on git.linuxtv.org). That does lots of
-> sanity checks.
->=20
-> Another option is to add the driver as-is to
-> drivers/staging/media, and clean it up bit by bit.
->=20
-> Regards,
->=20
-> 	Hans
->=20
-> On 10/15/2013 04:26 PM, Pali Roh=C3=A1r wrote:
-> > This adds support for the BCM2048 radio module found in
-> > Nokia N900
-> >=20
-> > Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> > Signed-off-by: Nils Faerber <nils.faerber@kernelconcepts.de>
-> > Signed-off-by: Joni Lapilainen <joni.lapilainen@gmail.com>
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > ---
-> >=20
-> >  drivers/media/radio/Kconfig         |   10 +
-> >  drivers/media/radio/Makefile        |    1 +
-> >  drivers/media/radio/radio-bcm2048.c | 2744
-> >  +++++++++++++++++++++++++++++++++++
-> >  include/media/radio-bcm2048.h       |   30 +
-> >  4 files changed, 2785 insertions(+)
-> >  create mode 100644 drivers/media/radio/radio-bcm2048.c
-> >  create mode 100644 include/media/radio-bcm2048.h
-> >=20
+>> +#define S5K6A3_SENSOR_ACTIVE_WIDTH   1392
+>> +#define S5K6A3_SENSOR_ACTIVE_HEIGHT  1392
+>
+>
+> S5K6A3_SENSOR_ACTIVE_* macros are not used anywhere ? Can they be dropped ?
+> Same applies to your S5K4E5 driver patch.
+>
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Yes I will drop them.
+In my next series, I will drop this 6a3 patch and keep only 4e5 sensor.
 
---nextPart2126331.EpyfVm5nKJ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlJgOvkACgkQi/DJPQPkQ1JXvgCdGFp6l+xrq5y10srybawMUOlI
-iuUAoIAIJmy932MYACnEuwjZ9OTwTyOJ
-=/Nhc
------END PGP SIGNATURE-----
-
---nextPart2126331.EpyfVm5nKJ--
+Regards
+Arun
