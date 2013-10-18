@@ -1,475 +1,675 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:63292 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755196Ab3JIXuh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 19:50:37 -0400
-Received: by mail-qc0-f202.google.com with SMTP id r5so112687qcx.5
-        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 16:50:36 -0700 (PDT)
-From: John Sheu <sheu@google.com>
-To: linux-media@vger.kernel.org
-Cc: John Sheu <sheu@google.com>, m.chehab@samsung.com,
-	k.debski@samsung.com, pawel@osciak.com
-Subject: [PATCH 4/6] [media] s5p-mfc: support dynamic encoding parameter changes
-Date: Wed,  9 Oct 2013 16:49:47 -0700
-Message-Id: <1381362589-32237-5-git-send-email-sheu@google.com>
-In-Reply-To: <1381362589-32237-1-git-send-email-sheu@google.com>
-References: <1381362589-32237-1-git-send-email-sheu@google.com>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:38997 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813Ab3JRFiP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Oct 2013 01:38:15 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v10 05/12] exynos5-fimc-is: Add isp subdev
+Date: Fri, 18 Oct 2013 11:07:32 +0530
+Message-Id: <1382074659-31130-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for dynamic encoding parameter changes in MFCv6.  Parameters
-set are applied with the next OUTPUT buffer queued to the device with
-VIDIOC_QBUF.
+fimc-is driver takes video data input from the ISP video node
+which is added in this patch. This node accepts Bayer input
+buffers which is given from the IS sensors.
 
-Supported parameters are:
-
-* GOP size (V4L2_CID_MPEG_VIDEO_GOP_SIZE)
-* framerate (from VIDIOC_S_PARM)
-* VBR target bitrate (V4L2_CID_MPEG_VIDEO_BITRATE)
-* (h264) frame type (V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE)
-
-Signed-off-by: John Sheu <sheu@google.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |  4 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 32 +++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 53 +++++++++++---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 29 ++++----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 94 ++++++++++++++-----------
- 5 files changed, 140 insertions(+), 72 deletions(-)
+ drivers/media/platform/exynos5-is/fimc-is-isp.c |  534 +++++++++++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-isp.h |   90 ++++
+ 2 files changed, 624 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index 2398cdf..495ed21 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -330,6 +330,10 @@
- #define S5P_FIMV_E_MVC_RC_RPARA_VIEW1_V6		0xfd50
- #define S5P_FIMV_E_MVC_INTER_VIEW_PREDICTION_ON_V6	0xfd80
- 
-+#define S5P_FIMV_E_GOP_CONFIG_CHANGE_SHIFT_V6		0
-+#define S5P_FIMV_E_FRAME_RATE_CHANGE_SHIFT_V6		1
-+#define S5P_FIMV_E_BIT_RATE_CHANGE_SHIFT_V6		2
-+
- /* Codec numbers  */
- #define S5P_FIMV_CODEC_NONE_V6		-1
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 48f706f..af134fd 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -173,12 +173,35 @@ enum s5p_mfc_decode_arg {
- 	MFC_DEC_RES_CHANGE,
- };
- 
-+
-+/**
-+ * enum s5p_mfc_encoder_param_change - indicates runtime parameter change
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.c b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+new file mode 100644
+index 0000000..7bd603f
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+@@ -0,0 +1,534 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+enum s5p_mfc_encode_param_change {
-+	MFC_ENC_GOP_CONFIG_CHANGE,
-+	MFC_ENC_FRAME_RATE_CHANGE,
-+	MFC_ENC_BIT_RATE_CHANGE,
-+	MFC_ENC_FRAME_INSERTION,
-+};
 +
- #define MFC_BUF_FLAG_USED	(1 << 0)
- #define MFC_BUF_FLAG_EOS	(1 << 1)
- 
- struct s5p_mfc_ctx;
- 
- /**
-+ * struct s5p_mfc_enc_params - runtime modifiable encoding parameters
-+ */
-+struct s5p_mfc_runtime_enc_params {
-+	u32 params_changed;
-+	u16 gop_size;
-+	u32 rc_framerate_num;
-+	u32 rc_framerate_denom;
-+	u32 rc_bitrate;
-+	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
-+};
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
 +
-+/**
-  * struct s5p_mfc_buf - MFC buffer
-  */
- struct s5p_mfc_buf {
-@@ -192,6 +215,7 @@ struct s5p_mfc_buf {
- 		size_t stream;
- 	} cookie;
- 	int flags;
-+	struct s5p_mfc_runtime_enc_params runtime_enc_params;
- };
- 
- /**
-@@ -433,7 +457,6 @@ struct s5p_mfc_enc_params {
- 	u16 crop_top_offset;
- 	u16 crop_bottom_offset;
- 
--	u16 gop_size;
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
- 	u16 slice_mb;
- 	u32 slice_bit;
-@@ -444,7 +467,6 @@ struct s5p_mfc_enc_params {
- 	u8 pad_cr;
- 	int rc_frame;
- 	int rc_mb;
--	u32 rc_bitrate;
- 	u16 rc_reaction_coeff;
- 	u16 vbv_size;
- 	u32 vbv_delay;
-@@ -454,15 +476,13 @@ struct s5p_mfc_enc_params {
- 	int fixed_target_bit;
- 
- 	u8 num_b_frame;
--	u32 rc_framerate_num;
--	u32 rc_framerate_denom;
- 
- 	struct {
-+		struct s5p_mfc_runtime_enc_params runtime;
- 		struct s5p_mfc_h264_enc_params h264;
- 		struct s5p_mfc_mpeg4_enc_params mpeg4;
- 		struct s5p_mfc_vp8_enc_params vp8;
- 	} codec;
--
- };
- 
- /**
-@@ -638,8 +658,6 @@ struct s5p_mfc_ctx {
- 	size_t me_buffer_size;
- 	size_t tmv_buffer_size;
- 
--	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
--
- 	struct list_head ref_queue;
- 	unsigned int ref_queue_cnt;
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ad9349..0898dee 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1342,7 +1342,9 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
--		p->gop_size = ctrl->val;
-+		p->codec.runtime.params_changed |=
-+			(1 << MFC_ENC_GOP_CONFIG_CHANGE);
-+		p->codec.runtime.gop_size = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
- 		p->slice_mode = ctrl->val;
-@@ -1368,13 +1370,17 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 		p->rc_frame = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_BITRATE:
--		p->rc_bitrate = ctrl->val;
-+		p->codec.runtime.params_changed |=
-+			(1 << MFC_ENC_BIT_RATE_CHANGE);
-+		p->codec.runtime.rc_bitrate = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF:
- 		p->rc_reaction_coeff = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
--		ctx->force_frame_type = ctrl->val;
-+		p->codec.runtime.params_changed |=
-+			(1 << MFC_ENC_FRAME_INSERTION);
-+		p->codec.runtime.force_frame_type = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
- 		p->vbv_size = ctrl->val;
-@@ -1575,12 +1581,29 @@ static int vidioc_s_parm(struct file *file, void *priv,
- 			 struct v4l2_streamparm *a)
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
-+	struct s5p_mfc_runtime_enc_params *runtime_params =
-+		&ctx->enc_params.codec.runtime;
- 
-+	/*
-+	 * Note that MFC hardware specifies framerate but the V4L2 API specifies
-+	 * timeperframe. Take the reciprocal of one to get the other.
-+	 */
- 	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		ctx->enc_params.rc_framerate_num =
--					a->parm.output.timeperframe.denominator;
--		ctx->enc_params.rc_framerate_denom =
--					a->parm.output.timeperframe.numerator;
-+		if ((runtime_params->rc_framerate_num !=
-+			a->parm.output.timeperframe.denominator) ||
-+			(runtime_params->rc_framerate_denom !=
-+			a->parm.output.timeperframe.numerator)) {
-+			if (a->parm.output.timeperframe.numerator == 0) {
-+				mfc_err("Cannot set an infinite FPS\n");
-+				return -EINVAL;
-+			}
-+			runtime_params->params_changed |=
-+				(1 << MFC_ENC_FRAME_RATE_CHANGE);
-+			runtime_params->rc_framerate_num =
-+				a->parm.output.timeperframe.denominator;
-+			runtime_params->rc_framerate_denom =
-+				a->parm.output.timeperframe.numerator;
-+		}
- 	} else {
- 		mfc_err("Setting FPS is only possible for the output queue\n");
- 		return -EINVAL;
-@@ -1595,9 +1618,9 @@ static int vidioc_g_parm(struct file *file, void *priv,
- 
- 	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		a->parm.output.timeperframe.denominator =
--					ctx->enc_params.rc_framerate_num;
-+			ctx->enc_params.codec.runtime.rc_framerate_num;
- 		a->parm.output.timeperframe.numerator =
--					ctx->enc_params.rc_framerate_denom;
-+			ctx->enc_params.codec.runtime.rc_framerate_denom;
- 	} else {
- 		mfc_err("Getting FPS is only possible for the output queue\n");
- 		return -EINVAL;
-@@ -1983,7 +2006,19 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 		ctx->dst_queue_cnt++;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		struct s5p_mfc_runtime_enc_params *runtime_params =
-+			&ctx->enc_params.codec.runtime;
- 		mfc_buf = &ctx->src_bufs[vb->v4l2_buf.index];
-+		/* Tag buffer with runtime encoding parameters */
-+		memcpy(&mfc_buf->runtime_enc_params, runtime_params,
-+			sizeof(mfc_buf->runtime_enc_params));
-+		runtime_params->params_changed = 0;
-+		/* force_frame_type needs to revert to 0 after being sent. */
-+		if (runtime_params->force_frame_type != 0) {
-+			v4l2_ctrl_s_ctrl(v4l2_ctrl_find(&ctx->ctrl_handler,
-+				V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE),
-+				V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED);
-+		}
- 		mfc_buf->flags &= ~MFC_BUF_FLAG_USED;
- 		spin_lock_irqsave(&dev->irqlock, flags);
- 		list_add_tail(&mfc_buf->list, &ctx->src_queue);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 368582b..428cbb8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -688,7 +688,7 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 	reg = mfc_read(dev, S5P_FIMV_ENC_PIC_TYPE_CTRL);
- 	reg |= (1 << 18);
- 	reg &= ~(0xFFFF);
--	reg |= p->gop_size;
-+	reg |= p->codec.runtime.gop_size;
- 	mfc_write(dev, reg, S5P_FIMV_ENC_PIC_TYPE_CTRL);
- 	mfc_write(dev, 0, S5P_FIMV_ENC_B_RECON_WRITE_ON);
- 	/* multi-slice control */
-@@ -736,7 +736,7 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 	mfc_write(dev, reg, S5P_FIMV_ENC_RC_CONFIG);
- 	/* bit rate */
- 	if (p->rc_frame)
--		mfc_write(dev, p->rc_bitrate,
-+		mfc_write(dev, p->codec.runtime.rc_bitrate,
- 			S5P_FIMV_ENC_RC_BIT_RATE);
- 	else
- 		mfc_write(dev, 0, S5P_FIMV_ENC_RC_BIT_RATE);
-@@ -831,9 +831,10 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
- 	reg |= p_264->rc_frame_qp;
- 	mfc_write(dev, reg, S5P_FIMV_ENC_RC_CONFIG);
- 	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_denom)
--		mfc_write(dev, p->rc_framerate_num * 1000
--			/ p->rc_framerate_denom, S5P_FIMV_ENC_RC_FRAME_RATE);
-+	if (p->rc_frame && p->codec.runtime.rc_framerate_denom)
-+		mfc_write(dev, p->codec.runtime.rc_framerate_num * 1000
-+			/ p->codec.runtime.rc_framerate_denom,
-+			S5P_FIMV_ENC_RC_FRAME_RATE);
- 	else
- 		mfc_write(dev, 0, S5P_FIMV_ENC_RC_FRAME_RATE);
- 	/* max & min value of QP */
-@@ -950,16 +951,17 @@ static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
- 	}
- 	/* frame rate */
- 	if (p->rc_frame) {
--		if (p->rc_framerate_denom > 0) {
--			framerate = p->rc_framerate_num * 1000 /
--						p->rc_framerate_denom;
-+		if (p->codec.runtime.rc_framerate_denom > 0) {
-+			framerate = p->codec.runtime.rc_framerate_num * 1000 /
-+				p->codec.runtime.rc_framerate_denom;
- 			mfc_write(dev, framerate,
- 				S5P_FIMV_ENC_RC_FRAME_RATE);
- 			shm = s5p_mfc_read_info_v5(ctx, RC_VOP_TIMING);
- 			shm &= ~(0xFFFFFFFF);
- 			shm |= (1 << 31);
--			shm |= ((p->rc_framerate_num & 0x7FFF) << 16);
--			shm |= (p->rc_framerate_denom & 0xFFFF);
-+			shm |= ((p->codec.runtime.rc_framerate_num & 0x7FFF)
-+				<< 16);
-+			shm |= (p->codec.runtime.rc_framerate_denom & 0xFFFF);
- 			s5p_mfc_write_info_v5(ctx, shm, RC_VOP_TIMING);
- 		}
- 	} else {
-@@ -1009,9 +1011,10 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
- 		s5p_mfc_write_info_v5(ctx, shm, P_B_FRAME_QP);
- 	}
- 	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_denom)
--		mfc_write(dev, p->rc_framerate_num * 1000
--			/ p->rc_framerate_denom, S5P_FIMV_ENC_RC_FRAME_RATE);
-+	if (p->rc_frame && p->codec.runtime.rc_framerate_denom)
-+		mfc_write(dev, p->codec.runtime.rc_framerate_num * 1000
-+		/ p->codec.runtime.rc_framerate_denom,
-+		S5P_FIMV_ENC_RC_FRAME_RATE);
- 	else
- 		mfc_write(dev, 0, S5P_FIMV_ENC_RC_FRAME_RATE);
- 	/* rate control config. */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 1bb487c..4b82338 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -587,6 +587,52 @@ static int s5p_mfc_set_slice_mode(struct s5p_mfc_ctx *ctx)
- 	return 0;
- }
- 
-+static int s5p_mfc_set_runtime_enc_params(struct s5p_mfc_ctx *ctx,
-+		struct s5p_mfc_runtime_enc_params *runtime_p)
++#include "fimc-is.h"
++
++#define ISP_DRV_NAME "fimc-is-isp"
++
++static const struct fimc_is_fmt formats[] = {
++	{
++		.name           = "Bayer GR-BG 8bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG8,
++		.depth		= { 8 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 10bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG10,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 12bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG12,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++};
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
 +{
-+	struct s5p_mfc_dev *dev = ctx->dev;
-+	struct s5p_mfc_enc_params *p = &ctx->enc_params;
-+	unsigned int params_changed = 0;
++	unsigned int i;
 +
-+	if (runtime_p->params_changed & (1 << MFC_ENC_GOP_CONFIG_CHANGE)) {
-+		params_changed |= (1 << S5P_FIMV_E_GOP_CONFIG_CHANGE_SHIFT_V6);
-+		/* pictype: IDR period */
-+		WRITEL((runtime_p->gop_size & 0xFFFF),
-+			S5P_FIMV_E_GOP_CONFIG_V6);
++	for (i = 0; i < NUM_FORMATS; i++)
++		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
++			return &formats[i];
++	return NULL;
++}
++
++static int isp_video_output_start_streaming(struct vb2_queue *vq,
++					unsigned int count)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++
++	set_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_stop_streaming(struct vb2_queue *vq)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf;
++
++	/* Release unused buffers */
++	while (!list_empty(&isp->wait_queue)) {
++		buf = fimc_is_isp_wait_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
 +	}
-+	if (runtime_p->params_changed & (1 << MFC_ENC_FRAME_RATE_CHANGE)) {
-+		/* frame rate */
-+		if (p->rc_frame && runtime_p->rc_framerate_num &&
-+			runtime_p->rc_framerate_denom) {
-+			params_changed |=
-+				(1 << S5P_FIMV_E_FRAME_RATE_CHANGE_SHIFT_V6);
-+			WRITEL((((runtime_p->rc_framerate_num & 0xFFFF) << 16) |
-+				(runtime_p->rc_framerate_denom & 0xFFFF)),
-+				S5P_FIMV_E_RC_FRAME_RATE_V6);
-+		}
-+	}
-+	if (runtime_p->params_changed & (1 << MFC_ENC_BIT_RATE_CHANGE)) {
-+		/* bit rate */
-+		if (p->rc_frame) {
-+			params_changed |=
-+				(1 << S5P_FIMV_E_BIT_RATE_CHANGE_SHIFT_V6);
-+			WRITEL(runtime_p->rc_bitrate,
-+				S5P_FIMV_E_RC_BIT_RATE_V6);
-+		}
-+	}
-+	if (runtime_p->params_changed & (1 << MFC_ENC_FRAME_INSERTION)) {
-+		unsigned int reg = READL(S5P_FIMV_E_FRAME_INSERTION_V6);
-+		reg &= ~0x3;
-+		reg |= runtime_p->force_frame_type & 0x3;
-+		WRITEL(reg, S5P_FIMV_E_FRAME_INSERTION_V6);
++	while (!list_empty(&isp->run_queue)) {
++		buf = fimc_is_isp_run_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
 +	}
 +
-+	if (params_changed)
-+		WRITEL(params_changed, S5P_FIMV_E_PARAM_CHANGE_V6);
++	clear_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_queue_setup(struct vb2_queue *vq,
++			const struct v4l2_format *pfmt,
++			unsigned int *num_buffers, unsigned int *num_planes,
++			unsigned int sizes[], void *allocators[])
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	const struct fimc_is_fmt *fmt = isp->fmt;
++	unsigned int wh, i;
++
++	if (!fmt)
++		return -EINVAL;
++
++	*num_planes = fmt->num_planes;
++	wh = isp->width * isp->height;
++
++	for (i = 0; i < *num_planes; i++) {
++		allocators[i] = isp->alloc_ctx;
++		sizes[i] = (wh * fmt->depth[i]) / 8;
++	}
++	return 0;
++}
++
++static int isp_video_output_buffer_init(struct vb2_buffer *vb)
++{
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	buf->paddr[0] = vb2_dma_contig_plane_dma_addr(vb, 0);
++	return 0;
++}
++
++static int isp_video_output_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	unsigned long size;
++
++	size = (isp->width * isp->height * isp->fmt->depth[0]) / 8;
++	if (vb2_plane_size(vb, 0) < size) {
++		v4l2_err(&isp->subdev, "User buffer too small (%ld < %ld)\n",
++			 vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++	vb2_set_plane_payload(vb, 0, size);
 +
 +	return 0;
 +}
 +
- static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
-@@ -611,10 +657,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 		(((p->crop_top_offset / 16) & 0x2FF) << 10),
- 		S5P_FIMV_E_FRAME_CROP_OFFSET_V6);
- 
--	/* pictype : IDR period */
--	reg = 0;
--	reg |= p->gop_size & 0xFFFF;
--	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG_V6);
-+	/* send all runtime encoder parameters. */
-+	p->codec.runtime.params_changed = ~0;
-+	s5p_mfc_set_runtime_enc_params(ctx, &p->codec.runtime);
-+	p->codec.runtime.params_changed = 0;
- 
- 	/* multi-slice control */
- 	/* multi-slice MB number or bit size */
-@@ -700,13 +746,6 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 	reg |= ((p->rc_frame & 0x1) << 9);
- 	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
- 
--	/* bit rate */
--	if (p->rc_frame)
--		WRITEL(p->rc_bitrate,
--			S5P_FIMV_E_RC_BIT_RATE_V6);
--	else
--		WRITEL(1, S5P_FIMV_E_RC_BIT_RATE_V6);
--
- 	/* reaction coefficient */
- 	if (p->rc_frame) {
- 		if (p->rc_reaction_coeff < TIGHT_CBR_MAX) /* tight CBR */
-@@ -814,14 +853,6 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
- 		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
- 	}
- 
--	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
--		reg = 0;
--		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
--		reg |= p->rc_framerate_denom & 0xFFFF;
--		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
--	}
--
- 	/* vbv buffer size */
- 	if (p->frame_skip_mode ==
- 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
-@@ -1089,14 +1120,6 @@ static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
- 		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
- 	}
- 
--	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
--		reg = 0;
--		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
--		reg |= p->rc_framerate_denom & 0xFFFF;
--		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
--	}
--
- 	/* vbv buffer size */
- 	if (p->frame_skip_mode ==
- 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
-@@ -1161,14 +1184,6 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
- 		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
- 	}
- 
--	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
--		reg = 0;
--		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
--		reg |= p->rc_framerate_denom & 0xFFFF;
--		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
--	}
--
- 	/* vbv buffer size */
- 	if (p->frame_skip_mode ==
- 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
-@@ -1214,14 +1229,6 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
- 	reg |= ((p->rc_mb & 0x1) << 8);
- 	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
- 
--	/* frame rate */
--	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
--		reg = 0;
--		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
--		reg |= p->rc_framerate_denom & 0xFFFF;
--		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
--	}
--
- 	/* vbv buffer size */
- 	if (p->frame_skip_mode ==
- 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
-@@ -1560,6 +1567,7 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 	mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
- 
- 	s5p_mfc_set_enc_frame_buffer_v6(ctx, src_y_addr, src_c_addr);
-+	s5p_mfc_set_runtime_enc_params(ctx, &src_mb->runtime_enc_params);
- 
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
- 	dst_mb->flags |= MFC_BUF_FLAG_USED;
++static void isp_video_output_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	fimc_is_pipeline_buf_lock(isp->pipeline);
++	fimc_is_isp_wait_queue_add(isp, buf);
++	fimc_is_pipeline_buf_unlock(isp->pipeline);
++
++	/* Call shot command */
++	fimc_is_pipeline_shot_safe(isp->pipeline);
++}
++
++static const struct vb2_ops isp_video_output_qops = {
++	.queue_setup	 = isp_video_output_queue_setup,
++	.buf_init	 = isp_video_output_buffer_init,
++	.buf_prepare	 = isp_video_output_buffer_prepare,
++	.buf_queue	 = isp_video_output_buffer_queue,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
++	.start_streaming = isp_video_output_start_streaming,
++	.stop_streaming	 = isp_video_output_stop_streaming,
++};
++
++static const struct v4l2_file_operations isp_video_output_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vb2_fop_mmap,
++};
++
++/*
++ * Video node ioctl operations
++ */
++static int isp_querycap_output(struct file *file, void *priv,
++					struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, ISP_DRV_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, ISP_DRV_NAME, sizeof(cap->card) - 1);
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++			ISP_DRV_NAME);
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int isp_enum_fmt_mplane(struct file *file, void *priv,
++				     struct v4l2_fmtdesc *f)
++{
++	const struct fimc_is_fmt *fmt;
++
++	if (f->index >= NUM_FORMATS)
++		return -EINVAL;
++
++	fmt = &formats[f->index];
++	strlcpy(f->description, fmt->name, sizeof(f->description));
++	f->pixelformat = fmt->fourcc;
++
++	return 0;
++}
++
++static int isp_g_fmt_mplane(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++	const struct fimc_is_fmt *fmt = isp->fmt;
++
++	plane_fmt->bytesperline = (isp->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = plane_fmt->bytesperline * isp->height;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->width = isp->width;
++	pixm->height = isp->height;
++	pixm->field = V4L2_FIELD_NONE;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_try_fmt_mplane(struct file *file, void *fh,
++		struct v4l2_format *f)
++{
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++
++	fmt = find_format(f);
++	if (!fmt)
++		fmt = (struct fimc_is_fmt *) &formats[0];
++
++	v4l_bound_align_image(&pixm->width,
++			ISP_MIN_WIDTH + SENSOR_WIDTH_PADDING,
++			ISP_MAX_WIDTH + SENSOR_WIDTH_PADDING, 0,
++			&pixm->height,
++			ISP_MIN_HEIGHT + SENSOR_HEIGHT_PADDING,
++			ISP_MAX_HEIGHT + SENSOR_HEIGHT_PADDING, 0,
++			0);
++
++	plane_fmt->bytesperline = (pixm->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = (pixm->width * pixm->height *
++				fmt->depth[0]) / 8;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->field = V4L2_FIELD_NONE;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_s_fmt_mplane(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	int ret;
++
++	ret = isp_try_fmt_mplane(file, priv, f);
++	if (ret)
++		return ret;
++
++	/* Get format type */
++	fmt = find_format(f);
++	if (!fmt) {
++		fmt = &formats[0];
++		pixm->pixelformat = fmt->fourcc;
++		pixm->num_planes = fmt->num_planes;
++	}
++
++	isp->fmt = fmt;
++	isp->width = pixm->width;
++	isp->height = pixm->height;
++	isp->size_image = pixm->plane_fmt[0].sizeimage;
++	set_bit(STATE_INIT, &isp->output_state);
++	return 0;
++}
++
++static int isp_reqbufs(struct file *file, void *priv,
++		struct v4l2_requestbuffers *reqbufs)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	int ret;
++
++	reqbufs->count = max_t(u32, FIMC_IS_ISP_REQ_BUFS_MIN, reqbufs->count);
++	ret = vb2_reqbufs(&isp->vbq, reqbufs);
++	if (ret) {
++		v4l2_err(&isp->subdev, "vb2 req buffers failed\n");
++		return ret;
++	}
++
++	if (reqbufs->count < FIMC_IS_ISP_REQ_BUFS_MIN) {
++		reqbufs->count = 0;
++		vb2_reqbufs(&isp->vbq, reqbufs);
++		return -ENOMEM;
++	}
++	set_bit(STATE_BUFS_ALLOCATED, &isp->output_state);
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops isp_video_output_ioctl_ops = {
++	.vidioc_querycap		= isp_querycap_output,
++	.vidioc_enum_fmt_vid_out_mplane	= isp_enum_fmt_mplane,
++	.vidioc_try_fmt_vid_out_mplane	= isp_try_fmt_mplane,
++	.vidioc_s_fmt_vid_out_mplane	= isp_s_fmt_mplane,
++	.vidioc_g_fmt_vid_out_mplane	= isp_g_fmt_mplane,
++	.vidioc_reqbufs			= isp_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static int isp_subdev_registered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct vb2_queue *q = &isp->vbq;
++	struct video_device *vfd = &isp->vfd;
++	int ret;
++
++	mutex_init(&isp->video_lock);
++
++	memset(vfd, 0, sizeof(*vfd));
++	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.output");
++
++	vfd->fops = &isp_video_output_fops;
++	vfd->ioctl_ops = &isp_video_output_ioctl_ops;
++	vfd->v4l2_dev = sd->v4l2_dev;
++	vfd->release = video_device_release_empty;
++	vfd->lock = &isp->video_lock;
++	vfd->queue = q;
++	vfd->vfl_dir = VFL_DIR_TX;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++
++	memset(q, 0, sizeof(*q));
++	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->ops = &isp_video_output_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct fimc_is_buf);
++	q->drv_priv = isp;
++
++	ret = vb2_queue_init(q);
++	if (ret < 0)
++		return ret;
++
++	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
++	if (ret < 0)
++		return ret;
++
++	video_set_drvdata(vfd, isp);
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		media_entity_cleanup(&vfd->entity);
++		return ret;
++	}
++
++	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
++		  vfd->name, video_device_node_name(vfd));
++	return 0;
++}
++
++static void isp_subdev_unregistered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++
++	if (isp && video_is_registered(&isp->vfd))
++		video_unregister_device(&isp->vfd);
++}
++
++static const struct v4l2_subdev_internal_ops isp_subdev_internal_ops = {
++	.registered = isp_subdev_registered,
++	.unregistered = isp_subdev_unregistered,
++};
++
++static struct fimc_is_sensor *fimc_is_get_sensor(struct fimc_is *is,
++		int sensor_id)
++{
++	int i;
++
++	for (i = 0; i < FIMC_IS_NUM_SENSORS; i++) {
++		if (is->sensor[i].drvdata->id == sensor_id)
++			return &is->sensor[i];
++	}
++	return NULL;
++}
++
++static int isp_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct fimc_is_sensor *sensor;
++	const struct sensor_drv_data *sdata;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (on) {
++		ret = pm_runtime_get_sync(&is->pdev->dev);
++		if (ret < 0)
++			return ret;
++
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++
++		ret = fimc_is_pipeline_open(isp->pipeline, sensor);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline open failed\n");
++	} else {
++		ret = fimc_is_pipeline_close(isp->pipeline);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline close failed\n");
++		pm_runtime_put_sync(&is->pdev->dev);
++	}
++
++	return ret;
++}
++
++static struct v4l2_subdev_core_ops isp_core_ops = {
++	.s_power = isp_s_power,
++};
++
++static int isp_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct v4l2_subdev_format fmt;
++	const struct sensor_drv_data *sdata;
++	struct fimc_is_sensor *sensor;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (enable) {
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++		/* Retrieve the sensor format */
++		fmt.pad = 0;
++		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		ret = v4l2_subdev_call(sensor_sd, pad, get_fmt, NULL, &fmt);
++		if (ret)
++			return ret;
++
++		sensor->width = fmt.format.width - SENSOR_WIDTH_PADDING;
++		sensor->height = fmt.format.height - SENSOR_HEIGHT_PADDING;
++		sensor->pixel_width = fmt.format.width;
++		sensor->pixel_height = fmt.format.height;
++
++		/* Check sensor resolution match */
++		if ((sensor->pixel_width != isp->width) ||
++			(sensor->pixel_height != isp->height)) {
++			v4l2_err(sd, "Resolution mismatch\n");
++			return -EPIPE;
++		}
++
++		ret = fimc_is_pipeline_start(isp->pipeline, 1);
++		if (ret)
++			v4l2_err(sd, "Pipeline start failed.\n");
++	} else {
++		ret = fimc_is_pipeline_stop(isp->pipeline, 1);
++		if (ret)
++			v4l2_err(sd, "Pipeline stop failed.\n");
++	}
++
++	return ret;
++}
++
++static const struct v4l2_subdev_video_ops isp_video_ops = {
++	.s_stream       = isp_s_stream,
++};
++
++static struct v4l2_subdev_ops isp_subdev_ops = {
++	.core = &isp_core_ops,
++	.video = &isp_video_ops,
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline)
++{
++	struct v4l2_ctrl_handler *handler = &isp->ctrl_handler;
++	struct v4l2_subdev *sd = &isp->subdev;
++	int ret;
++
++	isp->alloc_ctx = alloc_ctx;
++	isp->pipeline = pipeline;
++	isp->fmt = &formats[1];
++	INIT_LIST_HEAD(&isp->wait_queue);
++	INIT_LIST_HEAD(&isp->run_queue);
++	isp->width = ISP_DEF_WIDTH;
++	isp->height = ISP_DEF_HEIGHT;
++
++	v4l2_subdev_init(sd, &isp_subdev_ops);
++	sd->owner = THIS_MODULE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), ISP_DRV_NAME);
++
++	isp->subdev_pads[ISP_SD_PAD_SINK_DMA].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SINK_OTF].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
++			isp->subdev_pads, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_ctrl_handler_init(handler, 1);
++	if (handler->error)
++		goto err_ctrl;
++
++	sd->ctrl_handler = handler;
++	sd->internal_ops = &isp_subdev_internal_ops;
++	v4l2_set_subdevdata(sd, isp);
++
++	return 0;
++
++err_ctrl:
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(handler);
++	return ret;
++}
++
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp)
++{
++	struct v4l2_subdev *sd = &isp->subdev;
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(&isp->ctrl_handler);
++	v4l2_set_subdevdata(sd, NULL);
++}
++
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.h b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+new file mode 100644
+index 0000000..fdb6d86
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+@@ -0,0 +1,90 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_ISP_H_
++#define FIMC_IS_ISP_H_
++
++#include "fimc-is-core.h"
++#include "fimc-is-pipeline.h"
++
++#define FIMC_IS_ISP_REQ_BUFS_MIN	2
++
++#define ISP_SD_PAD_SINK_DMA	0
++#define ISP_SD_PAD_SINK_OTF	1
++#define ISP_SD_PAD_SRC		2
++#define ISP_SD_PADS_NUM		3
++
++#define ISP_DEF_WIDTH		1296
++#define ISP_DEF_HEIGHT		732
++
++#define ISP_MAX_WIDTH		4808
++#define ISP_MAX_HEIGHT		3356
++#define ISP_MIN_WIDTH		32
++#define ISP_MIN_HEIGHT		32
++
++#define ISP_MAX_BUFS		2
++
++/**
++ * struct fimc_is_isp - ISP context
++ * @vfd: video device node
++ * @fh: v4l2 file handle
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @subdev: fimc-is-isp subdev
++ * @vd_pad: media pad for the output video node
++ * @subdev_pads: the subdev media pads
++ * @ctrl_handler: v4l2 control handler
++ * @video_lock: video lock mutex
++ * @sensor_sd: sensor subdev used with this isp instance
++ * @pipeline: pipeline instance for this isp context
++ * @vbq: vb2 buffers queue for ISP output video node
++ * @wait_queue: list holding buffers waiting to be queued to HW
++ * @wait_queue_cnt: wait queue number of buffers
++ * @run_queue: list holding buffers queued to HW
++ * @run_queue_cnt: run queue number of buffers
++ * @output_bufs: isp output buffers array
++ * @out_buf_cnt: number of output buffers in use
++ * @fmt: output plane format for isp
++ * @width: user configured input width
++ * @height: user configured input height
++ * @size_image: image size in bytes
++ * @output_state: state of the output video node operations
++ */
++struct fimc_is_isp {
++	struct video_device		vfd;
++	struct v4l2_fh			fh;
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct v4l2_subdev		subdev;
++	struct media_pad		vd_pad;
++	struct media_pad		subdev_pads[ISP_SD_PADS_NUM];
++	struct v4l2_ctrl_handler	ctrl_handler;
++	struct mutex			video_lock;
++
++	struct v4l2_subdev		*sensor_sd;
++	struct fimc_is_pipeline		*pipeline;
++
++	struct vb2_queue		vbq;
++	struct list_head		wait_queue;
++	unsigned int			wait_queue_cnt;
++	struct list_head		run_queue;
++	unsigned int			run_queue_cnt;
++
++	const struct fimc_is_fmt	*fmt;
++	unsigned int			width;
++	unsigned int			height;
++	unsigned int			size_image;
++	unsigned long			output_state;
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline);
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp);
++
++#endif /* FIMC_IS_ISP_H_ */
 -- 
-1.8.4
+1.7.9.5
 
