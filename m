@@ -1,38 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:41937 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755841Ab3JGRTO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 13:19:14 -0400
-Received: by mail-bk0-f51.google.com with SMTP id mx10so2753335bkb.38
-        for <linux-media@vger.kernel.org>; Mon, 07 Oct 2013 10:19:13 -0700 (PDT)
-Message-ID: <5252ED11.9060702@googlemail.com>
-Date: Mon, 07 Oct 2013 19:19:13 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:44718 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756034Ab3JRDIO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 23:08:14 -0400
+Received: by mail-pa0-f44.google.com with SMTP id fb1so1663171pad.3
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:08:13 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Subject: Re: libtool warning in libdvbv5
-References: <524EA330.8010700@xs4all.nl>
-In-Reply-To: <524EA330.8010700@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: hans.verkuil@cisco.com, sachin.kamat@linaro.org,
+	m.chehab@samsung.com
+Subject: [PATCH 4/6] [media] tvp514x: Include linux/of.h header
+Date: Fri, 18 Oct 2013 08:37:13 +0530
+Message-Id: <1382065635-27855-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+'of_match_ptr' is defined in linux/of.h. Include it explicitly to
+avoid build breakage in the future.
 
-On 10/4/13 1:14 PM, Hans Verkuil wrote:
-> When linking libdvbv5.la I get the following warning from libtool:
->
->    CCLD     libdvbv5.la
-> libtool: link: warning: `-version-info/-version-number' is ignored for convenience libraries
->
-> Other libs don't give that warning, but I don't see any obvious differences.
->
-> Do you know what might cause this?
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/i2c/tvp514x.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Yes. It is caused by the fact that libdvbv5 is built as static lib by 
-default. And for static libs it does not make sense to specify version 
-numbers like for dynamic libs. I'll fix the warning during the next days.
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 91f3dd4..83d85df 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -35,6 +35,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
+ #include <linux/v4l2-mediabus.h>
++#include <linux/of.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+-- 
+1.7.9.5
 
-Thanks,
-Gregor
