@@ -1,76 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61481 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755786Ab3JHV6n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 17:58:43 -0400
-Date: Tue, 8 Oct 2013 23:57:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFD] use-counting V4L2 clocks
-In-Reply-To: <20131009053327.091686f3@concha.lan>
-Message-ID: <Pine.LNX.4.64.1310082334430.5846@axis700.grange>
-References: <Pine.LNX.4.64.1309121947590.7038@axis700.grange>
- <20131009053327.091686f3@concha.lan>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:53575 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754227Ab3JRADN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Oct 2013 20:03:13 -0400
+Received: by mail-qc0-f175.google.com with SMTP id v2so2460503qcr.20
+        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 17:03:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <52606AB7.7020200@gmail.com>
+References: <1381362589-32237-1-git-send-email-sheu@google.com>
+	<1381362589-32237-4-git-send-email-sheu@google.com>
+	<52564DE6.6090709@xs4all.nl>
+	<CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com>
+	<CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
+	<52590184.5030806@xs4all.nl>
+	<CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com>
+	<526001DF.9040309@samsung.com>
+	<CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com>
+	<CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com>
+	<52606AB7.7020200@gmail.com>
+Date: Thu, 17 Oct 2013 17:03:12 -0700
+Message-ID: <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
+Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for
+ VIDIOC_{G,S}_CROP to encoder
+From: John Sheu <sheu@google.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com, Kamil Debski <k.debski@samsung.com>,
+	pawel@osciak.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Oct 17, 2013 at 3:54 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 10/18/2013 12:25 AM, John Sheu wrote:
+>> On Thu, Oct 17, 2013 at 2:46 PM, John Sheu<sheu@google.com>  wrote:
+>>> >  Sweet.  Thanks for spelling things out explicitly like this.  The fact
+>>> >  that the CAPTURE and OUTPUT queues "invert" their sense of "crop-ness"
+>>> >  when used in a m2m device is definitely all sorts of confusing.
+>>
+>> Just to double-check: this means that we have another bug.
+>>
+>> In drivers/media/v4l2-core/v4l2-ioctl.c, in v4l_s_crop and v4l_g_crop,
+>> we "simulate" a G_CROP or S_CROP, if the entry point is not defined
+>> for that device, by doing the appropriate S_SELECTION or G_SELECTION.
+>> Unfortunately then, for M2M this is incorrect then.
+>>
+>> Am I reading this right?
+>
+> You are right, John. Firstly a clear specification needs to be written,
+> something along the lines of Tomasz's explanation in this thread, once
+> all agree to that the ioctl code should be corrected if needed.
+>
+> It seems this [1] RFC is an answer exactly to your question.
+>
+> Exact meaning of the selection ioctl is only part of the problem, also
+> interaction with VIDIOC_S_FMT is not currently defined in the V4L2 spec.
+>
+> [1] http://www.spinics.net/lists/linux-media/msg56078.html
 
-Thanks for your long detailed mail. For the sake of brevity however I'll 
-drop most of it in this my reply, everybody interested should be able to 
-read the original.
+I think the "inversion" behavior is confusing and we should remove it
+if at all possible.
 
-On Wed, 9 Oct 2013, Mauro Carvalho Chehab wrote:
+I took a look through all the drivers in linux-media which implement
+S_CROP.  Most of them are either OUTPUT or CAPTURE/OVERLAY-only.  Of
+those that aren't:
 
-[snip]
+* drivers/media/pci/zoran/zoran_driver.c : this driver explicitly accepts both
+  OUTPUT and CAPTURE queues in S_CROP, but they both configure the same state.
+  No functional difference.
+* drivers/media/platform/davinci/vpfe_capture.c : this driver doesn't specify
+  the queue, but is a CAPTURE-only device.  Probably an (unrelated) bug.
+* drivers/media/platform/exynos4-is/fimc-m2m.c : this driver is a m2m driver
+  with both OUTPUT and CAPTURE queues.  It has uninverted behavior:
+  S_CROP(CAPTURE) -> source
+  S_CROP(OUTPUT) -> destination
+* drivers/media/platform/s5p-g2d/g2d.c : this driver is a m2m driver with both
+  OUTPUT and CAPTURE queues.  It has inverted behavior:
+  S_CROP(CAPTURE) -> destination
+  S_CROP(OUTPUT) -> source
 
-> In other words, what you're actually proposing is to change the default used
-> by most drivers since 1997 from a POWER ON/CLOCK ON default, into a POWER OFF/
-> CLOCK OFF default.
+The last two points above are the most relevant.  So we already have
+at least one broken driver, regardless of whether we allow inversion
+or not; I'd think this grants us a certain freedom to redefine the
+specification to be more logical.  Can we do this please?
 
-To remind, we are now trying to fix a problem, present in the current 
-kernel. In one specific driver. And the proposed fix only affects one 
-specific (family of) driver(s) - the em28xx USB driver. The two patches 
-are quite simple:
-
-(1) the first patch adds a clock to the em28xx driver, which only 
-affects ov2640, because only it uses that clock
-
-(2) the second patch adds a call to subdev's .s_power(1) method. And I 
-cannot see how this change can be a problem either. Firstly I haven't 
-found many subdevices, used by em28xx, that implement .s_power(). 
-Secondly, I don't think any of them does any kind of depth-counting in 
-that method, apart from the one, that we're trying to fix - ov2640.
-
-> Well, for me, it sounds that someone will need to re-test all supported devices,
-> to be sure that such change won't cause regressions.
-> 
-> If you are willing to do such tests (and to get all those hardware to be sure
-> that nothing will break) or to find someone to do it for you, I'm ok with
-> such change.
-
-I'm willing to try to identify all subdevices, used by em28xx, look at 
-their .s_power() methods and report my analysis, whether calling 
-.s_power(1) for those respective drivers could cause problems. Would this 
-suffice?
-
-Thanks
-Guennadi
-
-> Otherwise, we should stick with the present behavior, as otherwise we will cause
-> regressions.
-> 
-> Regards,
-> Mauro
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-John Sheu
