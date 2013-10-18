@@ -1,194 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2812 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab3JJGt3 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40274 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956Ab3JRVGY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Oct 2013 02:49:29 -0400
-Message-ID: <52564DE6.6090709@xs4all.nl>
-Date: Thu, 10 Oct 2013 08:49:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 18 Oct 2013 17:06:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Fwd: [linux-media] Patch notification: 1 patch updated
+Date: Fri, 18 Oct 2013 23:06:45 +0200
+Message-ID: <2080835.ZUJprPZOry@avalon>
+In-Reply-To: <20131015160657.GE25034@n2100.arm.linux.org.uk>
+References: <20131015160657.GE25034@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: John Sheu <sheu@google.com>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	k.debski@samsung.com, pawel@osciak.com
-Subject: Re: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
- to encoder
-References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com>
-In-Reply-To: <1381362589-32237-4-git-send-email-sheu@google.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
+Hi Russell,
 
-Thanks for the patches! It's nice to see fixes/improvements like this being upstreamed.
+On Tuesday 15 October 2013 17:06:57 Russell King - ARM Linux wrote:
+> Bad move.
 
-Unfortunately I have to NACK this patch, but fortunately it is not difficult to fix.
+Wrong status indeed. I wasn't planning to apply the patch through my tree as 
+it's part of a much larger series. Sorry for the noise.
 
-The main problem is that you use the wrong API: you need to use G/S_SELECTION instead
-of G/S_CROP. S_CROP on an output video node doesn't crop, it composes. And if your
-reaction is 'Huh?', then you're not alone. Which is why the selection API was added.
+> ----- Forwarded message from Patchwork <patchwork@linuxtv.org> -----
+> 
+> Date: Tue, 15 Oct 2013 15:58:03 -0000
+> From: Patchwork <patchwork@linuxtv.org>
+> To: rmk+kernel@arm.linux.org.uk
+> Subject: [linux-media] Patch notification: 1 patch updated
+> Delivery-date: Tue, 15 Oct 2013 16:58:09 +0100
+> 
+> Hello,
+> 
+> The following patch (submitted by you) has been updated in patchwork:
+> 
+>  * linux-media: [31/51] DMA-API: media: omap3isp: use
+> dma_coerce_mask_and_coherent() - http://patchwork.linuxtv.org/patch/20178/
+>      - for: Linux Media kernel patches
+>     was: New
+>     now: Accepted
+> 
+> This email is a notification only - you do not need to respond.
+> 
+> -
+> 
+> Patches submitted to linux-media@vger.kernel.org have the following
+> possible states:
+> 
+> New: Patches not yet reviewed (typically new patches);
+> 
+> Under review: When it is expected that someone is reviewing it (typically,
+> 	      the driver's author or maintainer). Unfortunately, patchwork
+> 	      doesn't have a field to indicate who is the driver maintainer.
+> 	      If in doubt about who is the driver maintainer please check the
+> 	      MAINTAINERS file or ask at the ML;
+> 
+> Superseded: when the same patch is sent twice, or a new version of the
+> 	    same patch is sent, and the maintainer identified it, the first
+> 	    version is marked as such. It is also used when a patch was
+> 	    superseeded by a git pull request.
+> 
+> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
+> 	   exist anymore.
+> 
+> Changes requested: when someone requests changes at the patch;
+> 
+> Rejected: When the patch is wrong or doesn't apply. Most of the
+> 	  time, 'rejected' and 'changes requested' means the same thing
+> 	  for the developer: he'll need to re-work on the patch.
+> 
+> RFC: patches marked as such and other patches that are also RFC, but the
+>      patch author was not nice enough to mark them as such. That includes:
+> 	- patches sent by a driver's maintainer who send patches
+> 	  via git pull requests;
+> 	- patches with a very active community (typically from developers
+> 	  working with embedded devices), where lots of versions are
+> 	  needed for the driver maintainer and/or the community to be
+> 	  happy with.
+> 
+> Not Applicable: for patches that aren't meant to be applicable via
+> 	        the media-tree.git.
+> 
+> Accepted: when some driver maintainer says that the patch will be applied
+> 	  via his tree, or when everything is ok and it got applied
+> 	  either at the main tree or via some other tree (fixes tree;
+> 	  some other maintainer's tree - when it belongs to other subsystems,
+> 	  etc);
+> 
+> If you think any status change is a mistake, please send an email to the ML.
+> 
+> -
+> 
+> This is an automated mail sent by the patchwork system at
+> patchwork.linuxtv.org. To stop receiving these notifications, edit
+> your mail settings at:
+>   http://patchwork.linuxtv.org/mail/
+> 
+> ----- End forwarded message -----
 
-The selection API can crop and compose for both capture and output nodes, and it
-does what you expect.
-
-You need to implement TGT_CROP, TGT_CROP_DEFAULT and TGT_CROP_BOUNDS. The latter
-two are read-only and just return the current format's width and height.
-
-Applications that today use S_CROP to set the crop rectangle for this driver's output
-need to be adapted to using the S_SELECTION API since S_CROP really doesn't do what
-they think it does.
-
+-- 
 Regards,
 
-	Hans
-
-On 10/10/2013 01:49 AM, John Sheu wrote:
-> Allow userspace to set the crop rect of the input image buffer to
-> encode.
-> 
-> Signed-off-by: John Sheu <sheu@google.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  6 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 ++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 54 ++++++++++++++++++++++++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 16 +++++---
->  4 files changed, 70 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 6920b54..48f706f 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -428,8 +428,10 @@ struct s5p_mfc_vp8_enc_params {
->   * struct s5p_mfc_enc_params - general encoding parameters
->   */
->  struct s5p_mfc_enc_params {
-> -	u16 width;
-> -	u16 height;
-> +	u16 crop_left_offset;
-> +	u16 crop_right_offset;
-> +	u16 crop_top_offset;
-> +	u16 crop_bottom_offset;
->  
->  	u16 gop_size;
->  	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 8faf969..e99bcb8 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -334,10 +334,9 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	    ctx->state >= MFCINST_HEAD_PARSED &&
->  	    ctx->state < MFCINST_ABORT) {
->  		/* This is run on CAPTURE (decode output) */
-> -		/* Width and height are set to the dimensions
-> -		   of the movie, the buffer is bigger and
-> -		   further processing stages should crop to this
-> -		   rectangle. */
-> +		/* Width and height are set to the dimensions of the buffer,
-> +		   The movie's dimensions may be smaller; the cropping rectangle
-> +		   required should be queried with VIDIOC_G_CROP. */
->  		pix_mp->width = ctx->buf_width;
->  		pix_mp->height = ctx->buf_height;
->  		pix_mp->field = V4L2_FIELD_NONE;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 8b24829..4ad9349 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -1599,7 +1599,57 @@ static int vidioc_g_parm(struct file *file, void *priv,
->  		a->parm.output.timeperframe.numerator =
->  					ctx->enc_params.rc_framerate_denom;
->  	} else {
-> -		mfc_err("Setting FPS is only possible for the output queue\n");
-> +		mfc_err("Getting FPS is only possible for the output queue\n");
-> +		return -EINVAL;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_crop(struct file *file, void *priv, struct v4l2_crop *a)
-> +{
-> +	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
-> +	struct s5p_mfc_enc_params *p = &ctx->enc_params;
-> +
-> +	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		a->c.left = p->crop_left_offset;
-> +		a->c.top = p->crop_top_offset;
-> +		a->c.width = ctx->img_width -
-> +			(p->crop_left_offset + p->crop_right_offset);
-> +		a->c.height = ctx->img_height -
-> +			(p->crop_top_offset + p->crop_bottom_offset);
-> +	} else {
-> +		mfc_err("Getting crop is only possible for the output queue\n");
-> +		return -EINVAL;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_crop(struct file *file, void *priv,
-> +			 const struct v4l2_crop *a)
-> +{
-> +	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
-> +	struct s5p_mfc_enc_params *p = &ctx->enc_params;
-> +
-> +	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		int left, right, top, bottom;
-> +		left = round_down(a->c.left, 16);
-> +		right = ctx->img_width - (left + a->c.width);
-> +		top = round_down(a->c.top, 16);
-> +		bottom = ctx->img_height - (top + a->c.height);
-> +		if (left > ctx->img_width)
-> +			left = ctx->img_width;
-> +		if (right < 0)
-> +			right = 0;
-> +		if (top > ctx->img_height)
-> +			top = ctx->img_height;
-> +		if (bottom < 0)
-> +			bottom = 0;
-> +		p->crop_left_offset = left;
-> +		p->crop_right_offset = right;
-> +		p->crop_top_offset = top;
-> +		p->crop_bottom_offset = bottom;
-> +	} else {
-> +		mfc_err("Setting crop is only possible for the output queue\n");
->  		return -EINVAL;
->  	}
->  	return 0;
-> @@ -1679,6 +1729,8 @@ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
->  	.vidioc_streamoff = vidioc_streamoff,
->  	.vidioc_s_parm = vidioc_s_parm,
->  	.vidioc_g_parm = vidioc_g_parm,
-> +	.vidioc_g_crop = vidioc_g_crop,
-> +	.vidioc_s_crop = vidioc_s_crop,
->  	.vidioc_encoder_cmd = vidioc_encoder_cmd,
->  	.vidioc_subscribe_event = vidioc_subscribe_event,
->  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index 5bf6efd..1bb487c 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -600,12 +600,16 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
->  	/* height */
->  	WRITEL(ctx->img_height, S5P_FIMV_E_FRAME_HEIGHT_V6); /* 16 align */
->  
-> -	/* cropped width */
-> -	WRITEL(ctx->img_width, S5P_FIMV_E_CROPPED_FRAME_WIDTH_V6);
-> -	/* cropped height */
-> -	WRITEL(ctx->img_height, S5P_FIMV_E_CROPPED_FRAME_HEIGHT_V6);
-> -	/* cropped offset */
-> -	WRITEL(0x0, S5P_FIMV_E_FRAME_CROP_OFFSET_V6);
-> +	/* cropped width, pixels */
-> +	WRITEL(ctx->img_width - (p->crop_left_offset + p->crop_right_offset),
-> +		S5P_FIMV_E_CROPPED_FRAME_WIDTH_V6);
-> +	/* cropped height, pixels */
-> +	WRITEL(ctx->img_height - (p->crop_top_offset + p->crop_bottom_offset),
-> +		S5P_FIMV_E_CROPPED_FRAME_HEIGHT_V6);
-> +	/* cropped offset, macroblocks */
-> +	WRITEL(((p->crop_left_offset / 16) & 0x2FF) |
-> +		(((p->crop_top_offset / 16) & 0x2FF) << 10),
-> +		S5P_FIMV_E_FRAME_CROP_OFFSET_V6);
->  
->  	/* pictype : IDR period */
->  	reg = 0;
-> 
+Laurent Pinchart
 
