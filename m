@@ -1,48 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:57241 "EHLO mout.gmx.net"
+Received: from mout.web.de ([212.227.15.3]:51420 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753693Ab3JVIYq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Oct 2013 04:24:46 -0400
-Received: from [192.168.0.22] ([79.215.129.78]) by mail.gmx.com (mrgmx103)
- with ESMTPSA (Nemesis) id 0LfTC1-1W5u9k186j-00p2Lh for
- <linux-media@vger.kernel.org>; Tue, 22 Oct 2013 10:24:45 +0200
-Message-ID: <52663659.3040205@gmx.net>
-Date: Tue, 22 Oct 2013 10:24:57 +0200
-From: JPT <j-p-t@gmx.net>
+	id S1753329Ab3JSWDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Oct 2013 18:03:33 -0400
+Received: from tacticalops.localnet ([95.112.215.80]) by smtp.web.de
+ (mrweb003) with ESMTPSA (Nemesis) id 0M40zy-1VouYL3XcY-00rXo2 for
+ <linux-media@vger.kernel.org>; Sun, 20 Oct 2013 00:03:32 +0200
+From: Martin Walch <walch.martin@web.de>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Larry Finger <Larry.Finger@lwfinger.net>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [kconfig] update: results of some syntactical checks
+Date: Sun, 20 Oct 2013 00:03:30 +0200
+Message-ID: <3513955.N5RNgL3hPx@tacticalops>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: NAS for recording DVB-S2
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is an update to the syntactic results that I sent, back in July.
 
-I want my NAS to record from USB DVB-S2.
+With kernel 3.12 nearing completion, I would like to point to new sections
+in Kconfig files with potential problems:
 
-It will be a Netgear ReadyNAS 102 or 104.
-It has got an ARM HL cpu, so do the DVB drivers in general work on ARM
-systems?
+drivers/media/common/siano/Kconfig:21-26
+> config SMS_SIANO_DEBUGFS
+>	bool "Enable debugfs for smsdvb"
+>	depends on SMS_SIANO_MDTV
+>	depends on DEBUG_FS
+>	depends on SMS_USB_DRV
+>	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
 
-I compared prices and supported devices list.
-The result is:
-I should buy either a Tevii S660 or a Terratec Cynergy S2 Stick.
+The last line adds the dependency CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV.
+This expression does not look sound as those two symbols are not declared
+anywhere. So, the two strings CONFIG_SMS_USB_DRV and CONFIG_SMS_SDIO_DRV
+are compared, yielding always 'n'. As a result, SMS_SIANO_DEBUGFS will never
+be enabled.
 
-I don't want to have another power supply, so I am going to "steal" the
-power from the nas somehow.
-The Tevii uses 7,5 V which is odd...
-I cannot find the voltage the Terratec requires. Does anyone own one?
+Probably, it was meant to say something like
+>	depends on SMS_USB_DRV = SMS_SDIO_DRV
 
-Is Terratec a good choice regarding drivers?
+Two other config sections that probably behave differently than expected:
 
-I am going to compile the kernel myself because no builds are available
-for the ReadyNAS.
-There is a guy who already put the patches for the ReadyNAS DuoV2
-upstream into kernel 3.10: http://natisbad.org/
-Currently he is working on the 102/104...
-unlike me, HE knows what he is doing ;)
+drivers/staging/rtl8188eu/Kconfig: 13-15
+> config 88EU_AP_MODE
+>	bool "Realtek RTL8188EU AP mode"
+>	default Y
 
-thanks,
+drivers/staging/rtl8188eu/Kconfig: 21-23
+> config 88EU_P2P
+>	bool "Realtek RTL8188EU Peer-to-peer mode"
+>	default Y
 
-Jan
+The capital Y is different from the lowercase y. While y is an actually
+hard coded constant symbol, Y is undeclared and evaluates to n.
+The default values are probably only for convenience, so 88EU_AP_MODE and
+88EU_P2P are activated together with 8188EU. They still can be turned off.
+Anyway, it should probably say "default y" in both cases.
+
+
+Here the updated full two lists from July:
+
+Actually declared symbols with names of constants: 2
+  8260 at
+    arch/powerpc/platforms/82xx/Kconfig:55
+  8272 at
+    arch/powerpc/platforms/82xx/Kconfig:64
+
+Symbols used, but not declared: 34
+  Symbol: ARCH_ARM at
+    sound/soc/omap/Kconfig:28
+    sound/soc/omap/Kconfig:2
+  Symbol: ARCH_EFM32 at
+    drivers/spi/Kconfig:167
+    drivers/tty/serial/Kconfig:1430
+  Symbol: ARCH_HI3xxx at
+    drivers/dma/Kconfig:313
+    arch/arm/Kconfig.debug:184
+    arch/arm/Kconfig.debug:192
+  Symbol: ARCH_MOXART at
+    drivers/net/ethernet/moxa/Kconfig:22
+    drivers/net/ethernet/moxa/Kconfig:7
+  Symbol: ARCH_MULTI_V4 at
+    arch/arm/Kconfig:916
+  Symbol: ATHEROS_AR231X at
+    drivers/net/wireless/ath/ath5k/Kconfig:56
+    drivers/net/wireless/ath/ath5k/Kconfig:63
+    drivers/net/wireless/ath/ath5k/Kconfig:9
+    drivers/net/wireless/ath/ath5k/Kconfig:8
+    drivers/net/wireless/ath/ath5k/Kconfig:2
+  Symbol: CONFIG_SMS_SDIO_DRV at
+    drivers/media/common/siano/Kconfig:25
+  Symbol: CONFIG_SMS_USB_DRV at
+    drivers/media/common/siano/Kconfig:25
+  Symbol: CPU_MMP3 at
+    drivers/video/mmp/hw/Kconfig:4
+    drivers/usb/phy/Kconfig:44
+    drivers/video/mmp/Kconfig:2
+  Symbol: CPU_PXA988 at
+    drivers/video/mmp/hw/Kconfig:4
+    drivers/video/mmp/Kconfig:2
+  Symbol: CPU_SUBTYPE_SH7764 at
+    arch/sh/drivers/dma/Kconfig:14
+  Symbol: DEPRECATED at
+    arch/mn10300/Kconfig.debug:34
+  Symbol: EXYNOS_DEV_SYSMMU at
+    drivers/iommu/Kconfig:180
+  Symbol: GENERIC_HAS_IOMAP at
+    arch/score/Kconfig:39
+    arch/score/Kconfig:27
+    arch/score/Kconfig:33
+  Symbol: GENERIC_TIME at
+    arch/arm/mach-bcm/Kconfig:11
+  Symbol: GPIO_BCM at
+    arch/arm/mach-bcm/Kconfig:12
+  Symbol: HAVE_GENERIC_HARDIRQS at
+    arch/score/Kconfig:5
+  Symbol: LOCAL_TIMERS at
+    arch/arm/mach-shmobile/Kconfig:6
+    arch/arm/mach-omap2/Kconfig:59
+    arch/arm/mach-rockchip/Kconfig:10
+    arch/arm/mach-rockchip/Kconfig:7
+  Symbol: M at
+    drivers/usb/host/Kconfig:547
+    drivers/usb/misc/Kconfig:130
+  Symbol: MACH_NOKIA_RM696 at
+    arch/arm/mach-omap2/Kconfig:321
+  Symbol: MACH_OMAP_H4_OTG at
+    drivers/usb/gadget/Kconfig:207
+  Symbol: MACH_SMDKC210 at
+    sound/soc/samsung/Kconfig:138
+  Symbol: MACH_SMDKV310 at
+    sound/soc/samsung/Kconfig:138
+  Symbol: MN10300_PROC_MN2WS0038 at
+    arch/mn10300/Kconfig:184
+  Symbol: MPILIB_EXTRA at
+    crypto/asymmetric_keys/Kconfig:24
+  Symbol: MV64360 at
+    arch/powerpc/Kconfig:419
+  Symbol: N at
+    drivers/staging/rtl8187se/Kconfig:8
+    drivers/staging/bcm/Kconfig:3
+    drivers/staging/usbip/Kconfig:31
+    arch/cris/arch-v32/drivers/Kconfig:13
+    drivers/staging/rtl8712/Kconfig:14
+    drivers/usb/host/Kconfig:340
+    drivers/staging/rtl8712/Kconfig:6
+    drivers/staging/android/Kconfig:61
+    drivers/staging/usbip/Kconfig:42
+    drivers/staging/usbip/Kconfig:20
+    arch/cris/arch-v32/drivers/Kconfig:118
+    drivers/usb/host/Kconfig:317
+    drivers/staging/android/Kconfig:4
+    drivers/staging/frontier/Kconfig:3
+    drivers/usb/host/Kconfig:329
+    drivers/staging/rtl8192u/Kconfig:7
+    arch/arc/Kconfig:356
+    drivers/staging/media/go7007/Kconfig:48
+    drivers/staging/media/go7007/Kconfig:15
+    drivers/usb/core/Kconfig:12
+    drivers/staging/rtl8192e/rtl8192e/Kconfig:7
+    drivers/staging/usbip/Kconfig:3
+    drivers/staging/media/go7007/Kconfig:26
+    drivers/staging/rtl8188eu/Kconfig:5
+  Symbol: OF_I2C at
+    drivers/i2c/busses/Kconfig:377
+  Symbol: OMAP_PM_SRF at
+    drivers/staging/tidspbridge/Kconfig:19
+  Symbol: PICOXCELL_PC3X3 at
+    drivers/char/hw_random/Kconfig:242
+  Symbol: PLATFORM_MICROBLAZE_AUTO at
+    arch/microblaze/platform/Kconfig.platform:10
+  Symbol: PLAT_SPEAR_SINGLE at
+    arch/arm/mach-spear/Kconfig:84
+    arch/arm/mach-spear/Kconfig:99
+    arch/arm/mach-spear/Kconfig:6
+    arch/arm/mach-spear/Kconfig:51
+    arch/arm/mach-spear/Kconfig:19
+  Symbol: RCAR_CLK_ADG at
+    sound/soc/sh/Kconfig:40
+  Symbol: Y at
+    drivers/staging/rtl8188eu/Kconfig:14
+    drivers/staging/rtl8188eu/Kconfig:22
+-- 
+
