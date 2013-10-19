@@ -1,94 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f74.google.com ([209.85.160.74]:40432 "EHLO
-	mail-pb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384Ab3JIXuh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 19:50:37 -0400
-Received: by mail-pb0-f74.google.com with SMTP id rq2so131287pbb.3
-        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 16:50:36 -0700 (PDT)
-From: John Sheu <sheu@google.com>
-To: linux-media@vger.kernel.org
-Cc: John Sheu <sheu@google.com>, m.chehab@samsung.com,
-	k.debski@samsung.com, pawel@osciak.com
-Subject: [PATCH 6/6] [media] v4l2-mem2mem: allow reqbufs(0) with "in use" MMAP buffers
-Date: Wed,  9 Oct 2013 16:49:49 -0700
-Message-Id: <1381362589-32237-7-git-send-email-sheu@google.com>
-In-Reply-To: <1381362589-32237-1-git-send-email-sheu@google.com>
-References: <1381362589-32237-1-git-send-email-sheu@google.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46678 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752120Ab3JSRHw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Oct 2013 13:07:52 -0400
+Message-ID: <1382202581.2405.5.camel@palomino.walls.org>
+Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Rajil Saraswat <rajil.s@gmail.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 19 Oct 2013 13:09:41 -0400
+In-Reply-To: <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>
+References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
+	 <1381371651.1889.21.camel@palomino.walls.org>
+	 <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
+	 <1381620192.22245.18.camel@palomino.walls.org>
+	 <1381668541.2209.14.camel@palomino.walls.org>
+	 <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
+	 <1381707800.1875.63.camel@palomino.walls.org>
+	 <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-mem2mem presently does not allow VIDIOC_REQBUFS to destroy
-outstanding buffers if the queue is of type V4L2_MEMORY_MMAP, and if the
-buffers are considered "in use".  This is different behavior than for
-other memory types, and prevents us for deallocating buffers in a few
-cases:
+On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
+> I was finally able to carry out a git bisect. Had to do a git pull on
+> a fast internet hooked machine and ftp the files over to the remote
+> machine.
+> 
+> I started with 'git bisect bad v2.6.36.4' and 'git bisect good v2.6.35.10'.
+> 
+> And the result was:
+> 
+> 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79 is the first bad commit
+> commit 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79
+> Author: Hans Verkuil <hverkuil@xs4all.nl>
+> Date:   Sat Apr 24 08:23:53 2010 -0300
+> 
+>     V4L/DVB: wm8775: convert to the new control framework
+> 
+>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> :040000 040000 37847ffe592f255c6a9d9daedaf7bbfd3cd7b055
+> 2f094df6f65d7fb296657619c1ad6f93fe085a75 M    drivers
+> 
+> I then removed the patch from linux-2.6.36-gentoo-r8 which are gentoo
+> sources, and confirmed that video/audio now works fine on v4l2-ctl -d
+> /dev/video1 --set-input 4
+> 
+> I wasnt able to remove the patch in 3.10.7 which is gentoo stable
+> kernel. Any idea how can i do that?
 
-* In the case that there are outstanding mmap()ed views on the buffer,
-  refcounting on the videobuf2 buffer backing the vm_area will track
-  lifetime appropriately,
-* In the case that the buffer has been exported as a DMABUF, refcounting
-  on the videobuf2 bufer backing the DMABUF will track lifetime
-  appropriately.
+Try applying the following (untested) patch that is made against the
+bleeding edge Linux kernel.  The test on the mute control state in
+wm8775_s_routing() appears to have been inverted in the bad commit you
+isolated.
 
-Remove the specific check for type V4L2_MEMOMRY_MMAP when freeing all
-buffers through VIDIOC_REQBUFS.
+Along with '--set-input', you may also want to use v4l2-ctl to exercise
+the mute control as well, to see if it works as expected, once this
+patch is applied.
 
-Signed-off-by: John Sheu <sheu@google.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+Regards,
+Andy
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index fc8af50..3c31efb 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -369,8 +369,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- }
- 
- /**
-- * __buffer_in_use() - return true if the buffer is in use and
-- * the queue cannot be freed (by the means of REQBUFS(0)) call
-+ * __buffer_in_use() - return true if the buffer is in use.
-  */
- static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
- {
-@@ -390,20 +389,6 @@ static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
- }
- 
- /**
-- * __buffers_in_use() - return true if any buffers on the queue are in use and
-- * the queue cannot be freed (by the means of REQBUFS(0)) call
-- */
--static bool __buffers_in_use(struct vb2_queue *q)
--{
--	unsigned int buffer;
--	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
--		if (__buffer_in_use(q, q->bufs[buffer]))
--			return true;
--	}
--	return false;
--}
--
--/**
-  * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
-  * returned to userspace
-  */
-@@ -626,15 +611,6 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+file: wm8775_s_route_mute_test_inverted.patch
+
+diff --git a/drivers/media/i2c/wm8775.c b/drivers/media/i2c/wm8775.c
+index 3f584a7..bee7946 100644
+--- a/drivers/media/i2c/wm8775.c
++++ b/drivers/media/i2c/wm8775.c
+@@ -130,12 +130,10 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+ 		return -EINVAL;
  	}
- 
- 	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
--		/*
--		 * We already have buffers allocated, so first check if they
--		 * are not in use and can be freed.
--		 */
--		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
--			dprintk(1, "reqbufs: memory in use, cannot free\n");
--			return -EBUSY;
--		}
--
- 		__vb2_queue_free(q, q->num_buffers);
- 
- 		/*
--- 
-1.8.4
+ 	state->input = input;
+-	if (!v4l2_ctrl_g_ctrl(state->mute))
++	if (v4l2_ctrl_g_ctrl(state->mute))
+ 		return 0;
+ 	if (!v4l2_ctrl_g_ctrl(state->vol))
+ 		return 0;
+-	if (!v4l2_ctrl_g_ctrl(state->bal))
+-		return 0;
+ 	wm8775_set_audio(sd, 1);
+ 	return 0;
+ }
+
 
