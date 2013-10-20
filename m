@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:45042 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab3J3ASI (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:47460 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab3JTSZ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 20:18:08 -0400
-Message-ID: <5270503C.8070200@gmail.com>
-Date: Wed, 30 Oct 2013 01:18:04 +0100
+	Sun, 20 Oct 2013 14:25:28 -0400
+Message-ID: <5264200E.5060706@gmail.com>
+Date: Sun, 20 Oct 2013 20:25:18 +0200
 From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Shaik Ameer Basha <shaik.samsung@gmail.com>
 CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
-	Grant Likely <grant.likely@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
 	Arun Kumar K <arun.kk@samsung.com>,
-	Mark Rutland <Mark.Rutland@arm.com>
-Subject: Re: [GIT PULL FOR 3.13] Exynos5 SoC FIMC-IS imaging subsystem driver
-References: <5261967E.6010001@samsung.com> <20131028201136.6f66d3f7@samsung.com> <526EFC06.70101@gmail.com> <20131029105426.0969741c.m.chehab@samsung.com>
-In-Reply-To: <20131029105426.0969741c.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Pawel Osciak <posciak@google.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH v4 1/4] [media] exynos-scaler: Add new driver for Exynos5
+ SCALER
+References: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com> <1380889594-10448-2-git-send-email-shaik.ameer@samsung.com> <5260F7F3.20802@samsung.com> <CAOD6ATqPrt8FsTFA-YR8-AJDrwFmQ=vYCGYO_bVi3rt-Ra7Ocg@mail.gmail.com>
+In-Reply-To: <CAOD6ATqPrt8FsTFA-YR8-AJDrwFmQ=vYCGYO_bVi3rt-Ra7Ocg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/29/2013 01:54 PM, Mauro Carvalho Chehab wrote:
-[...]
-> Yeah, it seems that we've waited for a long time to get an ack there.
+Hi Shaik,
+
+On 10/20/2013 02:33 PM, Shaik Ameer Basha wrote:
+> On Fri, Oct 18, 2013 at 5:57 PM, Sylwester Nawrocki
+> <s.nawrocki@samsung.com>  wrote:
+>> >  Hi,
+>> >
+>> >  I have couple minor comments. These could be addressed in follow up
+>> >  patches, it you won't manage to do it today. Sorry for being late with
+>> >  this.
 >
-> So, let's do this:
+> Sorry for the late reply.
 >
-> Please send a new version with Mark's comments. Also, please split Doc
-> changes from the code changes on the new series. I'll wait for a couple
-> days for DT people to review it. If we don't have any reply, I'll review
-> and apply it for Kernel 3.13, if I don't see anything really weird on it.
+> Currently I am on travel and I don't have the environment to rebase
+> and test this driver.
+> I will address your comments in follow up patches.
+>
+> Can you please queue this driver to your branch and send a pull
+> request for 3.13 ?
 
-Ok, I will make sure all DT binding documentation is in separate patches,
-actually only one patch needs to be reworked.
+The driver seems to be in quite a good shape now and I think it would
+have been bad not to merge it in this release. I'll let Kamil handle
+it as he's a sub-maintainer of the v4l2 mem-to-mem drivers.
 
-Since Mark already reviewed the FIMC-IS and the S5K4E5 image sensor DT
-binding patches the only one which may need further review is this one:
-https://patchwork.linuxtv.org/patch/20237
-
-Arun, could you send us the updated series ? Unfortunately I might not be
-able to find time to address those comments myself until Friday.
-
---
-Thanks,
+Regards,
 Sylwester
