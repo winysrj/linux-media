@@ -1,100 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40524 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753716Ab3JBUSl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Oct 2013 16:18:41 -0400
-Date: Wed, 2 Oct 2013 22:18:38 +0200
-From: Jan Kara <jack@suse.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jan Kara <jack@suse.cz>, LKML <linux-kernel@vger.kernel.org>,
-	linux-mm@kvack.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/26] omap3isp: Make isp_video_buffer_prepare_user() use
- get_user_pages_fast()
-Message-ID: <20131002201838.GE16998@quack.suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
- <1380724087-13927-6-git-send-email-jack@suse.cz>
- <11048370.rLWI050cLv@avalon>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:44566 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab3JTQ3A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Oct 2013 12:29:00 -0400
+Received: by mail-ee0-f51.google.com with SMTP id c1so3033349eek.24
+        for <linux-media@vger.kernel.org>; Sun, 20 Oct 2013 09:28:59 -0700 (PDT)
+Message-ID: <526404E3.2070108@googlemail.com>
+Date: Sun, 20 Oct 2013 18:29:23 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <11048370.rLWI050cLv@avalon>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: make sure that all subdevices are powered on
+ when needed
+References: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com> <Pine.LNX.4.64.1310182228130.12288@axis700.grange> <5262570E.1020707@googlemail.com> <Pine.LNX.4.64.1310191806060.19376@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1310191806060.19376@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 02-10-13 21:41:10, Laurent Pinchart wrote:
-> Hi Jan,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 02 October 2013 16:27:46 Jan Kara wrote:
-> > CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > CC: linux-media@vger.kernel.org
-> > Signed-off-by: Jan Kara <jack@suse.cz>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-  Thanks!
-> 
-> Could you briefly explain where you're headed with this ?
-  My motivation is that currently filesystems have to workaround locking
-problems with ->page_mkwrite() (the write page fault handler) being called
-with mmap_sem held. The plan is to provide ability to ->page_mkwrite()
-handler to drop mmap_sem. And that needs an audit of all get_user_pages()
-callers to verify they won't be broken by this locking change. So I've
-started with making this audit simpler.
+Hi Guennadi,
 
-> The V4L2 subsystem has suffered for quite a long time from potentiel
-> AB-BA deadlocks, due the drivers taking the mmap_sem semaphore while
-> holding the V4L2 buffers queue lock in the code path below, and taking
-> them in reverse order in the mmap() path (as the mm core takes the
-> mmap_sem semaphore before calling the mmap() operation).
-  Yeah, I've read about this in some comment in V4L2. Also there are some
-places (drivers/media/platform/omap/omap_vout.c and
-drivers/media/v4l2-core/) which acquire mmap_sem pretty early to avoid lock
-inversion with the queue lock. These are actually causing me quite some
-headache :)
+Am 19.10.2013 18:32, schrieb Guennadi Liakhovetski:
+> Hi Frank
+>
+> On Sat, 19 Oct 2013, Frank Schäfer wrote:
+>
+>> Am 18.10.2013 22:30, schrieb Guennadi Liakhovetski:
+>>> Hi Frank
+>>>
+>>> Thanks for the patch
+>>>
+>>> On Wed, 16 Oct 2013, Frank Schäfer wrote:
+>>>
+>>>> Commit 622b828ab7 ("v4l2_subdev: rename tuner s_standby operation to
+>>>> core s_power") replaced the tuner s_standby call in the em28xx driver with
+>>>> a (s_power, 0) call which suspends all subdevices.
+>>>> But it neglected to add corresponding (s_power, 1) calls to make sure that
+>>>> the subdevices are powered on again when needed.
+>>>>
+>>>> This patch fixes this issue by adding a (s_power, 1) call to
+>>>> function em28xx_wake_i2c().
+>>>>
+>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>> ---
+>>>>  drivers/media/usb/em28xx/em28xx-core.c |    1 +
+>>>>  1 Datei geändert, 1 Zeile hinzugefügt(+)
+>>>>
+>>>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+>>>> index fc157af..8896789 100644
+>>>> --- a/drivers/media/usb/em28xx/em28xx-core.c
+>>>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+>>>> @@ -1243,6 +1243,7 @@ EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
+>>>>   */
+>>>>  void em28xx_wake_i2c(struct em28xx *dev)
+>>>>  {
+>>>> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  s_power, 1);
+>>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
+>>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+>>>>  			INPUT(dev->ctl_input)->vmux, 0, 0);
+>>> Do I understand it right, that you're proposing this as an alternative to 
+>>> my power-balancing patch?
+>> Yes.
+>> Your patch was nevertheless useful, because it pointed out further bugs
+>> in em28xx_v4l2_open().
+>> I've sent another RFC patch which should fix them, too.
+>>
+>>>  It's certainly smaller and simpler, have you 
+>>> also tested it with the ov2640 and my clock patches to see, whether this 
+>>> really balances calls to .s_power() perfectly?
+>> Yes, I've tested the patch with the VAD Laplace webcam (ov2640), a
+>> Hauppauge HVR 900 and a Terratec Cinergy 200.
+>> Please note that the patch does not balance .s_power() calls perfectly,
+>> it only makes sure that the subdevices are powered on when needed.
+>> This also avoids the scary v4l2-clk warnings.
+> hmm, I'm not sure I quite understand - calls aren't balanced perfectly, 
+> but warnings are gone? Since warnings are gone, this means the use-count 
+> doesn't go negative.
+Correct.
 
-> We've solved that by releasing the V4L2 buffers queue lock before 
-> taking the mmap_sem lock below and taking it back after releasing the mmap_sem 
-> lock. Having an explicit indication that the mmap_sem lock was taken helped 
-> keeping the problem in mind. I'm not against hiding it in 
-> get_user_pages_fast(), but I'd like to know what the next step is. Maybe it 
-> would also be worth it adding a /* get_user_pages_fast() takes the mmap_sem */ 
-> comment before the call ?
-  OK, I can add the comment. Thanks for review.
+>  Does that mean, that now you enable the clock more 
+> often, then you disable it? 
+(s_power, 1) is called more often than (s_power, 0).
 
-								Honza
+> Wouldn't it lock the driver module in the 
+> kernel via excessive module_get()? Or have I misunderstood something?
+I don't know. Wouldn't this be a bug ?
 
-> > ---
-> >  drivers/media/platform/omap3isp/ispqueue.c | 10 +++-------
-> >  1 file changed, 3 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispqueue.c
-> > b/drivers/media/platform/omap3isp/ispqueue.c index
-> > e15f01342058..bed380395e6c 100644
-> > --- a/drivers/media/platform/omap3isp/ispqueue.c
-> > +++ b/drivers/media/platform/omap3isp/ispqueue.c
-> > @@ -331,13 +331,9 @@ static int isp_video_buffer_prepare_user(struct
-> > isp_video_buffer *buf) if (buf->pages == NULL)
-> >  		return -ENOMEM;
-> > 
-> > -	down_read(&current->mm->mmap_sem);
-> > -	ret = get_user_pages(current, current->mm, data & PAGE_MASK,
-> > -			     buf->npages,
-> > -			     buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
-> > -			     buf->pages, NULL);
-> > -	up_read(&current->mm->mmap_sem);
-> > -
-> > +	ret = get_user_pages_fast(data & PAGE_MASK, buf->npages,
-> > +				  buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> > +				  buf->pages);
-> >  	if (ret != buf->npages) {
-> >  		buf->npages = ret < 0 ? 0 : ret;
-> >  		isp_video_buffer_cleanup(buf);
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
--- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+>> Due to the various GPIO sequences, I see no chance to make s_power calls
+>> really balanced in such drivers.
+> I think those should be fixed actually. If there are indeed GPIO 
+> operations, that switch subdevice power on and off, they should be coded 
+> as such, perhaps as regulators.
+Sure, that's how it _should_ be.
+Care to fix the em28xx driver ? Do you have all the 90+ devices ? Do you
+have time enough time to figure out/investigate their GPIO port
+assignments and test them all ?
+
+The em28xx driver is very old (~10 years ?) and other drivers are even
+older.
+Nobody cared about the GPIO details these days and there were also no
+appropriate APIs for things like power control.
+I agree that it would be nice to get things right, but I see no
+realistic chance to achieve that.
+
+>  And - as discussed elsewhere - actually 
+> subdevice drivers should decide when power should be supplied to them, and 
+> when not.
+I still disagree in this point.
+IMHO, this decision should be left to the master device that controls
+the subdevice.
+
+> Anyway, if your patch keeps the clock use count between 0 when unused and 
+> 1, when used, I vote for it and would suggest to apply these fixes to 
+> em28xx.
+Apparently soc_camera calls v4l2_clk_enable() each time (s_power, 1) is
+called.
+Because s_power can't be balanced, v4l2_clk_enable()/disable() calls
+aren't balanced, too. :/
+This issue needs to be addressed indeed.
+
+Regards,
+Frank
+
+>  Mauro, can we do this? Shall we repost the set to make it easier?
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
