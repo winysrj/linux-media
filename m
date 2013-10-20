@@ -1,127 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:36308 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754441Ab3JXKbx (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:38740 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889Ab3JTRrP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Oct 2013 06:31:53 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MV600BG156L8V00@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Oct 2013 11:31:51 +0100 (BST)
-Message-id: <5268F714.3090004@samsung.com>
-Date: Thu, 24 Oct 2013 12:31:48 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC v3] [RFC] v4l2: Support for multiple selections
-References: <1380623614-26265-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1380623614-26265-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 20 Oct 2013 13:47:15 -0400
+Received: by mail-lb0-f174.google.com with SMTP id w6so4679827lbh.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Oct 2013 10:47:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1382202581.2405.5.camel@palomino.walls.org>
+References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
+	<1381371651.1889.21.camel@palomino.walls.org>
+	<CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
+	<1381620192.22245.18.camel@palomino.walls.org>
+	<1381668541.2209.14.camel@palomino.walls.org>
+	<CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>
+	<1381707800.1875.63.camel@palomino.walls.org>
+	<CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>
+	<1382202581.2405.5.camel@palomino.walls.org>
+Date: Sun, 20 Oct 2013 18:47:13 +0100
+Message-ID: <CAFoaQoCL_W6oAuf3at5qWB5uZmW93w1H9bAdFs-h0LoPQOiuvw@mail.gmail.com>
+Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
+From: Rajil Saraswat <rajil.s@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
-I am the designer of selection API. I hope I can help you a little.
-I think that there are two issues mixed in 'Mulitple selections' topic.
+On 19 October 2013 18:09, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
+>> I was finally able to carry out a git bisect. Had to do a git pull on
+>> a fast internet hooked machine and ftp the files over to the remote
+>> machine.
+>>
+>> I started with 'git bisect bad v2.6.36.4' and 'git bisect good v2.6.35.10'.
+>>
+>> And the result was:
+>>
+>> 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79 is the first bad commit
+>> commit 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79
+>> Author: Hans Verkuil <hverkuil@xs4all.nl>
+>> Date:   Sat Apr 24 08:23:53 2010 -0300
+>>
+>>     V4L/DVB: wm8775: convert to the new control framework
+>>
+>>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> :040000 040000 37847ffe592f255c6a9d9daedaf7bbfd3cd7b055
+>> 2f094df6f65d7fb296657619c1ad6f93fe085a75 M    drivers
+>>
+>> I then removed the patch from linux-2.6.36-gentoo-r8 which are gentoo
+>> sources, and confirmed that video/audio now works fine on v4l2-ctl -d
+>> /dev/video1 --set-input 4
+>>
+>> I wasnt able to remove the patch in 3.10.7 which is gentoo stable
+>> kernel. Any idea how can i do that?
+>
+> Try applying the following (untested) patch that is made against the
+> bleeding edge Linux kernel.  The test on the mute control state in
+> wm8775_s_routing() appears to have been inverted in the bad commit you
+> isolated.
+>
+> Along with '--set-input', you may also want to use v4l2-ctl to exercise
+> the mute control as well, to see if it works as expected, once this
+> patch is applied.
+>
+> Regards,
+> Andy
+>
+> file: wm8775_s_route_mute_test_inverted.patch
+>
+> diff --git a/drivers/media/i2c/wm8775.c b/drivers/media/i2c/wm8775.c
+> index 3f584a7..bee7946 100644
+> --- a/drivers/media/i2c/wm8775.c
+> +++ b/drivers/media/i2c/wm8775.c
+> @@ -130,12 +130,10 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+>                 return -EINVAL;
+>         }
+>         state->input = input;
+> -       if (!v4l2_ctrl_g_ctrl(state->mute))
+> +       if (v4l2_ctrl_g_ctrl(state->mute))
+>                 return 0;
+>         if (!v4l2_ctrl_g_ctrl(state->vol))
+>                 return 0;
+> -       if (!v4l2_ctrl_g_ctrl(state->bal))
+> -               return 0;
+>         wm8775_set_audio(sd, 1);
+>         return 0;
+>  }
+>
+>
 
-Firstly, you described that you program a piece of hardware that is
-capable of selecting 8 areas for scanning. Now you
-are looking for userspace API to support such a feature.
-The feature of posting multiple rectangle was proposed in this RFC.
+Thanks for the patch. Unfortunately, my htpc has been kicked off the
+network when the attached TV died. It will take me few weeks to get it
+up again. But I will try this patch when things are back normal and
+report back.
 
-Secondly, You introduced struct v4l2_ext_rect which is a future-proof
-version of v4l2_rect.
-
-
-I think that both issues should be solved in two separate patchsets.
-
-Ad 1.
-The selection of multiple scanning areas is a very driver-specific
-feature, isn't it? I think that you do not need to introduce any abstract
-interface. What would be other applications of the proposed interface?
-Do you know other drivers that may need it? Sakari mentioned introduction
-of private targets for selections. I like this idea. Just define:
-
-#define V4L2_SEL_TGT_PRIVATE     0x80000000
-
-All targets that are >= V4L2_SEL_TGT_PRIVATE are driver-specific.
-Generic applications must not use them. Non-generic application
-must check out the driver of video node before using selections
-from private set. If some target becomes more useful and accepted
-by more then one driver then it can be moved to generic API.
-The good thing about private target is that enums from different
-drivers can collide so the target space is not going to be trashed.
-
-But how to deal with multiple rectangles?
-I have an auxiliary question. Do you have to set all rectangles
-at once? can you set up them one by one?
-
-Anyway, first try to define something like this:
-
-#define V4L2_SEL_TGT_XXX_SCANOUT0  V4L2_SEL_TGT_PRIVATE
-#define V4L2_SEL_TGT_XXX_SCANOUT0_DEFAULT  (V4L2_SEL_TGT_XXX_SCANOUT0 + 1)
-#define V4L2_SEL_TGT_XXX_SCANOUT0_BOUNDS  (V4L2_SEL_TGT_XXX_SCANOUT0 + 2)
-
-#define V4L2_SEL_TGT_XXX_SCANOUT0  (V4L2_SEL_TGT_PRIVATE + 16)
-...
-
--- OR-- parametrized macros similar to one below:
-
-#define V4L2_SEL_TGT_XXX_SCANOUT(n) (V4L2_SEL_TGT_PRIVATE + 16 * (n))
-
-The application could setup all scanout areas one-by-one.
-By default V4L2_SEL_TGT_XXX_SCANOUT0 would be equal to the whole array.
-The height of all consecutive area would be 0. This means disabling
-them effectively.
-
-The change of V4L2_SEL_TGT_XXX_SCANOUT0 would influence all consequtive
-rectangle by shifting them down or resetting them to height 0.
-Notice that as long as targets are driver specific you are free do define
-interaction between the targets.
-
-I hope that proposed solution is satisfactory.
-
-BTW. I think that the HW trick you described is not cropping.
-By cropping you select which part of sensor area is going
-to be processed into compose rectangle in a buffer.
-
-So technicaly you still insert the whole sensor area into the buffer.
-Only part of the buffer is actually updated. So there is no cropping
-(cropping area is equal to the whole array).
-
-Notice, that every 'cropping' area goes to different part of a buffer.
-So you would need also muliple targets for composing (!!!) and very long
-chapter in V4L2 doc describing interactions between muliple-rectangle
-crops and compositions. Good luck !!! :).
-Currently it is a hell to understand and define interaction between
-single crop, and compose and unfamous VIDIOC_S_FMT and m2m madness.
-
-I strongly recommend to use private selections.
-It will be much simpler to define, implement, and modify if needed.
-
-BTW2. I think that the mulitple scanout areas can be modelled using
-media device API. Sakari may know how to do this.
-
-
-Ad 2. Extended rectangles.
-It is a good idea because v4l2_rect lacks any place for extensions.
-But before adding it to V4L2 API, I would like to know the examples
-of actual applications. Please, point drivers that actually need it.
-
-Other thing worth mentioning is reservation of few bits from
-v4l2_selection::flags to describe the type of data used for
-rectangle, v4l2_rect or v4l2_ext_rect. This way one can avoid
-introducting v4l2_selection::rectangles field.
-
-I hope you find this comments useful.
-
-Regards,
-Tomasz Stanislawski
-
-
+-Rajil
