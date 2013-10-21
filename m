@@ -1,128 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56780 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752790Ab3JLXVc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57125 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753004Ab3JUJmA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 19:21:32 -0400
-Message-ID: <1381620192.22245.18.camel@palomino.walls.org>
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Rajil Saraswat <rajil.s@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 12 Oct 2013 19:23:12 -0400
-In-Reply-To: <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>
-	 <1381371651.1889.21.camel@palomino.walls.org>
-	 <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 21 Oct 2013 05:42:00 -0400
+Date: Mon, 21 Oct 2013 12:41:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: sylwester.nawrocki@gmail.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: [RFC] Multi format stream support
+Message-ID: <20131021094156.GB18946@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-10-10 at 22:00 +0100, Rajil Saraswat wrote:
-> On 10 October 2013 03:20, Andy Walls <awalls@md.metrocast.net> wrote:
-> > On Wed, 2013-09-18 at 02:19 +0530, Rajil Saraswat wrote:
-> >> Hi,
-> >>
-> >>  I have a couple of PVR-500's which have additional tuners connected
-> >> to them (using daughter cards).
-> >
-> > The PVR-500's don't have daughter cards with additional tuners AFAIK.
-> >
-> > There is this however:
-> > http://www.hauppauge.com/site/webstore2/webstore_avcable-pci.asp
-> >
-> > Make sure you have any jumpers set properly and the cable connectors
-> > seated properly.
-> >
-> > Also make sure the cable is routed aways from any electrically noisy
-> > cards and high speed data busses: disk controller cards, graphics cards,
-> > etc.
-> >
-> >>  The audio is not usable on either
-> >> 1.4.2 or 1.4.3 ivtv drivers. The issue is described at
-> >> http://ivtvdriver.org/pipermail/ivtv-users/2013-September/010462.html
-> >
-> > With your previous working kernel and with the non-working kernel, what
-> > is the output of
-> >
-> > $ v4l2-ctl -d /dev/videoX --log-status
-> >
-> > after you have set up the inputs properly and have a known good signal
-> > going into the input in question?
-> >
-> > I'm speculating this is a problem with the cx25840 driver or the wm8775
-> > driver, since they change more often than the ivtv driver.
-> 
-> Yes, thats right it is a set of extra inputs and not a separate tuner
-> card. I played a video stream fro both kernels. Here are the logs
-> 
-> Working kernel 2.6.35
->  v4l2-ctl -d /dev/video1 --log-status
-> 
-> Status Log:
-> 
->    [50885.487963] ivtv1: =================  START STATUS CARD #1
-> =================
->    [50885.487967] ivtv1: Version: 1.4.1 Card: WinTV PVR 500 (unit #2)
-[snip]
->    [50885.545429] cx25840 2-0044: Video signal:              present
->    [50885.545431] cx25840 2-0044: Detected format:           PAL-BDGHI
->    [50885.545433] cx25840 2-0044: Specified standard:        PAL-BDGHI
->    [50885.545435] cx25840 2-0044: Specified video input:     Composite 4
->    [50885.545437] cx25840 2-0044: Specified audioclock freq: 48000 Hz
-[snip]
->    [50885.553121] ivtv1: ==================  END STATUS CARD #1
-> ==================
-> 
-> For the non-working kernel 2.6.37
-> 
->    [  212.730996] ivtv1: =================  START STATUS  =================
->    [  212.731001] ivtv1: Version: 1.4.3 Card: WinTV PVR 500 (unit #2)
-[snip]
->    [  212.787820] cx25840 2-0044: Video signal:              present
->    [  212.787822] cx25840 2-0044: Detected format:           PAL-BDGHI
->    [  212.787823] cx25840 2-0044: Specified standard:        PAL-BDGHI
->    [  212.787824] cx25840 2-0044: Specified video input:     Composite 4
-[snip]
-
-Hmm.  I have a PVR-500, with the extra input cable hooked up to unit #2
-of the PVR-500 and a DTV-to-CVBS converter box connected.
-
-My CVBS signal shows up when I am set to PVR-500  'Input 2, Composite 1'
-which is cx25840 'Composite 3'.  This makes sense for unit #2 of a
-PVR-500. It must have the white connector wired differently from unit #1
-of the PVR-500 (and from the PVR-150), since the PVR-500 unit #2 doesn't
-have a CVBS input connector on the main card.
-
-Are you sure you have the input like this and obtain good video from
-PVR-500 unit #2, when it is set to 'Input 4, Composite 2', cx25840
-'Composite 4'?
-
-Could you try recording with PVR unit #2 set to 'Input 2, Composite 1',
-cx25840 'Composite 3'?  
-
-These are the questions in my mind:
-
-Is your PVR-500 unit #2 wired differently than mine?
-Are the older kernels more forgiving when capturing audio with the wrong
-input set? (Try both Input 2 and Input 4 with both kernels.)
-
-> The 3.10.7 kernel has extra wm8775 parameters and  cx25840 parameters
-> than 2.6.35.
-
-The cx25840 blurts out IR unit status (ignore it) and the cx5840 user
-controls (Volume, Balance, etc.) a little differently,
-
-> Any clues from above?
-
-No.  They look the same for everything that matters.
-
-Regards,
-Andy
-
-> Unfortunately, i cannot do a git bisect since it is a remote system
-> with a slow internet connection.
+Hi all,
 
 
+(Resending; this time with linux-media included.)
+
+I wanted to amend my frame format descriptor RFC support by a proposal for
+supporting multiple independent data flows implemented by a single DMA
+engine.
+
+The frame format descriptors RFC v2 can be found here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg67295.html>
+
+
+The use cases are largely the same as for the frame descriptors: the frame
+format descriptors do not answer to how the added data flows can be captured
+in the user space. That's what this RFC is about.
+
+Essentially we're talking about a single stream from a sensor that contains
+multiple, independent kinds of data. In some cases (and I believe in future
+increasingly so) the hardware can operate multiple buffer queues so the user
+space will see multiple independent streams.
+
+
+An example of a frame which contains metadata, the image data and again
+metadata:
+
+	- start of frame ---------------------------
+	| line 0 (metadata)                        |
+	| line 1 (metadata)                        |
+	--------------------------------------------
+	| line 0 (pixel data)                      |
+	| line 1 (pixel data)                      |
+	| ...                                      |
+	| line n (pixel data)                      |
+	--------------------------------------------
+	| line 0 (metadata)                        |
+	| line 1 (metadata)                        |
+	- end of frame -----------------------------
+
+Sometimes the bus protocol or the receiver can separate the three, sometimes
+not. How the separation is done is more relevant in the context of the frame
+format descriptors RFC.
+
+Whereas the case for the frame format descriptors is relatively
+straighforward, there are a few different approaches how to support them on
+video nodes: multi-plane buffers and multiple video buffer queues. Both
+would need extending to support multiple frame format capturing: multi-plane
+buffers have a single format whilst there's exactly a single video buffer
+queue per video node of any given type.
+
+
+Multi-plane buffers as multi-format buffers
+===========================================
+
+The support for multi-plane buffers is provided essentially in the form
+of the two structs:
+
+struct v4l2_plane_pix_format {
+	__u32		sizeimage;
+	__u16		bytesperline;
+	__u16		reserved[7];
+} __attribute__ ((packed));
+
+struct v4l2_pix_format_mplane {
+	__u32                           width;
+	__u32                           height;
+	__u32                           pixelformat;
+	__u32                           field;
+	__u32                           colorspace;
+
+	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+	__u8                            num_planes;
+	__u8                            reserved[11];
+} __attribute__ ((packed));
+
+Now, this looks ideal for supporting multiple formats for a single video
+buffer queue. Extending the concept of the multi-plane pixel format from
+a single image to span multiple independent images seems like the way to
+go, until you look at how many reserved fields there are left.
+
+Seven 16-bit fields are hardly enough describing pixel format, width and
+height and presumably there will be additional fields on top of those.
+
+Extending the multi-plane buffers (in a nice way) has other issues,
+independently of how the issue of free reserved space for additional fields:
+multi-plane buffers with independent formats vs. real multi-plane formats:
+
+* A way would need to be provided to different planes of the same image from
+distinct images.
+
+* Width, height, pixelformat, field and colorspace fields would no
+longer be valid in struct v4l2_pix_format_mplane, as they'd be part of
+the plane specific information (struct v4l2_plane_pix_format).
+
+* Stacking multiple images onto a single multi-format buffer forces the
+user to capture all images even (s)he'd be just interested in a single
+one of them. E.g. four buffers could be relevant for video recording but
+just one might be needed for capturing images while recording video from a
+sensor that can provide both (small resolution YUV and a large resolution
+JPEG).
+
+* No backwards compatibility if new data structures and IOCTLs are needed.
+Forward compatibility (for existing drivers) is possible in a similar
+fashion than for the multi-planar API.
+
+* Some buffers will finish earlier than others. In some cases it is
+important to be able to pass this data to the user space as fast as
+possible. Events could be used for this but that can be seen as a hack since
+they work around the buffer queues.
+
+/**
+ * @queue_index: The index of the video buffer queue, specific to the queue
+ * 		 type. Read-only for the user. Matches with the number of
+ *               the frame descriptor entry.
+ */
+struct v4l2_multi_pix_format {
+	__u32			sizeimage;
+	__u32			bytesperline;
+	__u32			width;
+	__u32			height;
+	__u32			pixelformat;
+	__u32			field;
+	__u32			colorspace;
+	__u32			queue_index;
+	__u32			flags;
+};
+
+/* Part of a multi-plane format */
+#define V4L2_MULTI_PIX_FORMAT_FL_CONT	(1 << 0)
+
+struct v4l2_pix_format_multi {
+	struct v4l2_multi_pix_format	*mfmt[VIDEO_MAX_PLANES];
+	__u8                            nr_of_mfmts;
+};
+
+
+Multiple buffer queues
+======================
+
+The other option to support multiple formats on a single DMA engine is
+through multiple buffer queues. To choose the appropriate buffer queue, a
+new integer field needs to be added to the argument structs of each format
+and buffer queue related IOCTL:
+
+	v4l2_format
+
+		No reserved fields. 8 bytes can be pinched from fmt since
+		there are 8 bytes unused (or only use by the raw field). The
+		size of struct v4l2_pix_format_mplane is 192 bytes.
+
+	v4l2_buffer
+	v4l2_fmtdesc
+	v4l2_requestbuffers
+	v4l2_exportbuffer
+	v4l2_create_buffers
+	
+		Reserved fields exist.
+
+Additionally, a new IOCTL is needed to enumerate the multiple outputs
+available. For backward compatibility the main image must always have index
+zero.
+
+Multiple buffer queues have the benefit that each buffer queue is
+essentially independent of each other. The user has the freedom of choosing
+the number of buffers in the queue: the life cycles of the buffers in the
+user space may well be different, and thus different number of buffers may
+be required for each queue.
+
+
+Splitting the buffer queue type field
+-------------------------------------
+
+Instead of adding a new field for the multi format buffer queue, the 32-bit
+buffer queue type field could be split into two 16-bit fields. 16 bits is
+plenty for both. For instance,
+
+struct v4l2_buffer {
+	__u16	queue_index;
+	__u16	type;
+	...
+};
+
+Endianness handling is something to consider --- __LITTLE_ENDIAN /
+__BIG_ENDIAN can be used to determine the order of the above fields.
+
+Also, and perhaps more importantly, programs that used to set queue type and
+not zero the struct would suffer if recompiled without changes. One option
+to counter that could be recognising programs that are aware of multi format
+support: they're the ones that enumerate the multiple queue formats.
+
+
+Metadata buffer queue type
+==========================
+
+A less intrusive but also not generic option would be to provide a new
+buffer queue type for metadata. While this matches well with the existing
+interfaces, it has its shortcomings that make it by far less useful:
+
+* Only a single metadata plane available, multiple metadata areas are not
+possible.
+
+* Multiple images will not be possible. Naturally it would be possible to
+provide more buffer types for additional images but this definitely looks
+like a hack.
+
+
+Open questions
+==============
+
+Should visibility to other planes than the main image one be full in the
+user space interface or not? Most use cases for the multi format support are
+related to non-image data such as metadata but also image data is possible.
+
+If the answer is "yes", then similar changes would be needed to the V4L2
+sub-device interface as well (on top of the frame format descriptors RFC).
+It's technically easier on that side since the IOCTL argument structs have
+plenty of reserved fields.
+
+The question can indeed be left for later: should this be implemented, a set
+of IOCTLs becomes usable for other than main image format as well.
+
+
+-- 
+Best regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
