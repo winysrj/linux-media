@@ -1,69 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:45699 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781Ab3JDET0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 00:19:26 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH] [media] s5p-mfc: Adjust the default values of some encoder params
-Date: Fri,  4 Oct 2013 09:50:05 +0530
-Message-Id: <1380860405-30623-1-git-send-email-arun.kk@samsung.com>
+Received: from 77-42.prozeta.net ([185.2.42.77]:44485 "EHLO
+	mail-3.datacentre.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986Ab3JUHEQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Oct 2013 03:04:16 -0400
+Message-ID: <86d2b3e836e009d80508390d173526f1.squirrel@webmail.vrbovce.sk>
+Date: Mon, 21 Oct 2013 08:52:41 +0200
+Subject: =?utf-8?B?VsOhwp5lbsOtIEUtbWFpbCB1wp7DrXZhdGVsYSw=?=
+From: "webmail update 2013" <riaditel@prikrizi.sk>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch sets the default values of MAX_QP and GOP size encoder
-parameters to some firmware recommended default values. This enables
-the applications to get a better encoded output using the default
-settings itself.
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Vážení E-mail užívatela;
+Prekrocili ste 23432 boxy nastavit svoje
+Webová služba / Administrátor, a budete mat problémy pri odosielaní a
+prijímat e-maily, kým znova overit. Musíte aktualizovat kliknutím na
+odkaz nižšie a vyplnte údaje pre overenie vášho úctu
+Prosím, kliknite na odkaz nižšie alebo skopírovat vložit do
+e-prehliadac pre overenie Schránky.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 41f5a3c..4ff3b6c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -113,7 +113,7 @@ static struct mfc_control controls[] = {
- 		.minimum = 0,
- 		.maximum = (1 << 16) - 1,
- 		.step = 1,
--		.default_value = 0,
-+		.default_value = 12,
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
-@@ -356,7 +356,7 @@ static struct mfc_control controls[] = {
- 		.minimum = 0,
- 		.maximum = 51,
- 		.step = 1,
--		.default_value = 1,
-+		.default_value = 51,
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP,
-@@ -399,7 +399,7 @@ static struct mfc_control controls[] = {
- 		.minimum = 1,
- 		.maximum = 31,
- 		.step = 1,
--		.default_value = 1,
-+		.default_value = 31,
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP,
-@@ -444,7 +444,7 @@ static struct mfc_control controls[] = {
- 		.minimum = 0,
- 		.maximum = 51,
- 		.step = 1,
--		.default_value = 1,
-+		.default_value = 51,
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP,
--- 
-1.7.9.5
+ http://webmailupdateonline689.jimdo.com/
+
+Pozor!
+Ak tak neurobíte, budú mat obmedzený prístup k e-mailu schránky. Ak
+sa
+nepodarí aktualizovat svoj ??úcet do troch dní od aktualizácie
+oznámenia,
+bude váš úcet natrvalo uzavretá.
+S pozdravom,
+System Administrator ®
+
 
