@@ -1,86 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:44965 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718Ab3JRFir (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 01:38:47 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v10 11/12] V4L: Add DT binding doc for s5k4e5 image sensor
-Date: Fri, 18 Oct 2013 11:07:38 +0530
-Message-Id: <1382074659-31130-12-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
-References: <1382074659-31130-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:48271 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750937Ab3JUUMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Oct 2013 16:12:46 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] rtl2830: add parent for I2C adapter
+Date: Mon, 21 Oct 2013 23:12:15 +0300
+Message-Id: <1382386335-3879-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-S5K4E5 is a Samsung raw image sensor controlled via I2C.
-This patch adds the DT binding documentation for the same.
+i2c i2c-6: adapter [RTL2830 tuner I2C adapter] registered
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000220
+IP: [<ffffffffa0002900>] i2c_register_adapter+0x130/0x390 [i2c_core]
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 ++++++++++++++++++++
- 1 file changed, 45 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+ drivers/media/dvb-frontends/rtl2830.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-new file mode 100644
-index 0000000..0fca087
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-@@ -0,0 +1,45 @@
-+* Samsung S5K4E5 Raw Image Sensor
-+
-+S5K4E5 is a raw image sensor with maximum resolution of 2560x1920
-+pixels. Data transfer is carried out via MIPI CSI-2 port and controls
-+via I2C bus.
-+
-+Required Properties:
-+- compatible	: must be "samsung,s5k4e5"
-+- reg		: I2C device address
-+- reset-gpios	: specifier of a GPIO connected to the RESET pin
-+- clocks	: should contain the sensor's EXTCLK clock specifier, from
-+		  the common clock bindings
-+- clock-names	: should contain "extclk" entry
-+- svdda-supply	: core voltage supply
-+- svddio-supply	: I/O voltage supply
-+
-+Optional Properties:
-+- clock-frequency : the frequency at which the "extclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used
-+
-+The device node should be added to respective control bus controller
-+(e.g. I2C0) nodes and linked to the csis port node, using the common
-+video interfaces bindings, defined in video-interfaces.txt.
-+
-+Example:
-+
-+	i2c-isp@13130000 {
-+		s5k4e5@20 {
-+			compatible = "samsung,s5k4e5";
-+			reg = <0x20>;
-+			reset-gpios = <&gpx1 2 1>;
-+			clock-frequency = <24000000>;
-+			clocks = <&clock 129>;
-+			clock-names = "extclk"
-+			svdda-supply = <...>;
-+			svddio-supply = <...>;
-+			port {
-+				is_s5k4e5_ep: endpoint {
-+					data-lanes = <1 2 3 4>;
-+					remote-endpoint = <&csis0_ep>;
-+				};
-+			};
-+		};
-+	};
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 362d26d..68ee70b 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -700,6 +700,7 @@ struct dvb_frontend *rtl2830_attach(const struct rtl2830_config *cfg,
+ 		sizeof(priv->tuner_i2c_adapter.name));
+ 	priv->tuner_i2c_adapter.algo = &rtl2830_tuner_i2c_algo;
+ 	priv->tuner_i2c_adapter.algo_data = NULL;
++	priv->tuner_i2c_adapter.dev.parent = &i2c->dev;
+ 	i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
+ 	if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
+ 		dev_err(&i2c->dev,
 -- 
-1.7.9.5
+1.8.3.1
 
