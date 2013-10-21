@@ -1,55 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cernmx30.cern.ch ([137.138.144.177]:27339 "EHLO
-	CERNMX30.cern.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933105Ab3JOPZD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 11:25:03 -0400
-From: Dinesh Ram <dinesh.ram@cern.ch>
-To: <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, <edubezval@gmail.com>,
-	<dinesh.ram086@gmail.com>, Dinesh Ram <dinesh.ram@cern.ch>
-Subject: [REVIEW PATCH 3/9] si4713 : Reorganized includes in si4713.c/h
-Date: Tue, 15 Oct 2013 17:24:39 +0200
-Message-ID: <5616278fea088e7f34d3456ced8b0f3e8295b24f.1381850640.git.dinesh.ram@cern.ch>
-In-Reply-To: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
-References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch>
+Received: from mail.kapsi.fi ([217.30.184.167]:58590 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751066Ab3JUUU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Oct 2013 16:20:58 -0400
+Message-ID: <52658CA7.5080104@iki.fi>
+Date: Mon, 21 Oct 2013 23:20:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Phil Carmody <phil.carmody@partner.samsung.com>,
+	Wolfram Sang <wsa@the-dreams.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] rtl2830: add parent for I2C adapter
+References: <1382386335-3879-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1382386335-3879-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moved the header <linux/regulator/consumer.h> from si4713.c to si4713.h
+Hello Phil and Wolfram,
 
-Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
----
- drivers/media/radio/si4713/si4713.c |    1 -
- drivers/media/radio/si4713/si4713.h |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+I found one of my drivers was crashing when DTV USB stick was plugged. 
+Patch in that mail patch fixes the problem.
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 24ae41d..1da9364 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -31,7 +31,6 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
--#include <linux/regulator/consumer.h>
- 
- #include "si4713.h"
- 
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index c274e1f..dc0ce66 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -15,6 +15,7 @@
- #ifndef SI4713_I2C_H
- #define SI4713_I2C_H
- 
-+#include <linux/regulator/consumer.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/si4713.h>
+I quickly looked possible I2C patches causing the problem and saw that 
+one as most suspicions:
+
+commit 3923172b3d700486c1ca24df9c4c5405a83e2309
+i2c: reduce parent checking to a NOOP in non-I2C_MUX case
+
+My config has no CONFIG_I2C_MUX set currently, but I am not sure how it 
+has been earlier.
+
+Any idea?
+
+regards
+Antti
+
+
+On 21.10.2013 23:12, Antti Palosaari wrote:
+> i2c i2c-6: adapter [RTL2830 tuner I2C adapter] registered
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000220
+> IP: [<ffffffffa0002900>] i2c_register_adapter+0x130/0x390 [i2c_core]
+>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/rtl2830.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+> index 362d26d..68ee70b 100644
+> --- a/drivers/media/dvb-frontends/rtl2830.c
+> +++ b/drivers/media/dvb-frontends/rtl2830.c
+> @@ -700,6 +700,7 @@ struct dvb_frontend *rtl2830_attach(const struct rtl2830_config *cfg,
+>   		sizeof(priv->tuner_i2c_adapter.name));
+>   	priv->tuner_i2c_adapter.algo = &rtl2830_tuner_i2c_algo;
+>   	priv->tuner_i2c_adapter.algo_data = NULL;
+> +	priv->tuner_i2c_adapter.dev.parent = &i2c->dev;
+>   	i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
+>   	if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
+>   		dev_err(&i2c->dev,
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
