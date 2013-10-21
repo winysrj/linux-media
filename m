@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48271 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937Ab3JUUMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Oct 2013 16:12:46 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl2830: add parent for I2C adapter
-Date: Mon, 21 Oct 2013 23:12:15 +0300
-Message-Id: <1382386335-3879-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44890 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876Ab3JUHWe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Oct 2013 03:22:34 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MV0002ROCG4YA60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Oct 2013 08:22:32 +0100 (BST)
+Message-id: <5264D638.5010302@samsung.com>
+Date: Mon, 21 Oct 2013 09:22:32 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Jan Kara <jack@suse.cz>, linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>
+Subject: Re: Handling of user address in vb2_dc_get_userptr()
+References: <20131017212331.GA14677@quack.suse.cz>
+In-reply-to: <20131017212331.GA14677@quack.suse.cz>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c i2c-6: adapter [RTL2830 tuner I2C adapter] registered
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000220
-IP: [<ffffffffa0002900>] i2c_register_adapter+0x130/0x390 [i2c_core]
+Hello,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c | 1 +
- 1 file changed, 1 insertion(+)
+On 2013-10-17 23:23, Jan Kara wrote:
+>    I'm auditing get_user_pages() users and when looking into
+> vb2_dc_get_userptr() I was wondering about the following: The address this
+> function works with is an arbitrary user-provided address. However the
+> function vb2_dc_get_user_pages() uses pfn_to_page() on the pfn obtained
+> from VM_IO | VM_PFNMAP vma. That isn't really safe for arbitrary vma of
+> this type (such vmas don't have to have struct page associated at all). I
+> expect this works because userspace always passes a pointer to either a
+> regular vma or VM_FIXMAP vma where struct page is associated with pfn. Am
+> I right? Or for on which vmas this code is supposed to work? Thanks in
+> advance for clarification.
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 362d26d..68ee70b 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -700,6 +700,7 @@ struct dvb_frontend *rtl2830_attach(const struct rtl2830_config *cfg,
- 		sizeof(priv->tuner_i2c_adapter.name));
- 	priv->tuner_i2c_adapter.algo = &rtl2830_tuner_i2c_algo;
- 	priv->tuner_i2c_adapter.algo_data = NULL;
-+	priv->tuner_i2c_adapter.dev.parent = &i2c->dev;
- 	i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
- 	if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
- 		dev_err(&i2c->dev,
+This is known issue. It has been at least partially addresses by the 
+following patch:
+https://patchwork.linuxtv.org/patch/18978/
+
+I hope that one day it can be addressed fully by changing the 
+dma-mapping API in a way it will let drivers to map particular pfn into 
+dma address space.
+
+Best regards
 -- 
-1.8.3.1
+Marek Szyprowski
+Samsung R&D Institute Poland
 
