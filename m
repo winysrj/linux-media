@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49025 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753315Ab3JBO27 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Oct 2013 10:28:59 -0400
-From: Jan Kara <jack@suse.cz>
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-mm@kvack.org, Jan Kara <jack@suse.cz>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 19/26] ivtv: Convert driver to use get_user_pages_unlocked()
-Date: Wed,  2 Oct 2013 16:28:00 +0200
-Message-Id: <1380724087-13927-20-git-send-email-jack@suse.cz>
-In-Reply-To: <1380724087-13927-1-git-send-email-jack@suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+Received: from mail-ve0-f181.google.com ([209.85.128.181]:55191 "EHLO
+	mail-ve0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313Ab3JWLUg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Oct 2013 07:20:36 -0400
+Received: by mail-ve0-f181.google.com with SMTP id jz11so282602veb.26
+        for <linux-media@vger.kernel.org>; Wed, 23 Oct 2013 04:20:35 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: titus.zongo@gmail.com
+Date: Wed, 23 Oct 2013 13:20:35 +0200
+Message-ID: <CAPE+8Lw162LbYdESmRrbJaf7p2duXM1BJi38Fik8FsbnD+ApoA@mail.gmail.com>
+Subject: I need a foreign partner
+From: "Titus.Zongo" <dr.ahmedhamed01@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CC: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/pci/ivtv/ivtv-udma.c |  6 ++----
- drivers/media/pci/ivtv/ivtv-yuv.c  | 12 ++++++------
- 2 files changed, 8 insertions(+), 10 deletions(-)
+Dear Friend,
 
-diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
-index 7338cb2d0a38..6012e5049076 100644
---- a/drivers/media/pci/ivtv/ivtv-udma.c
-+++ b/drivers/media/pci/ivtv/ivtv-udma.c
-@@ -124,10 +124,8 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
- 	}
- 
- 	/* Get user pages for DMA Xfer */
--	down_read(&current->mm->mmap_sem);
--	err = get_user_pages(current, current->mm,
--			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
--	up_read(&current->mm->mmap_sem);
-+	err = get_user_pages_unlocked(current, current->mm, user_dma.uaddr,
-+				      user_dma.page_count, 0, 1, dma->map);
- 
- 	if (user_dma.page_count != err) {
- 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
-diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
-index 2ad65eb29832..9365995917d8 100644
---- a/drivers/media/pci/ivtv/ivtv-yuv.c
-+++ b/drivers/media/pci/ivtv/ivtv-yuv.c
-@@ -75,15 +75,15 @@ static int ivtv_yuv_prep_user_dma(struct ivtv *itv, struct ivtv_user_dma *dma,
- 	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
- 
- 	/* Get user pages for DMA Xfer */
--	down_read(&current->mm->mmap_sem);
--	y_pages = get_user_pages(current, current->mm, y_dma.uaddr, y_dma.page_count, 0, 1, &dma->map[0], NULL);
-+	y_pages = get_user_pages_unlocked(current, current->mm, y_dma.uaddr,
-+					  y_dma.page_count, 0, 1, &dma->map[0]);
- 	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
- 	if (y_pages == y_dma.page_count) {
--		uv_pages = get_user_pages(current, current->mm,
--					  uv_dma.uaddr, uv_dma.page_count, 0, 1,
--					  &dma->map[y_pages], NULL);
-+		uv_pages = get_user_pages_unlocked(current, current->mm,
-+						   uv_dma.uaddr,
-+						   uv_dma.page_count, 0, 1,
-+						   &dma->map[y_pages]);
- 	}
--	up_read(&current->mm->mmap_sem);
- 
- 	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
- 		int rc = -EFAULT;
--- 
-1.8.1.4
+I am Mr.titus zongo, the head of file department of Bank of Africa
+(B.O.A) here in Burkina Faso / Ouagadougou. In my department we
+discover an abandoned sum of(US$18mllion US Dollars) in an account
+that belongs to one of our foreign customer who died along with his
+family in plane crash.
 
+It is therefore upon this discovery that I now decided to make this
+business proposal to you and release the money to you as the next of
+kin or relation to the deceased for the safety and subsequent
+disbursement since nobody is coming for it.I agree that 40% of this
+money will be for you, while 60% would be for me. Then after the money
+is been transferred into your account,I will visit your country for an
+investment under your kind control.
+
+You have to contact my Bank directly as the real next of kin of this
+deceased account with next of kin application form. You have to send
+me those your information below to enable me use it and get you next
+of kin application form from bank, so that you will contact Bank for
+the transfer of this money into your account.
+
+Your Full Name_______________________
+Your Home Address____________________
+Your Age ____________________
+Your Handset Number____________________
+Your Occupation _______________________
+
+I am waiting for your urgent respond to enable us proceed further for
+the transfer.
+Yours faithfully,
+Mr..titus zongo
+Here is my private email address, [titus.zongo@gmail.com]
