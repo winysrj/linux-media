@@ -1,108 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1347 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711Ab3JLIAY (ORCPT
+Received: from smtprelay0212.hostedemail.com ([216.40.44.212]:51336 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753239Ab3JWTPz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 04:00:24 -0400
-Message-ID: <52590184.5030806@xs4all.nl>
-Date: Sat, 12 Oct 2013 10:00:04 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: John Sheu <sheu@google.com>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
-Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
- to encoder
-References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com> <52564DE6.6090709@xs4all.nl> <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com> <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
-In-Reply-To: <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 23 Oct 2013 15:15:55 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 5/8] media: Remove OOM message after input_allocate_device
+Date: Wed, 23 Oct 2013 12:14:51 -0700
+Message-Id: <7ee413793a1f3926952dcd6338f55d61511e56e6.1382555436.git.joe@perches.com>
+In-Reply-To: <cover.1382555436.git.joe@perches.com>
+References: <cover.1382555436.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/2013 01:48 AM, John Sheu wrote:
-> On Wed, Oct 9, 2013 at 11:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> The main problem is that you use the wrong API: you need to use G/S_SELECTION instead
->> of G/S_CROP. S_CROP on an output video node doesn't crop, it composes. And if your
->> reaction is 'Huh?', then you're not alone. Which is why the selection API was added.
->>
->> The selection API can crop and compose for both capture and output nodes, and it
->> does what you expect.
-> 
-> 
-> Happy to fix up the patch.  I'll just need some clarification on the
-> terminology here.  So, as I understand it:
-> 
-> (I'll use "source"/"sink" to refer to the device's inputs/outputs,
-> since "output" collides with the V4L2 concept of an OUTPUT device or
-> OUTPUT queue).
-> 
-> In all cases, the crop boundary refers to the area in the source
-> image; for a CAPTURE device, this is the (presumably analog) sensor,
+Emitting an OOM message isn't necessary after input_allocate_device
+as there's a generic OOM and a dump_stack already done.
 
-Correct.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/rc/imon.c                 | 8 ++------
+ drivers/media/usb/em28xx/em28xx-input.c | 4 +---
+ drivers/media/usb/pwc/pwc-if.c          | 1 -
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
-> and for an OUTPUT device, this is the memory buffer.
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 72e3fa6..5e8e06c 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1909,10 +1909,8 @@ static struct input_dev *imon_init_idev(struct imon_context *ictx)
+ 	int ret, i;
+ 
+ 	idev = input_allocate_device();
+-	if (!idev) {
+-		dev_err(ictx->dev, "input dev allocation failed\n");
++	if (!idev)
+ 		goto out;
+-	}
+ 
+ 	snprintf(ictx->name_idev, sizeof(ictx->name_idev),
+ 		 "iMON Panel, Knob and Mouse(%04x:%04x)",
+@@ -1960,10 +1958,8 @@ static struct input_dev *imon_init_touch(struct imon_context *ictx)
+ 	int ret;
+ 
+ 	touch = input_allocate_device();
+-	if (!touch) {
+-		dev_err(ictx->dev, "touchscreen input dev allocation failed\n");
++	if (!touch)
+ 		goto touch_alloc_failed;
+-	}
+ 
+ 	snprintf(ictx->name_touch, sizeof(ictx->name_touch),
+ 		 "iMON USB Touchscreen (%04x:%04x)",
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index ea181e4..13938ba 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -508,10 +508,8 @@ static void em28xx_register_snapshot_button(struct em28xx *dev)
+ 
+ 	em28xx_info("Registering snapshot button...\n");
+ 	input_dev = input_allocate_device();
+-	if (!input_dev) {
+-		em28xx_errdev("input_allocate_device failed\n");
++	if (!input_dev)
+ 		return;
+-	}
+ 
+ 	usb_make_path(dev->udev, dev->snapshot_button_path,
+ 		      sizeof(dev->snapshot_button_path));
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 77bbf78..49406ef 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -1078,7 +1078,6 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	/* register webcam snapshot button input device */
+ 	pdev->button_dev = input_allocate_device();
+ 	if (!pdev->button_dev) {
+-		PWC_ERROR("Err, insufficient memory for webcam snapshot button device.");
+ 		rc = -ENOMEM;
+ 		goto err_video_unreg;
+ 	}
+-- 
+1.8.1.2.459.gbcd45b4.dirty
 
-Correct.
-
-> My particular
-> case is a memory-to-memory device, with both CAPTURE and OUTPUT
-> queues.  In this case, {G,S}_CROP on either the CAPTURE or OUTPUT
-> queues should effect exactly the same operation: cropping on the
-> source image, i.e. whatever image buffer I'm providing to the OUTPUT
-> queue.
-
-Incorrect.
-
-S_CROP on an OUTPUT queue does the inverse: it refers to the area in
-the sink image.
-
-When the S_CROP API was designed a long time ago output devices were
-very rare. Those that existed would output video to a S-Video or Composite
-connector and often could scale the source image down to a particular
-rectangle on the screen with the area outside of that rectangle either
-having a fixed color or being a graphical picture.
-
-The rectangle for the video on the output image was set by S_CROP, thus
-effectively composing instead of cropping.
-
-As the spec says (http://hverkuil.home.xs4all.nl/spec/media.html#crop):
-
-"On a video output device the source are the images passed in by the
- application, and their size is again negotiated with the VIDIOC_G/S_FMT ioctls,
- or may be encoded in a compressed video stream. The target is the video signal,
- and the cropping ioctls determine the area where the images are inserted."
-
-This was always confusing, but since there were so few output drivers it
-was never that important. But when we started seeing many more output and
-m2m drivers this became a real issue, in particular since S_CROP did only
-half the operation (cropping for capture, composing for output) and was
-missing composing for capture and "real" cropping for output.
-
-> 
-> The addition of {G,S}_SELECTION is to allow this same operation,
-> except on the sink side this time.
-
-No, it adds the compose operation for capture and the crop operation for
-output, and it uses the terms 'cropping' and 'composing' correctly
-without the inversion that S_CROP introduced on the output side.
-
-> So, {G,S}_SELECTION setting the
-> compose bounds on either the CAPTURE or OUTPUT queues should also
-> effect exactly the same operation; cropping on the sink image, i.e.
-> whatever memory buffer I'm providing to the CAPTURE queue.
-> 
-> Not sure what you mean by "S_CROP on an output video node doesn't
-> crop, it composes", though.
-
-I hope I explained it better this time.
-
-Bottom line: S_CROP for capture is equivalent to S_SELECTION(V4L2_SEL_TGT_CROP).
-S_CROP for output is equivalent to S_SELECTION(V4L2_SEL_TGT_COMPOSE).
-
-Highly counter-intuitive, blame the original designers of the V4L2 API.
-
-Regards,
-
-	Hans
