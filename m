@@ -1,131 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62427 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762241Ab3JQSYi (ORCPT
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:36403 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754936Ab3JXPmL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 14:24:38 -0400
-Date: Thu, 17 Oct 2013 20:24:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data
- type
-In-Reply-To: <201304191026.34360.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
- <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange>
- <201304191026.34360.hverkuil@xs4all.nl>
+	Thu, 24 Oct 2013 11:42:11 -0400
+Received: by mail-oa0-f41.google.com with SMTP id o9so2604718oag.14
+        for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 08:42:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+	<1381940896-9355-4-git-send-email-kishon@ti.com>
+	<CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
+Date: Thu, 24 Oct 2013 21:12:09 +0530
+Message-ID: <CAK9yfHxaLsdFGXiCxvs+HpMSuY6xWd=CGPv-YfSkJqWSxE+f-w@mail.gmail.com>
+Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+Hi Olof,
 
-Sorry for reviving this old thread. I was going to resubmit a part of 
-those patches for mainlining and then I found this your comment, which I 
-didn't reply to back then.
+On 24 October 2013 20:00, Olof Johansson <olof@lixom.net> wrote:
+> Hi Kishon,
+>
+> On Wed, Oct 16, 2013 at 9:28 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+>> index 32e5406..00b3a52 100644
+>> --- a/drivers/video/exynos/exynos_mipi_dsi.c
+>> +++ b/drivers/video/exynos/exynos_mipi_dsi.c
+>> @@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+>>                 exynos_mipi_regulator_enable(dsim);
+>>
+>>                 /* enable MIPI-DSI PHY. */
+>> -               if (dsim->pd->phy_enable)
+>> -                       dsim->pd->phy_enable(pdev, true);
+>> +               phy_power_on(dsim->phy);
+>>
+>>                 clk_enable(dsim->clock);
+>>
+>
+> This introduces the below with exynos_defconfig:
+>
+> ../../drivers/video/exynos/exynos_mipi_dsi.c: In function
+> 'exynos_mipi_dsi_blank_mode':
+> ../../drivers/video/exynos/exynos_mipi_dsi.c:144:26: warning: unused
+> variable 'pdev' [-Wunused-variable]
+>   struct platform_device *pdev = to_platform_device(dsim->dev);
+>
 
-On Fri, 19 Apr 2013, Hans Verkuil wrote:
+I have already submitted a patch to fix this [1]
 
-> On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
-> > Hi Hans
-> > 
-> > Thanks for reviewing.
-> > 
-> > On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> > 
-> > > On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
-> > > > This struct shall be used by subdevice drivers to pass per-subdevice data,
-> > > > e.g. power supplies, to generic V4L2 methods, at the same time allowing
-> > > > optional host-specific extensions via the host_priv pointer. To avoid
-> > > > having to pass two pointers to those methods, add a pointer to this new
-> > > > struct to struct v4l2_subdev.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > >  include/media/v4l2-subdev.h |   13 +++++++++++++
-> > > >  1 files changed, 13 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > > > index eb91366..b15c6e0 100644
-> > > > --- a/include/media/v4l2-subdev.h
-> > > > +++ b/include/media/v4l2-subdev.h
-> > > > @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
-> > > >  /* Set this flag if this subdev generates events. */
-> > > >  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
-> > > >  
-> > > > +struct regulator_bulk_data;
-> > > > +
-> > > > +struct v4l2_subdev_platform_data {
-> > > > +	/* Optional regulators uset to power on/off the subdevice */
-> > > > +	struct regulator_bulk_data *regulators;
-> > > > +	int num_regulators;
-> > > > +
-> > > > +	/* Per-subdevice data, specific for a certain video host device */
-> > > > +	void *host_priv;
-> > > > +};
-> > > > +
-> > > >  /* Each instance of a subdev driver should create this struct, either
-> > > >     stand-alone or embedded in a larger struct.
-> > > >   */
-> > > > @@ -589,6 +600,8 @@ struct v4l2_subdev {
-> > > >  	/* pointer to the physical device */
-> > > >  	struct device *dev;
-> > > >  	struct v4l2_async_subdev_list asdl;
-> > > > +	/* common part of subdevice platform data */
-> > > > +	struct v4l2_subdev_platform_data *pdata;
-> > > >  };
-> > > >  
-> > > >  static inline struct v4l2_subdev *v4l2_async_to_subdev(
-> > > > 
-> > > 
-> > > Sorry, this is the wrong approach.
-> > > 
-> > > This is data that is of no use to the subdev driver itself. It really is
-> > > v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
-> > > driver.
-> > 
-> > I don't think so. It has been discussed and agreed upon, that only 
-> > subdevice drivers know when to switch power on and off, because only they 
-> > know when they need to access the hardware. So, they have to manage 
-> > regulators. In fact, those regulators supply power to respective 
-> > subdevices, e.g. a camera sensor. Why should the bridge driver manage 
-> > them? The V4L2 core can (and probably should) provide helper functions for 
-> > that, like soc-camera currently does, but in any case it's the subdevice 
-> > driver, that has to call them.
-> 
-> Ah, OK. I just realized I missed some context there. I didn't pay much
-> attention to the regulator discussions since that's not my area of expertise.
-> 
-> In that case my only comment is to drop the host_priv pointer since that just
-> duplicates v4l2_get/set_subdev_hostdata().
+[1] http://marc.info/?l=linux-fbdev&m=138233359617936&w=2
 
-I think it's different. This is _platform_ data, whereas struct 
-v4l2_subdev::host_priv is more like run-time data. This field is for the 
-per-subdevice host-specific data, that the platform has to pass to the 
-host driver. In the soc-camera case this is the largest bulk of the data, 
-that platforms currently pass to the soc-camera framework in the host part 
-of struct soc_camera_link. This data most importantly includes I2C 
-information. Yes, this _could_ be passed to soc-camera separately from the 
-host driver, but that would involve quite some refactoring of the "legacy" 
-synchronous probing mode, which I'd like to avoid if possible. This won't 
-be used in the asynchronous case. Do you think we can keep this pointer in 
-this sruct? We could rename it to avoid confusion with the field, that you 
-told about.
 
-Thanks
-Guennadi
-
-> > > It can use v4l2_get/set_subdev_hostdata() to associate this struct with a
-> > > subdev, though.
-> > > 
-> > > Regards,
-> > > 
-> > > 	Hans
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+With warm regards,
+Sachin
