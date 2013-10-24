@@ -1,82 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46583 "EHLO comal.ext.ti.com"
+Received: from plane.gmane.org ([80.91.229.3]:48998 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759389Ab3JPQ2m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 12:28:42 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>
-CC: <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
-	<kishon@ti.com>
-Subject: [PATCH 0/7] video phy's adaptation to *generic phy framework*
-Date: Wed, 16 Oct 2013 21:58:09 +0530
-Message-ID: <1381940896-9355-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1755891Ab3JXQkF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Oct 2013 12:40:05 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1VZNx5-0000o9-OV
+	for linux-media@vger.kernel.org; Thu, 24 Oct 2013 18:40:03 +0200
+Received: from 195.47.249.209 ([195.47.249.209])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 18:40:03 +0200
+Received: from felix by 195.47.249.209 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 18:40:03 +0200
+To: linux-media@vger.kernel.org
+From: Felix Kaechele <felix@fetzig.org>
+Subject: Re: DVB-S2 USB device: DVBsky, Technotrend or Tevii?
+Date: Thu, 24 Oct 2013 18:19:46 +0200
+Message-ID: <l4bhap$n2g$1@ger.gmane.org>
+References: <52685900.3010608@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <52685900.3010608@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Hi P.,
 
-This series includes video PHY adaptation to Generic PHY Framework.
-With the adaptation they were able to get rid of plat data callbacks.
+I own a DVBSky S960 device and so far it has been working fine with my
+DiSEqC setup (A/B) and the vendor supplied drivers. From my experience
+the driver is updated frequently and thus compiles with recent kernels
+most of the time.
 
-Since you've taken the Generic PHY Framework, I think this series should
-also go into your tree.
+Unfortunately integration into the mainline kernel is on halt due to
+copyright and code issues as well as (obviously) personal/competitive
+differences (see http://www.spinics.net/lists/linux-media/msg46802.html
+for example).
 
-We should thank Sylwester for actively testing and giving comments from
-the initial versions of Generic Phy Framework. Both Sylwester and Jingoo
-had been floating many revisions of their adaptation to Generic PHY
-Framework.
+I haven't tested any other DVB-S2 USB devices so far. For that reason I
+cannot help you with selecting the right one. However, I would be
+interested in any recommendations myself.
 
-This has been in my repo for quite some time and has got acks from
-samsung maintainer and video maintainer.
-
-If you want me to change anything, please let me know.
-
-This patch series can be found @
-git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
-
-Jingoo Han (3):
-  phy: Add driver for Exynos DP PHY
-  video: exynos_dp: remove non-DT support for Exynos Display Port
-  video: exynos_dp: Use the generic PHY driver
-
-Sylwester Nawrocki (4):
-  phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-  exynos4-is: Use the generic MIPI CSIS PHY driver
-  video: exynos_mipi_dsim: Use the generic PHY driver
-  ARM: Samsung: Remove the MIPI PHY setup code
-
- .../devicetree/bindings/phy/samsung-phy.txt        |   22 +++
- .../devicetree/bindings/video/exynos_dp.txt        |   17 +-
- arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
- arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
- arch/arm/plat-samsung/Kconfig                      |    5 -
- arch/arm/plat-samsung/Makefile                     |    1 -
- arch/arm/plat-samsung/setup-mipiphy.c              |   60 -------
- drivers/media/platform/exynos4-is/Kconfig          |    2 +-
- drivers/media/platform/exynos4-is/mipi-csis.c      |   13 +-
- drivers/phy/Kconfig                                |   13 ++
- drivers/phy/Makefile                               |    8 +-
- drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++
- drivers/phy/phy-exynos-mipi-video.c                |  176 ++++++++++++++++++++
- drivers/video/exynos/Kconfig                       |    3 +-
- drivers/video/exynos/exynos_dp_core.c              |  132 ++++-----------
- drivers/video/exynos/exynos_dp_core.h              |  110 ++++++++++++
- drivers/video/exynos/exynos_dp_reg.c               |    2 -
- drivers/video/exynos/exynos_mipi_dsi.c             |   19 ++-
- include/linux/platform_data/mipi-csis.h            |    9 -
- include/video/exynos_dp.h                          |  131 ---------------
- include/video/exynos_mipi_dsim.h                   |    5 +-
- 21 files changed, 508 insertions(+), 340 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
- delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
- create mode 100644 drivers/phy/phy-exynos-mipi-video.c
- delete mode 100644 include/video/exynos_dp.h
-
--- 
-1.7.10.4
+- Felix
 
