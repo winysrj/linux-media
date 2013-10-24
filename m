@@ -1,33 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emea01-am1-ndr.ptr.protection.outlook.com ([157.56.116.103]:9470
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753384Ab3JIIID convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 04:08:03 -0400
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:59805 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755451Ab3JXOaa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Oct 2013 10:30:30 -0400
+Received: by mail-qc0-f176.google.com with SMTP id s19so1378567qcw.7
+        for <linux-media@vger.kernel.org>; Thu, 24 Oct 2013 07:30:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Congratulations !!!
-To: Recipients <office4@Offer575.onmicrosoft.com>
-From: <office4@Offer575.onmicrosoft.com>
-Date: Wed, 9 Oct 2013 13:37:21 +0530
-Reply-To: <colaclaims13@msn.com>
-Message-ID: <a640480d-2cf3-49cc-aaf2-e59c539ba54e@AMSPR04MB225.eurprd04.prod.outlook.com>
+In-Reply-To: <1381940896-9355-4-git-send-email-kishon@ti.com>
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+	<1381940896-9355-4-git-send-email-kishon@ti.com>
+Date: Thu, 24 Oct 2013 07:30:28 -0700
+Message-ID: <CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
+Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
+From: Olof Johansson <olof@lixom.net>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ticket Number: 7PWYZ2008
-Ballot Number: BT:12052008/20
-Draw:#1471
+Hi Kishon,
 
-Special Notification to you,You are receiving this email because you have just been picked for a total grand prize of One Million Dollars in the top 10 winners of the Coca-Cola Consumer`s Award for the year 2013: kindly send your:
+On Wed, Oct 16, 2013 at 9:28 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+> index 32e5406..00b3a52 100644
+> --- a/drivers/video/exynos/exynos_mipi_dsi.c
+> +++ b/drivers/video/exynos/exynos_mipi_dsi.c
+> @@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+>                 exynos_mipi_regulator_enable(dsim);
+>
+>                 /* enable MIPI-DSI PHY. */
+> -               if (dsim->pd->phy_enable)
+> -                       dsim->pd->phy_enable(pdev, true);
+> +               phy_power_on(dsim->phy);
+>
+>                 clk_enable(dsim->clock);
+>
 
-Name:
-Address:
-Country:
-Phone Number:
+This introduces the below with exynos_defconfig:
 
-To Mr. Bruce Morgan
-via Email: colaclaims13@msn.com
-Telephone Number:+447010069098
+../../drivers/video/exynos/exynos_mipi_dsi.c: In function
+'exynos_mipi_dsi_blank_mode':
+../../drivers/video/exynos/exynos_mipi_dsi.c:144:26: warning: unused
+variable 'pdev' [-Wunused-variable]
+  struct platform_device *pdev = to_platform_device(dsim->dev);
+
+
+-Olof
