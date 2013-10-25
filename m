@@ -1,84 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:37294 "EHLO
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:61098 "EHLO
 	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270Ab3JLMcM (ORCPT
+	with ESMTP id S1753281Ab3JYKyp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 08:32:12 -0400
+	Fri, 25 Oct 2013 06:54:45 -0400
+Message-ID: <526A4DEC.2000603@gmail.com>
+Date: Fri, 25 Oct 2013 12:54:36 +0200
 From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
-	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 00/10] V4L2 mem-to-mem ioctl helpers
-Date: Sat, 12 Oct 2013 14:31:50 +0200
-Message-Id: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, Dave Airlie <airlied@gmail.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFR 2/2] drm/panel: Add simple panel support
+References: <1381947912-11741-1-git-send-email-treding@nvidia.com> <3768216.eiA2v5KI6a@avalon> <525FD8DD.3090509@ti.com> <1853455.BSevh91aGB@avalon> <5268FBE3.80000@ti.com>
+In-Reply-To: <5268FBE3.80000@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 10/24/2013 12:52 PM, Tomi Valkeinen wrote:
+> On 24/10/13 13:40, Laurent Pinchart wrote:
+>
+>>> panel {
+>>> 	remote =<&remote-endpoint>;
+>>> 	common-video-property =<asd>;
+>>> };
+>>>
+>>> panel {
+>>> 	port {
+>>> 		endpoint {
+>>> 			remote =<&remote-endpoint>;
+>>> 			common-video-property =<asd>;
+>>> 		};
+>>> 	};
+>>> };
+>>
+>> Please note that the common video properties would be in the panel node, not
+>> in the endpoint node (unless you have specific requirements to do so, which
+>> isn't the common case).
+>
+> Hmm, well, the panel driver must look for its properties either in the
+> panel node, or in the endpoint node (I guess it could look them from
+> both, but that doesn't sound good).
 
-This patch set adds ioctl helpers to the v4l2-mem2mem module so the
-video mem-to-mem drivers can be simplified by removing functions that
-are only a pass-through to the v4l2_m2m_* calls. In addition some of
-the vb2 helper functions can be used as well.
+Presumably the OS could be searching for port node and any endpoint node
+inside it first. If that's not found then it could be parsing the panel
+node.
 
-These helpers are similar to the videobuf2 ioctl helpers introduced
-in commit 4c1ffcaad5 "[media] videobuf2-core: add helper functions".
+Please note that a port node may be required even if there is only one
+port, when there are multiple physical bus interfaces, e.g. at an LCD
+controller and only one of them is used. The reg property would select
+the physical bus interface.
 
-Currently the requirements to use helper function introduced in this
-patch set is that both OUTPUT and CAPTURE vb2 buffer queues must use
-same lock and the driver uses struct v4l2_fh.
+I wonder if a property like #video-port or #video-endpoint could be used
+to indicate that a node contains video bus properties. Probably it's too
+late to introduce it now and make it a required property for the endpoint
+nodes or nodes containing the common video properties.
 
-I have only tested the first four patches in this series, Tested-by
-for the mx2-emmaprp, exynos-gsc, s5p-g2d drivers are appreciated.
+> If you write the panel driver, and in all your cases the properties work
+> fine in the panel node, does that mean they'll work fine with everybody?
 
-This patch series can be also found at:
- git://linuxtv.org/snawrocki/samsung.git m2m-helpers-v3
+It's likely not safe to assume so. In V4L data bus properties are specified
+a both the receiver and the transmitter endpoint nodes separately.
 
-Changes since original version include addition of related cleanup
-patches, added helper function for create_buf ioctl and m2m context
-pointer from struct v4l2_fh is now reused and related field from the
-drivers' private data structure is removed.
+> I guess there are different kinds of properties. Something like a
+> regulator is obviously property of the panel. But anything related to
+> the video itself, like DPI's bus width, or perhaps even something like
+> "orientation" if the panel supports such, could need to be in the
+> endpoint node.
 
-Thank you for all reviews. I plan to queue the first four patches for
-next kernel release early this week. For the mx2-emmaprp, exynos-gsc,
-s5p-g2d driver feedback is needed from someone who can actually test
-the changes. Any Tested-by for those drivers would be appreciated.
+If we use port/endpoint nodes it all seems clear, the video bus properties
+are put in an endpoint node.
 
-Thanks,
-Sylwester
+But since we are considering a simplified binding all the properties would
+be placed in the panel or display controller node.
 
-Sylwester Nawrocki (10):
-  V4L: Add mem2mem ioctl and file operation helpers
-  mem2mem_testdev: Use mem-to-mem ioctl and vb2 helpers
-  exynos4-is: Use mem-to-mem ioctl helpers
-  s5p-jpeg: Use mem-to-mem ioctl helpers
-  mx2-emmaprp: Use struct v4l2_fh
-  mx2-emmaprp: Use mem-to-mem ioctl helpers
-  exynos-gsc: Configure default image format at device open()
-  exynos-gsc: Remove GSC_{SRC, DST}_FMT flags
-  exynos-gsc: Use mem-to-mem ioctl helpers
-  s5p-g2d: Use mem-to-mem ioctl helpers
+> But yes, I understand what you mean. With "common-video-property" I
+> meant common properties like DPI bus width.
+>
+>>> If that can be supported in the SW by adding complexity to a few functions,
+>>> and it covers practically all the panels, isn't it worth it?
+>>>
+>>> Note that I have not tried this, so I don't know if there are issues.
+>>> It's just a thought. Even if there's need for a endpoint node, perhaps
+>>> the port node can be made optional.
+>>
+>> It can be worth it, as long as we make sure that simplified bindings cover the
+>> needs of the generic code.
+>>
+>> We could assume that, if the port subnode isn't present, the device will have
+>> a single port, with a single endpoint. However, isn't the number of endpoints
+>
+> Right.
+>
+>> a system property rather than a device property ? If a port of a device is
+>
+> Yes.
+>
+>> connected to two remote ports it will require two endpoints. We could select
+>> the simplified or full bindings based on the system topology though.
 
- drivers/media/platform/exynos-gsc/gsc-core.c  |   10 +-
- drivers/media/platform/exynos-gsc/gsc-core.h  |   14 --
- drivers/media/platform/exynos-gsc/gsc-m2m.c   |  232 ++++++++-----------------
- drivers/media/platform/exynos4-is/fimc-core.h |    2 -
- drivers/media/platform/exynos4-is/fimc-m2m.c  |  148 +++-------------
- drivers/media/platform/mem2mem_testdev.c      |  152 +++-------------
- drivers/media/platform/mx2_emmaprp.c          |  185 ++++++--------------
- drivers/media/platform/s5p-g2d/g2d.c          |  124 +++-----------
- drivers/media/platform/s5p-g2d/g2d.h          |    1 -
- drivers/media/platform/s5p-jpeg/jpeg-core.c   |  134 +++------------
- drivers/media/platform/s5p-jpeg/jpeg-core.h   |    2 -
- drivers/media/v4l2-core/v4l2-mem2mem.c        |  118 +++++++++++++
- include/media/v4l2-fh.h                       |    4 +
- include/media/v4l2-mem2mem.h                  |   24 +++
- 14 files changed, 382 insertions(+), 768 deletions(-)
+Yes, I guess it's all about the system topology. Any simplified binding 
+would
+work only for very simple configuration like single-output LCD 
+controller with
+single panel attached to it.
+
+> The drivers should not know about simplified/normal bindings. They
+> should use CDF DT helper functions to get the port and endpoint
+> information. The helper functions would do the assuming.
+
+Yes, anyway all the parsing is supposed to be done within the helpers.
 
 --
-1.7.4.1
-
+Thanks,
+Sylwester
