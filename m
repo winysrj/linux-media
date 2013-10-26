@@ -1,114 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:61652 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab3J2Myd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Oct 2013 08:54:33 -0400
-Date: Tue, 29 Oct 2013 10:54:26 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	Mark Rutland <Mark.Rutland@arm.com>
-Subject: Re: [GIT PULL FOR 3.13] Exynos5 SoC FIMC-IS imaging subsystem driver
-Message-id: <20131029105426.0969741c.m.chehab@samsung.com>
-In-reply-to: <526EFC06.70101@gmail.com>
-References: <5261967E.6010001@samsung.com>
- <20131028201136.6f66d3f7@samsung.com> <526EFC06.70101@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from kripserver.net ([91.143.80.239]:45840 "EHLO mail.kripserver.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753489Ab3JZVEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Oct 2013 17:04:22 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.kripserver.net (Postfix) with ESMTP id 09B473AE08F
+	for <linux-media@vger.kernel.org>; Sat, 26 Oct 2013 21:04:21 +0000 (UTC)
+Received: from mail.kripserver.net ([91.143.80.239])
+	by localhost (mail.kripserver.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Ame4yZVsqn3m for <linux-media@vger.kernel.org>;
+	Sat, 26 Oct 2013 21:04:20 +0000 (UTC)
+Received: from [192.168.1.98] (frnk-590d5c98.pool.mediaWays.net [89.13.92.152])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.kripserver.net (Postfix) with ESMTPSA id E022C3AE08E
+	for <linux-media@vger.kernel.org>; Sat, 26 Oct 2013 21:04:19 +0000 (UTC)
+Message-ID: <526C2E53.8080204@kripserver.net>
+Date: Sat, 26 Oct 2013 23:04:19 +0200
+From: Jannis <jannis-lists@kripserver.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: NAS for recording DVB-S2
+References: <52663659.3040205@gmx.net> <526A1864.7020800@kripserver.net> <CAJbz7-1J2=Fz7sB0Uu2iCEDG-MNiJWJPQgbFN7XQHZsCFohK1A@mail.gmail.com> <526A4090.6020008@gmx.net>
+In-Reply-To: <526A4090.6020008@gmx.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 29 Oct 2013 01:06:30 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+Am 25.10.2013 11:57, schrieb JPT:
+> I think I will trust both your statements that it's likeley to work, so
+> it's not necessary to test. Thanks. :)
 
-> Hi Mauro,
-> 
-> On 10/28/2013 11:11 PM, Mauro Carvalho Chehab wrote:
-> >> The following changes since commit 8ca5d2d8e58df7235b77ed435e63c484e123fede:
-> >> >
-> >> >     [media] uvcvideo: Fix data type for pan/tilt control (2013-10-17 06:55:29 -0300)
-> >> >
-> >> >  are available in the git repository at:
-> >> >
-> >> >     git://linuxtv.org/snawrocki/samsung.git for-v3.13-2
-> >> >
-> >> >  for you to fetch changes up to 6eb89d71b27e6731755ab5722f3cdc0f6e8273f2:
-> >> >
-> >> >     V4L: Add s5k4e5 sensor driver (2013-10-18 21:36:42 +0200)
-> >> >
-> >> >  ----------------------------------------------------------------
-> >> >  Arun Kumar K (12):
-> >> >         exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
-> >
-> > As agreed during KS, the subsystem maintainers should wait for a documentation
-> > review on DT by the DT maintainers, at least for a while.
-> >
-> > So, I'd like to see either their reviews on this patch:
-> > 	https://patchwork.linuxtv.org/patch/20439/
-> >
-> > Or their ack for us to apply it.
-> 
-> I agree with you on that. Just please note the first version of this patch
-> has been posted *5 months* ago https://patchwork.linuxtv.org/patch/18684
-> 
-> Stephen has reviewed subsequent version about 3 months ago:
-> https://patchwork.linuxtv.org/patch/19521
-> 
-> Then we got no more comments from DT maintainers, I have reviewed this patch
-> multiple times on the mailing lists:
-> https://patchwork.linuxtv.org/patch/19715
-> https://patchwork.linuxtv.org/patch/19749
-> 
-> And explicitly asked for an Ack:
-> https://patchwork.linuxtv.org/patch/19832
-> 
-> Then those 2 versions passed silently:
-> https://patchwork.linuxtv.org/patch/20055
-> https://patchwork.linuxtv.org/patch/20225
-> 
-> And...huh...we got another review, I didn't notice it until now:
-> https://patchwork.linuxtv.org/patch/20439 Thanks Mark.
-> 
-> Arun, care to address those review comments and send us an updated
-> binding documentation patch ?
-> 
-> Hence I think we have waited for a while. ;)
-> 
-> >> >         exynos5-fimc-is: Add driver core files
-> >> >         exynos5-fimc-is: Add common driver header files
-> >> >         exynos5-fimc-is: Add register definition and context header
-> >> >         exynos5-fimc-is: Add isp subdev
-> >> >         exynos5-fimc-is: Add scaler subdev
-> >> >         exynos5-fimc-is: Add sensor interface
-> >> >         exynos5-fimc-is: Add the hardware pipeline control
-> >> >         exynos5-fimc-is: Add the hardware interface module
-> >> >         exynos5-is: Add Kconfig and Makefile
-> >> >         V4L: Add DT binding doc for s5k4e5 image sensor
-> >
-> > Same applies to this patch:
-> > 	https://patchwork.linuxtv.org/patch/20448/
-> 
-> This one also have been on the mailing list for quite some time and it
-> uses already standard bindings, so I assumed it is OK to merge it.
-> 
-> https://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=s5k4e5
-> 
-> But if there must be an Ack then we shall wait, it will probably won't
-> make a big difference now, if this patch is postponed by 3 more months.
+Since I'm a curious person, I tried it myself today. The SykStar USB HD
+works on my hardkernel ODROID-U2 (Cortex-A9 Quad) after I added the
+driver to the kernel. Furthermore, the parameter "coherent_pool=6M"
+needed to be added to the kernel's command line since there were kernel
+errors otherwise. Since then, everything works as expected. Channel
+scan, SD and HD programs as well as complete MPEG2 transport streams
+(well, the TS is filtered in software anyways). All tested using
+gstreamer-1.2 and dvbsrc.
 
-Yeah, it seems that we've waited for a long time to get an ack there.
+Best regards,
+	Jannis
 
-So, let's do this:
-
-Please send a new version with Mark's comments. Also, please split Doc 
-changes from the code changes on the new series. I'll wait for a couple
-days for DT people to review it. If we don't have any reply, I'll review
-and apply it for Kernel 3.13, if I don't see anything really weird on it.
-
-Regards,
-Mauro
