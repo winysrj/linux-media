@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:48142 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758Ab3JPEvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 00:51:07 -0400
-Message-ID: <525E1B30.9040801@gentoo.org>
-Date: Wed, 16 Oct 2013 06:50:56 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:53968 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753739Ab3JZUpH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Oct 2013 16:45:07 -0400
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] media: Add BCM2048 radio driver
+Date: Sat, 26 Oct 2013 22:45:02 +0200
+Cc: "Mauro Carvalho Chehab" <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	"Eero Nurkkala" <ext-eero.nurkkala@nokia.com>,
+	"Nils Faerber" <nils.faerber@kernelconcepts.de>,
+	"Joni Lapilainen" <joni.lapilainen@gmail.com>,
+	=?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?=
+	 =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?=
+	<freemangordon@abv.bg>
+References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201310262204.33674@pali> <2099a1da904181598455905c79a7921d.squirrel@webmail.xs4all.nl>
+In-Reply-To: <2099a1da904181598455905c79a7921d.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, Ulf <mopp@gmx.net>
-Subject: Re: Hauppauge HVR-900 HD and HVR 930C-HD with si2165
-References: <trinity-fe3d0cd8-edad-4308-9911-95e49b1e82ea-1376739034050@3capp-gmx-bs54> <52426BB0.60809@gentoo.org> <52444AA3.8020205@iki.fi> <524A5EDF.8070904@gentoo.org> <524AE01E.9040300@iki.fi> <52530BC1.9010200@gentoo.org> <525316A6.3010608@iki.fi>
-In-Reply-To: <525316A6.3010608@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart4450933.6dzIUJ44KZ";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
+Message-Id: <201310262245.03279@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.10.2013 22:16, Antti Palosaari wrote:
-> On 07.10.2013 22:30, Matthias Schwarzott wrote:
->> my real problem currently is, that I cannot get a good usb dump:
->> 1. In virtual machine (win xp under kvm) it finds one transponder when
->> scanning DVB-T, but does not get a picture.
->
-> I think demod locks (== means signal is OK and demod streams data), 
-> but stream got lost somewhere on kvm. I have had similar experiences 
-> many years back when I tested some virtual machines.
-Hi Antti,
+--nextPart4450933.6dzIUJ44KZ
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-You were absolutely right here. Using the USB sniffs from the virtual 
-machine, I got a picture. So only the stream seems to get lost.
-I did this by using these steps:
+On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
+> > Hans, so can it be added to drivers/staging/media tree?
+>=20
+> Yes, that is an option. It's up to you to decide what you
+> want. Note that if no cleanup work is done on the staging
+> driver for a long time, then it can be removed again.
+>=20
+> Regards,
+>=20
+>     Hans
+>=20
 
-* Record data: tcpdump -i usbmon1 -w win-tune.tcpdump
-* Start virtual machine and tune
+Ok, so if you can add it to staging tree. When driver will be in=20
+mainline other developers can look at it too. Now when driver is=20
+hidden, nobody know where to find it... You can see how upstream=20
+development for Nokia N900 HW going on: http://elinux.org/N900
 
-* Convert to usbsniff format: parse_tcpdump_log.pl win-tune.tcpdump
-* Run parse_cx231xx.pl on it (so i2c transfers can be seen)
-* Format it by my own parse-si2165.py
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-With this I get code of 4700 i2c sends/receives.
-When adding a msleep(1) into my si2165_read function, I get a picture 
-most of the tries.
-This is for DVB-T with fixed set of parameters.
+--nextPart4450933.6dzIUJ44KZ
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Regards
-Matthias
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
+iEYEABECAAYFAlJsKc8ACgkQi/DJPQPkQ1KDdQCaAgtyXt6RJ4GhtICsHjoBihN7
+kwIAn2v6wzeDPEdBWwwV7rWFH+5gCnSZ
+=eTmu
+-----END PGP SIGNATURE-----
+
+--nextPart4450933.6dzIUJ44KZ--
