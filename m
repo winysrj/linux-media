@@ -1,62 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([78.24.191.182]:34984 "EHLO
-	cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755969Ab3JIIRR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 04:17:17 -0400
-Received: from localhost.localdomain ([127.0.0.1]:42790 "EHLO linux-mips.org"
-        rhost-flags-OK-OK-OK-FAIL) by eddie.linux-mips.org with ESMTP
-        id S6832655Ab3JIIRPbrnwY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 10:17:15 +0200
-Date: Wed, 9 Oct 2013 10:17:07 +0200
-From: Ralf Baechle <ralf@linux-mips.org>
-To: Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: linux-mips@linux-mips.org, linux-media@vger.kernel.org
-Subject: Re: Suspected cache coherency problem on V4L2 and AR7100 CPU
-Message-ID: <20131009081707.GL1615@linux-mips.org>
-References: <m3eh82a1yo.fsf@t19.piap.pl>
- <m361t9a31i.fsf@t19.piap.pl>
- <20131007142429.GG3098@linux-mips.org>
- <m3li24891u.fsf@t19.piap.pl>
- <20131008120727.GH1615@linux-mips.org>
- <m38uy37x5r.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <m38uy37x5r.fsf@t19.piap.pl>
+Received: from mailout1.samsung.com ([203.254.224.24]:47163 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751857Ab3J1GMP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Oct 2013 02:12:15 -0400
+Message-id: <526E0038.7050805@samsung.com>
+Date: Mon, 28 Oct 2013 15:12:08 +0900
+From: Donghwa Lee <dh09.lee@samsung.com>
+MIME-version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Olof Johansson <olof@lixom.net>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	inki.dae@samsung.com, dh09.lee@samsung.com
+Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
+References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+ <1381940896-9355-4-git-send-email-kishon@ti.com>
+ <CAOesGMhwotSY-1WQmt+wtsrsH2m30VE=j-MwyhpYU3mt_PSPPw@mail.gmail.com>
+ <CAK9yfHxaLsdFGXiCxvs+HpMSuY6xWd=CGPv-YfSkJqWSxE+f-w@mail.gmail.com>
+ <52694354.6030603@ti.com> <526997BC.8070602@gmail.com>
+In-reply-to: <526997BC.8070602@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 09, 2013 at 08:53:20AM +0200, Krzysztof Hałasa wrote:
+On Fri, OCT 25, 2013 06:57, Sylwester Nawrocki wrote:
+> On 10/24/2013 05:57 PM, Kishon Vijay Abraham I wrote:
+>> On Thursday 24 October 2013 09:12 PM, Sachin Kamat wrote:
+>>> On 24 October 2013 20:00, Olof Johansson<olof@lixom.net>  wrote:
+>>>> On Wed, Oct 16, 2013 at 9:28 AM, Kishon Vijay Abraham I<kishon@ti.com>  wrote:
+>>>>> diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+>>>>> index 32e5406..00b3a52 100644
+>>>>> --- a/drivers/video/exynos/exynos_mipi_dsi.c
+>>>>> +++ b/drivers/video/exynos/exynos_mipi_dsi.c
+>>>>> @@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+>>>>>                  exynos_mipi_regulator_enable(dsim);
+>>>>>
+>>>>>                  /* enable MIPI-DSI PHY. */
+>>>>> -               if (dsim->pd->phy_enable)
+>>>>> -                       dsim->pd->phy_enable(pdev, true);
+>>>>> +               phy_power_on(dsim->phy);
+>>>>>
+>>>>>                  clk_enable(dsim->clock);
+>>>>>
+>>>>
+>>>> This introduces the below with exynos_defconfig:
+>>>>
+>>>> ../../drivers/video/exynos/exynos_mipi_dsi.c: In function
+>>>> 'exynos_mipi_dsi_blank_mode':
+>>>> ../../drivers/video/exynos/exynos_mipi_dsi.c:144:26: warning: unused
+>>>> variable 'pdev' [-Wunused-variable]
+>>>>    struct platform_device *pdev = to_platform_device(dsim->dev);
+>
+> Sorry about missing that, I only noticed this warning recently and didn't
+> get around to submit a patch.
+>
+>>> I have already submitted a patch to fix this [1]
+>
+> Thanks a lot guys for fixing this.
+>
+>>> [1] http://marc.info/?l=linux-fbdev&m=138233359617936&w=2
+>>
+>> Sorry, missed that :-(
+>
+> This MIPI DSIM driver is affectively a dead code in the mainline now, once
+> Exynos become a dt-only platform. I guess it can be deleted for 3.14, once
+> S5P gets converted to the device tree. The new driver using CDF is basically
+> a complete rewrite. Or device tree support should be added to that driver,
+> but I believe it doesn't make sense without CDF.
+>
 
-> > 16K is a silver bullet solution to all cache aliasing problems.  So if
-> > your issue persists with 16K page size, it's not a cache aliasing issue.
-> > Aside there are generally performance gains from the bigger page size.
-> 
-> I wonder why isn't the issue present in other cases. Perhaps remapping
-> of a userspace address and accessing it with kseg0 isn't a frequent
-> operation.
-> 
-> Shouldn't we change the default page size (on affected CPUs) to 16 KB
-> then? Alternatively, we could flush/invalidate the cache when needed -
-> is it a viable option?
+MIPI DSIM driver is not a dead code. There is a steady trickle of patches.
+It's kind of late, but, I will update it as DT based drivers as soon as possible.
+And Why do you think that DT support of existing MIPI DSIM is something less
+than great?
 
-The kernel is supposed to perform the necessary cache flushing, so any
-remaining aliasing issue would be considered a bug.  But the code is
-performance sensitive, some of the problem cases are twisted and complex
-so bugs and unsolved corner cases show up every now and then.
 
-The historic default is 4K page size - on some processors such as the
-venerable R3000 it's also the only page size available.  Some application
-code wants to know the page size and has wisely hardcoded 4K.  Also
-a "fix" to binutils many years ago reduced the alignment of generated
-binaries so they'd not run on a kernel with larger page size.  The
-kernel configuration defaults are chosen to just work out of the box,
-and 4K page size is the safest choice.
+> -- 
+> Regards,
+> Sylwester
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Anyway, binutils got "unfixed" again years ago so chances are 16K
-will just work.
-
-Does it work for you, even solve your problem?
-
-  Ralf
