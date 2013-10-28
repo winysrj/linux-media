@@ -1,108 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:55568 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638Ab3JUSkl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Oct 2013 14:40:41 -0400
+Received: from mta.bitpro.no ([92.42.64.202]:32785 "EHLO mta.bitpro.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754908Ab3J1MCC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:02:02 -0400
+Message-ID: <526E4E58.1020409@bitfrost.no>
+Date: Mon, 28 Oct 2013 12:45:28 +0100
+From: Hans Petter Selasky <hps@bitfrost.no>
 MIME-Version: 1.0
-In-Reply-To: <CAPybu_2KRF_VHkjCEV8d7YOaZo27QJ=TxGTsUOeWO5X_tp8Ozw@mail.gmail.com>
-References: <201309101134.32883.hansverk@cisco.com> <3335821.8epFKWiJXY@avalon>
- <CAK5ve-JHEaNrNiYwdMdEiEsD0LnqHG-MEAQv4D-962fYK0=g4A@mail.gmail.com>
- <2523390.YEHU3IBNqR@avalon> <CAK5ve-+N=GyNk-ryR0LbiUcT0TErFTwK60-vHNEf7112dNyh_A@mail.gmail.com>
- <525DF0C7.9090407@ti.com> <CAK5ve-K481KMXZJW9Ah8N_NaOYNNgdxABvewqiTOhquUAzr-UA@mail.gmail.com>
- <525F2311.8000509@ti.com> <1381968755.1905.25.camel@palomino.walls.org>
- <CAK5ve-Jnbr2C-LPfS9KKNcv8KH-7gkZyp+tj4Qt9-pE=nch8gg@mail.gmail.com> <CAPybu_2KRF_VHkjCEV8d7YOaZo27QJ=TxGTsUOeWO5X_tp8Ozw@mail.gmail.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Mon, 21 Oct 2013 11:40:19 -0700
-Message-ID: <CAK5ve-+PiRDEriYrCpbWq5WTPTq=n-xYZM0D46mDRAZWZi2GWw@mail.gmail.com>
-Subject: Re: [media-workshop] V2: Agenda for the Edinburgh mini-summit
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, Milo Kim <milo.kim@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	linux-pwm@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Paul Walmsley <paul@pwsan.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabio Belavenuto <belavenuto@gmail.com>
+Subject: [BUG] [PATCH 10/21] radio-tea5764: some cleanups and clamp frequency
+ when out-of-range AND [PATCH 15/21] tef6862: clamp frequency.
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl> <1369994561-25236-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-11-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 19, 2013 at 1:25 PM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> Please find the multi selection api proposal attached.
->
-> See you in Edinburgh.
->
->
-> Thanks
->
-> On Sat, Oct 19, 2013 at 2:17 AM, Bryan Wu <cooloney@gmail.com> wrote:
->> On Wed, Oct 16, 2013 at 5:12 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->>> On Thu, 2013-10-17 at 08:36 +0900, Milo Kim wrote:
->>>
->>>> > That's current solution, we plan to unify this two API since those
->>>> > chip are basically LED.
->>>> >
->>>> >> On the other hands, LM3642 has an indicator mode with flash/torch.
->>>> >> Then, it will consist of 3 parts - MFD core, LED(indicator) and
->>>> >> V4L2(flash/torch).
->>>> >>
->>>> >
->>>> > So if one LED device driver can support that, we don't need these 3 parts.
->>>>
->>>> Let me clarify our discussion briefly.
->>>>
->>>> For the flash and torch, there are scattered user-space APIs.
->>>> We need to unify them.
->>>
->>> Sorry for the late input.
->>>
->>> There are also subject matter illuminators (is that the same as torch?).
->>> They may be LED or halogen incadescent bulbs that are integral to a
->>> device such as the QX5 microscope:
->>>
->>> http://git.linuxtv.org/media_tree.git/blob/HEAD:/drivers/media/usb/cpia2/cpia2_v4l.c#l1152
->>>
->>> The V4L2 user controls ioctl()'s are used to control those two lamps
->>> currently.  Their activation seemed like a switch the user would want to
->>> turn easily, via a GUI that contained other V4L2 device controls.
->>>
->>> Do these fit in anywhere into the unification?  Not that I'm advocating
->>> that. I just thought cases like this shouldn't be overlooked in deciding
->>> what to do.
->>>
->>> Regards,
->>> Andy
->>>
->>>> We are considering supporting V4L2 structures in the LED camera trigger.
->>>> Then, camera application controls the flash/torch via not the LED sysfs
->>>> but the V4L2 ioctl interface.
->>>> So, changing point is the ledtrig-camera.c. No chip driver changes at all.
->>>>
->>>> Is it correct?
->>>>
->>>> Best regards,
->>>> Milo
->>>
->>>
->>
->> Please find my proposal attached and probably my colleague Paul
->> Walmsley will show up for this media mini summit if he is available.
->>
->> Thanks,
->> -Bryan
->
->
+On 05/31/13 12:02, Hans Verkuil wrote:
+>   		return -EINVAL;
+> +	}
+> +	clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+>   	tea5764_power_up(radio);
+> -	tea5764_tune(radio, (f->frequency * 125) / 2);
+> +	tea5764_tune(radio, (freq * 125) / 2);
+>   	return 0;
 
-Is the time and location of media mini-summit fixed? My colleague
-might show up if it's not conflicted with ARM mini-summit.
+Hi Hans,
 
-Thanks,
--Bryan
+Should the part quoted above part perhaps read:
+
+freq = clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+
+Or did "#define clamp() change" recently?
+
+http://lxr.free-electrons.com/source/include/linux/kernel.h
+
+> 698 /**
+> 699  * clamp - return a value clamped to a given range with strict typechecking
+> 700  * @val: current value
+> 701  * @min: minimum allowable value
+> 702  * @max: maximum allowable value
+> 703  *
+> 704  * This macro does strict typechecking of min/max to make sure they are of the
+> 705  * same type as val.  See the unnecessary pointer comparisons.
+> 706  */
+> 707 #define clamp(val, min, max) ({                 \
+> 708         typeof(val) __val = (val);              \
+> 709         typeof(min) __min = (min);              \
+> 710         typeof(max) __max = (max);              \
+> 711         (void) (&__val == &__min);              \
+> 712         (void) (&__val == &__max);              \
+> 713         __val = __val < __min ? __min: __val;   \
+> 714         __val > __max ? __max: __val; })
+
+Thank you!
+
+Same spotted in:
+
+>> media_tree/drivers/media/radio/radio-tea5764.c: In function 'vidioc_s_frequency':
+>> media_tree/drivers/media/radio/radio-tea5764.c:359: warning: statement with no effect
+>
+>> media_tree/drivers/media/radio/tef6862.c: In function 'tef6862_s_frequency':
+>> media_tree/drivers/media/radio/tef6862.c:115: warning: statement with no effect
+
+Keep up the good work!
+
+--HPS
