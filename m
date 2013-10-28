@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:64879 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755367Ab3JIX5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 19:57:55 -0400
-Received: by mail-oa0-f73.google.com with SMTP id n10so348475oag.2
-        for <linux-media@vger.kernel.org>; Wed, 09 Oct 2013 16:57:53 -0700 (PDT)
-From: John Sheu <sheu@google.com>
-To: linux-media@vger.kernel.org
-Cc: John Sheu <sheu@google.com>, m.chehab@samsung.com,
-	k.debski@samsung.com, pawel@osciak.com
-Subject: [PATCH 0/6] Exynos video fixes from ChromeOS
-Date: Wed,  9 Oct 2013 16:49:43 -0700
-Message-Id: <1381362589-32237-1-git-send-email-sheu@google.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59636 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757865Ab3J1Xqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Oct 2013 19:46:52 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-sh@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 07/19] v4l: sh_vou: Enable the driver on all ARM platforms
+Date: Tue, 29 Oct 2013 00:46:55 +0100
+Message-Id: <1383004027-25036-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1383004027-25036-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1383004027-25036-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are various video processing driver fixes for the s5p-mfc and gsc-m2m
-hardware blocks on the Samsung Exynos (ARM) platform, that have been carried
-in the ChromeOS kernel tree for a while and should be pushed upstream.
+Renesas ARM platforms are transitioning from single-platform to
+multi-platform kernels using the new ARCH_SHMOBILE_MULTI. Make the
+driver available on all ARM platforms to enable it on both ARCH_SHMOBILE
+and ARCH_SHMOBILE_MULTI and increase build testing coverage.
 
-John Sheu (6):
-  [media] s5p-mfc: fix DISPLAY_DELAY
-  [media] s5p-mfc: fix encoder crash after VIDIOC_STREAMOFF
-  [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP to encoder
-  [media] s5p-mfc: support dynamic encoding parameter changes
-  [media] gsc-m2m: report correct format bytesperline and sizeimage
-  [media] v4l2-mem2mem: allow reqbufs(0) with "in use" MMAP buffers
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/platform/exynos-gsc/gsc-core.c    | 153 +++++++++++++-----------
- drivers/media/platform/exynos-gsc/gsc-core.h    |  16 +--
- drivers/media/platform/exynos-gsc/gsc-regs.c    |  40 ++++---
- drivers/media/platform/exynos-gsc/gsc-regs.h    |   4 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |   4 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  38 ++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   7 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 126 ++++++++++++++++---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  29 +++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 119 +++++++++---------
- drivers/media/v4l2-core/videobuf2-core.c        |  26 +---
- 11 files changed, 339 insertions(+), 223 deletions(-)
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c7caf94..a726f86 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -36,7 +36,7 @@ source "drivers/media/platform/blackfin/Kconfig"
+ config VIDEO_SH_VOU
+ 	tristate "SuperH VOU video output driver"
+ 	depends on MEDIA_CAMERA_SUPPORT
+-	depends on VIDEO_DEV && ARCH_SHMOBILE && I2C
++	depends on VIDEO_DEV && ARM && I2C
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	  Support for the Video Output Unit (VOU) on SuperH SoCs.
 -- 
-1.8.4
+1.8.1.5
 
