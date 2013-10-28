@@ -1,51 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4183 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754613Ab3JDOCI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 11/14] cx231xx: fix sparse warnings
-Date: Fri,  4 Oct 2013 16:01:49 +0200
-Message-Id: <1380895312-30863-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
-References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-vc0-f176.google.com ([209.85.220.176]:61314 "EHLO
+	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133Ab3J1Moy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:44:54 -0400
+Received: by mail-vc0-f176.google.com with SMTP id ia6so2014856vcb.21
+        for <linux-media@vger.kernel.org>; Mon, 28 Oct 2013 05:44:54 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <526E5BA0.2030300@gtsys.com.hk>
+References: <526E55DA.3070007@gtsys.com.hk>
+	<CAOMZO5A6iMEzyRd81wogoO6NzDH3VqnaU9gH4-eh-SDQQMJ=Ww@mail.gmail.com>
+	<526E5BA0.2030300@gtsys.com.hk>
+Date: Mon, 28 Oct 2013 10:44:54 -0200
+Message-ID: <CAOMZO5AuFjMshe0QDz0VdaFdBMHw3_tqimmJjFa8KW3AtUmDFg@mail.gmail.com>
+Subject: Re: imx27.dtsi usbotg/usbh2 oops in fsl_usb2_mph_dr_of_probe
+From: Fabio Estevam <festevam@gmail.com>
+To: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Oct 28, 2013 at 10:42 AM, Chris Ruehl <chris.ruehl@gtsys.com.hk> wrote:
 
-drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c:31:19: warning: symbol 'cx231xx_Scenario' was not declared. Should it be static?
-drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c:675:23: warning: cast to restricted __le32
+> I didn't get USB detected with
+>
+> compatible ="fsl,imx27-usb"
+>
+> nothing happen.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+You probably need a mx27 entry into drivers/usb/chipidea/usbmisc_imx.c.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-index d7308ab..2a34cee 100644
---- a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-@@ -28,7 +28,7 @@ MODULE_PARM_DESC(pcb_debug, "enable pcb config debug messages [video]");
- 
- /******************************************************************************/
- 
--struct pcb_config cx231xx_Scenario[] = {
-+static struct pcb_config cx231xx_Scenario[] = {
- 	{
- 	 INDEX_SELFPOWER_DIGITAL_ONLY,	/* index */
- 	 USB_SELF_POWER,	/* power_type */
-@@ -672,7 +672,7 @@ u32 initialize_cx231xx(struct cx231xx *dev)
- 	pcb config it is related to */
- 	cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, BOARD_CFG_STAT, data, 4);
- 
--	config_info = le32_to_cpu(*((u32 *) data));
-+	config_info = le32_to_cpu(*((__le32 *)data));
- 	usb_speed = (u8) (config_info & 0x1);
- 
- 	/* Verify this device belongs to Bus power or Self power device */
--- 
-1.8.3.2
-
+Again, this is offtopic to this list, so please start a new thread at linux-usb,
