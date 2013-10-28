@@ -1,43 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1963 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754763Ab3JDOCK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:02:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH 08/14] fmdrv_common: fix sparse warning
-Date: Fri,  4 Oct 2013 16:01:46 +0200
-Message-Id: <1380895312-30863-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
-References: <1380895312-30863-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:56666 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756072Ab3J1MZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:25:08 -0400
+Received: by mail-ve0-f170.google.com with SMTP id oy12so2817475veb.29
+        for <linux-media@vger.kernel.org>; Mon, 28 Oct 2013 05:25:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <526E55DA.3070007@gtsys.com.hk>
+References: <526E55DA.3070007@gtsys.com.hk>
+Date: Mon, 28 Oct 2013 10:25:07 -0200
+Message-ID: <CAOMZO5A6iMEzyRd81wogoO6NzDH3VqnaU9gH4-eh-SDQQMJ=Ww@mail.gmail.com>
+Subject: Re: imx27.dtsi usbotg/usbh2 oops in fsl_usb2_mph_dr_of_probe
+From: Fabio Estevam <festevam@gmail.com>
+To: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Oct 28, 2013 at 10:17 AM, Chris Ruehl <chris.ruehl@gtsys.com.hk> wrote:
+> Hi,
+>
+> when tried to activate the USB-OTG or USBH2 with the FDT the system oops
 
-drivers/media/radio/wl128x/fmdrv_common.c:178:6: warning: symbol 'g_st_write' was not declared. Should it be static?
+You should have posted this to the linux-usb list instead :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Manjunatha Halli <manjunatha_halli@ti.com>
----
- drivers/media/radio/wl128x/fmdrv_common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 253f307..4b2e9e8 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -175,7 +175,7 @@ static int_handler_prototype int_handler_table[] = {
- 	fm_irq_handle_intmsk_cmd_resp
- };
- 
--long (*g_st_write) (struct sk_buff *skb);
-+static long (*g_st_write) (struct sk_buff *skb);
- static struct completion wait_for_fmdrv_reg_comp;
- 
- static inline void fm_irq_call(struct fmdev *fmdev)
--- 
-1.8.3.2
+> config: (imx27.dtsi)
+>
+>             usbotg: usb@10024000 {
+>                 compatible = "fsl-usb2-dr";
 
+You should use compatible ="fsl,imx27-usb" so that it uses the
+chipidea usb driver.
