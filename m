@@ -1,96 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:48257 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab3JLMc0 (ORCPT
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:61059 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753489Ab3J2KIo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Oct 2013 08:32:26 -0400
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, pawel@osciak.com,
-	javier.martin@vista-silicon.com, m.szyprowski@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	p.zabel@pengutronix.de, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 07/10] exynos-gsc: Configure default image format at device open()
-Date: Sat, 12 Oct 2013 14:31:57 +0200
-Message-Id: <1381581120-26883-8-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
-References: <1381581120-26883-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 29 Oct 2013 06:08:44 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAPybu_0y1R_OTPhkVPu4P9MmY=+uQU4hffEwvc8skUomqUeJ3A@mail.gmail.com>
+References: <1382198877-27164-1-git-send-email-ricardo.ribalda@gmail.com>
+ <5262CEF6.1040003@gmail.com> <CAPybu_0y1R_OTPhkVPu4P9MmY=+uQU4hffEwvc8skUomqUeJ3A@mail.gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 29 Oct 2013 11:08:22 +0100
+Message-ID: <CAPybu_3ngoGuV+emsX4F5CpLYeevpNbCNHONwAY7JAxm=hLvrg@mail.gmail.com>
+Subject: Re: [PATCH v2] videobuf2: Add missing lock held on vb2_fop_relase
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There should be always some valid image format set on a video device.
+Hello
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c |   34 ++++++++++++++++++++++++++-
- 1 files changed, 33 insertions(+), 1 deletions(-)
+Anybody has a comment here? If not I will post a patch with the
+modifications propossed by Sylwester.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index e576ff2..48e1c34 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -605,6 +605,32 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	return vb2_queue_init(dst_vq);
- }
- 
-+static int gsc_m2m_set_default_format(struct gsc_ctx *ctx)
-+{
-+	struct v4l2_pix_format_mplane pixm = {
-+		.pixelformat	= V4L2_PIX_FMT_RGB32,
-+		.width		= 800,
-+		.height		= 600,
-+		.plane_fmt[0]	= {
-+			.bytesperline = 800 * 4,
-+			.sizeimage = 800 * 4 * 600,
-+		},
-+	};
-+	const struct gsc_fmt *fmt;
-+
-+	fmt = find_fmt(&pixm.pixelformat, NULL, 0);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	gsc_set_frame_size(&ctx->s_frame, pixm.width, pixm.height);
-+	ctx->s_frame.payload[0] = pixm.plane_fmt[0].sizeimage;
-+
-+	gsc_set_frame_size(&ctx->d_frame, pixm.width, pixm.height);
-+	ctx->d_frame.payload[0] = pixm.plane_fmt[0].sizeimage;
-+
-+	return 0;
-+}
-+
- static int gsc_m2m_open(struct file *file)
- {
- 	struct gsc_dev *gsc = video_drvdata(file);
-@@ -638,7 +664,7 @@ static int gsc_m2m_open(struct file *file)
- 	ctx->d_frame.fmt = get_format(0);
- 	/* Setup the device context for mem2mem mode. */
- 	ctx->state = GSC_CTX_M2M;
--	ctx->flags = 0;
-+	ctx->flags = GSC_PARAMS;
- 	ctx->in_path = GSC_DMA;
- 	ctx->out_path = GSC_DMA;
- 
-@@ -652,11 +678,17 @@ static int gsc_m2m_open(struct file *file)
- 	if (gsc->m2m.refcnt++ == 0)
- 		set_bit(ST_M2M_OPEN, &gsc->state);
- 
-+	ret = gsc_m2m_set_default_format(ctx);
-+	if (ret)
-+		goto error_m2m_rel;
-+
- 	pr_debug("gsc m2m driver is opened, ctx(0x%p)", ctx);
- 
- 	mutex_unlock(&gsc->lock);
- 	return 0;
- 
-+error_m2m_rel:
-+	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
- error_ctrls:
- 	gsc_ctrls_delete(ctx);
- error_fh:
+
+Thanks!
+
+On Sat, Oct 19, 2013 at 10:08 PM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> Hello Sylwester
+>
+>
+> On Sat, Oct 19, 2013 at 8:27 PM, Sylwester Nawrocki
+> <sylvester.nawrocki@gmail.com> wrote:
+>> On 10/19/2013 06:07 PM, Ricardo Ribalda wrote:
+>> [...]
+>>>
+>>> ---
+>>>   drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
+>>>   drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
+>>>   drivers/media/usb/em28xx/em28xx-video.c          |  2 +-
+>>>   drivers/media/v4l2-core/videobuf2-core.c         | 18 +++++++++++++++++-
+>>>   include/media/videobuf2-core.h                   |  2 ++
+>>>   5 files changed, 22 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c
+>>> b/drivers/media/platform/exynos4-is/fimc-capture.c
+>>> index fb27ff7..c38d247c 100644
+>>> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+>>> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+>>> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
+>>>                 vc->streaming = false;
+>>>         }
+>>>
+>>> -       ret = vb2_fop_release(file);
+>>> +       ret = __vb2_fop_release(file, true);
+>>>
+>>>         if (close) {
+>>>                 clear_bit(ST_CAPT_BUSY,&fimc->state);
+>>>
+>>> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
+>>> b/drivers/media/platform/exynos4-is/fimc-lite.c
+>>> index e5798f7..021d804 100644
+>>> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+>>> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+>>> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
+>>>                 mutex_unlock(&entity->parent->graph_mutex);
+>>>         }
+>>>
+>>> -       vb2_fop_release(file);
+>>> +       __vb2_fop_release(file, true);
+>>>         pm_runtime_put(&fimc->pdev->dev);
+>>>         clear_bit(ST_FLITE_SUSPENDED,&fimc->state);
+>>>
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c
+>>> b/drivers/media/usb/em28xx/em28xx-video.c
+>>> index 9d10334..6a5c147 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>>> @@ -1664,7 +1664,7 @@ static int em28xx_v4l2_close(struct file *filp)
+>>>         em28xx_videodbg("users=%d\n", dev->users);
+>>>
+>>>         mutex_lock(&dev->lock);
+>>> -       vb2_fop_release(filp);
+>>> +       __vb2_fop_release(filp, false);
+>>
+>>
+>> I believe no modifications are needed for this driver.
+>>
+>>
+>>>         if (dev->users == 1) {
+>>>                 /* the device is already disconnect,
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>>> b/drivers/media/v4l2-core/videobuf2-core.c
+>>> index 594c75e..ce309a8 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -2619,16 +2619,32 @@ int vb2_fop_mmap(struct file *file, struct
+>>> vm_area_struct *vma)
+>>>   }
+>>>   EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+>>>
+>>> -int vb2_fop_release(struct file *file)
+>>> +int __vb2_fop_release(struct file *file, bool lock_is_held)
+>>>   {
+>>>         struct video_device *vdev = video_devdata(file);
+>>> +       struct mutex *lock;
+>>>
+>>>         if (file->private_data == vdev->queue->owner) {
+>>> +               if (lock_is_held)
+>>> +                       lock = NULL;
+>>> +               else
+>>> +                       lock = vdev->queue->lock ?
+>>> +                               vdev->queue->lock : vdev->lock;
+>>> +               if (lock)
+>>> +                       mutex_lock(lock);
+>>>                 vb2_queue_release(vdev->queue);
+>>>                 vdev->queue->owner = NULL;
+>>> +               if (lock)
+>>> +                       mutex_unlock(lock);
+>>>         }
+>>>         return v4l2_fh_release(file);
+>>>   }
+>>> +EXPORT_SYMBOL_GPL(__vb2_fop_release);
+>>> +
+>>> +int vb2_fop_release(struct file *file)
+>>> +{
+>>> +       return __vb2_fop_release(file, false);
+>>> +}
+>>>   EXPORT_SYMBOL_GPL(vb2_fop_release);
+>>
+>>
+>> It might be better to make it something like:
+>>
+>
+> The rationale behind my patch (and probably not properly commented) is
+> that the vb2_fop_release must be used ONLY as a file operantion
+> handler.
+>
+> If the user makes its own function for relase the __vb2_fop_release
+> function must be used and the infrastructure must be notified about
+> the status of he lock (he is on his own).
+>
+> I believe my approach is simpler because It has only two functions
+> (instead of 3) and the user understand the difference of the two
+> functions just by looking at the arguments. In the future we could
+> even check statically that  vb2_fop_release is not called inside a
+> driver.
+>
+> Anyway, this is just a detail :), the most important part is that the
+> oops is fixed, and that all the drivers that worked keep working.
+>
+> Lets wait for more comments and then lets post a new patch (with two
+> functions and better documentation, or three functions).
+>
+> Thank you very much for you comments!!!
+>
+>> static int _vb2_fop_release(struct file *file, bool locked)
+>>
+>> {
+>>         struct video_device *vdev = video_devdata(file);
+>>         struct mutex *lock;
+>>
+>>         if (file->private_data == vdev->queue->owner) {
+>>                 lock = vdev->queue->lock ?
+>>                         vdev->queue->lock : vdev->lock;
+>>
+>>                 if (lock && !locked)
+>>
+>>                         mutex_lock(lock);
+>>
+>>                 vb2_queue_release(vdev->queue);
+>>                 vdev->queue->owner = NULL;
+>>                 if (lock && !locked)
+>>                         mutex_unlock(lock);
+>>         }
+>>         return v4l2_fh_release(file);
+>> }
+>>
+>> int vb2_fop_release(struct file *file)
+>> {
+>>         return _vb2_fop_release(file, false);
+>> }
+>> EXPORT_SYMBOL_GPL(vb2_fop_release);
+>>
+>> /*
+>>  * This function should be used instead of vb2_fop_release()
+>>  * if the caller already holds the video queue mutex.
+>>  */
+>> int __vb2_fop_release(struct file *file)
+>> {
+>>         return _vb2_fop_release(file, true);
+>> }
+>> EXPORT_SYMBOL_GPL(__vb2_fop_release);
+>>
+>> since __vb2_fop_release(file, false); is basically useless, it is same
+>> as vb2_fop_release(file);
+>>
+>>
+>>>   ssize_t vb2_fop_write(struct file *file, char __user *buf,
+>>> diff --git a/include/media/videobuf2-core.h
+>>> b/include/media/videobuf2-core.h
+>>> index 6781258..cd1e4d5 100644
+>>> --- a/include/media/videobuf2-core.h
+>>> +++ b/include/media/videobuf2-core.h
+>>> @@ -491,6 +491,8 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
+>>>
+>>>   int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
+>>>   int vb2_fop_release(struct file *file);
+>>> +/* must be used if the lock is held. */
+>>
+>>
+>> Let's put any comments at the function body, not here.
+>>
+>>> +int __vb2_fop_release(struct file *file, bool lock_is_held);
+>>
+>>
+>> int __vb2_fop_release(struct file *file);
+>>
+>>
+>>>   ssize_t vb2_fop_write(struct file *file, char __user *buf,
+>>>                 size_t count, loff_t *ppos);
+>>>   ssize_t vb2_fop_read(struct file *file, char __user *buf,
+>>
+>>
+>> Thanks,
+>> Sylwester
+>
+>
+>
+> --
+> Ricardo Ribalda
+
+
+
 -- 
-1.7.4.1
-
+Ricardo Ribalda
