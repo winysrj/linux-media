@@ -1,69 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:53968 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739Ab3JZUpH (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:64720 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012Ab3J2X54 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Oct 2013 16:45:07 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-Date: Sat, 26 Oct 2013 22:45:02 +0200
-Cc: "Mauro Carvalho Chehab" <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	"Eero Nurkkala" <ext-eero.nurkkala@nokia.com>,
-	"Nils Faerber" <nils.faerber@kernelconcepts.de>,
-	"Joni Lapilainen" <joni.lapilainen@gmail.com>,
-	=?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?=
-	 =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?=
-	<freemangordon@abv.bg>
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201310262204.33674@pali> <2099a1da904181598455905c79a7921d.squirrel@webmail.xs4all.nl>
-In-Reply-To: <2099a1da904181598455905c79a7921d.squirrel@webmail.xs4all.nl>
+	Tue, 29 Oct 2013 19:57:56 -0400
+Message-ID: <52704B80.2040507@gmail.com>
+Date: Wed, 30 Oct 2013 00:57:52 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4450933.6dzIUJ44KZ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, mturquette@linaro.org,
+	linux@arm.linux.org.uk, jiada_wang@mentor.com,
+	kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org, linux-mips@linux-mips.org,
+	linux-sh@vger.kernel.org, LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v7 1/5] omap3isp: Modify clocks registration to avoid
+ circular references
+References: <1383076268-8984-1-git-send-email-s.nawrocki@samsung.com> <1383076268-8984-2-git-send-email-s.nawrocki@samsung.com> <16467881.81yEf9zq68@avalon>
+In-Reply-To: <16467881.81yEf9zq68@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201310262245.03279@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart4450933.6dzIUJ44KZ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Laurent,
 
-On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
-> > Hans, so can it be added to drivers/staging/media tree?
->=20
-> Yes, that is an option. It's up to you to decide what you
-> want. Note that if no cleanup work is done on the staging
-> driver for a long time, then it can be removed again.
->=20
-> Regards,
->=20
->     Hans
->=20
+(adding Mauro and LMML at Cc)
 
-Ok, so if you can add it to staging tree. When driver will be in=20
-mainline other developers can look at it too. Now when driver is=20
-hidden, nobody know where to find it... You can see how upstream=20
-development for Nokia N900 HW going on: http://elinux.org/N900
+On 10/29/2013 11:28 PM, Laurent Pinchart wrote:
+> Hi Sylwester,
+>
+> Thank you for the patch.
+>
+> On Tuesday 29 October 2013 20:51:04 Sylwester Nawrocki wrote:
+>> The clock core code is going to be modified so clk_get() takes
+>> reference on the clock provider module. Until the potential circular
+>> reference issue is properly addressed, we pass NULL as as the first
+>> argument to clk_register(), in order to disallow sub-devices taking
+>> a reference on the ISP module back trough clk_get(). This should
+>> prevent locking the modules in memory.
+>>
+>> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>
+> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>
+> Do you plan to push this to mainline as part of this patch series ? I don't
+> have pending patches for the omap3isp that would conflict with this patch, so
+> that would be fine with me.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Thanks, yes I thought this patch might be merged together through the clk
+tree, if Mike is willing to take it and we get yours and Mauro's Ack on it.
 
---nextPart4450933.6dzIUJ44KZ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+>> ---
+>> This patch has been "compile tested" only.
+>>
+>> ---
+>>   drivers/media/platform/omap3isp/isp.c |   22 ++++++++++++++++------
+>>   drivers/media/platform/omap3isp/isp.h |    1 +
+>>   2 files changed, 17 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isp.c
+>> b/drivers/media/platform/omap3isp/isp.c index df3a0ec..286027a 100644
+>> --- a/drivers/media/platform/omap3isp/isp.c
+>> +++ b/drivers/media/platform/omap3isp/isp.c
+>> @@ -290,9 +290,11 @@ static int isp_xclk_init(struct isp_device *isp)
+>>   	struct clk_init_data init;
+>>   	unsigned int i;
+>>
+>> +	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i)
+>> +		isp->xclks[i].clk = ERR_PTR(-EINVAL);
+>> +
+>>   	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
+>>   		struct isp_xclk *xclk =&isp->xclks[i];
+>> -		struct clk *clk;
+>>
+>>   		xclk->isp = isp;
+>>   		xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
+>> @@ -305,10 +307,15 @@ static int isp_xclk_init(struct isp_device *isp)
+>>   		init.num_parents = 1;
+>>
+>>   		xclk->hw.init =&init;
+>> -
+>> -		clk = devm_clk_register(isp->dev,&xclk->hw);
+>> -		if (IS_ERR(clk))
+>> -			return PTR_ERR(clk);
+>> +		/*
+>> +		 * The first argument is NULL in order to avoid circular
+>> +		 * reference, as this driver takes reference on the
+>> +		 * sensor subdevice modules and the sensors would take
+>> +		 * reference on this module through clk_get().
+>> +		 */
+>> +		xclk->clk = clk_register(NULL,&xclk->hw);
+>> +		if (IS_ERR(xclk->clk))
+>> +			return PTR_ERR(xclk->clk);
+>>
+>>   		if (pdata->xclks[i].con_id == NULL&&
+>>   		pdata->xclks[i].dev_id == NULL)
+>> @@ -320,7 +327,7 @@ static int isp_xclk_init(struct isp_device *isp)
+>>
+>>   		xclk->lookup->con_id = pdata->xclks[i].con_id;
+>>   		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+>> -		xclk->lookup->clk = clk;
+>> +		xclk->lookup->clk = xclk->clk;
+>>
+>>   		clkdev_add(xclk->lookup);
+>>   	}
+>> @@ -335,6 +342,9 @@ static void isp_xclk_cleanup(struct isp_device *isp)
+>>   	for (i = 0; i<  ARRAY_SIZE(isp->xclks); ++i) {
+>>   		struct isp_xclk *xclk =&isp->xclks[i];
+>>
+>> +		if (!IS_ERR(xclk->clk))
+>> +			clk_unregister(xclk->clk);
+>> +
+>>   		if (xclk->lookup)
+>>   			clkdev_drop(xclk->lookup);
+>>   	}
+>> diff --git a/drivers/media/platform/omap3isp/isp.h
+>> b/drivers/media/platform/omap3isp/isp.h index cd3eff4..1498f2b 100644
+>> --- a/drivers/media/platform/omap3isp/isp.h
+>> +++ b/drivers/media/platform/omap3isp/isp.h
+>> @@ -135,6 +135,7 @@ struct isp_xclk {
+>>   	struct isp_device *isp;
+>>   	struct clk_hw hw;
+>>   	struct clk_lookup *lookup;
+>> +	struct clk *clk;
+>>   	enum isp_xclk_id id;
+>>
+>>   	spinlock_t lock;	/* Protects enabled and divider */
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlJsKc8ACgkQi/DJPQPkQ1KDdQCaAgtyXt6RJ4GhtICsHjoBihN7
-kwIAn2v6wzeDPEdBWwwV7rWFH+5gCnSZ
-=eTmu
------END PGP SIGNATURE-----
-
---nextPart4450933.6dzIUJ44KZ--
+--
+Regards,
+Sylwester
