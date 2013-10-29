@@ -1,552 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:42073 "EHLO
-	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751709Ab3JRJIN (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:61652 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895Ab3J2Myd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 05:08:13 -0400
-From: <srinivas.kandagatla@st.com>
-To: <linux-media@vger.kernel.org>
-Cc: Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Tue, 29 Oct 2013 08:54:33 -0400
+Date: Tue, 29 Oct 2013 10:54:26 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
 	Grant Likely <grant.likely@linaro.org>,
-	<devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@st.com>
-Subject: [PATCH v6] media: st-rc: Add ST remote control driver
-Date: Fri, 18 Oct 2013 10:01:14 +0100
-Message-ID: <1382086874-9531-1-git-send-email-srinivas.kandagatla@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Arun Kumar K <arun.kk@samsung.com>,
+	Mark Rutland <Mark.Rutland@arm.com>
+Subject: Re: [GIT PULL FOR 3.13] Exynos5 SoC FIMC-IS imaging subsystem driver
+Message-id: <20131029105426.0969741c.m.chehab@samsung.com>
+In-reply-to: <526EFC06.70101@gmail.com>
+References: <5261967E.6010001@samsung.com>
+ <20131028201136.6f66d3f7@samsung.com> <526EFC06.70101@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Em Tue, 29 Oct 2013 01:06:30 +0100
+Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
 
-This patch adds support to ST RC driver, which is basically a IR/UHF
-receiver and transmitter. This IP (IRB) is common across all the ST
-parts for settop box platforms. IRB is embedded in ST COMMS IP block.
-It supports both Rx & Tx functionality.
+> Hi Mauro,
+> 
+> On 10/28/2013 11:11 PM, Mauro Carvalho Chehab wrote:
+> >> The following changes since commit 8ca5d2d8e58df7235b77ed435e63c484e123fede:
+> >> >
+> >> >     [media] uvcvideo: Fix data type for pan/tilt control (2013-10-17 06:55:29 -0300)
+> >> >
+> >> >  are available in the git repository at:
+> >> >
+> >> >     git://linuxtv.org/snawrocki/samsung.git for-v3.13-2
+> >> >
+> >> >  for you to fetch changes up to 6eb89d71b27e6731755ab5722f3cdc0f6e8273f2:
+> >> >
+> >> >     V4L: Add s5k4e5 sensor driver (2013-10-18 21:36:42 +0200)
+> >> >
+> >> >  ----------------------------------------------------------------
+> >> >  Arun Kumar K (12):
+> >> >         exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
+> >
+> > As agreed during KS, the subsystem maintainers should wait for a documentation
+> > review on DT by the DT maintainers, at least for a while.
+> >
+> > So, I'd like to see either their reviews on this patch:
+> > 	https://patchwork.linuxtv.org/patch/20439/
+> >
+> > Or their ack for us to apply it.
+> 
+> I agree with you on that. Just please note the first version of this patch
+> has been posted *5 months* ago https://patchwork.linuxtv.org/patch/18684
+> 
+> Stephen has reviewed subsequent version about 3 months ago:
+> https://patchwork.linuxtv.org/patch/19521
+> 
+> Then we got no more comments from DT maintainers, I have reviewed this patch
+> multiple times on the mailing lists:
+> https://patchwork.linuxtv.org/patch/19715
+> https://patchwork.linuxtv.org/patch/19749
+> 
+> And explicitly asked for an Ack:
+> https://patchwork.linuxtv.org/patch/19832
+> 
+> Then those 2 versions passed silently:
+> https://patchwork.linuxtv.org/patch/20055
+> https://patchwork.linuxtv.org/patch/20225
+> 
+> And...huh...we got another review, I didn't notice it until now:
+> https://patchwork.linuxtv.org/patch/20439 Thanks Mark.
+> 
+> Arun, care to address those review comments and send us an updated
+> binding documentation patch ?
+> 
+> Hence I think we have waited for a while. ;)
+> 
+> >> >         exynos5-fimc-is: Add driver core files
+> >> >         exynos5-fimc-is: Add common driver header files
+> >> >         exynos5-fimc-is: Add register definition and context header
+> >> >         exynos5-fimc-is: Add isp subdev
+> >> >         exynos5-fimc-is: Add scaler subdev
+> >> >         exynos5-fimc-is: Add sensor interface
+> >> >         exynos5-fimc-is: Add the hardware pipeline control
+> >> >         exynos5-fimc-is: Add the hardware interface module
+> >> >         exynos5-is: Add Kconfig and Makefile
+> >> >         V4L: Add DT binding doc for s5k4e5 image sensor
+> >
+> > Same applies to this patch:
+> > 	https://patchwork.linuxtv.org/patch/20448/
+> 
+> This one also have been on the mailing list for quite some time and it
+> uses already standard bindings, so I assumed it is OK to merge it.
+> 
+> https://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=s5k4e5
+> 
+> But if there must be an Ack then we shall wait, it will probably won't
+> make a big difference now, if this patch is postponed by 3 more months.
 
-This driver adds only Rx functionality via LIRC codec.
+Yeah, it seems that we've waited for a long time to get an ack there.
 
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-Acked-by: Sean Young <sean@mess.org>
----
-Hi Chehab,
+So, let's do this:
 
-This is a very simple rc driver for IRB controller found in STi SOCs.
-This driver is a raw driver which feeds data to lirc codec for the user lircd
-to decode the keys.
+Please send a new version with Mark's comments. Also, please split Doc 
+changes from the code changes on the new series. I'll wait for a couple
+days for DT people to review it. If we don't have any reply, I'll review
+and apply it for Kernel 3.13, if I don't see anything really weird on it.
 
-Am happy to prefix "rx-mode" and "tx-mode" device tree properties with "st", if
-you think these can not be generic properties.
-
-
-Changes since v5:
-	- removed redundancy error checks and using small letters
-	 for hex as suggested by Prabhakar L.
-	- make tx-mode and rx-mode more descriptive.
-
-Changes since v4:
-	- updated dt bindings doc with suggestions from Stephen W.
-
-Changes since v3:
-	- updated dt bindings doc with suggestions from Mark R.
-
-Changes since v2:
-	- Updated Kconfig dependencies as suggested by Sean and Chehab.
-	- Fixed a logical check spoted by Sean.
-
-Changes since v1:
-	- Device tree bindings cleaned up as suggested by Mark and Pawel
-	- use ir_raw_event_reset under overflow conditions as suggested by Sean.
-	- call ir_raw_event_handle in interrupt handler as suggested by Sean.
-	- correct allowed_protos flag with RC_BIT_ types as suggested by Sean.
-	- timeout and rx resolution added as suggested by Sean.
-
-Thankyou all for reviewing and commenting.
-I would like to get this driver at least in 3.13.
-
-Thanks,
-srini
-
- Documentation/devicetree/bindings/media/st-rc.txt |   29 ++
- drivers/media/rc/Kconfig                          |   10 +
- drivers/media/rc/Makefile                         |    1 +
- drivers/media/rc/st_rc.c                          |  395 +++++++++++++++++++++
- 4 files changed, 435 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/st-rc.txt
- create mode 100644 drivers/media/rc/st_rc.c
-
-diff --git a/Documentation/devicetree/bindings/media/st-rc.txt b/Documentation/devicetree/bindings/media/st-rc.txt
-new file mode 100644
-index 0000000..05c432d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st-rc.txt
-@@ -0,0 +1,29 @@
-+Device-Tree bindings for ST IRB IP
-+
-+Required properties:
-+	- compatible: Should contain "st,comms-irb".
-+	- reg: Base physical address of the controller and length of memory
-+	  mapped region.
-+	- interrupts: interrupt-specifier for the sole interrupt generated by
-+	  the device. The interrupt specifier format depends on the interrupt
-+	  controller parent.
-+	- rx-mode: can be "infrared" or "uhf". This property specifies the L1
-+	  protocol used for receiving remote control signals. rx-mode should
-+	  be present iff the rx pins are wired up.
-+	- tx-mode: should be "infrared". This property specifies the L1
-+	  protocol used for transmitting remote control signals. tx-mode should
-+	  be present iff the tx pins are wired up.
-+
-+Optional properties:
-+	- pinctrl-names, pinctrl-0: the pincontrol settings to configure muxing
-+	  properly for IRB pins.
-+	- clocks : phandle with clock-specifier pair for IRB.
-+
-+Example node:
-+
-+	rc: rc@fe518000 {
-+		compatible	= "st,comms-irb";
-+		reg		= <0xfe518000 0x234>;
-+		interrupts	= <0 203 0>;
-+		rx-mode		= "infrared";
-+	};
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 11e84bc..904f113 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -322,4 +322,14 @@ config IR_GPIO_CIR
- 	   To compile this driver as a module, choose M here: the module will
- 	   be called gpio-ir-recv.
- 
-+config RC_ST
-+	tristate "ST remote control receiver"
-+	depends on ARCH_STI && RC_CORE
-+	help
-+	 Say Y here if you want support for ST remote control driver
-+	 which allows both IR and UHF RX.
-+	 The driver passes raw pulse and space information to the LIRC decoder.
-+
-+	 If you're not sure, select N here.
-+
- endif #RC_DEVICES
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 56bacf0..f4eb32c 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -30,3 +30,4 @@ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
- obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
- obj-$(CONFIG_IR_IGUANA) += iguanair.o
- obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
-+obj-$(CONFIG_RC_ST) += st_rc.o
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-new file mode 100644
-index 0000000..65120c2
---- /dev/null
-+++ b/drivers/media/rc/st_rc.c
-@@ -0,0 +1,395 @@
-+/*
-+ * Copyright (C) 2013 STMicroelectronics Limited
-+ * Author: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <media/rc-core.h>
-+#include <linux/pinctrl/consumer.h>
-+
-+struct st_rc_device {
-+	struct device			*dev;
-+	int				irq;
-+	int				irq_wake;
-+	struct clk			*sys_clock;
-+	void				*base;	/* Register base address */
-+	void				*rx_base;/* RX Register base address */
-+	struct rc_dev			*rdev;
-+	bool				overclocking;
-+	int				sample_mult;
-+	int				sample_div;
-+	bool				rxuhfmode;
-+};
-+
-+/* Registers */
-+#define IRB_SAMPLE_RATE_COMM	0x64	/* sample freq divisor*/
-+#define IRB_CLOCK_SEL		0x70	/* clock select       */
-+#define IRB_CLOCK_SEL_STATUS	0x74	/* clock status       */
-+/* IRB IR/UHF receiver registers */
-+#define IRB_RX_ON               0x40	/* pulse time capture */
-+#define IRB_RX_SYS              0X44	/* sym period capture */
-+#define IRB_RX_INT_EN           0x48	/* IRQ enable (R/W)   */
-+#define IRB_RX_INT_STATUS       0x4c	/* IRQ status (R/W)   */
-+#define IRB_RX_EN               0x50	/* Receive enable     */
-+#define IRB_MAX_SYM_PERIOD      0x54	/* max sym value      */
-+#define IRB_RX_INT_CLEAR        0x58	/* overrun status     */
-+#define IRB_RX_STATUS           0x6c	/* receive status     */
-+#define IRB_RX_NOISE_SUPPR      0x5c	/* noise suppression  */
-+#define IRB_RX_POLARITY_INV     0x68	/* polarity inverter  */
-+
-+/**
-+ * IRQ set: Enable full FIFO                 1  -> bit  3;
-+ *          Enable overrun IRQ               1  -> bit  2;
-+ *          Enable last symbol IRQ           1  -> bit  1:
-+ *          Enable RX interrupt              1  -> bit  0;
-+ */
-+#define IRB_RX_INTS		0x0f
-+#define IRB_RX_OVERRUN_INT	0x04
-+ /* maximum symbol period (microsecs),timeout to detect end of symbol train */
-+#define MAX_SYMB_TIME		0x5000
-+#define IRB_SAMPLE_FREQ		10000000
-+#define	IRB_FIFO_NOT_EMPTY	0xff00
-+#define IRB_OVERFLOW		0x4
-+#define IRB_TIMEOUT		0xffff
-+#define IR_ST_NAME "st-rc"
-+
-+static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
-+{
-+	DEFINE_IR_RAW_EVENT(ev);
-+	ev.timeout = true;
-+	ir_raw_event_store(rdev, &ev);
-+}
-+
-+/**
-+ * RX graphical example to better understand the difference between ST IR block
-+ * output and standard definition used by LIRC (and most of the world!)
-+ *
-+ *           mark                                     mark
-+ *      |-IRB_RX_ON-|                            |-IRB_RX_ON-|
-+ *      ___  ___  ___                            ___  ___  ___             _
-+ *      | |  | |  | |                            | |  | |  | |             |
-+ *      | |  | |  | |         space 0            | |  | |  | |   space 1   |
-+ * _____| |__| |__| |____________________________| |__| |__| |_____________|
-+ *
-+ *      |--------------- IRB_RX_SYS -------------|------ IRB_RX_SYS -------|
-+ *
-+ *      |------------- encoding bit 0 -----------|---- encoding bit 1 -----|
-+ *
-+ * ST hardware returns mark (IRB_RX_ON) and total symbol time (IRB_RX_SYS), so
-+ * convert to standard mark/space we have to calculate space=(IRB_RX_SYS-mark)
-+ * The mark time represents the amount of time the carrier (usually 36-40kHz)
-+ * is detected.The above examples shows Pulse Width Modulation encoding where
-+ * bit 0 is represented by space>mark.
-+ */
-+
-+static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
-+{
-+	unsigned int symbol, mark = 0;
-+	struct st_rc_device *dev = data;
-+	int last_symbol = 0;
-+	u32 status;
-+	DEFINE_IR_RAW_EVENT(ev);
-+
-+	if (dev->irq_wake)
-+		pm_wakeup_event(dev->dev, 0);
-+
-+	status  = readl(dev->rx_base + IRB_RX_STATUS);
-+
-+	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
-+		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
-+		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
-+			/* discard the entire collection in case of errors!  */
-+			ir_raw_event_reset(dev->rdev);
-+			dev_info(dev->dev, "IR RX overrun\n");
-+			writel(IRB_RX_OVERRUN_INT,
-+					dev->rx_base + IRB_RX_INT_CLEAR);
-+			continue;
-+		}
-+
-+		symbol = readl(dev->rx_base + IRB_RX_SYS);
-+		mark = readl(dev->rx_base + IRB_RX_ON);
-+
-+		if (symbol == IRB_TIMEOUT)
-+			last_symbol = 1;
-+
-+		 /* Ignore any noise */
-+		if ((mark > 2) && (symbol > 1)) {
-+			symbol -= mark;
-+			if (dev->overclocking) { /* adjustments to timings */
-+				symbol *= dev->sample_mult;
-+				symbol /= dev->sample_div;
-+				mark *= dev->sample_mult;
-+				mark /= dev->sample_div;
-+			}
-+
-+			ev.duration = US_TO_NS(mark);
-+			ev.pulse = true;
-+			ir_raw_event_store(dev->rdev, &ev);
-+
-+			if (!last_symbol) {
-+				ev.duration = US_TO_NS(symbol);
-+				ev.pulse = false;
-+				ir_raw_event_store(dev->rdev, &ev);
-+			} else  {
-+				st_rc_send_lirc_timeout(dev->rdev);
-+			}
-+
-+		}
-+		last_symbol = 0;
-+		status  = readl(dev->rx_base + IRB_RX_STATUS);
-+	}
-+
-+	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
-+
-+	/* Empty software fifo */
-+	ir_raw_event_handle(dev->rdev);
-+	return IRQ_HANDLED;
-+}
-+
-+static void st_rc_hardware_init(struct st_rc_device *dev)
-+{
-+	int baseclock, freqdiff;
-+	unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
-+	unsigned int rx_sampling_freq_div;
-+
-+	clk_prepare_enable(dev->sys_clock);
-+	baseclock = clk_get_rate(dev->sys_clock);
-+
-+	/* IRB input pins are inverted internally from high to low. */
-+	writel(1, dev->rx_base + IRB_RX_POLARITY_INV);
-+
-+	rx_sampling_freq_div = baseclock / IRB_SAMPLE_FREQ;
-+	writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
-+
-+	freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
-+	if (freqdiff) { /* over clocking, workout the adjustment factors */
-+		dev->overclocking = true;
-+		dev->sample_mult = 1000;
-+		dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
-+		rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
-+	}
-+
-+	writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
-+}
-+
-+static int st_rc_remove(struct platform_device *pdev)
-+{
-+	struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
-+	clk_disable_unprepare(rc_dev->sys_clock);
-+	rc_unregister_device(rc_dev->rdev);
-+	return 0;
-+}
-+
-+static int st_rc_open(struct rc_dev *rdev)
-+{
-+	struct st_rc_device *dev = rdev->priv;
-+	unsigned long flags;
-+	local_irq_save(flags);
-+	/* enable interrupts and receiver */
-+	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_EN);
-+	writel(0x01, dev->rx_base + IRB_RX_EN);
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+
-+static void st_rc_close(struct rc_dev *rdev)
-+{
-+	struct st_rc_device *dev = rdev->priv;
-+	/* disable interrupts and receiver */
-+	writel(0x00, dev->rx_base + IRB_RX_EN);
-+	writel(0x00, dev->rx_base + IRB_RX_INT_EN);
-+}
-+
-+static int st_rc_probe(struct platform_device *pdev)
-+{
-+	int ret = -EINVAL;
-+	struct rc_dev *rdev;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct st_rc_device *rc_dev;
-+	struct device_node *np = pdev->dev.of_node;
-+	const char *rx_mode;
-+
-+	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
-+
-+	if (!rc_dev)
-+		return -ENOMEM;
-+
-+	rdev = rc_allocate_device();
-+
-+	if (!rdev)
-+		return -ENOMEM;
-+
-+	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
-+
-+		if (!strcmp(rx_mode, "uhf")) {
-+			rc_dev->rxuhfmode = true;
-+		} else if (!strcmp(rx_mode, "infrared")) {
-+			rc_dev->rxuhfmode = false;
-+		} else {
-+			dev_err(dev, "Unsupported rx mode [%s]\n", rx_mode);
-+			goto err;
-+		}
-+
-+	} else {
-+		goto err;
-+	}
-+
-+	rc_dev->sys_clock = devm_clk_get(dev, NULL);
-+	if (IS_ERR(rc_dev->sys_clock)) {
-+		dev_err(dev, "System clock not found\n");
-+		ret = PTR_ERR(rc_dev->sys_clock);
-+		goto err;
-+	}
-+
-+	rc_dev->irq = platform_get_irq(pdev, 0);
-+	if (rc_dev->irq < 0) {
-+		ret = rc_dev->irq;
-+		goto err;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	rc_dev->base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(rc_dev->base)) {
-+		ret = PTR_ERR(rc_dev->base);
-+		goto err;
-+	}
-+
-+	if (rc_dev->rxuhfmode)
-+		rc_dev->rx_base = rc_dev->base + 0x40;
-+	else
-+		rc_dev->rx_base = rc_dev->base;
-+
-+	rc_dev->dev = dev;
-+	platform_set_drvdata(pdev, rc_dev);
-+	st_rc_hardware_init(rc_dev);
-+
-+	rdev->driver_type = RC_DRIVER_IR_RAW;
-+	rdev->allowed_protos = RC_BIT_ALL;
-+	/* rx sampling rate is 10Mhz */
-+	rdev->rx_resolution = 100;
-+	rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
-+	rdev->priv = rc_dev;
-+	rdev->open = st_rc_open;
-+	rdev->close = st_rc_close;
-+	rdev->driver_name = IR_ST_NAME;
-+	rdev->map_name = RC_MAP_LIRC;
-+	rdev->input_name = "ST Remote Control Receiver";
-+
-+	/* enable wake via this device */
-+	device_set_wakeup_capable(dev, true);
-+	device_set_wakeup_enable(dev, true);
-+
-+	ret = rc_register_device(rdev);
-+	if (ret < 0)
-+		goto clkerr;
-+
-+	rc_dev->rdev = rdev;
-+	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
-+			IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
-+		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
-+		ret = -EINVAL;
-+		goto rcerr;
-+	}
-+
-+	/**
-+	 * for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
-+	 * lircd expects a long space first before a signal train to sync.
-+	 */
-+	st_rc_send_lirc_timeout(rdev);
-+
-+	dev_info(dev, "setup in %s mode\n", rc_dev->rxuhfmode ? "UHF" : "IR");
-+
-+	return ret;
-+rcerr:
-+	rc_unregister_device(rdev);
-+	rdev = NULL;
-+clkerr:
-+	clk_disable_unprepare(rc_dev->sys_clock);
-+err:
-+	rc_free_device(rdev);
-+	dev_err(dev, "Unable to register device (%d)\n", ret);
-+	return ret;
-+}
-+
-+#ifdef CONFIG_PM
-+static int st_rc_suspend(struct device *dev)
-+{
-+	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev)) {
-+		if (!enable_irq_wake(rc_dev->irq))
-+			rc_dev->irq_wake = 1;
-+		else
-+			return -EINVAL;
-+	} else {
-+		pinctrl_pm_select_sleep_state(dev);
-+		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
-+		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
-+		clk_disable_unprepare(rc_dev->sys_clock);
-+	}
-+
-+	return 0;
-+}
-+
-+static int st_rc_resume(struct device *dev)
-+{
-+	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
-+	struct rc_dev	*rdev = rc_dev->rdev;
-+
-+	if (rc_dev->irq_wake) {
-+		disable_irq_wake(rc_dev->irq);
-+		rc_dev->irq_wake = 0;
-+	} else {
-+		pinctrl_pm_select_default_state(dev);
-+		st_rc_hardware_init(rc_dev);
-+		if (rdev->users) {
-+			writel(IRB_RX_INTS, rc_dev->rx_base + IRB_RX_INT_EN);
-+			writel(0x01, rc_dev->rx_base + IRB_RX_EN);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
-+#endif
-+
-+#ifdef CONFIG_OF
-+static struct of_device_id st_rc_match[] = {
-+	{ .compatible = "st,comms-irb", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, st_rc_match);
-+#endif
-+
-+static struct platform_driver st_rc_driver = {
-+	.driver = {
-+		.name = IR_ST_NAME,
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(st_rc_match),
-+#ifdef CONFIG_PM
-+		.pm     = &st_rc_pm_ops,
-+#endif
-+	},
-+	.probe = st_rc_probe,
-+	.remove = st_rc_remove,
-+};
-+
-+module_platform_driver(st_rc_driver);
-+
-+MODULE_DESCRIPTION("RC Transceiver driver for STMicroelectronics platforms");
-+MODULE_AUTHOR("STMicroelectronics (R&D) Ltd");
-+MODULE_LICENSE("GPL");
--- 
-1.7.6.5
-
+Regards,
+Mauro
