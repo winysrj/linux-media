@@ -1,67 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55955 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758756Ab3JONsi (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:55819 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897Ab3J2FGh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Oct 2013 09:48:38 -0400
-Message-ID: <525D477F.10606@ti.com>
-Date: Tue, 15 Oct 2013 19:17:43 +0530
-From: Archit Taneja <archit@ti.com>
+	Tue, 29 Oct 2013 01:06:37 -0400
+Date: Tue, 29 Oct 2013 14:06:35 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Valentine Barshak <valentine.barshak@cogentembedded.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH] media: rcar_vin: Add preliminary r8a7790 support
+Message-ID: <20131029050635.GG20432@verge.net.au>
+References: <1380896452-10687-1-git-send-email-valentine.barshak@cogentembedded.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com> <5257ACD1.9010501@xs4all.nl>
-In-Reply-To: <5257ACD1.9010501@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380896452-10687-1-git-send-email-valentine.barshak@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Fri, Oct 04, 2013 at 06:20:52PM +0400, Valentine Barshak wrote:
+> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
 
-On Friday 11 October 2013 01:16 PM, Hans Verkuil wrote:
-> On 10/09/2013 04:29 PM, Archit Taneja wrote:
->> VPE is a block which consists of a single memory to memory path which can
->> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->> interleaved video formats.
->>
->> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->> The de-interlacer, scaler and color space converter are all bypassed for now
->> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->> conversion beteen different YUV formats is possible.
->>
->> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->> a VPDMA descriptor list to which configuration and data descriptors are added.
->>
->> Based on the information received via v4l2 ioctls for the source and
->> destination queues, the driver configures the values for the MMRs, and stores
->> them in the buffer. There are also some VPDMA parameters like frame start and
->> line mode which needs to be configured, these are configured by direct register
->> writes via the VPDMA helper functions.
->>
->> The driver's device_run() mem2mem op will add each descriptor based on how the
->> source and destination queues are set up for the given ctx, once the list is
->> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->> upload MMR registers, start DMA of video buffers on the various input and output
->> clients/ports.
->>
->> When the list is parsed completely(and the DMAs on all the output ports done),
->> an interrupt is generated which we use to notify that the source and destination
->> buffers are done.
->>
->> The rest of the driver is quite similar to other mem2mem drivers, we use the
->> multiplane v4l2 ioctls as the HW support coplanar formats.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->
+This looks entirely sane to me.
 
-Thanks for the Acks. Is it possible to queue these for 3.13?
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 
-Archit
+Mauro, would you consider taking this?
 
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index d02a7e0..b21f777 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -105,6 +105,7 @@
+>  #define VIN_MAX_HEIGHT		2048
+>  
+>  enum chip_id {
+> +	RCAR_H2,
+>  	RCAR_H1,
+>  	RCAR_M1,
+>  	RCAR_E1,
+> @@ -300,7 +301,8 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  		dmr = 0;
+>  		break;
+>  	case V4L2_PIX_FMT_RGB32:
+> -		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+> +		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
+> +		    priv->chip == RCAR_E1) {
+>  			dmr = VNDMR_EXRGB;
+>  			break;
+>  		}
+> @@ -1381,6 +1383,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+>  };
+>  
+>  static struct platform_device_id rcar_vin_id_table[] = {
+> +	{ "r8a7790-vin",  RCAR_H2 },
+>  	{ "r8a7779-vin",  RCAR_H1 },
+>  	{ "r8a7778-vin",  RCAR_M1 },
+>  	{ "uPD35004-vin", RCAR_E1 },
+> -- 
+> 1.8.3.1
+> 
