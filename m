@@ -1,107 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:25294 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279Ab3JCCRG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Oct 2013 22:17:06 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MU200DITMCE6C40@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Oct 2013 03:17:02 +0100 (BST)
-Message-id: <524CD39B.9020400@samsung.com>
-Date: Thu, 03 Oct 2013 11:16:59 +0900
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com
-Subject: Re: [PATCH v2 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-References: <1380755873-25835-1-git-send-email-sakari.ailus@iki.fi>
- <1380755873-25835-2-git-send-email-sakari.ailus@iki.fi>
- <5005169.gE657Xh6K1@avalon>
-In-reply-to: <5005169.gE657Xh6K1@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44119 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750766Ab3J3Pf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 11:35:26 -0400
+Message-ID: <5271273C.4090604@iki.fi>
+Date: Wed, 30 Oct 2013 17:35:24 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Wolfram Sang <wsa@the-dreams.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] rtl2830: add parent for I2C adapter
+References: <1382386335-3879-1-git-send-email-crope@iki.fi> <52658CA7.5080104@iki.fi> <20131030151620.GB3663@katana>
+In-Reply-To: <20131030151620.GB3663@katana>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 10/03/2013 08:29 AM, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 03 October 2013 02:17:50 Sakari Ailus wrote:
->> Pads that set this flag must be connected by an active link for the entity
->> to stream.
+On 30.10.2013 17:16, Wolfram Sang wrote:
+> Hi,
+>
+> sorry for the delay. The Kernel Summit made a pretty busy time out of
+> the last weeks...
+>
+>> I found one of my drivers was crashing when DTV USB stick was
+>> plugged. Patch in that mail patch fixes the problem.
+>
+> Well, if you have a parent, it should be set. This is always a good
+> idea. Can't really tell why not having it causes the BUG, though.
+>
+>> I quickly looked possible I2C patches causing the problem and saw
+>> that one as most suspicions:
 >>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> commit 3923172b3d700486c1ca24df9c4c5405a83e2309
+>> i2c: reduce parent checking to a NOOP in non-I2C_MUX case
+>
+> Did you try reverting it? I am not sure this is the one.
 
-Looks good, I would just like to ask for changing my e-mail address on those
-patches to s.nawrocki@samsung.com, sorry for not mentioning it earlier. 
-Just one doubt below regarding name of the flag.
+Nope, not to mentio bisect. I have done bisect few times and I am not 
+going to waste whole day of compiling and booting new kernels.
 
->> ---
->>  Documentation/DocBook/media/v4l/media-ioc-enum-links.xml |   10 ++++++++++
->>  include/uapi/linux/media.h                               |    1 +
->>  2 files changed, 11 insertions(+)
->>
->> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
->> b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml index
->> 355df43..e357dc9 100644
->> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
->> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
->> @@ -134,6 +134,16 @@
->>  	    <entry>Output pad, relative to the entity. Output pads source data
->>  	    and are origins of links.</entry>
->>  	  </row>
->> +	  <row>
->> +	    <entry><constant>MEDIA_PAD_FL_MUST_CONNECT</constant></entry>
->> +	    <entry>If this flag is set and the pad is linked to any other
->> +	    pad, then at least one of those links must be enabled for the
->> +	    entity to be able to stream. There could be temporary reasons
->> +	    (e.g. device configuration dependent) for the pad to need
->> +	    enabled links even when this flag isn't set; the absence of the
->> +	    flag doesn't imply there is none. The flag has no effect on pads
->> +	    without connected links.</entry>
+Crash disappeared whit that little patch. I did also some DVB USB core 
+changes for 3.12, but I cannot see it could be root of cause that crash.
 
-Probably MEDIA_PAD_FL_MUST_CONNECT name is fine, but isn't it more something
-like MEDIA_PAD_FL_NEED_ACTIVE_LINK ? Or presumably MEDIA_PAD_FL_MUST_CONNECT
-just doesn't make sense on pads without connected links and should never be
-set on such pads ? From the last sentence it feels the situation where a pad
-without a connected link has this flags set is allowed and a valid 
-configuration.
 
-Perhaps the last sentence should be something like:
+>>> i2c i2c-6: adapter [RTL2830 tuner I2C adapter] registered
+>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000220
+>>> IP: [<ffffffffa0002900>] i2c_register_adapter+0x130/0x390 [i2c_core]
+>
+> Can we have the full BUG output?
 
-"The flag should not be used on pads without connected links and has no effect
-on such pads." 
+See attachement.
 
-Regards,
-Sylwester
+Anyway, I am going to ask Mauro to merge that I2C parent patch and maybe 
+try to sent it stable too as it is likely a bit too late for 3.12 RC.
 
->> +	  </row>
->>  	</tbody>
->>        </tgroup>
->>      </table>
->> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->> index ed49574..d847c76 100644
->> --- a/include/uapi/linux/media.h
->> +++ b/include/uapi/linux/media.h
->> @@ -98,6 +98,7 @@ struct media_entity_desc {
->>
->>  #define MEDIA_PAD_FL_SINK		(1 << 0)
->>  #define MEDIA_PAD_FL_SOURCE		(1 << 1)
->> +#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
->>
->>  struct media_pad_desc {
->>  	__u32 entity;		/* entity ID */
 
+regards
+Antti
 
 -- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
+http://palosaari.fi/
