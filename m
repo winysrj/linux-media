@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:13479 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782Ab3JNOHy (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:57181 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752883Ab3J3JOy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Oct 2013 10:07:54 -0400
-Date: Mon, 14 Oct 2013 11:07:48 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Tom Gundersen <teg@jklm.no>
-Cc: "Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	David =?UTF-8?B?SMOk?= =?UTF-8?B?cmRlbWFu?= <david@hardeman.nu>,
-	Sean Young <sean@mess.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: WPC8769L (WEC1020) support in winbond-cir?
-Message-id: <20131014110748.366ea45e@samsung.com>
-In-reply-to: <CAG-2HqX-TO7h8zJ6F01r2LfRVjQtb0pK_1wKGsYVKzB0zC7TQA@mail.gmail.com>
-References: <CAG-2HqX-TO7h8zJ6F01r2LfRVjQtb0pK_1wKGsYVKzB0zC7TQA@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 30 Oct 2013 05:14:54 -0400
+Date: Wed, 30 Oct 2013 10:14:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] V4L2, soc-camera, em28xx: 3.13 fixes and improvements
+In-Reply-To: <Pine.LNX.4.64.1310282037500.31909@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1310301012160.18982@axis700.grange>
+References: <Pine.LNX.4.64.1310282037500.31909@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tom,
+Hi Mauro
 
-Em Mon, 14 Oct 2013 15:16:20 +0200
-Tom Gundersen <teg@jklm.no> escreveu:
+I'd like to add 2 more patches from other authors to my pull request for 
+3.13. Shall I add them to this branch before you have pulled it (I could 
+also rebase it onto the current -next while at it), or shall I rather wait 
+for you to pull and then issue a second pull request?
 
-> Hi David and Juan,
+Thanks
+Guennadi
+
+On Mon, 28 Oct 2013, Guennadi Liakhovetski wrote:
+
+> Hi Mauro
 > 
-> I'm going through the various out-of-tree LIRC drivers to see if we
-> can stop shipping them in Arch Linux [0]. So far it appears we can
-> drop all except for lirc_wpc8769l [1] (PnP id WEC1020).
-
-Please copy the Linux Media ML to all Remote Controller drivers. There's
-where we're discussing those drivers. No need to c/c linux-input.
-
-Yeah, both lirc_atiusb and lirc_i2c were now obsoleted by upstream
-non-staging drivers. I suggest to just drop it from Arch Linux.
-
-Not sure about lirc_wpc8769l. David/Sean/Juan can have a better view.
-
-Btw, there are also a number of lirc staging drivers under
-drivers/staging/media/lirc/. We'd love some help trying to convert them
-to use the rc core, moving them out of staging.
-
+> As agreed a couple of days ago, here go several general V4L2 patches, 
+> posted at vatious times with no objections, and patches, aiming at fixing 
+> the current em28xx+ov2640 breakage. After you pull them I'll have to 
+> remember to change their status in patchwork too...
 > 
-> I noticed the comment in windownd-cir [2]:
+> The following changes since commit 9e11bce4d7065aa826a953936149e182e018a3df:
 > 
->  *  Currently supports the Winbond WPCD376i chip (PNP id WEC1022), but
->  *  could probably support others (Winbond WEC102X, NatSemi, etc)
->  *  with minor modifications.
+>   Add linux-next specific files for 20131025 (2013-10-25 17:07:05 +0200)
 > 
-> What are your thoughts on adding support for WEC1020 upstream? Is
-> anyone interested in doing this work (I sadly don't have the correct
-> device, so can't really do it myself)?
+> are available in the git repository at:
+>   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.13-1
+> 
+> Guennadi Liakhovetski (9):
+>       V4L2: (cosmetic) remove redundant use of unlikely()
+>       imx074: fix error handling for failed async subdevice registration
+>       V4L2: add a common V4L2 subdevice platform data type
+>       soc-camera: switch to using the new struct v4l2_subdev_platform_data
+>       V4L2: add v4l2-clock helpers to register and unregister a fixed-rate clock
+>       V4L2: add a v4l2-clk helper macro to produce an I2C device ID
+>       V4L2: em28xx: register a V4L2 clock source
+>       V4L2: soc-camera: work around unbalanced calls to .s_power()
+>       V4L2: em28xx: tell the ov2640 driver to balance clock enabling internally
+> 
+>  drivers/media/i2c/soc_camera/imx074.c          |    4 ++-
+>  drivers/media/platform/soc_camera/soc_camera.c |   46 ++++++++++++++---------
+>  drivers/media/usb/em28xx/em28xx-camera.c       |   42 ++++++++++++++++-----
+>  drivers/media/usb/em28xx/em28xx-cards.c        |    3 ++
+>  drivers/media/usb/em28xx/em28xx.h              |    1 +
+>  drivers/media/v4l2-core/v4l2-clk.c             |   39 ++++++++++++++++++++
+>  include/media/soc_camera.h                     |   27 +++++++++++---
+>  include/media/v4l2-clk.h                       |   17 +++++++++
+>  include/media/v4l2-subdev.h                    |   17 ++++++++-
+>  9 files changed, 159 insertions(+), 37 deletions(-)
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-> 
-> Cheers,
-> 
-> Tom
-> 
-> [0]: <https://mailman.archlinux.org/pipermail/arch-dev-public/2013-October/025541.html>
-> [1]: <http://sourceforge.net/p/lirc/git/ci/master/tree/drivers/lirc_wpc8769l/>
-> [2]: <https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/rc/winbond-cir.c#n5>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-Regards,
-Mauro
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
