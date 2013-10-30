@@ -1,35 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1907 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066Ab3JIGim (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Oct 2013 02:38:42 -0400
-Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r996cdNE020087
-	for <linux-media@vger.kernel.org>; Wed, 9 Oct 2013 08:38:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C624E2A04DF
-	for <linux-media@vger.kernel.org>; Wed,  9 Oct 2013 08:38:32 +0200 (CEST)
-Message-ID: <5254F9E8.4040001@xs4all.nl>
-Date: Wed, 09 Oct 2013 08:38:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:47808 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498Ab3J3DJr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Oct 2013 23:09:47 -0400
+Received: by mail-bk0-f49.google.com with SMTP id w14so290157bkz.8
+        for <linux-media@vger.kernel.org>; Tue, 29 Oct 2013 20:09:44 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Google Summer of Code 2014 & linux-media?
+Date: Wed, 30 Oct 2013 11:09:44 +0800
+Message-ID: <CAPgLHd8N8H+Otga8Ay_DyTdK258v2K09xkn-78RBpjsDh31ieg@mail.gmail.com>
+Subject: [PATCH -next] [media] v4l: ti-vpe: use module_platform_driver to
+ simplify the code
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: m.chehab@samsung.com, grant.likely@linaro.org,
+	rob.herring@calxeda.com, archit@ti.com, hans.verkuil@cisco.com,
+	k.debski@samsung.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-GSoC 2014 was announced (http://lwn.net/Articles/569811/), and I was wondering
-whether we as linux-media community could come up with a good proposal. If we
-want to participate, then we probably need to have something ready by January.
+module_platform_driver() makes the code simpler by eliminating
+boilerplate code.
 
-Suggestions are welcome.
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-Regards,
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 4e58069..89658a3 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2081,18 +2081,7 @@ static struct platform_driver vpe_pdrv = {
+ 	},
+ };
+ 
+-static void __exit vpe_exit(void)
+-{
+-	platform_driver_unregister(&vpe_pdrv);
+-}
+-
+-static int __init vpe_init(void)
+-{
+-	return platform_driver_register(&vpe_pdrv);
+-}
+-
+-module_init(vpe_init);
+-module_exit(vpe_exit);
++module_platform_driver(vpe_pdrv);
+ 
+ MODULE_DESCRIPTION("TI VPE driver");
+ MODULE_AUTHOR("Dale Farnsworth, <dale@farnsworth.org>");
 
-	Hans
