@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:40054 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273Ab3JMKQf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Oct 2013 06:16:35 -0400
-Date: Sun, 13 Oct 2013 12:16:30 +0200 (CEST)
-From: Roel Kluin <roel.kluin@gmail.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	linux-kernel@vger.kernel.org
-Subject: exynos4: index out of bounds if no pixelcode found
-Message-ID: <alpine.DEB.2.02.1310131204550.11060@Z>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:58438 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752605Ab3J3FlS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 01:41:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/4] rtl2832: add new tuner R828D
+Date: Wed, 30 Oct 2013 07:40:34 +0200
+Message-Id: <1383111636-19743-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1383111636-19743-1-git-send-email-crope@iki.fi>
+References: <1383111636-19743-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case no valid pixelcode is found, an i of -1 after the loop is out of 
-bounds for the array.
+Use R820T config for R828D too as those are about same tuner.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite-reg.c 
-b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-index 72a343e3b..d0dc7ee 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-@@ -133,7 +133,7 @@ void flite_hw_set_source_format(struct fimc_lite *dev, 
-struct flite_frame *f)
- 	int i = ARRAY_SIZE(src_pixfmt_map);
- 	u32 cfg;
+ drivers/media/dvb-frontends/rtl2832.c | 1 +
+ drivers/media/dvb-frontends/rtl2832.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index facb848..a95dfe0 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -489,6 +489,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 		init = rtl2832_tuner_init_e4000;
+ 		break;
+ 	case RTL2832_TUNER_R820T:
++	case RTL2832_TUNER_R828D:
+ 		len = ARRAY_SIZE(rtl2832_tuner_init_r820t);
+ 		init = rtl2832_tuner_init_r820t;
+ 		break;
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 91b2dcf..2cfbb6a 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -53,6 +53,7 @@ struct rtl2832_config {
+ #define RTL2832_TUNER_E4000     0x27
+ #define RTL2832_TUNER_FC0013    0x29
+ #define RTL2832_TUNER_R820T	0x2a
++#define RTL2832_TUNER_R828D	0x2b
+ 	u8 tuner;
+ };
  
--	while (--i >= 0) {
-+	while (--i) {
- 		if (src_pixfmt_map[i][0] == pixelcode)
- 			break;
- 	}
-@@ -240,7 +240,7 @@ static void flite_hw_set_out_order(struct fimc_lite 
-*dev, struct flite_frame *f)
- 	u32 cfg = readl(dev->regs + FLITE_REG_CIODMAFMT);
- 	int i = ARRAY_SIZE(pixcode);
- 
--	while (--i >= 0)
-+	while (--i)
- 		if (pixcode[i][0] == f->fmt->mbus_code)
- 			break;
- 	cfg &= ~FLITE_REG_CIODMAFMT_YCBCR_ORDER_MASK;
+-- 
+1.8.3.1
 
