@@ -1,139 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37883 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759389Ab3JPQ2q (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:60639 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086Ab3J3Ann (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 12:28:46 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>
-CC: <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
-	<kishon@ti.com>
-Subject: [PATCH 2/7] exynos4-is: Use the generic MIPI CSIS PHY driver
-Date: Wed, 16 Oct 2013 21:58:11 +0530
-Message-ID: <1381940896-9355-3-git-send-email-kishon@ti.com>
-In-Reply-To: <1381940896-9355-1-git-send-email-kishon@ti.com>
-References: <1381940896-9355-1-git-send-email-kishon@ti.com>
+	Tue, 29 Oct 2013 20:43:43 -0400
+Message-ID: <5270563A.5080605@gmail.com>
+Date: Wed, 30 Oct 2013 01:43:38 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Donghwa Lee <dh09.lee@samsung.com>
+CC: Tomasz Figa <t.figa@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Olof Johansson <olof@lixom.net>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	inki.dae@samsung.com
+Subject: Re: [PATCH 3/7] video: exynos_mipi_dsim: Use the generic PHY driver
+References: <1381940896-9355-1-git-send-email-kishon@ti.com> <526997BC.8070602@gmail.com> <526E0038.7050805@samsung.com> <23467785.uRr31aFEN8@amdc1227> <526F7412.60004@samsung.com>
+In-Reply-To: <526F7412.60004@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+On 10/29/2013 09:38 AM, Donghwa Lee wrote:
+> On Tue, OCT 28, 2013 21:24, Tomasz Figa wrote:
+>> On Monday 28 of October 2013 15:12:08 Donghwa Lee wrote:
+[...]
+>> First of all, the exynos_mipi_dsim driver has currently no users in
+>> mainline kernel, so it is essentially dead code. In addition, on
+>> a platform that is the primary candidate for using it, which is Exynos,
+>> there is no way to use it, due to no DT support.
+>
+> As I mentioned above, patches are submitted sometimes and I will update
+> this driver as soon as possible to support DT.
+>
+>> As for the driver itself, it is not really a great example of good code.
+>> It contains a hacks, like calling msleep() without any clear reason and
+>> also many coding style issues. I'd prefer to replace it with the new
+>> exynos-dsi driver rewritten completely in SRPOL, when CDF is finished.
+>
+> Yes, I know this drivers had been changed about only minor issues and
+> it is not really good code style. And CDF is more good and light.
+> But discussion for CDF is still remaining a kind of requests. If it is merged
+> into linux kernel and many users use it, existing MIPI DSI drivers will be
+> replaced with the new drivers naturally, isn't it?
 
-Use the generic PHY API instead of the platform callback
-to control the MIPI CSIS DPHY.
+Not necessarily. Our goal should be to have fairly stable DT binding at the
+SoC side so all available panels can possibly be used with any SoC without
+problems.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/media/platform/exynos4-is/Kconfig     |    2 +-
- drivers/media/platform/exynos4-is/mipi-csis.c |   13 ++++++++++---
- include/linux/platform_data/mipi-csis.h       |    9 ---------
- 3 files changed, 11 insertions(+), 13 deletions(-)
+Then please refrain for a while from pushing entirely vendor specific DT
+bindings upstream. Let's focus instead on an as much as possible common
+framework and the DT bindings. Whether the CDF will be part of DRM or not
+the DT bindings are supposed to be generic, so they work with whatever
+driver architecture.
 
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 53ad0f0..d2d3b4b 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -29,7 +29,7 @@ config VIDEO_S5P_FIMC
- config VIDEO_S5P_MIPI_CSIS
- 	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
- 	depends on REGULATOR
--	select S5P_SETUP_MIPIPHY
-+	select GENERIC_PHY
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
- 	  receiver (MIPI-CSIS) devices.
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index 0914230..9fc2af6 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -20,6 +20,7 @@
- #include <linux/memory.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/phy/phy.h>
- #include <linux/platform_data/mipi-csis.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -180,6 +181,7 @@ struct csis_drvdata {
-  * @sd: v4l2_subdev associated with CSIS device instance
-  * @index: the hardware instance index
-  * @pdev: CSIS platform device
-+ * @phy: pointer to the CSIS generic PHY
-  * @regs: mmaped I/O registers memory
-  * @supplies: CSIS regulator supplies
-  * @clock: CSIS clocks
-@@ -203,6 +205,7 @@ struct csis_state {
- 	struct v4l2_subdev sd;
- 	u8 index;
- 	struct platform_device *pdev;
-+	struct phy *phy;
- 	void __iomem *regs;
- 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
- 	struct clk *clock[NUM_CSIS_CLOCKS];
-@@ -779,8 +782,8 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 					"samsung,csis-wclk");
- 
- 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
--
- 	of_node_put(node);
-+
- 	return 0;
- }
- #else
-@@ -829,6 +832,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	state->phy = devm_phy_get(dev, "csis");
-+	if (IS_ERR(state->phy))
-+		return PTR_ERR(state->phy);
-+
- 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	state->regs = devm_ioremap_resource(dev, mem_res);
- 	if (IS_ERR(state->regs))
-@@ -922,7 +929,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
- 	mutex_lock(&state->lock);
- 	if (state->flags & ST_POWERED) {
- 		s5pcsis_stop_stream(state);
--		ret = s5p_csis_phy_enable(state->index, false);
-+		ret = phy_power_off(state->phy);
- 		if (ret)
- 			goto unlock;
- 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
-@@ -958,7 +965,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
- 					    state->supplies);
- 		if (ret)
- 			goto unlock;
--		ret = s5p_csis_phy_enable(state->index, true);
-+		ret = phy_power_on(state->phy);
- 		if (!ret) {
- 			state->flags |= ST_POWERED;
- 		} else {
-diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
-index bf34e17..c2fd902 100644
---- a/include/linux/platform_data/mipi-csis.h
-+++ b/include/linux/platform_data/mipi-csis.h
-@@ -25,13 +25,4 @@ struct s5p_platform_mipi_csis {
- 	u8 hs_settle;
- };
- 
--/**
-- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
-- * @id:     MIPI-CSIS harware instance index (0...1)
-- * @on:     true to enable D-PHY and deassert its reset
-- *          false to disable D-PHY
-- * @return: 0 on success, or negative error code on failure
-- */
--int s5p_csis_phy_enable(int id, bool on);
--
- #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
--- 
-1.7.10.4
+I guess you could try to come up with an unstable DT binding for the
+MIPI DSIM and display panels it is used with, but at this stage it seems
+just a waste of time.
+If there were no SoC specific panel drivers in the kernel there would be
+now much less trouble with DT support.
 
+--
+Thanks,
+Sylwester
