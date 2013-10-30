@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40299 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752956Ab3JRVJA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Oct 2013 17:09:00 -0400
-Received: from avalon.localnet (128.142-246-81.adsl-dyn.isp.belgacom.be [81.246.142.128])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1764935A49
-	for <linux-media@vger.kernel.org>; Fri, 18 Oct 2013 23:08:25 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.12] VSP1 fixes
-Date: Fri, 18 Oct 2013 23:09:21 +0200
-Message-ID: <2655285.sM6opACD3k@avalon>
+Received: from sauhun.de ([89.238.76.85]:48888 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751852Ab3J3Pp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 11:45:58 -0400
+Date: Wed, 30 Oct 2013 16:45:54 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] rtl2830: add parent for I2C adapter
+Message-ID: <20131030154553.GC3663@katana>
+References: <1382386335-3879-1-git-send-email-crope@iki.fi>
+ <52658CA7.5080104@iki.fi>
+ <20131030151620.GB3663@katana>
+ <52712787.3010408@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qtZFehHsKgwS5rPz"
+Content-Disposition: inline
+In-Reply-To: <52712787.3010408@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Sorry for sending this so late in the -rc cycle. These three patches fix 
-issues with the VSP1 driver, including two compile issues that would break 
-allyesconfig and other compilation tests on v3.12.
+--qtZFehHsKgwS5rPz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The following changes since commit 9c9cff55bf4f13dc2fffb5abe466f13e4ac155f9:
 
-  [media] saa7134: Fix crash when device is closed before streamoff 
-(2013-10-14 06:37:00 -0300)
+> >>commit 3923172b3d700486c1ca24df9c4c5405a83e2309
+> >>i2c: reduce parent checking to a NOOP in non-I2C_MUX case
+> >
+> >Did you try reverting it? I am not sure this is the one.
+>=20
+> Nope, not to mentio bisect. I have done bisect few times and I am
+> not going to waste whole day of compiling and booting new kernels.
 
-are available in the git repository at:
+Well, I intentionally asked for revert not bisect. Removing the #ifdef
+can easily be done by hand if needed and will just need one recompile to
+make sure.
 
-  git://linuxtv.org/pinchartl/media.git v4l2/fixes
+> Crash disappeared whit that little patch.
 
-for you to fetch changes up to b3e6a3ad4914d575a4026314c9fece0e47d4499e:
+Yes, still I'd like to understand where the BUG came from. There are
+probably other driver in need of a fix, too.
 
-  v4l: VIDEO_RENESAS_VSP1 should depend on HAS_DMA (2013-10-15 17:37:46 +0200)
+> Anyway, I am going to ask Mauro to merge that I2C parent patch and
+> maybe try to sent it stable too as it is likely a bit too late for
+> 3.12 RC.
 
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-      v4l: VIDEO_RENESAS_VSP1 should depend on HAS_DMA
+If it fixes a crash, I wouldn't consider it too late. Yet only given we
+have understood this is a proper fix.
 
-Laurent Pinchart (1):
-      v4l: vsp1: Replace ioread32/iowrite32 I/O accessors with readl/writel
+Was there a change in using CONFIG_I2C_COMPAT? Is it currently used?
 
-Wei Yongjun (1):
-      v4l: vsp1: Fix error return code in vsp1_video_init()
-
- drivers/media/platform/Kconfig           | 2 +-
- drivers/media/platform/vsp1/vsp1.h       | 4 ++--
- drivers/media/platform/vsp1/vsp1_video.c | 4 +++-
- 3 files changed, 6 insertions(+), 4 deletions(-)
-
--- 
 Regards,
 
-Laurent Pinchart
+   Wolfram
 
+
+--qtZFehHsKgwS5rPz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJScSmxAAoJEBQN5MwUoCm2j+8P/idsNExbsY9jibVA2f3uqEqB
+iBsDgeXiskXhowxHw2kpJAy7AZC9sozNqugQXmEMctkWeqfW6QhrfTafqnHibhFI
+dms1ZMnlChhwZ0pcGBROOsp4S23sUwGGGVhYakyudSM0Je9zAkrH/5OaYodX4TL+
+1IcpIZt4i8/D/19Gmeq5kLIWD8Vvkxs48U+YBzSnLOnIEemPhmP6DWdVu5rsK8RX
+Dtiij2Y69hN9+0GgTmi+9NR0puu/JpqqzthJJq2ivMa0LmxdkpPBZpugdaPPfWRx
+ip9b8vBbJD/SM52wXx+j+9En94FZOSvA0AD+dU5OtXWi30HGoPLFiyUMeS2px9JS
+6BzkZT83QojpZyhILTDHw7cwON56RDo/6YMdZ+m3wa2D92JETnLVm4ylo2MabQWM
+HqvlBkb3RRRAgSv1VY55Dw/bhGAF8pWh+5fqqrajRaJWmm+Oa9RSIBSLXZGQKQ1S
+i2K3NRr+fIJUl+NQpKRa6Cb166Z1A46waU6teZZJ0DAvMQ3mTJpFvXnxRJNnexdy
+anXsGgoHzn9QxTwCD+dpHLvcqH2D9VJY536SN6SQa4Mm1rIW2TV8LEGOD+qNC1tF
+W6E9d2Ba7edxVRBLvWGxjQjZcYPqa408lukWD6+qpncdefLIM7UTgiyS76vcHI1m
+yEQiBHZp8ZU7n1FetsH6
+=/ffE
+-----END PGP SIGNATURE-----
+
+--qtZFehHsKgwS5rPz--
