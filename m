@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58393 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:39651 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755024Ab3JLBUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Oct 2013 21:20:16 -0400
+	id S1752683Ab3J3FlS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 01:41:18 -0400
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/3] em28xx: MaxMedia UB425-TC offer firmware for demodulator
-Date: Sat, 12 Oct 2013 04:19:59 +0300
-Message-Id: <1381540801-23645-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 4/4] rtl28xxu: add 15f4:0131 Astrometa DVB-T2
+Date: Wed, 30 Oct 2013 07:40:36 +0200
+Message-Id: <1383111636-19743-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1383111636-19743-1-git-send-email-crope@iki.fi>
+References: <1383111636-19743-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Downloading new firmware for DRX-K demodulator is not obligatory but
-usually it offers important bug fixes compared to default firmware
-burned into chip rom. DRX-K demod driver will continue even without
-the firmware, but in that case it will print warning to system log
-to tip user he should install firmware.
+Components are RTL2832P + R828D + MN88472.
+
+Currently support only DVB-T as there is no driver for MN88472 demod.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/em28xx/em28xx-dvb.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index bb1e8dc..f8a2212 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -384,6 +384,8 @@ static struct drxk_config maxmedia_ub425_tc_drxk = {
- 	.adr = 0x29,
- 	.single_master = 1,
- 	.no_i2c_bridge = 1,
-+	.microcode_name = "dvb-demod-drxk-01.fw",
-+	.chunk_size = 62,
- 	.load_firmware_sync = true,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 8c600b7..ecca036 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1427,6 +1427,9 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Leadtek WinFast DTV Dongle mini", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_CPYTO_REDI_PC50A,
+ 		&rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
++
++	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
++		&rtl2832u_props, "Astrometa DVB-T2", NULL) },
+ 	{ }
  };
- 
-@@ -1234,11 +1236,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 				goto out_free;
- 			}
- 		}
--
--		/* TODO: we need drx-3913k firmware in order to support DVB-T */
--		em28xx_info("MaxMedia UB425-TC/Delock 61959: only DVB-C " \
--				"supported by that driver version\n");
--
- 		break;
- 	case EM2884_BOARD_PCTV_510E:
- 	case EM2884_BOARD_PCTV_520E:
+ MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
 -- 
 1.8.3.1
 
