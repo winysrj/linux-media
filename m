@@ -1,318 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m05.mx.aol.com ([64.12.143.79]:35189 "EHLO
-	omr-m05.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772Ab3JTSLb (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2286 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab3J3DvY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Oct 2013 14:11:31 -0400
-Message-ID: <52641CC7.2000302@netscape.net>
-Date: Sun, 20 Oct 2013 15:11:19 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Nicol=E1s_Sugino?= <nsugino@3way.com.ar>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Add radio support for MyGica x8507
-References: <CAFjMtCmv+ZvbsuQkFMZz6kt5btZegSArZtWYFF5gKjn1xXPnJQ@mail.gmail.com>
-In-Reply-To: <CAFjMtCmv+ZvbsuQkFMZz6kt5btZegSArZtWYFF5gKjn1xXPnJQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Tue, 29 Oct 2013 23:51:24 -0400
+Received: from tschai.lan (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r9U3pIkh093853
+	for <linux-media@vger.kernel.org>; Wed, 30 Oct 2013 04:51:20 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 095832A04FD
+	for <linux-media@vger.kernel.org>; Wed, 30 Oct 2013 04:51:17 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131030035117.095832A04FD@tschai.lan>
+Date: Wed, 30 Oct 2013 04:51:17 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolás
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-El 18/10/13 17:47, Nicolás Sugino escribió:
->   From: Sugino Nicolas
->   Date: Fri, 18 Oct 2013 17:37:00 -0300
->   Subject: [PATCH] cx23885: Add radio support for MyGica x8507
->
-> This patch allows radio capture for the cx23885 driver with the MyGica
-> x8507 card
->
-> diff -rcNP a/drivers/media/pci/cx23885/cx23885-cards.c
-> b/drivers/media/pci/cx23885/cx23885-cards.c
-> *** a/drivers/media/pci/cx23885/cx23885-cards.c 2013-10-18
-> 17:17:43.257083061 -0300
-> --- b/drivers/media/pci/cx23885/cx23885-cards.c 2013-10-18
-> 16:10:04.124085546 -0300
-> ***************
-> *** 531,536 ****
-> --- 541,548 ----
->    .name = "Mygica X8502/X8507 ISDB-T",
->    .tuner_type = TUNER_XC5000,
->    .tuner_addr = 0x61,
-> + .radio_type = TUNER_XC5000,
-> + .radio_addr = 0x61,
->    .tuner_bus = 1,
->    .porta = CX23885_ANALOG_VIDEO,
->    .portb = CX23885_MPEG_DVB,
-> ***************
-> *** 559,564 ****
-> --- 571,580 ----
->    CX25840_VIN7_CH3,
->    .amux   = CX25840_AUDIO7,
->    },
-> + {
-> + .type   = CX23885_RADIO,
-> + .amux= CX25840_AUDIO8,
-> + },
->    },
->    },
->    [CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
-> diff -rcNP a/drivers/media/pci/cx23885/cx23885-dvb.c
-> b/drivers/media/pci/cx23885/cx23885-dvb.c
-> *** a/drivers/media/pci/cx23885/cx23885-dvb.c 2013-10-18
-> 17:17:43.281083064 -0300
-> --- b/drivers/media/pci/cx23885/cx23885-dvb.c 2013-10-18
-> 16:01:10.171036171 -0300
-> ***************
-> *** 500,505 ****
-> --- 505,511 ----
->    static struct xc5000_config mygica_x8507_xc5000_config = {
->    .i2c_address = 0x61,
->    .if_khz = 4000,
-> + .radio_input = XC5000_RADIO_FM1,
->    };
->
->    static struct stv090x_config prof_8000_stv090x_config = {
-> diff -rcNP a/drivers/media/pci/cx23885/cx23885-video.c
-> b/drivers/media/pci/cx23885/cx23885-video.c
-> *** a/drivers/media/pci/cx23885/cx23885-video.c 2013-10-18
-> 17:17:43.288083064 -0300
-> --- b/drivers/media/pci/cx23885/cx23885-video.c 2013-10-18
-> 17:01:53.787051023 -0300
-> ***************
-> *** 904,909 ****
-> --- 904,916 ----
->    sizeof(struct cx23885_buffer),
->    fh, NULL);
->
-> + if(dev->board == CX23885_BOARD_MYGICA_X8507) {
-> + if (fh->radio) {
-> + dprintk(1,"video_open: setting radio device\n");
-> + call_all(dev, tuner, s_radio);
-> + }
-> + }
->
->    dprintk(1, "post videobuf_queue_init()\n");
->
-> ***************
-> *** 1634,1639 ****
-> --- 1641,1746 ----
->    }
->
->
-> + static int radio_querycap (struct file *file, void  *priv,
-> + struct v4l2_capability *cap)
-> + {
-> + struct cx23885_dev *dev  = ((struct cx23885_fh *)priv)->dev;
-> +
-> + strcpy(cap->driver, "cx23885");
-> + strlcpy(cap->card, cx23885_boards[dev->board].name, sizeof(cap->card));
-> + sprintf(cap->bus_info,"PCIe:%s", pci_name(dev->pci));
-> + cap->capabilities = V4L2_CAP_TUNER;
-> + return 0;
-> + }
-> +
-> + static int radio_g_tuner (struct file *file, void *priv,
-> + struct v4l2_tuner *t)
-> + {
-> + struct cx23885_dev *dev  = ((struct cx23885_fh *)priv)->dev;
-> +
-> + if (unlikely(t->index > 0))
-> + return -EINVAL;
-> +
-> + strcpy(t->name, "Radio");
-> + t->type = V4L2_TUNER_RADIO;
-> +
-> + call_all(dev, tuner, g_tuner, t);
-> + return 0;
-> + }
-> +
-> + static int radio_enum_input (struct file *file, void *priv,
-> + struct v4l2_input *i)
-> + {
-> + if (i->index != 0)
-> + return -EINVAL;
-> + strcpy(i->name,"Radio");
-> + i->type = V4L2_INPUT_TYPE_TUNER;
-> +
-> + return 0;
-> + }
-> +
-> + static int radio_g_audio (struct file *file, void *priv, struct v4l2_audio *a)
-> + {
-> + if (unlikely(a->index))
-> + return -EINVAL;
-> +
-> + strcpy(a->name,"Radio");
-> + return 0;
-> + }
-> +
-> + /* FIXME: Should add a standard for radio */
-> + static int radio_s_tuner (struct file *file, void *priv,
-> + struct v4l2_tuner *t)
-> + {
-> + struct cx23885_dev *dev  = ((struct cx23885_fh *)priv)->dev;
-> +
-> + if (0 != t->index)
-> + return -EINVAL;
-> +
-> + call_all(dev, tuner, s_tuner, t);
-> +
-> + return 0;
-> + }
-> +
-> + static int radio_s_audio (struct file *file, void *fh,
-> +  struct v4l2_audio *a)
-> + {
-> + return 0;
-> + }
-> +
-> + static int radio_s_input (struct file *file, void *fh, unsigned int i)
-> + {
-> + return 0;
-> + }
-> +
-> + static int radio_queryctrl (struct file *file, void *priv,
-> +    struct v4l2_queryctrl *c)
-> + {
-> + int i;
-> +
-> + if (c->id < V4L2_CID_BASE ||
-> + c->id >= V4L2_CID_LASTP1)
-> + return -EINVAL;
-> + if (c->id == V4L2_CID_AUDIO_MUTE ||
-> + c->id == V4L2_CID_AUDIO_VOLUME ||
-> + c->id == V4L2_CID_AUDIO_BALANCE) {
-> + for (i = 0; i < CX23885_CTLS; i++) {
-> + if (cx23885_ctls[i].v.id == c->id)
-> + break;
-> + }
-> + if (i == CX23885_CTLS) {
-> + *c = no_ctl;
-> + return 0;
-> + }
-> + *c = cx23885_ctls[i].v;
-> + } else
-> + *c = no_ctl;
-> + return 0;
-> + }
-> +
-> + /* ----------------------------------------------------------- */
->
->    static void cx23885_vid_timeout(unsigned long data)
->    {
-> ***************
-> *** 1774,1779 ****
-> --- 1881,1906 ----
->    .tvnorms              = CX23885_NORMS,
->    };
->
-> + static const struct v4l2_ioctl_ops radio_ioctl_ops = {
-> + .vidioc_querycap      = radio_querycap,
-> + .vidioc_g_tuner       = radio_g_tuner,
-> + .vidioc_enum_input    = radio_enum_input,
-> + .vidioc_g_audio       = radio_g_audio,
-> + .vidioc_s_tuner       = radio_s_tuner,
-> + .vidioc_s_audio       = radio_s_audio,
-> + .vidioc_s_input       = radio_s_input,
-> + .vidioc_queryctrl     = radio_queryctrl,
-> + .vidioc_g_ctrl        = vidioc_g_ctrl,
-> + .vidioc_s_ctrl        = vidioc_s_ctrl,
-> + .vidioc_g_frequency   = vidioc_g_frequency,
-> + .vidioc_s_frequency   = vidioc_s_frequency,
-> + #ifdef CONFIG_VIDEO_ADV_DEBUG
-> + .vidioc_g_register    = cx23885_g_register,
-> + .vidioc_s_register    = cx23885_s_register,
-> + #endif
-> + };
-> +
->    static const struct v4l2_file_operations radio_fops = {
->    .owner         = THIS_MODULE,
->    .open          = video_open,
-> ***************
-> *** 1781,1792 ****
-> --- 1908,1932 ----
->    .ioctl         = video_ioctl2,
->    };
->
-> + static struct video_device cx23885_radio_template = {
-> + .name                 = "cx23885-radio",
-> + .fops                 = &radio_fops,
-> + .ioctl_ops            = &radio_ioctl_ops,
-> + };
-> +
->
->    void cx23885_video_unregister(struct cx23885_dev *dev)
->    {
->    dprintk(1, "%s()\n", __func__);
->    cx23885_irq_remove(dev, 0x01);
->
-> + if (dev->radio_dev) {
-> + if (video_is_registered(dev->radio_dev))
-> + video_unregister_device(dev->radio_dev);
-> + else
-> + video_device_release(dev->radio_dev);
-> + dev->radio_dev = NULL;
-> + }
->    if (dev->vbi_dev) {
->    if (video_is_registered(dev->vbi_dev))
->    video_unregister_device(dev->vbi_dev);
-> ***************
-> *** 1858,1864 ****
->    struct tuner_setup tun_setup;
->
->    memset(&tun_setup, 0, sizeof(tun_setup));
-> ! tun_setup.mode_mask = T_ANALOG_TV;
->    tun_setup.type = dev->tuner_type;
->    tun_setup.addr = v4l2_i2c_subdev_addr(sd);
->    tun_setup.tuner_callback = cx23885_tuner_callback;
-> --- 1998,2004 ----
->    struct tuner_setup tun_setup;
->
->    memset(&tun_setup, 0, sizeof(tun_setup));
-> ! tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
->    tun_setup.type = dev->tuner_type;
->    tun_setup.addr = v4l2_i2c_subdev_addr(sd);
->    tun_setup.tuner_callback = cx23885_tuner_callback;
-> ***************
-> *** 1917,1922 ****
-> --- 2057,2075 ----
->    printk(KERN_INFO "%s: registered device %s\n",
->          dev->name, video_device_node_name(dev->vbi_dev));
->
-> + dev->radio_dev = cx23885_vdev_init(dev, dev->pci,
-> + &cx23885_radio_template, "radio");
-> + err = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
-> +    radio_nr[dev->nr]);
-> + if (err < 0) {
-> + printk(KERN_INFO "%s: can't register radio device\n",
-> + dev->name);
-> + goto fail_unreg;
-> + }
-> + printk(KERN_INFO "%s: registered device %s\n",
-> +       dev->name, video_device_node_name(dev->radio_dev));
-> +
-> +
->    /* Register ALSA audio device */
->    dev->audio_dev = cx23885_audio_register(dev);
->
->
-> Regards,
->
-> Nicolas
->
+Results of the daily build of media_tree:
 
-The patch has sent broken spaces, so that it becomes difficult to 
-understand.
+date:		Wed Oct 30 04:00:36 CET 2013
+git branch:	for-v3.13c
+git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-4.slh.2-amd64
 
-For the lines that I have seen, these lines of code are the same as 
-Miroslav Slugen wrote in "CX23885: Add basic support analog Radio" and 
-the answer that I've done (https://linuxtv.org/patch/20329 /).
-What are the differences between the patches sent by Miroslav Slugen and 
-me? Does it solve the problems I have raised for this board in particular?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Regards
+Detailed results are available here:
 
-Alfredo
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
