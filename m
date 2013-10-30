@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34592 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685Ab3JEMAr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Oct 2013 08:00:47 -0400
-Message-ID: <1380974541.1905.12.camel@palomino.walls.org>
-Subject: Re: [PATCH 19/26] ivtv: Convert driver to use
- get_user_pages_unlocked()
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jan Kara <jack@suse.cz>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
-	linux-media@vger.kernel.org
-Date: Sat, 05 Oct 2013 08:02:21 -0400
-In-Reply-To: <1380724087-13927-20-git-send-email-jack@suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
-	 <1380724087-13927-20-git-send-email-jack@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:33339 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752010Ab3J3FlR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 01:41:17 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/4] r820t: add support for R828D
+Date: Wed, 30 Oct 2013 07:40:33 +0200
+Message-Id: <1383111636-19743-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jan:
+Small changes in order to support tuner version R828D @ 16 MHz clock.
 
-<rant>
-This patch alone does not have suffcient information for me to evaluate
-it.  get_user_pages_unlocked() is added in another patch which I did not
-receive, and which I cannot find in any list archives.
+There was 'vco_fine_tune' check, which seems to adjust synthesizer
+output divider (mixer dix / LO div / Rout) by one. R828D seems to
+return vco_fine_tune=1 every time and that condition causes tuning
+fail as output divider was increased by one.
+Resolve problem by skipping whole condition in case of R828D tuner.
+Just to mention, other tuner, R820T, seems to return 2 here.
 
-I wasted quite a bit of time looking for this additional patch:
+Synthesizer maximum frequency check was hard coded to check synthesizer N
+and thus worked correctly only for clock frequencies around 30 MHz.
+As whole test is quite useless in any case, I removed it totally.
 
-https://git.kernel.org/cgit/linux/kernel/git/jack/linux-fs.git/commit/?h=get_user_pages&id=624fc1bfb70fb65d32d31fbd16427ad9c234653e
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/r820t.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-</rant>
-
-If I found the correct patch for adding get_user_pages_unlocked(), then
-the patch below looks fine.
-
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-Regards,
-Andy
-
-On Wed, 2013-10-02 at 16:28 +0200, Jan Kara wrote:
-> CC: Andy Walls <awalls@md.metrocast.net>
-> CC: linux-media@vger.kernel.org
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->  drivers/media/pci/ivtv/ivtv-udma.c |  6 ++----
->  drivers/media/pci/ivtv/ivtv-yuv.c  | 12 ++++++------
->  2 files changed, 8 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
-> index 7338cb2d0a38..6012e5049076 100644
-> --- a/drivers/media/pci/ivtv/ivtv-udma.c
-> +++ b/drivers/media/pci/ivtv/ivtv-udma.c
-> @@ -124,10 +124,8 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
->  	}
->  
->  	/* Get user pages for DMA Xfer */
-> -	down_read(&current->mm->mmap_sem);
-> -	err = get_user_pages(current, current->mm,
-> -			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
-> -	up_read(&current->mm->mmap_sem);
-> +	err = get_user_pages_unlocked(current, current->mm, user_dma.uaddr,
-> +				      user_dma.page_count, 0, 1, dma->map);
->  
->  	if (user_dma.page_count != err) {
->  		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
-> diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
-> index 2ad65eb29832..9365995917d8 100644
-> --- a/drivers/media/pci/ivtv/ivtv-yuv.c
-> +++ b/drivers/media/pci/ivtv/ivtv-yuv.c
-> @@ -75,15 +75,15 @@ static int ivtv_yuv_prep_user_dma(struct ivtv *itv, struct ivtv_user_dma *dma,
->  	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
->  
->  	/* Get user pages for DMA Xfer */
-> -	down_read(&current->mm->mmap_sem);
-> -	y_pages = get_user_pages(current, current->mm, y_dma.uaddr, y_dma.page_count, 0, 1, &dma->map[0], NULL);
-> +	y_pages = get_user_pages_unlocked(current, current->mm, y_dma.uaddr,
-> +					  y_dma.page_count, 0, 1, &dma->map[0]);
->  	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
->  	if (y_pages == y_dma.page_count) {
-> -		uv_pages = get_user_pages(current, current->mm,
-> -					  uv_dma.uaddr, uv_dma.page_count, 0, 1,
-> -					  &dma->map[y_pages], NULL);
-> +		uv_pages = get_user_pages_unlocked(current, current->mm,
-> +						   uv_dma.uaddr,
-> +						   uv_dma.page_count, 0, 1,
-> +						   &dma->map[y_pages]);
->  	}
-> -	up_read(&current->mm->mmap_sem);
->  
->  	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
->  		int rc = -EFAULT;
-
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 1c23666..d9ee43f 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -612,10 +612,19 @@ static int r820t_set_pll(struct r820t_priv *priv, enum v4l2_tuner_type type,
+ 
+ 	vco_fine_tune = (data[4] & 0x30) >> 4;
+ 
+-	if (vco_fine_tune > VCO_POWER_REF)
+-		div_num = div_num - 1;
+-	else if (vco_fine_tune < VCO_POWER_REF)
+-		div_num = div_num + 1;
++	tuner_dbg("mix_div=%d div_num=%d vco_fine_tune=%d\n",
++			mix_div, div_num, vco_fine_tune);
++
++	/*
++	 * XXX: R828D/16MHz seems to have always vco_fine_tune=1.
++	 * Due to that, this calculation goes wrong.
++	 */
++	if (priv->cfg->rafael_chip != CHIP_R828D) {
++		if (vco_fine_tune > VCO_POWER_REF)
++			div_num = div_num - 1;
++		else if (vco_fine_tune < VCO_POWER_REF)
++			div_num = div_num + 1;
++	}
+ 
+ 	rc = r820t_write_reg_mask(priv, 0x10, div_num << 5, 0xe0);
+ 	if (rc < 0)
+@@ -637,11 +646,6 @@ static int r820t_set_pll(struct r820t_priv *priv, enum v4l2_tuner_type type,
+ 		vco_fra = pll_ref * 129 / 128;
+ 	}
+ 
+-	if (nint > 63) {
+-		tuner_info("No valid PLL values for %u kHz!\n", freq);
+-		return -EINVAL;
+-	}
+-
+ 	ni = (nint - 13) / 4;
+ 	si = nint - 4 * ni - 13;
+ 
+-- 
+1.8.3.1
 
