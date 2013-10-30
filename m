@@ -1,53 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:50675 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526Ab3JFAMG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Oct 2013 20:12:06 -0400
-Message-ID: <5250AACF.1030003@samsung.com>
-Date: Sun, 06 Oct 2013 09:11:59 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:57670 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752273Ab3J3HqD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 03:46:03 -0400
+Received: by mail-wi0-f177.google.com with SMTP id f4so992302wiw.10
+        for <linux-media@vger.kernel.org>; Wed, 30 Oct 2013 00:46:01 -0700 (PDT)
 MIME-Version: 1.0
-To: Kukjin Kim <kgene.kim@samsung.com>
-CC: Kishon Vijay Abraham I <kishon@ti.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-fbdev@vger.kernel.org, gregkh@linuxfoundation.org,
-	jg1.han@samsung.com, dh09.lee@samsung.com,
-	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
-	tomi.valkeinen@ti.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH V5 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-References: <1380396467-29278-1-git-send-email-s.nawrocki@samsung.com> <1380396467-29278-2-git-send-email-s.nawrocki@samsung.com> <524A5D68.8080904@ti.com> <524B3B04.3000704@gmail.com> <524AE9BC.6060103@ti.com> <5250AA3F.6030701@samsung.com>
-In-Reply-To: <5250AA3F.6030701@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <c171c58417eb45b816caa1fd8cb0d74ae813dbbf.1382995303.git.lisa@xenapiadmin.com>
+References: <c171c58417eb45b816caa1fd8cb0d74ae813dbbf.1382995303.git.lisa@xenapiadmin.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 30 Oct 2013 13:15:41 +0530
+Message-ID: <CA+V-a8voBQyaMS4QRWQsBGSSE6zE0BF5mZyC9=BKXhGYsMa4ZA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] staging: media: davinci_vpfe: Rewrite return
+ statement in vpfe_video.c
+To: Lisa Nguyen <lisa@xenapiadmin.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/13 09:09, Kukjin Kim wrote:
->
-> On 10/02/13 00:26, Kishon Vijay Abraham I wrote:
->> On Wednesday 02 October 2013 02:43 AM, Sylwester Nawrocki wrote:
->>> On 10/01/2013 07:28 AM, Kishon Vijay Abraham I wrote:
->>>> On Sunday 29 September 2013 12:57 AM, Sylwester Nawrocki wrote:
->>>>>> Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
->>>>>>
->>>>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>>>> Acked-by: Felipe Balbi<balbi@ti.com>
->>>>
->>>> Can this patch be taken through exynos dt tree?
->>>
->>> Yes, that makes more sense indeed. Kukjin, would you mind taking
->>> this patch to your tree ?
->>
-> Sure. Applied this whole series.
->
-Oops, sorry. Only this patch ;-)
+Hi Lisa,
 
->> FWIW
->> Acked-by: Kishon Vijay Abraham I<kishon@ti.com>
->>>
+Thanks for the patch.
 
-Thanks,
-Kukjin
+On Tue, Oct 29, 2013 at 2:53 AM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+> Rewrite the return statement in vpfe_video.c to eliminate the
+> use of a ternary operator. This will prevent the checkpatch.pl
+> script from generating a warning saying to remove () from
+> this particular return statement.
+>
+> Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 24d98a6..49aafe4 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -346,7 +346,10 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+>         }
+>         mutex_unlock(&mdev->graph_mutex);
+>
+> -       return (ret == 0) ? ret : -ETIMEDOUT ;
+> +       if (ret == 0)
+> +               return ret;
+> +       else
+I would remove this else and align the below return statement.
+
+> +               return -ETIMEDOUT;
+>  }
+>
+>  /*
+Regards,
+--Prabhakar Lad
