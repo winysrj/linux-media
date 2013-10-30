@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:44718 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756034Ab3JRDIO (ORCPT
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:50427 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab3J3DPO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Oct 2013 23:08:14 -0400
-Received: by mail-pa0-f44.google.com with SMTP id fb1so1663171pad.3
-        for <linux-media@vger.kernel.org>; Thu, 17 Oct 2013 20:08:13 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, sachin.kamat@linaro.org,
-	m.chehab@samsung.com
-Subject: [PATCH 4/6] [media] tvp514x: Include linux/of.h header
-Date: Fri, 18 Oct 2013 08:37:13 +0530
-Message-Id: <1382065635-27855-4-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 29 Oct 2013 23:15:14 -0400
+Received: by mail-bk0-f53.google.com with SMTP id w11so242798bkz.26
+        for <linux-media@vger.kernel.org>; Tue, 29 Oct 2013 20:15:13 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 30 Oct 2013 11:15:13 +0800
+Message-ID: <CAPgLHd-YSAP+236AfZTXT3Cg_opQ+t=+nUHL+CVhXnkeA=zcBw@mail.gmail.com>
+Subject: [PATCH -next] [media] v4l: ti-vpe: fix return value check in vpe_probe()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: m.chehab@samsung.com, grant.likely@linaro.org,
+	rob.herring@calxeda.com, archit@ti.com, hans.verkuil@cisco.com,
+	k.debski@samsung.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'of_match_ptr' is defined in linux/of.h. Include it explicitly to
-avoid build breakage in the future.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+In case of error, the function devm_kzalloc() and devm_ioremap()
+returns NULL pointer not ERR_PTR(). The IS_ERR() test in the return
+value check should be replaced with NULL test.
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- drivers/media/i2c/tvp514x.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/ti-vpe/vpe.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 91f3dd4..83d85df 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -35,6 +35,7 @@
- #include <linux/videodev2.h>
- #include <linux/module.h>
- #include <linux/v4l2-mediabus.h>
-+#include <linux/of.h>
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 4e58069..90cf369 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1942,8 +1942,8 @@ static int vpe_probe(struct platform_device *pdev)
+ 	int ret, irq, func;
  
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
--- 
-1.7.9.5
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+-	if (IS_ERR(dev))
+-		return PTR_ERR(dev);
++	if (!dev)
++		return -ENOMEM;
+ 
+ 	spin_lock_init(&dev->lock);
+ 
+@@ -1962,8 +1962,8 @@ static int vpe_probe(struct platform_device *pdev)
+ 	 * registers based on the sub block base addresses
+ 	 */
+ 	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_32K);
+-	if (IS_ERR(dev->base)) {
+-		ret = PTR_ERR(dev->base);
++	if (!dev->base) {
++		ret = -ENOMEM;
+ 		goto v4l2_dev_unreg;
+ 	}
+ 
 
