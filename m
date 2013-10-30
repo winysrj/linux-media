@@ -1,100 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:56134 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753204Ab3JSQcu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Oct 2013 12:32:50 -0400
-Date: Sat, 19 Oct 2013 18:32:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-cc: m.chehab@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: make sure that all subdevices are powered on
- when needed
-In-Reply-To: <5262570E.1020707@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1310191806060.19376@axis700.grange>
-References: <1381952506-2405-1-git-send-email-fschaefer.oss@googlemail.com>
- <Pine.LNX.4.64.1310182228130.12288@axis700.grange> <5262570E.1020707@googlemail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:33314 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752648Ab3J3FlS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Oct 2013 01:41:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/4] rtl28xxu: add RTL2832P + R828D support
+Date: Wed, 30 Oct 2013 07:40:35 +0200
+Message-Id: <1383111636-19743-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1383111636-19743-1-git-send-email-crope@iki.fi>
+References: <1383111636-19743-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank
+RTL2832P is version of RTL2832U with extra TS interface.
+As for now, we support only integrated RTL2832 demod.
 
-On Sat, 19 Oct 2013, Frank Schäfer wrote:
-
-> Am 18.10.2013 22:30, schrieb Guennadi Liakhovetski:
-> > Hi Frank
-> >
-> > Thanks for the patch
-> >
-> > On Wed, 16 Oct 2013, Frank Schäfer wrote:
-> >
-> >> Commit 622b828ab7 ("v4l2_subdev: rename tuner s_standby operation to
-> >> core s_power") replaced the tuner s_standby call in the em28xx driver with
-> >> a (s_power, 0) call which suspends all subdevices.
-> >> But it neglected to add corresponding (s_power, 1) calls to make sure that
-> >> the subdevices are powered on again when needed.
-> >>
-> >> This patch fixes this issue by adding a (s_power, 1) call to
-> >> function em28xx_wake_i2c().
-> >>
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> ---
-> >>  drivers/media/usb/em28xx/em28xx-core.c |    1 +
-> >>  1 Datei geändert, 1 Zeile hinzugefügt(+)
-> >>
-> >> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> >> index fc157af..8896789 100644
-> >> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> >> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> >> @@ -1243,6 +1243,7 @@ EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
-> >>   */
-> >>  void em28xx_wake_i2c(struct em28xx *dev)
-> >>  {
-> >> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  s_power, 1);
-> >>  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
-> >>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> >>  			INPUT(dev->ctl_input)->vmux, 0, 0);
-> > Do I understand it right, that you're proposing this as an alternative to 
-> > my power-balancing patch?
-> Yes.
-> Your patch was nevertheless useful, because it pointed out further bugs
-> in em28xx_v4l2_open().
-> I've sent another RFC patch which should fix them, too.
-> 
-> >  It's certainly smaller and simpler, have you 
-> > also tested it with the ov2640 and my clock patches to see, whether this 
-> > really balances calls to .s_power() perfectly?
-> Yes, I've tested the patch with the VAD Laplace webcam (ov2640), a
-> Hauppauge HVR 900 and a Terratec Cinergy 200.
-> Please note that the patch does not balance .s_power() calls perfectly,
-> it only makes sure that the subdevices are powered on when needed.
-> This also avoids the scary v4l2-clk warnings.
-
-hmm, I'm not sure I quite understand - calls aren't balanced perfectly, 
-but warnings are gone? Since warnings are gone, this means the use-count 
-doesn't go negative. Does that mean, that now you enable the clock more 
-often, then you disable it? Wouldn't it lock the driver module in the 
-kernel via excessive module_get()? Or have I misunderstood something?
-
-> Due to the various GPIO sequences, I see no chance to make s_power calls
-> really balanced in such drivers.
-
-I think those should be fixed actually. If there are indeed GPIO 
-operations, that switch subdevice power on and off, they should be coded 
-as such, perhaps as regulators. And - as discussed elsewhere - actually 
-subdevice drivers should decide when power should be supplied to them, and 
-when not.
-
-Anyway, if your patch keeps the clock use count between 0 when unused and 
-1, when used, I vote for it and would suggest to apply these fixes to 
-em28xx. Mauro, can we do this? Shall we repost the set to make it easier?
-
-Thanks
-Guennadi
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 39 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 2 files changed, 40 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c0cd084..8c600b7 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -377,6 +377,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 	struct rtl28xxu_req req_e4000 = {0x02c8, CMD_I2C_RD, 1, buf};
+ 	struct rtl28xxu_req req_tda18272 = {0x00c0, CMD_I2C_RD, 2, buf};
+ 	struct rtl28xxu_req req_r820t = {0x0034, CMD_I2C_RD, 1, buf};
++	struct rtl28xxu_req req_r828d = {0x0074, CMD_I2C_RD, 1, buf};
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+@@ -489,6 +490,15 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 		goto found;
+ 	}
+ 
++	/* check R828D ID register; reg=00 val=69 */
++	ret = rtl28xxu_ctrl_msg(d, &req_r828d);
++	if (ret == 0 && buf[0] == 0x69) {
++		priv->tuner = TUNER_RTL2832_R828D;
++		priv->tuner_name = "R828D";
++		goto found;
++	}
++
++
+ found:
+ 	dev_dbg(&d->udev->dev, "%s: tuner=%s\n", __func__, priv->tuner_name);
+ 
+@@ -745,6 +755,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 		rtl2832_config = &rtl28xxu_rtl2832_e4000_config;
+ 		break;
+ 	case TUNER_RTL2832_R820T:
++	case TUNER_RTL2832_R828D:
+ 		rtl2832_config = &rtl28xxu_rtl2832_r820t_config;
+ 		break;
+ 	default:
+@@ -866,6 +877,13 @@ static const struct r820t_config rtl2832u_r820t_config = {
+ 	.rafael_chip = CHIP_R820T,
+ };
+ 
++static const struct r820t_config rtl2832u_r828d_config = {
++	.i2c_addr = 0x3a,
++	.xtal = 16000000,
++	.max_i2c_msg_len = 2,
++	.rafael_chip = CHIP_R828D,
++};
++
+ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	int ret;
+@@ -923,6 +941,27 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
+ 		break;
++	case TUNER_RTL2832_R828D:
++		/* power off mn88472 demod on GPIO0 */
++		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x00, 0x01);
++		if (ret)
++			goto err;
++
++		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x01);
++		if (ret)
++			goto err;
++
++		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x01, 0x01);
++		if (ret)
++			goto err;
++
++		fe = dvb_attach(r820t_attach, adap->fe[0], &d->i2c_adap,
++				&rtl2832u_r828d_config);
++
++		/* Use tuner to get the signal strength */
++		adap->fe[0]->ops.read_signal_strength =
++				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++		break;
+ 	default:
+ 		fe = NULL;
+ 		dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 729b354..2142bcb 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -83,6 +83,7 @@ enum rtl28xxu_tuner {
+ 	TUNER_RTL2832_TDA18272,
+ 	TUNER_RTL2832_FC0013,
+ 	TUNER_RTL2832_R820T,
++	TUNER_RTL2832_R828D,
+ };
+ 
+ struct rtl28xxu_req {
+-- 
+1.8.3.1
+
