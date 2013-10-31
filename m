@@ -1,390 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41793 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760949Ab3JPQns (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Oct 2013 12:43:48 -0400
-Message-ID: <525EC23B.2020506@iki.fi>
-Date: Wed, 16 Oct 2013 19:43:39 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH REVIEW] e4000: convert DVB tuner to I2C driver model
-References: <1381876264-20342-1-git-send-email-crope@iki.fi>	<20131015203305.7dd5e55a.m.chehab@samsung.com> <CAOcJUby9LnEUVFm1HFxOE6mJaSPi-2DAyH16zNDvRHACqbOkPw@mail.gmail.com>
-In-Reply-To: <CAOcJUby9LnEUVFm1HFxOE6mJaSPi-2DAyH16zNDvRHACqbOkPw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:30165 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753819Ab3JaNmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Oct 2013 09:42:51 -0400
+Date: Thu, 31 Oct 2013 11:42:43 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org (open list:SAMSUNG S5P/EXYNO...),
+	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
+	AR...),
+	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
+	linux-kernel@vger.kernel.org (open list)
+Subject: Re: [PATCH v2] videobuf2: Add missing lock held on vb2_fop_relase
+Message-id: <20131031114243.2416bc88@samsung.com>
+In-reply-to: <1382198877-27164-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1382198877-27164-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16.10.2013 18:54, Michael Krufky wrote:
-> This kinda makes me a bit nervous.  The patch itself looks OK but the
-> cascading effects that it will have across the DVB subsystem need to
-> be discussed.
+Em Sat, 19 Oct 2013 18:07:57 +0200
+Ricardo Ribalda <ricardo.ribalda@gmail.com> escreveu:
 
-Basically, the only effect is that you must use i2c_new_device() or 
-i2c_new_probed_device() instead of old proprietary dvb_attach(). Convert 
-old proprietary method with Kernel standard one.
+> vb2_fop_relase does not held the lock although it is modifying the
+> queue->owner field.
+> 
+> This could lead to race conditions on the vb2_perform_io function
+> when multiple applications are accessing the video device via
+> read/write API:
+> 
+> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
+> 0000000000000260
+> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
+> [videobuf2_core]
+> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
+> [ 308.297812] Oops: 0000 #1 SMP
+> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
+> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
+> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
+> spi_xilinx spi_bitbang qt5023
+> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
+> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
+> PM_2.1.0.309 X64 05/23/2013
+> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
+> ffff88014dc02000
+> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
+> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
+> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
+> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
+> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
+> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
+> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
+> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
+> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
+> knlGS:0000000000000000
+> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
+> [ 308.298064] Stack:
+> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
+> ffff880100000001
+> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
+> ffff880154904718
+> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
+> ffff88014dc03f50
+> [ 308.298116] Call Trace:
+> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
+> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
+> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
+> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
+> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
+> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
+> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
+> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
+> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
+> 89
+> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
+> [videobuf2_core]
+> [ 308.298507] RSP <ffff88014dc03df8>
+> [ 308.298514] CR2: 0000000000000260
+> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
+> 
+> v2: Add bug found by Sylvester Nawrocki
+> 
+> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
+> Therefore a new __vb2_fop_release function has been created to be used by
+> drivers that overload the release function.
+> 
+> Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
+>  drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
+>  drivers/media/usb/em28xx/em28xx-video.c          |  2 +-
+>  drivers/media/v4l2-core/videobuf2-core.c         | 18 +++++++++++++++++-
+>  include/media/videobuf2-core.h                   |  2 ++
+>  5 files changed, 22 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+> index fb27ff7..c38d247c 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
+>  		vc->streaming = false;
+>  	}
+>  
+> -	ret = vb2_fop_release(file);
+> +	ret = __vb2_fop_release(file, true);
+>  
+>  	if (close) {
+>  		clear_bit(ST_CAPT_BUSY, &fimc->state);
+> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> index e5798f7..021d804 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
+>  		mutex_unlock(&entity->parent->graph_mutex);
+>  	}
+>  
+> -	vb2_fop_release(file);
+> +	__vb2_fop_release(file, true);
+>  	pm_runtime_put(&fimc->pdev->dev);
+>  	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 9d10334..6a5c147 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1664,7 +1664,7 @@ static int em28xx_v4l2_close(struct file *filp)
+>  	em28xx_videodbg("users=%d\n", dev->users);
+>  
+>  	mutex_lock(&dev->lock);
+> -	vb2_fop_release(filp);
+> +	__vb2_fop_release(filp, false);
+>  
+>  	if (dev->users == 1) {
+>  		/* the device is already disconnect,
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 594c75e..ce309a8 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2619,16 +2619,32 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+>  
+> -int vb2_fop_release(struct file *file)
+> +int __vb2_fop_release(struct file *file, bool lock_is_held)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+> +	struct mutex *lock;
+>  
+>  	if (file->private_data == vdev->queue->owner) {
+> +		if (lock_is_held)
+> +			lock = NULL;
+> +		else
+> +			lock = vdev->queue->lock ?
+> +				vdev->queue->lock : vdev->lock;
+> +		if (lock)
+> +			mutex_lock(lock);
+>  		vb2_queue_release(vdev->queue);
+>  		vdev->queue->owner = NULL;
+> +		if (lock)
+> +			mutex_unlock(lock);
+>  	}
+>  	return v4l2_fh_release(file);
+>  }
+> +EXPORT_SYMBOL_GPL(__vb2_fop_release);
+> +
+> +int vb2_fop_release(struct file *file)
+> +{
+> +	return __vb2_fop_release(file, false);
+> +}
+>  EXPORT_SYMBOL_GPL(vb2_fop_release);
 
-But thats not all. It was only first step. My final goal is to study, 
-test and finally make radio tuners as a own "standalone" I2C drivers. 
-This means that I will remove DVB frontend dependency next from the 
-given tuner driver. And before you ask why: I need some more 
-sophisticated access to tuner in order to meet SDR needs. Also I don't 
-see any reason why those tuners should be a part of DVB API or part of 
-V4L2 API (or even both in case of "hybrid" model). Actual reasons are 
-likely payload from the history, but as of today view it is stupid design :]
+In general, when a symbol has both locked/unlocked versions, we
+use the __symbol for unlocked versions (as the usage of the __symbol
+requires the caller do do additional protection).
 
-> Is there a discussion about this kind of conversion on the mailing
-> list somewhere that I've missed?
+On this patch, (and on  Sylwester's version) you're seeming to be doing 
+just the opposite. That sounds inconsistent with other Kernel symbols.
 
-There has been many times around the years. i2c_new_probed_device() 
-function [1] seems to be added for somehow for out needs too...
+Please either use that version or add a suffix (like _locked / __unlocked)
+to allow a clearer understanding about what's the locked version.
 
-[1] http://lists.lm-sensors.org/pipermail/i2c/2007-March/000990.html
+Btw, Does it even make sense to have both options, or wouldn't be better
+to just make sure that all drivers will do the same? My concern here is
+with race conditions that may happen at device removal, if the lock is
+released/retaken inside the routine that unbinds the driver.
 
+Regards,
+Mauro
 
-regards
-Antti
-
->
-> -Mike
->
-> On Tue, Oct 15, 2013 at 7:33 PM, Mauro Carvalho Chehab
-> <m.chehab@samsung.com> wrote:
->> Em Wed, 16 Oct 2013 01:31:04 +0300
->> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>> Initial driver conversion from proprietary DVB tuner model to more
->>> general I2C driver model.
->>>
->>> That commit has just basic binding stuff and driver itself still
->>> needs to be converted more complete later.
->>>
->>> Cc: Jean Delvare <khali@linux-fr.org>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>> ---
->>>   drivers/media/tuners/e4000.c            | 73 ++++++++++++++++++++++-----------
->>>   drivers/media/tuners/e4000.h            |  9 +++-
->>>   drivers/media/tuners/e4000_priv.h       |  4 +-
->>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 31 +++++++++-----
->>>   4 files changed, 78 insertions(+), 39 deletions(-)
->>>
->>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
->>> index 54e2d8a..f6a5dbd 100644
->>> --- a/drivers/media/tuners/e4000.c
->>> +++ b/drivers/media/tuners/e4000.c
->>> @@ -27,7 +27,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->>>        u8 buf[1 + len];
->>>        struct i2c_msg msg[1] = {
->>>                {
->>> -                     .addr = priv->cfg->i2c_addr,
->>> +                     .addr = priv->i2c_addr,
->>>                        .flags = 0,
->>>                        .len = sizeof(buf),
->>>                        .buf = buf,
->>> @@ -56,12 +56,12 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->>>        u8 buf[len];
->>>        struct i2c_msg msg[2] = {
->>>                {
->>> -                     .addr = priv->cfg->i2c_addr,
->>> +                     .addr = priv->i2c_addr,
->>>                        .flags = 0,
->>>                        .len = 1,
->>>                        .buf = &reg,
->>>                }, {
->>> -                     .addr = priv->cfg->i2c_addr,
->>> +                     .addr = priv->i2c_addr,
->>>                        .flags = I2C_M_RD,
->>>                        .len = sizeof(buf),
->>>                        .buf = buf,
->>> @@ -233,8 +233,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
->>>         * or more.
->>>         */
->>>        f_vco = c->frequency * e4000_pll_lut[i].mul;
->>> -     sigma_delta = div_u64(0x10000ULL * (f_vco % priv->cfg->clock), priv->cfg->clock);
->>> -     buf[0] = f_vco / priv->cfg->clock;
->>> +     sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
->>> +     buf[0] = f_vco / priv->clock;
->>>        buf[1] = (sigma_delta >> 0) & 0xff;
->>>        buf[2] = (sigma_delta >> 8) & 0xff;
->>>        buf[3] = 0x00;
->>> @@ -358,17 +358,6 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
->>>        return 0;
->>>   }
->>>
->>> -static int e4000_release(struct dvb_frontend *fe)
->>> -{
->>> -     struct e4000_priv *priv = fe->tuner_priv;
->>> -
->>> -     dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
->>> -
->>> -     kfree(fe->tuner_priv);
->>> -
->>> -     return 0;
->>> -}
->>> -
->>>   static const struct dvb_tuner_ops e4000_tuner_ops = {
->>>        .info = {
->>>                .name           = "Elonics E4000",
->>> @@ -376,8 +365,6 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
->>>                .frequency_max  = 862000000,
->>>        },
->>>
->>> -     .release = e4000_release,
->>> -
->>>        .init = e4000_init,
->>>        .sleep = e4000_sleep,
->>>        .set_params = e4000_set_params,
->>> @@ -385,9 +372,12 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
->>>        .get_if_frequency = e4000_get_if_frequency,
->>>   };
->>>
->>> -struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>> -             struct i2c_adapter *i2c, const struct e4000_config *cfg)
->>> +static int e4000_probe(struct i2c_client *client,
->>> +             const struct i2c_device_id *id)
->>>   {
->>> +     struct e4000_config *cfg = client->dev.platform_data;
->>> +     struct dvb_frontend *fe = cfg->fe;
->>> +     struct i2c_adapter *i2c = client->adapter;
->>>        struct e4000_priv *priv;
->>>        int ret;
->>>        u8 chip_id;
->>> @@ -402,7 +392,9 @@ struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>>                goto err;
->>>        }
->>>
->>> -     priv->cfg = cfg;
->>> +     priv->i2c_addr = cfg->i2c_addr;
->>> +     priv->clock = cfg->clock;
->>> +     priv->i2c_client = client;
->>>        priv->i2c = i2c;
->>>
->>>        /* check if the tuner is there */
->>> @@ -412,8 +404,10 @@ struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>>
->>>        dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
->>>
->>> -     if (chip_id != 0x40)
->>> +     if (chip_id != 0x40) {
->>> +             ret = -ENODEV;
->>>                goto err;
->>> +     }
->>>
->>>        /* put sleep as chip seems to be in normal mode by default */
->>>        ret = e4000_wr_reg(priv, 0x00, 0x00);
->>> @@ -431,16 +425,45 @@ struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>>        if (fe->ops.i2c_gate_ctrl)
->>>                fe->ops.i2c_gate_ctrl(fe, 0);
->>>
->>> -     return fe;
->>> +     i2c_set_clientdata(client, priv);
->>> +
->>> +     return 0;
->>>   err:
->>>        if (fe->ops.i2c_gate_ctrl)
->>>                fe->ops.i2c_gate_ctrl(fe, 0);
->>>
->>>        dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
->>>        kfree(priv);
->>> -     return NULL;
->>> +     return ret;
->>>   }
->>> -EXPORT_SYMBOL(e4000_attach);
->>> +
->>> +static int e4000_remove(struct i2c_client *client)
->>> +{
->>> +     struct e4000_priv *priv = i2c_get_clientdata(client);
->>> +
->>> +     dev_dbg(&client->dev, "%s:\n", __func__);
->>> +
->>> +     kfree(priv);
->>> +     return 0;
->>> +}
->>> +
->>> +static const struct i2c_device_id e4000_id[] = {
->>> +     {"e4000", 0},
->>> +     {}
->>> +};
->>> +MODULE_DEVICE_TABLE(i2c, e4000_id);
->>> +
->>> +static struct i2c_driver e4000_driver = {
->>> +     .driver = {
->>> +             .owner  = THIS_MODULE,
->>> +             .name   = "e4000",
->>> +     },
->>> +     .probe          = e4000_probe,
->>> +     .remove         = e4000_remove,
->>> +     .id_table       = e4000_id,
->>> +};
->>> +
->>> +module_i2c_driver(e4000_driver);
->>>
->>>   MODULE_DESCRIPTION("Elonics E4000 silicon tuner driver");
->>>   MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
->>> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
->>> index 25ee7c0..760b206 100644
->>> --- a/drivers/media/tuners/e4000.h
->>> +++ b/drivers/media/tuners/e4000.h
->>> @@ -26,6 +26,11 @@
->>>
->>>   struct e4000_config {
->>>        /*
->>> +      * frontend
->>> +      */
->>> +     struct dvb_frontend *fe;
->>> +
->>> +     /*
->>>         * I2C address
->>>         * 0x64, 0x65, 0x66, 0x67
->>>         */
->>> @@ -39,10 +44,10 @@ struct e4000_config {
->>>
->>>   #if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
->>
->> You can get rid of #if IS_ENABLED, by replacing it by a generic attach
->> function, using the subdev model. In other words, this is how a tuner
->> subdev is defined:
->>
->>          struct v4l2_subdev_tuner_ops {
->>                  int (*s_radio)(struct v4l2_subdev *sd);
->>                  int (*s_frequency)(struct v4l2_subdev *sd, const struct v4l2_frequency *freq);
->>                  int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
->>                  int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
->>                  int (*s_tuner)(struct v4l2_subdev *sd, const struct v4l2_tuner *vt);
->>                  int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
->>                  int (*s_modulator)(struct v4l2_subdev *sd, const struct v4l2_modulator *vm);
->>                  int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
->>                  int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
->>          };
->>
->> As the presence of the device is known, there's no need to actually attach
->> anything, but you need to pass the configuration for the subdevice. This is
->> done by calling the subdev s_config ops to setup them:
->>
->>          v4l2_subdev_call(sd, tuner, s_config, vfh, arg);
->>
->> A new callback will be needed there, in order to put the device into DVB mode,
->> e. g. passing the DVB specific parameters.
->>
->> As the subdev callbacks are defined on a generic .h header and they always
->> exist, if the driver is not compiled, i2c_new_device() won't find the driver,
->> and the bridge driver won't call s_config() for this I2C client.
->>
->> That's IMHO, one of the biggest advantages of this conversion: as a bonus,
->> we get rid of several Kconfig issues. Also, with this change, lsmod will
->> properly show that the tuner is bound to the bridge driver.
->>
->>>   extern struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>> -             struct i2c_adapter *i2c, const struct e4000_config *cfg);
->>> +             struct i2c_adapter *i2c, struct e4000_config *cfg);
->>>   #else
->>>   static inline struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
->>> -             struct i2c_adapter *i2c, const struct e4000_config *cfg)
->>> +             struct i2c_adapter *i2c, struct e4000_config *cfg)
->>>   {
->>>        dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
->>>        return NULL;
->>> diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
->>> index a385505..7f47068 100644
->>> --- a/drivers/media/tuners/e4000_priv.h
->>> +++ b/drivers/media/tuners/e4000_priv.h
->>> @@ -24,8 +24,10 @@
->>>   #include "e4000.h"
->>>
->>>   struct e4000_priv {
->>> -     const struct e4000_config *cfg;
->>>        struct i2c_adapter *i2c;
->>> +     struct i2c_client *i2c_client;
->>> +     u8 i2c_addr;
->>> +     u32 clock;
->>>   };
->>>
->>>   struct e4000_pll {
->>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> index defc491..573805a 100644
->>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> @@ -843,11 +843,6 @@ err:
->>>        return ret;
->>>   }
->>>
->>> -static const struct e4000_config rtl2832u_e4000_config = {
->>> -     .i2c_addr = 0x64,
->>> -     .clock = 28800000,
->>> -};
->>> -
->>>   static const struct fc2580_config rtl2832u_fc2580_config = {
->>>        .i2c_addr = 0x56,
->>>        .clock = 16384000,
->>> @@ -874,10 +869,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
->>>        int ret;
->>>        struct dvb_usb_device *d = adap_to_d(adap);
->>>        struct rtl28xxu_priv *priv = d_to_priv(d);
->>> -     struct dvb_frontend *fe;
->>> +     struct dvb_frontend *fe = NULL;
->>> +     struct i2c_client *client = NULL;
->>> +     struct i2c_board_info info;
->>>
->>>        dev_dbg(&d->udev->dev, "%s:\n", __func__);
->>>
->>> +     memset(&info, 0, sizeof(struct i2c_board_info));
->>> +
->>>        switch (priv->tuner) {
->>>        case TUNER_RTL2832_FC0012:
->>>                fe = dvb_attach(fc0012_attach, adap->fe[0],
->>> @@ -897,9 +896,20 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
->>>                adap->fe[0]->ops.read_signal_strength =
->>>                                adap->fe[0]->ops.tuner_ops.get_rf_strength;
->>>                return 0;
->>> -     case TUNER_RTL2832_E4000:
->>> -             fe = dvb_attach(e4000_attach, adap->fe[0], &d->i2c_adap,
->>> -                             &rtl2832u_e4000_config);
->>> +     case TUNER_RTL2832_E4000: {
->>> +                     struct e4000_config e4000_config = {
->>> +                             .fe = adap->fe[0],
->>> +                             .i2c_addr = 0x64,
->>> +                             .clock = 28800000,
->>> +                     };
->>> +
->>> +                     strlcpy(info.type, "e4000", I2C_NAME_SIZE);
->>> +                     info.addr = 0x64;
->>> +                     info.platform_data = &e4000_config;
->>> +
->>> +                     request_module("e4000");
->>> +                     client = i2c_new_device(&d->i2c_adap, &info);
->>> +             }
->>>                break;
->>>        case TUNER_RTL2832_FC2580:
->>>                fe = dvb_attach(fc2580_attach, adap->fe[0], &d->i2c_adap,
->>> @@ -927,12 +937,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
->>>                                adap->fe[0]->ops.tuner_ops.get_rf_strength;
->>>                break;
->>>        default:
->>> -             fe = NULL;
->>>                dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
->>>                                priv->tuner);
->>>        }
->>>
->>> -     if (fe == NULL) {
->>> +     if (fe == NULL && (client == NULL || client->driver == NULL)) {
->>>                ret = -ENODEV;
->>>                goto err;
->>>        }
->>
->>
->> --
->>
->> Cheers,
->> Mauro
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  
+>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 6781258..cd1e4d5 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -491,6 +491,8 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
+>  
+>  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
+>  int vb2_fop_release(struct file *file);
+> +/* must be used if the lock is held. */
+> +int __vb2_fop_release(struct file *file, bool lock_is_held);
+>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
+>  		size_t count, loff_t *ppos);
+>  ssize_t vb2_fop_read(struct file *file, char __user *buf,
 
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
