@@ -1,65 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57999 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752355Ab3JAIzA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Oct 2013 04:55:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, sylwester.nawrocki@gmail.com
-Subject: Re: [PATCH 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-Date: Tue, 01 Oct 2013 10:55:04 +0200
-Message-ID: <2921276.foMJNxPg5I@avalon>
-In-Reply-To: <20130930232823.GI3022@valkosipuli.retiisi.org.uk>
-References: <1379541668-23085-1-git-send-email-sakari.ailus@iki.fi> <2051351.luZaPOfRE8@avalon> <20130930232823.GI3022@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:25528 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751779Ab3JaKNB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Oct 2013 06:13:01 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVJ00IF831O7C00@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Oct 2013 06:13:00 -0400 (EDT)
+Date: Thu, 31 Oct 2013 08:12:55 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: Miroslav =?UTF-8?B?U2x1Z2XFiA==?= <thunder.mmm@gmail.com>,
+	linux-media@vger.kernel.org,
+	Miroslav =?UTF-8?B?U2x1Z2XFiA==?= <thunder.m@email.cz>
+Subject: Re: cx23885: Add basic analog radio support
+Message-id: <20131031081255.65111ad6@samsung.com>
+In-reply-to: <524F0F57.5020605@netscape.net>
+References: <CAEN_-SBR5qGJfUk6h+n04Q4zP-zofiLO+Jr6pOBJU2nqYBuDWQ@mail.gmail.com>
+ <524F0F57.5020605@netscape.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Fri, 04 Oct 2013 15:56:23 -0300
+Alfredo Jesús Delaiti  <alfredodelaiti@netscape.net> escreveu:
 
-On Tuesday 01 October 2013 02:28:23 Sakari Ailus wrote:
-> On Tue, Oct 01, 2013 at 01:21:58AM +0200, Laurent Pinchart wrote:
-> > On Tuesday 01 October 2013 02:08:47 Sakari Ailus wrote:
-> > > On Fri, Sep 20, 2013 at 11:08:47PM +0200, Laurent Pinchart wrote:
-> > > > On Thursday 19 September 2013 01:01:05 Sakari Ailus wrote:
-> > > > > Pads that set this flag must be connected by an active link for the
-> > > > > entity to stream.
-> > > > > 
-> > > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > > Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-
-[snip]
-
-> > What about
-> > 
-> > If the pad is linked to any other pad, at least one of the links must be
-> > enabled for the entity to be able to stream. There could be temporary
-> > reasons (e.g. device configuration dependent) for the pad to need enabled
-> > links; the absence of the flag doesn't imply there is none. The flag has
-> > no effect on pads without connected links.
+> Hi all
 > 
-> Thinking about this again, I'd add before the comma: "and this flag is set".
 > 
-> And if you put it like that then the last sentence is redundat --- I'd drop
-> it.
+> El 14/01/12 15:25, Miroslav Slugeň escribió:
+> > New version of patch, fixed video modes for DVR3200 tuners and working
+> > audio mux.
 > 
-> What do you think?
+> I tested this patch (https://linuxtv.org/patch/9498/) with the latest 
+> versions of git (September 28, 2013) with my TV card (Mygica X8507) and 
+> it works.
+> I found some issue, although it may be through a bad implementation of mine.
+> 
+> Details of them:
+> 
+> 1) Some warning when compiling
+> 
+> ...
+>    CC [M] 
+> /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.o
+> /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1910:8: 
+> : initialization from incompatible pointer type [enabled by default]
+> /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1910:8: 
+> warning: (near initialization for 'radio_ioctl_ops.vidioc_s_tuner') 
+> [enabled by default]
+> /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1911:8: 
+> warning: initialization from incompatible pointer type [enabled by default]
+> /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-video.c:1911:8: 
+> warning: (near initialization for 'radio_ioctl_ops.vidioc_s_audio') 
+> [enabled by default]
+>    CC [M] /home/alfredo/ISDB/Nuevo_Driver/git/media_build/v4l/cx23885-vbi.o
+> ...
+> 
+> --------------------------------------------------------
+> static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+> 
+>         .vidioc_s_tuner       = radio_s_tuner, /* line 1910 */
+>         .vidioc_s_audio       = radio_s_audio, /* line 1911 */
+> 
+> --------------------------------------------------------
+> 
+> 2)
+> No reports signal strength or stereo signal with KRadio. XC5000 neither 
+> reported (modprobe xc5000 debug=1). Maybe a feature XC5000.
+> To listen in stereo, sometimes, you have to turn on the Digital TV then 
+> Analog TV and then radio.
+> 
+> 3)
+> To listen Analog TV I need changed to NTSC standard and then PAL-Nc (the 
+> norm in my country is PAL-Nc). If I leave the tune in NTSC no problem 
+> with sound.
+> The patch (https://linuxtv.org/patch/9505/) corrects the latter, if used 
+> tvtime with xawtv not always.
+> If I see-Digital TV (ISDB-T), then so as to listen the radio I have 
+> first put the TV-Analog, because I hear very low and a strong white noise.
+> The latter is likely to be corrected by resetting the tuner, I have to 
+> study it more.
+> 
+> I put below attached the patch applied to the plate: X8507.
+> 
+> Have you done any update of this patch?
 
-What about
+Hi Alfredo,
 
-"When this flag is set, if the pad is linked to any other pad then at least 
-one of those links must be enabled for the entity to be able to stream. There 
-could be temporary reasons (e.g. device configuration dependent) for the pad 
-to need enabled links even when this flag isn't set; the absence of the flag 
-doesn't imply there is none. The flag has no effect on pads without connected 
-links."
+My understanding is that the patch you've enclosed is incomplete and
+depends on Miroslav's patch.
 
-Feel free to drop the last sentence.
+As he have you his ack to rework on it, could you please prepare a
+patch series addressing the above comments for us to review?
 
+Than
 -- 
-Regards,
 
-Laurent Pinchart
-
+Cheers,
+Mauro
