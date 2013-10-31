@@ -1,106 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:60811 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686Ab3JHQV1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Oct 2013 12:21:27 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c1so4142873eek.10
-        for <linux-media@vger.kernel.org>; Tue, 08 Oct 2013 09:21:25 -0700 (PDT)
-Message-ID: <52543116.60509@googlemail.com>
-Date: Tue, 08 Oct 2013 18:21:42 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx + ov2640 and v4l2-clk
-References: <520E76E7.30201@googlemail.com> <74016946-c59e-4b0b-a25b-4c976f60ae43.maildroid@localhost> <5210B2A9.1030803@googlemail.com> <20130818122008.38fac218@samsung.com>
-In-Reply-To: <20130818122008.38fac218@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:29877 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab3JaN3e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Oct 2013 09:29:34 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVJ00H43C50XE20@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Oct 2013 09:29:33 -0400 (EDT)
+Date: Thu, 31 Oct 2013 11:29:29 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Wade Farnsworth <wade_farnsworth@mentor.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC][PATCH] v4l2-dev: Add tracepoints for QBUF and DQBUF
+Message-id: <20131031112929.3497504f@samsung.com>
+In-reply-to: <52614DB9.8090908@mentor.com>
+References: <52614DB9.8090908@mentor.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.08.2013 17:20, schrieb Mauro Carvalho Chehab:
-> Em Sun, 18 Aug 2013 13:40:25 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 17.08.2013 12:51, schrieb Guennadi Liakhovetski:
->>> Hi Frank,
->>> As I mentioned on the list, I'm currently on a holiday, so, replying briefly. 
->> Sorry, I missed that (can't read all mails on the list).
->>
->>> Since em28xx is a USB device, I conclude, that it's supplying clock to its components including the ov2640 sensor. So, yes, I think the driver should export a V4L2 clock.
->> Ok, so it's mandatory on purpose ?
->> I'll take a deeper into the v4l2-clk code and the
->> em28xx/ov2640/soc-camera interaction this week.
->> Have a nice holiday !
-> commit 9aea470b399d797e88be08985c489855759c6c60
-> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date:   Fri Dec 21 13:01:55 2012 -0300
->
->     [media] soc-camera: switch I2C subdevice drivers to use v4l2-clk
->     
->     Instead of centrally enabling and disabling subdevice master clocks in
->     soc-camera core, let subdevice drivers do that themselves, using the
->     V4L2 clock API and soc-camera convenience wrappers.
->     
->     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->     Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
->
-> (c/c the ones that acked with this broken changeset)
->
-> We need to fix it ASAP or to revert the ov2640 changes, as some em28xx
-> cameras are currently broken on 3.10.
->
-> I'll also reject other ports to the async API if the drivers are
-> used outside an embedded driver, as no PC driver currently defines 
-> any clock source. The same applies to regulators.
->
-> Guennadi,
->
-> Next time, please check if the i2c drivers are used outside soc_camera
-> and apply the fixes where needed, as no regressions are allowed.
->
-> Regards,
-> Mauro
+Hi Wade,
 
-FYI: 8 weeks have passed by now and this regression has still not been
-fixed.
-Does anybody care about it ? WONTFIX ?
+Em Fri, 18 Oct 2013 08:03:21 -0700
+Wade Farnsworth <wade_farnsworth@mentor.com> escreveu:
 
-Regards,
-Frank
+> Greetings,
+> 
+> We've found this patch helpful for making some simple performance measurements on 
+> V4L2 systems using the standard Linux tracers (FTRACE, LTTng, etc.), and were 
+> wondering if the larger community would find it useful to have this in mainline as 
+> well.
+> 
+> This patch adds two tracepoints for the VIDIOC_DQBUF and VIDIOC_QBUF ioctls.  We've 
+> identified two ways we can use this information to measure performance, though this  
+> is likely not an exhaustive list:
+> 
+> 1. Measuring the difference in timestamps between QBUF events on a display device 
+>    provides a throughput (framerate) measurement for the display.
+> 2. Measuring the difference between the timestamps on a DQBUF event for a capture 
+>    device and a corresponding timestamp on a QBUF event on a display device provides 
+>    a rough approximation of the latency of that particular frame.  However, this 
+>    tends to only work for simple video pipelines where captured and displayed 
+>    frames can be correlated in such a fashion.
+> 
+> Comments are welcome.  If there is interest, I'll post another patch suitable
+> for merge.
 
->> Regards,
->> Frank
->>> Thanks
->>> Guennadi
->>>
->>>
->>> -----Original Message-----
->>> From: "Frank Schäfer" <fschaefer.oss@googlemail.com>
->>> To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>
->>> Sent: Fr., 16 Aug 2013 21:03
->>> Subject: em28xx + ov2640 and v4l2-clk
->>>
->>> Hi Guennadi,
->>>
->>> since commit 9aea470b399d797e88be08985c489855759c6c60 "soc-camera:
->>> switch I2C subdevice drivers to use v4l2-clk", the em28xx driver fails
->>> to register the ov2640 subdevice (if needed).
->>> The reason is that v4l2_clk_get() fails in ov2640_probe().
->>> Does the em28xx driver have to register a (pseudo ?) clock first ?
->>>
->>> Regards,
->>> Frank
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I like the idea of adding those tracepoints.
 
+See my comments below.
+
+> 
+> Signed-off-by: Wade Farnsworth <wade_farnsworth@mentor.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c |    9 ++++++
+>  include/trace/events/v4l2.h        |   48 ++++++++++++++++++++++++++++++++++++
+>  2 files changed, 57 insertions(+), 0 deletions(-)
+>  create mode 100644 include/trace/events/v4l2.h
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index b5aaaac..1cc1749 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -31,6 +31,10 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ioctl.h>
+>  
+> +
+> +#define CREATE_TRACE_POINTS
+> +#include <trace/events/v4l2.h>
+> +
+>  #define VIDEO_NUM_DEVICES	256
+>  #define VIDEO_NAME              "video4linux"
+>  
+> @@ -391,6 +395,11 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>  	} else
+>  		ret = -ENOTTY;
+>  
+> +	if (cmd == VIDIOC_DQBUF)
+> +		trace_v4l2_dqbuf(vdev->minor, (struct v4l2_buffer *)arg);
+> +	else if (cmd == VIDIOC_QBUF)
+> +		trace_v4l2_qbuf(vdev->minor, (struct v4l2_buffer *)arg);
+> +
+>  	return ret;
+>  }
+>  
+> diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+> new file mode 100644
+> index 0000000..1697441
+> --- /dev/null
+> +++ b/include/trace/events/v4l2.h
+> @@ -0,0 +1,48 @@
+> +#undef TRACE_SYSTEM
+> +#define TRACE_SYSTEM v4l2
+> +
+> +#if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ)
+> +#define _TRACE_V4L2_H
+> +
+> +#include <linux/tracepoint.h>
+> +
+> +TRACE_EVENT(v4l2_dqbuf,
+> +	TP_PROTO(int minor, struct v4l2_buffer *buf),
+> +
+> +	TP_ARGS(minor, buf),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(int, minor)
+> +		__field(s64, ts)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->minor = minor;
+> +		__entry->ts = timeval_to_ns(&buf->timestamp);
+> +	),
+> +
+> +	TP_printk("%d [%lld]", __entry->minor, __entry->ts)
+> +);
+> +
+> +TRACE_EVENT(v4l2_qbuf,
+> +	TP_PROTO(int minor, struct v4l2_buffer *buf),
+> +
+> +	TP_ARGS(minor, buf),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(int, minor)
+> +		__field(s64, ts)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->minor = minor;
+> +		__entry->ts = timeval_to_ns(&buf->timestamp);
+
+On both events, you're only decoding the buffer timestamp. I think you
+should also decode the other metadata there. For example, on some devices,
+the dqbuf order is different than the qbuf one. One may need to associate
+both, in order to be able to time how much time a buffer takes to be
+filled.
+
+> +	),
+> +
+> +	TP_printk("%d [%lld]", __entry->minor, __entry->ts)
+> +);
+> +
+> +#endif /* if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ) */
+> +
+> +/* This part must be outside protection */
+> +#include <trace/define_trace.h>
+
+
+-- 
+
+Cheers,
+Mauro
