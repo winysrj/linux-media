@@ -1,33 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.102]:1443
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755195Ab3JGJUW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Oct 2013 05:20:22 -0400
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:41755 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754435Ab3JaOyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Oct 2013 10:54:13 -0400
+Received: from [82.128.187.194] (helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1VbtdT-0001Od-Td
+	for linux-media@vger.kernel.org; Thu, 31 Oct 2013 16:54:11 +0200
+Message-ID: <52726F13.8050703@iki.fi>
+Date: Thu, 31 Oct 2013 16:54:11 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Congratulations !!!
-To: Recipients <office3@Offer476.onmicrosoft.com>
-From: <office3@Offer476.onmicrosoft.com>
-Date: Mon, 7 Oct 2013 14:49:52 +0530
-Reply-To: <colaclaims13@msn.com>
-Message-ID: <453a4335-bbeb-4ac8-9400-fe17114b75f1@AM3PR06MB019.eurprd06.prod.outlook.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.13] RTL2830 I2C adapter crash
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ticket Number: 7PWYZ2008
-Ballot Number: BT:12052008/20
-Draw:#1471
+It does not crash anymore as I2C routines are fixed. Anyhow, every I2C 
+adapter should have a parent. So pull it for 3.13 as enhancement.
 
-Special Notification to you,You are receiving this email because you have just been picked for a total grand prize of One Million Dollars in the top 10 winners of the Coca-Cola Consumer`s Award for the year 2013: kindly send your:
 
-Name:
-Address:
-Country:
-Phone Number:
+The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
 
-To Mr. Bruce Morgan
-via Email: colaclaims13@msn.com
-Telephone Number:+44701006909
+   [media] media: st-rc: Add ST remote control driver (2013-10-31 
+08:20:08 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git i2c_adapter_crash
+
+for you to fetch changes up to 56a885df5f6c96f8b609a2399aa71b9757271ee4:
+
+   rtl2830: add parent for I2C adapter (2013-10-31 16:50:16 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       rtl2830: add parent for I2C adapter
+
+  drivers/media/dvb-frontends/rtl2830.c | 1 +
+  1 file changed, 1 insertion(+)
+
+
+regards
+Antti
+-- 
+http://palosaari.fi/
