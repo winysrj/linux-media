@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:61656 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754635Ab3JDOUz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Oct 2013 10:20:55 -0400
-Received: by mail-la0-f45.google.com with SMTP id eh20so3259672lab.4
-        for <linux-media@vger.kernel.org>; Fri, 04 Oct 2013 07:20:54 -0700 (PDT)
-From: Valentine Barshak <valentine.barshak@cogentembedded.com>
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-sh@vger.kernel.org
-Subject: [PATCH] media: rcar_vin: Add preliminary r8a7790 support
-Date: Fri,  4 Oct 2013 18:20:52 +0400
-Message-Id: <1380896452-10687-1-git-send-email-valentine.barshak@cogentembedded.com>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:16726 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019Ab3JaLae (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Oct 2013 07:30:34 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVJ00BSL6MUM520@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Oct 2013 07:30:33 -0400 (EDT)
+Date: Thu, 31 Oct 2013 09:30:28 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org
+Subject: Re: [ANNOUNCE] Notes on the Media summit 2013-10-23
+Message-id: <20131031093028.64141431@samsung.com>
+In-reply-to: <20131031092727.51f75527@samsung.com>
+References: <20131031092727.51f75527@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Em Thu, 31 Oct 2013 09:27:27 -0200
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+ 
+> 1. Mauro Chehab: is the submaintainer arrangement working?
+> 
+> General consensus is that it is working.
+> 
+> Hans pointed that the commits ML is not working. Mauro will check what's
+> happening at LinuxTV website after returning back.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index d02a7e0..b21f777 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -105,6 +105,7 @@
- #define VIN_MAX_HEIGHT		2048
- 
- enum chip_id {
-+	RCAR_H2,
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_E1,
-@@ -300,7 +301,8 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		dmr = 0;
- 		break;
- 	case V4L2_PIX_FMT_RGB32:
--		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
-+		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
-+		    priv->chip == RCAR_E1) {
- 			dmr = VNDMR_EXRGB;
- 			break;
- 		}
-@@ -1381,6 +1383,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
- };
- 
- static struct platform_device_id rcar_vin_id_table[] = {
-+	{ "r8a7790-vin",  RCAR_H2 },
- 	{ "r8a7779-vin",  RCAR_H1 },
- 	{ "r8a7778-vin",  RCAR_M1 },
- 	{ "uPD35004-vin", RCAR_E1 },
+Fixed. The issue was due to my email change. The mailbomb script has a logic
+that checks if the patch committer is myself, in order to prevent mailbomb
+when pulling back from Linus tree.
+
+As I'm now using my email @samsung to commit patches, that logic was not
+sending emails anymore to linuxtv-commits@linuxtv.org.
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
