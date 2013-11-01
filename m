@@ -1,73 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43289 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:57956 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724Ab3KENDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+	with ESMTP id S1755794Ab3KAWlh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:37 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 16/29] [media] stv090x: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:29 -0200
-Message-Id: <1383645702-30636-17-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+Subject: [PATCH 11/11] uvc/lirc_serial: Fix some warnings on parisc arch
+Date: Fri,  1 Nov 2013 17:39:30 -0200
+Message-Id: <1383334770-27130-12-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-       drivers/media/dvb-frontends/stv090x.c:750:1: warning: 'stv090x_write_regs.constprop.6' uses dynamic stack allocation [enabled by default]
+On this arch, usec is not unsigned long. So, we need to typecast,
+in order to remove those warnings:
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 64 bytes for	the control URBs.
-
-So, it seem safe to use 64 bytes as the hard limit for all those devices.
-
- On most cases, the limit is a way lower than that, but	this limit
-is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
+	/devel/v4l/ktest-build/drivers/media/usb/uvc/uvc_video.c: In function 'uvc_video_clock_update':
+	/devel/v4l/ktest-build/drivers/media/usb/uvc/uvc_video.c:678:2: warning: format '%lu' expects argument of type 'long unsigned int', but argument 9 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c: In function 'irq_handler':
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/dvb-frontends/stv090x.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_video.c        | 2 +-
+ drivers/staging/media/lirc/lirc_serial.c | 9 ++++++---
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 56d470ad5a82..23e872f84742 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -35,6 +35,9 @@
- #include "stv090x.h"
- #include "stv090x_priv.h"
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 3394c3432011..27006811d866 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -680,7 +680,7 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 		  stream->dev->name,
+ 		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
+ 		  y, ts.tv_sec, ts.tv_nsec / NSEC_PER_USEC,
+-		  v4l2_buf->timestamp.tv_sec, v4l2_buf->timestamp.tv_usec,
++		  v4l2_buf->timestamp.tv_sec, (unsigned long)v4l2_buf->timestamp.tv_usec,
+ 		  x1, first->host_sof, first->dev_sof,
+ 		  x2, last->host_sof, last->dev_sof, y1, y2);
  
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  64
-+
- static unsigned int verbose;
- module_param(verbose, int, 0644);
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index af08e677b60f..7b3be2346b4b 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -707,7 +707,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 				pr_warn("ignoring spike: %d %d %lx %lx %lx %lx\n",
+ 					dcd, sense,
+ 					tv.tv_sec, lasttv.tv_sec,
+-					tv.tv_usec, lasttv.tv_usec);
++					(unsigned long)tv.tv_usec,
++					(unsigned long)lasttv.tv_usec);
+ 				continue;
+ 			}
  
-@@ -722,9 +725,16 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
- {
- 	const struct stv090x_config *config = state->config;
- 	int ret;
--	u8 buf[2 + count];
-+	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg i2c_msg = { .addr = config->address, .flags = 0, .buf = buf, .len = 2 + count };
- 
-+	if (2 + count > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, count);
-+		return -EINVAL;
-+	}
-+
- 	buf[0] = reg >> 8;
- 	buf[1] = reg & 0xff;
- 	memcpy(&buf[2], data, count);
+@@ -719,7 +720,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 				pr_warn("%d %d %lx %lx %lx %lx\n",
+ 					dcd, sense,
+ 					tv.tv_sec, lasttv.tv_sec,
+-					tv.tv_usec, lasttv.tv_usec);
++					(unsigned long)tv.tv_usec,
++					(unsigned long)lasttv.tv_usec);
+ 				data = PULSE_MASK;
+ 			} else if (deltv > 15) {
+ 				data = PULSE_MASK; /* really long time */
+@@ -728,7 +730,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 					pr_warn("AIEEEE: %d %d %lx %lx %lx %lx\n",
+ 						dcd, sense,
+ 						tv.tv_sec, lasttv.tv_sec,
+-						tv.tv_usec, lasttv.tv_usec);
++						(unsigned long)tv.tv_usec,
++						(unsigned long)lasttv.tv_usec);
+ 					/*
+ 					 * detecting pulse while this
+ 					 * MUST be a space!
 -- 
 1.8.3.1
 
