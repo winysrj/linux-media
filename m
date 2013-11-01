@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42803 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab3K2VzQ (ORCPT
+Received: from co9ehsobe003.messaging.microsoft.com ([207.46.163.26]:1249 "EHLO
+	co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751919Ab3KALtK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 16:55:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [GIT PULL FOR v3.14] V4L/MC link validation simplification
-Date: Fri, 29 Nov 2013 22:55:15 +0100
-Message-ID: <25664680.z7NM0RO0lR@avalon>
+	Fri, 1 Nov 2013 07:49:10 -0400
+From: Nicolin Chen <b42378@freescale.com>
+To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
+	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
+	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
+	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
+	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
+	<lgirdwood@gmail.com>, <broonie@kernel.org>,
+	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
+	<haojian.zhuang@gmail.com>
+CC: <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: [PATCH][RESEND 7/8] ASoC: davinci: use gen_pool_dma_alloc() in davinci-pcm.c
+Date: Fri, 1 Nov 2013 19:48:20 +0800
+Message-ID: <8bd26b17552315f0a3ea63c166a97a938c88dcf0.1383306365.git.b42378@freescale.com>
+In-Reply-To: <cover.1383306365.git.b42378@freescale.com>
+References: <cover.1383306365.git.b42378@freescale.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
 
-The following changes since commit fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575:
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
+---
+ sound/soc/davinci/davinci-pcm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-  [media] media: marvell-ccic: use devm to release clk (2013-11-29 14:46:47 
--0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp/must-connect
-
-for you to fetch changes up to 5487b0e119d29c2e72e6694cf77f8cc74240ace6:
-
-  omap3isp: Add resizer data rate configuration to resizer_link_validate 
-(2013-11-29 22:45:01 +0100)
-
-----------------------------------------------------------------
-Sakari Ailus (4):
-      media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
-      media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT 
-flag
-      omap3isp: Mark which pads must connect
-      omap3isp: Add resizer data rate configuration to resizer_link_validate
-
- .../DocBook/media/v4l/media-ioc-enum-links.xml          |  9 ++++
- drivers/media/media-entity.c                            | 41 +++++++++++++---
- drivers/media/platform/omap3isp/ispccdc.c               |  3 +-
- drivers/media/platform/omap3isp/ispccp2.c               |  3 +-
- drivers/media/platform/omap3isp/ispcsi2.c               |  3 +-
- drivers/media/platform/omap3isp/isppreview.c            |  3 +-
- drivers/media/platform/omap3isp/ispresizer.c            | 18 +++++++-
- drivers/media/platform/omap3isp/ispstat.c               |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c              | 60 ++--------------
- include/uapi/linux/media.h                              |  1 +
- 10 files changed, 74 insertions(+), 69 deletions(-)
-
+diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
+index 84a63c6..fa64cd8 100644
+--- a/sound/soc/davinci/davinci-pcm.c
++++ b/sound/soc/davinci/davinci-pcm.c
+@@ -267,10 +267,9 @@ static int allocate_sram(struct snd_pcm_substream *substream,
+ 		return 0;
+ 
+ 	ppcm->period_bytes_max = size;
+-	iram_virt = (void *)gen_pool_alloc(sram_pool, size);
++	iram_virt = gen_pool_dma_alloc(sram_pool, size, &iram_phys);
+ 	if (!iram_virt)
+ 		goto exit1;
+-	iram_phys = gen_pool_virt_to_phys(sram_pool, (unsigned)iram_virt);
+ 	iram_dma = kzalloc(sizeof(*iram_dma), GFP_KERNEL);
+ 	if (!iram_dma)
+ 		goto exit2;
 -- 
-Regards,
+1.8.4
 
-Laurent Pinchart
 
