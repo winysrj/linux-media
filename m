@@ -1,93 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:55865 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975Ab3KDMNj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:13:39 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVQ006XENAG0030@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Nov 2013 07:13:38 -0500 (EST)
-Date: Mon, 04 Nov 2013 10:13:34 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Maik Broemme <mbroemme@parallels.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 02/12] tda18271c2dd: Fix description of NXP TDA18271C2
- silicon tuner
-Message-id: <20131104101334.60cb4655@samsung.com>
-In-reply-to: <20131103121702.GQ7956@parallels.com>
-References: <20131103002235.GD7956@parallels.com>
- <20131103002523.GF7956@parallels.com> <20131103072726.51dd0472@samsung.com>
- <20131103121702.GQ7956@parallels.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from va3ehsobe003.messaging.microsoft.com ([216.32.180.13]:27194
+	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755557Ab3KALsf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Nov 2013 07:48:35 -0400
+From: Nicolin Chen <b42378@freescale.com>
+To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
+	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
+	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
+	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
+	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
+	<lgirdwood@gmail.com>, <broonie@kernel.org>,
+	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
+	<haojian.zhuang@gmail.com>
+CC: <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: [PATCH][RESEND 1/8] lib/genalloc: add a helper function for DMA buffer allocation
+Date: Fri, 1 Nov 2013 19:48:14 +0800
+Message-ID: <554196b707b88047dce4e300848b81cc2677578d.1383306365.git.b42378@freescale.com>
+In-Reply-To: <cover.1383306365.git.b42378@freescale.com>
+References: <cover.1383306365.git.b42378@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 03 Nov 2013 13:17:02 +0100
-Maik Broemme <mbroemme@parallels.com> escreveu:
+When using pool space for DMA buffer, there might be duplicated calling
+of gen_pool_alloc() and gen_pool_virt_to_phys() in each implementation.
 
-> Hi Mauro,
-> 
-> Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> > Em Sun, 3 Nov 2013 01:25:23 +0100
-> > Maik Broemme <mbroemme@parallels.com> escreveu:
-> > 
-> > > Added (DD) to NXP TDA18271C2 silicon tuner as this tuner was
-> > > specifically added for Digital Devices ddbridge driver.
-> > > 
-> > > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
-> > > ---
-> > >  drivers/media/dvb-frontends/Kconfig | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> > > index bddbab4..6f99eb8 100644
-> > > --- a/drivers/media/dvb-frontends/Kconfig
-> > > +++ b/drivers/media/dvb-frontends/Kconfig
-> > > @@ -48,11 +48,11 @@ config DVB_DRXK
-> > >  	  Say Y when you want to support this frontend.
-> > >  
-> > >  config DVB_TDA18271C2DD
-> > > -	tristate "NXP TDA18271C2 silicon tuner"
-> > > +	tristate "NXP TDA18271C2 silicon tuner (DD)"
-> > >  	depends on DVB_CORE && I2C
-> > >  	default m if !MEDIA_SUBDRV_AUTOSELECT
-> > >  	help
-> > > -	  NXP TDA18271 silicon tuner.
-> > > +	  NXP TDA18271 silicon tuner (Digital Devices driver).
-> > >  
-> > >  	  Say Y when you want to support this tuner.
-> > >  
-> > 
-> > The better is to use the other tda18271 driver. This one was added as a
-> > temporary alternative, as the more complete one were lacking some
-> > features, and were not working with DRX-K. Well, those got fixed already,
-> > and we now want to get rid of this duplicated driver.
-> > 
-> 
-> Agree. Probably the tda18271 will need some extensions to work with
-> ddbridge and I will see what I can do the next days to get it working.
+Thus it's better to add a simple helper function, a compatible one to
+the common dma_alloc_coherent(), to save some code.
 
-Maybe not, but feel free to propose changes there if needed.
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
+---
+ include/linux/genalloc.h |  2 ++
+ lib/genalloc.c           | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-> 
-> > Regards,
-> > Mauro
-> > -- 
-> > 
-> > Cheers,
-> > Mauro
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --Maik
-
-
+diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
+index f8d41cb..1eda33d 100644
+--- a/include/linux/genalloc.h
++++ b/include/linux/genalloc.h
+@@ -94,6 +94,8 @@ static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
+ }
+ extern void gen_pool_destroy(struct gen_pool *);
+ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
++extern void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size,
++		dma_addr_t *dma);
+ extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
+ extern void gen_pool_for_each_chunk(struct gen_pool *,
+ 	void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
+diff --git a/lib/genalloc.c b/lib/genalloc.c
+index 26cf20b..dda3116 100644
+--- a/lib/genalloc.c
++++ b/lib/genalloc.c
+@@ -313,6 +313,34 @@ retry:
+ EXPORT_SYMBOL(gen_pool_alloc);
+ 
+ /**
++ * gen_pool_dma_alloc - allocate special memory from the pool for DMA usage
++ * @pool: pool to allocate from
++ * @size: number of bytes to allocate from the pool
++ * @dma: dma-view physical address
++ *
++ * Allocate the requested number of bytes from the specified pool.
++ * Uses the pool allocation function (with first-fit algorithm by default).
++ * Can not be used in NMI handler on architectures without
++ * NMI-safe cmpxchg implementation.
++ */
++void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
++{
++	unsigned long vaddr;
++
++	if (!pool)
++		return NULL;
++
++	vaddr = gen_pool_alloc(pool, size);
++	if (!vaddr)
++		return NULL;
++
++	*dma = gen_pool_virt_to_phys(pool, vaddr);
++
++	return (void *)vaddr;
++}
++EXPORT_SYMBOL(gen_pool_dma_alloc);
++
++/**
+  * gen_pool_free - free allocated special memory back to the pool
+  * @pool: pool to free to
+  * @addr: starting address of memory to free back to pool
 -- 
+1.8.4
 
-Cheers,
-Mauro
+
