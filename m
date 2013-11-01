@@ -1,89 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43279 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:57942 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754616Ab3KENDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+	with ESMTP id S1753833Ab3KAWlc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:32 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 10/29] [media] uvc/lirc_serial: Fix some warnings on parisc arch
-Date: Tue,  5 Nov 2013 08:01:23 -0200
-Message-Id: <1383645702-30636-11-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+Subject: [PATCH 08/11] cx18: disable compilation on frv arch
+Date: Fri,  1 Nov 2013 17:39:27 -0200
+Message-Id: <1383334770-27130-9-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On this arch, usec is not unsigned long. So, we need to typecast,
-in order to remove those warnings:
-	drivers/media/usb/uvc/uvc_video.c: In function 'uvc_video_clock_update':
-	drivers/media/usb/uvc/uvc_video.c:678:2: warning: format '%lu' expects argument of type 'long unsigned int', but argument 9 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c: In function 'irq_handler':
-	drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+This driver produces a lot of errors on this arch:
+	In file included from /devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-driver.c:26:0:
+	/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-io.h: In function 'cx18_raw_readl':
+	/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-io.h:40:2: warning: passing argument 1 of '__builtin_read32' discards 'const' qualifier from pointer target type [enabled by default]
+	/devel/v4l/ktest-build/arch/frv/include/asm/mb-regs.h:24:15: note: expected 'volatile void *' but argument is of type 'const void *'
+	...
+While this is not fixed, just disable it.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/usb/uvc/uvc_video.c        | 3 ++-
- drivers/staging/media/lirc/lirc_serial.c | 9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/media/pci/cx18/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 3394c3432011..899cb6d1c4a4 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -680,7 +680,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- 		  stream->dev->name,
- 		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
- 		  y, ts.tv_sec, ts.tv_nsec / NSEC_PER_USEC,
--		  v4l2_buf->timestamp.tv_sec, v4l2_buf->timestamp.tv_usec,
-+		  v4l2_buf->timestamp.tv_sec,
-+		  (unsigned long)v4l2_buf->timestamp.tv_usec,
- 		  x1, first->host_sof, first->dev_sof,
- 		  x2, last->host_sof, last->dev_sof, y1, y2);
- 
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-index af08e677b60f..7b3be2346b4b 100644
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ b/drivers/staging/media/lirc/lirc_serial.c
-@@ -707,7 +707,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 				pr_warn("ignoring spike: %d %d %lx %lx %lx %lx\n",
- 					dcd, sense,
- 					tv.tv_sec, lasttv.tv_sec,
--					tv.tv_usec, lasttv.tv_usec);
-+					(unsigned long)tv.tv_usec,
-+					(unsigned long)lasttv.tv_usec);
- 				continue;
- 			}
- 
-@@ -719,7 +720,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 				pr_warn("%d %d %lx %lx %lx %lx\n",
- 					dcd, sense,
- 					tv.tv_sec, lasttv.tv_sec,
--					tv.tv_usec, lasttv.tv_usec);
-+					(unsigned long)tv.tv_usec,
-+					(unsigned long)lasttv.tv_usec);
- 				data = PULSE_MASK;
- 			} else if (deltv > 15) {
- 				data = PULSE_MASK; /* really long time */
-@@ -728,7 +730,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 					pr_warn("AIEEEE: %d %d %lx %lx %lx %lx\n",
- 						dcd, sense,
- 						tv.tv_sec, lasttv.tv_sec,
--						tv.tv_usec, lasttv.tv_usec);
-+						(unsigned long)tv.tv_usec,
-+						(unsigned long)lasttv.tv_usec);
- 					/*
- 					 * detecting pulse while this
- 					 * MUST be a space!
+diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
+index c675b83c43a9..10e6bc72c460 100644
+--- a/drivers/media/pci/cx18/Kconfig
++++ b/drivers/media/pci/cx18/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_CX18
+ 	tristate "Conexant cx23418 MPEG encoder support"
+ 	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
++	depends on !FRV
+ 	select I2C_ALGOBIT
+ 	select VIDEOBUF_VMALLOC
+ 	depends on RC_CORE
 -- 
 1.8.3.1
 
