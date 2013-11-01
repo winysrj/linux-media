@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51394 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113Ab3KDKEK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:04:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-vb0-f48.google.com ([209.85.212.48]:62299 "EHLO
+	mail-vb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752808Ab3KAQ0Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 12:26:24 -0400
+Received: by mail-vb0-f48.google.com with SMTP id o19so2986030vbm.35
+        for <linux-media@vger.kernel.org>; Fri, 01 Nov 2013 09:26:23 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 1 Nov 2013 19:26:23 +0300
+Message-ID: <CAPWx8vs3wzB4SAOxfAJ3fP2sdjctPUE18BT_kZe3ZrBnG_KREA@mail.gmail.com>
+Subject: Initial Tuning Data for Uganda
+From: Joseph Zik <josephzik@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 20/18] v4l: omap4iss: Translate -ENOIOCTLCMD to -ENOTTY
-Date: Mon,  4 Nov 2013 11:04:35 +0100
-Message-Id: <1383559475-9923-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/mixed; boundary=20cf30780db0f36c5404ea2006eb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Translating -ENOIOCTLCMD to -EINVAL is invalid, the correct ioctl return
-value is -ENOTTY.
+--20cf30780db0f36c5404ea2006eb
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss_video.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Hello all,
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 0cb5820..63419b3 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -571,7 +571,7 @@ iss_video_cropcap(struct file *file, void *fh, struct v4l2_cropcap *cropcap)
- 	ret = v4l2_subdev_call(subdev, video, cropcap, cropcap);
- 	mutex_unlock(&video->mutex);
- 
--	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-+	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
- }
- 
- static int
-@@ -598,7 +598,7 @@ iss_video_get_crop(struct file *file, void *fh, struct v4l2_crop *crop)
- 	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &format);
- 	if (ret < 0)
--		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-+		return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
- 
- 	crop->c.left = 0;
- 	crop->c.top = 0;
-@@ -623,7 +623,7 @@ iss_video_set_crop(struct file *file, void *fh, const struct v4l2_crop *crop)
- 	ret = v4l2_subdev_call(subdev, video, s_crop, crop);
- 	mutex_unlock(&video->mutex);
- 
--	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-+	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
- }
- 
- static int
+I wanted to contribute to dvb-apps package with initial DVB-T tuning
+data for Uganda, Africa
+
+Attached is the scan file.  Please let me know, if there's any other
+info I can provide.
+
+Thank you
+
 -- 
-1.8.1.5
+Joseph Zik
 
+--20cf30780db0f36c5404ea2006eb
+Content-Type: application/octet-stream; name=auto-Uganda
+Content-Disposition: attachment; filename=auto-Uganda
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file1
+
+Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
+d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
+CiMhIDx3X3NjYW4+IDIwMTMwMzMxIDEgMCBURVJSRVNUUklBTCBVRyA8L3dfc2Nhbj4KIy0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQojIGxvY2F0aW9uIGFuZCBwcm92aWRlcgk6IEthbXBhbGEtVWdhbmRh
+CiMgZGF0ZQkJCTogMjAxMy0xMS0wMQojIHByb3ZpZGVkIGJ5CQk6IEpvc2VwaCBaaWt1c29va2EK
+IyAJICAgICAgICAgICAgICAgCTogaHR0cDovL2pvc2VwaC56aWt1c29va2EuY29tCiMgCSAgICAg
+ICAgICAgICAgIAk6IGpvc2VwaEB6aWt1c29va2EuY29tCiMKIyBUWzJdIFtwbHBfaWRdIFtzeXN0
+ZW1faWRdIDxmcmVxPiA8Ync+IDxmZWNfaGk+IDxmZWNfbG8+IDxtb2Q+IDx0bT4gPGd1YXJkPiA8
+aGk+IFsjIGNvbW1lbnRdCiMtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVCA0NzQwMDAwMDAgOE1IeiAg
+Mi8zIE5PTkUgICAgIFFQU0sgICA4ayAgMS80IE5PTkUJIyBVQ0MgUHJpbWFyeQpUMiAxIDEgNTM4
+MDAwMDAwIDhNSHogQVVUTyBBVVRPICAgICBBVVRPICAzMmsgMS8xNiBBVVRPClQyIDkgMSA1ODYw
+MDAwMDAgOE1IeiBBVVRPIEFVVE8gICAgIEFVVE8gIDMyayAxLzE2IEFVVE8K
+--20cf30780db0f36c5404ea2006eb--
