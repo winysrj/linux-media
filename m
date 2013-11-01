@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:42372 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757954Ab3KHWRi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 17:17:38 -0500
-Message-ID: <527D62FC.3010001@gmail.com>
-Date: Fri, 08 Nov 2013 23:17:32 +0100
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:35140 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750751Ab3KAKxh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 06:53:37 -0400
+Received: by mail-ea0-f174.google.com with SMTP id z15so1969653ead.5
+        for <linux-media@vger.kernel.org>; Fri, 01 Nov 2013 03:53:36 -0700 (PDT)
+Message-ID: <5273882D.4000908@gmail.com>
+Date: Fri, 01 Nov 2013 11:53:33 +0100
 From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	kernel-janitors@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [patch] [media] exynos4-is: cleanup a define
-References: <20131108095224.GJ27977@elgon.mountain>
-In-Reply-To: <20131108095224.GJ27977@elgon.mountain>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.13 v2] s5p/exynos driver updates
+References: <52653459.4000609@samsung.com>
+In-Reply-To: <52653459.4000609@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-(dropping some unrelated e-mail addresses from Cc)
-
-On 11/08/2013 10:52 AM, Dan Carpenter wrote:
-> This define is only used in s5pcsis_irq_handler():
+On 10/21/2013 04:04 PM, Sylwester Nawrocki wrote:
+> Hi Mauro,
 >
-> 	if ((status&  S5PCSIS_INTSRC_NON_IMAGE_DATA)&&  pktbuf->data) {
+> This is an updated version with one more patch added.
 >
-> The problem is that "status" is a 32 bit and (0xff<<  28) is larger than
-> 32 bits and that sets off a static checker warning.  I consulted with
-> Sylwester Nawrocki and the define should actually be (0xf<<  28).
+> Patches included here are mostly s5p/exynos driver cleanups and fixes;
+> an addition of the v4l2-m2m ioctl helper functions and device tree support
+> for the exynos4 camera subsystem driver and s5k6a3, s5c73m3 sensors.
 >
-> Signed-off-by: Dan Carpenter<dan.carpenter@oracle.com>
+> The following changes since commit 8ca5d2d8e58df7235b77ed435e63c484e123fede:
+>
+>    [media] uvcvideo: Fix data type for pan/tilt control (2013-10-17 06:55:29 -0300)
+>
+> are available in the git repository at:
+>
+>    git://linuxtv.org/snawrocki/samsung.git for-v3.13-1
 
-Thanks for the fix, patch added to my tree for v3.14.
+Mauro,
 
-> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-> index 9fc2af6..31dfc50 100644
-> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -91,7 +91,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
->   #define S5PCSIS_INTSRC_ODD_BEFORE	(1<<  29)
->   #define S5PCSIS_INTSRC_ODD_AFTER	(1<<  28)
->   #define S5PCSIS_INTSRC_ODD		(0x3<<  28)
-> -#define S5PCSIS_INTSRC_NON_IMAGE_DATA	(0xff<<  28)
-> +#define S5PCSIS_INTSRC_NON_IMAGE_DATA	(0xf<<  28)
->   #define S5PCSIS_INTSRC_FRAME_START	(1<<  27)
->   #define S5PCSIS_INTSRC_FRAME_END	(1<<  26)
->   #define S5PCSIS_INTSRC_ERR_SOT_HS	(0xf<<  12)
+just wanted to mention that this pull request doesn't depend on my other
+one https://patchwork.linuxtv.org/patch/20457 .
 
---
+
+> for you to fetch changes up to aa9a5054cc14b947094eeda4787433fc646239e3:
+>
+>    exynos4-is: Simplify fimc-is hardware polling helpers (2013-10-21 15:56:42 +0200)
+
 Regards,
 Sylwester
