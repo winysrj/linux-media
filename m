@@ -1,52 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f49.google.com ([209.85.128.49]:49903 "EHLO
-	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab3KEWPt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 17:15:49 -0500
-Received: by mail-qe0-f49.google.com with SMTP id a11so5478642qen.36
-        for <linux-media@vger.kernel.org>; Tue, 05 Nov 2013 14:15:49 -0800 (PST)
-Date: Tue, 5 Nov 2013 19:08:56 -0300
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] SOLO6x10: Remove unused #define SOLO_DEFAULT_GOP
-Message-ID: <20131105190856.6dd7e233@pirotess.bifrost.iodev.co.uk>
-In-Reply-To: <m361u6b4zd.fsf@t19.piap.pl>
-References: <m361u6b4zd.fsf@t19.piap.pl>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/N1=hu1Hs2kf=ytxX1bZclOg"; protocol="application/pgp-signature"
+Received: from mail.kapsi.fi ([217.30.184.167]:33221 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751785Ab3KAULj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Nov 2013 16:11:39 -0400
+Message-ID: <52740AFA.2090704@iki.fi>
+Date: Fri, 01 Nov 2013 22:11:38 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@narod.ru>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxd2820r_c: Fix if_ctl calculation
+References: <527409DE.4010606@narod.ru>
+In-Reply-To: <527409DE.4010606@narod.ru>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/N1=hu1Hs2kf=ytxX1bZclOg
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+$ wget --no-check-certificate -O - 
+https://patchwork.linuxtv.org/patch/20516/mbox/ | git am -s
+--2013-11-01 22:10:30--  https://patchwork.linuxtv.org/patch/20516/mbox/
+Resolving patchwork.linuxtv.org (patchwork.linuxtv.org)... 130.149.80.248
+Connecting to patchwork.linuxtv.org 
+(patchwork.linuxtv.org)|130.149.80.248|:443... connected.
+WARNING: cannot verify patchwork.linuxtv.org's certificate, issued by 
+‘/C=XX/ST=There is no such thing outside 
+US/L=Everywhere/O=OCOSA/OU=Office for Complication of Otherwise Simple 
+Affairs/CN=www.linuxtv.org/emailAddress=root@www.linuxtv.org’:
+   Self-signed certificate encountered.
+     WARNING: certificate common name ‘www.linuxtv.org’ doesn't match 
+requested host name ‘patchwork.linuxtv.org’.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/plain]
+Saving to: ‘STDOUT’
 
-On Thu, 12 Sep 2013 14:26:46 +0200
-khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
-> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
->=20
+     [ <=> 
+ 
+        ] 1 218       --.-K/s   in 0s
 
-Acked-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+2013-11-01 22:10:30 (8,89 MB/s) - written to stdout [1218]
 
-<...>
+Applying: cxd2820r_c: Fix if_ctl calculation
+error: patch failed: drivers/media/dvb-frontends/cxd2820r_c.c:78
+error: drivers/media/dvb-frontends/cxd2820r_c.c: patch does not apply
+Patch failed at 0001 cxd2820r_c: Fix if_ctl calculation
+The copy of the patch that failed is found in:
+    /home/crope/linuxtv/code/linux/.git/rebase-apply/patch
+When you have resolved this problem, run "git am --continue".
+If you prefer to skip this patch, run "git am --skip" instead.
+To restore the original branch and stop patching, run "git am --abort".
 
---Sig_/N1=hu1Hs2kf=ytxX1bZclOg
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+On 01.11.2013 22:06, CrazyCat wrote:
+> Fix tune for DVB-C.
+>
+> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+> diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c
+> b/drivers/media/dvb-frontends/cxd2820r_c.c
+> index 125a440..5c6ab49 100644
+> --- a/drivers/media/dvb-frontends/cxd2820r_c.c
+> +++ b/drivers/media/dvb-frontends/cxd2820r_c.c
+> @@ -78,7 +78,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
+>
+>       num = if_freq / 1000; /* Hz => kHz */
+>       num *= 0x4000;
+> -    if_ctl = cxd2820r_div_u64_round_closest(num, 41000);
+> +    if_ctl = 0x4000 - cxd2820r_div_u64_round_closest(num, 41000);
+>       buf[0] = (if_ctl >> 8) & 0x3f;
+>       buf[1] = (if_ctl >> 0) & 0xff;
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-iQEcBAEBAgAGBQJSeWx4AAoJEBrCLcBAAV+G33kIALRrKXrW0GwyOORoxnjlUdD3
-ffBKv1cNn/LUPx3FBvCpN1OpLriVHh79LzCOKVw8trugazAy/6DJaeG94gKbrY5I
-Ie31NKDJWhZgVQVjtQ1zQHmICfhOB8cKsR0o2US3jQOQoe5h9G9i1/LmwCE6cfP0
-HiLiqgPw8S32H0Pd+RA3D5I0cwXMsIzPFs5oMNHVdiMZUyXKXWVASC8bVF91X7PE
-pvOyIkatYoMQcOvxXfBo63dQHXZyOq+638t22S3YmYHr7mCj1S2oojaUUME8V8dC
-py0UT3K9I7e0fayQBTXORIPmCKTPlP4QTg8RfB0pqDQGc5xsEvTL2wl23hiZDWQ=
-=PU55
------END PGP SIGNATURE-----
 
---Sig_/N1=hu1Hs2kf=ytxX1bZclOg--
+-- 
+http://palosaari.fi/
