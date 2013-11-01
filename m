@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:39852 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932092Ab3KFOkY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:40:24 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2] ths7303: Declare as static a private function
-Date: Wed,  6 Nov 2013 15:40:18 +0100
-Message-Id: <1383748818-22487-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from forward9l.mail.yandex.net ([84.201.143.142]:36216 "EHLO
+	forward9l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab3KAThs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 15:37:48 -0400
+Received: from smtp1h.mail.yandex.net (smtp1h.mail.yandex.net [84.201.187.144])
+	by forward9l.mail.yandex.net (Yandex) with ESMTP id 5BA8EE60C37
+	for <linux-media@vger.kernel.org>; Fri,  1 Nov 2013 23:31:16 +0400 (MSK)
+Received: from smtp1h.mail.yandex.net (localhost [127.0.0.1])
+	by smtp1h.mail.yandex.net (Yandex) with ESMTP id 1B6491340266
+	for <linux-media@vger.kernel.org>; Fri,  1 Nov 2013 23:31:15 +0400 (MSK)
+Message-ID: <5274017D.9050204@narod.ru>
+Date: Fri, 01 Nov 2013 21:31:09 +0200
+From: CrazyCat <crazycat69@narod.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: [PATCH] tda18271-fe: Fix dvb-c standard selection
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-git grep shows that the function is only called from ths7303.c
+Fix dvb-c standard selection - qam8 for ANNEX_AC
 
-Fix this build warning:
-
-CC      drivers/media/i2c/ths7303.o
-drivers/media/i2c/ths7303.c:86:5: warning: no previous prototype for  ‘ths7303_setval’ [-Wmissing-prototypes]
-   int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
-        ^
-
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-v2: Comment by Laurent Pinchart
-Align parameters
-
- drivers/media/i2c/ths7303.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-index 42276d9..ed9ae88 100644
---- a/drivers/media/i2c/ths7303.c
-+++ b/drivers/media/i2c/ths7303.c
-@@ -83,7 +83,8 @@ static int ths7303_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- }
- 
- /* following function is used to set ths7303 */
--int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
-+static int ths7303_setval(struct v4l2_subdev *sd,
-+			  enum ths7303_filter_mode mode)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ths7303_state *state = to_state(sd);
--- 
-1.8.4.rc3
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/tuners/tda18271-fe.c 
+b/drivers/media/tuners/tda18271-fe.c
+index 4995b89..6a385c8 100644
+--- a/drivers/media/tuners/tda18271-fe.c
++++ b/drivers/media/tuners/tda18271-fe.c
+@@ -960,16 +960,12 @@ static int tda18271_set_params(struct dvb_frontend 
+*fe)
+          break;
+      case SYS_DVBC_ANNEX_B:
+          bw = 6000000;
+-        /* falltrough */
++        map = &std_map->qam_6;
++        break;
+      case SYS_DVBC_ANNEX_A:
+      case SYS_DVBC_ANNEX_C:
+-        if (bw <= 6000000) {
+-            map = &std_map->qam_6;
+-        } else if (bw <= 7000000) {
+-            map = &std_map->qam_7;
+-        } else {
+-            map = &std_map->qam_8;
+-        }
++        bw = 8000000;
++        map = &std_map->qam_8;
+          break;
+      default:
+          tda_warn("modulation type not supported!\n");
 
