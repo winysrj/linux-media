@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46598 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757264Ab3KZQGv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 11:06:51 -0500
-Received: from avalon.localnet (unknown [109.134.93.159])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 42E5235A49
-	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 17:06:06 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.14] OMAP3 ISP fix
-Date: Tue, 26 Nov 2013 17:06:53 +0100
-Message-ID: <20681285.3SfEVTvYXU@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:57948 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394Ab3KAWld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:33 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 01/11] tda9887: remove an warning when compiling for alpha
+Date: Fri,  1 Nov 2013 17:39:20 -0200
+Message-Id: <1383334770-27130-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+There's no need to zero the buffer, as if the routine gets an error,
+rc will be different than one.
 
-The following changes since commit 258d2fbf874c87830664cb7ef41f9741c1abffac:
+That fixes the following warning:
+	/devel/v4l/ktest-build/drivers/media/tuners/tda9887.c: In function 'tda9887_status':
+	/devel/v4l/ktest-build/drivers/media/tuners/tda9887.c:539:2: warning: value computed is not used [-Wunused-value]
 
-  Merge tag 'v3.13-rc1' into patchwork (2013-11-25 05:57:23 -0200)
+While here, fix the coding style on this function.
 
-are available in the git repository at:
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/tuners/tda9887.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to 11b1ea50ce6589cf532761ffce79bbcda17f8c3e:
-
-  v4l: omap3isp: Don't check for missing get_fmt op on remote subdev 
-(2013-11-26 17:04:34 +0100)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: omap3isp: Don't check for missing get_fmt op on remote subdev
-
- drivers/media/platform/omap3isp/ispvideo.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/media/tuners/tda9887.c b/drivers/media/tuners/tda9887.c
+index 300005c535ba..9823248d743f 100644
+--- a/drivers/media/tuners/tda9887.c
++++ b/drivers/media/tuners/tda9887.c
+@@ -536,8 +536,8 @@ static int tda9887_status(struct dvb_frontend *fe)
+ 	unsigned char buf[1];
+ 	int rc;
+ 
+-	memset(buf,0,sizeof(buf));
+-	if (1 != (rc = tuner_i2c_xfer_recv(&priv->i2c_props,buf,1)))
++	rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, 1);
++	if (rc != 1)
+ 		tuner_info("i2c i/o error: rc == %d (should be 1)\n", rc);
+ 	dump_read_message(fe, buf);
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
