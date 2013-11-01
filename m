@@ -1,34 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55277 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751626Ab3KON5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:57:01 -0500
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <19084.1384522337@warthog.procyon.org.uk>
-References: <19084.1384522337@warthog.procyon.org.uk> <52861C55.6050307@iki.fi> <20271.1384472102@warthog.procyon.org.uk> <28089.1384515232@warthog.procyon.org.uk>
-To: Antti Palosaari <crope@iki.fi>
-Cc: dhowells@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Jarkko Korpi <jarkko_korpi@hotmail.com>
-Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103 driver
-Date: Fri, 15 Nov 2013 13:56:29 +0000
-Message-ID: <19278.1384523789@warthog.procyon.org.uk>
+Received: from mail-db8lp0189.outbound.messaging.microsoft.com ([213.199.154.189]:51298
+	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab3KALhH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Nov 2013 07:37:07 -0400
+From: Nicolin Chen <b42378@freescale.com>
+To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
+	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
+	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
+	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
+	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
+	<lgirdwood@gmail.com>, <broonie@kernel.org>,
+	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
+	<haojian.zhuang@gmail.com>
+CC: <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: [PATCH 8/8] ASoC: pxa: use gen_pool_dma_alloc() to allocate dma buffer
+Date: Fri, 1 Nov 2013 19:36:06 +0800
+Message-ID: <290c4ed99f88c1d07544bf5f8f0c9a1d09395bed.1383303752.git.b42378@freescale.com>
+In-Reply-To: <cover.1383303752.git.b42378@freescale.com>
+References: <cover.1383303752.git.b42378@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Howells <dhowells@redhat.com> wrote:
+Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
 
-> I guess I need to check the tuner writes too.
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
+---
+ sound/soc/pxa/mmp-pcm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
->From dvbsky:
+diff --git a/sound/soc/pxa/mmp-pcm.c b/sound/soc/pxa/mmp-pcm.c
+index 8235e23..7929e19 100644
+--- a/sound/soc/pxa/mmp-pcm.c
++++ b/sound/soc/pxa/mmp-pcm.c
+@@ -201,10 +201,9 @@ static int mmp_pcm_preallocate_dma_buffer(struct snd_pcm_substream *substream,
+ 	if (!gpool)
+ 		return -ENOMEM;
+ 
+-	buf->area = (unsigned char *)gen_pool_alloc(gpool, size);
++	buf->area = gen_pool_dma_alloc(gpool, size, &buf->addr);
+ 	if (!buf->area)
+ 		return -ENOMEM;
+-	buf->addr = gen_pool_virt_to_phys(gpool, (unsigned long)buf->area);
+ 	buf->bytes = size;
+ 	return 0;
+ }
+-- 
+1.8.4
 
-	TUNER_write(10, [0a])
-	TUNER_write(11, [40])
 
-and from your driver:
-
-	TUNER_write(10, [0b40])
-
-That would appear to be some sort of tuner frequency setting?
-
-David
