@@ -1,124 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52821 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189Ab3KDOV6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 09:21:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv2 11/29] uvc/lirc_serial: Fix some warnings on parisc arch
-Date: Mon, 04 Nov 2013 15:22:26 +0100
-Message-ID: <2429755.EyGbY6tqJF@avalon>
-In-Reply-To: <1383399097-11615-12-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-12-git-send-email-m.chehab@samsung.com>
+Received: from co9ehsobe005.messaging.microsoft.com ([207.46.163.28]:35588
+	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab3KALhB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Nov 2013 07:37:01 -0400
+From: Nicolin Chen <b42378@freescale.com>
+To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
+	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
+	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
+	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
+	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
+	<lgirdwood@gmail.com>, <broonie@kernel.org>,
+	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
+	<haojian.zhuang@gmail.com>
+CC: <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: [PATCH 7/8] ASoC: davinci: use gen_pool_dma_alloc() in davinci-pcm.c
+Date: Fri, 1 Nov 2013 19:36:05 +0800
+Message-ID: <8bd26b17552315f0a3ea63c166a97a938c88dcf0.1383303752.git.b42378@freescale.com>
+In-Reply-To: <cover.1383303752.git.b42378@freescale.com>
+References: <cover.1383303752.git.b42378@freescale.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
 
-Thank you for the patch.
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
+---
+ sound/soc/davinci/davinci-pcm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-On Saturday 02 November 2013 11:31:19 Mauro Carvalho Chehab wrote:
-> On this arch, usec is not unsigned long. So, we need to typecast,
-> in order to remove those warnings:
-> 
-> 	drivers/media/usb/uvc/uvc_video.c: In function 'uvc_video_clock_update':
-> 	drivers/media/usb/uvc/uvc_video.c:678:2: warning: format '%lu' expects
-> argument of type 'long unsigned int', but argument 9 has type
-> '__kernel_suseconds_t' [-Wformat] drivers/staging/media/lirc/lirc_serial.c:
-> In function 'irq_handler': drivers/staging/media/lirc/lirc_serial.c:707:5:
-> warning: format '%lx' expects argument of type 'long unsigned int', but
-> argument 6 has type '__kernel_suseconds_t' [-Wformat]
-> drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx'
-> expects argument of type 'long unsigned int', but argument 7 has type
-> '__kernel_suseconds_t' [-Wformat]
-> drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx'
-> expects argument of type 'long unsigned int', but argument 6 has type
-> '__kernel_suseconds_t' [-Wformat]
-> drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx'
-> expects argument of type 'long unsigned int', but argument 7 has type
-> '__kernel_suseconds_t' [-Wformat]
-> drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx'
-> expects argument of type 'long unsigned int', but argument 6 has type
-> '__kernel_suseconds_t' [-Wformat]
-> drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx'
-> expects argument of type 'long unsigned int', but argument 7 has type
-> '__kernel_suseconds_t' [-Wformat]
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I don't like this much, but I guess we won't get parisc to switch 
-__kernel_suseconds from int to unsigned long any time soon. So,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-By the way, what about defining a macro similar to the PRI* macros (from 
-inttypes.h) for kernel types ? We could then get rid of the cast.
-
-I expect you to apply the patch directly to your tree, please let me know if I 
-should take it in mine instead.
-
-> ---
->  drivers/media/usb/uvc/uvc_video.c        | 3 ++-
->  drivers/staging/media/lirc/lirc_serial.c | 9 ++++++---
->  2 files changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 3394c3432011..899cb6d1c4a4 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -680,7 +680,8 @@ void uvc_video_clock_update(struct uvc_streaming
-> *stream, stream->dev->name,
->  		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
->  		  y, ts.tv_sec, ts.tv_nsec / NSEC_PER_USEC,
-> -		  v4l2_buf->timestamp.tv_sec, v4l2_buf->timestamp.tv_usec,
-> +		  v4l2_buf->timestamp.tv_sec,
-> +		  (unsigned long)v4l2_buf->timestamp.tv_usec,
->  		  x1, first->host_sof, first->dev_sof,
->  		  x2, last->host_sof, last->dev_sof, y1, y2);
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_serial.c
-> b/drivers/staging/media/lirc/lirc_serial.c index af08e677b60f..7b3be2346b4b
-> 100644
-> --- a/drivers/staging/media/lirc/lirc_serial.c
-> +++ b/drivers/staging/media/lirc/lirc_serial.c
-> @@ -707,7 +707,8 @@ static irqreturn_t irq_handler(int i, void *blah)
->  				pr_warn("ignoring spike: %d %d %lx %lx %lx %lx\n",
->  					dcd, sense,
->  					tv.tv_sec, lasttv.tv_sec,
-> -					tv.tv_usec, lasttv.tv_usec);
-> +					(unsigned long)tv.tv_usec,
-> +					(unsigned long)lasttv.tv_usec);
->  				continue;
->  			}
-> 
-> @@ -719,7 +720,8 @@ static irqreturn_t irq_handler(int i, void *blah)
->  				pr_warn("%d %d %lx %lx %lx %lx\n",
->  					dcd, sense,
->  					tv.tv_sec, lasttv.tv_sec,
-> -					tv.tv_usec, lasttv.tv_usec);
-> +					(unsigned long)tv.tv_usec,
-> +					(unsigned long)lasttv.tv_usec);
->  				data = PULSE_MASK;
->  			} else if (deltv > 15) {
->  				data = PULSE_MASK; /* really long time */
-> @@ -728,7 +730,8 @@ static irqreturn_t irq_handler(int i, void *blah)
->  					pr_warn("AIEEEE: %d %d %lx %lx %lx %lx\n",
->  						dcd, sense,
->  						tv.tv_sec, lasttv.tv_sec,
-> -						tv.tv_usec, lasttv.tv_usec);
-> +						(unsigned long)tv.tv_usec,
-> +						(unsigned long)lasttv.tv_usec);
->  					/*
->  					 * detecting pulse while this
->  					 * MUST be a space!
+diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
+index 84a63c6..fa64cd8 100644
+--- a/sound/soc/davinci/davinci-pcm.c
++++ b/sound/soc/davinci/davinci-pcm.c
+@@ -267,10 +267,9 @@ static int allocate_sram(struct snd_pcm_substream *substream,
+ 		return 0;
+ 
+ 	ppcm->period_bytes_max = size;
+-	iram_virt = (void *)gen_pool_alloc(sram_pool, size);
++	iram_virt = gen_pool_dma_alloc(sram_pool, size, &iram_phys);
+ 	if (!iram_virt)
+ 		goto exit1;
+-	iram_phys = gen_pool_virt_to_phys(sram_pool, (unsigned)iram_virt);
+ 	iram_dma = kzalloc(sizeof(*iram_dma), GFP_KERNEL);
+ 	if (!iram_dma)
+ 		goto exit2;
 -- 
-Regards,
+1.8.4
 
-Laurent Pinchart
 
