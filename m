@@ -1,86 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3489 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab3K2I7K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 03:59:10 -0500
-Message-ID: <52985752.3080605@xs4all.nl>
-Date: Fri, 29 Nov 2013 09:58:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from userp1040.oracle.com ([156.151.31.81]:20820 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753420Ab3KAK20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 06:28:26 -0400
+Date: Fri, 1 Nov 2013 13:25:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] cx23885-dvb: use a better approach to hook set_frontend
+Message-ID: <20131101102522.GF29795@longonot.mountain>
 MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-CC: linux-media@vger.kernel.org, sw0312.kim@samsung.com,
-	andrzej.p@samsung.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH v2 00/16] Add support for Exynox4x12 to the s5p-jpeg driver
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-In-Reply-To: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hello Mauro Carvalho Chehab,
 
-For this patch series:
+The patch 15472faf1259: "[media] cx23885-dvb: use a better approach
+to hook set_frontend" from Aug 9, 2013, leads to the following
+warning:
+"drivers/media/pci/cx23885/cx23885-dvb.c:795 dvb_register()
+	 error: we previously assumed 'fe0->dvb.frontend' could be null (see line 789)"
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+drivers/media/pci/cx23885/cx23885-dvb.c
+   789                  if (fe0->dvb.frontend != NULL) {
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+Null check.
 
-Regards,
+   790                          dvb_attach(tda18271_attach, fe0->dvb.frontend,
+   791                                     0x60, &dev->i2c_bus[1].i2c_adap,
+   792                                     &hauppauge_hvr127x_config);
+   793                  }
+   794                  if (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1275)
+   795                          cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+                                                                ^^^^^^^^^^^^^^^^^
+New unchecked dereference.
 
-	Hans
+   796                  break;
 
-On 11/25/2013 10:58 AM, Jacek Anaszewski wrote:
-> This is the second version of the series that adds support for the
-> Exynos4x12 device to the s5p_jpeg driver along with accompanying
-> fixes. It contains following improvements
-> (Hans, Sylwester thanks for the review):
-> 
-> - moved adjusting chroma subsampling control value from s_ctrl
->   to try_ctrl callback and switched from using v4l2_s_ctrl to
->   v4l2_ctrl_s_ctrl
-> - avoided big switch statement in favour of lookup tables
->   for adjusting capture queue fourcc during decoding phase
-> - avoided unnecessary displacement of clk_get call in the probe function
-> - renamed decoded_subsampling_to_v4l2 to s5p_jpeg_to_user_subsampling
-> - added freeing ctrl_handler when v4l2_ctrl_handler_setup fails
-> - calling s5p_jpeg_runtime_suspend and s5p_jpeg_runtime_resume
->   only when pm_runtime_suspended returns false
-> 
-> Thanks,
-> Jacek Anaszewski
-> 
-> Jacek Anaszewski (16):
->   s5p-jpeg: Reorder quantization tables
->   s5p-jpeg: Fix output YUV 4:2:0 fourcc for decoder
->   s5p-jpeg: Fix erroneous condition while validating bytesperline value
->   s5p-jpeg: Remove superfluous call to the jpeg_bound_align_image
->     function
->   s5p-jpeg: Rename functions specific to the S5PC210 SoC accordingly
->   s5p-jpeg: Fix clock resource management
->   s5p-jpeg: Fix lack of spin_lock protection
->   s5p-jpeg: Synchronize cached controls with V4L2 core
->   s5p-jpeg: Split jpeg-hw.h to jpeg-hw-s5p.c and jpeg-hw-s5p.c
->   s5p-jpeg: Add hardware API for the exynos4x12 JPEG codec.
->   s5p-jpeg: Retrieve "YCbCr subsampling" field from the jpeg header
->   s5p-jpeg: Ensure correct capture format for Exynos4x12
->   s5p-jpeg: Allow for wider JPEG subsampling scope for Exynos4x12
->     encoder
->   s5p-jpeg: Synchronize V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value
->   s5p-jpeg: Ensure setting correct value of the chroma subsampling
->     control
->   s5p-jpeg: Adjust g_volatile_ctrl callback to Exynos4x12 needs
-> 
->  drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
->  drivers/media/platform/s5p-jpeg/jpeg-core.c        | 1089 ++++++++++++++++----
->  drivers/media/platform/s5p-jpeg/jpeg-core.h        |   75 +-
->  drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.c   |  293 ++++++
->  drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.h   |   44 +
->  .../platform/s5p-jpeg/{jpeg-hw.h => jpeg-hw-s5p.c} |   82 +-
->  drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h      |   63 ++
->  drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  215 +++-
->  8 files changed, 1614 insertions(+), 249 deletions(-)
->  create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.c
->  create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.h
->  rename drivers/media/platform/s5p-jpeg/{jpeg-hw.h => jpeg-hw-s5p.c} (71%)
->  create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-> 
+[snip]
+
+  1138          case CX23885_BOARD_MYGICA_X8506:
+  1139                  i2c_bus = &dev->i2c_bus[0];
+  1140                  i2c_bus2 = &dev->i2c_bus[1];
+  1141                  fe0->dvb.frontend = dvb_attach(lgs8gxx_attach,
+  1142                          &mygica_x8506_lgs8gl5_config,
+  1143                          &i2c_bus->i2c_adap);
+  1144                  if (fe0->dvb.frontend != NULL) {
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+check.
+
+  1145                          dvb_attach(xc5000_attach,
+  1146                                  fe0->dvb.frontend,
+  1147                                  &i2c_bus2->i2c_adap,
+  1148                                  &mygica_x8506_xc5000_config);
+  1149                  }
+  1150                  cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+                                                        ^^^^^^^^^^^^^^^^^
+Dereference.
+  1151                  break;
+
+
+regards,
+dan carpenter
+
