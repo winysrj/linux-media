@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43269 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753957Ab3KENDs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:48 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 02/29] [media] radio-shark: remove a warning when CONFIG_PM is not defined
-Date: Tue,  5 Nov 2013 08:01:15 -0200
-Message-Id: <1383645702-30636-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-db8lp0188.outbound.messaging.microsoft.com ([213.199.154.188]:13232
+	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab3KALgu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Nov 2013 07:36:50 -0400
+From: Nicolin Chen <b42378@freescale.com>
+To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
+	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
+	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
+	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
+	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
+	<lgirdwood@gmail.com>, <broonie@kernel.org>,
+	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
+	<haojian.zhuang@gmail.com>
+CC: <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: [PATCH 5/8] uio: uio_pruss: use gen_pool_dma_alloc() to allocate sram memory
+Date: Fri, 1 Nov 2013 19:36:03 +0800
+Message-ID: <f26a7fd466d22aaaeae9cf32d3c4c43c333e0b35.1383303752.git.b42378@freescale.com>
+In-Reply-To: <cover.1383303752.git.b42378@freescale.com>
+References: <cover.1383303752.git.b42378@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On alpha, allyesconfig doesn't have CONFIG_PM, and produces the following warnings:
-	drivers/media/radio/radio-shark.c:274:13: warning: 'shark_resume_leds' defined but not used [-Wunused-function]
-	drivers/media/radio/radio-shark2.c:240:13: warning: 'shark_resume_leds' defined but not used [-Wunused-function]
-That's because those functions are used only at device resume.
+Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
 ---
- drivers/media/radio/radio-shark.c  | 2 ++
- drivers/media/radio/radio-shark2.c | 2 ++
- 2 files changed, 4 insertions(+)
+ drivers/uio/uio_pruss.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-index b91477212413..3db8a8cfe1a8 100644
---- a/drivers/media/radio/radio-shark.c
-+++ b/drivers/media/radio/radio-shark.c
-@@ -271,6 +271,7 @@ static void shark_unregister_leds(struct shark_device *shark)
- 	cancel_work_sync(&shark->led_work);
- }
+diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+index f519da9..96c4a19 100644
+--- a/drivers/uio/uio_pruss.c
++++ b/drivers/uio/uio_pruss.c
+@@ -158,14 +158,12 @@ static int pruss_probe(struct platform_device *dev)
+ 	if (pdata->sram_pool) {
+ 		gdev->sram_pool = pdata->sram_pool;
+ 		gdev->sram_vaddr =
+-			gen_pool_alloc(gdev->sram_pool, sram_pool_sz);
++			(unsigned long)gen_pool_dma_alloc(gdev->sram_pool,
++					sram_pool_sz, &gdev->sram_paddr);
+ 		if (!gdev->sram_vaddr) {
+ 			dev_err(&dev->dev, "Could not allocate SRAM pool\n");
+ 			goto out_free;
+ 		}
+-		gdev->sram_paddr =
+-			gen_pool_virt_to_phys(gdev->sram_pool,
+-					      gdev->sram_vaddr);
+ 	}
  
-+#ifdef CONFIG_PM
- static void shark_resume_leds(struct shark_device *shark)
- {
- 	if (test_bit(BLUE_IS_PULSE, &shark->brightness_new))
-@@ -280,6 +281,7 @@ static void shark_resume_leds(struct shark_device *shark)
- 	set_bit(RED_LED, &shark->brightness_new);
- 	schedule_work(&shark->led_work);
- }
-+#endif
- #else
- static int shark_register_leds(struct shark_device *shark, struct device *dev)
- {
-diff --git a/drivers/media/radio/radio-shark2.c b/drivers/media/radio/radio-shark2.c
-index 9fb669721e66..d86d90dab8bf 100644
---- a/drivers/media/radio/radio-shark2.c
-+++ b/drivers/media/radio/radio-shark2.c
-@@ -237,6 +237,7 @@ static void shark_unregister_leds(struct shark_device *shark)
- 	cancel_work_sync(&shark->led_work);
- }
- 
-+#ifdef CONFIG_PM
- static void shark_resume_leds(struct shark_device *shark)
- {
- 	int i;
-@@ -246,6 +247,7 @@ static void shark_resume_leds(struct shark_device *shark)
- 
- 	schedule_work(&shark->led_work);
- }
-+#endif
- #else
- static int shark_register_leds(struct shark_device *shark, struct device *dev)
- {
+ 	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
 -- 
-1.8.3.1
+1.8.4
+
 
