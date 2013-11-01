@@ -1,76 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.swsoft.eu ([109.70.220.8]:56863 "EHLO relay.swsoft.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753486Ab3KCMRF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Nov 2013 07:17:05 -0500
-Date: Sun, 3 Nov 2013 13:17:02 +0100
-From: Maik Broemme <mbroemme@parallels.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 02/12] tda18271c2dd: Fix description of NXP TDA18271C2
- silicon tuner
-Message-ID: <20131103121702.GQ7956@parallels.com>
-References: <20131103002235.GD7956@parallels.com>
- <20131103002523.GF7956@parallels.com>
- <20131103072726.51dd0472@samsung.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:47839 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756495Ab3KAWgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:36:53 -0400
+Message-ID: <52742D00.7090805@gmail.com>
+Date: Fri, 01 Nov 2013 23:36:48 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20131103072726.51dd0472@samsung.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>
+Subject: Re: [[PATCH v3]] videobuf2: Add missing lock held on vb2_fop_relase
+References: <1383252859-24221-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1383252859-24221-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Ricardo,
 
-Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> Em Sun, 3 Nov 2013 01:25:23 +0100
-> Maik Broemme <mbroemme@parallels.com> escreveu:
-> 
-> > Added (DD) to NXP TDA18271C2 silicon tuner as this tuner was
-> > specifically added for Digital Devices ddbridge driver.
-> > 
-> > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
-> > ---
-> >  drivers/media/dvb-frontends/Kconfig | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> > index bddbab4..6f99eb8 100644
-> > --- a/drivers/media/dvb-frontends/Kconfig
-> > +++ b/drivers/media/dvb-frontends/Kconfig
-> > @@ -48,11 +48,11 @@ config DVB_DRXK
-> >  	  Say Y when you want to support this frontend.
-> >  
-> >  config DVB_TDA18271C2DD
-> > -	tristate "NXP TDA18271C2 silicon tuner"
-> > +	tristate "NXP TDA18271C2 silicon tuner (DD)"
-> >  	depends on DVB_CORE && I2C
-> >  	default m if !MEDIA_SUBDRV_AUTOSELECT
-> >  	help
-> > -	  NXP TDA18271 silicon tuner.
-> > +	  NXP TDA18271 silicon tuner (Digital Devices driver).
-> >  
-> >  	  Say Y when you want to support this tuner.
-> >  
-> 
-> The better is to use the other tda18271 driver. This one was added as a
-> temporary alternative, as the more complete one were lacking some
-> features, and were not working with DRX-K. Well, those got fixed already,
-> and we now want to get rid of this duplicated driver.
-> 
+On 10/31/2013 09:54 PM, Ricardo Ribalda Delgado wrote:
+> From: Ricardo Ribalda<ricardo.ribalda@gmail.com>
+>
+> vb2_fop_relase does not held the lock although it is modifying the
+> queue->owner field.
+>
+> This could lead to race conditions on the vb2_perform_io function
+> when multiple applications are accessing the video device via
+> read/write API:
+[...]
+> v2: Add bug found by Sylvester Nawrocki
 
-Agree. Probably the tda18271 will need some extensions to work with
-ddbridge and I will see what I can do the next days to get it working.
+"v2: Add fix for a bug found..." ? :)
 
-> Regards,
-> Mauro
-> -- 
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
+> Therefore a new __vb2_fop_release function has been created to be used by
+> drivers that overload the release function.
+>
+> v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
+>
+> Use vb2_fop_release_locked instead of __vb2_fop_release
 
---Maik
+Such notes normally go after the scissors line ("---") after Signed-off-by
+lines.
+
+> Signed-off-by: Ricardo Ribalda<ricardo.ribalda@gmail.com>
+> Signed-off-by: Ricardo Ribalda Delgado<ricardo.ribalda@gmail.com>
+
+Is this duplication really needed ?
+
+> ---
+
+>   drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
+>   drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
+>   drivers/media/v4l2-core/videobuf2-core.c         | 24 +++++++++++++++++++++++-
+>   include/media/videobuf2-core.h                   |  1 +
+>   4 files changed, 26 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+> index fb27ff7..c3c3b3b 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
+>   		vc->streaming = false;
+>   	}
+>
+> -	ret = vb2_fop_release(file);
+> +	ret = vb2_fop_release_locked(file);
+
+I'm personally not happy with such a change. It is still not obvious
+if "locked" means that this function takes the lock internally or it
+should be called with the lock held. How about sticking to the common
+practice and instead naming it __vb2_fop_release() ?
+
+>   	if (close) {
+>   		clear_bit(ST_CAPT_BUSY,&fimc->state);
+> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> index e5798f7..b8d417f 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
+>   		mutex_unlock(&entity->parent->graph_mutex);
+>   	}
+>
+> -	vb2_fop_release(file);
+> +	vb2_fop_release_locked(file);
+>   	pm_runtime_put(&fimc->pdev->dev);
+>   	clear_bit(ST_FLITE_SUSPENDED,&fimc->state);
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 594c75e..06e6dbd 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2619,18 +2619,40 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+>
+> -int vb2_fop_release(struct file *file)
+> +int __vb2_fop_release(struct file *file, bool lock_is_held)
+>   {
+>   	struct video_device *vdev = video_devdata(file);
+> +	struct mutex *lock;
+>
+>   	if (file->private_data == vdev->queue->owner) {
+> +		if (lock_is_held)
+> +			lock = NULL;
+> +		else
+> +			lock = vdev->queue->lock ?
+> +				vdev->queue->lock : vdev->lock;
+> +		if (lock)
+> +			mutex_lock(lock);
+>   		vb2_queue_release(vdev->queue);
+>   		vdev->queue->owner = NULL;
+> +		if (lock)
+> +			mutex_unlock(lock);
+>   	}
+>   	return v4l2_fh_release(file);
+>   }
+> +EXPORT_SYMBOL_GPL(__vb2_fop_release);
+
+We don't need to export this function, do we ?
+
+> +int vb2_fop_release(struct file *file)
+> +{
+> +	return __vb2_fop_release(file, false);
+> +}
+>   EXPORT_SYMBOL_GPL(vb2_fop_release);
+>
+> +int vb2_fop_release_locked(struct file *file)
+> +{
+> +	return __vb2_fop_release(file, true);
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_fop_release_locked);
+
+--
+Thanks,
+Sylwester
