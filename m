@@ -1,264 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:44753 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343Ab3KCLjp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 06:39:45 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVO00DXSR28WG10@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sun, 03 Nov 2013 06:39:44 -0500 (EST)
-Date: Sun, 03 Nov 2013 09:39:39 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:57972 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753533Ab3KAWmK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:42:10 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: CrazyCat <crazycat69@narod.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dw2102: Geniatech T220 support
-Message-id: <20131103093939.1eae1a06@samsung.com>
-In-reply-to: <52756895.6060405@narod.ru>
-References: <52756895.6060405@narod.ru>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 00/11] Fix errors/warnings with allmodconfig/allyesconfig on non-x86 archs
+Date: Fri,  1 Nov 2013 17:39:19 -0200
+Message-Id: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 02 Nov 2013 23:03:17 +0200
-CrazyCat <crazycat69@narod.ru> escreveu:
+To be sure that we're not introducing compilation regressions on media, I'm now
+using ktest to check for errors/warnings.
 
-> Support for Geniatech T220 DVB-T/T2/C USB stick.
-> 
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-> diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-> index 6136a2c..12e00aa 100644
-> --- a/drivers/media/usb/dvb-usb/dw2102.c
-> +++ b/drivers/media/usb/dvb-usb/dw2102.c
-> @@ -2,7 +2,7 @@
->    *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
->    *	TeVii S600, S630, S650, S660, S480, S421, S632
->    *	Prof 1100, 7500,
-> - *	Geniatech SU3000 Cards
-> + *	Geniatech SU3000, T220 Cards
->    * Copyright (C) 2008-2012 Igor M. Liplianin (liplianin@me.by)
->    *
->    *	This program is free software; you can redistribute it and/or modify it
-> @@ -29,6 +29,8 @@
->   #include "stb6100.h"
->   #include "stb6100_proc.h"
->   #include "m88rs2000.h"
-> +#include "tda18271.h"
-> +#include "cxd2820r.h"
-> 
->   #ifndef USB_PID_DW2102
->   #define USB_PID_DW2102 0x2102
-> @@ -1025,6 +1027,16 @@ static struct ds3000_config su3000_ds3000_config = {
->   	.set_lock_led = dw210x_led_ctrl,
->   };
-> 
-> +static struct cxd2820r_config cxd2820r_config = {
-> +	.i2c_address = 0x6c, /* (0xd8 >> 1) */
-> +	.ts_mode = 0x38,
-> +};
-> +
-> +static struct tda18271_config tda18271_config = {
-> +	.output_opt = TDA18271_OUTPUT_LT_OFF,
-> +	.gate = TDA18271_GATE_DIGITAL,
-> +};
-> +
->   static u8 m88rs2000_inittab[] = {
->   	DEMOD_WRITE, 0x9a, 0x30,
->   	DEMOD_WRITE, 0x00, 0x01,
-> @@ -1294,6 +1306,49 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
->   	return -EIO;
->   }
-> 
-> +static int t220_frontend_attach(struct dvb_usb_adapter *d)
-> +{
-> +	u8 obuf[3] = { 0xe, 0x80, 0 };
-> +	u8 ibuf[] = { 0 };
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0xe;
-> +	obuf[1] = 0x83;
-> +	obuf[2] = 0;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	msleep(100);
-> +
-> +	obuf[0] = 0xe;
-> +	obuf[1] = 0x80;
-> +	obuf[2] = 1;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0x51;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-> +		err("command 0x51 transfer failed.");
-> +
-> +	d->fe_adap[0].fe = dvb_attach(cxd2820r_attach, &cxd2820r_config,
-> +					&d->dev->i2c_adap, NULL);
-> +	if (d->fe_adap[0].fe != NULL) {
-> +		if (dvb_attach(tda18271_attach, d->fe_adap[0].fe, 0x60,
-> +					&d->dev->i2c_adap, &tda18271_config)) {
-> +			info("Attached TDA18271HD/CXD2820R!\n");
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	info("Failed to attach TDA18271HD/CXD2820R!\n");
-> +	return -EIO;
-> +}
-> +
->   static int m88rs2000_frontend_attach(struct dvb_usb_adapter *d)
->   {
->   	u8 obuf[] = { 0x51 };
-> @@ -1560,6 +1615,7 @@ enum dw2102_table_entry {
->   	TEVII_S632,
->   	TERRATEC_CINERGY_S2_R2,
->   	GOTVIEW_SAT_HD,
-> +	GENIATECH_T220,
->   };
-> 
->   static struct usb_device_id dw2102_table[] = {
-> @@ -1582,6 +1638,7 @@ static struct usb_device_id dw2102_table[] = {
->   	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
->   	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
->   	[GOTVIEW_SAT_HD] = {USB_DEVICE(0x1FE1, USB_PID_GOTVIEW_SAT_HD)},
-> +	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
->   	{ }
->   };
-> 
-> @@ -2007,6 +2064,54 @@ static struct dvb_usb_device_properties su3000_properties = {
->   	}
->   };
-> 
-> +static struct dvb_usb_device_properties t220_properties = {
-> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-> +	.usb_ctrl = DEVICE_SPECIFIC,
-> +	.size_of_priv = sizeof(struct su3000_state),
-> +	.power_ctrl = su3000_power_ctrl,
-> +	.num_adapters = 1,
-> +	.identify_state	= su3000_identify_state,
-> +	.i2c_algo = &su3000_i2c_algo,
-> +
-> +	.rc.legacy = {
-> +		.rc_map_table = rc_map_su3000_table,
-> +		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
-> +		.rc_interval = 150,
-> +		.rc_query = dw2102_rc_query,
-> +	},
+My current setup is cross-building on several architectures:
+	alpha,  arm, avr32, cris (64), frv, i386, ia64, m32r, m68k, mips, openrisc, parisc, s390, sh, sparc, sparc64, uml, x86_64
 
-While you're here, could you please port this driver to use the
-RC core, instead of the legacy RC support?
+I tried to enable a few other archs:
+	blackfin, cris (32), powerpc (32, 64), tile, xtensa
 
-Porting it to rc core is not hard (but, ideally, it should be done by
-someone with a hardware to test).
+but they fail to compile with allyesconfig due to non-media related issues.
 
-I did such port, for example, on az6007 driver:
+I'm still unsure about how often I'll be doing it, I intend to run it at least
+by the end of the subsystem merge window (by -rc6 or -rc7), and fix the 
+issues found there.
 
-commit d3d076aaa7d8a028ae4617f57c14727b473f848d
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Sat Jan 21 12:20:30 2012 -0300
+This series contain the fixes for most complains.
 
-    [media] az6007: Convert IR to use the rc_core logic
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I didn't fix, however, the issues pointed on s390 arch:
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index a8aedb8..2288916 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -192,26 +192,16 @@ static int az6007_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 	return az6007_write(d, 0xbc, onoff, 0, NULL, 0);
- }
- 
--/* keys for the enclosed remote control */
--static struct rc_map_table rc_map_az6007_table[] = {
--	{0x0001, KEY_1},
--	{0x0002, KEY_2},
--};
--
- /* remote control stuff (does not work with my box) */
--static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
-+static int az6007_rc_query(struct dvb_usb_device *d)
- {
- 	struct az6007_device_state *st = d->priv;
--	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
--	int i;
- 	unsigned code = 0;
- 
- 	az6007_read(d, AZ6007_READ_IR, 0, 0, st->data, 10);
- 
--	if (st->data[1] == 0x44) {
--		*state = REMOTE_NO_KEY_PRESSED;
-+	if (st->data[1] == 0x44)
- 		return 0;
--	}
- 
- 	if ((st->data[1] ^ st->data[2]) == 0xff)
- 		code = st->data[1];
-@@ -224,16 +214,9 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
- 		code = code << 16 | st->data[3] << 8| st->data[4];
- 
- 	printk("remote query key: %04x\n", code);
--	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, st->data, 10);
- 
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
--		if (rc5_custom(&keymap[i]) == code) {
--			*event = keymap[i].keycode;
--			*state = REMOTE_KEY_PRESSED;
-+	rc_keydown(d->rc_dev, code, st->data[5]);
- 
--			return 0;
--		}
--	}
- 	return 0;
- }
- 
-@@ -536,11 +519,12 @@ static struct dvb_usb_device_properties az6007_properties = {
- 	.power_ctrl       = az6007_power_ctrl,
- 	.read_mac_address = az6007_read_mac_addr,
- 
--	.rc.legacy = {
--		.rc_map_table  = rc_map_az6007_table,
--		.rc_map_size  = ARRAY_SIZE(rc_map_az6007_table),
-+	.rc.core = {
- 		.rc_interval      = 400,
-+		.rc_codes         = RC_MAP_DIB0700_NEC_TABLE,
-+		.module_name	  = "az6007",
- 		.rc_query         = az6007_rc_query,
-+		.allowed_protos   = RC_TYPE_NEC,
- 	},
- 	.i2c_algo         = &az6007_i2c_algo,
- 
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/af9013.c:77:1: warning: 'af9013_wr_regs_i2c' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/af9033.c:188:1: warning: 'af9033_wr_reg_val_tab' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/af9033.c:68:1: warning: 'af9033_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/bcm3510.c:230:1: warning: 'bcm3510_do_hab_cmd' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/cxd2820r_core.c:51:1: warning: 'cxd2820r_wr_regs_i2c.isra.0' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/cxd2820r_core.c:84:1: warning: 'cxd2820r_rd_regs_i2c.isra.1' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/itd1000.c:69:1: warning: 'itd1000_write_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/mt312.c:126:1: warning: 'mt312_write' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/nxt200x.c:111:1: warning: 'nxt200x_writebytes' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/rtl2830.c:56:1: warning: 'rtl2830_wr' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/rtl2832.c:187:1: warning: 'rtl2832_wr' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/s5h1420.c:851:1: warning: 's5h1420_tuner_i2c_tuner_xfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stb0899_drv.c:540:1: warning: 'stb0899_write_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stb6100.c:216:1: warning: 'stb6100_write_reg_range.constprop.3' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stv0367.c:791:1: warning: 'stv0367_writeregs.constprop.4' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stv090x.c:750:1: warning: 'stv090x_write_regs.constprop.6' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stv6110.c:98:1: warning: 'stv6110_write_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/stv6110x.c:85:1: warning: 'stv6110x_write_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/tda10071.c:52:1: warning: 'tda10071_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/tda10071.c:84:1: warning: 'tda10071_rd_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/tda18271c2dd.c:147:1: warning: 'WriteRegs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/dvb-frontends/zl10039.c:119:1: warning: 'zl10039_write' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/pci/cx23885/cimax2.c:149:1: warning: 'netup_write_i2c' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/pci/ttpci/av7110_hw.c:510:1: warning: 'av7110_fw_cmd' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/tuners/tuner-xc2028.c:651:1: warning: 'load_firmware' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/cxusb.c:209:1: warning: 'cxusb_i2c_xfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/cxusb.c:69:1: warning: 'cxusb_ctrl_msg' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/dibusb-common.c:124:1: warning: 'dibusb_i2c_msg' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/dw2102.c:368:1: warning: 'dw2102_earda_i2c_transfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/dw2102.c:449:1: warning: 'dw2104_i2c_transfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/dw2102.c:512:1: warning: 'dw3101_i2c_transfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb/dw2102.c:621:1: warning: 's6x0_i2c_transfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb-v2/af9015.c:433:1: warning: 'af9015_eeprom_hash' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb-v2/af9035.c:142:1: warning: 'af9035_wr_regs' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb-v2/af9035.c:305:1: warning: 'af9035_i2c_master_xfer' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/usb/dvb-usb-v2/mxl111sf.c:74:1: warning: 'mxl111sf_ctrl_msg' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+        /devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_zilog.c:967:1: warning: 'read' uses dynamic stack allocation [enabled by default]
 
-On the above, RC_MAP_DIB0700_NEC_TABLE points to the key table name.
-You may need to create a keymap file under drivers/media/rc/keymaps/ that
-points to the keyables inside dw2102.
-
-Please also notice that there's one small change required on the above,
-due to changeset c003ab1bedf028: you need to replace RC_TYPE_* to RC_BIT_*,
-as done on this code snippet:
-
---- a/drivers/media/usb/dvb-usb-v2/az6007.c
-+++ b/drivers/media/usb/dvb-usb-v2/az6007.c
-@@ -826,7 +826,7 @@ static int az6007_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
- {
-        pr_debug("Getting az6007 Remote Control properties\n");
- 
--   rc->allowed_protos = RC_TYPE_NEC;
-+ rc->allowed_protos = RC_BIT_NEC;
-        rc->query          = az6007_rc_query;
-        rc->interval       = 400;
+Those warnings are all related to dynamic static allocation, like:
+	int function_foo(int size)
+	{
+		char buf[size];
+		...
+	}
 
 
-Thanks
+The risk of doing it is that the Kernel stack is very small. Allocing a large
+amount of data at stack is risky, as it could cause stack overflows.
+
+So, this kind of struct should be used only when the code is very carefully
+reviewed, and the size doesn't come from userspace.
+
+Also, by using dynamic stack allocation, the gcc check for the max stack size
+doesn't work. So, I'll likely send a new series addressing them.
+
+My goal is to not have even a single warning/error reported by ktest.
+
+For now, please review the following series, as it would be good to have
+at lease a second pair of eyes on them, as they are compile-tested only.
+
+Thanks!
+Mauro.
+
+Mauro Carvalho Chehab (11):
+  tda9887: remove an warning when compiling for alpha
+  radio-shark: remove a warning when CONFIG_PM is not defined
+  zoran: don't build it on alpha
+  cx18: struct i2c_client is too big for stack
+  tef6862: fix warning on avr32 arch
+  iguanair: shut up a gcc warning on avr32 arch
+  platform drivers: Fix build on cris and frv archs
+  cx18: disable compilation on frv arch
+  radio-si470x-i2c: fix a warning on ia64
+  rc: Fir warnings on m68k arch
+  uvc/lirc_serial: Fix some warnings on parisc arch
+
+ drivers/media/pci/cx18/Kconfig                |  1 +
+ drivers/media/pci/cx18/cx18-driver.c          | 20 ++++++++++++--------
+ drivers/media/pci/zoran/Kconfig               |  1 +
+ drivers/media/platform/Kconfig                |  2 ++
+ drivers/media/platform/soc_camera/Kconfig     |  1 +
+ drivers/media/radio/radio-shark.c             |  2 ++
+ drivers/media/radio/radio-shark2.c            |  2 ++
+ drivers/media/radio/si470x/radio-si470x-i2c.c |  4 ++--
+ drivers/media/radio/tef6862.c                 | 20 ++++++++++----------
+ drivers/media/rc/fintek-cir.h                 |  4 ++--
+ drivers/media/rc/iguanair.c                   |  1 +
+ drivers/media/rc/nuvoton-cir.h                |  4 ++--
+ drivers/media/tuners/tda9887.c                |  4 ++--
+ drivers/media/usb/uvc/uvc_video.c             |  2 +-
+ drivers/staging/media/lirc/lirc_serial.c      |  9 ++++++---
+ 15 files changed, 47 insertions(+), 30 deletions(-)
+
 -- 
+1.8.3.1
 
-Cheers,
-Mauro
