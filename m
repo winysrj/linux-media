@@ -1,89 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:19238 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496Ab3KSO2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:28:13 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI006K9LIUBP10@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:28:12 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 15/16] s5p-jpeg: Ensure setting correct value of the chroma
- subsampling control
-Date: Tue, 19 Nov 2013 15:27:07 +0100
-Message-id: <1384871228-6648-16-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:40117 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752924Ab3KBRMW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Nov 2013 13:12:22 -0400
+Message-ID: <52753274.4020205@iki.fi>
+Date: Sat, 02 Nov 2013 19:12:20 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCHv2 19/29] tuners: Don't use dynamic static allocation
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-20-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-20-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos4x12 has limitations regarding setting chroma subsampling
-of an output JPEG image. It cannot be lower than the subsampling
-of the raw source image. Also in case of V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY
-option the source image fourcc has to be V4L2_PIX_FMT_GREY.
-This patch adds mechanism that prevents setting invalid value
-of the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+Antti
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index d4db612..3605470 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1176,6 +1176,7 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
- 	unsigned long flags;
-+	int ret = 0;
- 
- 	spin_lock_irqsave(&ctx->jpeg->slock, flags);
- 
-@@ -1187,12 +1188,34 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ctx->restart_interval = ctrl->val;
- 		break;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
--		ctx->subsampling = ctrl->val;
-+		if (ctx->jpeg->variant->version == SJPEG_S5P) {
-+			ctx->subsampling = ctrl->val;
-+			break;
-+		}
-+		/*
-+		 * The exynos4x12 device requires input raw image fourcc
-+		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
-+		 * is to be set.
-+		 */
-+		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
-+		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
-+			ret = -EINVAL;
-+			goto error_free;
-+		}
-+		/*
-+		 * The exynos4x12 device requires resulting jpeg subsampling
-+		 * not to be lower than the input raw image subsampling.
-+		 */
-+		if (ctx->out_q.fmt->subsampling > ctrl->val)
-+			ctx->subsampling = ctx->out_q.fmt->subsampling;
-+		else
-+			ctx->subsampling = ctrl->val;
- 		break;
- 	}
- 
-+error_free:
- 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
--	return 0;
-+	return ret;
- }
- 
- static const struct v4l2_ctrl_ops s5p_jpeg_ctrl_ops = {
+
+On 02.11.2013 15:31, Mauro Carvalho Chehab wrote:
+> Dynamic static allocation is evil, as Kernel stack is too low, and
+> compilation complains about it on some archs:
+>
+> 	drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>
+> Instead, let's enforce a limit for the buffer. Considering that I2C
+> transfers are generally limited, and that devices used on USB has a
+> max data length of 80, it seem safe to use 80 as the hard limit for all
+> those devices. On most cases, the limit is a way lower than that, but
+> 80 is small enough to not affect the Kernel stack, and it is a no brain
+> limit, as using smaller ones would require to either carefully each
+> driver or to take a look on each datasheet.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/tuners/e4000.c    | 18 ++++++++++++++++--
+>   drivers/media/tuners/fc2580.c   | 18 ++++++++++++++++--
+>   drivers/media/tuners/tda18212.c | 18 ++++++++++++++++--
+>   drivers/media/tuners/tda18218.c | 18 ++++++++++++++++--
+>   4 files changed, 64 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+> index ad9309da4a91..235e90251609 100644
+> --- a/drivers/media/tuners/e4000.c
+> +++ b/drivers/media/tuners/e4000.c
+> @@ -24,7 +24,7 @@
+>   static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[1 + len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg->i2c_addr,
+> @@ -34,6 +34,13 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>   		}
+>   	};
+>
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
+>
+> @@ -53,7 +60,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>   static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = priv->cfg->i2c_addr,
+> @@ -68,6 +75,13 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>   		}
+>   	};
+>
+> +	if (len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, buf, len);
+> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+> index 81f38aae9c66..e27bf5be311d 100644
+> --- a/drivers/media/tuners/fc2580.c
+> +++ b/drivers/media/tuners/fc2580.c
+> @@ -41,7 +41,7 @@
+>   static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[1 + len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg->i2c_addr,
+> @@ -51,6 +51,13 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+>   		}
+>   	};
+>
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
+>
+> @@ -69,7 +76,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+>   static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = priv->cfg->i2c_addr,
+> @@ -84,6 +91,13 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+>   		}
+>   	};
+>
+> +	if (len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, buf, len);
+> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+> index e4a84ee231cf..765b9f9d4bc6 100644
+> --- a/drivers/media/tuners/tda18212.c
+> +++ b/drivers/media/tuners/tda18212.c
+> @@ -32,7 +32,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+>   	int len)
+>   {
+>   	int ret;
+> -	u8 buf[len+1];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg->i2c_address,
+> @@ -42,6 +42,13 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+>   		}
+>   	};
+>
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
+>
+> @@ -61,7 +68,7 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+>   	int len)
+>   {
+>   	int ret;
+> -	u8 buf[len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = priv->cfg->i2c_address,
+> @@ -76,6 +83,13 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+>   		}
+>   	};
+>
+> +	if (len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, buf, len);
+> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
+> index 2d31aeb6b088..e4e662c2e6ef 100644
+> --- a/drivers/media/tuners/tda18218.c
+> +++ b/drivers/media/tuners/tda18218.c
+> @@ -24,7 +24,7 @@
+>   static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+>   {
+>   	int ret = 0, len2, remaining;
+> -	u8 buf[1 + len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg->i2c_address,
+> @@ -33,6 +33,13 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+>   		}
+>   	};
+>
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	for (remaining = len; remaining > 0;
+>   			remaining -= (priv->cfg->i2c_wr_max - 1)) {
+>   		len2 = remaining;
+> @@ -63,7 +70,7 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+>   static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+>   {
+>   	int ret;
+> -	u8 buf[reg+len]; /* we must start read always from reg 0x00 */
+> +	u8 buf[80]; /* we must start read always from reg 0x00 */
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = priv->cfg->i2c_address,
+> @@ -78,6 +85,13 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+>   		}
+>   	};
+>
+> +	if (reg + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, &buf[reg], len);
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
