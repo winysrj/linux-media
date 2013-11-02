@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:47598 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948Ab3KGMon (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Nov 2013 07:44:43 -0500
-Received: by mail-bk0-f51.google.com with SMTP id my12so207146bkb.24
-        for <linux-media@vger.kernel.org>; Thu, 07 Nov 2013 04:44:42 -0800 (PST)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40566 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751408Ab3KBVnh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Nov 2013 17:43:37 -0400
+Date: Sat, 2 Nov 2013 23:43:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] as3645a: Remove set_power() from platform data
+Message-ID: <20131102214302.GA21655@valkosipuli.retiisi.org.uk>
+References: <1337137969-30575-1-git-send-email-sakari.ailus@iki.fi>
+ <5818890.hvZb7JEbAH@avalon>
+ <20120523111951.GU3373@valkosipuli.retiisi.org.uk>
+ <9767260.z6C75JdBQb@avalon>
+ <20120523120641.GV3373@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Date: Thu, 7 Nov 2013 20:44:42 +0800
-Message-ID: <CAPgLHd8g-oO_jcdX8VjzBdO4qe0pwxKvHkMd4+39V=WhcXyHFg@mail.gmail.com>
-Subject: [PATCH -next] [media] media: i2c: lm3560: fix missing unlock on error
- in lm3560_set_ctrl()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: m.chehab@samsung.com, gshark.jeong@gmail.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20120523120641.GV3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Wed, May 23, 2012 at 03:06:41PM +0300, Sakari Ailus wrote:
+> On Wed, May 23, 2012 at 01:31:26PM +0200, Laurent Pinchart wrote:
+> > Hi Sakari,
+> ...
+> > > > If the chip is powered on constantly, why do we need a .s_power() subdev
+> > > > operation at all ?
+> > > 
+> > > I don't know why was it there in the first place. Probably to make it easier
+> > > to use the driver on boards that required e.g. a regulator for the chip.
+> > > 
+> > > But typically they're connected to battery directly. The idle power
+> > > consumption is just some tens of µA.
+> > 
+> > What about on the N9 ?
+> 
+> That function pointer is NULL for N9. I used to configure the GPIOs but that
+> was wrong in the first place.
 
-Add the missing unlock before return from function lm3560_set_ctrl()
-in the error handling case.
+Ping.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/i2c/lm3560.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+Should we either remove the s_power() callback altogether or just the
+platform data callback function (which is unused)?
 
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index 3317a9a..33a6d2a 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -219,15 +219,19 @@ static int lm3560_set_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
- 		break;
- 
- 	case V4L2_CID_FLASH_STROBE:
--		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
--			return -EBUSY;
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
-+			rval = -EBUSY;
-+			goto err_out;
-+		}
- 		flash->led_mode = V4L2_FLASH_LED_MODE_FLASH;
- 		rval = lm3560_mode_ctrl(flash);
- 		break;
- 
- 	case V4L2_CID_FLASH_STROBE_STOP:
--		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
--			return -EBUSY;
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
-+			rval = -EBUSY;
-+			goto err_out;
-+		}
- 		flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
- 		rval = lm3560_mode_ctrl(flash);
- 		break;
-@@ -247,8 +251,8 @@ static int lm3560_set_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
- 		break;
- 	}
- 
--	mutex_unlock(&flash->lock);
- err_out:
-+	mutex_unlock(&flash->lock);
- 	return rval;
- }
- 
+It is indeed possible that the device was powered from a regulator which
+isn't always on but we don't have such use cases right now.
 
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
