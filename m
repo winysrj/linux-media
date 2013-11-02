@@ -1,71 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60756 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397Ab3KBQdm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:42 -0400
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:36152 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371Ab3KBTky (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 15:40:54 -0400
+Date: Sat, 02 Nov 2013 17:40:47 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCHv2 16/29] stv0367: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:24 -0200
-Message-Id: <1383399097-11615-17-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Martin Walch <walch.martin@web.de>, linux-kernel@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Larry Finger <Larry.Finger@lwfinger.net>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [kconfig] update: results of some syntactical checks
+Message-id: <20131102174047.70c24ed8@samsung.com>
+In-reply-to: <1383420054.4378.3.camel@x220.thuisdomein>
+References: <3513955.N5RNgL3hPx@tacticalops>
+ <1383420054.4378.3.camel@x220.thuisdomein>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+Em Sat, 02 Nov 2013 20:20:54 +0100
+Paul Bolle <pebolle@tiscali.nl> escreveu:
 
-	drivers/media/dvb-frontends/stv0367.c:791:1: warning: 'stv0367_writeregs.constprop.4' uses dynamic stack allocation [enabled by default]
+> On Sun, 2013-10-20 at 00:03 +0200, Martin Walch wrote:
+> > drivers/media/common/siano/Kconfig:21-26
+> > > config SMS_SIANO_DEBUGFS
+> > >	bool "Enable debugfs for smsdvb"
+> > >	depends on SMS_SIANO_MDTV
+> > >	depends on DEBUG_FS
+> > >	depends on SMS_USB_DRV
+> > >	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
+> > 
+> > The last line adds the dependency CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV.
+> > This expression does not look sound as those two symbols are not declared
+> > anywhere. So, the two strings CONFIG_SMS_USB_DRV and CONFIG_SMS_SDIO_DRV
+> > are compared, yielding always 'n'. As a result, SMS_SIANO_DEBUGFS will never
+> > be enabled.
+> 
+> Those are obvious typos. Still present in v3.12-rc7. Perhaps you'd like
+> to send the trivial patch to fix this?
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 80, it seem safe to use 80 as the hard limit for all
-those devices. On most cases, the limit is a way lower than that, but
-80 is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
+Yes, it is a typo...
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/dvb-frontends/stv0367.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> > Probably, it was meant to say something like
+> > >	depends on SMS_USB_DRV = SMS_SDIO_DRV
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 7b6dba3ce55e..28294b3be319 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -767,7 +767,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
- static
- int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- {
--	u8 buf[len + 2];
-+	u8 buf[80];
- 	struct i2c_msg msg = {
- 		.addr = state->config->demod_address,
- 		.flags = 0,
-@@ -776,6 +776,14 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- 	};
- 	int ret;
- 
-+	if (2 + len > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, len);
-+		return -EREMOTEIO;
-+	}
-+
-+
- 	buf[0] = MSB(reg);
- 	buf[1] = LSB(reg);
- 	memcpy(buf + 2, data, len);
+But this is not the right thing to do. The Kconfig logic here is that it
+should depends on !SMS_SDIO_DRV or SMS_USB_DRV = SMS_SDIO_DRV.
+
+I remember I made a patch like that while testing some things with this
+driver, but it seems that I forgot to push. I might have it somewhere on
+my test machine.
+
+
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
