@@ -1,156 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55597 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988Ab3KSO1n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:27:43 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI00M2MLI2NH40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:27:42 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from fep14.mx.upcmail.net ([62.179.121.34]:58792 "EHLO
+	fep14.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770Ab3KBTtl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 15:49:41 -0400
+From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 05/16] s5p-jpeg: Rename functions specific to the S5PC210 SoC
- accordingly
-Date: Tue, 19 Nov 2013 15:26:57 +0100
-Message-id: <1384871228-6648-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: [PATCH] [media] az6007: support Technisat Cablestar Combo HDCI (minus remote)
+Date: Sat,  2 Nov 2013 20:49:32 +0100
+Message-Id: <1383421772-28243-1-git-send-email-rscheidegger_lists@hispeed.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   58 ++++++++++++++++-----------
- 1 file changed, 34 insertions(+), 24 deletions(-)
+This is similar to the Terratec H7. It works with the same az6007 firmware as
+the former, however the drx-k firmware of the H7 will NOT work. Hence use
+a different firmware name. The firmware does not need to exist as the one in
+the eeprom is just fine as long as the h7 one doesn't get loaded, but maybe
+some day someone wants to load it (the one from the h5 would work too).
+Also since the config entry is now different anyway disable support for rc.
+AFAIK the Technisat remote (TS35) is RC5 and the code (which a code comment
+claims doesn't work anyway) only would handle NEC hence it's pointless creating
+a device and polling it if we already know it can't work.
+CI is untested.
+Originally based on idea found on
+http://www.linuxtv.org/wiki/index.php/TechniSat_CableStar_Combo_HD_CI claiming
+only id needs to be added (but failed to mention it only worked because the
+driver couldn't find the h7 drx-k firmware...).
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index a6ec8c6..32033e7 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -213,8 +213,9 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
- 	return container_of(fh, struct s5p_jpeg_ctx, fh);
- }
+Signed-off-by: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h  |  1 +
+ drivers/media/usb/dvb-usb-v2/az6007.c | 59 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+)
+
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 419a2d6..4a53454 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -365,6 +365,7 @@
+ #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
+ #define USB_PID_TECHNISAT_USB2_HDCI_V1			0x0001
+ #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
++#define USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI		0x0003
+ #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
+ #define USB_PID_TECHNISAT_USB2_DVB_S2			0x0500
+ #define USB_PID_CPYTO_REDI_PC50A			0xa803
+diff --git a/drivers/media/usb/dvb-usb-v2/az6007.c b/drivers/media/usb/dvb-usb-v2/az6007.c
+index 44c64ef3..c1051c3 100644
+--- a/drivers/media/usb/dvb-usb-v2/az6007.c
++++ b/drivers/media/usb/dvb-usb-v2/az6007.c
+@@ -68,6 +68,19 @@ static struct drxk_config terratec_h7_drxk = {
+ 	.microcode_name = "dvb-usb-terratec-h7-drxk.fw",
+ };
  
--static inline void jpeg_set_qtbl(void __iomem *regs, const unsigned char *qtbl,
--		   unsigned long tab, int len)
-+static inline void s5p_jpeg_set_qtbl(void __iomem *regs,
-+				     const unsigned char *qtbl,
-+				     unsigned long tab, int len)
- {
- 	int i;
- 
-@@ -222,22 +223,25 @@ static inline void jpeg_set_qtbl(void __iomem *regs, const unsigned char *qtbl,
- 		writel((unsigned int)qtbl[i], regs + tab + (i * 0x04));
- }
- 
--static inline void jpeg_set_qtbl_lum(void __iomem *regs, int quality)
-+static inline void s5p_jpeg_set_qtbl_lum(void __iomem *regs, int quality)
- {
- 	/* this driver fills quantisation table 0 with data for luma */
--	jpeg_set_qtbl(regs, qtbl_luminance[quality], S5P_JPG_QTBL_CONTENT(0),
--		      ARRAY_SIZE(qtbl_luminance[quality]));
-+	s5p_jpeg_set_qtbl(regs, qtbl_luminance[quality],
-+			  S5P_JPG_QTBL_CONTENT(0),
-+			  ARRAY_SIZE(qtbl_luminance[quality]));
- }
- 
--static inline void jpeg_set_qtbl_chr(void __iomem *regs, int quality)
-+static inline void s5p_jpeg_set_qtbl_chr(void __iomem *regs, int quality)
- {
- 	/* this driver fills quantisation table 1 with data for chroma */
--	jpeg_set_qtbl(regs, qtbl_chrominance[quality], S5P_JPG_QTBL_CONTENT(1),
--		      ARRAY_SIZE(qtbl_chrominance[quality]));
-+	s5p_jpeg_set_qtbl(regs, qtbl_chrominance[quality],
-+			  S5P_JPG_QTBL_CONTENT(1),
-+			  ARRAY_SIZE(qtbl_chrominance[quality]));
- }
- 
--static inline void jpeg_set_htbl(void __iomem *regs, const unsigned char *htbl,
--		   unsigned long tab, int len)
-+static inline void s5p_jpeg_set_htbl(void __iomem *regs,
-+				     const unsigned char *htbl,
-+				     unsigned long tab, int len)
- {
- 	int i;
- 
-@@ -245,28 +249,32 @@ static inline void jpeg_set_htbl(void __iomem *regs, const unsigned char *htbl,
- 		writel((unsigned int)htbl[i], regs + tab + (i * 0x04));
- }
- 
--static inline void jpeg_set_hdctbl(void __iomem *regs)
-+static inline void s5p_jpeg_set_hdctbl(void __iomem *regs)
- {
- 	/* this driver fills table 0 for this component */
--	jpeg_set_htbl(regs, hdctbl0, S5P_JPG_HDCTBL(0), ARRAY_SIZE(hdctbl0));
-+	s5p_jpeg_set_htbl(regs, hdctbl0, S5P_JPG_HDCTBL(0),
-+						ARRAY_SIZE(hdctbl0));
- }
- 
--static inline void jpeg_set_hdctblg(void __iomem *regs)
-+static inline void s5p_jpeg_set_hdctblg(void __iomem *regs)
- {
- 	/* this driver fills table 0 for this component */
--	jpeg_set_htbl(regs, hdctblg0, S5P_JPG_HDCTBLG(0), ARRAY_SIZE(hdctblg0));
-+	s5p_jpeg_set_htbl(regs, hdctblg0, S5P_JPG_HDCTBLG(0),
-+						ARRAY_SIZE(hdctblg0));
- }
- 
--static inline void jpeg_set_hactbl(void __iomem *regs)
-+static inline void s5p_jpeg_set_hactbl(void __iomem *regs)
- {
- 	/* this driver fills table 0 for this component */
--	jpeg_set_htbl(regs, hactbl0, S5P_JPG_HACTBL(0), ARRAY_SIZE(hactbl0));
-+	s5p_jpeg_set_htbl(regs, hactbl0, S5P_JPG_HACTBL(0),
-+						ARRAY_SIZE(hactbl0));
- }
- 
--static inline void jpeg_set_hactblg(void __iomem *regs)
-+static inline void s5p_jpeg_set_hactblg(void __iomem *regs)
- {
- 	/* this driver fills table 0 for this component */
--	jpeg_set_htbl(regs, hactblg0, S5P_JPG_HACTBLG(0), ARRAY_SIZE(hactblg0));
-+	s5p_jpeg_set_htbl(regs, hactblg0, S5P_JPG_HACTBLG(0),
-+						ARRAY_SIZE(hactblg0));
- }
- 
- /*
-@@ -962,8 +970,8 @@ static void s5p_jpeg_device_run(void *priv)
- 		 * JPEG IP allows storing 4 quantization tables
- 		 * We fill table 0 for luma and table 1 for chroma
- 		 */
--		jpeg_set_qtbl_lum(jpeg->regs, ctx->compr_quality);
--		jpeg_set_qtbl_chr(jpeg->regs, ctx->compr_quality);
-+		s5p_jpeg_set_qtbl_lum(jpeg->regs, ctx->compr_quality);
-+		s5p_jpeg_set_qtbl_chr(jpeg->regs, ctx->compr_quality);
- 		/* use table 0 for Y */
- 		jpeg_qtbl(jpeg->regs, 1, 0);
- 		/* use table 1 for Cb and Cr*/
-@@ -1406,14 +1414,16 @@ static int s5p_jpeg_runtime_suspend(struct device *dev)
- static int s5p_jpeg_runtime_resume(struct device *dev)
- {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
++static struct drxk_config cablestar_hdci_drxk = {
++	.adr = 0x29,
++	.parallel_ts = true,
++	.dynamic_clk = true,
++	.single_master = true,
++	.enable_merr_cfg = true,
++	.no_i2c_bridge = false,
++	.chunk_size = 64,
++	.mpeg_out_clk_strength = 0x02,
++	.qam_demod_parameter_count = 2,
++	.microcode_name = "dvb-usb-technisat-cablestar-hdci-drxk.fw",
++};
 +
- 	/*
- 	 * JPEG IP allows storing two Huffman tables for each component
- 	 * We fill table 0 for each component
- 	 */
--	jpeg_set_hdctbl(jpeg->regs);
--	jpeg_set_hdctblg(jpeg->regs);
--	jpeg_set_hactbl(jpeg->regs);
--	jpeg_set_hactblg(jpeg->regs);
-+	s5p_jpeg_set_hdctbl(jpeg->regs);
-+	s5p_jpeg_set_hdctblg(jpeg->regs);
-+	s5p_jpeg_set_hactbl(jpeg->regs);
-+	s5p_jpeg_set_hactblg(jpeg->regs);
-+
+ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct az6007_device_state *st = fe_to_priv(fe);
+@@ -630,6 +643,27 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
  	return 0;
  }
  
++static int az6007_cablestar_hdci_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	struct az6007_device_state *st = adap_to_priv(adap);
++	struct dvb_usb_device *d = adap_to_d(adap);
++
++	pr_debug("attaching demod drxk\n");
++
++	adap->fe[0] = dvb_attach(drxk_attach, &cablestar_hdci_drxk,
++				 &d->i2c_adap);
++	if (!adap->fe[0])
++		return -EINVAL;
++
++	adap->fe[0]->sec_priv = adap;
++	st->gate_ctrl = adap->fe[0]->ops.i2c_gate_ctrl;
++	adap->fe[0]->ops.i2c_gate_ctrl = drxk_gate_ctrl;
++
++	az6007_ci_init(adap);
++
++	return 0;
++}
++
+ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+@@ -868,6 +902,29 @@ static struct dvb_usb_device_properties az6007_props = {
+ 	}
+ };
+ 
++static struct dvb_usb_device_properties az6007_cablestar_hdci_props = {
++	.driver_name         = KBUILD_MODNAME,
++	.owner               = THIS_MODULE,
++	.firmware            = AZ6007_FIRMWARE,
++
++	.adapter_nr          = adapter_nr,
++	.size_of_priv        = sizeof(struct az6007_device_state),
++	.i2c_algo            = &az6007_i2c_algo,
++	.tuner_attach        = az6007_tuner_attach,
++	.frontend_attach     = az6007_cablestar_hdci_frontend_attach,
++	.streaming_ctrl      = az6007_streaming_ctrl,
++/* ditch get_rc_config as it can't work (TS35 remote, I believe it's rc5) */
++	.get_rc_config       = NULL,
++	.read_mac_address    = az6007_read_mac_addr,
++	.download_firmware   = az6007_download_firmware,
++	.identify_state	     = az6007_identify_state,
++	.power_ctrl          = az6007_power_ctrl,
++	.num_adapters        = 1,
++	.adapter             = {
++		{ .stream = DVB_USB_STREAM_BULK(0x02, 10, 4096), }
++	}
++};
++
+ static struct usb_device_id az6007_usb_table[] = {
+ 	{DVB_USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007,
+ 		&az6007_props, "Azurewave 6007", RC_MAP_EMPTY)},
+@@ -875,6 +932,8 @@ static struct usb_device_id az6007_usb_table[] = {
+ 		&az6007_props, "Terratec H7", RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+ 	{DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2,
+ 		&az6007_props, "Terratec H7", RC_MAP_NEC_TERRATEC_CINERGY_XS)},
++	{DVB_USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI,
++		&az6007_cablestar_hdci_props, "Technisat CableStar Combo HD CI", RC_MAP_EMPTY)},
+ 	{0},
+ };
+ 
 -- 
-1.7.9.5
+1.8.1.4
 
