@@ -1,261 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56589 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754148Ab3KUOwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 09:52:49 -0500
-In-Reply-To: <528E101C.5070509@xs4all.nl>
-References: <1384995906.1917.12.camel@palomino.walls.org> <528E101C.5070509@xs4all.nl>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1261 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648Ab3KBVyl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 17:54:41 -0400
+Message-ID: <52757474.8010303@xs4all.nl>
+Date: Sat, 02 Nov 2013 22:53:56 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH RFC] videobuf2: Improve file I/O emulation to handle buffers in any order
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 21 Nov 2013 09:52:47 -0500
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	PawelOsciak <pawel@osciak.com>
-Message-ID: <0cf507fa-23cd-4ef2-ab2c-a18f33ca2232@email.android.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCHv2 19/29] tuners: Don't use dynamic static allocation
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-20-git-send-email-m.chehab@samsung.com> <5275357F.5090405@xs4all.nl> <20131102191515.0af09112@samsung.com>
+In-Reply-To: <20131102191515.0af09112@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
->Hi Andy,
->
->This seems more complex than is necessary. See my comments below...
->
->On 11/21/13 02:05, Andy Walls wrote:
->> (This patch is RFC, because it was compiled and tested against kernel
->> v3.5)
->> 
->> videobuf2 file I/O emulation assumed that buffers dequeued from the
->> driver would return in the order they were enqueued in the driver. 
->> 
->> Improve the file I/O emulator's book-keeping to remove this
->assumption.
->> 
->> Also remove the, AFAICT, assumption that only read() calls would need
->to
->> dequeue a buffer from the driver.
->> 
->> Also set the buf->size properly, if a write() dequeues a buffer.
->> 
->> 
->> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
->> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: PawelOsciak<pawel@osciak.com>
->> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
->> 
->> 
->> diff --git a/drivers/media/video/videobuf2-core.c
->b/drivers/media/video/videobuf2-core.c
->> index 9d4e9ed..f330aa4 100644
->> --- a/drivers/media/video/videobuf2-core.c
->> +++ b/drivers/media/video/videobuf2-core.c
->> @@ -1796,6 +1796,7 @@ struct vb2_fileio_data {
->>  	unsigned int dq_count;
->>  	unsigned int flags;
->>  };
->> +#define FILEIO_INDEX_NOT_SET	((unsigned int) INT_MAX)
->>  
->>  /**
->>   * __vb2_init_fileio() - initialize file io emulator
->> @@ -1889,6 +1890,7 @@ static int __vb2_init_fileio(struct vb2_queue
->*q, int read)
->>  				goto err_reqbufs;
->>  			fileio->bufs[i].queued = 1;
->>  		}
->> +		fileio->index = FILEIO_INDEX_NOT_SET;
->>  
->>  		/*
->>  		 * Start streaming.
->> @@ -1975,15 +1977,11 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
->>  	 */
->>  	q->fileio = NULL;
->>  
->> -	index = fileio->index;
->> -	buf = &fileio->bufs[index];
->> -
->>  	/*
->>  	 * Check if we need to dequeue the buffer.
->>  	 */
->> -	if (buf->queued) {
->> -		struct vb2_buffer *vb;
->> -
->> +	index = fileio->index;
->> +	if (index == FILEIO_INDEX_NOT_SET) {
->>  		/*
->>  		 * Call vb2_dqbuf to get buffer back.
->>  		 */
->> @@ -1997,12 +1995,19 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
->>  			goto end;
->>  		fileio->dq_count += 1;
->>  
->> +		fileio->index = fileio->b.index;
->> +		index = fileio->index;
->> +		buf = &fileio->bufs[index];
->> +		
->>  		/*
->>  		 * Get number of bytes filled by the driver
->>  		 */
->> -		vb = q->bufs[index];
->> -		buf->size = vb2_get_plane_payload(vb, 0);
->> +		buf->pos = 0;
->>  		buf->queued = 0;
->> +		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
->> +				 : vb2_plane_size(q->bufs[index], 0);
->> +	} else {
->> +		buf = &fileio->bufs[index];
->>  	}
->>  
->>  	/*
->> @@ -2070,13 +2075,28 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
->>  		 */
->>  		buf->pos = 0;
->>  		buf->queued = 1;
->> -		buf->size = q->bufs[0]->v4l2_planes[0].length;
->> +		buf->size = vb2_plane_size(q->bufs[index], 0);
->>  		fileio->q_count += 1;
->>  
->>  		/*
->> -		 * Switch to the next buffer
->> +		 * Decide on the next buffer
->>  		 */
->> -		fileio->index = (index + 1) % q->num_buffers;
->> +		if (read || (q->num_buffers == 1)) {
->> +			/* Use the next buffer the driver provides back */
->> +			fileio->index = FILEIO_INDEX_NOT_SET;
->> +		} else {
->> +			/* Prefer a buffer that is not quequed in the driver */
->> +			int initial_index = fileio->index;
->> +			fileio->index = FILEIO_INDEX_NOT_SET;
->> +			do {
->> +				if (++index == q->num_buffers)
->> +					index = 0;
->> +				if (!fileio->bufs[index].queued) {
->> +					fileio->index = index;
->> +					break;
->> +				}
->> +			} while (index != initial_index);
->
->Why bother finding an unused index? There are really just two
->situations:
->either all the buffers have been queued, and after that you just
->dequeue
->and queue them (and you get the index from the dequeued buffer), or you
->are still only queuing buffers (in the write case, for the read case
->that
->already happened) and you can use a simple counter as the index.
->
->> +		}
->>  
->>  		/*
->>  		 * Start streaming if required.
->> 
->> 
->
->See my version of this patch below (it might not cleanly apply as this
->sits
->on top of a bunch of other vb2 patches that I will post soon):
->
->diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->b/drivers/media/v4l2-core/videobuf2-core.c
->index 66cd81d..257b4ca 100644
->--- a/drivers/media/v4l2-core/videobuf2-core.c
->+++ b/drivers/media/v4l2-core/videobuf2-core.c
->@@ -2309,6 +2309,7 @@ static int __vb2_init_fileio(struct vb2_queue *q,
->int read)
-> 				goto err_reqbufs;
-> 			fileio->bufs[i].queued = 1;
-> 		}
->+		fileio->index = q->num_buffers;
-> 	}
+On 11/02/2013 10:15 PM, Mauro Carvalho Chehab wrote:
+> Em Sat, 02 Nov 2013 18:25:19 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> 	/*
->@@ -2384,15 +2385,11 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
-> 	}
-> 	fileio = q->fileio;
+>> Hi Mauro,
+>>
+>> I'll review this series more carefully on Monday,
 > 
->-	index = fileio->index;
->-	buf = &fileio->bufs[index];
->-
-> 	/*
-> 	 * Check if we need to dequeue the buffer.
-> 	 */
->-	if (buf->queued) {
->-		struct vb2_buffer *vb;
->-
->+	index = fileio->index;
->+	if (index >= q->num_buffers) {
-> 		/*
-> 		 * Call vb2_dqbuf to get buffer back.
-> 		 */
->@@ -2405,12 +2402,18 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
-> 			return ret;
-> 		fileio->dq_count += 1;
+> Thanks!
 > 
->+		index = fileio->b.index;
->+		buf = &fileio->bufs[index];
->+		
-> 		/*
-> 		 * Get number of bytes filled by the driver
-> 		 */
->-		vb = q->bufs[index];
->-		buf->size = vb2_get_plane_payload(vb, 0);
->+		buf->pos = 0;
-> 		buf->queued = 0;
->+		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
->+				 : vb2_plane_size(q->bufs[index], 0);
->+	} else {
->+		buf = &fileio->bufs[index];
-> 	}
+>> but for now I want to make
+>> a suggestion for the array checks:
+>>
+>> On 11/02/2013 02:31 PM, Mauro Carvalho Chehab wrote:
+>>> Dynamic static allocation is evil, as Kernel stack is too low, and
+>>> compilation complains about it on some archs:
+>>>
+>>> 	drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
+>>> 	drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>>
+>>> Instead, let's enforce a limit for the buffer. Considering that I2C
+>>> transfers are generally limited, and that devices used on USB has a
+>>> max data length of 80, it seem safe to use 80 as the hard limit for all
+>>> those devices. On most cases, the limit is a way lower than that, but
+>>> 80 is small enough to not affect the Kernel stack, and it is a no brain
+>>> limit, as using smaller ones would require to either carefully each
+>>> driver or to take a look on each datasheet.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>> Cc: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>  drivers/media/tuners/e4000.c    | 18 ++++++++++++++++--
+>>>  drivers/media/tuners/fc2580.c   | 18 ++++++++++++++++--
+>>>  drivers/media/tuners/tda18212.c | 18 ++++++++++++++++--
+>>>  drivers/media/tuners/tda18218.c | 18 ++++++++++++++++--
+>>>  4 files changed, 64 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>>> index ad9309da4a91..235e90251609 100644
+>>> --- a/drivers/media/tuners/e4000.c
+>>> +++ b/drivers/media/tuners/e4000.c
+>>> @@ -24,7 +24,7 @@
+>>>  static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>>  {
+>>>  	int ret;
+>>> -	u8 buf[1 + len];
+>>> +	u8 buf[80];
+>>>  	struct i2c_msg msg[1] = {
+>>>  		{
+>>>  			.addr = priv->cfg->i2c_addr,
+>>> @@ -34,6 +34,13 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>>  		}
+>>>  	};
+>>>  
+>>> +	if (1 + len > sizeof(buf)) {
+>>> +		dev_warn(&priv->i2c->dev,
+>>> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>>> +			 KBUILD_MODNAME, reg, len);
+>>> +		return -EREMOTEIO;
+>>> +	}
+>>> +
+>>
+>> I think this can be greatly simplified to:
+>>
+>> 	if (WARN_ON(len + 1 > sizeof(buf))
+>> 		return -EREMOTEIO;
+>>
+>> This should really never happen, and it is a clear driver bug if it does. WARN_ON
+>> does the job IMHO.
 > 
-> 	/*
->@@ -2473,13 +2476,10 @@ static size_t __vb2_perform_fileio(struct
->vb2_queue *q, char __user *data, size_
-> 		 */
-> 		buf->pos = 0;
-> 		buf->queued = 1;
->-		buf->size = q->bufs[0]->v4l2_planes[0].length;
->+		buf->size = vb2_plane_size(q->bufs[index], 0);
-> 		fileio->q_count += 1;
->-
->-		/*
->-		 * Switch to the next buffer
->-		 */
->-		fileio->index = (index + 1) % q->num_buffers;
->+		if (fileio->index < q->num_buffers)
->+			fileio->index++;
-> 	}
+> Works for me. I'll wait for more comments, and go for it on v3.
 > 
-> 	/*
->
->
->Regards,
->
->	Hans
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>  I also don't like the EREMOTEIO error: it has nothing to do with
+>> an I/O problem. Wouldn't EMSGSIZE be much better here?
+> 
+> 
+> EMSGSIZE is not used yet at drivers/media. So, it is probably not the
+> right error code.
+> 
+> I remember that there's an error code for that on I2C (EOPNOTSUPP?).
+> 
+> In any case, I don't think we should use an unusual error code here.
+> In theory, this error should never happen, but we don't want to break
+> userspace because of it. That's why I opted to use EREMOTEIO: this is
+> the error code that most of those drivers return when something gets
+> wrong during I2C transfers.
 
-Hi Hans,
+The problem I have is that EREMOTEIO is used when the i2c transfer fails,
+i.e. there is some sort of a hardware or communication problem.
 
-You are correct.  The initial queuing for write() can just use a simple, incrementing index.
+That's not the case here, it's an argument error. So EINVAL would actually
+be better, but that's perhaps overused which is why I suggested EMSGSIZE.
+I personally don't think EIO or EREMOTEIO should be used for something that
+is not hardware related. I'm sure there are some gray areas, but this
+particular situation is clearly not hardware-related.
 
-(I developed the patch at work under some deadline pressure.  Overly complex still worked to get the job done at the time.)
-
-I will review your patch later this evening.
+So if EMSGSIZE won't work for you, then I prefer EINVAL over EREMOTEIO.
+ENOMEM is also an option (you are after all 'out of buffer memory').
+A bit more exotic, but still sort of in the area, is EPROTO.
 
 Regards,
-Andy
 
+	Hans
