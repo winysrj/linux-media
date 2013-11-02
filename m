@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59787 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757076Ab3KHKj4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Nov 2013 05:39:56 -0500
-Date: Fri, 8 Nov 2013 12:39:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Frank =?iso-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
-Message-ID: <20131108103921.GB25342@valkosipuli.retiisi.org.uk>
-References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
- <3183788.gODlx1VQRn@avalon>
- <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:60724 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752564Ab3KBQdk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: [PATCHv2 28/29] mxl111sf: Don't use dynamic static allocation
+Date: Sat,  2 Nov 2013 11:31:36 -0200
+Message-Id: <1383399097-11615-29-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 08, 2013 at 11:12:54AM +0100, Ricardo Ribalda Delgado wrote:
-...
-> Also I am not aware of a reason why clamp_t is better than clamp (I am
-> probably wrong here....). If there is a good reason for not using
-> clamp_t I have no problem in reviewing again the patch and use
-> unsigned constants.
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
 
-clamp_t() should only be used if you need to force a type for the clamping
-operation. It's always better if you don't have to, and all the arguments
-are of the same type: type casting can have an effect on the end result and
-bugs related to that can be difficult to find.
+	drivers/media/usb/dvb-usb-v2/mxl111sf.c:74:1: warning: 'mxl111sf_ctrl_msg' uses dynamic stack allocation [enabled by default]
 
+Instead, let's enforce a limit for the buffer to be the max size of
+a control URB payload data (80 bytes).
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Michael Krufky <mkrufky@kernellabs.com>
+---
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index e97964ef7f56..6538fd54c84e 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -57,7 +57,12 @@ int mxl111sf_ctrl_msg(struct dvb_usb_device *d,
+ {
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	int ret;
+-	u8 sndbuf[1+wlen];
++	u8 sndbuf[80];
++
++	if (1 + wlen > sizeof(sndbuf)) {
++		pr_warn("%s: len=%d is too big!\n", __func__, wlen);
++		return -EREMOTEIO;
++	}
+ 
+ 	pr_debug("%s(wlen = %d, rlen = %d)\n", __func__, wlen, rlen);
+ 
 -- 
-Kind regards,
+1.8.3.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
