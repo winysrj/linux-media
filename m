@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:54649 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab3KYJMi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:12:38 -0500
-Received: by mail-oa0-f44.google.com with SMTP id m1so4044258oag.31
-        for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 01:12:37 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPybu_3GCT2joBHM4_yBAKXj=VQHy67J3sd5+oMVujj9aQV3eQ@mail.gmail.com>
-References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
- <3183788.gODlx1VQRn@avalon> <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
- <20131108103921.GB25342@valkosipuli.retiisi.org.uk> <CAPybu_3GCT2joBHM4_yBAKXj=VQHy67J3sd5+oMVujj9aQV3eQ@mail.gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 25 Nov 2013 10:12:16 +0100
-Message-ID: <CAPybu_3FwcT-be+a6uEiJSqe9D3SZ1NZ-zsEgafSTKQYuAR0gw@mail.gmail.com>
-Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([198.137.202.9]:60744 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130Ab3KBQdk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	stable@vger.kernel.org
+Subject: [PATCHv2 07/29] platform drivers: Fix build on cris and frv archs
+Date: Sat,  2 Nov 2013 11:31:15 -0200
+Message-Id: <1383399097-11615-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On cris and frv archs, the functions below aren't defined:
+	drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_read':
+	drivers/media/platform/sh_veu.c:228:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_write':
+	drivers/media/platform/sh_veu.c:234:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
+	drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
+	drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
+	drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
+	drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_setup':
+	drivers/media/platform/soc_camera/rcar_vin.c:284:3: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
+	drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_request_capture_stop':
+	drivers/media/platform/soc_camera/rcar_vin.c:353:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
 
-Is there anything that needs to be addressed on this patch?
+While this is not fixed, remove those 3 drivers from building on
+those archs.
 
-Thanks!
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/media/platform/Kconfig            | 2 ++
+ drivers/media/platform/soc_camera/Kconfig | 1 +
+ 2 files changed, 3 insertions(+)
 
-On Fri, Nov 8, 2013 at 2:41 PM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> Hello Sakari
->
-> On Fri, Nov 8, 2013 at 11:39 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> On Fri, Nov 08, 2013 at 11:12:54AM +0100, Ricardo Ribalda Delgado wrote:
->> ...
->>> Also I am not aware of a reason why clamp_t is better than clamp (I am
->>> probably wrong here....). If there is a good reason for not using
->>> clamp_t I have no problem in reviewing again the patch and use
->>> unsigned constants.
->>
->> clamp_t() should only be used if you need to force a type for the clamping
->> operation. It's always better if you don't have to, and all the arguments
->> are of the same type: type casting can have an effect on the end result and
->> bugs related to that can be difficult to find.
->>
->
-> But IMHO in these case, we will cause much more castings in other
-> places. I find more descriptive a casting via clamp_t, than via ().
->
-> Regards!
->
->> --
->> Kind regards,
->>
->> Sakari Ailus
->> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
->
->
->
-> --
-> Ricardo Ribalda
-
-
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 3d9beef60325..ab4b22c8ee85 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -205,6 +205,7 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
+ config VIDEO_SH_VEU
+ 	tristate "SuperH VEU mem2mem video processing driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
++	depends on !CRIS && !FRV
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	help
+@@ -214,6 +215,7 @@ config VIDEO_SH_VEU
+ config VIDEO_RENESAS_VSP1
+ 	tristate "Renesas VSP1 Video Processing Engine"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
++	depends on !CRIS && !FRV
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+ 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index af39c4665554..df11f69aeba5 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -47,6 +47,7 @@ config VIDEO_PXA27x
+ config VIDEO_RCAR_VIN
+ 	tristate "R-Car Video Input (VIN) support"
+ 	depends on VIDEO_DEV && SOC_CAMERA
++	depends on !CRIS && !FRV
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
 -- 
-Ricardo Ribalda
+1.8.3.1
+
