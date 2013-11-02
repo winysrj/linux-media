@@ -1,101 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:48124 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab3KEGNu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 01:13:50 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v11 10/12] [media] exynos5-is: Add Kconfig and Makefile
-Date: Tue,  5 Nov 2013 11:42:41 +0530
-Message-Id: <1383631964-26514-11-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
-References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:60749 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153Ab3KBQdk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Zoran Turalija <zoran.turalija@gmail.com>,
+	=?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+Subject: [PATCHv2 15/29] stb0899_drv: Don't use dynamic static allocation
+Date: Sat,  2 Nov 2013 11:31:23 -0200
+Message-Id: <1383399097-11615-16-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds Kconfig and Makefile for exynos5-is driver files.
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	drivers/media/dvb-frontends/stb0899_drv.c:540:1: warning: 'stb0899_write_regs' uses dynamic stack allocation [enabled by default]
+
+Instead, let's enforce a limit for the buffer. Considering that I2C
+transfers are generally limited, and that devices used on USB has a
+max data length of 80, it seem safe to use 80 as the hard limit for all
+those devices. On most cases, the limit is a way lower than that, but
+80 is small enough to not affect the Kernel stack, and it is a no brain
+limit, as using smaller ones would require to either carefully each
+driver or to take a look on each datasheet.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Zoran Turalija <zoran.turalija@gmail.com>
+Cc: "Reinhard Nißl" <rnissl@gmx.de>
 ---
- drivers/media/platform/Kconfig             |    1 +
- drivers/media/platform/Makefile            |    1 +
- drivers/media/platform/exynos5-is/Kconfig  |   20 ++++++++++++++++++++
- drivers/media/platform/exynos5-is/Makefile |    7 +++++++
- 4 files changed, 29 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
+ drivers/media/dvb-frontends/stb0899_drv.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 08de865..4b0475e 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -123,6 +123,7 @@ config VIDEO_S3C_CAMIF
+diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
+index 3dd5714eadba..9df77899b219 100644
+--- a/drivers/media/dvb-frontends/stb0899_drv.c
++++ b/drivers/media/dvb-frontends/stb0899_drv.c
+@@ -499,7 +499,7 @@ err:
+ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data, u32 count)
+ {
+ 	int ret;
+-	u8 buf[2 + count];
++	u8 buf[80];
+ 	struct i2c_msg i2c_msg = {
+ 		.addr	= state->config->demod_address,
+ 		.flags	= 0,
+@@ -507,6 +507,13 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
+ 		.len	= 2 + count
+ 	};
  
- source "drivers/media/platform/soc_camera/Kconfig"
- source "drivers/media/platform/exynos4-is/Kconfig"
-+source "drivers/media/platform/exynos5-is/Kconfig"
- source "drivers/media/platform/s5p-tv/Kconfig"
- 
- endif # V4L_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index eee28dd..40bf09f 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -37,6 +37,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
- 
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
-diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
-new file mode 100644
-index 0000000..b67d11a
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Kconfig
-@@ -0,0 +1,20 @@
-+config VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+	bool "Samsung Exynos5 SoC Camera Media Device driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
-+	depends on VIDEO_SAMSUNG_EXYNOS4_IS
-+	help
-+	  This is a V4L2 media device driver for Exynos5 SoC series
-+	  camera subsystem.
++	if (2 + count > sizeof(buf)) {
++		printk(KERN_WARNING
++		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
++		       KBUILD_MODNAME, reg, count);
++		return -EREMOTEIO;
++	}
 +
-+if VIDEO_SAMSUNG_EXYNOS5_CAMERA
-+
-+config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
-+	tristate "Samsung Exynos5 SoC FIMC-IS driver"
-+	depends on I2C && OF
-+	depends on VIDEO_EXYNOS4_FIMC_IS
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  This is a V4L2 driver for Samsung Exynos5 SoC series Imaging
-+	  Subsystem known as FIMC-IS.
-+
-+endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
-diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
-new file mode 100644
-index 0000000..6cdb037
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/Makefile
-@@ -0,0 +1,7 @@
-+ccflags-y += -Idrivers/media/platform/exynos4-is
-+exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o
-+exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o fimc-is-sensor.o
-+exynos-mdevice-objs := exynos5-mdev.o
-+
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos-mdevice.o
+ 	buf[0] = reg >> 8;
+ 	buf[1] = reg & 0xff;
+ 	memcpy(&buf[2], data, count);
 -- 
-1.7.9.5
+1.8.3.1
 
