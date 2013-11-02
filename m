@@ -1,108 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2959 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757049Ab3KJDc0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Nov 2013 22:32:26 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAA3WNVr022057
-	for <linux-media@vger.kernel.org>; Sun, 10 Nov 2013 04:32:25 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E00572A1F7C
-	for <linux-media@vger.kernel.org>; Sun, 10 Nov 2013 04:32:20 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131110033220.E00572A1F7C@tschai.lan>
-Date: Sun, 10 Nov 2013 04:32:20 +0100 (CET)
+Received: from bombadil.infradead.org ([198.137.202.9]:60752 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394Ab3KBQdm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:42 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2 14/29] dvb-frontends: Don't use dynamic static allocation
+Date: Sat,  2 Nov 2013 11:31:22 -0200
+Message-Id: <1383399097-11615-15-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
 
-Results of the daily build of media_tree:
+	drivers/media/dvb-frontends/af9013.c:77:1: warning: 'af9013_wr_regs_i2c' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/af9033.c:188:1: warning: 'af9033_wr_reg_val_tab' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/af9033.c:68:1: warning: 'af9033_wr_regs' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/bcm3510.c:230:1: warning: 'bcm3510_do_hab_cmd' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/cxd2820r_core.c:84:1: warning: 'cxd2820r_rd_regs_i2c.isra.1' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/rtl2830.c:56:1: warning: 'rtl2830_wr' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/rtl2832.c:187:1: warning: 'rtl2832_wr' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/tda10071.c:52:1: warning: 'tda10071_wr_regs' uses dynamic stack allocation [enabled by default]
+	drivers/media/dvb-frontends/tda10071.c:84:1: warning: 'tda10071_rd_regs' uses dynamic stack allocation [enabled by default]
 
-date:		Sun Nov 10 04:00:21 CET 2013
-git branch:	for-v3.13c
-git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.1-amd64
+Instead, let's enforce a limit for the buffer. Considering that I2C
+transfers are generally limited, and that devices used on USB has a
+max data length of 80, it seem safe to use 80 as the hard limit for all
+those devices. On most cases, the limit is a way lower than that, but
+80 is small enough to not affect the Kernel stack, and it is a no brain
+limit, as using smaller ones would require to either carefully each
+driver or to take a look on each datasheet.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9013.c        |  9 ++++++++-
+ drivers/media/dvb-frontends/af9033.c        | 18 ++++++++++++++++--
+ drivers/media/dvb-frontends/cxd2820r_core.c | 18 ++++++++++++++++--
+ drivers/media/dvb-frontends/rtl2830.c       |  9 ++++++++-
+ drivers/media/dvb-frontends/rtl2832.c       |  9 ++++++++-
+ drivers/media/dvb-frontends/tda10071.c      | 18 ++++++++++++++++--
+ 6 files changed, 72 insertions(+), 9 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index a204f2828820..f968dc0e5de9 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -50,7 +50,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	const u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[3+len];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->config.i2c_addr,
+@@ -60,6 +60,13 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 		}
+ 	};
+ 
++	if (3 + len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = (reg >> 8) & 0xff;
+ 	buf[1] = (reg >> 0) & 0xff;
+ 	buf[2] = mbox;
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index a777b4b944eb..efa2efafa97f 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -40,7 +40,7 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
+ 		int len)
+ {
+ 	int ret;
+-	u8 buf[3 + len];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = state->cfg.i2c_addr,
+@@ -50,6 +50,13 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
+ 		}
+ 	};
+ 
++	if (3 + len > sizeof(buf)) {
++		dev_warn(&state->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = (reg >> 16) & 0xff;
+ 	buf[1] = (reg >>  8) & 0xff;
+ 	buf[2] = (reg >>  0) & 0xff;
+@@ -161,7 +168,14 @@ static int af9033_wr_reg_val_tab(struct af9033_state *state,
+ 		const struct reg_val *tab, int tab_len)
+ {
+ 	int ret, i, j;
+-	u8 buf[tab_len];
++	u8 buf[80];
++
++	if (tab_len > sizeof(buf)) {
++		dev_warn(&state->i2c->dev,
++			 "%s: i2c wr len=%d is too big!\n",
++			 KBUILD_MODNAME, tab_len);
++		return -EREMOTEIO;
++	}
+ 
+ 	dev_dbg(&state->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
+ 
+diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
+index d9eeeb1dfa96..8ef96a96b141 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_core.c
++++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+@@ -26,7 +26,7 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+ 	u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[len+1];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = i2c,
+@@ -36,6 +36,13 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+ 		}
+ 	};
+ 
++	if (1 + len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+@@ -55,7 +62,7 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+ 	u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[len];
++	u8 buf[80];
+ 	struct i2c_msg msg[2] = {
+ 		{
+ 			.addr = i2c,
+@@ -70,6 +77,13 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+ 		}
+ 	};
+ 
++	if (len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+ 	if (ret == 2) {
+ 		memcpy(val, buf, len);
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 362d26d11e82..bd54fd8b3e2d 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -31,7 +31,7 @@
+ static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[1+len];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg.i2c_addr,
+@@ -41,6 +41,13 @@ static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
+ 		}
+ 	};
+ 
++	if (1 + len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index a95dfe0a5ce3..067547fd6ac5 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -162,7 +162,7 @@ static const struct rtl2832_reg_entry registers[] = {
+ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[1+len];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg.i2c_addr,
+@@ -172,6 +172,13 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 		}
+ 	};
+ 
++	if (1 + len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index e79749cfec81..6f007f55d35d 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -27,7 +27,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 	int len)
+ {
+ 	int ret;
+-	u8 buf[len+1];
++	u8 buf[80];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg.demod_i2c_addr,
+@@ -37,6 +37,13 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 		}
+ 	};
+ 
++	if (1 + len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+@@ -56,7 +63,7 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 	int len)
+ {
+ 	int ret;
+-	u8 buf[len];
++	u8 buf[80];
+ 	struct i2c_msg msg[2] = {
+ 		{
+ 			.addr = priv->cfg.demod_i2c_addr,
+@@ -71,6 +78,13 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 		}
+ 	};
+ 
++	if (len > sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,
++			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
++			 KBUILD_MODNAME, reg, len);
++		return -EREMOTEIO;
++	}
++
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+ 	if (ret == 2) {
+ 		memcpy(val, buf, len);
+-- 
+1.8.3.1
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
