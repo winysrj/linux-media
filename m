@@ -1,164 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3577 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753265Ab3KTPoJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 10:44:09 -0500
-Message-ID: <528CD86D.70506@xs4all.nl>
-Date: Wed, 20 Nov 2013 16:42:37 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Valentine <valentine.barshak@cogentembedded.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com>
-In-Reply-To: <528CA9E1.2020401@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:60751 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255Ab3KBQdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:41 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Andrey Pavlenko <andrey.a.pavlenko@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Stephan Hilb <stephan@ecshi.net>
+Subject: [PATCHv2 25/29] dw2102: Don't use dynamic static allocation
+Date: Sat,  2 Nov 2013 11:31:33 -0200
+Message-Id: <1383399097-11615-26-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Valentine,
+Dynamic static allocation is evil, as Kernel stack is too low, and
+ompilation complains about it on some archs:
 
-Did you ever look at this adv7611 driver:
+	drivers/media/usb/dvb-usb/dw2102.c:368:1: warning: 'dw2102_earda_i2c_transfer' uses dynamic stack allocation [enabled by default]
+	drivers/media/usb/dvb-usb/dw2102.c:449:1: warning: 'dw2104_i2c_transfer' uses dynamic stack allocation [enabled by default]
+	drivers/media/usb/dvb-usb/dw2102.c:512:1: warning: 'dw3101_i2c_transfer' uses dynamic stack allocation [enabled by default]
+	drivers/media/usb/dvb-usb/dw2102.c:621:1: warning: 's6x0_i2c_transfer' uses dynamic stack allocation [enabled by default]
 
-https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
+Instead, let's enforce a limit for the buffer to be the max size of
+a control URB payload data (80 bytes).
 
-It adds adv761x support to the adv7604 in a pretty clean way.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Igor M. Liplianin <liplianin@me.by>
+Cc: Andrey Pavlenko <andrey.a.pavlenko@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Stephan Hilb <stephan@ecshi.net>
+---
+ drivers/media/usb/dvb-usb/dw2102.c | 87 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 77 insertions(+), 10 deletions(-)
 
-Thinking it over I prefer to use that code (although you will have to
-add the soc-camera hack for the time being) over your driver.
-
-Others need adv7611 support as well, but with all the dv_timings etc. features
-that are removed in your driver. So I am thinking that it is easier to merge
-the xilinx version and add whatever you need on top of that.
-
-Regards,
-
-	Hans
-
-On 11/20/13 13:24, Valentine wrote:
-> On 11/20/2013 03:19 PM, Hans Verkuil wrote:
->> Hi Valentine,
-> 
-> Hi Hans,
-> 
->>
->> On 11/20/13 11:14, Valentine wrote:
->>> On 11/19/2013 01:50 PM, Hans Verkuil wrote:
->>>> Hi Valentine,
->>>
->>> Hi Hans,
->>> thanks for your review.
->>>
->>>>
->>>> I don't entirely understand how you use this driver with soc-camera.
->>>> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
->>>> act on it. Did you hack soc-camera to do this?
->>>
->>> I did not. The format is queried before reading the frame by the user-space.
->>> I'm not sure if there's some kind of generic interface to notify the camera
->>> layer about format change events. Different subdevices use different FMT_CHANGE
->>> defines for that. I've implemented the format change notifier based on the adv7604
->>> in hope that it may be useful later.
->>
->> Yes, I need to generalize the FMT_CHANGE event.
->>
->> But what happens if you are streaming and the HDMI connector is unplugged?
->> Or plugged back in again, possibly with a larger resolution? I'm not sure
->> if the soc_camera driver supports such scenarios.
-> 
-> It doesn't. Currently it's up to the UI to poll the format and do the necessary changes.
-> Otherwise the picture will be incorrect.
-> 
->>
->>>
->>>>
->>>> The way it stands I would prefer to see a version of the driver without
->>>> soc-camera support. I wouldn't have a problem merging that as this driver
->>>> is a good base for further development.
->>>
->>> I've tried to implement the driver base good enough to work with both SoC
->>> and non-SoC cameras since I don't think having 2 separate drivers for
->>> different camera models is a good idea.
->>>
->>> The problem is that I'm using it with R-Car VIN SoC camera driver and don't
->>> have any other h/w. Having a platform data quirk for SoC camera in
->>> the subdevice driver seemed simple and clean enough.
->>
->> I hate it, but it isn't something you can do anything about. So it will have
->> to do for now.
->>
->>> Hacking SoC camera to make it support both generic and SoC cam subdevices
->>> doesn't seem that straightforward to me.
->>
->> Guennadi, what is the status of this? I'm getting really tired of soc-camera
->> infecting sub-devices. Subdev drivers should be independent of any bridge
->> driver using them, but soc-camera keeps breaking that. It's driving me nuts.
->>
->> I'll be honest, it's getting to the point that I want to just NACK any
->> future subdev drivers that depend on soc-camera, just to force a solution.
->> There is no technical reason for this dependency, it just takes some time
->> to fix soc-camera.
->>
->>> Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
->>> involves a lot of regression testing with other R-Car boards that use different
->>> subdevices with VIN.
->>>
->>> What would you suggest?
->>
->> Let's leave it as-is for now :-(
->>
->> I'm not happy, but as I said, it's not your fault.
-> 
-> OK, thanks.
-> Once a better solution is available we can remove the quirk.
-> 
->>
->> Regards,
->>
->>     Hans
-> 
-> Thanks,
-> Val.
-> 
->>
->>>
->>>>
->>>> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
->>>> control. It's easy to implement and that way apps can be notified when
->>>> the hotplug changes value.
->>>
->>> OK, thanks.
->>>
->>>>
->>>> Regards,
->>>>
->>>>      Hans
->>>
->>> Thanks,
->>> Val.
->>>
->>>>
->>>> On 11/15/13 13:54, Valentine Barshak wrote:
->>>>> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
->>>>> support. Only one HDMI port is supported on ADV7612.
->>>>>
->>>>> The code is based on the ADV7604 driver, and ADV7612 patch by
->>>>> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
->>>>>
->>>>> Changes in version 2:
->>>>> * Used platform data for I2C addresses setup. The driver
->>>>>     should work with both SoC and non-SoC camera models.
->>>>> * Dropped unnecessary code and unsupported callbacks.
->>>>> * Implemented IRQ handling for format change detection.
->>>>>
->>>>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
-> 
-> 
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 6136a2c7dbfd..1907a242d93f 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -308,7 +308,14 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 	case 2: {
+ 		/* read */
+ 		/* first write first register number */
+-		u8 ibuf[msg[1].len + 2], obuf[3];
++		u8 ibuf[80], obuf[3];
++
++		if (2 + msg[1].len > sizeof(ibuf)) {
++			warn("i2c rd: len=%d is too big!\n",
++			     msg[1].len);
++			return -EREMOTEIO;
++		}
++
+ 		obuf[0] = msg[0].addr << 1;
+ 		obuf[1] = msg[0].len;
+ 		obuf[2] = msg[0].buf[0];
+@@ -325,7 +332,14 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 		switch (msg[0].addr) {
+ 		case 0x68: {
+ 			/* write to register */
+-			u8 obuf[msg[0].len + 2];
++			u8 obuf[80];
++
++			if (2 + msg[0].len > sizeof(obuf)) {
++				warn("i2c wr: len=%d is too big!\n",
++				     msg[1].len);
++				return -EREMOTEIO;
++			}
++
+ 			obuf[0] = msg[0].addr << 1;
+ 			obuf[1] = msg[0].len;
+ 			memcpy(obuf + 2, msg[0].buf, msg[0].len);
+@@ -335,7 +349,14 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 		}
+ 		case 0x61: {
+ 			/* write to tuner */
+-			u8 obuf[msg[0].len + 2];
++			u8 obuf[80];
++
++			if (2 + msg[0].len > sizeof(obuf)) {
++				warn("i2c wr: len=%d is too big!\n",
++				     msg[1].len);
++				return -EREMOTEIO;
++			}
++
+ 			obuf[0] = msg[0].addr << 1;
+ 			obuf[1] = msg[0].len;
+ 			memcpy(obuf + 2, msg[0].buf, msg[0].len);
+@@ -401,7 +422,14 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
+ 		default: {
+ 			if (msg[j].flags == I2C_M_RD) {
+ 				/* read registers */
+-				u8  ibuf[msg[j].len + 2];
++				u8  ibuf[80];
++
++				if (2 + msg[j].len > sizeof(ibuf)) {
++					warn("i2c rd: len=%d is too big!\n",
++					     msg[j].len);
++					return -EREMOTEIO;
++				}
++
+ 				dw210x_op_rw(d->udev, 0xc3,
+ 						(msg[j].addr << 1) + 1, 0,
+ 						ibuf, msg[j].len + 2,
+@@ -430,7 +458,14 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
+ 				} while (len > 0);
+ 			} else {
+ 				/* write registers */
+-				u8 obuf[msg[j].len + 2];
++				u8 obuf[80];
++
++				if (2 + msg[j].len > sizeof(obuf)) {
++					warn("i2c wr: len=%d is too big!\n",
++					     msg[j].len);
++					return -EREMOTEIO;
++				}
++
+ 				obuf[0] = msg[j].addr << 1;
+ 				obuf[1] = msg[j].len;
+ 				memcpy(obuf + 2, msg[j].buf, msg[j].len);
+@@ -463,7 +498,13 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 	case 2: {
+ 		/* read */
+ 		/* first write first register number */
+-		u8 ibuf[msg[1].len + 2], obuf[3];
++		u8 ibuf[80], obuf[3];
++
++		if (2 + msg[1].len > sizeof(ibuf)) {
++			warn("i2c rd: len=%d is too big!\n",
++			     msg[1].len);
++			return -EREMOTEIO;
++		}
+ 		obuf[0] = msg[0].addr << 1;
+ 		obuf[1] = msg[0].len;
+ 		obuf[2] = msg[0].buf[0];
+@@ -481,7 +522,13 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 		case 0x60:
+ 		case 0x0c: {
+ 			/* write to register */
+-			u8 obuf[msg[0].len + 2];
++			u8 obuf[80];
++
++			if (2 + msg[0].len > sizeof(obuf)) {
++				warn("i2c wr: len=%d is too big!\n",
++				     msg[0].len);
++				return -EREMOTEIO;
++			}
+ 			obuf[0] = msg[0].addr << 1;
+ 			obuf[1] = msg[0].len;
+ 			memcpy(obuf + 2, msg[0].buf, msg[0].len);
+@@ -563,7 +610,14 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 		default: {
+ 			if (msg[j].flags == I2C_M_RD) {
+ 				/* read registers */
+-				u8 ibuf[msg[j].len];
++				u8 ibuf[80];
++
++				if (msg[j].len > sizeof(ibuf)) {
++					warn("i2c rd: len=%d is too big!\n",
++					     msg[j].len);
++					return -EREMOTEIO;
++				}
++
+ 				dw210x_op_rw(d->udev, 0x91, 0, 0,
+ 						ibuf, msg[j].len,
+ 						DW210X_READ_MSG);
+@@ -590,7 +644,14 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				} while (len > 0);
+ 			} else if (j < (num - 1)) {
+ 				/* write register addr before read */
+-				u8 obuf[msg[j].len + 2];
++				u8 obuf[80];
++
++				if (2 + msg[j].len > sizeof(obuf)) {
++					warn("i2c wr: len=%d is too big!\n",
++					     msg[j].len);
++					return -EREMOTEIO;
++				}
++
+ 				obuf[0] = msg[j + 1].len;
+ 				obuf[1] = (msg[j].addr << 1);
+ 				memcpy(obuf + 2, msg[j].buf, msg[j].len);
+@@ -602,7 +663,13 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				break;
+ 			} else {
+ 				/* write registers */
+-				u8 obuf[msg[j].len + 2];
++				u8 obuf[80];
++
++				if (2 + msg[j].len > sizeof(obuf)) {
++					warn("i2c wr: len=%d is too big!\n",
++					     msg[j].len);
++					return -EREMOTEIO;
++				}
+ 				obuf[0] = msg[j].len + 1;
+ 				obuf[1] = (msg[j].addr << 1);
+ 				memcpy(obuf + 2, msg[j].buf, msg[j].len);
+-- 
+1.8.3.1
 
