@@ -1,44 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:55145 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041Ab3KJSiC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 13:38:02 -0500
-Received: by mail-ee0-f47.google.com with SMTP id c13so1970970eek.6
-        for <linux-media@vger.kernel.org>; Sun, 10 Nov 2013 10:38:01 -0800 (PST)
-From: Michal Nazarewicz <mpn@google.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: go7007: fix use of uninitialised pointer
-Date: Sun, 10 Nov 2013 19:37:57 +0100
-Message-Id: <1384108677-23476-1-git-send-email-mpn@google.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:60712 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962Ab3KBQdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:38 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 05/29] tef6862: fix warning on avr32 arch
+Date: Sat,  2 Nov 2013 11:31:13 -0200
+Message-Id: <1383399097-11615-6-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+On avr32 arch, we get those warnings:
+	drivers/media/radio/tef6862.c:59:1: warning: "MODE_SHIFT" redefined
+	In file included from /devel/v4l/ktest-build/arch/avr32/include/asm/ptrace.h:11,
+	arch/avr32/include/uapi/asm/ptrace.h:41:1: warning: this is the location of the previous definition
 
-The go variable is declade without initialisation and invocation of
-dev_dbg immediatelly tries to dereference it.
+Prefix MSA_ to the MSA register bitmap macros, to avoid reusing the same symbol.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/staging/media/go7007/go7007-usb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/radio/tef6862.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 58684da..457ab63 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	char *name;
- 	int video_pipe, i, v_urb_len;
+diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
+index 06ac69245ca1..69e3245a58a0 100644
+--- a/drivers/media/radio/tef6862.c
++++ b/drivers/media/radio/tef6862.c
+@@ -48,15 +48,15 @@
+ #define WM_SUB_TEST		0xF
  
--	dev_dbg(go->dev, "probing new GO7007 USB board\n");
-+	pr_debug("probing new GO7007 USB board\n");
+ /* Different modes of the MSA register */
+-#define MODE_BUFFER		0x0
+-#define MODE_PRESET		0x1
+-#define MODE_SEARCH		0x2
+-#define MODE_AF_UPDATE		0x3
+-#define MODE_JUMP		0x4
+-#define MODE_CHECK		0x5
+-#define MODE_LOAD		0x6
+-#define MODE_END		0x7
+-#define MODE_SHIFT		5
++#define MSA_MODE_BUFFER		0x0
++#define MSA_MODE_PRESET		0x1
++#define MSA_MODE_SEARCH		0x2
++#define MSA_MODE_AF_UPDATE	0x3
++#define MSA_MODE_JUMP		0x4
++#define MSA_MODE_CHECK		0x5
++#define MSA_MODE_LOAD		0x6
++#define MSA_MODE_END		0x7
++#define MSA_MODE_SHIFT		5
  
- 	switch (id->driver_info) {
- 	case GO7007_BOARDID_MATRIX_II:
+ struct tef6862_state {
+ 	struct v4l2_subdev sd;
+@@ -114,7 +114,7 @@ static int tef6862_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
+ 
+ 	clamp(freq, TEF6862_LO_FREQ, TEF6862_HI_FREQ);
+ 	pll = 1964 + ((freq - TEF6862_LO_FREQ) * 20) / FREQ_MUL;
+-	i2cmsg[0] = (MODE_PRESET << MODE_SHIFT) | WM_SUB_PLLM;
++	i2cmsg[0] = (MSA_MODE_PRESET << MSA_MODE_SHIFT) | WM_SUB_PLLM;
+ 	i2cmsg[1] = (pll >> 8) & 0xff;
+ 	i2cmsg[2] = pll & 0xff;
+ 
 -- 
-1.8.3.2
+1.8.3.1
 
