@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:47440 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab3KYJ6t (ORCPT
+Received: from cpsmtpb-ews07.kpnxchange.com ([213.75.39.10]:60345 "EHLO
+	cpsmtpb-ews07.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751096Ab3KBT0H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:58:49 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00JN8D1Z9P20@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:58:47 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 04/16] s5p-jpeg: Remove superfluous call to the
- jpeg_bound_align_image function
-Date: Mon, 25 Nov 2013 10:58:11 +0100
-Message-id: <1385373503-1657-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+	Sat, 2 Nov 2013 15:26:07 -0400
+Message-ID: <1383420054.4378.3.camel@x220.thuisdomein>
+Subject: Re: [kconfig] update: results of some syntactical checks
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Martin Walch <walch.martin@web.de>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Larry Finger <Larry.Finger@lwfinger.net>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Sat, 02 Nov 2013 20:20:54 +0100
+In-Reply-To: <3513955.N5RNgL3hPx@tacticalops>
+References: <3513955.N5RNgL3hPx@tacticalops>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Aligning capture queue image dimensions while enqueuing output
-queue doesn't make a sense as the S_FMT ioctl might have not
-been called for the capture queue until that moment, whereas
-it is required to know capture format as the type of alignment
-heavily depends on it.
+On Sun, 2013-10-20 at 00:03 +0200, Martin Walch wrote:
+> drivers/media/common/siano/Kconfig:21-26
+> > config SMS_SIANO_DEBUGFS
+> >	bool "Enable debugfs for smsdvb"
+> >	depends on SMS_SIANO_MDTV
+> >	depends on DEBUG_FS
+> >	depends on SMS_USB_DRV
+> >	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
+> 
+> The last line adds the dependency CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV.
+> This expression does not look sound as those two symbols are not declared
+> anywhere. So, the two strings CONFIG_SMS_USB_DRV and CONFIG_SMS_SDIO_DRV
+> are compared, yielding always 'n'. As a result, SMS_SIANO_DEBUGFS will never
+> be enabled.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    7 -------
- 1 file changed, 7 deletions(-)
+Those are obvious typos. Still present in v3.12-rc7. Perhaps you'd like
+to send the trivial patch to fix this?
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index a1366f0..a6ec8c6 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1089,13 +1089,6 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		q_data = &ctx->cap_q;
- 		q_data->w = tmp.w;
- 		q_data->h = tmp.h;
--
--		jpeg_bound_align_image(&q_data->w, S5P_JPEG_MIN_WIDTH,
--				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
--				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
--				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
--				      );
--		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
- 	}
- 
- 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
--- 
-1.7.9.5
+> Probably, it was meant to say something like
+> >	depends on SMS_USB_DRV = SMS_SDIO_DRV
+> 
+> Two other config sections that probably behave differently than expected:
+> 
+> drivers/staging/rtl8188eu/Kconfig: 13-15
+> > config 88EU_AP_MODE
+> >	bool "Realtek RTL8188EU AP mode"
+> >	default Y
+> 
+> drivers/staging/rtl8188eu/Kconfig: 21-23
+> > config 88EU_P2P
+> >	bool "Realtek RTL8188EU Peer-to-peer mode"
+> >	default Y
+> 
+> The capital Y is different from the lowercase y. While y is an actually
+> hard coded constant symbol, Y is undeclared and evaluates to n.
+> The default values are probably only for convenience, so 88EU_AP_MODE and
+> 88EU_P2P are activated together with 8188EU. They still can be turned off.
+> Anyway, it should probably say "default y" in both cases.
+
+Ditto. 
+
+
+Paul Bolle
 
