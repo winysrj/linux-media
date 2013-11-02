@@ -1,81 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:63025 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753961Ab3KYJAH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:00:07 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so4029195oag.14
-        for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 01:00:06 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <3377d5e29bf6444086575515325b3555@TTTEX01.ds1.internal>
-References: <1383767329-29985-1-git-send-email-ricardo.ribalda@gmail.com> <3377d5e29bf6444086575515325b3555@TTTEX01.ds1.internal>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 25 Nov 2013 09:59:46 +0100
-Message-ID: <CAPybu_3SQaMuCOnGr4PPz53J=sM2LcevLkAXbjyExqoOiMNvLA@mail.gmail.com>
-Subject: Re: [PATCH] videobuf2-dma-sg: Support io userptr operations on io memory
-To: =?ISO-8859-1?Q?Matthias_W=E4chter?= <matthias.waechter@tttech.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
-	"sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:60807 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023Ab3KBQe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:34:56 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 24/29] dibusb-common: Don't use dynamic static allocation
+Date: Sat,  2 Nov 2013 11:31:32 -0200
+Message-Id: <1383399097-11615-25-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mathias
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
 
-Memory managing is definately not my topic. I have done the same as in
-vb2-dmacontig, and it has worked on my driver (out of tree).
+	drivers/media/usb/dvb-usb/dibusb-common.c:124:1: warning: 'dibusb_i2c_msg' uses dynamic stack allocation [enabled by default]
 
-I think that if there is something wrong it will also be wrong on the
-dmacontig part, and much more drivers would be affected, so please
-also take a look to videobuf2-dma-contig.c and check if there is
-something wrong there.
+Instead, let's enforce a limit for the buffer to be the max size of
+a control URB payload data (80 bytes).
 
-Best Regards!
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/dvb-usb/dibusb-common.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-On Mon, Nov 11, 2013 at 12:36 PM, Matthias Wächter
-<matthias.waechter@tttech.com> wrote:
->> @@ -180,7 +186,26 @@ static void *vb2_dma_sg_get_userptr(void
->> *alloc_ctx, unsigned long vaddr,
->>       if (!buf->pages)
->>               return NULL;
->>
->> -     num_pages_from_user = get_user_pages(current, current->mm,
->> +     buf->vma = find_vma(current->mm, vaddr);
->> +     if (!buf->vma) {
->> +             dprintk(1, "no vma for address %lu\n", vaddr);
->> +             return NULL;
->> +     }
->> +
->> +     if (vma_is_io(buf->vma)) {
->> +             for (num_pages_from_user = 0;
->> +                  num_pages_from_user < buf->num_pages;
->> +                  ++num_pages_from_user, vaddr += PAGE_SIZE) {
->> +                     unsigned long pfn;
->> +
->> +                     if (follow_pfn(buf->vma, vaddr, &pfn)) {
->> +                             dprintk(1, "no page for address %lu\n", vaddr);
->> +                             break;
->> +                     }
->> +                     buf->pages[num_pages_from_user] = pfn_to_page(pfn);
->> +             }
->> +     } else
->> +             num_pages_from_user = get_user_pages(current, current->mm,
->>                                            vaddr & PAGE_MASK,
->>                                            buf->num_pages,
->>                                            write,
->
-> Can you safely assume that your userptr will cover only one vma? At least, get_user_pages (calling __get_user_pages) does not assume that and calls find_vma() whenever vma->vm_end is reached.
->
-> – Matthias
->
-> CONFIDENTIALITY: The contents of this e-mail are confidential and intended only for the above addressee(s). If you are not the intended recipient, or the person responsible for delivering it to the intended recipient, copying or delivering it to anyone else or using it in any unauthorized manner is prohibited and may be unlawful. If you receive this e-mail by mistake, please notify the sender and the systems administrator at straymail@tttech.com immediately.
-
-
-
+diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+index c2dded92f1d3..ae9eed810bc2 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+@@ -105,11 +105,16 @@ EXPORT_SYMBOL(dibusb2_0_power_ctrl);
+ static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 			  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+ {
+-	u8 sndbuf[wlen+4]; /* lead(1) devaddr,direction(1) addr(2) data(wlen) (len(2) (when reading)) */
++	u8 sndbuf[80]; /* lead(1) devaddr,direction(1) addr(2) data(wlen) (len(2) (when reading)) */
+ 	/* write only ? */
+ 	int wo = (rbuf == NULL || rlen == 0),
+ 		len = 2 + wlen + (wo ? 0 : 2);
+ 
++	if (4 + wlen > sizeof(sndbuf)) {
++		warn("i2c wr: len=%d is too big!\n", wlen);
++		return -EREMOTEIO;
++	}
++
+ 	sndbuf[0] = wo ? DIBUSB_REQ_I2C_WRITE : DIBUSB_REQ_I2C_READ;
+ 	sndbuf[1] = (addr << 1) | (wo ? 0 : 1);
+ 
 -- 
-Ricardo Ribalda
+1.8.3.1
+
