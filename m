@@ -1,276 +1,287 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:45409 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab3KDNyb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 08:54:31 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:36175 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752614Ab3KBRLA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Nov 2013 13:11:00 -0400
+Message-ID: <52753221.3060101@iki.fi>
+Date: Sat, 02 Nov 2013 19:10:57 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <527794F0.40901@xs4all.nl>
-References: <1383385994-11422-1-git-send-email-ricardo.ribalda@gmail.com> <527794F0.40901@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 4 Nov 2013 14:54:10 +0100
-Message-ID: <CAPybu_0cKxMxhXoSqbK2nTyX3DGCVZdUZPt2bTE6aZR65xDG=w@mail.gmail.com>
-Subject: Re: [PATCH v4] videobuf2: Add missing lock held on vb2_fop_relase
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCHv2 14/29] dvb-frontends: Don't use dynamic static allocation
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-15-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-15-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Thanks for your comments.
+Antti
 
-Please take a look to v4 of this patch
-https://patchwork.linuxtv.org/patch/20529/
-
-On Mon, Nov 4, 2013 at 1:37 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 11/02/2013 10:53 AM, Ricardo Ribalda Delgado wrote:
->> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
->>
->> vb2_fop_relase does not held the lock although it is modifying the
->> queue->owner field.
->>
->> This could lead to race conditions on the vb2_perform_io function
->> when multiple applications are accessing the video device via
->> read/write API:
+On 02.11.2013 15:31, Mauro Carvalho Chehab wrote:
+> Dynamic static allocation is evil, as Kernel stack is too low, and
+> compilation complains about it on some archs:
 >
-> It's also called directly by drivers/media/usb/em28xx/em28xx-video.c!
+> 	drivers/media/dvb-frontends/af9013.c:77:1: warning: 'af9013_wr_regs_i2c' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/af9033.c:188:1: warning: 'af9033_wr_reg_val_tab' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/af9033.c:68:1: warning: 'af9033_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/bcm3510.c:230:1: warning: 'bcm3510_do_hab_cmd' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/cxd2820r_core.c:84:1: warning: 'cxd2820r_rd_regs_i2c.isra.1' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/rtl2830.c:56:1: warning: 'rtl2830_wr' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/rtl2832.c:187:1: warning: 'rtl2832_wr' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/tda10071.c:52:1: warning: 'tda10071_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/dvb-frontends/tda10071.c:84:1: warning: 'tda10071_rd_regs' uses dynamic stack allocation [enabled by default]
 >
-
-em28xx-video does not hold the lock, therefore it can call the normal
-function. On v2 we made a internal function that should be called if
-the funciton is called directly by the driver. Please take a look to
-the old comments. https://patchwork.linuxtv.org/patch/20460/
-
->>
->> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
->> 0000000000000260
->> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
->> [videobuf2_core]
->> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
->> [ 308.297812] Oops: 0000 #1 SMP
->> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
->> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
->> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
->> spi_xilinx spi_bitbang qt5023
->> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
->> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
->> PM_2.1.0.309 X64 05/23/2013
->> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
->> ffff88014dc02000
->> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
->> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
->> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
->> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
->> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
->> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
->> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
->> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
->> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
->> knlGS:0000000000000000
->> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
->> [ 308.298064] Stack:
->> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
->> ffff880100000001
->> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
->> ffff880154904718
->> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
->> ffff88014dc03f50
->> [ 308.298116] Call Trace:
->> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
->> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
->> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
->> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
->> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
->> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
->> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
->> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
->> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
->> 89
->> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
->> [videobuf2_core]
->> [ 308.298507] RSP <ffff88014dc03df8>
->> [ 308.298514] CR2: 0000000000000260
->> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
->>
->> Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
->> ---
->> v2: Comments by Sylvester Nawrocki
->>
->> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
->> Therefore a new __vb2_fop_release function has been created to be used by
->> drivers that overload the release function.
->>
->> v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
->>
->> Use vb2_fop_release_locked instead of __vb2_fop_release
->>
->> v4: Comments by Sylvester Nawrocki
->>
->> Rename vb2_fop_release_locked to __vb2_fop_release and fix patch format
->>
->>  drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
->>  drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
->>  drivers/media/v4l2-core/videobuf2-core.c         | 23 ++++++++++++++++++++++-
->>  include/media/videobuf2-core.h                   |  1 +
->>  4 files changed, 25 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
->> index fb27ff7..8192fe0 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
->> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
->>               vc->streaming = false;
->>       }
->>
->> -     ret = vb2_fop_release(file);
->> +     ret = __vb2_fop_release(file);
->>
->>       if (close) {
->>               clear_bit(ST_CAPT_BUSY, &fimc->state);
->> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
->> index e5798f7..cbe51cd 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
->> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
->>               mutex_unlock(&entity->parent->graph_mutex);
->>       }
->>
->> -     vb2_fop_release(file);
->> +     __vb2_fop_release(file);
->>       pm_runtime_put(&fimc->pdev->dev);
->>       clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 594c75e..f48d72a 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -2619,18 +2619,39 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
->>
->> -int vb2_fop_release(struct file *file)
->> +static int _vb2_fop_release(struct file *file, bool lock_is_held)
->>  {
->>       struct video_device *vdev = video_devdata(file);
->> +     struct mutex *lock;
->>
->>       if (file->private_data == vdev->queue->owner) {
->> +             if (lock_is_held)
->> +                     lock = NULL;
->> +             else
->> +                     lock = vdev->queue->lock ?
->> +                             vdev->queue->lock : vdev->lock;
->> +             if (lock)
->> +                     mutex_lock(lock);
->>               vb2_queue_release(vdev->queue);
->>               vdev->queue->owner = NULL;
->> +             if (lock)
->> +                     mutex_unlock(lock);
->>       }
->>       return v4l2_fh_release(file);
->>  }
->> +
->> +int vb2_fop_release(struct file *file)
->> +{
->> +     return _vb2_fop_release(file, false);
->> +}
->>  EXPORT_SYMBOL_GPL(vb2_fop_release);
->>
->> +int __vb2_fop_release(struct file *file)
->> +{
->> +     return _vb2_fop_release(file, true);
->> +}
->> +EXPORT_SYMBOL_GPL(__vb2_fop_release);
+> Instead, let's enforce a limit for the buffer. Considering that I2C
+> transfers are generally limited, and that devices used on USB has a
+> max data length of 80, it seem safe to use 80 as the hard limit for all
+> those devices. On most cases, the limit is a way lower than that, but
+> 80 is small enough to not affect the Kernel stack, and it is a no brain
+> limit, as using smaller ones would require to either carefully each
+> driver or to take a look on each datasheet.
 >
-> Sorry for introducing yet another opinion, but I think this is very confusing.
-
-It is confusing the lock_held parameter or the __ naming for unlocked versions?
-
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/af9013.c        |  9 ++++++++-
+>   drivers/media/dvb-frontends/af9033.c        | 18 ++++++++++++++++--
+>   drivers/media/dvb-frontends/cxd2820r_core.c | 18 ++++++++++++++++--
+>   drivers/media/dvb-frontends/rtl2830.c       |  9 ++++++++-
+>   drivers/media/dvb-frontends/rtl2832.c       |  9 ++++++++-
+>   drivers/media/dvb-frontends/tda10071.c      | 18 ++++++++++++++++--
+>   6 files changed, 72 insertions(+), 9 deletions(-)
 >
-> I would do this:
+> diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+> index a204f2828820..f968dc0e5de9 100644
+> --- a/drivers/media/dvb-frontends/af9013.c
+> +++ b/drivers/media/dvb-frontends/af9013.c
+> @@ -50,7 +50,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+>   	const u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[3+len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->config.i2c_addr,
+> @@ -60,6 +60,13 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+>   		}
+>   	};
 >
-> static int __vb2_fop_release(struct file *file, struct mutex *lock)
-> {
->         struct video_device *vdev = video_devdata(file);
+> +	if (3 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = (reg >> 8) & 0xff;
+>   	buf[1] = (reg >> 0) & 0xff;
+>   	buf[2] = mbox;
+> diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+> index a777b4b944eb..efa2efafa97f 100644
+> --- a/drivers/media/dvb-frontends/af9033.c
+> +++ b/drivers/media/dvb-frontends/af9033.c
+> @@ -40,7 +40,7 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
+>   		int len)
+>   {
+>   	int ret;
+> -	u8 buf[3 + len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = state->cfg.i2c_addr,
+> @@ -50,6 +50,13 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
+>   		}
+>   	};
 >
->         if (file->private_data == vdev->queue->owner) {
->                 if (lock)
->                         mutex_lock(lock);
->                 vb2_queue_release(vdev->queue);
->                 vdev->queue->owner = NULL;
->                 if (lock)
->                         mutex_unlock(lock);
->         }
->         return v4l2_fh_release(file);
-> }
+> +	if (3 + len > sizeof(buf)) {
+> +		dev_warn(&state->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = (reg >> 16) & 0xff;
+>   	buf[1] = (reg >>  8) & 0xff;
+>   	buf[2] = (reg >>  0) & 0xff;
+> @@ -161,7 +168,14 @@ static int af9033_wr_reg_val_tab(struct af9033_state *state,
+>   		const struct reg_val *tab, int tab_len)
+>   {
+>   	int ret, i, j;
+> -	u8 buf[tab_len];
+> +	u8 buf[80];
+> +
+> +	if (tab_len > sizeof(buf)) {
+> +		dev_warn(&state->i2c->dev,
+> +			 "%s: i2c wr len=%d is too big!\n",
+> +			 KBUILD_MODNAME, tab_len);
+> +		return -EREMOTEIO;
+> +	}
 >
-> int vb2_fop_release(struct file *file)
-> {
->         struct video_device *vdev = video_devdata(file);
->         struct mutex *lock = vdev->queue->lock ?
->                                 vdev->queue->lock : vdev->lock;
+>   	dev_dbg(&state->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
 >
->         return __vb2_fop_release(file, lock);
-> }
-> EXPORT_SYMBOL_GPL(vb2_fop_release);
+> diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
+> index d9eeeb1dfa96..8ef96a96b141 100644
+> --- a/drivers/media/dvb-frontends/cxd2820r_core.c
+> +++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+> @@ -26,7 +26,7 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   	u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[len+1];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = i2c,
+> @@ -36,6 +36,13 @@ static int cxd2820r_wr_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   		}
+>   	};
 >
-> int vb2_fop_release_unlock(struct file *file)
-> {
->         return __vb2_fop_release(file, NULL);
-> }
-> EXPORT_SYMBOL_GPL(vb2_fop_release_unlock);
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
 >
-> Optionally, __vb2_fop_release can be exported and then vb2_fop_release_unlock
-> isn't necessary.
+> @@ -55,7 +62,7 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   	u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = i2c,
+> @@ -70,6 +77,13 @@ static int cxd2820r_rd_regs_i2c(struct cxd2820r_priv *priv, u8 i2c, u8 reg,
+>   		}
+>   	};
 >
-
-i dont have any strong opinion in any direction. All I really care is
-that the oops is fixed :).
-
-If your concern about the patch is the is_lock_held function, I can
-make a patch with the params on your proposal and the __naming as
-Sylvester suggested, so everyone is happy.
-
-Sylvester, Hanshat do you think?
-
-Thanks for your comments!
-
-> Regards,
+> +	if (len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, buf, len);
+> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+> index 362d26d11e82..bd54fd8b3e2d 100644
+> --- a/drivers/media/dvb-frontends/rtl2830.c
+> +++ b/drivers/media/dvb-frontends/rtl2830.c
+> @@ -31,7 +31,7 @@
+>   static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[1+len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg.i2c_addr,
+> @@ -41,6 +41,13 @@ static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
+>   		}
+>   	};
 >
->         Hans
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
 >
->> +
->>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->>               size_t count, loff_t *ppos)
->>  {
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index 6781258..76400fa 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -491,6 +491,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
->>
->>  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
->>  int vb2_fop_release(struct file *file);
->> +int __vb2_fop_release(struct file *file);
->>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->>               size_t count, loff_t *ppos);
->>  ssize_t vb2_fop_read(struct file *file, char __user *buf,
->>
+> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+> index a95dfe0a5ce3..067547fd6ac5 100644
+> --- a/drivers/media/dvb-frontends/rtl2832.c
+> +++ b/drivers/media/dvb-frontends/rtl2832.c
+> @@ -162,7 +162,7 @@ static const struct rtl2832_reg_entry registers[] = {
+>   static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+>   {
+>   	int ret;
+> -	u8 buf[1+len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg.i2c_addr,
+> @@ -172,6 +172,13 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+>   		}
+>   	};
 >
-
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
+>
+> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+> index e79749cfec81..6f007f55d35d 100644
+> --- a/drivers/media/dvb-frontends/tda10071.c
+> +++ b/drivers/media/dvb-frontends/tda10071.c
+> @@ -27,7 +27,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+>   	int len)
+>   {
+>   	int ret;
+> -	u8 buf[len+1];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[1] = {
+>   		{
+>   			.addr = priv->cfg.demod_i2c_addr,
+> @@ -37,6 +37,13 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+>   		}
+>   	};
+>
+> +	if (1 + len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	buf[0] = reg;
+>   	memcpy(&buf[1], val, len);
+>
+> @@ -56,7 +63,7 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+>   	int len)
+>   {
+>   	int ret;
+> -	u8 buf[len];
+> +	u8 buf[80];
+>   	struct i2c_msg msg[2] = {
+>   		{
+>   			.addr = priv->cfg.demod_i2c_addr,
+> @@ -71,6 +78,13 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+>   		}
+>   	};
+>
+> +	if (len > sizeof(buf)) {
+> +		dev_warn(&priv->i2c->dev,
+> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, reg, len);
+> +		return -EREMOTEIO;
+> +	}
+> +
+>   	ret = i2c_transfer(priv->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		memcpy(val, buf, len);
+>
 
 
 -- 
-Ricardo Ribalda
+http://palosaari.fi/
