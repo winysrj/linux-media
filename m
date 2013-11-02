@@ -1,82 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57957 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:60709 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755804Ab3KAWlh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:37 -0400
+	with ESMTP id S1751744Ab3KBQdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:38 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH 07/11] platform drivers: Fix build on cris and frv archs
-Date: Fri,  1 Nov 2013 17:39:26 -0200
-Message-Id: <1383334770-27130-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 01/29] tda9887: remove an warning when compiling for alpha
+Date: Sat,  2 Nov 2013 11:31:09 -0200
+Message-Id: <1383399097-11615-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On cris and frv archs, the functions below aren't defined:
-	/devel/v4l/ktest-build/drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_read':
-	/devel/v4l/ktest-build/drivers/media/platform/sh_veu.c:228:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_write':
-	/devel/v4l/ktest-build/drivers/media/platform/sh_veu.c:234:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
-	/devel/v4l/ktest-build/drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_setup':
-	/devel/v4l/ktest-build/drivers/media/platform/soc_camera/rcar_vin.c:284:3: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-	/devel/v4l/ktest-build/drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_request_capture_stop':
-	/devel/v4l/ktest-build/drivers/media/platform/soc_camera/rcar_vin.c:353:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
+There's no need to zero the buffer, as if the routine gets an error,
+rc will be different than one.
 
-While this is not fixed, remove those 3 drivers from building on
-those archs.
+That fixes the following warning:
+	drivers/media/tuners/tda9887.c: In function 'tda9887_status':
+	drivers/media/tuners/tda9887.c:539:2: warning: value computed is not used [-Wunused-value]
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: stable@vger.kernel.org
 ---
- drivers/media/platform/Kconfig            | 2 ++
- drivers/media/platform/soc_camera/Kconfig | 1 +
- 2 files changed, 3 insertions(+)
+ drivers/media/tuners/tda9887.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 3d9beef60325..ab4b22c8ee85 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -205,6 +205,7 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
- config VIDEO_SH_VEU
- 	tristate "SuperH VEU mem2mem video processing driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-+	depends on !CRIS && !FRV
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	help
-@@ -214,6 +215,7 @@ config VIDEO_SH_VEU
- config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
-+	depends on !CRIS && !FRV
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index af39c4665554..df11f69aeba5 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -47,6 +47,7 @@ config VIDEO_PXA27x
- config VIDEO_RCAR_VIN
- 	tristate "R-Car Video Input (VIN) support"
- 	depends on VIDEO_DEV && SOC_CAMERA
-+	depends on !CRIS && !FRV
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SOC_CAMERA_SCALE_CROP
- 	---help---
+diff --git a/drivers/media/tuners/tda9887.c b/drivers/media/tuners/tda9887.c
+index 300005c535ba..9823248d743f 100644
+--- a/drivers/media/tuners/tda9887.c
++++ b/drivers/media/tuners/tda9887.c
+@@ -536,8 +536,8 @@ static int tda9887_status(struct dvb_frontend *fe)
+ 	unsigned char buf[1];
+ 	int rc;
+ 
+-	memset(buf,0,sizeof(buf));
+-	if (1 != (rc = tuner_i2c_xfer_recv(&priv->i2c_props,buf,1)))
++	rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, 1);
++	if (rc != 1)
+ 		tuner_info("i2c i/o error: rc == %d (should be 1)\n", rc);
+ 	dump_read_message(fe, buf);
+ 	return 0;
 -- 
 1.8.3.1
 
