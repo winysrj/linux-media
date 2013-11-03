@@ -1,69 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54411 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751297Ab3KEFYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Nov 2013 00:24:47 -0500
-Message-ID: <527880E7.4070005@ti.com>
-Date: Tue, 5 Nov 2013 10:53:51 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:11326 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688Ab3KCKrz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 05:47:55 -0500
+Received: from morden (ip-5-146-184-27.unitymediagroup.de [5.146.184.27])
+	by smtp.strato.de (RZmta 32.11 DYNA|AUTH)
+	with (TLSv1.2:DHE-RSA-AES256-SHA256 encrypted) ESMTPSA id R010cepA38AscR
+	for <linux-media@vger.kernel.org>; Sun, 3 Nov 2013 11:47:53 +0100 (CET)
+Received: from rjkm by morden with local (Exim 4.80)
+	(envelope-from <rjkm@morden.metzler>)
+	id 1VcvDl-0005bh-0f
+	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 11:47:53 +0100
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-To: Wei Yongjun <weiyj.lk@gmail.com>, <m.chehab@samsung.com>,
-	<grant.likely@linaro.org>, <rob.herring@calxeda.com>,
-	<hans.verkuil@cisco.com>, <k.debski@samsung.com>
-CC: <yongjun_wei@trendmicro.com.cn>, <linux-media@vger.kernel.org>
-Subject: Re: [PATCH -next] [media] v4l: ti-vpe: fix return value check in
- vpe_probe()
-References: <CAPgLHd-YSAP+236AfZTXT3Cg_opQ+t=+nUHL+CVhXnkeA=zcBw@mail.gmail.com>
-In-Reply-To: <CAPgLHd-YSAP+236AfZTXT3Cg_opQ+t=+nUHL+CVhXnkeA=zcBw@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-ID: <21110.10712.785130.198472@morden.metzler>
+Date: Sun, 3 Nov 2013 11:47:52 +0100
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 01/12] dvb-frontends: Support for DVB-C2 to DVB frontends
+In-Reply-To: <20131103072351.5aaed530@samsung.com>
+References: <20131103002235.GD7956@parallels.com>
+	<20131103002425.GE7956@parallels.com>
+	<20131103072351.5aaed530@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 30 October 2013 08:45 AM, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> In case of error, the function devm_kzalloc() and devm_ioremap()
-> returns NULL pointer not ERR_PTR(). The IS_ERR() test in the return
-> value check should be replaced with NULL test.
+Mauro Carvalho Chehab writes:
+ > Em Sun, 3 Nov 2013 01:24:25 +0100
+ > Maik Broemme <mbroemme@parallels.com> escreveu:
+ > 
+ > > Added support for DVB-C2 to DVB frontends. It will be required
+ > > by cxd2843 and tda18212dd (Digital Devices) frontends.
+ > > 
+ > > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+ > > ---
+ > >  include/uapi/linux/dvb/frontend.h | 1 +
+ > >  1 file changed, 1 insertion(+)
+ > > 
+ > > diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+ > > index c56d77c..98648eb 100644
+ > > --- a/include/uapi/linux/dvb/frontend.h
+ > > +++ b/include/uapi/linux/dvb/frontend.h
+ > > @@ -410,6 +410,7 @@ typedef enum fe_delivery_system {
+ > >  	SYS_DVBT2,
+ > >  	SYS_TURBO,
+ > >  	SYS_DVBC_ANNEX_C,
+ > > +	SYS_DVBC2,
+ > >  } fe_delivery_system_t;
+ > >  
+ > >  /* backward compatibility */
+ > 
+ > Please update also the documentation, at Documentation/DocBook/media/dvb.
+ > 
+ > Doesn't DVB-C2 provide any newer property? If so, please add it there as
+ > well, and at frontend.h.
+ > 
 
-Reviewed-by: Archit Taneja <archit@ti.com>
+I asked about this on linux-media a week or so ago. The main question was
+concerning STREAM_ID. I asked if it would be fine to combine PLP and
+slice id (each 8 bit) into stream_id or if there should be a separate 
+new property. And for which one, PLP or slice id? 
+Probably slice id, because stream_id is also used for PLP in T2?
+I combined them into stream_id for now (but that was after the 0.9.10 version
+of the dddvb package).
 
-Thanks,
-Archit
+There are also many new qam types, etc. but, as I said back then, it was not  
+urgent for me to add those because the Sony demod does not allow setting those.
+At least it is not documented how to do it.
 
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->   drivers/media/platform/ti-vpe/vpe.c | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 4e58069..90cf369 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1942,8 +1942,8 @@ static int vpe_probe(struct platform_device *pdev)
->   	int ret, irq, func;
->
->   	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-> -	if (IS_ERR(dev))
-> -		return PTR_ERR(dev);
-> +	if (!dev)
-> +		return -ENOMEM;
->
->   	spin_lock_init(&dev->lock);
->
-> @@ -1962,8 +1962,8 @@ static int vpe_probe(struct platform_device *pdev)
->   	 * registers based on the sub block base addresses
->   	 */
->   	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_32K);
-> -	if (IS_ERR(dev->base)) {
-> -		ret = PTR_ERR(dev->base);
-> +	if (!dev->base) {
-> +		ret = -ENOMEM;
->   		goto v4l2_dev_unreg;
->   	}
->
->
->
 
+Regards,
+Ralph
