@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43283 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754632Ab3KENDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:17527 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754512Ab3KCUVm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 15:21:42 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <21110.45135.982014.774220@morden.metzler>
+Date: Sun, 3 Nov 2013 21:21:35 +0100
+To: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 28/29] [media] lirc_zilog: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:41 -0200
-Message-Id: <1383645702-30636-29-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	linux-media@vger.kernel.org
+Subject: Re: DVB-C2
+In-Reply-To: <52767C57.1050509@iki.fi>
+References: <1382462076-29121-1-git-send-email-guest@puma.are.ma>
+	<21095.747.879743.551447@morden.metzler>
+	<20131103093155.50b59b45@samsung.com>
+	<52767C57.1050509@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-ompilation complains about it on some archs:
-	drivers/staging/media/lirc/lirc_zilog.c:967:1: warning: 'read' uses dynamic stack allocation [enabled by default]
+Antti Palosaari writes:
+ > On 03.11.2013 13:31, Mauro Carvalho Chehab wrote:
+ > > Em Wed, 23 Oct 2013 00:57:47 +0200
+ > > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > >> I am wondering if anybody looked into API extensions for DVB-C2 yet?
+ > >> Obviously, we need some more modulations, guard intervals, etc.
+ > >> even if the demod I use does not actually let me set those (only auto).
+ > >>
+ > >> But I do need to set the PLP and slice ID.
+ > >> I currently set them (8 bit each) by combining them into the 32 bit
+ > >> stream_id (DTV_STREAM_ID parameter).
+ > >
+ > > I don't like the idea of combining them into a single field. One of the
+ > > reasons is that we may have endianness issues.
+ > >
+ > > So, IMHO, the better is to add a new property for slice ID.
+ > 
+ > I tried to understand what that data slice is. So what I understand, it 
+ > is layer to group PLPs, in order to get one wide OFDM channel as OFDM is 
+ > more efficient when channel bw increases.
+ > 
+ > So, in order to tune "stream" channel on DVB-C2 system, you *must* know 
+ > (in a order from radio channel to upper layers):
+ > frequency
+ > bandwidth
+ > slice ID
+ > PLP ID
+ > 
+ > Is that right?
 
-Instead, let's enforce a limit for the buffer to be 64. That should
-be more than enough.
+Yes, if you do not want to parse L1 data you need the frequency of the slice,
+bandwidth, slice ID and PLP ID.
+If you parse L1 data, you do not need the slice ID because the PLP should be
+unique in one channel. 
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/staging/media/lirc/lirc_zilog.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ > I wonder if PLP IDs are defined so that there could not be overlapping 
+ > PLP IDs in a system... But if not, then defining slice ID is likely 
+ > needed. And if and when slice ID is needed to know before PLP ID, it is 
+ > even impossible to resolve slice ID from PLP ID.
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 11d5338b4f2f..0feeaadf29dc 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -61,6 +61,9 @@
- #include <media/lirc_dev.h>
- #include <media/lirc.h>
+See above, you can resolve it, but then you need to get the L1 data. 
+But PLPs can even be spread over several slices to get higher bandwidth 
+for one PLP. This is probably not used for broadcast TV though. You will
+also need one tuner/demod per slice then.
+
+So, basically you only need any frequency for the "channel" (can be spread over 
+up to 450MHz, but avoid notches) and the bandwith.
+Tune until a L1 lock, get L1 data from demod (up to 4 KB), parse for the PLP
+id you want, get the corresponding slice (or slices), tune to the slice frequency
+with slice ID set and PLP id set and wait for a full lock ...
+
+
+Regards,
+Ralph
  
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  64
-+
- struct IR;
- 
- struct IR_rx {
-@@ -941,7 +944,14 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
- 			schedule();
- 			set_current_state(TASK_INTERRUPTIBLE);
- 		} else {
--			unsigned char buf[rbuf->chunk_size];
-+			unsigned char buf[MAX_XFER_SIZE];
-+
-+			if (rbuf->chunk_size > sizeof(buf)) {
-+				zilog_error("chunk_size is too big (%d)!\n",
-+					    rbuf->chunk_size);
-+				ret = -EINVAL;
-+				break;
-+			}
- 			m = lirc_buffer_read(rbuf, buf);
- 			if (m == rbuf->chunk_size) {
- 				ret = copy_to_user((void *)outbuf+written, buf,
--- 
-1.8.3.1
-
