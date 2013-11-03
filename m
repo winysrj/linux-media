@@ -1,295 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45921 "EHLO mail.kapsi.fi"
+Received: from relay.swsoft.eu ([109.70.220.8]:58349 "EHLO relay.swsoft.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732Ab3KERLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Nov 2013 12:11:42 -0500
-Message-ID: <527926CB.8070006@iki.fi>
-Date: Tue, 05 Nov 2013 19:11:39 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752574Ab3KCMqE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Nov 2013 07:46:04 -0500
+Date: Sun, 3 Nov 2013 13:46:01 +0100
+From: Maik Broemme <mbroemme@parallels.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/12] DDBridge 0.9.10 driver updates
+Message-ID: <20131103124601.GS7956@parallels.com>
+References: <20131103002235.GD7956@parallels.com>
+ <20131103085822.08e8406e@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 18/29] [media] tuners: Don't use dynamic static allocation
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com> <1383645702-30636-19-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-19-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20131103085822.08e8406e@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi Mauro,
 
-Antti
+Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> Em Sun, 3 Nov 2013 01:22:35 +0100
+> Maik Broemme <mbroemme@parallels.com> escreveu:
+> 
+> > I've updated the current DDBridge to latest version 0.9.10 from Ralph
+> > Metzler available at:
+> > 
+> > http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
+> > 
+> > I've merged the driver to work with current v4l/dvb tree and I will
+> > maintain the driver for v4l/dvb in future. 
+> 
+> Works for me.
+> 
+> > The coming patch series is
+> > the first version and I explicitly want to get feedback and hints if
+> > some parts are merged at wrong places, etc... The following changes
+> > were made:
+> > 
+> >   - MSI enabled by default (some issues left with i2c timeouts)
+> >   - no support for Digital Devices Octonet
+> >   - no support for DVB Netstream
+> >   - removed unused module parameters 'tt' and 'vlan' (used by Octonet)
+> >   - removed unused registers to cleanup code (might be added later again
+> >     if needed)
+> 
+> Be sure to not remove any feature that are currently needed for the
+> already supported devices to work.
 
-On 05.11.2013 12:01, Mauro Carvalho Chehab wrote:
-> Dynamic static allocation is evil, as Kernel stack is too low, and
-> compilation complains about it on some archs:
-> 	drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
->
-> Instead, let's enforce a limit for the buffer. Considering that I2C
-> transfers are generally limited, and that devices used on USB has a
-> max data length of 64 bytes for	the control URBs.
->
-> So, it seem safe to use 64 bytes as the hard limit for all those devices.
->
->   On most cases, the limit is a way lower than that, but	this limit
-> is small enough to not affect the Kernel stack, and it is a no brain
-> limit, as using smaller ones would require to either carefully each
-> driver or to take a look on each datasheet.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->   drivers/media/tuners/e4000.c    | 21 +++++++++++++++++++--
->   drivers/media/tuners/fc2580.c   | 21 +++++++++++++++++++--
->   drivers/media/tuners/tda18212.c | 21 +++++++++++++++++++--
->   drivers/media/tuners/tda18218.c | 21 +++++++++++++++++++--
->   4 files changed, 76 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index ad9309da4a91..30192463c9e1 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -20,11 +20,14 @@
->
->   #include "e4000_priv.h"
->
-> +/* Max transfer size done by I2C transfer functions */
-> +#define MAX_XFER_SIZE  64
-> +
->   /* write multiple registers */
->   static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[1 + len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -34,6 +37,13 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -53,7 +63,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -68,6 +78,13 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-> index 81f38aae9c66..430fa5163ec7 100644
-> --- a/drivers/media/tuners/fc2580.c
-> +++ b/drivers/media/tuners/fc2580.c
-> @@ -20,6 +20,9 @@
->
->   #include "fc2580_priv.h"
->
-> +/* Max transfer size done by I2C transfer functions */
-> +#define MAX_XFER_SIZE  64
-> +
->   /*
->    * TODO:
->    * I2C write and read works only for one single register. Multiple registers
-> @@ -41,7 +44,7 @@
->   static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[1 + len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -51,6 +54,13 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -69,7 +79,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -84,6 +94,13 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-> index e4a84ee231cf..b3a4adf9ff8f 100644
-> --- a/drivers/media/tuners/tda18212.c
-> +++ b/drivers/media/tuners/tda18212.c
-> @@ -20,6 +20,9 @@
->
->   #include "tda18212.h"
->
-> +/* Max transfer size done by I2C transfer functions */
-> +#define MAX_XFER_SIZE  64
-> +
->   struct tda18212_priv {
->   	struct tda18212_config *cfg;
->   	struct i2c_adapter *i2c;
-> @@ -32,7 +35,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   	int len)
->   {
->   	int ret;
-> -	u8 buf[len+1];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -42,6 +45,13 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -61,7 +71,7 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   	int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -76,6 +86,13 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-> index 2d31aeb6b088..7e2b32ee5349 100644
-> --- a/drivers/media/tuners/tda18218.c
-> +++ b/drivers/media/tuners/tda18218.c
-> @@ -20,11 +20,14 @@
->
->   #include "tda18218_priv.h"
->
-> +/* Max transfer size done by I2C transfer functions */
-> +#define MAX_XFER_SIZE  64
-> +
->   /* write multiple registers */
->   static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   {
->   	int ret = 0, len2, remaining;
-> -	u8 buf[1 + len];
-> +	u8 buf[MAX_XFER_SIZE];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -33,6 +36,13 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	for (remaining = len; remaining > 0;
->   			remaining -= (priv->cfg->i2c_wr_max - 1)) {
->   		len2 = remaining;
-> @@ -63,7 +73,7 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   {
->   	int ret;
-> -	u8 buf[reg+len]; /* we must start read always from reg 0x00 */
-> +	u8 buf[MAX_XFER_SIZE]; /* we must start read always from reg 0x00 */
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -78,6 +88,13 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   		}
->   	};
->
-> +	if (reg + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EINVAL;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, &buf[reg], len);
->
+Of course I won't do. The Octonet and DVB Netstream weren't supported in
+current driver. MSI is already supported but was not enabled by default
+because the old 0.5 version currently in kernel had some problems with
+it. However new one works fine with MSI - at least for me I'm using the
+patchset myself already - but needs some further testing.
 
+> > 
+> > The following devices are supported by the driver update:
+> > 
+> >   - Octopus DVB adapter
+> >   - Octopus V3 DVB adapter
+> >   - Octopus LE DVB adapter
+> >   - Octopus OEM
+> >   - Octopus Mini
+> >   - Cine S2 V6 DVB adapter
+> >   - Cine S2 V6.5 DVB adapter
+> >   - Octopus CI
+> >   - Octopus CI single
+> >   - DVBCT V6.1 DVB adapter
+> >   - DVB-C modulator
+> >   - SaTiX-S2 V3 DVB adapter
+> > 
+> > I might merge the Octonet and DVB Netstream drivers from Ralphs source
+> > later once the current committed DDBridge driver updates are merged in
+> > mainline.
+> > 
+> > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+> > 
+> > Maik Broemme (12):
+> >   dvb-frontends: Support for DVB-C2 to DVB frontends
+> >   tda18271c2dd: Fix description of NXP TDA18271C2 silicon tuner
+> >   stv0367dd: Support for STV 0367 DVB-C/T (DD) demodulator
+> >   tda18212dd: Support for NXP TDA18212 (DD) silicon tuner
+> >   cxd2843: Support for CXD2843ER demodulator for DVB-T/T2/C/C2
+> >   dvb-core: export dvb_usercopy and new DVB device constants
+> >   ddbridge: Updated ddbridge registers
+> >   ddbridge: Moved i2c interfaces into separate file
+> >   ddbridge: Support for the Digital Devices Resi DVB-C Modulator card
+> >   ddbridge: Update ddbridge driver to version 0.9.10
+> >   ddbridge: Update ddbridge header for 0.9.10 changes
+> >   ddbridge: Kconfig and Makefile fixes to build latest ddbridge
+> > 
+> >  drivers/media/dvb-core/dvbdev.c              |    1 
+> >  drivers/media/dvb-core/dvbdev.h              |    2 
+> >  drivers/media/dvb-frontends/Kconfig          |   31 
+> >  drivers/media/dvb-frontends/Makefile         |    3 
+> >  drivers/media/dvb-frontends/cxd2843.c        | 1647 ++++++++++++
+> >  drivers/media/dvb-frontends/cxd2843.h        |   47 
+> >  drivers/media/dvb-frontends/stv0367dd.c      | 2329 ++++++++++++++++++
+> >  drivers/media/dvb-frontends/stv0367dd.h      |   48 
+> >  drivers/media/dvb-frontends/stv0367dd_regs.h | 3442 +++++++++++++++++++++++++++
+> >  drivers/media/dvb-frontends/tda18212dd.c     |  934 +++++++
+> >  drivers/media/dvb-frontends/tda18212dd.h     |   37 
+> >  drivers/media/pci/ddbridge/Kconfig           |   21 
+> >  drivers/media/pci/ddbridge/Makefile          |    2 
+> >  drivers/media/pci/ddbridge/ddbridge-core.c   | 3085 +++++++++++++++++-------
+> >  drivers/media/pci/ddbridge/ddbridge-i2c.c    |  239 +
+> >  drivers/media/pci/ddbridge/ddbridge-mod.c    | 1033 ++++++++
+> >  drivers/media/pci/ddbridge/ddbridge-regs.h   |  273 +-
+> >  drivers/media/pci/ddbridge/ddbridge.h        |  408 ++-
+> >  include/uapi/linux/dvb/frontend.h            |    1 
+> >  19 files changed, 12555 insertions(+), 1028 deletions(-)
+> > 
+> > --Maik
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Thanks for your submission.
+> 
+> I'm seeing this entire patch series as an RFC. There are simply too much
+> changes required for us to be able to do a more detailed review on it.
+> 
 
--- 
-http://palosaari.fi/
+Many thanks for the feedback.
+
+> Please do the pointed changes, in special:
+> 
+> 	- Don't let any patch to break compilation;
+> 
+> 	- Please verify the Documentation/CodingStyle and check it with
+> 		./scripts/checkpatch.pl;
+> 
+> 	- Please discuss on a separate thread the API changes for CI,
+> 	  modulator and DVB-C2;
+> 
+> 	- Please try to break the ddbridge changes into one change per
+> 	  patch. If not possible, please try to at least break them more,
+> 	  to help us to review the changes;
+> 
+> 	- Please don't duplicate existing drivers without a very very good
+> 	  reason.
+> 
+
+I will address the concerns with re-submission of the patches. Most
+probably it is worth to split the patchset a bit. The CXD2843
+demodulator can also be used by other drivers so I will address your
+feedback on this driver first and re-submit. Once it is fine I will
+re-send changes for ddbridge. Hope it is a good approach. :)
+
+> Thanks!
+> Mauro
+
+--Maik
