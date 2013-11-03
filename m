@@ -1,116 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4779 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab3KDK5t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:57:49 -0500
-Message-ID: <52777D9B.9000308@xs4all.nl>
-Date: Mon, 04 Nov 2013 11:57:31 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: John Sheu <sheu@google.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
- to encoder
-References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com> <52564DE6.6090709@xs4all.nl> <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com> <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com> <52590184.5030806@xs4all.nl> <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com> <526001DF.9040309@samsung.com> <CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com> <CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com> <52606AB7.7020200@gmail.com> <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
-In-Reply-To: <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:39016 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545Ab3KCAUC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 20:20:02 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVN00CNPVLCVK80@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 02 Nov 2013 20:20:00 -0400 (EDT)
+Date: Sat, 02 Nov 2013 22:19:56 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: CrazyCat <crazycat69@narod.ru>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] tda18271-fe: Fix dvb-c standard selection
+Message-id: <20131102221956.1e241d02@samsung.com>
+In-reply-to: <52756F4E.3030805@narod.ru>
+References: <5275690A.3080108@narod.ru> <20131102192112.1bc7bbc0@samsung.com>
+ <52756F4E.3030805@narod.ru>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
+Em Sat, 02 Nov 2013 23:31:58 +0200
+CrazyCat <crazycat69@narod.ru> escreveu:
 
-On 10/18/2013 02:03 AM, John Sheu wrote:
-> On Thu, Oct 17, 2013 at 3:54 PM, Sylwester Nawrocki
-> <sylvester.nawrocki@gmail.com> wrote:
->> On 10/18/2013 12:25 AM, John Sheu wrote:
->>> On Thu, Oct 17, 2013 at 2:46 PM, John Sheu<sheu@google.com>  wrote:
->>>>>  Sweet.  Thanks for spelling things out explicitly like this.  The fact
->>>>>  that the CAPTURE and OUTPUT queues "invert" their sense of "crop-ness"
->>>>>  when used in a m2m device is definitely all sorts of confusing.
->>>
->>> Just to double-check: this means that we have another bug.
->>>
->>> In drivers/media/v4l2-core/v4l2-ioctl.c, in v4l_s_crop and v4l_g_crop,
->>> we "simulate" a G_CROP or S_CROP, if the entry point is not defined
->>> for that device, by doing the appropriate S_SELECTION or G_SELECTION.
->>> Unfortunately then, for M2M this is incorrect then.
->>>
->>> Am I reading this right?
->>
->> You are right, John. Firstly a clear specification needs to be written,
->> something along the lines of Tomasz's explanation in this thread, once
->> all agree to that the ioctl code should be corrected if needed.
-
-I don't understand the problem here. The specification has always been clear:
-s_crop for output devices equals s_selection(V4L2_SEL_TGT_COMPOSE_ACTIVE).
-
-Drivers should only implement the selection API and the v4l2 core will do the
-correct translation of s_crop.
-
-Yes, I know it's weird, but that's the way the crop API was defined way back
-and that's what should be used.
-
-My advise: forget about s_crop and just implement s_selection.
-
->>
->> It seems this [1] RFC is an answer exactly to your question.
->>
->> Exact meaning of the selection ioctl is only part of the problem, also
->> interaction with VIDIOC_S_FMT is not currently defined in the V4L2 spec.
->>
->> [1] http://www.spinics.net/lists/linux-media/msg56078.html
+> Mauro Carvalho Chehab пишет:
+> > This is wrong, as it breaks for 6MHz-spaced channels, like what's used
+> > in Brazil and Japan.
+> >
+> > What happens here is that, if the tuner uses a too wide lowpass filter,
+> > the interference will be higher at the demod, and it may not be able
+> > to decode.
+> >
+> > As the bandwidth is already estimated by the DVB frontend core, the
+> > tuners should be adjusted to get the closest filter for a given
+> > bandwidth.
+> >
+> > So, the driver is correct (and it is tested under 6MHz spaced channels).
 > 
-> I think the "inversion" behavior is confusing and we should remove it
-> if at all possible.
-> 
-> I took a look through all the drivers in linux-media which implement
-> S_CROP.  Most of them are either OUTPUT or CAPTURE/OVERLAY-only.  Of
-> those that aren't:
-> 
-> * drivers/media/pci/zoran/zoran_driver.c : this driver explicitly accepts both
->   OUTPUT and CAPTURE queues in S_CROP, but they both configure the same state.
->   No functional difference.
+> But usual applications only set cable standard (Annex A/C or B) and not set bandwidth. So for annex A/C default selected 6MHz ?
 
-Yeah, I guess that's a driver bug. This is a very old driver that originally
-used a custom API for these things, and since no selection API existed at the
-time it was just mapped to the crop API. Eventually it should use the selection
-API as well and do it correctly. But to be honest, nobody cares about this driver :-)
+Usual applications set the symbol rate, and symbol rate is easily
+converted into bandwidth. The DVB core does that. see 
+dtv_set_frontend():
 
-It is however on my TODO list of drivers that need to be converted to the latest
-frameworks, so I might fix this eventually.
+	switch (c->delivery_system) {
+	case SYS_ATSC:
+	case SYS_DVBC_ANNEX_B:
+		c->bandwidth_hz = 6000000;
+		break;
+	case SYS_DVBC_ANNEX_A:
+		rolloff = 115;
+		break;
+	case SYS_DVBC_ANNEX_C:
+		rolloff = 113;
+		break;
+	default:
+		break;
+	}
+	if (rolloff)
+		c->bandwidth_hz = (c->symbol_rate * rolloff) / 100;
 
-> * drivers/media/platform/davinci/vpfe_capture.c : this driver doesn't specify
->   the queue, but is a CAPTURE-only device.  Probably an (unrelated) bug.
+-- 
 
-Yes, that's a driver bug. It should check the buffer type.
-
-> * drivers/media/platform/exynos4-is/fimc-m2m.c : this driver is a m2m driver
->   with both OUTPUT and CAPTURE queues.  It has uninverted behavior:
->   S_CROP(CAPTURE) -> source
->   S_CROP(OUTPUT) -> destination
-
-This is the wrong behavior.
-
-> * drivers/media/platform/s5p-g2d/g2d.c : this driver is a m2m driver with both
->   OUTPUT and CAPTURE queues.  It has inverted behavior:
->   S_CROP(CAPTURE) -> destination
->   S_CROP(OUTPUT) -> source
-
-This is the correct behavior.
-
-> 
-> The last two points above are the most relevant.  So we already have
-> at least one broken driver, regardless of whether we allow inversion
-> or not; I'd think this grants us a certain freedom to redefine the
-> specification to be more logical.  Can we do this please?
-
-No. The fimc-m2m.c driver needs to be fixed. That's the broken one.
-
-Regards,
-
-	Hans
+Cheers,
+Mauro
