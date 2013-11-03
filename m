@@ -1,74 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:11326 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688Ab3KCKrz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 05:47:55 -0500
-Received: from morden (ip-5-146-184-27.unitymediagroup.de [5.146.184.27])
-	by smtp.strato.de (RZmta 32.11 DYNA|AUTH)
-	with (TLSv1.2:DHE-RSA-AES256-SHA256 encrypted) ESMTPSA id R010cepA38AscR
-	for <linux-media@vger.kernel.org>; Sun, 3 Nov 2013 11:47:53 +0100 (CET)
-Received: from rjkm by morden with local (Exim 4.80)
-	(envelope-from <rjkm@morden.metzler>)
-	id 1VcvDl-0005bh-0f
-	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 11:47:53 +0100
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <21110.10712.785130.198472@morden.metzler>
-Date: Sun, 3 Nov 2013 11:47:52 +0100
+Received: from relay.swsoft.eu ([109.70.220.8]:51833 "EHLO relay.swsoft.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609Ab3KCAqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Nov 2013 20:46:13 -0400
+Received: from mail.swsoft.eu ([109.70.220.2])
+	by relay.swsoft.eu with esmtps (TLSv1:AES128-SHA:128)
+	(Exim 4.77)
+	(envelope-from <mbroemme@parallels.com>)
+	id 1VclpU-0001v6-Nx
+	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 01:46:12 +0100
+Received: from parallels.com (cable-78-34-76-230.netcologne.de [78.34.76.230])
+	by code.dyndns.org (Postfix) with ESMTPSA id 1B1FB140CAF	for
+ <linux-media@vger.kernel.org>; Sun,  3 Nov 2013 01:46:12 +0100 (CET)
+Date: Sun, 3 Nov 2013 01:46:12 +0100
+From: Maik Broemme <mbroemme@parallels.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/12] dvb-frontends: Support for DVB-C2 to DVB frontends
-In-Reply-To: <20131103072351.5aaed530@samsung.com>
+Subject: [PATCH 12/12] ddbridge: Kconfig and Makefile fixes to build latest
+ ddbridge
+Message-ID: <20131103004611.GP7956@parallels.com>
 References: <20131103002235.GD7956@parallels.com>
-	<20131103002425.GE7956@parallels.com>
-	<20131103072351.5aaed530@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20131103002235.GD7956@parallels.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab writes:
- > Em Sun, 3 Nov 2013 01:24:25 +0100
- > Maik Broemme <mbroemme@parallels.com> escreveu:
- > 
- > > Added support for DVB-C2 to DVB frontends. It will be required
- > > by cxd2843 and tda18212dd (Digital Devices) frontends.
- > > 
- > > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
- > > ---
- > >  include/uapi/linux/dvb/frontend.h | 1 +
- > >  1 file changed, 1 insertion(+)
- > > 
- > > diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
- > > index c56d77c..98648eb 100644
- > > --- a/include/uapi/linux/dvb/frontend.h
- > > +++ b/include/uapi/linux/dvb/frontend.h
- > > @@ -410,6 +410,7 @@ typedef enum fe_delivery_system {
- > >  	SYS_DVBT2,
- > >  	SYS_TURBO,
- > >  	SYS_DVBC_ANNEX_C,
- > > +	SYS_DVBC2,
- > >  } fe_delivery_system_t;
- > >  
- > >  /* backward compatibility */
- > 
- > Please update also the documentation, at Documentation/DocBook/media/dvb.
- > 
- > Doesn't DVB-C2 provide any newer property? If so, please add it there as
- > well, and at frontend.h.
- > 
+Fixed Kconfig and Makefile to build latest version off ddbridge. It
+adds support for the following devices:
 
-I asked about this on linux-media a week or so ago. The main question was
-concerning STREAM_ID. I asked if it would be fine to combine PLP and
-slice id (each 8 bit) into stream_id or if there should be a separate 
-new property. And for which one, PLP or slice id? 
-Probably slice id, because stream_id is also used for PLP in T2?
-I combined them into stream_id for now (but that was after the 0.9.10 version
-of the dddvb package).
+  - Octopus DVB adapter
+  - Octopus V3 DVB adapter
+  - Octopus LE DVB adapter
+  - Octopus OEM
+  - Octopus Mini
+  - Cine S2 V6 DVB adapter
+  - Cine S2 V6.5 DVB adapter
+  - Octopus CI
+  - Octopus CI single
+  - DVBCT V6.1 DVB adapter
+  - DVB-C modulator
+  - SaTiX-S2 V3 DVB adapter
 
-There are also many new qam types, etc. but, as I said back then, it was not  
-urgent for me to add those because the Sony demod does not allow setting those.
-At least it is not documented how to do it.
+Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+---
+ drivers/media/pci/ddbridge/Kconfig  | 21 +++++++++++++++------
+ drivers/media/pci/ddbridge/Makefile |  2 +-
+ 2 files changed, 16 insertions(+), 7 deletions(-)
 
-
-Regards,
-Ralph
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index 44e5dc1..a30848f 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -6,13 +6,22 @@ config DVB_DDBRIDGE
+ 	select DVB_STV090x if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_DRXK if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_STV0367DD if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_TDA18212DD if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_CXD2843 if MEDIA_SUBDRV_AUTOSELECT
+ 	---help---
+ 	  Support for cards with the Digital Devices PCI express bridge:
+-	  - Octopus PCIe Bridge
+-	  - Octopus mini PCIe Bridge
+-	  - Octopus LE
+-	  - DuoFlex S2 Octopus
+-	  - DuoFlex CT Octopus
+-	  - cineS2(v6)
++	  - Octopus DVB adapter
++	  - Octopus V3 DVB adapter
++	  - Octopus LE DVB adapter
++	  - Octopus OEM
++	  - Octopus Mini
++	  - Cine S2 V6 DVB adapter
++	  - Cine S2 V6.5 DVB adapter
++	  - Octopus CI
++	  - Octopus CI single
++	  - DVBCT V6.1 DVB adapter
++	  - DVB-C modulator
++	  - SaTiX-S2 V3 DVB adapter
+ 
+ 	  Say Y if you own such a card and want to use it.
+diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
+index 7446c8b..c274b81 100644
+--- a/drivers/media/pci/ddbridge/Makefile
++++ b/drivers/media/pci/ddbridge/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the ddbridge device driver
+ #
+ 
+-ddbridge-objs := ddbridge-core.o
++ddbridge-objs := ddbridge-core.o ddbridge-i2c.o ddbridge-mod.o
+ 
+ obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
+ 
+-- 
+1.8.4.2
