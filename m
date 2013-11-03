@@ -1,102 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48329 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037Ab3KDAGZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 06/18] v4l: omap4iss: Add support for OMAP4 camera interface - Build system
-Date: Mon,  4 Nov 2013 01:06:31 +0100
-Message-Id: <1383523603-3907-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from relay.swsoft.eu ([109.70.220.8]:51377 "EHLO relay.swsoft.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752781Ab3KCAgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Nov 2013 20:36:24 -0400
+Received: from mail.swsoft.eu ([109.70.220.2])
+	by relay.swsoft.eu with esmtps (TLSv1:AES128-SHA:128)
+	(Exim 4.77)
+	(envelope-from <mbroemme@parallels.com>)
+	id 1VclSe-0001pY-Ao
+	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 01:22:36 +0100
+Received: from parallels.com (cable-78-34-76-230.netcologne.de [78.34.76.230])
+	by code.dyndns.org (Postfix) with ESMTPSA id 7ED7A140CAF	for
+ <linux-media@vger.kernel.org>; Sun,  3 Nov 2013 01:22:35 +0100 (CET)
+Date: Sun, 3 Nov 2013 01:22:35 +0100
+From: Maik Broemme <mbroemme@parallels.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 00/12] DDBridge 0.9.10 driver updates
+Message-ID: <20131103002235.GD7956@parallels.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a very simplistic driver to utilize the CSI2A interface inside
-the ISS subsystem in OMAP4, and dump the data to memory.
+I've updated the current DDBridge to latest version 0.9.10 from Ralph
+Metzler available at:
 
-Check Documentation/video4linux/omap4_camera.txt for details.
+http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
 
-This commit adds and updates Kconfig's and Makefile's, as well as a TODO
-list.
+I've merged the driver to work with current v4l/dvb tree and I will
+maintain the driver for v4l/dvb in future. The coming patch series is
+the first version and I explicitly want to get feedback and hints if
+some parts are merged at wrong places, etc... The following changes
+were made:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/Kconfig           |  2 ++
- drivers/staging/media/Makefile          |  1 +
- drivers/staging/media/omap4iss/Kconfig  | 12 ++++++++++++
- drivers/staging/media/omap4iss/Makefile |  6 ++++++
- drivers/staging/media/omap4iss/TODO     |  4 ++++
- 5 files changed, 25 insertions(+)
- create mode 100644 drivers/staging/media/omap4iss/Kconfig
- create mode 100644 drivers/staging/media/omap4iss/Makefile
- create mode 100644 drivers/staging/media/omap4iss/TODO
+  - MSI enabled by default (some issues left with i2c timeouts)
+  - no support for Digital Devices Octonet
+  - no support for DVB Netstream
+  - removed unused module parameters 'tt' and 'vlan' (used by Octonet)
+  - removed unused registers to cleanup code (might be added later again
+    if needed)
 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index 46f1e61..bc4c798 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -33,6 +33,8 @@ source "drivers/staging/media/msi3101/Kconfig"
- 
- source "drivers/staging/media/solo6x10/Kconfig"
- 
-+source "drivers/staging/media/omap4iss/Kconfig"
-+
- # Keep LIRC at the end, as it has sub-menus
- source "drivers/staging/media/lirc/Kconfig"
- 
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index eb7f30b..a528d3f 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_GO7007)	+= go7007/
- obj-$(CONFIG_USB_MSI3101)	+= msi3101/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-+obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
-diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
-new file mode 100644
-index 0000000..b9fe753
---- /dev/null
-+++ b/drivers/staging/media/omap4iss/Kconfig
-@@ -0,0 +1,12 @@
-+config VIDEO_OMAP4
-+	bool "OMAP 4 Camera support"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-+	select VIDEOBUF2_DMA_CONTIG
-+	---help---
-+	  Driver for an OMAP 4 ISS controller.
-+
-+config VIDEO_OMAP4_DEBUG
-+	bool "OMAP 4 Camera debug messages"
-+	depends on VIDEO_OMAP4
-+	---help---
-+	  Enable debug messages on OMAP 4 ISS controller driver.
-diff --git a/drivers/staging/media/omap4iss/Makefile b/drivers/staging/media/omap4iss/Makefile
-new file mode 100644
-index 0000000..a716ce9
---- /dev/null
-+++ b/drivers/staging/media/omap4iss/Makefile
-@@ -0,0 +1,6 @@
-+# Makefile for OMAP4 ISS driver
-+
-+omap4-iss-objs += \
-+	iss.o iss_csi2.o iss_csiphy.o iss_ipipeif.o iss_ipipe.o iss_resizer.o iss_video.o
-+
-+obj-$(CONFIG_VIDEO_OMAP4) += omap4-iss.o
-diff --git a/drivers/staging/media/omap4iss/TODO b/drivers/staging/media/omap4iss/TODO
-new file mode 100644
-index 0000000..fcde888
---- /dev/null
-+++ b/drivers/staging/media/omap4iss/TODO
-@@ -0,0 +1,4 @@
-+* Make the driver compile as a module
-+* Fix FIFO/buffer overflows and underflows
-+* Replace dummy resizer code with a real implementation
-+* Fix checkpatch errors and warnings
--- 
-1.8.1.5
+The following devices are supported by the driver update:
 
+  - Octopus DVB adapter
+  - Octopus V3 DVB adapter
+  - Octopus LE DVB adapter
+  - Octopus OEM
+  - Octopus Mini
+  - Cine S2 V6 DVB adapter
+  - Cine S2 V6.5 DVB adapter
+  - Octopus CI
+  - Octopus CI single
+  - DVBCT V6.1 DVB adapter
+  - DVB-C modulator
+  - SaTiX-S2 V3 DVB adapter
+
+I might merge the Octonet and DVB Netstream drivers from Ralphs source
+later once the current committed DDBridge driver updates are merged in
+mainline.
+
+Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+
+Maik Broemme (12):
+  dvb-frontends: Support for DVB-C2 to DVB frontends
+  tda18271c2dd: Fix description of NXP TDA18271C2 silicon tuner
+  stv0367dd: Support for STV 0367 DVB-C/T (DD) demodulator
+  tda18212dd: Support for NXP TDA18212 (DD) silicon tuner
+  cxd2843: Support for CXD2843ER demodulator for DVB-T/T2/C/C2
+  dvb-core: export dvb_usercopy and new DVB device constants
+  ddbridge: Updated ddbridge registers
+  ddbridge: Moved i2c interfaces into separate file
+  ddbridge: Support for the Digital Devices Resi DVB-C Modulator card
+  ddbridge: Update ddbridge driver to version 0.9.10
+  ddbridge: Update ddbridge header for 0.9.10 changes
+  ddbridge: Kconfig and Makefile fixes to build latest ddbridge
+
+ drivers/media/dvb-core/dvbdev.c              |    1 
+ drivers/media/dvb-core/dvbdev.h              |    2 
+ drivers/media/dvb-frontends/Kconfig          |   31 
+ drivers/media/dvb-frontends/Makefile         |    3 
+ drivers/media/dvb-frontends/cxd2843.c        | 1647 ++++++++++++
+ drivers/media/dvb-frontends/cxd2843.h        |   47 
+ drivers/media/dvb-frontends/stv0367dd.c      | 2329 ++++++++++++++++++
+ drivers/media/dvb-frontends/stv0367dd.h      |   48 
+ drivers/media/dvb-frontends/stv0367dd_regs.h | 3442 +++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/tda18212dd.c     |  934 +++++++
+ drivers/media/dvb-frontends/tda18212dd.h     |   37 
+ drivers/media/pci/ddbridge/Kconfig           |   21 
+ drivers/media/pci/ddbridge/Makefile          |    2 
+ drivers/media/pci/ddbridge/ddbridge-core.c   | 3085 +++++++++++++++++-------
+ drivers/media/pci/ddbridge/ddbridge-i2c.c    |  239 +
+ drivers/media/pci/ddbridge/ddbridge-mod.c    | 1033 ++++++++
+ drivers/media/pci/ddbridge/ddbridge-regs.h   |  273 +-
+ drivers/media/pci/ddbridge/ddbridge.h        |  408 ++-
+ include/uapi/linux/dvb/frontend.h            |    1 
+ 19 files changed, 12555 insertions(+), 1028 deletions(-)
+
+--Maik
