@@ -1,38 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-062.synserver.de ([212.40.185.62]:1053 "EHLO
-	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758356Ab3KZWCE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 17:02:04 -0500
-Message-ID: <52951A7B.3020900@metafoo.de>
-Date: Tue, 26 Nov 2013 23:02:35 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: Valentine <valentine.barshak@cogentembedded.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com> <52951604.2050603@metafoo.de> <52951961.30903@cogentembedded.com>
-In-Reply-To: <52951961.30903@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:43911 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab3KCLcB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 06:32:01 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVO00KFQQPCTB30@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 03 Nov 2013 06:32:00 -0500 (EST)
+Date: Sun, 03 Nov 2013 09:31:55 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DVB-C2
+Message-id: <20131103093155.50b59b45@samsung.com>
+In-reply-to: <21095.747.879743.551447@morden.metzler>
+References: <1382462076-29121-1-git-send-email-guest@puma.are.ma>
+ <21095.747.879743.551447@morden.metzler>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2013 10:57 PM, Valentine wrote:
-[...]
->>
->> [...]
+Em Wed, 23 Oct 2013 00:57:47 +0200
+Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+
+> Hi,
 > 
-> I'd also appreciate your thoughts about the issues I've described,
-> which have been replaced by [...] here.
+> I am wondering if anybody looked into API extensions for DVB-C2 yet?
+> Obviously, we need some more modulations, guard intervals, etc. 
+> even if the demod I use does not actually let me set those (only auto).
+> 
+> But I do need to set the PLP and slice ID.
+> I currently set them (8 bit each) by combining them into the 32 bit 
+> stream_id (DTV_STREAM_ID parameter).
 
-Those seem to be mostly issues that also apply to the adv7604 and should be
-fixed anyway. Hans knows the code much better than me and will hopefully be
-able to give a better answer.
+I don't like the idea of combining them into a single field. One of the
+reasons is that we may have endianness issues.
 
-- Lars
+So, IMHO, the better is to add a new property for slice ID.
+
+> By using the stream id like this and not having (or being able) to set
+> the rest of the new parameters I only have to add SYS_DVBC2 to the delivery systems
+> right now. But the new parameters should be added for completeness and if we want to
+> be able to scan we will need calls to read out L1 signalling information.
+
+I didn't have time yet to dig into DVB-C2 API, but I think that the better
+is to add full support to all modulation types, guard intervals, etc, even
+knowing that most modern demods work fine on auto mode those days.
+
+As you said, scan should be able to read out L1 signaling information.
+
+Also, as we're starting to talk about modulator drivers, all those properties
+should be specified on the modulator. 
+
+So, it makes sense to add a patch there extending the API (both
+documentation and frontend.h) to fully support DVB C2.
+
+Regard
+-- 
+
+Cheers,
+Mauro
