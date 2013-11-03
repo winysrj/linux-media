@@ -1,203 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:47640 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205Ab3KYItI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 03:49:08 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Subject: [PATCH v8] videobuf2: Add missing lock held on vb2_fop_relase
-Date: Mon, 25 Nov 2013 09:49:02 +0100
-Message-Id: <1385369342-11785-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53335 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832Ab3KCLzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Nov 2013 06:55:07 -0500
+Message-ID: <52763984.5090208@iki.fi>
+Date: Sun, 03 Nov 2013 13:54:44 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv2 19/29] tuners: Don't use dynamic static allocation
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>	<1383399097-11615-20-git-send-email-m.chehab@samsung.com>	<5275357F.5090405@xs4all.nl>	<20131102191515.0af09112@samsung.com>	<52757474.8010303@xs4all.nl>	<527575A8.2010906@xs4all.nl>	<20131102222132.4fae86c2@samsung.com> <20131103071207.5b4060df@concha.lan>
+In-Reply-To: <20131103071207.5b4060df@concha.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+On 03.11.2013 11:12, Mauro Carvalho Chehab wrote:
+> Em Sat, 2 Nov 2013 22:21:32 -0200
+> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+>
+>> Em Sat, 02 Nov 2013 22:59:04 +0100
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> On 11/02/2013 10:53 PM, Hans Verkuil wrote:
+>>>> On 11/02/2013 10:15 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em Sat, 02 Nov 2013 18:25:19 +0100
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>
+>>>>>> Hi Mauro,
+>>>>>>
+>>>>>> I'll review this series more carefully on Monday,
+>>>>>
+>>>>> Thanks!
+>>>>>
+>>>>>> but for now I want to make
+>>>>>> a suggestion for the array checks:
+>>>>>>
+>>>>>> On 11/02/2013 02:31 PM, Mauro Carvalho Chehab wrote:
+>>>>>>> Dynamic static allocation is evil, as Kernel stack is too low, and
+>>>>>>> compilation complains about it on some archs:
+>>>>>>>
+>>>>>>> 	drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
+>>>>>>> 	drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
+>>>>>>>
+>>>>>>> Instead, let's enforce a limit for the buffer. Considering that I2C
+>>>>>>> transfers are generally limited, and that devices used on USB has a
+>>>>>>> max data length of 80, it seem safe to use 80 as the hard limit for all
+>>>>>>> those devices. On most cases, the limit is a way lower than that, but
+>>>>>>> 80 is small enough to not affect the Kernel stack, and it is a no brain
+>>>>>>> limit, as using smaller ones would require to either carefully each
+>>>>>>> driver or to take a look on each datasheet.
+>>>>>>>
+>>>>>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>>>>>> Cc: Antti Palosaari <crope@iki.fi>
+>>>>>>> ---
+>>>>>>>   drivers/media/tuners/e4000.c    | 18 ++++++++++++++++--
+>>>>>>>   drivers/media/tuners/fc2580.c   | 18 ++++++++++++++++--
+>>>>>>>   drivers/media/tuners/tda18212.c | 18 ++++++++++++++++--
+>>>>>>>   drivers/media/tuners/tda18218.c | 18 ++++++++++++++++--
+>>>>>>>   4 files changed, 64 insertions(+), 8 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>>>>>>> index ad9309da4a91..235e90251609 100644
+>>>>>>> --- a/drivers/media/tuners/e4000.c
+>>>>>>> +++ b/drivers/media/tuners/e4000.c
+>>>>>>> @@ -24,7 +24,7 @@
+>>>>>>>   static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>>>>>>   {
+>>>>>>>   	int ret;
+>>>>>>> -	u8 buf[1 + len];
+>>>>>>> +	u8 buf[80];
+>>>>>>>   	struct i2c_msg msg[1] = {
+>>>>>>>   		{
+>>>>>>>   			.addr = priv->cfg->i2c_addr,
+>>>>>>> @@ -34,6 +34,13 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>>>>>>   		}
+>>>>>>>   	};
+>>>>>>>
+>>>>>>> +	if (1 + len > sizeof(buf)) {
+>>>>>>> +		dev_warn(&priv->i2c->dev,
+>>>>>>> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>>>>>>> +			 KBUILD_MODNAME, reg, len);
+>>>>>>> +		return -EREMOTEIO;
+>>>>>>> +	}
+>>>>>>> +
+>>>>>>
+>>>>>> I think this can be greatly simplified to:
+>>>>>>
+>>>>>> 	if (WARN_ON(len + 1 > sizeof(buf))
+>>>>>> 		return -EREMOTEIO;
+>>>>>>
+>>>>>> This should really never happen, and it is a clear driver bug if it does. WARN_ON
+>>>>>> does the job IMHO.
+>>>>>
+>>>>> Works for me. I'll wait for more comments, and go for it on v3.
+>>>>>
+>>>>>>   I also don't like the EREMOTEIO error: it has nothing to do with
+>>>>>> an I/O problem. Wouldn't EMSGSIZE be much better here?
+>>>>>
+>>>>>
+>>>>> EMSGSIZE is not used yet at drivers/media. So, it is probably not the
+>>>>> right error code.
+>>>>>
+>>>>> I remember that there's an error code for that on I2C (EOPNOTSUPP?).
+>>>>>
+>>>>> In any case, I don't think we should use an unusual error code here.
+>>>>> In theory, this error should never happen, but we don't want to break
+>>>>> userspace because of it. That's why I opted to use EREMOTEIO: this is
+>>>>> the error code that most of those drivers return when something gets
+>>>>> wrong during I2C transfers.
+>>>>
+>>>> The problem I have is that EREMOTEIO is used when the i2c transfer fails,
+>>>> i.e. there is some sort of a hardware or communication problem.
+>>>>
+>>>> That's not the case here, it's an argument error. So EINVAL would actually
+>>>> be better, but that's perhaps overused which is why I suggested EMSGSIZE.
+>>>> I personally don't think EIO or EREMOTEIO should be used for something that
+>>>> is not hardware related. I'm sure there are some gray areas, but this
+>>>> particular situation is clearly not hardware-related.
+>>>>
+>>>> So if EMSGSIZE won't work for you, then I prefer EINVAL over EREMOTEIO.
+>>>> ENOMEM is also an option (you are after all 'out of buffer memory').
+>>>> A bit more exotic, but still sort of in the area, is EPROTO.
+>>>
+>>> After thinking about it a little bit more I would just return -EINVAL. It's
+>>> a wrong argument, it's something that shouldn't happen at all, and you get a
+>>> big fat stack trace anyway due to the WARN_ON, so EINVAL makes perfect sense.
+>>
+>> Works for me.
+>
+> After thinking a little bit about that, I think that using WARN_ON is not
+> a good idea.
+>
+> The thing is that userspace may access directly the I2C devices, via
+> i2c-dev, and try to read/write using more data than supported. On such cases,
+> the expected behavior is for the driver to return EOPNOTSUPP without generating
+> a WARN_ON dump.
+>
+> So, IMHO, the better is to keep the patches as-is, and just replace the
+> return code to EOPNOTSUPP, if the size is bigger than supported.
 
-vb2_fop_release does not held the lock although it is modifying the
-queue->owner field.
+There should be checks in every I2C adapter, which returns -EOPNOTSUPP, 
+when unsupported message is coming. It is another issue. For adapters 
+EOPNOTSUPP is suitable error code but for client in that case it is not. 
+If that happens in client it is simply driver bug and I think EINVAL in 
+suitable.
 
-This could lead to race conditions on the vb2_perform_io function
-when multiple applications are accessing the video device via
-read/write API:
+regards
+Antti
 
-[ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
-0000000000000260
-[ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-[videobuf2_core]
-[ 308.297794] PGD 159719067 PUD 158119067 PMD 0
-[ 308.297812] Oops: 0000 #1 SMP
-[ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
-qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
-qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
-spi_xilinx spi_bitbang qt5023
-[ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
-[ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
-PM_2.1.0.309 X64 05/23/2013
-[ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
-ffff88014dc02000
-[ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
-vb2_perform_fileio+0x372/0x610 [videobuf2_core]
-[ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
-[ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
-[ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
-[ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
-[ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
-[ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
-[ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
-knlGS:0000000000000000
-[ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
-[ 308.298064] Stack:
-[ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
-ffff880100000001
-[ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
-ffff880154904718
-[ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
-ffff88014dc03f50
-[ 308.298116] Call Trace:
-[ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
-[ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
-[ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
-[ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
-[ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
-[ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
-[ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
-44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
-44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
-89
-[ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-[videobuf2_core]
-[ 308.298507] RSP <ffff88014dc03df8>
-[ 308.298514] CR2: 0000000000000260
-[ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
----
-
-v2: Comments by Sylvester Nawrocki
-
-fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
-Therefore a new __vb2_fop_release function has been created to be used by
-drivers that overload the release function.
-
-v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
-
-Use vb2_fop_release_locked instead of __vb2_fop_release
-
-v4: Comments by Sylvester Nawrocki
-
-Rename vb2_fop_release_locked to __vb2_fop_release and fix patch format
-
-v5: Comments by Sylvester Nawrocki and Hans Verkuil
-
-Rename __vb2_fop_release to vb2_fop_release_unlock and rearrange
-arguments
-
-v6: Comments by Hans Verkuil
-
-Fix typo on description
-Rename vb2_fop_release_locked to vb2_fop_release_no_lock
-
-v7: Comments by Hans Verkuil and Sylvester Nawrocki
-
-Export _vb2_fop_release instead of using vb2_fop_release_no_lock
-
-v8: Comments by Hans Verkuil and rebase
-
-Missed semicolon
-
-Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
- drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c         | 15 ++++++++++++++-
- include/media/videobuf2-core.h                   |  1 +
- 4 files changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index fb27ff7..8a712ca 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
- 		vc->streaming = false;
- 	}
- 
--	ret = vb2_fop_release(file);
-+	ret = _vb2_fop_release(file, NULL);
- 
- 	if (close) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index e5798f7..d3b32b6 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
- 		mutex_unlock(&entity->parent->graph_mutex);
- 	}
- 
--	vb2_fop_release(file);
-+	_vb2_fop_release(file, NULL);
- 	pm_runtime_put(&fimc->pdev->dev);
- 	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index de0e87f..01f1585 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2621,16 +2621,29 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
- }
- EXPORT_SYMBOL_GPL(vb2_fop_mmap);
- 
--int vb2_fop_release(struct file *file)
-+int _vb2_fop_release(struct file *file, struct mutex *lock)
- {
- 	struct video_device *vdev = video_devdata(file);
- 
- 	if (file->private_data == vdev->queue->owner) {
-+		if (lock)
-+			mutex_lock(lock);
- 		vb2_queue_release(vdev->queue);
- 		vdev->queue->owner = NULL;
-+		if (lock)
-+			mutex_unlock(lock);
- 	}
- 	return v4l2_fh_release(file);
- }
-+EXPORT_SYMBOL_GPL(_vb2_fop_release);
-+
-+int vb2_fop_release(struct file *file)
-+{
-+	struct video_device *vdev = video_devdata(file);
-+	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
-+
-+	return _vb2_fop_release(file, lock);
-+}
- EXPORT_SYMBOL_GPL(vb2_fop_release);
- 
- ssize_t vb2_fop_write(struct file *file, char __user *buf,
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 6781258..cc7ab81 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -491,6 +491,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
- 
- int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
- int vb2_fop_release(struct file *file);
-+int _vb2_fop_release(struct file *file, struct mutex *lock);
- ssize_t vb2_fop_write(struct file *file, char __user *buf,
- 		size_t count, loff_t *ppos);
- ssize_t vb2_fop_read(struct file *file, char __user *buf,
 -- 
-1.8.4.3
-
+http://palosaari.fi/
