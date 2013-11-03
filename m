@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-024.synserver.de ([212.40.185.24]:1216 "EHLO
-	smtp-out-136.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752524Ab3K2UQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 15:16:48 -0500
-Message-ID: <5298F41C.7090203@metafoo.de>
-Date: Fri, 29 Nov 2013 21:07:56 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Valentine <valentine.barshak@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <692757747.1f4Evv5u9p@avalon> <52951AA7.4030202@metafoo.de> <16902508.hqJSb2Hj3Q@avalon> <52951B49.6000201@metafoo.de>
-In-Reply-To: <52951B49.6000201@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:43335 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab3KCJX4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 04:23:56 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVO003HQKRVDU20@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 03 Nov 2013 04:23:55 -0500 (EST)
+Date: Sun, 03 Nov 2013 07:23:51 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Maik Broemme <mbroemme@parallels.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 01/12] dvb-frontends: Support for DVB-C2 to DVB frontends
+Message-id: <20131103072351.5aaed530@samsung.com>
+In-reply-to: <20131103002425.GE7956@parallels.com>
+References: <20131103002235.GD7956@parallels.com>
+ <20131103002425.GE7956@parallels.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2013 11:06 PM, Lars-Peter Clausen wrote:
-> On 11/26/2013 11:03 PM, Laurent Pinchart wrote:
->> On Tuesday 26 November 2013 23:03:19 Lars-Peter Clausen wrote:
->>> On 11/26/2013 11:00 PM, Laurent Pinchart wrote:
->>>> On Tuesday 26 November 2013 22:43:32 Lars-Peter Clausen wrote:
->>>>> On 11/26/2013 10:28 PM, Valentine wrote:
->>>>>> On 11/20/2013 07:53 PM, Valentine wrote:
->>>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
->>>>>>>> Hi Valentine,
->>>>>>
->>>>>> Hi Hans,
->>>>>>
->>>>>>>> Did you ever look at this adv7611 driver:
->>>>>>>>
->>>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e
->>>>>>>> 4afa42af2daa12
->>>>>>>
->>>>>>> No, I missed that one somehow, although I did search for the
->>>>>>> adv7611/7612 before implementing this one.
->>>>>>> I'm going to look closer at the patch and test it.
->>>>>>
->>>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
->>>>>
->>>>> It was and it works.
->>>>>
->>>>>> I haven't been able to make it work so far. Here's the description of
->>>>>> some of the issues I've encountered.
->>>>>>
->>>>>> The patch does not apply cleanly so I had to make small adjustments just
->>>>>> to make it apply without changing the functionality.
->>>>>
->>>>> I have an updated version of the patch, which I intend to submit soon.
->>>>
->>>> Is it publicly available already ?
->>>
->>> Just started working on it the other day.
->>
->> I'm working on the same chip, how can we avoid effort duplication ?
+Em Sun, 3 Nov 2013 01:24:25 +0100
+Maik Broemme <mbroemme@parallels.com> escreveu:
+
+> Added support for DVB-C2 to DVB frontends. It will be required
+> by cxd2843 and tda18212dd (Digital Devices) frontends.
 > 
-> I'll have something by the end of the week, latest.
+> Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+> ---
+>  include/uapi/linux/dvb/frontend.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+> index c56d77c..98648eb 100644
+> --- a/include/uapi/linux/dvb/frontend.h
+> +++ b/include/uapi/linux/dvb/frontend.h
+> @@ -410,6 +410,7 @@ typedef enum fe_delivery_system {
+>  	SYS_DVBT2,
+>  	SYS_TURBO,
+>  	SYS_DVBC_ANNEX_C,
+> +	SYS_DVBC2,
+>  } fe_delivery_system_t;
+>  
+>  /* backward compatibility */
 
-Sorry, this has to wait until next week. Didn't had the time to do further
-work on it this week.
+Please update also the documentation, at Documentation/DocBook/media/dvb.
 
-- Lars
+Doesn't DVB-C2 provide any newer property? If so, please add it there as
+well, and at frontend.h.
 
+Regards,
+Maur
+-- 
+
+Cheers,
+Mauro
