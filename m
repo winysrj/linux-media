@@ -1,124 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46699 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756983Ab3KZQYa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 11:24:30 -0500
-Received: from avalon.localnet (unknown [109.134.93.159])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id A5C6335A49
-	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 17:23:44 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.14 v2] OMAP4 ISS driver
-Date: Tue, 26 Nov 2013 17:24:32 +0100
-Message-ID: <18475556.sszQoEAjFm@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:54317 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332Ab3KCK62 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 05:58:28 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVO003R0P5FWT10@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 03 Nov 2013 05:58:27 -0500 (EST)
+Date: Sun, 03 Nov 2013 08:58:22 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Maik Broemme <mbroemme@parallels.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/12] DDBridge 0.9.10 driver updates
+Message-id: <20131103085822.08e8406e@samsung.com>
+In-reply-to: <20131103002235.GD7956@parallels.com>
+References: <20131103002235.GD7956@parallels.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Sun, 3 Nov 2013 01:22:35 +0100
+Maik Broemme <mbroemme@parallels.com> escreveu:
 
-Here's a pull request for v3.14 that adds a driver for the OMAP4 ISS (camera 
-interface). It supersedes the previous v3.14 pull request for the same driver.
+> I've updated the current DDBridge to latest version 0.9.10 from Ralph
+> Metzler available at:
+> 
+> http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
+> 
+> I've merged the driver to work with current v4l/dvb tree and I will
+> maintain the driver for v4l/dvb in future. 
 
-The driver has been posted for review on the linux-media@vger.kernel.org 
-mailing list. I believe I have addressed all the review comments, and all the 
-patches have been acked by Hans Verkuil.
+Works for me.
 
-Compared to v1, the patches have been rebased on top of the current linuxtv 
-master branch.
+> The coming patch series is
+> the first version and I explicitly want to get feedback and hints if
+> some parts are merged at wrong places, etc... The following changes
+> were made:
+> 
+>   - MSI enabled by default (some issues left with i2c timeouts)
+>   - no support for Digital Devices Octonet
+>   - no support for DVB Netstream
+>   - removed unused module parameters 'tt' and 'vlan' (used by Octonet)
+>   - removed unused registers to cleanup code (might be added later again
+>     if needed)
 
-I'll work on cleaning up the code and getting the driver out of staging in the 
-next couple of kernel versions.
+Be sure to not remove any feature that are currently needed for the
+already supported devices to work.
+> 
+> The following devices are supported by the driver update:
+> 
+>   - Octopus DVB adapter
+>   - Octopus V3 DVB adapter
+>   - Octopus LE DVB adapter
+>   - Octopus OEM
+>   - Octopus Mini
+>   - Cine S2 V6 DVB adapter
+>   - Cine S2 V6.5 DVB adapter
+>   - Octopus CI
+>   - Octopus CI single
+>   - DVBCT V6.1 DVB adapter
+>   - DVB-C modulator
+>   - SaTiX-S2 V3 DVB adapter
+> 
+> I might merge the Octonet and DVB Netstream drivers from Ralphs source
+> later once the current committed DDBridge driver updates are merged in
+> mainline.
+> 
+> Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+> 
+> Maik Broemme (12):
+>   dvb-frontends: Support for DVB-C2 to DVB frontends
+>   tda18271c2dd: Fix description of NXP TDA18271C2 silicon tuner
+>   stv0367dd: Support for STV 0367 DVB-C/T (DD) demodulator
+>   tda18212dd: Support for NXP TDA18212 (DD) silicon tuner
+>   cxd2843: Support for CXD2843ER demodulator for DVB-T/T2/C/C2
+>   dvb-core: export dvb_usercopy and new DVB device constants
+>   ddbridge: Updated ddbridge registers
+>   ddbridge: Moved i2c interfaces into separate file
+>   ddbridge: Support for the Digital Devices Resi DVB-C Modulator card
+>   ddbridge: Update ddbridge driver to version 0.9.10
+>   ddbridge: Update ddbridge header for 0.9.10 changes
+>   ddbridge: Kconfig and Makefile fixes to build latest ddbridge
+> 
+>  drivers/media/dvb-core/dvbdev.c              |    1 
+>  drivers/media/dvb-core/dvbdev.h              |    2 
+>  drivers/media/dvb-frontends/Kconfig          |   31 
+>  drivers/media/dvb-frontends/Makefile         |    3 
+>  drivers/media/dvb-frontends/cxd2843.c        | 1647 ++++++++++++
+>  drivers/media/dvb-frontends/cxd2843.h        |   47 
+>  drivers/media/dvb-frontends/stv0367dd.c      | 2329 ++++++++++++++++++
+>  drivers/media/dvb-frontends/stv0367dd.h      |   48 
+>  drivers/media/dvb-frontends/stv0367dd_regs.h | 3442 +++++++++++++++++++++++++++
+>  drivers/media/dvb-frontends/tda18212dd.c     |  934 +++++++
+>  drivers/media/dvb-frontends/tda18212dd.h     |   37 
+>  drivers/media/pci/ddbridge/Kconfig           |   21 
+>  drivers/media/pci/ddbridge/Makefile          |    2 
+>  drivers/media/pci/ddbridge/ddbridge-core.c   | 3085 +++++++++++++++++-------
+>  drivers/media/pci/ddbridge/ddbridge-i2c.c    |  239 +
+>  drivers/media/pci/ddbridge/ddbridge-mod.c    | 1033 ++++++++
+>  drivers/media/pci/ddbridge/ddbridge-regs.h   |  273 +-
+>  drivers/media/pci/ddbridge/ddbridge.h        |  408 ++-
+>  include/uapi/linux/dvb/frontend.h            |    1 
+>  19 files changed, 12555 insertions(+), 1028 deletions(-)
+> 
+> --Maik
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The following changes since commit 258d2fbf874c87830664cb7ef41f9741c1abffac:
+Thanks for your submission.
 
-  Merge tag 'v3.13-rc1' into patchwork (2013-11-25 05:57:23 -0200)
+I'm seeing this entire patch series as an RFC. There are simply too much
+changes required for us to be able to do a more detailed review on it.
 
-are available in the git repository at:
+Please do the pointed changes, in special:
 
+	- Don't let any patch to break compilation;
 
-  git://linuxtv.org/pinchartl/media.git omap4iss/next
+	- Please verify the Documentation/CodingStyle and check it with
+		./scripts/checkpatch.pl;
 
-for you to fetch changes up to 97e87df937a6555a1eb6dfe67a03a889625a6a37:
+	- Please discuss on a separate thread the API changes for CI,
+	  modulator and DVB-C2;
 
-  v4l: omap4iss: Implement VIDIOC_S_INPUT (2013-11-26 17:01:53 +0100)
+	- Please try to break the ddbridge changes into one change per
+	  patch. If not possible, please try to at least break them more,
+	  to help us to review the changes;
 
-----------------------------------------------------------------
-Laurent Pinchart (17):
-      v4l: omap4iss: Add support for OMAP4 camera interface - Build system
-      v4l: omap4iss: Don't use v4l2_g_ext_ctrls() internally
-      v4l: omap4iss: Move common code out of switch...case
-      v4l: omap4iss: Report device caps in response to VIDIOC_QUERYCAP
-      v4l: omap4iss: Remove iss_video streaming field
-      v4l: omap4iss: Set the vb2 timestamp type
-      v4l: omap4iss: Remove duplicate video_is_registered() check
-      v4l: omap4iss: Remove unneeded status variable
-      v4l: omap4iss: Replace udelay/msleep with usleep_range
-      v4l: omap4iss: Make omap4iss_isp_subclk_(en|dis)able() functions void
-      v4l: omap4iss: Make loop counters unsigned where appropriate
-      v4l: omap4iss: Don't initialize fields to 0 manually
-      v4l: omap4iss: Simplify error paths
-      v4l: omap4iss: Don't check for missing get_fmt op on remote subdev
-      v4l: omap4iss: Translate -ENOIOCTLCMD to -ENOTTY
-      v4l: omap4iss: Move code out of mutex-protected section
-      v4l: omap4iss: Implement VIDIOC_S_INPUT
+	- Please don't duplicate existing drivers without a very very good
+	  reason.
 
-Sergio Aguirre (5):
-      v4l: omap4iss: Add support for OMAP4 camera interface - Core
-      v4l: omap4iss: Add support for OMAP4 camera interface - Video devices                                                                                                                                
-      v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers                                                                                                                                
-      v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)                                                                                                                                    
-      v4l: omap4iss: Add support for OMAP4 camera interface - Resizer                                                                                                                                      
-                                                                                                                                                                                                           
- Documentation/video4linux/omap4_camera.txt   |   60 ++                                                                                                                                                    
- drivers/staging/media/Kconfig                |    2 +                                                                                                                                                     
- drivers/staging/media/Makefile               |    1 +                                                                                                                                                     
- drivers/staging/media/omap4iss/Kconfig       |   12 +                                                                                                                                                     
- drivers/staging/media/omap4iss/Makefile      |    6 +                                                                                                                                                     
- drivers/staging/media/omap4iss/TODO          |    4 +                                                                                                                                                     
- drivers/staging/media/omap4iss/iss.c         | 1462 +++++++++++++++++++++++++                                                                                                                    
- drivers/staging/media/omap4iss/iss.h         |  153 ++++                                                                                                                                                  
- drivers/staging/media/omap4iss/iss_csi2.c    | 1368 +++++++++++++++++++++++++                                                                                                                       
- drivers/staging/media/omap4iss/iss_csi2.h    |  156 ++++                                                                                                                                                  
- drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++++                                                                                                                                               
- drivers/staging/media/omap4iss/iss_csiphy.h  |   51 ++                                                                                                                                                    
- drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++++++                                                                                                                                        
- drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
- drivers/staging/media/omap4iss/iss_ipipeif.c |  847 ++++++++++++++++++++
- drivers/staging/media/omap4iss/iss_ipipeif.h |   92 +++
- drivers/staging/media/omap4iss/iss_regs.h    |  883 ++++++++++++++++++++
- drivers/staging/media/omap4iss/iss_resizer.c |  905 +++++++++++++++++++++
- drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
- drivers/staging/media/omap4iss/iss_video.c   | 1128 +++++++++++++++++++++++++
- drivers/staging/media/omap4iss/iss_video.h   |  198 +++++
- include/media/omap4iss.h                     |   65 ++
- 22 files changed, 8394 insertions(+)
- create mode 100644 Documentation/video4linux/omap4_camera.txt
- create mode 100644 drivers/staging/media/omap4iss/Kconfig
- create mode 100644 drivers/staging/media/omap4iss/Makefile
- create mode 100644 drivers/staging/media/omap4iss/TODO
- create mode 100644 drivers/staging/media/omap4iss/iss.c
- create mode 100644 drivers/staging/media/omap4iss/iss.h
- create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
- create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
- create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
- create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
- create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
- create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
- create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
- create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
- create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
- create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
- create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
- create mode 100644 drivers/staging/media/omap4iss/iss_video.c
- create mode 100644 drivers/staging/media/omap4iss/iss_video.h
- create mode 100644 include/media/omap4iss.h
-===
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks!
+Mauro
