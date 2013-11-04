@@ -1,179 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:52350 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758185Ab3KMJX6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Nov 2013 04:23:58 -0500
-From: Denis Carikli <denis@eukrea.com>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, Denis Carikli <denis@eukrea.com>,
+Received: from mail-we0-f179.google.com ([74.125.82.179]:57599 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab3KDTtx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 14:49:53 -0500
+MIME-Version: 1.0
+In-Reply-To: <20131103220315.GA11659@earth.universe>
+References: <20131103220315.GA11659@earth.universe>
+Date: Mon, 4 Nov 2013 20:49:50 +0100
+Message-ID: <CAGGh5h3R0bEuFnpG2Ak+_OXSd2YsnsdDxCQkgoG0Og5sSABYGw@mail.gmail.com>
+Subject: Re: [early RFC] Device Tree bindings for OMAP3 Camera Subsystem
+From: jean-philippe francois <jp.francois@cynove.com>
+To: Sebastian Reichel <sre@debian.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
 	Rob Herring <rob.herring@calxeda.com>,
 	Pawel Moll <pawel.moll@arm.com>,
 	Mark Rutland <mark.rutland@arm.com>,
 	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	devicetree@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	driverdev-devel@linuxdriverproject.org,
-	David Airlie <airlied@linux.ie>, linux-media@vger.kernel.org,
-	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>
-Subject: [PATCHv4][ 1/7] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
-Date: Wed, 13 Nov 2013 10:23:17 +0100
-Message-Id: <1384334603-14208-1-git-send-email-denis@eukrea.com>
-MIME-Version: 1.0
+	Ian Campbell <ijc+devicetree@hellion.org.uk>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That new macro is needed by the imx_drm staging driver
-  for supporting the QVGA display of the eukrea-cpuimx51 board.
+013/11/3 Sebastian Reichel <sre@debian.org>:
+> Hi,
+>
+> This is an early RFC for omap3isp DT support. For now i just created a potential DT
+> binding documentation based on the existing platform data:
+>
+> Binding for the OMAP3 Camera subsystem with the image signal processor (ISP) feature.
+>
 
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: devicetree@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: driverdev-devel@linuxdriverproject.org
-Cc: David Airlie <airlied@linux.ie>
-Cc: dri-devel@lists.freedesktop.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: Eric Bénard <eric@eukrea.com>
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-ChangeLog v3->v4:
-- Added Laurent Pinchart's Ack.
+This is very interesting, I am in the process of transforming an (out
+of tree) machine board file into
+a device tree description, and I was precisely searching for "oma3isp
+dt" when I saw your mail.
+I would be happy to test or help develop any patch aiming at DT
+support for omap3isp. I am new to DT, so I
+will leave the DT bindings review to  people that actually  have a clue.
 
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Added Mauro Carvalho Chehab's Ack.
-- Added documentation.
----
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
- include/uapi/linux/videodev2.h                     |    1 +
- 2 files changed, 79 insertions(+)
+I am looking forward to testing patches and bugging you when things break ;)
+Regards,
+Jean-Philippe François
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 166c8d6..f6a3e84 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry></entry>
- 	    <entry></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB666">
-+	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
-+	    <entry>'RGBH'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
- 	  <row id="V4L2-PIX-FMT-BGR24">
- 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
- 	    <entry>'BGR3'</entry>
-@@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
- 	    <entry></entry>
- 	    <entry></entry>
- 	  </row>
-+	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
-+	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
-+	    <entry>'RGBH'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
- 	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
- 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
- 	    <entry>'BGR3'</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 437f1b0..e8ff410 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -294,6 +294,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
- #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
- #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
-+#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
- #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
- #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
--- 
-1.7.9.5
-
+> omap3isp node
+> -------------
+>
+> Required properties:
+>
+> - compatible    : should be "ti,omap3isp" for OMAP3;
+> - reg           : physical addresses and length of the registers set;
+> - clocks        : list of clock specifiers, corresponding to entries in
+>                   clock-names property;
+> - clock-names   : must contain "cam_ick", "cam_mclk", "csi2_96m_fck",
+>                   "l3_ick" entries, matching entries in the clocks property;
+> - interrupts    : must contain mmu interrupt;
+> - ti,iommu      : phandle to isp mmu;
+>
+> Optional properties:
+>
+> - VDD_CSIPHY1-supply    : regulator for csi phy1
+> - VDD_CSIPHY2-supply    : regulator for csi phy2
+> - ti,isp-xclk-1         : device(s) attached to ISP's first external clock
+> - ti,isp-xclk-2         : device(s) attached to ISP's second external clock
+>
+> device-group subnode
+> --------------------
+>
+> Required properties:
+> - ti,isp-interface-type : Integer describing the interface type, one of the following
+>    * 0 = ISP_INTERFACE_PARALLEL
+>    * 1 = ISP_INTERFACE_CSI2A_PHY2
+>    * 2 = ISP_INTERFACE_CCP2B_PHY1
+>    * 3 = ISP_INTERFACE_CCP2B_PHY2
+>    * 4 = ISP_INTERFACE_CSI2C_PHY1
+> - ti,isp-devices        : Array of phandles to devices connected via the interface
+> - One of the following configuration nodes (depending on ti,isp-interface-type)
+>  - ti,ccp2-bus-cfg      : CCP2 bus configuration (needed for ISP_INTERFACE_CCP*)
+>  - ti,parallel-bus-cfg  : PARALLEL bus configuration (needed for ISP_INTERFACE_PARALLEL)
+>  - ti,csi2-bus-cfg      : CSI bus configuration (needed for ISP_INTERFACE_CSI*)
+>
+> ccp2-bus-cfg subnode
+> --------------------
+>
+> Required properties:
+> - ti,video-port-clock-divisor   : integer; used for video port output clock control
+>
+> Optional properties:
+> - ti,inverted-clock             : boolean; clock/strobe signal is inverted
+> - ti,enable-crc                 : boolean; enable crc checking
+> - ti,ccp2-mode-mipi             : boolean; port is used in MIPI-CSI1 mode (default: CCP2 mode)
+> - ti,phy-layer-is-strobe        : boolean; use data/strobe physical layer (default: data/clock physical layer)
+> - ti,data-lane-configuration    : integer array with position and polarity information for lane 1 and 2
+> - ti,clock-lane-configuration   : integer array with position and polarity information for clock lane
+>
+> parallel-bus-cfg subnode
+> ------------------------
+>
+> Required properties:
+> - ti,data-lane-shift                            : integer; shift data lanes by this amount
+>
+> Optional properties:
+> - ti,clock-falling-edge                         : boolean; sample on falling edge (default: rising edge)
+> - ti,horizontal-synchronization-active-low      : boolean; default: active high
+> - ti,vertical-synchronization-active-low        : boolean; default: active high
+> - ti,data-polarity-ones-complement              : boolean; data polarity is one's complement
+>
+> csi2-bus-cfg subnode
+> --------------------
+>
+> Required properties:
+> - ti,video-port-clock-divisor   : integer; used for video port output clock control
+>
+> Optional properties:
+> - ti,data-lane-configuration    : integer array with position and polarity information for lane 1 and 2
+> - ti,clock-lane-configuration   : integer array with position and polarity information for clock lane
+> - ti,enable-crc                 : boolean; enable crc checking
+>
+> Example for Nokia N900
+> ----------------------
+>
+> omap3isp: isp@480BC000 {
+>         compatible = "ti,omap3isp";
+>         reg = <
+>                 /* OMAP3430+ */
+>                 0x480BC000 0x070        /* base */
+>                 0x480BC100 0x078        /* cbuf */
+>                 0x480BC400 0x1F0        /* cpp2 */
+>                 0x480BC600 0x0A8        /* ccdc */
+>                 0x480BCA00 0x048        /* hist */
+>                 0x480BCC00 0x060        /* h3a  */
+>                 0x480BCE00 0x0A0        /* prev */
+>                 0x480BD000 0x0AC        /* resz */
+>                 0x480BD200 0x0FC        /* sbl  */
+>                 0x480BD400 0x070        /* mmu  */
+>         >;
+>
+>         clocks = < &cam_ick &cam_mclk &csi2_96m_fck &l3_ick >;
+>         clock-names = "cam_ick", "cam_mclk", "csi2_96m_fck", "l3_ick";
+>
+>         interrupts = <24>;
+>
+>         ti,iommu = <&mmu_isp>;
+>
+>         ti,isp-xclk-1 = <
+>                 &et8ek8
+>                 &smiapp_dfl
+>         >;
+>
+>         group1: device-group@0 {
+>                 ti,isp-interface-type = <2>;
+>
+>                 ti,isp-devices = <
+>                         &et8ek8
+>                         &ad5820
+>                         &adp1653
+>                 >;
+>
+>                 ti,ccp2-bus-cfg {
+>                         ti,enable-crc;
+>                         ti,phy-layer-is-strobe;
+>                         ti,video-port-clock-divisor = <1>;
+>                 };
+>         };
+>
+>         group2: device-group@1 {
+>                 ti,isp-interface-type = <2>;
+>
+>                 ti,isp-devices = <
+>                         &smiapp_dfl
+>                 >;
+>
+>                 ti,ccp2-bus-cfg {
+>                         ti,enable-crc;
+>                         ti,phy-layer-is-strobe;
+>                         ti,video-port-clock-divisor = <1>;
+>                 };
+>         };
+> };
