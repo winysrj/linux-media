@@ -1,46 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:61513 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab3KGRP7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Nov 2013 12:15:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <1383748818-22487-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1383748818-22487-1-git-send-email-ricardo.ribalda@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 7 Nov 2013 22:45:38 +0530
-Message-ID: <CA+V-a8t6GDkmutbc0cL0Xqi4iwr-29sg9c09vsXqafeBNjA4mw@mail.gmail.com>
-Subject: Re: [PATCH v2] ths7303: Declare as static a private function
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1598 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491Ab3KDDg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 22:36:26 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rA43aMXB045412
+	for <linux-media@vger.kernel.org>; Mon, 4 Nov 2013 04:36:25 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 2443A2A04E1
+	for <linux-media@vger.kernel.org>; Mon,  4 Nov 2013 04:36:19 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131104033619.2443A2A04E1@tschai.lan>
+Date: Mon,  4 Nov 2013 04:36:19 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch.
+Results of the daily build of media_tree:
 
-On Wed, Nov 6, 2013 at 8:10 PM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> git grep shows that the function is only called from ths7303.c
->
-> Fix this build warning:
->
-> CC      drivers/media/i2c/ths7303.o
-> drivers/media/i2c/ths7303.c:86:5: warning: no previous prototype for  ‘ths7303_setval’ [-Wmissing-prototypes]
->    int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
->         ^
->
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+date:		Mon Nov  4 04:00:24 CET 2013
+git branch:	for-v3.13c
+git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-6.slh.2-amd64
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Regards,
---Prabhakar Lad
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
