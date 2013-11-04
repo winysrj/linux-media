@@ -1,1201 +1,1389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:37011 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab3KTKPL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 05:15:11 -0500
-Received: by mail-lb0-f178.google.com with SMTP id c11so2813647lbj.37
-        for <linux-media@vger.kernel.org>; Wed, 20 Nov 2013 02:15:10 -0800 (PST)
-Message-ID: <528C8BA1.9070706@cogentembedded.com>
-Date: Wed, 20 Nov 2013 14:14:57 +0400
-From: Valentine <valentine.barshak@cogentembedded.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl>
-In-Reply-To: <528B347E.2060107@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48329 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab3KDAGV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 02/18] v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
+Date: Mon,  4 Nov 2013 01:06:27 +0100
+Message-Id: <1383523603-3907-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/19/2013 01:50 PM, Hans Verkuil wrote:
-> Hi Valentine,
+From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
 
-Hi Hans,
-thanks for your review.
+This adds a very simplistic driver to utilize the CSI2A interface inside
+the ISS subsystem in OMAP4, and dump the data to memory.
 
->
-> I don't entirely understand how you use this driver with soc-camera.
-> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
-> act on it. Did you hack soc-camera to do this?
+Check Documentation/video4linux/omap4_camera.txt for details.
 
-I did not. The format is queried before reading the frame by the user-space.
-I'm not sure if there's some kind of generic interface to notify the camera
-layer about format change events. Different subdevices use different FMT_CHANGE
-defines for that. I've implemented the format change notifier based on the adv7604
-in hope that it may be useful later.
+This commit adds video devices support.
 
->
-> The way it stands I would prefer to see a version of the driver without
-> soc-camera support. I wouldn't have a problem merging that as this driver
-> is a good base for further development.
+Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
 
-I've tried to implement the driver base good enough to work with both SoC
-and non-SoC cameras since I don't think having 2 separate drivers for
-different camera models is a good idea.
+[Port the driver to v3.12-rc3, including the following changes
+- Don't include plat/ headers
+- Don't use cpu_is_omap44xx() macro
+- Don't depend on EXPERIMENTAL
+- Fix s_crop operation prototype
+- Update link_notify prototype
+- Rename media_entity_remote_source to media_entity_remote_pad]
 
-The problem is that I'm using it with R-Car VIN SoC camera driver and don't
-have any other h/w. Having a platform data quirk for SoC camera in
-the subdevice driver seemed simple and clean enough.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 1129 ++++++++++++++++++++++++++++
+ drivers/staging/media/omap4iss/iss_video.h |  201 +++++
+ 2 files changed, 1330 insertions(+)
+ create mode 100644 drivers/staging/media/omap4iss/iss_video.c
+ create mode 100644 drivers/staging/media/omap4iss/iss_video.h
 
-Hacking SoC camera to make it support both generic and SoC cam subdevices
-doesn't seem that straightforward to me.
-
-Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
-involves a lot of regression testing with other R-Car boards that use different
-subdevices with VIN.
-
-What would you suggest?
-
->
-> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
-> control. It's easy to implement and that way apps can be notified when
-> the hotplug changes value.
-
-OK, thanks.
-
->
-> Regards,
->
-> 	Hans
-
-Thanks,
-Val.
-
->
-> On 11/15/13 13:54, Valentine Barshak wrote:
->> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
->> support. Only one HDMI port is supported on ADV7612.
->>
->> The code is based on the ADV7604 driver, and ADV7612 patch by
->> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
->>
->> Changes in version 2:
->> * Used platform data for I2C addresses setup. The driver
->>    should work with both SoC and non-SoC camera models.
->> * Dropped unnecessary code and unsupported callbacks.
->> * Implemented IRQ handling for format change detection.
->>
->> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
->> ---
->>   drivers/media/i2c/Kconfig   |   11 +
->>   drivers/media/i2c/Makefile  |    1 +
->>   drivers/media/i2c/adv761x.c | 1009 +++++++++++++++++++++++++++++++++++++++++++
->>   include/media/adv761x.h     |   38 ++
->>   4 files changed, 1059 insertions(+)
->>   create mode 100644 drivers/media/i2c/adv761x.c
->>   create mode 100644 include/media/adv761x.h
->>
->> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->> index 75c8a03..2388642 100644
->> --- a/drivers/media/i2c/Kconfig
->> +++ b/drivers/media/i2c/Kconfig
->> @@ -206,6 +206,17 @@ config VIDEO_ADV7604
->>   	  To compile this driver as a module, choose M here: the
->>   	  module will be called adv7604.
->>
->> +config VIDEO_ADV761X
->> +	tristate "Analog Devices ADV761X decoder"
->> +	depends on VIDEO_V4L2 && I2C
->> +	---help---
->> +	  Support for the Analog Devices ADV7611/ADV7612 video decoder.
->> +
->> +	  This is an Analog Devices Xpressview HDMI Receiver.
->> +
->> +	  To compile this driver as a module, choose M here: the
->> +	  module will be called adv761x.
->> +
->>   config VIDEO_ADV7842
->>   	tristate "Analog Devices ADV7842 decoder"
->>   	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
->> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
->> index e03f177..d78d627 100644
->> --- a/drivers/media/i2c/Makefile
->> +++ b/drivers/media/i2c/Makefile
->> @@ -26,6 +26,7 @@ obj-$(CONFIG_VIDEO_ADV7183) += adv7183.o
->>   obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
->>   obj-$(CONFIG_VIDEO_ADV7393) += adv7393.o
->>   obj-$(CONFIG_VIDEO_ADV7604) += adv7604.o
->> +obj-$(CONFIG_VIDEO_ADV761X) += adv761x.o
->>   obj-$(CONFIG_VIDEO_ADV7842) += adv7842.o
->>   obj-$(CONFIG_VIDEO_AD9389B) += ad9389b.o
->>   obj-$(CONFIG_VIDEO_ADV7511) += adv7511.o
->> diff --git a/drivers/media/i2c/adv761x.c b/drivers/media/i2c/adv761x.c
->> new file mode 100644
->> index 0000000..95939f5
->> --- /dev/null
->> +++ b/drivers/media/i2c/adv761x.c
->> @@ -0,0 +1,1009 @@
->> +/*
->> + * adv761x Analog Devices ADV761X HDMI receiver driver
->> + *
->> + * Copyright (C) 2013 Cogent Embedded, Inc.
->> + * Copyright (C) 2013 Renesas Electronics Corporation
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#include <linux/errno.h>
->> +#include <linux/gpio.h>
->> +#include <linux/i2c.h>
->> +#include <linux/init.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/kernel.h>
->> +#include <linux/module.h>
->> +#include <linux/rwsem.h>
->> +#include <linux/slab.h>
->> +#include <linux/videodev2.h>
->> +#include <media/adv761x.h>
->> +#include <media/soc_camera.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-ioctl.h>
->> +
->> +#define ADV761X_DRIVER_NAME "adv761x"
->> +
->> +/* VERT_FILTER_LOCKED and DE_REGEN_FILTER_LOCKED flags */
->> +#define ADV761X_HDMI_F_LOCKED(v)	(((v) & 0xa0) == 0xa0)
->> +
->> +/* Maximum supported resolution */
->> +#define ADV761X_MAX_WIDTH		1920
->> +#define ADV761X_MAX_HEIGHT		1080
->> +
->> +/* Use SoC camera subdev desc private data for platform_data */
->> +#define ADV761X_SOC_CAM_QUIRK		0x1
->> +
->> +static int debug;
->> +module_param(debug, int, 0644);
->> +MODULE_PARM_DESC(debug, "debug level (0-2)");
->> +
->> +struct adv761x_color_format {
->> +	enum v4l2_mbus_pixelcode code;
->> +	enum v4l2_colorspace colorspace;
->> +};
->> +
->> +/* Supported color format list */
->> +static const struct adv761x_color_format adv761x_cfmts[] = {
->> +	{
->> +		.code		= V4L2_MBUS_FMT_RGB888_1X24,
->> +		.colorspace	= V4L2_COLORSPACE_SRGB,
->> +	},
->> +};
->> +
->> +/* ADV761X descriptor structure */
->> +struct adv761x_state {
->> +	struct v4l2_subdev			sd;
->> +	struct media_pad			pad;
->> +	struct v4l2_ctrl_handler		ctrl_hdl;
->> +
->> +	u8					edid[256];
->> +	unsigned				edid_blocks;
->> +
->> +	struct rw_semaphore			rwsem;
->> +	const struct adv761x_color_format	*cfmt;
->> +	u32					width;
->> +	u32					height;
->> +	enum v4l2_field				scanmode;
->> +	u32					status;
->> +
->> +	int					gpio;
->> +	int					irq;
->> +
->> +	struct workqueue_struct			*work_queue;
->> +	struct delayed_work			enable_hotplug;
->> +	struct work_struct			interrupt_service;
->> +
->> +	struct i2c_client			*i2c_cec;
->> +	struct i2c_client			*i2c_inf;
->> +	struct i2c_client			*i2c_dpll;
->> +	struct i2c_client			*i2c_rep;
->> +	struct i2c_client			*i2c_edid;
->> +	struct i2c_client			*i2c_hdmi;
->> +	struct i2c_client			*i2c_cp;
->> +};
->> +
->> +static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
->> +{
->> +	return &container_of(ctrl->handler, struct adv761x_state, ctrl_hdl)->sd;
->> +}
->> +
->> +static inline struct adv761x_state *to_state(struct v4l2_subdev *sd)
->> +{
->> +	return container_of(sd, struct adv761x_state, sd);
->> +}
->> +
->> +/* I2C I/O operations */
->> +static s32 adv_smbus_read_byte_data(struct i2c_client *client, u8 command)
->> +{
->> +	s32 ret, i;
->> +
->> +	for (i = 0; i < 3; i++) {
->> +		ret = i2c_smbus_read_byte_data(client, command);
->> +		if (ret >= 0)
->> +			return ret;
->> +	}
->> +
->> +	v4l_err(client, "Reading addr:%02x reg:%02x\n failed",
->> +		client->addr, command);
->> +	return ret;
->> +}
->> +
->> +static s32 adv_smbus_write_byte_data(struct i2c_client *client, u8 command,
->> +				     u8 value)
->> +{
->> +	s32 ret, i;
->> +
->> +	for (i = 0; i < 3; i++) {
->> +		ret = i2c_smbus_write_byte_data(client, command, value);
->> +		if (!ret)
->> +			return 0;
->> +	}
->> +
->> +	v4l_err(client, "Writing addr:%02x reg:%02x val:%02x failed\n",
->> +		client->addr, command, value);
->> +	return ret;
->> +}
->> +
->> +static s32 adv_smbus_write_i2c_block_data(struct i2c_client *client, u8 command,
->> +					  u8 length, const u8 *values)
->> +{
->> +	s32 ret, i;
->> +
->> +	ret = i2c_smbus_write_i2c_block_data(client, command, length, values);
->> +	if (!ret)
->> +		return 0;
->> +
->> +	for (i = 0; i < length; i++) {
->> +		ret = adv_smbus_write_byte_data(client, command + i, values[i]);
->> +		if (ret)
->> +			break;
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->> +static inline int io_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	return adv_smbus_read_byte_data(client, reg);
->> +}
->> +
->> +static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	return adv_smbus_write_byte_data(client, reg, val);
->> +}
->> +
->> +static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_cec, reg);
->> +}
->> +
->> +static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
->> +}
->> +
->> +static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_inf, reg);
->> +}
->> +
->> +static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_inf, reg, val);
->> +}
->> +
->> +static inline int dpll_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_dpll, reg);
->> +}
->> +
->> +static inline int dpll_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_dpll, reg, val);
->> +}
->> +
->> +static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_rep, reg);
->> +}
->> +
->> +static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_rep, reg, val);
->> +}
->> +
->> +static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_edid, reg);
->> +}
->> +
->> +static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_edid, reg, val);
->> +}
->> +
->> +static inline int edid_write_block(struct v4l2_subdev *sd,
->> +				   unsigned len, const u8 *val)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +	struct adv761x_state *state = to_state(sd);
->> +	int ret = 0;
->> +	int i;
->> +
->> +	v4l2_dbg(2, debug, sd, "Writing EDID block (%d bytes)\n", len);
->> +
->> +	v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)0);
->> +
->> +	/* Disable I2C access to internal EDID ram from DDC port */
->> +	rep_write(sd, 0x74, 0x0);
->> +
->> +	for (i = 0; !ret && i < len; i += I2C_SMBUS_BLOCK_MAX)
->> +		ret = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
->> +				I2C_SMBUS_BLOCK_MAX, val + i);
->> +	if (ret)
->> +		return ret;
->> +
->> +	/*
->> +	 * ADV761x calculates the checksums and enables I2C access
->> +	 * to internal EDID ram from DDC port.
->> +	 */
->> +	rep_write(sd, 0x74, 0x01);
->> +
->> +	for (i = 0; i < 1000; i++) {
->> +		if (rep_read(sd, 0x76) & 0x1) {
->> +			/* Enable hotplug after 100 ms */
->> +			queue_delayed_work(state->work_queue,
->> +					   &state->enable_hotplug, HZ / 10);
->> +			return 0;
->> +		}
->> +		schedule();
->> +	}
->> +
->> +	v4l_err(client, "Enabling EDID failed\n");
->> +	return -EIO;
->> +}
->> +
->> +static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
->> +}
->> +
->> +static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
->> +}
->> +
->> +static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_read_byte_data(state->i2c_cp, reg);
->> +}
->> +
->> +static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	return adv_smbus_write_byte_data(state->i2c_cp, reg, val);
->> +}
->> +
->> +static inline int adv761x_power_off(struct v4l2_subdev *sd)
->> +{
->> +	return io_write(sd, 0x0c, 0x62);
->> +}
->> +
->> +static int adv761x_core_init(struct v4l2_subdev *sd)
->> +{
->> +	io_write(sd, 0x01, 0x06);	/* V-FREQ = 60Hz */
->> +					/* Prim_Mode = HDMI-GR */
->> +	io_write(sd, 0x02, 0xf2);	/* Auto CSC, RGB out */
->> +					/* Disable op_656 bit */
->> +	io_write(sd, 0x03, 0x42);	/* 36 bit SDR 444 Mode 0 */
->> +	io_write(sd, 0x05, 0x28);	/* AV Codes Off */
->> +	io_write(sd, 0x0b, 0x44);	/* Power up part */
->> +	io_write(sd, 0x0c, 0x42);	/* Power up part */
->> +	io_write(sd, 0x14, 0x7f);	/* Max Drive Strength */
->> +	io_write(sd, 0x15, 0x80);	/* Disable Tristate of Pins */
->> +					/* (Audio output pins active) */
->> +	io_write(sd, 0x19, 0x83);	/* LLC DLL phase */
->> +	io_write(sd, 0x33, 0x40);	/* LLC DLL enable */
->> +
->> +	cp_write(sd, 0xba, 0x01);	/* Set HDMI FreeRun */
->> +	cp_write(sd, 0x3e, 0x80);	/* Enable color adjustments */
->> +
->> +	hdmi_write(sd, 0x9b, 0x03);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x00, 0x08);	/* Set HDMI Input Port A */
->> +					/* (BG_MEAS_PORT_SEL = 001b) */
->> +	hdmi_write(sd, 0x02, 0x03);	/* Enable Ports A & B in */
->> +					/* background mode */
->> +	hdmi_write(sd, 0x6d, 0x80);	/* Enable TDM mode */
->> +	hdmi_write(sd, 0x03, 0x18);	/* I2C mode 24 bits */
->> +	hdmi_write(sd, 0x83, 0xfc);	/* Enable clock terminators */
->> +					/* for port A & B */
->> +	hdmi_write(sd, 0x6f, 0x0c);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x85, 0x1f);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x87, 0x70);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x8d, 0x04);	/* LFG Port A */
->> +	hdmi_write(sd, 0x8e, 0x1e);	/* HFG Port A */
->> +	hdmi_write(sd, 0x1a, 0x8a);	/* unmute audio */
->> +	hdmi_write(sd, 0x57, 0xda);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x58, 0x01);	/* ADI recommended setting */
->> +	hdmi_write(sd, 0x75, 0x10);	/* DDC drive strength */
->> +	hdmi_write(sd, 0x90, 0x04);	/* LFG Port B */
->> +	hdmi_write(sd, 0x91, 0x1e);	/* HFG Port B */
->> +	hdmi_write(sd, 0x04, 0x03);
->> +	hdmi_write(sd, 0x14, 0x00);
->> +	hdmi_write(sd, 0x15, 0x00);
->> +	hdmi_write(sd, 0x16, 0x00);
->> +
->> +	rep_write(sd, 0x40, 0x81);	/* Disable HDCP 1.1 features */
->> +	rep_write(sd, 0x74, 0x00);	/* Disable the Internal EDID */
->> +					/* for all ports */
->> +
->> +	/* Setup interrupts */
->> +	io_write(sd, 0x40, 0xc2);	/* Active high until cleared */
->> +	io_write(sd, 0x6e, 0x03);	/* INT1 HDMI DE_REGEN and V_LOCK */
->> +
->> +	return v4l2_ctrl_handler_setup(sd->ctrl_handler);
->> +}
->> +
->> +static int adv761x_hdmi_info(struct v4l2_subdev *sd, enum v4l2_field *scanmode,
->> +			     u32 *width, u32 *height)
->> +{
->> +	int msb, val;
->> +
->> +	/* Line width */
->> +	msb = hdmi_read(sd, 0x07);
->> +	if (msb < 0)
->> +		return msb;
->> +
->> +	if (!ADV761X_HDMI_F_LOCKED(msb))
->> +		return -EAGAIN;
->> +
->> +	/* Interlaced or progressive */
->> +	val = hdmi_read(sd, 0x0b);
->> +	if (val < 0)
->> +		return val;
->> +
->> +	*scanmode = (val & 0x20) ? V4L2_FIELD_INTERLACED : V4L2_FIELD_NONE;
->> +	val = hdmi_read(sd, 0x08);
->> +	if (val < 0)
->> +		return val;
->> +
->> +	val |= (msb & 0x1f) << 8;
->> +	*width = val;
->> +
->> +	/* Lines per frame */
->> +	msb = hdmi_read(sd, 0x09);
->> +	if (msb < 0)
->> +		return msb;
->> +
->> +	val = hdmi_read(sd, 0x0a);
->> +	if (val < 0)
->> +		return val;
->> +
->> +	val |= (msb & 0x1f) << 8;
->> +	if (*scanmode == V4L2_FIELD_INTERLACED)
->> +		val <<= 1;
->> +	*height = val;
->> +
->> +	if (*width == 0 || *height == 0)
->> +		return -EIO;
->> +
->> +	return 0;
->> +}
->> +
->> +/* Hotplug work */
->> +static void adv761x_enable_hotplug(struct work_struct *work)
->> +{
->> +	struct delayed_work *dwork = to_delayed_work(work);
->> +	struct adv761x_state *state = container_of(dwork, struct adv761x_state,
->> +						   enable_hotplug);
->> +	struct v4l2_subdev *sd = &state->sd;
->> +
->> +	v4l2_dbg(2, debug, sd, "Enable hotplug\n");
->> +	v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)1);
->> +}
->> +
->> +/* IRQ work */
->> +static void adv761x_interrupt_service(struct work_struct *work)
->> +{
->> +	struct adv761x_state *state = container_of(work, struct adv761x_state,
->> +						   interrupt_service);
->> +	struct v4l2_subdev *sd = &state->sd;
->> +	enum v4l2_field scanmode;
->> +	u32 width, height;
->> +	u32 status = 0;
->> +	int ret;
->> +
->> +	/* Clear HDMI interrupts */
->> +	io_write(sd, 0x6c, 0xff);
->> +
->> +	ret = adv761x_hdmi_info(sd, &scanmode, &width, &height);
->> +	if (ret) {
->> +		if (state->status == V4L2_IN_ST_NO_SIGNAL)
->> +			return;
->> +
->> +		width = ADV761X_MAX_WIDTH;
->> +		height = ADV761X_MAX_HEIGHT;
->> +		scanmode = V4L2_FIELD_NONE;
->> +		status = V4L2_IN_ST_NO_SIGNAL;
->> +	}
->> +
->> +	if (status)
->> +		v4l2_dbg(2, debug, sd, "No HDMI video input detected\n");
->> +	else
->> +		v4l2_dbg(2, debug, sd, "HDMI video input detected (%ux%u%c)\n",
->> +			 width, height,
->> +			 scanmode == V4L2_FIELD_NONE ? 'p' : 'i');
->> +
->> +	down_write(&state->rwsem);
->> +	state->width = width;
->> +	state->height = height;
->> +	state->scanmode = scanmode;
->> +	state->status = status;
->> +	up_write(&state->rwsem);
->> +
->> +	v4l2_subdev_notify(sd, ADV761X_FMT_CHANGE, NULL);
->> +}
->> +
->> +/* IRQ handler */
->> +static irqreturn_t adv761x_irq_handler(int irq, void *devid)
->> +{
->> +	struct adv761x_state *state = devid;
->> +
->> +	queue_work(state->work_queue, &state->interrupt_service);
->> +	return IRQ_HANDLED;
->> +}
->> +
->> +/* v4l2_subdev_core_ops */
->> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->> +static void adv761x_inv_register(struct v4l2_subdev *sd)
->> +{
->> +	v4l2_info(sd, "0x000-0x0ff: IO Map\n");
->> +	v4l2_info(sd, "0x100-0x1ff: CEC Map\n");
->> +	v4l2_info(sd, "0x200-0x2ff: InfoFrame Map\n");
->> +	v4l2_info(sd, "0x300-0x3ff: DPLL Map\n");
->> +	v4l2_info(sd, "0x400-0x4ff: Repeater Map\n");
->> +	v4l2_info(sd, "0x500-0x5ff: EDID Map\n");
->> +	v4l2_info(sd, "0x600-0x6ff: HDMI Map\n");
->> +	v4l2_info(sd, "0x700-0x7ff: CP Map\n");
->> +}
->> +
->> +static int adv761x_g_register(struct v4l2_subdev *sd,
->> +			      struct v4l2_dbg_register *reg)
->> +{
->> +	reg->size = 1;
->> +	switch (reg->reg >> 8) {
->> +	case 0:
->> +		reg->val = io_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 1:
->> +		reg->val = cec_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 2:
->> +		reg->val = infoframe_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 3:
->> +		reg->val = dpll_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 4:
->> +		reg->val = rep_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 5:
->> +		reg->val = edid_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 6:
->> +		reg->val = hdmi_read(sd, reg->reg & 0xff);
->> +		break;
->> +	case 7:
->> +		reg->val = cp_read(sd, reg->reg & 0xff);
->> +		break;
->> +	default:
->> +		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
->> +		adv761x_inv_register(sd);
->> +		break;
->> +	}
->> +	return 0;
->> +}
->> +
->> +static int adv761x_s_register(struct v4l2_subdev *sd,
->> +			      const struct v4l2_dbg_register *reg)
->> +{
->> +	switch (reg->reg >> 8) {
->> +	case 0:
->> +		io_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 1:
->> +		cec_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 2:
->> +		infoframe_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 3:
->> +		dpll_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 4:
->> +		rep_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 5:
->> +		edid_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 6:
->> +		hdmi_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	case 7:
->> +		cp_write(sd, reg->reg & 0xff, reg->val & 0xff);
->> +		break;
->> +	default:
->> +		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
->> +		adv761x_inv_register(sd);
->> +		break;
->> +	}
->> +	return 0;
->> +}
->> +#endif	/* CONFIG_VIDEO_ADV_DEBUG */
->> +
->> +/* v4l2_subdev_video_ops */
->> +static int adv761x_g_input_status(struct v4l2_subdev *sd, u32 *status)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	down_read(&state->rwsem);
->> +	*status = state->status;
->> +	up_read(&state->rwsem);
->> +	return 0;
->> +}
->> +
->> +static int adv761x_g_mbus_fmt(struct v4l2_subdev *sd,
->> +			      struct v4l2_mbus_framefmt *mf)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	down_read(&state->rwsem);
->> +	mf->width = state->width;
->> +	mf->height = state->height;
->> +	mf->field = state->scanmode;
->> +	mf->code = state->cfmt->code;
->> +	mf->colorspace = state->cfmt->colorspace;
->> +	up_read(&state->rwsem);
->> +	return 0;
->> +}
->> +
->> +static int adv761x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
->> +				 enum v4l2_mbus_pixelcode *code)
->> +{
->> +	/* Check requested format index is within range */
->> +	if (index >= ARRAY_SIZE(adv761x_cfmts))
->> +		return -EINVAL;
->> +
->> +	*code = adv761x_cfmts[index].code;
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv761x_g_mbus_config(struct v4l2_subdev *sd,
->> +				 struct v4l2_mbus_config *cfg)
->> +{
->> +	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
->> +		V4L2_MBUS_VSYNC_ACTIVE_LOW | V4L2_MBUS_HSYNC_ACTIVE_LOW |
->> +		V4L2_MBUS_DATA_ACTIVE_HIGH;
->> +	cfg->type = V4L2_MBUS_PARALLEL;
->> +
->> +	return 0;
->> +}
->> +
->> +/* v4l2_subdev_pad_ops */
->> +static int adv761x_get_edid(struct v4l2_subdev *sd,
->> +			    struct v4l2_subdev_edid *edid)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	if (edid->pad != 0)
->> +		return -EINVAL;
->> +
->> +	if (edid->blocks == 0)
->> +		return -EINVAL;
->> +
->> +	if (edid->start_block >= state->edid_blocks)
->> +		return -EINVAL;
->> +
->> +	if (edid->start_block + edid->blocks > state->edid_blocks)
->> +		edid->blocks = state->edid_blocks - edid->start_block;
->> +	if (!edid->edid)
->> +		return -EINVAL;
->> +
->> +	memcpy(edid->edid + edid->start_block * 128,
->> +	       state->edid + edid->start_block * 128,
->> +	       edid->blocks * 128);
->> +	return 0;
->> +}
->> +
->> +static int adv761x_set_edid(struct v4l2_subdev *sd,
->> +			    struct v4l2_subdev_edid *edid)
->> +{
->> +	struct adv761x_state *state = to_state(sd);
->> +	int ret;
->> +
->> +	if (edid->pad != 0)
->> +		return -EINVAL;
->> +
->> +	if (edid->start_block != 0)
->> +		return -EINVAL;
->> +
->> +	if (edid->blocks == 0) {
->> +		/* Pull down the hotplug pin */
->> +		v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)0);
->> +		/* Disable I2C access to internal EDID RAM from DDC port */
->> +		rep_write(sd, 0x74, 0x0);
->> +		state->edid_blocks = 0;
->> +		return 0;
->> +	}
->> +
->> +	if (edid->blocks > 2)
->> +		return -E2BIG;
->> +
->> +	if (!edid->edid)
->> +		return -EINVAL;
->> +
->> +	memcpy(state->edid, edid->edid, 128 * edid->blocks);
->> +	state->edid_blocks = edid->blocks;
->> +
->> +	ret = edid_write_block(sd, 128 * edid->blocks, state->edid);
->> +	if (ret < 0)
->> +		v4l2_err(sd, "Writing EDID failed\n");
->> +
->> +	return ret;
->> +}
->> +
->> +/* v4l2_ctrl_ops */
->> +static int adv761x_s_ctrl(struct v4l2_ctrl *ctrl)
->> +{
->> +	struct v4l2_subdev *sd = to_sd(ctrl);
->> +	u8 val = ctrl->val;
->> +	int ret;
->> +
->> +	switch (ctrl->id) {
->> +	case V4L2_CID_BRIGHTNESS:
->> +		ret = cp_write(sd, 0x3c, val);
->> +		break;
->> +	case V4L2_CID_CONTRAST:
->> +		ret = cp_write(sd, 0x3a, val);
->> +		break;
->> +	case V4L2_CID_SATURATION:
->> +		ret = cp_write(sd, 0x3b, val);
->> +		break;
->> +	case V4L2_CID_HUE:
->> +		ret = cp_write(sd, 0x3d, val);
->> +		break;
->> +	default:
->> +		ret = -EINVAL;
->> +		break;
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->> +/* V4L structures */
->> +static const struct v4l2_subdev_core_ops adv761x_core_ops = {
->> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->> +	.g_register	= adv761x_g_register,
->> +	.s_register	= adv761x_s_register,
->> +#endif
->> +};
->> +
->> +static const struct v4l2_subdev_video_ops adv761x_video_ops = {
->> +	.g_input_status = adv761x_g_input_status,
->> +	.g_mbus_fmt	= adv761x_g_mbus_fmt,
->> +	.try_mbus_fmt	= adv761x_g_mbus_fmt,
->> +	.s_mbus_fmt	= adv761x_g_mbus_fmt,
->> +	.enum_mbus_fmt	= adv761x_enum_mbus_fmt,
->> +	.g_mbus_config	= adv761x_g_mbus_config,
->> +};
->> +
->> +static const struct v4l2_subdev_pad_ops adv761x_pad_ops = {
->> +	.get_edid = adv761x_get_edid,
->> +	.set_edid = adv761x_set_edid,
->> +};
->> +
->> +static const struct v4l2_subdev_ops adv761x_ops = {
->> +	.core = &adv761x_core_ops,
->> +	.video = &adv761x_video_ops,
->> +	.pad = &adv761x_pad_ops,
->> +};
->> +
->> +static const struct v4l2_ctrl_ops adv761x_ctrl_ops = {
->> +	.s_ctrl = adv761x_s_ctrl,
->> +};
->> +
->> +/* Device initialization and clean-up */
->> +static void adv761x_unregister_clients(struct adv761x_state *state)
->> +{
->> +	if (state->i2c_cec)
->> +		i2c_unregister_device(state->i2c_cec);
->> +	if (state->i2c_inf)
->> +		i2c_unregister_device(state->i2c_inf);
->> +	if (state->i2c_dpll)
->> +		i2c_unregister_device(state->i2c_dpll);
->> +	if (state->i2c_rep)
->> +		i2c_unregister_device(state->i2c_rep);
->> +	if (state->i2c_edid)
->> +		i2c_unregister_device(state->i2c_edid);
->> +	if (state->i2c_hdmi)
->> +		i2c_unregister_device(state->i2c_hdmi);
->> +	if (state->i2c_cp)
->> +		i2c_unregister_device(state->i2c_cp);
->> +}
->> +
->> +static struct i2c_client *adv761x_dummy_client(struct v4l2_subdev *sd,
->> +					       u8 addr, u8 def_addr, u8 io_reg)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	if (!addr)
->> +		addr = def_addr;
->> +
->> +	io_write(sd, io_reg, addr << 1);
->> +	return i2c_new_dummy(client->adapter, addr);
->> +}
->> +
->> +static inline int adv761x_check_rev(struct i2c_client *client)
->> +{
->> +	int msb, rev;
->> +
->> +	msb = adv_smbus_read_byte_data(client, 0xea);
->> +	if (msb < 0)
->> +		return msb;
->> +
->> +	rev = adv_smbus_read_byte_data(client, 0xeb);
->> +	if (rev < 0)
->> +		return rev;
->> +
->> +	rev |= msb << 8;
->> +
->> +	switch (rev) {
->> +	case 0x2051:
->> +		return 7611;
->> +	case 0x2041:
->> +		return 7612;
->> +	default:
->> +		break;
->> +	}
->> +
->> +	return -ENODEV;
->> +}
->> +
->> +static int adv761x_probe(struct i2c_client *client,
->> +			 const struct i2c_device_id *id)
->> +{
->> +	struct adv761x_platform_data *pdata;
->> +	struct adv761x_state *state;
->> +	struct v4l2_ctrl_handler *ctrl_hdl;
->> +	struct v4l2_subdev *sd;
->> +	int irq, ret;
->> +
->> +	/* Check if the adapter supports the needed features */
->> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
->> +		return -EIO;
->> +
->> +	/* Check chip revision */
->> +	ret = adv761x_check_rev(client);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	v4l_info(client, "Chip found @ 0x%02x (adv%d)\n", client->addr, ret);
->> +
->> +	/* Get platform data */
->> +	if (id->driver_data == ADV761X_SOC_CAM_QUIRK) {
->> +		struct soc_camera_subdev_desc *ssdd;
->> +
->> +		v4l_info(client, "Using SoC camera glue\n");
->> +		ssdd = soc_camera_i2c_to_desc(client);
->> +		pdata = ssdd ? ssdd->drv_priv : NULL;
->> +	} else {
->> +		pdata = client->dev.platform_data;
->> +	}
->> +
->> +	if (!pdata) {
->> +		v4l_err(client, "No platform data found\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
->> +	if (state == NULL) {
->> +		v4l_err(client, "Memory allocation failed\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	init_rwsem(&state->rwsem);
->> +
->> +	/* Setup default values */
->> +	state->cfmt = &adv761x_cfmts[0];
->> +	state->width = ADV761X_MAX_WIDTH;
->> +	state->height = ADV761X_MAX_HEIGHT;
->> +	state->scanmode = V4L2_FIELD_NONE;
->> +	state->status = V4L2_IN_ST_NO_SIGNAL;
->> +	state->gpio = -1;
->> +
->> +	/* Setup subdev */
->> +	sd = &state->sd;
->> +	v4l2_i2c_subdev_init(sd, client, &adv761x_ops);
->> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->> +
->> +	/* Setup I2C clients */
->> +	state->i2c_cec = adv761x_dummy_client(sd, pdata->i2c_cec, 0x40, 0xf4);
->> +	state->i2c_inf = adv761x_dummy_client(sd, pdata->i2c_inf, 0x3e, 0xf5);
->> +	state->i2c_dpll = adv761x_dummy_client(sd, pdata->i2c_dpll, 0x26, 0xf8);
->> +	state->i2c_rep = adv761x_dummy_client(sd, pdata->i2c_rep, 0x32, 0xf9);
->> +	state->i2c_edid = adv761x_dummy_client(sd, pdata->i2c_edid, 0x36, 0xfa);
->> +	state->i2c_hdmi = adv761x_dummy_client(sd, pdata->i2c_hdmi, 0x34, 0xfb);
->> +	state->i2c_cp = adv761x_dummy_client(sd, pdata->i2c_cp, 0x22, 0xfd);
->> +	if (!state->i2c_cec || !state->i2c_inf || !state->i2c_dpll ||
->> +	    !state->i2c_rep || !state->i2c_edid ||
->> +	    !state->i2c_hdmi || !state->i2c_cp) {
->> +		ret = -ENODEV;
->> +		v4l2_err(sd, "I2C clients setup failed\n");
->> +		goto err_i2c;
->> +	}
->> +
->> +	/* Setup control handlers */
->> +	ctrl_hdl = &state->ctrl_hdl;
->> +	v4l2_ctrl_handler_init(ctrl_hdl, 4);
->> +	v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->> +			  V4L2_CID_BRIGHTNESS, -128, 127, 1, 0);
->> +	v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->> +			  V4L2_CID_CONTRAST, 0, 255, 1, 128);
->> +	v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->> +			  V4L2_CID_SATURATION, 0, 255, 1, 128);
->> +	v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->> +			  V4L2_CID_HUE, 0, 255, 1, 0);
->> +	sd->ctrl_handler = ctrl_hdl;
->> +	if (ctrl_hdl->error) {
->> +		ret = ctrl_hdl->error;
->> +		v4l2_err(sd, "Control handlers setup failed\n");
->> +		goto err_hdl;
->> +	}
->> +
->> +	/* Setup media entity */
->> +	state->pad.flags = MEDIA_PAD_FL_SOURCE;
->> +	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
->> +	if (ret) {
->> +		v4l2_err(sd, "Media entity setup failed\n");
->> +		goto err_hdl;
->> +	}
->> +
->> +	/* Setup work queue */
->> +	state->work_queue = create_singlethread_workqueue(client->name);
->> +	if (!state->work_queue) {
->> +		ret = -ENOMEM;
->> +		v4l2_err(sd, "Work queue setup failed\n");
->> +		goto err_entity;
->> +	}
->> +
->> +	INIT_DELAYED_WORK(&state->enable_hotplug, adv761x_enable_hotplug);
->> +	INIT_WORK(&state->interrupt_service, adv761x_interrupt_service);
->> +
->> +	/* Setup IRQ */
->> +	irq = client->irq;
->> +	if (irq <= 0) {
->> +		v4l_info(client, "Using GPIO IRQ\n");
->> +		ret = gpio_request_one(pdata->gpio, GPIOF_IN,
->> +				       ADV761X_DRIVER_NAME);
->> +		if (ret) {
->> +			v4l_err(client, "GPIO setup failed\n");
->> +			goto err_work;
->> +		}
->> +
->> +		state->gpio = pdata->gpio;
->> +		irq = gpio_to_irq(pdata->gpio);
->> +	}
->> +
->> +	if (irq <= 0) {
->> +		ret = -ENODEV;
->> +		v4l_err(client, "IRQ not found\n");
->> +		goto err_gpio;
->> +	}
->> +
->> +	ret = request_irq(irq, adv761x_irq_handler, IRQF_TRIGGER_RISING,
->> +			  ADV761X_DRIVER_NAME, state);
->> +	if (ret) {
->> +		v4l_err(client, "IRQ setup failed\n");
->> +		goto err_gpio;
->> +	}
->> +
->> +	state->irq = irq;
->> +
->> +	/* Setup core registers */
->> +	ret = adv761x_core_init(sd);
->> +	if (ret < 0) {
->> +		v4l_err(client, "Core setup failed\n");
->> +		goto err_core;
->> +	}
->> +
->> +	return 0;
->> +
->> +err_core:
->> +	adv761x_power_off(sd);
->> +	free_irq(state->irq, state);
->> +err_gpio:
->> +	if (gpio_is_valid(state->gpio))
->> +		gpio_free(state->gpio);
->> +err_work:
->> +	cancel_work_sync(&state->interrupt_service);
->> +	cancel_delayed_work_sync(&state->enable_hotplug);
->> +	destroy_workqueue(state->work_queue);
->> +err_entity:
->> +	media_entity_cleanup(&sd->entity);
->> +err_hdl:
->> +	v4l2_ctrl_handler_free(ctrl_hdl);
->> +err_i2c:
->> +	adv761x_unregister_clients(state);
->> +	return ret;
->> +}
->> +
->> +static int adv761x_remove(struct i2c_client *client)
->> +{
->> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +	struct adv761x_state *state = to_state(sd);
->> +
->> +	/* Release IRQ/GPIO */
->> +	free_irq(state->irq, state);
->> +	if (gpio_is_valid(state->gpio))
->> +		gpio_free(state->gpio);
->> +
->> +	/* Destroy workqueue */
->> +	cancel_work_sync(&state->interrupt_service);
->> +	cancel_delayed_work_sync(&state->enable_hotplug);
->> +	destroy_workqueue(state->work_queue);
->> +
->> +	/* Power off */
->> +	adv761x_power_off(sd);
->> +
->> +	/* Clean up*/
->> +	v4l2_device_unregister_subdev(sd);
->> +	media_entity_cleanup(&sd->entity);
->> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
->> +	adv761x_unregister_clients(state);
->> +	return 0;
->> +}
->> +
->> +static const struct i2c_device_id adv761x_id[] = {
->> +	{ "adv761x", 0 },
->> +	{ "adv761x-soc_cam", ADV761X_SOC_CAM_QUIRK },
->> +	{ },
->> +};
->> +
->> +MODULE_DEVICE_TABLE(i2c, adv761x_id);
->> +
->> +static struct i2c_driver adv761x_driver = {
->> +	.driver = {
->> +		.owner	= THIS_MODULE,
->> +		.name	= ADV761X_DRIVER_NAME,
->> +	},
->> +	.probe		= adv761x_probe,
->> +	.remove		= adv761x_remove,
->> +	.id_table	= adv761x_id,
->> +};
->> +
->> +module_i2c_driver(adv761x_driver);
->> +
->> +MODULE_LICENSE("GPL v2");
->> +MODULE_DESCRIPTION("ADV761X HDMI receiver video decoder driver");
->> +MODULE_AUTHOR("Valentine Barshak <valentine.barshak@cogentembedded.com>");
->> diff --git a/include/media/adv761x.h b/include/media/adv761x.h
->> new file mode 100644
->> index 0000000..ec54361
->> --- /dev/null
->> +++ b/include/media/adv761x.h
->> @@ -0,0 +1,38 @@
->> +/*
->> + * adv761x Analog Devices ADV761X HDMI receiver driver
->> + *
->> + * Copyright (C) 2013 Cogent Embedded, Inc.
->> + * Copyright (C) 2013 Renesas Electronics Corporation
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#ifndef _ADV761X_H_
->> +#define _ADV761X_H_
->> +
->> +struct adv761x_platform_data {
->> +	/* INT1 GPIO IRQ */
->> +	int gpio;
->> +
->> +	/* I2C addresses: 0 == use default */
->> +	u8 i2c_cec;
->> +	u8 i2c_inf;
->> +	u8 i2c_dpll;
->> +	u8 i2c_rep;
->> +	u8 i2c_edid;
->> +	u8 i2c_hdmi;
->> +	u8 i2c_cp;
->> +};
->> +
->> +/* Notify events */
->> +#define ADV761X_HOTPLUG		1
->> +#define ADV761X_FMT_CHANGE	2
->> +
->> +#endif	/* _ADV761X_H_ */
->>
->
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+new file mode 100644
+index 0000000..31f1b88
+--- /dev/null
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -0,0 +1,1129 @@
++/*
++ * TI OMAP4 ISS V4L2 Driver - Generic video node
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ *
++ * Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <asm/cacheflush.h>
++#include <linux/clk.h>
++#include <linux/mm.h>
++#include <linux/pagemap.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/module.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
++
++#include "iss_video.h"
++#include "iss.h"
++
++
++/* -----------------------------------------------------------------------------
++ * Helper functions
++ */
++
++static struct iss_format_info formats[] = {
++	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_GREY, 8, },
++	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
++	  V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_Y10, 10, },
++	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
++	  V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_Y12, 12, },
++	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR8, 8, },
++	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG8, 8, },
++	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG8, 8, },
++	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB8, 8, },
++	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
++	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
++	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR10, 10, },
++	{ V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG10_1X10,
++	  V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG10, 10, },
++	{ V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG10_1X10,
++	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG10, 10, },
++	{ V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB10_1X10,
++	  V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB10, 10, },
++	{ V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR10_1X10,
++	  V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR12, 12, },
++	{ V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG10_1X10,
++	  V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG12, 12, },
++	{ V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG10_1X10,
++	  V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG12, 12, },
++	{ V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB10_1X10,
++	  V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB12, 12, },
++	{ V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
++	  V4L2_MBUS_FMT_UYVY8_1X16, 0,
++	  V4L2_PIX_FMT_UYVY, 16, },
++	{ V4L2_MBUS_FMT_YUYV8_1X16, V4L2_MBUS_FMT_YUYV8_1X16,
++	  V4L2_MBUS_FMT_YUYV8_1X16, 0,
++	  V4L2_PIX_FMT_YUYV, 16, },
++	{ V4L2_MBUS_FMT_YUYV8_1_5X8, V4L2_MBUS_FMT_YUYV8_1_5X8,
++	  V4L2_MBUS_FMT_YUYV8_1_5X8, 0,
++	  V4L2_PIX_FMT_NV12, 8, },
++};
++
++const struct iss_format_info *
++omap4iss_video_format_info(enum v4l2_mbus_pixelcode code)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
++		if (formats[i].code == code)
++			return &formats[i];
++	}
++
++	return NULL;
++}
++
++/*
++ * iss_video_mbus_to_pix - Convert v4l2_mbus_framefmt to v4l2_pix_format
++ * @video: ISS video instance
++ * @mbus: v4l2_mbus_framefmt format (input)
++ * @pix: v4l2_pix_format format (output)
++ *
++ * Fill the output pix structure with information from the input mbus format.
++ * The bytesperline and sizeimage fields are computed from the requested bytes
++ * per line value in the pix format and information from the video instance.
++ *
++ * Return the number of padding bytes at end of line.
++ */
++static unsigned int iss_video_mbus_to_pix(const struct iss_video *video,
++					  const struct v4l2_mbus_framefmt *mbus,
++					  struct v4l2_pix_format *pix)
++{
++	unsigned int bpl = pix->bytesperline;
++	unsigned int min_bpl;
++	unsigned int i;
++
++	memset(pix, 0, sizeof(*pix));
++	pix->width = mbus->width;
++	pix->height = mbus->height;
++
++	/* Skip the last format in the loop so that it will be selected if no
++	 * match is found.
++	 */
++	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
++		if (formats[i].code == mbus->code)
++			break;
++	}
++
++	min_bpl = pix->width * ALIGN(formats[i].bpp, 8) / 8;
++
++	/* Clamp the requested bytes per line value. If the maximum bytes per
++	 * line value is zero, the module doesn't support user configurable line
++	 * sizes. Override the requested value with the minimum in that case.
++	 */
++	if (video->bpl_max)
++		bpl = clamp(bpl, min_bpl, video->bpl_max);
++	else
++		bpl = min_bpl;
++
++	if (!video->bpl_zero_padding || bpl != min_bpl)
++		bpl = ALIGN(bpl, video->bpl_alignment);
++
++	pix->pixelformat = formats[i].pixelformat;
++	pix->bytesperline = bpl;
++	pix->sizeimage = pix->bytesperline * pix->height;
++	pix->colorspace = mbus->colorspace;
++	pix->field = mbus->field;
++
++	/* FIXME: Special case for NV12! We should make this nicer... */
++	if (pix->pixelformat == V4L2_PIX_FMT_NV12)
++		pix->sizeimage += (pix->bytesperline * pix->height) / 2;
++
++	return bpl - min_bpl;
++}
++
++static void iss_video_pix_to_mbus(const struct v4l2_pix_format *pix,
++				  struct v4l2_mbus_framefmt *mbus)
++{
++	unsigned int i;
++
++	memset(mbus, 0, sizeof(*mbus));
++	mbus->width = pix->width;
++	mbus->height = pix->height;
++
++	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
++		if (formats[i].pixelformat == pix->pixelformat)
++			break;
++	}
++
++	if (WARN_ON(i == ARRAY_SIZE(formats)))
++		return;
++
++	mbus->code = formats[i].code;
++	mbus->colorspace = pix->colorspace;
++	mbus->field = pix->field;
++}
++
++static struct v4l2_subdev *
++iss_video_remote_subdev(struct iss_video *video, u32 *pad)
++{
++	struct media_pad *remote;
++
++	remote = media_entity_remote_pad(&video->pad);
++
++	if (remote == NULL ||
++	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
++		return NULL;
++
++	if (pad)
++		*pad = remote->index;
++
++	return media_entity_to_v4l2_subdev(remote->entity);
++}
++
++/* Return a pointer to the ISS video instance at the far end of the pipeline. */
++static struct iss_video *
++iss_video_far_end(struct iss_video *video)
++{
++	struct media_entity_graph graph;
++	struct media_entity *entity = &video->video.entity;
++	struct media_device *mdev = entity->parent;
++	struct iss_video *far_end = NULL;
++
++	mutex_lock(&mdev->graph_mutex);
++	media_entity_graph_walk_start(&graph, entity);
++
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (entity == &video->video.entity)
++			continue;
++
++		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
++			continue;
++
++		far_end = to_iss_video(media_entity_to_video_device(entity));
++		if (far_end->type != video->type)
++			break;
++
++		far_end = NULL;
++	}
++
++	mutex_unlock(&mdev->graph_mutex);
++	return far_end;
++}
++
++static int
++__iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
++{
++	struct v4l2_subdev_format fmt;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	subdev = iss_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -EINVAL;
++
++	mutex_lock(&video->mutex);
++
++	fmt.pad = pad;
++	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
++	if (ret == -ENOIOCTLCMD)
++		ret = -EINVAL;
++
++	mutex_unlock(&video->mutex);
++
++	if (ret)
++		return ret;
++
++	format->type = video->type;
++	return iss_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
++}
++
++static int
++iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
++{
++	struct v4l2_format format;
++	int ret;
++
++	memcpy(&format, &vfh->format, sizeof(format));
++	ret = __iss_video_get_format(video, &format);
++	if (ret < 0)
++		return ret;
++
++	if (vfh->format.fmt.pix.pixelformat != format.fmt.pix.pixelformat ||
++	    vfh->format.fmt.pix.height != format.fmt.pix.height ||
++	    vfh->format.fmt.pix.width != format.fmt.pix.width ||
++	    vfh->format.fmt.pix.bytesperline != format.fmt.pix.bytesperline ||
++	    vfh->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage)
++		return -EINVAL;
++
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * Video queue operations
++ */
++
++static int iss_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
++				 unsigned int *count, unsigned int *num_planes,
++				 unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
++	struct iss_video *video = vfh->video;
++
++	/* Revisit multi-planar support for NV12 */
++	*num_planes = 1;
++
++	sizes[0] = vfh->format.fmt.pix.sizeimage;
++	if (sizes[0] == 0)
++		return -EINVAL;
++
++	alloc_ctxs[0] = video->alloc_ctx;
++
++	*count = min(*count, (unsigned int)(video->capture_mem / PAGE_ALIGN(sizes[0])));
++
++	return 0;
++}
++
++static void iss_video_buf_cleanup(struct vb2_buffer *vb)
++{
++	struct iss_buffer *buffer = container_of(vb, struct iss_buffer, vb);
++
++	if (buffer->iss_addr)
++		buffer->iss_addr = 0;
++}
++
++static int iss_video_buf_prepare(struct vb2_buffer *vb)
++{
++	struct iss_video_fh *vfh = vb2_get_drv_priv(vb->vb2_queue);
++	struct iss_buffer *buffer = container_of(vb, struct iss_buffer, vb);
++	struct iss_video *video = vfh->video;
++	unsigned long size = vfh->format.fmt.pix.sizeimage;
++	dma_addr_t addr;
++
++	if (vb2_plane_size(vb, 0) < size)
++		return -ENOBUFS;
++
++	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++	if (!IS_ALIGNED(addr, 32)) {
++		dev_dbg(video->iss->dev, "Buffer address must be "
++			"aligned to 32 bytes boundary.\n");
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, size);
++	buffer->iss_addr = addr;
++	return 0;
++}
++
++static void iss_video_buf_queue(struct vb2_buffer *vb)
++{
++	struct iss_video_fh *vfh = vb2_get_drv_priv(vb->vb2_queue);
++	struct iss_video *video = vfh->video;
++	struct iss_buffer *buffer = container_of(vb, struct iss_buffer, vb);
++	struct iss_pipeline *pipe = to_iss_pipeline(&video->video.entity);
++	unsigned int empty;
++	unsigned long flags;
++
++	spin_lock_irqsave(&video->qlock, flags);
++	empty = list_empty(&video->dmaqueue);
++	list_add_tail(&buffer->list, &video->dmaqueue);
++	spin_unlock_irqrestore(&video->qlock, flags);
++
++	if (empty) {
++		enum iss_pipeline_state state;
++		unsigned int start;
++
++		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			state = ISS_PIPELINE_QUEUE_OUTPUT;
++		else
++			state = ISS_PIPELINE_QUEUE_INPUT;
++
++		spin_lock_irqsave(&pipe->lock, flags);
++		pipe->state |= state;
++		video->ops->queue(video, buffer);
++		video->dmaqueue_flags |= ISS_VIDEO_DMAQUEUE_QUEUED;
++
++		start = iss_pipeline_ready(pipe);
++		if (start)
++			pipe->state |= ISS_PIPELINE_STREAM;
++		spin_unlock_irqrestore(&pipe->lock, flags);
++
++		if (start)
++			omap4iss_pipeline_set_stream(pipe,
++						ISS_PIPELINE_STREAM_SINGLESHOT);
++	}
++}
++
++static struct vb2_ops iss_video_vb2ops = {
++	.queue_setup	= iss_video_queue_setup,
++	.buf_prepare	= iss_video_buf_prepare,
++	.buf_queue	= iss_video_buf_queue,
++	.buf_cleanup	= iss_video_buf_cleanup,
++};
++
++/*
++ * omap4iss_video_buffer_next - Complete the current buffer and return the next
++ * @video: ISS video object
++ *
++ * Remove the current video buffer from the DMA queue and fill its timestamp,
++ * field count and state fields before waking up its completion handler.
++ *
++ * For capture video nodes, the buffer state is set to VB2_BUF_STATE_DONE if no
++ * error has been flagged in the pipeline, or to VB2_BUF_STATE_ERROR otherwise.
++ *
++ * The DMA queue is expected to contain at least one buffer.
++ *
++ * Return a pointer to the next buffer in the DMA queue, or NULL if the queue is
++ * empty.
++ */
++struct iss_buffer *omap4iss_video_buffer_next(struct iss_video *video)
++{
++	struct iss_pipeline *pipe = to_iss_pipeline(&video->video.entity);
++	enum iss_pipeline_state state;
++	struct iss_buffer *buf;
++	unsigned long flags;
++	struct timespec ts;
++
++	spin_lock_irqsave(&video->qlock, flags);
++	if (WARN_ON(list_empty(&video->dmaqueue))) {
++		spin_unlock_irqrestore(&video->qlock, flags);
++		return NULL;
++	}
++
++	buf = list_first_entry(&video->dmaqueue, struct iss_buffer,
++			       list);
++	list_del(&buf->list);
++	spin_unlock_irqrestore(&video->qlock, flags);
++
++	ktime_get_ts(&ts);
++	buf->vb.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
++	buf->vb.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++
++	/* Do frame number propagation only if this is the output video node.
++	 * Frame number either comes from the CSI receivers or it gets
++	 * incremented here if H3A is not active.
++	 * Note: There is no guarantee that the output buffer will finish
++	 * first, so the input number might lag behind by 1 in some cases.
++	 */
++	if (video == pipe->output && !pipe->do_propagation)
++		buf->vb.v4l2_buf.sequence = atomic_inc_return(&pipe->frame_number);
++	else
++		buf->vb.v4l2_buf.sequence = atomic_read(&pipe->frame_number);
++
++	vb2_buffer_done(&buf->vb, pipe->error ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
++	pipe->error = false;
++
++	spin_lock_irqsave(&video->qlock, flags);
++	if (list_empty(&video->dmaqueue)) {
++		spin_unlock_irqrestore(&video->qlock, flags);
++		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			state = ISS_PIPELINE_QUEUE_OUTPUT
++			      | ISS_PIPELINE_STREAM;
++		else
++			state = ISS_PIPELINE_QUEUE_INPUT
++			      | ISS_PIPELINE_STREAM;
++
++		spin_lock_irqsave(&pipe->lock, flags);
++		pipe->state &= ~state;
++		if (video->pipe.stream_state == ISS_PIPELINE_STREAM_CONTINUOUS)
++			video->dmaqueue_flags |= ISS_VIDEO_DMAQUEUE_UNDERRUN;
++		spin_unlock_irqrestore(&pipe->lock, flags);
++		return NULL;
++	}
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->input != NULL) {
++		spin_lock_irqsave(&pipe->lock, flags);
++		pipe->state &= ~ISS_PIPELINE_STREAM;
++		spin_unlock_irqrestore(&pipe->lock, flags);
++	}
++
++	buf = list_first_entry(&video->dmaqueue, struct iss_buffer,
++			       list);
++	spin_unlock_irqrestore(&video->qlock, flags);
++	buf->vb.state = VB2_BUF_STATE_ACTIVE;
++	return buf;
++}
++
++/* -----------------------------------------------------------------------------
++ * V4L2 ioctls
++ */
++
++static int
++iss_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
++{
++	struct iss_video *video = video_drvdata(file);
++
++	strlcpy(cap->driver, ISS_VIDEO_DRIVER_NAME, sizeof(cap->driver));
++	strlcpy(cap->card, video->video.name, sizeof(cap->card));
++	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	else
++		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int
++iss_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++
++	if (format->type != video->type)
++		return -EINVAL;
++
++	mutex_lock(&video->mutex);
++	*format = vfh->format;
++	mutex_unlock(&video->mutex);
++
++	return 0;
++}
++
++static int
++iss_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_mbus_framefmt fmt;
++
++	if (format->type != video->type)
++		return -EINVAL;
++
++	mutex_lock(&video->mutex);
++
++	/* Fill the bytesperline and sizeimage fields by converting to media bus
++	 * format and back to pixel format.
++	 */
++	iss_video_pix_to_mbus(&format->fmt.pix, &fmt);
++	iss_video_mbus_to_pix(video, &fmt, &format->fmt.pix);
++
++	vfh->format = *format;
++
++	mutex_unlock(&video->mutex);
++	return 0;
++}
++
++static int
++iss_video_try_format(struct file *file, void *fh, struct v4l2_format *format)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_subdev_format fmt;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	if (format->type != video->type)
++		return -EINVAL;
++
++	subdev = iss_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -EINVAL;
++
++	iss_video_pix_to_mbus(&format->fmt.pix, &fmt.format);
++
++	fmt.pad = pad;
++	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
++	if (ret)
++		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
++
++	iss_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
++	return 0;
++}
++
++static int
++iss_video_cropcap(struct file *file, void *fh, struct v4l2_cropcap *cropcap)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_subdev *subdev;
++	int ret;
++
++	subdev = iss_video_remote_subdev(video, NULL);
++	if (subdev == NULL)
++		return -EINVAL;
++
++	mutex_lock(&video->mutex);
++	ret = v4l2_subdev_call(subdev, video, cropcap, cropcap);
++	mutex_unlock(&video->mutex);
++
++	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
++}
++
++static int
++iss_video_get_crop(struct file *file, void *fh, struct v4l2_crop *crop)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_subdev_format format;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	subdev = iss_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -EINVAL;
++
++	/* Try the get crop operation first and fallback to get format if not
++	 * implemented.
++	 */
++	ret = v4l2_subdev_call(subdev, video, g_crop, crop);
++	if (ret != -ENOIOCTLCMD)
++		return ret;
++
++	format.pad = pad;
++	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &format);
++	if (ret < 0)
++		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
++
++	crop->c.left = 0;
++	crop->c.top = 0;
++	crop->c.width = format.format.width;
++	crop->c.height = format.format.height;
++
++	return 0;
++}
++
++static int
++iss_video_set_crop(struct file *file, void *fh, const struct v4l2_crop *crop)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_subdev *subdev;
++	int ret;
++
++	subdev = iss_video_remote_subdev(video, NULL);
++	if (subdev == NULL)
++		return -EINVAL;
++
++	mutex_lock(&video->mutex);
++	ret = v4l2_subdev_call(subdev, video, s_crop, crop);
++	mutex_unlock(&video->mutex);
++
++	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
++}
++
++static int
++iss_video_get_param(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++
++	if (video->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++	    video->type != a->type)
++		return -EINVAL;
++
++	memset(a, 0, sizeof(*a));
++	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
++	a->parm.output.timeperframe = vfh->timeperframe;
++
++	return 0;
++}
++
++static int
++iss_video_set_param(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++
++	if (video->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++	    video->type != a->type)
++		return -EINVAL;
++
++	if (a->parm.output.timeperframe.denominator == 0)
++		a->parm.output.timeperframe.denominator = 1;
++
++	vfh->timeperframe = a->parm.output.timeperframe;
++
++	return 0;
++}
++
++static int
++iss_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++
++	return vb2_reqbufs(&vfh->queue, rb);
++}
++
++static int
++iss_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++
++	return vb2_querybuf(&vfh->queue, b);
++}
++
++static int
++iss_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++
++	return vb2_qbuf(&vfh->queue, b);
++}
++
++static int
++iss_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++
++	return vb2_dqbuf(&vfh->queue, b, file->f_flags & O_NONBLOCK);
++}
++
++/*
++ * Stream management
++ *
++ * Every ISS pipeline has a single input and a single output. The input can be
++ * either a sensor or a video node. The output is always a video node.
++ *
++ * As every pipeline has an output video node, the ISS video objects at the
++ * pipeline output stores the pipeline state. It tracks the streaming state of
++ * both the input and output, as well as the availability of buffers.
++ *
++ * In sensor-to-memory mode, frames are always available at the pipeline input.
++ * Starting the sensor usually requires I2C transfers and must be done in
++ * interruptible context. The pipeline is started and stopped synchronously
++ * to the stream on/off commands. All modules in the pipeline will get their
++ * subdev set stream handler called. The module at the end of the pipeline must
++ * delay starting the hardware until buffers are available at its output.
++ *
++ * In memory-to-memory mode, starting/stopping the stream requires
++ * synchronization between the input and output. ISS modules can't be stopped
++ * in the middle of a frame, and at least some of the modules seem to become
++ * busy as soon as they're started, even if they don't receive a frame start
++ * event. For that reason frames need to be processed in single-shot mode. The
++ * driver needs to wait until a frame is completely processed and written to
++ * memory before restarting the pipeline for the next frame. Pipelined
++ * processing might be possible but requires more testing.
++ *
++ * Stream start must be delayed until buffers are available at both the input
++ * and output. The pipeline must be started in the videobuf queue callback with
++ * the buffers queue spinlock held. The modules subdev set stream operation must
++ * not sleep.
++ */
++static int
++iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++	enum iss_pipeline_state state;
++	struct iss_pipeline *pipe;
++	struct iss_video *far_end;
++	unsigned long flags;
++	int ret;
++
++	if (type != video->type)
++		return -EINVAL;
++
++	mutex_lock(&video->stream_lock);
++
++	if (video->streaming) {
++		mutex_unlock(&video->stream_lock);
++		return -EBUSY;
++	}
++
++	/* Start streaming on the pipeline. No link touching an entity in the
++	 * pipeline can be activated or deactivated once streaming is started.
++	 */
++	pipe = video->video.entity.pipe
++	     ? to_iss_pipeline(&video->video.entity) : &video->pipe;
++	pipe->external = NULL;
++	pipe->external_rate = 0;
++	pipe->external_bpp = 0;
++
++	if (video->iss->pdata->set_constraints)
++		video->iss->pdata->set_constraints(video->iss, true);
++
++	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	if (ret < 0)
++		goto err_media_entity_pipeline_start;
++
++	/* Verify that the currently configured format matches the output of
++	 * the connected subdev.
++	 */
++	ret = iss_video_check_format(video, vfh);
++	if (ret < 0)
++		goto err_iss_video_check_format;
++
++	video->bpl_padding = ret;
++	video->bpl_value = vfh->format.fmt.pix.bytesperline;
++
++	/* Find the ISS video node connected at the far end of the pipeline and
++	 * update the pipeline.
++	 */
++	far_end = iss_video_far_end(video);
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		state = ISS_PIPELINE_STREAM_OUTPUT | ISS_PIPELINE_IDLE_OUTPUT;
++		pipe->input = far_end;
++		pipe->output = video;
++	} else {
++		if (far_end == NULL) {
++			ret = -EPIPE;
++			goto err_iss_video_check_format;
++		}
++
++		state = ISS_PIPELINE_STREAM_INPUT | ISS_PIPELINE_IDLE_INPUT;
++		pipe->input = video;
++		pipe->output = far_end;
++	}
++
++	spin_lock_irqsave(&pipe->lock, flags);
++	pipe->state &= ~ISS_PIPELINE_STREAM;
++	pipe->state |= state;
++	spin_unlock_irqrestore(&pipe->lock, flags);
++
++	/* Set the maximum time per frame as the value requested by userspace.
++	 * This is a soft limit that can be overridden if the hardware doesn't
++	 * support the request limit.
++	 */
++	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		pipe->max_timeperframe = vfh->timeperframe;
++
++	video->queue = &vfh->queue;
++	INIT_LIST_HEAD(&video->dmaqueue);
++	spin_lock_init(&video->qlock);
++	atomic_set(&pipe->frame_number, -1);
++
++	ret = vb2_streamon(&vfh->queue, type);
++	if (ret < 0)
++		goto err_iss_video_check_format;
++
++	/* In sensor-to-memory mode, the stream can be started synchronously
++	 * to the stream on command. In memory-to-memory mode, it will be
++	 * started when buffers are queued on both the input and output.
++	 */
++	if (pipe->input == NULL) {
++		unsigned long flags;
++		ret = omap4iss_pipeline_set_stream(pipe,
++					      ISS_PIPELINE_STREAM_CONTINUOUS);
++		if (ret < 0)
++			goto err_omap4iss_set_stream;
++		spin_lock_irqsave(&video->qlock, flags);
++		if (list_empty(&video->dmaqueue))
++			video->dmaqueue_flags |= ISS_VIDEO_DMAQUEUE_UNDERRUN;
++		spin_unlock_irqrestore(&video->qlock, flags);
++	}
++
++	if (ret < 0) {
++err_omap4iss_set_stream:
++		vb2_streamoff(&vfh->queue, type);
++err_iss_video_check_format:
++		media_entity_pipeline_stop(&video->video.entity);
++err_media_entity_pipeline_start:
++		if (video->iss->pdata->set_constraints)
++			video->iss->pdata->set_constraints(video->iss, false);
++		video->queue = NULL;
++	}
++
++	if (!ret)
++		video->streaming = 1;
++
++	mutex_unlock(&video->stream_lock);
++	return ret;
++}
++
++static int
++iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(fh);
++	struct iss_video *video = video_drvdata(file);
++	struct iss_pipeline *pipe = to_iss_pipeline(&video->video.entity);
++	enum iss_pipeline_state state;
++	unsigned long flags;
++
++	if (type != video->type)
++		return -EINVAL;
++
++	mutex_lock(&video->stream_lock);
++
++	if (!vb2_is_streaming(&vfh->queue))
++		goto done;
++
++	/* Update the pipeline state. */
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		state = ISS_PIPELINE_STREAM_OUTPUT
++		      | ISS_PIPELINE_QUEUE_OUTPUT;
++	else
++		state = ISS_PIPELINE_STREAM_INPUT
++		      | ISS_PIPELINE_QUEUE_INPUT;
++
++	spin_lock_irqsave(&pipe->lock, flags);
++	pipe->state &= ~state;
++	spin_unlock_irqrestore(&pipe->lock, flags);
++
++	/* Stop the stream. */
++	omap4iss_pipeline_set_stream(pipe, ISS_PIPELINE_STREAM_STOPPED);
++	vb2_streamoff(&vfh->queue, type);
++	video->queue = NULL;
++	video->streaming = 0;
++
++	if (video->iss->pdata->set_constraints)
++		video->iss->pdata->set_constraints(video->iss, false);
++	media_entity_pipeline_stop(&video->video.entity);
++
++done:
++	mutex_unlock(&video->stream_lock);
++	return 0;
++}
++
++static int
++iss_video_enum_input(struct file *file, void *fh, struct v4l2_input *input)
++{
++	if (input->index > 0)
++		return -EINVAL;
++
++	strlcpy(input->name, "camera", sizeof(input->name));
++	input->type = V4L2_INPUT_TYPE_CAMERA;
++
++	return 0;
++}
++
++static int
++iss_video_g_input(struct file *file, void *fh, unsigned int *input)
++{
++	*input = 0;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops iss_video_ioctl_ops = {
++	.vidioc_querycap		= iss_video_querycap,
++	.vidioc_g_fmt_vid_cap		= iss_video_get_format,
++	.vidioc_s_fmt_vid_cap		= iss_video_set_format,
++	.vidioc_try_fmt_vid_cap		= iss_video_try_format,
++	.vidioc_g_fmt_vid_out		= iss_video_get_format,
++	.vidioc_s_fmt_vid_out		= iss_video_set_format,
++	.vidioc_try_fmt_vid_out		= iss_video_try_format,
++	.vidioc_cropcap			= iss_video_cropcap,
++	.vidioc_g_crop			= iss_video_get_crop,
++	.vidioc_s_crop			= iss_video_set_crop,
++	.vidioc_g_parm			= iss_video_get_param,
++	.vidioc_s_parm			= iss_video_set_param,
++	.vidioc_reqbufs			= iss_video_reqbufs,
++	.vidioc_querybuf		= iss_video_querybuf,
++	.vidioc_qbuf			= iss_video_qbuf,
++	.vidioc_dqbuf			= iss_video_dqbuf,
++	.vidioc_streamon		= iss_video_streamon,
++	.vidioc_streamoff		= iss_video_streamoff,
++	.vidioc_enum_input		= iss_video_enum_input,
++	.vidioc_g_input			= iss_video_g_input,
++};
++
++/* -----------------------------------------------------------------------------
++ * V4L2 file operations
++ */
++
++static int iss_video_open(struct file *file)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct iss_video_fh *handle;
++	struct vb2_queue *q;
++	int ret = 0;
++
++	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
++	if (handle == NULL)
++		return -ENOMEM;
++
++	v4l2_fh_init(&handle->vfh, &video->video);
++	v4l2_fh_add(&handle->vfh);
++
++	/* If this is the first user, initialise the pipeline. */
++	if (omap4iss_get(video->iss) == NULL) {
++		ret = -EBUSY;
++		goto done;
++	}
++
++	ret = omap4iss_pipeline_pm_use(&video->video.entity, 1);
++	if (ret < 0) {
++		omap4iss_put(video->iss);
++		goto done;
++	}
++
++	video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
++	if (IS_ERR(video->alloc_ctx)) {
++		ret = PTR_ERR(video->alloc_ctx);
++		omap4iss_put(video->iss);
++		goto done;
++	}
++
++	q = &handle->queue;
++
++	q->type = video->type;
++	q->io_modes = VB2_MMAP;
++	q->drv_priv = handle;
++	q->ops = &iss_video_vb2ops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct iss_buffer);
++
++	ret = vb2_queue_init(q);
++	if (ret) {
++		omap4iss_put(video->iss);
++		goto done;
++	}
++
++	memset(&handle->format, 0, sizeof(handle->format));
++	handle->format.type = video->type;
++	handle->timeperframe.denominator = 1;
++
++	handle->video = video;
++	file->private_data = &handle->vfh;
++
++done:
++	if (ret < 0) {
++		v4l2_fh_del(&handle->vfh);
++		kfree(handle);
++	}
++
++	return ret;
++}
++
++static int iss_video_release(struct file *file)
++{
++	struct iss_video *video = video_drvdata(file);
++	struct v4l2_fh *vfh = file->private_data;
++	struct iss_video_fh *handle = to_iss_video_fh(vfh);
++
++	/* Disable streaming and free the buffers queue resources. */
++	iss_video_streamoff(file, vfh, video->type);
++
++	omap4iss_pipeline_pm_use(&video->video.entity, 0);
++
++	/* Release the videobuf2 queue */
++	vb2_queue_release(&handle->queue);
++
++	/* Release the file handle. */
++	v4l2_fh_del(vfh);
++	kfree(handle);
++	file->private_data = NULL;
++
++	omap4iss_put(video->iss);
++
++	return 0;
++}
++
++static unsigned int iss_video_poll(struct file *file, poll_table *wait)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(file->private_data);
++
++	return vb2_poll(&vfh->queue, file, wait);
++}
++
++static int iss_video_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct iss_video_fh *vfh = to_iss_video_fh(file->private_data);
++
++	return vb2_mmap(&vfh->queue, vma);;
++}
++
++static struct v4l2_file_operations iss_video_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = video_ioctl2,
++	.open = iss_video_open,
++	.release = iss_video_release,
++	.poll = iss_video_poll,
++	.mmap = iss_video_mmap,
++};
++
++/* -----------------------------------------------------------------------------
++ * ISS video core
++ */
++
++static const struct iss_video_operations iss_video_dummy_ops = {
++};
++
++int omap4iss_video_init(struct iss_video *video, const char *name)
++{
++	const char *direction;
++	int ret;
++
++	switch (video->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		direction = "output";
++		video->pad.flags = MEDIA_PAD_FL_SINK;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		direction = "input";
++		video->pad.flags = MEDIA_PAD_FL_SOURCE;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
++	if (ret < 0)
++		return ret;
++
++	mutex_init(&video->mutex);
++	atomic_set(&video->active, 0);
++
++	spin_lock_init(&video->pipe.lock);
++	mutex_init(&video->stream_lock);
++
++	/* Initialize the video device. */
++	if (video->ops == NULL)
++		video->ops = &iss_video_dummy_ops;
++
++	video->video.fops = &iss_video_fops;
++	snprintf(video->video.name, sizeof(video->video.name),
++		 "OMAP4 ISS %s %s", name, direction);
++	video->video.vfl_type = VFL_TYPE_GRABBER;
++	video->video.release = video_device_release_empty;
++	video->video.ioctl_ops = &iss_video_ioctl_ops;
++	video->pipe.stream_state = ISS_PIPELINE_STREAM_STOPPED;
++
++	video_set_drvdata(&video->video, video);
++
++	return 0;
++}
++
++void omap4iss_video_cleanup(struct iss_video *video)
++{
++	media_entity_cleanup(&video->video.entity);
++	mutex_destroy(&video->stream_lock);
++	mutex_destroy(&video->mutex);
++}
++
++int omap4iss_video_register(struct iss_video *video, struct v4l2_device *vdev)
++{
++	int ret;
++
++	video->video.v4l2_dev = vdev;
++
++	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		printk(KERN_ERR "%s: could not register video device (%d)\n",
++			__func__, ret);
++
++	return ret;
++}
++
++void omap4iss_video_unregister(struct iss_video *video)
++{
++	if (video_is_registered(&video->video))
++		video_unregister_device(&video->video);
++}
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+new file mode 100644
+index 0000000..8cf1b35
+--- /dev/null
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -0,0 +1,201 @@
++/*
++ * TI OMAP4 ISS V4L2 Driver - Generic video node
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ *
++ * Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef OMAP4_ISS_VIDEO_H
++#define OMAP4_ISS_VIDEO_H
++
++#include <linux/v4l2-mediabus.h>
++#include <media/media-entity.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-dma-contig.h>
++
++#define ISS_VIDEO_DRIVER_NAME		"issvideo"
++#define ISS_VIDEO_DRIVER_VERSION	"0.0.2"
++
++struct iss_device;
++struct iss_video;
++struct v4l2_mbus_framefmt;
++struct v4l2_pix_format;
++
++/*
++ * struct iss_format_info - ISS media bus format information
++ * @code: V4L2 media bus format code
++ * @truncated: V4L2 media bus format code for the same format truncated to 10
++ *	bits. Identical to @code if the format is 10 bits wide or less.
++ * @uncompressed: V4L2 media bus format code for the corresponding uncompressed
++ *	format. Identical to @code if the format is not DPCM compressed.
++ * @flavor: V4L2 media bus format code for the same pixel layout but
++ *	shifted to be 8 bits per pixel. =0 if format is not shiftable.
++ * @pixelformat: V4L2 pixel format FCC identifier
++ * @bpp: Bits per pixel
++ */
++struct iss_format_info {
++	enum v4l2_mbus_pixelcode code;
++	enum v4l2_mbus_pixelcode truncated;
++	enum v4l2_mbus_pixelcode uncompressed;
++	enum v4l2_mbus_pixelcode flavor;
++	u32 pixelformat;
++	unsigned int bpp;
++};
++
++enum iss_pipeline_stream_state {
++	ISS_PIPELINE_STREAM_STOPPED = 0,
++	ISS_PIPELINE_STREAM_CONTINUOUS = 1,
++	ISS_PIPELINE_STREAM_SINGLESHOT = 2,
++};
++
++enum iss_pipeline_state {
++	/* The stream has been started on the input video node. */
++	ISS_PIPELINE_STREAM_INPUT = 1,
++	/* The stream has been started on the output video node. */
++	ISS_PIPELINE_STREAM_OUTPUT = (1 << 1),
++	/* At least one buffer is queued on the input video node. */
++	ISS_PIPELINE_QUEUE_INPUT = (1 << 2),
++	/* At least one buffer is queued on the output video node. */
++	ISS_PIPELINE_QUEUE_OUTPUT = (1 << 3),
++	/* The input entity is idle, ready to be started. */
++	ISS_PIPELINE_IDLE_INPUT = (1 << 4),
++	/* The output entity is idle, ready to be started. */
++	ISS_PIPELINE_IDLE_OUTPUT = (1 << 5),
++	/* The pipeline is currently streaming. */
++	ISS_PIPELINE_STREAM = (1 << 6),
++};
++
++/*
++ * struct iss_pipeline - An OMAP4 ISS hardware pipeline
++ * @error: A hardware error occurred during capture
++ */
++struct iss_pipeline {
++	struct media_pipeline pipe;
++	spinlock_t lock;		/* Pipeline state and queue flags */
++	unsigned int state;
++	enum iss_pipeline_stream_state stream_state;
++	struct iss_video *input;
++	struct iss_video *output;
++	atomic_t frame_number;
++	bool do_propagation; /* of frame number */
++	bool error;
++	struct v4l2_fract max_timeperframe;
++	struct v4l2_subdev *external;
++	unsigned int external_rate;
++	int external_bpp;
++};
++
++#define to_iss_pipeline(__e) \
++	container_of((__e)->pipe, struct iss_pipeline, pipe)
++
++static inline int iss_pipeline_ready(struct iss_pipeline *pipe)
++{
++	return pipe->state == (ISS_PIPELINE_STREAM_INPUT |
++			       ISS_PIPELINE_STREAM_OUTPUT |
++			       ISS_PIPELINE_QUEUE_INPUT |
++			       ISS_PIPELINE_QUEUE_OUTPUT |
++			       ISS_PIPELINE_IDLE_INPUT |
++			       ISS_PIPELINE_IDLE_OUTPUT);
++}
++
++/*
++ * struct iss_buffer - ISS buffer
++ * @buffer: ISS video buffer
++ * @iss_addr: Physical address of the buffer.
++ */
++struct iss_buffer {
++	/* common v4l buffer stuff -- must be first */
++	struct vb2_buffer	vb;
++	struct list_head	list;
++	dma_addr_t iss_addr;
++};
++
++#define to_iss_buffer(buf)	container_of(buf, struct iss_buffer, buffer)
++
++enum iss_video_dmaqueue_flags {
++	/* Set if DMA queue becomes empty when ISS_PIPELINE_STREAM_CONTINUOUS */
++	ISS_VIDEO_DMAQUEUE_UNDERRUN = (1 << 0),
++	/* Set when queuing buffer to an empty DMA queue */
++	ISS_VIDEO_DMAQUEUE_QUEUED = (1 << 1),
++};
++
++#define iss_video_dmaqueue_flags_clr(video)	\
++			({ (video)->dmaqueue_flags = 0; })
++
++/*
++ * struct iss_video_operations - ISS video operations
++ * @queue:	Resume streaming when a buffer is queued. Called on VIDIOC_QBUF
++ *		if there was no buffer previously queued.
++ */
++struct iss_video_operations {
++	int(*queue)(struct iss_video *video, struct iss_buffer *buffer);
++};
++
++struct iss_video {
++	struct video_device video;
++	enum v4l2_buf_type type;
++	struct media_pad pad;
++
++	struct mutex mutex;		/* format and crop settings */
++	atomic_t active;
++
++	struct iss_device *iss;
++
++	unsigned int capture_mem;
++	unsigned int bpl_alignment;	/* alignment value */
++	unsigned int bpl_zero_padding;	/* whether the alignment is optional */
++	unsigned int bpl_max;		/* maximum bytes per line value */
++	unsigned int bpl_value;		/* bytes per line value */
++	unsigned int bpl_padding;	/* padding at end of line */
++
++	/* Entity video node streaming */
++	unsigned int streaming:1;
++
++	/* Pipeline state */
++	struct iss_pipeline pipe;
++	struct mutex stream_lock;	/* pipeline and stream states */
++
++	/* Video buffers queue */
++	struct vb2_queue *queue;
++	spinlock_t qlock;	/* Spinlock for dmaqueue */
++	struct list_head dmaqueue;
++	enum iss_video_dmaqueue_flags dmaqueue_flags;
++	struct vb2_alloc_ctx *alloc_ctx;
++
++	const struct iss_video_operations *ops;
++};
++
++#define to_iss_video(vdev)	container_of(vdev, struct iss_video, video)
++
++struct iss_video_fh {
++	struct v4l2_fh vfh;
++	struct iss_video *video;
++	struct vb2_queue queue;
++	struct v4l2_format format;
++	struct v4l2_fract timeperframe;
++};
++
++#define to_iss_video_fh(fh)	container_of(fh, struct iss_video_fh, vfh)
++#define iss_video_queue_to_iss_video_fh(q) \
++				container_of(q, struct iss_video_fh, queue)
++
++int omap4iss_video_init(struct iss_video *video, const char *name);
++void omap4iss_video_cleanup(struct iss_video *video);
++int omap4iss_video_register(struct iss_video *video,
++			    struct v4l2_device *vdev);
++void omap4iss_video_unregister(struct iss_video *video);
++struct iss_buffer *omap4iss_video_buffer_next(struct iss_video *video);
++struct media_pad *omap4iss_video_remote_pad(struct iss_video *video);
++
++const struct iss_format_info *
++omap4iss_video_format_info(enum v4l2_mbus_pixelcode code);
++
++#endif /* OMAP4_ISS_VIDEO_H */
+-- 
+1.8.1.5
 
