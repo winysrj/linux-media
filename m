@@ -1,549 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:41369 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534Ab3KEMNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:13:38 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH v12 02/12] [media] exynos5-fimc-is: Add driver core files
-Date: Tue,  5 Nov 2013 17:43:19 +0530
-Message-Id: <1383653610-11835-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
-References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1725 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789Ab3KDMIP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:08:15 -0500
+Message-ID: <52778E17.1040503@xs4all.nl>
+Date: Mon, 04 Nov 2013 13:07:51 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: John Sheu <sheu@google.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, m.chehab@samsung.com,
+	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
+Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
+ to encoder
+References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com> <52564DE6.6090709@xs4all.nl> <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com> <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com> <52590184.5030806@xs4all.nl> <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com> <526001DF.9040309@samsung.com> <CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com> <CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com> <52606AB7.7020200@gmail.com> <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com> <52777D9B.9000308@xs4all.nl> <52778515.6070204@samsung.com>
+In-Reply-To: <52778515.6070204@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is for the FIMC-IS IP available in Samsung Exynos5
-SoC onwards. This patch adds the core files for the new driver.
+On 11/04/2013 12:29 PM, Sylwester Nawrocki wrote:
+> Sorry, I missed to reply to this e-mail.
+> 
+> On 04/11/13 11:57, Hans Verkuil wrote:
+>> Hi John,
+>>
+>> On 10/18/2013 02:03 AM, John Sheu wrote:
+>>> On Thu, Oct 17, 2013 at 3:54 PM, Sylwester Nawrocki
+>>> <sylvester.nawrocki@gmail.com> wrote:
+>>>> On 10/18/2013 12:25 AM, John Sheu wrote:
+>>>>> On Thu, Oct 17, 2013 at 2:46 PM, John Sheu<sheu@google.com>  wrote:
+>>>>>>>  Sweet.  Thanks for spelling things out explicitly like this.  The fact
+>>>>>>>  that the CAPTURE and OUTPUT queues "invert" their sense of "crop-ness"
+>>>>>>>  when used in a m2m device is definitely all sorts of confusing.
+>>>>>
+>>>>> Just to double-check: this means that we have another bug.
+>>>>>
+>>>>> In drivers/media/v4l2-core/v4l2-ioctl.c, in v4l_s_crop and v4l_g_crop,
+>>>>> we "simulate" a G_CROP or S_CROP, if the entry point is not defined
+>>>>> for that device, by doing the appropriate S_SELECTION or G_SELECTION.
+>>>>> Unfortunately then, for M2M this is incorrect then.
+>>>>>
+>>>>> Am I reading this right?
+>>>>
+>>>> You are right, John. Firstly a clear specification needs to be written,
+>>>> something along the lines of Tomasz's explanation in this thread, once
+>>>> all agree to that the ioctl code should be corrected if needed.
+>>
+>> I don't understand the problem here. The specification has always been clear:
+>> s_crop for output devices equals s_selection(V4L2_SEL_TGT_COMPOSE_ACTIVE).
+>>
+>> Drivers should only implement the selection API and the v4l2 core will do the
+>> correct translation of s_crop.
+>>
+>> Yes, I know it's weird, but that's the way the crop API was defined way back
+>> and that's what should be used.
+>>
+>> My advise: forget about s_crop and just implement s_selection.
+>>
+>>>>
+>>>> It seems this [1] RFC is an answer exactly to your question.
+>>>>
+>>>> Exact meaning of the selection ioctl is only part of the problem, also
+>>>> interaction with VIDIOC_S_FMT is not currently defined in the V4L2 spec.
+>>>>
+>>>> [1] http://www.spinics.net/lists/linux-media/msg56078.html
+>>>
+>>> I think the "inversion" behavior is confusing and we should remove it
+>>> if at all possible.
+>>>
+>>> I took a look through all the drivers in linux-media which implement
+>>> S_CROP.  Most of them are either OUTPUT or CAPTURE/OVERLAY-only.  Of
+>>> those that aren't:
+>>>
+>>> * drivers/media/pci/zoran/zoran_driver.c : this driver explicitly accepts both
+>>>   OUTPUT and CAPTURE queues in S_CROP, but they both configure the same state.
+>>>   No functional difference.
+>>
+>> Yeah, I guess that's a driver bug. This is a very old driver that originally
+>> used a custom API for these things, and since no selection API existed at the
+>> time it was just mapped to the crop API. Eventually it should use the selection
+>> API as well and do it correctly. But to be honest, nobody cares about this driver :-)
+>>
+>> It is however on my TODO list of drivers that need to be converted to the latest
+>> frameworks, so I might fix this eventually.
+>>
+>>> * drivers/media/platform/davinci/vpfe_capture.c : this driver doesn't specify
+>>>   the queue, but is a CAPTURE-only device.  Probably an (unrelated) bug.
+>>
+>> Yes, that's a driver bug. It should check the buffer type.
+>>
+>>> * drivers/media/platform/exynos4-is/fimc-m2m.c : this driver is a m2m driver
+>>>   with both OUTPUT and CAPTURE queues.  It has uninverted behavior:
+>>>   S_CROP(CAPTURE) -> source
+>>>   S_CROP(OUTPUT) -> destination
+> 
+> No, that's not true. It seems you got it wrong, cropping in case of this m2m
+> driver works like this:
+> 
+> S_CROP(OUTPUT) -> source (from HW POV)
+> S_CROP(CAPTURE) -> destination
+> 
+> I.e. exactly same way as for s5p-g2d, for which it somehow was a reference
+> implementation.
+> 
+>> This is the wrong behavior.
+>>
+>>> * drivers/media/platform/s5p-g2d/g2d.c : this driver is a m2m driver with both
+>>>   OUTPUT and CAPTURE queues.  It has inverted behavior:
+>>>   S_CROP(CAPTURE) -> destination
+>>>   S_CROP(OUTPUT) -> source
+>>
+>> This is the correct behavior.
+>>
+>>>
+>>> The last two points above are the most relevant.  So we already have
+>>> at least one broken driver, regardless of whether we allow inversion
+>>> or not; I'd think this grants us a certain freedom to redefine the
+>>> specification to be more logical.  Can we do this please?
+>>
+>> No. The fimc-m2m.c driver needs to be fixed. That's the broken one.
+> 
+> It's not broken, it's easy to figure out if you actually look at the
+> code, e.g. fimc_m2m_try_crop() function.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos5-is/fimc-is-core.c |  386 ++++++++++++++++++++++
- drivers/media/platform/exynos5-is/fimc-is-core.h |  117 +++++++
- 2 files changed, 503 insertions(+)
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
- create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
+I did look at the code, but it is quite possible I got confused.
 
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.c b/drivers/media/platform/exynos5-is/fimc-is-core.c
-new file mode 100644
-index 0000000..136e3c1
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.c
-@@ -0,0 +1,386 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+*
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/of_irq.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-of.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "fimc-is.h"
-+#include "fimc-is-i2c.h"
-+
-+#define CLK_MCU_ISP_DIV0_FREQ	(200 * 1000000)
-+#define CLK_MCU_ISP_DIV1_FREQ	(100 * 1000000)
-+#define CLK_ISP_DIV0_FREQ	(134 * 1000000)
-+#define CLK_ISP_DIV1_FREQ	(68 * 1000000)
-+#define CLK_ISP_DIVMPWM_FREQ	(34 * 1000000)
-+
-+static const char * const fimc_is_clock_name[] = {
-+	[IS_CLK_ISP]		= "isp",
-+	[IS_CLK_MCU_ISP]	= "mcu_isp",
-+	[IS_CLK_ISP_DIV0]	= "isp_div0",
-+	[IS_CLK_ISP_DIV1]	= "isp_div1",
-+	[IS_CLK_ISP_DIVMPWM]	= "isp_divmpwm",
-+	[IS_CLK_MCU_ISP_DIV0]	= "mcu_isp_div0",
-+	[IS_CLK_MCU_ISP_DIV1]	= "mcu_isp_div1",
-+};
-+
-+static void fimc_is_put_clocks(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		if (IS_ERR(is->clock[i]))
-+			continue;
-+		clk_unprepare(is->clock[i]);
-+		clk_put(is->clock[i]);
-+		is->clock[i] = ERR_PTR(-EINVAL);
-+	}
-+}
-+
-+static int fimc_is_get_clocks(struct fimc_is *is)
-+{
-+	struct device *dev = &is->pdev->dev;
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++) {
-+		is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
-+		if (IS_ERR(is->clock[i]))
-+			goto err;
-+		ret = clk_prepare(is->clock[i]);
-+		if (ret < 0) {
-+			clk_put(is->clock[i]);
-+			is->clock[i] = ERR_PTR(-EINVAL);
-+			goto err;
-+		}
-+	}
-+	return 0;
-+err:
-+	fimc_is_put_clocks(is);
-+	dev_err(dev, "Failed to get clock: %s\n", fimc_is_clock_name[i]);
-+	return -ENXIO;
-+}
-+
-+static int fimc_is_configure_clocks(struct fimc_is *is)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < IS_CLK_MAX_NUM; i++)
-+		is->clock[i] = ERR_PTR(-EINVAL);
-+
-+	ret = fimc_is_get_clocks(is);
-+	if (ret)
-+		return ret;
-+
-+	/* Set rates */
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0],
-+			CLK_MCU_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1],
-+			CLK_MCU_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV0], CLK_ISP_DIV0_FREQ);
-+	if (ret)
-+		return ret;
-+	ret = clk_set_rate(is->clock[IS_CLK_ISP_DIV1], CLK_ISP_DIV1_FREQ);
-+	if (ret)
-+		return ret;
-+	return clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM],
-+			CLK_ISP_DIVMPWM_FREQ);
-+}
-+
-+static void fimc_is_pipelines_destroy(struct fimc_is *is)
-+{
-+	int i;
-+
-+	for (i = 0; i < is->drvdata->num_instances; i++)
-+		fimc_is_pipeline_destroy(&is->pipeline[i]);
-+}
-+
-+static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
-+						struct device_node *node)
-+{
-+	struct fimc_is_sensor *sensor = &is->sensor[index];
-+	u32 tmp = 0;
-+	int ret;
-+
-+	sensor->drvdata = exynos5_is_sensor_get_drvdata(node);
-+	if (!sensor->drvdata) {
-+		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-+							 node->full_name);
-+		return -EINVAL;
-+	}
-+
-+	node = v4l2_of_get_next_endpoint(node, NULL);
-+	if (!node)
-+		return -ENXIO;
-+
-+	node = v4l2_of_get_remote_port(node);
-+	if (!node)
-+		return -ENXIO;
-+
-+	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
-+	ret = of_property_read_u32(node, "reg", &tmp);
-+	if (ret < 0) {
-+		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
-+							 node->full_name);
-+		return ret;
-+	}
-+
-+	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
-+	return 0;
-+}
-+
-+static int fimc_is_parse_sensor(struct fimc_is *is)
-+{
-+	struct device_node *i2c_bus, *child;
-+	int ret, index = 0;
-+
-+	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
-+		for_each_available_child_of_node(i2c_bus, child) {
-+			ret = fimc_is_parse_sensor_config(is, index, child);
-+
-+			if (ret < 0 || index >= FIMC_IS_NUM_SENSORS) {
-+				of_node_put(child);
-+				return ret;
-+			}
-+			index++;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static struct fimc_is_drvdata exynos5250_drvdata = {
-+	.num_instances	= 1,
-+	.fw_name	= "exynos5_fimc_is_fw.bin",
-+};
-+
-+static const struct of_device_id exynos5_fimc_is_match[] = {
-+	{
-+		.compatible = "samsung,exynos5250-fimc-is",
-+		.data = &exynos5250_drvdata,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos5_fimc_is_match);
-+
-+static void *fimc_is_get_drvdata(struct platform_device *pdev)
-+{
-+	struct fimc_is_drvdata *driver_data = NULL;
-+	const struct of_device_id *match;
-+
-+	match = of_match_node(exynos5_fimc_is_match,
-+			pdev->dev.of_node);
-+	if (match)
-+		driver_data = (struct fimc_is_drvdata *)match->data;
-+	return driver_data;
-+}
-+
-+static int fimc_is_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct fimc_is *is;
-+	void __iomem *regs;
-+	struct device_node *node;
-+	int irq, ret;
-+	int i;
-+
-+	dev_dbg(dev, "FIMC-IS Probe Enter\n");
-+
-+	if (!dev->of_node)
-+		return -ENODEV;
-+
-+	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
-+	if (!is)
-+		return -ENOMEM;
-+
-+	is->pdev = pdev;
-+
-+	is->drvdata = fimc_is_get_drvdata(pdev);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(regs))
-+		return PTR_ERR(regs);
-+
-+	/* Get the PMU base */
-+	node = of_parse_phandle(dev->of_node, "samsung,pmu", 0);
-+	if (!node)
-+		return -ENODEV;
-+	is->pmu_regs = of_iomap(node, 0);
-+	if (!is->pmu_regs)
-+		return -ENOMEM;
-+
-+	irq = irq_of_parse_and_map(dev->of_node, 0);
-+	if (!irq) {
-+		dev_err(dev, "Failed to get IRQ\n");
-+		return irq;
-+	}
-+
-+	ret = fimc_is_configure_clocks(is);
-+	if (ret < 0) {
-+		dev_err(dev, "clocks configuration failed\n");
-+		goto err_clk;
-+	}
-+
-+	platform_set_drvdata(pdev, is);
-+	pm_runtime_enable(dev);
-+
-+	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-+	if (IS_ERR(is->alloc_ctx)) {
-+		ret = PTR_ERR(is->alloc_ctx);
-+		goto err_vb;
-+	}
-+
-+	/* Get IS-sensor contexts */
-+	ret = fimc_is_parse_sensor(is);
-+	if (ret < 0)
-+		goto err_vb;
-+
-+	/* Initialize FIMC Pipeline */
-+	for (i = 0; i < is->drvdata->num_instances; i++) {
-+		ret = fimc_is_pipeline_init(&is->pipeline[i], i, is);
-+		if (ret < 0)
-+			goto err_sd;
-+	}
-+
-+	/* Initialize FIMC Interface */
-+	ret = fimc_is_interface_init(&is->interface, regs, irq);
-+	if (ret < 0)
-+		goto err_sd;
-+
-+	/* Probe the peripheral devices  */
-+	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-+	if (ret < 0)
-+		goto err_sd;
-+
-+	dev_dbg(dev, "FIMC-IS registered successfully\n");
-+
-+	return 0;
-+
-+err_sd:
-+	fimc_is_pipelines_destroy(is);
-+err_vb:
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+err_clk:
-+	fimc_is_put_clocks(is);
-+
-+	return ret;
-+}
-+
-+int fimc_is_clk_enable(struct fimc_is *is)
-+{
-+	int ret;
-+
-+	ret = clk_enable(is->clock[IS_CLK_ISP]);
-+	if (ret)
-+		return ret;
-+	ret = clk_enable(is->clock[IS_CLK_MCU_ISP]);
-+	if (ret)
-+		clk_disable(is->clock[IS_CLK_ISP]);
-+	return ret;
-+}
-+
-+void fimc_is_clk_disable(struct fimc_is *is)
-+{
-+	clk_disable(is->clock[IS_CLK_ISP]);
-+	clk_disable(is->clock[IS_CLK_MCU_ISP]);
-+}
-+
-+static int fimc_is_pm_resume(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = fimc_is_clk_enable(is);
-+	if (ret < 0) {
-+		dev_err(dev, "Could not enable clocks\n");
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int fimc_is_pm_suspend(struct device *dev)
-+{
-+	struct fimc_is *is = dev_get_drvdata(dev);
-+
-+	fimc_is_clk_disable(is);
-+	return 0;
-+}
-+
-+static int fimc_is_runtime_resume(struct device *dev)
-+{
-+	return fimc_is_pm_resume(dev);
-+}
-+
-+static int fimc_is_runtime_suspend(struct device *dev)
-+{
-+	return fimc_is_pm_suspend(dev);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int fimc_is_resume(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+
-+static int fimc_is_suspend(struct device *dev)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+static int fimc_is_remove(struct platform_device *pdev)
-+{
-+	struct fimc_is *is = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+
-+	pm_runtime_disable(dev);
-+	pm_runtime_set_suspended(dev);
-+	fimc_is_pipelines_destroy(is);
-+	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
-+	fimc_is_put_clocks(is);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops fimc_is_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_suspend, fimc_is_resume)
-+	SET_RUNTIME_PM_OPS(fimc_is_runtime_suspend, fimc_is_runtime_resume,
-+			   NULL)
-+};
-+
-+static struct platform_driver fimc_is_driver = {
-+	.probe		= fimc_is_probe,
-+	.remove		= fimc_is_remove,
-+	.driver = {
-+		.name	= FIMC_IS_DRV_NAME,
-+		.owner	= THIS_MODULE,
-+		.pm	= &fimc_is_pm_ops,
-+		.of_match_table = exynos5_fimc_is_match,
-+	}
-+};
-+module_platform_driver(fimc_is_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Arun Kumar K <arun.kk@samsung.com>");
-+MODULE_DESCRIPTION("Samsung Exynos5 (FIMC-IS) Imaging Subsystem driver");
-diff --git a/drivers/media/platform/exynos5-is/fimc-is-core.h b/drivers/media/platform/exynos5-is/fimc-is-core.h
-new file mode 100644
-index 0000000..ef80ed9
---- /dev/null
-+++ b/drivers/media/platform/exynos5-is/fimc-is-core.h
-@@ -0,0 +1,117 @@
-+/*
-+ * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *  Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef FIMC_IS_CORE_H_
-+#define FIMC_IS_CORE_H_
-+
-+#include <linux/clk.h>
-+#include <linux/firmware.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/media-entity.h>
-+#include <media/s5p_fimc.h>
-+#include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define FIMC_IS_DRV_NAME		"exynos5-fimc-is"
-+
-+#define FIMC_IS_COMMAND_TIMEOUT		(10 * HZ)
-+#define FIMC_IS_STARTUP_TIMEOUT		(3 * HZ)
-+#define FIMC_IS_SHUTDOWN_TIMEOUT	(10 * HZ)
-+
-+#define FW_SHARED_OFFSET		(0x8c0000)
-+#define DEBUG_CNT			(500 * 1024)
-+#define DEBUG_OFFSET			(0x840000)
-+#define DEBUGCTL_OFFSET			(0x8bd000)
-+#define DEBUG_FCOUNT			(0x8c64c0)
-+
-+#define FIMC_IS_MAX_INSTANCES		1
-+
-+#define FIMC_IS_NUM_SENSORS		2
-+#define FIMC_IS_NUM_PIPELINES		1
-+
-+#define FIMC_IS_MAX_PLANES		3
-+#define FIMC_IS_NUM_SCALERS		2
-+
-+enum fimc_is_clks {
-+	IS_CLK_ISP,
-+	IS_CLK_MCU_ISP,
-+	IS_CLK_ISP_DIV0,
-+	IS_CLK_ISP_DIV1,
-+	IS_CLK_ISP_DIVMPWM,
-+	IS_CLK_MCU_ISP_DIV0,
-+	IS_CLK_MCU_ISP_DIV1,
-+	IS_CLK_MAX_NUM
-+};
-+
-+/* Video capture states */
-+enum fimc_is_video_state {
-+	STATE_INIT,
-+	STATE_BUFS_ALLOCATED,
-+	STATE_RUNNING,
-+};
-+
-+enum fimc_is_scaler_id {
-+	SCALER_SCC,
-+	SCALER_SCP
-+};
-+
-+enum fimc_is_sensor_pos {
-+	SENSOR_CAM0,
-+	SENSOR_CAM1
-+};
-+
-+struct fimc_is_buf {
-+	struct vb2_buffer vb;
-+	struct list_head list;
-+	unsigned int paddr[FIMC_IS_MAX_PLANES];
-+};
-+
-+struct fimc_is_memory {
-+	/* physical base address */
-+	dma_addr_t paddr;
-+	/* virtual base address */
-+	void *vaddr;
-+	/* total length */
-+	unsigned int size;
-+};
-+
-+struct fimc_is_meminfo {
-+	struct fimc_is_memory	fw;
-+	struct fimc_is_memory	shot;
-+	struct fimc_is_memory	region;
-+	struct fimc_is_memory	shared;
-+};
-+
-+struct fimc_is_drvdata {
-+	unsigned int	num_instances;
-+	char		*fw_name;
-+};
-+
-+/**
-+ * struct fimc_is_fmt - the driver's internal color format data
-+ * @name: format description
-+ * @fourcc: the fourcc code for this format
-+ * @depth: number of bytes per pixel
-+ * @num_planes: number of planes for this color format
-+ */
-+struct fimc_is_fmt {
-+	char		*name;
-+	unsigned int	fourcc;
-+	unsigned int	depth[FIMC_IS_MAX_PLANES];
-+	unsigned int	num_planes;
-+};
-+
-+#endif
--- 
-1.7.9.5
+Let me be precise as to what should happen, and you can check whether that's
+what is actually done in the fimc and g2d drivers.
 
+For V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+
+Say that the mem2mem hardware creates a 640x480 picture. If VIDIOC_S_CROP was
+called for V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE with a rectangle of 320x240@160x120,
+then the DMA engine will only transfer the center 320x240 rectangle to memory.
+This means that S_FMT needs to provide a buffer size large enough to accomodate
+a 320x240 image.
+
+So: VIDIOC_S_CROP(CAPTURE) == S_SELECTION(CAPTURE, V4L2_SEL_TGT_CROP).
+
+
+For V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+
+Say that the image in memory is a 640x480 picture. If VIDIOC_S_CROP was called
+for V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE with a rectangle of 320x240@160x120 then
+this would mean that the full 640x480 image is DMAed to the hardware, is scaled
+down to 320x240 and composed at position (160x120) in a canvas of at least 480x360.
+
+In other words, S_CROP behaves as composition for output devices:
+VIDIOC_S_CROP(OUTPUT) == S_SELECTION(OUTPUT, V4L2_SEL_TGT_COMPOSE).
+
+The last operation in particular is almost certainly not what you want for
+m2m devices. Instead, you want to select (crop) part of the image in memory and
+DMA that to the device. This is S_SELECTION(OUTPUT, V4L2_SEL_TGT_CROP) and cannot
+be translated to an S_CROP ioctl.
+
+What's more: in order to implement S_SELECTION(OUTPUT, V4L2_SEL_TGT_COMPOSE) you
+would need some way of setting the 'canvas' size of the m2m device, and there is
+no API today to do this (this was discussed during the v4l/dvb mini-summit).
+
+Regarding the capture side of an m2m device: it is not clear to me what these
+drivers implement: S_SELECTION(CAPTURE, V4L2_SEL_TGT_CROP) or S_SELECTION(CAPTURE, V4L2_SEL_TGT_COMPOSE).
+
+If it is the latter, then again S_CROP cannot be used and you have to use S_SELECTION.
+
+Regards,
+
+	Hans
