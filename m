@@ -1,148 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2745 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655Ab3KMH0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Nov 2013 02:26:33 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAD7QTgg043384
-	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 08:26:32 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8D3202A1F80
-	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 08:26:23 +0100 (CET)
-Message-ID: <5283299F.5050008@xs4all.nl>
-Date: Wed, 13 Nov 2013 08:26:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51415 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752306Ab3KDKG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:06:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: Re: cron job: media_tree daily build: ABI WARNING
-References: <20131113033210.940D72A1F80@tschai.lan>
-In-Reply-To: <20131113033210.940D72A1F80@tschai.lan>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 00/18] OMAP4 ISS driver
+Date: Mon, 04 Nov 2013 11:06:55 +0100
+Message-ID: <3531902.QsUVcEMHVQ@avalon>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/13/2013 04:32 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
-> 
-> Results of the daily build of media_tree:
-> 
-> date:		Wed Nov 13 04:00:21 CET 2013
-> git branch:	test
-> git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-> gcc version:	i686-linux-gcc (GCC) 4.8.1
-> sparse version:	0.4.5-rc1
-> host hardware:	x86_64
-> host os:	3.12-0.slh.1-amd64
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-exynos: OK
-> linux-git-arm-mx: OK
-> linux-git-arm-omap: OK
-> linux-git-arm-omap1: OK
-> linux-git-arm-pxa: OK
-> linux-git-blackfin: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.31.14-i686: OK
-> linux-2.6.32.27-i686: OK
-> linux-2.6.33.7-i686: OK
-> linux-2.6.34.7-i686: OK
-> linux-2.6.35.9-i686: OK
-> linux-2.6.36.4-i686: OK
-> linux-2.6.37.6-i686: OK
-> linux-2.6.38.8-i686: OK
-> linux-2.6.39.4-i686: OK
-> linux-3.0.60-i686: OK
-> linux-3.1.10-i686: OK
-> linux-3.2.37-i686: OK
-> linux-3.3.8-i686: OK
-> linux-3.4.27-i686: OK
-> linux-3.5.7-i686: OK
-> linux-3.6.11-i686: OK
-> linux-3.7.4-i686: OK
-> linux-3.8-i686: OK
-> linux-3.9.2-i686: OK
-> linux-3.10.1-i686: OK
-> linux-3.11.1-i686: OK
-> linux-3.12-i686: OK
-> linux-2.6.31.14-x86_64: OK
-> linux-2.6.32.27-x86_64: OK
-> linux-2.6.33.7-x86_64: OK
-> linux-2.6.34.7-x86_64: OK
-> linux-2.6.35.9-x86_64: OK
-> linux-2.6.36.4-x86_64: OK
-> linux-2.6.37.6-x86_64: OK
-> linux-2.6.38.8-x86_64: OK
-> linux-2.6.39.4-x86_64: OK
-> linux-3.0.60-x86_64: OK
-> linux-3.1.10-x86_64: OK
-> linux-3.2.37-x86_64: OK
-> linux-3.3.8-x86_64: OK
-> linux-3.4.27-x86_64: OK
-> linux-3.5.7-x86_64: OK
-> linux-3.6.11-x86_64: OK
-> linux-3.7.4-x86_64: OK
-> linux-3.8-x86_64: OK
-> linux-3.9.2-x86_64: OK
-> linux-3.10.1-x86_64: OK
-> linux-3.11.1-x86_64: OK
-> linux-3.12-x86_64: OK
-> apps: WARNINGS
-> spec-git: OK
-> ABI WARNING: change for arm-at91
-> ABI WARNING: change for arm-davinci
-> ABI WARNING: change for arm-exynos
-> ABI WARNING: change for arm-mx
-> ABI WARNING: change for arm-omap
-> ABI WARNING: change for arm-omap1
-> ABI WARNING: change for arm-pxa
-> ABI WARNING: change for blackfin
-> ABI WARNING: change for i686
-> ABI WARNING: change for m32r
-> ABI WARNING: change for mips
-> ABI WARNING: change for powerpc64
-> ABI WARNING: change for sh
-> ABI WARNING: change for x86_64
+Hi Mauro,
 
-Ignore these warnings, they are caused by problems with 'sort'. Depending on
-whether I ran the build manually or from cron the LANG setting was different,
-leading to different sort results. I now set LANG explicitly in my build
-script, so hopefully these false warnings will disappear during the next build.
+On Monday 04 November 2013 01:06:25 Laurent Pinchart wrote:
+> Hello,
+> 
+> This is the second version of the OMAP4 ISS driver patches for inclusion in
+> the mainline kernel. I've addressed most of the comments received on the
+> first version (some of them are still being discussed) in additional
+> patches, except for the file path updates in the documentation that have
+> been squashed with patch 01/18.
+> 
+> The OMAP4 ISS driver has lived out of tree for more than two years now. This
+> situation is both sad and resource-wasting, as the driver has been used
+> (and thus) hacked since then with nowhere to send patches to. Time has come
+> to fix the problem.
+> 
+> As the code is mostly, but not quite ready for prime time, I'd like to
+> request its addition to drivers/staging/. I've added a (pretty small) TODO
+> file and I commit to cleaning up the code and get it to drivers/media/
+> where it belongs.
+> 
+> I've split the driver in six patches to avoid getting caught in vger's size
+> and to make review slightly easier. Sergio Aguirre is the driver author
+> (huge thanks for that!), I've thus kept his authorship on patches 1/6 to
+> 5/6. Beside minimal changes to make the code compile on v3.12 and updates
+> the file paths in the documentation I've kept Sergio's code unmodified.
+> 
+> I don't have much else to add here, let's get this beast to mainline and
+> allow other developers to use the driver and contribute patches. Given that
+> v3.12 has just been released I'm fine with pushing this series back to
+> v3.13.
 
-For the longest time I couldn't understand why sort would give different results
-until I had an early morning eureka moment today :-)
+This should of course have read v3.14.
 
+> Laurent Pinchart (13):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Build system
+>   v4l: omap4iss: Don't use v4l2_g_ext_ctrls() internally
+>   v4l: omap4iss: Move common code out of switch...case
+>   v4l: omap4iss: Report device caps in response to VIDIOC_QUERYCAP
+>   v4l: omap4iss: Remove iss_video streaming field
+>   v4l: omap4iss: Set the vb2 timestamp type
+>   v4l: omap4iss: Remove duplicate video_is_registered() check
+>   v4l: omap4iss: Remove unneeded status variable
+>   v4l: omap4iss: Replace udelay/msleep with usleep_range
+>   v4l: omap4iss: Make omap4iss_isp_subclk_(en|dis)able() functions void
+>   v4l: omap4iss: Make loop counters unsigned where appropriate
+>   v4l: omap4iss: Don't initialize fields to 0 manually
+>   v4l: omap4iss: Simplify error paths
+> 
+> Sergio Aguirre (5):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Core
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
+>   v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
+>   v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Resizer
+> 
+>  Documentation/video4linux/omap4_camera.txt   |   60 ++
+>  drivers/staging/media/Kconfig                |    2 +
+>  drivers/staging/media/Makefile               |    1 +
+>  drivers/staging/media/omap4iss/Kconfig       |   12 +
+>  drivers/staging/media/omap4iss/Makefile      |    6 +
+>  drivers/staging/media/omap4iss/TODO          |    4 +
+>  drivers/staging/media/omap4iss/iss.c         | 1462 +++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss.h         |  153 +++
+>  drivers/staging/media/omap4iss/iss_csi2.c    | 1368 +++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_csi2.h    |  156 +++
+>  drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++
+>  drivers/staging/media/omap4iss/iss_csiphy.h  |   51 +
+>  drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
+>  drivers/staging/media/omap4iss/iss_ipipeif.c |  847 +++++++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipeif.h |   92 ++
+>  drivers/staging/media/omap4iss/iss_regs.h    |  883 ++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.c |  905 ++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
+>  drivers/staging/media/omap4iss/iss_video.c   | 1124 ++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_video.h   |  198 ++++
+>  include/media/omap4iss.h                     |   65 ++
+>  22 files changed, 8390 insertions(+)
+>  create mode 100644 Documentation/video4linux/omap4_camera.txt
+>  create mode 100644 drivers/staging/media/omap4iss/Kconfig
+>  create mode 100644 drivers/staging/media/omap4iss/Makefile
+>  create mode 100644 drivers/staging/media/omap4iss/TODO
+>  create mode 100644 drivers/staging/media/omap4iss/iss.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.h
+>  create mode 100644 include/media/omap4iss.h
+-- 
 Regards,
 
-	Hans
-
-> sparse version:	0.4.5-rc1
-> sparse: ERRORS
-> 
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-> 
-> Full logs are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-> 
-> The Media Infrastructure API from this daily build is here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
 
