@@ -1,111 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3109 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab3K3Ddc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 22:33:32 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAU3XT4q007746
-	for <linux-media@vger.kernel.org>; Sat, 30 Nov 2013 04:33:31 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 3CDE82A2220
-	for <linux-media@vger.kernel.org>; Sat, 30 Nov 2013 04:33:24 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131130033324.3CDE82A2220@tschai.lan>
-Date: Sat, 30 Nov 2013 04:33:24 +0100 (CET)
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:34363 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753238Ab3KDOMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 09:12:34 -0500
+Message-id: <5277AB4A.5050007@samsung.com>
+Date: Mon, 04 Nov 2013 15:12:26 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>
+Subject: Re: [PATCH v4] videobuf2: Add missing lock held on vb2_fop_relase
+References: <1383385994-11422-1-git-send-email-ricardo.ribalda@gmail.com>
+ <527794F0.40901@xs4all.nl>
+ <CAPybu_0cKxMxhXoSqbK2nTyX3DGCVZdUZPt2bTE6aZR65xDG=w@mail.gmail.com>
+In-reply-to: <CAPybu_0cKxMxhXoSqbK2nTyX3DGCVZdUZPt2bTE6aZR65xDG=w@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 04/11/13 14:54, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+> 
+> Thanks for your comments.
+> 
+> Please take a look to v4 of this patch
+> https://patchwork.linuxtv.org/patch/20529/
 
-date:		Sat Nov 30 04:00:39 CET 2013
-git branch:	test
-git hash:	fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+We're discussing v4 actually ;)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+> On Mon, Nov 4, 2013 at 1:37 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 11/02/2013 10:53 AM, Ricardo Ribalda Delgado wrote:
+>>> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+>>>
+>>> vb2_fop_relase does not held the lock although it is modifying the
+>>> queue->owner field.
+>>>
+>>> This could lead to race conditions on the vb2_perform_io function
+>>> when multiple applications are accessing the video device via
+>>> read/write API:
+>>
+>> It's also called directly by drivers/media/usb/em28xx/em28xx-video.c!
+>>
+> 
+> em28xx-video does not hold the lock, therefore it can call the normal
+> function. On v2 we made a internal function that should be called if
+> the funciton is called directly by the driver. Please take a look to
+> the old comments. https://patchwork.linuxtv.org/patch/20460/
+[...]
+>>> -int vb2_fop_release(struct file *file)
+>>> +static int _vb2_fop_release(struct file *file, bool lock_is_held)
+>>>  {
+>>>       struct video_device *vdev = video_devdata(file);
+>>> +     struct mutex *lock;
+>>>
+>>>       if (file->private_data == vdev->queue->owner) {
+>>> +             if (lock_is_held)
+>>> +                     lock = NULL;
+>>> +             else
+>>> +                     lock = vdev->queue->lock ?
+>>> +                             vdev->queue->lock : vdev->lock;
+>>> +             if (lock)
+>>> +                     mutex_lock(lock);
+>>>               vb2_queue_release(vdev->queue);
+>>>               vdev->queue->owner = NULL;
+>>> +             if (lock)
+>>> +                     mutex_unlock(lock);
+>>>       }
+>>>       return v4l2_fh_release(file);
+>>>  }
+>>> +
+>>> +int vb2_fop_release(struct file *file)
+>>> +{
+>>> +     return _vb2_fop_release(file, false);
+>>> +}
+>>>  EXPORT_SYMBOL_GPL(vb2_fop_release);
+>>>
+>>> +int __vb2_fop_release(struct file *file)
+>>> +{
+>>> +     return _vb2_fop_release(file, true);
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(__vb2_fop_release);
+>>
+>> Sorry for introducing yet another opinion, but I think this is very confusing.
+> 
+> It is confusing the lock_held parameter or the __ naming for unlocked versions?
+> 
+>>
+>> I would do this:
+>>
+>> static int __vb2_fop_release(struct file *file, struct mutex *lock)
+>> {
+>>         struct video_device *vdev = video_devdata(file);
+>>
+>>         if (file->private_data == vdev->queue->owner) {
+>>                 if (lock)
+>>                         mutex_lock(lock);
+>>                 vb2_queue_release(vdev->queue);
+>>                 vdev->queue->owner = NULL;
+>>                 if (lock)
+>>                         mutex_unlock(lock);
+>>         }
+>>         return v4l2_fh_release(file);
+>> }
+>>
+>> int vb2_fop_release(struct file *file)
+>> {
+>>         struct video_device *vdev = video_devdata(file);
+>>         struct mutex *lock = vdev->queue->lock ?
+>>                                 vdev->queue->lock : vdev->lock;
+>>
+>>         return __vb2_fop_release(file, lock);
+>> }
+>> EXPORT_SYMBOL_GPL(vb2_fop_release);
+>>
+>> int vb2_fop_release_unlock(struct file *file)
+>> {
+>>         return __vb2_fop_release(file, NULL);
+>> }
+>> EXPORT_SYMBOL_GPL(vb2_fop_release_unlock);
+>>
+>> Optionally, __vb2_fop_release can be exported and then vb2_fop_release_unlock
+>> isn't necessary.
+>>
+> 
+> i dont have any strong opinion in any direction. All I really care is
+> that the oops is fixed :).
+> 
+> If your concern about the patch is the is_lock_held function, I can
+> make a patch with the params on your proposal and the __naming as
+> Sylvester suggested, so everyone is happy.
+> 
+> Sylvester, Hanshat do you think?
 
-Detailed results are available here:
+I like Hans' proposal, probably it's better to export __vb2_fop_release(),
+so it can be also used in cases like em28xx, to make things a bit more
+clear. But I'm fine with vb2_fop_release_unlock() as well, don't really
+have strong preference. It's up to you.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+Thanks,
+Sylwester
