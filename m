@@ -1,170 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52827 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756365Ab3KFNBw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Nov 2013 08:01:52 -0500
-Date: Wed, 6 Nov 2013 15:01:47 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Arun Kumar K <arunkk.samsung@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>
-Subject: Re: [PATCH v11 03/12] [media] exynos5-fimc-is: Add common driver
- header files
-Message-ID: <20131106130146.GC24988@valkosipuli.retiisi.org.uk>
-References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
- <1383631964-26514-4-git-send-email-arun.kk@samsung.com>
- <20131105125108.GF23061@valkosipuli.retiisi.org.uk>
- <CALt3h7_BCj7yJi6sy=KVOHoET4aWm_a-N=u63R8-bZ-uQ=AGag@mail.gmail.com>
- <527A269B.5040007@samsung.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2402 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753226Ab3KDJd6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 04:33:58 -0500
+Message-ID: <527769FA.9080207@xs4all.nl>
+Date: Mon, 04 Nov 2013 10:33:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <527A269B.5040007@samsung.com>
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+CC: Dinesh Ram <dinesh.ram@cern.ch>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	dinesh.ram086@gmail.com
+Subject: Re: [Review Patch 0/9] si4713 usb device driver
+References: <1381850685-26162-1-git-send-email-dinesh.ram@cern.ch> <CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com>
+In-Reply-To: <CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester and Arun,
-
-On Wed, Nov 06, 2013 at 12:23:07PM +0100, Sylwester Nawrocki wrote:
-> Hi,
+On 10/15/2013 07:37 PM, edubezval@gmail.com wrote:
+> Hello Dinesh,
 > 
-> On 05/11/13 14:16, Arun Kumar K wrote:
-> >>> +struct is_common_reg {
-> >>> +     u32 hicmd;
-> >>> +     u32 hic_sensorid;
-> >>> +     u32 hic_param[4];
-> >>> +
-> >>> +     u32 reserved1[3];
-> [...]
-> >>> +     u32 meta_iflag;
-> >>> +     u32 meta_sensor_id;
-> >>> +     u32 meta_param1;
-> >>> +
-> >>> +     u32 reserved9[1];
-> >>> +
-> >>> +     u32 fcount;
-> >>
-> >> If these structs define an interface that's not used by the driver only it
-> >> might be a good idea to use __packed to ensure no padding is added.
-> >>
-> > 
-> > The same structure is used as is in the firmware code and so it is retained
-> > in the driver.
+> On Tue, Oct 15, 2013 at 11:24 AM, Dinesh Ram <dinesh.ram@cern.ch> wrote:
+>> Hello Eduardo,
+>>
+>> In this patch series, I have addressed the comments by you
+>> concerning my last patch series.
+>> In the resulting patches, I have corrected most of the
+>> style issues and adding of comments. However, some warnings
+>> given out by checkpatch.pl (mostly complaing about lines longer
+>> than 80 characters) are still there because I saw that code readibility
+>> suffers by breaking up those lines.
+>>
+>> Also Hans has contributed patches 8 and 9 in this patch series
+>> which address the issues of the handling of unknown regulators,
+>> which have apparently changed since 3.10. Hans has tested it and the
+>> driver loads again.
+>>
+>> Let me know when you are able to test it again.
+>>
 > 
-> I agree it makes sense to use __packed attribute to ensure no padding is
-> added by the compiler. The firmware source and the driver will likely be 
-> compiled with different toolchains, and in both cases we should ensure
-> no padding is added.
+> Hopefully I will be able to give it a shot on n900 and on silabs
+> devboard until the end of the week. Thanks for not giving up.
 
-Agreed.
+Did you find time to do this? I'm waiting for feedback from you.
 
-> >>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-metadata.h b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
-> >>> new file mode 100644
-> >>> index 0000000..02367c4
-> >>> --- /dev/null
-> >>> +++ b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
-> >>> @@ -0,0 +1,767 @@
-> [..]
-> >>> +enum metadata_mode {
-> >>> +     METADATA_MODE_NONE,
-> >>> +     METADATA_MODE_FULL
-> >>> +};
-> >>> +
-> >>> +struct camera2_request_ctl {
-> >>> +     uint32_t                id;
-> >>> +     enum metadata_mode      metadatamode;
-> >>> +     uint8_t                 outputstreams[16];
-> >>> +     uint32_t                framecount;
-> >>> +};
-> >>> +
-> >>> +struct camera2_request_dm {
-> >>> +     uint32_t                id;
-> >>> +     enum metadata_mode      metadatamode;
-> >>> +     uint32_t                framecount;
-> >>> +};
-> [...]
-> >>> +struct camera2_lens_ctl {
-> >>> +     uint32_t                                focus_distance;
-> >>> +     float                                   aperture;
-> >>
-> >> Floating point numbers? Really? :-)
-> >>
-> > 
-> > Yes as mentioned, the same structure is used by the firmware and
-> > so it is used as is in the kernel.
-> 
-> These floating numbers are pretty painful, but I don't think they can
-> be avoided unless the firmware is changed. I hope there is no need to 
-> touch those in the kernel.
-> 
-> There are already precedents of using floating point numbers in driver's
-> public interface, e.g. some gpu/drm drivers. 
+Regards,
 
-As long as you can somehow ensure these will never end up to FPU registers,
-I think that should be fine. Just copying the struct elsewhere using
-memcpy() will be good, I believe.
-
-> I noticed there is another issue in this firmware/kernel interface, i.e. 
-> some data structures contain enums in them, e.g.
-> 
-> struct camera2_lens_ctl {
-> 	uint32_t				focus_distance;
-> 	float					aperture;
-> 	float					focal_length;
-> 	float					filter_density;
-> 	enum optical_stabilization_mode		optical_stabilization_mode;
-> };
-> 
-> It looks like a mistake in the interface design, as size of an enum is
-> implementation specific.
-> 
-> I guess size of those enum types is supposed to be 4 bytes ? Presumably
-> you should, e.g. use fixed data type like uin32_t or __u32 instead of those 
-> enums. It looks pretty fragile as it is now.
-
-Good point; I agree.
-
-> In addition all those data structures should be declared with __packed
-> attribute, to ensure a specific data structure layout and to avoid 
-> an unexpected padding.
-> 
-> >> diff --git a/drivers/media/platform/exynos5-is/fimc-is-param.h b/drivers/media/platform/exynos5-is/fimc-is-param.h
-> >> new file mode 100644
-> >> index 0000000..015cc13
-> >> --- /dev/null
-> >> +++ b/drivers/media/platform/exynos5-is/fimc-is-param.h
-> > ...
-> >> +struct param_control {
-> >> +	u32 cmd;
-> > 
-> > You use uint32_t in some other headers. It's not wrong to use both C99 and
-> > Linux types but I'd try to stick to either one.
-> 
-> I tend to agree with that, it's probably better to use one convention, u32
-> for kernel internal structures and __u32 for any public interfaces. I don't
-> think it is e requirement but would be nice to keep it more consistent.
-> 
-> Even if we wanted to keep the firmware defined data structures in sync with
-> the Linux driver, there are already some Linux types used within the firmware
-> interface. if I understood things correctly.
-
-I guess it wouldn't hurt to use uint32_t there instead of u32 (and __u32).
-entirely up to you.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
