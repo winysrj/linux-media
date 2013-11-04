@@ -1,55 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mij.gov.ve ([200.11.241.122]:37437 "HELO mail.mij.gov.ve"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751961Ab3KRUHR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 15:07:17 -0500
-Date: Mon, 18 Nov 2013 14:56:51 -0430 (VET)
-From: DIAMOND SWISS LOAN COMPANY <lpimentel@mij.gov.ve>
-Reply-To: DIAMOND SWISS LOAN COMPANY <diamondswissloans@admin.in.th>
-Message-ID: <7253623.2991384802811487.JavaMail.root@mail.mij.gov.ve>
-Subject: Posojilo ponudba na 3% obrestno mero, prijavi se zdaj!
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48333 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751415Ab3KDAG1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 11/18] v4l: omap4iss: Set the vb2 timestamp type
+Date: Mon,  4 Nov 2013 01:06:36 +0100
+Message-Id: <1383523603-3907-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Timestamps use the monotonic clock, configure the vb2 queue accordingly.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Dober dan,
-      
-     Smo DIAMOND SWISS LOAN COMPANY navajate posojil po pošti oglas. Nudimo različne vrste posojil (kratkoročne in dolgoročne kredite, osebna posojila, posojila družbam itd.) Za 3% obrestni meri. Izdamo posojila za ljudi ne potrebujejo, ne glede na njihov položaj, spol, zakonski stan, izobrazba, status zaposlitve, vendar morajo imeti pravno sredstvo poplačila. Naša posojila se gibljejo med 5.000,00 do 10.000.000,00 U.S Dollar or Euro or Pound trajanjem največ 20 let. Če ste zainteresirani za več informacij, prosimo izpolnite spodnji obrazec in ga vrnete na naš elektronski naslov: diamondswissloans@admin.in.th
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index 1cdfc43..ee30054 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -972,6 +972,7 @@ static int iss_video_open(struct file *file)
+ 	q->ops = &iss_video_vb2ops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct iss_buffer);
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+-- 
+1.8.1.5
 
-Prosimo, izpolnite:
-
-ime:
-
-naslov:
-
-Starost:
-
-Spol:
-
-Kontaktnih Telefon:
-
-Poklic:
-
-Mesečni dohodek:
-
-Zahtevani znesek kredita:
-
-Trajanje posojila:
-
-Namen posojila:
-
-Država:
-
-Poštna številka:
-
-
-"Pokazali smo vam boljšo pot do finančne svobode"
-
-S prijaznimi pozdravi,
-G. Diamond Peters.
