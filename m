@@ -1,39 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21510 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752263Ab3KXNMe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Nov 2013 08:12:34 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Geert Stappers <stappers@stappers.nl>, stable@vger.kernel.org
-Subject: [PATCH] gspca_sunplus: Add new usb-id for 06d6:0041
-Date: Sun, 24 Nov 2013 14:12:30 +0100
-Message-Id: <1385298750-5649-1-git-send-email-hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52451 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab3KDNR0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 08:17:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: g@valkosipuli.retiisi.org.uk, linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: omap3isp: Move code out of mutex-protected section
+Date: Mon, 04 Nov 2013 14:17:53 +0100
+Message-ID: <3877980.gXG2nDA4fQ@avalon>
+In-Reply-To: <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
+References: <1383559668-11003-1-git-send-email-laurent.pinchart@ideasonboard.com> <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported-by: mjs <mjstork@gmail.com>
-Tested-by: mjs <mjstork@gmail.com>
-Cc: Geert Stappers <stappers@stappers.nl>
-Cc: stable@vger.kernel.org
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/usb/gspca/sunplus.c | 1 +
- 1 file changed, 1 insertion(+)
+Hi Sakari,
 
-diff --git a/drivers/media/usb/gspca/sunplus.c b/drivers/media/usb/gspca/sunplus.c
-index a517d18..46c9f22 100644
---- a/drivers/media/usb/gspca/sunplus.c
-+++ b/drivers/media/usb/gspca/sunplus.c
-@@ -1027,6 +1027,7 @@ static const struct usb_device_id device_table[] = {
- 	{USB_DEVICE(0x055f, 0xc650), BS(SPCA533, 0)},
- 	{USB_DEVICE(0x05da, 0x1018), BS(SPCA504B, 0)},
- 	{USB_DEVICE(0x06d6, 0x0031), BS(SPCA533, 0)},
-+	{USB_DEVICE(0x06d6, 0x0041), BS(SPCA504B, 0)},
- 	{USB_DEVICE(0x0733, 0x1311), BS(SPCA533, 0)},
- 	{USB_DEVICE(0x0733, 0x1314), BS(SPCA533, 0)},
- 	{USB_DEVICE(0x0733, 0x2211), BS(SPCA533, 0)},
+On Monday 04 November 2013 13:20:11 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Thanks for the patch.
+> 
+> On Mon, Nov 04, 2013 at 11:07:48AM +0100, Laurent Pinchart wrote:
+> > The pad::get_fmt call must be protected by a mutex, but preparing its
+> > arguments doesn't need to be. Move the non-critical code out of the
+> > mutex-protected section.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/platform/omap3isp/ispvideo.c | 7 ++-----
+> >  1 file changed, 2 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > b/drivers/media/platform/omap3isp/ispvideo.c index a908d00..f6304bb
+> > 100644
+> > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > @@ -339,14 +339,11 @@ __isp_video_get_format(struct isp_video *video,
+> > struct v4l2_format *format)> 
+> >  	if (subdev == NULL)
+> >  	
+> >  		return -EINVAL;
+> > 
+> > -	mutex_lock(&video->mutex);
+> > -
+> > 
+> >  	fmt.pad = pad;
+> >  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > 
+> > -	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+> > -	if (ret == -ENOIOCTLCMD)
+> > -		ret = -EINVAL;
+> 
+> By removing these lines, you're also returning -ENOIOCTLCMD to the caller.
+> Is this intentional?
+> 
+> That return value will end up to at least one place which seems to be
+> isp_video_streamon() and, unless I'm mistaken, will cause
+> ioctl(VIDIOC_STREAMON) also return ENOTTY.
+
+I should have split this in two patches, or at least explained the rationale 
+in the commit message. The remote subdev is always an internal ISP subdev, the 
+pad::get_fmt operation is thus guaranteed to be implemented. There's no need 
+to check for ENOIOCTLCMD.
+
+> > +	mutex_lock(&video->mutex);
+> > +	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+> > 
+> >  	mutex_unlock(&video->mutex);
+> >  	
+> >  	if (ret)
 -- 
-1.8.4.2
+Regards,
+
+Laurent Pinchart
 
