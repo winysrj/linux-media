@@ -1,81 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:55743 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708Ab3K0DPM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 22:15:12 -0500
-Message-ID: <52956442.50001@gmail.com>
-Date: Wed, 27 Nov 2013 11:17:22 +0800
-From: Chen Gang <gang.chen.5i5j@gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4324 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753171Ab3KDJmB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 04:42:01 -0500
+Message-ID: <52776BD3.60309@xs4all.nl>
+Date: Mon, 04 Nov 2013 10:41:39 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: hans.verkuil@cisco.com, m.chehab@samsung.com
-CC: rkuo <rkuo@codeaurora.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Subject: [PATCH] drivers: staging: media: go7007: go7007-usb.c use pr_*()
- instead of dev_*() before 'go' initialized in go7007_usb_probe()
-References: <528AEFB7.4060301@gmail.com> <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com> <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>
-In-Reply-To: <5294255E.7040105@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 00/18] OMAP4 ISS driver
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev_*() assumes 'go' is already initialized, so need use pr_*() instead
-of before 'go' initialized. Related warning (with allmodconfig under
-hexagon):
+Hi Laurent,
 
-    CC [M]  drivers/staging/media/go7007/go7007-usb.o
-  drivers/staging/media/go7007/go7007-usb.c: In function 'go7007_usb_probe':
-  drivers/staging/media/go7007/go7007-usb.c:1060:2: warning: 'go' may be used uninitialized in this function [-Wuninitialized]
+For this whole patch series:
 
-Also remove useless code after 'return' statement.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+I strongly recommend that you add another patch adding the s_input function.
+It's trivial to do and it will make v4l2-compliance happy :-)
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
----
- drivers/staging/media/go7007/go7007-usb.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+Fixing the issue with iss_video_try_format() and a missing get_fmt op is nice-to-have,
+but can be done later.
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 58684da..30310e9 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	char *name;
- 	int video_pipe, i, v_urb_len;
- 
--	dev_dbg(go->dev, "probing new GO7007 USB board\n");
-+	pr_devel("probing new GO7007 USB board\n");
- 
- 	switch (id->driver_info) {
- 	case GO7007_BOARDID_MATRIX_II:
-@@ -1097,13 +1097,10 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 		board = &board_px_tv402u;
- 		break;
- 	case GO7007_BOARDID_LIFEVIEW_LR192:
--		dev_err(go->dev, "The Lifeview TV Walker Ultra is not supported. Sorry!\n");
-+		pr_err("The Lifeview TV Walker Ultra is not supported. Sorry!\n");
- 		return -ENODEV;
--		name = "Lifeview TV Walker Ultra";
--		board = &board_lifeview_lr192;
--		break;
- 	case GO7007_BOARDID_SENSORAY_2250:
--		dev_info(go->dev, "Sensoray 2250 found\n");
-+		pr_info("Sensoray 2250 found\n");
- 		name = "Sensoray 2250/2251";
- 		board = &board_sensoray_2250;
- 		break;
-@@ -1112,7 +1109,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 		board = &board_ads_usbav_709;
- 		break;
- 	default:
--		dev_err(go->dev, "unknown board ID %d!\n",
-+		pr_err("unknown board ID %d!\n",
- 				(unsigned int)id->driver_info);
- 		return -ENODEV;
- 	}
--- 
-1.7.7.6
+Regards,
+
+	Hans
+
+On 11/04/2013 01:06 AM, Laurent Pinchart wrote:
+> Hello,
+> 
+> This is the second version of the OMAP4 ISS driver patches for inclusion in the
+> mainline kernel. I've addressed most of the comments received on the first
+> version (some of them are still being discussed) in additional patches, except
+> for the file path updates in the documentation that have been squashed with
+> patch 01/18.
+> 
+> The OMAP4 ISS driver has lived out of tree for more than two years now. This
+> situation is both sad and resource-wasting, as the driver has been used (and
+> thus) hacked since then with nowhere to send patches to. Time has come to fix
+> the problem.
+> 
+> As the code is mostly, but not quite ready for prime time, I'd like to request
+> its addition to drivers/staging/. I've added a (pretty small) TODO file and I
+> commit to cleaning up the code and get it to drivers/media/ where it belongs.
+> 
+> I've split the driver in six patches to avoid getting caught in vger's size
+> and to make review slightly easier. Sergio Aguirre is the driver author (huge
+> thanks for that!), I've thus kept his authorship on patches 1/6 to 5/6. Beside
+> minimal changes to make the code compile on v3.12 and updates the file paths in
+> the documentation I've kept Sergio's code unmodified.
+> 
+> I don't have much else to add here, let's get this beast to mainline and allow
+> other developers to use the driver and contribute patches. Given that v3.12 has
+> just been released I'm fine with pushing this series back to v3.13.
+> 
+> Laurent Pinchart (13):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Build system
+>   v4l: omap4iss: Don't use v4l2_g_ext_ctrls() internally
+>   v4l: omap4iss: Move common code out of switch...case
+>   v4l: omap4iss: Report device caps in response to VIDIOC_QUERYCAP
+>   v4l: omap4iss: Remove iss_video streaming field
+>   v4l: omap4iss: Set the vb2 timestamp type
+>   v4l: omap4iss: Remove duplicate video_is_registered() check
+>   v4l: omap4iss: Remove unneeded status variable
+>   v4l: omap4iss: Replace udelay/msleep with usleep_range
+>   v4l: omap4iss: Make omap4iss_isp_subclk_(en|dis)able() functions void
+>   v4l: omap4iss: Make loop counters unsigned where appropriate
+>   v4l: omap4iss: Don't initialize fields to 0 manually
+>   v4l: omap4iss: Simplify error paths
+> 
+> Sergio Aguirre (5):
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Core
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Video devices
+>   v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
+>   v4l: omap4iss: Add support for OMAP4 camera interface - IPIPE(IF)
+>   v4l: omap4iss: Add support for OMAP4 camera interface - Resizer
+> 
+>  Documentation/video4linux/omap4_camera.txt   |   60 ++
+>  drivers/staging/media/Kconfig                |    2 +
+>  drivers/staging/media/Makefile               |    1 +
+>  drivers/staging/media/omap4iss/Kconfig       |   12 +
+>  drivers/staging/media/omap4iss/Makefile      |    6 +
+>  drivers/staging/media/omap4iss/TODO          |    4 +
+>  drivers/staging/media/omap4iss/iss.c         | 1462 ++++++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss.h         |  153 +++
+>  drivers/staging/media/omap4iss/iss_csi2.c    | 1368 ++++++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_csi2.h    |  156 +++
+>  drivers/staging/media/omap4iss/iss_csiphy.c  |  278 +++++
+>  drivers/staging/media/omap4iss/iss_csiphy.h  |   51 +
+>  drivers/staging/media/omap4iss/iss_ipipe.c   |  581 ++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipe.h   |   67 ++
+>  drivers/staging/media/omap4iss/iss_ipipeif.c |  847 +++++++++++++++
+>  drivers/staging/media/omap4iss/iss_ipipeif.h |   92 ++
+>  drivers/staging/media/omap4iss/iss_regs.h    |  883 ++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.c |  905 ++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_resizer.h |   75 ++
+>  drivers/staging/media/omap4iss/iss_video.c   | 1124 ++++++++++++++++++++
+>  drivers/staging/media/omap4iss/iss_video.h   |  198 ++++
+>  include/media/omap4iss.h                     |   65 ++
+>  22 files changed, 8390 insertions(+)
+>  create mode 100644 Documentation/video4linux/omap4_camera.txt
+>  create mode 100644 drivers/staging/media/omap4iss/Kconfig
+>  create mode 100644 drivers/staging/media/omap4iss/Makefile
+>  create mode 100644 drivers/staging/media/omap4iss/TODO
+>  create mode 100644 drivers/staging/media/omap4iss/iss.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csi2.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_csiphy.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipe.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_ipipeif.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_resizer.h
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.c
+>  create mode 100644 drivers/staging/media/omap4iss/iss_video.h
+>  create mode 100644 include/media/omap4iss.h
+> 
+
