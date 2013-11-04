@@ -1,51 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f42.google.com ([209.85.128.42]:63116 "EHLO
-	mail-qe0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756775Ab3KIV6O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Nov 2013 16:58:14 -0500
-Received: by mail-qe0-f42.google.com with SMTP id gc15so3323833qeb.1
-        for <linux-media@vger.kernel.org>; Sat, 09 Nov 2013 13:58:13 -0800 (PST)
-Date: Sat, 9 Nov 2013 16:58:10 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb fixes
-Message-ID: <20131109165810.108e67b3@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from 7of9.schinagl.nl ([88.159.158.68]:35904 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751519Ab3KDIzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Nov 2013 03:55:33 -0500
+Message-ID: <5276EACD.1020908@schinagl.nl>
+Date: Mon, 04 Nov 2013 01:31:09 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Joseph Zik <josephzik@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Initial Tuning Data for Uganda
+References: <CAPWx8vs3wzB4SAOxfAJ3fP2sdjctPUE18BT_kZe3ZrBnG_KREA@mail.gmail.com>
+In-Reply-To: <CAPWx8vs3wzB4SAOxfAJ3fP2sdjctPUE18BT_kZe3ZrBnG_KREA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
+On 01-11-13 17:26, Joseph Zik wrote:
+> Hello all,
+>
+> I wanted to contribute to dvb-apps package with initial DVB-T tuning
+> data for Uganda, Africa
+Added and pushed to the usual places.
+>
+> Attached is the scan file.  Please let me know, if there's any other
+> info I can provide.
+Next time, a proper patch that applies from mail would be easier, but I 
+manually fixed it for you this time :)
 
-  [media] media: st-rc: Add ST remote control driver (2013-10-31
-  08:20:08 -0200)
+Thank you!
+Oliver
+>
+> Thank you
+>
 
-are available in the git repository at:
-
-  git://linuxtv.org/mkrufky/dvb fixes
-
-for you to fetch changes up to 714fd7f9e8465eda25cce038c642d75a1d84106d:
-
-  cxd2820r_c: fix if_ctl calculation (2013-11-09 16:45:57 -0500)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      dvb_demux: fix deadlock in dmx_section_feed_release_filter()
-
-Evgeny Plehov (1):
-      cxd2820r_c: fix if_ctl calculation
-
-Felipe Pena (1):
-      technisat-usb2: fix typo in variable name
-
-Michael Krufky (1):
-      dvb_demux: clean up whitespace in comments from previous patch
-(trivial)
-
- drivers/media/dvb-core/dvb_demux.c         | 7 ++++++-
- drivers/media/dvb-frontends/cxd2820r_c.c   | 2 +-
- drivers/media/usb/dvb-usb/technisat-usb2.c | 2 +-
- 3 files changed, 8 insertions(+), 3 deletions(-)
