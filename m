@@ -1,69 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:56584 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326Ab3KYJ7Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:59:16 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00AH7D2RW020@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:59:15 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 14/16] s5p-jpeg: Synchronize
- V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value
-Date: Mon, 25 Nov 2013 10:58:21 +0100
-Message-id: <1385373503-1657-15-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1420 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946Ab3KDLYV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 06:24:21 -0500
+Message-ID: <527783DA.5050905@xs4all.nl>
+Date: Mon, 04 Nov 2013 12:24:10 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data
+ type
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange> <201304191026.34360.hverkuil@xs4all.nl> <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When output queue fourcc is set to any flavour of YUV,
-the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value as
-well as its in-driver cached counterpart have to be
-updated with the subsampling property of the format
-so as to be able to provide correct information to the
-user space and preclude setting an illegal subsampling
-mode for Exynos4x12 encoder.
+Hi Guennadi,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Sorry for the delay, I only saw this today while I was going through my
+mail backlog.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index e85ac6a..163ee8d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1091,6 +1091,7 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 	struct vb2_queue *vq;
- 	struct s5p_jpeg_q_data *q_data = NULL;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	struct v4l2_ctrl *ctrl_subs;
- 	unsigned int f_type;
- 
- 	vq = v4l2_m2m_get_vq(ct->fh.m2m_ctx, f->type);
-@@ -1116,6 +1117,13 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 	else
- 		q_data->size = pix->sizeimage;
- 
-+	if (f_type == FMT_TYPE_OUTPUT) {
-+		ctrl_subs = v4l2_ctrl_find(&ct->ctrl_handler,
-+					V4L2_CID_JPEG_CHROMA_SUBSAMPLING);
-+		if (ctrl_subs)
-+			v4l2_ctrl_s_ctrl(ctrl_subs, q_data->fmt->subsampling);
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+On 10/17/2013 08:24 PM, Guennadi Liakhovetski wrote:
+> Hi Hans
+> 
+> Sorry for reviving this old thread. I was going to resubmit a part of 
+> those patches for mainlining and then I found this your comment, which I 
+> didn't reply to back then.
+> 
+> On Fri, 19 Apr 2013, Hans Verkuil wrote:
+> 
+>> On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
+>>> Hi Hans
+>>>
+>>> Thanks for reviewing.
+>>>
+>>> On Fri, 19 Apr 2013, Hans Verkuil wrote:
+>>>
+>>>> On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
+>>>>> This struct shall be used by subdevice drivers to pass per-subdevice data,
+>>>>> e.g. power supplies, to generic V4L2 methods, at the same time allowing
+>>>>> optional host-specific extensions via the host_priv pointer. To avoid
+>>>>> having to pass two pointers to those methods, add a pointer to this new
+>>>>> struct to struct v4l2_subdev.
+>>>>>
+>>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>>>> ---
+>>>>>  include/media/v4l2-subdev.h |   13 +++++++++++++
+>>>>>  1 files changed, 13 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>>>>> index eb91366..b15c6e0 100644
+>>>>> --- a/include/media/v4l2-subdev.h
+>>>>> +++ b/include/media/v4l2-subdev.h
+>>>>> @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
+>>>>>  /* Set this flag if this subdev generates events. */
+>>>>>  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+>>>>>  
+>>>>> +struct regulator_bulk_data;
+>>>>> +
+>>>>> +struct v4l2_subdev_platform_data {
+>>>>> +	/* Optional regulators uset to power on/off the subdevice */
+>>>>> +	struct regulator_bulk_data *regulators;
+>>>>> +	int num_regulators;
+>>>>> +
+>>>>> +	/* Per-subdevice data, specific for a certain video host device */
+>>>>> +	void *host_priv;
+>>>>> +};
+>>>>> +
+>>>>>  /* Each instance of a subdev driver should create this struct, either
+>>>>>     stand-alone or embedded in a larger struct.
+>>>>>   */
+>>>>> @@ -589,6 +600,8 @@ struct v4l2_subdev {
+>>>>>  	/* pointer to the physical device */
+>>>>>  	struct device *dev;
+>>>>>  	struct v4l2_async_subdev_list asdl;
+>>>>> +	/* common part of subdevice platform data */
+>>>>> +	struct v4l2_subdev_platform_data *pdata;
+>>>>>  };
+>>>>>  
+>>>>>  static inline struct v4l2_subdev *v4l2_async_to_subdev(
+>>>>>
+>>>>
+>>>> Sorry, this is the wrong approach.
+>>>>
+>>>> This is data that is of no use to the subdev driver itself. It really is
+>>>> v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
+>>>> driver.
+>>>
+>>> I don't think so. It has been discussed and agreed upon, that only 
+>>> subdevice drivers know when to switch power on and off, because only they 
+>>> know when they need to access the hardware. So, they have to manage 
+>>> regulators. In fact, those regulators supply power to respective 
+>>> subdevices, e.g. a camera sensor. Why should the bridge driver manage 
+>>> them? The V4L2 core can (and probably should) provide helper functions for 
+>>> that, like soc-camera currently does, but in any case it's the subdevice 
+>>> driver, that has to call them.
+>>
+>> Ah, OK. I just realized I missed some context there. I didn't pay much
+>> attention to the regulator discussions since that's not my area of expertise.
+>>
+>> In that case my only comment is to drop the host_priv pointer since that just
+>> duplicates v4l2_get/set_subdev_hostdata().
+> 
+> I think it's different. This is _platform_ data, whereas struct 
+> v4l2_subdev::host_priv is more like run-time data.
 
+You mean subdev_hostdata() instead of host_priv, right?
+
+> This field is for the 
+> per-subdevice host-specific data, that the platform has to pass to the 
+> host driver. In the soc-camera case this is the largest bulk of the data, 
+> that platforms currently pass to the soc-camera framework in the host part 
+> of struct soc_camera_link. This data most importantly includes I2C 
+> information. Yes, this _could_ be passed to soc-camera separately from the 
+> host driver, but that would involve quite some refactoring of the "legacy" 
+> synchronous probing mode, which I'd like to avoid if possible. This won't 
+> be used in the asynchronous case. Do you think we can keep this pointer in 
+> this sruct? We could rename it to avoid confusion with the field, that you 
+> told about.
+
+I'm wondering: do we need host_priv at all? Can't drivers use container_of to
+go from struct v4l2_subdev_platform_data to the platform_data struct containing
+v4l2_subdev_platform_data?
+
+That would be a cleaner solution IMHO. Using host_priv basically forces you
+to split up the platform_data into two parts, and a void pointer isn't very
+type-safe.
+
+Regards,
+
+	Hans
