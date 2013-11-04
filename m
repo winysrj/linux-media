@@ -1,145 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:63399 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944Ab3KTMYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 07:24:06 -0500
-Received: by mail-lb0-f177.google.com with SMTP id w7so3411460lbi.36
-        for <linux-media@vger.kernel.org>; Wed, 20 Nov 2013 04:24:03 -0800 (PST)
-Message-ID: <528CA9E1.2020401@cogentembedded.com>
-Date: Wed, 20 Nov 2013 16:24:01 +0400
-From: Valentine <valentine.barshak@cogentembedded.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl>
-In-Reply-To: <528C9ADB.3050803@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:54307 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975Ab3KDMMk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:12:40 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVQ00F96N93AF40@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 04 Nov 2013 07:12:39 -0500 (EST)
+Date: Mon, 04 Nov 2013 10:12:34 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Maik Broemme <mbroemme@parallels.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 04/12] tda18212dd: Support for NXP TDA18212 (DD) silicon
+ tuner
+Message-id: <20131104101234.04a180d6@samsung.com>
+In-reply-to: <52768126.603@iki.fi>
+References: <20131103002235.GD7956@parallels.com>
+ <20131103003104.GH7956@parallels.com> <20131103075605.74afce3c@samsung.com>
+ <52768126.603@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/20/2013 03:19 PM, Hans Verkuil wrote:
-> Hi Valentine,
+Em Sun, 03 Nov 2013 19:00:22 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Hi Hans,
+> On 03.11.2013 11:56, Mauro Carvalho Chehab wrote:
+> > Hi Maik,
+> >
+> > Em Sun, 3 Nov 2013 01:31:04 +0100
+> > Maik Broemme <mbroemme@parallels.com> escreveu:
+> >
+> >> Added support for the NXP TDA18212 silicon tuner used by recent
+> >> Digital Devices hardware. This will allow update of ddbridge driver
+> >> to support newer devices.
+> >>
+> >> Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+> >> ---
+> >>   drivers/media/dvb-frontends/Kconfig      |   9 +
+> >>   drivers/media/dvb-frontends/Makefile     |   1 +
+> >>   drivers/media/dvb-frontends/tda18212dd.c | 934 +++++++++++++++++++++++++++++++
+> >>   drivers/media/dvb-frontends/tda18212dd.h |  37 ++
+> >
+> > I'm not sure if support for this tuner is not provided already by one of
+> > the existing drivers. If not, it is ok to submit a driver for it, but you
+> > should just call it as tda18212.
+> >
+> > I'm c/c Antti, as he worked on some NXP drivers recently, and may be aware
+> > if a driver already supports TDA18212.
+> 
+> Existing tda18212 driver I made is reverse-engineered and it is used 
+> only for Anysee devices, which I am also responsible. That new tuner 
+> driver is much more complete than what I have made and single driver is 
+> naturally the correct approach.
+> 
+> But one thing which annoys nowadays is that endless talking of 
+> regressions, which has led to situation it is very hard to make changes 
+> drivers that are used for multiple devices and you don't have all those 
+> devices to test. It is also OK to remove my old driver and use that, but 
+> then I likely lose my possibility to make changes, as I am much 
+> dependent on new driver maintainer. That is one existing problem which 
+> is seen multiple times during recent years... So I am perfectly happy 
+> with two drivers too.
 
->
-> On 11/20/13 11:14, Valentine wrote:
->> On 11/19/2013 01:50 PM, Hans Verkuil wrote:
->>> Hi Valentine,
->>
->> Hi Hans,
->> thanks for your review.
->>
->>>
->>> I don't entirely understand how you use this driver with soc-camera.
->>> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
->>> act on it. Did you hack soc-camera to do this?
->>
->> I did not. The format is queried before reading the frame by the user-space.
->> I'm not sure if there's some kind of generic interface to notify the camera
->> layer about format change events. Different subdevices use different FMT_CHANGE
->> defines for that. I've implemented the format change notifier based on the adv7604
->> in hope that it may be useful later.
->
-> Yes, I need to generalize the FMT_CHANGE event.
->
-> But what happens if you are streaming and the HDMI connector is unplugged?
-> Or plugged back in again, possibly with a larger resolution? I'm not sure
-> if the soc_camera driver supports such scenarios.
+I really prefer to have just one driver for each hardware component. That
+makes life easier at long term. Of course, the driver needs to be properly
+maintained.
 
-It doesn't. Currently it's up to the UI to poll the format and do the necessary changes.
-Otherwise the picture will be incorrect.
-
->
->>
->>>
->>> The way it stands I would prefer to see a version of the driver without
->>> soc-camera support. I wouldn't have a problem merging that as this driver
->>> is a good base for further development.
->>
->> I've tried to implement the driver base good enough to work with both SoC
->> and non-SoC cameras since I don't think having 2 separate drivers for
->> different camera models is a good idea.
->>
->> The problem is that I'm using it with R-Car VIN SoC camera driver and don't
->> have any other h/w. Having a platform data quirk for SoC camera in
->> the subdevice driver seemed simple and clean enough.
->
-> I hate it, but it isn't something you can do anything about. So it will have
-> to do for now.
->
->> Hacking SoC camera to make it support both generic and SoC cam subdevices
->> doesn't seem that straightforward to me.
->
-> Guennadi, what is the status of this? I'm getting really tired of soc-camera
-> infecting sub-devices. Subdev drivers should be independent of any bridge
-> driver using them, but soc-camera keeps breaking that. It's driving me nuts.
->
-> I'll be honest, it's getting to the point that I want to just NACK any
-> future subdev drivers that depend on soc-camera, just to force a solution.
-> There is no technical reason for this dependency, it just takes some time
-> to fix soc-camera.
->
->> Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
->> involves a lot of regression testing with other R-Car boards that use different
->> subdevices with VIN.
->>
->> What would you suggest?
->
-> Let's leave it as-is for now :-(
->
-> I'm not happy, but as I said, it's not your fault.
-
-OK, thanks.
-Once a better solution is available we can remove the quirk.
-
->
-> Regards,
->
-> 	Hans
-
-Thanks,
-Val.
-
->
->>
->>>
->>> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
->>> control. It's easy to implement and that way apps can be notified when
->>> the hotplug changes value.
->>
->> OK, thanks.
->>
->>>
->>> Regards,
->>>
->>>      Hans
->>
->> Thanks,
->> Val.
->>
->>>
->>> On 11/15/13 13:54, Valentine Barshak wrote:
->>>> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
->>>> support. Only one HDMI port is supported on ADV7612.
->>>>
->>>> The code is based on the ADV7604 driver, and ADV7612 patch by
->>>> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
->>>>
->>>> Changes in version 2:
->>>> * Used platform data for I2C addresses setup. The driver
->>>>     should work with both SoC and non-SoC camera models.
->>>> * Dropped unnecessary code and unsupported callbacks.
->>>> * Implemented IRQ handling for format change detection.
->>>>
->>>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
-
-
+Regards,
+Mauro
