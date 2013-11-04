@@ -1,80 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.swsoft.eu ([109.70.220.8]:59917 "EHLO relay.swsoft.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752537Ab3KCNTV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Nov 2013 08:19:21 -0500
-Date: Sun, 3 Nov 2013 14:19:19 +0100
-From: Maik Broemme <mbroemme@parallels.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/12] DDBridge 0.9.10 driver updates
-Message-ID: <20131103131919.GT7956@parallels.com>
-References: <20131103002235.GD7956@parallels.com>
- <20131103085822.08e8406e@samsung.com>
- <20131103124601.GS7956@parallels.com>
- <21110.19353.955592.163450@morden.metzler>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <21110.19353.955592.163450@morden.metzler>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51390 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113Ab3KDKEF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:04:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 19/18] v4l: omap4iss: Don't check for missing get_fmt op on remote subdev
+Date: Mon,  4 Nov 2013 11:04:29 +0100
+Message-Id: <1383559469-9886-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ralph,
+The remote subdev of any video node in the OMAP4 ISS is an internal
+subdev that is guaranteed to implement get_fmt. Don't check the return
+value for -ENOIOCTLCMD, as this can't happen.
 
-Ralph Metzler <rjkm@metzlerbros.de> wrote:
-> Maik Broemme writes:
->  > Hi Mauro,
->  > 
->  > Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
->  > > Em Sun, 3 Nov 2013 01:22:35 +0100
->  > > Maik Broemme <mbroemme@parallels.com> escreveu:
->  > > 
->  > > > I've updated the current DDBridge to latest version 0.9.10 from Ralph
->  > > > Metzler available at:
->  > > > 
->  > > > http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
->  > > > 
->  > > > I've merged the driver to work with current v4l/dvb tree and I will
->  > > > maintain the driver for v4l/dvb in future. 
->  > > 
->  > > Works for me.
->  > > 
->  > > > The coming patch series is
->  > > > the first version and I explicitly want to get feedback and hints if
->  > > > some parts are merged at wrong places, etc... The following changes
->  > > > were made:
->  > > > 
->  > > >   - MSI enabled by default (some issues left with i2c timeouts)
->  > > >   - no support for Digital Devices Octonet
->  > > >   - no support for DVB Netstream
->  > > >   - removed unused module parameters 'tt' and 'vlan' (used by Octonet)
->  > > >   - removed unused registers to cleanup code (might be added later again
->  > > >     if needed)
->  > > 
->  > > Be sure to not remove any feature that are currently needed for the
->  > > already supported devices to work.
->  > 
->  > Of course I won't do. The Octonet and DVB Netstream weren't supported in
->  > current driver. MSI is already supported but was not enabled by default
->  > because the old 0.5 version currently in kernel had some problems with
->  > it. However new one works fine with MSI - at least for me I'm using the
->  > patchset myself already - but needs some further testing.
-> 
-> Some people still have problems with MSI. I am not sure if it depends on the 
-> board type and/or BIOS version, etc. 
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Then I will add a module option to enable/disable it and make non-MSI
-configuration default.
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a527330..0cb5820 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -248,8 +248,6 @@ __iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
+ 	fmt.pad = pad;
+ 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+-	if (ret == -ENOIOCTLCMD)
+-		ret = -EINVAL;
+ 
+ 	mutex_unlock(&video->mutex);
+ 
+@@ -552,7 +550,7 @@ iss_video_try_format(struct file *file, void *fh, struct v4l2_format *format)
+ 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+ 	if (ret)
+-		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
++		return ret;
+ 
+ 	iss_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
+ 	return 0;
+-- 
+1.8.1.5
 
-> 
-> Regards,
-> Ralph
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Maik
