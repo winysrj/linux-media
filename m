@@ -1,79 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:39901 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932113Ab3KFOq0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:46:26 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVU00BYPJOIMX10@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Nov 2013 14:46:25 +0000 (GMT)
-Message-id: <527A563A.8090805@samsung.com>
-Date: Wed, 06 Nov 2013 15:46:18 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v5] videobuf2: Add missing lock held on vb2_fop_relase
-References: <1383726282-25668-1-git-send-email-ricardo.ribalda@gmail.com>
- <527A06C7.6070207@xs4all.nl>
-In-reply-to: <527A06C7.6070207@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2465 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752190Ab3KDMom (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:44:42 -0500
+Message-ID: <527796AD.2000000@xs4all.nl>
+Date: Mon, 04 Nov 2013 13:44:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Rajil Saraswat <rajil.s@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
+References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>  <1381371651.1889.21.camel@palomino.walls.org>  <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>  <1381620192.22245.18.camel@palomino.walls.org>  <1381668541.2209.14.camel@palomino.walls.org>  <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>  <1381707800.1875.63.camel@palomino.walls.org>  <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com> <1382202581.2405.5.camel@palomino.walls.org>
+In-Reply-To: <1382202581.2405.5.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-(dropping some unrelated e-mail addresses from Cc)
-
-On 06/11/13 10:07, Hans Verkuil wrote:
-> On 11/06/13 09:24, Ricardo Ribalda Delgado wrote:
->> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+On 10/19/2013 07:09 PM, Andy Walls wrote:
+> On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
+>> I was finally able to carry out a git bisect. Had to do a git pull on
+>> a fast internet hooked machine and ftp the files over to the remote
+>> machine.
 >>
->> vb2_fop_relase does not held the lock although it is modifying the
+>> I started with 'git bisect bad v2.6.36.4' and 'git bisect good v2.6.35.10'.
+>>
+>> And the result was:
+>>
+>> 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79 is the first bad commit
+>> commit 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79
+>> Author: Hans Verkuil <hverkuil@xs4all.nl>
+>> Date:   Sat Apr 24 08:23:53 2010 -0300
+>>
+>>     V4L/DVB: wm8775: convert to the new control framework
+>>
+>>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> :040000 040000 37847ffe592f255c6a9d9daedaf7bbfd3cd7b055
+>> 2f094df6f65d7fb296657619c1ad6f93fe085a75 M    drivers
+>>
+>> I then removed the patch from linux-2.6.36-gentoo-r8 which are gentoo
+>> sources, and confirmed that video/audio now works fine on v4l2-ctl -d
+>> /dev/video1 --set-input 4
+>>
+>> I wasnt able to remove the patch in 3.10.7 which is gentoo stable
+>> kernel. Any idea how can i do that?
 > 
-> Small typo: _relase -> _release
-> 
->> queue->owner field.
->>
-[...]
->>
->> Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
->> ---
->>
->> v2: Comments by Sylvester Nawrocki
->>
->> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
->> Therefore a new __vb2_fop_release function has been created to be used by
->> drivers that overload the release function.
->>
->> v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
->>
->> Use vb2_fop_release_locked instead of __vb2_fop_release
->>
->> v4: Comments by Sylvester Nawrocki
->>
->> Rename vb2_fop_release_locked to __vb2_fop_release and fix patch format
->>
->> v5: Comments by Sylvester Nawrocki and Hans Verkuil
->>
->> Rename __vb2_fop_release to vb2_fop_release_unlock and rearrange
->> arguments
-> 
-> I know I suggested the vb2_fop_release_unlock name, but on second thoughts
-> that's not a good name. I suggest vb2_fop_release_no_lock instead.
-> '_unlock' suggests that there is a _lock version as well, which isn't the
-> case here.
+> Try applying the following (untested) patch that is made against the
+> bleeding edge Linux kernel.  The test on the mute control state in
+> wm8775_s_routing() appears to have been inverted in the bad commit you
+> isolated.
 
-Yes. Sorry, but to me vb2_fop_release_no_lock() looks s bit ugly.
-Couldn't we just use double underscore prefix instead of _no_lock postfix,
-as is commonly done in the kernel ?
-Grep reveals almost no use of "_no_lock" in function names.
+Aargh! I'm pretty sure that's the culprit. Man, that's been broken for ages.
+I'll see if I can test this patch this week.
 
-Thanks,
-Sylwester
+Regards,
+
+	Hans
+
+> Along with '--set-input', you may also want to use v4l2-ctl to exercise
+> the mute control as well, to see if it works as expected, once this
+> patch is applied.
+> 
+> Regards,
+> Andy
+> 
+> file: wm8775_s_route_mute_test_inverted.patch
+> 
+> diff --git a/drivers/media/i2c/wm8775.c b/drivers/media/i2c/wm8775.c
+> index 3f584a7..bee7946 100644
+> --- a/drivers/media/i2c/wm8775.c
+> +++ b/drivers/media/i2c/wm8775.c
+> @@ -130,12 +130,10 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+>  		return -EINVAL;
+>  	}
+>  	state->input = input;
+> -	if (!v4l2_ctrl_g_ctrl(state->mute))
+> +	if (v4l2_ctrl_g_ctrl(state->mute))
+>  		return 0;
+>  	if (!v4l2_ctrl_g_ctrl(state->vol))
+>  		return 0;
+> -	if (!v4l2_ctrl_g_ctrl(state->bal))
+> -		return 0;
+>  	wm8775_set_audio(sd, 1);
+>  	return 0;
+>  }
+> 
+> 
+
