@@ -1,109 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3819 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752844Ab3KODcB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Nov 2013 22:32:01 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAF3VvGx079066
-	for <linux-media@vger.kernel.org>; Fri, 15 Nov 2013 04:31:59 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id C12AD2A12AD
-	for <linux-media@vger.kernel.org>; Fri, 15 Nov 2013 04:31:55 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48329 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583Ab3KDAG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131115033155.C12AD2A12AD@tschai.lan>
-Date: Fri, 15 Nov 2013 04:31:55 +0100 (CET)
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 14/18] v4l: omap4iss: Replace udelay/msleep with usleep_range
+Date: Mon,  4 Nov 2013 01:06:39 +0100
+Message-Id: <1383523603-3907-15-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The only udelay() call takes place in a sleepable context, we can sleep
+instead. Use usleep_range().
 
-Results of the daily build of media_tree:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-date:		Fri Nov 15 04:00:40 CET 2013
-git branch:	test
-git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.1-amd64
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 320bfd4..3103093 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -642,11 +642,11 @@ static int iss_reset(struct iss_device *iss)
+ 
+ 	while (readl(iss->regs[OMAP4_ISS_MEM_TOP] + ISS_HL_SYSCONFIG) &
+ 			ISS_HL_SYSCONFIG_SOFTRESET) {
+-		if (timeout++ > 10000) {
++		if (timeout++ > 100) {
+ 			dev_alert(iss->dev, "cannot reset ISS\n");
+ 			return -ETIMEDOUT;
+ 		}
+-		udelay(1);
++		usleep_range(10, 10);
+ 	}
+ 
+ 	return 0;
+@@ -674,7 +674,7 @@ static int iss_isp_reset(struct iss_device *iss)
+ 			dev_alert(iss->dev, "cannot set ISP5 to standby\n");
+ 			return -ETIMEDOUT;
+ 		}
+-		msleep(1);
++		usleep_range(1000, 1500);
+ 	}
+ 
+ 	/* Now finally, do the reset */
+@@ -689,7 +689,7 @@ static int iss_isp_reset(struct iss_device *iss)
+ 			dev_alert(iss->dev, "cannot reset ISP5\n");
+ 			return -ETIMEDOUT;
+ 		}
+-		msleep(1);
++		usleep_range(1000, 1500);
+ 	}
+ 
+ 	return 0;
+-- 
+1.8.1.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
