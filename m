@@ -1,136 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43945 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753481Ab3KUBDg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 20:03:36 -0500
-Message-ID: <1384995906.1917.12.camel@palomino.walls.org>
-Subject: [PATCH RFC] videobuf2: Improve file I/O emulation to handle buffers
- in any order
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	PawelOsciak <pawel@osciak.com>
-Date: Wed, 20 Nov 2013 20:05:06 -0500
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4779 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997Ab3KDK5t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:57:49 -0500
+Message-ID: <52777D9B.9000308@xs4all.nl>
+Date: Mon, 04 Nov 2013 11:57:31 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: John Sheu <sheu@google.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, m.chehab@samsung.com,
+	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
+ to encoder
+References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com> <52564DE6.6090709@xs4all.nl> <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com> <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com> <52590184.5030806@xs4all.nl> <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com> <526001DF.9040309@samsung.com> <CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com> <CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com> <52606AB7.7020200@gmail.com> <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
+In-Reply-To: <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This patch is RFC, because it was compiled and tested against kernel
-v3.5)
+Hi John,
 
-videobuf2 file I/O emulation assumed that buffers dequeued from the
-driver would return in the order they were enqueued in the driver. 
+On 10/18/2013 02:03 AM, John Sheu wrote:
+> On Thu, Oct 17, 2013 at 3:54 PM, Sylwester Nawrocki
+> <sylvester.nawrocki@gmail.com> wrote:
+>> On 10/18/2013 12:25 AM, John Sheu wrote:
+>>> On Thu, Oct 17, 2013 at 2:46 PM, John Sheu<sheu@google.com>  wrote:
+>>>>>  Sweet.  Thanks for spelling things out explicitly like this.  The fact
+>>>>>  that the CAPTURE and OUTPUT queues "invert" their sense of "crop-ness"
+>>>>>  when used in a m2m device is definitely all sorts of confusing.
+>>>
+>>> Just to double-check: this means that we have another bug.
+>>>
+>>> In drivers/media/v4l2-core/v4l2-ioctl.c, in v4l_s_crop and v4l_g_crop,
+>>> we "simulate" a G_CROP or S_CROP, if the entry point is not defined
+>>> for that device, by doing the appropriate S_SELECTION or G_SELECTION.
+>>> Unfortunately then, for M2M this is incorrect then.
+>>>
+>>> Am I reading this right?
+>>
+>> You are right, John. Firstly a clear specification needs to be written,
+>> something along the lines of Tomasz's explanation in this thread, once
+>> all agree to that the ioctl code should be corrected if needed.
 
-Improve the file I/O emulator's book-keeping to remove this assumption.
+I don't understand the problem here. The specification has always been clear:
+s_crop for output devices equals s_selection(V4L2_SEL_TGT_COMPOSE_ACTIVE).
 
-Also remove the, AFAICT, assumption that only read() calls would need to
-dequeue a buffer from the driver.
+Drivers should only implement the selection API and the v4l2 core will do the
+correct translation of s_crop.
 
-Also set the buf->size properly, if a write() dequeues a buffer.
+Yes, I know it's weird, but that's the way the crop API was defined way back
+and that's what should be used.
 
+My advise: forget about s_crop and just implement s_selection.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: PawelOsciak<pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+>>
+>> It seems this [1] RFC is an answer exactly to your question.
+>>
+>> Exact meaning of the selection ioctl is only part of the problem, also
+>> interaction with VIDIOC_S_FMT is not currently defined in the V4L2 spec.
+>>
+>> [1] http://www.spinics.net/lists/linux-media/msg56078.html
+> 
+> I think the "inversion" behavior is confusing and we should remove it
+> if at all possible.
+> 
+> I took a look through all the drivers in linux-media which implement
+> S_CROP.  Most of them are either OUTPUT or CAPTURE/OVERLAY-only.  Of
+> those that aren't:
+> 
+> * drivers/media/pci/zoran/zoran_driver.c : this driver explicitly accepts both
+>   OUTPUT and CAPTURE queues in S_CROP, but they both configure the same state.
+>   No functional difference.
 
+Yeah, I guess that's a driver bug. This is a very old driver that originally
+used a custom API for these things, and since no selection API existed at the
+time it was just mapped to the crop API. Eventually it should use the selection
+API as well and do it correctly. But to be honest, nobody cares about this driver :-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 9d4e9ed..f330aa4 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1796,6 +1796,7 @@ struct vb2_fileio_data {
- 	unsigned int dq_count;
- 	unsigned int flags;
- };
-+#define FILEIO_INDEX_NOT_SET	((unsigned int) INT_MAX)
- 
- /**
-  * __vb2_init_fileio() - initialize file io emulator
-@@ -1889,6 +1890,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
- 		}
-+		fileio->index = FILEIO_INDEX_NOT_SET;
- 
- 		/*
- 		 * Start streaming.
-@@ -1975,15 +1977,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 */
- 	q->fileio = NULL;
- 
--	index = fileio->index;
--	buf = &fileio->bufs[index];
--
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	if (buf->queued) {
--		struct vb2_buffer *vb;
--
-+	index = fileio->index;
-+	if (index == FILEIO_INDEX_NOT_SET) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
-@@ -1997,12 +1995,19 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			goto end;
- 		fileio->dq_count += 1;
- 
-+		fileio->index = fileio->b.index;
-+		index = fileio->index;
-+		buf = &fileio->bufs[index];
-+		
- 		/*
- 		 * Get number of bytes filled by the driver
- 		 */
--		vb = q->bufs[index];
--		buf->size = vb2_get_plane_payload(vb, 0);
-+		buf->pos = 0;
- 		buf->queued = 0;
-+		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
-+				 : vb2_plane_size(q->bufs[index], 0);
-+	} else {
-+		buf = &fileio->bufs[index];
- 	}
- 
- 	/*
-@@ -2070,13 +2075,28 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		 */
- 		buf->pos = 0;
- 		buf->queued = 1;
--		buf->size = q->bufs[0]->v4l2_planes[0].length;
-+		buf->size = vb2_plane_size(q->bufs[index], 0);
- 		fileio->q_count += 1;
- 
- 		/*
--		 * Switch to the next buffer
-+		 * Decide on the next buffer
- 		 */
--		fileio->index = (index + 1) % q->num_buffers;
-+		if (read || (q->num_buffers == 1)) {
-+			/* Use the next buffer the driver provides back */
-+			fileio->index = FILEIO_INDEX_NOT_SET;
-+		} else {
-+			/* Prefer a buffer that is not quequed in the driver */
-+			int initial_index = fileio->index;
-+			fileio->index = FILEIO_INDEX_NOT_SET;
-+			do {
-+				if (++index == q->num_buffers)
-+					index = 0;
-+				if (!fileio->bufs[index].queued) {
-+					fileio->index = index;
-+					break;
-+				}
-+			} while (index != initial_index);
-+		}
- 
- 		/*
- 		 * Start streaming if required.
+It is however on my TODO list of drivers that need to be converted to the latest
+frameworks, so I might fix this eventually.
 
+> * drivers/media/platform/davinci/vpfe_capture.c : this driver doesn't specify
+>   the queue, but is a CAPTURE-only device.  Probably an (unrelated) bug.
 
+Yes, that's a driver bug. It should check the buffer type.
+
+> * drivers/media/platform/exynos4-is/fimc-m2m.c : this driver is a m2m driver
+>   with both OUTPUT and CAPTURE queues.  It has uninverted behavior:
+>   S_CROP(CAPTURE) -> source
+>   S_CROP(OUTPUT) -> destination
+
+This is the wrong behavior.
+
+> * drivers/media/platform/s5p-g2d/g2d.c : this driver is a m2m driver with both
+>   OUTPUT and CAPTURE queues.  It has inverted behavior:
+>   S_CROP(CAPTURE) -> destination
+>   S_CROP(OUTPUT) -> source
+
+This is the correct behavior.
+
+> 
+> The last two points above are the most relevant.  So we already have
+> at least one broken driver, regardless of whether we allow inversion
+> or not; I'd think this grants us a certain freedom to redefine the
+> specification to be more logical.  Can we do this please?
+
+No. The fimc-m2m.c driver needs to be fixed. That's the broken one.
+
+Regards,
+
+	Hans
