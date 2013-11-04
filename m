@@ -1,66 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:59675 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753257Ab3KIQYO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Nov 2013 11:24:14 -0500
-Received: from [192.168.2.109] ([77.191.174.230]) by mail.gmx.com (mrgmx101)
- with ESMTPSA (Nemesis) id 0M5q45-1VqY7A1I6b-00xweS for
- <linux-media@vger.kernel.org>; Sat, 09 Nov 2013 17:24:13 +0100
-Message-ID: <527E606A.40101@gmx.de>
-Date: Sat, 09 Nov 2013 17:18:50 +0100
-From: =?ISO-8859-1?Q?Lorenz_R=F6hrl?= <sheepshit@gmx.de>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51816 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760Ab3KDSsA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 13:48:00 -0500
+Received: from mfilter7-d.gandi.net (mfilter7-d.gandi.net [217.70.178.136])
+	by relay5-d.mail.gandi.net (Postfix) with ESMTP id 9605A41C474
+	for <linux-media@vger.kernel.org>; Mon,  4 Nov 2013 19:47:57 +0100 (CET)
+Received: from relay5-d.mail.gandi.net ([217.70.183.197])
+	by mfilter7-d.gandi.net (mfilter7-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id UuB1Lqa8Xqsu for <linux-media@vger.kernel.org>;
+	Mon,  4 Nov 2013 19:47:56 +0100 (CET)
+Received: from [192.168.33.42] (247.Red-88-10-162.dynamicIP.rima-tde.net [88.10.162.247])
+	(Authenticated sender: dave@gide.info)
+	by relay5-d.mail.gandi.net (Postfix) with ESMTPA id ECE4041C294
+	for <linux-media@vger.kernel.org>; Mon,  4 Nov 2013 19:47:55 +0100 (CET)
+Message-ID: <5277EBEB.4060606@dchapman.com>
+Date: Mon, 04 Nov 2013 18:48:11 +0000
+From: Dave Chapman <dave@dchapman.com>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: BUG: Freeze upon loading bttv module
+Subject: DVB Modulator API
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-i'm having problems loading the bttv-module for my bt878 based DVB-T 
-card: my system just freezes. Magic-Syskeys also won't work then.
-With kernel 3.9.0 this worked just fine. Versions 3.10, 3.11 and 3.12 
-won't work.
+Given the recent patches by Maik Broemme adding support for a DVB-C 
+modulator, I thought I would mention that I'm working on a driver for a 
+DVB-T modulator and would like to open a discussion regarding how to 
+integrate modulator support into the existing DVB API and kernel sub-system.
 
-Last messages on screen with 3.12 upon booting/loading the module is: 
-http://abload.de/img/bttv_freezeqxdn2.png
+The device I'm working with is a $169 (USD) USB DVB-T modulator based on 
+the it9507 ASIC from ITE.  ITE provide a GPL'd Linux driver, but this is 
+40K+ lines of code and is based on their generic cross-platform SDK 
+supporting a range of devices.
 
-With kernel 3.9 i get an additional line on module loading and the 
-device works fine:
-[    1.895037] bttv: 0: add subdevice "dvb0"
+The device can be purchased here in various incarnations:
 
-I traced the problem, it dies somewhere in v4l2_ctrl_handler_setup on 
-line 4169 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/pci/bt8xx/bttv-driver.c#n4169
+http://www.idealez.com/hides/product-gallery/en_US/1-0/554
 
-lspci output from kernel 3.9:
-[...]
-04:01.0 Multimedia video controller: Brooktree Corporation Bt878 Video 
-Capture (rev 11)
-         Subsystem: Twinhan Technology Co. Ltd VisionPlus DVB card
-         Flags: bus master, medium devsel, latency 32, IRQ 16
-         Memory at f0401000 (32-bit, prefetchable) [size=4K]
-         Capabilities: [44] Vital Product Data
-         Capabilities: [4c] Power Management version 2
-         Kernel driver in use: bttv
-         Kernel modules: bttv
+and I have been working on github here:
 
-04:01.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture 
-(rev 11)
-         Subsystem: Twinhan Technology Co. Ltd VisionPlus DVB Card
-         Flags: bus master, medium devsel, latency 32, IRQ 16
-         Memory at f0400000 (32-bit, prefetchable) [size=4K]
-         Capabilities: [44] Vital Product Data
-         Capabilities: [4c] Power Management version 2
-         Kernel driver in use: bt878
-         Kernel modules: bt878
+https://github.com/linuxstb/it9507
+
+The original ITE driver is in the it950x_linux_v13.06.27.1 directory 
+there, and my work-in-progress version is in it9507-driver.  ITE have 
+also provided me with some documentation, which is in the docs directory.
+
+Some versions of the modulator USB stick come with a demodulator (based 
+on the it9133), the output of which can be sent to the modulator 
+directly via a TS interface.  The it9507 also has a USB interface.
+
+For initial simplicity (and because I don't own such a device), my 
+driver only supports the modulator, but in discussing an API, it's 
+obviously useful to be aware of such devices.
+
+The hardware also has hardware PID filtering (allowing both whitelisting 
+and blacklisting of data being transferred from the demod to the mod) 
+and also the ability to insert SI packets into the modulated stream at 
+user-definited intervals.  Again, my driver doesn't support these 
+features yet.
+
+Regarding the API, I've looked at the ddbridge driver here:
+
+http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
+
+and from what I can understand, this adds a new "mod0" device to access 
+the DVB-C modulator.  The API is as follows:
+
+struct dvb_mod_params {
+	__u32 base_frequency;
+	__u32 attenuator;
+};
+
+struct dvb_mod_channel_params {
+	enum fe_modulation modulation;
+
+	__u32 rate_increment;
+	
+};
+
+#define DVB_MOD_SET              _IOW('o', 208, struct dvb_mod_params)
+#define DVB_MOD_CHANNEL_SET      _IOW('o', 209, struct 
+dvb_mod_channel_params)
+
+I've no idea what "rate_increment" is.
+
+Looking in the docs/modulator file, there also appears to be some 
+ability to redirect data from a demod to a mod via 
+/sys/class/ddbridge/ddbridge0/redirect
 
 
+As a comparison, the current API for my driver can be seen here:
 
-Please CC me as i'm not subscribed to the list.
+https://github.com/linuxstb/it9507/blob/master/it9507-driver/include/dvbmod.h
 
-Thanks!
+My driver is currently not integrated into the DVB subsystem, and as 
+such creates /dev/dvbmod%d device.  This is used for the ioctls and also 
+for writing the TS to the modulator.
 
-- Lorenz
+The it9507 driver uses a software attenuation, and the range is 
+dependent (but only very slightly - +/- a couple of dB at either end of 
+the scale) on the frequency.  So I've currently implemented a 
+DVBMOD_GET_RF_GAIN_RANGE ioctl to get the available gain range for a 
+specific frequency, but it wouldn't be a big loss to change the driver 
+to just limit the gain to the subset that works on all frequencies, 
+removing that call from the API.
+
+I haven't had chance yet to seriously consider a generic modulator API, 
+but with one modulator driver now being considered for inclusion I 
+wanted to make those considering the API aware of my work.
+
+It seems clear however that neither my current API, nor that included 
+with the ddbridge DVB-C modulator is generic enough at the moment.
+
+Regards,
+
+Dave.
