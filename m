@@ -1,60 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38001 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753933Ab3KQNkp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Nov 2013 08:40:45 -0500
-Message-ID: <5288C74D.7070206@redhat.com>
-Date: Sun, 17 Nov 2013 14:40:29 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] radio-shark: Mark shark_resume_leds() inline
- to kill compiler warning
-References: <1382962565-1662-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1382962565-1662-1-git-send-email-geert@linux-m68k.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48329 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556Ab3KDAG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 12/18] v4l: omap4iss: Remove duplicate video_is_registered() check
+Date: Mon,  4 Nov 2013 01:06:37 +0100
+Message-Id: <1383523603-3907-13-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The video_unregister_device() function checks if the video device is
+registered before proceeding, remote the duplicate check from the
+driver.
 
-On 10/28/2013 01:16 PM, Geert Uytterhoeven wrote:
-> If SHARK_USE_LEDS=1, but CONFIG_PM=n:
->
-> drivers/media/radio/radio-shark.c:275: warning: ‘shark_resume_leds’ defined but not used
->
-> Instead of making the #ifdef logic even more complicated (there are already
-> two definitions of shark_resume_leds()), mark shark_resume_leds() inline to
-> kill the compiler warning. shark_resume_leds() is small and it has only one
-> caller.
->
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
-> {cris,m68k,parisc,sparc,xtensa}-all{mod,yes}config
->
->   drivers/media/radio/radio-shark.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-> index b91477212413..050b3bb96fec 100644
-> --- a/drivers/media/radio/radio-shark.c
-> +++ b/drivers/media/radio/radio-shark.c
-> @@ -271,7 +271,7 @@ static void shark_unregister_leds(struct shark_device *shark)
->   	cancel_work_sync(&shark->led_work);
->   }
->
-> -static void shark_resume_leds(struct shark_device *shark)
-> +static inline void shark_resume_leds(struct shark_device *shark)
->   {
->   	if (test_bit(BLUE_IS_PULSE, &shark->brightness_new))
->   		set_bit(BLUE_PULSE_LED, &shark->brightness_new);
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Thanks for the patch. I've added this to my tree for 3.13 .
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index ee30054..ccbdecd 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -1119,6 +1119,5 @@ int omap4iss_video_register(struct iss_video *video, struct v4l2_device *vdev)
+ 
+ void omap4iss_video_unregister(struct iss_video *video)
+ {
+-	if (video_is_registered(&video->video))
+-		video_unregister_device(&video->video);
++	video_unregister_device(&video->video);
+ }
+-- 
+1.8.1.5
 
-Regards,
-
-Hans
