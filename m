@@ -1,58 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48267 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751557Ab3KQNys (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Nov 2013 08:54:48 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id rAHDsltk025023
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 17 Nov 2013 08:54:48 -0500
-Received: from shalem.localdomain (vpn1-7-44.ams2.redhat.com [10.36.7.44])
-	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id rAHDskSQ018753
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 17 Nov 2013 08:54:47 -0500
-Message-ID: <5288CAA6.2010505@redhat.com>
-Date: Sun, 17 Nov 2013 14:54:46 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44553 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750789Ab3KDLUp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Nov 2013 06:20:45 -0500
+Date: Mon, 4 Nov 2013 13:20:11 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	g@valkosipuli.retiisi.org.uk
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: omap3isp: Move code out of mutex-protected section
+Message-ID: <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
+References: <1383559668-11003-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FIXES for 3.13] 1 small gspca and 2 small radio-shark fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1383559668-11003-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Laurent,
 
-Please pull from my tree for 3 small fixes for 3.13 :
+Thanks for the patch.
 
-The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
+On Mon, Nov 04, 2013 at 11:07:48AM +0100, Laurent Pinchart wrote:
+> The pad::get_fmt call must be protected by a mutex, but preparing its
+> arguments doesn't need to be. Move the non-critical code out of the
+> mutex-protected section.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap3isp/ispvideo.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> index a908d00..f6304bb 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -339,14 +339,11 @@ __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
+>  	if (subdev == NULL)
+>  		return -EINVAL;
+>  
+> -	mutex_lock(&video->mutex);
+> -
+>  	fmt.pad = pad;
+>  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+> -	if (ret == -ENOIOCTLCMD)
+> -		ret = -EINVAL;
 
-   [media] media: st-rc: Add ST remote control driver (2013-10-31 08:20:08 -0200)
+By removing these lines, you're also returning -ENOIOCTLCMD to the caller.
+Is this intentional?
 
-are available in the git repository at:
+That return value will end up to at least one place which seems to be
+isp_video_streamon() and, unless I'm mistaken, will cause
+ioctl(VIDIOC_STREAMON) also return ENOTTY.
 
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.13
+> +	mutex_lock(&video->mutex);
+> +	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+>  	mutex_unlock(&video->mutex);
+>  
+>  	if (ret)
 
-for you to fetch changes up to 118696e21f90ab2d011e38b45b007655204782d9:
+-- 
+Regards,
 
-   radio-shark2: Mark shark_resume_leds() inline to kill compiler warning (2013-11-17 14:48:29 +0100)
-
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-       radio-shark: Mark shark_resume_leds() inline to kill compiler warning
-
-Hans de Goede (1):
-       radio-shark2: Mark shark_resume_leds() inline to kill compiler warning
-
-Ondrej Zary (1):
-       gspca-stk1135: Add delay after configuring clock
-
-  drivers/media/radio/radio-shark.c  | 2 +-
-  drivers/media/radio/radio-shark2.c | 2 +-
-  drivers/media/usb/gspca/stk1135.c  | 3 +++
-  3 files changed, 5 insertions(+), 2 deletions(-)
-
-Thanks & Regards,
-
-Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
