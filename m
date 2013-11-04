@@ -1,49 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4983 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab3KKLHy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Nov 2013 06:07:54 -0500
-Message-ID: <5280BA7E.3080908@xs4all.nl>
-Date: Mon, 11 Nov 2013 12:07:42 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:55114 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386Ab3KDOJY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 09:09:24 -0500
+Received: by mail-ve0-f175.google.com with SMTP id jz11so1408725veb.6
+        for <linux-media@vger.kernel.org>; Mon, 04 Nov 2013 06:09:24 -0800 (PST)
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Rajil Saraswat <rajil.s@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>  <1381371651.1889.21.camel@palomino.walls.org>  <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>  <1381620192.22245.18.camel@palomino.walls.org>  <1381668541.2209.14.camel@palomino.walls.org>  <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>  <1381707800.1875.63.camel@palomino.walls.org>  <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>  <1382202581.2405.5.camel@palomino.walls.org> <527796AD.2000000@xs4all.nl> <1383697544.1862.7.camel@palomino.walls.org>
-In-Reply-To: <1383697544.1862.7.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <527769FA.9080207@xs4all.nl>
+References: <1381850685-26162-1-git-send-email-dinesh.ram@cern.ch>
+	<CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com>
+	<527769FA.9080207@xs4all.nl>
+Date: Mon, 4 Nov 2013 10:09:24 -0400
+Message-ID: <CAC-25o9FqkS_g_-RAFn6UuGqKKBhazxtorqzyt=R8ZNDQN23Tw@mail.gmail.com>
+Subject: Re: [Review Patch 0/9] si4713 usb device driver
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dinesh Ram <dinesh.ram@cern.ch>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	d ram <dinesh.ram086@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/06/2013 01:25 AM, Andy Walls wrote:
-> On Mon, 2013-11-04 at 13:44 +0100, Hans Verkuil wrote:
->> On 10/19/2013 07:09 PM, Andy Walls wrote:
->>> On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
-> 
->>> Try applying the following (untested) patch that is made against the
->>> bleeding edge Linux kernel.  The test on the mute control state in
->>> wm8775_s_routing() appears to have been inverted in the bad commit you
->>> isolated.
+Hans,
+
+On Mon, Nov 4, 2013 at 5:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 10/15/2013 07:37 PM, edubezval@gmail.com wrote:
+>> Hello Dinesh,
 >>
->> Aargh! I'm pretty sure that's the culprit. Man, that's been broken for ages.
-> 
-> Hi Hans,
-> 
-> Yes, and only *one* person reported it in those years.  I suspect very
-> few people use the comination of conventional PCI, analog video, and
-> SVideo 2 or Composite 2 anymore.
-> 
-> 
->> I'll see if I can test this patch this week.
-> 
-> Thanks!  I'm very busy at work until mid-December.
+>> On Tue, Oct 15, 2013 at 11:24 AM, Dinesh Ram <dinesh.ram@cern.ch> wrote:
+>>> Hello Eduardo,
+>>>
+>>> In this patch series, I have addressed the comments by you
+>>> concerning my last patch series.
+>>> In the resulting patches, I have corrected most of the
+>>> style issues and adding of comments. However, some warnings
+>>> given out by checkpatch.pl (mostly complaing about lines longer
+>>> than 80 characters) are still there because I saw that code readibility
+>>> suffers by breaking up those lines.
+>>>
+>>> Also Hans has contributed patches 8 and 9 in this patch series
+>>> which address the issues of the handling of unknown regulators,
+>>> which have apparently changed since 3.10. Hans has tested it and the
+>>> driver loads again.
+>>>
+>>> Let me know when you are able to test it again.
+>>>
+>>
+>> Hopefully I will be able to give it a shot on n900 and on silabs
+>> devboard until the end of the week. Thanks for not giving up.
+>
+> Did you find time to do this? I'm waiting for feedback from you.
 
-I finally managed to test this and this patch does indeed fix the bug. I'll make
-a pull request for this.
+sorry for the late answer, I was offline for two weeks taking care of
+my newborn  son :-).
 
-Regards,
+I am giving the series a second shot.
 
-	Hans
+>
+> Regards,
+>
+>         Hans
+
+
+
+-- 
+Eduardo Bezerra Valentin
