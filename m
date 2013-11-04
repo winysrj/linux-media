@@ -1,81 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53222 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756366Ab3KFO7M (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:52175 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751250Ab3KDEDa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Nov 2013 09:59:12 -0500
-Date: Wed, 6 Nov 2013 16:58:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:SMIA AND SMIA++ I..." <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] smiapp: Fix BUG_ON() on an impossible condition
-Message-ID: <20131106145839.GE24988@valkosipuli.retiisi.org.uk>
-References: <1383747690-20003-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1383747690-20003-1-git-send-email-ricardo.ribalda@gmail.com>
+	Sun, 3 Nov 2013 23:03:30 -0500
+Message-ID: <1383537790.2764.69.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [PATCHv2 07/29] platform drivers: Fix build on cris and frv
+ archs
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	stable@vger.kernel.org
+Date: Mon, 04 Nov 2013 04:03:10 +0000
+In-Reply-To: <1383399097-11615-8-git-send-email-m.chehab@samsung.com>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+	 <1383399097-11615-8-git-send-email-m.chehab@samsung.com>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-9406QhFl8yHJJxnEPrhl"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
 
-Thanks for the patch.
+--=-9406QhFl8yHJJxnEPrhl
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I've removed LKML from cc since I don't think this is anything but noise
-there.
+On Sat, 2013-11-02 at 11:31 -0200, Mauro Carvalho Chehab wrote:
+> On cris and frv archs, the functions below aren't defined:
+> 	drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_read':
+> 	drivers/media/platform/sh_veu.c:228:2: error: implicit declaration of fu=
+nction 'ioread32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_write':
+> 	drivers/media/platform/sh_veu.c:234:2: error: implicit declaration of fu=
+nction 'iowrite32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
+> 	drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of =
+function 'ioread32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
+> 	drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of =
+function 'iowrite32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
+> 	drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of =
+function 'ioread32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
+> 	drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of =
+function 'iowrite32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_setu=
+p':
+> 	drivers/media/platform/soc_camera/rcar_vin.c:284:3: error: implicit decl=
+aration of function 'iowrite32' [-Werror=3Dimplicit-function-declaration]
+> 	drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_requ=
+est_capture_stop':
+> 	drivers/media/platform/soc_camera/rcar_vin.c:353:2: error: implicit decl=
+aration of function 'ioread32' [-Werror=3Dimplicit-function-declaration]
+>=20
+> While this is not fixed, remove those 3 drivers from building on
+> those archs.
+[...]
 
-On Wed, Nov 06, 2013 at 03:21:30PM +0100, Ricardo Ribalda Delgado wrote:
-> internal_csi_format_idx and csi_format_idx are unsigned integers,
-> therefore they can never be nevative.
-> 
-> CC      drivers/media/i2c/smiapp/smiapp-core.o
-> In file included from include/linux/err.h:4:0,
->                  from include/linux/clk.h:15,
->                  from drivers/media/i2c/smiapp/smiapp-core.c:29:
-> drivers/media/i2c/smiapp/smiapp-core.c: In function ‘smiapp_update_mbus_formats’:
-> include/linux/kernel.h:669:20: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->  #define min(x, y) ({    \
->                     ^
-> include/linux/compiler.h:153:42: note: in definition of macro ‘unlikely’
->  # define unlikely(x) __builtin_expect(!!(x), 0)
->                                           ^
-> drivers/media/i2c/smiapp/smiapp-core.c:402:2: note: in expansion of macro ‘BUG_ON’
->   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->   ^
-> drivers/media/i2c/smiapp/smiapp-core.c:402:9: note: in expansion of macro ‘min’
->   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->          ^
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index ae66d91..fbd48f0 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -399,7 +399,6 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
->  
->  	BUG_ON(max(internal_csi_format_idx, csi_format_idx) + pixel_order
->  	       >= ARRAY_SIZE(smiapp_csi_data_formats));
-> -	BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->  
->  	dev_dbg(&client->dev, "new pixel order %s\n",
->  		pixel_order_str[pixel_order]);
+Well where does this stop?  There will be many other drivers that are
+broken if those functions are missing, and there's going to be a lot of
+churn if we disable them all and then reenable when the architecture
+headers are fixed.
 
-I wonder how this hasn't been noticed before. :-) No harm done, though.
+cris selects the generic implementations (CONFIG_GENERIC_IOMAP) but I
+think arch/cris/include/asm/io.h is missing
+#include <asm-generic/iomap.h>.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+frv defines these functions inline in arch/frv/include/asm/io.h so I
+don't know what the problem is there.
 
-Should I take the patch to my tree? I don't think I have other pending
-patches for smiapp so I'm fine that you have it in yours, too.
+Ben.
 
--- 
-Kind regards,
+--=20
+Ben Hutchings
+Kids!  Bringing about Armageddon can be dangerous.  Do not attempt it in
+your own home. - Terry Pratchett and Neil Gaiman, `Good Omens'
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--=-9406QhFl8yHJJxnEPrhl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIVAwUAUnccfue/yOyVhhEJAQrAgxAAuGXX+sWYarmAXIu0a4llRlW2l7FOOI5c
+vdHHDm0MC/7P/V9E9JQh5Nz0ItXAdfWHWrTkjMWLKGKguaiH8Jv1lyta4GM55AdM
+RWL/t9eW9cFL5Lq58lCOFDqC1yGlS81z2L7LEFv1QevSqHfMpxdRjXMCY3qSRRFL
+VdYqFzdjmYIyvApjGkvMZVsmIGsWpM21vu6RtdTIKHDPVGZvaVrydF8oPi31BXe0
+c5M6gV+rVvIjYS4U/U3a6DIDNXRdHVWPe975XMimhYPH9q3D5JiFptXPJjtdI4MJ
++zpKfJ1U25lp9XuX3zWraJx5Epb1z8TmN8r3rRlDOgUTGMzd1l4XVXqzOwFfxpiz
+fchH16A0tZlJW3xkhCeVECDfhZctOAi+f6aoy+kMyYISa5Lls5kOS+HVbVct3oOD
+8cOi+V6HmU3k5nnsv0tnEkQaywRreqBAb+T/uPDSbFul1sJMdYMrnulj77lqImIi
+LlKbH3mMsPSLN4VwKDBd57HJuHWLRkUFYLbzOmKPmOEZAvqRiWmZsxPH76PmKIPp
+6tRBG8+gvQITOEI9NnecNgEYoGSY13mQX8TTc8ChBmnaR2aUDJ0MG2BEStLgSXqg
+0kBcyw1O4BhzDm1/oQZ0nwwhDesctON+BOduQS/z2cFsoSLu4x54KPjJ9RpNgz5Q
+1L12G6BOM40=
+=eiqr
+-----END PGP SIGNATURE-----
+
+--=-9406QhFl8yHJJxnEPrhl--
