@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:47313 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab3KONgi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:36:38 -0500
-Received: by mail-we0-f177.google.com with SMTP id t60so3519325wes.36
-        for <linux-media@vger.kernel.org>; Fri, 15 Nov 2013 05:36:37 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <19084.1384522337@warthog.procyon.org.uk>
-References: <20271.1384472102@warthog.procyon.org.uk>
-	<28089.1384515232@warthog.procyon.org.uk>
-	<52861C55.6050307@iki.fi>
-	<19084.1384522337@warthog.procyon.org.uk>
-Date: Fri, 15 Nov 2013 08:36:37 -0500
-Message-ID: <CAGoCfix6pLboc8VCt+j_FZeDa8GWaGiR0tgXA-ffsXKbVXAqdw@mail.gmail.com>
-Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103 driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Howells <dhowells@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarkko Korpi <jarkko_korpi@hotmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:37826 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755729Ab3KEWP6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 17:15:58 -0500
+Received: by mail-qa0-f51.google.com with SMTP id hu16so1330382qab.10
+        for <linux-media@vger.kernel.org>; Tue, 05 Nov 2013 14:15:57 -0800 (PST)
+Date: Tue, 5 Nov 2013 19:15:24 -0300
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] SOLO6x10: Fix video frame type (I/P/B).
+Message-ID: <20131105191524.5b033e28@pirotess.bifrost.iodev.co.uk>
+In-Reply-To: <m3pprh8gd8.fsf@t19.piap.pl>
+References: <m3pprh8gd8.fsf@t19.piap.pl>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/VCN92jAb8JyWISMYiNFd_ON"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 15, 2013 at 8:32 AM, David Howells <dhowells@redhat.com> wrote:
-> Whilst that may be so, something clears it between one call to
-> m88ds3103_set_frontend() and the next, so you probably need to unconditionally
-> reload the program init table.
+--Sig_/VCN92jAb8JyWISMYiNFd_ON
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Check your GPIO config for the specific board in the cx23885 driver.
-Registers unexpectedly resetting to their default value between tunes
-could very well be because your GPIO setup is incorrect and the
-demodulator chip's reset line is being strobed between tuning
-requests.
+On Mon, 07 Oct 2013 13:33:55 +0200
+khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
+> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
 
-Devin
+Acked-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+<...>
+
+--Sig_/VCN92jAb8JyWISMYiNFd_ON
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQEcBAEBAgAGBQJSeW38AAoJEBrCLcBAAV+GmW8H/3gxnFkUYANj+oPqy3gGyMSY
+0IhmPDGD2HVi+TZ4Zg3JJFyXzHyyHasC3TPsszFfz/3nMnNNmRH3I5MfoJrUi4jI
+HSFYykRlvCX1ymmn0CFVxP17dnuLxNCLMeGBLDFGcNCSiSSD81P7x2rOJgDR+r4L
+HaMG3fn4Po4rtmIhTU/xwWw+OBzXEytpUrcny80AuCu4H7KFsU7QhIxR+WKFOFYz
+aEzD7EI5Hjw6VYes1LdfcnNjdXcOAxFO7Fs33gaRX1tW8/ImFib4F3G8lyglsect
+kLRzy3EpZOZ1A0L8In9tFNWUFFojP7akg0gpDCNYuO1TuYizpfVZWHQEfg4LPRE=
+=iENd
+-----END PGP SIGNATURE-----
+
+--Sig_/VCN92jAb8JyWISMYiNFd_ON--
