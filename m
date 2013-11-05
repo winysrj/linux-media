@@ -1,150 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:24510 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab3KDL3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 06:29:32 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVQ0044AL8XHC90@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Nov 2013 11:29:30 +0000 (GMT)
-Message-id: <52778515.6070204@samsung.com>
-Date: Mon, 04 Nov 2013 12:29:25 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, John Sheu <sheu@google.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
-Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for
- VIDIOC_{G,S}_CROP to encoder
-References: <1381362589-32237-1-git-send-email-sheu@google.com>
- <1381362589-32237-4-git-send-email-sheu@google.com>
- <52564DE6.6090709@xs4all.nl>
- <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com>
- <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com>
- <52590184.5030806@xs4all.nl>
- <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com>
- <526001DF.9040309@samsung.com>
- <CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com>
- <CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com>
- <52606AB7.7020200@gmail.com>
- <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com>
- <52777D9B.9000308@xs4all.nl>
-In-reply-to: <52777D9B.9000308@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:42957 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886Ab3KEGMy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 01:12:54 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v11 00/12] Exynos5 IS driver
+Date: Tue,  5 Nov 2013 11:42:31 +0530
+Message-Id: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, I missed to reply to this e-mail.
+The patch series adds support for exynos5 fimc-is driver and a
+new sensor s5k4e5. The media driver part is omitted form this series
+as it is already applied.
 
-On 04/11/13 11:57, Hans Verkuil wrote:
-> Hi John,
-> 
-> On 10/18/2013 02:03 AM, John Sheu wrote:
->> On Thu, Oct 17, 2013 at 3:54 PM, Sylwester Nawrocki
->> <sylvester.nawrocki@gmail.com> wrote:
->>> On 10/18/2013 12:25 AM, John Sheu wrote:
->>>> On Thu, Oct 17, 2013 at 2:46 PM, John Sheu<sheu@google.com>  wrote:
->>>>>>  Sweet.  Thanks for spelling things out explicitly like this.  The fact
->>>>>>  that the CAPTURE and OUTPUT queues "invert" their sense of "crop-ness"
->>>>>>  when used in a m2m device is definitely all sorts of confusing.
->>>>
->>>> Just to double-check: this means that we have another bug.
->>>>
->>>> In drivers/media/v4l2-core/v4l2-ioctl.c, in v4l_s_crop and v4l_g_crop,
->>>> we "simulate" a G_CROP or S_CROP, if the entry point is not defined
->>>> for that device, by doing the appropriate S_SELECTION or G_SELECTION.
->>>> Unfortunately then, for M2M this is incorrect then.
->>>>
->>>> Am I reading this right?
->>>
->>> You are right, John. Firstly a clear specification needs to be written,
->>> something along the lines of Tomasz's explanation in this thread, once
->>> all agree to that the ioctl code should be corrected if needed.
-> 
-> I don't understand the problem here. The specification has always been clear:
-> s_crop for output devices equals s_selection(V4L2_SEL_TGT_COMPOSE_ACTIVE).
-> 
-> Drivers should only implement the selection API and the v4l2 core will do the
-> correct translation of s_crop.
-> 
-> Yes, I know it's weird, but that's the way the crop API was defined way back
-> and that's what should be used.
-> 
-> My advise: forget about s_crop and just implement s_selection.
-> 
->>>
->>> It seems this [1] RFC is an answer exactly to your question.
->>>
->>> Exact meaning of the selection ioctl is only part of the problem, also
->>> interaction with VIDIOC_S_FMT is not currently defined in the V4L2 spec.
->>>
->>> [1] http://www.spinics.net/lists/linux-media/msg56078.html
->>
->> I think the "inversion" behavior is confusing and we should remove it
->> if at all possible.
->>
->> I took a look through all the drivers in linux-media which implement
->> S_CROP.  Most of them are either OUTPUT or CAPTURE/OVERLAY-only.  Of
->> those that aren't:
->>
->> * drivers/media/pci/zoran/zoran_driver.c : this driver explicitly accepts both
->>   OUTPUT and CAPTURE queues in S_CROP, but they both configure the same state.
->>   No functional difference.
-> 
-> Yeah, I guess that's a driver bug. This is a very old driver that originally
-> used a custom API for these things, and since no selection API existed at the
-> time it was just mapped to the crop API. Eventually it should use the selection
-> API as well and do it correctly. But to be honest, nobody cares about this driver :-)
-> 
-> It is however on my TODO list of drivers that need to be converted to the latest
-> frameworks, so I might fix this eventually.
-> 
->> * drivers/media/platform/davinci/vpfe_capture.c : this driver doesn't specify
->>   the queue, but is a CAPTURE-only device.  Probably an (unrelated) bug.
-> 
-> Yes, that's a driver bug. It should check the buffer type.
-> 
->> * drivers/media/platform/exynos4-is/fimc-m2m.c : this driver is a m2m driver
->>   with both OUTPUT and CAPTURE queues.  It has uninverted behavior:
->>   S_CROP(CAPTURE) -> source
->>   S_CROP(OUTPUT) -> destination
+Changes from v10
+---------------
+- Addressed DT binding review comments from Mark Rutland
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg67806.html
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg67808.html
 
-No, that's not true. It seems you got it wrong, cropping in case of this m2m
-driver works like this:
+Changes from v9
+---------------
+- Addressed review comments from Hans and Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg67102.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg67624.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg67623.html
+- Skipped already applied media driver
 
-S_CROP(OUTPUT) -> source (from HW POV)
-S_CROP(CAPTURE) -> destination
+Changes from v8
+---------------
+- Moved i2c-isp device nodes into the fimc-is node as suggested
+  by Sylwester
+- Addressed comments given by Sylwester and Philipp Zabel
 
-I.e. exactly same way as for s5p-g2d, for which it somehow was a reference
-implementation.
+Changes from v7
+---------------
+- Addressed few DT related review comments from Sylwester
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg66403.html
+- Few fixes added after some regression testing
 
-> This is the wrong behavior.
-> 
->> * drivers/media/platform/s5p-g2d/g2d.c : this driver is a m2m driver with both
->>   OUTPUT and CAPTURE queues.  It has inverted behavior:
->>   S_CROP(CAPTURE) -> destination
->>   S_CROP(OUTPUT) -> source
-> 
-> This is the correct behavior.
-> 
->>
->> The last two points above are the most relevant.  So we already have
->> at least one broken driver, regardless of whether we allow inversion
->> or not; I'd think this grants us a certain freedom to redefine the
->> specification to be more logical.  Can we do this please?
-> 
-> No. The fimc-m2m.c driver needs to be fixed. That's the broken one.
+Changes from v6
+---------------
+- Addressed DT binding doc review comments from Sylwester
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg65771.html
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg65772.html
 
-It's not broken, it's easy to figure out if you actually look at the
-code, e.g. fimc_m2m_try_crop() function.
+Changes from v5
+---------------
+- Addressed review comments from Sylwester
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg65578.html
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg65605.html
 
---
-Regards,
-Sylwester
+Changes from v4
+---------------
+- Addressed all review comments from Sylwester
+- Added separate PMU node as suggested by Stephen Warren
+- Added phandle based discovery of subdevs instead of node name
+
+Changes from v3
+---------------
+- Dropped the RFC tag
+- Addressed all review comments from Sylwester and Sachin
+- Removed clock provider for media dev
+- Added s5k4e5 sensor devicetree binding doc
+
+Changes from v2
+---------------
+- Added exynos5 media device driver from Shaik to this series
+- Added ISP pipeline support in media device driver
+- Based on Sylwester's latest exynos4-is development
+- Asynchronos registration of sensor subdevs
+- Made independent IS-sensor support
+- Add s5k4e5 sensor driver
+- Addressed review comments from Sylwester, Hans, Andrzej, Sachin
+
+Changes from v1
+---------------
+- Addressed all review comments from Sylwester
+- Made sensor subdevs as independent i2c devices
+- Lots of cleanup
+- Debugfs support added
+- Removed PMU global register access
+
+Arun Kumar K (12):
+  [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings
+    documentation
+  [media] exynos5-fimc-is: Add driver core files
+  [media] exynos5-fimc-is: Add common driver header files
+  [media] exynos5-fimc-is: Add register definition and context header
+  [media] exynos5-fimc-is: Add isp subdev
+  [media] exynos5-fimc-is: Add scaler subdev
+  [media] exynos5-fimc-is: Add sensor interface
+  [media] exynos5-fimc-is: Add the hardware pipeline control
+  [media] exynos5-fimc-is: Add the hardware interface module
+  [media] exynos5-is: Add Kconfig and Makefile
+  V4L: Add DT binding doc for s5k4e5 image sensor
+  V4L: Add s5k4e5 sensor driver
+
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |  113 ++
+ .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 +
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5k4e5.c                         |  344 ++++
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/exynos5-is/Kconfig          |   20 +
+ drivers/media/platform/exynos5-is/Makefile         |    7 +
+ drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 +++
+ drivers/media/platform/exynos5-is/fimc-is-core.c   |  410 +++++
+ drivers/media/platform/exynos5-is/fimc-is-core.h   |  132 ++
+ drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++
+ .../media/platform/exynos5-is/fimc-is-interface.c  |  810 ++++++++++
+ .../media/platform/exynos5-is/fimc-is-interface.h  |  124 ++
+ drivers/media/platform/exynos5-is/fimc-is-isp.c    |  534 ++++++
+ drivers/media/platform/exynos5-is/fimc-is-isp.h    |   90 ++
+ .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++
+ drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 +++++++++++++
+ .../media/platform/exynos5-is/fimc-is-pipeline.c   | 1699 ++++++++++++++++++++
+ .../media/platform/exynos5-is/fimc-is-pipeline.h   |  129 ++
+ drivers/media/platform/exynos5-is/fimc-is-regs.h   |  105 ++
+ drivers/media/platform/exynos5-is/fimc-is-scaler.c |  476 ++++++
+ drivers/media/platform/exynos5-is/fimc-is-scaler.h |  106 ++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 +
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 +
+ drivers/media/platform/exynos5-is/fimc-is.h        |  160 ++
+ 27 files changed, 7795 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+ create mode 100644 drivers/media/i2c/s5k4e5.c
+ create mode 100644 drivers/media/platform/exynos5-is/Kconfig
+ create mode 100644 drivers/media/platform/exynos5-is/Makefile
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-core.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-pipeline.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
 
 -- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
+1.7.9.5
+
