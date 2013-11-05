@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from va3ehsobe003.messaging.microsoft.com ([216.32.180.13]:4278 "EHLO
-	va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752453Ab3KALtL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 07:49:11 -0400
-From: Nicolin Chen <b42378@freescale.com>
-To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
-	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
-	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
-	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
-	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
-	<lgirdwood@gmail.com>, <broonie@kernel.org>,
-	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
-	<haojian.zhuang@gmail.com>
-CC: <linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>
-Subject: [PATCH][RESEND 6/8] ALSA: memalloc: use gen_pool_dma_alloc() to allocate iram buffer
-Date: Fri, 1 Nov 2013 19:48:19 +0800
-Message-ID: <db9e59951cdcf55b4903c0358ebe220e58155bc1.1383306365.git.b42378@freescale.com>
-In-Reply-To: <cover.1383306365.git.b42378@freescale.com>
-References: <cover.1383306365.git.b42378@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:43297 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754348Ab3KENDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 27/29] [media] mxl111sf: Don't use dynamic static allocation
+Date: Tue,  5 Nov 2013 08:01:40 -0200
+Message-Id: <1383645702-30636-28-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
+	drivers/media/usb/dvb-usb-v2/mxl111sf.c:74:1: warning: 'mxl111sf_ctrl_msg' uses dynamic stack allocation [enabled by default]
 
-Signed-off-by: Nicolin Chen <b42378@freescale.com>
+Instead, let's enforce a limit for the buffer to be the max size of
+a control URB payload data (64 bytes).
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- sound/core/memalloc.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/sound/core/memalloc.c b/sound/core/memalloc.c
-index 9d93f02..5e1c7bc 100644
---- a/sound/core/memalloc.c
-+++ b/sound/core/memalloc.c
-@@ -184,11 +184,7 @@ static void snd_malloc_dev_iram(struct snd_dma_buffer *dmab, size_t size)
- 	/* Assign the pool into private_data field */
- 	dmab->private_data = pool;
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index e97964ef7f56..2627553f7de1 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -23,6 +23,9 @@
+ #include "lgdt3305.h"
+ #include "lg2160.h"
  
--	dmab->area = (void *)gen_pool_alloc(pool, size);
--	if (!dmab->area)
--		return;
--
--	dmab->addr = gen_pool_virt_to_phys(pool, (unsigned long)dmab->area);
-+	dmab->area = gen_pool_dma_alloc(pool, size, &dmab->addr);
- }
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  64
++
+ int dvb_usb_mxl111sf_debug;
+ module_param_named(debug, dvb_usb_mxl111sf_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level "
+@@ -57,7 +60,12 @@ int mxl111sf_ctrl_msg(struct dvb_usb_device *d,
+ {
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	int ret;
+-	u8 sndbuf[1+wlen];
++	u8 sndbuf[MAX_XFER_SIZE];
++
++	if (1 + wlen > sizeof(sndbuf)) {
++		pr_warn("%s: len=%d is too big!\n", __func__, wlen);
++		return -EOPNOTSUPP;
++	}
  
- /**
+ 	pr_debug("%s(wlen = %d, rlen = %d)\n", __func__, wlen, rlen);
+ 
 -- 
-1.8.4
-
+1.8.3.1
 
