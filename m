@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38249 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751602Ab3KOOB6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 09:01:58 -0500
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <19278.1384523789@warthog.procyon.org.uk>
-References: <19278.1384523789@warthog.procyon.org.uk> <19084.1384522337@warthog.procyon.org.uk> <52861C55.6050307@iki.fi> <20271.1384472102@warthog.procyon.org.uk> <28089.1384515232@warthog.procyon.org.uk>
-To: Antti Palosaari <crope@iki.fi>
-Cc: dhowells@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Jarkko Korpi <jarkko_korpi@hotmail.com>
-Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103 driver
-Date: Fri, 15 Nov 2013 14:01:19 +0000
-Message-ID: <27277.1384524079@warthog.procyon.org.uk>
+Received: from mail-qe0-f49.google.com ([209.85.128.49]:53855 "EHLO
+	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400Ab3KEWPr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 17:15:47 -0500
+Received: by mail-qe0-f49.google.com with SMTP id a11so5447449qen.22
+        for <linux-media@vger.kernel.org>; Tue, 05 Nov 2013 14:15:46 -0800 (PST)
+Date: Tue, 5 Nov 2013 19:08:34 -0300
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] SOLO6x10: don't do DMA from stack in
+ solo_dma_vin_region().
+Message-ID: <20131105190834.2473ace9@pirotess.bifrost.iodev.co.uk>
+In-Reply-To: <m37gemb51b.fsf@t19.piap.pl>
+References: <m37gemb51b.fsf@t19.piap.pl>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/.VFu8Sco4bF8nYaDCodawGm"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Howells <dhowells@redhat.com> wrote:
+--Sig_/.VFu8Sco4bF8nYaDCodawGm
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> > I guess I need to check the tuner writes too.
-> 
-> From dvbsky:
-> 
-> 	TUNER_write(10, [0a])
-> 	TUNER_write(11, [40])
-> 
-> and from your driver:
-> 
-> 	TUNER_write(10, [0b40])
-> 
-> That would appear to be some sort of tuner frequency setting?
+On Thu, 12 Sep 2013 14:25:36 +0200
+khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
+> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
 
-Setting it to 0x0a in the driver doesn't seem to help.
+Acked-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 
-David
+<...>
+
+--Sig_/.VFu8Sco4bF8nYaDCodawGm
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQEcBAEBAgAGBQJSeWxjAAoJEBrCLcBAAV+G7n4IAIaq0gNPygQLoYr9CVBV5X7I
+1VeKco1He3PYUt8qoQLLYiAptQF1QsxM7L19Drnp8aj6UdRsDhm3QsNoVeQGepYv
+MzCuozqM0u97WbXGre4mCPj8ktX6wYQSsTnhPkxD+NhicJp05IAPM26zdGZPm4pT
+rsl66BpGSsRrFuzFzE4ihA1Eu6YQa3han2x+5NBtxYPRicpRdkoQ2yhWOVBSDj/9
+2ojGwJEftAiafd+J8kFgsQKaxEsiOYS4jsQ6gDTZJSroloxiiar0kZJOAkGzqLe9
+CIdFomDEx71GGCn+Vzsjkj6S5sZX8i9WYvNv1d+1Eq2YsuFBA4KCpziHVw01cFs=
+=/Wqm
+-----END PGP SIGNATURE-----
+
+--Sig_/.VFu8Sco4bF8nYaDCodawGm--
