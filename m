@@ -1,68 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f48.google.com ([209.85.212.48]:38534 "EHLO
-	mail-vb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732Ab3KEEVs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 23:21:48 -0500
-MIME-Version: 1.0
-In-Reply-To: <5270503C.8070200@gmail.com>
-References: <5261967E.6010001@samsung.com>
-	<20131028201136.6f66d3f7@samsung.com>
-	<526EFC06.70101@gmail.com>
-	<20131029105426.0969741c.m.chehab@samsung.com>
-	<5270503C.8070200@gmail.com>
-Date: Tue, 5 Nov 2013 09:51:47 +0530
-Message-ID: <CALt3h78rZou7i4riQ=-aMnO4e0bsV22C7MNWDSt-UukpKsj1Zg@mail.gmail.com>
-Subject: Re: [GIT PULL FOR 3.13] Exynos5 SoC FIMC-IS imaging subsystem driver
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Mark Rutland <Mark.Rutland@arm.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:65413 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754624Ab3KEMN4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:13:56 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v12 07/12] [media] exynos5-fimc-is: Add sensor interface
+Date: Tue,  5 Nov 2013 17:43:24 +0530
+Message-Id: <1383653610-11835-8-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Some sensors to be used with fimc-is are exclusively controlled
+by the fimc-is firmware. This minimal sensor driver provides
+the required info for the firmware to configure the sensors
+sitting on I2C bus.
 
-Sorry for the delayed response as I was on leave.
-I will address the comments from Mark today itself and post those DT
-binding patches.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-sensor.c |   45 ++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-sensor.h |   65 ++++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
 
-Regards
-Arun
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+new file mode 100644
+index 0000000..475f1c3
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
+@@ -0,0 +1,45 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "fimc-is-sensor.h"
++
++static const struct sensor_drv_data s5k6a3_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
++	.open_timeout	= S5K6A3_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k6a3_setfile.bin",
++};
++
++static const struct sensor_drv_data s5k4e5_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K4E5,
++	.open_timeout	= S5K4E5_OPEN_TIMEOUT,
++	.setfile_name	= "exynos5_s5k4e5_setfile.bin",
++};
++
++static const struct of_device_id fimc_is_sensor_of_ids[] = {
++	{
++		.compatible	= "samsung,s5k6a3",
++		.data		= &s5k6a3_drvdata,
++	},
++	{
++		.compatible	= "samsung,s5k4e5",
++		.data		= &s5k4e5_drvdata,
++	},
++	{  }
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node)
++{
++	const struct of_device_id *of_id;
++
++	of_id = of_match_node(fimc_is_sensor_of_ids, node);
++	return of_id ? of_id->data : NULL;
++}
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+new file mode 100644
+index 0000000..0ba5733
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
+@@ -0,0 +1,65 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SENSOR_H_
++#define FIMC_IS_SENSOR_H_
++
++#include <linux/of.h>
++#include <linux/types.h>
++
++#define S5K6A3_OPEN_TIMEOUT		2000 /* ms */
++#define S5K6A3_SENSOR_WIDTH		1392
++#define S5K6A3_SENSOR_HEIGHT		1392
++
++#define S5K4E5_OPEN_TIMEOUT		2000 /* ms */
++#define S5K4E5_SENSOR_WIDTH		2560
++#define S5K4E5_SENSOR_HEIGHT		1920
++
++#define SENSOR_WIDTH_PADDING		16
++#define SENSOR_HEIGHT_PADDING		10
++
++enum fimc_is_sensor_id {
++	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
++	FIMC_IS_SENSOR_ID_S5K6A3,
++	FIMC_IS_SENSOR_ID_S5K4E5,
++	FIMC_IS_SENSOR_ID_S5K3H7,
++	FIMC_IS_SENSOR_ID_CUSTOM,
++	FIMC_IS_SENSOR_ID_END
++};
++
++struct sensor_drv_data {
++	enum fimc_is_sensor_id id;
++	/* sensor open timeout in ms */
++	unsigned short open_timeout;
++	char *setfile_name;
++};
++
++/**
++ * struct fimc_is_sensor - fimc-is sensor data structure
++ * @drvdata: a pointer to the sensor's parameters data structure
++ * @i2c_bus: ISP I2C bus index (0...1)
++ * @width: sensor active width
++ * @height: sensor active height
++ * @pixel_width: sensor effective pixel width (width + padding)
++ * @pixel_height: sensor effective pixel height (height + padding)
++ */
++struct fimc_is_sensor {
++	const struct sensor_drv_data *drvdata;
++	unsigned int i2c_bus;
++	unsigned int width;
++	unsigned int height;
++	unsigned int pixel_width;
++	unsigned int pixel_height;
++};
++
++const struct sensor_drv_data *exynos5_is_sensor_get_drvdata(
++			struct device_node *node);
++
++#endif /* FIMC_IS_SENSOR_H_ */
+-- 
+1.7.9.5
 
-On Wed, Oct 30, 2013 at 5:48 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 10/29/2013 01:54 PM, Mauro Carvalho Chehab wrote:
-> [...]
->
->> Yeah, it seems that we've waited for a long time to get an ack there.
->>
->> So, let's do this:
->>
->> Please send a new version with Mark's comments. Also, please split Doc
->> changes from the code changes on the new series. I'll wait for a couple
->> days for DT people to review it. If we don't have any reply, I'll review
->> and apply it for Kernel 3.13, if I don't see anything really weird on it.
->
->
-> Ok, I will make sure all DT binding documentation is in separate patches,
-> actually only one patch needs to be reworked.
->
-> Since Mark already reviewed the FIMC-IS and the S5K4E5 image sensor DT
-> binding patches the only one which may need further review is this one:
-> https://patchwork.linuxtv.org/patch/20237
->
-> Arun, could you send us the updated series ? Unfortunately I might not be
-> able to find time to address those comments myself until Friday.
->
-> --
-> Thanks,
-> Sylwester
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
