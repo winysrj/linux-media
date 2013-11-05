@@ -1,90 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:28761 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754598Ab3K2RSb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 12:18:31 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MX100DS3C2UIQ20@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 29 Nov 2013 12:18:30 -0500 (EST)
-Date: Fri, 29 Nov 2013 15:18:25 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Geert Stappers <stappers@stappers.nl>, mjs <mjstork@gmail.com>
-Subject: Re: [GIT PULL FIXES for 3.13] 2 small gspca and 2 small radio-shark
- fixes
-Message-id: <20131129151825.659a8ca0@samsung.com>
-In-reply-to: <5291FBF3.8060003@redhat.com>
-References: <5291FBF3.8060003@redhat.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:65496 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754725Ab3KEMOL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:14:11 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v12 11/12] V4L: Add DT binding doc for s5k4e5 image sensor
+Date: Tue,  5 Nov 2013 17:43:28 +0530
+Message-Id: <1383653610-11835-12-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 24 Nov 2013 14:15:31 +0100
-Hans de Goede <hdegoede@redhat.com> escreveu:
+S5K4E5 is a Samsung raw image sensor controlled via I2C.
+This patch adds the DT binding documentation for the same.
 
-> Hi Mauro,
-> 
-> This is a resend of my pull-req from a few minutes ago. I had
-> made an error in the Cc: stable (I used linux.org instead of kernel.org),
-> this pull-req is for the fixed commit (up to commit id changed).
-> 
-> This pull-req supersedes my previous GIT PULL FIXES for 3.13, new
-> in this pull-req is an additional usb-id for the gspca_sunplus
-> driver.
-> 
-> Please pull from my tree for 4 small fixes for 3.13 :
-> 
-> The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
-> 
->    [media] media: st-rc: Add ST remote control driver (2013-10-31 08:20:08 -0200)
-> 
-> are available in the git repository at:
-> 
->    git://linuxtv.org/hgoede/gspca.git media-for_v3.13
-> 
-> for you to fetch changes up to da7e5a168b689da740d7c63cb26cbb8a05a4fc5d:
-> 
->    gspca_sunplus: Add new usb-id for 06d6:0041 (2013-11-24 14:12:18 +0100)
-> 
-> ----------------------------------------------------------------
-> Geert Uytterhoeven (1):
->        radio-shark: Mark shark_resume_leds() inline to kill compiler warning
-> 
-> Hans de Goede (2):
->        radio-shark2: Mark shark_resume_leds() inline to kill compiler warning
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+---
+ .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 ++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
 
-Fixes for both above were already upstreamed (using #ifdefs). So, I'll
-be applying those two for 3.14, removing the corresponding #ifdef/#endif blocks.
-
->        gspca_sunplus: Add new usb-id for 06d6:0041
-> 
-> Ondrej Zary (1):
->        gspca-stk1135: Add delay after configuring clock
-
-Applied, thanks!
-> 
->   drivers/media/radio/radio-shark.c  | 2 +-
->   drivers/media/radio/radio-shark2.c | 2 +-
->   drivers/media/usb/gspca/stk1135.c  | 3 +++
->   drivers/media/usb/gspca/sunplus.c  | 1 +
->   4 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> Thanks & Regards,
-> 
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+new file mode 100644
+index 0000000..fc37792
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+@@ -0,0 +1,45 @@
++* Samsung S5K4E5 Raw Image Sensor
++
++S5K4E5 is a raw image sensor with maximum resolution of 2560x1920
++pixels. Data transfer is carried out via MIPI CSI-2 port and controls
++via I2C bus.
++
++Required Properties:
++- compatible	: should contain "samsung,s5k4e5"
++- reg		: I2C device address
++- reset-gpios	: specifier of a GPIO connected to the RESET pin
++- clocks	: should refer to the clock named in clock-names, from
++		  the common clock bindings
++- clock-names	: should contain "extclk" entry
++- svdda-supply	: core voltage supply
++- svddio-supply	: I/O voltage supply
++
++Optional Properties:
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used
++
++The device node should be added to respective control bus controller
++(e.g. I2C0) nodes and linked to the csis port node, using the common
++video interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	i2c-isp@13130000 {
++		s5k4e5@20 {
++			compatible = "samsung,s5k4e5";
++			reg = <0x20>;
++			reset-gpios = <&gpx1 2 1>;
++			clock-frequency = <24000000>;
++			clocks = <&clock 129>;
++			clock-names = "extclk"
++			svdda-supply = <...>;
++			svddio-supply = <...>;
++			port {
++				is_s5k4e5_ep: endpoint {
++					data-lanes = <1 2 3 4>;
++					remote-endpoint = <&csis0_ep>;
++				};
++			};
++		};
++	};
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
