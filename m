@@ -1,46 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47052 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341Ab3KHJxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 04:53:16 -0500
-MIME-Version: 1.0
-Message-ID: <20131108095224.GJ27977@elgon.mountain>
-Date: Fri, 8 Nov 2013 01:52:24 -0800 (PST)
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] exynos4-is: cleanup a define
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43287 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754643Ab3KENDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 05/29] [media] tef6862: fix warning on avr32 arch
+Date: Tue,  5 Nov 2013 08:01:18 -0200
+Message-Id: <1383645702-30636-6-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This define is only used in s5pcsis_irq_handler():
+On avr32 arch, we get those warnings:
+	drivers/media/radio/tef6862.c:59:1: warning: "MODE_SHIFT" redefined
+	In file included from /devel/v4l/ktest-build/arch/avr32/include/asm/ptrace.h:11,
+	arch/avr32/include/uapi/asm/ptrace.h:41:1: warning: this is the location of the previous definition
+Prefix MSA_ to the MSA register bitmap macros, to avoid reusing the same symbol.
 
-	if ((status & S5PCSIS_INTSRC_NON_IMAGE_DATA) && pktbuf->data) {
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/radio/tef6862.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-The problem is that "status" is a 32 bit and (0xff << 28) is larger than
-32 bits and that sets off a static checker warning.  I consulted with
-Sylwester Nawrocki and the define should actually be (0xf << 28).
+diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
+index 06ac69245ca1..69e3245a58a0 100644
+--- a/drivers/media/radio/tef6862.c
++++ b/drivers/media/radio/tef6862.c
+@@ -48,15 +48,15 @@
+ #define WM_SUB_TEST		0xF
+ 
+ /* Different modes of the MSA register */
+-#define MODE_BUFFER		0x0
+-#define MODE_PRESET		0x1
+-#define MODE_SEARCH		0x2
+-#define MODE_AF_UPDATE		0x3
+-#define MODE_JUMP		0x4
+-#define MODE_CHECK		0x5
+-#define MODE_LOAD		0x6
+-#define MODE_END		0x7
+-#define MODE_SHIFT		5
++#define MSA_MODE_BUFFER		0x0
++#define MSA_MODE_PRESET		0x1
++#define MSA_MODE_SEARCH		0x2
++#define MSA_MODE_AF_UPDATE	0x3
++#define MSA_MODE_JUMP		0x4
++#define MSA_MODE_CHECK		0x5
++#define MSA_MODE_LOAD		0x6
++#define MSA_MODE_END		0x7
++#define MSA_MODE_SHIFT		5
+ 
+ struct tef6862_state {
+ 	struct v4l2_subdev sd;
+@@ -114,7 +114,7 @@ static int tef6862_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
+ 
+ 	clamp(freq, TEF6862_LO_FREQ, TEF6862_HI_FREQ);
+ 	pll = 1964 + ((freq - TEF6862_LO_FREQ) * 20) / FREQ_MUL;
+-	i2cmsg[0] = (MODE_PRESET << MODE_SHIFT) | WM_SUB_PLLM;
++	i2cmsg[0] = (MSA_MODE_PRESET << MSA_MODE_SHIFT) | WM_SUB_PLLM;
+ 	i2cmsg[1] = (pll >> 8) & 0xff;
+ 	i2cmsg[2] = pll & 0xff;
+ 
+-- 
+1.8.3.1
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index 9fc2af6..31dfc50 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -91,7 +91,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- #define S5PCSIS_INTSRC_ODD_BEFORE	(1 << 29)
- #define S5PCSIS_INTSRC_ODD_AFTER	(1 << 28)
- #define S5PCSIS_INTSRC_ODD		(0x3 << 28)
--#define S5PCSIS_INTSRC_NON_IMAGE_DATA	(0xff << 28)
-+#define S5PCSIS_INTSRC_NON_IMAGE_DATA	(0xf << 28)
- #define S5PCSIS_INTSRC_FRAME_START	(1 << 27)
- #define S5PCSIS_INTSRC_FRAME_END	(1 << 26)
- #define S5PCSIS_INTSRC_ERR_SOT_HS	(0xf << 12)
