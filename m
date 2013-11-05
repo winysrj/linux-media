@@ -1,75 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:54307 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975Ab3KDMMk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:12:40 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVQ00F96N93AF40@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Nov 2013 07:12:39 -0500 (EST)
-Date: Mon, 04 Nov 2013 10:12:34 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Maik Broemme <mbroemme@parallels.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/12] tda18212dd: Support for NXP TDA18212 (DD) silicon
- tuner
-Message-id: <20131104101234.04a180d6@samsung.com>
-In-reply-to: <52768126.603@iki.fi>
-References: <20131103002235.GD7956@parallels.com>
- <20131103003104.GH7956@parallels.com> <20131103075605.74afce3c@samsung.com>
- <52768126.603@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:57491 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754534Ab3KEMNe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:13:34 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v12 01/12] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
+Date: Tue,  5 Nov 2013 17:43:18 +0530
+Message-Id: <1383653610-11835-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 03 Nov 2013 19:00:22 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+The patch adds the DT binding documentation for Samsung
+Exynos5 SoC series imaging subsystem (FIMC-IS).
 
-> On 03.11.2013 11:56, Mauro Carvalho Chehab wrote:
-> > Hi Maik,
-> >
-> > Em Sun, 3 Nov 2013 01:31:04 +0100
-> > Maik Broemme <mbroemme@parallels.com> escreveu:
-> >
-> >> Added support for the NXP TDA18212 silicon tuner used by recent
-> >> Digital Devices hardware. This will allow update of ddbridge driver
-> >> to support newer devices.
-> >>
-> >> Signed-off-by: Maik Broemme <mbroemme@parallels.com>
-> >> ---
-> >>   drivers/media/dvb-frontends/Kconfig      |   9 +
-> >>   drivers/media/dvb-frontends/Makefile     |   1 +
-> >>   drivers/media/dvb-frontends/tda18212dd.c | 934 +++++++++++++++++++++++++++++++
-> >>   drivers/media/dvb-frontends/tda18212dd.h |  37 ++
-> >
-> > I'm not sure if support for this tuner is not provided already by one of
-> > the existing drivers. If not, it is ok to submit a driver for it, but you
-> > should just call it as tda18212.
-> >
-> > I'm c/c Antti, as he worked on some NXP drivers recently, and may be aware
-> > if a driver already supports TDA18212.
-> 
-> Existing tda18212 driver I made is reverse-engineered and it is used 
-> only for Anysee devices, which I am also responsible. That new tuner 
-> driver is much more complete than what I have made and single driver is 
-> naturally the correct approach.
-> 
-> But one thing which annoys nowadays is that endless talking of 
-> regressions, which has led to situation it is very hard to make changes 
-> drivers that are used for multiple devices and you don't have all those 
-> devices to test. It is also OK to remove my old driver and use that, but 
-> then I likely lose my possibility to make changes, as I am much 
-> dependent on new driver maintainer. That is one existing problem which 
-> is seen multiple times during recent years... So I am perfectly happy 
-> with two drivers too.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+---
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |  113 ++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
 
-I really prefer to have just one driver for each hardware component. That
-makes life easier at long term. Of course, the driver needs to be properly
-maintained.
+diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+new file mode 100644
+index 0000000..658d4a9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+@@ -0,0 +1,113 @@
++Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
++------------------------------------------------------
++
++The camera subsystem on Samsung Exynos5 SoC has some changes relative
++to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
++FIMC-LITE IPs but has a much improved version of FIMC-IS which can
++handle sensor controls and camera post-processing operations. The
++Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
++post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
++dedicated scalers (SCC and SCP).
++
++fimc-is node
++------------
++
++Required properties:
++
++- compatible        : should contain "samsung,exynos5250-fimc-is"
++- reg               : physical base address and size of the memory mapped
++                      registers
++- interrupts        : interrupt-specifier for the fimc-is interrupt
++- clocks            : list of clock specifiers, corresponding to entries in
++                      clock-names property
++- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
++                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
++                      matching entries in the clocks property
++- samsung,pmu       : phandle to the Power Management Unit (PMU) node
++
++i2c-isp (ISP I2C bus controller) nodes
++--------------------------------------
++The i2c-isp nodes should be children of the fimc-is node.
++
++Required properties:
++
++- compatible	: must contain "samsung,exynos4212-i2c-isp" for Exynos4212,
++		  Exynos4412 and Exynos5250 SoCs
++- reg		: physical base address and length of the registers set
++- clocks	: should contain gate clock specifier for this controller
++- clock-names	: should contain "i2c_isp" for the gate clock
++- pinctrl-0	: phandle of the pinctrl node for the i2c isp
++- pinctrl-names : must contain "default"
++
++ranges, #address-cells, and #size-cells should be present as appropriate.
++
++Device tree nodes of the image sensors controlled directly by the FIMC-IS
++firmware must be child nodes of their corresponding ISP I2C bus controller node.
++The data link of these image sensors must be specified using the common video
++interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	fimc_is: fimc-is@13000000 {
++		compatible = "samsung,exynos5250-fimc-is";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		reg = <0x13000000 0x200000>;
++		interrupt-parent = <&combiner>;
++		interrupts = <19 1>;
++		clocks = <&clock 346>, <&clock 347>, <&clock 512>,
++			<&clock 513>, <&clock 514>, <&clock 515>,
++			<&clock 516>;
++		clock-names = "isp", "mcu_isp", "isp_div0", "isp_div1",
++				"isp_divmpwm", "mcu_isp_div0",
++				"mcu_isp_div1";
++		samsung,pmu = <&pmu>;
++
++		i2c0_isp: i2c-isp@13130000 {
++			compatible = "samsung,exynos4212-i2c-isp";
++			reg = <0x13130000 0x100>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			clocks = <&clock 352>;
++			clock-names = "i2c_isp";
++			pinctrl-0 = <&cam_i2c0_bus>;
++			pinctrl-names = "default";
++		};
++
++		i2c1_isp: i2c-isp@13140000 {
++			compatible = "samsung,exynos4212-i2c-isp";
++			reg = <0x13140000 0x100>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			clocks = <&clock 353>;
++			clock-names = "i2c_isp";
++			pinctrl-0 = <&cam_i2c1_bus>;
++			pinctrl-names = "default";
++		};
++	};
++
++In the board specific file the sensor nodes can be provided. For the sensor
++node documentation for s5k4e5, please refer to samsung-s5k4e5.txt
++
++	fimc-is@13000000 {
++		status = "okay";
++
++		i2c-isp@13130000 {
++			s5k4e5@20 {
++				compatible = "samsung,s5k4e5";
++				reg = <0x20>;
++				reset-gpios = <&gpx1 2 1>;
++				clock-frequency = <24000000>;
++				clocks = <&clock 129>;
++				clock-names = "extclk";
++				svdda-supply = <&vdd>;
++				svddio-supply = <&vdd>;
++				port {
++					is_s5k4e5_ep: endpoint {
++						remote-endpoint = <&csis0_ep>;
++					};
++				};
++			};
++		};
++	};
+-- 
+1.7.9.5
 
-Regards,
-Mauro
