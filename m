@@ -1,589 +1,671 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44037 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab3KKB0o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 20:26:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 13/19] uvcvideo: Unify UVC payload header parsing.
-Date: Mon, 11 Nov 2013 02:27:18 +0100
-Message-ID: <1816510.MevHWrmTYX@avalon>
-In-Reply-To: <1377829038-4726-14-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-14-git-send-email-posciak@chromium.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:49480 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754588Ab3KEMNt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:13:49 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v12 05/12] [media] exynos5-fimc-is: Add isp subdev
+Date: Tue,  5 Nov 2013 17:43:22 +0530
+Message-Id: <1383653610-11835-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+fimc-is driver takes video data input from the ISP video node
+which is added in this patch. This node accepts Bayer input
+buffers which is given from the IS sensors.
 
-Thank you for the patch.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos5-is/fimc-is-isp.c |  534 +++++++++++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-isp.h |   90 ++++
+ 2 files changed, 624 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
 
-On Friday 30 August 2013 11:17:12 Pawel Osciak wrote:
-> Create a separate function for parsing UVC payload headers and extract code
-> from other functions into it. Store the parsed values in a header struct.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 270 ++++++++++++++++++-----------------
->  drivers/media/usb/uvc/uvcvideo.h  |  21 +++
->  2 files changed, 157 insertions(+), 134 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 2f9a5fa..59f57a2 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -422,40 +422,14 @@ static int uvc_commit_video(struct uvc_streaming
-> *stream,
-> 
->  static void
->  uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer
-> *buf,
-> -		       const __u8 *data, int len)
-> +			struct uvc_payload_header *header)
->  {
->  	struct uvc_clock_sample *sample;
-> -	unsigned int header_size;
-> -	bool has_pts = false;
-> -	bool has_scr = false;
->  	unsigned long flags;
->  	struct timespec ts;
->  	u16 host_sof;
->  	u16 dev_sof;
-> 
-> -	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-> -	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> -		header_size = 12;
-> -		has_pts = true;
-> -		has_scr = true;
-> -		break;
-> -	case UVC_STREAM_PTS:
-> -		header_size = 6;
-> -		has_pts = true;
-> -		break;
-> -	case UVC_STREAM_SCR:
-> -		header_size = 8;
-> -		has_scr = true;
-> -		break;
-> -	default:
-> -		header_size = 2;
-> -		break;
-> -	}
-> -
-> -	/* Check for invalid headers. */
-> -	if (len < header_size)
-> -		return;
-> -
->  	/* Extract the timestamps:
->  	 *
->  	 * - store the frame PTS in the buffer structure
-> @@ -463,17 +437,17 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
-> struct uvc_buffer *buf, *   kernel timestamps and store them with the SCR
-> STC and SOF fields *   in the ring buffer
->  	 */
-> -	if (has_pts && buf != NULL)
-> -		buf->pts = get_unaligned_le32(&data[2]);
-> +	if (header->has_pts && buf != NULL)
-> +		buf->pts = header->pts;
-> 
-> -	if (!has_scr)
-> +	if (!header->has_scr)
->  		return;
-> 
->  	/* To limit the amount of data, drop SCRs with an SOF identical to the
->  	 * previous one.
->  	 */
-> -	dev_sof = get_unaligned_le16(&data[header_size - 2]);
-> -	if (dev_sof == stream->clock.last_sof)
-> +	dev_sof = header->sof;
-> +	if (dev_sof <= stream->clock.last_sof)
-
-This change (== -> <=) is unrelated. If it's need it please split it to a 
-separate patch.
-
->  		return;
-> 
->  	stream->clock.last_sof = dev_sof;
-> @@ -513,7 +487,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
-> struct uvc_buffer *buf, spin_lock_irqsave(&stream->clock.lock, flags);
-> 
->  	sample = &stream->clock.samples[stream->clock.head];
-> -	sample->dev_stc = get_unaligned_le32(&data[header_size - 6]);
-> +	sample->dev_stc = header->stc;
->  	sample->dev_sof = dev_sof;
->  	sample->host_sof = host_sof;
->  	sample->host_ts = ts;
-> @@ -756,114 +730,74 @@ done:
->   */
-> 
->  static void uvc_video_stats_decode(struct uvc_streaming *stream,
-> -		const __u8 *data, int len)
-> +				    struct uvc_payload_header *header)
->  {
-> -	unsigned int header_size;
-> -	bool has_pts = false;
-> -	bool has_scr = false;
-> -	u16 uninitialized_var(scr_sof);
-> -	u32 uninitialized_var(scr_stc);
-> -	u32 uninitialized_var(pts);
-> -
->  	if (stream->stats.stream.nb_frames == 0 &&
->  	    stream->stats.frame.nb_packets == 0)
->  		ktime_get_ts(&stream->stats.stream.start_ts);
-> 
-> -	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-> -	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> -		header_size = 12;
-> -		has_pts = true;
-> -		has_scr = true;
-> -		break;
-> -	case UVC_STREAM_PTS:
-> -		header_size = 6;
-> -		has_pts = true;
-> -		break;
-> -	case UVC_STREAM_SCR:
-> -		header_size = 8;
-> -		has_scr = true;
-> -		break;
-> -	default:
-> -		header_size = 2;
-> -		break;
-> -	}
-> -
-> -	/* Check for invalid headers. */
-> -	if (len < header_size || data[0] < header_size) {
-> -		stream->stats.frame.nb_invalid++;
-> -		return;
-> -	}
-> -
-> -	/* Extract the timestamps. */
-> -	if (has_pts)
-> -		pts = get_unaligned_le32(&data[2]);
-> -
-> -	if (has_scr) {
-> -		scr_stc = get_unaligned_le32(&data[header_size - 6]);
-> -		scr_sof = get_unaligned_le16(&data[header_size - 2]);
-> -	}
-> -
->  	/* Is PTS constant through the whole frame ? */
-> -	if (has_pts && stream->stats.frame.nb_pts) {
-> -		if (stream->stats.frame.pts != pts) {
-> +	if (header->has_pts && stream->stats.frame.nb_pts) {
-> +		if (stream->stats.frame.pts != header->pts) {
->  			stream->stats.frame.nb_pts_diffs++;
->  			stream->stats.frame.last_pts_diff =
->  				stream->stats.frame.nb_packets;
->  		}
->  	}
-> 
-> -	if (has_pts) {
-> +	if (header->has_pts) {
->  		stream->stats.frame.nb_pts++;
-> -		stream->stats.frame.pts = pts;
-> +		stream->stats.frame.pts = header->pts;
->  	}
-> 
->  	/* Do all frames have a PTS in their first non-empty packet, or before
->  	 * their first empty packet ?
->  	 */
->  	if (stream->stats.frame.size == 0) {
-> -		if (len > header_size)
-> -			stream->stats.frame.has_initial_pts = has_pts;
-> -		if (len == header_size && has_pts)
-> +		if (header->payload_size > 0)
-> +			stream->stats.frame.has_initial_pts = header->has_pts;
-> +		if (header->payload_size == 0 && header->has_pts)
->  			stream->stats.frame.has_early_pts = true;
->  	}
-> 
->  	/* Do the SCR.STC and SCR.SOF fields vary through the frame ? */
-> -	if (has_scr && stream->stats.frame.nb_scr) {
-> -		if (stream->stats.frame.scr_stc != scr_stc)
-> +	if (header->has_scr && stream->stats.frame.nb_scr) {
-> +		if (stream->stats.frame.scr_stc != header->stc)
->  			stream->stats.frame.nb_scr_diffs++;
->  	}
-> 
-> -	if (has_scr) {
-> +	if (header->has_scr) {
->  		/* Expand the SOF counter to 32 bits and store its value. */
->  		if (stream->stats.stream.nb_frames > 0 ||
->  		    stream->stats.frame.nb_scr > 0)
->  			stream->stats.stream.scr_sof_count +=
-> -				(scr_sof - stream->stats.stream.scr_sof) % 2048;
-> -		stream->stats.stream.scr_sof = scr_sof;
-> +				(header->sof - stream->stats.stream.scr_sof)
-> +				% 2048;
-> +		stream->stats.stream.scr_sof = header->sof;
-> 
->  		stream->stats.frame.nb_scr++;
-> -		stream->stats.frame.scr_stc = scr_stc;
-> -		stream->stats.frame.scr_sof = scr_sof;
-> +		stream->stats.frame.scr_stc = header->stc;
-> +		stream->stats.frame.scr_sof = header->sof;
-> 
-> -		if (scr_sof < stream->stats.stream.min_sof)
-> -			stream->stats.stream.min_sof = scr_sof;
-> -		if (scr_sof > stream->stats.stream.max_sof)
-> -			stream->stats.stream.max_sof = scr_sof;
-> +		if (header->sof < stream->stats.stream.min_sof)
-> +			stream->stats.stream.min_sof = header->sof;
-> +		if (header->sof > stream->stats.stream.max_sof)
-> +			stream->stats.stream.max_sof = header->sof;
->  	}
-> 
->  	/* Record the first non-empty packet number. */
-> -	if (stream->stats.frame.size == 0 && len > header_size)
-> +	if (stream->stats.frame.size == 0 && header->payload_size > 0)
->  		stream->stats.frame.first_data = stream->stats.frame.nb_packets;
-> 
->  	/* Update the frame size. */
-> -	stream->stats.frame.size += len - header_size;
-> +	stream->stats.frame.size += header->payload_size;
-> 
->  	/* Update the packets counters. */
->  	stream->stats.frame.nb_packets++;
-> -	if (len > header_size)
-> +	if (header->payload_size == 0)
-
-This fixes a bug, could you please split it to a separate patch ? Just turn 
-len > header_size into len == header_size in a bugfix patch of its own, before 
-this one.
-
->  		stream->stats.frame.nb_empty++;
-> 
-> -	if (data[1] & UVC_STREAM_ERR)
-> +	if (header->has_err)
->  		stream->stats.frame.nb_errors++;
->  }
-> 
-> @@ -1006,21 +940,9 @@ static void uvc_video_stats_stop(struct uvc_streaming
-> *stream) * uvc_video_decode_end will never be called with a NULL buffer.
->   */
->  static int uvc_video_decode_start(struct uvc_streaming *stream,
-> -		struct uvc_buffer *buf, const __u8 *data, int len)
-> +		struct uvc_buffer *buf, struct uvc_payload_header *header)
->  {
-> -	__u8 fid;
-> -
-> -	/* Sanity checks:
-> -	 * - packet must be at least 2 bytes long
-> -	 * - bHeaderLength value must be at least 2 bytes (see above)
-> -	 * - bHeaderLength value can't be larger than the packet size.
-> -	 */
-> -	if (len < 2 || data[0] < 2 || data[0] > len) {
-> -		stream->stats.frame.nb_invalid++;
-> -		return -EINVAL;
-> -	}
-> -
-> -	fid = data[1] & UVC_STREAM_FID;
-> +	u8 fid = header->fid;
-> 
->  	/* Increase the sequence number regardless of any buffer states, so
->  	 * that discontinuous sequence numbers always indicate lost frames.
-> @@ -1031,8 +953,8 @@ static int uvc_video_decode_start(struct uvc_streaming
-> *stream, uvc_video_stats_update(stream);
->  	}
-> 
-> -	uvc_video_clock_decode(stream, buf, data, len);
-> -	uvc_video_stats_decode(stream, data, len);
-> +	uvc_video_clock_decode(stream, buf, header);
-> +	uvc_video_stats_decode(stream, header);
-> 
->  	/* Store the payload FID bit and return immediately when the buffer is
->  	 * NULL.
-> @@ -1043,7 +965,7 @@ static int uvc_video_decode_start(struct uvc_streaming
-> *stream, }
-> 
->  	/* Mark the buffer as bad if the error bit is set. */
-> -	if (data[1] & UVC_STREAM_ERR) {
-> +	if (header->has_err) {
->  		uvc_trace(UVC_TRACE_FRAME, "Marking buffer as bad (error bit "
->  			  "set).\n");
->  		buf->error = 1;
-> @@ -1064,7 +986,7 @@ static int uvc_video_decode_start(struct uvc_streaming
-> *stream, uvc_trace(UVC_TRACE_FRAME, "Dropping payload (out of "
->  				"sync).\n");
->  			if ((stream->dev->quirks & UVC_QUIRK_STREAM_NO_FID) &&
-> -			    (data[1] & UVC_STREAM_EOF))
-> +			    (header->has_eof))
->  				stream->last_fid ^= UVC_STREAM_FID;
->  			return -ENODATA;
->  		}
-> @@ -1107,7 +1029,7 @@ static int uvc_video_decode_start(struct uvc_streaming
-> *stream,
-> 
->  	stream->last_fid = fid;
-> 
-> -	return data[0];
-> +	return 0;
->  }
-> 
->  static void uvc_video_decode_data(struct uvc_streaming *stream,
-> @@ -1128,18 +1050,20 @@ static void uvc_video_decode_data(struct
-> uvc_streaming *stream,
-> 
->  	/* Complete the current frame if the buffer size was exceeded. */
->  	if (len > maxlen) {
-> -		uvc_trace(UVC_TRACE_FRAME, "Frame complete (overflow).\n");
-> +		uvc_trace(UVC_TRACE_FRAME, "Frame complete (overflow) "
-> +				"len=%d, buffer size=%d used=%d\n",
-
-The sizes can't be negative, please use %u.
-
-> +				len, buf->length, buf->bytesused);
-
-Do we actually need to print that extra information ? :-) Did you find it 
-useful during development ?
-
->  		buf->state = UVC_BUF_STATE_READY;
->  	}
->  }
-> 
->  static void uvc_video_decode_end(struct uvc_streaming *stream,
-> -		struct uvc_buffer *buf, const __u8 *data, int len)
-> +		struct uvc_buffer *buf, struct uvc_payload_header *header)
->  {
->  	/* Mark the buffer as done if the EOF marker is set. */
-> -	if (data[1] & UVC_STREAM_EOF && buf->bytesused != 0) {
-> +	if (header->has_eof && buf->bytesused != 0) {
->  		uvc_trace(UVC_TRACE_FRAME, "Frame complete (EOF found).\n");
-> -		if (data[0] == len)
-> +		if (header->payload_size == 0)
->  			uvc_trace(UVC_TRACE_FRAME, "EOF in empty payload.\n");
->  		buf->state = UVC_BUF_STATE_READY;
->  		if (stream->dev->quirks & UVC_QUIRK_STREAM_NO_FID)
-> @@ -1186,6 +1110,75 @@ static int uvc_video_encode_data(struct uvc_streaming
-> *stream, return nbytes;
->  }
-> 
-> +static int uvc_video_parse_header(struct uvc_streaming *stream,
-> +		const __u8 *data, int len, struct uvc_payload_header *header)
-> +{
-> +	int off = 2;
-
-The offset can't be negative, you can thus use an unsigned int type. And I 
-don't think there's a need to abbreviate the variable name, you can call it 
-offset. The lines below are not that long.
-
-> +
-> +	/* Sanity checks:
-> +	 * - packet must be at least 2 bytes long
-> +	 * - bHeaderLength value must be at least 2 bytes (see above)
-> +	 */
-> +	if (len < 2 || data[0] < 2)
-> +		goto error;
-> +
-> +	header->length = 2; /* 1 byte of header length + 1 byte of BFH. */
-> +
-> +	header->has_sli = false;
-> +	header->has_eof = data[1] & UVC_STREAM_EOF;
-> +	header->has_pts = data[1] & UVC_STREAM_PTS;
-> +	header->has_scr = data[1] & UVC_STREAM_SCR;
-> +	header->has_err = data[1] & UVC_STREAM_ERR;
-> +
-> +	if (header->has_pts)
-> +		header->length += 4;
-> +
-> +	if (header->has_scr)
-> +		header->length += 6;
-> +
-> +	if (stream->cur_format->fcc == V4L2_PIX_FMT_VP8) {
-> +		/* VP8 payload has 2 additional bytes of BFH. */
-> +		header->length += 2;
-> +		off += 2;
-> +
-> +		/* SLI always present for VP8 simulcast (at the end of header),
-> +		 * allowed for VP8 non-simulcast.
-> +		 */
-> +		header->has_sli = data[1] & UVC_STREAM_SLI;
-> +		if (header->has_sli)
-> +			header->length += 2;
-> +	}
-> +
-> +	/* - bHeaderLength value can't be larger than the packet size. */
-> +	if (len < data[0] || data[0] != header->length)
-
-Can you keep the comment and the len < data[0] check above with the other 
-sanity checks as in the original code ? The data[0] != header->length check 
-obviously needs to stay here.
-
-> +		goto error;
-> +
-> +	/* PTS 4 bytes, STC 4 bytes, SOF 2 bytes. */
-> +	if (header->has_pts) {
-> +		header->pts = get_unaligned_le32(&data[off]);
-> +		off += 4;
-> +	}
-> +
-> +	if (header->has_scr) {
-> +		header->stc = get_unaligned_le32(&data[off]);
-> +		off += 4;
-> +		header->sof = get_unaligned_le16(&data[off]);
-> +		off += 2;
-> +	}
-> +
-> +	if (header->has_sli)
-> +		header->sli = get_unaligned_le16(&data[off]);
-> +
-> +	header->payload_size = len - header->length;
-> +	header->fid = data[1] & UVC_STREAM_FID;
-> +
-> +	return 0;
-> +
-> +error:
-> +	stream->stats.frame.nb_invalid++;
-> +	return -EINVAL;
-> +}
-> +
->  /* ------------------------------------------------------------------------
-> * URB handling
->   */
-> @@ -1195,9 +1188,11 @@ static int uvc_video_encode_data(struct uvc_streaming
-> *stream, */
->  static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming
-> *stream) {
-> +	unsigned int len;
->  	u8 *mem;
->  	int ret, i;
->  	struct uvc_buffer *buf = NULL;
-> +	struct uvc_payload_header header;
-
-Could you move this line to the top of the function ? I try to keep variable 
-declarations more or less sorted by line size, even though it seems I've 
-failed to do so in every location in this driver :-)
-
-> 
->  	for (i = 0; i < urb->number_of_packets; ++i) {
->  		if (urb->iso_frame_desc[i].status < 0) {
-> @@ -1209,12 +1204,16 @@ static void uvc_video_decode_isoc(struct urb *urb,
-> struct uvc_streaming *stream) continue;
->  		}
-> 
-> -		/* Decode the payload header. */
->  		mem = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
-> +		len = urb->iso_frame_desc[i].actual_length;
-> +
-> +		ret = uvc_video_parse_header(stream, mem, len, &header);
-> +		if (ret < 0)
-> +			continue;
-> +
->  		buf = uvc_queue_get_first_buf(&stream->queue);
->  		do {
-> -			ret = uvc_video_decode_start(stream, buf, mem,
-> -				urb->iso_frame_desc[i].actual_length);
-> +			ret = uvc_video_decode_start(stream, buf, &header);
->  			if (ret == -EAGAIN)
->  				buf = uvc_queue_next_buffer(&stream->queue,
->  							    buf);
-> @@ -1224,12 +1223,11 @@ static void uvc_video_decode_isoc(struct urb *urb,
-> struct uvc_streaming *stream) continue;
-> 
->  		/* Decode the payload data. */
-> -		uvc_video_decode_data(stream, buf, mem + ret,
-> -			urb->iso_frame_desc[i].actual_length - ret);
-> +		uvc_video_decode_data(stream, buf, mem + header.length,
-> +			urb->iso_frame_desc[i].actual_length - header.length);
-> 
->  		/* Process the header again. */
-> -		uvc_video_decode_end(stream, buf, mem,
-> -			urb->iso_frame_desc[i].actual_length);
-> +		uvc_video_decode_end(stream, buf, &header);
-> 
->  		if (buf->state == UVC_BUF_STATE_READY) {
->  			if (buf->length != buf->bytesused &&
-> @@ -1246,6 +1244,7 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream) {
->  	u8 *mem;
->  	int len, ret;
-> +	struct uvc_payload_header header;
->  	struct uvc_buffer *buf;
-> 
->  	/*
-> @@ -1259,6 +1258,10 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream) len = urb->actual_length;
->  	stream->bulk.payload_size += len;
-> 
-> +	ret = uvc_video_parse_header(stream, mem, len, &header);
-> +	if (ret < 0)
-> +		return;
-> +
->  	buf = uvc_queue_get_first_buf(&stream->queue);
-> 
->  	/* If the URB is the first of its payload, decode and save the
-> @@ -1266,7 +1269,7 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream) */
->  	if (stream->bulk.header_size == 0 && !stream->bulk.skip_payload) {
->  		do {
-> -			ret = uvc_video_decode_start(stream, buf, mem, len);
-> +			ret = uvc_video_decode_start(stream, buf, &header);
->  			if (ret == -EAGAIN)
->  				buf = uvc_queue_next_buffer(&stream->queue,
->  							    buf);
-> @@ -1276,11 +1279,11 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream) if (ret < 0 || buf == NULL) {
->  			stream->bulk.skip_payload = 1;
->  		} else {
-> -			memcpy(stream->bulk.header, mem, ret);
-> -			stream->bulk.header_size = ret;
-> +			memcpy(stream->bulk.header, mem, header.length);
-> +			stream->bulk.header_size = header.length;
-> 
-> -			mem += ret;
-> -			len -= ret;
-> +			mem += header.length;
-> +			len -= header.length;
->  		}
->  	}
-> 
-> @@ -1299,8 +1302,7 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream) if (urb->actual_length <
-> urb->transfer_buffer_length ||
->  	    stream->bulk.payload_size >= stream->bulk.max_payload_size) {
->  		if (!stream->bulk.skip_payload && buf != NULL) {
-> -			uvc_video_decode_end(stream, buf, stream->bulk.header,
-> -				stream->bulk.payload_size);
-> +			uvc_video_decode_end(stream, buf, &header);
->  			if (buf->state == UVC_BUF_STATE_READY)
->  				buf = uvc_queue_next_buffer(&stream->queue,
->  							    buf);
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index bca8715..b355b2c 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -453,6 +453,27 @@ struct uvc_stats_stream {
->  	unsigned int max_sof;		/* Maximum STC.SOF value */
->  };
-> 
-> +struct uvc_payload_header {
-> +	bool has_eof;
-> +
-> +	bool has_pts;
-> +	u32 pts;
-> +
-> +	bool has_scr;
-> +	u16 sof;
-> +	u32 stc;
-> +
-> +	bool has_sli;
-> +	u16 sli;
-> +
-> +	u8 fid;
-> +
-> +	bool has_err;
-> +
-> +	int length;
-> +	int payload_size;
-> +};
-> +
->  struct uvc_streaming {
->  	struct list_head list;
->  	struct uvc_device *dev;
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.c b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+new file mode 100644
+index 0000000..7bd603f
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.c
+@@ -0,0 +1,534 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++
++#include "fimc-is.h"
++
++#define ISP_DRV_NAME "fimc-is-isp"
++
++static const struct fimc_is_fmt formats[] = {
++	{
++		.name           = "Bayer GR-BG 8bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG8,
++		.depth		= { 8 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 10bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG10,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++	{
++		.name           = "Bayer GR-BG 12bits",
++		.fourcc         = V4L2_PIX_FMT_SGRBG12,
++		.depth		= { 16 },
++		.num_planes     = 1,
++	},
++};
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
++{
++	unsigned int i;
++
++	for (i = 0; i < NUM_FORMATS; i++)
++		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
++			return &formats[i];
++	return NULL;
++}
++
++static int isp_video_output_start_streaming(struct vb2_queue *vq,
++					unsigned int count)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++
++	set_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_stop_streaming(struct vb2_queue *vq)
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf;
++
++	/* Release unused buffers */
++	while (!list_empty(&isp->wait_queue)) {
++		buf = fimc_is_isp_wait_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++	while (!list_empty(&isp->run_queue)) {
++		buf = fimc_is_isp_run_queue_get(isp);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++
++	clear_bit(STATE_RUNNING, &isp->output_state);
++	return 0;
++}
++
++static int isp_video_output_queue_setup(struct vb2_queue *vq,
++			const struct v4l2_format *pfmt,
++			unsigned int *num_buffers, unsigned int *num_planes,
++			unsigned int sizes[], void *allocators[])
++{
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	const struct fimc_is_fmt *fmt = isp->fmt;
++	unsigned int wh, i;
++
++	if (!fmt)
++		return -EINVAL;
++
++	*num_planes = fmt->num_planes;
++	wh = isp->width * isp->height;
++
++	for (i = 0; i < *num_planes; i++) {
++		allocators[i] = isp->alloc_ctx;
++		sizes[i] = (wh * fmt->depth[i]) / 8;
++	}
++	return 0;
++}
++
++static int isp_video_output_buffer_init(struct vb2_buffer *vb)
++{
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	buf->paddr[0] = vb2_dma_contig_plane_dma_addr(vb, 0);
++	return 0;
++}
++
++static int isp_video_output_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	unsigned long size;
++
++	size = (isp->width * isp->height * isp->fmt->depth[0]) / 8;
++	if (vb2_plane_size(vb, 0) < size) {
++		v4l2_err(&isp->subdev, "User buffer too small (%ld < %ld)\n",
++			 vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++	vb2_set_plane_payload(vb, 0, size);
++
++	return 0;
++}
++
++static void isp_video_output_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_isp *isp = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	fimc_is_pipeline_buf_lock(isp->pipeline);
++	fimc_is_isp_wait_queue_add(isp, buf);
++	fimc_is_pipeline_buf_unlock(isp->pipeline);
++
++	/* Call shot command */
++	fimc_is_pipeline_shot_safe(isp->pipeline);
++}
++
++static const struct vb2_ops isp_video_output_qops = {
++	.queue_setup	 = isp_video_output_queue_setup,
++	.buf_init	 = isp_video_output_buffer_init,
++	.buf_prepare	 = isp_video_output_buffer_prepare,
++	.buf_queue	 = isp_video_output_buffer_queue,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
++	.start_streaming = isp_video_output_start_streaming,
++	.stop_streaming	 = isp_video_output_stop_streaming,
++};
++
++static const struct v4l2_file_operations isp_video_output_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vb2_fop_mmap,
++};
++
++/*
++ * Video node ioctl operations
++ */
++static int isp_querycap_output(struct file *file, void *priv,
++					struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, ISP_DRV_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, ISP_DRV_NAME, sizeof(cap->card) - 1);
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++			ISP_DRV_NAME);
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int isp_enum_fmt_mplane(struct file *file, void *priv,
++				     struct v4l2_fmtdesc *f)
++{
++	const struct fimc_is_fmt *fmt;
++
++	if (f->index >= NUM_FORMATS)
++		return -EINVAL;
++
++	fmt = &formats[f->index];
++	strlcpy(f->description, fmt->name, sizeof(f->description));
++	f->pixelformat = fmt->fourcc;
++
++	return 0;
++}
++
++static int isp_g_fmt_mplane(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++	const struct fimc_is_fmt *fmt = isp->fmt;
++
++	plane_fmt->bytesperline = (isp->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = plane_fmt->bytesperline * isp->height;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->width = isp->width;
++	pixm->height = isp->height;
++	pixm->field = V4L2_FIELD_NONE;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_try_fmt_mplane(struct file *file, void *fh,
++		struct v4l2_format *f)
++{
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[0];
++
++	fmt = find_format(f);
++	if (!fmt)
++		fmt = (struct fimc_is_fmt *) &formats[0];
++
++	v4l_bound_align_image(&pixm->width,
++			ISP_MIN_WIDTH + SENSOR_WIDTH_PADDING,
++			ISP_MAX_WIDTH + SENSOR_WIDTH_PADDING, 0,
++			&pixm->height,
++			ISP_MIN_HEIGHT + SENSOR_HEIGHT_PADDING,
++			ISP_MAX_HEIGHT + SENSOR_HEIGHT_PADDING, 0,
++			0);
++
++	plane_fmt->bytesperline = (pixm->width * fmt->depth[0]) / 8;
++	plane_fmt->sizeimage = (pixm->width * pixm->height *
++				fmt->depth[0]) / 8;
++	memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->field = V4L2_FIELD_NONE;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int isp_s_fmt_mplane(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	int ret;
++
++	ret = isp_try_fmt_mplane(file, priv, f);
++	if (ret)
++		return ret;
++
++	/* Get format type */
++	fmt = find_format(f);
++	if (!fmt) {
++		fmt = &formats[0];
++		pixm->pixelformat = fmt->fourcc;
++		pixm->num_planes = fmt->num_planes;
++	}
++
++	isp->fmt = fmt;
++	isp->width = pixm->width;
++	isp->height = pixm->height;
++	isp->size_image = pixm->plane_fmt[0].sizeimage;
++	set_bit(STATE_INIT, &isp->output_state);
++	return 0;
++}
++
++static int isp_reqbufs(struct file *file, void *priv,
++		struct v4l2_requestbuffers *reqbufs)
++{
++	struct fimc_is_isp *isp = video_drvdata(file);
++	int ret;
++
++	reqbufs->count = max_t(u32, FIMC_IS_ISP_REQ_BUFS_MIN, reqbufs->count);
++	ret = vb2_reqbufs(&isp->vbq, reqbufs);
++	if (ret) {
++		v4l2_err(&isp->subdev, "vb2 req buffers failed\n");
++		return ret;
++	}
++
++	if (reqbufs->count < FIMC_IS_ISP_REQ_BUFS_MIN) {
++		reqbufs->count = 0;
++		vb2_reqbufs(&isp->vbq, reqbufs);
++		return -ENOMEM;
++	}
++	set_bit(STATE_BUFS_ALLOCATED, &isp->output_state);
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops isp_video_output_ioctl_ops = {
++	.vidioc_querycap		= isp_querycap_output,
++	.vidioc_enum_fmt_vid_out_mplane	= isp_enum_fmt_mplane,
++	.vidioc_try_fmt_vid_out_mplane	= isp_try_fmt_mplane,
++	.vidioc_s_fmt_vid_out_mplane	= isp_s_fmt_mplane,
++	.vidioc_g_fmt_vid_out_mplane	= isp_g_fmt_mplane,
++	.vidioc_reqbufs			= isp_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static int isp_subdev_registered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct vb2_queue *q = &isp->vbq;
++	struct video_device *vfd = &isp->vfd;
++	int ret;
++
++	mutex_init(&isp->video_lock);
++
++	memset(vfd, 0, sizeof(*vfd));
++	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.output");
++
++	vfd->fops = &isp_video_output_fops;
++	vfd->ioctl_ops = &isp_video_output_ioctl_ops;
++	vfd->v4l2_dev = sd->v4l2_dev;
++	vfd->release = video_device_release_empty;
++	vfd->lock = &isp->video_lock;
++	vfd->queue = q;
++	vfd->vfl_dir = VFL_DIR_TX;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++
++	memset(q, 0, sizeof(*q));
++	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->ops = &isp_video_output_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct fimc_is_buf);
++	q->drv_priv = isp;
++
++	ret = vb2_queue_init(q);
++	if (ret < 0)
++		return ret;
++
++	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
++	if (ret < 0)
++		return ret;
++
++	video_set_drvdata(vfd, isp);
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		media_entity_cleanup(&vfd->entity);
++		return ret;
++	}
++
++	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
++		  vfd->name, video_device_node_name(vfd));
++	return 0;
++}
++
++static void isp_subdev_unregistered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++
++	if (isp && video_is_registered(&isp->vfd))
++		video_unregister_device(&isp->vfd);
++}
++
++static const struct v4l2_subdev_internal_ops isp_subdev_internal_ops = {
++	.registered = isp_subdev_registered,
++	.unregistered = isp_subdev_unregistered,
++};
++
++static struct fimc_is_sensor *fimc_is_get_sensor(struct fimc_is *is,
++		int sensor_id)
++{
++	int i;
++
++	for (i = 0; i < FIMC_IS_NUM_SENSORS; i++) {
++		if (is->sensor[i].drvdata->id == sensor_id)
++			return &is->sensor[i];
++	}
++	return NULL;
++}
++
++static int isp_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct fimc_is_sensor *sensor;
++	const struct sensor_drv_data *sdata;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (on) {
++		ret = pm_runtime_get_sync(&is->pdev->dev);
++		if (ret < 0)
++			return ret;
++
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++
++		ret = fimc_is_pipeline_open(isp->pipeline, sensor);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline open failed\n");
++	} else {
++		ret = fimc_is_pipeline_close(isp->pipeline);
++		if (ret)
++			v4l2_err(&isp->subdev, "Pipeline close failed\n");
++		pm_runtime_put_sync(&is->pdev->dev);
++	}
++
++	return ret;
++}
++
++static struct v4l2_subdev_core_ops isp_core_ops = {
++	.s_power = isp_s_power,
++};
++
++static int isp_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct fimc_is_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = isp->pipeline->is;
++	struct v4l2_subdev *sensor_sd = isp->sensor_sd;
++	struct v4l2_subdev_format fmt;
++	const struct sensor_drv_data *sdata;
++	struct fimc_is_sensor *sensor;
++	int ret;
++
++	if (!sensor_sd)
++		return -EINVAL;
++
++	if (enable) {
++		sdata = exynos5_is_sensor_get_drvdata(sensor_sd->dev->of_node);
++		sensor = fimc_is_get_sensor(is, sdata->id);
++		/* Retrieve the sensor format */
++		fmt.pad = 0;
++		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		ret = v4l2_subdev_call(sensor_sd, pad, get_fmt, NULL, &fmt);
++		if (ret)
++			return ret;
++
++		sensor->width = fmt.format.width - SENSOR_WIDTH_PADDING;
++		sensor->height = fmt.format.height - SENSOR_HEIGHT_PADDING;
++		sensor->pixel_width = fmt.format.width;
++		sensor->pixel_height = fmt.format.height;
++
++		/* Check sensor resolution match */
++		if ((sensor->pixel_width != isp->width) ||
++			(sensor->pixel_height != isp->height)) {
++			v4l2_err(sd, "Resolution mismatch\n");
++			return -EPIPE;
++		}
++
++		ret = fimc_is_pipeline_start(isp->pipeline, 1);
++		if (ret)
++			v4l2_err(sd, "Pipeline start failed.\n");
++	} else {
++		ret = fimc_is_pipeline_stop(isp->pipeline, 1);
++		if (ret)
++			v4l2_err(sd, "Pipeline stop failed.\n");
++	}
++
++	return ret;
++}
++
++static const struct v4l2_subdev_video_ops isp_video_ops = {
++	.s_stream       = isp_s_stream,
++};
++
++static struct v4l2_subdev_ops isp_subdev_ops = {
++	.core = &isp_core_ops,
++	.video = &isp_video_ops,
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline)
++{
++	struct v4l2_ctrl_handler *handler = &isp->ctrl_handler;
++	struct v4l2_subdev *sd = &isp->subdev;
++	int ret;
++
++	isp->alloc_ctx = alloc_ctx;
++	isp->pipeline = pipeline;
++	isp->fmt = &formats[1];
++	INIT_LIST_HEAD(&isp->wait_queue);
++	INIT_LIST_HEAD(&isp->run_queue);
++	isp->width = ISP_DEF_WIDTH;
++	isp->height = ISP_DEF_HEIGHT;
++
++	v4l2_subdev_init(sd, &isp_subdev_ops);
++	sd->owner = THIS_MODULE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), ISP_DRV_NAME);
++
++	isp->subdev_pads[ISP_SD_PAD_SINK_DMA].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SINK_OTF].flags = MEDIA_PAD_FL_SINK;
++	isp->subdev_pads[ISP_SD_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
++			isp->subdev_pads, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_ctrl_handler_init(handler, 1);
++	if (handler->error)
++		goto err_ctrl;
++
++	sd->ctrl_handler = handler;
++	sd->internal_ops = &isp_subdev_internal_ops;
++	v4l2_set_subdevdata(sd, isp);
++
++	return 0;
++
++err_ctrl:
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(handler);
++	return ret;
++}
++
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp)
++{
++	struct v4l2_subdev *sd = &isp->subdev;
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(&isp->ctrl_handler);
++	v4l2_set_subdevdata(sd, NULL);
++}
++
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-isp.h b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+new file mode 100644
+index 0000000..fdb6d86
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-isp.h
+@@ -0,0 +1,90 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_ISP_H_
++#define FIMC_IS_ISP_H_
++
++#include "fimc-is-core.h"
++#include "fimc-is-pipeline.h"
++
++#define FIMC_IS_ISP_REQ_BUFS_MIN	2
++
++#define ISP_SD_PAD_SINK_DMA	0
++#define ISP_SD_PAD_SINK_OTF	1
++#define ISP_SD_PAD_SRC		2
++#define ISP_SD_PADS_NUM		3
++
++#define ISP_DEF_WIDTH		1296
++#define ISP_DEF_HEIGHT		732
++
++#define ISP_MAX_WIDTH		4808
++#define ISP_MAX_HEIGHT		3356
++#define ISP_MIN_WIDTH		32
++#define ISP_MIN_HEIGHT		32
++
++#define ISP_MAX_BUFS		2
++
++/**
++ * struct fimc_is_isp - ISP context
++ * @vfd: video device node
++ * @fh: v4l2 file handle
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @subdev: fimc-is-isp subdev
++ * @vd_pad: media pad for the output video node
++ * @subdev_pads: the subdev media pads
++ * @ctrl_handler: v4l2 control handler
++ * @video_lock: video lock mutex
++ * @sensor_sd: sensor subdev used with this isp instance
++ * @pipeline: pipeline instance for this isp context
++ * @vbq: vb2 buffers queue for ISP output video node
++ * @wait_queue: list holding buffers waiting to be queued to HW
++ * @wait_queue_cnt: wait queue number of buffers
++ * @run_queue: list holding buffers queued to HW
++ * @run_queue_cnt: run queue number of buffers
++ * @output_bufs: isp output buffers array
++ * @out_buf_cnt: number of output buffers in use
++ * @fmt: output plane format for isp
++ * @width: user configured input width
++ * @height: user configured input height
++ * @size_image: image size in bytes
++ * @output_state: state of the output video node operations
++ */
++struct fimc_is_isp {
++	struct video_device		vfd;
++	struct v4l2_fh			fh;
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct v4l2_subdev		subdev;
++	struct media_pad		vd_pad;
++	struct media_pad		subdev_pads[ISP_SD_PADS_NUM];
++	struct v4l2_ctrl_handler	ctrl_handler;
++	struct mutex			video_lock;
++
++	struct v4l2_subdev		*sensor_sd;
++	struct fimc_is_pipeline		*pipeline;
++
++	struct vb2_queue		vbq;
++	struct list_head		wait_queue;
++	unsigned int			wait_queue_cnt;
++	struct list_head		run_queue;
++	unsigned int			run_queue_cnt;
++
++	const struct fimc_is_fmt	*fmt;
++	unsigned int			width;
++	unsigned int			height;
++	unsigned int			size_image;
++	unsigned long			output_state;
++};
++
++int fimc_is_isp_subdev_create(struct fimc_is_isp *isp,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline);
++void fimc_is_isp_subdev_destroy(struct fimc_is_isp *isp);
++
++#endif /* FIMC_IS_ISP_H_ */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
