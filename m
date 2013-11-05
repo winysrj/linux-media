@@ -1,77 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59706 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064Ab3KSArU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 19:47:20 -0500
-Date: Mon, 18 Nov 2013 16:47:18 -0800
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: staging: media: Use dev_err() instead of pr_err()
-Message-ID: <20131119004718.GA1047@kroah.com>
-References: <20131114110814.6b13f62b@samsung.com>
- <20131115062939.GC28137@kroah.com>
- <20131117100321.18ed7be8@samsung.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:36963 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755255Ab3KEU0R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 15:26:17 -0500
+Date: Tue, 5 Nov 2013 23:26:05 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: dulshani.gunawardhana89@gmail.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: re: staging: media: Use dev_err() instead of pr_err()
+Message-ID: <20131105202605.GH3949@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20131117100321.18ed7be8@samsung.com>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 17, 2013 at 10:03:21AM -0200, Mauro Carvalho Chehab wrote:
-> Em Fri, 15 Nov 2013 15:29:39 +0900
-> Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
-> 
-> > On Thu, Nov 14, 2013 at 11:08:14AM -0200, Mauro Carvalho Chehab wrote:
-> > > Hi,
-> > > 
-> > > I'm not sure how this patch got applied upstream:
-> > > 
-> > > 	commit b6ea5ef80aa7fd6f4b18ff2e4174930e8772e812
-> > > 	Author: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
-> > > 	Date:   Sun Oct 20 22:58:28 2013 +0530
-> > > 	
-> > > 	    staging:media: Use dev_dbg() instead of pr_debug()
-> > > 	    
-> > > 	    Use dev_dbg() instead of pr_debug() in go7007-usb.c.
-> > >     
-> > > 	    Signed-off-by: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
-> > > 	    Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-> > > 	    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > 
-> > > But, from the custody chain, it seems it was not C/C to linux-media ML,
-> > > doesn't have the driver maintainer's ack[1] and didn't went via my tree.
-> > 
-> > It came in through my tree as part of the OPW intern application
-> > process.
-> 
-> Ah, OK.
-> 
-> I don't mind if you apply those directly, but what makes me a little
-> worried is that at least the final version of the patchset should be
-> c/c to driver/subsystem maintainers for their review and for them to 
-> know that the patch will be merged via some other tree, as it might
-> be causing conflicts with their trees.
-> 
-> > And yes, sorry, it's broken, I have some follow-on patches to fix this,
-> > but you are right, it should just be reverted for now, very sorry about
-> > that.
-> 
-> No problem.
-> 
-> > Do you want to do that, or should I?
-> 
-> I prefer if you could do it, as I'm still waiting the merge from my tree,
-> and I don't want to cascade another pull request before the original
-> pull requests get handled. In any case, they won't conflict with this,
-> as I don't have any patch for this driver on my tree for 3.13.
+Hello Dulshani Gunawardhana,
 
-Ok, I'll do this after 3.13-rc1 is out, sorry for the problems.
+The patch 44ee8e801137: "staging: media: Use dev_err() instead of 
+pr_err()" from Oct 20, 2013, leads to the following
+GCC warning: 
 
-greg k-h
+drivers/staging/media/go7007/go7007-usb.c: In function ‘go7007_usb_probe’:
+drivers/staging/media/go7007/go7007-usb.c:1100:13: warning: ‘go’ may be used uninitialized in this function [-Wuninitialized]
+
+drivers/staging/media/go7007/go7007-usb.c
+  1049  static int go7007_usb_probe(struct usb_interface *intf,
+  1050                  const struct usb_device_id *id)
+  1051  {
+  1052          struct go7007 *go;
+  1053          struct go7007_usb *usb;
+  1054          const struct go7007_usb_board *board;
+  1055          struct usb_device *usbdev = interface_to_usbdev(intf);
+  1056          unsigned num_i2c_devs;
+  1057          char *name;
+  1058          int video_pipe, i, v_urb_len;
+  1059  
+  1060          dev_dbg(go->dev, "probing new GO7007 USB board\n");
+                        ^^^^^^^
+  1061  
+  1062          switch (id->driver_info) {
+  1063          case GO7007_BOARDID_MATRIX_II:
+  1064                  name = "WIS Matrix II or compatible";
+  1065                  board = &board_matrix_ii;
+  1066                  break;
+
+There are several other uses of "go" before it has been initialized.
+
+Probably you will just want to change these back to pr_info().  Some of
+the messages are not very useful like:
+	dev_info(go->dev, "Sensoray 2250 found\n");
+You can delete that one.
+
+regards,
+dan carpenter
+
