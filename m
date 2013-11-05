@@ -1,95 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53537 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755Ab3KFQNo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Nov 2013 11:13:44 -0500
-Message-ID: <527A6AAD.50901@iki.fi>
-Date: Wed, 06 Nov 2013 18:13:33 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2890 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754391Ab3KEMhO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:37:14 -0500
+Message-ID: <5278E625.4020703@xs4all.nl>
+Date: Tue, 05 Nov 2013 13:35:49 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>,
-	=?UTF-8?B?44G744Gh?= <knightrider@are.ma>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T)
- cards
-References: <1383666180-9773-1-git-send-email-knightrider@are.ma>	<CAOcJUbxCjEWk47MkJP15QBAuGd3ePYS3ZRMduqdMCrVT362-8Q@mail.gmail.com>	<CAKnK8-Q51UOqGc1T2jfJENm5pOWAutytKLcDkhgkM3yWjAtJ2w@mail.gmail.com>	<CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com> <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
-In-Reply-To: <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCHv2 22/29] v4l2-async: Don't use dynamic static allocation
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-23-git-send-email-m.chehab@samsung.com> <52779DD8.3080401@xs4all.nl> <20131105093628.6da1a600@samsung.com> <5278D99F.5050508@samsung.com> <20131105100318.31da034b@samsung.com>
+In-Reply-To: <20131105100318.31da034b@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.11.2013 15:14, Michael Krufky wrote:
-> On Tue, Nov 5, 2013 at 5:30 PM, ほち <knightrider@are.ma> wrote:
->> Michael Krufky <mkrufky <at> linuxtv.org> writes:
->>
->>> As the DVB maintainer, I am telling you that I won't merge this as a
->>> monolithic driver.  The standard is to separate the driver into
->>> modules where possible, unless there is a valid reason for doing
->>> otherwise.
+On 11/05/13 13:03, Mauro Carvalho Chehab wrote:
+> Em Tue, 05 Nov 2013 12:42:23 +0100
+> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+> 
+>> On 05/11/13 12:36, Mauro Carvalho Chehab wrote:
+>>>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> index c85d69da35bd..071596869036 100644
+>>>>>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> @@ -189,12 +189,14 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>>>>>>>  	struct v4l2_subdev *sd, *tmp;
+>>>>>>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
+>>>>>>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+>>>>>>> -	struct device *dev[n_subdev];
+>>>>>>> +	struct device **dev;
+>>>>>>>  	int i = 0;
+>>>>>>>  
+>>>>>>>  	if (!notifier->v4l2_dev)
+>>>>>>>  		return;
+>>>>>>>  
+>>>>>>> +	dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
+>>>>>>> +
+>>>>>
+>>>>> No check for dev == NULL?
+>>> Well, what should be done in this case?
 >>>
->>> I understand that you used the PT1 driver as a reference, but we're
->>> trying to enforce a standard of codingstyle within the kernel.  I
->>> recommend looking at the other DVB drivers as well.
+>>> We could do the changes below:
+>>>
+>>>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>>>  {
+>>>         struct v4l2_subdev *sd, *tmp;
+>>>         unsigned int notif_n_subdev = notifier->num_subdevs;
+>>>         unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+>>> -       struct device *dev[n_subdev];
+>>> +       struct device **dev;
+>>>         int i = 0;
+>>>  
+>>>         if (!notifier->v4l2_dev)
+>>>                 return;
+>>>  
+>>> +       dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
+>>> +       if (!dev) {
+>>> +               WARN_ON(true);
+>>> +               return;
+>>> +       }
+>>> +
+>>>         mutex_lock(&list_lock);
+>>>  
+>>>         list_del(&notifier->list);
+>>>  
+>>>         list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+>>>                 dev[i] = get_device(sd->dev);
+>>>  
+>>>                 v4l2_async_cleanup(sd);
+>>>  
+>>>                 /* If we handled USB devices, we'd have to lock the parent too */
+>>>                 device_release_driver(dev[i++]);
+>>>  
+>>>                 if (notifier->unbind)
+>>>                         notifier->unbind(notifier, sd, sd->asd);
+>>>         }
+>>>  
+>>>         mutex_unlock(&list_lock);
+>>>  
+>>>         while (i--) {
+>>>                 struct device *d = dev[i];
+>>>  
+>>>                 if (d && device_attach(d) < 0) {
+>>>                         const char *name = "(none)";
+>>>                         int lock = device_trylock(d);
+>>>  
+>>>                         if (lock && d->driver)
+>>>                                 name = d->driver->name;
+>>>                         dev_err(d, "Failed to re-probe to %s\n", name);
+>>>                         if (lock)
+>>>                                 device_unlock(d);
+>>>                 }
+>>>                 put_device(d);
+>>>         }
+>>> +       kfree(dev);
+>>>  
+>>>         notifier->v4l2_dev = NULL;
+>>>  
+>>>         /*
+>>>          * Don't care about the waiting list, it is initialised and populated
+>>>          * upon notifier registration.
+>>>          */
+>>>  }
+>>>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>>>
+>>> But I suspect that this will cause an OOPS anyway, as the device will be
+>>> only half-removed. So, it would likely OOPS at device removal or if the
+>>> device got probed again, at probing time.
+>>>
+>>> So, IMHO, we should have at least a WARN_ON() for this case.
+>>>
+>>> Do you have a better idea?
 >>
->> OK Sir. Any good / latest examples?
->
-> There are plenty of DVB drivers to look at under drivers/media/  ...
-> you may notice that there are v4l and dvb device drivers together
-> under this hierarchy.  It's easy to tell which drivers support DVB
-> when you look at the source.
->
-> I could name a few specific ones, but i'd really recommend for you to
-> take a look at a bunch of them.  No single driver should be considered
-> a 'prefect example' as they are all under constant maintenance.
->
-> Also, many of these drivers are for devices that support both v4l and
-> DVB interfaces.  One example is the cx23885 driver.  Still, please try
-> to look over the entire media tree, as that would give a better idea
-> of how the drivers are structured.
+>> This is how Guennadi's patch looked like when it used dynamic allocation:
+>>
+>> http://www.spinics.net/lists/linux-sh/msg18194.html
+> 
+> Thanks for the tip!
+> 
+> The following patch should do the trick (generated with -U10, in order
+> to show the entire function):
+> 
+> [PATCHv3] v4l2-async: Don't use dynamic static allocation
+> 
+> Dynamic static allocation is evil, as Kernel stack is too low, and
+> compilation complains about it on some archs:
+> 
+> 	drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+> 
+> Instead, let's enforce a limit for the buffer.
+> 
+> In this specific case, there's a hard limit imposed by V4L2_MAX_SUBDEVS,
+> with is currently 128. That means that the buffer size can be up to
+> 128x8 = 1024 bytes (on a 64bits kernel), with is too big for stack.
+> 
+> Worse than that, someone could increase it and cause real troubles.
+> 
+> So, let's use dynamically allocated data, instead.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index c85d69da35bd..b56c9f300ecb 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -182,59 +182,84 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  
+>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  {
+>  	struct v4l2_subdev *sd, *tmp;
+>  	unsigned int notif_n_subdev = notifier->num_subdevs;
+>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> -	struct device *dev[n_subdev];
+> +	struct device **dev;
+>  	int i = 0;
+>  
+>  	if (!notifier->v4l2_dev)
+>  		return;
+>  
+> +	dev = kmalloc(n_subdev * sizeof(*dev), GFP_KERNEL);
+> +	if (!dev) {
+> +		dev_err(notifier->v4l2_dev->dev,
+> +			"Failed to allocate device cache!\n");
+> +	}
+> +
+>  	mutex_lock(&list_lock);
+>  
+>  	list_del(&notifier->list);
+>  
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> -		dev[i] = get_device(sd->dev);
+> +		struct device *d;
+> +
+> +		d = get_device(sd->dev);
 
-I will also try explain that modular chipset driver architecture what I 
-could :)
+I would combine these two lines in one, but that's just me :-)
 
-If you look normal digital television device there is always 3 chips, 
-usually those exists in physically, but some cases multiple chips are 
-integrated to same packet.
-Those chips are:
-1) bus interface (USB/PCIe/firewire "bridge")
-2) demodulator
-3) RF tuner (we call it usually just tuner)
+>  
+>  		v4l2_async_cleanup(sd);
+>  
+>  		/* If we handled USB devices, we'd have to lock the parent too */
+> -		device_release_driver(dev[i++]);
+> +		device_release_driver(d);
+> +
+> +
+> +		/*
+> +		 * Store device at the device cache, in order to call
+> +		 * put_device() on the final step
+> +		 */
+> +		if (dev)
+> +			dev[i++] = d;
+> +		else
+> +			put_device(d);
 
-There has been multiple cases where people has submitted one big driver 
-and afterwards some new devices appeared having same chips. It is almost 
-impossible to separate those drivers afterwards as you will need 
-original hardware and so. That has led to situation we have some 
-overlapping drivers.
+Shouldn't the put_device be moved to after the unbind? It certainly would
+'feel' safer that way...
 
-To avoid these problems, we have specified some rules to new drivers:
-RFCv2: Second draft of guidelines for submitting patches to linux-media
-http://lwn.net/Articles/529490/
+>  
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, sd->asd);
+>  	}
+>  
+>  	mutex_unlock(&list_lock);
+>  
+> +	/*
+> +	 * Call device_attach() to reprobe devices
+> +	 *
+> +	 * NOTE: If dev allocation fails, i is 0, and the hole loop won't be
 
-I search some pictures from that device to see what are used chips. Here 
-is blog having some pictures:
-http://hidepod.blog.shinobi.jp/iyh-/%E5%98%98%E3%81%A0%EF%BC%81
+Typo: hole -> whole
 
-What I see:
-1) PCI-bridge. Custom Altera Cyclone IV FPGA. (heh, that is familiar 
-chip for me. I have used older Cyclone II for some digital technique 
-course exercises).
-2) Toshiba demodulator
-3) Sharp tuner module (there is some tuner chip inside, which needs driver)
+> +	 * executed.
+> +	 */
+>  	while (i--) {
+>  		struct device *d = dev[i];
+>  
+>  		if (d && device_attach(d) < 0) {
+>  			const char *name = "(none)";
+>  			int lock = device_trylock(d);
+>  
+>  			if (lock && d->driver)
+>  				name = d->driver->name;
+>  			dev_err(d, "Failed to re-probe to %s\n", name);
+>  			if (lock)
+>  				device_unlock(d);
+>  		}
+>  		put_device(d);
+>  	}
+> +	kfree(dev);
+>  
+>  	notifier->v4l2_dev = NULL;
+>  
+>  	/*
+>  	 * Don't care about the waiting list, it is initialised and populated
+>  	 * upon notifier registration.
+>  	 */
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>  
+> Regards,
+> Mauro
+> 
 
-So those are the parts and each one needs own driver.
+Regards,
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+	Hans
