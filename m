@@ -1,65 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43400 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266Ab3KRRn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 12:43:59 -0500
-Message-ID: <528A51DD.8000502@iki.fi>
-Date: Mon, 18 Nov 2013 19:43:57 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
-References: <1384103776-4788-1-git-send-email-crope@iki.fi> <1384179541.1949.24.camel@palomino.walls.org>
-In-Reply-To: <1384179541.1949.24.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43281 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754625Ab3KENDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 09/29] [media] rc: Fir warnings on m68k arch
+Date: Tue,  5 Nov 2013 08:01:22 -0200
+Message-Id: <1383645702-30636-10-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.11.2013 16:19, Andy Walls wrote:
-> On Sun, 2013-11-10 at 19:16 +0200, Antti Palosaari wrote:
->> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
->> used format for baseband signals.
->
-> Hi Annti,
->
-> I don't think this a good idea.  Floating point representations are
-> inherently non-portable.  Even though most everything now uses IEEE-754
-> representation, things like denormaliazed numbers may be treated
-> differently by different machines.  If someone saves the data to a file,
-> endianess issues aside, there are no guarantees that a different machine
-> reading is going to interpret all the floating point data from that file
-> properly.
->
-> I really would recommend staying with scaled integer representations or
-> explicit integer mantissa, exponent representations.
+Fix the following warnings:
+	drivers/media/rc/fintek-cir.c: In function 'fintek_cr_write':
+	drivers/media/rc/fintek-cir.c:45:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c:46:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c: In function 'fintek_cr_read':
+	drivers/media/rc/fintek-cir.c:54:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c:55:8: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c: In function 'fintek_config_mode_enable':
+	drivers/media/rc/fintek-cir.c:80:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c:81:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/fintek-cir.c: In function 'fintek_config_mode_disable':
+	drivers/media/rc/fintek-cir.c:87:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c: In function 'nvt_cr_write':
+	drivers/media/rc/nuvoton-cir.c:45:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c:46:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c: In function 'nvt_cr_read':
+	drivers/media/rc/nuvoton-cir.c:52:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c:53:9: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c: In function 'nvt_efm_enable':
+	drivers/media/rc/nuvoton-cir.c:74:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c:75:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c: In function 'nvt_efm_disable':
+	drivers/media/rc/nuvoton-cir.c:81:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c: In function 'nvt_select_logical_dev':
+	drivers/media/rc/nuvoton-cir.c:91:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	drivers/media/rc/nuvoton-cir.c:92:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+Those are caused because the I/O port is u32, instead of u8.
 
-Do you mean scaled presentation like a  sample is always 32 signed 
-integer and what ever ADC resolution is, it is scaled to 32-bit signed 
-int and returned?
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/rc/fintek-cir.h  | 4 ++--
+ drivers/media/rc/nuvoton-cir.h | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-What I would like to implement is 8-bit int, 16-bit int and maybe 32-bit 
-int (if there comes ADC outputting more than 16-bit). These all 
-conversions are done inside Kernel, which actually has price about 
-nothing as it is simple integer math with bit shifting (scaling == bit 
-shifting). If you do that kind of conversion on USB URB interrupt at the 
-same time as memory copy from URB to videobuf2 is needed, it is 
-basically free.
-
-Then it is up to caller to select int8, int16, int32 and driver does the 
-rest, selects actual ADC resolution using info like sampling rate.
-
-Also returning SDR floats directly from Kernel driver could be very 
-handy, but as floats are not allowed in Kernel...
-
-
-But now all conversions are in the libv4l. However, it is possible to 
-add new formats to driver later - removing existing formats from driver 
-is about impossible.
-
-regards
-Antti
-
+diff --git a/drivers/media/rc/fintek-cir.h b/drivers/media/rc/fintek-cir.h
+index 82516a1d39b0..b698f3d2ced9 100644
+--- a/drivers/media/rc/fintek-cir.h
++++ b/drivers/media/rc/fintek-cir.h
+@@ -76,8 +76,8 @@ struct fintek_dev {
+ 	} tx;
+ 
+ 	/* Config register index/data port pair */
+-	u8 cr_ip;
+-	u8 cr_dp;
++	u32 cr_ip;
++	u32 cr_dp;
+ 
+ 	/* hardware I/O settings */
+ 	unsigned long cir_addr;
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 7c3674ff5ea2..07e83108df0f 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -84,8 +84,8 @@ struct nvt_dev {
+ 	} tx;
+ 
+ 	/* EFER Config register index/data pair */
+-	u8 cr_efir;
+-	u8 cr_efdr;
++	u32 cr_efir;
++	u32 cr_efdr;
+ 
+ 	/* hardware I/O settings */
+ 	unsigned long cir_addr;
 -- 
-http://palosaari.fi/
+1.8.3.1
+
