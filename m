@@ -1,82 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:58590 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810Ab3K0Dp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 22:45:57 -0500
-Message-ID: <52956B78.6050107@gmail.com>
-Date: Wed, 27 Nov 2013 11:48:08 +0800
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-MIME-Version: 1.0
-To: Joe Perches <joe@perches.com>
-CC: hans.verkuil@cisco.com, m.chehab@samsung.com,
-	rkuo <rkuo@codeaurora.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Subject: [PATCH v2] drivers: staging: media: go7007: go7007-usb.c use pr_*()
- instead of dev_*() before 'go' initialized in go7007_usb_probe()
-References: <528AEFB7.4060301@gmail.com>  <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com>  <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>  <52956442.50001@gmail.com> <1385522475.18487.34.camel@joe-AO722> <529569A5.1020008@gmail.com>
-In-Reply-To: <529569A5.1020008@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43309 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754765Ab3KENDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 26/29] [media] af9035: Don't use dynamic static allocation
+Date: Tue,  5 Nov 2013 08:01:39 -0200
+Message-Id: <1383645702-30636-27-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev_*() assumes 'go' is already initialized, so need use pr_*() instead
-of before 'go' initialized. Related warning (with allmodconfig under
-hexagon):
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
+	drivers/media/usb/dvb-usb-v2/af9035.c:142:1: warning: 'af9035_wr_regs' uses dynamic stack allocation [enabled by default]
+	drivers/media/usb/dvb-usb-v2/af9035.c:305:1: warning: 'af9035_i2c_master_xfer' uses dynamic stack allocation [enabled by default]
 
-    CC [M]  drivers/staging/media/go7007/go7007-usb.o
-  drivers/staging/media/go7007/go7007-usb.c: In function 'go7007_usb_probe':
-  drivers/staging/media/go7007/go7007-usb.c:1060:2: warning: 'go' may be used uninitialized in this function [-Wuninitialized]
+Instead, let's enforce a limit for the buffer to be the max size of
+a control URB payload data (64 bytes).
 
-Also remove useless code after 'return' statement.
-
-
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/staging/media/go7007/go7007-usb.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 58684da..2423643 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	char *name;
- 	int video_pipe, i, v_urb_len;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 1ea17dc2a76e..c8fcd78425bd 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -21,6 +21,9 @@
  
--	dev_dbg(go->dev, "probing new GO7007 USB board\n");
-+	pr_debug("probing new GO7007 USB board\n");
+ #include "af9035.h"
  
- 	switch (id->driver_info) {
- 	case GO7007_BOARDID_MATRIX_II:
-@@ -1097,13 +1097,10 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 		board = &board_px_tv402u;
- 		break;
- 	case GO7007_BOARDID_LIFEVIEW_LR192:
--		dev_err(go->dev, "The Lifeview TV Walker Ultra is not supported. Sorry!\n");
-+		pr_err("The Lifeview TV Walker Ultra is not supported. Sorry!\n");
- 		return -ENODEV;
--		name = "Lifeview TV Walker Ultra";
--		board = &board_lifeview_lr192;
--		break;
- 	case GO7007_BOARDID_SENSORAY_2250:
--		dev_info(go->dev, "Sensoray 2250 found\n");
-+		pr_info("Sensoray 2250 found\n");
- 		name = "Sensoray 2250/2251";
- 		board = &board_sensoray_2250;
- 		break;
-@@ -1112,7 +1109,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 		board = &board_ads_usbav_709;
- 		break;
- 	default:
--		dev_err(go->dev, "unknown board ID %d!\n",
-+		pr_err("unknown board ID %d!\n",
- 				(unsigned int)id->driver_info);
- 		return -ENODEV;
- 	}
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  64
++
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ static u16 af9035_checksum(const u8 *buf, size_t len)
+@@ -126,10 +129,16 @@ exit:
+ /* write multiple registers */
+ static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
+ {
+-	u8 wbuf[6 + len];
++	u8 wbuf[MAX_XFER_SIZE];
+ 	u8 mbox = (reg >> 16) & 0xff;
+ 	struct usb_req req = { CMD_MEM_WR, mbox, sizeof(wbuf), wbuf, 0, NULL };
+ 
++	if (6 + len > sizeof(wbuf)) {
++		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
++			 KBUILD_MODNAME, len);
++		return -EOPNOTSUPP;
++	}
++
+ 	wbuf[0] = len;
+ 	wbuf[1] = 2;
+ 	wbuf[2] = 0;
+@@ -228,9 +237,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 					msg[1].len);
+ 		} else {
+ 			/* I2C */
+-			u8 buf[5 + msg[0].len];
++			u8 buf[MAX_XFER_SIZE];
+ 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
+ 					buf, msg[1].len, msg[1].buf };
++
++			if (5 + msg[0].len > sizeof(buf)) {
++				dev_warn(&d->udev->dev,
++					 "%s: i2c xfer: len=%d is too big!\n",
++					 KBUILD_MODNAME, msg[0].len);
++				return -EOPNOTSUPP;
++			}
+ 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[1].len;
+ 			buf[1] = msg[0].addr << 1;
+@@ -257,9 +273,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 					msg[0].len - 3);
+ 		} else {
+ 			/* I2C */
+-			u8 buf[5 + msg[0].len];
++			u8 buf[MAX_XFER_SIZE];
+ 			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+ 					0, NULL };
++
++			if (5 + msg[0].len > sizeof(buf)) {
++				dev_warn(&d->udev->dev,
++					 "%s: i2c xfer: len=%d is too big!\n",
++					 KBUILD_MODNAME, msg[0].len);
++				return -EOPNOTSUPP;
++			}
+ 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[0].len;
+ 			buf[1] = msg[0].addr << 1;
 -- 
-1.7.7.6
+1.8.3.1
+
