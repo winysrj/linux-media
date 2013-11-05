@@ -1,214 +1,629 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:40866 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919Ab3KKJTf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Nov 2013 04:19:35 -0500
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:33799 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754607Ab3KEMNx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:13:53 -0500
 From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH] [media] s5p-mfc: Add QP setting support for vp8 encoder
-Date: Mon, 11 Nov 2013 14:49:40 +0530
-Message-Id: <1384161580-18674-1-git-send-email-arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v12 06/12] [media] exynos5-fimc-is: Add scaler subdev
+Date: Tue,  5 Nov 2013 17:43:23 +0530
+Message-Id: <1383653610-11835-7-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
+References: <1383653610-11835-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds v4l2 controls to set MIN, MAX QP values and
-I, P frame QP for vp8 encoder.
+FIMC-IS has two hardware scalers named as scaler-codec and
+scaler-preview. This patch adds the common code handling the
+video nodes and subdevs of both the scalers.
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
 Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml    |   32 +++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    4 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   44 +++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   20 +++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c            |    4 +++
- include/uapi/linux/v4l2-controls.h              |    4 +++
- 6 files changed, 108 insertions(+)
+ drivers/media/platform/exynos5-is/fimc-is-scaler.c |  476 ++++++++++++++++++++
+ drivers/media/platform/exynos5-is/fimc-is-scaler.h |  106 +++++
+ 2 files changed, 582 insertions(+)
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.c
+ create mode 100644 drivers/media/platform/exynos5-is/fimc-is-scaler.h
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 7a3b49b..091aa4d 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3161,6 +3161,38 @@ V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
- 		</entrytbl>
- 	      </row>
- 
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MIN_QP</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Minimum quantization parameter for VP8. Valid range: from 0 to 11.</entry>
-+	      </row>
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-scaler.c b/drivers/media/platform/exynos5-is/fimc-is-scaler.c
+new file mode 100644
+index 0000000..029eb8b
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-scaler.c
+@@ -0,0 +1,476 @@
++/*
++ * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MAX_QP</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Maximum quantization parameter for VP8. Valid range: from 0 to 127.</entry>
-+	      </row>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
 +
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an I frame for VP8. Valid range: from 0 to 127.</entry>
-+	      </row>
++#include "fimc-is.h"
 +
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for a P frame for VP8. Valid range: from 0 to 127.</entry>
-+	      </row>
++#define IS_SCALER_DRV_NAME "fimc-is-scaler"
 +
-           <row><entry></entry></row>
-         </tbody>
-       </tgroup>
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 6920b54..d91f757 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -422,6 +422,10 @@ struct s5p_mfc_vp8_enc_params {
- 	enum v4l2_vp8_golden_frame_sel golden_frame_sel;
- 	u8 hier_layer;
- 	u8 hier_layer_qp[3];
-+	u8 rc_min_qp;
-+	u8 rc_max_qp;
-+	u8 rc_frame_qp;
-+	u8 rc_p_frame_qp;
- };
- 
- /**
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ff3b6c..33e8ae3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -618,6 +618,38 @@ static struct mfc_control controls[] = {
- 		.default_value = V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV,
- 		.menu_skip_mask = 0,
- 	},
++static const struct fimc_is_fmt formats[] = {
 +	{
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_MAX_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 127,
-+		.step = 1,
-+		.default_value = 127,
++		.name           = "YUV 4:2:0 3p MultiPlanar",
++		.fourcc         = V4L2_PIX_FMT_YUV420M,
++		.depth		= {8, 2, 2},
++		.num_planes     = 3,
 +	},
 +	{
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_MIN_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 11,
-+		.step = 1,
-+		.default_value = 0,
++		.name           = "YUV 4:2:0 2p MultiPlanar",
++		.fourcc         = V4L2_PIX_FMT_NV12M,
++		.depth		= {8, 4},
++		.num_planes     = 2,
 +	},
 +	{
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 127,
-+		.step = 1,
-+		.default_value = 10,
++		.name           = "YUV 4:2:2 1p MultiPlanar",
++		.fourcc         = V4L2_PIX_FMT_NV16,
++		.depth		= {16},
++		.num_planes     = 1,
 +	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 127,
-+		.step = 1,
-+		.default_value = 10,
-+	},
- };
- 
- #define NUM_CTRLS ARRAY_SIZE(controls)
-@@ -1557,6 +1589,18 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
- 		p->codec.vp8.golden_frame_sel = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:
-+		p->codec.vp8.rc_min_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:
-+		p->codec.vp8.rc_max_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:
-+		p->codec.vp8.rc_frame_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:
-+		p->codec.vp8.rc_p_frame_qp = ctrl->val;
-+		break;
- 	default:
- 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
- 							ctrl->id, ctrl->val);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 461358c..b4886d6 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1218,6 +1218,26 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
- 		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
- 	}
- 
-+	/* frame QP */
-+	reg &= ~(0x7F);
-+	reg |= p_vp8->rc_frame_qp & 0x7F;
-+	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
++};
++#define NUM_FORMATS ARRAY_SIZE(formats)
 +
-+	/* other QPs */
-+	WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
-+	if (!p->rc_frame && !p->rc_mb) {
-+		reg = 0;
-+		reg |= ((p_vp8->rc_p_frame_qp & 0x7F) << 8);
-+		reg |= p_vp8->rc_frame_qp & 0x7F;
-+		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
++static const struct fimc_is_fmt *find_format(struct v4l2_format *f)
++{
++	unsigned int i;
++
++	for (i = 0; i < NUM_FORMATS; i++) {
++		if (formats[i].fourcc == f->fmt.pix_mp.pixelformat)
++			return &formats[i];
++	}
++	return NULL;
++}
++
++static int scaler_video_capture_start_streaming(struct vb2_queue *vq,
++					unsigned int count)
++{
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	int ret;
++
++	ret = fimc_is_pipeline_scaler_start(ctx->pipeline,
++			ctx->scaler_id,
++			vq->num_buffers,
++			ctx->fmt->num_planes);
++	if (ret) {
++		v4l2_err(&ctx->subdev, "Scaler start failed.\n");
++		return -EINVAL;
 +	}
 +
-+	/* max QP */
-+	reg = ((p_vp8->rc_max_qp & 0x7F) << 8);
-+	/* min QP */
-+	reg |= p_vp8->rc_min_qp & 0x7F;
-+	WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND_V6);
++	set_bit(STATE_RUNNING, &ctx->capture_state);
++	return 0;
++}
 +
- 	/* vbv buffer size */
- 	if (p->frame_skip_mode ==
- 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 60dcc0f..99a89ad 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -745,6 +745,10 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS:		return "VPX Deblocking Effect Control";
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD:	return "VPX Golden Frame Refresh Period";
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:		return "VPX Golden Frame Indicator";
-+	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:			return "VPX Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:			return "VPX Maximum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:		return "VPX I-Frame QP Value";
-+	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
- 
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 1666aab..5b9dfc8 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -554,6 +554,10 @@ enum v4l2_vp8_golden_frame_sel {
- 	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV		= 0,
- 	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
- };
-+#define V4L2_CID_MPEG_VIDEO_VPX_MIN_QP			(V4L2_CID_MPEG_BASE+507)
-+#define V4L2_CID_MPEG_VIDEO_VPX_MAX_QP			(V4L2_CID_MPEG_BASE+508)
-+#define V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP		(V4L2_CID_MPEG_BASE+509)
-+#define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
- 
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
++static int scaler_video_capture_stop_streaming(struct vb2_queue *vq)
++{
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf;
++	int ret;
++
++	ret = fimc_is_pipeline_scaler_stop(ctx->pipeline, ctx->scaler_id);
++	if (ret)
++		v4l2_info(&ctx->subdev, "Scaler already stopped.\n");
++
++	/* Release un-used buffers */
++	while (!list_empty(&ctx->wait_queue)) {
++		buf = fimc_is_scaler_wait_queue_get(ctx);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++	while (!list_empty(&ctx->run_queue)) {
++		buf = fimc_is_scaler_run_queue_get(ctx);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++
++	clear_bit(STATE_RUNNING, &ctx->capture_state);
++	return 0;
++}
++
++static int scaler_video_capture_queue_setup(struct vb2_queue *vq,
++			const struct v4l2_format *pfmt,
++			unsigned int *num_buffers, unsigned int *num_planes,
++			unsigned int sizes[], void *allocators[])
++{
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	const struct fimc_is_fmt *fmt = ctx->fmt;
++	unsigned int wh;
++	int i;
++
++	if (!fmt)
++		return -EINVAL;
++
++	*num_planes = fmt->num_planes;
++	wh = ctx->width * ctx->height;
++
++	for (i = 0; i < *num_planes; i++) {
++		allocators[i] = ctx->alloc_ctx;
++		sizes[i] = (wh * fmt->depth[i]) / 8;
++	}
++	return 0;
++}
++
++static int scaler_video_capture_buffer_init(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++	const struct fimc_is_fmt *fmt;
++	int i;
++
++	fmt = ctx->fmt;
++	for (i = 0; i < fmt->num_planes; i++)
++		buf->paddr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
++
++	return 0;
++}
++
++static int scaler_video_capture_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	int i;
++
++	for (i = 0; i < ctx->fmt->num_planes; i++) {
++		unsigned long size = (ctx->width * ctx->height *
++					ctx->fmt->depth[i]) / 8;
++
++		if (vb2_plane_size(vb, i) < size) {
++			v4l2_err(&ctx->subdev,
++				 "User buffer too small (%ld < %ld)\n",
++				 vb2_plane_size(vb, i), size);
++			return -EINVAL;
++		}
++		vb2_set_plane_payload(vb, i, size);
++	}
++
++	return 0;
++}
++
++static void scaler_video_capture_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_queue *vq = vb->vb2_queue;
++	struct fimc_is_scaler *ctx = vb2_get_drv_priv(vq);
++	struct fimc_is_buf *buf = container_of(vb, struct fimc_is_buf, vb);
++
++	/* Add buffer to the wait queue */
++	fimc_is_pipeline_buf_lock(ctx->pipeline);
++	fimc_is_scaler_wait_queue_add(ctx, buf);
++	fimc_is_pipeline_buf_unlock(ctx->pipeline);
++}
++
++static const struct vb2_ops scaler_video_capture_qops = {
++	.queue_setup		= scaler_video_capture_queue_setup,
++	.buf_init		= scaler_video_capture_buffer_init,
++	.buf_prepare		= scaler_video_capture_buffer_prepare,
++	.buf_queue		= scaler_video_capture_buffer_queue,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++	.start_streaming	= scaler_video_capture_start_streaming,
++	.stop_streaming		= scaler_video_capture_stop_streaming,
++};
++
++static const struct v4l2_file_operations scaler_video_capture_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vb2_fop_mmap,
++};
++
++/*
++ * Video node ioctl operations
++ */
++static int scaler_querycap_capture(struct file *file, void *priv,
++					struct v4l2_capability *cap)
++{
++	struct fimc_is_scaler *ctx = video_drvdata(file);
++	char *name = (ctx->scaler_id == SCALER_SCC) ?
++				"fimc-is-scc" : "fimc-is-scp";
++
++	strncpy(cap->driver, name, sizeof(cap->driver) - 1);
++	strncpy(cap->card, name, sizeof(cap->card) - 1);
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++			name);
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int scaler_enum_fmt_mplane(struct file *file, void *priv,
++				     struct v4l2_fmtdesc *f)
++{
++	const struct fimc_is_fmt *fmt;
++
++	if (f->index >= NUM_FORMATS)
++		return -EINVAL;
++
++	fmt = &formats[f->index];
++	strlcpy(f->description, fmt->name, sizeof(f->description));
++	f->pixelformat = fmt->fourcc;
++	return 0;
++}
++
++static int scaler_g_fmt_mplane(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct fimc_is_scaler *ctx = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	const struct fimc_is_fmt *fmt = ctx->fmt;
++	int i;
++
++	for (i = 0; i < fmt->num_planes; i++) {
++		struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[i];
++		plane_fmt->bytesperline = (ctx->width * fmt->depth[i]) / 8;
++		plane_fmt->sizeimage = plane_fmt->bytesperline * ctx->height;
++		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++	}
++
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->width = ctx->width;
++	pixm->height = ctx->height;
++	pixm->field = V4L2_FIELD_NONE;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int scaler_try_fmt_mplane(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	u32 i;
++
++	fmt = find_format(f);
++	if (!fmt)
++		fmt = &formats[0];
++
++	v4l_bound_align_image(&pixm->width, SCALER_MIN_WIDTH,
++			SCALER_MAX_WIDTH, 0,
++			&pixm->height, SCALER_MIN_HEIGHT,
++			SCALER_MAX_HEIGHT, 0, 0);
++
++	for (i = 0; i < fmt->num_planes; i++) {
++		struct v4l2_plane_pix_format *plane_fmt = &pixm->plane_fmt[i];
++
++		plane_fmt->bytesperline = (pixm->width * fmt->depth[i]) / 8;
++		plane_fmt->sizeimage = (pixm->width * pixm->height *
++					fmt->depth[i]) / 8;
++		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
++	}
++	pixm->num_planes = fmt->num_planes;
++	pixm->pixelformat = fmt->fourcc;
++	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->field = V4L2_FIELD_NONE;
++	memset(pixm->reserved, 0, sizeof(pixm->reserved));
++
++	return 0;
++}
++
++static int scaler_s_fmt_mplane(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	struct fimc_is_scaler *ctx = video_drvdata(file);
++	const struct fimc_is_fmt *fmt;
++	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
++	int ret;
++
++	ret = scaler_try_fmt_mplane(file, priv, f);
++	if (ret)
++		return ret;
++
++	/* Get format type */
++	fmt = find_format(f);
++	if (!fmt) {
++		fmt = &formats[0];
++		pixm->pixelformat = fmt->fourcc;
++		pixm->num_planes = fmt->num_planes;
++	}
++
++	/* Save values to context */
++	ctx->fmt = fmt;
++	ctx->width = pixm->width;
++	ctx->height = pixm->height;
++	set_bit(STATE_INIT, &ctx->capture_state);
++	return 0;
++}
++
++static int scaler_reqbufs(struct file *file, void *priv,
++		struct v4l2_requestbuffers *reqbufs)
++{
++	struct fimc_is_scaler *ctx = video_drvdata(file);
++	int ret;
++
++	reqbufs->count = max_t(u32, FIMC_IS_SCALER_REQ_BUFS_MIN,
++			reqbufs->count);
++	ret = vb2_reqbufs(&ctx->vbq, reqbufs);
++	if (ret) {
++		v4l2_err(&ctx->subdev, "vb2 req buffers failed\n");
++		return ret;
++	}
++
++	if (reqbufs->count < FIMC_IS_SCALER_REQ_BUFS_MIN) {
++		reqbufs->count = 0;
++		vb2_reqbufs(&ctx->vbq, reqbufs);
++		return -ENOMEM;
++	}
++	set_bit(STATE_BUFS_ALLOCATED, &ctx->capture_state);
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops scaler_video_capture_ioctl_ops = {
++	.vidioc_querycap		= scaler_querycap_capture,
++	.vidioc_enum_fmt_vid_cap_mplane	= scaler_enum_fmt_mplane,
++	.vidioc_try_fmt_vid_cap_mplane	= scaler_try_fmt_mplane,
++	.vidioc_s_fmt_vid_cap_mplane	= scaler_s_fmt_mplane,
++	.vidioc_g_fmt_vid_cap_mplane	= scaler_g_fmt_mplane,
++	.vidioc_reqbufs			= scaler_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static int scaler_subdev_registered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_scaler *ctx = v4l2_get_subdevdata(sd);
++	struct vb2_queue *q = &ctx->vbq;
++	struct video_device *vfd = &ctx->vfd;
++	int ret;
++
++	mutex_init(&ctx->video_lock);
++
++	memset(vfd, 0, sizeof(*vfd));
++	if (ctx->scaler_id == SCALER_SCC)
++		snprintf(vfd->name, sizeof(vfd->name), "fimc-is-scaler.codec");
++	else
++		snprintf(vfd->name, sizeof(vfd->name),
++				"fimc-is-scaler.preview");
++
++	vfd->fops = &scaler_video_capture_fops;
++	vfd->ioctl_ops = &scaler_video_capture_ioctl_ops;
++	vfd->v4l2_dev = sd->v4l2_dev;
++	vfd->release = video_device_release_empty;
++	vfd->lock = &ctx->video_lock;
++	vfd->queue = q;
++	vfd->vfl_dir = VFL_DIR_RX;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++
++	memset(q, 0, sizeof(*q));
++	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->ops = &scaler_video_capture_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct fimc_is_buf);
++	q->drv_priv = ctx;
++
++	ret = vb2_queue_init(q);
++	if (ret < 0)
++		return ret;
++
++	ctx->vd_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&vfd->entity, 1, &ctx->vd_pad, 0);
++	if (ret < 0)
++		return ret;
++
++	video_set_drvdata(vfd, ctx);
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		media_entity_cleanup(&vfd->entity);
++		return ret;
++	}
++
++	v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
++		  vfd->name, video_device_node_name(vfd));
++	return 0;
++}
++
++static void scaler_subdev_unregistered(struct v4l2_subdev *sd)
++{
++	struct fimc_is_scaler *ctx = v4l2_get_subdevdata(sd);
++
++	if (ctx && video_is_registered(&ctx->vfd))
++		video_unregister_device(&ctx->vfd);
++}
++
++static const struct v4l2_subdev_internal_ops scaler_subdev_internal_ops = {
++	.registered = scaler_subdev_registered,
++	.unregistered = scaler_subdev_unregistered,
++};
++
++static struct v4l2_subdev_ops scaler_subdev_ops;
++
++int fimc_is_scaler_subdev_create(struct fimc_is_scaler *ctx,
++		enum fimc_is_scaler_id scaler_id,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline)
++{
++	struct v4l2_ctrl_handler *handler = &ctx->ctrl_handler;
++	struct v4l2_subdev *sd = &ctx->subdev;
++	int ret;
++
++	ctx->scaler_id = scaler_id;
++	ctx->alloc_ctx = alloc_ctx;
++	ctx->pipeline = pipeline;
++	ctx->fmt = &formats[0];
++	ctx->width = SCALER_DEF_WIDTH;
++	ctx->height = SCALER_DEF_HEIGHT;
++	init_waitqueue_head(&ctx->event_q);
++	INIT_LIST_HEAD(&ctx->wait_queue);
++	INIT_LIST_HEAD(&ctx->run_queue);
++
++	/* Initialize scaler subdev */
++	v4l2_subdev_init(sd, &scaler_subdev_ops);
++	sd->owner = THIS_MODULE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	if (scaler_id == SCALER_SCC)
++		snprintf(sd->name, sizeof(sd->name), "fimc-is-scc");
++	else
++		snprintf(sd->name, sizeof(sd->name), "fimc-is-scp");
++
++	ctx->subdev_pads[SCALER_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	ctx->subdev_pads[SCALER_SD_PAD_SRC_FIFO].flags = MEDIA_PAD_FL_SOURCE;
++	ctx->subdev_pads[SCALER_SD_PAD_SRC_DMA].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, ISP_SD_PADS_NUM,
++			ctx->subdev_pads, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_ctrl_handler_init(handler, 1);
++	if (handler->error)
++		goto err_ctrl;
++
++	sd->ctrl_handler = handler;
++	sd->internal_ops = &scaler_subdev_internal_ops;
++	v4l2_set_subdevdata(sd, ctx);
++
++	return 0;
++err_ctrl:
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(handler);
++	return ret;
++}
++
++void fimc_is_scaler_subdev_destroy(struct fimc_is_scaler *ctx)
++{
++	struct v4l2_subdev *sd = &ctx->subdev;
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
++	v4l2_set_subdevdata(sd, NULL);
++}
++
+diff --git a/drivers/media/platform/exynos5-is/fimc-is-scaler.h b/drivers/media/platform/exynos5-is/fimc-is-scaler.h
+new file mode 100644
+index 0000000..97a9d0d
+--- /dev/null
++++ b/drivers/media/platform/exynos5-is/fimc-is-scaler.h
+@@ -0,0 +1,106 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *  Arun Kumar K <arun.kk@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SCALER_H_
++#define FIMC_IS_SCALER_H_
++
++#include <linux/sizes.h>
++#include <linux/io.h>
++#include <linux/irqreturn.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++#include <media/media-entity.h>
++#include <media/videobuf2-core.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-mediabus.h>
++#include <media/s5p_fimc.h>
++
++#include "fimc-is-core.h"
++
++#define SCALER_SD_PAD_SINK	0
++#define SCALER_SD_PAD_SRC_FIFO	1
++#define SCALER_SD_PAD_SRC_DMA	2
++#define SCALER_SD_PADS_NUM	3
++
++#define SCALER_MAX_BUFS		32
++#define SCALER_MAX_PLANES	3
++
++#define FIMC_IS_SCALER_REQ_BUFS_MIN	2
++
++#define SCALER_DEF_WIDTH	1280
++#define SCALER_DEF_HEIGHT	720
++#define SCALER_MAX_WIDTH	4808
++#define SCALER_MAX_HEIGHT	3356
++#define SCALER_MIN_WIDTH	32
++#define SCALER_MIN_HEIGHT	32
++
++/**
++ * struct fimc_is_scaler - fimc-is scaler structure
++ * @vfd: video device node
++ * @fh: v4l2 file handle
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @subdev: fimc-is-scaler subdev
++ * @vd_pad: media pad for the output video node
++ * @subdev_pads: the subdev media pads
++ * @ctrl_handler: v4l2 control handler
++ * @video_lock: video lock mutex
++ * @event_q: notifies scaler events
++ * @pipeline: pipeline instance for this scaler context
++ * @scaler_id: distinguishes scaler preview or scaler codec
++ * @vbq: vb2 buffers queue for ISP output video node
++ * @wait_queue: list holding buffers waiting to be queued to HW
++ * @wait_queue_cnt: wait queue number of buffers
++ * @run_queue: list holding buffers queued to HW
++ * @run_queue_cnt: run queue number of buffers
++ * @capture_bufs: scaler capture buffers array
++ * @fmt: capture plane format for scaler
++ * @width: user configured output width
++ * @height: user configured output height
++ * @capture_state: state of the capture video node operations
++ */
++struct fimc_is_scaler {
++	struct video_device		vfd;
++	struct v4l2_fh			fh;
++	struct vb2_alloc_ctx		*alloc_ctx;
++	struct v4l2_subdev		subdev;
++	struct media_pad		vd_pad;
++	struct media_pad		subdev_pads[SCALER_SD_PADS_NUM];
++	struct v4l2_mbus_framefmt	subdev_fmt;
++	struct v4l2_ctrl_handler	ctrl_handler;
++
++	struct mutex		video_lock;
++	wait_queue_head_t	event_q;
++
++	struct fimc_is_pipeline	*pipeline;
++	enum fimc_is_scaler_id	scaler_id;
++
++	struct vb2_queue	vbq;
++	struct list_head	wait_queue;
++	unsigned int		wait_queue_cnt;
++	struct list_head	run_queue;
++	unsigned int		run_queue_cnt;
++
++	const struct fimc_is_fmt *fmt;
++	unsigned int		width;
++	unsigned int		height;
++	unsigned long		capture_state;
++};
++
++int fimc_is_scaler_subdev_create(struct fimc_is_scaler *ctx,
++		enum fimc_is_scaler_id scaler_id,
++		struct vb2_alloc_ctx *alloc_ctx,
++		struct fimc_is_pipeline *pipeline);
++void fimc_is_scaler_subdev_destroy(struct fimc_is_scaler *scaler);
++
++#endif /* FIMC_IS_SCALER_H_ */
 -- 
 1.7.9.5
 
