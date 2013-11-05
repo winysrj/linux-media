@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:42989 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756610Ab3KFO1z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:27:55 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] ths7303: Declare as static a private function
-Date: Wed,  6 Nov 2013 15:27:48 +0100
-Message-Id: <1383748068-22182-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33401 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775Ab3KEFYX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Nov 2013 00:24:23 -0500
+Message-ID: <527880C2.6060500@ti.com>
+Date: Tue, 5 Nov 2013 10:53:14 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Wei Yongjun <weiyj.lk@gmail.com>, <m.chehab@samsung.com>,
+	<grant.likely@linaro.org>, <rob.herring@calxeda.com>,
+	<hans.verkuil@cisco.com>, <k.debski@samsung.com>
+CC: <yongjun_wei@trendmicro.com.cn>, <linux-media@vger.kernel.org>
+Subject: Re: [PATCH -next] [media] v4l: ti-vpe: fix return value check in
+ vpe_probe()
+References: <CAPgLHd-YSAP+236AfZTXT3Cg_opQ+t=+nUHL+CVhXnkeA=zcBw@mail.gmail.com>
+In-Reply-To: <CAPgLHd-YSAP+236AfZTXT3Cg_opQ+t=+nUHL+CVhXnkeA=zcBw@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-git grep shows that the function is only called from ths7303.c
+On Wednesday 30 October 2013 08:45 AM, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> In case of error, the function devm_kzalloc() and devm_ioremap()
+> returns NULL pointer not ERR_PTR(). The IS_ERR() test in the return
+> value check should be replaced with NULL test.
 
-Fix this build warning:
+Reviewed-by: Archit Taneja <archit@ti.com>
 
-CC      drivers/media/i2c/ths7303.o
-drivers/media/i2c/ths7303.c:86:5: warning: no previous prototype for  ‘ths7303_setval’ [-Wmissing-prototypes]
-   int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
-        ^
+Thanks,
+Archit
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/ths7303.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-index 42276d9..16da153 100644
---- a/drivers/media/i2c/ths7303.c
-+++ b/drivers/media/i2c/ths7303.c
-@@ -83,7 +83,8 @@ static int ths7303_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- }
- 
- /* following function is used to set ths7303 */
--int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
-+static int ths7303_setval(struct v4l2_subdev *sd,
-+					enum ths7303_filter_mode mode)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ths7303_state *state = to_state(sd);
--- 
-1.8.4.rc3
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>   drivers/media/platform/ti-vpe/vpe.c | 8 ++++----
+>   1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 4e58069..90cf369 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -1942,8 +1942,8 @@ static int vpe_probe(struct platform_device *pdev)
+>   	int ret, irq, func;
+>
+>   	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+> -	if (IS_ERR(dev))
+> -		return PTR_ERR(dev);
+> +	if (!dev)
+> +		return -ENOMEM;
+>
+>   	spin_lock_init(&dev->lock);
+>
+> @@ -1962,8 +1962,8 @@ static int vpe_probe(struct platform_device *pdev)
+>   	 * registers based on the sub block base addresses
+>   	 */
+>   	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_32K);
+> -	if (IS_ERR(dev->base)) {
+> -		ret = PTR_ERR(dev->base);
+> +	if (!dev->base) {
+> +		ret = -ENOMEM;
+>   		goto v4l2_dev_unreg;
+>   	}
+>
+>
+>
 
