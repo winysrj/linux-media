@@ -1,95 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46428 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756518Ab3KZPma (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 10:42:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/8] vb2: push the mmap semaphore down to __buf_prepare()
-Date: Tue, 26 Nov 2013 16:42:32 +0100
-Message-ID: <6105887.nidGlvWj4k@avalon>
-In-Reply-To: <528F1DB9.6030702@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <6539252.6X3kkSkupS@avalon> <528F1DB9.6030702@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:43299 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754733Ab3KENDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 15/29] [media] stv0367: Don't use dynamic static allocation
+Date: Tue,  5 Nov 2013 08:01:28 -0200
+Message-Id: <1383645702-30636-16-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
+	drivers/media/dvb-frontends/stv0367.c:791:1: warning: 'stv0367_writeregs.constprop.4' uses dynamic stack allocation [enabled by default]
 
-On Friday 22 November 2013 10:02:49 Hans Verkuil wrote:
-> On 11/21/2013 08:04 PM, Laurent Pinchart wrote:
-> > On Thursday 21 November 2013 16:21:59 Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >> 
-> >> Rather than taking the mmap semaphore at a relatively high-level
-> >> function, push it down to the place where it is really needed.
-> >> 
-> >> It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
-> >> vb2 calls, however, I see no way that any race can happen.
-> > 
-> > What about the following scenario ? Both QBUF calls are performed on the
-> > same buffer.
-> > 
-> > 	CPU 0							CPU 1
-> > 	-------------------------------------------------------------------------
-> > 	QBUF								QBUF
-> > 		locks the queue mutex				waits for the queue mutex
-> > 	vb2_qbuf
-> > 	vb2_queue_or_prepare_buf
-> > 	__vb2_qbuf
-> > 		checks vb->state, calls
-> > 	__buf_prepare
-> > 	call_qop(q, wait_prepare, q);
-> > 		unlocks the queue mutex
-> > 		
-> > 										locks the queue mutex
-> > 									vb2_qbuf
-> > 									vb2_queue_or_prepare_buf
-> > 									__vb2_qbuf
-> > 										checks vb->state, calls
-> > 									__buf_prepare
-> > 									call_qop(q, wait_prepare, q);
-> > 										unlocks the queue mutex
-> > 									queue the buffer, set buffer
-> > 									 state to queue
-> > 	
-> > 	queue the buffer, set buffer
-> > 	 state to queue
-> > 
-> > We would thus end up queueing the buffer twice. The vb->state check needs
-> > to be performed after the brief release of the queue mutex.
-> 
-> Good point, I hadn't thought about that scenario. However, using mmap_sem to
-> introduce a large critical section just to protect against state changes is
-> IMHO not the right approach. Why not introduce a VB2_BUF_STATE_PREPARING
-> state?
+Instead, let's enforce a limit for the buffer. Considering that I2C
+transfers are generally limited, and that devices used on USB has a
+max data length of 64 bytes for	the control URBs.
 
-Note that we use the queue mutex to do so, not mmap_sem. The problem is that 
-we can't release the queue mutex in the middle of a critical section without 
-risking being preempted by another task. Introducing a new state might be 
-possible if it effectively breaks the critical section in two independent 
-parts.
+So, it seem safe to use 64 bytes as the hard limit for all those devices.
 
-> That's set at the start of __buf_prepare while the queue mutex is still
-> held, and which prevents other threads of queuing the same buffer again. If
-> the prepare fails, then the state is reverted back to DEQUEUED.
-> 
-> __fill_v4l2_buffer() will handle the PREPARING state as if it was the
-> DEQUEUED state.
-> 
-> What do you think?
+ On most cases, the limit is a way lower than that, but	this limit
+is small enough to not affect the Kernel stack, and it is a no brain
+limit, as using smaller ones would require to either carefully each
+driver or to take a look on each datasheet.
 
-I'll have to review that in details given the potential complexity of locking 
-issues :-) I'm not opposed to the idea, if it works I believe we should do it.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/stv0367.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 7b6dba3ce55e..458772739423 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -33,6 +33,9 @@
+ #include "stv0367_regs.h"
+ #include "stv0367_priv.h"
+ 
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  64
++
+ static int stvdebug;
+ module_param_named(debug, stvdebug, int, 0644);
+ 
+@@ -767,7 +770,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
+ static
+ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
+ {
+-	u8 buf[len + 2];
++	u8 buf[MAX_XFER_SIZE];
+ 	struct i2c_msg msg = {
+ 		.addr = state->config->demod_address,
+ 		.flags = 0,
+@@ -776,6 +779,14 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
+ 	};
+ 	int ret;
+ 
++	if (2 + len > sizeof(buf)) {
++		printk(KERN_WARNING
++		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
++		       KBUILD_MODNAME, reg, len);
++		return -EINVAL;
++	}
++
++
+ 	buf[0] = MSB(reg);
+ 	buf[1] = LSB(reg);
+ 	memcpy(buf + 2, data, len);
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
