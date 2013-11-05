@@ -1,155 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:45089 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757752Ab3KIDZV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 22:25:21 -0500
-Received: by mail-lb0-f178.google.com with SMTP id l4so1987972lbv.9
-        for <linux-media@vger.kernel.org>; Fri, 08 Nov 2013 19:25:19 -0800 (PST)
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:22038 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990Ab3KEItB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 03:49:01 -0500
+Message-ID: <5278AE7A.5010000@cisco.com>
+Date: Tue, 05 Nov 2013 09:38:18 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <527DA266.2030903@iki.fi>
-References: <1383760655-11388-1-git-send-email-crope@iki.fi>
-	<1383760655-11388-4-git-send-email-crope@iki.fi>
-	<CAHFNz9KKajctZphw5bNCoYAyG15Bo+SDWNY=TXR0o337dXyzKA@mail.gmail.com>
-	<527DA266.2030903@iki.fi>
-Date: Sat, 9 Nov 2013 08:55:19 +0530
-Message-ID: <CAHFNz9Lm+NUBe-o4MNZFXPdkjVOWdD-6z6pJ7JEE7a-LWi7e0w@mail.gmail.com>
-Subject: Re: [PATCH 3/8] Montage M88DS3103 DVB-S/S2 demodulator driver
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+CC: Dinesh Ram <dinesh.ram@cern.ch>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	d ram <dinesh.ram086@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 8/9] si4713: move supply list to si4713_platform_data
+References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch> <bffa203fea7b8724f7e92e8e835b80efbfd65eee.1381850640.git.dinesh.ram@cern.ch> <CAC-25o9YZjLnwUmt_q17V1Xiu8wubgrn=uLpX31Zu_H6PwF73A@mail.gmail.com>
+In-Reply-To: <CAC-25o9YZjLnwUmt_q17V1Xiu8wubgrn=uLpX31Zu_H6PwF73A@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 9, 2013 at 8:18 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 09.11.2013 04:35, Manu Abraham wrote:
+Hi,
+
+On 11/04/13 15:07, edubezval@gmail.com wrote:
+> Hi,
+> 
+> On Tue, Oct 15, 2013 at 11:24 AM, Dinesh Ram <dinesh.ram@cern.ch> wrote:
+>> The supply list is needed by the platform driver, but not by the usb driver.
+>> So this information belongs to the platform data and should not be hardcoded
+>> in the subdevice driver.
 >>
->> On Wed, Nov 6, 2013 at 11:27 PM, Antti Palosaari <crope@iki.fi> wrote:
->
->
->
->>> +/*
->>> + * Driver implements own I2C-adapter for tuner I2C access. That's since
->>> chip
->>> + * has I2C-gate control which closes gate automatically after I2C
->>> transfer.
->>> + * Using own I2C adapter we can workaround that.
->>> + */
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Dinesh, could you please sign this patch too?
+> 
+>> ---
+>>  arch/arm/mach-omap2/board-rx51-peripherals.c |    7 ++++
+>>  drivers/media/radio/si4713/si4713.c          |   52 +++++++++++++-------------
+>>  drivers/media/radio/si4713/si4713.h          |    3 +-
+>>  include/media/si4713.h                       |    2 +
+>>  4 files changed, 37 insertions(+), 27 deletions(-)
 >>
+>> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> index f6fe388..eae73f7 100644
+>> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> @@ -776,7 +776,14 @@ static struct regulator_init_data rx51_vintdig = {
+>>         },
+>>  };
 >>
+>> +static const char * const si4713_supply_names[SI4713_NUM_SUPPLIES] = {
+> 
+> This patch produces the following compilation error:
+> arch/arm/mach-omap2/board-rx51-peripherals.c:779:47: error:
+> 'SI4713_NUM_SUPPLIES' undeclared here (not in a function)
+
+Hmm, I thought I had compile-tested this, apparently not. Does it compile if
+you just remove SI4713_NUM_SUPPLIES? It's not necessary here.
+
+Regards,
+
+	Hans
+
+> arch/arm/mach-omap2/board-rx51-peripherals.c:785:14: error: bit-field
+> '<anonymous>' width not an integer constant
+> arch/arm/mach-omap2/board-rx51-peripherals.c:779:27: warning:
+> 'si4713_supply_names' defined but not used [-Wunused-variable]
+> make[1]: *** [arch/arm/mach-omap2/board-rx51-peripherals.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+> make: *** Waiting for unfinished jobs....
+> 
+> 
+>> +       "vio",
+>> +       "vdd",
+>> +};
+>> +
+>>  static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
+>> +       .supplies       = ARRAY_SIZE(si4713_supply_names),
+>> +       .supply_names   = si4713_supply_names,
+>>         .gpio_reset     = RX51_FMTX_RESET_GPIO,
+>>  };
 >>
->> Why should the demodulator implement it's own adapter for tuner access ?
->
->
-> In order to implement it properly.
->
->
->
->> DS3103 is identical to DS3002, DS3000 which is similar to all other
->> dvb demodulators. Comparing datsheets of these demodulators
->> with others, I can't see any difference in the repeater setup, except
->> for an additional bit field to control the repeater block itself.
+>> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+>> index d297a5b..920dfa5 100644
+>> --- a/drivers/media/radio/si4713/si4713.c
+>> +++ b/drivers/media/radio/si4713/si4713.c
+>> @@ -44,11 +44,6 @@ MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
+>>  MODULE_DESCRIPTION("I2C driver for Si4713 FM Radio Transmitter");
+>>  MODULE_VERSION("0.0.1");
 >>
->> Also, from what I see, the vendor; Montage has a driver, which appears
->> to be more code complete looking at this url. http://goo.gl/biaPYu
+>> -static const char *si4713_supply_names[SI4713_NUM_SUPPLIES] = {
+>> -       "vio",
+>> -       "vdd",
+>> -};
+>> -
+>>  #define DEFAULT_RDS_PI                 0x00
+>>  #define DEFAULT_RDS_PTY                        0x00
+>>  #define DEFAULT_RDS_DEVIATION          0x00C8
+>> @@ -368,11 +363,12 @@ static int si4713_powerup(struct si4713_device *sdev)
+>>         if (sdev->power_state)
+>>                 return 0;
 >>
->> Do you still think the DS3103 is much different in comparison ?
->
-
-DS3000 demodulator datasheet states:
-
-To avoid unwanted noise disturbing the tuner performance, the
-M88DS3000 offers a 2-wire bus repeater dedicated for tuner
-control. The tuner is connected to the M88DS3000 through the
-SCLT and SDAT pins. See Figure 11. Every time the 2-wire bus
-master wants to access the tuner registers, it must enable the
-repeater first. When the repeater is enabled, the SDAT and SCLT
-pins are active. The messages on the SDA and SCL pins is
-repeated on the SDAT and SCLT pins. The repeater will be
-automatically disabled once the access times to the tuner
-reaches the configured value. When disabled, the SCLT and
-SDAT pins are completely isolated from the 2-wire bus and
-become inactive (HIGH).
-
-DS3002 demodulator datasheet states:
-
-To avoid unwanted noise disturbing the tuner performance, the
-M88DS3002B offers a 2-wire bus repeater dedicated for tuner
-control. The tuner is connected to the M88DS3002B through
-the SCLT and SDAT pins. See Figure 12. Every time the 2-wire
-bus master wants to access the tuner registers, it must enable
-the repeater first by configuring bit 2_WIRE_REP_EN (03H).
-When the repeater is enabled, the SDAT and SCLT pins are
-active. The messages on the SDA and SCL pins is repeated
-on the SDAT and SCLT pins. The repeater will be automatically
-disabled once the access times to the tuner reaches the
-configured value set in bits 2_WIRE_REP_TM[2:0] (03H).
-When disabled, the SCLT and SDAT pins are completely
-isolated from the 2-wire bus and become inactive (HIGH).
-
-DS3013 demodulator datasheet states:
-
-To avoid unwanted noise disturbing the tuner performance, the
-M88DS3103 offers a 2-wire bus repeater dedicated for tuner
-control. The tuner is connected to the M88DS3103 through the
-SCLT and SDAT pins. See Figure 12. Every time the 2-wire bus
-master wants to access the tuner registers, it must enable the
-repeater first by configuring bit 2_WIRE_REP_EN (03H). When
-the repeater is enabled, the SDAT and SCLT pins are active.
-The messages on the SDA and SCL pins is repeated on the
-SDAT and SCLT pins. The repeater will be automatically
-disabled once the access times to the tuner reaches the
-configured value set in bits 2_WIRE_REP_TM[2:0] (03H).
-When disabled, the SCLT and SDAT pins are completely
-isolated from the 2-wire bus and become inactive (HIGH).
-
-When you compare this with *almost* any other demodulator
-that exists; This behaviour is much consistent with that which
-exists in the mainline kernel source.
-
-
-If you look at most DVB-S/S2 demodulator drivers almost all
-of them do have an I2C repeater, which in some cases are
-configurable for a) auto-manual close, b) auto close,
-c) manual close. The majority of them do auto close,
-unless bugs on the hardware implementation do exist.
-
-What I don't understand why you need an I2C adapter to handle
-the I2C repeater. All demodulator drivers use i2c_gate_ctl
-to enable/disable the repeater.
-
-ie, how is your i2c_adapter implementation for the ds3103
-demodulator going to make things better than:
-
-static int ds3103_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
-{
-        struct ds3103_state *state = fe->demodulator_priv;
-
-        if (enable)
-                ds3103_writereg(state, 0x03, 0x12);
-        else
-                ds3103_writereg(state, 0x03, 0x02);
-
-        return 0;
-}
-
-which is more common to all other DVB demodulator drivers.
-Please don't make weird implementations for straight forward
-stuff.
-
->
-> There was even some patches, maybe 2 years, ago in order to mainline that
-> but it never happened.
-
-??
-
->
-> More complete is here 53 vs. 86 register writes, so yes it is more ~40 more
-> complete if you like to compare it like that.
-
-What I would stress more, is that the driver at this URL
-
-http://goo.gl/biaPYu
-
-is from Montage themselves rather than a reverse engineered one;
-rather than the number of lines of code, or number of registers.
+>> -       err = regulator_bulk_enable(ARRAY_SIZE(sdev->supplies),
+>> -                                   sdev->supplies);
+>> -       if (err) {
+>> -               v4l2_err(&sdev->sd, "Failed to enable supplies: %d\n", err);
+>> -               return err;
+>> +       if (sdev->supplies) {
+>> +               err = regulator_bulk_enable(sdev->supplies, sdev->supply_data);
+>> +               if (err) {
+>> +                       v4l2_err(&sdev->sd, "Failed to enable supplies: %d\n", err);
+>> +                       return err;
+>> +               }
+>>         }
+>>         if (gpio_is_valid(sdev->gpio_reset)) {
+>>                 udelay(50);
+>> @@ -396,11 +392,12 @@ static int si4713_powerup(struct si4713_device *sdev)
+>>                 if (client->irq)
+>>                         err = si4713_write_property(sdev, SI4713_GPO_IEN,
+>>                                                 SI4713_STC_INT | SI4713_CTS);
+>> -       } else {
+>> -               if (gpio_is_valid(sdev->gpio_reset))
+>> -                       gpio_set_value(sdev->gpio_reset, 0);
+>> -               err = regulator_bulk_disable(ARRAY_SIZE(sdev->supplies),
+>> -                                            sdev->supplies);
+>> +               return err;
+>> +       }
+>> +       if (gpio_is_valid(sdev->gpio_reset))
+>> +               gpio_set_value(sdev->gpio_reset, 0);
+>> +       if (sdev->supplies) {
+>> +               err = regulator_bulk_disable(sdev->supplies, sdev->supply_data);
+>>                 if (err)
+>>                         v4l2_err(&sdev->sd,
+>>                                  "Failed to disable supplies: %d\n", err);
+>> @@ -432,11 +429,13 @@ static int si4713_powerdown(struct si4713_device *sdev)
+>>                 v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
+>>                 if (gpio_is_valid(sdev->gpio_reset))
+>>                         gpio_set_value(sdev->gpio_reset, 0);
+>> -               err = regulator_bulk_disable(ARRAY_SIZE(sdev->supplies),
+>> -                                            sdev->supplies);
+>> -               if (err)
+>> -                       v4l2_err(&sdev->sd,
+>> -                                "Failed to disable supplies: %d\n", err);
+>> +               if (sdev->supplies) {
+>> +                       err = regulator_bulk_disable(sdev->supplies,
+>> +                                                    sdev->supply_data);
+>> +                       if (err)
+>> +                               v4l2_err(&sdev->sd,
+>> +                                        "Failed to disable supplies: %d\n", err);
+>> +               }
+>>                 sdev->power_state = POWER_OFF;
+>>         }
+>>
+>> @@ -1381,13 +1380,14 @@ static int si4713_probe(struct i2c_client *client,
+>>                 }
+>>                 sdev->gpio_reset = pdata->gpio_reset;
+>>                 gpio_direction_output(sdev->gpio_reset, 0);
+>> +               sdev->supplies = pdata->supplies;
+>>         }
+>>
+>> -       for (i = 0; i < ARRAY_SIZE(sdev->supplies); i++)
+>> -               sdev->supplies[i].supply = si4713_supply_names[i];
+>> +       for (i = 0; i < sdev->supplies; i++)
+>> +               sdev->supply_data[i].supply = pdata->supply_names[i];
+>>
+>> -       rval = regulator_bulk_get(&client->dev, ARRAY_SIZE(sdev->supplies),
+>> -                                 sdev->supplies);
+>> +       rval = regulator_bulk_get(&client->dev, sdev->supplies,
+>> +                                 sdev->supply_data);
+>>         if (rval) {
+>>                 dev_err(&client->dev, "Cannot get regulators: %d\n", rval);
+>>                 goto free_gpio;
+>> @@ -1500,7 +1500,7 @@ free_irq:
+>>  free_ctrls:
+>>         v4l2_ctrl_handler_free(hdl);
+>>  put_reg:
+>> -       regulator_bulk_free(ARRAY_SIZE(sdev->supplies), sdev->supplies);
+>> +       regulator_bulk_free(sdev->supplies, sdev->supply_data);
+>>  free_gpio:
+>>         if (gpio_is_valid(sdev->gpio_reset))
+>>                 gpio_free(sdev->gpio_reset);
+>> @@ -1524,7 +1524,7 @@ static int si4713_remove(struct i2c_client *client)
+>>
+>>         v4l2_device_unregister_subdev(sd);
+>>         v4l2_ctrl_handler_free(sd->ctrl_handler);
+>> -       regulator_bulk_free(ARRAY_SIZE(sdev->supplies), sdev->supplies);
+>> +       regulator_bulk_free(sdev->supplies, sdev->supply_data);
+>>         if (gpio_is_valid(sdev->gpio_reset))
+>>                 gpio_free(sdev->gpio_reset);
+>>         kfree(sdev);
+>> diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+>> index dc0ce66..986e27b 100644
+>> --- a/drivers/media/radio/si4713/si4713.h
+>> +++ b/drivers/media/radio/si4713/si4713.h
+>> @@ -227,7 +227,8 @@ struct si4713_device {
+>>                 struct v4l2_ctrl *tune_ant_cap;
+>>         };
+>>         struct completion work;
+>> -       struct regulator_bulk_data supplies[SI4713_NUM_SUPPLIES];
+>> +       unsigned supplies;
+>> +       struct regulator_bulk_data supply_data[SI4713_NUM_SUPPLIES];
+>>         int gpio_reset;
+>>         u32 power_state;
+>>         u32 rds_enabled;
+>> diff --git a/include/media/si4713.h b/include/media/si4713.h
+>> index ed7353e..f98a0a7 100644
+>> --- a/include/media/si4713.h
+>> +++ b/include/media/si4713.h
+>> @@ -23,6 +23,8 @@
+>>   * Platform dependent definition
+>>   */
+>>  struct si4713_platform_data {
+>> +       const char * const *supply_names;
+>> +       unsigned supplies;
+>>         int gpio_reset; /* < 0 if not used */
+>>  };
+>>
+>> --
+>> 1.7.9.5
+>>
+> 
+> 
+> 
