@@ -1,111 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2115 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab3K1Dd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 22:33:28 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAS3XPAS069186
-	for <linux-media@vger.kernel.org>; Thu, 28 Nov 2013 04:33:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 5340C2A2220
-	for <linux-media@vger.kernel.org>; Thu, 28 Nov 2013 04:33:23 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131128033323.5340C2A2220@tschai.lan>
-Date: Thu, 28 Nov 2013 04:33:23 +0100 (CET)
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:43837 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754456Ab3KELge (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 06:36:34 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MVS00BFGG8VEN50@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Nov 2013 06:36:32 -0500 (EST)
+Date: Tue, 05 Nov 2013 09:36:28 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCHv2 22/29] v4l2-async: Don't use dynamic static allocation
+Message-id: <20131105093628.6da1a600@samsung.com>
+In-reply-to: <52779DD8.3080401@xs4all.nl>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+ <1383399097-11615-23-git-send-email-m.chehab@samsung.com>
+ <52779DD8.3080401@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 04 Nov 2013 14:15:04 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> On 11/02/2013 02:31 PM, Mauro Carvalho Chehab wrote:
+> > Dynamic static allocation is evil, as Kernel stack is too low, and
+> > compilation complains about it on some archs:
+> > 
+> > 	drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+> > 
+> > Instead, let's enforce a limit for the buffer.
+> > 
+> > In this specific case, there's a hard limit imposed by V4L2_MAX_SUBDEVS,
+> > with is currently 128. That means that the buffer size can be up to
+> > 128x8 = 1024 bytes (on a 64bits kernel), with is too big for stack.
+> > 
+> > Worse than that, someone could increase it and cause real troubles.
+> > 
+> > So, let's use dynamically allocated data, instead.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index c85d69da35bd..071596869036 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -189,12 +189,14 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  	struct v4l2_subdev *sd, *tmp;
+> >  	unsigned int notif_n_subdev = notifier->num_subdevs;
+> >  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> > -	struct device *dev[n_subdev];
+> > +	struct device **dev;
+> >  	int i = 0;
+> >  
+> >  	if (!notifier->v4l2_dev)
+> >  		return;
+> >  
+> > +	dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
+> > +
+> 
+> No check for dev == NULL?
 
-date:		Thu Nov 28 04:00:29 CET 2013
-git branch:	test
-git hash:	258d2fbf874c87830664cb7ef41f9741c1abffac
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+Well, what should be done in this case?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+We could do the changes below:
 
-Detailed results are available here:
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+        struct v4l2_subdev *sd, *tmp;
+        unsigned int notif_n_subdev = notifier->num_subdevs;
+        unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+-       struct device *dev[n_subdev];
++       struct device **dev;
+        int i = 0;
+ 
+        if (!notifier->v4l2_dev)
+                return;
+ 
++       dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
++       if (!dev) {
++               WARN_ON(true);
++               return;
++       }
++
+        mutex_lock(&list_lock);
+ 
+        list_del(&notifier->list);
+ 
+        list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+                dev[i] = get_device(sd->dev);
+ 
+                v4l2_async_cleanup(sd);
+ 
+                /* If we handled USB devices, we'd have to lock the parent too */
+                device_release_driver(dev[i++]);
+ 
+                if (notifier->unbind)
+                        notifier->unbind(notifier, sd, sd->asd);
+        }
+ 
+        mutex_unlock(&list_lock);
+ 
+        while (i--) {
+                struct device *d = dev[i];
+ 
+                if (d && device_attach(d) < 0) {
+                        const char *name = "(none)";
+                        int lock = device_trylock(d);
+ 
+                        if (lock && d->driver)
+                                name = d->driver->name;
+                        dev_err(d, "Failed to re-probe to %s\n", name);
+                        if (lock)
+                                device_unlock(d);
+                }
+                put_device(d);
+        }
++       kfree(dev);
+ 
+        notifier->v4l2_dev = NULL;
+ 
+        /*
+         * Don't care about the waiting list, it is initialised and populated
+         * upon notifier registration.
+         */
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+But I suspect that this will cause an OOPS anyway, as the device will be
+only half-removed. So, it would likely OOPS at device removal or if the
+device got probed again, at probing time.
 
-Full logs are available here:
+So, IMHO, we should have at least a WARN_ON() for this case.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Do you have a better idea?
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Mauro
