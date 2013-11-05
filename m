@@ -1,150 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:46771 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699Ab3KNNIV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Nov 2013 08:08:21 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MW900H2G8HOFY80@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Nov 2013 08:08:20 -0500 (EST)
-Date: Thu, 14 Nov 2013 11:08:14 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Fw: staging: media: Use dev_err() instead of pr_err()
-Message-id: <20131114110814.6b13f62b@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:63505 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754857Ab3KENQH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:16:07 -0500
+MIME-Version: 1.0
+In-Reply-To: <20131105125108.GF23061@valkosipuli.retiisi.org.uk>
+References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+	<1383631964-26514-4-git-send-email-arun.kk@samsung.com>
+	<20131105125108.GF23061@valkosipuli.retiisi.org.uk>
+Date: Tue, 5 Nov 2013 18:46:06 +0530
+Message-ID: <CALt3h7_BCj7yJi6sy=KVOHoET4aWm_a-N=u63R8-bZ-uQ=AGag@mail.gmail.com>
+Subject: Re: [PATCH v11 03/12] [media] exynos5-fimc-is: Add common driver
+ header files
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-I'm not sure how this patch got applied upstream:
+Thank you for the review.
 
-	commit b6ea5ef80aa7fd6f4b18ff2e4174930e8772e812
-	Author: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
-	Date:   Sun Oct 20 22:58:28 2013 +0530
-	
-	    staging:media: Use dev_dbg() instead of pr_debug()
-	    
-	    Use dev_dbg() instead of pr_debug() in go7007-usb.c.
-    
-	    Signed-off-by: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
-	    Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-	    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On Tue, Nov 5, 2013 at 6:21 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Arun,
+>
+> On Tue, Nov 05, 2013 at 11:42:34AM +0530, Arun Kumar K wrote:
+>> This patch adds all the common header files used by the fimc-is
+>> driver. It includes the commands for interfacing with the firmware
+>> and error codes from IS firmware, metadata and command parameter
+>> definitions.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 ++++
+>>  drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++++
+>>  .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++++++
+>>  drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 ++++++++++++++++++++
+>>  4 files changed, 2370 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
+>>
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-cmd.h b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
+>> new file mode 100644
+>> index 0000000..6250280
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
+>> @@ -0,0 +1,187 @@
+>> +/*
 
-But, from the custody chain, it seems it was not C/C to linux-media ML,
-doesn't have the driver maintainer's ack[1] and didn't went via my tree.
+[snip]
 
-[1] Dulshani, please next time run the get_maintainer.pl script to get the
-proper maintainers:
-	$ /scripts/get_maintainer.pl -f drivers/staging/media/go7007/go7007-usb.c
-	Hans Verkuil <hans.verkuil@cisco.com> (maintainer:STAGING - GO7007...)
-	Mauro Carvalho Chehab <m.chehab@samsung.com> (maintainer:MEDIA INPUT INFRA...)
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org> (supporter:STAGING SUBSYSTEM)
-	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...)
-	devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM)
+>> +struct is_common_reg {
+>> +     u32 hicmd;
+>> +     u32 hic_sensorid;
+>> +     u32 hic_param[4];
+>> +
+>> +     u32 reserved1[3];
+>> +
+>> +     u32 ihcmd_iflag;
+>> +     u32 ihcmd;
+>> +     u32 ihc_sensorid;
+>> +     u32 ihc_param[4];
+>> +
+>> +     u32 reserved2[3];
+>> +
+>> +     u32 isp_bayer_iflag;
+>> +     u32 isp_bayer_sensor_id;
+>> +     u32 isp_bayer_param[2];
+>> +
+>> +     u32 reserved3[4];
+>> +
+>> +     u32 scc_iflag;
+>> +     u32 scc_sensor_id;
+>> +     u32 scc_param[3];
+>> +
+>> +     u32 reserved4[3];
+>> +
+>> +     u32 dnr_iflag;
+>> +     u32 dnr_sensor_id;
+>> +     u32 dnr_param[2];
+>> +
+>> +     u32 reserved5[4];
+>> +
+>> +     u32 scp_iflag;
+>> +     u32 scp_sensor_id;
+>> +     u32 scp_param[3];
+>> +
+>> +     u32 reserved6[1];
+>> +
+>> +     u32 isp_yuv_iflag;
+>> +     u32 isp_yuv_sensor_id;
+>> +     u32 isp_yuv_param[2];
+>> +
+>> +     u32 reserved7[1];
+>> +
+>> +     u32 shot_iflag;
+>> +     u32 shot_sensor_id;
+>> +     u32 shot_param[2];
+>> +
+>> +     u32 reserved8[1];
+>> +
+>> +     u32 meta_iflag;
+>> +     u32 meta_sensor_id;
+>> +     u32 meta_param1;
+>> +
+>> +     u32 reserved9[1];
+>> +
+>> +     u32 fcount;
+>
+> If these structs define an interface that's not used by the driver only it
+> might be a good idea to use __packed to ensure no padding is added.
+>
 
-Anyway, this patch is clearly wrong, and will cause an OOPS if CONFIG_DEBUG is 
-enabled, during device probing, because of this change:
+The same structure is used as is in the firmware code and so it is retained
+in the driver.
 
-@@ -1052,21 +1050,21 @@ static int go7007_usb_probe(struct usb_interface *intf,
-                const struct usb_device_id *id)
- {
-        struct go7007 *go;
-        struct go7007_usb *usb;
-        const struct go7007_usb_board *board;
-        struct usb_device *usbdev = interface_to_usbdev(intf);
-        unsigned num_i2c_devs;
-        char *name;
-        int video_pipe, i, v_urb_len;
- 
--       pr_debug("probing new GO7007 USB board\n");
-+       dev_dbg(go->dev, "probing new GO7007 USB board\n");
- 
-        switch (id->driver_info) {
-        case GO7007_BOARDID_MATRIX_II:
-                name = "WIS Matrix II or compatible";
-                board = &board_matrix_ii;
-                break;
-        case GO7007_BOARDID_MATRIX_RELOAD:
-                name = "WIS Matrix Reloaded or compatible";
-                board = &board_matrix_reload;
-                break;
+>> +};
+>> +
+>> +struct is_mcuctl_reg {
+>> +     u32 mcuctl;
+>> +     u32 bboar;
+>> +
+>> +     u32 intgr0;
+>> +     u32 intcr0;
+>> +     u32 intmr0;
+>> +     u32 intsr0;
+>> +     u32 intmsr0;
+>> +
+>> +     u32 intgr1;
+>> +     u32 intcr1;
+>> +     u32 intmr1;
+>> +     u32 intsr1;
+>> +     u32 intmsr1;
+>> +
+>> +     u32 intcr2;
+>> +     u32 intmr2;
+>> +     u32 intsr2;
+>> +     u32 intmsr2;
+>> +
+>> +     u32 gpoctrl;
+>> +     u32 cpoenctlr;
+>> +     u32 gpictlr;
+>> +
+>> +     u32 pad[0xD];
+>> +
+>> +     struct is_common_reg common_reg;
+>> +};
+>> +#endif
+> ...
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-metadata.h b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>> new file mode 100644
+>> index 0000000..02367c4
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>> @@ -0,0 +1,767 @@
+>> +/*
+>> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
+>> + *
+>> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+>> + * Kil-yeon Lim <kilyeon.im@samsung.com>
+>> + * Arun Kumar K <arun.kk@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef FIMC_IS_METADATA_H_
+>> +#define FIMC_IS_METADATA_H_
+>> +
+>> +struct rational {
+>> +     uint32_t num;
+>> +     uint32_t den;
+>> +};
+>> +
+>> +#define CAMERA2_MAX_AVAILABLE_MODE   21
+>> +#define CAMERA2_MAX_FACES            16
+>> +
+>> +/*
+>> + * Controls/dynamic metadata
+>> + */
+>> +
+>> +enum metadata_mode {
+>> +     METADATA_MODE_NONE,
+>> +     METADATA_MODE_FULL
+>> +};
+>> +
+>> +struct camera2_request_ctl {
+>> +     uint32_t                id;
+>> +     enum metadata_mode      metadatamode;
+>> +     uint8_t                 outputstreams[16];
+>> +     uint32_t                framecount;
+>> +};
+>> +
+>> +struct camera2_request_dm {
+>> +     uint32_t                id;
+>> +     enum metadata_mode      metadatamode;
+>> +     uint32_t                framecount;
+>> +};
+>> +
+>> +
+>> +
+>> +enum optical_stabilization_mode {
+>> +     OPTICAL_STABILIZATION_MODE_OFF,
+>> +     OPTICAL_STABILIZATION_MODE_ON
+>> +};
+>> +
+>> +enum lens_facing {
+>> +     LENS_FACING_BACK,
+>> +     LENS_FACING_FRONT
+>> +};
+>> +
+>> +struct camera2_lens_ctl {
+>> +     uint32_t                                focus_distance;
+>> +     float                                   aperture;
+>
+> Floating point numbers? Really? :-)
+>
 
+Yes as mentioned, the same structure is used by the firmware and
+so it is used as is in the kernel.
 
-As it will try to de-reference the uninitialized "go" struct go7007_usb
-pointer.
-
-The alternative of mixing pr_debug with dev_debug, as Dan is suggesting
-is, IMHO, worse, as it will lack coherency on the usage of printk
-macros inside the driver.
-
-So, I think we should just revert this patch.
-
-Comments?
-
-Regards,
-Mauro
-
-Forwarded message:
-
-Date: Tue, 5 Nov 2013 23:26:05 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: dulshani.gunawardhana89@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: re: staging: media: Use dev_err() instead of pr_err()
-
-
-Hello Dulshani Gunawardhana,
-
-The patch 44ee8e801137: "staging: media: Use dev_err() instead of 
-pr_err()" from Oct 20, 2013, leads to the following
-GCC warning: 
-
-drivers/staging/media/go7007/go7007-usb.c: In function ‘go7007_usb_probe’:
-drivers/staging/media/go7007/go7007-usb.c:1100:13: warning: ‘go’ may be used uninitialized in this function [-Wuninitialized]
-
-drivers/staging/media/go7007/go7007-usb.c
-  1049  static int go7007_usb_probe(struct usb_interface *intf,
-  1050                  const struct usb_device_id *id)
-  1051  {
-  1052          struct go7007 *go;
-  1053          struct go7007_usb *usb;
-  1054          const struct go7007_usb_board *board;
-  1055          struct usb_device *usbdev = interface_to_usbdev(intf);
-  1056          unsigned num_i2c_devs;
-  1057          char *name;
-  1058          int video_pipe, i, v_urb_len;
-  1059  
-  1060          dev_dbg(go->dev, "probing new GO7007 USB board\n");
-                        ^^^^^^^
-  1061  
-  1062          switch (id->driver_info) {
-  1063          case GO7007_BOARDID_MATRIX_II:
-  1064                  name = "WIS Matrix II or compatible";
-  1065                  board = &board_matrix_ii;
-  1066                  break;
-
-There are several other uses of "go" before it has been initialized.
-
-Probably you will just want to change these back to pr_info().  Some of
-the messages are not very useful like:
-	dev_info(go->dev, "Sensoray 2250 found\n");
-You can delete that one.
-
-regards,
-dan carpenter
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Arun
