@@ -1,115 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:50302 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753681Ab3KCM3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 07:29:32 -0500
-Received: by mail-ee0-f52.google.com with SMTP id e49so581541eek.25
-        for <linux-media@vger.kernel.org>; Sun, 03 Nov 2013 04:29:31 -0800 (PST)
-Message-ID: <527641A9.8010309@googlemail.com>
-Date: Sun, 03 Nov 2013 13:29:29 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-media] Patch notification: 1 patch updated
-References: <20131031121301.23020.52079@www.linuxtv.org> <5274F75D.3040107@googlemail.com> <20131102143927.5a14b7cd@samsung.com>
-In-Reply-To: <20131102143927.5a14b7cd@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43285 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754635Ab3KENDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 01/29] [media] tda9887: remove an warning when compiling for alpha
+Date: Tue,  5 Nov 2013 08:01:14 -0200
+Message-Id: <1383645702-30636-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.11.2013 17:39, schrieb Mauro Carvalho Chehab:
-> Em Sat, 02 Nov 2013 14:00:13 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 31.10.2013 13:13, schrieb Patchwork:
->>> Hello,
->>>
->>> The following patch (submitted by you) has been updated in patchwork:
->>>
->>>   * linux-media: em28xx: make sure that all subdevices are powered on when needed
->>>       - http://patchwork.linuxtv.org/patch/20422/
->>>       - for: Linux Media kernel patches
->>>      was: New
->>>      now: Superseded
->> This patch isn't superseeded.
->> Guennadi didn't pick it up, so it's still up to you to review it.
->  From what I understood, Guennadi's patch series made it obsolete.
-> Right?
-Right, Guennadi's patch series doesn't need it anymore, but that doesn't 
-make it obsolete. ;-)
+There's no need to zero the buffer, as if the routine gets an error,
+rc will be different than one.
+That fixes the following warning:
+	drivers/media/tuners/tda9887.c: In function 'tda9887_status':
+	drivers/media/tuners/tda9887.c:539:2: warning: value computed is not used [-Wunused-value]
 
-> If not, what's the usecase where this patch is needed?
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg67473.html
+While here, make fix the CodingStyle on this function.
 
-So it's an attempt to fix a "ticking bomb".
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/tuners/tda9887.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-Frank
-
->
-> Regards,
-> Mauro
->
->> Regards,
->> Frank
->>
->>> This email is a notification only - you do not need to respond.
->>>
->>> -
->>>
->>> Patches submitted to linux-media@vger.kernel.org have the following
->>> possible states:
->>>
->>> New: Patches not yet reviewed (typically new patches);
->>>
->>> Under review: When it is expected that someone is reviewing it (typically,
->>> 	      the driver's author or maintainer). Unfortunately, patchwork
->>> 	      doesn't have a field to indicate who is the driver maintainer.
->>> 	      If in doubt about who is the driver maintainer please check the
->>> 	      MAINTAINERS file or ask at the ML;
->>>
->>> Superseded: when the same patch is sent twice, or a new version of the
->>> 	    same patch is sent, and the maintainer identified it, the first
->>> 	    version is marked as such. It is also used when a patch was
->>> 	    superseeded by a git pull request.
->>>
->>> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
->>> 	   exist anymore.
->>>
->>> Changes requested: when someone requests changes at the patch;
->>>
->>> Rejected: When the patch is wrong or doesn't apply. Most of the
->>> 	  time, 'rejected' and 'changes requested' means the same thing
->>> 	  for the developer: he'll need to re-work on the patch.
->>>
->>> RFC: patches marked as such and other patches that are also RFC, but the
->>>       patch author was not nice enough to mark them as such. That includes:
->>> 	- patches sent by a driver's maintainer who send patches
->>> 	  via git pull requests;
->>> 	- patches with a very active community (typically from developers
->>> 	  working with embedded devices), where lots of versions are
->>> 	  needed for the driver maintainer and/or the community to be
->>> 	  happy with.
->>>
->>> Not Applicable: for patches that aren't meant to be applicable via
->>> 	        the media-tree.git.
->>>
->>> Accepted: when some driver maintainer says that the patch will be applied
->>> 	  via his tree, or when everything is ok and it got applied
->>> 	  either at the main tree or via some other tree (fixes tree;
->>> 	  some other maintainer's tree - when it belongs to other subsystems,
->>> 	  etc);
->>>
->>> If you think any status change is a mistake, please send an email to the ML.
->>>
->>> -
->>>
->>> This is an automated mail sent by the patchwork system at
->>> patchwork.linuxtv.org. To stop receiving these notifications, edit
->>> your mail settings at:
->>>    http://patchwork.linuxtv.org/mail/
->
+diff --git a/drivers/media/tuners/tda9887.c b/drivers/media/tuners/tda9887.c
+index 300005c535ba..9823248d743f 100644
+--- a/drivers/media/tuners/tda9887.c
++++ b/drivers/media/tuners/tda9887.c
+@@ -536,8 +536,8 @@ static int tda9887_status(struct dvb_frontend *fe)
+ 	unsigned char buf[1];
+ 	int rc;
+ 
+-	memset(buf,0,sizeof(buf));
+-	if (1 != (rc = tuner_i2c_xfer_recv(&priv->i2c_props,buf,1)))
++	rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, 1);
++	if (rc != 1)
+ 		tuner_info("i2c i/o error: rc == %d (should be 1)\n", rc);
+ 	dump_read_message(fe, buf);
+ 	return 0;
+-- 
+1.8.3.1
 
