@@ -1,46 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57942 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833Ab3KAWlc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:32 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail.kapsi.fi ([217.30.184.167]:47191 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755315Ab3KERRn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Nov 2013 12:17:43 -0500
+Message-ID: <52792835.8040007@iki.fi>
+Date: Tue, 05 Nov 2013 19:17:41 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 08/11] cx18: disable compilation on frv arch
-Date: Fri,  1 Nov 2013 17:39:27 -0200
-Message-Id: <1383334770-27130-9-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Subject: Re: [PATCH v3 26/29] [media] af9035: Don't use dynamic static allocation
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com> <1383645702-30636-27-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-27-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver produces a lot of errors on this arch:
-	In file included from /devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-driver.c:26:0:
-	/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-io.h: In function 'cx18_raw_readl':
-	/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-io.h:40:2: warning: passing argument 1 of '__builtin_read32' discards 'const' qualifier from pointer target type [enabled by default]
-	/devel/v4l/ktest-build/arch/frv/include/asm/mb-regs.h:24:15: note: expected 'volatile void *' but argument is of type 'const void *'
-	...
-While this is not fixed, just disable it.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/cx18/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Antti
 
-diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
-index c675b83c43a9..10e6bc72c460 100644
---- a/drivers/media/pci/cx18/Kconfig
-+++ b/drivers/media/pci/cx18/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX18
- 	tristate "Conexant cx23418 MPEG encoder support"
- 	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
-+	depends on !FRV
- 	select I2C_ALGOBIT
- 	select VIDEOBUF_VMALLOC
- 	depends on RC_CORE
+On 05.11.2013 12:01, Mauro Carvalho Chehab wrote:
+> Dynamic static allocation is evil, as Kernel stack is too low, and
+> compilation complains about it on some archs:
+> 	drivers/media/usb/dvb-usb-v2/af9035.c:142:1: warning: 'af9035_wr_regs' uses dynamic stack allocation [enabled by default]
+> 	drivers/media/usb/dvb-usb-v2/af9035.c:305:1: warning: 'af9035_i2c_master_xfer' uses dynamic stack allocation [enabled by default]
+>
+> Instead, let's enforce a limit for the buffer to be the max size of
+> a control URB payload data (64 bytes).
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>   drivers/media/usb/dvb-usb-v2/af9035.c | 29 ++++++++++++++++++++++++++---
+>   1 file changed, 26 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index 1ea17dc2a76e..c8fcd78425bd 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -21,6 +21,9 @@
+>
+>   #include "af9035.h"
+>
+> +/* Max transfer size done by I2C transfer functions */
+> +#define MAX_XFER_SIZE  64
+> +
+>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+>   static u16 af9035_checksum(const u8 *buf, size_t len)
+> @@ -126,10 +129,16 @@ exit:
+>   /* write multiple registers */
+>   static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
+>   {
+> -	u8 wbuf[6 + len];
+> +	u8 wbuf[MAX_XFER_SIZE];
+>   	u8 mbox = (reg >> 16) & 0xff;
+>   	struct usb_req req = { CMD_MEM_WR, mbox, sizeof(wbuf), wbuf, 0, NULL };
+>
+> +	if (6 + len > sizeof(wbuf)) {
+> +		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
+> +			 KBUILD_MODNAME, len);
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+>   	wbuf[0] = len;
+>   	wbuf[1] = 2;
+>   	wbuf[2] = 0;
+> @@ -228,9 +237,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+>   					msg[1].len);
+>   		} else {
+>   			/* I2C */
+> -			u8 buf[5 + msg[0].len];
+> +			u8 buf[MAX_XFER_SIZE];
+>   			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
+>   					buf, msg[1].len, msg[1].buf };
+> +
+> +			if (5 + msg[0].len > sizeof(buf)) {
+> +				dev_warn(&d->udev->dev,
+> +					 "%s: i2c xfer: len=%d is too big!\n",
+> +					 KBUILD_MODNAME, msg[0].len);
+> +				return -EOPNOTSUPP;
+> +			}
+>   			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+>   			buf[0] = msg[1].len;
+>   			buf[1] = msg[0].addr << 1;
+> @@ -257,9 +273,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+>   					msg[0].len - 3);
+>   		} else {
+>   			/* I2C */
+> -			u8 buf[5 + msg[0].len];
+> +			u8 buf[MAX_XFER_SIZE];
+>   			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+>   					0, NULL };
+> +
+> +			if (5 + msg[0].len > sizeof(buf)) {
+> +				dev_warn(&d->udev->dev,
+> +					 "%s: i2c xfer: len=%d is too big!\n",
+> +					 KBUILD_MODNAME, msg[0].len);
+> +				return -EOPNOTSUPP;
+> +			}
+>   			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+>   			buf[0] = msg[0].len;
+>   			buf[1] = msg[0].addr << 1;
+>
+
+
 -- 
-1.8.3.1
-
+http://palosaari.fi/
