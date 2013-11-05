@@ -1,108 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1819 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab3KGDg0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 22:36:26 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id rA73aNPB047132
-	for <linux-media@vger.kernel.org>; Thu, 7 Nov 2013 04:36:25 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 677622A04E1
-	for <linux-media@vger.kernel.org>; Thu,  7 Nov 2013 04:36:22 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131107033622.677622A04E1@tschai.lan>
-Date: Thu,  7 Nov 2013 04:36:22 +0100 (CET)
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:42018 "EHLO
+	mx0a-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751097Ab3KEJdk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Nov 2013 04:33:40 -0500
+Message-ID: <1383643996.30496.3.camel@younglee-desktop>
+Subject: [RFC] [PATCH] media: marvell-ccic: use devm to release clk
+From: lbyang <lbyang@marvell.com>
+Reply-To: lbyang@marvell.com
+To: <corbet@lwn.net>
+CC: <linux-media@vger.kernel.org>, <u.kleine-koenig@pengutronix.de>,
+	<linux@arm.linux.org.uk>
+Date: Tue, 5 Nov 2013 17:33:16 +0800
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Libin Yang <lbyang@marvell.com>
+Date: Tue, 5 Nov 2013 16:29:07 +0800
+Subject: [PATCH] media: marvell-ccic: use devm to release clk
 
-Results of the daily build of media_tree:
+This patch uses devm to release the clks instead of releasing
+manually.
+And it adds enable/disable mipi_clk when getting its rate.
 
-date:		Thu Nov  7 04:00:19 CET 2013
-git branch:	for-v3.13c
-git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-6.slh.2-amd64
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+---
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   39
++++++-----------------
+ 1 file changed, 8 insertions(+), 31 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 70cb57f..054507f 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -142,12 +142,6 @@ static int mmpcam_power_up(struct mcam_camera
+*mcam)
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+ 	struct mmp_camera_platform_data *pdata;
+ 
+-	if (mcam->bus_type == V4L2_MBUS_CSI2) {
+-		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
+-		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
+-			return PTR_ERR(cam->mipi_clk);
+-	}
+-
+ /*
+  * Turn on power and clocks to the controller.
+  */
+@@ -186,12 +180,6 @@ static void mmpcam_power_down(struct mcam_camera
+*mcam)
+ 	gpio_set_value(pdata->sensor_power_gpio, 0);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 0);
+ 
+-	if (mcam->bus_type == V4L2_MBUS_CSI2 && !IS_ERR(cam->mipi_clk)) {
+-		if (cam->mipi_clk)
+-			devm_clk_put(mcam->dev, cam->mipi_clk);
+-		cam->mipi_clk = NULL;
+-	}
+-
+ 	mcam_clk_disable(mcam);
+ }
+ 
+@@ -292,8 +280,9 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
+ 		return;
+ 
+ 	/* get the escape clk, this is hard coded */
++	clk_prepare_enable(cam->mipi_clk);
+ 	tx_clk_esc = (clk_get_rate(cam->mipi_clk) / 1000000) / 12;
+-
++	clk_disable_unprepare(cam->mipi_clk);
+ 	/*
+ 	 * dphy[2] - CSI2_DPHY6:
+ 	 * bit 0 ~ bit 7: CK Term Enable
+@@ -325,19 +314,6 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
+ 	return IRQ_RETVAL(handled);
+ }
+ 
+-static void mcam_deinit_clk(struct mcam_camera *mcam)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < NR_MCAM_CLK; i++) {
+-		if (!IS_ERR(mcam->clk[i])) {
+-			if (mcam->clk[i])
+-				devm_clk_put(mcam->dev, mcam->clk[i]);
+-		}
+-		mcam->clk[i] = NULL;
+-	}
+-}
+-
+ static void mcam_init_clk(struct mcam_camera *mcam)
+ {
+ 	unsigned int i;
+@@ -371,7 +347,6 @@ static int mmpcam_probe(struct platform_device
+*pdev)
+ 	if (cam == NULL)
+ 		return -ENOMEM;
+ 	cam->pdev = pdev;
+-	cam->mipi_clk = NULL;
+ 	INIT_LIST_HEAD(&cam->devlist);
+ 
+ 	mcam = &cam->mcam;
+@@ -387,6 +362,11 @@ static int mmpcam_probe(struct platform_device
+*pdev)
+ 	mcam->mclk_div = pdata->mclk_div;
+ 	mcam->bus_type = pdata->bus_type;
+ 	mcam->dphy = pdata->dphy;
++	if (mcam->bus_type == V4L2_MBUS_CSI2) {
++		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
++		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
++			return PTR_ERR(cam->mipi_clk);
++	}
+ 	mcam->mipi_enabled = false;
+ 	mcam->lane = pdata->lane;
+ 	mcam->chip_id = MCAM_ARMADA610;
+@@ -444,7 +424,7 @@ static int mmpcam_probe(struct platform_device
+*pdev)
+ 	 */
+ 	ret = mmpcam_power_up(mcam);
+ 	if (ret)
+-		goto out_deinit_clk;
++		return ret;
+ 	ret = mccic_register(mcam);
+ 	if (ret)
+ 		goto out_power_down;
+@@ -469,8 +449,6 @@ out_unregister:
+ 	mccic_shutdown(mcam);
+ out_power_down:
+ 	mmpcam_power_down(mcam);
+-out_deinit_clk:
+-	mcam_deinit_clk(mcam);
+ 	return ret;
+ }
+ 
+@@ -482,7 +460,6 @@ static int mmpcam_remove(struct mmp_camera *cam)
+ 	mmpcam_remove_device(cam);
+ 	mccic_shutdown(mcam);
+ 	mmpcam_power_down(mcam);
+-	mcam_deinit_clk(mcam);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
