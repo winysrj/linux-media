@@ -1,179 +1,387 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:58576 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180Ab3KYJ7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:59:11 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:33538 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754905Ab3KENQH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:16:07 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00J0XD2MKU40@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:59:10 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 12/16] s5p-jpeg: Ensure correct capture format for Exynos4x12
-Date: Mon, 25 Nov 2013 10:58:19 +0100
-Message-id: <1385373503-1657-13-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+ 17 2011)) with ESMTP id <0MVS00MO6KUUTE20@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Nov 2013 08:16:06 -0500 (EST)
+Date: Tue, 05 Nov 2013 11:16:01 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCHv2 22/29] v4l2-async: Don't use dynamic static allocation
+Message-id: <20131105111601.2c21f918@samsung.com>
+In-reply-to: <5278E625.4020703@xs4all.nl>
+References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+ <1383399097-11615-23-git-send-email-m.chehab@samsung.com>
+ <52779DD8.3080401@xs4all.nl> <20131105093628.6da1a600@samsung.com>
+ <5278D99F.5050508@samsung.com> <20131105100318.31da034b@samsung.com>
+ <5278E625.4020703@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adjust capture format to the Exynos4x12 device limitations,
-according to the subsampling value parsed from the source
-JPEG image header. If the capture format was set to YUV with
-subsampling lower than the one of the source JPEG image
-the decoding process would not succeed.
+Em Tue, 05 Nov 2013 13:35:49 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |  113 +++++++++++++++++++++++++++
- 1 file changed, 113 insertions(+)
+> On 11/05/13 13:03, Mauro Carvalho Chehab wrote:
+> > Em Tue, 05 Nov 2013 12:42:23 +0100
+> > Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+> > 
+> >> On 05/11/13 12:36, Mauro Carvalho Chehab wrote:
+> >>>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> >>>>>>> index c85d69da35bd..071596869036 100644
+> >>>>>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+> >>>>>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> >>>>>>> @@ -189,12 +189,14 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >>>>>>>  	struct v4l2_subdev *sd, *tmp;
+> >>>>>>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
+> >>>>>>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> >>>>>>> -	struct device *dev[n_subdev];
+> >>>>>>> +	struct device **dev;
+> >>>>>>>  	int i = 0;
+> >>>>>>>  
+> >>>>>>>  	if (!notifier->v4l2_dev)
+> >>>>>>>  		return;
+> >>>>>>>  
+> >>>>>>> +	dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
+> >>>>>>> +
+> >>>>>
+> >>>>> No check for dev == NULL?
+> >>> Well, what should be done in this case?
+> >>>
+> >>> We could do the changes below:
+> >>>
+> >>>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >>>  {
+> >>>         struct v4l2_subdev *sd, *tmp;
+> >>>         unsigned int notif_n_subdev = notifier->num_subdevs;
+> >>>         unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> >>> -       struct device *dev[n_subdev];
+> >>> +       struct device **dev;
+> >>>         int i = 0;
+> >>>  
+> >>>         if (!notifier->v4l2_dev)
+> >>>                 return;
+> >>>  
+> >>> +       dev = kmalloc(sizeof(*dev) * n_subdev, GFP_KERNEL);
+> >>> +       if (!dev) {
+> >>> +               WARN_ON(true);
+> >>> +               return;
+> >>> +       }
+> >>> +
+> >>>         mutex_lock(&list_lock);
+> >>>  
+> >>>         list_del(&notifier->list);
+> >>>  
+> >>>         list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> >>>                 dev[i] = get_device(sd->dev);
+> >>>  
+> >>>                 v4l2_async_cleanup(sd);
+> >>>  
+> >>>                 /* If we handled USB devices, we'd have to lock the parent too */
+> >>>                 device_release_driver(dev[i++]);
+> >>>  
+> >>>                 if (notifier->unbind)
+> >>>                         notifier->unbind(notifier, sd, sd->asd);
+> >>>         }
+> >>>  
+> >>>         mutex_unlock(&list_lock);
+> >>>  
+> >>>         while (i--) {
+> >>>                 struct device *d = dev[i];
+> >>>  
+> >>>                 if (d && device_attach(d) < 0) {
+> >>>                         const char *name = "(none)";
+> >>>                         int lock = device_trylock(d);
+> >>>  
+> >>>                         if (lock && d->driver)
+> >>>                                 name = d->driver->name;
+> >>>                         dev_err(d, "Failed to re-probe to %s\n", name);
+> >>>                         if (lock)
+> >>>                                 device_unlock(d);
+> >>>                 }
+> >>>                 put_device(d);
+> >>>         }
+> >>> +       kfree(dev);
+> >>>  
+> >>>         notifier->v4l2_dev = NULL;
+> >>>  
+> >>>         /*
+> >>>          * Don't care about the waiting list, it is initialised and populated
+> >>>          * upon notifier registration.
+> >>>          */
+> >>>  }
+> >>>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> >>>
+> >>> But I suspect that this will cause an OOPS anyway, as the device will be
+> >>> only half-removed. So, it would likely OOPS at device removal or if the
+> >>> device got probed again, at probing time.
+> >>>
+> >>> So, IMHO, we should have at least a WARN_ON() for this case.
+> >>>
+> >>> Do you have a better idea?
+> >>
+> >> This is how Guennadi's patch looked like when it used dynamic allocation:
+> >>
+> >> http://www.spinics.net/lists/linux-sh/msg18194.html
+> > 
+> > Thanks for the tip!
+> > 
+> > The following patch should do the trick (generated with -U10, in order
+> > to show the entire function):
+> > 
+> > [PATCHv3] v4l2-async: Don't use dynamic static allocation
+> > 
+> > Dynamic static allocation is evil, as Kernel stack is too low, and
+> > compilation complains about it on some archs:
+> > 
+> > 	drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+> > 
+> > Instead, let's enforce a limit for the buffer.
+> > 
+> > In this specific case, there's a hard limit imposed by V4L2_MAX_SUBDEVS,
+> > with is currently 128. That means that the buffer size can be up to
+> > 128x8 = 1024 bytes (on a 64bits kernel), with is too big for stack.
+> > 
+> > Worse than that, someone could increase it and cause real troubles.
+> > 
+> > So, let's use dynamically allocated data, instead.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index c85d69da35bd..b56c9f300ecb 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -182,59 +182,84 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  
+> >  	return 0;
+> >  }
+> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> >  
+> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  {
+> >  	struct v4l2_subdev *sd, *tmp;
+> >  	unsigned int notif_n_subdev = notifier->num_subdevs;
+> >  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> > -	struct device *dev[n_subdev];
+> > +	struct device **dev;
+> >  	int i = 0;
+> >  
+> >  	if (!notifier->v4l2_dev)
+> >  		return;
+> >  
+> > +	dev = kmalloc(n_subdev * sizeof(*dev), GFP_KERNEL);
+> > +	if (!dev) {
+> > +		dev_err(notifier->v4l2_dev->dev,
+> > +			"Failed to allocate device cache!\n");
+> > +	}
+> > +
+> >  	mutex_lock(&list_lock);
+> >  
+> >  	list_del(&notifier->list);
+> >  
+> >  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> > -		dev[i] = get_device(sd->dev);
+> > +		struct device *d;
+> > +
+> > +		d = get_device(sd->dev);
+> 
+> I would combine these two lines in one, but that's just me :-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index cb55f67..76d8c12 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -358,6 +358,99 @@ static const unsigned char hactblg0[162] = {
- 	0xf9, 0xfa
- };
+Especially inside a function, I think it looks cleaner to have it on
+separate lines ;)
+
+Anyway, this is a matter of personal taste.
+
+> >  
+> >  		v4l2_async_cleanup(sd);
+> >  
+> >  		/* If we handled USB devices, we'd have to lock the parent too */
+> > -		device_release_driver(dev[i++]);
+> > +		device_release_driver(d);
+> > +
+> > +
+> > +		/*
+> > +		 * Store device at the device cache, in order to call
+> > +		 * put_device() on the final step
+> > +		 */
+> > +		if (dev)
+> > +			dev[i++] = d;
+> > +		else
+> > +			put_device(d);
+> 
+> Shouldn't the put_device be moved to after the unbind? It certainly would
+> 'feel' safer that way...
+
+Agreed.
+
+> 
+> >  
+> >  		if (notifier->unbind)
+> >  			notifier->unbind(notifier, sd, sd->asd);
+> >  	}
+> >  
+> >  	mutex_unlock(&list_lock);
+> >  
+> > +	/*
+> > +	 * Call device_attach() to reprobe devices
+> > +	 *
+> > +	 * NOTE: If dev allocation fails, i is 0, and the hole loop won't be
+> 
+> Typo: hole -> whole
+
+Thanks for pointing it. My keyboard seems to have some bad contact:
+sometimes, a keypress is missed here. I would be replacing it, but the thing
+is that buying an US keyboard in Brazil is not easy, and my KVM switch doesn't
+like Brazilian ABNT2 keyboards.
+
+> 
+> > +	 * executed.
+> > +	 */
+> >  	while (i--) {
+> >  		struct device *d = dev[i];
+> >  
+> >  		if (d && device_attach(d) < 0) {
+> >  			const char *name = "(none)";
+> >  			int lock = device_trylock(d);
+> >  
+> >  			if (lock && d->driver)
+> >  				name = d->driver->name;
+> >  			dev_err(d, "Failed to re-probe to %s\n", name);
+> >  			if (lock)
+> >  				device_unlock(d);
+> >  		}
+> >  		put_device(d);
+> >  	}
+> > +	kfree(dev);
+> >  
+> >  	notifier->v4l2_dev = NULL;
+> >  
+> >  	/*
+> >  	 * Don't care about the waiting list, it is initialised and populated
+> >  	 * upon notifier registration.
+> >  	 */
+> >  }
+> >  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> >  
+> > Regards,
+> > Mauro
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+
+New patch enclosed. Please reply with your reviewed-by if you're ok with
+it.
+
+Thanks!
+Mauro
+
+commit 268e5878716eadfb981977041cb2f6d773b09174
+Author: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Date:   Sat Nov 2 06:20:16 2013 -0300
+
+    [media] v4l2-async: Don't use dynamic static allocation
+    
+    Dynamic static allocation is evil, as Kernel stack is too low, and
+    compilation complains about it on some archs:
+    	drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+    
+    Instead, let's enforce a limit for the buffer.
+    
+    In this specific case, there's a hard limit imposed by V4L2_MAX_SUBDEVS,
+    with is currently 128. That means that the buffer size can be up to
+    128x8 = 1024 bytes (on a 64bits kernel), with is too big for stack.
+    
+    Worse than that, someone could increase it and cause real troubles.
+    So, let's use dynamically allocated data, instead.
+    
+    Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index c85d69da35bd..85a6a34128a8 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -189,30 +189,53 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	struct v4l2_subdev *sd, *tmp;
+ 	unsigned int notif_n_subdev = notifier->num_subdevs;
+ 	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+-	struct device *dev[n_subdev];
++	struct device **dev;
+ 	int i = 0;
  
-+/*
-+ * Fourcc downgrade schema lookup tables for 422 and 420
-+ * chroma subsampling - fourcc on each position maps on the
-+ * fourcc from the table fourcc_to_dwngrd_schema_id which allows
-+ * to get the most suitable fourcc counterpart for the given
-+ * downgraded subsampling property.
-+ */
-+static const u32 subs422_fourcc_dwngrd_schema[] = {
-+	V4L2_PIX_FMT_NV16,
-+	V4L2_PIX_FMT_NV61,
-+};
-+
-+static const u32 subs420_fourcc_dwngrd_schema[] = {
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+};
-+
-+/*
-+ * Lookup table for translation of a fourcc to the position
-+ * of its downgraded counterpart in the *fourcc_dwngrd_schema
-+ * tables.
-+ */
-+static const u32 fourcc_to_dwngrd_schema_id[] = {
-+	V4L2_PIX_FMT_NV24,
-+	V4L2_PIX_FMT_NV42,
-+	V4L2_PIX_FMT_NV16,
-+	V4L2_PIX_FMT_NV61,
-+	V4L2_PIX_FMT_YUYV,
-+	V4L2_PIX_FMT_YVYU,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_YUV420,
-+	V4L2_PIX_FMT_GREY,
-+};
-+
-+static int s5p_jpeg_get_dwngrd_sch_id_by_fourcc(u32 fourcc)
-+{
-+	int i;
-+	for (i = 0; i < ARRAY_SIZE(fourcc_to_dwngrd_schema_id); ++i) {
-+		if (fourcc_to_dwngrd_schema_id[i] == fourcc)
-+			return i;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int s5p_jpeg_adjust_fourcc_to_subsampling(
-+					enum v4l2_jpeg_chroma_subsampling subs,
-+					u32 in_fourcc,
-+					u32 *out_fourcc,
-+					struct s5p_jpeg_ctx *ctx)
-+{
-+	int dwngrd_sch_id;
-+
-+	if (ctx->subsampling != V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
-+		dwngrd_sch_id =
-+			s5p_jpeg_get_dwngrd_sch_id_by_fourcc(in_fourcc);
-+		if (dwngrd_sch_id < 0)
-+			return -EINVAL;
-+	}
-+
-+	switch (ctx->subsampling) {
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY:
-+		*out_fourcc = V4L2_PIX_FMT_GREY;
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
-+		if (dwngrd_sch_id >
-+				ARRAY_SIZE(subs420_fourcc_dwngrd_schema) - 1)
-+			return -EINVAL;
-+		*out_fourcc = subs420_fourcc_dwngrd_schema[dwngrd_sch_id];
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
-+		if (dwngrd_sch_id >
-+				ARRAY_SIZE(subs422_fourcc_dwngrd_schema) - 1)
-+			return -EINVAL;
-+		*out_fourcc = subs422_fourcc_dwngrd_schema[dwngrd_sch_id];
-+		break;
-+	default:
-+		*out_fourcc = V4L2_PIX_FMT_GREY;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
- {
- 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
-@@ -941,7 +1034,9 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct s5p_jpeg_fmt *fmt;
-+	int ret;
+ 	if (!notifier->v4l2_dev)
+ 		return;
  
- 	fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
- 						FMT_TYPE_CAPTURE);
-@@ -952,6 +1047,24 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 		return -EINVAL;
++	dev = kmalloc(n_subdev * sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		dev_err(notifier->v4l2_dev->dev,
++			"Failed to allocate device cache!\n");
++	}
++
+ 	mutex_lock(&list_lock);
+ 
+ 	list_del(&notifier->list);
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		dev[i] = get_device(sd->dev);
++		struct device *d;
++
++		d = get_device(sd->dev);
+ 
+ 		v4l2_async_cleanup(sd);
+ 
+ 		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(dev[i++]);
++		device_release_driver(d);
+ 
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
++
++		/*
++		 * Store device at the device cache, in order to call
++		 * put_device() on the final step
++		 */
++		if (dev)
++			dev[i++] = d;
++		else
++			put_device(d);
  	}
  
-+	/*
-+	 * The exynos4x12 device requires resulting YUV image
-+	 * subsampling not to be lower than the input jpeg subsampling.
-+	 * If this requirement is not met then downgrade the requested
-+	 * capture format to the one with subsampling equal to the input jpeg.
-+	 */
-+	if ((ctx->jpeg->variant->version != SJPEG_S5P) &&
-+	    (ctx->mode == S5P_JPEG_DECODE) &&
-+	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
-+	    (fmt->subsampling < ctx->subsampling)) {
-+		ret = s5p_jpeg_adjust_fourcc_to_subsampling(ctx->subsampling,
-+							    fmt->fourcc,
-+							    &pix->pixelformat,
-+							    ctx);
-+		if (ret < 0)
-+			pix->pixelformat = V4L2_PIX_FMT_GREY;
-+	}
-+
- 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_CAPTURE);
- }
+ 	mutex_unlock(&list_lock);
  
--- 
-1.7.9.5
++	/*
++	 * Call device_attach() to reprobe devices
++	 *
++	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
++	 * executed.
++	 */
+ 	while (i--) {
+ 		struct device *d = dev[i];
+ 
+@@ -228,6 +251,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 		}
+ 		put_device(d);
+ 	}
++	kfree(dev);
+ 
+ 	notifier->v4l2_dev = NULL;
+ 
 
+
+-- 
+
+Cheers,
+Mauro
