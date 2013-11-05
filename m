@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:52907 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816Ab3KMX0X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Nov 2013 18:26:23 -0500
-Received: by mail-yh0-f45.google.com with SMTP id i7so637529yha.32
-        for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 15:26:22 -0800 (PST)
-Date: Wed, 13 Nov 2013 18:01:24 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mail.mimuw.edu.pl ([193.0.96.6]:36285 "EHLO mail.mimuw.edu.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753922Ab3KEMGF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 07:06:05 -0500
+Message-ID: <20131105130559.23363zby3eqwo6jr@mail.mimuw.edu.pl>
+Date: Tue, 05 Nov 2013 13:05:59 +0100
+From: "Janusz S. Bien" <jsbien@mimuw.edu.pl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, ljalvs@gmail.com
-Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb cx24117
-Message-ID: <20131113180124.16699fa7@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Roland Scheidegger <rscheidegger_lists@hispeed.ch>,
+	"wessels.tobias" <wessels.tobias@arcor.de>
+Subject: Re: [PATCH] [media] az6007: support Technisat Cablestar Combo HDCI
+ (minus remote)
+References: <1383421772-28243-1-git-send-email-rscheidegger_lists@hispeed.ch>
+ <20131105071422.16618olr3fxev83i@mail.mimuw.edu.pl>
+In-Reply-To: <20131105071422.16618olr3fxev83i@mail.mimuw.edu.pl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
+Quote/Cytat - "Janusz S. Bien" <jsbien@mimuw.edu.pl> (Tue 05 Nov 2013  
+07:14:22 AM CET):
 
-  [media] media: st-rc: Add ST remote control driver (2013-10-31
-  08:20:08 -0200)
+> Thank you very much for the patch.
+>
+> Quote/Cytat - Roland Scheidegger <rscheidegger_lists@hispeed.ch>  
+> (Sat  02 Nov 2013 08:49:32 PM CET):
+>
+> [...]
+>
+>> Originally based on idea found on
+>> http://www.linuxtv.org/wiki/index.php/TechniSat_CableStar_Combo_HD_CI   
+>> claiming
+>> only id needs to be added (but failed to mention it only worked because the
+>> driver couldn't find the h7 drx-k firmware...).
+>
+> Together with Tobias Wessel, another user of the device, we have   
+> updated and extended the wiki entry.
+>
+> The problem is that although I use the same system as Tobias (Debian  
+>  wheezy) and it seems we installed media_build in the identical way,  
+> it  works OK for Tobias but not for me,
 
-are available in the git repository at:
+My problem was solved by Tobias - thank you very much! As could be  
+expected, I've installed the software differently...
 
-  git://linuxtv.org/mkrufky/dvb cx24117
+I have erroneusly assumed that a patch posted on the list is  
+immediately included  http://git.linuxtv.org/media_build.git.
 
-for you to fetch changes up to 1c468cec3701eb6e26c4911f8a9e8e35cbdebc01:
+I see it now at
 
-  cx24117: Fix LNB set_voltage function (2013-11-13 13:06:44 -0500)
+https://patchwork.linuxtv.org/patch/20558/
 
-----------------------------------------------------------------
-Luis Alves (2):
-      cx24117: Add complete demod command list
-      cx24117: Fix LNB set_voltage function
+together with my previous misleading letter...
 
- drivers/media/dvb-frontends/cx24117.c | 121
- ++++++++++++++++++++-------------- 1 file changed, 71 insertions(+),
- 50 deletions(-)
+Regards
+
+Janusz
+
+-- 
+Prof. dr hab. Janusz S. Bień -  Uniwersytet Warszawski (Katedra  
+Lingwistyki Formalnej)
+Prof. Janusz S. Bień - University of Warsaw (Formal Linguistics Department)
+jsbien@uw.edu.pl, jsbien@mimuw.edu.pl, http://fleksem.klf.uw.edu.pl/~jsbien/
