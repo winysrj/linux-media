@@ -1,81 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55604 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726Ab3KSO1t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:27:49 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI00M2MLI2NH40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:27:48 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 07/16] s5p-jpeg: Fix lack of spin_lock protection
-Date: Tue, 19 Nov 2013 15:26:59 +0100
-Message-id: <1384871228-6648-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:43271 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754295Ab3KENDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 04/29] [media] cx18: struct i2c_client is too big for stack
+Date: Tue,  5 Nov 2013 08:01:17 -0200
+Message-Id: <1383645702-30636-5-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5p_jpeg_device_run and s5p_jpeg_runtime_resume callbacks should
-have spin_lock protection as they alter device registers.
+	drivers/media/pci/cx18/cx18-driver.c: In function 'cx18_read_eeprom':
+	drivers/media/pci/cx18/cx18-driver.c:357:1: warning: the frame size of 1072 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+That happens because the routine allocates 256 bytes for an eeprom buffer, plus
+the size of struct i2c_client, with is big.
+Change the logic to dynamically allocate/deallocate space for struct i2c_client,
+instead of  using the stack.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/pci/cx18/cx18-driver.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 328bb8b..650c4d3 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -930,7 +930,9 @@ static void s5p_jpeg_device_run(void *priv)
- 	struct s5p_jpeg_ctx *ctx = priv;
- 	struct s5p_jpeg *jpeg = ctx->jpeg;
- 	struct vb2_buffer *src_buf, *dst_buf;
--	unsigned long src_addr, dst_addr;
-+	unsigned long src_addr, dst_addr, flags;
-+
-+	spin_lock_irqsave(&ctx->jpeg->slock, flags);
- 
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -998,6 +1000,8 @@ static void s5p_jpeg_device_run(void *priv)
- 	}
- 
- 	jpeg_start(jpeg->regs);
-+
-+	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
- }
- 
- static int s5p_jpeg_job_ready(void *priv)
-@@ -1418,9 +1422,12 @@ static int s5p_jpeg_runtime_suspend(struct device *dev)
- static int s5p_jpeg_runtime_resume(struct device *dev)
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index ff7232023f56..87f5bcf29e90 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -324,23 +324,24 @@ static void cx18_eeprom_dump(struct cx18 *cx, unsigned char *eedata, int len)
+ /* Hauppauge card? get values from tveeprom */
+ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
  {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
-+	unsigned long flags;
+-	struct i2c_client c;
++	struct i2c_client *c;
+ 	u8 eedata[256];
  
- 	clk_prepare_enable(jpeg->clk);
- 
-+	spin_lock_irqsave(&jpeg->slock, flags);
+-	memset(&c, 0, sizeof(c));
+-	strlcpy(c.name, "cx18 tveeprom tmp", sizeof(c.name));
+-	c.adapter = &cx->i2c_adap[0];
+-	c.addr = 0xA0 >> 1;
++	c = kzalloc(sizeof(*c), GFP_ATOMIC);
 +
- 	/*
- 	 * JPEG IP allows storing two Huffman tables for each component
- 	 * We fill table 0 for each component
-@@ -1430,6 +1437,8 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- 	s5p_jpeg_set_hactbl(jpeg->regs);
- 	s5p_jpeg_set_hactblg(jpeg->regs);
++	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
++	c->adapter = &cx->i2c_adap[0];
++	c->addr = 0xa0 >> 1;
  
-+	spin_unlock_irqrestore(&jpeg->slock, flags);
+ 	memset(tv, 0, sizeof(*tv));
+-	if (tveeprom_read(&c, eedata, sizeof(eedata)))
+-		return;
++	if (tveeprom_read(c, eedata, sizeof(eedata)))
++		goto ret;
+ 
+ 	switch (cx->card->type) {
+ 	case CX18_CARD_HVR_1600_ESMT:
+ 	case CX18_CARD_HVR_1600_SAMSUNG:
+ 	case CX18_CARD_HVR_1600_S5H1411:
+-		tveeprom_hauppauge_analog(&c, tv, eedata);
++		tveeprom_hauppauge_analog(c, tv, eedata);
+ 		break;
+ 	case CX18_CARD_YUAN_MPC718:
+ 	case CX18_CARD_GOTVIEW_PCI_DVD3:
+@@ -354,6 +355,9 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
+ 		cx18_eeprom_dump(cx, eedata, sizeof(eedata));
+ 		break;
+ 	}
 +
- 	return 0;
++ret:
++	kfree(c);
  }
  
+ static void cx18_process_eeprom(struct cx18 *cx)
 -- 
-1.7.9.5
+1.8.3.1
 
