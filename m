@@ -1,51 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2402 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab3KDJd6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 04:33:58 -0500
-Message-ID: <527769FA.9080207@xs4all.nl>
-Date: Mon, 04 Nov 2013 10:33:46 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-CC: Dinesh Ram <dinesh.ram@cern.ch>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	dinesh.ram086@gmail.com
-Subject: Re: [Review Patch 0/9] si4713 usb device driver
-References: <1381850685-26162-1-git-send-email-dinesh.ram@cern.ch> <CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com>
-In-Reply-To: <CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43307 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754823Ab3KENDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 20/29] [media] cimax2: Don't use dynamic static allocation
+Date: Tue,  5 Nov 2013 08:01:33 -0200
+Message-Id: <1383645702-30636-21-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/15/2013 07:37 PM, edubezval@gmail.com wrote:
-> Hello Dinesh,
-> 
-> On Tue, Oct 15, 2013 at 11:24 AM, Dinesh Ram <dinesh.ram@cern.ch> wrote:
->> Hello Eduardo,
->>
->> In this patch series, I have addressed the comments by you
->> concerning my last patch series.
->> In the resulting patches, I have corrected most of the
->> style issues and adding of comments. However, some warnings
->> given out by checkpatch.pl (mostly complaing about lines longer
->> than 80 characters) are still there because I saw that code readibility
->> suffers by breaking up those lines.
->>
->> Also Hans has contributed patches 8 and 9 in this patch series
->> which address the issues of the handling of unknown regulators,
->> which have apparently changed since 3.10. Hans has tested it and the
->> driver loads again.
->>
->> Let me know when you are able to test it again.
->>
-> 
-> Hopefully I will be able to give it a shot on n900 and on silabs
-> devboard until the end of the week. Thanks for not giving up.
+Dynamic static allocation is evil, as Kernel stack is too low, and
+compilation complains about it on some archs:
+        drivers/media/pci/cx23885/cimax2.c:149:1: warning: 'netup_write_i2c' uses dynamic stack allocation [enabled by default]
 
-Did you find time to do this? I'm waiting for feedback from you.
+Instead, let's enforce a limit for the buffer. Considering that I2C
+transfers are generally limited, and that devices used on USB has a
+max data length of 64 bytes for the control URBs.
 
-Regards,
+So, it seem safe to use 64 bytes as the hard limit for all those devices.
 
-	Hans
+On most cases, the limit is a way lower than that, but this limit
+is small enough to not affect the Kernel stack, and it is a no brain
+limit, as using smaller ones would require to either carefully each
+driver or to take a look on each datasheet.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/pci/cx23885/cimax2.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
+index 7344849183a7..16fa7ea4d4aa 100644
+--- a/drivers/media/pci/cx23885/cimax2.c
++++ b/drivers/media/pci/cx23885/cimax2.c
+@@ -26,6 +26,10 @@
+ #include "cx23885.h"
+ #include "cimax2.h"
+ #include "dvb_ca_en50221.h"
++
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  64
++
+ /**** Bit definitions for MC417_RWD and MC417_OEN registers  ***
+   bits 31-16
+ +-----------+
+@@ -125,7 +129,7 @@ static int netup_write_i2c(struct i2c_adapter *i2c_adap, u8 addr, u8 reg,
+ 						u8 *buf, int len)
+ {
+ 	int ret;
+-	u8 buffer[len + 1];
++	u8 buffer[MAX_XFER_SIZE];
+ 
+ 	struct i2c_msg msg = {
+ 		.addr	= addr,
+@@ -134,6 +138,13 @@ static int netup_write_i2c(struct i2c_adapter *i2c_adap, u8 addr, u8 reg,
+ 		.len	= len + 1
+ 	};
+ 
++	if (1 + len > sizeof(buffer)) {
++		printk(KERN_WARNING
++		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
++		       KBUILD_MODNAME, reg, len);
++		return -EINVAL;
++	}
++
+ 	buffer[0] = reg;
+ 	memcpy(&buffer[1], buf, len);
+ 
+-- 
+1.8.3.1
+
