@@ -1,224 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39087 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab3KUTIg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 14:08:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 4/8] vb2: retry start_streaming in case of insufficient buffers.
-Date: Thu, 21 Nov 2013 20:09:21 +0100
-Message-ID: <5458942.sLkCAMs10P@avalon>
-In-Reply-To: <1385047326-23099-5-git-send-email-hverkuil@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <1385047326-23099-5-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:55046 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006Ab3KEGM7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 01:12:59 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
+	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
+	a.hajda@samsung.com, sachin.kamat@linaro.org,
+	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v11 01/12] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree bindings documentation
+Date: Tue,  5 Nov 2013 11:42:32 +0530
+Message-Id: <1383631964-26514-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The patch adds the DT binding documentation for Samsung
+Exynos5 SoC series imaging subsystem (FIMC-IS).
 
-Thank you for the patch.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+---
+ .../devicetree/bindings/media/exynos5-fimc-is.txt  |  113 ++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
 
-On Thursday 21 November 2013 16:22:02 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> If start_streaming returns -ENODATA, then it will be retried the next time
-> a buffer is queued. This means applications no longer need to know how many
-> buffers need to be queued before STREAMON can be called. This is
-> particularly useful for output stream I/O.
-> 
-> If a DMA engine needs at least X buffers before it can start streaming, then
-> for applications to get a buffer out as soon as possible they need to know
-> the minimum number of buffers to queue before STREAMON can be called. You
-> can't just try STREAMON after every buffer since on failure STREAMON will
-> dequeue all your buffers. (Is that a bug or a feature? Frankly, I'm not
-> sure).
-> 
-> This patch simplifies applications substantially: they can just call
-> STREAMON at the beginning and then start queuing buffers and the DMA engine
-> will kick in automagically once enough buffers are available.
-> 
-> This also fixes using write() to stream video: the fileio implementation
-> calls streamon without having any queued buffers, which will fail today for
-> any driver that requires a minimum number of buffers.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 66 ++++++++++++++++++++++-------
->  include/media/videobuf2-core.h           | 15 ++++++--
->  2 files changed, 64 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 9ea3ae9..5bb91f7 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1332,6 +1332,39 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> v4l2_buffer *b) }
->  EXPORT_SYMBOL_GPL(vb2_prepare_buf);
-> 
-> +/**
-> + * vb2_start_streaming() - Attempt to start streaming.
-> + * @q:		videobuf2 queue
-> + *
-> + * If there are not enough buffers, then retry_start_streaming is set to
-> + * true and 0 is returned. The next time a buffer is queued and
-> + * retry_start_streaming is true, this function will be called again to
-> + * retry starting the DMA engine.
-> + */
-> +static int vb2_start_streaming(struct vb2_queue *q)
-> +{
-> +	int ret;
-> +
-> +	/* Tell the driver to start streaming */
-> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> +
-> +	/*
-> +	 * If there are not enough buffers queued to start streaming, then
-> +	 * the start_streaming operation will return -ENODATA and you have to
-> +	 * retry when the next buffer is queued.
-> +	 */
-> +	if (ret == -ENODATA) {
-> +		dprintk(1, "qbuf: not enough buffers, retry when more buffers are
-> queued.\n");
-> +		q->retry_start_streaming = true;
-> +		return 0;
-> +	}
-> +	if (ret)
-> +		dprintk(1, "qbuf: driver refused to start streaming\n");
-> +	else
-> +		q->retry_start_streaming = false;
-> +	return ret;
-> +}
-> +
->  static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
->  	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> @@ -1377,6 +1410,12 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
-> struct v4l2_buffer *b) /* Fill buffer information for the userspace */
->  	__fill_v4l2_buffer(vb, b);
-> 
-> +	if (q->retry_start_streaming) {
-> +		ret = vb2_start_streaming(q);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb-
->v4l2_buf.index);
-> return 0;
->  }
-> @@ -1526,7 +1565,8 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
->  		return -EINVAL;
->  	}
-> 
-> -	wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> +	if (!q->retry_start_streaming)
-> +		wait_event(q->done_wq, !atomic_read(&q->queued_count));
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-> @@ -1640,6 +1680,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  {
->  	unsigned int i;
-> 
-> +	if (q->retry_start_streaming)
-> +		q->retry_start_streaming = q->streaming = 0;
-> +
->  	/*
->  	 * Tell driver to stop all transactions and release all queued
->  	 * buffers.
-> @@ -1689,12 +1732,9 @@ static int vb2_internal_streamon(struct vb2_queue *q,
-> enum v4l2_buf_type type) list_for_each_entry(vb, &q->queued_list,
-> queued_entry)
->  		__enqueue_in_driver(vb);
-> 
-> -	/*
-> -	 * Let driver notice that streaming state has been enabled.
-> -	 */
-> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> +	/* Tell driver to start streaming. */
-
-Wouldn't it be better to reset q->retry_start_streaming to 0 here instead of 
-in the several other locations ?
-
-> +	ret = vb2_start_streaming(q);
->  	if (ret) {
-> -		dprintk(1, "streamon: driver refused to start streaming\n");
->  		__vb2_queue_cancel(q);
->  		return ret;
->  	}
-> @@ -2264,15 +2304,15 @@ static int __vb2_init_fileio(struct vb2_queue *q,
-> int read) goto err_reqbufs;
->  			fileio->bufs[i].queued = 1;
->  		}
-> -
-> -		/*
-> -		 * Start streaming.
-> -		 */
-> -		ret = vb2_streamon(q, q->type);
-> -		if (ret)
-> -			goto err_reqbufs;
->  	}
-> 
-> +	/*
-> +	 * Start streaming.
-> +	 */
-> +	ret = vb2_streamon(q, q->type);
-> +	if (ret)
-> +		goto err_reqbufs;
-> +
->  	q->fileio = fileio;
-> 
->  	return ret;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bd8218b..2d88897 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -250,10 +250,13 @@ struct vb2_buffer {
->   *			receive buffers with @buf_queue callback before
->   *			@start_streaming is called; the driver gets the number
->   *			of already queued buffers in count parameter; driver
-> - *			can return an error if hardware fails or not enough
-> - *			buffers has been queued, in such case all buffers that
-> - *			have been already given by the @buf_queue callback are
-> - *			invalidated.
-> + *			can return an error if hardware fails, in that case all
-> + *			buffers that have been already given by the @buf_queue
-> + *			callback are invalidated.
-> + *			If there were not enough queued buffers to start
-> + *			streaming, then this callback returns -ENODATA, and the
-> + *			vb2 core will retry calling @start_streaming when a new
-> + *			buffer is queued.
->   * @stop_streaming:	called when 'streaming' state must be disabled; driver
->   *			should stop any DMA transactions or wait until they
->   *			finish and give back all buffers it got from buf_queue()
-> @@ -321,6 +324,9 @@ struct v4l2_fh;
->   * @done_wq:	waitqueue for processes waiting for buffers ready to be
-> dequeued * @alloc_ctx:	memory type/allocator-specific contexts for each
-> plane * @streaming:	current streaming state
-> + * @retry_start_streaming: start_streaming() was called, but there were not
-> enough + *		buffers queued. If set, then retry calling start_streaming 
-when
-> + *		queuing a new buffer.
->   * @fileio:	file io emulator internal data, used only if emulator is 
-active
-> */
->  struct vb2_queue {
-> @@ -353,6 +359,7 @@ struct vb2_queue {
->  	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
-> 
->  	unsigned int			streaming:1;
-> +	unsigned int			retry_start_streaming:1;
-> 
->  	struct vb2_fileio_data		*fileio;
->  };
+diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+new file mode 100644
+index 0000000..658d4a9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+@@ -0,0 +1,113 @@
++Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
++------------------------------------------------------
++
++The camera subsystem on Samsung Exynos5 SoC has some changes relative
++to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
++FIMC-LITE IPs but has a much improved version of FIMC-IS which can
++handle sensor controls and camera post-processing operations. The
++Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
++post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
++dedicated scalers (SCC and SCP).
++
++fimc-is node
++------------
++
++Required properties:
++
++- compatible        : should contain "samsung,exynos5250-fimc-is"
++- reg               : physical base address and size of the memory mapped
++                      registers
++- interrupts        : interrupt-specifier for the fimc-is interrupt
++- clocks            : list of clock specifiers, corresponding to entries in
++                      clock-names property
++- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
++                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
++                      matching entries in the clocks property
++- samsung,pmu       : phandle to the Power Management Unit (PMU) node
++
++i2c-isp (ISP I2C bus controller) nodes
++--------------------------------------
++The i2c-isp nodes should be children of the fimc-is node.
++
++Required properties:
++
++- compatible	: must contain "samsung,exynos4212-i2c-isp" for Exynos4212,
++		  Exynos4412 and Exynos5250 SoCs
++- reg		: physical base address and length of the registers set
++- clocks	: should contain gate clock specifier for this controller
++- clock-names	: should contain "i2c_isp" for the gate clock
++- pinctrl-0	: phandle of the pinctrl node for the i2c isp
++- pinctrl-names : must contain "default"
++
++ranges, #address-cells, and #size-cells should be present as appropriate.
++
++Device tree nodes of the image sensors controlled directly by the FIMC-IS
++firmware must be child nodes of their corresponding ISP I2C bus controller node.
++The data link of these image sensors must be specified using the common video
++interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	fimc_is: fimc-is@13000000 {
++		compatible = "samsung,exynos5250-fimc-is";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		reg = <0x13000000 0x200000>;
++		interrupt-parent = <&combiner>;
++		interrupts = <19 1>;
++		clocks = <&clock 346>, <&clock 347>, <&clock 512>,
++			<&clock 513>, <&clock 514>, <&clock 515>,
++			<&clock 516>;
++		clock-names = "isp", "mcu_isp", "isp_div0", "isp_div1",
++				"isp_divmpwm", "mcu_isp_div0",
++				"mcu_isp_div1";
++		samsung,pmu = <&pmu>;
++
++		i2c0_isp: i2c-isp@13130000 {
++			compatible = "samsung,exynos4212-i2c-isp";
++			reg = <0x13130000 0x100>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			clocks = <&clock 352>;
++			clock-names = "i2c_isp";
++			pinctrl-0 = <&cam_i2c0_bus>;
++			pinctrl-names = "default";
++		};
++
++		i2c1_isp: i2c-isp@13140000 {
++			compatible = "samsung,exynos4212-i2c-isp";
++			reg = <0x13140000 0x100>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			clocks = <&clock 353>;
++			clock-names = "i2c_isp";
++			pinctrl-0 = <&cam_i2c1_bus>;
++			pinctrl-names = "default";
++		};
++	};
++
++In the board specific file the sensor nodes can be provided. For the sensor
++node documentation for s5k4e5, please refer to samsung-s5k4e5.txt
++
++	fimc-is@13000000 {
++		status = "okay";
++
++		i2c-isp@13130000 {
++			s5k4e5@20 {
++				compatible = "samsung,s5k4e5";
++				reg = <0x20>;
++				reset-gpios = <&gpx1 2 1>;
++				clock-frequency = <24000000>;
++				clocks = <&clock 129>;
++				clock-names = "extclk";
++				svdda-supply = <&vdd>;
++				svddio-supply = <&vdd>;
++				port {
++					is_s5k4e5_ep: endpoint {
++						remote-endpoint = <&csis0_ep>;
++					};
++				};
++			};
++		};
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
