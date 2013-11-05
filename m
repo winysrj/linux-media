@@ -1,102 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:50066 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827Ab3KYOBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 09:01:43 -0500
-Date: Mon, 25 Nov 2013 15:00:55 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Henrik Kurelid <henke@kurelid.se>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Chris Lee <updatelee@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 2/3] femon: Display SNR in dB
-Message-ID: <20131125150055.076e60be@stein>
-In-Reply-To: <20131125144317.330c7a03@stein>
-References: <20130603171607.73d0b856@endymion.delvare>
-	<20130603172150.1aaf1904@endymion.delvare>
-	<CAHFNz9LX0WzmO1zvn51Ge8VQkfiPrao3AQVLprhqrp1V-0h=fQ@mail.gmail.com>
-	<20131125102345.4b654435@endymion.delvare>
-	<20131125144317.330c7a03@stein>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2693 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906Ab3KEPSr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 10:18:47 -0500
+Message-ID: <52790C06.1010806@xs4all.nl>
+Date: Tue, 05 Nov 2013 16:17:26 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3 00/29] Fix errors/warnings with allmodconfig/allyesconfig
+ on non-x86 archs
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Nov 25 Stefan Richter wrote:
-> On Nov 25 Jean Delvare wrote:
-> > Hi Manu,
-> > 
-> > On Sun, 24 Nov 2013 22:51:33 +0530, Manu Abraham wrote:
-> > > Sorry, that I came upon this patch quite late.
-> > 
-> > No problem, better late than never! :)
-> > 
-> > > On Mon, Jun 3, 2013 at 8:51 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > > > SNR is supposed to be reported by the frontend drivers in dB, so print
-> > > > it that way for drivers which implement it properly.
-> > > 
-> > > Not all frontends do report report the SNR in dB. Well, You can say quite
-> > > some frontends do report it that way.
-> > 
-> > Last time I discussed this, I was told that this was the preferred way
-> > for frontends to report the SNR. I also referred to this document:
-> >   http://palosaari.fi/linux/v4l-dvb/snr_2012-05-21.txt
-> > I don't know now up-to-date it is by now, but back then it showed a
-> > significant number of frontends reporting in .1 dB already, including
-> > the ones I'm using right now (drx-3916k and drx-3913k.) With the
-> > current version of femon, "femon -H" reports it as 0%, which is quite
-> > useless. Thus my patch.
-> [...]
-> 
-> Hi,
-> 
-> I inherited this in drivers/media/firewire/firedtv-fe.c:
-> 
-> static int fdtv_read_snr(struct dvb_frontend *fe, u16 *snr)
-> {
-> 	struct firedtv *fdtv = fe->sec_priv;
-> 	struct firedtv_tuner_status stat;
-> 
-> 	if (avc_tuner_status(fdtv, &stat))
-> 		return -EINVAL;
-> 
-> 	/* C/N[dB] = -10 * log10(snr / 65535) */
-> 	*snr = stat.carrier_noise_ratio * 257;
-> 	return 0;
-> }
-> 
-> As far as I understand, the comment should have been written with a "FIXME"
-> prefix.
-> 
-> I have no documentation and no personal manufacturer contact (and the
-> devices are EOL).  All I know from the driver source is that we do get a 16
-> bits wide carrier_noise_ratio.  So it appears to be something on a scale
-> from 0x0000 to 0xffff, and the comment makes it look like being on a linear
-> scale originally.
+Hi Mauro,
 
-Or I got it wrong and all the comment tries to tell that the value to be
-returned in the snr argument is meant to be linear on a scale of 0...ffff,
-and the code tells that we get a linear value on a scale of 0...255 from
-the firmware.  (Cc'ing Henrik who added the code and the comment.)
+For all patches except 22 (which got a newer revision):
 
-> I could cross-check with a Windows based TV viewer application what signal
-> strength value is presented there to the user with DVB-T and DVB-S2
-> incarnations of FireDTV devices.  Right now I don't remember how that
-> application presents it (i.e. as percentage or dB or whatever...).
-> When I looked at that application and at kaffeine some years ago, they
-> displayed grossly different values.  I did not research back then whether
-> the Linux driver or kaffeine or both treated it wrong.
-> 
-> Any advice for the quoted kernel driver code?
-> 
-> Thanks,
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
-Stefan Richter
--=====-===-= =-== ==--=
-http://arcgraph.de/sr/
+Regards,
+
+	Hans
+
+On 11/05/13 11:01, Mauro Carvalho Chehab wrote:
+> To be sure that we're not introducing compilation regressions on media, I'm now
+> using ktest to check for errors/warnings.
+> 
+> My current setup is cross-building on several architectures:
+>         alpha,  arm, avr32, cris (64), frv, i386, ia64, m32r, m68k, mips, openrisc, parisc, s390, sh, sparc, sparc64, uml, x86_64
+> 
+> I tried to enable a few other archs:
+>         blackfin, cris (32), powerpc (32, 64), tile, xtensa
+> 
+> but they fail to compile with allyesconfig due to non-media related issues.
+> 
+> I'm still unsure about how often I'll be doing it, I intend to run it at least
+> by the end of the subsystem merge window (by -rc6 or -rc7), and fix the
+> issues found there.
+> 
+> V3: contains fixes for the feedbacks received:
+>         - I2C client driver now	returns	-EINVAL;
+>         - I2C adapter drivers now returns -EOPNOSUPP;
+> 	- a macro was added for the buffers;
+> 	- check for failure on allocation at v4l2-async was added;
+> 	- Used iguanair code from Sean, instead of my code;
+> 	- Most buffer sizes changed to 64 bytes, to match max URB
+> 	  control size.
+> 
+> Mauro Carvalho Chehab (28):
+>   [media] tda9887: remove an warning when compiling for alpha
+>   [media] radio-shark: remove a warning when CONFIG_PM is not defined
+>   [media] zoran: don't build it on alpha
+>   [media] cx18: struct i2c_client is too big for stack
+>   [media] tef6862: fix warning on avr32 arch
+>   [media] platform drivers: Fix build on frv arch
+>   [media] radio-si470x-i2c: fix a warning on ia64
+>   [media] rc: Fir warnings on m68k arch
+>   [media] uvc/lirc_serial: Fix some warnings on parisc arch
+>   [media] s5h1420: Don't use dynamic static allocation
+>   [media] dvb-frontends: Don't use dynamic static allocation
+>   [media] dvb-frontends: Don't use dynamic static allocation
+>   [media] stb0899_drv: Don't use dynamic static allocation
+>   [media] stv0367: Don't use dynamic static allocation
+>   [media] stv090x: Don't use dynamic static allocation
+>   [media] av7110_hw: Don't use dynamic static allocation
+>   [media] tuners: Don't use dynamic static allocation
+>   [media] tuner-xc2028: Don't use dynamic static allocation
+>   [media] cimax2: Don't use dynamic static allocation
+>   [media] v4l2-async: Don't use dynamic static allocation
+>   [media] cxusb: Don't use dynamic static allocation
+>   [media] dibusb-common: Don't use dynamic static allocation
+>   [media] dw2102: Don't use dynamic static allocation
+>   [media] af9015: Don't use dynamic static allocation
+>   [media] af9035: Don't use dynamic static allocation
+>   [media] mxl111sf: Don't use dynamic static allocation
+>   [media] lirc_zilog: Don't use dynamic static allocation
+>   [media] cx18: disable compilation on frv arch
+> 
+> Sean Young (1):
+>   [media] iguanair: simplify calculation of carrier delay cycles
+> 
+>  drivers/media/dvb-frontends/af9013.c          | 12 +++-
+>  drivers/media/dvb-frontends/af9033.c          | 21 ++++++-
+>  drivers/media/dvb-frontends/bcm3510.c         | 15 ++++-
+>  drivers/media/dvb-frontends/cxd2820r_core.c   | 21 ++++++-
+>  drivers/media/dvb-frontends/itd1000.c         | 13 +++-
+>  drivers/media/dvb-frontends/mt312.c           | 10 ++-
+>  drivers/media/dvb-frontends/nxt200x.c         | 11 +++-
+>  drivers/media/dvb-frontends/rtl2830.c         | 12 +++-
+>  drivers/media/dvb-frontends/rtl2832.c         | 12 +++-
+>  drivers/media/dvb-frontends/s5h1420.c         |  9 ++-
+>  drivers/media/dvb-frontends/stb0899_drv.c     | 12 +++-
+>  drivers/media/dvb-frontends/stb6100.c         | 11 +++-
+>  drivers/media/dvb-frontends/stv0367.c         | 13 +++-
+>  drivers/media/dvb-frontends/stv090x.c         | 12 +++-
+>  drivers/media/dvb-frontends/stv6110.c         | 12 +++-
+>  drivers/media/dvb-frontends/stv6110x.c        | 13 +++-
+>  drivers/media/dvb-frontends/tda10071.c        | 21 ++++++-
+>  drivers/media/dvb-frontends/tda18271c2dd.c    | 14 ++++-
+>  drivers/media/dvb-frontends/zl10039.c         | 12 +++-
+>  drivers/media/pci/cx18/Kconfig                |  1 +
+>  drivers/media/pci/cx18/cx18-driver.c          | 20 +++---
+>  drivers/media/pci/cx23885/cimax2.c            | 13 +++-
+>  drivers/media/pci/ttpci/av7110_hw.c           | 19 +++++-
+>  drivers/media/pci/zoran/Kconfig               |  1 +
+>  drivers/media/platform/soc_camera/rcar_vin.c  |  1 +
+>  drivers/media/radio/radio-shark.c             |  2 +
+>  drivers/media/radio/radio-shark2.c            |  2 +
+>  drivers/media/radio/si470x/radio-si470x-i2c.c |  4 +-
+>  drivers/media/radio/tef6862.c                 | 20 +++---
+>  drivers/media/rc/fintek-cir.h                 |  4 +-
+>  drivers/media/rc/iguanair.c                   | 22 ++-----
+>  drivers/media/rc/nuvoton-cir.h                |  4 +-
+>  drivers/media/tuners/e4000.c                  | 21 ++++++-
+>  drivers/media/tuners/fc2580.c                 | 21 ++++++-
+>  drivers/media/tuners/tda18212.c               | 21 ++++++-
+>  drivers/media/tuners/tda18218.c               | 21 ++++++-
+>  drivers/media/tuners/tda9887.c                |  4 +-
+>  drivers/media/tuners/tuner-xc2028.c           |  8 ++-
+>  drivers/media/usb/dvb-usb-v2/af9015.c         |  3 +-
+>  drivers/media/usb/dvb-usb-v2/af9035.c         | 29 ++++++++-
+>  drivers/media/usb/dvb-usb-v2/mxl111sf.c       | 10 ++-
+>  drivers/media/usb/dvb-usb/cxusb.c             | 41 ++++++++++--
+>  drivers/media/usb/dvb-usb/dibusb-common.c     | 10 ++-
+>  drivers/media/usb/dvb-usb/dw2102.c            | 90 ++++++++++++++++++++++++---
+>  drivers/media/usb/uvc/uvc_video.c             |  3 +-
+>  drivers/media/v4l2-core/v4l2-async.c          | 31 ++++++++-
+>  drivers/staging/media/lirc/lirc_serial.c      |  9 ++-
+>  drivers/staging/media/lirc/lirc_zilog.c       | 12 +++-
+>  48 files changed, 598 insertions(+), 105 deletions(-)
+> 
+
