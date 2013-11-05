@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:56526 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab3KYJ6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:58:55 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00ADXD26E230@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:58:54 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 07/16] s5p-jpeg: Fix lack of spin_lock protection
-Date: Mon, 25 Nov 2013 10:58:14 +0100
-Message-id: <1385373503-1657-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:43279 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab3KENDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:49 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 10/29] [media] uvc/lirc_serial: Fix some warnings on parisc arch
+Date: Tue,  5 Nov 2013 08:01:23 -0200
+Message-Id: <1383645702-30636-11-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5p_jpeg_device_run and s5p_jpeg_runtime_resume callbacks should
-have spin_lock protection as they alter device registers.
+On this arch, usec is not unsigned long. So, we need to typecast,
+in order to remove those warnings:
+	drivers/media/usb/uvc/uvc_video.c: In function 'uvc_video_clock_update':
+	drivers/media/usb/uvc/uvc_video.c:678:2: warning: format '%lu' expects argument of type 'long unsigned int', but argument 9 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c: In function 'irq_handler':
+	drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
+	drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_video.c        | 3 ++-
+ drivers/staging/media/lirc/lirc_serial.c | 9 ++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 583fcdd..628fde8 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -930,7 +930,9 @@ static void s5p_jpeg_device_run(void *priv)
- 	struct s5p_jpeg_ctx *ctx = priv;
- 	struct s5p_jpeg *jpeg = ctx->jpeg;
- 	struct vb2_buffer *src_buf, *dst_buf;
--	unsigned long src_addr, dst_addr;
-+	unsigned long src_addr, dst_addr, flags;
-+
-+	spin_lock_irqsave(&ctx->jpeg->slock, flags);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 3394c3432011..899cb6d1c4a4 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -680,7 +680,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 		  stream->dev->name,
+ 		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
+ 		  y, ts.tv_sec, ts.tv_nsec / NSEC_PER_USEC,
+-		  v4l2_buf->timestamp.tv_sec, v4l2_buf->timestamp.tv_usec,
++		  v4l2_buf->timestamp.tv_sec,
++		  (unsigned long)v4l2_buf->timestamp.tv_usec,
+ 		  x1, first->host_sof, first->dev_sof,
+ 		  x2, last->host_sof, last->dev_sof, y1, y2);
  
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -998,6 +1000,8 @@ static void s5p_jpeg_device_run(void *priv)
- 	}
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index af08e677b60f..7b3be2346b4b 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -707,7 +707,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 				pr_warn("ignoring spike: %d %d %lx %lx %lx %lx\n",
+ 					dcd, sense,
+ 					tv.tv_sec, lasttv.tv_sec,
+-					tv.tv_usec, lasttv.tv_usec);
++					(unsigned long)tv.tv_usec,
++					(unsigned long)lasttv.tv_usec);
+ 				continue;
+ 			}
  
- 	jpeg_start(jpeg->regs);
-+
-+	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
- }
- 
- static int s5p_jpeg_job_ready(void *priv)
-@@ -1418,12 +1422,15 @@ static int s5p_jpeg_runtime_suspend(struct device *dev)
- static int s5p_jpeg_runtime_resume(struct device *dev)
- {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
-+	unsigned long flags;
- 	int ret;
- 
- 	ret = clk_prepare_enable(jpeg->clk);
- 	if (ret < 0)
- 		return ret;
- 
-+	spin_lock_irqsave(&jpeg->slock, flags);
-+
- 	/*
- 	 * JPEG IP allows storing two Huffman tables for each component
- 	 * We fill table 0 for each component
-@@ -1433,6 +1440,8 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- 	s5p_jpeg_set_hactbl(jpeg->regs);
- 	s5p_jpeg_set_hactblg(jpeg->regs);
- 
-+	spin_unlock_irqrestore(&jpeg->slock, flags);
-+
- 	return 0;
- }
- 
+@@ -719,7 +720,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 				pr_warn("%d %d %lx %lx %lx %lx\n",
+ 					dcd, sense,
+ 					tv.tv_sec, lasttv.tv_sec,
+-					tv.tv_usec, lasttv.tv_usec);
++					(unsigned long)tv.tv_usec,
++					(unsigned long)lasttv.tv_usec);
+ 				data = PULSE_MASK;
+ 			} else if (deltv > 15) {
+ 				data = PULSE_MASK; /* really long time */
+@@ -728,7 +730,8 @@ static irqreturn_t irq_handler(int i, void *blah)
+ 					pr_warn("AIEEEE: %d %d %lx %lx %lx %lx\n",
+ 						dcd, sense,
+ 						tv.tv_sec, lasttv.tv_sec,
+-						tv.tv_usec, lasttv.tv_usec);
++						(unsigned long)tv.tv_usec,
++						(unsigned long)lasttv.tv_usec);
+ 					/*
+ 					 * detecting pulse while this
+ 					 * MUST be a space!
 -- 
-1.7.9.5
+1.8.3.1
 
