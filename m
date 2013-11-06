@@ -1,100 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.swsoft.eu ([109.70.220.8]:51377 "EHLO relay.swsoft.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752781Ab3KCAgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Nov 2013 20:36:24 -0400
-Received: from mail.swsoft.eu ([109.70.220.2])
-	by relay.swsoft.eu with esmtps (TLSv1:AES128-SHA:128)
-	(Exim 4.77)
-	(envelope-from <mbroemme@parallels.com>)
-	id 1VclSe-0001pY-Ao
-	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 01:22:36 +0100
-Received: from parallels.com (cable-78-34-76-230.netcologne.de [78.34.76.230])
-	by code.dyndns.org (Postfix) with ESMTPSA id 7ED7A140CAF	for
- <linux-media@vger.kernel.org>; Sun,  3 Nov 2013 01:22:35 +0100 (CET)
-Date: Sun, 3 Nov 2013 01:22:35 +0100
-From: Maik Broemme <mbroemme@parallels.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 00/12] DDBridge 0.9.10 driver updates
-Message-ID: <20131103002235.GD7956@parallels.com>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:64764 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440Ab3KFIkw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 03:40:52 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
+In-Reply-To: <CAPybu_3rnWU7puF4PQChXMXVo8sRC=Rh6cghxu6kOTX+s2h3mw@mail.gmail.com>
+References: <1383385994-11422-1-git-send-email-ricardo.ribalda@gmail.com>
+ <527794F0.40901@xs4all.nl> <CAPybu_0cKxMxhXoSqbK2nTyX3DGCVZdUZPt2bTE6aZR65xDG=w@mail.gmail.com>
+ <5277AB62.5000505@xs4all.nl> <5277AE1A.6090303@samsung.com>
+ <5277BB1F.1010501@xs4all.nl> <CAPybu_3rnWU7puF4PQChXMXVo8sRC=Rh6cghxu6kOTX+s2h3mw@mail.gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 6 Nov 2013 09:40:31 +0100
+Message-ID: <CAPybu_1kXvrDuHJi3dtwiUooYj_rB5_N-pZpVHHfNQyEnnVhyw@mail.gmail.com>
+Subject: Re: [PATCH v4] videobuf2: Add missing lock held on vb2_fop_relase
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've updated the current DDBridge to latest version 0.9.10 from Ralph
-Metzler available at:
+Here are the patches
 
-http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
 
-I've merged the driver to work with current v4l/dvb tree and I will
-maintain the driver for v4l/dvb in future. The coming patch series is
-the first version and I explicitly want to get feedback and hints if
-some parts are merged at wrong places, etc... The following changes
-were made:
 
-  - MSI enabled by default (some issues left with i2c timeouts)
-  - no support for Digital Devices Octonet
-  - no support for DVB Netstream
-  - removed unused module parameters 'tt' and 'vlan' (used by Octonet)
-  - removed unused registers to cleanup code (might be added later again
-    if needed)
+https://patchwork.linuxtv.org/patch/20668/
+https://patchwork.linuxtv.org/patch/20669/
 
-The following devices are supported by the driver update:
+Thanks!
 
-  - Octopus DVB adapter
-  - Octopus V3 DVB adapter
-  - Octopus LE DVB adapter
-  - Octopus OEM
-  - Octopus Mini
-  - Cine S2 V6 DVB adapter
-  - Cine S2 V6.5 DVB adapter
-  - Octopus CI
-  - Octopus CI single
-  - DVBCT V6.1 DVB adapter
-  - DVB-C modulator
-  - SaTiX-S2 V3 DVB adapter
+On Wed, Nov 6, 2013 at 9:26 AM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> Hello Hans and Sywester
+>
+> I have just posted a new patch. I think it fits the suggestions from
+> both of you, please take a look to it and please post any comment.
+>
+> I will also send a patch about the em28xx, to swap the lock order.
+>
+> Thanks for your comments
+>
+> On Mon, Nov 4, 2013 at 4:19 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 11/04/2013 03:24 PM, Sylwester Nawrocki wrote:
+>>> On 04/11/13 15:12, Hans Verkuil wrote:
+>>>> On 11/04/2013 02:54 PM, Ricardo Ribalda Delgado wrote:
+>>>>>> Hello Hans
+>>>>>>
+>>>>>> Thanks for your comments.
+>>>>>>
+>>>>>> Please take a look to v4 of this patch
+>>>>>> https://patchwork.linuxtv.org/patch/20529/
+>>>>>>
+>>>>>> On Mon, Nov 4, 2013 at 1:37 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>>>> On 11/02/2013 10:53 AM, Ricardo Ribalda Delgado wrote:
+>>>>>>>>>> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+>>>>>>>>>>
+>>>>>>>>>> vb2_fop_relase does not held the lock although it is modifying the
+>>>>>>>>>> queue->owner field.
+>>>>>>>>>>
+>>>>>>>>>> This could lead to race conditions on the vb2_perform_io function
+>>>>>>>>>> when multiple applications are accessing the video device via
+>>>>>>>>>> read/write API:
+>>>>>>>>
+>>>>>>>> It's also called directly by drivers/media/usb/em28xx/em28xx-video.c!
+>>>>>>>>
+>>>>>>
+>>>>>> em28xx-video does not hold the lock, therefore it can call the normal
+>>>>>> function. On v2 we made a internal function that should be called if
+>>>>>> the funciton is called directly by the driver. Please take a look to
+>>>>>> the old comments. https://patchwork.linuxtv.org/patch/20460/
+>>>>
+>>>> static int em28xx_v4l2_close(struct file *filp)
+>>>> {
+>>>>         struct em28xx_fh *fh  = filp->private_data;
+>>>>         struct em28xx    *dev = fh->dev;
+>>>>         int              errCode;
+>>>>
+>>>>         em28xx_videodbg("users=%d\n", dev->users);
+>>>>
+>>>>         mutex_lock(&dev->lock);
+>>>>         vb2_fop_release(filp);
+>>>>      ...
+>>>>
+>>>> vb2_fop_release(filp) will, with your patch, also try to get dev->lock.
+>>>>
+>>>> Sylwester's comment re em28xx is incorrect.
+>>>
+>>> dev->lock is not used as the video queue lock:
+>>>
+>>> $ git grep "lock =" drivers/media/usb/em28xx/
+>>> ...
+>>> drivers/media/usb/em28xx/em28xx-video.c:        dev->vdev->queue->lock = &dev->vb_queue_lock;
+>>> drivers/media/usb/em28xx/em28xx-video.c:                dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
+>>>
+>>> There is a separate mutex for the video queue which needs to be acquired
+>>> independently.
+>>
+>> Darn, I missed that one. I was looking for it in em28xx_vdev_init(), which is
+>> where I expected the queue->lock to be set, if there was any.
+>>
+>> That said, wouldn't it be a good idea to swap the order:
+>>
+>>         vb2_fop_release(filp);
+>>         mutex_lock(&dev->lock);
+>>
+>> I don't believe there is a good reason for nesting mutexes here.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> --
+>>> Regards,
+>>> Sylwester
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>
+>
+>
+> --
+> Ricardo Ribalda
 
-I might merge the Octonet and DVB Netstream drivers from Ralphs source
-later once the current committed DDBridge driver updates are merged in
-mainline.
 
-Signed-off-by: Maik Broemme <mbroemme@parallels.com>
 
-Maik Broemme (12):
-  dvb-frontends: Support for DVB-C2 to DVB frontends
-  tda18271c2dd: Fix description of NXP TDA18271C2 silicon tuner
-  stv0367dd: Support for STV 0367 DVB-C/T (DD) demodulator
-  tda18212dd: Support for NXP TDA18212 (DD) silicon tuner
-  cxd2843: Support for CXD2843ER demodulator for DVB-T/T2/C/C2
-  dvb-core: export dvb_usercopy and new DVB device constants
-  ddbridge: Updated ddbridge registers
-  ddbridge: Moved i2c interfaces into separate file
-  ddbridge: Support for the Digital Devices Resi DVB-C Modulator card
-  ddbridge: Update ddbridge driver to version 0.9.10
-  ddbridge: Update ddbridge header for 0.9.10 changes
-  ddbridge: Kconfig and Makefile fixes to build latest ddbridge
-
- drivers/media/dvb-core/dvbdev.c              |    1 
- drivers/media/dvb-core/dvbdev.h              |    2 
- drivers/media/dvb-frontends/Kconfig          |   31 
- drivers/media/dvb-frontends/Makefile         |    3 
- drivers/media/dvb-frontends/cxd2843.c        | 1647 ++++++++++++
- drivers/media/dvb-frontends/cxd2843.h        |   47 
- drivers/media/dvb-frontends/stv0367dd.c      | 2329 ++++++++++++++++++
- drivers/media/dvb-frontends/stv0367dd.h      |   48 
- drivers/media/dvb-frontends/stv0367dd_regs.h | 3442 +++++++++++++++++++++++++++
- drivers/media/dvb-frontends/tda18212dd.c     |  934 +++++++
- drivers/media/dvb-frontends/tda18212dd.h     |   37 
- drivers/media/pci/ddbridge/Kconfig           |   21 
- drivers/media/pci/ddbridge/Makefile          |    2 
- drivers/media/pci/ddbridge/ddbridge-core.c   | 3085 +++++++++++++++++-------
- drivers/media/pci/ddbridge/ddbridge-i2c.c    |  239 +
- drivers/media/pci/ddbridge/ddbridge-mod.c    | 1033 ++++++++
- drivers/media/pci/ddbridge/ddbridge-regs.h   |  273 +-
- drivers/media/pci/ddbridge/ddbridge.h        |  408 ++-
- include/uapi/linux/dvb/frontend.h            |    1 
- 19 files changed, 12555 insertions(+), 1028 deletions(-)
-
---Maik
+-- 
+Ricardo Ribalda
