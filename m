@@ -1,133 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44234 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35435 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003Ab3KKCEd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 21:04:33 -0500
+	with ESMTP id S1755373Ab3KFAsQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 19:48:16 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: Pawel Osciak <posciak@chromium.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v1 00/19] UVC 1.5 VP8 support for uvcvideo
-Date: Mon, 11 Nov 2013 03:05:08 +0100
-Message-ID: <2118858.3GAjxvYvyO@avalon>
-In-Reply-To: <CAPueXH7+tU7L2dU_CoLJ5gx3phKRUuRsXWW=ztDNrAZ2TjaSbg@mail.gmail.com>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <CAPueXH7+tU7L2dU_CoLJ5gx3phKRUuRsXWW=ztDNrAZ2TjaSbg@mail.gmail.com>
+To: Sebastian Reichel <sre@debian.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>
+Subject: Re: [early RFC] Device Tree bindings for OMAP3 Camera Subsystem
+Date: Wed, 06 Nov 2013 01:48:38 +0100
+Message-ID: <2721178.kPBqiMNVyq@avalon>
+In-Reply-To: <20131103220315.GA11659@earth.universe>
+References: <20131103220315.GA11659@earth.universe>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; boundary="nextPart3889507.KlpueUuOIH"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paulo,
 
-On Thursday 10 October 2013 11:27:37 Paulo Assis wrote:
+--nextPart3889507.KlpueUuOIH
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+
+Hi Sebastian,
+
+Thank you for the aptch.
+
+On Sunday 03 November 2013 23:03:15 Sebastian Reichel wrote:
 > Hi,
-> just want t know the current state on this series.
 > 
-> I'm currently adding h264 stream preview support to guvcview.
-> It's already working fine on uvc 1.1 cameras like the BCC950
+> This is an early RFC for omap3isp DT support. For now i just created a
+> potential DT binding documentation based on the existing platform data:
+> 
+> Binding for the OMAP3 Camera subsystem with the image signal processor (ISP)
+> feature.
+> 
+> omap3isp node
+> -------------
+> 
+> Required properties:
+> 
+> - compatible	: should be "ti,omap3isp" for OMAP3;
+> - reg		: physical addresses and length of the registers set;
+> - clocks	: list of clock specifiers, corresponding to entries in
+> 		  clock-names property;
+> - clock-names	: must contain "cam_ick", "cam_mclk", "csi2_96m_fck",
+> 		  "l3_ick" entries, matching entries in the clocks property;
 
-Great ! Is the code already available ?
+According to the OMAP36xx TRM, the ISP functional and interface clocks are 
+called CAM_FCLK and CAM_ICLK. They are driven by L3_ICLK and L4_ICLK 
+respectively, and both gated through a single bit.
 
-> but for uvc 1.5 devices like the c930e it could really use some driver
-> support.
+The OMAP platform code instantiates a cam_ick clock for CAM_ICLK but doesn't 
+create any clock for CAM_FCLK. The reason is probably that such a clock wasn't 
+really needed, as enabling the interface clock enables the functional clock 
+anyway.
 
-I'm nearly done reviewing the patches (although 19/19 is a huge beast that 
-will take a bit of time to tame :-)). Getting the code to mainline will still 
-need some time, but it seems to be going in the right direction. We'll get 
-hardware compression support for UVC 1.5 in the driver one way or another, it 
-won't be left to userspace to implement (you will of course have to adapt 
-existing applications to use the new features, but it should hopefully not be 
-too complex).
+Now that we're moving to DT the clock names will be set in stone, so maybe we 
+should think about them a bit. Would it make sense to rename the clocks 
+according to the names used in the OMAP36xx TRM ? We should probably check the 
+documentation of the other SoCs in which the ISP is used to verify whether the 
+names match. Would it also make sense to create an FCLK clock and use it 
+instead of l3_ick ?
 
-> 2013/8/30 Pawel Osciak <posciak@chromium.org>:
-> > Hello everyone,
-> > 
-> > This series adds support for UVC 1.5 and VP8 encoding cameras to the
-> > uvcvideo driver. The official specification for the new standard can be
-> > found here: http://www.usb.org/developers/devclass_docs.
-> > 
-> > The main change in 1.5 is support for encoding cameras. Those cameras
-> > contain additional UVC entities, called Encoding Units, with their own
-> > set of controls governing encode parameters. Typical encoding cameras
-> > (see examples in class spec) expose two USB Video Streaming Interfaces
-> > (VSIs): one for raw stream formats and one for encoded streams.
-> > Typically, both get their source stream from a single sensor, producing
-> > raw and encoded versions of the video feed simultaneously.
-> > Encoding Units may also support the so-called "simulcast" formats, which
-> > allow additional sub-streams, or layers, used to achieve temporal
-> > scalability. The spec allows up to 4 simulcast layers. Those layers are
-> > encoded in the same format, but encoding parameters, such as resolution,
-> > bitrate, etc., may, depending on the camera capabilities, be changed
-> > independently for each layer, and their streaming state may also be
-> > controlled independently as well. The layers are streamed from the same
-> > USB VSI, and the information which layer a frame belongs to is contained
-> > in its payload header.
-> > 
-> > In V4L2 API, a separate video node is created for each VSI: one for raw
-> > formats VSI and another for the encoded formats VSI. Both can operate
-> > completely independently from each other. In addition, if the Encoding
-> > Unit supports simulcast, one V4L2 node is created for each stream layer
-> > instead, and each can be controlled independently, including
-> > streamon/streamoff state, setting resolution and controls. Once a
-> > simulcast format is successfully set for one of the simulcast video nodes
-> > however, it cannot be changed, unless all connected nodes are idle, i.e.
-> > they are not streaming and their buffers are freed.
-> > 
-> > The userspace can discover if a set of nodes belongs to one encoding unit
-> > by traversing media controller topology of the camera.
-> > 
-> > 
-> > I will be gradually posting documentation changes for new features after
-> > initial rounds of reviews. This is a relatively major change to the UVC
-> > driver and although I tried to keep the existing logic for UVC <1.5
-> > cameras intact as much as possible, I would very much appreciate it if
-> > these patches could get some testing from you as well, on your own
-> > devices/systems.
-> > 
-> > Thanks,
-> > Pawel Osciak
-> > 
-> > Pawel Osciak (19):
-> >       uvcvideo: Add UVC query tracing.
-> >       uvcvideo: Return 0 when setting probe control succeeds.
-> >       uvcvideo: Add support for multiple chains with common roots.
-> >       uvcvideo: Create separate debugfs entries for each streaming
-> >       interface.
-> >       uvcvideo: Add support for UVC1.5 P&C control.
-> >       uvcvideo: Recognize UVC 1.5 encoding units.
-> >       uvcvideo: Unify error reporting during format descriptor parsing.
-> >       uvcvideo: Add UVC1.5 VP8 format support.
-> >       uvcvideo: Reorganize uvc_{get,set}_le_value.
-> >       uvcvideo: Support UVC 1.5 runtime control property.
-> >       uvcvideo: Support V4L2_CTRL_TYPE_BITMASK controls.
-> >       uvcvideo: Reorganize next buffer handling.
-> >       uvcvideo: Unify UVC payload header parsing.
-> >       v4l: Add v4l2_buffer flags for VP8-specific special frames.
-> >       uvcvideo: Add support for VP8 special frame flags.
-> >       v4l: Add encoding camera controls.
-> >       uvcvideo: Add UVC 1.5 Encoding Unit controls.
-> >       v4l: Add V4L2_PIX_FMT_VP8_SIMULCAST format.
-> >       uvcvideo: Add support for UVC 1.5 VP8 simulcast.
-> >  
-> >  drivers/media/usb/uvc/uvc_ctrl.c     | 960 +++++++++++++++++++++++++++---
-> >  drivers/media/usb/uvc/uvc_debugfs.c  |   3 +-
-> >  drivers/media/usb/uvc/uvc_driver.c   | 604 ++++++++++++++--------
-> >  drivers/media/usb/uvc/uvc_entity.c   | 129 ++++-
-> >  drivers/media/usb/uvc/uvc_isight.c   |  12 +-
-> >  drivers/media/usb/uvc/uvc_queue.c    |  25 +-
-> >  drivers/media/usb/uvc/uvc_v4l2.c     | 284 +++++++++--
-> >  drivers/media/usb/uvc/uvc_video.c    | 704 ++++++++++++++++---------
-> >  drivers/media/usb/uvc/uvcvideo.h     | 214 +++++++-
-> >  drivers/media/v4l2-core/v4l2-ctrls.c |  29 ++
-> >  include/uapi/linux/usb/video.h       |  45 ++
-> >  include/uapi/linux/v4l2-controls.h   |  31 ++
-> >  include/uapi/linux/videodev2.h       |   8 +
-> >  13 files changed, 2421 insertions(+), 627 deletions(-)
+> - interrupts	: must contain mmu interrupt;
+> - ti,iommu	: phandle to isp mmu;
 
+Are there DT bindings for the IOMMU ? They don't seem to be present in 
+mainline.
+
+> Optional properties:
+> 
+> - VDD_CSIPHY1-supply	: regulator for csi phy1
+> - VDD_CSIPHY2-supply	: regulator for csi phy2
+
+Should the regulators be renamed to lower-case ?
+
+> - ti,isp-xclk-1		: device(s) attached to ISP's first external clock
+> - ti,isp-xclk-2		: device(s) attached to ISP's second external clock
+
+That information should be present in the clock client node, not the ISP node.
+
+> device-group subnode
+> --------------------
+>
+> Required properties:
+> - ti,isp-interface-type	: Integer describing the interface type, one of the
+> following * 0 = ISP_INTERFACE_PARALLEL
+>    * 1 = ISP_INTERFACE_CSI2A_PHY2
+>    * 2 = ISP_INTERFACE_CCP2B_PHY1
+>    * 3 = ISP_INTERFACE_CCP2B_PHY2
+>    * 4 = ISP_INTERFACE_CSI2C_PHY1
+> - ti,isp-devices	: Array of phandles to devices connected via the interface
+
+Is there any reason why you don't use the V4L2 DT bindings to describe the 
+pipeline ?
+
+> - One of the following configuration nodes (depending on
+> ti,isp-interface-type) - ti,ccp2-bus-cfg	: CCP2 bus configuration (needed
+> for ISP_INTERFACE_CCP*) - ti,parallel-bus-cfg	: PARALLEL bus configuration
+> (needed for ISP_INTERFACE_PARALLEL) - ti,csi2-bus-cfg	: CSI bus
+> configuration (needed for ISP_INTERFACE_CSI*)
+> 
+> ccp2-bus-cfg subnode
+> --------------------
+> 
+> Required properties:
+> - ti,video-port-clock-divisor	: integer; used for video port output clock
+> control
+> 
+> Optional properties:
+> - ti,inverted-clock		: boolean; clock/strobe signal is inverted
+> - ti,enable-crc			: boolean; enable crc checking
+> - ti,ccp2-mode-mipi		: boolean; port is used in MIPI-CSI1 mode (default:
+> CCP2 mode) - ti,phy-layer-is-strobe	: boolean; use data/strobe physical
+> layer (default: data/clock physical layer) - ti,data-lane-configuration	:
+> integer array with position and polarity information for lane 1 and 2 -
+> ti,clock-lane-configuration	: integer array with position and polarity
+> information for clock lane
+> 
+> parallel-bus-cfg subnode
+> ------------------------
+> 
+> Required properties:
+> - ti,data-lane-shift				: integer; shift data lanes by this amount
+> 
+> Optional properties:
+> - ti,clock-falling-edge				: boolean; sample on falling edge 
+(default:
+> rising edge) - ti,horizontal-synchronization-active-low	: boolean; default:
+> active high - ti,vertical-synchronization-active-low	: boolean; default:
+> active high - ti,data-polarity-ones-complement		: boolean; data polarity 
+is
+> one's complement
+> 
+> csi2-bus-cfg subnode
+> --------------------
+> 
+> Required properties:
+> - ti,video-port-clock-divisor	: integer; used for video port output clock
+> control
+> 
+> Optional properties:
+> - ti,data-lane-configuration	: integer array with position and polarity
+> information for lane 1 and 2 - ti,clock-lane-configuration	: integer 
+array
+> with position and polarity information for clock lane - ti,enable-crc			
+:
+> boolean; enable crc checking
+> 
+> Example for Nokia N900
+> ----------------------
+> 
+> omap3isp: isp@480BC000 {
+> 	compatible = "ti,omap3isp";
+> 	reg = <
+> 		/* OMAP3430+ */
+> 		0x480BC000 0x070	/* base */
+> 		0x480BC100 0x078	/* cbuf */
+> 		0x480BC400 0x1F0 	/* cpp2 */
+> 		0x480BC600 0x0A8	/* ccdc */
+> 		0x480BCA00 0x048	/* hist */
+> 		0x480BCC00 0x060	/* h3a  */
+> 		0x480BCE00 0x0A0	/* prev */
+> 		0x480BD000 0x0AC	/* resz */
+> 		0x480BD200 0x0FC	/* sbl  */
+> 		0x480BD400 0x070	/* mmu  */
+> 	>;
+> 
+> 	clocks = < &cam_ick &cam_mclk &csi2_96m_fck &l3_ick >;
+> 	clock-names = "cam_ick", "cam_mclk", "csi2_96m_fck", "l3_ick";
+> 
+> 	interrupts = <24>;
+> 
+> 	ti,iommu = <&mmu_isp>;
+> 
+> 	ti,isp-xclk-1 = <
+> 		&et8ek8
+> 		&smiapp_dfl
+> 	>;
+> 
+> 	group1: device-group@0 {
+> 		ti,isp-interface-type = <2>;
+> 
+> 		ti,isp-devices = <
+> 			&et8ek8
+> 			&ad5820
+> 			&adp1653
+> 		>;
+> 
+> 		ti,ccp2-bus-cfg {
+> 			ti,enable-crc;
+> 			ti,phy-layer-is-strobe;
+> 			ti,video-port-clock-divisor = <1>;
+> 		};
+> 	};
+> 
+> 	group2: device-group@1 {
+> 		ti,isp-interface-type = <2>;
+> 
+> 		ti,isp-devices = <
+> 			&smiapp_dfl
+> 		>;
+> 
+> 		ti,ccp2-bus-cfg {
+> 			ti,enable-crc;
+> 			ti,phy-layer-is-strobe;
+> 			ti,video-port-clock-divisor = <1>;
+> 		};
+> 	};
+> };
 -- 
 Regards,
 
 Laurent Pinchart
+
+--nextPart3889507.KlpueUuOIH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJSeZHtAAoJEIkPb2GL7hl1kpIH/0CYEF1jKGHXZSNBDofthQ2h
+zWja0g+MieKJxdodRRiDsX20h9015O2QTm6qB3Pfk8v5rTdmJvpYWRFIE78yNk7i
+mOre9lGRGJz/HCoExacJrSriIYVMqvYTs5d7hbkN7Zg9Wve5Z08wwV7jeuvu1DhC
+MfIRVpWGjYoiDO+FNNI5kVExbfZszDwuR1kaRfL7ZM1xX6Ja5gOR69l8HqjAybSv
+UFqthJ3bYNfcMEv6X4OjleslHT2SHWMp+4fm/WomvqDNKvOul7Pluvjtl3OWv9dz
+H88twitmVCInN+U4CscBQh1jJKQw/UxHFlSzkt1eiDQ0ThcHqRzZf67ljyPWe4A=
+=+VH2
+-----END PGP SIGNATURE-----
+
+--nextPart3889507.KlpueUuOIH--
 
