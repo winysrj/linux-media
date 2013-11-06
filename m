@@ -1,42 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:43926 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751563Ab3KRTfC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 14:35:02 -0500
-Received: by mail-qc0-f175.google.com with SMTP id x12so4103260qcv.20
-        for <linux-media@vger.kernel.org>; Mon, 18 Nov 2013 11:35:01 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:34349 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752217Ab3KFT1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 14:27:44 -0500
+Received: from [82.128.187.194] (helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1Ve8lS-0008QS-Tg
+	for linux-media@vger.kernel.org; Wed, 06 Nov 2013 21:27:42 +0200
+Message-ID: <527A982E.9050606@iki.fi>
+Date: Wed, 06 Nov 2013 21:27:42 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Reply-To: martin@herrman.nl
-In-Reply-To: <5289F200.8020704@schinagl.nl>
-References: <CADR1r6i7GAHK=4Cb4W3dSxzRtTLJVAmOViPLiS_2O=iN-8Nwgw@mail.gmail.com>
-	<5289F200.8020704@schinagl.nl>
-Date: Mon, 18 Nov 2013 20:35:01 +0100
-Message-ID: <CADR1r6j1PZUXx+OTRZ=pEX0xOVmtbezRjKrHnW6X7+pC9W8ESw@mail.gmail.com>
-Subject: Re: ddbridge module fails to load
-From: Martin Herrman <martin@herrman.nl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] af9035: add [0413:6a05] Leadtek WinFast DTV Dongle Dual
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/11/18 Oliver Schinagl <oliver+list@schinagl.nl>:
+The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
 
-Hi Olivier S.,
+   [media] media: st-rc: Add ST remote control driver (2013-10-31 
+08:20:08 -0200)
 
-> You probably best poke Oliver Endriss (ufo) on the VDR portal as that is his
-> work and is unrelated or unmaintained here at linux-media.
+are available in the git repository at:
 
-thanks for the tip, I have found the german VDR portal and will do so.
+   git://linuxtv.org/anttip/media_tree.git af9035_winfast_id
 
-> That said, someone recently stepped up to try to bring in the latest driver
-> back into the mailine linux-media repository and should get better
-> maintenance.
+for you to fetch changes up to 63d6f001344856fcccb9239178a8e01cf606d1e9:
 
-That is very good news, it makes my life much easier :-)
+   af9035: add [0413:6a05] Leadtek WinFast DTV Dongle Dual (2013-11-06 
+21:16:16 +0200)
 
-Regards,
+----------------------------------------------------------------
+Antti Palosaari (1):
+       af9035: add [0413:6a05] Leadtek WinFast DTV Dongle Dual
 
-Martin
+  drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+  1 file changed, 2 insertions(+)
 
-> Oliver (not Endriss)
+
+
+-- 
+http://palosaari.fi/
