@@ -1,75 +1,189 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <nuclear@jvitals.com>) id 1VWlE1-0007pp-KW
-	for linux-dvb@linuxtv.org; Thu, 17 Oct 2013 12:54:41 +0200
-Received: from smtp-out.jvhosting.net ([72.29.65.52])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1VWlDz-0003v8-8o; Thu, 17 Oct 2013 12:54:41 +0200
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:60919)
-	by server.jvhosting.net with esmtpsa (TLSv1:RC4-SHA:128) (Exim 4.71)
-	(envelope-from <nuclear@jvitals.com>) id 1VWlDz-0001xl-N1
-	for linux-dvb@linuxtv.org; Thu, 17 Oct 2013 06:54:39 -0400
-Received: by mail-lb0-f173.google.com with SMTP id o14so1724884lbi.4
-	for <linux-dvb@linuxtv.org>; Thu, 17 Oct 2013 03:54:37 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:45501 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932108Ab3KFLvV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 06:51:21 -0500
 MIME-Version: 1.0
-In-Reply-To: <CABmVWRHesA3DFzKM960MxXhkd_roUmeYo3tk9v-KN7xZj1Hk0g@mail.gmail.com>
-References: <CABmVWRHesA3DFzKM960MxXhkd_roUmeYo3tk9v-KN7xZj1Hk0g@mail.gmail.com>
-From: nuclear <nuclear@jvitals.com>
-Date: Thu, 17 Oct 2013 13:54:17 +0300
-Message-ID: <CABmVWRFBbLd4rCz==N7kd_Ys3a9HS7MS3ydnJa59wuA0kCyeZA@mail.gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Content-Type: multipart/mixed; boundary=089e0160bf70d49eb804e8eda445
-Subject: Re: [linux-dvb] dvb-apps/scan: initial scan file for Sofia, Bulgaria
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
-
---089e0160bf70d49eb804e8eda445
+In-Reply-To: <527A269B.5040007@samsung.com>
+References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+	<1383631964-26514-4-git-send-email-arun.kk@samsung.com>
+	<20131105125108.GF23061@valkosipuli.retiisi.org.uk>
+	<CALt3h7_BCj7yJi6sy=KVOHoET4aWm_a-N=u63R8-bZ-uQ=AGag@mail.gmail.com>
+	<527A269B.5040007@samsung.com>
+Date: Wed, 6 Nov 2013 17:21:19 +0530
+Message-ID: <CALt3h78Lwa5+s6oAykZ5xhMvJdVT-D3Sihe2PZ2S_Zs68X2yuw@mail.gmail.com>
+Subject: Re: [PATCH v11 03/12] [media] exynos5-fimc-is: Add common driver
+ header files
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-and this is the actual attachment, sorry:)
+Hi Sylwester,
 
---089e0160bf70d49eb804e8eda445
-Content-Type: application/octet-stream; name=bg-Sofia
-Content-Disposition: attachment; filename=bg-Sofia
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hmvvfqn80
+On Wed, Nov 6, 2013 at 4:53 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi,
+>
+> On 05/11/13 14:16, Arun Kumar K wrote:
+>>>> +struct is_common_reg {
+>>>> +     u32 hicmd;
+>>>> +     u32 hic_sensorid;
+>>>> +     u32 hic_param[4];
+>>>> +
+>>>> +     u32 reserved1[3];
+> [...]
+>>>> +     u32 meta_iflag;
+>>>> +     u32 meta_sensor_id;
+>>>> +     u32 meta_param1;
+>>>> +
+>>>> +     u32 reserved9[1];
+>>>> +
+>>>> +     u32 fcount;
+>>>
+>>> If these structs define an interface that's not used by the driver only it
+>>> might be a good idea to use __packed to ensure no padding is added.
+>>>
+>>
+>> The same structure is used as is in the firmware code and so it is retained
+>> in the driver.
+>
+> I agree it makes sense to use __packed attribute to ensure no padding is
+> added by the compiler. The firmware source and the driver will likely be
+> compiled with different toolchains, and in both cases we should ensure
+> no padding is added.
+>
 
-Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
-d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
-CiMhIDx3X3NjYW4+IDIwMTMwMzMxIDEgMCBURVJSRVNUUklBTCBCRyA8L3dfc2Nhbj4KIy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQojIGxvY2F0aW9uIGFuZCBwcm92aWRlcjogU29maWEsIEJ1bGdhcmlh
-CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDEzLTEwLTEzCiMgcHJvdmlkZWQgYnkgKG9wdCkg
-ICAgOiBudWNsZWFyLWhlYWQgbnVjbGVhckBqdml0YWxzLmNvbQojCiMgVFsyXSBbcGxwX2lkXSBb
-c3lzdGVtX2lkXSA8ZnJlcT4gPGJ3PiA8ZmVjX2hpPiA8ZmVjX2xvPiA8bW9kPiA8dG0+IDxndWFy
-ZD4gPGhpPiBbIyBjb21tZW50XQojLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClQgNDkwMDAwMDAwIDhN
-SHogIDIvMyBOT05FICAgIFFBTTY0ICAgOGsgIDEvNCBOT05FCSMgTlVSVFMgRGlnaXRhbApUIDYy
-NjAwMDAwMCA4TUh6ICAyLzMgTk9ORSAgICBRQU02NCAgIDhrICAxLzQgTk9ORQkjIE5VUlRTIERp
-Z2l0YWwKVCA3MjIwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4ayAgMS80IE5PTkUJ
-IyBGaXJzdCBEaWdpdGFsClQgODE4MDAwMDAwIDhNSHogIDIvMyBOT05FICAgIFFBTTE2ICAgOGsg
-MS8xNiBOT05FCSMgTlVSVFMK
---089e0160bf70d49eb804e8eda445
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Yes the toolchains are different and ideally the firmware also should
+use a __packed
+attribute which possibly is not happening.
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---089e0160bf70d49eb804e8eda445--
+>>>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-metadata.h b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>>>> new file mode 100644
+>>>> index 0000000..02367c4
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
+>>>> @@ -0,0 +1,767 @@
+> [..]
+>>>> +enum metadata_mode {
+>>>> +     METADATA_MODE_NONE,
+>>>> +     METADATA_MODE_FULL
+>>>> +};
+>>>> +
+>>>> +struct camera2_request_ctl {
+>>>> +     uint32_t                id;
+>>>> +     enum metadata_mode      metadatamode;
+>>>> +     uint8_t                 outputstreams[16];
+>>>> +     uint32_t                framecount;
+>>>> +};
+>>>> +
+>>>> +struct camera2_request_dm {
+>>>> +     uint32_t                id;
+>>>> +     enum metadata_mode      metadatamode;
+>>>> +     uint32_t                framecount;
+>>>> +};
+> [...]
+>>>> +struct camera2_lens_ctl {
+>>>> +     uint32_t                                focus_distance;
+>>>> +     float                                   aperture;
+>>>
+>>> Floating point numbers? Really? :-)
+>>>
+>>
+>> Yes as mentioned, the same structure is used by the firmware and
+>> so it is used as is in the kernel.
+>
+> These floating numbers are pretty painful, but I don't think they can
+> be avoided unless the firmware is changed. I hope there is no need to
+> touch those in the kernel.
+>
+> There are already precedents of using floating point numbers in driver's
+> public interface, e.g. some gpu/drm drivers.
+>
+
+Ok
+
+> I noticed there is another issue in this firmware/kernel interface, i.e.
+> some data structures contain enums in them, e.g.
+>
+> struct camera2_lens_ctl {
+>         uint32_t                                focus_distance;
+>         float                                   aperture;
+>         float                                   focal_length;
+>         float                                   filter_density;
+>         enum optical_stabilization_mode         optical_stabilization_mode;
+> };
+>
+> It looks like a mistake in the interface design, as size of an enum is
+> implementation specific.
+>
+> I guess size of those enum types is supposed to be 4 bytes ? Presumably
+> you should, e.g. use fixed data type like uin32_t or __u32 instead of those
+> enums. It looks pretty fragile as it is now.
+>
+
+Yes its better to use 4byte data structures. Will change that.
+
+> In addition all those data structures should be declared with __packed
+> attribute, to ensure a specific data structure layout and to avoid
+> an unexpected padding.
+>
+
+Ok.
+
+>>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-param.h b/drivers/media/platform/exynos5-is/fimc-is-param.h
+>>> new file mode 100644
+>>> index 0000000..015cc13
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/exynos5-is/fimc-is-param.h
+>> ...
+>>> +struct param_control {
+>>> +    u32 cmd;
+>>
+>> You use uint32_t in some other headers. It's not wrong to use both C99 and
+>> Linux types but I'd try to stick to either one.
+>
+> I tend to agree with that, it's probably better to use one convention, u32
+> for kernel internal structures and __u32 for any public interfaces. I don't
+> think it is e requirement but would be nice to keep it more consistent.
+>
+
+Ok
+
+> Even if we wanted to keep the firmware defined data structures in sync with
+> the Linux driver, there are already some Linux types used within the firmware
+> interface. if I understood things correctly.
+>
+>>> +    u32 bypass;
+>>> +    u32 buffer_address;
+>>> +    u32 buffer_number;
+>>> +    /* 0: continuous, 1: single */
+>>> +    u32 run_mode;
+>>> +    u32 reserved[PARAMETER_MAX_MEMBER - 6];
+>>> +    u32 err;
+>>> +};
+>
+> Can you please address those issues in follow up patches ?
+> I will be sending these patches for inclusion in the media tree,
+> I would prefer to avoid keeping it on the ML for more than those
+> 7 months already passed.
+>
+
+Ok will address these comments in follow up patches.
+
+Thanks & Regards
+Arun
