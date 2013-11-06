@@ -1,86 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43792 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009Ab3KEPLw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 10:11:52 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 17/29] [media] av7110_hw: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:30 -0200
-Message-Id: <1383645702-30636-18-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from userp1040.oracle.com ([156.151.31.81]:16442 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716Ab3KFQOA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 11:14:00 -0500
+Date: Wed, 6 Nov 2013 19:13:43 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: p.zabel@pengutronix.de
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] coda: update CODA7541 to firmware 1.4.50
+Message-ID: <20131106161342.GD15603@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/pci/ttpci/av7110_hw.c:510:1: warning: 'av7110_fw_cmd' uses dynamic stack allocation [enabled by default]
+Hello Philipp Zabel,
 
-Instead, let's enforce a limit for the buffer.
+This is a semi-automatic email about new static checker warnings.
 
-In the specific case of this driver, the maximum fw command size
-is 6 + 2, as checked using:
-	$ git grep -A1 av7110_fw_cmd drivers/media/pci/ttpci/
+The patch 5677e3b04d3b: "[media] coda: update CODA7541 to firmware 
+1.4.50" from Jun 21, 2013, leads to the following Smatch complaint:
 
-So, use 8 for the buffer size.
+drivers/media/platform/coda.c:1530 coda_alloc_framebuffers()
+	 error: we previously assumed 'ctx->codec' could be null (see line 1521)
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/ttpci/av7110_hw.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+drivers/media/platform/coda.c
+  1520	
+  1521		if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+                    ^^^^^^^^^^
+Patch introduces a new NULL check.
 
-diff --git a/drivers/media/pci/ttpci/av7110_hw.c b/drivers/media/pci/ttpci/av7110_hw.c
-index f1cbfe526989..6299d5dadb82 100644
---- a/drivers/media/pci/ttpci/av7110_hw.c
-+++ b/drivers/media/pci/ttpci/av7110_hw.c
-@@ -22,7 +22,7 @@
-  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
-  *
-- * the project's page is at http://www.linuxtv.org/ 
-+ * the project's page is at http://www.linuxtv.org/
-  */
- 
- /* for debugging ARM communication: */
-@@ -40,6 +40,14 @@
- 
- #define _NOHANDSHAKE
- 
-+/*
-+ * Max transfer size done by av7110_fw_cmd()
-+ *
-+ * The maximum size passed to this function is 6 bytes. The buffer also
-+ * uses two additional ones for type and size. So, 8 bytes is enough.
-+ */
-+#define MAX_XFER_SIZE  8
-+
- /****************************************************************************
-  * DEBI functions
-  ****************************************************************************/
-@@ -488,11 +496,18 @@ static int av7110_send_fw_cmd(struct av7110 *av7110, u16* buf, int length)
- int av7110_fw_cmd(struct av7110 *av7110, int type, int com, int num, ...)
- {
- 	va_list args;
--	u16 buf[num + 2];
-+	u16 buf[MAX_XFER_SIZE];
- 	int i, ret;
- 
- //	dprintk(4, "%p\n", av7110);
- 
-+	if (2 + num > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: %s len=%d is too big!\n",
-+		       KBUILD_MODNAME, __func__, num);
-+		return -EINVAL;
-+	}
-+
- 	buf[0] = ((type << 8) | com);
- 	buf[1] = num;
- 
--- 
-1.8.3.1
+  1522			height = round_up(height, 16);
+  1523		ysize = round_up(q_data->width, 8) * height;
+  1524	
+  1525		/* Allocate frame buffers */
+  1526		for (i = 0; i < ctx->num_internal_frames; i++) {
+  1527			size_t size;
+  1528	
+  1529			size = q_data->sizeimage;
+  1530			if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+                            ^^^^^^^^^^^^^^^^^^^^^^
+Patch introduces a new unchecked dereference.
 
+  1531			    dev->devtype->product != CODA_DX6)
+  1532				ctx->internal_frames[i].size += ysize/4;
+
+regards,
+dan carpenter
