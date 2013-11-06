@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3248 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753729Ab3KNNwT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Nov 2013 08:52:19 -0500
-Message-ID: <5284D53D.9020603@xs4all.nl>
-Date: Thu, 14 Nov 2013 14:50:53 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
-References: <1384103776-4788-1-git-send-email-crope@iki.fi> <1384179541.1949.24.camel@palomino.walls.org> <5280EBD4.5010505@xs4all.nl> <5284D410.4010706@iki.fi>
-In-Reply-To: <5284D410.4010706@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:52298 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755354Ab3KFR5s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 12:57:48 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 8/8] MAINTAINERS: add M88TS2022
+Date: Wed,  6 Nov 2013 19:57:35 +0200
+Message-Id: <1383760655-11388-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1383760655-11388-1-git-send-email-crope@iki.fi>
+References: <1383760655-11388-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/13 14:45, Antti Palosaari wrote:
-> On 11.11.2013 16:38, Hans Verkuil wrote:
->> On 11/11/2013 03:19 PM, Andy Walls wrote:
->>> On Sun, 2013-11-10 at 19:16 +0200, Antti Palosaari wrote:
->>>> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
->>>> used format for baseband signals.
->>>
->>> Hi Annti,
->>>
->>> I don't think this a good idea.  Floating point representations are
->>> inherently non-portable.  Even though most everything now uses IEEE-754
->>> representation, things like denormaliazed numbers may be treated
->>> differently by different machines.  If someone saves the data to a file,
->>> endianess issues aside, there are no guarantees that a different machine
->>> reading is going to interpret all the floating point data from that file
->>> properly.
->>>
->>> I really would recommend staying with scaled integer representations or
->>> explicit integer mantissa, exponent representations.
->>
->> For what it's worth: ALSA does support float format as well (both LE and BE).
-> 
-> I want use existing data formats and that [-1 to +1] scaled 32-bit IEEE-754 floating point is de facto format for SDR application (actually pair of floats as a complex).
-> 
-> Doing conversion inside libv4lconvert makes it very easy for write application. Currently I have implemented GNU Radio and SDRsharp plugins that feeds data from device via libv4l2 using mmap and conversion.
-> 
-> Thanks to pointing endianess issue, I didn't though it all. I suspect those apps just relies to local endianess. So do I have to implement float format conversion with both endianess?
+It is Montage M88TS2022 DVB-S/S2 silicon tuner driver.
 
-I would say that it should be written with endianness conversion in mind. It's not
-likely to be used on a big-endian system, but it should be possible to support it
-without too much work.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Regards,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 85cfc6f..314b485 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5262,6 +5262,16 @@ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ S:	Maintained
+ F:	drivers/media/dvb-frontends/m88rs2000*
+ 
++M88TS2022 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/media/tuners/m88ts2022*
++
+ MA901 MASTERKIT USB FM RADIO DRIVER
+ M:      Alexey Klimov <klimov.linux@gmail.com>
+ L:      linux-media@vger.kernel.org
+-- 
+1.8.4.2
 
-	Hans
