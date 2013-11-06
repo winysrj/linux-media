@@ -1,57 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co9ehsobe005.messaging.microsoft.com ([207.46.163.28]:35588
-	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792Ab3KALhB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 07:37:01 -0400
-From: Nicolin Chen <b42378@freescale.com>
-To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
-	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
-	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
-	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
-	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
-	<lgirdwood@gmail.com>, <broonie@kernel.org>,
-	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
-	<haojian.zhuang@gmail.com>
-CC: <linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>
-Subject: [PATCH 7/8] ASoC: davinci: use gen_pool_dma_alloc() in davinci-pcm.c
-Date: Fri, 1 Nov 2013 19:36:05 +0800
-Message-ID: <8bd26b17552315f0a3ea63c166a97a938c88dcf0.1383303752.git.b42378@freescale.com>
-In-Reply-To: <cover.1383303752.git.b42378@freescale.com>
-References: <cover.1383303752.git.b42378@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.kapsi.fi ([217.30.184.167]:33211 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754623Ab3KFR5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 12:57:47 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/8] PCTV DVB-S2 Stick (461e) [2013:0258] driver
+Date: Wed,  6 Nov 2013 19:57:27 +0200
+Message-Id: <1383760655-11388-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
+This patch serie adds support for PCTV Systems latest DVB-S/S2 USB
+stick, model numbered as 461e.
 
-Signed-off-by: Nicolin Chen <b42378@freescale.com>
----
- sound/soc/davinci/davinci-pcm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+I found only German version of product page [1], maybe English is
+coming soon as this is quite young device. Device looks 100% similar
+than older PCTV DVB-S2 Stick 460e, but internally demodulator and tuner
+are different.
 
-diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
-index 84a63c6..fa64cd8 100644
---- a/sound/soc/davinci/davinci-pcm.c
-+++ b/sound/soc/davinci/davinci-pcm.c
-@@ -267,10 +267,9 @@ static int allocate_sram(struct snd_pcm_substream *substream,
- 		return 0;
- 
- 	ppcm->period_bytes_max = size;
--	iram_virt = (void *)gen_pool_alloc(sram_pool, size);
-+	iram_virt = gen_pool_dma_alloc(sram_pool, size, &iram_phys);
- 	if (!iram_virt)
- 		goto exit1;
--	iram_phys = gen_pool_virt_to_phys(sram_pool, (unsigned)iram_virt);
- 	iram_dma = kzalloc(sizeof(*iram_dma), GFP_KERNEL);
- 	if (!iram_dma)
- 		goto exit2;
+There is two new Linux drivers for demod and tuner.
+Montage M88DS3103 DVB-S/S2 demodulator driver
+Montage M88TS2022 silicon tuner driver
+
+M88DS3103 requires firmware which is available my LinuxTV project page [2].
+
+That driver could be downloaded from my LinuxTV.org Git tree [3].
+
+Feel free to test!
+
+[1] http://www.pctvsystems.com/Products/ProductsEuropeAsia/Satelliteproducts/PCTVDVBS2Stick/tabid/236/language/de-DE/Default.aspx
+[2] http://palosaari.fi/linux/v4l-dvb/firmware/M88DS3103/
+[3] http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv_461e
+
+
+regards
+Antti
+
+Antti Palosaari (8):
+  em28xx: add support for Empia EM28178
+  a8293: add small sleep in order to settle LNB voltage
+  Montage M88DS3103 DVB-S/S2 demodulator driver
+  Montage M88TS2022 silicon tuner driver
+  em28xx: add support for PCTV DVB-S2 Stick (461e) [2013:0258]
+  m88ds3103: add parent for I2C adapter
+  MAINTAINERS: add M88DS3103
+  MAINTAINERS: add M88TS2022
+
+ MAINTAINERS                                  |   20 +
+ drivers/media/dvb-frontends/Kconfig          |    7 +
+ drivers/media/dvb-frontends/Makefile         |    1 +
+ drivers/media/dvb-frontends/a8293.c          |    2 +
+ drivers/media/dvb-frontends/m88ds3103.c      | 1294 ++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/m88ds3103.h      |  108 +++
+ drivers/media/dvb-frontends/m88ds3103_priv.h |  218 +++++
+ drivers/media/tuners/Kconfig                 |    7 +
+ drivers/media/tuners/Makefile                |    1 +
+ drivers/media/tuners/m88ts2022.c             |  664 +++++++++++++
+ drivers/media/tuners/m88ts2022.h             |   72 ++
+ drivers/media/tuners/m88ts2022_priv.h        |   38 +
+ drivers/media/usb/em28xx/Kconfig             |    2 +
+ drivers/media/usb/em28xx/em28xx-cards.c      |   40 +
+ drivers/media/usb/em28xx/em28xx-core.c       |    9 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c        |   49 +
+ drivers/media/usb/em28xx/em28xx-input.c      |    2 +
+ drivers/media/usb/em28xx/em28xx-reg.h        |    1 +
+ drivers/media/usb/em28xx/em28xx.h            |    1 +
+ 19 files changed, 2533 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/m88ds3103.c
+ create mode 100644 drivers/media/dvb-frontends/m88ds3103.h
+ create mode 100644 drivers/media/dvb-frontends/m88ds3103_priv.h
+ create mode 100644 drivers/media/tuners/m88ts2022.c
+ create mode 100644 drivers/media/tuners/m88ts2022.h
+ create mode 100644 drivers/media/tuners/m88ts2022_priv.h
+
 -- 
-1.8.4
-
+1.8.4.2
 
