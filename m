@@ -1,182 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:57599 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab3KDTtx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 14:49:53 -0500
-MIME-Version: 1.0
-In-Reply-To: <20131103220315.GA11659@earth.universe>
-References: <20131103220315.GA11659@earth.universe>
-Date: Mon, 4 Nov 2013 20:49:50 +0100
-Message-ID: <CAGGh5h3R0bEuFnpG2Ak+_OXSd2YsnsdDxCQkgoG0Og5sSABYGw@mail.gmail.com>
-Subject: Re: [early RFC] Device Tree bindings for OMAP3 Camera Subsystem
-From: jean-philippe francois <jp.francois@cynove.com>
-To: Sebastian Reichel <sre@debian.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54396 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755462Ab3KEXS2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Nov 2013 18:18:28 -0500
+Message-ID: <1383697199.1862.2.camel@palomino.walls.org>
+Subject: Re: [PATCH v3 04/29] [media] cx18: struct i2c_client is too big for
+ stack
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Tue, 05 Nov 2013 19:19:59 -0500
+In-Reply-To: <1383645702-30636-5-git-send-email-m.chehab@samsung.com>
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
+	 <1383645702-30636-5-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-013/11/3 Sebastian Reichel <sre@debian.org>:
-> Hi,
->
-> This is an early RFC for omap3isp DT support. For now i just created a potential DT
-> binding documentation based on the existing platform data:
->
-> Binding for the OMAP3 Camera subsystem with the image signal processor (ISP) feature.
->
+On Tue, 2013-11-05 at 08:01 -0200, Mauro Carvalho Chehab wrote:
+> 	drivers/media/pci/cx18/cx18-driver.c: In function 'cx18_read_eeprom':
+> 	drivers/media/pci/cx18/cx18-driver.c:357:1: warning: the frame size of 1072 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+> That happens because the routine allocates 256 bytes for an eeprom buffer, plus
+> the size of struct i2c_client, with is big.
+> Change the logic to dynamically allocate/deallocate space for struct i2c_client,
+> instead of  using the stack.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/pci/cx18/cx18-driver.c | 20 ++++++++++++--------
+>  1 file changed, 12 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+> index ff7232023f56..87f5bcf29e90 100644
+> --- a/drivers/media/pci/cx18/cx18-driver.c
+> +++ b/drivers/media/pci/cx18/cx18-driver.c
+> @@ -324,23 +324,24 @@ static void cx18_eeprom_dump(struct cx18 *cx, unsigned char *eedata, int len)
+>  /* Hauppauge card? get values from tveeprom */
+>  void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
+>  {
+> -	struct i2c_client c;
+> +	struct i2c_client *c;
+>  	u8 eedata[256];
+>  
+> -	memset(&c, 0, sizeof(c));
+> -	strlcpy(c.name, "cx18 tveeprom tmp", sizeof(c.name));
+> -	c.adapter = &cx->i2c_adap[0];
+> -	c.addr = 0xA0 >> 1;
+> +	c = kzalloc(sizeof(*c), GFP_ATOMIC);
 
-This is very interesting, I am in the process of transforming an (out
-of tree) machine board file into
-a device tree description, and I was precisely searching for "oma3isp
-dt" when I saw your mail.
-I would be happy to test or help develop any patch aiming at DT
-support for omap3isp. I am new to DT, so I
-will leave the DT bindings review to  people that actually  have a clue.
+Hi Mauro,
 
-I am looking forward to testing patches and bugging you when things break ;)
+GFP_ATOMIC seems overly strict, as this function is not in called in an
+atomic context AFAIK.
+
+Maybe use GFP_TEMPORARY or GFP_KERNEL.
+
 Regards,
-Jean-Philippe François
+Andy
 
-> omap3isp node
-> -------------
->
-> Required properties:
->
-> - compatible    : should be "ti,omap3isp" for OMAP3;
-> - reg           : physical addresses and length of the registers set;
-> - clocks        : list of clock specifiers, corresponding to entries in
->                   clock-names property;
-> - clock-names   : must contain "cam_ick", "cam_mclk", "csi2_96m_fck",
->                   "l3_ick" entries, matching entries in the clocks property;
-> - interrupts    : must contain mmu interrupt;
-> - ti,iommu      : phandle to isp mmu;
->
-> Optional properties:
->
-> - VDD_CSIPHY1-supply    : regulator for csi phy1
-> - VDD_CSIPHY2-supply    : regulator for csi phy2
-> - ti,isp-xclk-1         : device(s) attached to ISP's first external clock
-> - ti,isp-xclk-2         : device(s) attached to ISP's second external clock
->
-> device-group subnode
-> --------------------
->
-> Required properties:
-> - ti,isp-interface-type : Integer describing the interface type, one of the following
->    * 0 = ISP_INTERFACE_PARALLEL
->    * 1 = ISP_INTERFACE_CSI2A_PHY2
->    * 2 = ISP_INTERFACE_CCP2B_PHY1
->    * 3 = ISP_INTERFACE_CCP2B_PHY2
->    * 4 = ISP_INTERFACE_CSI2C_PHY1
-> - ti,isp-devices        : Array of phandles to devices connected via the interface
-> - One of the following configuration nodes (depending on ti,isp-interface-type)
->  - ti,ccp2-bus-cfg      : CCP2 bus configuration (needed for ISP_INTERFACE_CCP*)
->  - ti,parallel-bus-cfg  : PARALLEL bus configuration (needed for ISP_INTERFACE_PARALLEL)
->  - ti,csi2-bus-cfg      : CSI bus configuration (needed for ISP_INTERFACE_CSI*)
->
-> ccp2-bus-cfg subnode
-> --------------------
->
-> Required properties:
-> - ti,video-port-clock-divisor   : integer; used for video port output clock control
->
-> Optional properties:
-> - ti,inverted-clock             : boolean; clock/strobe signal is inverted
-> - ti,enable-crc                 : boolean; enable crc checking
-> - ti,ccp2-mode-mipi             : boolean; port is used in MIPI-CSI1 mode (default: CCP2 mode)
-> - ti,phy-layer-is-strobe        : boolean; use data/strobe physical layer (default: data/clock physical layer)
-> - ti,data-lane-configuration    : integer array with position and polarity information for lane 1 and 2
-> - ti,clock-lane-configuration   : integer array with position and polarity information for clock lane
->
-> parallel-bus-cfg subnode
-> ------------------------
->
-> Required properties:
-> - ti,data-lane-shift                            : integer; shift data lanes by this amount
->
-> Optional properties:
-> - ti,clock-falling-edge                         : boolean; sample on falling edge (default: rising edge)
-> - ti,horizontal-synchronization-active-low      : boolean; default: active high
-> - ti,vertical-synchronization-active-low        : boolean; default: active high
-> - ti,data-polarity-ones-complement              : boolean; data polarity is one's complement
->
-> csi2-bus-cfg subnode
-> --------------------
->
-> Required properties:
-> - ti,video-port-clock-divisor   : integer; used for video port output clock control
->
-> Optional properties:
-> - ti,data-lane-configuration    : integer array with position and polarity information for lane 1 and 2
-> - ti,clock-lane-configuration   : integer array with position and polarity information for clock lane
-> - ti,enable-crc                 : boolean; enable crc checking
->
-> Example for Nokia N900
-> ----------------------
->
-> omap3isp: isp@480BC000 {
->         compatible = "ti,omap3isp";
->         reg = <
->                 /* OMAP3430+ */
->                 0x480BC000 0x070        /* base */
->                 0x480BC100 0x078        /* cbuf */
->                 0x480BC400 0x1F0        /* cpp2 */
->                 0x480BC600 0x0A8        /* ccdc */
->                 0x480BCA00 0x048        /* hist */
->                 0x480BCC00 0x060        /* h3a  */
->                 0x480BCE00 0x0A0        /* prev */
->                 0x480BD000 0x0AC        /* resz */
->                 0x480BD200 0x0FC        /* sbl  */
->                 0x480BD400 0x070        /* mmu  */
->         >;
->
->         clocks = < &cam_ick &cam_mclk &csi2_96m_fck &l3_ick >;
->         clock-names = "cam_ick", "cam_mclk", "csi2_96m_fck", "l3_ick";
->
->         interrupts = <24>;
->
->         ti,iommu = <&mmu_isp>;
->
->         ti,isp-xclk-1 = <
->                 &et8ek8
->                 &smiapp_dfl
->         >;
->
->         group1: device-group@0 {
->                 ti,isp-interface-type = <2>;
->
->                 ti,isp-devices = <
->                         &et8ek8
->                         &ad5820
->                         &adp1653
->                 >;
->
->                 ti,ccp2-bus-cfg {
->                         ti,enable-crc;
->                         ti,phy-layer-is-strobe;
->                         ti,video-port-clock-divisor = <1>;
->                 };
->         };
->
->         group2: device-group@1 {
->                 ti,isp-interface-type = <2>;
->
->                 ti,isp-devices = <
->                         &smiapp_dfl
->                 >;
->
->                 ti,ccp2-bus-cfg {
->                         ti,enable-crc;
->                         ti,phy-layer-is-strobe;
->                         ti,video-port-clock-divisor = <1>;
->                 };
->         };
-> };
+> +
+> +	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
+> +	c->adapter = &cx->i2c_adap[0];
+> +	c->addr = 0xa0 >> 1;
+>  
+>  	memset(tv, 0, sizeof(*tv));
+> -	if (tveeprom_read(&c, eedata, sizeof(eedata)))
+> -		return;
+> +	if (tveeprom_read(c, eedata, sizeof(eedata)))
+> +		goto ret;
+>  
+>  	switch (cx->card->type) {
+>  	case CX18_CARD_HVR_1600_ESMT:
+>  	case CX18_CARD_HVR_1600_SAMSUNG:
+>  	case CX18_CARD_HVR_1600_S5H1411:
+> -		tveeprom_hauppauge_analog(&c, tv, eedata);
+> +		tveeprom_hauppauge_analog(c, tv, eedata);
+>  		break;
+>  	case CX18_CARD_YUAN_MPC718:
+>  	case CX18_CARD_GOTVIEW_PCI_DVD3:
+> @@ -354,6 +355,9 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
+>  		cx18_eeprom_dump(cx, eedata, sizeof(eedata));
+>  		break;
+>  	}
+> +
+> +ret:
+> +	kfree(c);
+>  }
+>  
+>  static void cx18_process_eeprom(struct cx18 *cx)
+
+
