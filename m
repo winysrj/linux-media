@@ -1,71 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60712 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962Ab3KBQdi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:38 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 05/29] tef6862: fix warning on avr32 arch
-Date: Sat,  2 Nov 2013 11:31:13 -0200
-Message-Id: <1383399097-11615-6-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:53537 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750755Ab3KFQNo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 11:13:44 -0500
+Message-ID: <527A6AAD.50901@iki.fi>
+Date: Wed, 06 Nov 2013 18:13:33 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	=?UTF-8?B?44G744Gh?= <knightrider@are.ma>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T)
+ cards
+References: <1383666180-9773-1-git-send-email-knightrider@are.ma>	<CAOcJUbxCjEWk47MkJP15QBAuGd3ePYS3ZRMduqdMCrVT362-8Q@mail.gmail.com>	<CAKnK8-Q51UOqGc1T2jfJENm5pOWAutytKLcDkhgkM3yWjAtJ2w@mail.gmail.com>	<CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com> <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
+In-Reply-To: <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On avr32 arch, we get those warnings:
-	drivers/media/radio/tef6862.c:59:1: warning: "MODE_SHIFT" redefined
-	In file included from /devel/v4l/ktest-build/arch/avr32/include/asm/ptrace.h:11,
-	arch/avr32/include/uapi/asm/ptrace.h:41:1: warning: this is the location of the previous definition
+On 06.11.2013 15:14, Michael Krufky wrote:
+> On Tue, Nov 5, 2013 at 5:30 PM, ほち <knightrider@are.ma> wrote:
+>> Michael Krufky <mkrufky <at> linuxtv.org> writes:
+>>
+>>> As the DVB maintainer, I am telling you that I won't merge this as a
+>>> monolithic driver.  The standard is to separate the driver into
+>>> modules where possible, unless there is a valid reason for doing
+>>> otherwise.
+>>>
+>>> I understand that you used the PT1 driver as a reference, but we're
+>>> trying to enforce a standard of codingstyle within the kernel.  I
+>>> recommend looking at the other DVB drivers as well.
+>>
+>> OK Sir. Any good / latest examples?
+>
+> There are plenty of DVB drivers to look at under drivers/media/  ...
+> you may notice that there are v4l and dvb device drivers together
+> under this hierarchy.  It's easy to tell which drivers support DVB
+> when you look at the source.
+>
+> I could name a few specific ones, but i'd really recommend for you to
+> take a look at a bunch of them.  No single driver should be considered
+> a 'prefect example' as they are all under constant maintenance.
+>
+> Also, many of these drivers are for devices that support both v4l and
+> DVB interfaces.  One example is the cx23885 driver.  Still, please try
+> to look over the entire media tree, as that would give a better idea
+> of how the drivers are structured.
 
-Prefix MSA_ to the MSA register bitmap macros, to avoid reusing the same symbol.
+I will also try explain that modular chipset driver architecture what I 
+could :)
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/radio/tef6862.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+If you look normal digital television device there is always 3 chips, 
+usually those exists in physically, but some cases multiple chips are 
+integrated to same packet.
+Those chips are:
+1) bus interface (USB/PCIe/firewire "bridge")
+2) demodulator
+3) RF tuner (we call it usually just tuner)
 
-diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
-index 06ac69245ca1..69e3245a58a0 100644
---- a/drivers/media/radio/tef6862.c
-+++ b/drivers/media/radio/tef6862.c
-@@ -48,15 +48,15 @@
- #define WM_SUB_TEST		0xF
- 
- /* Different modes of the MSA register */
--#define MODE_BUFFER		0x0
--#define MODE_PRESET		0x1
--#define MODE_SEARCH		0x2
--#define MODE_AF_UPDATE		0x3
--#define MODE_JUMP		0x4
--#define MODE_CHECK		0x5
--#define MODE_LOAD		0x6
--#define MODE_END		0x7
--#define MODE_SHIFT		5
-+#define MSA_MODE_BUFFER		0x0
-+#define MSA_MODE_PRESET		0x1
-+#define MSA_MODE_SEARCH		0x2
-+#define MSA_MODE_AF_UPDATE	0x3
-+#define MSA_MODE_JUMP		0x4
-+#define MSA_MODE_CHECK		0x5
-+#define MSA_MODE_LOAD		0x6
-+#define MSA_MODE_END		0x7
-+#define MSA_MODE_SHIFT		5
- 
- struct tef6862_state {
- 	struct v4l2_subdev sd;
-@@ -114,7 +114,7 @@ static int tef6862_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
- 
- 	clamp(freq, TEF6862_LO_FREQ, TEF6862_HI_FREQ);
- 	pll = 1964 + ((freq - TEF6862_LO_FREQ) * 20) / FREQ_MUL;
--	i2cmsg[0] = (MODE_PRESET << MODE_SHIFT) | WM_SUB_PLLM;
-+	i2cmsg[0] = (MSA_MODE_PRESET << MSA_MODE_SHIFT) | WM_SUB_PLLM;
- 	i2cmsg[1] = (pll >> 8) & 0xff;
- 	i2cmsg[2] = pll & 0xff;
- 
+There has been multiple cases where people has submitted one big driver 
+and afterwards some new devices appeared having same chips. It is almost 
+impossible to separate those drivers afterwards as you will need 
+original hardware and so. That has led to situation we have some 
+overlapping drivers.
+
+To avoid these problems, we have specified some rules to new drivers:
+RFCv2: Second draft of guidelines for submitting patches to linux-media
+http://lwn.net/Articles/529490/
+
+I search some pictures from that device to see what are used chips. Here 
+is blog having some pictures:
+http://hidepod.blog.shinobi.jp/iyh-/%E5%98%98%E3%81%A0%EF%BC%81
+
+What I see:
+1) PCI-bridge. Custom Altera Cyclone IV FPGA. (heh, that is familiar 
+chip for me. I have used older Cyclone II for some digital technique 
+course exercises).
+2) Toshiba demodulator
+3) Sharp tuner module (there is some tuner chip inside, which needs driver)
+
+So those are the parts and each one needs own driver.
+
+regards
+Antti
+
 -- 
-1.8.3.1
-
+http://palosaari.fi/
