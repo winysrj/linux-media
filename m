@@ -1,128 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4251 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab3K2KHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 05:07:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 6/9] vb2: return ENODATA in start_streaming in case of too few buffers.
-Date: Fri, 29 Nov 2013 10:58:41 +0100
-Message-Id: <f3cf1e8c25d1aa7746132f88dee149ae45619da3.1385719098.git.hans.verkuil@cisco.com>
-In-Reply-To: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
-References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
-References: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39670 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932208Ab3KFOcz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:32:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] ths7303: Declare as static a private function
+Date: Wed, 06 Nov 2013 15:33:25 +0100
+Message-ID: <2267169.D0UOzEMZQD@avalon>
+In-Reply-To: <1383748068-22182-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1383748068-22182-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Ricardo,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/vpbe_display.c   | 2 +-
- drivers/media/platform/davinci/vpif_capture.c   | 2 +-
- drivers/media/platform/davinci/vpif_display.c   | 2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 2 +-
- drivers/media/platform/s5p-tv/mixer_video.c     | 2 +-
- drivers/media/platform/soc_camera/mx2_camera.c  | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 ++
- 7 files changed, 8 insertions(+), 6 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index eac472b..53be7fc 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -347,7 +347,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* If buffer queue is empty, return error */
- 	if (list_empty(&layer->dma_queue)) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "buffer queue is empty\n");
--		return -EINVAL;
-+		return -ENODATA;
- 	}
- 	/* Get the next frame from the buffer queue */
- 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 52ac5e6..4b04a27 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -277,7 +277,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (list_empty(&common->dma_queue)) {
- 		spin_unlock_irqrestore(&common->irqlock, flags);
- 		vpif_dbg(1, debug, "buffer queue is empty\n");
--		return -EIO;
-+		return -ENODATA;
- 	}
- 
- 	/* Get the next frame from the buffer queue */
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index c31bcf1..c5070dc 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -239,7 +239,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (list_empty(&common->dma_queue)) {
- 		spin_unlock_irqrestore(&common->irqlock, flags);
- 		vpif_err("buffer queue is empty\n");
--		return -EIO;
-+		return -ENODATA;
- 	}
- 
- 	/* Get the next frame from the buffer queue */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ff3b6c..3bdfe85 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1863,7 +1863,7 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
- 		if (ctx->src_bufs_cnt < ctx->pb_count) {
- 			mfc_err("Need minimum %d OUTPUT buffers\n",
- 					ctx->pb_count);
--			return -EINVAL;
-+			return -ENODATA;
- 		}
- 	}
- 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 641b1f0..7d2fe64 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -948,7 +948,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	if (count == 0) {
- 		mxr_dbg(mdev, "no output buffers queued\n");
--		return -EINVAL;
-+		return -ENODATA;
- 	}
- 
- 	/* block any changes in output configuration */
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 45a0276..587e3d1 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -659,7 +659,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	unsigned long flags;
- 
- 	if (count < 2)
--		return -EINVAL;
-+		return -ENODATA;
- 
- 	spin_lock_irqsave(&pcdev->lock, flags);
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 24d98a6..a81b0ab 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1201,6 +1201,8 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	unsigned long addr;
- 	int ret;
- 
-+	if (count == 0)
-+		return -ENODATA;
- 	ret = mutex_lock_interruptible(&video->lock);
- 	if (ret)
- 		goto streamoff;
+On Wednesday 06 November 2013 15:27:48 Ricardo Ribalda Delgado wrote:
+> git grep shows that the function is only called from ths7303.c
+> 
+> Fix this build warning:
+> 
+> CC      drivers/media/i2c/ths7303.o
+> drivers/media/i2c/ths7303.c:86:5: warning: no previous prototype for 
+> ‘ths7303_setval’ [-Wmissing-prototypes] int ths7303_setval(struct
+> v4l2_subdev *sd, enum ths7303_filter_mode mode) ^
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/i2c/ths7303.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+> index 42276d9..16da153 100644
+> --- a/drivers/media/i2c/ths7303.c
+> +++ b/drivers/media/i2c/ths7303.c
+> @@ -83,7 +83,8 @@ static int ths7303_write(struct v4l2_subdev *sd, u8 reg,
+> u8 val) }
+> 
+>  /* following function is used to set ths7303 */
+> -int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+> +static int ths7303_setval(struct v4l2_subdev *sd,
+> +					enum ths7303_filter_mode mode)
+
+If you align 'enum' on 'struct' from the line above,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	struct ths7303_state *state = to_state(sd);
 -- 
-1.8.4.rc3
+Regards,
+
+Laurent Pinchart
 
