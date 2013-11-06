@@ -1,170 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3936 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751534Ab3KLNpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Nov 2013 08:45:41 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, vinod.govindapillai@intel.com
-Subject: [PATCH v2 1/1] v4l: Add frame end event
-Date: Tue, 12 Nov 2013 15:47:06 +0200
-Message-Id: <1384264026-9648-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1383311443-7863-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1383311443-7863-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53487 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750811Ab3KFQHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 11:07:23 -0500
+Date: Wed, 6 Nov 2013 18:06:48 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Frank =?iso-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] videodev2: Set vb2_rect's width and height as unsigned
+Message-ID: <20131106160647.GH24988@valkosipuli.retiisi.org.uk>
+References: <1383752584-25962-1-git-send-email-ricardo.ribalda@gmail.com>
+ <20131106155347.GG24988@valkosipuli.retiisi.org.uk>
+ <CAPybu_11w06dFksNoRKHr8ujgd=UBsfE3g1=1+qPaKTSoAstWg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPybu_11w06dFksNoRKHr8ujgd=UBsfE3g1=1+qPaKTSoAstWg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an event to signal frame end. This is not necessarily the same timestamp
-as the video buffer done timestamp, and can be also subscribed by other
-processes than the one controlling streaming and buffer (de)queueing.
+Hi Ricardo,
 
-Also make all event type constants appear as constants in documentation and
-move frame sync event struct documentation after all control event
-documentation.
+On Wed, Nov 06, 2013 at 04:56:12PM +0100, Ricardo Ribalda Delgado wrote:
+> It has to be done in the same patch? or  on a separated patch just
+> changing the xml file?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi,
+Good question. Now that you ask, I also realise the documentation must also
+be changed --- struct v4l2_rect is documented in
+Documentation/DocBook/media/v4l/vidioc-cropcap.xml.
 
-I decided it'd be better not to use the id field to tell it's frame end ---
-that field would be better used for stream id (and we're not exactly running
-out of possible values for type).
+A separate patch for the documentation is fine for me, but I don't think
+it's necessary. I'd probably put the changes into a single one since they
+are still rather small.
 
-As discussed previously, I don't know when this would be needed in mainline.
-
-Regards,
-Sakari
-
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 39 +++++++++++-----------
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   | 18 +++++++++-
- include/uapi/linux/videodev2.h                     |  2 ++
- 3 files changed, 39 insertions(+), 20 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 89891ad..0fdaa2e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -76,21 +76,22 @@
- 	    <entry></entry>
- 	    <entry>&v4l2-event-vsync;</entry>
-             <entry><structfield>vsync</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_VSYNC.
-+	    <entry>Event data for event <constant>V4L2_EVENT_VSYNC</constant>.
-             </entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>&v4l2-event-ctrl;</entry>
-             <entry><structfield>ctrl</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_CTRL.
-+	    <entry>Event data for event <constant>V4L2_EVENT_CTRL</constant>.
-             </entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>&v4l2-event-frame-sync;</entry>
-             <entry><structfield>frame_sync</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
-+	    <entry>Event data for event <constant>V4L2_EVENT_FRAME_SYNC
-+	    </constant> and <constant>V4L2_EVENT_FRAME_END</constant>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-@@ -226,22 +227,6 @@
-       </tgroup>
-     </table>
- 
--    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
--      <title>struct <structname>v4l2_event_frame_sync</structname></title>
--      <tgroup cols="3">
--	&cs-str;
--	<tbody valign="top">
--	  <row>
--	    <entry>__u32</entry>
--	    <entry><structfield>frame_sequence</structfield></entry>
--	    <entry>
--	      The sequence number of the frame being received.
--	    </entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-@@ -270,6 +255,22 @@
- 	</tbody>
-       </tgroup>
-     </table>
-+
-+    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
-+      <title>struct <structname>v4l2_event_frame_sync</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>frame_sequence</structfield></entry>
-+	    <entry>
-+	      The sequence number of the frame being received.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..406e5e0 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -150,7 +150,23 @@
- 	      buffer underrun it might not be able to generate this event.
- 	      In such cases the <structfield>frame_sequence</structfield>
- 	      field in &v4l2-event-frame-sync; will not be incremented. This
--	      causes two consecutive frame sequence numbers to have n times
-+	      causes two consecutive frame sync events to have n times
-+	      frame interval in between them.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_FRAME_END</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>
-+	      <para>Triggered immediately when the reception of a
-+	      frame has ended. This event has a
-+	      &v4l2-event-frame-sync; associated with it.</para>
-+
-+	      <para>If the hardware needs to be stopped in the case of a
-+	      buffer underrun it might not be able to generate this event.
-+	      In such cases the <structfield>frame_sequence</structfield>
-+	      field in &v4l2-event-frame-sync; will not be incremented. This
-+	      causes two consecutive frame end events to have n times
- 	      frame interval in between them.</para>
- 	    </entry>
- 	  </row>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 437f1b0..2307e1a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_FRAME_END			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1760,6 +1761,7 @@ struct v4l2_event_ctrl {
- 	__s32 default_value;
- };
- 
-+/* V4L2_EVENT_FRAME_SYNC or V4L2_EVENT_FRAME_END */
- struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
 -- 
-1.8.3.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
