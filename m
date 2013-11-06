@@ -1,98 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.swsoft.eu ([109.70.220.8]:51833 "EHLO relay.swsoft.eu"
+Received: from mail.kapsi.fi ([217.30.184.167]:39935 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751609Ab3KCAqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Nov 2013 20:46:13 -0400
-Received: from mail.swsoft.eu ([109.70.220.2])
-	by relay.swsoft.eu with esmtps (TLSv1:AES128-SHA:128)
-	(Exim 4.77)
-	(envelope-from <mbroemme@parallels.com>)
-	id 1VclpU-0001v6-Nx
-	for linux-media@vger.kernel.org; Sun, 03 Nov 2013 01:46:12 +0100
-Received: from parallels.com (cable-78-34-76-230.netcologne.de [78.34.76.230])
-	by code.dyndns.org (Postfix) with ESMTPSA id 1B1FB140CAF	for
- <linux-media@vger.kernel.org>; Sun,  3 Nov 2013 01:46:12 +0100 (CET)
-Date: Sun, 3 Nov 2013 01:46:12 +0100
-From: Maik Broemme <mbroemme@parallels.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 12/12] ddbridge: Kconfig and Makefile fixes to build latest
- ddbridge
-Message-ID: <20131103004611.GP7956@parallels.com>
-References: <20131103002235.GD7956@parallels.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20131103002235.GD7956@parallels.com>
+	id S1754928Ab3KFTZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Nov 2013 14:25:23 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Michael Piko <michael@piko.com.au>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9035: add [0413:6a05] Leadtek WinFast DTV Dongle Dual
+Date: Wed,  6 Nov 2013 21:25:06 +0200
+Message-Id: <1383765906-14210-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1383765906-14210-1-git-send-email-crope@iki.fi>
+References: <1383765906-14210-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed Kconfig and Makefile to build latest version off ddbridge. It
-adds support for the following devices:
+It is IT9135 dual design.
 
-  - Octopus DVB adapter
-  - Octopus V3 DVB adapter
-  - Octopus LE DVB adapter
-  - Octopus OEM
-  - Octopus Mini
-  - Cine S2 V6 DVB adapter
-  - Cine S2 V6.5 DVB adapter
-  - Octopus CI
-  - Octopus CI single
-  - DVBCT V6.1 DVB adapter
-  - DVB-C modulator
-  - SaTiX-S2 V3 DVB adapter
+Thanks to Michael Piko for reporting that!
 
-Signed-off-by: Maik Broemme <mbroemme@parallels.com>
+Reported-by: Michael Piko <michael@piko.com.au>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/ddbridge/Kconfig  | 21 +++++++++++++++------
- drivers/media/pci/ddbridge/Makefile |  2 +-
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
-index 44e5dc1..a30848f 100644
---- a/drivers/media/pci/ddbridge/Kconfig
-+++ b/drivers/media/pci/ddbridge/Kconfig
-@@ -6,13 +6,22 @@ config DVB_DDBRIDGE
- 	select DVB_STV090x if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_DRXK if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV0367DD if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_TDA18212DD if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_CXD2843 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  Support for cards with the Digital Devices PCI express bridge:
--	  - Octopus PCIe Bridge
--	  - Octopus mini PCIe Bridge
--	  - Octopus LE
--	  - DuoFlex S2 Octopus
--	  - DuoFlex CT Octopus
--	  - cineS2(v6)
-+	  - Octopus DVB adapter
-+	  - Octopus V3 DVB adapter
-+	  - Octopus LE DVB adapter
-+	  - Octopus OEM
-+	  - Octopus Mini
-+	  - Cine S2 V6 DVB adapter
-+	  - Cine S2 V6.5 DVB adapter
-+	  - Octopus CI
-+	  - Octopus CI single
-+	  - DVBCT V6.1 DVB adapter
-+	  - DVB-C modulator
-+	  - SaTiX-S2 V3 DVB adapter
- 
- 	  Say Y if you own such a card and want to use it.
-diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
-index 7446c8b..c274b81 100644
---- a/drivers/media/pci/ddbridge/Makefile
-+++ b/drivers/media/pci/ddbridge/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the ddbridge device driver
- #
- 
--ddbridge-objs := ddbridge-core.o
-+ddbridge-objs := ddbridge-core.o ddbridge-i2c.o ddbridge-mod.o
- 
- obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
- 
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 1ea17dc..73ce27b 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1511,6 +1511,8 @@ static const struct usb_device_id af9035_id_table[] = {
+ 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+ 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a05,
++		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9035_id_table);
 -- 
 1.8.4.2
+
