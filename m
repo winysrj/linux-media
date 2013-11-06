@@ -1,11 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:33461 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404Ab3KZIbs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 03:31:48 -0500
-Received: by mail-lb0-f181.google.com with SMTP id q8so4061224lbi.40
-        for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 00:31:46 -0800 (PST)
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:40634 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab3KFQoq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 11:44:46 -0500
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
@@ -15,33 +12,23 @@ To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
 	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
 	Ondrej Zary <linux@rainbow-software.org>,
-	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
+	linux-media@vger.kernel.org (open list:MT9M032 APTINA SE...),
+	linux-kernel@vger.kernel.org (open list)
 Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v7] videodev2: Set vb2_rect's width and height as unsigned
-Date: Tue, 26 Nov 2013 09:31:42 +0100
-Message-Id: <1385454702-24581-1-git-send-email-ricardo.ribalda@gmail.com>
+Subject: [PATCH v4] videodev2: Set vb2_rect's width and height as unsigned
+Date: Wed,  6 Nov 2013 17:44:38 +0100
+Message-Id: <1383756278-29642-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed on the media summit 2013, there is no reason for the width
+As addressed on the media summit 2013, there is no reason for the width
 and height to be signed.
 
-Therefore this patch is an attempt to convert those fields from __s32 to
-__u32.
+Therefore this patch is an attempt to convert those fields into unsigned.
 
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
-v7: Remove another obsolete <!-- comment
-
-v6: Comments by Hans and rebase
--Update version in doc to 3.14
--Remove obsolete <!-- comment
-
-v5: Comments by Sakari Ailus
--Fix typos in summary
-
-v4: Wrong patch format
-
-v3: Comments by Sakari Ailus
+v3: Comments by Sakari
 -Update also doc
 
 v2: Comments by Sakari Ailus and Laurent Pinchart
@@ -49,13 +36,9 @@ v2: Comments by Sakari Ailus and Laurent Pinchart
 -Fix alignment on all drivers
 -Replace min with min_t where possible and remove unneeded checks
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi> (documentation and smiapp)
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
  Documentation/DocBook/media/v4l/compat.xml         | 12 ++++++++
- Documentation/DocBook/media/v4l/dev-overlay.xml    |  9 ++----
- Documentation/DocBook/media/v4l/v4l2.xml           | 10 ++++++-
- Documentation/DocBook/media/v4l/vidioc-cropcap.xml | 10 ++-----
+ Documentation/DocBook/media/v4l/dev-overlay.xml    |  8 ++---
+ Documentation/DocBook/media/v4l/vidioc-cropcap.xml |  8 ++---
  drivers/media/i2c/mt9m032.c                        | 16 +++++-----
  drivers/media/i2c/mt9p031.c                        | 28 ++++++++++--------
  drivers/media/i2c/mt9t001.c                        | 26 ++++++++++-------
@@ -67,10 +50,10 @@ Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
  drivers/media/pci/saa7134/saa7134-video.c          |  4 ---
  drivers/media/platform/soc_camera/soc_scale_crop.c |  4 +--
  include/uapi/linux/videodev2.h                     |  4 +--
- 15 files changed, 106 insertions(+), 83 deletions(-)
+ 14 files changed, 97 insertions(+), 79 deletions(-)
 
 diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 0c7195e..c4cac6d 100644
+index 0c7195e..5dbe68b 100644
 --- a/Documentation/DocBook/media/v4l/compat.xml
 +++ b/Documentation/DocBook/media/v4l/compat.xml
 @@ -2523,6 +2523,18 @@ that used it. It was originally scheduled for removal in 2.6.35.
@@ -78,7 +61,7 @@ index 0c7195e..c4cac6d 100644
      </section>
  
 +    <section>
-+      <title>V4L2 in Linux 3.14</title>
++      <title>V4L2 in Linux 3.12</title>
 +      <orderedlist>
 +        <listitem>
 +		<para> In struct <structname>v4l2_rect</structname>, the type
@@ -93,10 +76,10 @@ index 0c7195e..c4cac6d 100644
        <title>Relation of V4L2 to other Linux multimedia APIs</title>
  
 diff --git a/Documentation/DocBook/media/v4l/dev-overlay.xml b/Documentation/DocBook/media/v4l/dev-overlay.xml
-index 40d1d76..cc6e0c5 100644
+index 40d1d76..a44ac66 100644
 --- a/Documentation/DocBook/media/v4l/dev-overlay.xml
 +++ b/Documentation/DocBook/media/v4l/dev-overlay.xml
-@@ -346,17 +346,14 @@ rectangle, in pixels.</entry>
+@@ -346,16 +346,14 @@ rectangle, in pixels.</entry>
  rectangle, in pixels. Offsets increase to the right and down.</entry>
  	  </row>
  	  <row>
@@ -112,44 +95,15 @@ index 40d1d76..cc6e0c5 100644
 -	    <entry>Height of the rectangle, in pixels. Width and
 -height cannot be negative, the fields are signed for hysterical
 -reasons. <!-- video4linux-list@redhat.com on 22 Oct 2002 subject
--"Re:[V4L][patches!] Re:v4l2/kernel-2.5" --></entry>
-+	    <entry>Height of the rectangle, in pixels.</entry>
++	    <entry>Height of the rectangle, in pixels.<!-- video4linux-list@redhat.com on 22 Oct 2002 subject
+ "Re:[V4L][patches!] Re:v4l2/kernel-2.5" --></entry>
  	  </row>
  	</tbody>
-       </tgroup>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 8469fe1..74b7f27 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -141,6 +141,14 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.14</revnumber>
-+	<date>2013-11-25</date>
-+	<authorinitials>rr</authorinitials>
-+	<revremark>Set width and height as unsigned on v4l2_rect.
-+	</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.11</revnumber>
- 	<date>2013-05-26</date>
- 	<authorinitials>hv</authorinitials>
-@@ -501,7 +509,7 @@ and discussions on the V4L mailing list.</revremark>
- </partinfo>
- 
- <title>Video for Linux Two API Specification</title>
-- <subtitle>Revision 3.11</subtitle>
-+ <subtitle>Revision 3.14</subtitle>
- 
-   <chapter id="common">
-     &sub-common;
 diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-index bf7cc97..1f5ed64 100644
+index bf7cc97..26b8f8f 100644
 --- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
 +++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-@@ -133,18 +133,14 @@ rectangle, in pixels.</entry>
+@@ -133,16 +133,14 @@ rectangle, in pixels.</entry>
  rectangle, in pixels.</entry>
  	  </row>
  	  <row>
@@ -165,12 +119,10 @@ index bf7cc97..1f5ed64 100644
 -	    <entry>Height of the rectangle, in pixels. Width
 -and height cannot be negative, the fields are signed for
 -hysterical reasons. <!-- video4linux-list@redhat.com
--on 22 Oct 2002 subject "Re:[V4L][patches!] Re:v4l2/kernel-2.5" -->
--</entry>
-+	    <entry>Height of the rectangle, in pixels.</entry>
++	    <entry>Height of the rectangle, in pixels.<!-- video4linux-list@redhat.com
+ on 22 Oct 2002 subject "Re:[V4L][patches!] Re:v4l2/kernel-2.5" -->
+ </entry>
  	  </row>
- 	</tbody>
-       </tgroup>
 diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
 index 846b15f..85ec3ba 100644
 --- a/drivers/media/i2c/mt9m032.c
@@ -425,7 +377,7 @@ index 89c0b13..7b8962e 100644
  	tvp5150_write(sd, TVP5150_VERT_BLANKING_START, rect.top);
  	tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP,
 diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index a3b1ee9..7b135da 100644
+index c6532de..41ec4fa 100644
 --- a/drivers/media/pci/bt8xx/bttv-driver.c
 +++ b/drivers/media/pci/bt8xx/bttv-driver.c
 @@ -1126,9 +1126,9 @@ bttv_crop_calc_limits(struct bttv_crop *c)
@@ -495,5 +447,5 @@ index 437f1b0..6ae7bbe 100644
  
  struct v4l2_fract {
 -- 
-1.8.4.3
+1.8.4.rc3
 
