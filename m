@@ -1,74 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33020 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751079Ab3KONGj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:06:39 -0500
-Message-ID: <52861C55.6050307@iki.fi>
-Date: Fri, 15 Nov 2013 15:06:29 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: David Howells <dhowells@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	Jarkko Korpi <jarkko_korpi@hotmail.com>
-Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103
- driver
-References: <20271.1384472102@warthog.procyon.org.uk> <28089.1384515232@warthog.procyon.org.uk>
-In-Reply-To: <28089.1384515232@warthog.procyon.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:58142 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175Ab3KFSso (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 13:48:44 -0500
+Received: by mail-lb0-f172.google.com with SMTP id c11so56935lbj.17
+        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 10:48:43 -0800 (PST)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org (open list:VIDEOBUF2 FRAMEWORK)
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] videobuf2-dma-sg: Fix typo on debug message
+Date: Wed,  6 Nov 2013 19:48:38 +0100
+Message-Id: <1383763718-6207-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15.11.2013 13:33, David Howells wrote:
-> I think I've isolated the significant part of the demod register setup.
-> Discarding the reads and sorting them in address order, I see
->
-> ANTTI			DVBSKY			DIFFER?
-> =======================	=======================	=======
-> demod_write(22, [ac])	demod_write(22, [ac])	no
-> demod_write(24, [5c])	demod_write(24, [5c])	no
-> 			demod_write(25, [8a])	YES
-seems to be on init table
+num_pages_from_user and buf->num_pages were swapped.
 
-> demod_write(29, [80])	demod_write(29, [80])	no
-> demod_write(30, [08])	demod_write(30, [08])	no
-> demod_write(33, [00])				YES
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-That is config option already. Did you set value? If yes, then there is 
-driver bug. If not, then add value.
-
-> demod_write(4d, [91])	demod_write(4d, [91])	no
-> 			demod_write(56, [00])	YES
-
-driver bug
-
-> demod_write(61, [5549])	demod_write(61, [55])	no
-> 	"	"	demod_write(62, [49])	no
-> 			demod_write(76, [38])	YES
-
-on init table
-
-> demod_write(c3, [08])	demod_write(c3, [08])	no
-> demod_write(c4, [08])	demod_write(c4, [08])	no
-> demod_write(c7, [00])	demod_write(c7, [00])	no
-> demod_write(c8, [06])	demod_write(c8, [06])	no
-> demod_write(ea, [ff])	demod_write(ea, [ff])	no
-> demod_write(fd, [46])	demod_write(fd, [06])	YES
-
-driver bug
-
-> demod_write(fe, [6f])	demod_write(fe, [6f])	no
-
-Two clear driver bugs, 1 case unclear and the rest should be programmed 
-earlier.
-
-So hard code those bugs, if you already didn't, 0x33=0x99, 0x56=0x00, 
-0xfd=0x46 and make test. Do that same to find out all buggy registers 
-until it performs as it should.
-
-regards
-Antti
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 16ae3dc..72353e4 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -174,7 +174,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 
+ userptr_fail_get_user_pages:
+ 	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+-	       num_pages_from_user, buf->sg_desc.num_pages);
++		buf->sg_desc.num_pages, num_pages_from_user);
+ 	while (--num_pages_from_user >= 0)
+ 		put_page(buf->pages[num_pages_from_user]);
+ 	kfree(buf->pages);
 -- 
-http://palosaari.fi/
+1.8.4.rc3
+
