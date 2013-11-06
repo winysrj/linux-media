@@ -1,52 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46025 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab3K0Wb1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 17:31:27 -0500
-Date: Wed, 27 Nov 2013 20:31:21 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libdvbv5: dvb_table_pat_init is leaking memory
-Message-ID: <20131127203121.78baf121@infradead.org>
-In-Reply-To: <CAJxGH09uZhZ0m4GcpAF4moURp18hPmBh5cOP_ZHoNxAaadL_XQ@mail.gmail.com>
-References: <CAJxGH09uZhZ0m4GcpAF4moURp18hPmBh5cOP_ZHoNxAaadL_XQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:38355 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932127Ab3KFOlR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:41:17 -0500
+MIME-Version: 1.0
+In-Reply-To: <2267169.D0UOzEMZQD@avalon>
+References: <1383748068-22182-1-git-send-email-ricardo.ribalda@gmail.com> <2267169.D0UOzEMZQD@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 6 Nov 2013 15:40:55 +0100
+Message-ID: <CAPybu_0kDqb4Mpbjz7ihNuQ2ZBAwpuguyi7nUUtEbhraPAVc7A@mail.gmail.com>
+Subject: Re: [PATCH] ths7303: Declare as static a private function
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+Hello Laurent
 
-Em Wed, 27 Nov 2013 22:55:32 +0100
-Gregor Jasny <gjasny@googlemail.com> escreveu:
+I have just uploaded a patch, please take a look if I align it properly.
 
-> Hello,
-> 
-> Coverity noticed that dvb_table_pat_init leaks the reallocated memory
-> stored in pat:
-> http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/lib/libdvbv5/descriptors/pat.c#l26
-> 
-> Mauro, could you please check?
+Thanks!
 
-On my tests with Valgrind, I'm not noticing any memory leak there, at
-least on the very latest version I pushed today[1].
+On Wed, Nov 6, 2013 at 3:33 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ricardo,
+>
+> Thank you for the patch.
+>
+> On Wednesday 06 November 2013 15:27:48 Ricardo Ribalda Delgado wrote:
+>> git grep shows that the function is only called from ths7303.c
+>>
+>> Fix this build warning:
+>>
+>> CC      drivers/media/i2c/ths7303.o
+>> drivers/media/i2c/ths7303.c:86:5: warning: no previous prototype for
+>> ‘ths7303_setval’ [-Wmissing-prototypes] int ths7303_setval(struct
+>> v4l2_subdev *sd, enum ths7303_filter_mode mode) ^
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  drivers/media/i2c/ths7303.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+>> index 42276d9..16da153 100644
+>> --- a/drivers/media/i2c/ths7303.c
+>> +++ b/drivers/media/i2c/ths7303.c
+>> @@ -83,7 +83,8 @@ static int ths7303_write(struct v4l2_subdev *sd, u8 reg,
+>> u8 val) }
+>>
+>>  /* following function is used to set ths7303 */
+>> -int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+>> +static int ths7303_setval(struct v4l2_subdev *sd,
+>> +                                     enum ths7303_filter_mode mode)
+>
+> If you align 'enum' on 'struct' from the line above,
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+>>  {
+>>       struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>       struct ths7303_state *state = to_state(sd);
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-I tested here with DVB-T, DVB-T2, DVB-S, DVB-S2 and DVB-C.
 
-I didn't test the current version yet with ATSC or ISDB-T. Those are
-on my todo list. I'll likely do ATSC test today or tomorrow.
 
-ISDB-T test might take some time, as I'm having some troubles to test it
-here those days.
-
-That's said, I would love to get rid of that realloc() on PAT, but this
-would break the existing userspace interface. So, such change, if done,
-would require some care, as at least tvdaemon relies on it.
-
-Regards,
-Mauro
-
-[1] Not sure if you noticed, but I added ~80 patches for it today.
+-- 
+Ricardo Ribalda
