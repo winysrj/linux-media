@@ -1,153 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3135 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897Ab3KUH4X (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53748 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754524Ab3KFRew (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 02:56:23 -0500
-Message-ID: <528DBC90.5060707@xs4all.nl>
-Date: Thu, 21 Nov 2013 08:56:00 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 6 Nov 2013 12:34:52 -0500
+Date: Wed, 6 Nov 2013 19:34:49 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l2-fh: Include linux/fs.h for struct file definition
+Message-ID: <20131106173449.GK24988@valkosipuli.retiisi.org.uk>
+References: <1380837352-29950-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	PawelOsciak <pawel@osciak.com>
-Subject: Re: [PATCH RFC] videobuf2: Improve file I/O emulation to handle buffers
- in any order
-References: <1384995906.1917.12.camel@palomino.walls.org>
-In-Reply-To: <1384995906.1917.12.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380837352-29950-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Thu, Oct 03, 2013 at 11:55:52PM +0200, Laurent Pinchart wrote:
+> v4l2-fh.h dereferences struct file, the structure must thus be defined.
+> Pull in its definition by including linux/fs.h.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-As I mentioned in irc I have been working in this same area as well, so
-I'll take this patch and merge it in my tree and test it as well.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-I suspect that it might be easiest if I add the patch to my upcoming
-patch series in order to prevent merge conflicts. I'll know more later
-today.
-
-Regards,
-
-	Hans
-
-On 11/21/2013 02:05 AM, Andy Walls wrote:
-> (This patch is RFC, because it was compiled and tested against kernel
-> v3.5)
-> 
-> videobuf2 file I/O emulation assumed that buffers dequeued from the
-> driver would return in the order they were enqueued in the driver. 
-> 
-> Improve the file I/O emulator's book-keeping to remove this assumption.
-> 
-> Also remove the, AFAICT, assumption that only read() calls would need to
-> dequeue a buffer from the driver.
-> 
-> Also set the buf->size properly, if a write() dequeues a buffer.
-> 
-> 
-> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: PawelOsciak<pawel@osciak.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> 
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 9d4e9ed..f330aa4 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1796,6 +1796,7 @@ struct vb2_fileio_data {
->  	unsigned int dq_count;
->  	unsigned int flags;
->  };
-> +#define FILEIO_INDEX_NOT_SET	((unsigned int) INT_MAX)
->  
->  /**
->   * __vb2_init_fileio() - initialize file io emulator
-> @@ -1889,6 +1890,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->  				goto err_reqbufs;
->  			fileio->bufs[i].queued = 1;
->  		}
-> +		fileio->index = FILEIO_INDEX_NOT_SET;
->  
->  		/*
->  		 * Start streaming.
-> @@ -1975,15 +1977,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  	 */
->  	q->fileio = NULL;
->  
-> -	index = fileio->index;
-> -	buf = &fileio->bufs[index];
-> -
->  	/*
->  	 * Check if we need to dequeue the buffer.
->  	 */
-> -	if (buf->queued) {
-> -		struct vb2_buffer *vb;
-> -
-> +	index = fileio->index;
-> +	if (index == FILEIO_INDEX_NOT_SET) {
->  		/*
->  		 * Call vb2_dqbuf to get buffer back.
->  		 */
-> @@ -1997,12 +1995,19 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  			goto end;
->  		fileio->dq_count += 1;
->  
-> +		fileio->index = fileio->b.index;
-> +		index = fileio->index;
-> +		buf = &fileio->bufs[index];
-> +		
->  		/*
->  		 * Get number of bytes filled by the driver
->  		 */
-> -		vb = q->bufs[index];
-> -		buf->size = vb2_get_plane_payload(vb, 0);
-> +		buf->pos = 0;
->  		buf->queued = 0;
-> +		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
-> +				 : vb2_plane_size(q->bufs[index], 0);
-> +	} else {
-> +		buf = &fileio->bufs[index];
->  	}
->  
->  	/*
-> @@ -2070,13 +2075,28 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  		 */
->  		buf->pos = 0;
->  		buf->queued = 1;
-> -		buf->size = q->bufs[0]->v4l2_planes[0].length;
-> +		buf->size = vb2_plane_size(q->bufs[index], 0);
->  		fileio->q_count += 1;
->  
->  		/*
-> -		 * Switch to the next buffer
-> +		 * Decide on the next buffer
->  		 */
-> -		fileio->index = (index + 1) % q->num_buffers;
-> +		if (read || (q->num_buffers == 1)) {
-> +			/* Use the next buffer the driver provides back */
-> +			fileio->index = FILEIO_INDEX_NOT_SET;
-> +		} else {
-> +			/* Prefer a buffer that is not quequed in the driver */
-> +			int initial_index = fileio->index;
-> +			fileio->index = FILEIO_INDEX_NOT_SET;
-> +			do {
-> +				if (++index == q->num_buffers)
-> +					index = 0;
-> +				if (!fileio->bufs[index].queued) {
-> +					fileio->index = index;
-> +					break;
-> +				}
-> +			} while (index != initial_index);
-> +		}
->  
->  		/*
->  		 * Start streaming if required.
-> 
-> 
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
