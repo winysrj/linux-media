@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:37076 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755281Ab3KTVKE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 16:10:04 -0500
-From: "Geyslan G. Bem" <geyslan@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: kernel-br@googlegroups.com, "Geyslan G. Bem" <geyslan@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org (open list:VIDEOBUF2 FRAMEWORK)
-Subject: [PATCH] videobuf2-dma-sg: fix possible memory leak
-Date: Wed, 20 Nov 2013 18:02:52 -0300
-Message-Id: <1384981372-5579-1-git-send-email-geyslan@gmail.com>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:33319 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756297Ab3KFNOp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 08:14:45 -0500
+Received: by mail-pa0-f50.google.com with SMTP id fb1so10414469pad.23
+        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 05:14:45 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com>
+References: <1383666180-9773-1-git-send-email-knightrider@are.ma>
+	<CAOcJUbxCjEWk47MkJP15QBAuGd3ePYS3ZRMduqdMCrVT362-8Q@mail.gmail.com>
+	<CAKnK8-Q51UOqGc1T2jfJENm5pOWAutytKLcDkhgkM3yWjAtJ2w@mail.gmail.com>
+	<CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com>
+Date: Wed, 6 Nov 2013 08:14:45 -0500
+Message-ID: <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
+Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T) cards
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: =?UTF-8?B?44G744Gh?= <knightrider@are.ma>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the return when 'buf->pages' allocation error.
+On Tue, Nov 5, 2013 at 5:30 PM, ほち <knightrider@are.ma> wrote:
+> Michael Krufky <mkrufky <at> linuxtv.org> writes:
+>
+>> As the DVB maintainer, I am telling you that I won't merge this as a
+>> monolithic driver.  The standard is to separate the driver into
+>> modules where possible, unless there is a valid reason for doing
+>> otherwise.
+>>
+>> I understand that you used the PT1 driver as a reference, but we're
+>> trying to enforce a standard of codingstyle within the kernel.  I
+>> recommend looking at the other DVB drivers as well.
+>
+> OK Sir. Any good / latest examples?
 
-Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+There are plenty of DVB drivers to look at under drivers/media/  ...
+you may notice that there are v4l and dvb device drivers together
+under this hierarchy.  It's easy to tell which drivers support DVB
+when you look at the source.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 2f86054..0d3a8ff 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -178,7 +178,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
- 	if (!buf->pages)
--		return NULL;
-+		goto userptr_fail_alloc_pages;
- 
- 	num_pages_from_user = get_user_pages(current, current->mm,
- 					     vaddr & PAGE_MASK,
-@@ -204,6 +204,7 @@ userptr_fail_get_user_pages:
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
- 	kfree(buf->pages);
-+userptr_fail_alloc_pages:
- 	kfree(buf);
- 	return NULL;
- }
--- 
-1.8.4.2
+I could name a few specific ones, but i'd really recommend for you to
+take a look at a bunch of them.  No single driver should be considered
+a 'prefect example' as they are all under constant maintenance.
 
+Also, many of these drivers are for devices that support both v4l and
+DVB interfaces.  One example is the cx23885 driver.  Still, please try
+to look over the entire media tree, as that would give a better idea
+of how the drivers are structured.
+
+Best regards,
+
+Mike Krufky
