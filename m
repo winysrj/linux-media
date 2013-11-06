@@ -1,121 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51816 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760Ab3KDSsA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 13:48:00 -0500
-Received: from mfilter7-d.gandi.net (mfilter7-d.gandi.net [217.70.178.136])
-	by relay5-d.mail.gandi.net (Postfix) with ESMTP id 9605A41C474
-	for <linux-media@vger.kernel.org>; Mon,  4 Nov 2013 19:47:57 +0100 (CET)
-Received: from relay5-d.mail.gandi.net ([217.70.183.197])
-	by mfilter7-d.gandi.net (mfilter7-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id UuB1Lqa8Xqsu for <linux-media@vger.kernel.org>;
-	Mon,  4 Nov 2013 19:47:56 +0100 (CET)
-Received: from [192.168.33.42] (247.Red-88-10-162.dynamicIP.rima-tde.net [88.10.162.247])
-	(Authenticated sender: dave@gide.info)
-	by relay5-d.mail.gandi.net (Postfix) with ESMTPA id ECE4041C294
-	for <linux-media@vger.kernel.org>; Mon,  4 Nov 2013 19:47:55 +0100 (CET)
-Message-ID: <5277EBEB.4060606@dchapman.com>
-Date: Mon, 04 Nov 2013 18:48:11 +0000
-From: Dave Chapman <dave@dchapman.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35487 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932065Ab3KFA5F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 19:57:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/19] v4l: sh_vou: Enable the driver on all ARM platforms
+Date: Wed, 06 Nov 2013 01:57:35 +0100
+Message-ID: <2618401.AsTUKxu6fa@avalon>
+In-Reply-To: <20131030102623.1d498c16@samsung.com>
+References: <1383004027-25036-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1383004027-25036-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20131030102623.1d498c16@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB Modulator API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Mauro,
 
-Given the recent patches by Maik Broemme adding support for a DVB-C 
-modulator, I thought I would mention that I'm working on a driver for a 
-DVB-T modulator and would like to open a discussion regarding how to 
-integrate modulator support into the existing DVB API and kernel sub-system.
+On Wednesday 30 October 2013 10:26:23 Mauro Carvalho Chehab wrote:
+> Em Tue, 29 Oct 2013 00:46:55 +0100 Laurent Pinchart escreveu:
+> > Renesas ARM platforms are transitioning from single-platform to
+> > multi-platform kernels using the new ARCH_SHMOBILE_MULTI. Make the
+> > driver available on all ARM platforms to enable it on both ARCH_SHMOBILE
+> > and ARCH_SHMOBILE_MULTI and increase build testing coverage.
+> > 
+> > Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > Cc: linux-media@vger.kernel.org
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> I'm understanding that the plan is to commit it via an ARM tree, right?
 
-The device I'm working with is a $169 (USD) USB DVB-T modulator based on 
-the it9507 ASIC from ITE.  ITE provide a GPL'd Linux driver, but this is 
-40K+ lines of code and is based on their generic cross-platform SDK 
-supporting a range of devices.
+Actually the plan is to get this upstream through you tree :-) However, I'm 
+trying a different approach to the problem, so I'll post a new version of the 
+patch set in the near future.
 
-The device can be purchased here in various incarnations:
+> If so:
+> 	Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> PS.: With regards to the discussions about this patch series, I'm ok on
+> having this enabled for all archs or just for the archs that are known have
+> this IP block, of course provided that not includes to march are there.
+> 
+> The rationale is that, in the specific case of V4L, the platform drivers are
+> already on a separate Kconfig menu, with makes no sense to be enabled on any
+> non SoC configuration.
 
-http://www.idealez.com/hides/product-gallery/en_US/1-0/554
+We will likely split dependencies on two lines in Kconfig, one for the build-
+time dependencies and one for the runtime dependencies. A driver that compiles 
+on ARM only and supports hardware that is present on ARCH_SHMOBILE SoCs only 
+would thus have
 
-and I have been working on github here:
+	depends on ARM
+	depends on ARCH_SHMOBILE || COMPILE_TEST
 
-https://github.com/linuxstb/it9507
+Build-time dependencies on other software components (I2C for instance) would 
+be listed on the first line. The code below would become
 
-The original ITE driver is in the it950x_linux_v13.06.27.1 directory 
-there, and my work-in-progress version is in it9507-driver.  ITE have 
-also provided me with some documentation, which is in the docs directory.
+	depends on VIDEO_DEV && I2C
+	depends on ARCH_SHMOBILE || COMPILE_TEST
 
-Some versions of the modulator USB stick come with a demodulator (based 
-on the it9133), the output of which can be sent to the modulator 
-directly via a TS interface.  The it9507 also has a USB interface.
-
-For initial simplicity (and because I don't own such a device), my 
-driver only supports the modulator, but in discussing an API, it's 
-obviously useful to be aware of such devices.
-
-The hardware also has hardware PID filtering (allowing both whitelisting 
-and blacklisting of data being transferred from the demod to the mod) 
-and also the ability to insert SI packets into the modulated stream at 
-user-definited intervals.  Again, my driver doesn't support these 
-features yet.
-
-Regarding the API, I've looked at the ddbridge driver here:
-
-http://www.metzlerbros.de/dddvb/dddvb-0.9.10.tar.bz2
-
-and from what I can understand, this adds a new "mod0" device to access 
-the DVB-C modulator.  The API is as follows:
-
-struct dvb_mod_params {
-	__u32 base_frequency;
-	__u32 attenuator;
-};
-
-struct dvb_mod_channel_params {
-	enum fe_modulation modulation;
-
-	__u32 rate_increment;
-	
-};
-
-#define DVB_MOD_SET              _IOW('o', 208, struct dvb_mod_params)
-#define DVB_MOD_CHANNEL_SET      _IOW('o', 209, struct 
-dvb_mod_channel_params)
-
-I've no idea what "rate_increment" is.
-
-Looking in the docs/modulator file, there also appears to be some 
-ability to redirect data from a demod to a mod via 
-/sys/class/ddbridge/ddbridge0/redirect
-
-
-As a comparison, the current API for my driver can be seen here:
-
-https://github.com/linuxstb/it9507/blob/master/it9507-driver/include/dvbmod.h
-
-My driver is currently not integrated into the DVB subsystem, and as 
-such creates /dev/dvbmod%d device.  This is used for the ioctls and also 
-for writing the TS to the modulator.
-
-The it9507 driver uses a software attenuation, and the range is 
-dependent (but only very slightly - +/- a couple of dB at either end of 
-the scale) on the frequency.  So I've currently implemented a 
-DVBMOD_GET_RF_GAIN_RANGE ioctl to get the available gain range for a 
-specific frequency, but it wouldn't be a big loss to change the driver 
-to just limit the gain to the subset that works on all frequencies, 
-removing that call from the API.
-
-I haven't had chance yet to seriously consider a generic modulator API, 
-but with one modulator driver now being considered for inclusion I 
-wanted to make those considering the API aware of my work.
-
-It seems clear however that neither my current API, nor that included 
-with the ddbridge DVB-C modulator is generic enough at the moment.
-
+> > ---
+> > 
+> >  drivers/media/platform/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/Kconfig
+> > b/drivers/media/platform/Kconfig index c7caf94..a726f86 100644
+> > --- a/drivers/media/platform/Kconfig
+> > +++ b/drivers/media/platform/Kconfig
+> > @@ -36,7 +36,7 @@ source "drivers/media/platform/blackfin/Kconfig"
+> >  config VIDEO_SH_VOU
+> >  	tristate "SuperH VOU video output driver"
+> >  	depends on MEDIA_CAMERA_SUPPORT
+> > -	depends on VIDEO_DEV && ARCH_SHMOBILE && I2C
+> > +	depends on VIDEO_DEV && ARM && I2C
+> >  	select VIDEOBUF_DMA_CONTIG
+> >  	help
+> >  	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+-- 
 Regards,
 
-Dave.
+Laurent Pinchart
+
