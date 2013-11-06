@@ -1,78 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43306 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754816Ab3KENDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:57937 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756403Ab3KFPD5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 10:03:57 -0500
+Received: by mail-ob0-f175.google.com with SMTP id va2so2354970obc.6
+        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 07:03:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20131106145839.GE24988@valkosipuli.retiisi.org.uk>
+References: <1383747690-20003-1-git-send-email-ricardo.ribalda@gmail.com> <20131106145839.GE24988@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 6 Nov 2013 16:03:37 +0100
+Message-ID: <CAPybu_1nxwEJCDA33j0TAP_NtvGB-Zs=9RxbrBT9jdi01aTNuA@mail.gmail.com>
+Subject: Re: [PATCH] smiapp: Fix BUG_ON() on an impossible condition
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 14/29] [media] stb0899_drv: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:27 -0200
-Message-Id: <1383645702-30636-15-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	"open list:SMIA AND SMIA++ I..." <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/dvb-frontends/stb0899_drv.c:540:1: warning: 'stb0899_write_regs' uses dynamic stack allocation [enabled by default]
+Hello Sakari
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 64 bytes for	the control URBs.
+I always try to send the patches to the mails found by
+get-maintainer.pl, I thought it was unpolite not doint so :). In the
+future I will try to send the mails only to the media list.
 
-So, it seem safe to use 64 bytes as the hard limit for all those devices.
+I don't have a tree, so please do as you wish.
 
- On most cases, the limit is a way lower than that, but	this limit
-is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/stb0899_drv.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Thanks!
 
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 3dd5714eadba..07cd5ea7a038 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -32,6 +32,9 @@
- #include "stb0899_priv.h"
- #include "stb0899_reg.h"
- 
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  64
-+
- static unsigned int verbose = 0;//1;
- module_param(verbose, int, 0644);
- 
-@@ -499,7 +502,7 @@ err:
- int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data, u32 count)
- {
- 	int ret;
--	u8 buf[2 + count];
-+	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg i2c_msg = {
- 		.addr	= state->config->demod_address,
- 		.flags	= 0,
-@@ -507,6 +510,13 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
- 		.len	= 2 + count
- 	};
- 
-+	if (2 + count > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, count);
-+		return -EINVAL;
-+	}
-+
- 	buf[0] = reg >> 8;
- 	buf[1] = reg & 0xff;
- 	memcpy(&buf[2], data, count);
+On Wed, Nov 6, 2013 at 3:58 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Ricardo,
+>
+> Thanks for the patch.
+>
+> I've removed LKML from cc since I don't think this is anything but noise
+> there.
+>
+> On Wed, Nov 06, 2013 at 03:21:30PM +0100, Ricardo Ribalda Delgado wrote:
+>> internal_csi_format_idx and csi_format_idx are unsigned integers,
+>> therefore they can never be nevative.
+>>
+>> CC      drivers/media/i2c/smiapp/smiapp-core.o
+>> In file included from include/linux/err.h:4:0,
+>>                  from include/linux/clk.h:15,
+>>                  from drivers/media/i2c/smiapp/smiapp-core.c:29:
+>> drivers/media/i2c/smiapp/smiapp-core.c: In function ‘smiapp_update_mbus_formats’:
+>> include/linux/kernel.h:669:20: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+>>  #define min(x, y) ({    \
+>>                     ^
+>> include/linux/compiler.h:153:42: note: in definition of macro ‘unlikely’
+>>  # define unlikely(x) __builtin_expect(!!(x), 0)
+>>                                           ^
+>> drivers/media/i2c/smiapp/smiapp-core.c:402:2: note: in expansion of macro ‘BUG_ON’
+>>   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
+>>   ^
+>> drivers/media/i2c/smiapp/smiapp-core.c:402:9: note: in expansion of macro ‘min’
+>>   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
+>>          ^
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  drivers/media/i2c/smiapp/smiapp-core.c | 1 -
+>>  1 file changed, 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+>> index ae66d91..fbd48f0 100644
+>> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+>> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+>> @@ -399,7 +399,6 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+>>
+>>       BUG_ON(max(internal_csi_format_idx, csi_format_idx) + pixel_order
+>>              >= ARRAY_SIZE(smiapp_csi_data_formats));
+>> -     BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
+>>
+>>       dev_dbg(&client->dev, "new pixel order %s\n",
+>>               pixel_order_str[pixel_order]);
+>
+> I wonder how this hasn't been noticed before. :-) No harm done, though.
+>
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+>
+> Should I take the patch to my tree? I don't think I have other pending
+> patches for smiapp so I'm fine that you have it in yours, too.
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+
+
+
 -- 
-1.8.3.1
-
+Ricardo Ribalda
