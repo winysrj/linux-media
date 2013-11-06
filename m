@@ -1,136 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1420 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab3KDLYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 06:24:21 -0500
-Message-ID: <527783DA.5050905@xs4all.nl>
-Date: Mon, 04 Nov 2013 12:24:10 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:34957 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab3KFP4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 10:56:32 -0500
+Received: by mail-oa0-f43.google.com with SMTP id m1so10522718oag.30
+        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 07:56:32 -0800 (PST)
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data
- type
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange> <201304191026.34360.hverkuil@xs4all.nl> <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1310171945170.27369@axis700.grange>
+In-Reply-To: <20131106155347.GG24988@valkosipuli.retiisi.org.uk>
+References: <1383752584-25962-1-git-send-email-ricardo.ribalda@gmail.com> <20131106155347.GG24988@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 6 Nov 2013 16:56:12 +0100
+Message-ID: <CAPybu_11w06dFksNoRKHr8ujgd=UBsfE3g1=1+qPaKTSoAstWg@mail.gmail.com>
+Subject: Re: [PATCH v2] videodev2: Set vb2_rect's width and height as unsigned
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hello Sakai
 
-Sorry for the delay, I only saw this today while I was going through my
-mail backlog.
+It has to be done in the same patch? or  on a separated patch just
+changing the xml file?
 
-On 10/17/2013 08:24 PM, Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> Sorry for reviving this old thread. I was going to resubmit a part of 
-> those patches for mainlining and then I found this your comment, which I 
-> didn't reply to back then.
-> 
-> On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> 
->> On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
->>> Hi Hans
->>>
->>> Thanks for reviewing.
->>>
->>> On Fri, 19 Apr 2013, Hans Verkuil wrote:
->>>
->>>> On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
->>>>> This struct shall be used by subdevice drivers to pass per-subdevice data,
->>>>> e.g. power supplies, to generic V4L2 methods, at the same time allowing
->>>>> optional host-specific extensions via the host_priv pointer. To avoid
->>>>> having to pass two pointers to those methods, add a pointer to this new
->>>>> struct to struct v4l2_subdev.
->>>>>
->>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>>>> ---
->>>>>  include/media/v4l2-subdev.h |   13 +++++++++++++
->>>>>  1 files changed, 13 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->>>>> index eb91366..b15c6e0 100644
->>>>> --- a/include/media/v4l2-subdev.h
->>>>> +++ b/include/media/v4l2-subdev.h
->>>>> @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
->>>>>  /* Set this flag if this subdev generates events. */
->>>>>  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
->>>>>  
->>>>> +struct regulator_bulk_data;
->>>>> +
->>>>> +struct v4l2_subdev_platform_data {
->>>>> +	/* Optional regulators uset to power on/off the subdevice */
->>>>> +	struct regulator_bulk_data *regulators;
->>>>> +	int num_regulators;
->>>>> +
->>>>> +	/* Per-subdevice data, specific for a certain video host device */
->>>>> +	void *host_priv;
->>>>> +};
->>>>> +
->>>>>  /* Each instance of a subdev driver should create this struct, either
->>>>>     stand-alone or embedded in a larger struct.
->>>>>   */
->>>>> @@ -589,6 +600,8 @@ struct v4l2_subdev {
->>>>>  	/* pointer to the physical device */
->>>>>  	struct device *dev;
->>>>>  	struct v4l2_async_subdev_list asdl;
->>>>> +	/* common part of subdevice platform data */
->>>>> +	struct v4l2_subdev_platform_data *pdata;
->>>>>  };
->>>>>  
->>>>>  static inline struct v4l2_subdev *v4l2_async_to_subdev(
->>>>>
->>>>
->>>> Sorry, this is the wrong approach.
->>>>
->>>> This is data that is of no use to the subdev driver itself. It really is
->>>> v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
->>>> driver.
->>>
->>> I don't think so. It has been discussed and agreed upon, that only 
->>> subdevice drivers know when to switch power on and off, because only they 
->>> know when they need to access the hardware. So, they have to manage 
->>> regulators. In fact, those regulators supply power to respective 
->>> subdevices, e.g. a camera sensor. Why should the bridge driver manage 
->>> them? The V4L2 core can (and probably should) provide helper functions for 
->>> that, like soc-camera currently does, but in any case it's the subdevice 
->>> driver, that has to call them.
+Thanks!
+
+On Wed, Nov 6, 2013 at 4:53 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Wed, Nov 06, 2013 at 04:43:04PM +0100, Ricardo Ribalda Delgado wrote:
+>> As addressed on the media summit 2013, there is no reason for the width
+>> and height to be signed.
 >>
->> Ah, OK. I just realized I missed some context there. I didn't pay much
->> attention to the regulator discussions since that's not my area of expertise.
+>> Therefore this patch is an attempt to convert those fields into unsigned.
 >>
->> In that case my only comment is to drop the host_priv pointer since that just
->> duplicates v4l2_get/set_subdev_hostdata().
-> 
-> I think it's different. This is _platform_ data, whereas struct 
-> v4l2_subdev::host_priv is more like run-time data.
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+> For smiapp:
+>
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+>
+> How about documenting that change in struct v4l2_rect in
+> Documentation/DocBook/media/v4l/compat.xml?
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
 
-You mean subdev_hostdata() instead of host_priv, right?
 
-> This field is for the 
-> per-subdevice host-specific data, that the platform has to pass to the 
-> host driver. In the soc-camera case this is the largest bulk of the data, 
-> that platforms currently pass to the soc-camera framework in the host part 
-> of struct soc_camera_link. This data most importantly includes I2C 
-> information. Yes, this _could_ be passed to soc-camera separately from the 
-> host driver, but that would involve quite some refactoring of the "legacy" 
-> synchronous probing mode, which I'd like to avoid if possible. This won't 
-> be used in the asynchronous case. Do you think we can keep this pointer in 
-> this sruct? We could rename it to avoid confusion with the field, that you 
-> told about.
 
-I'm wondering: do we need host_priv at all? Can't drivers use container_of to
-go from struct v4l2_subdev_platform_data to the platform_data struct containing
-v4l2_subdev_platform_data?
-
-That would be a cleaner solution IMHO. Using host_priv basically forces you
-to split up the platform_data into two parts, and a void pointer isn't very
-type-safe.
-
-Regards,
-
-	Hans
+-- 
+Ricardo Ribalda
