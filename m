@@ -1,90 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1045 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813Ab3K0KVj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 05:21:39 -0500
-Message-ID: <5295C755.3090904@xs4all.nl>
-Date: Wed, 27 Nov 2013 11:20:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:36992 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750939Ab3KGSzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Nov 2013 13:55:20 -0500
+Message-ID: <527BE215.4080702@iki.fi>
+Date: Thu, 07 Nov 2013 20:55:17 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Valentine Barshak <valentine.barshak@cogentembedded.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: RFC: add FMT_CHANGE event and VIDIOC_G/S_EDID ioctls
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3 18/29] [media] tuners: Don't use dynamic static allocation
+References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com> <1383645702-30636-19-git-send-email-m.chehab@samsung.com> <527926CB.8070006@iki.fi>
+In-Reply-To: <527926CB.8070006@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This RFC addresses some HDTV-related features that are missing in the API.
-The reason they were missing is that there were no bridge drivers in the
-kernel that needed them, but with the work done on soc_camera + adv7611/2
-by Valentine this is now really needed.
+Mauro,
+I just notified these are all broken. The reason is here that I2C 
+adapter sets I2C operation length using sizeof(buf).
 
-The two missing pieces are how to inform the user that the format of an
-input has changed, and how to get/set the EDID for simple pipelines
-(i.e. one video node maps to one video receiver sub-device).
+Please take a look of all there patches and check existing use of 
+sizeof(buf).
 
-How does it work today: the subdev driver sends out a notification to
-the bridge driver using v4l2_subdev_notify and a driver-specific notification
-ID (see e.g. include/media/adv7604.h, ADV7604_FMT_CHANGE). This notification
-needs to be standardized if this is to work for generic drivers like soc-camera.
+regards
+Antti
 
-When the bridge driver is notified it will pass it on as an event to the
-application. This event needs to be standardized as well.
+On 05.11.2013 19:11, Antti Palosaari wrote:
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+> Antti
+>
+> On 05.11.2013 12:01, Mauro Carvalho Chehab wrote:
+>> Dynamic static allocation is evil, as Kernel stack is too low, and
+>> compilation complains about it on some archs:
+>>     drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses
+>> dynamic stack allocation [enabled by default]
+>>     drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses
+>> dynamic stack allocation [enabled by default]
+>>     drivers/media/tuners/fc2580.c:66:1: warning:
+>> 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by
+>> default]
+>>     drivers/media/tuners/fc2580.c:98:1: warning:
+>> 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by
+>> default]
+>>     drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs'
+>> uses dynamic stack allocation [enabled by default]
+>>     drivers/media/tuners/tda18212.c:90:1: warning:
+>> 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled
+>> by default]
+>>     drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs'
+>> uses dynamic stack allocation [enabled by default]
+>>     drivers/media/tuners/tda18218.c:92:1: warning:
+>> 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled
+>> by default]
+>>
+>> Instead, let's enforce a limit for the buffer. Considering that I2C
+>> transfers are generally limited, and that devices used on USB has a
+>> max data length of 64 bytes for    the control URBs.
+>>
+>> So, it seem safe to use 64 bytes as the hard limit for all those devices.
+>>
+>>   On most cases, the limit is a way lower than that, but    this limit
+>> is small enough to not affect the Kernel stack, and it is a no brain
+>> limit, as using smaller ones would require to either carefully each
+>> driver or to take a look on each datasheet.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> ---
+>>   drivers/media/tuners/e4000.c    | 21 +++++++++++++++++++--
+>>   drivers/media/tuners/fc2580.c   | 21 +++++++++++++++++++--
+>>   drivers/media/tuners/tda18212.c | 21 +++++++++++++++++++--
+>>   drivers/media/tuners/tda18218.c | 21 +++++++++++++++++++--
+>>   4 files changed, 76 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>> index ad9309da4a91..30192463c9e1 100644
+>> --- a/drivers/media/tuners/e4000.c
+>> +++ b/drivers/media/tuners/e4000.c
+>> @@ -20,11 +20,14 @@
+>>
+>>   #include "e4000_priv.h"
+>>
+>> +/* Max transfer size done by I2C transfer functions */
+>> +#define MAX_XFER_SIZE  64
+>> +
+>>   /* write multiple registers */
+>>   static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val,
+>> int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[1 + len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[1] = {
+>>           {
+>>               .addr = priv->cfg->i2c_addr,
+>> @@ -34,6 +37,13 @@ static int e4000_wr_regs(struct e4000_priv *priv,
+>> u8 reg, u8 *val, int len)
+>>           }
+>>       };
+>>
+>> +    if (1 + len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       buf[0] = reg;
+>>       memcpy(&buf[1], val, len);
+>>
+>> @@ -53,7 +63,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8
+>> reg, u8 *val, int len)
+>>   static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val,
+>> int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[2] = {
+>>           {
+>>               .addr = priv->cfg->i2c_addr,
+>> @@ -68,6 +78,13 @@ static int e4000_rd_regs(struct e4000_priv *priv,
+>> u8 reg, u8 *val, int len)
+>>           }
+>>       };
+>>
+>> +    if (len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c rd reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       ret = i2c_transfer(priv->i2c, msg, 2);
+>>       if (ret == 2) {
+>>           memcpy(val, buf, len);
+>> diff --git a/drivers/media/tuners/fc2580.c
+>> b/drivers/media/tuners/fc2580.c
+>> index 81f38aae9c66..430fa5163ec7 100644
+>> --- a/drivers/media/tuners/fc2580.c
+>> +++ b/drivers/media/tuners/fc2580.c
+>> @@ -20,6 +20,9 @@
+>>
+>>   #include "fc2580_priv.h"
+>>
+>> +/* Max transfer size done by I2C transfer functions */
+>> +#define MAX_XFER_SIZE  64
+>> +
+>>   /*
+>>    * TODO:
+>>    * I2C write and read works only for one single register. Multiple
+>> registers
+>> @@ -41,7 +44,7 @@
+>>   static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val,
+>> int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[1 + len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[1] = {
+>>           {
+>>               .addr = priv->cfg->i2c_addr,
+>> @@ -51,6 +54,13 @@ static int fc2580_wr_regs(struct fc2580_priv *priv,
+>> u8 reg, u8 *val, int len)
+>>           }
+>>       };
+>>
+>> +    if (1 + len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       buf[0] = reg;
+>>       memcpy(&buf[1], val, len);
+>>
+>> @@ -69,7 +79,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv,
+>> u8 reg, u8 *val, int len)
+>>   static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val,
+>> int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[2] = {
+>>           {
+>>               .addr = priv->cfg->i2c_addr,
+>> @@ -84,6 +94,13 @@ static int fc2580_rd_regs(struct fc2580_priv *priv,
+>> u8 reg, u8 *val, int len)
+>>           }
+>>       };
+>>
+>> +    if (len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c rd reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       ret = i2c_transfer(priv->i2c, msg, 2);
+>>       if (ret == 2) {
+>>           memcpy(val, buf, len);
+>> diff --git a/drivers/media/tuners/tda18212.c
+>> b/drivers/media/tuners/tda18212.c
+>> index e4a84ee231cf..b3a4adf9ff8f 100644
+>> --- a/drivers/media/tuners/tda18212.c
+>> +++ b/drivers/media/tuners/tda18212.c
+>> @@ -20,6 +20,9 @@
+>>
+>>   #include "tda18212.h"
+>>
+>> +/* Max transfer size done by I2C transfer functions */
+>> +#define MAX_XFER_SIZE  64
+>> +
+>>   struct tda18212_priv {
+>>       struct tda18212_config *cfg;
+>>       struct i2c_adapter *i2c;
+>> @@ -32,7 +35,7 @@ static int tda18212_wr_regs(struct tda18212_priv
+>> *priv, u8 reg, u8 *val,
+>>       int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[len+1];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[1] = {
+>>           {
+>>               .addr = priv->cfg->i2c_address,
+>> @@ -42,6 +45,13 @@ static int tda18212_wr_regs(struct tda18212_priv
+>> *priv, u8 reg, u8 *val,
+>>           }
+>>       };
+>>
+>> +    if (1 + len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       buf[0] = reg;
+>>       memcpy(&buf[1], val, len);
+>>
+>> @@ -61,7 +71,7 @@ static int tda18212_rd_regs(struct tda18212_priv
+>> *priv, u8 reg, u8 *val,
+>>       int len)
+>>   {
+>>       int ret;
+>> -    u8 buf[len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[2] = {
+>>           {
+>>               .addr = priv->cfg->i2c_address,
+>> @@ -76,6 +86,13 @@ static int tda18212_rd_regs(struct tda18212_priv
+>> *priv, u8 reg, u8 *val,
+>>           }
+>>       };
+>>
+>> +    if (len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c rd reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       ret = i2c_transfer(priv->i2c, msg, 2);
+>>       if (ret == 2) {
+>>           memcpy(val, buf, len);
+>> diff --git a/drivers/media/tuners/tda18218.c
+>> b/drivers/media/tuners/tda18218.c
+>> index 2d31aeb6b088..7e2b32ee5349 100644
+>> --- a/drivers/media/tuners/tda18218.c
+>> +++ b/drivers/media/tuners/tda18218.c
+>> @@ -20,11 +20,14 @@
+>>
+>>   #include "tda18218_priv.h"
+>>
+>> +/* Max transfer size done by I2C transfer functions */
+>> +#define MAX_XFER_SIZE  64
+>> +
+>>   /* write multiple registers */
+>>   static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8
+>> *val, u8 len)
+>>   {
+>>       int ret = 0, len2, remaining;
+>> -    u8 buf[1 + len];
+>> +    u8 buf[MAX_XFER_SIZE];
+>>       struct i2c_msg msg[1] = {
+>>           {
+>>               .addr = priv->cfg->i2c_address,
+>> @@ -33,6 +36,13 @@ static int tda18218_wr_regs(struct tda18218_priv
+>> *priv, u8 reg, u8 *val, u8 len)
+>>           }
+>>       };
+>>
+>> +    if (1 + len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       for (remaining = len; remaining > 0;
+>>               remaining -= (priv->cfg->i2c_wr_max - 1)) {
+>>           len2 = remaining;
+>> @@ -63,7 +73,7 @@ static int tda18218_wr_regs(struct tda18218_priv
+>> *priv, u8 reg, u8 *val, u8 len)
+>>   static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8
+>> *val, u8 len)
+>>   {
+>>       int ret;
+>> -    u8 buf[reg+len]; /* we must start read always from reg 0x00 */
+>> +    u8 buf[MAX_XFER_SIZE]; /* we must start read always from reg 0x00 */
+>>       struct i2c_msg msg[2] = {
+>>           {
+>>               .addr = priv->cfg->i2c_address,
+>> @@ -78,6 +88,13 @@ static int tda18218_rd_regs(struct tda18218_priv
+>> *priv, u8 reg, u8 *val, u8 len)
+>>           }
+>>       };
+>>
+>> +    if (reg + len > sizeof(buf)) {
+>> +        dev_warn(&priv->i2c->dev,
+>> +             "%s: i2c wr reg=%04x: len=%d is too big!\n",
+>> +             KBUILD_MODNAME, reg, len);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       ret = i2c_transfer(priv->i2c, msg, 2);
+>>       if (ret == 2) {
+>>           memcpy(val, &buf[reg], len);
+>>
+>
+>
 
-Note: there is also a notification if the hotplug pin needs to be pulled
-up or down. Some receivers don't do that themselves, but rely on the
-SoC to do that for them (usually through a gpio pin). The notification
-for that should be standardized as well.
 
-One question regarding the FMT_CHANGE event is if it should contain a
-payload such as whether there is a video signal or not. Currently there
-is no payload. I do not think a payload is useful. You do not know when
-the application will finally dequeue the event, so any data you pass in
-as payload might well be out of date. It is better to let the application
-read the latest status directly.
-
-The other issue is with setting and getting the EDID. There is an API to
-set this through the v4l-subdev device node, which works fine, but it
-is a hassle if you have just a simple pipeline and you want to avoid
-having to open a v4l-subdev node just for the EDID. If you have a simple
-pipeline, then it is unambiguous for which sub-device you set the EDID.
-
-My proposal is the following:
-
-Add two standard notifications to media/v4l2-subdev.h:
-
-#define V4L2_SUBDEV_NOTIFY_HOTPLUG         _IO('v', 0)
-#define V4L2_SUBDEV_NOTIFY_FMT_CHANGE      _IO('v', 1)
-
-and switch adv7604 and adv7842 to use those new notifications.
-
-Add a new event in videodev2.h:
-
-#define V4L2_EVENT_FMT_CHANGE			5
-
-and document it. When sent, the application should call QUERYSTD or
-QUERY_DV_TIMINGS to find out the new format that is received.
-
-For the EDID handling I propose to move the struct v4l2_subdev_edid
-and VIDIOC_SUBDEV_G/S_EDID ioctl defines from v4l2-subdev.h to videodev2.h
-and rename them to struct v4l2_edid and VIDIOC_G/S_EDID. The contents
-remains the same, just the names change.
-
-Currently there are no bridge drivers in the kernel that use these
-ioctls, so I personally have no problem renaming it. It is possible
-to add "#define v4l2_subdev_edid v4l2_edid" to v4l2-subdev.h (and
-ditto for the ioctls) to, for the time being, keep backwards
-compatibility. You can use the VIDIOC_G/S_EDID either through the
-v4l-subdevX nodes or through the videoX nodes.
-
-These additions would make it quite easy to support HDTV in soc-camera
-and other bridge drivers in a standardized manner.
-
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
