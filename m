@@ -1,116 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:34134 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931Ab3KBQjd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:39:33 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVN00CU6A9VVK50@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 02 Nov 2013 12:39:31 -0400 (EDT)
-Date: Sat, 02 Nov 2013 14:39:27 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-media] Patch notification: 1 patch updated
-Message-id: <20131102143927.5a14b7cd@samsung.com>
-In-reply-to: <5274F75D.3040107@googlemail.com>
-References: <20131031121301.23020.52079@www.linuxtv.org>
- <5274F75D.3040107@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1819 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab3KGDg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 22:36:26 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id rA73aNPB047132
+	for <linux-media@vger.kernel.org>; Thu, 7 Nov 2013 04:36:25 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 677622A04E1
+	for <linux-media@vger.kernel.org>; Thu,  7 Nov 2013 04:36:22 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131107033622.677622A04E1@tschai.lan>
+Date: Thu,  7 Nov 2013 04:36:22 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 02 Nov 2013 14:00:13 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Am 31.10.2013 13:13, schrieb Patchwork:
-> > Hello,
-> >
-> > The following patch (submitted by you) has been updated in patchwork:
-> >
-> >  * linux-media: em28xx: make sure that all subdevices are powered on when needed
-> >      - http://patchwork.linuxtv.org/patch/20422/
-> >      - for: Linux Media kernel patches
-> >     was: New
-> >     now: Superseded
-> This patch isn't superseeded.
-> Guennadi didn't pick it up, so it's still up to you to review it.
+Results of the daily build of media_tree:
 
->From what I understood, Guennadi's patch series made it obsolete.
-Right?
+date:		Thu Nov  7 04:00:19 CET 2013
+git branch:	for-v3.13c
+git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.11-6.slh.2-amd64
 
-If not, what's the usecase where this patch is needed?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Regards,
-Mauro
+Detailed results are available here:
 
-> 
-> Regards,
-> Frank
-> 
-> > This email is a notification only - you do not need to respond.
-> >
-> > -
-> >
-> > Patches submitted to linux-media@vger.kernel.org have the following
-> > possible states:
-> >
-> > New: Patches not yet reviewed (typically new patches);
-> >
-> > Under review: When it is expected that someone is reviewing it (typically,
-> > 	      the driver's author or maintainer). Unfortunately, patchwork
-> > 	      doesn't have a field to indicate who is the driver maintainer.
-> > 	      If in doubt about who is the driver maintainer please check the
-> > 	      MAINTAINERS file or ask at the ML;
-> >
-> > Superseded: when the same patch is sent twice, or a new version of the
-> > 	    same patch is sent, and the maintainer identified it, the first
-> > 	    version is marked as such. It is also used when a patch was
-> > 	    superseeded by a git pull request.
-> >
-> > Obsoleted: patch doesn't apply anymore, because the modified code doesn't
-> > 	   exist anymore.
-> >
-> > Changes requested: when someone requests changes at the patch;
-> >
-> > Rejected: When the patch is wrong or doesn't apply. Most of the
-> > 	  time, 'rejected' and 'changes requested' means the same thing
-> > 	  for the developer: he'll need to re-work on the patch.
-> >
-> > RFC: patches marked as such and other patches that are also RFC, but the
-> >      patch author was not nice enough to mark them as such. That includes:
-> > 	- patches sent by a driver's maintainer who send patches
-> > 	  via git pull requests;
-> > 	- patches with a very active community (typically from developers
-> > 	  working with embedded devices), where lots of versions are
-> > 	  needed for the driver maintainer and/or the community to be
-> > 	  happy with.
-> >
-> > Not Applicable: for patches that aren't meant to be applicable via 
-> > 	        the media-tree.git.
-> >
-> > Accepted: when some driver maintainer says that the patch will be applied
-> > 	  via his tree, or when everything is ok and it got applied
-> > 	  either at the main tree or via some other tree (fixes tree;
-> > 	  some other maintainer's tree - when it belongs to other subsystems,
-> > 	  etc);
-> >
-> > If you think any status change is a mistake, please send an email to the ML.
-> >
-> > -
-> >
-> > This is an automated mail sent by the patchwork system at
-> > patchwork.linuxtv.org. To stop receiving these notifications, edit
-> > your mail settings at:
-> >   http://patchwork.linuxtv.org/mail/
-> 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
+Full logs are available here:
 
--- 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Cheers,
-Mauro
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
