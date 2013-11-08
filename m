@@ -1,161 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9464 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753690Ab3KZPDT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 10:03:19 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWV00GF8LTGRC30@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 26 Nov 2013 15:03:17 +0000 (GMT)
-Message-id: <5294B834.60305@samsung.com>
-Date: Tue, 26 Nov 2013 16:03:16 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
-	sylvester.nawrocki@gmail.com,
-	=?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias.waechter@tttech.com>
-Subject: Re: [PATCH v2] videobuf2-dma-sg: Support io userptr operations on io
- memory
-References: <1385470724-20632-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1385470724-20632-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:7772 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757565Ab3KHUNr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Nov 2013 15:13:47 -0500
+From: David Howells <dhowells@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+cc: dhowells@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
+Subject: Deadlock between M88DS3103 and M88TS2022 drivers from I2C parentage
+Date: Fri, 08 Nov 2013 20:13:03 +0000
+Message-ID: <13806.1383941583@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-On 2013-11-26 13:58, Ricardo Ribalda Delgado wrote:
-> Memory exported via remap_pfn_range cannot be remapped via
-> get_user_pages.
->
-> Other videobuf2 methods (like the dma-contig) supports io memory.
->
-> This patch adds support for this kind of memory.
->
-> v2: Comments by Marek Szyprowski
-> -Use vb2_get_vma and vb2_put_vma
->
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Hi Antti,
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+This patch:
 
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-sg.c | 54 +++++++++++++++++++++++++++---
->   1 file changed, 49 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index 2f86054..104e4b9 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -40,6 +40,7 @@ struct vb2_dma_sg_buf {
->   	unsigned int			num_pages;
->   	atomic_t			refcount;
->   	struct vb2_vmarea_handler	handler;
-> +	struct vm_area_struct		*vma;
->   };
->   
->   static void vb2_dma_sg_put(void *buf_priv);
-> @@ -155,12 +156,18 @@ static void vb2_dma_sg_put(void *buf_priv)
->   	}
->   }
->   
-> +static inline int vma_is_io(struct vm_area_struct *vma)
-> +{
-> +	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-> +}
-> +
->   static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   				    unsigned long size, int write)
->   {
->   	struct vb2_dma_sg_buf *buf;
->   	unsigned long first, last;
->   	int num_pages_from_user;
-> +	struct vm_area_struct *vma;
->   
->   	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->   	if (!buf)
-> @@ -178,9 +185,40 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
->   			     GFP_KERNEL);
->   	if (!buf->pages)
-> -		return NULL;
-> +		goto userptr_fail_alloc_pages;
-> +
-> +	vma = find_vma(current->mm, vaddr);
-> +	if (!vma) {
-> +		dprintk(1, "no vma for address %lu\n", vaddr);
-> +		goto userptr_fail_find_vma;
-> +	}
-> +
-> +	if (vma->vm_end < vaddr + size) {
-> +		dprintk(1, "vma at %lu is too small for %lu bytes\n",
-> +			vaddr, size);
-> +		goto userptr_fail_find_vma;
-> +	}
-> +
-> +	buf->vma = vb2_get_vma(vma);
-> +	if (!buf->vma) {
-> +		dprintk(1, "failed to copy vma\n");
-> +		goto userptr_fail_find_vma;
-> +	}
-> +
-> +	if (vma_is_io(buf->vma)) {
-> +		for (num_pages_from_user = 0;
-> +		     num_pages_from_user < buf->num_pages;
-> +		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
-> +			unsigned long pfn;
->   
-> -	num_pages_from_user = get_user_pages(current, current->mm,
-> +			if (follow_pfn(buf->vma, vaddr, &pfn)) {
-> +				dprintk(1, "no page for address %lu\n", vaddr);
-> +				break;
-> +			}
-> +			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
-> +		}
-> +	} else
-> +		num_pages_from_user = get_user_pages(current, current->mm,
->   					     vaddr & PAGE_MASK,
->   					     buf->num_pages,
->   					     write,
-> @@ -201,9 +239,13 @@ userptr_fail_alloc_table_from_pages:
->   userptr_fail_get_user_pages:
->   	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
->   	       num_pages_from_user, buf->num_pages);
-> -	while (--num_pages_from_user >= 0)
-> -		put_page(buf->pages[num_pages_from_user]);
-> +	if (!vma_is_io(buf->vma))
-> +		while (--num_pages_from_user >= 0)
-> +			put_page(buf->pages[num_pages_from_user]);
-> +	vb2_put_vma(buf->vma);
-> +userptr_fail_find_vma:
->   	kfree(buf->pages);
-> +userptr_fail_alloc_pages:
->   	kfree(buf);
->   	return NULL;
->   }
-> @@ -225,9 +267,11 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->   	while (--i >= 0) {
->   		if (buf->write)
->   			set_page_dirty_lock(buf->pages[i]);
-> -		put_page(buf->pages[i]);
-> +		if (!vma_is_io(buf->vma))
-> +			put_page(buf->pages[i]);
->   	}
->   	kfree(buf->pages);
-> +	vb2_put_vma(buf->vma);
->   	kfree(buf);
->   }
->   
+	http://git.linuxtv.org/anttip/media_tree.git/commit/a0e4024e85ec053699bb4878ccc0800333f84a42
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+That sets the parentage relationship between the M88DS3103 and M88TS2022
+drivers that you have here:
 
+	http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv_461e
+
+can cause a deadlock:
+
+[<ffffffff81648359>] schedule+0x29/0x70
+[<ffffffff81649406>] __rt_mutex_slowlock+0x46/0xc0
+[<ffffffff8164959f>] rt_mutex_slowlock+0xaf/0x180
+[<ffffffff8164970c>] rt_mutex_lock+0x3c/0x40
+[<ffffffffa0000595>] i2c_lock_adapter+0x25/0x40 [i2c_core]
+[<ffffffffa0000bdd>] i2c_transfer+0x7d/0xc0 [i2c_core]
+[<ffffffffa020a0aa>] m88ds3103_tuner_i2c_xfer+0x7a/0x170 [m88ds3103]
+[<ffffffffa00001fc>] __i2c_transfer+0x5c/0x70 [i2c_core]
+[<ffffffffa0000bbc>] i2c_transfer+0x5c/0xc0 [i2c_core]
+[<ffffffffa0211516>] m88ts2022_rd_regs.isra.1.constprop.6+0x76/0xd0 [m88ts2022]
+[<ffffffffa0212141>] m88ts2022_attach+0x61/0xf20 [m88ts2022]
+[<ffffffffa0345184>] dvb_register+0x104/0x28a0 [cx23885]
+[<ffffffff810b361a>] ? msg_print_text+0xea/0x1d0
+[<ffffffff810b4854>] ? wake_up_klogd+0x34/0x50
+[<ffffffff810b4a75>] ? console_unlock+0x205/0x3f0
+[<ffffffffa025b1b2>] ? videobuf_queue_core_init+0x112/0x1e0 [videobuf_core]
+[<ffffffffa0347dd8>] cx23885_dvb_register+0x128/0x160 [cx23885]
+[<ffffffffa03425bf>] cx23885_initdev+0xf5f/0x12f0 [cx23885]
+[<ffffffff8132a3fe>] local_pci_probe+0x3e/0x70
+[<ffffffff8132b6e1>] pci_device_probe+0x121/0x130
+[<ffffffff813ed587>] driver_probe_device+0x87/0x390
+[<ffffffff813ed963>] __driver_attach+0x93/0xa0
+[<ffffffff813ed8d0>] ? __device_attach+0x40/0x40
+[<ffffffff813eb4c3>] bus_for_each_dev+0x63/0xa0
+[<ffffffff813ecfde>] driver_attach+0x1e/0x20
+[<ffffffff813ecb78>] bus_add_driver+0x1e8/0x2a0
+[<ffffffffa0364000>] ? 0xffffffffa0363fff
+[<ffffffff813edfa4>] driver_register+0x74/0x150
+[<ffffffffa0364000>] ? 0xffffffffa0363fff
+[<ffffffff8132a28b>] __pci_register_driver+0x4b/0x50
+[<ffffffffa0364033>] cx23885_init+0x33/0x1000 [cx23885]
+[<ffffffff810020fa>] do_one_initcall+0xfa/0x1b0
+[<ffffffff810524b3>] ? set_memory_nx+0x43/0x50
+[<ffffffff810cc62d>] load_module+0x1bbd/0x2660
+[<ffffffff810c8930>] ? store_uevent+0x40/0x40
+[<ffffffff810cd246>] SyS_finit_module+0x86/0xb0
+[<ffffffff81652899>] system_call_fastpath+0x16/0x1b
+
+The problem appears to be:
+
+ (1) The i2c_lock_adapter() function will recurse up the tree to the ultimate
+     ancestor of the specified i2c_adapter and lock that
+
+ (2) m88ds3103_attach() sets up an i2c_adapter record for its tuner that calls
+     back to the m88ds3103_tuner_i2c_xfer() function.
+
+ (3) With the aforementioned patch, m88ds3103_attach() sets the tuner's
+     i2c_adapter record parent pointer to point to the demod's i2c_adapter -
+     thereby sharing the lock between them.
+
+ (4) The m88ts2022 register functions call i2c_transfer() which locks the
+     demod lock, not the tuner lock.  This goes to m88ds3103_tuner_i2c_xfer()
+     to do the work, which calls i2c_transfer() again - which *also* tries to
+     lock the demod lock.  Deadlock.
+
+As an aside, should m88ds3103_tuner_i2c_xfer() close the gate again after it
+has sent the message?
+
+The way out looks like it might be give the tuner a pair of callbacks, one to
+open the gate and one to close it.  Then have the tuner call the gate opener,
+send the message itself and then call the gate closer.
+
+David
