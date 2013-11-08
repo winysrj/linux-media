@@ -1,243 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:63505 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754857Ab3KENQH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:16:07 -0500
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:50990 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757334Ab3KHKNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 05:13:15 -0500
+Received: by mail-qc0-f174.google.com with SMTP id v1so1497141qcw.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Nov 2013 02:13:14 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20131105125108.GF23061@valkosipuli.retiisi.org.uk>
-References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
-	<1383631964-26514-4-git-send-email-arun.kk@samsung.com>
-	<20131105125108.GF23061@valkosipuli.retiisi.org.uk>
-Date: Tue, 5 Nov 2013 18:46:06 +0530
-Message-ID: <CALt3h7_BCj7yJi6sy=KVOHoET4aWm_a-N=u63R8-bZ-uQ=AGag@mail.gmail.com>
-Subject: Re: [PATCH v11 03/12] [media] exynos5-fimc-is: Add common driver
- header files
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>
+In-Reply-To: <3183788.gODlx1VQRn@avalon>
+References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com> <3183788.gODlx1VQRn@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 8 Nov 2013 11:12:54 +0100
+Message-ID: <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
+Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello Laurent
 
-Thank you for the review.
+Thanks for your comments
 
-On Tue, Nov 5, 2013 at 6:21 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Arun,
+On Fri, Nov 8, 2013 at 3:42 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ricardo,
 >
-> On Tue, Nov 05, 2013 at 11:42:34AM +0530, Arun Kumar K wrote:
->> This patch adds all the common header files used by the fimc-is
->> driver. It includes the commands for interfacing with the firmware
->> and error codes from IS firmware, metadata and command parameter
->> definitions.
+> Thank you for the patch.
+>
+> On Wednesday 06 November 2013 19:42:16 Ricardo Ribalda Delgado wrote:
+>> As discussed on the media summit 2013, there is no reason for the width
+>> and height to be signed.
 >>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
->> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Therefore this patch is an attempt to convert those fields from __s32 to
+>> __u32.
+>>
+>> Acked-by: Sakari Ailus <sakari.ailus@iki.fi> (documentation and smiapp)
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 >> ---
->>  drivers/media/platform/exynos5-is/fimc-is-cmd.h    |  187 ++++
->>  drivers/media/platform/exynos5-is/fimc-is-err.h    |  257 +++++
->>  .../media/platform/exynos5-is/fimc-is-metadata.h   |  767 +++++++++++++
->>  drivers/media/platform/exynos5-is/fimc-is-param.h  | 1159 ++++++++++++++++++++
->>  4 files changed, 2370 insertions(+)
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-cmd.h
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-err.h
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-metadata.h
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-param.h
+>> v5: Comments by Sakari Ailus
+>> -Fix typos in summary
 >>
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-cmd.h b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
->> new file mode 100644
->> index 0000000..6250280
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-cmd.h
->> @@ -0,0 +1,187 @@
->> +/*
-
-[snip]
-
->> +struct is_common_reg {
->> +     u32 hicmd;
->> +     u32 hic_sensorid;
->> +     u32 hic_param[4];
+>> v4: Wrong patch format
+>>
+>> v3: Comments by Sakari Ailus
+>> -Update also doc
+>>
+>> v2: Comments by Sakari Ailus and Laurent Pinchart
+>>
+>> -Fix alignment on all drivers
+>> -Replace min with min_t where possible and remove unneeded checks
+>>
+>>  Documentation/DocBook/media/v4l/compat.xml         | 12 ++++++++
+>>  Documentation/DocBook/media/v4l/dev-overlay.xml    |  8 ++---
+>>  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |  8 ++---
+>>  drivers/media/i2c/mt9m032.c                        | 16 +++++-----
+>>  drivers/media/i2c/mt9p031.c                        | 28 ++++++++++--------
+>>  drivers/media/i2c/mt9t001.c                        | 26 ++++++++++-------
+>>  drivers/media/i2c/mt9v032.c                        | 34  ++++++++++--------
+>>  drivers/media/i2c/smiapp/smiapp-core.c             |  8 ++---
+>>  drivers/media/i2c/soc_camera/mt9m111.c             |  4 +--
+>>  drivers/media/i2c/tvp5150.c                        | 14 ++++-----
+>>  drivers/media/pci/bt8xx/bttv-driver.c              |  6 ++--
+>>  drivers/media/pci/saa7134/saa7134-video.c          |  4 ---
+>>  drivers/media/platform/soc_camera/soc_scale_crop.c |  4 +--
+>>  include/uapi/linux/videodev2.h                     |  4 +--
+>>  14 files changed, 97 insertions(+), 79 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/compat.xml
+>> b/Documentation/DocBook/media/v4l/compat.xml index 0c7195e..5dbe68b 100644
+>> --- a/Documentation/DocBook/media/v4l/compat.xml
+>> +++ b/Documentation/DocBook/media/v4l/compat.xml
+>> @@ -2523,6 +2523,18 @@ that used it. It was originally scheduled for removal
+>> in 2.6.35. </orderedlist>
+>>      </section>
+>>
+>> +    <section>
+>> +      <title>V4L2 in Linux 3.12</title>
+>> +      <orderedlist>
+>> +        <listitem>
+>> +             <para> In struct <structname>v4l2_rect</structname>, the type
+>> +of <structfield>width</structfield> and <structfield>height</structfield>
+>> +fields changed from _s32 to _u32.
+>> +       </para>
+>> +        </listitem>
+>> +      </orderedlist>
+>> +    </section>
 >> +
->> +     u32 reserved1[3];
->> +
->> +     u32 ihcmd_iflag;
->> +     u32 ihcmd;
->> +     u32 ihc_sensorid;
->> +     u32 ihc_param[4];
->> +
->> +     u32 reserved2[3];
->> +
->> +     u32 isp_bayer_iflag;
->> +     u32 isp_bayer_sensor_id;
->> +     u32 isp_bayer_param[2];
->> +
->> +     u32 reserved3[4];
->> +
->> +     u32 scc_iflag;
->> +     u32 scc_sensor_id;
->> +     u32 scc_param[3];
->> +
->> +     u32 reserved4[3];
->> +
->> +     u32 dnr_iflag;
->> +     u32 dnr_sensor_id;
->> +     u32 dnr_param[2];
->> +
->> +     u32 reserved5[4];
->> +
->> +     u32 scp_iflag;
->> +     u32 scp_sensor_id;
->> +     u32 scp_param[3];
->> +
->> +     u32 reserved6[1];
->> +
->> +     u32 isp_yuv_iflag;
->> +     u32 isp_yuv_sensor_id;
->> +     u32 isp_yuv_param[2];
->> +
->> +     u32 reserved7[1];
->> +
->> +     u32 shot_iflag;
->> +     u32 shot_sensor_id;
->> +     u32 shot_param[2];
->> +
->> +     u32 reserved8[1];
->> +
->> +     u32 meta_iflag;
->> +     u32 meta_sensor_id;
->> +     u32 meta_param1;
->> +
->> +     u32 reserved9[1];
->> +
->> +     u32 fcount;
+>>      <section id="other">
+>>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/dev-overlay.xml
+>> b/Documentation/DocBook/media/v4l/dev-overlay.xml index 40d1d76..a44ac66
+>> 100644
+>> --- a/Documentation/DocBook/media/v4l/dev-overlay.xml
+>> +++ b/Documentation/DocBook/media/v4l/dev-overlay.xml
+>> @@ -346,16 +346,14 @@ rectangle, in pixels.</entry>
+>>  rectangle, in pixels. Offsets increase to the right and down.</entry>
+>>         </row>
+>>         <row>
+>> -         <entry>__s32</entry>
+>> +         <entry>__u32</entry>
+>>           <entry><structfield>width</structfield></entry>
+>>           <entry>Width of the rectangle, in pixels.</entry>
+>>         </row>
+>>         <row>
+>> -         <entry>__s32</entry>
+>> +         <entry>__u32</entry>
+>>           <entry><structfield>height</structfield></entry>
+>> -         <entry>Height of the rectangle, in pixels. Width and
+>> -height cannot be negative, the fields are signed for hysterical
+>> -reasons. <!-- video4linux-list@redhat.com on 22 Oct 2002 subject
 >
-> If these structs define an interface that's not used by the driver only it
-> might be a good idea to use __packed to ensure no padding is added.
+> I like the concept of hysterical reasons :-)
 >
-
-The same structure is used as is in the firmware code and so it is retained
-in the driver.
-
->> +};
->> +
->> +struct is_mcuctl_reg {
->> +     u32 mcuctl;
->> +     u32 bboar;
->> +
->> +     u32 intgr0;
->> +     u32 intcr0;
->> +     u32 intmr0;
->> +     u32 intsr0;
->> +     u32 intmsr0;
->> +
->> +     u32 intgr1;
->> +     u32 intcr1;
->> +     u32 intmr1;
->> +     u32 intsr1;
->> +     u32 intmsr1;
->> +
->> +     u32 intcr2;
->> +     u32 intmr2;
->> +     u32 intsr2;
->> +     u32 intmsr2;
->> +
->> +     u32 gpoctrl;
->> +     u32 cpoenctlr;
->> +     u32 gpictlr;
->> +
->> +     u32 pad[0xD];
->> +
->> +     struct is_common_reg common_reg;
->> +};
->> +#endif
-> ...
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-metadata.h b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
->> new file mode 100644
->> index 0000000..02367c4
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-metadata.h
->> @@ -0,0 +1,767 @@
->> +/*
->> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
->> + *
->> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
->> + * Kil-yeon Lim <kilyeon.im@samsung.com>
->> + * Arun Kumar K <arun.kk@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#ifndef FIMC_IS_METADATA_H_
->> +#define FIMC_IS_METADATA_H_
->> +
->> +struct rational {
->> +     uint32_t num;
->> +     uint32_t den;
->> +};
->> +
->> +#define CAMERA2_MAX_AVAILABLE_MODE   21
->> +#define CAMERA2_MAX_FACES            16
->> +
->> +/*
->> + * Controls/dynamic metadata
->> + */
->> +
->> +enum metadata_mode {
->> +     METADATA_MODE_NONE,
->> +     METADATA_MODE_FULL
->> +};
->> +
->> +struct camera2_request_ctl {
->> +     uint32_t                id;
->> +     enum metadata_mode      metadatamode;
->> +     uint8_t                 outputstreams[16];
->> +     uint32_t                framecount;
->> +};
->> +
->> +struct camera2_request_dm {
->> +     uint32_t                id;
->> +     enum metadata_mode      metadatamode;
->> +     uint32_t                framecount;
->> +};
->> +
->> +
->> +
->> +enum optical_stabilization_mode {
->> +     OPTICAL_STABILIZATION_MODE_OFF,
->> +     OPTICAL_STABILIZATION_MODE_ON
->> +};
->> +
->> +enum lens_facing {
->> +     LENS_FACING_BACK,
->> +     LENS_FACING_FRONT
->> +};
->> +
->> +struct camera2_lens_ctl {
->> +     uint32_t                                focus_distance;
->> +     float                                   aperture;
+>> +         <entry>Height of the rectangle, in pixels.<!--
+>> video4linux-list@redhat.com on 22 Oct 2002 subject "Re:[V4L][patches!]
+>> Re:v4l2/kernel-2.5" --></entry>
+>>         </row>
+>>       </tbody>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml index bf7cc97..26b8f8f
+>> 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+>> @@ -133,16 +133,14 @@ rectangle, in pixels.</entry>
+>>  rectangle, in pixels.</entry>
+>>         </row>
+>>         <row>
+>> -         <entry>__s32</entry>
+>> +         <entry>__u32</entry>
+>>           <entry><structfield>width</structfield></entry>
+>>           <entry>Width of the rectangle, in pixels.</entry>
+>>         </row>
+>>         <row>
+>> -         <entry>__s32</entry>
+>> +         <entry>__u32</entry>
+>>           <entry><structfield>height</structfield></entry>
+>> -         <entry>Height of the rectangle, in pixels. Width
+>> -and height cannot be negative, the fields are signed for
+>> -hysterical reasons. <!-- video4linux-list@redhat.com
+>> +         <entry>Height of the rectangle, in pixels.<!--
+>> video4linux-list@redhat.com on 22 Oct 2002 subject "Re:[V4L][patches!]
+>> Re:v4l2/kernel-2.5" --> </entry>
+>>         </row>
+>> diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
+>> index 846b15f..85ec3ba 100644
+>> --- a/drivers/media/i2c/mt9m032.c
+>> +++ b/drivers/media/i2c/mt9m032.c
+>> @@ -459,13 +459,15 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev
+>> *subdev, MT9M032_COLUMN_START_MAX);
+>>       rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
+>>                        MT9M032_ROW_START_MAX);
+>> -     rect.width = clamp(ALIGN(crop->rect.width, 2), MT9M032_COLUMN_SIZE_MIN,
+>> -                        MT9M032_COLUMN_SIZE_MAX);
+>> -     rect.height = clamp(ALIGN(crop->rect.height, 2), MT9M032_ROW_SIZE_MIN,
+>> -                         MT9M032_ROW_SIZE_MAX);
+>> -
+>> -     rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+>> -     rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
+>> +     rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
+>> +                          MT9M032_COLUMN_SIZE_MIN, MT9M032_COLUMN_SIZE_MAX);
+>> +     rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
+>> +                           MT9M032_ROW_SIZE_MIN, MT9M032_ROW_SIZE_MAX);
 >
-> Floating point numbers? Really? :-)
+> Would it make sense to define the size-related macros as unsigned integers
+> instead of using clamp_t ? For instance MT9M032_PIXEL_ARRAY_WIDTH could be
+> defined as 1600U instead of 1600. Same for the other Aptina sensor drivers.
+> This might introduce other issues, so I don't know whether that would be a
+> good solution.
+
+After a quick look, I see that the sized-related macros are combined
+(a lot) with border macros, like top/left. I think setting those
+macros to unsiged will trigger many other warnings/lines fixes, and
+add castings in many places.
+
+Also I am not aware of a reason why clamp_t is better than clamp (I am
+probably wrong here....). If there is a good reason for not using
+clamp_t I have no problem in reviewing again the patch and use
+unsigned constants.
+
+Thanks!!!
+
+>
+>> +     rect.width = min_t(unsigned int, rect.width,
+>> +                        MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+>> +     rect.height = min_t(unsigned int, rect.height,
+>> +                         MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
+>>
+>>       __crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
+>>
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
 >
 
-Yes as mentioned, the same structure is used by the firmware and
-so it is used as is in the kernel.
 
-Regards
-Arun
+
+-- 
+Ricardo Ribalda
