@@ -1,261 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40117 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752924Ab3KBRMW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Nov 2013 13:12:22 -0400
-Message-ID: <52753274.4020205@iki.fi>
-Date: Sat, 02 Nov 2013 19:12:20 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50951 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757120Ab3KHCmG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Nov 2013 21:42:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
+Date: Fri, 08 Nov 2013 03:42:37 +0100
+Message-ID: <3183788.gODlx1VQRn@avalon>
+In-Reply-To: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv2 19/29] tuners: Don't use dynamic static allocation
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com> <1383399097-11615-20-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-20-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi Ricardo,
 
-Antti
+Thank you for the patch.
 
-
-On 02.11.2013 15:31, Mauro Carvalho Chehab wrote:
-> Dynamic static allocation is evil, as Kernel stack is too low, and
-> compilation complains about it on some archs:
->
-> 	drivers/media/tuners/e4000.c:50:1: warning: 'e4000_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/e4000.c:83:1: warning: 'e4000_rd_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/fc2580.c:66:1: warning: 'fc2580_wr_regs.constprop.1' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/fc2580.c:98:1: warning: 'fc2580_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18212.c:57:1: warning: 'tda18212_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18212.c:90:1: warning: 'tda18212_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18218.c:60:1: warning: 'tda18218_wr_regs' uses dynamic stack allocation [enabled by default]
-> 	drivers/media/tuners/tda18218.c:92:1: warning: 'tda18218_rd_regs.constprop.0' uses dynamic stack allocation [enabled by default]
->
-> Instead, let's enforce a limit for the buffer. Considering that I2C
-> transfers are generally limited, and that devices used on USB has a
-> max data length of 80, it seem safe to use 80 as the hard limit for all
-> those devices. On most cases, the limit is a way lower than that, but
-> 80 is small enough to not affect the Kernel stack, and it is a no brain
-> limit, as using smaller ones would require to either carefully each
-> driver or to take a look on each datasheet.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Antti Palosaari <crope@iki.fi>
+On Wednesday 06 November 2013 19:42:16 Ricardo Ribalda Delgado wrote:
+> As discussed on the media summit 2013, there is no reason for the width
+> and height to be signed.
+> 
+> Therefore this patch is an attempt to convert those fields from __s32 to
+> __u32.
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi> (documentation and smiapp)
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
->   drivers/media/tuners/e4000.c    | 18 ++++++++++++++++--
->   drivers/media/tuners/fc2580.c   | 18 ++++++++++++++++--
->   drivers/media/tuners/tda18212.c | 18 ++++++++++++++++--
->   drivers/media/tuners/tda18218.c | 18 ++++++++++++++++--
->   4 files changed, 64 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index ad9309da4a91..235e90251609 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -24,7 +24,7 @@
->   static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[1 + len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -34,6 +34,13 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
+> v5: Comments by Sakari Ailus
+> -Fix typos in summary
+> 
+> v4: Wrong patch format
+> 
+> v3: Comments by Sakari Ailus
+> -Update also doc
+> 
+> v2: Comments by Sakari Ailus and Laurent Pinchart
+> 
+> -Fix alignment on all drivers
+> -Replace min with min_t where possible and remove unneeded checks
+> 
+>  Documentation/DocBook/media/v4l/compat.xml         | 12 ++++++++
+>  Documentation/DocBook/media/v4l/dev-overlay.xml    |  8 ++---
+>  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |  8 ++---
+>  drivers/media/i2c/mt9m032.c                        | 16 +++++-----
+>  drivers/media/i2c/mt9p031.c                        | 28 ++++++++++--------
+>  drivers/media/i2c/mt9t001.c                        | 26 ++++++++++-------
+>  drivers/media/i2c/mt9v032.c                        | 34  ++++++++++--------
+>  drivers/media/i2c/smiapp/smiapp-core.c             |  8 ++---
+>  drivers/media/i2c/soc_camera/mt9m111.c             |  4 +--
+>  drivers/media/i2c/tvp5150.c                        | 14 ++++-----
+>  drivers/media/pci/bt8xx/bttv-driver.c              |  6 ++--
+>  drivers/media/pci/saa7134/saa7134-video.c          |  4 ---
+>  drivers/media/platform/soc_camera/soc_scale_crop.c |  4 +--
+>  include/uapi/linux/videodev2.h                     |  4 +--
+>  14 files changed, 97 insertions(+), 79 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml
+> b/Documentation/DocBook/media/v4l/compat.xml index 0c7195e..5dbe68b 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2523,6 +2523,18 @@ that used it. It was originally scheduled for removal
+> in 2.6.35. </orderedlist>
+>      </section>
+> 
+> +    <section>
+> +      <title>V4L2 in Linux 3.12</title>
+> +      <orderedlist>
+> +        <listitem>
+> +		<para> In struct <structname>v4l2_rect</structname>, the type
+> +of <structfield>width</structfield> and <structfield>height</structfield>
+> +fields changed from _s32 to _u32.
+> +	  </para>
+> +        </listitem>
+> +      </orderedlist>
+> +    </section>
 > +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -53,7 +60,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -68,6 +75,13 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-> index 81f38aae9c66..e27bf5be311d 100644
-> --- a/drivers/media/tuners/fc2580.c
-> +++ b/drivers/media/tuners/fc2580.c
-> @@ -41,7 +41,7 @@
->   static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[1 + len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -51,6 +51,13 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -69,7 +76,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_addr,
-> @@ -84,6 +91,13 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-> index e4a84ee231cf..765b9f9d4bc6 100644
-> --- a/drivers/media/tuners/tda18212.c
-> +++ b/drivers/media/tuners/tda18212.c
-> @@ -32,7 +32,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   	int len)
->   {
->   	int ret;
-> -	u8 buf[len+1];
-> +	u8 buf[80];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -42,6 +42,13 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	buf[0] = reg;
->   	memcpy(&buf[1], val, len);
->
-> @@ -61,7 +68,7 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   	int len)
->   {
->   	int ret;
-> -	u8 buf[len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -76,6 +83,13 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		}
->   	};
->
-> +	if (len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, buf, len);
-> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-> index 2d31aeb6b088..e4e662c2e6ef 100644
-> --- a/drivers/media/tuners/tda18218.c
-> +++ b/drivers/media/tuners/tda18218.c
-> @@ -24,7 +24,7 @@
->   static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   {
->   	int ret = 0, len2, remaining;
-> -	u8 buf[1 + len];
-> +	u8 buf[80];
->   	struct i2c_msg msg[1] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -33,6 +33,13 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   		}
->   	};
->
-> +	if (1 + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	for (remaining = len; remaining > 0;
->   			remaining -= (priv->cfg->i2c_wr_max - 1)) {
->   		len2 = remaining;
-> @@ -63,7 +70,7 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   {
->   	int ret;
-> -	u8 buf[reg+len]; /* we must start read always from reg 0x00 */
-> +	u8 buf[80]; /* we must start read always from reg 0x00 */
->   	struct i2c_msg msg[2] = {
->   		{
->   			.addr = priv->cfg->i2c_address,
-> @@ -78,6 +85,13 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   		}
->   	};
->
-> +	if (reg + len > sizeof(buf)) {
-> +		dev_warn(&priv->i2c->dev,
-> +			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-> +			 KBUILD_MODNAME, reg, len);
-> +		return -EREMOTEIO;
-> +	}
-> +
->   	ret = i2c_transfer(priv->i2c, msg, 2);
->   	if (ret == 2) {
->   		memcpy(val, &buf[reg], len);
->
+>      <section id="other">
+>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/dev-overlay.xml
+> b/Documentation/DocBook/media/v4l/dev-overlay.xml index 40d1d76..a44ac66
+> 100644
+> --- a/Documentation/DocBook/media/v4l/dev-overlay.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-overlay.xml
+> @@ -346,16 +346,14 @@ rectangle, in pixels.</entry>
+>  rectangle, in pixels. Offsets increase to the right and down.</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry>__s32</entry>
+> +	    <entry>__u32</entry>
+>  	    <entry><structfield>width</structfield></entry>
+>  	    <entry>Width of the rectangle, in pixels.</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry>__s32</entry>
+> +	    <entry>__u32</entry>
+>  	    <entry><structfield>height</structfield></entry>
+> -	    <entry>Height of the rectangle, in pixels. Width and
+> -height cannot be negative, the fields are signed for hysterical
+> -reasons. <!-- video4linux-list@redhat.com on 22 Oct 2002 subject
 
+I like the concept of hysterical reasons :-)
+
+> +	    <entry>Height of the rectangle, in pixels.<!--
+> video4linux-list@redhat.com on 22 Oct 2002 subject "Re:[V4L][patches!]
+> Re:v4l2/kernel-2.5" --></entry>
+>  	  </row>
+>  	</tbody>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+> b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml index bf7cc97..26b8f8f
+> 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+> @@ -133,16 +133,14 @@ rectangle, in pixels.</entry>
+>  rectangle, in pixels.</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry>__s32</entry>
+> +	    <entry>__u32</entry>
+>  	    <entry><structfield>width</structfield></entry>
+>  	    <entry>Width of the rectangle, in pixels.</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry>__s32</entry>
+> +	    <entry>__u32</entry>
+>  	    <entry><structfield>height</structfield></entry>
+> -	    <entry>Height of the rectangle, in pixels. Width
+> -and height cannot be negative, the fields are signed for
+> -hysterical reasons. <!-- video4linux-list@redhat.com
+> +	    <entry>Height of the rectangle, in pixels.<!--
+> video4linux-list@redhat.com on 22 Oct 2002 subject "Re:[V4L][patches!]
+> Re:v4l2/kernel-2.5" --> </entry>
+>  	  </row>
+> diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
+> index 846b15f..85ec3ba 100644
+> --- a/drivers/media/i2c/mt9m032.c
+> +++ b/drivers/media/i2c/mt9m032.c
+> @@ -459,13 +459,15 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev
+> *subdev, MT9M032_COLUMN_START_MAX);
+>  	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
+>  			 MT9M032_ROW_START_MAX);
+> -	rect.width = clamp(ALIGN(crop->rect.width, 2), MT9M032_COLUMN_SIZE_MIN,
+> -			   MT9M032_COLUMN_SIZE_MAX);
+> -	rect.height = clamp(ALIGN(crop->rect.height, 2), MT9M032_ROW_SIZE_MIN,
+> -			    MT9M032_ROW_SIZE_MAX);
+> -
+> -	rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+> -	rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
+> +	rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
+> +			     MT9M032_COLUMN_SIZE_MIN, MT9M032_COLUMN_SIZE_MAX);
+> +	rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
+> +			      MT9M032_ROW_SIZE_MIN, MT9M032_ROW_SIZE_MAX);
+
+Would it make sense to define the size-related macros as unsigned integers 
+instead of using clamp_t ? For instance MT9M032_PIXEL_ARRAY_WIDTH could be 
+defined as 1600U instead of 1600. Same for the other Aptina sensor drivers. 
+This might introduce other issues, so I don't know whether that would be a 
+good solution.
+
+> +	rect.width = min_t(unsigned int, rect.width,
+> +			   MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+> +	rect.height = min_t(unsigned int, rect.height,
+> +			    MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
+> 
+>  	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
+> 
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
