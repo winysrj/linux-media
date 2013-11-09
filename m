@@ -1,67 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60772 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753566Ab3KBQdp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:45 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Manu Abraham <manu@linuxtv.org>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Andreas Regel <andreas.regel@gmx.de>
-Subject: [PATCHv2 17/29] stv090x: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:25 -0200
-Message-Id: <1383399097-11615-18-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1746 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758289Ab3KIXA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Nov 2013 18:00:59 -0500
+Message-ID: <527EBEA4.1070202@xs4all.nl>
+Date: Sun, 10 Nov 2013 00:00:52 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Lorenz_R=F6hrl?= <sheepshit@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: BUG: Freeze upon loading bttv module
+References: <527E606A.40101@gmx.de>
+In-Reply-To: <527E606A.40101@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+Hi Lorenz,
 
-       drivers/media/dvb-frontends/stv090x.c:750:1: warning: 'stv090x_write_regs.constprop.6' uses dynamic stack allocation [enabled by default]
+On 11/09/2013 05:18 PM, Lorenz Röhrl wrote:
+> Hi,
+> 
+> i'm having problems loading the bttv-module for my bt878 based DVB-T 
+> card: my system just freezes. Magic-Syskeys also won't work then.
+> With kernel 3.9.0 this worked just fine. Versions 3.10, 3.11 and 3.12 
+> won't work.
+> 
+> Last messages on screen with 3.12 upon booting/loading the module is: 
+> http://abload.de/img/bttv_freezeqxdn2.png
+> 
+> With kernel 3.9 i get an additional line on module loading and the 
+> device works fine:
+> [    1.895037] bttv: 0: add subdevice "dvb0"
+> 
+> I traced the problem, it dies somewhere in v4l2_ctrl_handler_setup on 
+> line 4169 
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/pci/bt8xx/bttv-driver.c#n4169
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 80, it seem safe to use 80 as the hard limit for all
-those devices. On most cases, the limit is a way lower than that, but
-80 is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
+Can you try this patch? I'm not 100% but I think this might be the cause of
+the problem.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Manu Abraham <manu@linuxtv.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Andreas Regel <andreas.regel@gmx.de>
----
- drivers/media/dvb-frontends/stv090x.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index c6532de..4f0aaa5 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -4182,7 +4182,8 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 	}
+ 	btv->std = V4L2_STD_PAL;
+ 	init_irqreg(btv);
+-	v4l2_ctrl_handler_setup(hdl);
++	if (!bttv_tvcards[btv->c.type].no_video)
++		v4l2_ctrl_handler_setup(hdl);
+ 	if (hdl->error) {
+ 		result = hdl->error;
+ 		goto fail2;
 
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 56d470ad5a82..7484b01a9f13 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -722,9 +722,16 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
- {
- 	const struct stv090x_config *config = state->config;
- 	int ret;
--	u8 buf[2 + count];
-+	u8 buf[80];
- 	struct i2c_msg i2c_msg = { .addr = config->address, .flags = 0, .buf = buf, .len = 2 + count };
- 
-+	if (2 + count > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, count);
-+		return -EREMOTEIO;
-+	}
-+
- 	buf[0] = reg >> 8;
- 	buf[1] = reg & 0xff;
- 	memcpy(&buf[2], data, count);
--- 
-1.8.3.1
+Regards,
+
+	Hans
+
+> 
+> lspci output from kernel 3.9:
+> [...]
+> 04:01.0 Multimedia video controller: Brooktree Corporation Bt878 Video 
+> Capture (rev 11)
+>          Subsystem: Twinhan Technology Co. Ltd VisionPlus DVB card
+>          Flags: bus master, medium devsel, latency 32, IRQ 16
+>          Memory at f0401000 (32-bit, prefetchable) [size=4K]
+>          Capabilities: [44] Vital Product Data
+>          Capabilities: [4c] Power Management version 2
+>          Kernel driver in use: bttv
+>          Kernel modules: bttv
+> 
+> 04:01.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture 
+> (rev 11)
+>          Subsystem: Twinhan Technology Co. Ltd VisionPlus DVB Card
+>          Flags: bus master, medium devsel, latency 32, IRQ 16
+>          Memory at f0400000 (32-bit, prefetchable) [size=4K]
+>          Capabilities: [44] Vital Product Data
+>          Capabilities: [4c] Power Management version 2
+>          Kernel driver in use: bt878
+>          Kernel modules: bt878
+> 
+> 
+> 
+> Please CC me as i'm not subscribed to the list.
+> 
+> Thanks!
+> 
+> - Lorenz
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
