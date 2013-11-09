@@ -1,96 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:58607 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752481Ab3KYJ7T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 04:59:19 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00J1GD2UKU40@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:59:18 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mail-qe0-f42.google.com ([209.85.128.42]:63116 "EHLO
+	mail-qe0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756775Ab3KIV6O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Nov 2013 16:58:14 -0500
+Received: by mail-qe0-f42.google.com with SMTP id gc15so3323833qeb.1
+        for <linux-media@vger.kernel.org>; Sat, 09 Nov 2013 13:58:13 -0800 (PST)
+Date: Sat, 9 Nov 2013 16:58:10 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 15/16] s5p-jpeg: Ensure setting correct value of the chroma
- subsampling control
-Date: Mon, 25 Nov 2013 10:58:22 +0100
-Message-id: <1385373503-1657-16-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+Cc: m.chehab@samsung.com
+Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb fixes
+Message-ID: <20131109165810.108e67b3@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos4x12 has limitations regarding setting chroma subsampling
-of an output JPEG image. It cannot be lower than the subsampling
-of the raw source image. Also in case of V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY
-option the source image fourcc has to be V4L2_PIX_FMT_GREY.
-This patch implements try_ctrl callback containing mechanism
-that prevents setting invalid value of the V4L2_CID_JPEG_CHROMA_SUBSAMPLING
-control.
+The following changes since commit
+80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   35 +++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+  [media] media: st-rc: Add ST remote control driver (2013-10-31
+  08:20:08 -0200)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 163ee8d..ad259af 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1210,6 +1210,40 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
-+static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&ctx->jpeg->slock, flags);
-+
-+	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING) {
-+		if (ctx->jpeg->variant->version == SJPEG_S5P)
-+			goto error_free;
-+		/*
-+		 * The exynos4x12 device requires input raw image fourcc
-+		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
-+		 * is to be set.
-+		 */
-+		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
-+		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
-+			ret = -EINVAL;
-+			goto error_free;
-+		}
-+		/*
-+		 * The exynos4x12 device requires resulting jpeg subsampling
-+		 * not to be lower than the input raw image subsampling.
-+		 */
-+		if (ctx->out_q.fmt->subsampling > ctrl->val)
-+			ctrl->val = ctx->out_q.fmt->subsampling;
-+	}
-+
-+error_free:
-+	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
-+	return ret;
-+}
-+
- static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
-@@ -1235,6 +1269,7 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
- 
- static const struct v4l2_ctrl_ops s5p_jpeg_ctrl_ops = {
- 	.g_volatile_ctrl	= s5p_jpeg_g_volatile_ctrl,
-+	.try_ctrl		= s5p_jpeg_try_ctrl,
- 	.s_ctrl			= s5p_jpeg_s_ctrl,
- };
- 
--- 
-1.7.9.5
+are available in the git repository at:
 
+  git://linuxtv.org/mkrufky/dvb fixes
+
+for you to fetch changes up to 714fd7f9e8465eda25cce038c642d75a1d84106d:
+
+  cxd2820r_c: fix if_ctl calculation (2013-11-09 16:45:57 -0500)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      dvb_demux: fix deadlock in dmx_section_feed_release_filter()
+
+Evgeny Plehov (1):
+      cxd2820r_c: fix if_ctl calculation
+
+Felipe Pena (1):
+      technisat-usb2: fix typo in variable name
+
+Michael Krufky (1):
+      dvb_demux: clean up whitespace in comments from previous patch
+(trivial)
+
+ drivers/media/dvb-core/dvb_demux.c         | 7 ++++++-
+ drivers/media/dvb-frontends/cxd2820r_c.c   | 2 +-
+ drivers/media/usb/dvb-usb/technisat-usb2.c | 2 +-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
