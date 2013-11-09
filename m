@@ -1,100 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55643 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847Ab3KSO2P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:28:15 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI00CHXLJ0NL90@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:28:14 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 16/16] s5p-jpeg: Adjust g_volatile_ctrl callback to Exynos4x12
- needs
-Date: Tue, 19 Nov 2013 15:27:08 +0100
-Message-id: <1384871228-6648-17-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:45089 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757752Ab3KIDZV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 22:25:21 -0500
+Received: by mail-lb0-f178.google.com with SMTP id l4so1987972lbv.9
+        for <linux-media@vger.kernel.org>; Fri, 08 Nov 2013 19:25:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <527DA266.2030903@iki.fi>
+References: <1383760655-11388-1-git-send-email-crope@iki.fi>
+	<1383760655-11388-4-git-send-email-crope@iki.fi>
+	<CAHFNz9KKajctZphw5bNCoYAyG15Bo+SDWNY=TXR0o337dXyzKA@mail.gmail.com>
+	<527DA266.2030903@iki.fi>
+Date: Sat, 9 Nov 2013 08:55:19 +0530
+Message-ID: <CAHFNz9Lm+NUBe-o4MNZFXPdkjVOWdD-6z6pJ7JEE7a-LWi7e0w@mail.gmail.com>
+Subject: Re: [PATCH 3/8] Montage M88DS3103 DVB-S/S2 demodulator driver
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Whereas S5PC210 device produces decoded JPEG subsampling
-values that map on V4L2_JPEG_CHROMA_SUBSAMPLNG values,
-the Exynos4x12 device doesn't. This patch adds helper
-function decoded_subsampling_to_v4l2, which performs
-HW -> V4L2 translation.
+On Sat, Nov 9, 2013 at 8:18 AM, Antti Palosaari <crope@iki.fi> wrote:
+> On 09.11.2013 04:35, Manu Abraham wrote:
+>>
+>> On Wed, Nov 6, 2013 at 11:27 PM, Antti Palosaari <crope@iki.fi> wrote:
+>
+>
+>
+>>> +/*
+>>> + * Driver implements own I2C-adapter for tuner I2C access. That's since
+>>> chip
+>>> + * has I2C-gate control which closes gate automatically after I2C
+>>> transfer.
+>>> + * Using own I2C adapter we can workaround that.
+>>> + */
+>>
+>>
+>>
+>> Why should the demodulator implement it's own adapter for tuner access ?
+>
+>
+> In order to implement it properly.
+>
+>
+>
+>> DS3103 is identical to DS3002, DS3000 which is similar to all other
+>> dvb demodulators. Comparing datsheets of these demodulators
+>> with others, I can't see any difference in the repeater setup, except
+>> for an additional bit field to control the repeater block itself.
+>>
+>> Also, from what I see, the vendor; Montage has a driver, which appears
+>> to be more code complete looking at this url. http://goo.gl/biaPYu
+>>
+>> Do you still think the DS3103 is much different in comparison ?
+>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   36 ++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 6 deletions(-)
+DS3000 demodulator datasheet states:
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 3605470..90d2f69 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -358,6 +358,13 @@ static const unsigned char hactblg0[162] = {
- 	0xf9, 0xfa
- };
- 
-+static int exynos4x12_decoded_subsampling[] = {
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_444,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-+};
-+
- static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
- {
- 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
-@@ -368,6 +375,28 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
- 	return container_of(fh, struct s5p_jpeg_ctx, fh);
- }
- 
-+static inline int decoded_subsampling_to_v4l2(struct s5p_jpeg_ctx *ctx)
-+{
-+	int subsampling;
-+
-+	WARN_ON(ctx->subsampling > 3);
-+
-+	if (ctx->jpeg->variant->version == SJPEG_S5P) {
-+		if (ctx->subsampling > 2)
-+			subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
-+		else
-+			subsampling = ctx->subsampling;
-+	} else {
-+		if (ctx->subsampling > 2)
-+			subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
-+		else
-+			subsampling =
-+			    exynos4x12_decoded_subsampling[ctx->subsampling];
-+	}
-+
-+	return subsampling;
-+}
-+
- static inline void s5p_jpeg_set_qtbl(void __iomem *regs,
- 				     const unsigned char *qtbl,
- 				     unsigned long tab, int len)
-@@ -1159,12 +1188,7 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 	switch (ctrl->id) {
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		spin_lock_irqsave(&jpeg->slock, flags);
--
--		WARN_ON(ctx->subsampling > S5P_SUBSAMPLING_MODE_GRAY);
--		if (ctx->subsampling > 2)
--			ctrl->val = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
--		else
--			ctrl->val = ctx->subsampling;
-+		ctrl->val = decoded_subsampling_to_v4l2(ctx);
- 		spin_unlock_irqrestore(&jpeg->slock, flags);
- 		break;
- 	}
--- 
-1.7.9.5
+To avoid unwanted noise disturbing the tuner performance, the
+M88DS3000 offers a 2-wire bus repeater dedicated for tuner
+control. The tuner is connected to the M88DS3000 through the
+SCLT and SDAT pins. See Figure 11. Every time the 2-wire bus
+master wants to access the tuner registers, it must enable the
+repeater first. When the repeater is enabled, the SDAT and SCLT
+pins are active. The messages on the SDA and SCL pins is
+repeated on the SDAT and SCLT pins. The repeater will be
+automatically disabled once the access times to the tuner
+reaches the configured value. When disabled, the SCLT and
+SDAT pins are completely isolated from the 2-wire bus and
+become inactive (HIGH).
 
+DS3002 demodulator datasheet states:
+
+To avoid unwanted noise disturbing the tuner performance, the
+M88DS3002B offers a 2-wire bus repeater dedicated for tuner
+control. The tuner is connected to the M88DS3002B through
+the SCLT and SDAT pins. See Figure 12. Every time the 2-wire
+bus master wants to access the tuner registers, it must enable
+the repeater first by configuring bit 2_WIRE_REP_EN (03H).
+When the repeater is enabled, the SDAT and SCLT pins are
+active. The messages on the SDA and SCL pins is repeated
+on the SDAT and SCLT pins. The repeater will be automatically
+disabled once the access times to the tuner reaches the
+configured value set in bits 2_WIRE_REP_TM[2:0] (03H).
+When disabled, the SCLT and SDAT pins are completely
+isolated from the 2-wire bus and become inactive (HIGH).
+
+DS3013 demodulator datasheet states:
+
+To avoid unwanted noise disturbing the tuner performance, the
+M88DS3103 offers a 2-wire bus repeater dedicated for tuner
+control. The tuner is connected to the M88DS3103 through the
+SCLT and SDAT pins. See Figure 12. Every time the 2-wire bus
+master wants to access the tuner registers, it must enable the
+repeater first by configuring bit 2_WIRE_REP_EN (03H). When
+the repeater is enabled, the SDAT and SCLT pins are active.
+The messages on the SDA and SCL pins is repeated on the
+SDAT and SCLT pins. The repeater will be automatically
+disabled once the access times to the tuner reaches the
+configured value set in bits 2_WIRE_REP_TM[2:0] (03H).
+When disabled, the SCLT and SDAT pins are completely
+isolated from the 2-wire bus and become inactive (HIGH).
+
+When you compare this with *almost* any other demodulator
+that exists; This behaviour is much consistent with that which
+exists in the mainline kernel source.
+
+
+If you look at most DVB-S/S2 demodulator drivers almost all
+of them do have an I2C repeater, which in some cases are
+configurable for a) auto-manual close, b) auto close,
+c) manual close. The majority of them do auto close,
+unless bugs on the hardware implementation do exist.
+
+What I don't understand why you need an I2C adapter to handle
+the I2C repeater. All demodulator drivers use i2c_gate_ctl
+to enable/disable the repeater.
+
+ie, how is your i2c_adapter implementation for the ds3103
+demodulator going to make things better than:
+
+static int ds3103_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+{
+        struct ds3103_state *state = fe->demodulator_priv;
+
+        if (enable)
+                ds3103_writereg(state, 0x03, 0x12);
+        else
+                ds3103_writereg(state, 0x03, 0x02);
+
+        return 0;
+}
+
+which is more common to all other DVB demodulator drivers.
+Please don't make weird implementations for straight forward
+stuff.
+
+>
+> There was even some patches, maybe 2 years, ago in order to mainline that
+> but it never happened.
+
+??
+
+>
+> More complete is here 53 vs. 86 register writes, so yes it is more ~40 more
+> complete if you like to compare it like that.
+
+What I would stress more, is that the driver at this URL
+
+http://goo.gl/biaPYu
+
+is from Montage themselves rather than a reverse engineered one;
+rather than the number of lines of code, or number of registers.
