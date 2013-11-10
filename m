@@ -1,96 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49051 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752048Ab3KQURv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Nov 2013 15:17:51 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 5/6] libv4lconvert: SDR conversion from packed S12 to FLOAT
-Date: Sun, 17 Nov 2013 22:17:31 +0200
-Message-Id: <1384719452-21744-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1384719452-21744-1-git-send-email-crope@iki.fi>
-References: <1384719452-21744-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43296 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752306Ab3KJW5X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Nov 2013 17:57:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1 11/19] uvcvideo: Support V4L2_CTRL_TYPE_BITMASK controls.
+Date: Sun, 10 Nov 2013 23:57:57 +0100
+Message-ID: <1898503.DaKE7Ou2As@avalon>
+In-Reply-To: <1377829038-4726-12-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-12-git-send-email-posciak@chromium.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is 12-bit sample pairs packed to 3 bytes. fourcc "DS12".
+Hi Pawel,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- contrib/freebsd/include/linux/videodev2.h |  1 +
- include/linux/videodev2.h                 |  1 +
- lib/libv4lconvert/libv4lconvert.c         | 23 +++++++++++++++++++++++
- 3 files changed, 25 insertions(+)
+Thank you for the patcj.
 
-diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
-index 7d87b01..c2f6a71 100644
---- a/contrib/freebsd/include/linux/videodev2.h
-+++ b/contrib/freebsd/include/linux/videodev2.h
-@@ -470,6 +470,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
-+#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- 
- /*
-  *	F O R M A T   E N U M E R A T I O N
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index ce1acea..80b17d9 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -436,6 +436,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
-+#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- 
- /*
-  *	F O R M A T   E N U M E R A T I O N
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 88e056f..ccb9c0f 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -449,6 +449,7 @@ static int v4lconvert_do_try_format_sdr(struct v4lconvert_data *data,
- 		V4L2_PIX_FMT_SDR_U8,
- 		V4L2_PIX_FMT_SDR_S8,
- 		V4L2_PIX_FMT_SDR_MSI2500_384,
-+		V4L2_PIX_FMT_SDR_S12,
- 	};
- 
- 	for (i = 0; i < ARRAY_SIZE(supported_src_pixfmts_sdr); i++) {
-@@ -1406,6 +1407,28 @@ static int v4lconvert_convert_sdr(struct v4lconvert_data *data,
- 			src += 4; /* control bits */
- 		}
- 		break;
-+	case V4L2_PIX_FMT_SDR_S12:
-+		/* 12-bit signed to 32-bit float */
-+		dest_needed = src_size / 3 * 2 * sizeof(float);
-+		if (dest_size < dest_needed)
-+			goto err_buf_too_small;
-+
-+		for (i = 0; i < src_size; i += 3) {
-+			uint32_t usample[2];
-+			int sample[2];
-+
-+			usample[0] = (src[i + 0] & 0xff) >> 0 | (src[i + 1] & 0x0f) << 8;
-+			usample[1] = (src[i + 1] & 0xf0) >> 4 | (src[i + 2] & 0xff) << 4;
-+
-+			/* Sign extension from 12-bit */
-+			struct {signed int x:12; } s;
-+			sample[0] = s.x = usample[0];
-+			sample[1] = s.x = usample[1];
-+
-+			*fptr++ = (sample[0] + 0.5f) / 2047.5f;
-+			*fptr++ = (sample[1] + 0.5f) / 2047.5f;
-+		}
-+		break;
- 	default:
- 		V4LCONVERT_ERR("Unknown src format in conversion\n");
- 		errno = EINVAL;
+On Friday 30 August 2013 11:17:10 Pawel Osciak wrote:
+
+Maybe a commit message here too ?
+
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index b0a19b9..a0493d6 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1550,6 +1550,24 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+> struct v4l2_ext_control *xctrl,
+> 
+>  		break;
+> 
+> +	case V4L2_CTRL_TYPE_BITMASK:
+> +		value = xctrl->value;
+> +
+> +		/* If GET_RES is supported, it will return a bitmask of bits
+> +		 * that can be set. If it isn't, allow any value.
+> +		 */
+> +		if (ctrl->info.flags & UVC_CTRL_FLAG_GET_RES) {
+> +			if (!ctrl->cached) {
+> +				ret = uvc_ctrl_populate_cache(chain, ctrl);
+> +				if (ret < 0)
+> +					return ret;
+> +			}
+> +			step = mapping->get(mapping, UVC_GET_RES,
+> +					uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
+> +			if (value & ~step)
+> +				return -ERANGE;
+> +		}
+
+Missing break ?
+
+> +
+>  	default:
+>  		value = xctrl->value;
+>  		break;
 -- 
-1.8.4.2
+Regards,
+
+Laurent Pinchart
 
