@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44478 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753057Ab3KURFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 12:05:09 -0500
-Message-ID: <528E3D41.5010508@iki.fi>
-Date: Thu, 21 Nov 2013 19:05:05 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: SDR sampling rate - control or IOCTL?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:55145 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041Ab3KJSiC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Nov 2013 13:38:02 -0500
+Received: by mail-ee0-f47.google.com with SMTP id c13so1970970eek.6
+        for <linux-media@vger.kernel.org>; Sun, 10 Nov 2013 10:38:01 -0800 (PST)
+From: Michal Nazarewicz <mpn@google.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: go7007: fix use of uninitialised pointer
+Date: Sun, 10 Nov 2013 19:37:57 +0100
+Message-Id: <1384108677-23476-1-git-send-email-mpn@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-I am adding new property for sampling rate that is ideally the only 
-obligatory parameter required by SDR. It is value that could be only 
-positive and bigger the better, lets say unsigned 64 bit is quite ideal. 
-That value sets maximum radio frequency possible to receive (ideal SDR).
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Valid values are not always in some single range from X to Y, there 
-could be some multiple value ranges.
+The go variable is declade without initialisation and invocation of
+dev_dbg immediatelly tries to dereference it.
+---
+ drivers/staging/media/go7007/go7007-usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-For example possible values: 1000-2000, 23459, 900001-2800000
-
-Reading possible values from device could be nice, but not necessary. 
-Reading current value is more important.
-
-Here is what I though earlier as a requirements:
-
-sampling rate
-*  values: 1 - infinity (unit: Hz, samples per second)
-      currently 500 MHz is more than enough
-*  operations
-      GET, inquire what HW supports
-      GET, get current value
-      SET, set desired value
-
-
-I am not sure what is best way to implement that kind of thing.
-IOCTL like frequency
-V4L2 Control?
-put it into stream format request?
-
-Sampling rate is actually frequency of ADC. As there devices has almost 
-always tuner too (practical SDR) there is need for tuner frequency too. 
-As tuner is still own entity, is it possible to use same frequency 
-parameter for both ADC and RF tuner in same device?
-
-regards
-Antti
-
+diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+index 58684da..457ab63 100644
+--- a/drivers/staging/media/go7007/go7007-usb.c
++++ b/drivers/staging/media/go7007/go7007-usb.c
+@@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 	char *name;
+ 	int video_pipe, i, v_urb_len;
+ 
+-	dev_dbg(go->dev, "probing new GO7007 USB board\n");
++	pr_debug("probing new GO7007 USB board\n");
+ 
+ 	switch (id->driver_info) {
+ 	case GO7007_BOARDID_MATRIX_II:
 -- 
-http://palosaari.fi/
+1.8.3.2
+
