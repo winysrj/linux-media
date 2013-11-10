@@ -1,375 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:44451 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab3KFPnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 10:43:11 -0500
-Received: by mail-lb0-f173.google.com with SMTP id w7so7797931lbi.4
-        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 07:43:10 -0800 (PST)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	linux-media@vger.kernel.org (open list:MT9M032 APTINA SE...)
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2] videodev2: Set vb2_rect's width and height as unsigned
-Date: Wed,  6 Nov 2013 16:43:04 +0100
-Message-Id: <1383752584-25962-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42955 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab3KJVqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Nov 2013 16:46:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1 06/19] uvcvideo: Recognize UVC 1.5 encoding units.
+Date: Sun, 10 Nov 2013 22:46:56 +0100
+Message-ID: <4825160.M0Y4h4LHcI@avalon>
+In-Reply-To: <1377829038-4726-7-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-7-git-send-email-posciak@chromium.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As addressed on the media summit 2013, there is no reason for the width
-and height to be signed.
+Hi Pawel,
 
-Therefore this patch is an attempt to convert those fields into unsigned.
+Thank you for the patch.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
-v2: Comments by Sakari Ailus and Laurent Pinchart
+On Friday 30 August 2013 11:17:05 Pawel Osciak wrote:
+> Add encoding unit definitions and descriptor parsing code and allow them to
+> be added to chains.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c   | 37 ++++++++++++++++++---
+>  drivers/media/usb/uvc/uvc_driver.c | 67 ++++++++++++++++++++++++++++++-----
+>  drivers/media/usb/uvc/uvcvideo.h   | 14 +++++++-
+>  include/uapi/linux/usb/video.h     |  1 +
+>  4 files changed, 105 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index ba159a4..72d6724 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -777,6 +777,7 @@ static const __u8 uvc_processing_guid[16] =
+> UVC_GUID_UVC_PROCESSING; static const __u8 uvc_camera_guid[16] =
+> UVC_GUID_UVC_CAMERA;
+>  static const __u8 uvc_media_transport_input_guid[16] =
+>  	UVC_GUID_UVC_MEDIA_TRANSPORT_INPUT;
+> +static const __u8 uvc_encoding_guid[16] = UVC_GUID_UVC_ENCODING;
+> 
+>  static int uvc_entity_match_guid(const struct uvc_entity *entity,
+>  	const __u8 guid[16])
+> @@ -795,6 +796,9 @@ static int uvc_entity_match_guid(const struct uvc_entity
+> *entity, return memcmp(entity->extension.guidExtensionCode,
+>  			      guid, 16) == 0;
+> 
+> +	case UVC_VC_ENCODING_UNIT:
+> +		return memcmp(uvc_encoding_guid, guid, 16) == 0;
+> +
+>  	default:
+>  		return 0;
+>  	}
+> @@ -2105,12 +2109,13 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+>  {
+>  	struct uvc_entity *entity;
+>  	unsigned int i;
+> +	int num_found;
+> 
+>  	/* Walk the entities list and instantiate controls */
+>  	list_for_each_entry(entity, &dev->entities, list) {
+>  		struct uvc_control *ctrl;
+> -		unsigned int bControlSize = 0, ncontrols;
+> -		__u8 *bmControls = NULL;
+> +		unsigned int bControlSize = 0, ncontrols = 0;
+> +		__u8 *bmControls = NULL, *bmControlsRuntime = NULL;
+> 
+>  		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
+>  			bmControls = entity->extension.bmControls;
+> @@ -2121,13 +2126,25 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+>  		} else if (UVC_ENTITY_TYPE(entity) == UVC_ITT_CAMERA) {
+>  			bmControls = entity->camera.bmControls;
+>  			bControlSize = entity->camera.bControlSize;
+> +		} else if (UVC_ENTITY_TYPE(entity) == UVC_VC_ENCODING_UNIT) {
+> +			bmControls = entity->encoding.bmControls;
+> +			bmControlsRuntime = entity->encoding.bmControlsRuntime;
+> +			bControlSize = entity->encoding.bControlSize;
+>  		}
+> 
+>  		/* Remove bogus/blacklisted controls */
+>  		uvc_ctrl_prune_entity(dev, entity);
+> 
+>  		/* Count supported controls and allocate the controls array */
+> -		ncontrols = memweight(bmControls, bControlSize);
+> +		for (i = 0; i < bControlSize; ++i) {
+> +			if (bmControlsRuntime) {
+> +				ncontrols += hweight8(bmControls[i]
+> +						      | bmControlsRuntime[i]);
 
--Fix alignment on all drivers
--Replace min with min_t where possible and remove unneeded checks
+Nitpicking, could you move the | to the end of the previous line to match the 
+style of the rest of the code ?
 
- drivers/media/i2c/mt9m032.c                        | 16 +++++-----
- drivers/media/i2c/mt9p031.c                        | 28 ++++++++++--------
- drivers/media/i2c/mt9t001.c                        | 26 ++++++++++-------
- drivers/media/i2c/mt9v032.c                        | 34 ++++++++++++----------
- drivers/media/i2c/smiapp/smiapp-core.c             |  8 ++---
- drivers/media/i2c/soc_camera/mt9m111.c             |  4 +--
- drivers/media/i2c/tvp5150.c                        | 14 ++++-----
- drivers/media/pci/bt8xx/bttv-driver.c              |  6 ++--
- drivers/media/pci/saa7134/saa7134-video.c          |  4 ---
- drivers/media/platform/soc_camera/soc_scale_crop.c |  4 +--
- include/uapi/linux/videodev2.h                     |  4 +--
- 11 files changed, 79 insertions(+), 69 deletions(-)
+> +			} else {
+> +				ncontrols += hweight8(bmControls[i]);
+> +			}
 
-diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
-index 846b15f..85ec3ba 100644
---- a/drivers/media/i2c/mt9m032.c
-+++ b/drivers/media/i2c/mt9m032.c
-@@ -459,13 +459,15 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev *subdev,
- 			  MT9M032_COLUMN_START_MAX);
- 	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
- 			 MT9M032_ROW_START_MAX);
--	rect.width = clamp(ALIGN(crop->rect.width, 2), MT9M032_COLUMN_SIZE_MIN,
--			   MT9M032_COLUMN_SIZE_MAX);
--	rect.height = clamp(ALIGN(crop->rect.height, 2), MT9M032_ROW_SIZE_MIN,
--			    MT9M032_ROW_SIZE_MAX);
--
--	rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
--	rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
-+	rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-+			     MT9M032_COLUMN_SIZE_MIN, MT9M032_COLUMN_SIZE_MAX);
-+	rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-+			      MT9M032_ROW_SIZE_MIN, MT9M032_ROW_SIZE_MAX);
-+
-+	rect.width = min_t(unsigned int, rect.width,
-+			   MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
-+	rect.height = min_t(unsigned int, rect.height,
-+			    MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
- 
- 	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
- 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index 4734836..722f78a 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -518,11 +518,13 @@ static int mt9p031_set_format(struct v4l2_subdev *subdev,
- 
- 	/* Clamp the width and height to avoid dividing by zero. */
- 	width = clamp_t(unsigned int, ALIGN(format->format.width, 2),
--			max(__crop->width / 7, MT9P031_WINDOW_WIDTH_MIN),
-+			max_t(unsigned int, __crop->width / 7,
-+			      MT9P031_WINDOW_WIDTH_MIN),
- 			__crop->width);
- 	height = clamp_t(unsigned int, ALIGN(format->format.height, 2),
--			max(__crop->height / 8, MT9P031_WINDOW_HEIGHT_MIN),
--			__crop->height);
-+			 max_t(unsigned int, __crop->height / 8,
-+			       MT9P031_WINDOW_HEIGHT_MIN),
-+			 __crop->height);
- 
- 	hratio = DIV_ROUND_CLOSEST(__crop->width, width);
- 	vratio = DIV_ROUND_CLOSEST(__crop->height, height);
-@@ -564,15 +566,17 @@ static int mt9p031_set_crop(struct v4l2_subdev *subdev,
- 			  MT9P031_COLUMN_START_MAX);
- 	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9P031_ROW_START_MIN,
- 			 MT9P031_ROW_START_MAX);
--	rect.width = clamp(ALIGN(crop->rect.width, 2),
--			   MT9P031_WINDOW_WIDTH_MIN,
--			   MT9P031_WINDOW_WIDTH_MAX);
--	rect.height = clamp(ALIGN(crop->rect.height, 2),
--			    MT9P031_WINDOW_HEIGHT_MIN,
--			    MT9P031_WINDOW_HEIGHT_MAX);
--
--	rect.width = min(rect.width, MT9P031_PIXEL_ARRAY_WIDTH - rect.left);
--	rect.height = min(rect.height, MT9P031_PIXEL_ARRAY_HEIGHT - rect.top);
-+	rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-+			     MT9P031_WINDOW_WIDTH_MIN,
-+			     MT9P031_WINDOW_WIDTH_MAX);
-+	rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-+			      MT9P031_WINDOW_HEIGHT_MIN,
-+			      MT9P031_WINDOW_HEIGHT_MAX);
-+
-+	rect.width = min_t(unsigned int, rect.width,
-+			   MT9P031_PIXEL_ARRAY_WIDTH - rect.left);
-+	rect.height = min_t(unsigned int, rect.height,
-+			    MT9P031_PIXEL_ARRAY_HEIGHT - rect.top);
- 
- 	__crop = __mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
- 
-diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-index 7964634..d41c70e 100644
---- a/drivers/media/i2c/mt9t001.c
-+++ b/drivers/media/i2c/mt9t001.c
-@@ -291,10 +291,12 @@ static int mt9t001_set_format(struct v4l2_subdev *subdev,
- 
- 	/* Clamp the width and height to avoid dividing by zero. */
- 	width = clamp_t(unsigned int, ALIGN(format->format.width, 2),
--			max(__crop->width / 8, MT9T001_WINDOW_HEIGHT_MIN + 1),
-+			max_t(unsigned int, __crop->width / 8,
-+			      MT9T001_WINDOW_HEIGHT_MIN + 1),
- 			__crop->width);
- 	height = clamp_t(unsigned int, ALIGN(format->format.height, 2),
--			 max(__crop->height / 8, MT9T001_WINDOW_HEIGHT_MIN + 1),
-+			 max_t(unsigned int, __crop->height / 8,
-+			       MT9T001_WINDOW_HEIGHT_MIN + 1),
- 			 __crop->height);
- 
- 	hratio = DIV_ROUND_CLOSEST(__crop->width, width);
-@@ -339,15 +341,17 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
- 	rect.top = clamp(ALIGN(crop->rect.top, 2),
- 			 MT9T001_ROW_START_MIN,
- 			 MT9T001_ROW_START_MAX);
--	rect.width = clamp(ALIGN(crop->rect.width, 2),
--			   MT9T001_WINDOW_WIDTH_MIN + 1,
--			   MT9T001_WINDOW_WIDTH_MAX + 1);
--	rect.height = clamp(ALIGN(crop->rect.height, 2),
--			    MT9T001_WINDOW_HEIGHT_MIN + 1,
--			    MT9T001_WINDOW_HEIGHT_MAX + 1);
--
--	rect.width = min(rect.width, MT9T001_PIXEL_ARRAY_WIDTH - rect.left);
--	rect.height = min(rect.height, MT9T001_PIXEL_ARRAY_HEIGHT - rect.top);
-+	rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-+			     MT9T001_WINDOW_WIDTH_MIN + 1,
-+			     MT9T001_WINDOW_WIDTH_MAX + 1);
-+	rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-+			      MT9T001_WINDOW_HEIGHT_MIN + 1,
-+			      MT9T001_WINDOW_HEIGHT_MAX + 1);
-+
-+	rect.width = min_t(unsigned int, rect.width,
-+			   MT9T001_PIXEL_ARRAY_WIDTH - rect.left);
-+	rect.height = min_t(unsigned int, rect.height,
-+			    MT9T001_PIXEL_ARRAY_HEIGHT - rect.top);
- 
- 	__crop = __mt9t001_get_pad_crop(mt9t001, fh, crop->pad, crop->which);
- 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 2c50eff..ba8da9b 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -420,12 +420,14 @@ static int mt9v032_set_format(struct v4l2_subdev *subdev,
- 					format->which);
- 
- 	/* Clamp the width and height to avoid dividing by zero. */
--	width = clamp_t(unsigned int, ALIGN(format->format.width, 2),
--			max(__crop->width / 8, MT9V032_WINDOW_WIDTH_MIN),
--			__crop->width);
--	height = clamp_t(unsigned int, ALIGN(format->format.height, 2),
--			 max(__crop->height / 8, MT9V032_WINDOW_HEIGHT_MIN),
--			 __crop->height);
-+	width = clamp(ALIGN(format->format.width, 2),
-+		      max_t(unsigned int, __crop->width / 8,
-+			    MT9V032_WINDOW_WIDTH_MIN),
-+		      __crop->width);
-+	height = clamp(ALIGN(format->format.height, 2),
-+		       max_t(unsigned int, __crop->height / 8,
-+			     MT9V032_WINDOW_HEIGHT_MIN),
-+		       __crop->height);
- 
- 	hratio = DIV_ROUND_CLOSEST(__crop->width, width);
- 	vratio = DIV_ROUND_CLOSEST(__crop->height, height);
-@@ -471,15 +473,17 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
- 	rect.top = clamp(ALIGN(crop->rect.top + 1, 2) - 1,
- 			 MT9V032_ROW_START_MIN,
- 			 MT9V032_ROW_START_MAX);
--	rect.width = clamp(ALIGN(crop->rect.width, 2),
--			   MT9V032_WINDOW_WIDTH_MIN,
--			   MT9V032_WINDOW_WIDTH_MAX);
--	rect.height = clamp(ALIGN(crop->rect.height, 2),
--			    MT9V032_WINDOW_HEIGHT_MIN,
--			    MT9V032_WINDOW_HEIGHT_MAX);
--
--	rect.width = min(rect.width, MT9V032_PIXEL_ARRAY_WIDTH - rect.left);
--	rect.height = min(rect.height, MT9V032_PIXEL_ARRAY_HEIGHT - rect.top);
-+	rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-+			     MT9V032_WINDOW_WIDTH_MIN,
-+			     MT9V032_WINDOW_WIDTH_MAX);
-+	rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-+			      MT9V032_WINDOW_HEIGHT_MIN,
-+			      MT9V032_WINDOW_HEIGHT_MAX);
-+
-+	rect.width = min_t(unsigned int,
-+			   rect.width, MT9V032_PIXEL_ARRAY_WIDTH - rect.left);
-+	rect.height = min_t(unsigned int,
-+			    rect.height, MT9V032_PIXEL_ARRAY_HEIGHT - rect.top);
- 
- 	__crop = __mt9v032_get_pad_crop(mt9v032, fh, crop->pad, crop->which);
- 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index ae66d91..3fadb9e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2028,8 +2028,8 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
- 	sel->r.width = min(sel->r.width, src_size->width);
- 	sel->r.height = min(sel->r.height, src_size->height);
- 
--	sel->r.left = min(sel->r.left, src_size->width - sel->r.width);
--	sel->r.top = min(sel->r.top, src_size->height - sel->r.height);
-+	sel->r.left = min_t(int, sel->r.left, src_size->width - sel->r.width);
-+	sel->r.top = min_t(int, sel->r.top, src_size->height - sel->r.height);
- 
- 	*crops[sel->pad] = sel->r;
- 
-@@ -2121,8 +2121,8 @@ static int smiapp_set_selection(struct v4l2_subdev *subdev,
- 
- 	sel->r.left = max(0, sel->r.left & ~1);
- 	sel->r.top = max(0, sel->r.top & ~1);
--	sel->r.width = max(0, SMIAPP_ALIGN_DIM(sel->r.width, sel->flags));
--	sel->r.height = max(0, SMIAPP_ALIGN_DIM(sel->r.height, sel->flags));
-+	sel->r.width = SMIAPP_ALIGN_DIM(sel->r.width, sel->flags);
-+	sel->r.height =	SMIAPP_ALIGN_DIM(sel->r.height, sel->flags);
- 
- 	sel->r.width = max_t(unsigned int,
- 			     sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index 6f40566..ccf5940 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -208,8 +208,8 @@ struct mt9m111 {
- 	struct mt9m111_context *ctx;
- 	struct v4l2_rect rect;	/* cropping rectangle */
- 	struct v4l2_clk *clk;
--	int width;		/* output */
--	int height;		/* sizes */
-+	unsigned int width;	/* output */
-+	unsigned int height;	/* sizes */
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 	const struct mt9m111_datafmt *fmt;
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 89c0b13..7b8962e 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -867,7 +867,7 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	struct v4l2_rect rect = a->c;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 	v4l2_std_id std;
--	int hmax;
-+	unsigned int hmax;
- 
- 	v4l2_dbg(1, debug, sd, "%s left=%d, top=%d, width=%d, height=%d\n",
- 		__func__, rect.left, rect.top, rect.width, rect.height);
-@@ -877,9 +877,9 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 
- 	/* tvp5150 has some special limits */
- 	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
--	rect.width = clamp(rect.width,
--			   TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
--			   TVP5150_H_MAX - rect.left);
-+	rect.width = clamp_t(unsigned int, rect.width,
-+			     TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
-+			     TVP5150_H_MAX - rect.left);
- 	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
- 
- 	/* Calculate height based on current standard */
-@@ -893,9 +893,9 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	else
- 		hmax = TVP5150_V_MAX_OTHERS;
- 
--	rect.height = clamp(rect.height,
--			    hmax - TVP5150_MAX_CROP_TOP - rect.top,
--			    hmax - rect.top);
-+	rect.height = clamp_t(unsigned int, rect.height,
-+			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
-+			      hmax - rect.top);
- 
- 	tvp5150_write(sd, TVP5150_VERT_BLANKING_START, rect.top);
- 	tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP,
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index c6532de..41ec4fa 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1126,9 +1126,9 @@ bttv_crop_calc_limits(struct bttv_crop *c)
- 		c->min_scaled_height = 32;
- 	} else {
- 		c->min_scaled_width =
--			(max(48, c->rect.width >> 4) + 3) & ~3;
-+			(max_t(unsigned int, 48, c->rect.width >> 4) + 3) & ~3;
- 		c->min_scaled_height =
--			max(32, c->rect.height >> 4);
-+			max_t(unsigned int, 32, c->rect.height >> 4);
- 	}
- 
- 	c->max_scaled_width  = c->rect.width & ~3;
-@@ -2024,7 +2024,7 @@ limit_scaled_size_lock       (struct bttv_fh *               fh,
- 		/* We cannot scale up. When the scaled image is larger
- 		   than crop.rect we adjust the crop.rect as required
- 		   by the V4L2 spec, hence cropcap.bounds are our limit. */
--		max_width = min(b->width, (__s32) MAX_HACTIVE);
-+		max_width = min_t(unsigned int, b->width, MAX_HACTIVE);
- 		max_height = b->height;
- 
- 		/* We cannot capture the same line as video and VBI data.
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index fb60da8..bdbd805 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1979,10 +1979,6 @@ static int saa7134_s_crop(struct file *file, void *f, const struct v4l2_crop *cr
- 	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
- 	    crop->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
- 		return -EINVAL;
--	if (crop->c.height < 0)
--		return -EINVAL;
--	if (crop->c.width < 0)
--		return -EINVAL;
- 
- 	if (res_locked(fh->dev, RESOURCE_OVERLAY))
- 		return -EBUSY;
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index cbd3a34..8e74fb7 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -141,8 +141,8 @@ int soc_camera_client_s_crop(struct v4l2_subdev *sd,
- 	 * Popular special case - some cameras can only handle fixed sizes like
- 	 * QVGA, VGA,... Take care to avoid infinite loop.
- 	 */
--	width = max(cam_rect->width, 2);
--	height = max(cam_rect->height, 2);
-+	width = max_t(unsigned int, cam_rect->width, 2);
-+	height = max_t(unsigned int, cam_rect->height, 2);
- 
- 	/*
- 	 * Loop as long as sensor is not covering the requested rectangle and
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 437f1b0..6ae7bbe 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -207,8 +207,8 @@ enum v4l2_priority {
- struct v4l2_rect {
- 	__s32   left;
- 	__s32   top;
--	__s32   width;
--	__s32   height;
-+	__u32   width;
-+	__u32   height;
- };
- 
- struct v4l2_fract {
+The { } are not needed.
+
+> +		}
+> +
+>  		if (ncontrols == 0)
+>  			continue;
+> 
+> @@ -2139,8 +2156,17 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+> 
+>  		/* Initialize all supported controls */
+>  		ctrl = entity->controls;
+> -		for (i = 0; i < bControlSize * 8; ++i) {
+> -			if (uvc_test_bit(bmControls, i) == 0)
+> +		for (i = 0, num_found = 0;
+> +			i < bControlSize * 8 && num_found < ncontrols; ++i) {
+> +			if (uvc_test_bit(bmControls, i) == 1)
+> +				ctrl->on_init = 1;
+> +			if (bmControlsRuntime &&
+> +				uvc_test_bit(bmControlsRuntime, i) == 1)
+> +				ctrl->in_runtime = 1;
+> +			else if (!bmControlsRuntime)
+> +				ctrl->in_runtime = ctrl->on_init;
+> +
+> +			if (ctrl->on_init == 0 && ctrl->in_runtime == 0)
+>  				continue;
+
+Wouldn't it simplify the code if you assigned bmControls to bmControlsRuntime 
+when bmControlsRuntime is NULL before counting the controls above ? You could 
+get rid of the if inside the count loop, and you could also simplify this 
+construct.
+
+> 
+>  			ctrl->entity = entity;
+> @@ -2148,6 +2174,7 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+> 
+>  			uvc_ctrl_init_ctrl(dev, ctrl);
+>  			ctrl++;
+> +			num_found++;
+>  		}
+>  	}
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index d7ff707..d950b40 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1155,6 +1155,37 @@ static int uvc_parse_standard_control(struct
+> uvc_device *dev, list_add_tail(&unit->list, &dev->entities);
+>  		break;
+> 
+> +	case UVC_VC_ENCODING_UNIT:
+> +		n = buflen >= 7 ? buffer[6] : 0;
+> +
+> +		if (buflen < 7 + 2 * n) {
+> +			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
+> +				"interface %d ENCODING_UNIT error\n",
+> +				udev->devnum, alts->desc.bInterfaceNumber);
+> +			return -EINVAL;
+> +		}
+> +
+> +		unit = uvc_alloc_entity(buffer[2], buffer[3], 2, 2 * n);
+> +		if (unit == NULL)
+> +			return -ENOMEM;
+> +
+> +		memcpy(unit->baSourceID, &buffer[4], 1);
+> +		unit->encoding.bControlSize = buffer[6];
+> +		unit->encoding.bmControls = (__u8 *)unit + sizeof(*unit);
+> +		memcpy(unit->encoding.bmControls, &buffer[7], n);
+> +		unit->encoding.bmControlsRuntime = unit->encoding.bmControls
+> +						 + n;
+> +		memcpy(unit->encoding.bmControlsRuntime, &buffer[7 + n], n);
+> +
+> +		if (buffer[5] != 0)
+> +			usb_string(udev, buffer[5], unit->name,
+> +				   sizeof(unit->name));
+> +		else
+> +			sprintf(unit->name, "encoding %u", buffer[3]);
+
+Could you s/encoding/Encoding/ to match the other unit names ?
+
+> +
+> +		list_add_tail(&unit->list, &dev->entities);
+> +		break;
+> +
+>  	default:
+>  		uvc_trace(UVC_TRACE_DESCR, "Found an unknown CS_INTERFACE "
+>  			"descriptor (%u)\n", buffer[2]);
+> @@ -1251,25 +1282,31 @@ static void uvc_delete_chain(struct uvc_video_chain
+> *chain) *
+>   * - one or more Output Terminals (USB Streaming or Display)
+>   * - zero or one Processing Unit
+> + * - zero or one Encoding Unit
+>   * - zero, one or more single-input Selector Units
+>   * - zero or one multiple-input Selector Units, provided all inputs are
+>   *   connected to input terminals
+> - * - zero, one or mode single-input Extension Units
+> + * - zero, one or more single-input Extension Units
+>   * - one or more Input Terminals (Camera, External or USB Streaming)
+>   *
+> - * The terminal and units must match on of the following structures:
+> + * The terminal and units must match one of the following structures:
+
+While we're at it, s/terminal/terminals/ ?
+
+>   *
+> - * ITT_*(0) -> +---------+    +---------+    +---------+ -> TT_STREAMING(0)
+> - * ...         | SU{0,1} | -> | PU{0,1} | -> | XU{0,n} |    ...
+> - * ITT_*(n) -> +---------+    +---------+    +---------+ -> TT_STREAMING(n)
+> + * ITT_*(0) -> +---------+                        -> TT_STREAMING(0) + *
+> ...         | SU{0,1} | ->        (...)           ...
+> + * ITT_*(n) -> +---------+                        -> TT_STREAMING(n)
+> + *
+> + *    Where (...), in any order:
+> + *             +---------+    +---------+    +---------+
+> + *             | PU{0,1} | -> | XU{0,n} | -> | EU{0,1} |
+> + *             +---------+    +---------+    +---------+
+>   *
+>   *                 +---------+    +---------+ -> OTT_*(0)
+>   * TT_STREAMING -> | PU{0,1} | -> | XU{0,n} |    ...
+>   *                 +---------+    +---------+ -> OTT_*(n)
+>   *
+> - * The Processing Unit and Extension Units can be in any order. Additional
+> - * Extension Units connected to the main chain as single-unit branches are
+> - * also supported. Single-input Selector Units are ignored.
+> + * The Processing Unit, the Encoding Unit and Extension Units can be in any
+> + * order. Additional Extension Units connected to the main chain as
+> single-unit
+> + * branches are also supported. Single-input Selector Units are ignored. */
+>  static int uvc_scan_chain_entity(struct uvc_video_chain *chain,
+>  	struct uvc_entity *entity)
+
 -- 
-1.8.4.rc3
+Regards,
+
+Laurent Pinchart
 
