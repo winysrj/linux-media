@@ -1,64 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:40243 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751221Ab3KRKzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 05:55:20 -0500
-Message-ID: <5289F200.8020704@schinagl.nl>
-Date: Mon, 18 Nov 2013 11:54:56 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2355 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122Ab3KJLpW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Nov 2013 06:45:22 -0500
+Message-ID: <527F71CA.9040205@xs4all.nl>
+Date: Sun, 10 Nov 2013 12:45:14 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Martin Herrman <martin.herrman@gmail.com>
+To: =?ISO-8859-1?Q?Lorenz_R=F6hrl?= <sheepshit@gmx.de>
 CC: linux-media@vger.kernel.org
-Subject: Re: ddbridge module fails to load
-References: <CADR1r6i7GAHK=4Cb4W3dSxzRtTLJVAmOViPLiS_2O=iN-8Nwgw@mail.gmail.com>
-In-Reply-To: <CADR1r6i7GAHK=4Cb4W3dSxzRtTLJVAmOViPLiS_2O=iN-8Nwgw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: BUG: Freeze upon loading bttv module
+References: <527E606A.40101@gmx.de> <527EBEA4.1070202@xs4all.nl> <527F4551.6090708@gmx.de>
+In-Reply-To: <527F4551.6090708@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17-11-13 19:37, Martin Herrman wrote:
-> Hi,
->
-> Since about a year I'm a happy user of the experimental driver for my
-> cine c2 v6.
->
-> I have just tried to use the latest code. It compiles without issues
-> (kernel 3.11 with gentoo and ck patches), but doesn't load:
->
-> ddbridge: Unknown symbol dvb_usercopy (err 0)
->
-> I reviewed the updates:
->
-> http://linuxtv.org/hg/~endriss/media_build_experimental
->
-> and noticed that there have been updates to the drivers I use lately.
-> Which is good news!
->
-> Unfortunately, the updates cause the above issue. I tried this revision:
->
-> http://linuxtv.org/hg/~endriss/media_build_experimental/rev/8c5bb9101f84
-You probably best poke Oliver Endriss (ufo) on the VDR portal as that is 
-his work and is unrelated or unmaintained here at linux-media.
+Hi Lorenz,
 
-That said, someone recently stepped up to try to bring in the latest 
-driver back into the mailine linux-media repository and should get 
-better maintenance.
+On 11/10/2013 09:35 AM, Lorenz Röhrl wrote:
+> Hi Hans,
+> 
+> 
+> On 11/10/2013 12:00 AM, Hans Verkuil wrote:
+>>
+>> Can you try this patch? I'm not 100% but I think this might be the cause of
+>> the problem.
+>>
+>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>> index c6532de..4f0aaa5 100644
+>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>> @@ -4182,7 +4182,8 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+>>   	}
+>>   	btv->std = V4L2_STD_PAL;
+>>   	init_irqreg(btv);
+>> -	v4l2_ctrl_handler_setup(hdl);
+>> +	if (!bttv_tvcards[btv->c.type].no_video)
+>> +		v4l2_ctrl_handler_setup(hdl);
+>>   	if (hdl->error) {
+>>   		result = hdl->error;
+>>   		goto fail2;
+>>
+>>
+> 
+> I tried the patch and indeed it's working :)
+> No freeze on loading the module and the dvb-device is also working.
 
-Oliver (not Endriss)
->
-> and now ddbridge loads perfectly and I can watch tv again.
->
-> Just wanted to let you know, in case you need any of my help to fix
-> this, please feel free to ask.  Note however that I'm certainly not a
-> developer, nor a experienced packager.
->
-> Regards,
->
-> Martin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thanks for testing this! Good news that it fixed the problem.
 
+> 
+> lolo@hurra ~ % ls /dev/dvb/adapter0
+> demux0  dvr0  frontend0
+> 
+> lolo@hurra ~ % dmesg |grep bttv
+> [    0.871060] bttv: driver version 0.9.19 loaded
+> [    0.872005] bttv: using 8 buffers with 2080k (520 pages) each for capture
+> [    0.873137] bttv: Bt8xx card found (0)
+> [    0.874186] bttv: 0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, 
+> latency: 32, mmio: 0xf0401000
+> [    0.875156] bttv: 0: detected: Twinhan VisionPlus DVB [card=113], PCI 
+> subsystem ID is 1822:0001
+> [    0.876138] bttv: 0: using: Twinhan DST + clones [card=113,autodetected]
+> [    0.884082] bttv: 0: tuner absent
+> [    0.894011] bttv: 0: add subdevice "dvb0"
+> [    0.901398] DVB: registering new adapter (bttv0)
+> 
+> 
+> Will this patch be included upstream? When will it appear in official 
+> kernel sources?
+
+I'll make a pull request for this tomorrow for 3.13 with a CC to the stable kernel
+mailinglist. It will probably take a few weeks before it appears in the mainline
+kernel and in the older, stable, kernels. I would expect this to be fixed by the
+end of the year.
+
+Regards,
+
+	Hans
