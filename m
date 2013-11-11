@@ -1,46 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39883 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906Ab3KQURu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Nov 2013 15:17:50 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 0/6] SDR API libV4L stream conversion
-Date: Sun, 17 Nov 2013 22:17:26 +0200
-Message-Id: <1384719452-21744-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4687 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753387Ab3KKNwc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Nov 2013 08:52:32 -0500
+Message-ID: <5280E10F.3050803@xs4all.nl>
+Date: Mon, 11 Nov 2013 14:52:15 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi> <5280D83C.5060809@xs4all.nl> <5280DE3D.5040408@iki.fi>
+In-Reply-To: <5280DE3D.5040408@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That patch set contains libv4lconvert conversion for all SDR formats
-I have currently available.
+On 11/11/2013 02:40 PM, Antti Palosaari wrote:
+> On 11.11.2013 15:14, Hans Verkuil wrote:
+>> On 11/10/2013 06:16 PM, Antti Palosaari wrote:
+>>> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
+>>> used format for baseband signals.
+>>>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   contrib/freebsd/include/linux/videodev2.h |  4 ++++
+>>>   include/linux/videodev2.h                 |  4 ++++
+>>>   lib/libv4lconvert/libv4lconvert.c         | 29 ++++++++++++++++++++++++++++-
+>>>   3 files changed, 36 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+>>> index 1fcfaeb..8829400 100644
+>>> --- a/contrib/freebsd/include/linux/videodev2.h
+>>> +++ b/contrib/freebsd/include/linux/videodev2.h
+>>> @@ -465,6 +465,10 @@ struct v4l2_pix_format {
+>>>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>>
+>>> +/* SDR */
+>>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>>> +
+>>>   /*
+>>>    *	F O R M A T   E N U M E R A T I O N
+>>>    */
+>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>>> index 437f1b0..14299a6 100644
+>>> --- a/include/linux/videodev2.h
+>>> +++ b/include/linux/videodev2.h
+>>> @@ -431,6 +431,10 @@ struct v4l2_pix_format {
+>>>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>>
+>>> +/* SDR */
+>>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>>
+>> I would prefer V4L2_PIX_FMT_SDR_FLOAT and _FMT_SDR_U8.
+>>
+>> That way it is clear that this format refers to - and should be interpreted as - an SDR format.
+>>
+>> Otherwise it looks fine to me (but it needs to be documented as well, of course).
+> 
+> Thanks for the comments!
+> 
+> What do you think is it OK to abuse/reuse pixelformat for radio signals? 
+> Basically the only one field needed is just that, whilst those image 
+> only fields (width/height) are not needed at all. Good point to reuse 
+> existing things as much as possible is that it does not bloat Kernel 
+> data structures etc.
 
-Also simple test app to stream data from device to standard output.
+I've no problems with that. While usually the buffers contain images, this
+is not always the case. Strictly speaking it is just a DMA API and pixelformat
+is used to define the contents. We use it to transport VBI data as well, and
+in rare cases even audio (even though we shouldn't).
 
-Seems to works very well. CPU usage is something like 13% when 2MSps
-sampling rate is used, which goes very much from the runtime float
-conversion. Using pre-calculated LUTs will reduce CPU usage very much,
-but lets that kind of optimizations be another issue.
+Regards,
 
-Antti Palosaari (6):
-  libv4lconvert: SDR conversion from U8 to FLOAT
-  v4l2: add sdr-fetch test app
-  libv4lconvert: SDR conversion from S8 to FLOAT
-  libv4lconvert: SDR conversion from MSi2500 format 384 to FLOAT
-  libv4lconvert: SDR conversion from packed S12 to FLOAT
-  libv4lconvert: SDR conversion from S14 to FLOAT
+	Hans
 
- contrib/freebsd/include/linux/videodev2.h |   8 ++
- contrib/test/Makefile.am                  |   6 +-
- contrib/test/sdr_fetch.c                  | 221 ++++++++++++++++++++++++++++++
- include/linux/videodev2.h                 |   8 ++
- lib/libv4lconvert/libv4lconvert.c         | 184 +++++++++++++++++++++++++
- 5 files changed, 426 insertions(+), 1 deletion(-)
- create mode 100644 contrib/test/sdr_fetch.c
-
--- 
-1.8.4.2
+> I am also going to make some tests to find out if actual float 
+> conversion is faster against pre-calculated LUT, in Kernel or in 
+> libv4lconvert and so. Worst scenario I have currently is Mirics ADC with 
+> 14-bit resolution => 16384 quantization levels => 32-bit float LUT will 
+> be 16384 * 4 = 65536 bytes. Wonder if that much big LUT is allowed to 
+> library - but maybe you could alloc() and populate LUT on the fly if 
+> needed. Or maybe native conversion is fast enough.
+> 
+> regards
+> Antti
+> 
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> +
+>>>   /*
+>>>    *	F O R M A T   E N U M E R A T I O N
+>>>    */
+>>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>>> index e2afc27..38c9125 100644
+>>> --- a/lib/libv4lconvert/libv4lconvert.c
+>>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>>> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
+>>>   	{ V4L2_PIX_FMT_RGB24,		24,	 1,	 5,	0 }, \
+>>>   	{ V4L2_PIX_FMT_BGR24,		24,	 1,	 5,	0 }, \
+>>>   	{ V4L2_PIX_FMT_YUV420,		12,	 6,	 1,	0 }, \
+>>> -	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }
+>>> +	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }, \
+>>> +	{ V4L2_PIX_FMT_FLOAT,		 0,	 0,	 0,	0 }
+>>>
+>>>   static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>>   	SUPPORTED_DST_PIXFMTS,
+>>> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>>   	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
+>>>   	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
+>>>   	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
+>>> +	/* SDR formats */
+>>> +	{ V4L2_PIX_FMT_U8,		0,	0,	0,	0 },
+>>>   };
+>>>
+>>>   static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+>>> @@ -1281,6 +1284,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>>   		}
+>>>   		break;
+>>>
+>>> +	/* SDR */
+>>> +	case V4L2_PIX_FMT_U8:
+>>> +		switch (dest_pix_fmt) {
+>>> +		case V4L2_PIX_FMT_FLOAT:
+>>> +			{
+>>> +				/* 8-bit unsigned to 32-bit float */
+>>> +				unsigned int i;
+>>> +				float ftmp;
+>>> +				for (i = 0; i < src_size; i++) {
+>>> +					ftmp = *src++;
+>>> +					ftmp -= 127.5;
+>>> +					ftmp /= 127.5;
+>>> +					memcpy(dest, &ftmp, 4);
+>>> +					dest += 4;
+>>> +				}
+>>> +			}
+>>> +		}
+>>> +		break;
+>>> +
+>>>   	default:
+>>>   		V4LCONVERT_ERR("Unknown src format in conversion\n");
+>>>   		errno = EINVAL;
+>>> @@ -1349,6 +1371,11 @@ int v4lconvert_convert(struct v4lconvert_data *data,
+>>>   		temp_needed =
+>>>   			my_src_fmt.fmt.pix.width * my_src_fmt.fmt.pix.height * 3 / 2;
+>>>   		break;
+>>> +	/* SDR */
+>>> +	case V4L2_PIX_FMT_FLOAT:
+>>> +		dest_needed = src_size * 4; /* 8-bit to 32-bit */
+>>> +		temp_needed = dest_needed;
+>>> +		break;
+>>>   	default:
+>>>   		V4LCONVERT_ERR("Unknown dest format in conversion\n");
+>>>   		errno = EINVAL;
+>>>
+>>
+> 
+> 
 
