@@ -1,123 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4341 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755444Ab3KMDcU (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:44389 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753926Ab3KKQTx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Nov 2013 22:32:20 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAD3WG7Z084018
-	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 04:32:18 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 940D72A1F80
-	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 04:32:10 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20131113033210.940D72A1F80@tschai.lan>
-Date: Wed, 13 Nov 2013 04:32:10 +0100 (CET)
+	Mon, 11 Nov 2013 11:19:53 -0500
+Date: Mon, 11 Nov 2013 16:19:46 +0000
+From: Mark Rutland <mark.rutland@arm.com>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"swarren@wwwdotorg.org" <swarren@wwwdotorg.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	"galak@codeaurora.org" <galak@codeaurora.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sachin.kamat@linaro.org" <sachin.kamat@linaro.org>,
+	"shaik.ameer@samsung.com" <shaik.ameer@samsung.com>,
+	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>,
+	"arunkk.samsung@gmail.com" <arunkk.samsung@gmail.com>
+Subject: Re: [PATCH v9 02/13] [media] exynos5-fimc-is: Add Exynos5 FIMC-IS
+ device tree bindings documentation
+Message-ID: <20131111161945.GL21201@e106331-lin.cambridge.arm.com>
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+ <1380279558-21651-3-git-send-email-arun.kk@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380279558-21651-3-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Sep 27, 2013 at 11:59:07AM +0100, Arun Kumar K wrote:
+> The patch adds the DT binding documentation for Samsung
+> Exynos5 SoC series imaging subsystem (FIMC-IS).
+> 
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  .../devicetree/bindings/media/exynos5-fimc-is.txt  |   84 ++++++++++++++++++++
+>  1 file changed, 84 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> new file mode 100644
+> index 0000000..0525417
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+> @@ -0,0 +1,84 @@
+> +Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+> +------------------------------------------------------
+> +
+> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+> +handle sensor controls and camera post-processing operations. The
+> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+> +dedicated scalers (SCC and SCP).
+> +
+> +fimc-is node
+> +------------
+> +
+> +Required properties:
+> +
+> +- compatible        : must be "samsung,exynos5250-fimc-is"
 
-Results of the daily build of media_tree:
+s/must be/should contain/
 
-date:		Wed Nov 13 04:00:21 CET 2013
-git branch:	test
-git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.1-amd64
+> +- reg               : physical base address and size of the memory mapped
+> +                      registers
+> +- interrupt-parent  : parent interrupt controller
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Is this actually necessary? Is it not implicit in most cases?
 
-Detailed results are available here:
+> +- interrupts        : fimc-is interrupt to the parent interrupt controller
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+- interrupts: interrupt-specifier for the sole interrupt generated by
+  the device.
 
-Full logs are available here:
+> +- clocks            : list of clock specifiers, corresponding to entries in
+> +                      clock-names property
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+- clocks: A list of phandle + clock-specifier pairs corresponding to
+  entries in clock-names
 
-The Media Infrastructure API from this daily build is here:
+> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
+> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
+> +                      matching entries in the clocks property
+> +- samsung,pmu       : phandle to the Power Management Unit (PMU) node
+> +
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+It may be worth point out that #address-cells, #size-cells, and ranges
+need to be present as approriate for mapping sub-nodes.
+
+> +i2c-isp (ISP I2C bus controller) nodes
+> +--------------------------------------
+> +The i2c-isp node is defined as the child node of fimc-is.
+> +
+> +Required properties:
+> +
+> +- compatible	: should be "samsung,exynos4212-i2c-isp" for Exynos4212,
+> +		  Exynos4412 and Exynos5250 SoCs
+
+s/should be/should contain/
+
+> +- reg		: physical base address and length of the registers set
+> +- clocks	: must contain gate clock specifier for this controller
+> +- clock-names	: must contain "i2c_isp" entry
+
+Please reword clocks to be in terms of clock-names, as above. e.g.
+
+- clocks: A list of phandle + clock-specifier pairs corresponding to
+  entries in clock-names
+- clock-names: Should contain "i2c_isp" fot the gate clock
+
+Otherwise, I think this looks ok.
+
+Cheers,
+Mark.
