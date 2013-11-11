@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f53.google.com ([209.85.128.53]:50155 "EHLO
-	mail-qe0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930Ab3KHNl6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 08:41:58 -0500
-Received: by mail-qe0-f53.google.com with SMTP id cy11so1832108qeb.40
-        for <linux-media@vger.kernel.org>; Fri, 08 Nov 2013 05:41:56 -0800 (PST)
+Received: from mga03.intel.com ([143.182.124.21]:13336 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753946Ab3KKR2O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Nov 2013 12:28:14 -0500
+Message-ID: <5281139D.1050801@linux.intel.com>
+Date: Mon, 11 Nov 2013 19:27:57 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20131108103921.GB25342@valkosipuli.retiisi.org.uk>
-References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
- <3183788.gODlx1VQRn@avalon> <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
- <20131108103921.GB25342@valkosipuli.retiisi.org.uk>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 8 Nov 2013 14:41:36 +0100
-Message-ID: <CAPybu_3GCT2joBHM4_yBAKXj=VQHy67J3sd5+oMVujj9aQV3eQ@mail.gmail.com>
-Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, vinod.govindapillai@intel.com
+Subject: Re: [PATCH 1/1] v4l: Add frame end event
+References: <1383311443-7863-1-git-send-email-sakari.ailus@linux.intel.com> <5280CA88.8030207@xs4all.nl>
+In-Reply-To: <5280CA88.8030207@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari
+Hi Hans,
 
-On Fri, Nov 8, 2013 at 11:39 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Fri, Nov 08, 2013 at 11:12:54AM +0100, Ricardo Ribalda Delgado wrote:
-> ...
->> Also I am not aware of a reason why clamp_t is better than clamp (I am
->> probably wrong here....). If there is a good reason for not using
->> clamp_t I have no problem in reviewing again the patch and use
->> unsigned constants.
+Thanks for your comments.
+
+Hans Verkuil wrote:
+...
+> I have no objections to this patch. You do need to adapt drivers/media/platform/omap3isp/ispccdc.c
+> a bit since it is using the FRAME_SYNC event and so it should check the id field.
+
+Good point.
+
+> But will you also be upstreaming a driver that uses the SYNC_END?
 >
-> clamp_t() should only be used if you need to force a type for the clamping
-> operation. It's always better if you don't have to, and all the arguments
-> are of the same type: type casting can have an effect on the end result and
-> bugs related to that can be difficult to find.
->
+> I don't really want to merge this if nobody is using it.
 
-But IMHO in these case, we will cause much more castings in other
-places. I find more descriptive a casting via clamp_t, than via ().
+I agree --- I can't say right now when there could be an upstreamable 
+driver using that event. Let's keep it out of the tree for now.
 
-Regards!
+Especially that after giving some thought to the multi stream use cases 
+--- now arguing against my own proposal ;-) --- the "id" field would be 
+better used to make a difference between different streams, especially 
+for the frame start event. We're not exactly running out of possible 
+values for the type field.
 
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
-
-
+So I'd now prefer an entirely separate event to tell about the frame 
+end, and perhaps add an alias for the frame sync event (FRAME_START). 
+(This again is a proof of why things that are not going to get used 
+pretty much immediately should almost never be merged.) I can send a 
+patch on that as well, and, should someone else need it, that one can be 
+merged, naturally after a review.
 
 -- 
-Ricardo Ribalda
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
