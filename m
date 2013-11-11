@@ -1,272 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41626 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753740Ab3K2SVS (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1058 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753515Ab3KKOii (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 13:21:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 7/9] vb2: add thread support
-Date: Fri, 29 Nov 2013 19:21:17 +0100
-Message-ID: <2319725.0dGUTBP8Q9@avalon>
-In-Reply-To: <2d9fc3a471c865ec61e1d2243140e5985940c5b7.1385719098.git.hans.verkuil@cisco.com>
-References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl> <2d9fc3a471c865ec61e1d2243140e5985940c5b7.1385719098.git.hans.verkuil@cisco.com>
+	Mon, 11 Nov 2013 09:38:38 -0500
+Message-ID: <5280EBD4.5010505@xs4all.nl>
+Date: Mon, 11 Nov 2013 15:38:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi> <1384179541.1949.24.camel@palomino.walls.org>
+In-Reply-To: <1384179541.1949.24.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 11/11/2013 03:19 PM, Andy Walls wrote:
+> On Sun, 2013-11-10 at 19:16 +0200, Antti Palosaari wrote:
+>> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
+>> used format for baseband signals.
+> 
+> Hi Annti,
+> 
+> I don't think this a good idea.  Floating point representations are
+> inherently non-portable.  Even though most everything now uses IEEE-754
+> representation, things like denormaliazed numbers may be treated
+> differently by different machines.  If someone saves the data to a file,
+> endianess issues aside, there are no guarantees that a different machine
+> reading is going to interpret all the floating point data from that file
+> properly.
+> 
+> I really would recommend staying with scaled integer representations or
+> explicit integer mantissa, exponent representations.
 
-Thank you for the patch.
+For what it's worth: ALSA does support float format as well (both LE and BE).
 
-On Friday 29 November 2013 10:58:42 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> In order to implement vb2 DVB or ALSA support you need to be able to start
-> a kernel thread that queues and dequeues buffers, calling a callback
-> function for every captured/displayed buffer. This patch adds support for
-> that.
-> 
-> It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the DVB
-> specific stuff stripped out, thus making it much more generic.
-
-Do you see any use for this outside of videobuf2-dvb ? If not I wonder whether 
-the code shouldn't be moved there. The sync objects framework being developed 
-for KMS will in my opinion cover the other use cases, and I'd like to 
-discourage non-DVB drivers to use vb2 threads in the meantime.
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 134 ++++++++++++++++++++++++++++
->  include/media/videobuf2-core.h           |  28 +++++++
->  2 files changed, 162 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 853d391..a86d033 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -6,6 +6,9 @@
->   * Author: Pawel Osciak <pawel@osciak.com>
->   *	   Marek Szyprowski <m.szyprowski@samsung.com>
->   *
-> + * The vb2_thread implementation was based on code from videobuf-dvb.c:
-> + * 	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
-> + *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
->   * the Free Software Foundation.
-> @@ -18,6 +21,8 @@
->  #include <linux/poll.h>
->  #include <linux/slab.h>
->  #include <linux/sched.h>
-> +#include <linux/freezer.h>
-> +#include <linux/kthread.h>
-> 
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
-> @@ -2508,6 +2513,135 @@ size_t vb2_write(struct vb2_queue *q, const char
-> __user *data, size_t count, }
->  EXPORT_SYMBOL_GPL(vb2_write);
-> 
-> +struct vb2_threadio_data {
-> +	struct task_struct *thread;
-> +	vb2_thread_fnc fnc;
-> +	void *priv;
-> +	bool stop;
-> +};
-> +
-> +static int vb2_thread(void *data)
-> +{
-> +	struct vb2_queue *q = data;
-> +	struct vb2_threadio_data *threadio = q->threadio;
-> +	struct vb2_fileio_data *fileio = q->fileio;
-> +	int prequeue = 0;
-> +	int index = 0;
-> +	int ret = 0;
-> +
-> +	if (V4L2_TYPE_IS_OUTPUT(q->type))
-> +		prequeue = q->num_buffers;
-> +
-> +	set_freezable();
-> +
-> +	for (;;) {
-> +		struct vb2_buffer *vb;
-> +
-> +		/*
-> +		 * Call vb2_dqbuf to get buffer back.
-> +		 */
-> +		memset(&fileio->b, 0, sizeof(fileio->b));
-> +		fileio->b.type = q->type;
-> +		fileio->b.memory = q->memory;
-> +		if (prequeue) {
-> +			fileio->b.index = index++;
-> +			prequeue--;
-> +		} else {
-> +			call_qop(q, wait_finish, q);
-> +			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
-> +			call_qop(q, wait_prepare, q);
-> +			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
-> +		}
-> +		if (threadio->stop)
-> +			break;
-> +		if (ret)
-> +			break;
-> +		try_to_freeze();
-> +
-> +		vb = q->bufs[fileio->b.index];
-> +		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
-> +			ret = threadio->fnc(vb, threadio->priv);
-> +		if (ret)
-> +			break;
-> +		call_qop(q, wait_finish, q);
-> +		ret = vb2_internal_qbuf(q, &fileio->b);
-> +		call_qop(q, wait_prepare, q);
-> +		if (ret)
-> +			break;
-> +	}
-> +
-> +	/* Hmm, linux becomes *very* unhappy without this ... */
-> +	while (!kthread_should_stop()) {
-> +		set_current_state(TASK_INTERRUPTIBLE);
-> +		schedule();
-> +	}
-> +	return 0;
-> +}
-> +
-> +int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
-> +		     const char *thread_name)
-> +{
-> +	struct vb2_threadio_data *threadio;
-> +	int ret = 0;
-> +
-> +	if (q->threadio)
-> +		return -EBUSY;
-> +	if (vb2_is_busy(q))
-> +		return -EBUSY;
-> +	if (WARN_ON(q->fileio))
-> +		return -EBUSY;
-> +
-> +	threadio = kzalloc(sizeof(*threadio), GFP_KERNEL);
-> +	if (threadio == NULL)
-> +		return -ENOMEM;
-> +	threadio->fnc = fnc;
-> +	threadio->priv = priv;
-> +
-> +	ret = __vb2_init_fileio(q, !V4L2_TYPE_IS_OUTPUT(q->type));
-> +	dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
-> +	if (ret)
-> +		goto nomem;
-> +	q->threadio = threadio;
-> +	threadio->thread = kthread_run(vb2_thread, q, "vb2-%s", thread_name);
-> +	if (IS_ERR(threadio->thread)) {
-> +		ret = PTR_ERR(threadio->thread);
-> +		threadio->thread = NULL;
-> +		goto nothread;
-> +	}
-> +	return 0;
-> +
-> +nothread:
-> +	__vb2_cleanup_fileio(q);
-> +nomem:
-> +	kfree(threadio);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_thread_start);
-> +
-> +int vb2_thread_stop(struct vb2_queue *q)
-> +{
-> +	struct vb2_threadio_data *threadio = q->threadio;
-> +	struct vb2_fileio_data *fileio = q->fileio;
-> +	int err;
-> +
-> +	if (threadio == NULL)
-> +		return 0;
-> +	call_qop(q, wait_finish, q);
-> +	threadio->stop = true;
-> +	vb2_internal_streamoff(q, q->type);
-> +	call_qop(q, wait_prepare, q);
-> +	q->fileio = NULL;
-> +	fileio->req.count = 0;
-> +	vb2_reqbufs(q, &fileio->req);
-> +	kfree(fileio);
-> +	err = kthread_stop(threadio->thread);
-> +	threadio->thread = NULL;
-> +	kfree(threadio);
-> +	q->fileio = NULL;
-> +	q->threadio = NULL;
-> +	return err;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_thread_stop);
-> 
->  /*
->   * The following functions are not part of the vb2 core API, but are helper
-> diff --git a/include/media/videobuf2-core.h
-> b/include/media/videobuf2-core.h index 1be7f39..7dea795 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -20,6 +20,7 @@
-> 
->  struct vb2_alloc_ctx;
->  struct vb2_fileio_data;
-> +struct vb2_threadio_data;
-> 
->  /**
->   * struct vb2_mem_ops - memory handling/memory allocator operations
-> @@ -330,6 +331,7 @@ struct v4l2_fh;
->   *		buffers queued. If set, then retry calling start_streaming when
->   *		queuing a new buffer.
->   * @fileio:	file io emulator internal data, used only if emulator is 
-active
-> + * @threadio:	thread io internal data, used only if thread is active */
->  struct vb2_queue {
->  	enum v4l2_buf_type		type;
-> @@ -364,6 +366,7 @@ struct vb2_queue {
->  	unsigned int			retry_start_streaming:1;
-> 
->  	struct vb2_fileio_data		*fileio;
-> +	struct vb2_threadio_data	*threadio;
->  };
-> 
->  void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
-> @@ -402,6 +405,31 @@ size_t vb2_read(struct vb2_queue *q, char __user *data,
-> size_t count, loff_t *ppos, int nonblock);
->  size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t
-> count, loff_t *ppos, int nonblock);
-> +/**
-> + * vb2_thread_fnc - callback function for use with vb2_thread
-> + *
-> + * This is called whenever a buffer is dequeued in the thread.
-> + */
-> +typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
-> +
-> +/**
-> + * vb2_thread_start() - start a thread for the given queue.
-> + * @q:		videobuf queue
-> + * @fnc:	callback function
-> + * @priv:	priv pointer passed to the callback function
-> + * @thread_name:the name of the thread. This will be prefixed with "vb2-".
-> + *
-> + * This starts a thread that will queue and dequeue until an error occurs
-> + * or @vb2_thread_stop is called.
-> + */
-> +int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
-> +		     const char *thread_name);
-> +
-> +/**
-> + * vb2_thread_stop() - stop the thread for the given queue.
-> + * @q:		videobuf queue
-> + */
-> +int vb2_thread_stop(struct vb2_queue *q);
-> 
->  /**
->   * vb2_is_streaming() - return streaming status of the queue
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Two more comments below...
+> 
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>  contrib/freebsd/include/linux/videodev2.h |  4 ++++
+>>  include/linux/videodev2.h                 |  4 ++++
+>>  lib/libv4lconvert/libv4lconvert.c         | 29 ++++++++++++++++++++++++++++-
+>>  3 files changed, 36 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+>> index 1fcfaeb..8829400 100644
+>> --- a/contrib/freebsd/include/linux/videodev2.h
+>> +++ b/contrib/freebsd/include/linux/videodev2.h
+>> @@ -465,6 +465,10 @@ struct v4l2_pix_format {
+>>  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>  
+>> +/* SDR */
+>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>> +
+>>  /*
+>>   *	F O R M A T   E N U M E R A T I O N
+>>   */
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 437f1b0..14299a6 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -431,6 +431,10 @@ struct v4l2_pix_format {
+>>  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>  
+>> +/* SDR */
+>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>> +
+>>  /*
+>>   *	F O R M A T   E N U M E R A T I O N
+>>   */
+>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>> index e2afc27..38c9125 100644
+>> --- a/lib/libv4lconvert/libv4lconvert.c
+>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
+>>  	{ V4L2_PIX_FMT_RGB24,		24,	 1,	 5,	0 }, \
+>>  	{ V4L2_PIX_FMT_BGR24,		24,	 1,	 5,	0 }, \
+>>  	{ V4L2_PIX_FMT_YUV420,		12,	 6,	 1,	0 }, \
+>> -	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }
+>> +	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }, \
+>> +	{ V4L2_PIX_FMT_FLOAT,		 0,	 0,	 0,	0 }
+>>  
+>>  static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>  	SUPPORTED_DST_PIXFMTS,
+>> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>  	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
+>>  	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
+>>  	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
+>> +	/* SDR formats */
+>> +	{ V4L2_PIX_FMT_U8,		0,	0,	0,	0 },
+>>  };
+>>  
+>>  static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+>> @@ -1281,6 +1284,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>  		}
+>>  		break;
+>>  
+>> +	/* SDR */
+>> +	case V4L2_PIX_FMT_U8:
+>> +		switch (dest_pix_fmt) {
+>> +		case V4L2_PIX_FMT_FLOAT:
+>> +			{
+>> +				/* 8-bit unsigned to 32-bit float */
+>> +				unsigned int i;
+>> +				float ftmp;
+>> +				for (i = 0; i < src_size; i++) {
+>> +					ftmp = *src++;
+>> +					ftmp -= 127.5;
+>> +					ftmp /= 127.5;
+>> +					memcpy(dest, &ftmp, 4);
+>> +					dest += 4;
+> 
+> Replace the 4's with sizeof(float).
+> 
+> You have no guarantees that sizeof(float) == 4, but it is usally a safe
+> assumption for 'float' on Unix.
+> 
+> sizeof(long double) is certainly different for IA32 machines (80 bits)
+> vs. other 32 bit platforms.  I was burned by this many years ago on a
+> RedHat 9.0 machine (the GNU Ada Translator's libm bindings made some bad
+> assumptions about the size of float types).
+> 
+> 
+>> +				}
+>> +			}
+>> +		}
+>> +		break;
+>> +
+>>  	default:
+>>  		V4LCONVERT_ERR("Unknown src format in conversion\n");
+>>  		errno = EINVAL;
+>> @@ -1349,6 +1371,11 @@ int v4lconvert_convert(struct v4lconvert_data *data,
+>>  		temp_needed =
+>>  			my_src_fmt.fmt.pix.width * my_src_fmt.fmt.pix.height * 3 / 2;
+>>  		break;
+>> +	/* SDR */
+>> +	case V4L2_PIX_FMT_FLOAT:
+>> +		dest_needed = src_size * 4; /* 8-bit to 32-bit */
+> 
+> Change the 4 to sizeof(float).
+> 
+>> +		temp_needed = dest_needed;
+>> +		break;
+>>  	default:
+>>  		V4LCONVERT_ERR("Unknown dest format in conversion\n");
+>>  		errno = EINVAL;
+> 
+> Regards,
+> Andy
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
