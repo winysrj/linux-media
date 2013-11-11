@@ -1,48 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60709 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab3KBQdi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:38 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 01/29] tda9887: remove an warning when compiling for alpha
-Date: Sat,  2 Nov 2013 11:31:09 -0200
-Message-Id: <1383399097-11615-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4983 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753298Ab3KKLHy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Nov 2013 06:07:54 -0500
+Message-ID: <5280BA7E.3080908@xs4all.nl>
+Date: Mon, 11 Nov 2013 12:07:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Rajil Saraswat <rajil.s@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
+References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>  <1381371651.1889.21.camel@palomino.walls.org>  <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>  <1381620192.22245.18.camel@palomino.walls.org>  <1381668541.2209.14.camel@palomino.walls.org>  <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>  <1381707800.1875.63.camel@palomino.walls.org>  <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com>  <1382202581.2405.5.camel@palomino.walls.org> <527796AD.2000000@xs4all.nl> <1383697544.1862.7.camel@palomino.walls.org>
+In-Reply-To: <1383697544.1862.7.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no need to zero the buffer, as if the routine gets an error,
-rc will be different than one.
+On 11/06/2013 01:25 AM, Andy Walls wrote:
+> On Mon, 2013-11-04 at 13:44 +0100, Hans Verkuil wrote:
+>> On 10/19/2013 07:09 PM, Andy Walls wrote:
+>>> On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
+> 
+>>> Try applying the following (untested) patch that is made against the
+>>> bleeding edge Linux kernel.  The test on the mute control state in
+>>> wm8775_s_routing() appears to have been inverted in the bad commit you
+>>> isolated.
+>>
+>> Aargh! I'm pretty sure that's the culprit. Man, that's been broken for ages.
+> 
+> Hi Hans,
+> 
+> Yes, and only *one* person reported it in those years.  I suspect very
+> few people use the comination of conventional PCI, analog video, and
+> SVideo 2 or Composite 2 anymore.
+> 
+> 
+>> I'll see if I can test this patch this week.
+> 
+> Thanks!  I'm very busy at work until mid-December.
 
-That fixes the following warning:
-	drivers/media/tuners/tda9887.c: In function 'tda9887_status':
-	drivers/media/tuners/tda9887.c:539:2: warning: value computed is not used [-Wunused-value]
+I finally managed to test this and this patch does indeed fix the bug. I'll make
+a pull request for this.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/tuners/tda9887.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/tuners/tda9887.c b/drivers/media/tuners/tda9887.c
-index 300005c535ba..9823248d743f 100644
---- a/drivers/media/tuners/tda9887.c
-+++ b/drivers/media/tuners/tda9887.c
-@@ -536,8 +536,8 @@ static int tda9887_status(struct dvb_frontend *fe)
- 	unsigned char buf[1];
- 	int rc;
- 
--	memset(buf,0,sizeof(buf));
--	if (1 != (rc = tuner_i2c_xfer_recv(&priv->i2c_props,buf,1)))
-+	rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, 1);
-+	if (rc != 1)
- 		tuner_info("i2c i/o error: rc == %d (should be 1)\n", rc);
- 	dump_read_message(fe, buf);
- 	return 0;
--- 
-1.8.3.1
-
+	Hans
