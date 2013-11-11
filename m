@@ -1,43 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:58142 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175Ab3KFSso (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 13:48:44 -0500
-Received: by mail-lb0-f172.google.com with SMTP id c11so56935lbj.17
-        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 10:48:43 -0800 (PST)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org (open list:VIDEOBUF2 FRAMEWORK)
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] videobuf2-dma-sg: Fix typo on debug message
-Date: Wed,  6 Nov 2013 19:48:38 +0100
-Message-Id: <1383763718-6207-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44153 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab3KKBss (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Nov 2013 20:48:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1 15/19] uvcvideo: Add support for VP8 special frame flags.
+Date: Mon, 11 Nov 2013 02:49:23 +0100
+Message-ID: <1422068.tIH6xFQx9B@avalon>
+In-Reply-To: <1377829038-4726-16-git-send-email-posciak@chromium.org>
+References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-16-git-send-email-posciak@chromium.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-num_pages_from_user and buf->num_pages were swapped.
+Hi Pawel,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 16ae3dc..72353e4 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -174,7 +174,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- userptr_fail_get_user_pages:
- 	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--	       num_pages_from_user, buf->sg_desc.num_pages);
-+		buf->sg_desc.num_pages, num_pages_from_user);
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
- 	kfree(buf->pages);
+On Friday 30 August 2013 11:17:14 Pawel Osciak wrote:
+
+Commit message missing :-)
+
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 18 +++++++++++++++++-
+>  drivers/media/usb/uvc/uvcvideo.h  | 10 ++++++++++
+>  2 files changed, 27 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 59f57a2..0291817 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1136,6 +1136,8 @@ static int uvc_video_parse_header(struct uvc_streaming
+> *stream, if (header->has_scr)
+>  		header->length += 6;
+> 
+> +	header->buf_flags = 0;
+> +
+
+I would have moved this initialization line above right after header->length, 
+to keep it before the conditional checks, but that's up to you.
+
+>  	if (stream->cur_format->fcc == V4L2_PIX_FMT_VP8) {
+>  		/* VP8 payload has 2 additional bytes of BFH. */
+>  		header->length += 2;
+> @@ -1147,6 +1149,16 @@ static int uvc_video_parse_header(struct
+> uvc_streaming *stream, header->has_sli = data[1] & UVC_STREAM_SLI;
+>  		if (header->has_sli)
+>  			header->length += 2;
+> +
+> +		/* Codec-specific flags for v4l2_buffer. */
+> +		header->buf_flags |= (data[1] & UVC_STREAM_STI) ?
+> +					V4L2_BUF_FLAG_KEYFRAME : 0;
+
+Is a keyframe the same thing as an intraframe ?
+
+> +		header->buf_flags |= (data[2] & UVC_STREAM_VP8_PRF) ?
+> +					V4L2_BUF_FLAG_PREV_FRAME : 0;
+> +		header->buf_flags |= (data[2] & UVC_STREAM_VP8_ARF) ?
+> +					V4L2_BUF_FLAG_ALTREF_FRAME : 0;
+> +		header->buf_flags |= (data[2] & UVC_STREAM_VP8_GRF) ?
+> +					V4L2_BUF_FLAG_GOLDEN_FRAME : 0;
+>  	}
+> 
+>  	/* - bHeaderLength value can't be larger than the packet size. */
+> @@ -1222,6 +1234,8 @@ static void uvc_video_decode_isoc(struct urb *urb,
+> struct uvc_streaming *stream) if (ret < 0)
+>  			continue;
+> 
+> +		buf->buf.v4l2_buf.flags |= header.buf_flags;
+
+What about moving this line to the end of uvc_video_decode_data(), right 
+before it returns successfully ?
+
+> +
+>  		/* Decode the payload data. */
+>  		uvc_video_decode_data(stream, buf, mem + header.length,
+>  			urb->iso_frame_desc[i].actual_length - header.length);
+> @@ -1293,8 +1307,10 @@ static void uvc_video_decode_bulk(struct urb *urb,
+> struct uvc_streaming *stream) */
+> 
+>  	/* Process video data. */
+> -	if (!stream->bulk.skip_payload && buf != NULL)
+> +	if (!stream->bulk.skip_payload && buf != NULL) {
+>  		uvc_video_decode_data(stream, buf, mem, len);
+> +		buf->buf.v4l2_buf.flags |= header.buf_flags;
+> +	}
+> 
+>  	/* Detect the payload end by a URB smaller than the maximum size (or
+>  	 * a payload size equal to the maximum) and process the header again.
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index b355b2c..fb21459 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -145,6 +145,14 @@
+>  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+>  #define UVC_FMT_FLAG_STREAM		0x00000002
+> 
+> +/* v4l2_buffer codec flags */
+> +#define UVC_V4L2_BUFFER_CODEC_FLAGS	(V4L2_BUF_FLAG_KEYFRAME | \
+> +					 V4L2_BUF_FLAG_PFRAME | \
+> +					 V4L2_BUF_FLAG_BFRAME | \
+> +					 V4L2_BUF_FLAG_PREV_FRAME | \
+> +					 V4L2_BUF_FLAG_GOLDEN_FRAME | \
+> +					 V4L2_BUF_FLAG_ALTREF_FRAME)
+
+This isn't used in this patch, could you move it to the patch that needs it ?
+
+> +
+>  /* ------------------------------------------------------------------------
+> * Structures.
+>   */
+> @@ -472,6 +480,8 @@ struct uvc_payload_header {
+> 
+>  	int length;
+>  	int payload_size;
+> +
+> +	__u32 buf_flags; /* v4l2_buffer flags */
+>  };
+> 
+>  struct uvc_streaming {
 -- 
-1.8.4.rc3
+Regards,
+
+Laurent Pinchart
 
