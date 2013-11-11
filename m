@@ -1,37 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from edge.cmeerw.net ([84.200.12.152]:57782 "EHLO edge.cmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753025Ab3KCIFI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Nov 2013 03:05:08 -0500
-Date: Sun, 3 Nov 2013 09:05:04 +0100
-From: Christof Meerwald <cmeerw@cmeerw.org>
-To: Alistair Buxton <a.j.buxton@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: RTL2832U DAB Support?
-Message-ID: <20131103080504.GO1406@edge.cmeerw.net>
-References: <20131027164538.GK1406@edge.cmeerw.net>
- <CAO-Op+GWkJ_31o8VpUPFOGr3_HwatcboD4T5xwTS6-D=YXqReA@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50887 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753401Ab3KKXll (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Nov 2013 18:41:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Valentine Barshak <valentine.barshak@cogentembedded.com>
+Cc: linux-media@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 0/3] media: Add SH-Mobile RCAR-H2 Lager board support
+Date: Tue, 12 Nov 2013 00:42:16 +0100
+Message-ID: <2610202.KZTyX0lZUJ@avalon>
+In-Reply-To: <1380029916-10331-1-git-send-email-valentine.barshak@cogentembedded.com>
+References: <1380029916-10331-1-git-send-email-valentine.barshak@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAO-Op+GWkJ_31o8VpUPFOGr3_HwatcboD4T5xwTS6-D=YXqReA@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 02, 2013 at 10:23:07PM +0000, Alistair Buxton wrote:
-> You can listen to DAB with http://www.sdr-j.tk/index.html
+Hi Valentine,
+
+On Tuesday 24 September 2013 17:38:33 Valentine Barshak wrote:
+> The following patches add ADV7611/ADV7612 HDMI receiver I2C driver
+> and add RCAR H2 SOC support along with ADV761x output format support
+> to rcar_vin soc_camera driver.
 > 
-> You need a powerful CPU though, and you might have to unload the DVB
-> driver first.
+> These changes are needed for SH-Mobile R8A7790 Lager board
+> video input support.
 
-Ok, thanks. I was hoping to turn my Beaglebone Black (1 GHz ARMv7 CPU)
-into a DAB radio, but looks like I'll have to stick with audio
-stations on DVB-T instead for the moment...
+Do you plan to submit a v2 ? I need the ADV761x driver pretty soon and I'd 
+like to avoid submitting a competing patch :-)
 
-
-Christof
-
+> Valentine Barshak (3):
+>   media: i2c: Add ADV761X support
+>   media: rcar_vin: Add preliminary r8a7790 H2 support
+>   media: rcar_vin: Add RGB888_1X24 input format support
+> 
+>  drivers/media/i2c/Kconfig                    |   11 +
+>  drivers/media/i2c/Makefile                   |    1 +
+>  drivers/media/i2c/adv761x.c                  | 1060 +++++++++++++++++++++++
+>  drivers/media/platform/soc_camera/rcar_vin.c |   17 +-
+>  include/media/adv761x.h                      |   28 +
+>  5 files changed, 1114 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/media/i2c/adv761x.c
+>  create mode 100644 include/media/adv761x.h
 -- 
+Regards,
 
-http://cmeerw.org                              sip:cmeerw at cmeerw.org
-mailto:cmeerw at cmeerw.org                   xmpp:cmeerw at cmeerw.org
+Laurent Pinchart
+
