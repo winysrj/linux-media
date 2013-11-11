@@ -1,70 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-058.synserver.de ([212.40.185.58]:1028 "EHLO
-	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757686Ab3KZVm6 (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:44289 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753173Ab3KKQMW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 16:42:58 -0500
-Message-ID: <52951604.2050603@metafoo.de>
-Date: Tue, 26 Nov 2013 22:43:32 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
+	Mon, 11 Nov 2013 11:12:22 -0500
+Date: Mon, 11 Nov 2013 16:12:13 +0000
+From: Mark Rutland <mark.rutland@arm.com>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"swarren@wwwdotorg.org" <swarren@wwwdotorg.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	"galak@codeaurora.org" <galak@codeaurora.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sachin.kamat@linaro.org" <sachin.kamat@linaro.org>,
+	"shaik.ameer@samsung.com" <shaik.ameer@samsung.com>,
+	"kilyeon.im@samsung.com" <kilyeon.im@samsung.com>,
+	"arunkk.samsung@gmail.com" <arunkk.samsung@gmail.com>
+Subject: Re: [PATCH v9 01/13] [media] exynos5-is: Adding media device
+ driver for exynos5
+Message-ID: <20131111161213.GK21201@e106331-lin.cambridge.arm.com>
+References: <1380279558-21651-1-git-send-email-arun.kk@samsung.com>
+ <1380279558-21651-2-git-send-email-arun.kk@samsung.com>
 MIME-Version: 1.0
-To: Valentine <valentine.barshak@cogentembedded.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com>
-In-Reply-To: <52951270.9040804@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1380279558-21651-2-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2013 10:28 PM, Valentine wrote:
-> On 11/20/2013 07:53 PM, Valentine wrote:
->> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
->>> Hi Valentine,
+On Fri, Sep 27, 2013 at 11:59:06AM +0100, Arun Kumar K wrote:
+> From: Shaik Ameer Basha <shaik.ameer@samsung.com>
 > 
-> Hi Hans,
-> 
->>>
->>> Did you ever look at this adv7611 driver:
->>>
->>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
->>>
->>
->> No, I missed that one somehow, although I did search for the adv7611/7612
->> before implementing this one.
->> I'm going to look closer at the patch and test it.
->>
-> 
-> I've tried the patch and I doubt that it was ever tested on adv7611.
-
-It was and it works.
-
-> I haven't been able to make it work so far. Here's the description of some
-> of the issues
-> I've encountered.
-> 
-> The patch does not apply cleanly so I had to make small adjustments just to
-> make it apply
-> without changing the functionality.
-
-I have an updated version of the patch, which I intend to submit soon.
-
+> This patch adds support for media device for EXYNOS5 SoCs.
+> The current media device supports the following ips to connect
+> through the media controller framework.
+ 
 [...]
->>>
->>> It adds adv761x support to the adv7604 in a pretty clean way.
-> 
-> Doesn't seem that clean to me after having a look at it.
-> It tries to handle both 7604 and 7611 chips in the same way, though,
-> I'm not exactly sure if it's a good idea since 7611/12 is a pure HDMI
-> receiver with no analog inputs.
 
-It is the same HDMI core (with minor modifications) though. So you end end
-up with largely the same code for the 7604 and the 7611.
+> diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+> new file mode 100644
+> index 0000000..09420ba
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+> @@ -0,0 +1,126 @@
+> +Samsung EXYNOS5 SoC Camera Subsystem
+> +------------------------------------
+> +
+> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
+> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
+> +MIPI CSIS and FIMC-IS.
+> +
+> +The sub-device nodes are referenced using phandles in the common 'camera' node
+> +which also includes common properties of the whole subsystem not really
+> +specific to any single sub-device, like common camera port pins or the common
+> +camera bus clocks.
+> +
+> +Common 'camera' node
+> +--------------------
+> +
+> +Required properties:
+> +
+> +- compatible           : must be "samsung,exynos5250-fimc"
+> +- clocks               : list of clock specifiers, corresponding to entries in
+> +                          the clock-names property
 
-- Lars
+Minor nit: clocks are references by phandle + clock-specifier pairs, as
+the clock-specifier is separate from the phandle to the clock. 
+
+> +- clock-names          : must contain "sclk_bayer" entry
+> +- samsung,csis         : list of phandles to the mipi-csis device nodes
+> +- samsung,fimc-lite    : list of phandles to the fimc-lite device nodes
+> +- samsung,fimc-is      : phandle to the fimc-is device node
+> +
+> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+> +to define a required pinctrl state named "default".
+> +
+> +'parallel-ports' node
+> +---------------------
+> +
+> +This node should contain child 'port' nodes specifying active parallel video
+> +input ports. It includes camera A, camera B and RGB bay inputs.
+> +'reg' property in the port nodes specifies the input type:
+> + 1 - parallel camport A
+> + 2 - parallel camport B
+> + 5 - RGB camera bay
+> +
+> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
+
+I believe the parallel ports node must have #address-cells and
+#size-cells defined for the child nodes' reg properties to be
+meaningful. Judging by the examples and code, it seems you expect
+#address-cells = <1> and #size-cells = <0>. It would be nice to have
+that described.
+
+Cheers,
+Mark.
