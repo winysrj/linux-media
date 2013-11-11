@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60726 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413Ab3KBQdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 06/29] iguanair: shut up a gcc warning on avr32 arch
-Date: Sat,  2 Nov 2013 11:31:14 -0200
-Message-Id: <1383399097-11615-7-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from plane.gmane.org ([80.91.229.3]:34509 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754082Ab3KKQIo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Nov 2013 11:08:44 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Vfu2b-0002YA-Ob
+	for linux-media@vger.kernel.org; Mon, 11 Nov 2013 17:08:41 +0100
+Received: from w1622.pub.fh-zwickau.de ([141.32.250.174])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 11 Nov 2013 17:08:41 +0100
+Received: from Bassai_Dai by w1622.pub.fh-zwickau.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 11 Nov 2013 17:08:41 +0100
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: ccdc image capture interrupts
+Date: Mon, 11 Nov 2013 16:08:17 +0000 (UTC)
+Message-ID: <loom.20131111T170156-504@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	drivers/media/rc/iguanair.c: In function 'iguanair_set_tx_carrier':
-	drivers/media/rc/iguanair.c:304: warning: 'sevens' may be used uninitialized in this function
+Hello,
 
-This is clearly a gcc bug, but it doesn't hurt to add a default line
-at the switch to shut it up.
+I want to capture an image with my ov3640 camera sensor connected with a 
+gumstix overo board. I tried to change the isp registers and the registers of 
+the ov3640 like in an old driver which worked with kernel version 2.6.34. I 
+was able to get an image but I don't understand what the problem might be. 
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/rc/iguanair.c | 1 +
- 1 file changed, 1 insertion(+)
+sudo ./media-ctl -v -r -l '"ov3640 3-003c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+sudo ./media-ctl -v -V '"ov3640 3-003c":0 [UYVY2X8 640x480], "OMAP3 ISP 
+CCDC":1 [UYVY2X8 640x480]'
+sudo ./yavta -p -f UYVY -s 640x480 -n 4 --skip 3 --capture=13 --file=img#.raw 
+/dev/video2
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 19632b1c2190..67e5667db2eb 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -320,6 +320,7 @@ static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
- 			sevens = 2;
- 			break;
- 		case 3:
-+		default:
- 			sevens = 1;
- 			break;
- 		}
--- 
-1.8.3.1
+the picture I got looks like this (should be a standard test pattern): 
+http://s7.directupload.net/file/d/3435/2s5kuacl_png.htm
+
+does someone know on which signal each of these 3 functions (ccdc_vd0_isr; 
+ccdc_vd1_isr; ccdc_hs_vs_isr) are called. what signal has to be high?
+
+Regards, Tom
 
