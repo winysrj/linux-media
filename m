@@ -1,117 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:57793 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab3KDXVS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 18:21:18 -0500
-Received: by mail-we0-f175.google.com with SMTP id t61so2745746wes.20
-        for <linux-media@vger.kernel.org>; Mon, 04 Nov 2013 15:21:16 -0800 (PST)
-Message-ID: <52782BE9.7080203@gmail.com>
-Date: Tue, 05 Nov 2013 00:21:13 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:33601 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852Ab3KLQu1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Nov 2013 11:50:27 -0500
+Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 23D34D1ADFE
+	for <linux-media@vger.kernel.org>; Tue, 12 Nov 2013 17:50:21 +0100 (CET)
+From: Denis Carikli <denis@eukrea.com>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Denis Carikli <denis@eukrea.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>
+Subject: [PATCHv3 2/8] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Tue, 12 Nov 2013 17:49:19 +0100
+Message-Id: <1384274965-30549-2-git-send-email-denis@eukrea.com>
+In-Reply-To: <1384274965-30549-1-git-send-email-denis@eukrea.com>
+References: <1384274965-30549-1-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	John Sheu <sheu@google.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Kamil Debski <k.debski@samsung.com>, pawel@osciak.com
-Subject: Re: Fwd: [PATCH 3/6] [media] s5p-mfc: add support for VIDIOC_{G,S}_CROP
- to encoder
-References: <1381362589-32237-1-git-send-email-sheu@google.com> <1381362589-32237-4-git-send-email-sheu@google.com> <52564DE6.6090709@xs4all.nl> <CAErgknA-3bk1BoYa6KJAfO+863DBTi_5U8i_hh7F8O+mXfyNWg@mail.gmail.com> <CAErgknA-ZgSzeeaaEuYKFZ0zonCt=10tBX7FeOT16-yQLZVnZw@mail.gmail.com> <52590184.5030806@xs4all.nl> <CAErgknAXZzbBMm0JeASOVzsXNNyu7Af32hd0t_fR8VkPeVrx4A@mail.gmail.com> <526001DF.9040309@samsung.com> <CAErgknCu2UeEQeY+taSXAbC6F4i=FMTz8t=MhSLUdfQRZXQgAg@mail.gmail.com> <CAErgknDhiSg0v_4KvMuoTX4Xcy9t+d2=+QWJu0riM1B0kQVMcg@mail.gmail.com> <52606AB7.7020200@gmail.com> <CAErgknBEJmVwjG6xs8Es3C8ZkjuDgnM6NUUx07me+Rf2bKdzZg@mail.gmail.com> <52777D9B.9000308@xs4all.nl> <52778515.6070204@samsung.com> <52778E17.1040503@xs4all.nl>
-In-Reply-To: <52778E17.1040503@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-On 11/04/2013 01:07 PM, Hans Verkuil wrote:
-> Let me be precise as to what should happen, and you can check whether that's
-> what is actually done in the fimc and g2d drivers.
->
-> For V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->
-> Say that the mem2mem hardware creates a 640x480 picture. If VIDIOC_S_CROP was
-> called for V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE with a rectangle of 320x240@160x120,
-> then the DMA engine will only transfer the center 320x240 rectangle to memory.
-> This means that S_FMT needs to provide a buffer size large enough to accomodate
-> a 320x240 image.
->
-> So: VIDIOC_S_CROP(CAPTURE) == S_SELECTION(CAPTURE, V4L2_SEL_TGT_CROP).
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: devicetree@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: driverdev-devel@linuxdriverproject.org
+Cc: David Airlie <airlied@linux.ie>
+Cc: dri-devel@lists.freedesktop.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Eric Bénard <eric@eukrea.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 79 insertions(+)
 
-Unfortunately it's not how it currently works at these drivers. For 
-VIDIOC_S_CROP
-called with V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE and a rectangle of 
-320x240@160x120
-the hardware would scale and compose full 640x480 image onto 320x240 
-rectangle
-in the output memory buffer at position 160x120.
-IIRC the g2d device cannot scale so it would not allow to select DMA output
-rectangle smaller than 640x480. But looking at the code it doesn't do 
-any crop
-parameters validation...
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 166c8d6..f6a3e84 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+@@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..e8ff410 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -294,6 +294,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+-- 
+1.7.9.5
 
-So VIDIOC_S_CROP(CAPTURE) is actually being abused on m2m as 
-S_SELECTION(CAPTURE,
-V4L2_SEL_TGT_COMPOSE).
-
-> For V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->
-> Say that the image in memory is a 640x480 picture. If VIDIOC_S_CROP was called
-> for V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE with a rectangle of 320x240@160x120 then
-> this would mean that the full 640x480 image is DMAed to the hardware, is scaled
-> down to 320x240 and composed at position (160x120) in a canvas of at least 480x360.
->
-> In other words, S_CROP behaves as composition for output devices:
-> VIDIOC_S_CROP(OUTPUT) == S_SELECTION(OUTPUT, V4L2_SEL_TGT_COMPOSE).
-
-No, in case of these devices VIDIOC_S_CROP(OUTPUT) does what it actually 
-means -
-the DMA would read only 320x240 rectangle at position 160x120.
-
-> The last operation in particular is almost certainly not what you want for
-> m2m devices. Instead, you want to select (crop) part of the image in memory and
-> DMA that to the device. This is S_SELECTION(OUTPUT, V4L2_SEL_TGT_CROP) and cannot
-> be translated to an S_CROP ioctl.
-
-Yeah, I didn't come yet across a video mem-to-mem hardware that would 
-support steps
-as in your first description of crop on V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE.
-S_SELECTION(OUTPUT, V4L2_SEL_TGT_CROP) seems to have been redefined on 
-mem-to-mem
-devices to do what it actually says. But it's not written anywhere in 
-the spec
-yet, so I guess we could keep the crop ioctls in those drivers, in order 
-to not
-break existing user space, and implement the selection API ioctls after 
-documenting
-its semantics for mem-to-mem devices.
-
-> What's more: in order to implement S_SELECTION(OUTPUT, V4L2_SEL_TGT_COMPOSE) you
-> would need some way of setting the 'canvas' size of the m2m device, and there is
-> no API today to do this (this was discussed during the v4l/dvb mini-summit).
->
-> Regarding the capture side of an m2m device: it is not clear to me what these
-> drivers implement: S_SELECTION(CAPTURE, V4L2_SEL_TGT_CROP) or
->S_SELECTION(CAPTURE, V4L2_SEL_TGT_COMPOSE).
->
-> If it is the latter, then again S_CROP cannot be used and you have to use
->S_SELECTION.
-
-It's equivalent of S_SELECTION(CAPTURE, V4L2_SEL_TGT_COMPOSE). Note that 
-the
-fimc and mfc drivers were written long before the selection API was 
-introduced.
-
-Presumably the crop ioctls should just be deprecated (however handlers 
-left for
-backward compatibility) in those drivers, once there is complete 
-definition of
-the selections API for the m2m video devices.
-It's probably worth to avoid adding any translation layer of such behaviour
-(which doesn't match your definitions above) to the v4l2-core.
-
---
-Regards,
-Sylwester
