@@ -1,93 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:63230 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab3KDMKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 07:10:46 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVQ00HMBN5XZ620@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Nov 2013 07:10:45 -0500 (EST)
-Date: Mon, 04 Nov 2013 10:10:41 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: DVB-C2
-Message-id: <20131104101041.48c5e782@samsung.com>
-In-reply-to: <21110.45135.982014.774220@morden.metzler>
-References: <1382462076-29121-1-git-send-email-guest@puma.are.ma>
- <21095.747.879743.551447@morden.metzler> <20131103093155.50b59b45@samsung.com>
- <52767C57.1050509@iki.fi> <21110.45135.982014.774220@morden.metzler>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:33640 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327Ab3KLQum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Nov 2013 11:50:42 -0500
+Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id CBED8D1B068
+	for <linux-media@vger.kernel.org>; Tue, 12 Nov 2013 17:50:36 +0100 (CET)
+From: Denis Carikli <denis@eukrea.com>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Denis Carikli <denis@eukrea.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>
+Subject: [PATCHv3 4/8] staging: imx-drm: Add RGB666 support for parallel display.
+Date: Tue, 12 Nov 2013 17:49:21 +0100
+Message-Id: <1384274965-30549-4-git-send-email-denis@eukrea.com>
+In-Reply-To: <1384274965-30549-1-git-send-email-denis@eukrea.com>
+References: <1384274965-30549-1-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 03 Nov 2013 21:21:35 +0100
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: devicetree@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: driverdev-devel@linuxdriverproject.org
+Cc: David Airlie <airlied@linux.ie>
+Cc: dri-devel@lists.freedesktop.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Eric Bénard <eric@eukrea.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Removed the commit message long desciption that was just a copy of the short
+  description.
+- Rebased the patch.
+- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
+---
+ .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    2 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    9 +++++++++
+ drivers/staging/imx-drm/parallel-display.c         |    2 ++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-> Antti Palosaari writes:
->  > On 03.11.2013 13:31, Mauro Carvalho Chehab wrote:
->  > > Em Wed, 23 Oct 2013 00:57:47 +0200
->  > > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
->  > >> I am wondering if anybody looked into API extensions for DVB-C2 yet?
->  > >> Obviously, we need some more modulations, guard intervals, etc.
->  > >> even if the demod I use does not actually let me set those (only auto).
->  > >>
->  > >> But I do need to set the PLP and slice ID.
->  > >> I currently set them (8 bit each) by combining them into the 32 bit
->  > >> stream_id (DTV_STREAM_ID parameter).
->  > >
->  > > I don't like the idea of combining them into a single field. One of the
->  > > reasons is that we may have endianness issues.
->  > >
->  > > So, IMHO, the better is to add a new property for slice ID.
->  > 
->  > I tried to understand what that data slice is. So what I understand, it 
->  > is layer to group PLPs, in order to get one wide OFDM channel as OFDM is 
->  > more efficient when channel bw increases.
->  > 
->  > So, in order to tune "stream" channel on DVB-C2 system, you *must* know 
->  > (in a order from radio channel to upper layers):
->  > frequency
->  > bandwidth
->  > slice ID
->  > PLP ID
->  > 
->  > Is that right?
-> 
-> Yes, if you do not want to parse L1 data you need the frequency of the slice,
-> bandwidth, slice ID and PLP ID.
-> If you parse L1 data, you do not need the slice ID because the PLP should be
-> unique in one channel. 
-> 
->  > I wonder if PLP IDs are defined so that there could not be overlapping 
->  > PLP IDs in a system... But if not, then defining slice ID is likely 
->  > needed. And if and when slice ID is needed to know before PLP ID, it is 
->  > even impossible to resolve slice ID from PLP ID.
-> 
-> See above, you can resolve it, but then you need to get the L1 data. 
-> But PLPs can even be spread over several slices to get higher bandwidth 
-> for one PLP. This is probably not used for broadcast TV though. You will
-> also need one tuner/demod per slice then.
-> 
-> So, basically you only need any frequency for the "channel" (can be spread over 
-> up to 450MHz, but avoid notches) and the bandwith.
-> Tune until a L1 lock, get L1 data from demod (up to 4 KB), parse for the PLP
-> id you want, get the corresponding slice (or slices), tune to the slice frequency
-> with slice ID set and PLP id set and wait for a full lock ...
+diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+index b876d49..2d24425 100644
+--- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
++++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+@@ -29,7 +29,7 @@ Required properties:
+ - crtc: the crtc this display is connected to, see below
+ Optional properties:
+ - interface_pix_fmt: How this display is connected to the
+-  crtc. Currently supported types: "rgb24", "rgb565", "bgr666"
++  crtc. Currently supported types: "rgb24", "rgb565", "bgr666", "rgb666"
+ - edid: verbatim EDID data block describing attached display.
+ - ddc: phandle describing the i2c bus handling the display data
+   channel
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+index d0e3bc3..bcc7680 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+@@ -92,6 +92,7 @@ enum ipu_dc_map {
+ 	IPU_DC_MAP_GBR24, /* TVEv2 */
+ 	IPU_DC_MAP_BGR666,
+ 	IPU_DC_MAP_BGR24,
++	IPU_DC_MAP_RGB666,
+ };
+ 
+ struct ipu_dc {
+@@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
+ 		return IPU_DC_MAP_BGR666;
+ 	case V4L2_PIX_FMT_BGR24:
+ 		return IPU_DC_MAP_BGR24;
++	case V4L2_PIX_FMT_RGB666:
++		return IPU_DC_MAP_RGB666;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -404,6 +407,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
+ 
++	/* rgb666 */
++	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
+index 24aa9be..bb71d6d 100644
+--- a/drivers/staging/imx-drm/parallel-display.c
++++ b/drivers/staging/imx-drm/parallel-display.c
+@@ -222,6 +222,8 @@ static int imx_pd_probe(struct platform_device *pdev)
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
+ 		else if (!strcmp(fmt, "bgr666"))
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
++		else if (!strcmp(fmt, "rgb666"))
++			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
+ 	}
+ 
+ 	imxpd->dev = &pdev->dev;
+-- 
+1.7.9.5
 
-Ok, then it is really better to have slice as a separate property, and to
-document the above procedure to tune into a slice at a DVB-C2 section
-to be added to the DocBook.
-
-We'll need to define a value for slice to mean "don't bind to any slice".
-Maybe 2^32-1.
-
-With regards to the slice property, it would be possible to let it
-have multiple values (just like we do with ENUM_DELSYS). Not sure if 
-this makes sense or not.
-
-Regards,
-Mauro
