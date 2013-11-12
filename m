@@ -1,52 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f49.google.com ([209.85.128.49]:42536 "EHLO
-	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755674Ab3KEWPw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 17:15:52 -0500
-Received: by mail-qe0-f49.google.com with SMTP id a11so5447539qen.22
-        for <linux-media@vger.kernel.org>; Tue, 05 Nov 2013 14:15:51 -0800 (PST)
-Date: Tue, 5 Nov 2013 19:09:51 -0300
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] SOLO6x10: Fix video encoding on big-endian systems.
-Message-ID: <20131105190951.5f6c1141@pirotess.bifrost.iodev.co.uk>
-In-Reply-To: <m34n9qb4x4.fsf@t19.piap.pl>
-References: <m34n9qb4x4.fsf@t19.piap.pl>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/m4FrxSGyAcHTSPaHudJo16u"; protocol="application/pgp-signature"
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:62089 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556Ab3KLP7q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Nov 2013 10:59:46 -0500
+Received: by mail-wg0-f44.google.com with SMTP id k14so4458199wgh.11
+        for <linux-media@vger.kernel.org>; Tue, 12 Nov 2013 07:59:45 -0800 (PST)
+From: Luis Alves <ljalvs@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mkrufky@linuxtv.org, mchehab@infradead.org,
+	pboettcher@kernellabs.com, ljalvs@gmail.com
+Subject: [PATCH 2/2] cx24117: Fix LNB set_voltage function.
+Date: Tue, 12 Nov 2013 15:59:40 +0000
+Message-Id: <1384271980-23867-1-git-send-email-ljalvs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/m4FrxSGyAcHTSPaHudJo16u
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
+This patch should fix/enhance the set_voltage function for the cx24117 demod.
 
-On Thu, 12 Sep 2013 14:28:07 +0200
-khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
-> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
->=20
+Regards,
+Luis
 
-Acked-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+---
+ drivers/media/dvb-frontends/cx24117.c | 33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
-<...>
+diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
+index a6fe1af..68f768a 100644
+--- a/drivers/media/dvb-frontends/cx24117.c
++++ b/drivers/media/dvb-frontends/cx24117.c
+@@ -917,22 +917,15 @@ static int cx24117_set_voltage(struct dvb_frontend *fe,
+ 		voltage == SEC_VOLTAGE_18 ? "SEC_VOLTAGE_18" :
+ 		"SEC_VOLTAGE_OFF");
+ 
+-	/* Set GPIO direction */
+-	cmd.args[0] = CMD_SET_GPIODIR;
+-	cmd.args[1] = reg;
+-	cmd.args[2] = reg;
++	/* Prepare a set GPIO logic level CMD */
++	cmd.args[0] = CMD_SET_GPIOOUT;
++	cmd.args[2] = reg; /* mask */
+ 	cmd.len = 3;
+-	ret = cx24117_cmd_execute(fe, &cmd);
+-	if (ret)
+-		return ret;
+ 
+ 	if ((voltage == SEC_VOLTAGE_13) ||
+ 	    (voltage == SEC_VOLTAGE_18)) {
+-		/* Set GPIO logic level */
+-		cmd.args[0] = CMD_SET_GPIOOUT;
++		/* power on LNB */
+ 		cmd.args[1] = reg;
+-		cmd.args[2] = reg;
+-		cmd.len = 3;
+ 		ret = cx24117_cmd_execute(fe, &cmd);
+ 		if (ret != 0)
+ 			return ret;
+@@ -949,17 +942,17 @@ static int cx24117_set_voltage(struct dvb_frontend *fe,
+ 		cmd.args[1] = state->demod ? 0 : 1;
+ 		cmd.args[2] = (voltage == SEC_VOLTAGE_18 ? 0x01 : 0x00);
+ 		cmd.len = 3;
++		ret = cx24117_cmd_execute(fe, &cmd);
+ 
+ 		/* Min delay time before DiSEqC send */
+ 		msleep(20);
+ 	} else {
+-		cmd.args[0] = CMD_SET_GPIOOUT;
++		/* power off LNB */
+ 		cmd.args[1] = 0x00;
+-		cmd.args[2] = reg;
+-		cmd.len = 3;
++		ret = cx24117_cmd_execute(fe, &cmd);
+ 	}
+ 
+-	return cx24117_cmd_execute(fe, &cmd);
++	return ret;
+ }
+ 
+ static int cx24117_set_tone(struct dvb_frontend *fe,
+@@ -1277,6 +1270,16 @@ static int cx24117_initfe(struct dvb_frontend *fe)
+ 	cmd.args[2] = CX24117_OCC;
+ 	cmd.len = 3;
+ 	ret = cx24117_cmd_execute_nolock(fe, &cmd);
++	if (ret != 0)
++		goto exit;
++
++	/* Set GPIO direction */
++	/* Set as output - controls LNB power on/off */
++	cmd.args[0] = CMD_SET_GPIODIR;
++	cmd.args[1] = 0x30;
++	cmd.args[2] = 0x30;
++	cmd.len = 3;
++	ret = cx24117_cmd_execute_nolock(fe, &cmd);
+ 
+ exit:
+ 	mutex_unlock(&state->priv->fe_lock);
+-- 
+1.8.3.2
 
---Sig_/m4FrxSGyAcHTSPaHudJo16u
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQEcBAEBAgAGBQJSeWyvAAoJEBrCLcBAAV+GMZIH/i/6N4a1g4oqQsnMNQBTk5Th
-DLrWMK2So8QLm3mYKQEj95+zvMbOhYvl/L58pqgnlNMIXZHU5213qzc9949nzNoN
-wnh1kr8exd++ocuiU2bOgBqnZCV6j0AmivoioesLfm3UBrtVaFu2kP86TOEIMRBs
-RyRYtpMxBrmv0jv3qQdpSqEKHzTpHeJ8GWYll9NGSadG4Azo/JEdl+6rv1CvltIC
-ly3PFgHBki0bsIMOTXnr/yU7qPuVH+SgiwmFQCAhLs0u/EePd8KMeptk+KPb1tBP
-WfhS10WyfUTpvtlnmEdk+WpiV1/izQq3S+B43eJB78/UOySkhwVKh8Ysdv3zWvU=
-=WqOA
------END PGP SIGNATURE-----
-
---Sig_/m4FrxSGyAcHTSPaHudJo16u--
