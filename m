@@ -1,199 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46487 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757070Ab3KZPq0 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4341 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444Ab3KMDcU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 10:46:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 4/8] vb2: retry start_streaming in case of insufficient buffers.
-Date: Tue, 26 Nov 2013 16:46:27 +0100
-Message-ID: <2969217.JjDzNKjWJr@avalon>
-In-Reply-To: <528F192B.6090709@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <5458942.sLkCAMs10P@avalon> <528F192B.6090709@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 12 Nov 2013 22:32:20 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAD3WG7Z084018
+	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 04:32:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 940D72A1F80
+	for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 04:32:10 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20131113033210.940D72A1F80@tschai.lan>
+Date: Wed, 13 Nov 2013 04:32:10 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Friday 22 November 2013 09:43:23 Hans Verkuil wrote:
-> On 11/21/2013 08:09 PM, Laurent Pinchart wrote:
-> > On Thursday 21 November 2013 16:22:02 Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >> 
-> >> If start_streaming returns -ENODATA, then it will be retried the next
-> >> time a buffer is queued. This means applications no longer need to know
-> >> how many buffers need to be queued before STREAMON can be called. This is
-> >> particularly useful for output stream I/O.
-> >> 
-> >> If a DMA engine needs at least X buffers before it can start streaming,
-> >> then for applications to get a buffer out as soon as possible they need
-> >> to know the minimum number of buffers to queue before STREAMON can be
-> >> called. You can't just try STREAMON after every buffer since on failure
-> >> STREAMON will dequeue all your buffers. (Is that a bug or a feature?
-> >> Frankly, I'm not sure).
-> >> 
-> >> This patch simplifies applications substantially: they can just call
-> >> STREAMON at the beginning and then start queuing buffers and the DMA
-> >> engine will kick in automagically once enough buffers are available.
-> >> 
-> >> This also fixes using write() to stream video: the fileio implementation
-> >> calls streamon without having any queued buffers, which will fail today
-> >> for any driver that requires a minimum number of buffers.
-> >> 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 66 +++++++++++++++++++-------
-> >>  include/media/videobuf2-core.h           | 15 ++++++--
-> >>  2 files changed, 64 insertions(+), 17 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >> b/drivers/media/v4l2-core/videobuf2-core.c index 9ea3ae9..5bb91f7 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >> @@ -1332,6 +1332,39 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> >> v4l2_buffer *b) }
-> >> 
-> >>  EXPORT_SYMBOL_GPL(vb2_prepare_buf);
-> >> 
-> >> +/**
-> >> + * vb2_start_streaming() - Attempt to start streaming.
-> >> + * @q:		videobuf2 queue
-> >> + *
-> >> + * If there are not enough buffers, then retry_start_streaming is set to
-> >> + * true and 0 is returned. The next time a buffer is queued and
-> >> + * retry_start_streaming is true, this function will be called again to
-> >> + * retry starting the DMA engine.
-> >> + */
-> >> +static int vb2_start_streaming(struct vb2_queue *q)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	/* Tell the driver to start streaming */
-> >> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> >> +
-> >> +	/*
-> >> +	 * If there are not enough buffers queued to start streaming, then
-> >> +	 * the start_streaming operation will return -ENODATA and you have to
-> >> +	 * retry when the next buffer is queued.
-> >> +	 */
-> >> +	if (ret == -ENODATA) {
-> >> +		dprintk(1, "qbuf: not enough buffers, retry when more buffers are
-> >> queued.\n");
-> >> +		q->retry_start_streaming = true;
-> >> +		return 0;
-> >> +	}
-> >> +	if (ret)
-> >> +		dprintk(1, "qbuf: driver refused to start streaming\n");
-> >> +	else
-> >> +		q->retry_start_streaming = false;
-> >> +	return ret;
-> >> +}
-> >> +
-> >>  static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >>  {
-> >>  	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> >> @@ -1377,6 +1410,12 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
-> >> struct v4l2_buffer *b) /* Fill buffer information for the userspace */
-> >> 
-> >>  	__fill_v4l2_buffer(vb, b);
-> >> 
-> >> +	if (q->retry_start_streaming) {
-> >> +		ret = vb2_start_streaming(q);
-> >> +		if (ret)
-> >> +			return ret;
-> >> +	}
-> >> +
-> >>  	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb-
-> >> v4l2_buf.index);
-> >> return 0;
-> >>  }
-> >> 
-> >> @@ -1526,7 +1565,8 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
-> >>  		return -EINVAL;
-> >>  	}
-> >> 
-> >> -	wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> >> +	if (!q->retry_start_streaming)
-> >> +		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> >>  	return 0;
-> >>  
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-> >> @@ -1640,6 +1680,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
-> >>  {
-> >>  	unsigned int i;
-> >> 
-> >> +	if (q->retry_start_streaming)
-> >> +		q->retry_start_streaming = q->streaming = 0;
-> >> +
-> >>  	/*
-> >>  	 * Tell driver to stop all transactions and release all queued
-> >>  	 * buffers.
-> >> @@ -1689,12 +1732,9 @@ static int vb2_internal_streamon(struct vb2_queue
-> >> *q, enum v4l2_buf_type type) list_for_each_entry(vb, &q->queued_list,
-> >> queued_entry)
-> >> 
-> >>  		__enqueue_in_driver(vb);
-> >> 
-> >> -	/*
-> >> -	 * Let driver notice that streaming state has been enabled.
-> >> -	 */
-> >> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> >> +	/* Tell driver to start streaming. */
-> > 
-> > Wouldn't it be better to reset q->retry_start_streaming to 0 here instead
-> > of in the several other locations ?
-> 
-> I don't follow. retry_start_streaming is set only in vb2_start_streaming or
-> in queue_cancel. I'm not sure what vb2_internal_streamon has to do with
-> this.
+Results of the daily build of media_tree:
 
-My point is that the code would be simpler and less error-prone if we reset 
-retry_start_streaming in a single location right before starting the stream 
-instead of in multiple locations when stopping the stream. There would be less 
-chances to introduce a bug when refactoring code in the future in that case.
+date:		Wed Nov 13 04:00:21 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.1-amd64
 
-> >> +	ret = vb2_start_streaming(q);
-> >>  	if (ret) {
-> >> -		dprintk(1, "streamon: driver refused to start streaming\n");
-> >>  		__vb2_queue_cancel(q);
-> >>  		return ret;
-> >>  	}
-> >> @@ -2264,15 +2304,15 @@ static int __vb2_init_fileio(struct vb2_queue *q,
-> >> int read) goto err_reqbufs;
-> >> 
-> >>  			fileio->bufs[i].queued = 1;
-> >>  		}
-> >> -
-> >> -		/*
-> >> -		 * Start streaming.
-> >> -		 */
-> >> -		ret = vb2_streamon(q, q->type);
-> >> -		if (ret)
-> >> -			goto err_reqbufs;
-> >>  	}
-> >> 
-> >> +	/*
-> >> +	 * Start streaming.
-> >> +	 */
-> >> +	ret = vb2_streamon(q, q->type);
-> >> +	if (ret)
-> >> +		goto err_reqbufs;
-> >> +
-> >>  	q->fileio = fileio;
-> >>  	
-> >>  	return ret;
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
--- 
-Regards,
+Detailed results are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
