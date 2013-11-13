@@ -1,102 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51822 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640Ab3K0IhO (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:43109 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758428Ab3KMSnr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 03:37:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/8] vb2: push the mmap semaphore down to __buf_prepare()
-Date: Wed, 27 Nov 2013 09:37:17 +0100
-Message-ID: <13609209.gPbVWCAgzz@avalon>
-In-Reply-To: <52959B58.9000803@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <6105887.nidGlvWj4k@avalon> <52959B58.9000803@xs4all.nl>
+	Wed, 13 Nov 2013 13:43:47 -0500
+Received: by mail-pa0-f49.google.com with SMTP id lf10so835878pab.8
+        for <linux-media@vger.kernel.org>; Wed, 13 Nov 2013 10:43:46 -0800 (PST)
+Message-ID: <5283C860.3020103@boundarydevices.com>
+Date: Wed, 13 Nov 2013 11:43:44 -0700
+From: Troy Kisky <troy.kisky@boundarydevices.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Denis Carikli <denis@eukrea.com>, Shawn Guo <shawn.guo@linaro.org>
+CC: Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>, linux-media@vger.kernel.org,
+	=?UTF-8?B?RXJpYyBCw6luYXJk?= <eric@eukrea.com>
+Subject: Re: [PATCHv4][ 3/7] staging: imx-drm: Add RGB666 support for parallel
+ display.
+References: <1384334603-14208-1-git-send-email-denis@eukrea.com> <1384334603-14208-3-git-send-email-denis@eukrea.com>
+In-Reply-To: <1384334603-14208-3-git-send-email-denis@eukrea.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday 27 November 2013 08:12:24 Hans Verkuil wrote:
-> On 11/26/2013 04:42 PM, Laurent Pinchart wrote:
-> > On Friday 22 November 2013 10:02:49 Hans Verkuil wrote:
-> >> On 11/21/2013 08:04 PM, Laurent Pinchart wrote:
-> >>> On Thursday 21 November 2013 16:21:59 Hans Verkuil wrote:
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> 
-> >>>> Rather than taking the mmap semaphore at a relatively high-level
-> >>>> function, push it down to the place where it is really needed.
-> >>>> 
-> >>>> It was placed in vb2_queue_or_prepare_buf() to prevent racing with
-> >>>> other vb2 calls, however, I see no way that any race can happen.
-> >>> 
-> >>> What about the following scenario ? Both QBUF calls are performed on the
-> >>> same buffer.
-> >>> 
-> >>> 	CPU 0							CPU 1
-> >>> 	---------------------------------------------------------------------
-> >>> 	QBUF								QBUF
-> >>> 		locks the queue mutex				waits for the queue mutex
-> >>> 	vb2_qbuf
-> >>> 	vb2_queue_or_prepare_buf
-> >>> 	__vb2_qbuf
-> >>> 		checks vb->state, calls
-> >>> 	__buf_prepare
-> >>> 	call_qop(q, wait_prepare, q);
-> >>> 		unlocks the queue mutex
-> >>> 										locks the queue mutex
-> >>> 									vb2_qbuf
-> >>> 									vb2_queue_or_prepare_buf
-> >>> 									__vb2_qbuf
-> >>> 										checks vb->state, calls
-> >>> 									__buf_prepare
-> >>> 									call_qop(q, wait_prepare, q);
-> >>> 										unlocks the queue mutex
-> >>> 									queue the buffer, set buffer
-> >>> 									 state to queue
-> >>> 	queue the buffer, set buffer
-> >>> 	 state to queue
-> >>> 
-> >>> We would thus end up queueing the buffer twice. The vb->state check
-> >>> needs to be performed after the brief release of the queue mutex.
-> >> 
-> >> Good point, I hadn't thought about that scenario. However, using mmap_sem
-> >> to introduce a large critical section just to protect against state
-> >> changes is IMHO not the right approach. Why not introduce a
-> >> VB2_BUF_STATE_PREPARING state?
-> > 
-> > Note that we use the queue mutex to do so, not mmap_sem. The problem is
-> > that we can't release the queue mutex in the middle of a critical section
-> > without risking being preempted by another task. Introducing a new state
-> > might be possible if it effectively breaks the critical section in two
-> > independent parts.
-> > 
-> >> That's set at the start of __buf_prepare while the queue mutex is still
-> >> held, and which prevents other threads of queuing the same buffer again.
-> >> If the prepare fails, then the state is reverted back to DEQUEUED.
-> >> 
-> >> __fill_v4l2_buffer() will handle the PREPARING state as if it was the
-> >> DEQUEUED state.
-> >> 
-> >> What do you think?
-> > 
-> > I'll have to review that in details given the potential complexity of
-> > locking issues :-) I'm not opposed to the idea, if it works I believe we
-> > should do it.
+On 11/13/2013 2:23 AM, Denis Carikli wrote:
+>   
+> +	/* rgb666 */
+> +	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
+> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
+> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
+> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
+> +
+>   	return 0;
+>   }
+>   
 >
-> Do you want to think about this first, or shall I make a new patch that you
-> can then review?
 
-As the devil is in the details I'd prefer a patch. I would have to write one 
-to think about this anyway :-)
+Since,  rgb24 and bgr24 reverse the byte numbers
+/* rgb24 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_RGB24);
+         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 0, 7, 0xff); /* blue */
+         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 1, 15, 0xff); /* green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 2, 23, 0xff); /* red */
 
--- 
-Regards,
+/* bgr24 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR24);
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 2, 7, 0xff); /* red */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
 
-Laurent Pinchart
+
+Shouldn't rgb666 and bgr666 do the same?
+Currently we have,
+
+/* bgr666 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 5, 0xfc); /* blue */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /* 
+green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 17, 0xfc); /* red */
+
+Where I'd expect to see
+/* bgr666 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 17, 0xfc); /* blue */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /* 
+green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 5, 0xfc); /* red */
+
+
+So, it looks like you are adding a duplicate of bgr666 because bgr666 is 
+wrong.
+Also, I'd prefer to keep the entries in 0,1,2 byte number order(blue, 
+green, red,
+assuming byte 0 is always blue) so that duplicates are easier to spot.
+
+Not related to this patch, but the comments on gbr24 appear wrong as well.
+
+/* gbr24 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_GBR24);
+         ipu_dc_map_config(priv, IPU_DC_MAP_GBR24, 2, 15, 0xff); /* green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_GBR24, 1, 7, 0xff); /* blue */
+         ipu_dc_map_config(priv, IPU_DC_MAP_GBR24, 0, 23, 0xff); /* red */
+
+Should be
+/* brg24 */
+         ipu_dc_map_clear(priv, IPU_DC_MAP_BRG24);
+         ipu_dc_map_config(priv, IPU_DC_MAP_BRG24, 0, 23, 0xff); /* blue*/
+         ipu_dc_map_config(priv, IPU_DC_MAP_BRG24, 1, 7, 0xff); /* green */
+         ipu_dc_map_config(priv, IPU_DC_MAP_BRG24, 2, 15, 0xff); /* red */
+
+Of course, my understanding may be totally wrong. If so, please show me 
+the light!
+
+
+Troy
 
