@@ -1,140 +1,497 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2693 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752906Ab3KEPSr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 10:18:47 -0500
-Message-ID: <52790C06.1010806@xs4all.nl>
-Date: Tue, 05 Nov 2013 16:17:26 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from forward1l.mail.yandex.net ([84.201.143.144]:58180 "EHLO
+	forward1l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531Ab3KMX6I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Nov 2013 18:58:08 -0500
+Received: from smtp2o.mail.yandex.net (smtp2o.mail.yandex.net [37.140.190.27])
+	by forward1l.mail.yandex.net (Yandex) with ESMTP id 4EE6D1522474
+	for <linux-media@vger.kernel.org>; Thu, 14 Nov 2013 03:58:05 +0400 (MSK)
+Received: from smtp2o.mail.yandex.net (localhost [127.0.0.1])
+	by smtp2o.mail.yandex.net (Yandex) with ESMTP id 0F64436A0335
+	for <linux-media@vger.kernel.org>; Thu, 14 Nov 2013 03:58:04 +0400 (MSK)
+From: CrazyCat <crazycat69@narod.ru>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dw2102: Use RC Core instead of the legacy RC.
+Date: Thu, 14 Nov 2013 01:57:36 +0200
+Message-ID: <4651914.EnQWLY6Jr6@ubuntu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 00/29] Fix errors/warnings with allmodconfig/allyesconfig
- on non-x86 archs
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Use RC Core instead of the legacy RC
 
-For all patches except 22 (which got a newer revision):
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-On 11/05/13 11:01, Mauro Carvalho Chehab wrote:
-> To be sure that we're not introducing compilation regressions on media, I'm now
-> using ktest to check for errors/warnings.
-> 
-> My current setup is cross-building on several architectures:
->         alpha,  arm, avr32, cris (64), frv, i386, ia64, m32r, m68k, mips, openrisc, parisc, s390, sh, sparc, sparc64, uml, x86_64
-> 
-> I tried to enable a few other archs:
->         blackfin, cris (32), powerpc (32, 64), tile, xtensa
-> 
-> but they fail to compile with allyesconfig due to non-media related issues.
-> 
-> I'm still unsure about how often I'll be doing it, I intend to run it at least
-> by the end of the subsystem merge window (by -rc6 or -rc7), and fix the
-> issues found there.
-> 
-> V3: contains fixes for the feedbacks received:
->         - I2C client driver now	returns	-EINVAL;
->         - I2C adapter drivers now returns -EOPNOSUPP;
-> 	- a macro was added for the buffers;
-> 	- check for failure on allocation at v4l2-async was added;
-> 	- Used iguanair code from Sean, instead of my code;
-> 	- Most buffer sizes changed to 64 bytes, to match max URB
-> 	  control size.
-> 
-> Mauro Carvalho Chehab (28):
->   [media] tda9887: remove an warning when compiling for alpha
->   [media] radio-shark: remove a warning when CONFIG_PM is not defined
->   [media] zoran: don't build it on alpha
->   [media] cx18: struct i2c_client is too big for stack
->   [media] tef6862: fix warning on avr32 arch
->   [media] platform drivers: Fix build on frv arch
->   [media] radio-si470x-i2c: fix a warning on ia64
->   [media] rc: Fir warnings on m68k arch
->   [media] uvc/lirc_serial: Fix some warnings on parisc arch
->   [media] s5h1420: Don't use dynamic static allocation
->   [media] dvb-frontends: Don't use dynamic static allocation
->   [media] dvb-frontends: Don't use dynamic static allocation
->   [media] stb0899_drv: Don't use dynamic static allocation
->   [media] stv0367: Don't use dynamic static allocation
->   [media] stv090x: Don't use dynamic static allocation
->   [media] av7110_hw: Don't use dynamic static allocation
->   [media] tuners: Don't use dynamic static allocation
->   [media] tuner-xc2028: Don't use dynamic static allocation
->   [media] cimax2: Don't use dynamic static allocation
->   [media] v4l2-async: Don't use dynamic static allocation
->   [media] cxusb: Don't use dynamic static allocation
->   [media] dibusb-common: Don't use dynamic static allocation
->   [media] dw2102: Don't use dynamic static allocation
->   [media] af9015: Don't use dynamic static allocation
->   [media] af9035: Don't use dynamic static allocation
->   [media] mxl111sf: Don't use dynamic static allocation
->   [media] lirc_zilog: Don't use dynamic static allocation
->   [media] cx18: disable compilation on frv arch
-> 
-> Sean Young (1):
->   [media] iguanair: simplify calculation of carrier delay cycles
-> 
->  drivers/media/dvb-frontends/af9013.c          | 12 +++-
->  drivers/media/dvb-frontends/af9033.c          | 21 ++++++-
->  drivers/media/dvb-frontends/bcm3510.c         | 15 ++++-
->  drivers/media/dvb-frontends/cxd2820r_core.c   | 21 ++++++-
->  drivers/media/dvb-frontends/itd1000.c         | 13 +++-
->  drivers/media/dvb-frontends/mt312.c           | 10 ++-
->  drivers/media/dvb-frontends/nxt200x.c         | 11 +++-
->  drivers/media/dvb-frontends/rtl2830.c         | 12 +++-
->  drivers/media/dvb-frontends/rtl2832.c         | 12 +++-
->  drivers/media/dvb-frontends/s5h1420.c         |  9 ++-
->  drivers/media/dvb-frontends/stb0899_drv.c     | 12 +++-
->  drivers/media/dvb-frontends/stb6100.c         | 11 +++-
->  drivers/media/dvb-frontends/stv0367.c         | 13 +++-
->  drivers/media/dvb-frontends/stv090x.c         | 12 +++-
->  drivers/media/dvb-frontends/stv6110.c         | 12 +++-
->  drivers/media/dvb-frontends/stv6110x.c        | 13 +++-
->  drivers/media/dvb-frontends/tda10071.c        | 21 ++++++-
->  drivers/media/dvb-frontends/tda18271c2dd.c    | 14 ++++-
->  drivers/media/dvb-frontends/zl10039.c         | 12 +++-
->  drivers/media/pci/cx18/Kconfig                |  1 +
->  drivers/media/pci/cx18/cx18-driver.c          | 20 +++---
->  drivers/media/pci/cx23885/cimax2.c            | 13 +++-
->  drivers/media/pci/ttpci/av7110_hw.c           | 19 +++++-
->  drivers/media/pci/zoran/Kconfig               |  1 +
->  drivers/media/platform/soc_camera/rcar_vin.c  |  1 +
->  drivers/media/radio/radio-shark.c             |  2 +
->  drivers/media/radio/radio-shark2.c            |  2 +
->  drivers/media/radio/si470x/radio-si470x-i2c.c |  4 +-
->  drivers/media/radio/tef6862.c                 | 20 +++---
->  drivers/media/rc/fintek-cir.h                 |  4 +-
->  drivers/media/rc/iguanair.c                   | 22 ++-----
->  drivers/media/rc/nuvoton-cir.h                |  4 +-
->  drivers/media/tuners/e4000.c                  | 21 ++++++-
->  drivers/media/tuners/fc2580.c                 | 21 ++++++-
->  drivers/media/tuners/tda18212.c               | 21 ++++++-
->  drivers/media/tuners/tda18218.c               | 21 ++++++-
->  drivers/media/tuners/tda9887.c                |  4 +-
->  drivers/media/tuners/tuner-xc2028.c           |  8 ++-
->  drivers/media/usb/dvb-usb-v2/af9015.c         |  3 +-
->  drivers/media/usb/dvb-usb-v2/af9035.c         | 29 ++++++++-
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c       | 10 ++-
->  drivers/media/usb/dvb-usb/cxusb.c             | 41 ++++++++++--
->  drivers/media/usb/dvb-usb/dibusb-common.c     | 10 ++-
->  drivers/media/usb/dvb-usb/dw2102.c            | 90 ++++++++++++++++++++++++---
->  drivers/media/usb/uvc/uvc_video.c             |  3 +-
->  drivers/media/v4l2-core/v4l2-async.c          | 31 ++++++++-
->  drivers/staging/media/lirc/lirc_serial.c      |  9 ++-
->  drivers/staging/media/lirc/lirc_zilog.c       | 12 +++-
->  48 files changed, 598 insertions(+), 105 deletions(-)
-> 
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+---
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index b1cde8c..0b8c549 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -98,4 +98,5 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-videomate-s350.o \
+ 			rc-videomate-tv-pvr.o \
+ 			rc-winfast.o \
+-			rc-winfast-usbii-deluxe.o
++			rc-winfast-usbii-deluxe.o \
++			rc-su3000.o
+diff --git a/drivers/media/rc/keymaps/rc-su3000.c b/drivers/media/rc/keymaps/rc-su3000.c
+new file mode 100644
+index 0000000..8b14bdd
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-su3000.c
+@@ -0,0 +1,77 @@
++/* tbs-nec.h - Keytable for tbs_nec Remote Controller
++ *
++ * keymap imported from ir-keymaps.c
++ *
++ * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++static struct rc_map_table su3000[] = {
++	{ 0x25, KEY_POWER },	/* right-bottom Red */
++	{ 0x0a, KEY_MUTE },	/* -/-- */
++	{ 0x01, KEY_1 },
++	{ 0x02, KEY_2 },
++	{ 0x03, KEY_3 },
++	{ 0x04, KEY_4 },
++	{ 0x05, KEY_5 },
++	{ 0x06, KEY_6 },
++	{ 0x07, KEY_7 },
++	{ 0x08, KEY_8 },
++	{ 0x09, KEY_9 },
++	{ 0x00, KEY_0 },
++	{ 0x20, KEY_UP },	/* CH+ */
++	{ 0x21, KEY_DOWN },	/* CH+ */
++	{ 0x12, KEY_VOLUMEUP },	/* Brightness Up */
++	{ 0x13, KEY_VOLUMEDOWN },/* Brightness Down */
++	{ 0x1f, KEY_RECORD },
++	{ 0x17, KEY_PLAY },
++	{ 0x16, KEY_PAUSE },
++	{ 0x0b, KEY_STOP },
++	{ 0x27, KEY_FASTFORWARD },/* >> */
++	{ 0x26, KEY_REWIND },	/* << */
++	{ 0x0d, KEY_OK },	/* Mute */
++	{ 0x11, KEY_LEFT },	/* VOL- */
++	{ 0x10, KEY_RIGHT },	/* VOL+ */
++	{ 0x29, KEY_BACK },	/* button under 9 */
++	{ 0x2c, KEY_MENU },	/* TTX */
++	{ 0x2b, KEY_EPG },	/* EPG */
++	{ 0x1e, KEY_RED },	/* OSD */
++	{ 0x0e, KEY_GREEN },	/* Window */
++	{ 0x2d, KEY_YELLOW },	/* button under << */
++	{ 0x0f, KEY_BLUE },	/* bottom yellow button */
++	{ 0x14, KEY_AUDIO },	/* Snapshot */
++	{ 0x38, KEY_TV },	/* TV/Radio */
++	{ 0x0c, KEY_ESC }	/* upper Red button */
++};
++
++static struct rc_map_list su3000_map = {
++	.map = {
++		.scan    = su3000,
++		.size    = ARRAY_SIZE(su3000),
++		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
++		.name    = RC_MAP_SU3000,
++	}
++};
++
++static int __init init_rc_map_su3000(void)
++{
++	return rc_map_register(&su3000_map);
++}
++
++static void __exit exit_rc_map_su3000(void)
++{
++	rc_map_unregister(&su3000_map);
++}
++
++module_init(init_rc_map_su3000)
++module_exit(exit_rc_map_su3000)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 12e00aa..8400238 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -109,11 +109,6 @@
+ 		"Please see linux/Documentation/dvb/ for more details " \
+ 		"on firmware-problems."
+ 
+-struct rc_map_dvb_usb_table_table {
+-	struct rc_map_table *rc_keys;
+-	int rc_keys_size;
+-};
+-
+ struct su3000_state {
+ 	u8 initialized;
+ };
+@@ -128,12 +123,6 @@ module_param_named(debug, dvb_usb_dw2102_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info 2=xfer 4=rc(or-able))."
+ 						DVB_USB_DEBUG_STATUS);
+ 
+-/* keymaps */
+-static int ir_keymap;
+-module_param_named(keymap, ir_keymap, int, 0644);
+-MODULE_PARM_DESC(keymap, "set keymap 0=default 1=dvbworld 2=tevii 3=tbs  ..."
+-			" 256=none");
+-
+ /* demod probe */
+ static int demod_probe = 1;
+ module_param_named(demod, demod_probe, int, 0644);
+@@ -1389,174 +1378,8 @@ static int dw3101_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
+-static struct rc_map_table rc_map_dw210x_table[] = {
+-	{ 0xf80a, KEY_POWER2 },		/*power*/
+-	{ 0xf80c, KEY_MUTE },		/*mute*/
+-	{ 0xf811, KEY_1 },
+-	{ 0xf812, KEY_2 },
+-	{ 0xf813, KEY_3 },
+-	{ 0xf814, KEY_4 },
+-	{ 0xf815, KEY_5 },
+-	{ 0xf816, KEY_6 },
+-	{ 0xf817, KEY_7 },
+-	{ 0xf818, KEY_8 },
+-	{ 0xf819, KEY_9 },
+-	{ 0xf810, KEY_0 },
+-	{ 0xf81c, KEY_CHANNELUP },	/*ch+*/
+-	{ 0xf80f, KEY_CHANNELDOWN },	/*ch-*/
+-	{ 0xf81a, KEY_VOLUMEUP },	/*vol+*/
+-	{ 0xf80e, KEY_VOLUMEDOWN },	/*vol-*/
+-	{ 0xf804, KEY_RECORD },		/*rec*/
+-	{ 0xf809, KEY_FAVORITES },	/*fav*/
+-	{ 0xf808, KEY_REWIND },		/*rewind*/
+-	{ 0xf807, KEY_FASTFORWARD },	/*fast*/
+-	{ 0xf80b, KEY_PAUSE },		/*pause*/
+-	{ 0xf802, KEY_ESC },		/*cancel*/
+-	{ 0xf803, KEY_TAB },		/*tab*/
+-	{ 0xf800, KEY_UP },		/*up*/
+-	{ 0xf81f, KEY_OK },		/*ok*/
+-	{ 0xf801, KEY_DOWN },		/*down*/
+-	{ 0xf805, KEY_CAMERA },		/*cap*/
+-	{ 0xf806, KEY_STOP },		/*stop*/
+-	{ 0xf840, KEY_ZOOM },		/*full*/
+-	{ 0xf81e, KEY_TV },		/*tvmode*/
+-	{ 0xf81b, KEY_LAST },		/*recall*/
+-};
+-
+-static struct rc_map_table rc_map_tevii_table[] = {
+-	{ 0xf80a, KEY_POWER },
+-	{ 0xf80c, KEY_MUTE },
+-	{ 0xf811, KEY_1 },
+-	{ 0xf812, KEY_2 },
+-	{ 0xf813, KEY_3 },
+-	{ 0xf814, KEY_4 },
+-	{ 0xf815, KEY_5 },
+-	{ 0xf816, KEY_6 },
+-	{ 0xf817, KEY_7 },
+-	{ 0xf818, KEY_8 },
+-	{ 0xf819, KEY_9 },
+-	{ 0xf810, KEY_0 },
+-	{ 0xf81c, KEY_MENU },
+-	{ 0xf80f, KEY_VOLUMEDOWN },
+-	{ 0xf81a, KEY_LAST },
+-	{ 0xf80e, KEY_OPEN },
+-	{ 0xf804, KEY_RECORD },
+-	{ 0xf809, KEY_VOLUMEUP },
+-	{ 0xf808, KEY_CHANNELUP },
+-	{ 0xf807, KEY_PVR },
+-	{ 0xf80b, KEY_TIME },
+-	{ 0xf802, KEY_RIGHT },
+-	{ 0xf803, KEY_LEFT },
+-	{ 0xf800, KEY_UP },
+-	{ 0xf81f, KEY_OK },
+-	{ 0xf801, KEY_DOWN },
+-	{ 0xf805, KEY_TUNER },
+-	{ 0xf806, KEY_CHANNELDOWN },
+-	{ 0xf840, KEY_PLAYPAUSE },
+-	{ 0xf81e, KEY_REWIND },
+-	{ 0xf81b, KEY_FAVORITES },
+-	{ 0xf81d, KEY_BACK },
+-	{ 0xf84d, KEY_FASTFORWARD },
+-	{ 0xf844, KEY_EPG },
+-	{ 0xf84c, KEY_INFO },
+-	{ 0xf841, KEY_AB },
+-	{ 0xf843, KEY_AUDIO },
+-	{ 0xf845, KEY_SUBTITLE },
+-	{ 0xf84a, KEY_LIST },
+-	{ 0xf846, KEY_F1 },
+-	{ 0xf847, KEY_F2 },
+-	{ 0xf85e, KEY_F3 },
+-	{ 0xf85c, KEY_F4 },
+-	{ 0xf852, KEY_F5 },
+-	{ 0xf85a, KEY_F6 },
+-	{ 0xf856, KEY_MODE },
+-	{ 0xf858, KEY_SWITCHVIDEOMODE },
+-};
+-
+-static struct rc_map_table rc_map_tbs_table[] = {
+-	{ 0xf884, KEY_POWER },
+-	{ 0xf894, KEY_MUTE },
+-	{ 0xf887, KEY_1 },
+-	{ 0xf886, KEY_2 },
+-	{ 0xf885, KEY_3 },
+-	{ 0xf88b, KEY_4 },
+-	{ 0xf88a, KEY_5 },
+-	{ 0xf889, KEY_6 },
+-	{ 0xf88f, KEY_7 },
+-	{ 0xf88e, KEY_8 },
+-	{ 0xf88d, KEY_9 },
+-	{ 0xf892, KEY_0 },
+-	{ 0xf896, KEY_CHANNELUP },
+-	{ 0xf891, KEY_CHANNELDOWN },
+-	{ 0xf893, KEY_VOLUMEUP },
+-	{ 0xf88c, KEY_VOLUMEDOWN },
+-	{ 0xf883, KEY_RECORD },
+-	{ 0xf898, KEY_PAUSE  },
+-	{ 0xf899, KEY_OK },
+-	{ 0xf89a, KEY_SHUFFLE },
+-	{ 0xf881, KEY_UP },
+-	{ 0xf890, KEY_LEFT },
+-	{ 0xf882, KEY_RIGHT },
+-	{ 0xf888, KEY_DOWN },
+-	{ 0xf895, KEY_FAVORITES },
+-	{ 0xf897, KEY_SUBTITLE },
+-	{ 0xf89d, KEY_ZOOM },
+-	{ 0xf89f, KEY_EXIT },
+-	{ 0xf89e, KEY_MENU },
+-	{ 0xf89c, KEY_EPG },
+-	{ 0xf880, KEY_PREVIOUS },
+-	{ 0xf89b, KEY_MODE }
+-};
+-
+-static struct rc_map_table rc_map_su3000_table[] = {
+-	{ 0x25, KEY_POWER },	/* right-bottom Red */
+-	{ 0x0a, KEY_MUTE },	/* -/-- */
+-	{ 0x01, KEY_1 },
+-	{ 0x02, KEY_2 },
+-	{ 0x03, KEY_3 },
+-	{ 0x04, KEY_4 },
+-	{ 0x05, KEY_5 },
+-	{ 0x06, KEY_6 },
+-	{ 0x07, KEY_7 },
+-	{ 0x08, KEY_8 },
+-	{ 0x09, KEY_9 },
+-	{ 0x00, KEY_0 },
+-	{ 0x20, KEY_UP },	/* CH+ */
+-	{ 0x21, KEY_DOWN },	/* CH+ */
+-	{ 0x12, KEY_VOLUMEUP },	/* Brightness Up */
+-	{ 0x13, KEY_VOLUMEDOWN },/* Brightness Down */
+-	{ 0x1f, KEY_RECORD },
+-	{ 0x17, KEY_PLAY },
+-	{ 0x16, KEY_PAUSE },
+-	{ 0x0b, KEY_STOP },
+-	{ 0x27, KEY_FASTFORWARD },/* >> */
+-	{ 0x26, KEY_REWIND },	/* << */
+-	{ 0x0d, KEY_OK },	/* Mute */
+-	{ 0x11, KEY_LEFT },	/* VOL- */
+-	{ 0x10, KEY_RIGHT },	/* VOL+ */
+-	{ 0x29, KEY_BACK },	/* button under 9 */
+-	{ 0x2c, KEY_MENU },	/* TTX */
+-	{ 0x2b, KEY_EPG },	/* EPG */
+-	{ 0x1e, KEY_RED },	/* OSD */
+-	{ 0x0e, KEY_GREEN },	/* Window */
+-	{ 0x2d, KEY_YELLOW },	/* button under << */
+-	{ 0x0f, KEY_BLUE },	/* bottom yellow button */
+-	{ 0x14, KEY_AUDIO },	/* Snapshot */
+-	{ 0x38, KEY_TV },	/* TV/Radio */
+-	{ 0x0c, KEY_ESC }	/* upper Red button */
+-};
+-
+-static struct rc_map_dvb_usb_table_table keys_tables[] = {
+-	{ rc_map_dw210x_table, ARRAY_SIZE(rc_map_dw210x_table) },
+-	{ rc_map_tevii_table, ARRAY_SIZE(rc_map_tevii_table) },
+-	{ rc_map_tbs_table, ARRAY_SIZE(rc_map_tbs_table) },
+-	{ rc_map_su3000_table, ARRAY_SIZE(rc_map_su3000_table) },
+-};
+-
+-static int dw2102_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
++static int dw2102_rc_query(struct dvb_usb_device *d)
+ {
+-	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+-	int keymap_size = d->props.rc.legacy.rc_map_size;
+ 	u8 key[2];
+ 	struct i2c_msg msg = {
+ 		.addr = DW2102_RC_QUERY,
+@@ -1564,32 +1387,10 @@ static int dw2102_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 		.buf = key,
+ 		.len = 2
+ 	};
+-	int i;
+-	/* override keymap */
+-	if ((ir_keymap > 0) && (ir_keymap <= ARRAY_SIZE(keys_tables))) {
+-		keymap = keys_tables[ir_keymap - 1].rc_keys ;
+-		keymap_size = keys_tables[ir_keymap - 1].rc_keys_size;
+-	} else if (ir_keymap > ARRAY_SIZE(keys_tables))
+-		return 0; /* none */
+-
+-	*state = REMOTE_NO_KEY_PRESSED;
+-	if (d->props.i2c_algo->master_xfer(&d->i2c_adap, &msg, 1) == 1) {
+-		for (i = 0; i < keymap_size ; i++) {
+-			if (rc5_data(&keymap[i]) == msg.buf[0]) {
+-				*state = REMOTE_KEY_PRESSED;
+-				*event = keymap[i].keycode;
+-				break;
+-			}
+-
+-		}
+-
+-		if ((*state) == REMOTE_KEY_PRESSED)
+-			deb_rc("%s: found rc key: %x, %x, event: %x\n",
+-					__func__, key[0], key[1], (*event));
+-		else if (key[0] != 0xff)
+-			deb_rc("%s: unknown rc key: %x, %x\n",
+-					__func__, key[0], key[1]);
+ 
++	if (d->props.i2c_algo->master_xfer(&d->i2c_adap, &msg, 1) == 1) {
++		if (msg.buf[0] != 0xff)
++			rc_keydown(d->rc_dev, msg.buf[0], 1);
+ 	}
+ 
+ 	return 0;
+@@ -1698,9 +1499,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
+ 		/* init registers */
+ 		switch (dev->descriptor.idProduct) {
+ 		case USB_PID_TEVII_S650:
+-			dw2104_properties.rc.legacy.rc_map_table = rc_map_tevii_table;
+-			dw2104_properties.rc.legacy.rc_map_size =
+-					ARRAY_SIZE(rc_map_tevii_table);
++			dw2104_properties.rc.core.rc_codes = RC_MAP_TEVII_NEC;
+ 		case USB_PID_DW2104:
+ 			reset = 1;
+ 			dw210x_op_rw(dev, 0xc4, 0x0000, 0, &reset, 1,
+@@ -1764,10 +1563,11 @@ static struct dvb_usb_device_properties dw2102_properties = {
+ 
+ 	.i2c_algo = &dw2102_serit_i2c_algo,
+ 
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_dw210x_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_DM1105_NEC,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -1818,10 +1618,11 @@ static struct dvb_usb_device_properties dw2104_properties = {
+ 	.no_reconnect = 1,
+ 
+ 	.i2c_algo = &dw2104_i2c_algo,
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_dw210x_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_DM1105_NEC,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -1868,10 +1669,11 @@ static struct dvb_usb_device_properties dw3101_properties = {
+ 	.no_reconnect = 1,
+ 
+ 	.i2c_algo = &dw3101_i2c_algo,
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_dw210x_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_DM1105_NEC,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -1916,10 +1718,11 @@ static struct dvb_usb_device_properties s6x0_properties = {
+ 	.no_reconnect = 1,
+ 
+ 	.i2c_algo = &s6x0_i2c_algo,
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_tevii_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_tevii_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_TEVII_NEC,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -2009,10 +1812,11 @@ static struct dvb_usb_device_properties su3000_properties = {
+ 	.identify_state	= su3000_identify_state,
+ 	.i2c_algo = &su3000_i2c_algo,
+ 
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_su3000_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_SU3000,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -2073,10 +1877,11 @@ static struct dvb_usb_device_properties t220_properties = {
+ 	.identify_state	= su3000_identify_state,
+ 	.i2c_algo = &su3000_i2c_algo,
+ 
+-	.rc.legacy = {
+-		.rc_map_table = rc_map_su3000_table,
+-		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
++	.rc.core = {
+ 		.rc_interval = 150,
++		.rc_codes = RC_MAP_SU3000,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_TYPE_NEC,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+ 
+@@ -2123,8 +1928,7 @@ static int dw2102_probe(struct usb_interface *intf,
+ 	/* fill only different fields */
+ 	p1100->firmware = P1100_FIRMWARE;
+ 	p1100->devices[0] = d1100;
+-	p1100->rc.legacy.rc_map_table = rc_map_tbs_table;
+-	p1100->rc.legacy.rc_map_size = ARRAY_SIZE(rc_map_tbs_table);
++	p1100->rc.core.rc_codes = RC_MAP_TBS_NEC;
+ 	p1100->adapter->fe[0].frontend_attach = stv0288_frontend_attach;
+ 
+ 	s660 = kmemdup(&s6x0_properties,
+@@ -2149,8 +1953,7 @@ static int dw2102_probe(struct usb_interface *intf,
+ 	}
+ 	p7500->firmware = P7500_FIRMWARE;
+ 	p7500->devices[0] = d7500;
+-	p7500->rc.legacy.rc_map_table = rc_map_tbs_table;
+-	p7500->rc.legacy.rc_map_size = ARRAY_SIZE(rc_map_tbs_table);
++	p7500->rc.core.rc_codes = RC_MAP_TBS_NEC;
+ 	p7500->adapter->fe[0].frontend_attach = prof_7500_frontend_attach;
+ 
+ 
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 6628f5d..a20ed97 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -193,6 +193,7 @@ void rc_map_init(void);
+ #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
+ #define RC_MAP_WINFAST                   "rc-winfast"
+ #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
++#define RC_MAP_SU3000                    "rc-su3000"
+ 
+ /*
+  * Please, do not just append newer Remote Controller names at the end.
+-- 
 
