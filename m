@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50892 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753Ab3KHK11 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Nov 2013 05:27:27 -0500
-Message-ID: <527CBC5B.2000906@ti.com>
-Date: Fri, 8 Nov 2013 15:56:35 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:26752 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460Ab3KMJjg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Nov 2013 04:39:36 -0500
+Date: Wed, 13 Nov 2013 12:39:23 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: gshark.jeong@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] media: i2c: add driver for dual LED Flash, lm3560
+Message-ID: <20131113093923.GA2557@elgon.mountain>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	<linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-Subject: Re: [patch] [media] v4l: ti-vpe: checking for IS_ERR() instead of
- NULL
-References: <20131108100109.GN27977@elgon.mountain>
-In-Reply-To: <20131108100109.GN27977@elgon.mountain>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Hello Daniel Jeong,
 
-On Friday 08 November 2013 03:31 PM, Dan Carpenter wrote:
-> devm_ioremap() returns NULL on error, it doesn't return an ERR_PTR.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 4e58069..e163466 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1962,8 +1962,8 @@ static int vpe_probe(struct platform_device *pdev)
->   	 * registers based on the sub block base addresses
->   	 */
->   	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_32K);
-> -	if (IS_ERR(dev->base)) {
-> -		ret = PTR_ERR(dev->base);
-> +	if (!dev->base) {
-> +		ret = -ENOMEM;
->   		goto v4l2_dev_unreg;
->   	}
+The patch 7f6b11a18c30: "[media] media: i2c: add driver for dual LED
+Flash, lm3560" from Oct 16, 2013, leads to the following
+static checker warning: "drivers/media/i2c/lm3560.c:196
+lm3560_get_ctrl()
+	 warn: inconsistent returns mutex:&flash->lock: locked (184
+	[s32min-(-1)], 192 [0]) unlocked (196 [(-22)])"
 
-Thanks for the patch, this was addressed in Wei's patch though:
+drivers/media/i2c/lm3560.c
+   171  /* V4L2 controls  */
+   172  static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+   173  {
+   174          struct lm3560_flash *flash = to_lm3560_flash(ctrl, led_no);
+   175  
+   176          mutex_lock(&flash->lock);
+   177  
+   178          if (ctrl->id == V4L2_CID_FLASH_FAULT) {
+   179                  int rval;
+   180                  s32 fault = 0;
+   181                  unsigned int reg_val;
+   182                  rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
+   183                  if (rval < 0)
+   184                          return rval;
 
-"v4l: ti-vpe: fix return value check in vpe_probe()"
+Some negative returns mean we are holding the lock.
 
-Thanks,
-Archit
+   185                  if (rval & FAULT_SHORT_CIRCUIT)
+   186                          fault |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+   187                  if (rval & FAULT_OVERTEMP)
+   188                          fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+   189                  if (rval & FAULT_TIMEOUT)
+   190                          fault |= V4L2_FLASH_FAULT_TIMEOUT;
+   191                  ctrl->cur.val = fault;
+   192                  return 0;
+
+Positive means we are holding the lock.
+
+   193          }
+   194  
+   195          mutex_unlock(&flash->lock);
+   196          return -EINVAL;
+
+Some mean we unlocked.
+
+   197  }
+
+I also worry that this might be a double lock deadlock because the
+caller already holds the lock in get_ctrl(), but I don't know the code
+very well.
+
+regards,
+dan carpenter
+
