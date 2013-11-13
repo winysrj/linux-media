@@ -1,202 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1306 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373Ab3KUPWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 10:22:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	awalls@md.metrocast.net, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/8] vb2: simplify qbuf/prepare_buf by removing callback.
-Date: Thu, 21 Nov 2013 16:22:00 +0100
-Message-Id: <1385047326-23099-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:52350 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758185Ab3KMJX6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Nov 2013 04:23:58 -0500
+From: Denis Carikli <denis@eukrea.com>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, Denis Carikli <denis@eukrea.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>, linux-media@vger.kernel.org,
+	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>
+Subject: [PATCHv4][ 1/7] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Wed, 13 Nov 2013 10:23:17 +0100
+Message-Id: <1384334603-14208-1-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-The callback used to merge the common code of the qbuf/prepare_buf
-code can be removed now that the mmap_sem handling is pushed down to
-__buf_prepare(). This makes the code more readable.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: devicetree@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: driverdev-devel@linuxdriverproject.org
+Cc: David Airlie <airlied@linux.ie>
+Cc: dri-devel@lists.freedesktop.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Eric Bénard <eric@eukrea.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 118 +++++++++++++++----------------
- 1 file changed, 59 insertions(+), 59 deletions(-)
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index d2b2efb..e90a5be 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1259,14 +1259,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- }
- 
- static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
--				    const char *opname,
--				    int (*handler)(struct vb2_queue *,
--						   struct v4l2_buffer *,
--						   struct vb2_buffer *))
-+				    const char *opname)
- {
--	struct vb2_buffer *vb;
--	int ret;
--
- 	if (q->fileio) {
- 		dprintk(1, "%s(): file io in progress\n", opname);
- 		return -EBUSY;
-@@ -1282,8 +1276,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	vb = q->bufs[b->index];
--	if (NULL == vb) {
-+	if (q->bufs[b->index] == NULL) {
- 		/* Should never happen */
- 		dprintk(1, "%s(): buffer is NULL\n", opname);
- 		return -EINVAL;
-@@ -1294,30 +1287,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	ret = __verify_planes_array(vb, b);
--	if (ret)
--		return ret;
--
--	ret = handler(q, b, vb);
--	if (!ret) {
--		/* Fill buffer information for the userspace */
--		__fill_v4l2_buffer(vb, b);
--
--		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
--	}
--	return ret;
--}
--
--static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
--			     struct vb2_buffer *vb)
--{
--	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
--		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
--			vb->state);
--		return -EINVAL;
--	}
--
--	return __buf_prepare(vb, b);
-+	return __verify_planes_array(q->bufs[b->index], b);
- }
- 
- /**
-@@ -1337,20 +1307,68 @@ static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-  */
- int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
--	return vb2_queue_or_prepare_buf(q, b, "prepare_buf", __vb2_prepare_buf);
-+	int ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
-+	struct vb2_buffer *vb;
-+
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[b->index];
-+	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
-+		return -EINVAL;
-+	}
-+
-+	ret = __buf_prepare(vb, b);
-+	if (!ret) {
-+		/* Fill buffer information for the userspace */
-+		__fill_v4l2_buffer(vb, b);
-+
-+		dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
-+	}
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
- 
--static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
--		      struct vb2_buffer *vb)
-+/**
-+ * vb2_qbuf() - Queue a buffer from userspace
-+ * @q:		videobuf2 queue
-+ * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-+ *		in driver
-+ *
-+ * Should be called from vidioc_qbuf ioctl handler of a driver.
-+ * This function:
-+ * 1) verifies the passed buffer,
-+ * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-+ *    which driver-specific buffer initialization can be performed,
-+ * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-+ *    callback for processing.
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from vidioc_qbuf handler in driver.
-+ */
-+int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
--	int ret;
-+	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-+	struct vb2_buffer *vb;
-+
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[b->index];
-+	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
-+		return -EINVAL;
-+	}
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
- 		ret = __buf_prepare(vb, b);
- 		if (ret)
- 			return ret;
-+		break;
- 	case VB2_BUF_STATE_PREPARED:
- 		break;
- 	default:
-@@ -1372,29 +1390,11 @@ static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 	if (q->streaming)
- 		__enqueue_in_driver(vb);
- 
--	return 0;
--}
-+	/* Fill buffer information for the userspace */
-+	__fill_v4l2_buffer(vb, b);
- 
--/**
-- * vb2_qbuf() - Queue a buffer from userspace
-- * @q:		videobuf2 queue
-- * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-- *		in driver
-- *
-- * Should be called from vidioc_qbuf ioctl handler of a driver.
-- * This function:
-- * 1) verifies the passed buffer,
-- * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-- *    which driver-specific buffer initialization can be performed,
-- * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-- *    callback for processing.
-- *
-- * The return values from this function are intended to be directly returned
-- * from vidioc_qbuf handler in driver.
-- */
--int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
--{
--	return vb2_queue_or_prepare_buf(q, b, "qbuf", __vb2_qbuf);
-+	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 79 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 166c8d6..f6a3e84 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+@@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..e8ff410 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -294,6 +294,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
 -- 
-1.8.4.3
+1.7.9.5
 
