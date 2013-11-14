@@ -1,147 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35249 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755762Ab3KFAMz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 19:12:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data type
-Date: Wed, 06 Nov 2013 01:13:24 +0100
-Message-ID: <51250742.Vj8b1nY3JT@avalon>
-In-Reply-To: <527783DA.5050905@xs4all.nl>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1310171945170.27369@axis700.grange> <527783DA.5050905@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:55478 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753981Ab3KNNqA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Nov 2013 08:46:00 -0500
+Message-ID: <5284D410.4010706@iki.fi>
+Date: Thu, 14 Nov 2013 15:45:52 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi> <1384179541.1949.24.camel@palomino.walls.org> <5280EBD4.5010505@xs4all.nl>
+In-Reply-To: <5280EBD4.5010505@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 11.11.2013 16:38, Hans Verkuil wrote:
+> On 11/11/2013 03:19 PM, Andy Walls wrote:
+>> On Sun, 2013-11-10 at 19:16 +0200, Antti Palosaari wrote:
+>>> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
+>>> used format for baseband signals.
+>>
+>> Hi Annti,
+>>
+>> I don't think this a good idea.  Floating point representations are
+>> inherently non-portable.  Even though most everything now uses IEEE-754
+>> representation, things like denormaliazed numbers may be treated
+>> differently by different machines.  If someone saves the data to a file,
+>> endianess issues aside, there are no guarantees that a different machine
+>> reading is going to interpret all the floating point data from that file
+>> properly.
+>>
+>> I really would recommend staying with scaled integer representations or
+>> explicit integer mantissa, exponent representations.
+>
+> For what it's worth: ALSA does support float format as well (both LE and BE).
 
-On Monday 04 November 2013 12:24:10 Hans Verkuil wrote:
-> Hi Guennadi,
-> 
-> Sorry for the delay, I only saw this today while I was going through my
-> mail backlog.
-> 
-> On 10/17/2013 08:24 PM, Guennadi Liakhovetski wrote:
-> > Hi Hans
-> > 
-> > Sorry for reviving this old thread. I was going to resubmit a part of
-> > those patches for mainlining and then I found this your comment, which I
-> > didn't reply to back then.
-> > 
-> > On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> >> On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
-> >>> Hi Hans
-> >>> 
-> >>> Thanks for reviewing.
-> >>> 
-> >>> On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> >>>> On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
-> >>>>> This struct shall be used by subdevice drivers to pass per-subdevice
-> >>>>> data, e.g. power supplies, to generic V4L2 methods, at the same time
-> >>>>> allowing optional host-specific extensions via the host_priv pointer.
-> >>>>> To avoid having to pass two pointers to those methods, add a pointer
-> >>>>> to this new struct to struct v4l2_subdev.
-> >>>>> 
-> >>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>>>> ---
-> >>>>> 
-> >>>>>  include/media/v4l2-subdev.h |   13 +++++++++++++
-> >>>>>  1 files changed, 13 insertions(+), 0 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >>>>> index eb91366..b15c6e0 100644
-> >>>>> --- a/include/media/v4l2-subdev.h
-> >>>>> +++ b/include/media/v4l2-subdev.h
-> >>>>> @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
-> >>>>> 
-> >>>>>  /* Set this flag if this subdev generates events. */
-> >>>>>  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
-> >>>>> 
-> >>>>> +struct regulator_bulk_data;
-> >>>>> +
-> >>>>> +struct v4l2_subdev_platform_data {
-> >>>>> +	/* Optional regulators uset to power on/off the subdevice */
-> >>>>> +	struct regulator_bulk_data *regulators;
-> >>>>> +	int num_regulators;
-> >>>>> +
-> >>>>> +	/* Per-subdevice data, specific for a certain video host device */
-> >>>>> +	void *host_priv;
-> >>>>> +};
-> >>>>> +
-> >>>>> 
-> >>>>>  /* Each instance of a subdev driver should create this struct, either
-> >>>>>     stand-alone or embedded in a larger struct.
-> >>>>>   */
-> >>>>> @@ -589,6 +600,8 @@ struct v4l2_subdev {
-> >>>>> 
-> >>>>>  	/* pointer to the physical device */
-> >>>>>  	struct device *dev;
-> >>>>>  	struct v4l2_async_subdev_list asdl;
-> >>>>> 
-> >>>>> +	/* common part of subdevice platform data */
-> >>>>> +	struct v4l2_subdev_platform_data *pdata;
-> >>>>> 
-> >>>>>  };
-> >>>>>  
-> >>>>>  static inline struct v4l2_subdev *v4l2_async_to_subdev(
-> >>>> 
-> >>>> Sorry, this is the wrong approach.
-> >>>> 
-> >>>> This is data that is of no use to the subdev driver itself. It really
-> >>>> is v4l2_subdev_host_platform_data, and as such must be maintained by
-> >>>> the bridge driver.
-> >>> 
-> >>> I don't think so. It has been discussed and agreed upon, that only
-> >>> subdevice drivers know when to switch power on and off, because only
-> >>> they know when they need to access the hardware. So, they have to manage
-> >>> regulators. In fact, those regulators supply power to respective
-> >>> subdevices, e.g. a camera sensor. Why should the bridge driver manage
-> >>> them? The V4L2 core can (and probably should) provide helper functions
-> >>> for that, like soc-camera currently does, but in any case it's the
-> >>> subdevice driver, that has to call them.
-> >> 
-> >> Ah, OK. I just realized I missed some context there. I didn't pay much
-> >> attention to the regulator discussions since that's not my area of
-> >> expertise.
-> >> 
-> >> In that case my only comment is to drop the host_priv pointer since that
-> >> just duplicates v4l2_get/set_subdev_hostdata().
-> > 
-> > I think it's different. This is _platform_ data, whereas struct
-> > v4l2_subdev::host_priv is more like run-time data.
-> 
-> You mean subdev_hostdata() instead of host_priv, right?
-> 
-> > This field is for the
-> > per-subdevice host-specific data, that the platform has to pass to the
-> > host driver. In the soc-camera case this is the largest bulk of the data,
-> > that platforms currently pass to the soc-camera framework in the host part
-> > of struct soc_camera_link. This data most importantly includes I2C
-> > information. Yes, this _could_ be passed to soc-camera separately from the
-> > host driver, but that would involve quite some refactoring of the "legacy"
-> > synchronous probing mode, which I'd like to avoid if possible. This won't
-> > be used in the asynchronous case. Do you think we can keep this pointer in
-> > this sruct? We could rename it to avoid confusion with the field, that you
-> > told about.
-> 
-> I'm wondering: do we need host_priv at all? Can't drivers use container_of
-> to go from struct v4l2_subdev_platform_data to the platform_data struct
-> containing v4l2_subdev_platform_data?
-> 
-> That would be a cleaner solution IMHO. Using host_priv basically forces you
-> to split up the platform_data into two parts, and a void pointer isn't very
-> type-safe.
+I want use existing data formats and that [-1 to +1] scaled 32-bit 
+IEEE-754 floating point is de facto format for SDR application (actually 
+pair of floats as a complex).
 
-For what it's worth, that's the solution I was thinking about, so it has my 
-preference as well.
+Doing conversion inside libv4lconvert makes it very easy for write 
+application. Currently I have implemented GNU Radio and SDRsharp plugins 
+that feeds data from device via libv4l2 using mmap and conversion.
+
+Thanks to pointing endianess issue, I didn't though it all. I suspect 
+those apps just relies to local endianess. So do I have to implement 
+float format conversion with both endianess?
+
+
+>
+> Regards,
+>
+> 	Hans
+>
+>>
+>> Two more comments below...
+>>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   contrib/freebsd/include/linux/videodev2.h |  4 ++++
+>>>   include/linux/videodev2.h                 |  4 ++++
+>>>   lib/libv4lconvert/libv4lconvert.c         | 29 ++++++++++++++++++++++++++++-
+>>>   3 files changed, 36 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+>>> index 1fcfaeb..8829400 100644
+>>> --- a/contrib/freebsd/include/linux/videodev2.h
+>>> +++ b/contrib/freebsd/include/linux/videodev2.h
+>>> @@ -465,6 +465,10 @@ struct v4l2_pix_format {
+>>>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>>
+>>> +/* SDR */
+>>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>>> +
+>>>   /*
+>>>    *	F O R M A T   E N U M E R A T I O N
+>>>    */
+>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>>> index 437f1b0..14299a6 100644
+>>> --- a/include/linux/videodev2.h
+>>> +++ b/include/linux/videodev2.h
+>>> @@ -431,6 +431,10 @@ struct v4l2_pix_format {
+>>>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>>>
+>>> +/* SDR */
+>>> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+>>> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+>>> +
+>>>   /*
+>>>    *	F O R M A T   E N U M E R A T I O N
+>>>    */
+>>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>>> index e2afc27..38c9125 100644
+>>> --- a/lib/libv4lconvert/libv4lconvert.c
+>>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>>> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
+>>>   	{ V4L2_PIX_FMT_RGB24,		24,	 1,	 5,	0 }, \
+>>>   	{ V4L2_PIX_FMT_BGR24,		24,	 1,	 5,	0 }, \
+>>>   	{ V4L2_PIX_FMT_YUV420,		12,	 6,	 1,	0 }, \
+>>> -	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }
+>>> +	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }, \
+>>> +	{ V4L2_PIX_FMT_FLOAT,		 0,	 0,	 0,	0 }
+>>>
+>>>   static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>>   	SUPPORTED_DST_PIXFMTS,
+>>> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>>   	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
+>>>   	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
+>>>   	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
+>>> +	/* SDR formats */
+>>> +	{ V4L2_PIX_FMT_U8,		0,	0,	0,	0 },
+>>>   };
+>>>
+>>>   static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+>>> @@ -1281,6 +1284,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>>   		}
+>>>   		break;
+>>>
+>>> +	/* SDR */
+>>> +	case V4L2_PIX_FMT_U8:
+>>> +		switch (dest_pix_fmt) {
+>>> +		case V4L2_PIX_FMT_FLOAT:
+>>> +			{
+>>> +				/* 8-bit unsigned to 32-bit float */
+>>> +				unsigned int i;
+>>> +				float ftmp;
+>>> +				for (i = 0; i < src_size; i++) {
+>>> +					ftmp = *src++;
+>>> +					ftmp -= 127.5;
+>>> +					ftmp /= 127.5;
+>>> +					memcpy(dest, &ftmp, 4);
+>>> +					dest += 4;
+>>
+>> Replace the 4's with sizeof(float).
+>>
+>> You have no guarantees that sizeof(float) == 4, but it is usally a safe
+>> assumption for 'float' on Unix.
+>>
+>> sizeof(long double) is certainly different for IA32 machines (80 bits)
+>> vs. other 32 bit platforms.  I was burned by this many years ago on a
+>> RedHat 9.0 machine (the GNU Ada Translator's libm bindings made some bad
+>> assumptions about the size of float types).
+
+Will do.
+
+
+>>
+>>
+>>> +				}
+>>> +			}
+>>> +		}
+>>> +		break;
+>>> +
+>>>   	default:
+>>>   		V4LCONVERT_ERR("Unknown src format in conversion\n");
+>>>   		errno = EINVAL;
+>>> @@ -1349,6 +1371,11 @@ int v4lconvert_convert(struct v4lconvert_data *data,
+>>>   		temp_needed =
+>>>   			my_src_fmt.fmt.pix.width * my_src_fmt.fmt.pix.height * 3 / 2;
+>>>   		break;
+>>> +	/* SDR */
+>>> +	case V4L2_PIX_FMT_FLOAT:
+>>> +		dest_needed = src_size * 4; /* 8-bit to 32-bit */
+>>
+>> Change the 4 to sizeof(float).
+>>
+>>> +		temp_needed = dest_needed;
+>>> +		break;
+>>>   	default:
+>>>   		V4LCONVERT_ERR("Unknown dest format in conversion\n");
+>>>   		errno = EINVAL;
+>>
+>> Regards,
+>> Andy
+
+regards
+Antti
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
