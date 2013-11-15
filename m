@@ -1,67 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:20820 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420Ab3KAK20 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 06:28:26 -0400
-Date: Fri, 1 Nov 2013 13:25:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] cx23885-dvb: use a better approach to hook set_frontend
-Message-ID: <20131101102522.GF29795@longonot.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:2919 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756124Ab3KOCPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Nov 2013 21:15:47 -0500
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <20271.1384472102@warthog.procyon.org.uk>
+References: <20271.1384472102@warthog.procyon.org.uk>
+Cc: dhowells@redhat.com, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Jarkko Korpi <jarkko_korpi@hotmail.com>
+Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103 driver
+Date: Fri, 15 Nov 2013 02:15:12 +0000
+Message-ID: <10636.1384481712@warthog.procyon.org.uk>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro Carvalho Chehab,
+David Howells <dhowells@redhat.com> wrote:
 
-The patch 15472faf1259: "[media] cx23885-dvb: use a better approach
-to hook set_frontend" from Aug 9, 2013, leads to the following
-warning:
-"drivers/media/pci/cx23885/cx23885-dvb.c:795 dvb_register()
-	 error: we previously assumed 'fe0->dvb.frontend' could be null (see line 789)"
+> Here are four logs from doing:
+> 
+> 	scandvb -a1 ./e.1
+> 
+> where the contents of file e.1 are:
+> 
+> 	S 11919000 V 27500000 3/4
+> 
+> which is probing a region on the Eutelsat-9A satellite broadcast.
 
-drivers/media/pci/cx23885/cx23885-dvb.c
-   789                  if (fe0->dvb.frontend != NULL) {
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^
-Null check.
+Here's a script for turning the logs from:
 
-   790                          dvb_attach(tda18271_attach, fe0->dvb.frontend,
-   791                                     0x60, &dev->i2c_bus[1].i2c_adap,
-   792                                     &hauppauge_hvr127x_config);
-   793                  }
-   794                  if (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1275)
-   795                          cx23885_set_frontend_hook(port, fe0->dvb.frontend);
-                                                                ^^^^^^^^^^^^^^^^^
-New unchecked dereference.
+	I2C cx23885[0]: RD 60 1
+	I2C m88ds3103: WR 60 2 [0003]
+	I2C cx23885[0]: WR 68 2 [0311]
+	I2C cx23885[0]: WR 60 2 [0003]
+	I2C m88ds3103: WR 60 1 [00]
 
-   796                  break;
+into something that looks like:
 
-[snip]
+	demod_read(23)
+	demod_write(23, [1f])
+	TUNER_read(00)
+	TUNER_write(00, [03])
+	TUNER_read(00)
 
-  1138          case CX23885_BOARD_MYGICA_X8506:
-  1139                  i2c_bus = &dev->i2c_bus[0];
-  1140                  i2c_bus2 = &dev->i2c_bus[1];
-  1141                  fe0->dvb.frontend = dvb_attach(lgs8gxx_attach,
-  1142                          &mygica_x8506_lgs8gl5_config,
-  1143                          &i2c_bus->i2c_adap);
-  1144                  if (fe0->dvb.frontend != NULL) {
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^
-check.
+and checks for and hides the tuner gate opening commands to the ds3103.
 
-  1145                          dvb_attach(xc5000_attach,
-  1146                                  fe0->dvb.frontend,
-  1147                                  &i2c_bus2->i2c_adap,
-  1148                                  &mygica_x8506_xc5000_config);
-  1149                  }
-  1150                  cx23885_set_frontend_hook(port, fe0->dvb.frontend);
-                                                        ^^^^^^^^^^^^^^^^^
-Dereference.
-  1151                  break;
+David
+---
+#!/usr/bin/perl -w
 
+use strict;
 
-regards,
-dan carpenter
+my $last_adap = 0;
+my $last_dev = 0;
+my $last_reg = 0;
+my $tuner_gate = 0;
 
+while (<>) {
+    chomp;
+    if (/^I2C ([^:]*): RD ([0-9A-Fa-f]{2}) ([0-9]{1,2})/) {
+	my $adap = $1;
+	my $dev = $2;
+	my $n = $3;
+
+	die if ($dev ne "6b" && $dev ne $last_dev);
+
+	if ($dev eq "68") {
+	    # Demodulator register
+	    die if ($tuner_gate);
+	    print "demod_read(", $last_reg, ")\n";
+	} elsif ($dev eq "60") {
+	    # Tuner register
+
+	    # Ignore stuff on the internal tuner->demod bus in Antti's driver
+	    next if ($adap eq "m88ds3103");
+
+	    die if (!$tuner_gate);
+	    $tuner_gate = 0;
+	    print "TUNER_read(", $last_reg, ")\n";
+	} else {
+	    print "RD ", $adap, " ", $dev, " ", $n, "\n";
+	}
+
+    } elsif (/^I2C ([^:]*): WR ([0-9A-Fa-f]{2}) ([0-9]{1,2}) [[]([0-9A-Fa-f]{2,})[]]/) {
+	my $adap = $1;
+	my $dev = $2;
+	my $n = $3;
+	my $data = $4;
+
+	$last_adap = $adap;
+	$last_dev = $dev;
+
+	die if (int($n) <= 0);
+	die if (length($data) != int($n) * 2);
+
+	if ($dev eq "68") {
+	    # Demodulator register
+	    die if ($tuner_gate);
+	    my $reg = substr($data, 0, 2);
+	    if ($n == 2 && $data eq "0311") {
+		$tuner_gate = 1;
+	    } elsif ($n > 1) {
+		print "demod_write(", $reg, ", [", substr($data, 2), "])\n";
+		$last_dev = 0;
+	    } else {
+		$last_reg = $reg;
+	    }
+	} elsif ($dev eq "60") {
+	    # Tuner register
+
+	    # Ignore stuff on the internal tuner->demod bus in Antti's driver
+	    next if ($adap eq "m88ds3103");
+
+	    die if (!$tuner_gate);
+	    my $reg = substr($data, 0, 2);
+	    if ($n > 1) {
+		print "TUNER_write(", $reg, ", [", substr($data, 2), "])\n";
+		$last_dev = 0;
+		$tuner_gate = 0;
+	    } else {
+		$last_reg = $reg;
+	    }
+	} else {
+	    print "WR ", $1, " ", $2, " ", $3, " ", $4, "\n";
+	}
+    } else {
+	print;
+	print "\n";
+    }
+}
