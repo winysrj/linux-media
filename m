@@ -1,47 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46633 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757261Ab3KZQMZ (ORCPT
+Received: from e06smtp16.uk.ibm.com ([195.75.94.112]:44235 "EHLO
+	e06smtp16.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab3KOQRK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 11:12:25 -0500
-Received: from avalon.localnet (unknown [109.134.93.159])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8DABA35A49
-	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 17:11:40 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.14] Sensor fix
-Date: Tue, 26 Nov 2013 17:12:28 +0100
-Message-ID: <5566635.cI06f1RQGF@avalon>
+	Fri, 15 Nov 2013 11:17:10 -0500
+Received: from /spool/local
+	by e06smtp16.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-media@vger.kernel.org> from <clg@fr.ibm.com>;
+	Fri, 15 Nov 2013 16:17:08 -0000
+Message-ID: <528648F7.20900@fr.ibm.com>
+Date: Fri, 15 Nov 2013 17:16:55 +0100
+From: Cedric Le Goater <clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+CC: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org,
+	devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net,
+	linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org,
+	linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org,
+	linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+	Solarflare linux maintainers <linux-net-drivers@solarflare.com>,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	Paul Mackerras <paulus@samba.org>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: [PATCH 16/51] DMA-API: ppc: vio.c: replace dma_set_mask()+dma_set_coherent_mask()
+ with new helper
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
+In-Reply-To: <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi, 
 
-The following changes since commit 258d2fbf874c87830664cb7ef41f9741c1abffac:
+On 09/19/2013 11:41 PM, Russell King wrote:
+> Replace the following sequence:
+> 
+> 	dma_set_mask(dev, mask);
+> 	dma_set_coherent_mask(dev, mask);
+> 
+> with a call to the new helper dma_set_mask_and_coherent().
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/powerpc/kernel/vio.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
+> index 78a3506..96b6c97 100644
+> --- a/arch/powerpc/kernel/vio.c
+> +++ b/arch/powerpc/kernel/vio.c
+> @@ -1413,8 +1413,7 @@ struct vio_dev *vio_register_device_node(struct device_node *of_node)
+> 
+>  		/* needed to ensure proper operation of coherent allocations
+>  		 * later, in case driver doesn't set it explicitly */
+> -		dma_set_mask(&viodev->dev, DMA_BIT_MASK(64));
+> -		dma_set_coherent_mask(&viodev->dev, DMA_BIT_MASK(64));
+> +		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
+>  	}
+> 
+>  	/* register with generic device framework */
+> 
 
-  Merge tag 'v3.13-rc1' into patchwork (2013-11-25 05:57:23 -0200)
+The new helper routine dma_set_mask_and_coherent() breaks the 
+initialization of the pseries vio devices which do not have an 
+initial dev->dma_mask. I think we need to use dma_coerce_mask_and_coherent()
+instead.
 
-are available in the git repository at:
+Signed-off-by: Cédric Le Goater <clg@fr.ibm.com>
+---
+ arch/powerpc/kernel/vio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-  git://linuxtv.org/pinchartl/media.git sensors/next
-
-for you to fetch changes up to 2b9d9a26cb65d536bd609f5b59520f8727686158:
-
-  mt9p031: Include linux/of.h header (2013-11-26 17:11:26 +0100)
-
-----------------------------------------------------------------
-Sachin Kamat (1):
-      mt9p031: Include linux/of.h header
-
- drivers/media/i2c/mt9p031.c | 1 +
- 1 file changed, 1 insertion(+)
-
+diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
+index e7d0c88f..76a6482 100644
+--- a/arch/powerpc/kernel/vio.c
++++ b/arch/powerpc/kernel/vio.c
+@@ -1419,7 +1419,7 @@ struct vio_dev *vio_register_device_node(struct device_node *of_node)
+ 
+ 		/* needed to ensure proper operation of coherent allocations
+ 		 * later, in case driver doesn't set it explicitly */
+-		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
++		dma_coerce_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
+ 	}
+ 
+ 	/* register with generic device framework */
 -- 
-Regards,
+1.7.10.4
 
-Laurent Pinchart
 
