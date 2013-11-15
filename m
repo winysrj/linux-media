@@ -1,77 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:50698 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756485Ab3K2Nqa (ORCPT
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:57176 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756249Ab3KOF3O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 08:46:30 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so10528581oag.28
-        for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 05:46:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5298852F.6030303@cogentembedded.com>
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com>
-	<5295E231.9030200@cisco.com>
-	<5295E641.6060603@cogentembedded.com>
-	<2150651.hQNra4Rlob@avalon>
-	<CACRpkdZQa626hNRFcGvk4t7Z8scTCoEcf7AqO-FsL=BGk6UfeA@mail.gmail.com>
-	<52987058.80700@metafoo.de>
-	<5298852F.6030303@cogentembedded.com>
-Date: Fri, 29 Nov 2013 14:46:29 +0100
-Message-ID: <CACRpkdaKeuQk3y42XvCcjJuis0U5cpmJ8M7YG6=0Qo1Apc=HHQ@mail.gmail.com>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Valentine <valentine.barshak@cogentembedded.com>,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Wolfram Sang <wsa@the-dreams.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 15 Nov 2013 00:29:14 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v2] [media] s5p-mfc: Add QP setting support for vp8 encoder
+Date: Fri, 15 Nov 2013 10:59:22 +0530
+Message-Id: <1384493362-29322-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 29, 2013 at 1:14 PM, Valentine
-<valentine.barshak@cogentembedded.com> wrote:
-> On 11/29/2013 02:45 PM, Lars-Peter Clausen wrote:
->> On 11/29/2013 11:37 AM, Linus Walleij wrote:
+Adds v4l2 controls to set MIN, MAX QP values and
+I, P frame QP for vp8 encoder.
 
->>> So I guess the answer to the question is something like, fix
->>> the GPIO driver to stop requiring the GPIO lines to be requested
->>> and configured before being used as IRQs, delete that code,
->>> and while you're at it add a call to gpiod_lock_as_irq()
->>> to your GPIO driver in the right spot: examples are on the
->>> mailing list and my mark-irqs branch in the GPIO tree.
->>
->> As far as I understand it this already works more or less with the driver.
->> The problem is that the IRQ numbers are dynamically allocated, while the
->> GPIO numbers apparently are not. So the board code knows the the GPIO
->> number
->> at compile time and can pass this to the diver which then does a
->> gpio_to_irq
->> to lookup the IRQ number.
-(...)
->> This of course isn't really a problem with
->> devicetree, but only with platform board code.
->
-> I'm not sure what's the difference here and why it is not a problem with
-> devicetree?
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+Changes from v1:
+- Removed the valid range from documentation as suggested by Hans.
+  http://www.mail-archive.com/linux-media@vger.kernel.org/msg68352.html
+---
+ Documentation/DocBook/media/v4l/controls.xml    |   32 +++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    4 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   44 +++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   20 +++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c            |    4 +++
+ include/uapi/linux/v4l2-controls.h              |    4 +++
+ 6 files changed, 108 insertions(+)
 
-It's no problem when using devicetree because you can obtain
-the GPIOs directly from the node with of_get_gpio()
-and of_get_named_gpio() in the special DT probe path.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 7a3b49b..e4db4ac 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3161,6 +3161,38 @@ V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
+ 		</entrytbl>
+ 	      </row>
+ 
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MIN_QP</constant></entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Minimum quantization parameter for VP8.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MAX_QP</constant></entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Maximum quantization parameter for VP8.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Quantization parameter for an I frame for VP8.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Quantization parameter for a P frame for VP8.</entry>
++	      </row>
++
+           <row><entry></entry></row>
+         </tbody>
+       </tgroup>
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 6920b54..d91f757 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -422,6 +422,10 @@ struct s5p_mfc_vp8_enc_params {
+ 	enum v4l2_vp8_golden_frame_sel golden_frame_sel;
+ 	u8 hier_layer;
+ 	u8 hier_layer_qp[3];
++	u8 rc_min_qp;
++	u8 rc_max_qp;
++	u8 rc_frame_qp;
++	u8 rc_p_frame_qp;
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4ff3b6c..33e8ae3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -618,6 +618,38 @@ static struct mfc_control controls[] = {
+ 		.default_value = V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV,
+ 		.menu_skip_mask = 0,
+ 	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_VPX_MAX_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 127,
++		.step = 1,
++		.default_value = 127,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_VPX_MIN_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 11,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 127,
++		.step = 1,
++		.default_value = 10,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 127,
++		.step = 1,
++		.default_value = 10,
++	},
+ };
+ 
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -1557,6 +1589,18 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+ 		p->codec.vp8.golden_frame_sel = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:
++		p->codec.vp8.rc_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:
++		p->codec.vp8.rc_max_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:
++		p->codec.vp8.rc_frame_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:
++		p->codec.vp8.rc_p_frame_qp = ctrl->val;
++		break;
+ 	default:
+ 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
+ 							ctrl->id, ctrl->val);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 461358c..b4886d6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1218,6 +1218,26 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
+ 		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
+ 	}
+ 
++	/* frame QP */
++	reg &= ~(0x7F);
++	reg |= p_vp8->rc_frame_qp & 0x7F;
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
++
++	/* other QPs */
++	WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
++	if (!p->rc_frame && !p->rc_mb) {
++		reg = 0;
++		reg |= ((p_vp8->rc_p_frame_qp & 0x7F) << 8);
++		reg |= p_vp8->rc_frame_qp & 0x7F;
++		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
++	}
++
++	/* max QP */
++	reg = ((p_vp8->rc_max_qp & 0x7F) << 8);
++	/* min QP */
++	reg |= p_vp8->rc_min_qp & 0x7F;
++	WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND_V6);
++
+ 	/* vbv buffer size */
+ 	if (p->frame_skip_mode ==
+ 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 60dcc0f..99a89ad 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -745,6 +745,10 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS:		return "VPX Deblocking Effect Control";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD:	return "VPX Golden Frame Refresh Period";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:		return "VPX Golden Frame Indicator";
++	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:			return "VPX Minimum QP Value";
++	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:			return "VPX Maximum QP Value";
++	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:		return "VPX I-Frame QP Value";
++	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 1666aab..5b9dfc8 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -554,6 +554,10 @@ enum v4l2_vp8_golden_frame_sel {
+ 	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV		= 0,
+ 	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
+ };
++#define V4L2_CID_MPEG_VIDEO_VPX_MIN_QP			(V4L2_CID_MPEG_BASE+507)
++#define V4L2_CID_MPEG_VIDEO_VPX_MAX_QP			(V4L2_CID_MPEG_BASE+508)
++#define V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP		(V4L2_CID_MPEG_BASE+509)
++#define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ 
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+-- 
+1.7.9.5
 
-But don't do that! Instead switch the whole driver, and preferably
-the whole platform, to use descriptors.
-
-Yours,
-Linus Walleij
