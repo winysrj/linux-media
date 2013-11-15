@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:19233 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753032Ab3KSO2H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:28:07 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI006K9LIUBP10@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:28:06 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 13/16] s5p-jpeg: Allow for wider JPEG subsampling scope for
- Exynos4x12 encoder
-Date: Tue, 19 Nov 2013 15:27:05 +0100
-Message-id: <1384871228-6648-14-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41854 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751602Ab3KOOZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Nov 2013 09:25:53 -0500
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <528628B7.5010808@iki.fi>
+References: <528628B7.5010808@iki.fi> <19084.1384522337@warthog.procyon.org.uk> <52861C55.6050307@iki.fi> <20271.1384472102@warthog.procyon.org.uk> <28089.1384515232@warthog.procyon.org.uk> <19278.1384523789@warthog.procyon.org.uk>
+To: Antti Palosaari <crope@iki.fi>
+Cc: dhowells@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Jarkko Korpi <jarkko_korpi@hotmail.com>
+Subject: Re: I2C transfer logs for Antti's DS3103 driver and DVBSky's DS3103 driver
+Date: Fri, 15 Nov 2013 14:25:24 +0000
+Message-ID: <2943.1384525524@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos4x12 supports wider scope of subsampling modes than
-S5PC210. Adjust corresponding mask accordingly.
+Antti Palosaari <crope@iki.fi> wrote:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> >> I guess I need to check the tuner writes too.
+> >
+> >>From dvbsky:
+> >
+> > 	TUNER_write(10, [0a])
+> > 	TUNER_write(11, [40])
+> >
+> > and from your driver:
+> >
+> > 	TUNER_write(10, [0b40])
+> >
+> > That would appear to be some sort of tuner frequency setting?
+> 
+> ... and the result is same, reg 10 will be 0a and reg 11 40. It is register
+> write using register address auto-increment. The later one is I/O optimized.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 15b2dea..319be0c 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1210,7 +1210,8 @@ static int s5p_jpeg_controls_create(struct s5p_jpeg_ctx *ctx)
- 		v4l2_ctrl_new_std(&ctx->ctrl_handler, &s5p_jpeg_ctrl_ops,
- 				  V4L2_CID_JPEG_RESTART_INTERVAL,
- 				  0, 3, 0xffff, 0);
--		mask = ~0x06; /* 422, 420 */
-+		if (ctx->jpeg->variant->version == SJPEG_S5P)
-+			mask = ~0x06; /* 422, 420 */
- 	}
- 
- 	ctrl = v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &s5p_jpeg_ctrl_ops,
--- 
-1.7.9.5
+Yes, I understand that.  However, reg 10 is set to 0a in one driver and 0b in
+the other.
 
+David
