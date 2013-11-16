@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mimuw.edu.pl ([193.0.96.6]:55502 "EHLO mail.mimuw.edu.pl"
+Received: from mail.kapsi.fi ([217.30.184.167]:38537 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752209Ab3KBSLg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 14:11:36 -0400
-Message-ID: <20131102190344.17415jolzlhxr05c@mail.mimuw.edu.pl>
-Date: Sat, 02 Nov 2013 19:03:44 +0100
-From: "Janusz S. Bien" <jsbien@mimuw.edu.pl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: status of Technisat CableStar Combi CI HD kernel support
+	id S1751222Ab3KPReO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Nov 2013 12:34:14 -0500
+Message-ID: <5287AC94.5020401@iki.fi>
+Date: Sat, 16 Nov 2013 19:34:12 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi> <5287AAFC.9050209@redhat.com>
+In-Reply-To: <5287AAFC.9050209@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've just subscribed to the list following the advice given at  
-http://www.linuxtv.org/wiki/index.php/DVB-C_USB_Devices:
+Hello Hans!
+Actually I has already fixed version according to Andy and Hans V. 
+comments, which I was just planning to send for you too, just due to 
+that issue format selection issue!
 
-"If you own one or more devices from the following list and you want  
-to help with support development, please contact the Linux-Media  
-Mailing List"
 
-Adding the support for the device requires just a simple patch
 
-http://www.linuxtv.org/wiki/index.php/TechniSat_CableStar_Combo_HD_CI
+On 16.11.2013 19:27, Hans de Goede wrote:
+> Hi,
+>> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct
+>> v4lconvert_data *data,
+>>       { V4L2_PIX_FMT_RGB24,        24,     1,     5,    0 }, \
+>>       { V4L2_PIX_FMT_BGR24,        24,     1,     5,    0 }, \
+>>       { V4L2_PIX_FMT_YUV420,        12,     6,     1,    0 }, \
+>> -    { V4L2_PIX_FMT_YVU420,        12,     6,     1,    0 }
+>> +    { V4L2_PIX_FMT_YVU420,        12,     6,     1,    0 }, \
+>> +    { V4L2_PIX_FMT_FLOAT,         0,     0,     0,    0 }
+>>
+>
+> This looks wrong, here you claim that V4L2_PIX_FMT_FLOAT is a supported
+> destination
+> format. which suggests there will be conversion code from any of the
+> supported_src_pixfmts to it, which you don't add (and I don't think we
+> will want
+> to add.
+>
+>>   static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>       SUPPORTED_DST_PIXFMTS,
+>> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt
+>> supported_src_pixfmts[] = {
+>>       { V4L2_PIX_FMT_Y6,         8,    20,    20,    0 },
+>>       { V4L2_PIX_FMT_Y10BPACK,    10,    20,    20,    0 },
+>>       { V4L2_PIX_FMT_Y16,        16,    20,    20,    0 },
+>> +    /* SDR formats */
+>> +    { V4L2_PIX_FMT_U8,        0,    0,    0,    0 },
+>>   };
+>
+> Likewise this will tell libv4lconvert that it can convert from
+> V4L2_PIX_FMT_U8 to
+> any of the supported destination formats, which again is not true.
+>
+> I suggest simply adding a hardcoded test for the SDR formats to relevant
+> code paths
+> which use supported_src_pixfmts and when seeing V4L2_PIX_FMT_U8 as
+> source only
+> support V4L2_PIX_FMT_FLOAT as dest, and short-circuit a whole bunch of
+> other tests
+> done.
 
-so I have a simple question: when the support will be available in the  
-official kernel? Is it already on some kind of waiting list or some  
-additional action is required?
+Sounds reasonable. I will try implement it after I do some more 
+conversions tests.
 
-Best regards
-
-Janusz
+regards
+Antti
 
 -- 
-Prof. dr hab. Janusz S. Bień -  Uniwersytet Warszawski (Katedra  
-Lingwistyki Formalnej)
-Prof. Janusz S. Bień - University of Warsaw (Formal Linguistics Department)
-jsbien@uw.edu.pl, jsbien@mimuw.edu.pl, http://fleksem.klf.uw.edu.pl/~jsbien/
+http://palosaari.fi/
