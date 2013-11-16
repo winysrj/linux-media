@@ -1,72 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:26752 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab3KMJjg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Nov 2013 04:39:36 -0500
-Date: Wed, 13 Nov 2013 12:39:23 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: gshark.jeong@gmail.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] media: i2c: add driver for dual LED Flash, lm3560
-Message-ID: <20131113093923.GA2557@elgon.mountain>
+Received: from mail.kapsi.fi ([217.30.184.167]:36911 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751837Ab3KPOLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Nov 2013 09:11:20 -0500
+Message-ID: <52877D05.4020604@iki.fi>
+Date: Sat, 16 Nov 2013 16:11:17 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi>	<5280D83C.5060809@xs4all.nl>	<5280DE3D.5040408@iki.fi>	<528671DF.7040707@iki.fi> <CAGoCfiz8EBqkEUuzYLXhgXGW-0S6+6s3MAFWdSpfFmuOnP+Dfg@mail.gmail.com> <52867341.7050500@iki.fi>
+In-Reply-To: <52867341.7050500@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Daniel Jeong,
+On 15.11.2013 21:17, Antti Palosaari wrote:
+> On 15.11.2013 21:13, Devin Heitmueller wrote:
+>> On Fri, Nov 15, 2013 at 2:11 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>> When I do it inside Kernel, in URB completion handler at the same
+>>> time when
+>>> copying data to videobuf2, using pre-calculated LUTs and using mmap
+>>> it eats
+>>> 0.5% CPU to transfer stream to app.
+>>>
+>>> When I do same but using libv4lconvert as that patch, it takes ~11% CPU.
+>>
+>> How are you measuring?  Interrupt handlers typically don't count
+>> toward the CPU performance counters.  It's possible that the cost is
+>> the same but you're just not seeing it in "top".
+>
+> Yes, using top and it is URB interrupt handler where I do conversion. So
+> any idea how to measure? I think I can still switch LUT to float and see
+> if it makes difference.
 
-The patch 7f6b11a18c30: "[media] media: i2c: add driver for dual LED
-Flash, lm3560" from Oct 16, 2013, leads to the following
-static checker warning: "drivers/media/i2c/lm3560.c:196
-lm3560_get_ctrl()
-	 warn: inconsistent returns mutex:&flash->lock: locked (184
-	[s32min-(-1)], 192 [0]) unlocked (196 [(-22)])"
+I did some more tests. I added LUT to libv4lconvert and CPU usage of 
+process dropped to ~3.5%. It is very simple app that just feeds data 
+from device using mmap and conversion is done by libv4lconvert. Output 
+is feed to standard out which I dumped to /dev/null on tests.
 
-drivers/media/i2c/lm3560.c
-   171  /* V4L2 controls  */
-   172  static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
-   173  {
-   174          struct lm3560_flash *flash = to_lm3560_flash(ctrl, led_no);
-   175  
-   176          mutex_lock(&flash->lock);
-   177  
-   178          if (ctrl->id == V4L2_CID_FLASH_FAULT) {
-   179                  int rval;
-   180                  s32 fault = 0;
-   181                  unsigned int reg_val;
-   182                  rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
-   183                  if (rval < 0)
-   184                          return rval;
+So it is quite clear that runtime float conversion is CPU hungry when 
+conversion rate goes that high (up to 30M conversions per sec).
 
-Some negative returns mean we are holding the lock.
+It is still not very much when compared to CPU needed for average signal 
+processing after that, but it will increase directly CPU usage of that 
+application. So is there idea to add threads for libv4lconvert in order 
+to get conversion out from application context ?
 
-   185                  if (rval & FAULT_SHORT_CIRCUIT)
-   186                          fault |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
-   187                  if (rval & FAULT_OVERTEMP)
-   188                          fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
-   189                  if (rval & FAULT_TIMEOUT)
-   190                          fault |= V4L2_FLASH_FAULT_TIMEOUT;
-   191                  ctrl->cur.val = fault;
-   192                  return 0;
+regards
+Antti
 
-Positive means we are holding the lock.
-
-   193          }
-   194  
-   195          mutex_unlock(&flash->lock);
-   196          return -EINVAL;
-
-Some mean we unlocked.
-
-   197  }
-
-I also worry that this might be a double lock deadlock because the
-caller already holds the lock in get_ctrl(), but I don't know the code
-very well.
-
-regards,
-dan carpenter
-
+-- 
+http://palosaari.fi/
