@@ -1,87 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57956 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755794Ab3KAWlh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:37 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 11/11] uvc/lirc_serial: Fix some warnings on parisc arch
-Date: Fri,  1 Nov 2013 17:39:30 -0200
-Message-Id: <1383334770-27130-12-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2856 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353Ab3KPDbr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Nov 2013 22:31:47 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAG3VhkB064850
+	for <linux-media@vger.kernel.org>; Sat, 16 Nov 2013 04:31:45 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 1CB0B2A221C
+	for <linux-media@vger.kernel.org>; Sat, 16 Nov 2013 04:31:43 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131116033143.1CB0B2A221C@tschai.lan>
+Date: Sat, 16 Nov 2013 04:31:43 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On this arch, usec is not unsigned long. So, we need to typecast,
-in order to remove those warnings:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	/devel/v4l/ktest-build/drivers/media/usb/uvc/uvc_video.c: In function 'uvc_video_clock_update':
-	/devel/v4l/ktest-build/drivers/media/usb/uvc/uvc_video.c:678:2: warning: format '%lu' expects argument of type 'long unsigned int', but argument 9 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c: In function 'irq_handler':
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:707:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:719:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type '__kernel_suseconds_t' [-Wformat]
-	/devel/v4l/ktest-build/drivers/staging/media/lirc/lirc_serial.c:728:6: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type '__kernel_suseconds_t' [-Wformat]
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/uvc/uvc_video.c        | 2 +-
- drivers/staging/media/lirc/lirc_serial.c | 9 ++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+date:		Sat Nov 16 04:00:27 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 3394c3432011..27006811d866 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -680,7 +680,7 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- 		  stream->dev->name,
- 		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
- 		  y, ts.tv_sec, ts.tv_nsec / NSEC_PER_USEC,
--		  v4l2_buf->timestamp.tv_sec, v4l2_buf->timestamp.tv_usec,
-+		  v4l2_buf->timestamp.tv_sec, (unsigned long)v4l2_buf->timestamp.tv_usec,
- 		  x1, first->host_sof, first->dev_sof,
- 		  x2, last->host_sof, last->dev_sof, y1, y2);
- 
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-index af08e677b60f..7b3be2346b4b 100644
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ b/drivers/staging/media/lirc/lirc_serial.c
-@@ -707,7 +707,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 				pr_warn("ignoring spike: %d %d %lx %lx %lx %lx\n",
- 					dcd, sense,
- 					tv.tv_sec, lasttv.tv_sec,
--					tv.tv_usec, lasttv.tv_usec);
-+					(unsigned long)tv.tv_usec,
-+					(unsigned long)lasttv.tv_usec);
- 				continue;
- 			}
- 
-@@ -719,7 +720,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 				pr_warn("%d %d %lx %lx %lx %lx\n",
- 					dcd, sense,
- 					tv.tv_sec, lasttv.tv_sec,
--					tv.tv_usec, lasttv.tv_usec);
-+					(unsigned long)tv.tv_usec,
-+					(unsigned long)lasttv.tv_usec);
- 				data = PULSE_MASK;
- 			} else if (deltv > 15) {
- 				data = PULSE_MASK; /* really long time */
-@@ -728,7 +730,8 @@ static irqreturn_t irq_handler(int i, void *blah)
- 					pr_warn("AIEEEE: %d %d %lx %lx %lx %lx\n",
- 						dcd, sense,
- 						tv.tv_sec, lasttv.tv_sec,
--						tv.tv_usec, lasttv.tv_usec);
-+						(unsigned long)tv.tv_usec,
-+						(unsigned long)lasttv.tv_usec);
- 					/*
- 					 * detecting pulse while this
- 					 * MUST be a space!
--- 
-1.8.3.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
