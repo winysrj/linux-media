@@ -1,72 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:41786 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174Ab3K2UJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 15:09:30 -0500
-Received: by mail-oa0-f42.google.com with SMTP id i4so10847865oah.15
-        for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 12:09:30 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:44083 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751267Ab3KPR1g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Nov 2013 12:27:36 -0500
+Message-ID: <5287AAFC.9050209@redhat.com>
+Date: Sat, 16 Nov 2013 18:27:24 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <5298F3A1.7070503@metafoo.de>
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com>
-	<5295E231.9030200@cisco.com>
-	<5295E641.6060603@cogentembedded.com>
-	<2150651.hQNra4Rlob@avalon>
-	<CACRpkdZQa626hNRFcGvk4t7Z8scTCoEcf7AqO-FsL=BGk6UfeA@mail.gmail.com>
-	<52987058.80700@metafoo.de>
-	<CACRpkdYuiwH5MzdY3HO7oBSGLqRr5t4HMvGscjsf4QL2G1wiNw@mail.gmail.com>
-	<52989B13.8010207@metafoo.de>
-	<CACRpkda89fqGd6+ShvFXz-7i56KfG43EggBtjbdKyOCGnJu5Cg@mail.gmail.com>
-	<5298F3A1.7070503@metafoo.de>
-Date: Fri, 29 Nov 2013 21:09:29 +0100
-Message-ID: <CACRpkdbgbb_dcxyaGpdpwiHxd9p1bEc2JB5bzK5dDBHFcHwjzA@mail.gmail.com>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Alexandre Courbot <acourbot@nvidia.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Valentine <valentine.barshak@cogentembedded.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Wolfram Sang <wsa@the-dreams.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
+References: <1384103776-4788-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1384103776-4788-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 29, 2013 at 9:05 PM, Lars-Peter Clausen <lars@metafoo.de> wrote:
-> On 11/29/2013 08:52 PM, Linus Walleij wrote:
+Hi,
 
->> I guess you may be referring to the problem of instatiating
->> a dynamic IRQ chip in *board code* and then passing the
->> obtained dynamic IRQ numbers as resources to the
->> devices also created in a board file?
->>
->
-> Yes.
->
->> That would be like you're asking for a function that would
->> return the base of an irq_chip, that needs to be discussed
->> with the irq maintainers, so not much I can say, but maybe
->> I misunderstood this?
->
-> I my opinion the best solution for this problem is to have the same lookup
-> mechanism we've had for clocks, regulators, etc and now also GPIOs.
+On 11/10/2013 06:16 PM, Antti Palosaari wrote:
+> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
+> used format for baseband signals.
 
-Hm this needs to be discussed with some irq people...
+I've no objection to adding this, but this will need some special casing
+I think. The current patch looks wrong.
 
-Yours,
-Linus Walleij
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   contrib/freebsd/include/linux/videodev2.h |  4 ++++
+>   include/linux/videodev2.h                 |  4 ++++
+>   lib/libv4lconvert/libv4lconvert.c         | 29 ++++++++++++++++++++++++++++-
+>   3 files changed, 36 insertions(+), 1 deletion(-)
+>
+> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+> index 1fcfaeb..8829400 100644
+> --- a/contrib/freebsd/include/linux/videodev2.h
+> +++ b/contrib/freebsd/include/linux/videodev2.h
+> @@ -465,6 +465,10 @@ struct v4l2_pix_format {
+>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>
+> +/* SDR */
+> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+> +
+>   /*
+>    *	F O R M A T   E N U M E R A T I O N
+>    */
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 437f1b0..14299a6 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -431,6 +431,10 @@ struct v4l2_pix_format {
+>   #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>   #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>
+> +/* SDR */
+> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
+> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+> +
+>   /*
+>    *	F O R M A T   E N U M E R A T I O N
+>    */
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index e2afc27..38c9125 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
+>   	{ V4L2_PIX_FMT_RGB24,		24,	 1,	 5,	0 }, \
+>   	{ V4L2_PIX_FMT_BGR24,		24,	 1,	 5,	0 }, \
+>   	{ V4L2_PIX_FMT_YUV420,		12,	 6,	 1,	0 }, \
+> -	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }
+> +	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }, \
+> +	{ V4L2_PIX_FMT_FLOAT,		 0,	 0,	 0,	0 }
+>
+
+This looks wrong, here you claim that V4L2_PIX_FMT_FLOAT is a supported destination
+format. which suggests there will be conversion code from any of the
+supported_src_pixfmts to it, which you don't add (and I don't think we will want
+to add.
+
+>   static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>   	SUPPORTED_DST_PIXFMTS,
+> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>   	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
+>   	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
+>   	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
+> +	/* SDR formats */
+> +	{ V4L2_PIX_FMT_U8,		0,	0,	0,	0 },
+>   };
+
+Likewise this will tell libv4lconvert that it can convert from V4L2_PIX_FMT_U8 to
+any of the supported destination formats, which again is not true.
+
+I suggest simply adding a hardcoded test for the SDR formats to relevant code paths
+which use supported_src_pixfmts and when seeing V4L2_PIX_FMT_U8 as source only
+support V4L2_PIX_FMT_FLOAT as dest, and short-circuit a whole bunch of other tests
+done.
+
+>
+>   static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
+> @@ -1281,6 +1284,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>   		}
+>   		break;
+>
+> +	/* SDR */
+> +	case V4L2_PIX_FMT_U8:
+> +		switch (dest_pix_fmt) {
+> +		case V4L2_PIX_FMT_FLOAT:
+> +			{
+> +				/* 8-bit unsigned to 32-bit float */
+> +				unsigned int i;
+> +				float ftmp;
+> +				for (i = 0; i < src_size; i++) {
+> +					ftmp = *src++;
+> +					ftmp -= 127.5;
+> +					ftmp /= 127.5;
+> +					memcpy(dest, &ftmp, 4);
+> +					dest += 4;
+> +				}
+> +			}
+> +		}
+> +		break;
+> +
+>   	default:
+>   		V4LCONVERT_ERR("Unknown src format in conversion\n");
+>   		errno = EINVAL;
+> @@ -1349,6 +1371,11 @@ int v4lconvert_convert(struct v4lconvert_data *data,
+>   		temp_needed =
+>   			my_src_fmt.fmt.pix.width * my_src_fmt.fmt.pix.height * 3 / 2;
+>   		break;
+> +	/* SDR */
+> +	case V4L2_PIX_FMT_FLOAT:
+> +		dest_needed = src_size * 4; /* 8-bit to 32-bit */
+> +		temp_needed = dest_needed;
+> +		break;
+>   	default:
+>   		V4LCONVERT_ERR("Unknown dest format in conversion\n");
+>   		errno = EINVAL;
+>
+
+Regards,
+
+Hans
