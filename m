@@ -1,86 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34634 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:39369 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752357Ab3KAUB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 16:01:56 -0400
-Message-ID: <527408B2.5060407@iki.fi>
-Date: Fri, 01 Nov 2013 22:01:54 +0200
+	id S1752423Ab3KQUW0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Nov 2013 15:22:26 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: CrazyCat <crazycat69@narod.ru>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cxd2820r_c: Fix if_ctl calculation
-References: <527400A3.7040908@narod.ru>
-In-Reply-To: <527400A3.7040908@narod.ru>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 6/7] msi3101: move format 336 conversion to libv4lconvert
+Date: Sun, 17 Nov 2013 22:22:10 +0200
+Message-Id: <1384719731-21887-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1384719731-21887-1-git-send-email-crope@iki.fi>
+References: <1384719731-21887-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-Patch itself looks quite correct, but I would like to test it still and 
-also that tuner patch. But the problem is that your patches are broken. 
-Could you fix your settings and resend?
+Move format 384 conversion to libv4lconvert as a fourcc "DS12".
+It is 12-bit sample pairs packed to 3 bytes.
 
-$ wget --no-check-certificate -O - 
-https://patchwork.linuxtv.org/patch/20513/mbox/ | git am -s
---2013-11-01 22:00:18--  https://patchwork.linuxtv.org/patch/20513/mbox/
-Resolving patchwork.linuxtv.org (patchwork.linuxtv.org)... 130.149.80.248
-Connecting to patchwork.linuxtv.org 
-(patchwork.linuxtv.org)|130.149.80.248|:443... connected.
-WARNING: cannot verify patchwork.linuxtv.org's certificate, issued by 
-‘/C=XX/ST=There is no such thing outside 
-US/L=Everywhere/O=OCOSA/OU=Office for Complication of Otherwise Simple 
-Affairs/CN=www.linuxtv.org/emailAddress=root@www.linuxtv.org’:
-   Self-signed certificate encountered.
-     WARNING: certificate common name ‘www.linuxtv.org’ doesn't match 
-requested host name ‘patchwork.linuxtv.org’.
-HTTP request sent, awaiting response... 200 OK
-Length: unspecified [text/plain]
-Saving to: ‘STDOUT’
+msi3101: move format 336 conversion 336 to libv4l
 
-     [ <=> 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/sdr-msi3101.c | 65 ++++++++++-------------------
+ include/uapi/linux/videodev2.h              |  1 +
+ 2 files changed, 24 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 32ff3ff..cc96fdd 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -396,10 +396,12 @@ static struct msi3101_format formats[] = {
+ 	{
+ 		.name		= "I/Q 8-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
+-	},
+-	{
++	}, {
+ 		.name		= "I/Q 10+2-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_MSI2500_384,
++	}, {
++		.name		= "I/Q 12-bit signed",
++		.pixelformat	= V4L2_PIX_FMT_SDR_S12,
+ 	},
+ };
  
-        ] 1 213       --.-K/s   in 0s
-
-2013-11-01 22:00:18 (9,00 MB/s) - written to stdout [1213]
-
-Applying: cxd2820r_c: Fix if_ctl calculation
-fatal: corrupt patch at line 8
-Patch failed at 0001 cxd2820r_c: Fix if_ctl calculation
-The copy of the patch that failed is found in:
-    /home/crope/linuxtv/code/linux/.git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
-[crope@localhost linux]$
-
-
-regards
-Antti
-
-
-
-On 01.11.2013 21:27, CrazyCat wrote:
-> Fix tune for DVB-C.
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net
-> <mailto:EvgenyPlehov@ukr.net>>
-> diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c
-> b/drivers/media/dvb-frontends/cxd2820r_c.c
-> index 125a440..5c6ab49 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r_c.c
-> +++ b/drivers/media/dvb-frontends/cxd2820r_c.c
-> @@ -78,7 +78,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
-> num = if_freq / 1000; /* Hz => kHz */
-> num *= 0x4000;
-> -if_ctl = cxd2820r_div_u64_round_closest(num, 41000);
-> +if_ctl = 0x4000 - cxd2820r_div_u64_round_closest(num, 41000);
-> buf[0] = (if_ctl >> 8) & 0x3f;
-> buf[1] = (if_ctl >> 0) & 0xff;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+@@ -640,40 +642,21 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
+ }
+ 
+ /*
+- * Converts signed 12-bit integer into 32-bit IEEE floating point
+- * representation.
++ * +===========================================================================
++ * |   00-1023 | USB packet type '336'
++ * +===========================================================================
++ * |   00-  03 | sequence number of first sample in that USB packet
++ * +---------------------------------------------------------------------------
++ * |   04-  15 | garbage
++ * +---------------------------------------------------------------------------
++ * |   16-1023 | samples
++ * +---------------------------------------------------------------------------
++ * signed 12-bit sample
+  */
+-static u32 msi3101_convert_sample_336(struct msi3101_state *s, u16 x)
+-{
+-	u32 msb, exponent, fraction, sign;
+-
+-	/* Zero is special */
+-	if (!x)
+-		return 0;
+-
+-	/* Negative / positive value */
+-	if (x & (1 << 11)) {
+-		x = -x;
+-		x &= 0x7ff; /* result is 11 bit ... + sign */
+-		sign = 1 << 31;
+-	} else {
+-		sign = 0 << 31;
+-	}
+-
+-	/* Get location of the most significant bit */
+-	msb = __fls(x);
+-
+-	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
+-	exponent = (127 + msb) << I2F_FRAC_BITS;
+-
+-	return (fraction + exponent) | sign;
+-}
+-
+-static int msi3101_convert_stream_336(struct msi3101_state *s, u32 *dst,
++static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
+ 		u8 *src, unsigned int src_len)
+ {
+-	int i, j, i_max, dst_len = 0;
+-	u16 sample[2];
++	int i, i_max, dst_len = 0;
+ 	u32 sample_num[3];
+ 
+ 	/* There could be 1-3 1024 bytes URB frames */
+@@ -694,17 +677,12 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u32 *dst,
+ 		 */
+ 		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
+ 
++		/* 336 x I+Q samples */
+ 		src += 16;
+-		for (j = 0; j < 1008; j += 3) {
+-			sample[0] = (src[j + 0] & 0xff) >> 0 | (src[j + 1] & 0x0f) << 8;
+-			sample[1] = (src[j + 1] & 0xf0) >> 4 | (src[j + 2] & 0xff) << 4;
+-
+-			*dst++ = msi3101_convert_sample_336(s, sample[0]);
+-			*dst++ = msi3101_convert_sample_336(s, sample[1]);
+-		}
+-		/* 336 x I+Q 32bit float samples */
+-		dst_len += 336 * 2 * 4;
++		memcpy(dst, src, 1008);
+ 		src += 1008;
++		dst += 1008;
++		dst_len += 1008;
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+@@ -1178,6 +1156,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
+ 		s->convert_stream = msi3101_convert_stream_384;
+ 		reg7 = 0x0000a507;
++	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S12) {
++		s->convert_stream = msi3101_convert_stream_336;
++		reg7 = 0x00008507;
+ 	}
+ 
+ 	/*
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index ce1acea..80b17d9 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -436,6 +436,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+ #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
++#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+ 
+ /*
+  *	F O R M A T   E N U M E R A T I O N
 -- 
-http://palosaari.fi/
+1.8.4.2
+
