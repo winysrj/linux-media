@@ -1,45 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44960 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751782Ab3KDNV7 (ORCPT
+Received: from mail-we0-f176.google.com ([74.125.82.176]:54520 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892Ab3KQDVF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Nov 2013 08:21:59 -0500
-Date: Mon, 4 Nov 2013 15:21:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: omap3isp: Move code out of mutex-protected section
-Message-ID: <20131104132125.GB23061@valkosipuli.retiisi.org.uk>
-References: <1383559668-11003-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
- <3877980.gXG2nDA4fQ@avalon>
+	Sat, 16 Nov 2013 22:21:05 -0500
+Received: by mail-we0-f176.google.com with SMTP id w62so4910985wes.21
+        for <linux-media@vger.kernel.org>; Sat, 16 Nov 2013 19:21:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3877980.gXG2nDA4fQ@avalon>
+In-Reply-To: <1802041.4NDiOr0LmV@col-desktop>
+References: <1802041.4NDiOr0LmV@col-desktop>
+Date: Sat, 16 Nov 2013 22:21:03 -0500
+Message-ID: <CAGoCfiy0nQdd1u4XHS-sem9QObbPgmaLC3cHhVQPqe0PoJeLVg@mail.gmail.com>
+Subject: Re: SAA7134 driver reports zero frame rate
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Tim E. Real" <termtech@rogers.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 04, 2013 at 02:17:53PM +0100, Laurent Pinchart wrote:
-> > That return value will end up to at least one place which seems to be
-> > isp_video_streamon() and, unless I'm mistaken, will cause
-> > ioctl(VIDIOC_STREAMON) also return ENOTTY.
-> 
-> I should have split this in two patches, or at least explained the rationale 
-> in the commit message. The remote subdev is always an internal ISP subdev, the 
-> pad::get_fmt operation is thus guaranteed to be implemented. There's no need 
-> to check for ENOIOCTLCMD.
+On Sat, Nov 16, 2013 at 6:19 PM, Tim E. Real <termtech@rogers.com> wrote:
+> The SAA7134 driver causes libav to crash because the
+>  driver reports zero frame rate.
+> Thus it is virtually impossible to do any recording.
 
-Right; true.
+Step #1:  Open a bug against libav.  The app should return an error or
+not let you start streaming.  If it crashes (regardless of the
+underlying reason), they've got a bug in their library.
 
-If you add an explanation on that to the commit message (which I think is
-much less self-evident than access to the local struct not requiring
-serialisation),
+> About a year ago I debugged and found I had to do this,
+>  (but it was not enough, more fixes would be needed):
+>
+> In libav/libavdevice/v4l2.c :
+>
+> static int v4l2_set_parameters(AVFormatContext *s1, AVFormatParameters *ap)
+> {
+> ...
+>     s1->streams[0]->codec->time_base.den = tpf->denominator;
+>     s1->streams[0]->codec->time_base.num = tpf->numerator;
+>
+>     // By Tim. BUG: The saa7134 driver (at least) reports zero framerate,
+>     //  causing abort in rescale. So just force it.
+>     if(s1->streams[0]->codec->time_base.den == 0 ||
+>         s1->streams[0]->codec->time_base.num == 0)
+>     {
+>       s1->streams[0]->codec->time_base.num = 1;
+>       s1->streams[0]->codec->time_base.den = 30;
+>     }
+>
+>     s->timeout = 100 +
+>         av_rescale_q(1, s1->streams[0]->codec->time_base,
+>                         (AVRational){1, 1000});
+>
+>     return 0;
+> }
+>
+> I looked at the SAA7134 module parameters but couldn't seem to
+>  find anything to help.
+>
+> Does anyone know how to make the module work so it sets a proper
+>  frame rate, or if this problem been fixed recently?
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Have you tried it with the latest kernel?  Many of the drivers have
+had fixes in the last year for V4L2 conformance, so it's possible this
+was already fixed.
+
+I would recommend you try it with the latest kernel and see if it
+still happens.  If it does still occur, then somebody can dig into it
+(assuming they have time/energy/inclination).
+
+I'm not arguing that you probably found a bug, but you'll have to do a
+bit more of the legwork to make sure it's still a real issue before
+somebody else gets involved.
+
+Devin
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
