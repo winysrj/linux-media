@@ -1,87 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co9ehsobe004.messaging.microsoft.com ([207.46.163.27]:56796
-	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752012Ab3KALs1 (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:35870 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453Ab3KQMD3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 07:48:27 -0400
-From: Nicolin Chen <b42378@freescale.com>
-To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
-	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
-	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
-	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
-	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
-	<lgirdwood@gmail.com>, <broonie@kernel.org>,
-	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
-	<haojian.zhuang@gmail.com>
-CC: <linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>
-Subject: [PATCH][RESEND 0/8] Add and implement gen_pool_dma_alloc()
-Date: Fri, 1 Nov 2013 19:48:13 +0800
-Message-ID: <cover.1383306365.git.b42378@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sun, 17 Nov 2013 07:03:29 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWE00H62PHRLU40@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 17 Nov 2013 07:03:27 -0500 (EST)
+Date: Sun, 17 Nov 2013 10:03:21 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>,
+	Josh Triplett <josh@joshtriplett.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: staging: media: Use dev_err() instead of pr_err()
+Message-id: <20131117100321.18ed7be8@samsung.com>
+In-reply-to: <20131115062939.GC28137@kroah.com>
+References: <20131114110814.6b13f62b@samsung.com>
+ <20131115062939.GC28137@kroah.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, we don't have a specific gen_pool_alloc() for DMA usage;
-Instead, we need to use gen_pool_virt_to_phys() to convert the addr
-returned from gen_pool_alloc(). So each implementation of this has
-duplicated code. Thus add new helper function -- gen_pool_dma_alloc().
+Em Fri, 15 Nov 2013 15:29:39 +0900
+Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
 
-After gen_pool_dma_alloc() is introduced, we can replace the original
-combination of gen_pool_alloc()+gen_pool_virt_to_phys() with this new
-helper function. Thus this patch implement the helper function to all
-the current drivers which use gen_pool_virt_to_phys().
+> On Thu, Nov 14, 2013 at 11:08:14AM -0200, Mauro Carvalho Chehab wrote:
+> > Hi,
+> > 
+> > I'm not sure how this patch got applied upstream:
+> > 
+> > 	commit b6ea5ef80aa7fd6f4b18ff2e4174930e8772e812
+> > 	Author: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
+> > 	Date:   Sun Oct 20 22:58:28 2013 +0530
+> > 	
+> > 	    staging:media: Use dev_dbg() instead of pr_debug()
+> > 	    
+> > 	    Use dev_dbg() instead of pr_debug() in go7007-usb.c.
+> >     
+> > 	    Signed-off-by: Dulshani Gunawardhana <dulshani.gunawardhana89@gmail.com>
+> > 	    Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+> > 	    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > 
+> > But, from the custody chain, it seems it was not C/C to linux-media ML,
+> > doesn't have the driver maintainer's ack[1] and didn't went via my tree.
+> 
+> It came in through my tree as part of the OPW intern application
+> process.
 
-!!-------------------important------------------!!
+Ah, OK.
 
-The later 7 patches need all related driver owner to test. We can
-here define a simple rule:
-1, If one driver owner or maintainer doesn't like the mofication
-   to his/her driver, just let me know. I would drop that patch.
-2, If there's a bug and issue found after patch-testing, please
-   reply the mail so that I can fix and refine the patch.
-3, If one driver owner or maintainer is too busy and doesn't have
-   bandwidth to test the patch, I would drop that patch from this
-   series. We can reimplement it till there's someone test it.
+I don't mind if you apply those directly, but what makes me a little
+worried is that at least the final version of the patchset should be
+c/c to driver/subsystem maintainers for their review and for them to 
+know that the patch will be merged via some other tree, as it might
+be causing conflicts with their trees.
 
-!!-------------------current progress-----------!!
+> And yes, sorry, it's broken, I have some follow-on patches to fix this,
+> but you are right, it should just be reverted for now, very sorry about
+> that.
 
-  lib/genalloc: [Okay]
-  ARM: davinci: [Untested]
-  dma: mmp_tdma: [Untested]
-  [media] coda: [Untested]
-  uio: uio_pruss: [Untested]
-  ALSA: memalloc: [Tested] by Nicolin Chen with i.MX6Q SabreSD
-  ASoC: davinci: [Untested]
-  ASoC: pxa: use [Untested]
+No problem.
 
+> Do you want to do that, or should I?
 
-Nicolin Chen (8):
-  lib/genalloc: add a helper function for DMA buffer allocation
-  ARM: davinci: use gen_pool_dma_alloc() to sram.c
-  dma: mmp_tdma: use gen_pool_dma_alloc() to allocate descriptor
-  [media] coda: use gen_pool_dma_alloc() to allocate iram buffer
-  uio: uio_pruss: use gen_pool_dma_alloc() to allocate sram memory
-  ALSA: memalloc: use gen_pool_dma_alloc() to allocate iram buffer
-  ASoC: davinci: use gen_pool_dma_alloc() in davinci-pcm.c
-  ASoC: pxa: use gen_pool_dma_alloc() to allocate dma buffer
+I prefer if you could do it, as I'm still waiting the merge from my tree,
+and I don't want to cascade another pull request before the original
+pull requests get handled. In any case, they won't conflict with this,
+as I don't have any patch for this driver on my tree for 3.13.
 
- arch/arm/mach-davinci/sram.c    |  9 +--------
- drivers/dma/mmp_tdma.c          |  7 +------
- drivers/media/platform/coda.c   |  5 ++---
- drivers/uio/uio_pruss.c         |  6 ++----
- include/linux/genalloc.h        |  2 ++
- lib/genalloc.c                  | 28 ++++++++++++++++++++++++++++
- sound/core/memalloc.c           |  6 +-----
- sound/soc/davinci/davinci-pcm.c |  3 +--
- sound/soc/pxa/mmp-pcm.c         |  3 +--
- 9 files changed, 39 insertions(+), 30 deletions(-)
-
--- 
-1.8.4
-
-
+Thanks!
+Mauro
