@@ -1,89 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35487 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932065Ab3KFA5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 19:57:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/19] v4l: sh_vou: Enable the driver on all ARM platforms
-Date: Wed, 06 Nov 2013 01:57:35 +0100
-Message-ID: <2618401.AsTUKxu6fa@avalon>
-In-Reply-To: <20131030102623.1d498c16@samsung.com>
-References: <1383004027-25036-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1383004027-25036-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20131030102623.1d498c16@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:39448 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752012Ab3KQUWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Nov 2013 15:22:25 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 2/7] rtl2832_sdr: implement FMT IOCTLs
+Date: Sun, 17 Nov 2013 22:22:06 +0200
+Message-Id: <1384719731-21887-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1384719731-21887-1-git-send-email-crope@iki.fi>
+References: <1384719731-21887-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+VIDIOC_ENUM_FMT, VIDIOC_G_FMT, VIDIOC_S_FMT and VIDIOC_TRY_FMT.
+Return stream according to FMT.
 
-On Wednesday 30 October 2013 10:26:23 Mauro Carvalho Chehab wrote:
-> Em Tue, 29 Oct 2013 00:46:55 +0100 Laurent Pinchart escreveu:
-> > Renesas ARM platforms are transitioning from single-platform to
-> > multi-platform kernels using the new ARCH_SHMOBILE_MULTI. Make the
-> > driver available on all ARM platforms to enable it on both ARCH_SHMOBILE
-> > and ARCH_SHMOBILE_MULTI and increase build testing coverage.
-> > 
-> > Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > Cc: linux-media@vger.kernel.org
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> I'm understanding that the plan is to commit it via an ARM tree, right?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 125 ++++++++++++++---------
+ 1 file changed, 75 insertions(+), 50 deletions(-)
 
-Actually the plan is to get this upstream through you tree :-) However, I'm 
-trying a different approach to the problem, so I'll post a new version of the 
-patch set in the near future.
-
-> If so:
-> 	Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> PS.: With regards to the discussions about this patch series, I'm ok on
-> having this enabled for all archs or just for the archs that are known have
-> this IP block, of course provided that not includes to march are there.
-> 
-> The rationale is that, in the specific case of V4L, the platform drivers are
-> already on a separate Kconfig menu, with makes no sense to be enabled on any
-> non SoC configuration.
-
-We will likely split dependencies on two lines in Kconfig, one for the build-
-time dependencies and one for the runtime dependencies. A driver that compiles 
-on ARM only and supports hardware that is present on ARCH_SHMOBILE SoCs only 
-would thus have
-
-	depends on ARM
-	depends on ARCH_SHMOBILE || COMPILE_TEST
-
-Build-time dependencies on other software components (I2C for instance) would 
-be listed on the first line. The code below would become
-
-	depends on VIDEO_DEV && I2C
-	depends on ARCH_SHMOBILE || COMPILE_TEST
-
-> > ---
-> > 
-> >  drivers/media/platform/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/Kconfig
-> > b/drivers/media/platform/Kconfig index c7caf94..a726f86 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -36,7 +36,7 @@ source "drivers/media/platform/blackfin/Kconfig"
-> >  config VIDEO_SH_VOU
-> >  	tristate "SuperH VOU video output driver"
-> >  	depends on MEDIA_CAMERA_SUPPORT
-> > -	depends on VIDEO_DEV && ARCH_SHMOBILE && I2C
-> > +	depends on VIDEO_DEV && ARM && I2C
-> >  	select VIDEOBUF_DMA_CONTIG
-> >  	help
-> >  	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 2c84654..159b087 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -289,56 +289,10 @@ leave:
+ 	return buf;
+ }
+ 
+-/*
+- * Integer to 32-bit IEEE floating point representation routine is taken
+- * from Radeon R600 driver (drivers/gpu/drm/radeon/r600_blit_kms.c).
+- *
+- * TODO: Currently we do conversion here in Kernel, but in future that will
+- * be moved to the libv4l2 library as video format conversions are.
+- */
+-#define I2F_FRAC_BITS  23
+-#define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
+-
+-/*
+- * Converts signed 8-bit integer into 32-bit IEEE floating point
+- * representation.
+- */
+-static u32 rtl2832_sdr_convert_sample(struct rtl2832_sdr_state *s, u16 x)
+-{
+-	u32 msb, exponent, fraction, sign;
+-
+-	/* Zero is special */
+-	if (!x)
+-		return 0;
+-
+-	/* Negative / positive value */
+-	if (x & (1 << 7)) {
+-		x = -x;
+-		x &= 0x7f; /* result is 7 bit ... + sign */
+-		sign = 1 << 31;
+-	} else {
+-		sign = 0 << 31;
+-	}
+-
+-	/* Get location of the most significant bit */
+-	msb = __fls(x);
+-
+-	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
+-	exponent = (127 + msb) << I2F_FRAC_BITS;
+-
+-	return (fraction + exponent) | sign;
+-}
+-
+ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+-		u32 *dst, const u8 *src, unsigned int src_len)
++		u8 *dst, const u8 *src, unsigned int src_len)
+ {
+-	unsigned int i, dst_len = 0;
+-
+-	for (i = 0; i < src_len; i++)
+-		*dst++ = rtl2832_sdr_convert_sample(s, src[i]);
+-
+-	/* 8-bit to 32-bit IEEE floating point */
+-	dst_len = src_len * 4;
++	memcpy(dst, src, src_len);
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+ 	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
+@@ -356,7 +310,7 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 	/* total number of I+Q pairs */
+ 	s->sample += src_len / 2;
+ 
+-	return dst_len;
++	return src_len;
+ }
+ 
+ /*
+@@ -589,7 +543,6 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
+ 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 			V4L2_CAP_READWRITE;
+-	cap->device_caps = V4L2_CAP_TUNER;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+@@ -1012,9 +965,81 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 			f->frequency * 625UL / 10UL);
+ }
+ 
++static int rtl2832_sdr_enum_fmt_vid_cap(struct file *file, void *priv,
++		struct v4l2_fmtdesc *f)
++{
++	struct rtl2832_sdr_state *s = video_drvdata(file);
++	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++
++	if (f->index > 0)
++		return -EINVAL;
++
++	f->flags = 0;
++	strcpy(f->description, "I/Q 8-bit unsigned");
++	f->pixelformat = V4L2_PIX_FMT_SDR_U8;
++
++	return 0;
++}
++
++static int rtl2832_sdr_g_fmt_vid_cap(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct rtl2832_sdr_state *s = video_drvdata(file);
++	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++
++	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
++
++	return 0;
++}
++
++static int rtl2832_sdr_s_fmt_vid_cap(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct rtl2832_sdr_state *s = video_drvdata(file);
++	struct vb2_queue *q = &s->vb_queue;
++	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
++			(char *)&f->fmt.pix.pixelformat);
++
++	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	if (vb2_is_busy(q))
++		return -EBUSY;
++
++	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
++
++	return 0;
++}
++
++static int rtl2832_sdr_try_fmt_vid_cap(struct file *file, void *priv,
++		struct v4l2_format *f)
++{
++	struct rtl2832_sdr_state *s = video_drvdata(file);
++	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
++			(char *)&f->fmt.pix.pixelformat);
++
++	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
++
++	return 0;
++}
++
+ static const struct v4l2_ioctl_ops rtl2832_sdr_ioctl_ops = {
+ 	.vidioc_querycap          = rtl2832_sdr_querycap,
+ 
++	.vidioc_enum_fmt_vid_cap  = rtl2832_sdr_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap     = rtl2832_sdr_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap     = rtl2832_sdr_s_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap   = rtl2832_sdr_try_fmt_vid_cap,
++
+ 	.vidioc_enum_input        = rtl2832_sdr_enum_input,
+ 	.vidioc_g_input           = rtl2832_sdr_g_input,
+ 	.vidioc_s_input           = rtl2832_sdr_s_input,
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4.2
 
