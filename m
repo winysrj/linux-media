@@ -1,41 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57224 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:64792 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751268Ab3KOTRY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 14:17:24 -0500
-Message-ID: <52867341.7050500@iki.fi>
-Date: Fri, 15 Nov 2013 21:17:21 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1753911Ab3KQNlS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Nov 2013 08:41:18 -0500
+Message-ID: <5288C775.8070505@redhat.com>
+Date: Sun, 17 Nov 2013 14:41:09 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
-References: <1384103776-4788-1-git-send-email-crope@iki.fi>	<5280D83C.5060809@xs4all.nl>	<5280DE3D.5040408@iki.fi>	<528671DF.7040707@iki.fi> <CAGoCfiz8EBqkEUuzYLXhgXGW-0S6+6s3MAFWdSpfFmuOnP+Dfg@mail.gmail.com>
-In-Reply-To: <CAGoCfiz8EBqkEUuzYLXhgXGW-0S6+6s3MAFWdSpfFmuOnP+Dfg@mail.gmail.com>
+To: Ondrej Zary <linux@rainbow-software.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] gspca-stk1135: Add delay after configuring clock
+References: <1383437347-29262-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1383437347-29262-1-git-send-email-linux@rainbow-software.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15.11.2013 21:13, Devin Heitmueller wrote:
-> On Fri, Nov 15, 2013 at 2:11 PM, Antti Palosaari <crope@iki.fi> wrote:
->> When I do it inside Kernel, in URB completion handler at the same time when
->> copying data to videobuf2, using pre-calculated LUTs and using mmap it eats
->> 0.5% CPU to transfer stream to app.
->>
->> When I do same but using libv4lconvert as that patch, it takes ~11% CPU.
+Hi,
+
+On 11/03/2013 01:09 AM, Ondrej Zary wrote:
+> Add a small delay at the end of configure_clock() to allow sensor to initialize.
+> This is needed by Asus VX2S laptop webcam to detect sensor type properly (the already-supported MT9M112).
 >
-> How are you measuring?  Interrupt handlers typically don't count
-> toward the CPU performance counters.  It's possible that the cost is
-> the same but you're just not seeing it in "top".
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> ---
+>   drivers/media/usb/gspca/stk1135.c |    3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/usb/gspca/stk1135.c b/drivers/media/usb/gspca/stk1135.c
+> index 8add2f7..d8a813c 100644
+> --- a/drivers/media/usb/gspca/stk1135.c
+> +++ b/drivers/media/usb/gspca/stk1135.c
+> @@ -361,6 +361,9 @@ static void stk1135_configure_clock(struct gspca_dev *gspca_dev)
+>
+>   	/* set serial interface clock divider (30MHz/0x1f*16+2) = 60240 kHz) */
+>   	reg_w(gspca_dev, STK1135_REG_SICTL + 2, 0x1f);
+> +
+> +	/* wait a while for sensor to catch up */
+> +	udelay(1000);
+>   }
+>
+>   static void stk1135_camera_disable(struct gspca_dev *gspca_dev)
+>
 
-Yes, using top and it is URB interrupt handler where I do conversion. So 
-any idea how to measure? I think I can still switch LUT to float and see 
-if it makes difference.
+Thanks for the patch. I've added this to my tree for 3.13 .
 
-regards
-Antti
+Regards,
 
--- 
-http://palosaari.fi/
+Hans
+
