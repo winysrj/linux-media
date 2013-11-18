@@ -1,54 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60724 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564Ab3KBQdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: [PATCHv2 28/29] mxl111sf: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:36 -0200
-Message-Id: <1383399097-11615-29-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1975 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab3KRDbk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Nov 2013 22:31:40 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAI3VaJ3050936
+	for <linux-media@vger.kernel.org>; Mon, 18 Nov 2013 04:31:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id BE0DB2A221D
+	for <linux-media@vger.kernel.org>; Mon, 18 Nov 2013 04:31:33 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131118033133.BE0DB2A221D@tschai.lan>
+Date: Mon, 18 Nov 2013 04:31:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	drivers/media/usb/dvb-usb-v2/mxl111sf.c:74:1: warning: 'mxl111sf_ctrl_msg' uses dynamic stack allocation [enabled by default]
+Results of the daily build of media_tree:
 
-Instead, let's enforce a limit for the buffer to be the max size of
-a control URB payload data (80 bytes).
+date:		Mon Nov 18 04:00:18 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
----
- drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index e97964ef7f56..6538fd54c84e 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -57,7 +57,12 @@ int mxl111sf_ctrl_msg(struct dvb_usb_device *d,
- {
- 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
- 	int ret;
--	u8 sndbuf[1+wlen];
-+	u8 sndbuf[80];
-+
-+	if (1 + wlen > sizeof(sndbuf)) {
-+		pr_warn("%s: len=%d is too big!\n", __func__, wlen);
-+		return -EREMOTEIO;
-+	}
- 
- 	pr_debug("%s(wlen = %d, rlen = %d)\n", __func__, wlen, rlen);
- 
--- 
-1.8.3.1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
