@@ -1,80 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:54520 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752892Ab3KQDVF (ORCPT
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:43926 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563Ab3KRTfC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Nov 2013 22:21:05 -0500
-Received: by mail-we0-f176.google.com with SMTP id w62so4910985wes.21
-        for <linux-media@vger.kernel.org>; Sat, 16 Nov 2013 19:21:03 -0800 (PST)
+	Mon, 18 Nov 2013 14:35:02 -0500
+Received: by mail-qc0-f175.google.com with SMTP id x12so4103260qcv.20
+        for <linux-media@vger.kernel.org>; Mon, 18 Nov 2013 11:35:01 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1802041.4NDiOr0LmV@col-desktop>
-References: <1802041.4NDiOr0LmV@col-desktop>
-Date: Sat, 16 Nov 2013 22:21:03 -0500
-Message-ID: <CAGoCfiy0nQdd1u4XHS-sem9QObbPgmaLC3cHhVQPqe0PoJeLVg@mail.gmail.com>
-Subject: Re: SAA7134 driver reports zero frame rate
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Tim E. Real" <termtech@rogers.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Reply-To: martin@herrman.nl
+In-Reply-To: <5289F200.8020704@schinagl.nl>
+References: <CADR1r6i7GAHK=4Cb4W3dSxzRtTLJVAmOViPLiS_2O=iN-8Nwgw@mail.gmail.com>
+	<5289F200.8020704@schinagl.nl>
+Date: Mon, 18 Nov 2013 20:35:01 +0100
+Message-ID: <CADR1r6j1PZUXx+OTRZ=pEX0xOVmtbezRjKrHnW6X7+pC9W8ESw@mail.gmail.com>
+Subject: Re: ddbridge module fails to load
+From: Martin Herrman <martin@herrman.nl>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 16, 2013 at 6:19 PM, Tim E. Real <termtech@rogers.com> wrote:
-> The SAA7134 driver causes libav to crash because the
->  driver reports zero frame rate.
-> Thus it is virtually impossible to do any recording.
+2013/11/18 Oliver Schinagl <oliver+list@schinagl.nl>:
 
-Step #1:  Open a bug against libav.  The app should return an error or
-not let you start streaming.  If it crashes (regardless of the
-underlying reason), they've got a bug in their library.
+Hi Olivier S.,
 
-> About a year ago I debugged and found I had to do this,
->  (but it was not enough, more fixes would be needed):
->
-> In libav/libavdevice/v4l2.c :
->
-> static int v4l2_set_parameters(AVFormatContext *s1, AVFormatParameters *ap)
-> {
-> ...
->     s1->streams[0]->codec->time_base.den = tpf->denominator;
->     s1->streams[0]->codec->time_base.num = tpf->numerator;
->
->     // By Tim. BUG: The saa7134 driver (at least) reports zero framerate,
->     //  causing abort in rescale. So just force it.
->     if(s1->streams[0]->codec->time_base.den == 0 ||
->         s1->streams[0]->codec->time_base.num == 0)
->     {
->       s1->streams[0]->codec->time_base.num = 1;
->       s1->streams[0]->codec->time_base.den = 30;
->     }
->
->     s->timeout = 100 +
->         av_rescale_q(1, s1->streams[0]->codec->time_base,
->                         (AVRational){1, 1000});
->
->     return 0;
-> }
->
-> I looked at the SAA7134 module parameters but couldn't seem to
->  find anything to help.
->
-> Does anyone know how to make the module work so it sets a proper
->  frame rate, or if this problem been fixed recently?
+> You probably best poke Oliver Endriss (ufo) on the VDR portal as that is his
+> work and is unrelated or unmaintained here at linux-media.
 
-Have you tried it with the latest kernel?  Many of the drivers have
-had fixes in the last year for V4L2 conformance, so it's possible this
-was already fixed.
+thanks for the tip, I have found the german VDR portal and will do so.
 
-I would recommend you try it with the latest kernel and see if it
-still happens.  If it does still occur, then somebody can dig into it
-(assuming they have time/energy/inclination).
+> That said, someone recently stepped up to try to bring in the latest driver
+> back into the mailine linux-media repository and should get better
+> maintenance.
 
-I'm not arguing that you probably found a bug, but you'll have to do a
-bit more of the legwork to make sure it's still a real issue before
-somebody else gets involved.
+That is very good news, it makes my life much easier :-)
 
-Devin
+Regards,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Martin
+
+> Oliver (not Endriss)
