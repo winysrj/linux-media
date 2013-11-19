@@ -1,108 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3721 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab3KEDge (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 22:36:34 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rA53aUp4071471
-	for <linux-media@vger.kernel.org>; Tue, 5 Nov 2013 04:36:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id EAEAD2A04E1
-	for <linux-media@vger.kernel.org>; Tue,  5 Nov 2013 04:36:29 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131105033629.EAEAD2A04E1@tschai.lan>
-Date: Tue,  5 Nov 2013 04:36:29 +0100 (CET)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4141 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab3KSOwz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Nov 2013 09:52:55 -0500
+Message-ID: <528B7B36.4020009@xs4all.nl>
+Date: Tue, 19 Nov 2013 15:52:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH 15/16] s5p-jpeg: Ensure setting correct value of the chroma
+ subsampling control
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com> <1384871228-6648-16-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1384871228-6648-16-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 11/19/2013 03:27 PM, Jacek Anaszewski wrote:
+> Exynos4x12 has limitations regarding setting chroma subsampling
+> of an output JPEG image. It cannot be lower than the subsampling
+> of the raw source image. Also in case of V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY
+> option the source image fourcc has to be V4L2_PIX_FMT_GREY.
+> This patch adds mechanism that prevents setting invalid value
+> of the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c |   27 +++++++++++++++++++++++++--
+>  1 file changed, 25 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index d4db612..3605470 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1176,6 +1176,7 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
+>  	unsigned long flags;
+> +	int ret = 0;
+>  
+>  	spin_lock_irqsave(&ctx->jpeg->slock, flags);
+>  
+> @@ -1187,12 +1188,34 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		ctx->restart_interval = ctrl->val;
+>  		break;
+>  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+> -		ctx->subsampling = ctrl->val;
+> +		if (ctx->jpeg->variant->version == SJPEG_S5P) {
+> +			ctx->subsampling = ctrl->val;
+> +			break;
+> +		}
+> +		/*
+> +		 * The exynos4x12 device requires input raw image fourcc
+> +		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
+> +		 * is to be set.
+> +		 */
+> +		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
+> +		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
+> +			ret = -EINVAL;
+> +			goto error_free;
+> +		}
+> +		/*
+> +		 * The exynos4x12 device requires resulting jpeg subsampling
+> +		 * not to be lower than the input raw image subsampling.
+> +		 */
+> +		if (ctx->out_q.fmt->subsampling > ctrl->val)
+> +			ctx->subsampling = ctx->out_q.fmt->subsampling;
+> +		else
+> +			ctx->subsampling = ctrl->val;
 
-Results of the daily build of media_tree:
+I would do this in a try_ctrl op instead: that way VIDIOC_TRY_EXT_CTRLS will
+also be able to understand these restrictions.
 
-date:		Tue Nov  5 04:00:23 CET 2013
-git branch:	for-v3.13c
-git hash:	3adeac2c34cc28e05d0ec52f38f009dcce278555
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.11-6.slh.2-amd64
+Before the s_ctrl op is called the control framework will always call the
+try_ctrl op as well if it is present.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Regards,
 
-Detailed results are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+>  		break;
+>  	}
+>  
+> +error_free:
+>  	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
+> -	return 0;
+> +	return ret;
+>  }
+>  
+>  static const struct v4l2_ctrl_ops s5p_jpeg_ctrl_ops = {
+> 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
