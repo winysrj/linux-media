@@ -1,81 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52451 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579Ab3KDNR0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 08:17:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: g@valkosipuli.retiisi.org.uk, linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: omap3isp: Move code out of mutex-protected section
-Date: Mon, 04 Nov 2013 14:17:53 +0100
-Message-ID: <3877980.gXG2nDA4fQ@avalon>
-In-Reply-To: <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
-References: <1383559668-11003-1-git-send-email-laurent.pinchart@ideasonboard.com> <20131104112010.GB21655@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4920 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751416Ab3KSDb7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Nov 2013 22:31:59 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAJ3Vtqu007253
+	for <linux-media@vger.kernel.org>; Tue, 19 Nov 2013 04:31:57 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 264122A221D
+	for <linux-media@vger.kernel.org>; Tue, 19 Nov 2013 04:31:51 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131119033151.264122A221D@tschai.lan>
+Date: Tue, 19 Nov 2013 04:31:51 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Monday 04 November 2013 13:20:11 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> Thanks for the patch.
-> 
-> On Mon, Nov 04, 2013 at 11:07:48AM +0100, Laurent Pinchart wrote:
-> > The pad::get_fmt call must be protected by a mutex, but preparing its
-> > arguments doesn't need to be. Move the non-critical code out of the
-> > mutex-protected section.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/omap3isp/ispvideo.c | 7 ++-----
-> >  1 file changed, 2 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> > b/drivers/media/platform/omap3isp/ispvideo.c index a908d00..f6304bb
-> > 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.c
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> > @@ -339,14 +339,11 @@ __isp_video_get_format(struct isp_video *video,
-> > struct v4l2_format *format)> 
-> >  	if (subdev == NULL)
-> >  	
-> >  		return -EINVAL;
-> > 
-> > -	mutex_lock(&video->mutex);
-> > -
-> > 
-> >  	fmt.pad = pad;
-> >  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > 
-> > -	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> > -	if (ret == -ENOIOCTLCMD)
-> > -		ret = -EINVAL;
-> 
-> By removing these lines, you're also returning -ENOIOCTLCMD to the caller.
-> Is this intentional?
-> 
-> That return value will end up to at least one place which seems to be
-> isp_video_streamon() and, unless I'm mistaken, will cause
-> ioctl(VIDIOC_STREAMON) also return ENOTTY.
+Results of the daily build of media_tree:
 
-I should have split this in two patches, or at least explained the rationale 
-in the commit message. The remote subdev is always an internal ISP subdev, the 
-pad::get_fmt operation is thus guaranteed to be implemented. There's no need 
-to check for ENOIOCTLCMD.
+date:		Tue Nov 19 04:00:33 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-> > +	mutex_lock(&video->mutex);
-> > +	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> > 
-> >  	mutex_unlock(&video->mutex);
-> >  	
-> >  	if (ret)
--- 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Laurent Pinchart
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
