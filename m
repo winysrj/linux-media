@@ -1,28 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:43939 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621Ab3KVJNQ (ORCPT
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:63666 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab3KSVl6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Nov 2013 04:13:16 -0500
-Date: Fri, 22 Nov 2013 12:13:09 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] cx18: check for allocation failure in
- cx18_read_eeprom()
-Message-ID: <20131122091309.GH5443@mwanda>
-References: <20131122075146.GB15726@elgon.mountain>
+	Tue, 19 Nov 2013 16:41:58 -0500
+Received: by mail-bk0-f51.google.com with SMTP id 6so1295608bkj.38
+        for <linux-media@vger.kernel.org>; Tue, 19 Nov 2013 13:41:57 -0800 (PST)
+Message-ID: <528BDB21.1010508@googlemail.com>
+Date: Tue, 19 Nov 2013 22:41:53 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20131122075146.GB15726@elgon.mountain>
+To: Alain VOLMAT <alain.volmat@st.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [v4l-utils] Fix configure.ac --disable-v4l-utils option
+References: <E27519AE45311C49887BE8C438E68FAA013CA68BC8E0@SAFEX1MAIL1.st.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA013CA68BC8E0@SAFEX1MAIL1.st.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Btw, the MAINTAINERS file says the ivtv list is moderated but actually
-it's a subscriber only list...  Sucks.
+On 19/11/13 14:28, Alain VOLMAT wrote:
+>
+> When using AC_ARG_ENABLE with a string containing - in it, the variable created will contains a _ instead of the -.
+> Thus for AC_ARG_ENABLE(v4l-utils ..., the variable enable_v4l_utils must be checked.
 
-regards,
-dan carpenter
+Applied, Thanks!
 
