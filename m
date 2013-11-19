@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0172.hostedemail.com ([216.40.44.172]:33105 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752784Ab3K0DVU (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:55572 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796Ab3KSO1a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Nov 2013 22:21:20 -0500
-Message-ID: <1385522475.18487.34.camel@joe-AO722>
-Subject: Re: [PATCH] drivers: staging: media: go7007: go7007-usb.c use
- pr_*() instead of dev_*() before 'go' initialized in go7007_usb_probe()
-From: Joe Perches <joe@perches.com>
-To: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: hans.verkuil@cisco.com, m.chehab@samsung.com,
-	rkuo <rkuo@codeaurora.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Date: Tue, 26 Nov 2013 19:21:15 -0800
-In-Reply-To: <52956442.50001@gmail.com>
-References: <528AEFB7.4060301@gmail.com>
-	 <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com>
-	 <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>
-	 <52956442.50001@gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 19 Nov 2013 09:27:30 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWI00M2HLHQNH40@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:27:29 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 02/16] s5p-jpeg: Fix output YUV 4:2:0 fourcc for decoder
+Date: Tue, 19 Nov 2013 15:26:54 +0100
+Message-id: <1384871228-6648-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-11-27 at 11:17 +0800, Chen Gang wrote:
-> dev_*() assumes 'go' is already initialized, so need use pr_*() instead
-> of before 'go' initialized.
-[]
-> diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-[]
-> @@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
->  	char *name;
->  	int video_pipe, i, v_urb_len;
->  
-> -	dev_dbg(go->dev, "probing new GO7007 USB board\n");
-> +	pr_devel("probing new GO7007 USB board\n");
+Output samples during decoding phase for the YUV 4:2:0 format
+are arranged in the manner compatible with 2-planar NV12,
+not 3-planar YUV420 fourcc.
 
-pr_devel is commonly compiled out completely unless DEBUG is #defined.
-You probably want to use pr_debug here.
- 
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 2234944..0f567c5 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -58,7 +58,7 @@ static struct s5p_jpeg_fmt formats_enc[] = {
+ static struct s5p_jpeg_fmt formats_dec[] = {
+ 	{
+ 		.name		= "YUV 4:2:0 planar, YCbCr",
+-		.fourcc		= V4L2_PIX_FMT_YUV420,
++		.fourcc		= V4L2_PIX_FMT_NV12,
+ 		.depth		= 12,
+ 		.colplanes	= 3,
+ 		.h_align	= 4,
+-- 
+1.7.9.5
 
