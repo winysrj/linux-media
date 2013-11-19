@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43301 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754779Ab3KENDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 23/29] [media] dibusb-common: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:36 -0200
-Message-Id: <1383645702-30636-24-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.samsung.com ([203.254.224.25]:19238 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752496Ab3KSO2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Nov 2013 09:28:13 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWI006K9LIUBP10@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:28:12 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 15/16] s5p-jpeg: Ensure setting correct value of the chroma
+ subsampling control
+Date: Tue, 19 Nov 2013 15:27:07 +0100
+Message-id: <1384871228-6648-16-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/usb/dvb-usb/dibusb-common.c:124:1: warning: 'dibusb_i2c_msg' uses dynamic stack allocation [enabled by default]
+Exynos4x12 has limitations regarding setting chroma subsampling
+of an output JPEG image. It cannot be lower than the subsampling
+of the raw source image. Also in case of V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY
+option the source image fourcc has to be V4L2_PIX_FMT_GREY.
+This patch adds mechanism that prevents setting invalid value
+of the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control.
 
-Instead, let's enforce a limit for the buffer to be the max size of
-a control URB payload data (64 bytes).
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/dvb-usb/dibusb-common.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-index c2dded92f1d3..6d68af0c49c8 100644
---- a/drivers/media/usb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -12,6 +12,9 @@
- #include <linux/kconfig.h>
- #include "dibusb.h"
- 
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  64
-+
- static int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "set debugging level (1=info (|-able))." DVB_USB_DEBUG_STATUS);
-@@ -105,11 +108,16 @@ EXPORT_SYMBOL(dibusb2_0_power_ctrl);
- static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
- 			  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index d4db612..3605470 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1176,6 +1176,7 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
  {
--	u8 sndbuf[wlen+4]; /* lead(1) devaddr,direction(1) addr(2) data(wlen) (len(2) (when reading)) */
-+	u8 sndbuf[MAX_XFER_SIZE]; /* lead(1) devaddr,direction(1) addr(2) data(wlen) (len(2) (when reading)) */
- 	/* write only ? */
- 	int wo = (rbuf == NULL || rlen == 0),
- 		len = 2 + wlen + (wo ? 0 : 2);
+ 	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
+ 	unsigned long flags;
++	int ret = 0;
  
-+	if (4 + wlen > sizeof(sndbuf)) {
-+		warn("i2c wr: len=%d is too big!\n", wlen);
-+		return -EOPNOTSUPP;
-+	}
-+
- 	sndbuf[0] = wo ? DIBUSB_REQ_I2C_WRITE : DIBUSB_REQ_I2C_READ;
- 	sndbuf[1] = (addr << 1) | (wo ? 0 : 1);
+ 	spin_lock_irqsave(&ctx->jpeg->slock, flags);
  
+@@ -1187,12 +1188,34 @@ static int s5p_jpeg_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ctx->restart_interval = ctrl->val;
+ 		break;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+-		ctx->subsampling = ctrl->val;
++		if (ctx->jpeg->variant->version == SJPEG_S5P) {
++			ctx->subsampling = ctrl->val;
++			break;
++		}
++		/*
++		 * The exynos4x12 device requires input raw image fourcc
++		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
++		 * is to be set.
++		 */
++		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
++		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
++			ret = -EINVAL;
++			goto error_free;
++		}
++		/*
++		 * The exynos4x12 device requires resulting jpeg subsampling
++		 * not to be lower than the input raw image subsampling.
++		 */
++		if (ctx->out_q.fmt->subsampling > ctrl->val)
++			ctx->subsampling = ctx->out_q.fmt->subsampling;
++		else
++			ctx->subsampling = ctrl->val;
+ 		break;
+ 	}
+ 
++error_free:
+ 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
+-	return 0;
++	return ret;
+ }
+ 
+ static const struct v4l2_ctrl_ops s5p_jpeg_ctrl_ops = {
 -- 
-1.8.3.1
+1.7.9.5
 
