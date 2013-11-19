@@ -1,57 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:53563 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab3KYI4n (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2168 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123Ab3KSOrP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 03:56:43 -0500
-Received: by mail-we0-f177.google.com with SMTP id p61so3435028wes.8
-        for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 00:56:42 -0800 (PST)
-Date: Mon, 25 Nov 2013 09:57:23 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Kristian =?iso-8859-1?Q?H=F8gsberg?= <hoegsberg@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Keith Packard <keithp@keithp.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	intel-gfx <intel-gfx@lists.freedesktop.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Mesa Dev <mesa-dev@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Intel-gfx] [Mesa-dev] [PATCH] dri3, i915, i965: Add
- __DRI_IMAGE_FOURCC_SARGB8888
-Message-ID: <20131125085723.GW27344@phenom.ffwll.local>
-References: <1385093524-22276-1-git-send-email-keithp@keithp.com>
- <20131122102632.GQ27344@phenom.ffwll.local>
- <86d2lsem3m.fsf@miki.keithp.com>
- <CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
- <20131122221213.GA3234@tokamak.local>
+	Tue, 19 Nov 2013 09:47:15 -0500
+Message-ID: <528B79E1.6050102@xs4all.nl>
+Date: Tue, 19 Nov 2013 15:46:57 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20131122221213.GA3234@tokamak.local>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH 14/16] s5p-jpeg: Synchronize V4L2_CID_JPEG_CHROMA_SUBSAMPLING
+ control value
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com> <1384871228-6648-15-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1384871228-6648-15-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 22, 2013 at 02:12:13PM -0800, Kristian Høgsberg wrote:
-> I don't know what else you'd propose?  Pass an X visual in the ioctl?
-> An EGL config?  This is our name space, we can add stuff as we need
-> (as Keith is doing here). include/uapi/drm/drm_fourcc.h is the
-> canonical source for these values and we should add
-> DRM_FORMAT_SARGB8888 there to make sure we don't clash.
+On 11/19/2013 03:27 PM, Jacek Anaszewski wrote:
+> When output queue fourcc is set to any flavour of YUV,
+> the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value as
+> well as its in-driver cached counterpart have to be
+> updated with the subsampling property of the format
+> so as to be able to provide correct information to the
+> user space and preclude setting an illegal subsampling
+> mode for Exynos4x12 encoder.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 319be0c..d4db612 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1038,6 +1038,7 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>  {
+>  	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+>  	struct s5p_jpeg_fmt *fmt;
+> +	struct v4l2_control ctrl_subs;
+>  
+>  	fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
+>  						FMT_TYPE_OUTPUT);
+> @@ -1048,6 +1049,10 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>  		return -EINVAL;
+>  	}
+>  
+> +	ctrl_subs.id = V4L2_CID_JPEG_CHROMA_SUBSAMPLING;
+> +	ctrl_subs.value = fmt->subsampling;
+> +	v4l2_s_ctrl(priv, &ctx->ctrl_handler, &ctrl_subs);
 
-Well that's kinda the problem. If you don't expect the kernel to clash
-with whatever mesa is using internally then we should add it to the
-kernel, first. That's kinda what Dave's recent rant has all been about.
+TRY_FMT should never have side-effects, so this isn't the correct
+way of implementing this.
 
-The other issue was that originally the idea behind fourcc was to have one
-formate namespace shared between drm, v4l and whomever else cares. If
-people are happy to drop that idea on the floor I won't shed a single
-tear.
+Also, don't use v4l2_s_ctrl, instead use v4l2_ctrl_s_ctrl. The v4l2_s_ctrl
+function is for core framework use only, not for use in drivers.
 
-In the end I'll expect that someone will make a funny collision between
-all the different projects anyway, so meh.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Regards,
+
+	Hans
+
+> +
+>  	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_OUTPUT);
+>  }
+>  
+> 
+
