@@ -1,229 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:58505 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916Ab3KFJLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 04:11:43 -0500
-MIME-Version: 1.0
-In-Reply-To: <527A06C7.6070207@xs4all.nl>
-References: <1383726282-25668-1-git-send-email-ricardo.ribalda@gmail.com> <527A06C7.6070207@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 6 Nov 2013 10:11:22 +0100
-Message-ID: <CAPybu_2M-Ldy3D46ueZ9r7zSVRg=9JhAO4oVAjRHu3jetTpcxg@mail.gmail.com>
-Subject: Re: [PATCH v5] videobuf2: Add missing lock held on vb2_fop_relase
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:61750 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727Ab3KTNr2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Nov 2013 08:47:28 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWK007W9EAWYW70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 20 Nov 2013 13:47:25 +0000 (GMT)
+Message-id: <528CBD6C.7010801@samsung.com>
+Date: Wed, 20 Nov 2013 14:47:24 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH 14/16] s5p-jpeg: Synchronize
+ V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+ <1384871228-6648-15-git-send-email-j.anaszewski@samsung.com>
+ <528B79E1.6050102@xs4all.nl>
+In-reply-to: <528B79E1.6050102@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
-
-I will fix both things, but I will wait a couple of hours in case
-there is more changes, to avoid spamming the list.
-
-Thanks
-
-On Wed, Nov 6, 2013 at 10:07 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 11/06/13 09:24, Ricardo Ribalda Delgado wrote:
->> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+On 11/19/2013 03:46 PM, Hans Verkuil wrote:
+> On 11/19/2013 03:27 PM, Jacek Anaszewski wrote:
+>> When output queue fourcc is set to any flavour of YUV,
+>> the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value as
+>> well as its in-driver cached counterpart have to be
+>> updated with the subsampling property of the format
+>> so as to be able to provide correct information to the
+>> user space and preclude setting an illegal subsampling
+>> mode for Exynos4x12 encoder.
 >>
->> vb2_fop_relase does not held the lock although it is modifying the
->
-> Small typo: _relase -> _release
->
->> queue->owner field.
->>
->> This could lead to race conditions on the vb2_perform_io function
->> when multiple applications are accessing the video device via
->> read/write API:
->>
->> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
->> 0000000000000260
->> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
->> [videobuf2_core]
->> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
->> [ 308.297812] Oops: 0000 #1 SMP
->> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
->> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
->> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
->> spi_xilinx spi_bitbang qt5023
->> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
->> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
->> PM_2.1.0.309 X64 05/23/2013
->> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
->> ffff88014dc02000
->> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
->> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
->> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
->> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
->> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
->> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
->> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
->> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
->> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
->> knlGS:0000000000000000
->> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
->> [ 308.298064] Stack:
->> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
->> ffff880100000001
->> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
->> ffff880154904718
->> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
->> ffff88014dc03f50
->> [ 308.298116] Call Trace:
->> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
->> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
->> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
->> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
->> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
->> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
->> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
->> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
->> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
->> 89
->> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
->> [videobuf2_core]
->> [ 308.298507] RSP <ffff88014dc03df8>
->> [ 308.298514] CR2: 0000000000000260
->> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
->>
->> Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 >> ---
+>>   drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
+>>   1 file changed, 5 insertions(+)
 >>
->> v2: Comments by Sylvester Nawrocki
+>> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>> index 319be0c..d4db612 100644
+>> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>> @@ -1038,6 +1038,7 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>>   {
+>>   	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+>>   	struct s5p_jpeg_fmt *fmt;
+>> +	struct v4l2_control ctrl_subs;
 >>
->> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
->> Therefore a new __vb2_fop_release function has been created to be used by
->> drivers that overload the release function.
+>>   	fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
+>>   						FMT_TYPE_OUTPUT);
+>> @@ -1048,6 +1049,10 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>>   		return -EINVAL;
+>>   	}
 >>
->> v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
->>
->> Use vb2_fop_release_locked instead of __vb2_fop_release
->>
->> v4: Comments by Sylvester Nawrocki
->>
->> Rename vb2_fop_release_locked to __vb2_fop_release and fix patch format
->>
->> v5: Comments by Sylvester Nawrocki and Hans Verkuil
->>
->> Rename __vb2_fop_release to vb2_fop_release_unlock and rearrange
->> arguments
+>> +	ctrl_subs.id = V4L2_CID_JPEG_CHROMA_SUBSAMPLING;
+>> +	ctrl_subs.value = fmt->subsampling;
+>> +	v4l2_s_ctrl(priv, &ctx->ctrl_handler, &ctrl_subs);
 >
-> I know I suggested the vb2_fop_release_unlock name, but on second thoughts
-> that's not a good name. I suggest vb2_fop_release_no_lock instead.
-> '_unlock' suggests that there is a _lock version as well, which isn't the
-> case here.
->
-> After making that change you can add my:
->
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> TRY_FMT should never have side-effects, so this isn't the correct
+> way of implementing this.
+
+I am aware of it, but I couldn't have found more suitable place
+for implementing this. Below is the rationale standing behind
+such an implementation:
+
+   - Exynos4x12 device doesn't generate an eoc interrupt if the
+     subsampling property of an output queue format is lower than the
+     target jpeg subsampling (e.g. V4L2_PIX_FMT_YUYV [4:2:2 subsampling]
+     and JPEG 4:4:4)
+   - It should be possible to inform the user space application that the
+     subsampling it wants to set is not supported with the current output
+     queue fourcc.
+   - It is possible that after calling S_EXT_CTRLS the application
+     will call S_FMT on output queue with different fourcc which will
+     change the allowed scope of JPEG subsampling settings. Let's assume
+     the following flow of ioctls:
+       - S_FMT V4L2_PIX_FMT_YUYV (4:2:2)
+       - S_EXT_CTRLS V4L2_JPEG_CHROMA_SUBSAMPLING_422
+       - S_FMT V4L2_PIX_FMT_YUV420
+     Now the JPEG subsampling set is illegal as 4:2:2 is lower than 4:2:0
+     (lower refers here to the lower number of luma samples assigned
+     to the single chroma sample). It is evident now that the change
+     of output queue fourcc entails change of the allowed scope of JPEG
+     subsampling settings. The way I implemented it reflects this
+     constraint precisely. We could go for adjusting the JPEG subsampling
+     e.g. in the device_run callback but the user space application
+     wouldn't know about it unless it called G_EXT_CTRLS ioctl after end
+     of conversion.
+
+In view of the above it is clear that calling S_FMT in this case HAS
+side effect no matter whether we take it into account in the driver
+implementation or not. Nevertheless maybe there is some more elegant
+way of handling this problem I am not aware of. I am open to any
+interesting ideas.
+
+Regards,
+Jacek Anaszewski
+
+
+> Also, don't use v4l2_s_ctrl, instead use v4l2_ctrl_s_ctrl. The v4l2_s_ctrl
+> function is for core framework use only, not for use in drivers.
 >
 > Regards,
 >
->         Hans
+> 	Hans
 >
->>
->>  drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
->>  drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
->>  drivers/media/v4l2-core/videobuf2-core.c         | 20 +++++++++++++++++++-
->>  include/media/videobuf2-core.h                   |  1 +
->>  4 files changed, 22 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
->> index fb27ff7..3035e3b 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
->> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
->>               vc->streaming = false;
->>       }
->>
->> -     ret = vb2_fop_release(file);
->> +     ret = vb2_fop_release_unlock(file);
->>
->>       if (close) {
->>               clear_bit(ST_CAPT_BUSY, &fimc->state);
->> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
->> index e5798f7..dc87429 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
->> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
->>               mutex_unlock(&entity->parent->graph_mutex);
->>       }
->>
->> -     vb2_fop_release(file);
->> +     vb2_fop_release_unlock(file);
->>       pm_runtime_put(&fimc->pdev->dev);
->>       clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 594c75e..2716714 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -2619,18 +2619,36 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
->>
->> -int vb2_fop_release(struct file *file)
->> +static int _vb2_fop_release(struct file *file, struct mutex *lock)
->>  {
->>       struct video_device *vdev = video_devdata(file);
->>
->>       if (file->private_data == vdev->queue->owner) {
->> +             if (lock)
->> +                     mutex_lock(lock);
->>               vb2_queue_release(vdev->queue);
->>               vdev->queue->owner = NULL;
->> +             if (lock)
->> +                     mutex_unlock(lock);
->>       }
->>       return v4l2_fh_release(file);
->>  }
 >> +
->> +int vb2_fop_release(struct file *file)
->> +{
->> +     struct video_device *vdev = video_devdata(file);
->> +     struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
->> +
->> +     return _vb2_fop_release(file, lock);
->> +}
->>  EXPORT_SYMBOL_GPL(vb2_fop_release);
+>>   	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_OUTPUT);
+>>   }
 >>
->> +int vb2_fop_release_unlock(struct file *file)
->> +{
->> +     return _vb2_fop_release(file, NULL);
->> +}
->> +EXPORT_SYMBOL_GPL(vb2_fop_release_unlock);
->> +
->>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->>               size_t count, loff_t *ppos)
->>  {
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index 6781258..6fcb603 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -491,6 +491,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
->>
->>  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
->>  int vb2_fop_release(struct file *file);
->> +int vb2_fop_release_unlock(struct file *file);
->>  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->>               size_t count, loff_t *ppos);
->>  ssize_t vb2_fop_read(struct file *file, char __user *buf,
 >>
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-
-
--- 
-Ricardo Ribalda
