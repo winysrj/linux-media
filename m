@@ -1,260 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1922 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407Ab3KKNdr (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:51113 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830Ab3KTPxv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Nov 2013 08:33:47 -0500
-Message-ID: <5280DCA9.7070108@xs4all.nl>
-Date: Mon, 11 Nov 2013 14:33:29 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 20 Nov 2013 10:53:51 -0500
+Received: by mail-la0-f50.google.com with SMTP id el20so7375357lab.23
+        for <linux-media@vger.kernel.org>; Wed, 20 Nov 2013 07:53:49 -0800 (PST)
+Message-ID: <528CDB0B.3000109@cogentembedded.com>
+Date: Wed, 20 Nov 2013 19:53:47 +0400
+From: Valentine <valentine.barshak@cogentembedded.com>
 MIME-Version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	avnd.kiran@samsung.com
-Subject: Re: [PATCH] [media] s5p-mfc: Add QP setting support for vp8 encoder
-References: <1384161580-18674-1-git-send-email-arun.kk@samsung.com> <5280A3ED.1040802@xs4all.nl> <CALt3h7-dhKQ=r68nvNWNc8unvxPd0iOiVRK4Wvz1Y5+DyTO=Ww@mail.gmail.com>
-In-Reply-To: <CALt3h7-dhKQ=r68nvNWNc8unvxPd0iOiVRK4Wvz1Y5+DyTO=Ww@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl>
+In-Reply-To: <528CD86D.70506@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2013 11:44 AM, Arun Kumar K wrote:
-> Hi Hans,
-> 
-> On Mon, Nov 11, 2013 at 3:01 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Arun,
->>
->> On 11/11/2013 10:19 AM, Arun Kumar K wrote:
->>> Adds v4l2 controls to set MIN, MAX QP values and
->>> I, P frame QP for vp8 encoder.
->>
->> I assume these parameters and their ranges are all defined by the VP8 standard?
->> Or are they HW specific?
->>
-> 
-> These ranges are not defined by VP8 standard. I can see that the
-> standard does not
-> give any range. The ranges mentioned are defined by Samsung MFC hardware.
-> Do you think that for these controls, I shouldnt mention the range as
-> the standard
-> does not have it?
+On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+> Hi Valentine,
+>
+> Did you ever look at this adv7611 driver:
+>
+> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
 
-Either leave it out or just say that the range is hardware dependent.
+No, I missed that one somehow, although I did search for the adv7611/7612 before implementing this one.
+I'm going to look closer at the patch and test it.
 
-Regards,
+>
+> It adds adv761x support to the adv7604 in a pretty clean way.
+>
+> Thinking it over I prefer to use that code (although you will have to
+> add the soc-camera hack for the time being) over your driver.
+>
+> Others need adv7611 support as well, but with all the dv_timings etc. features
+> that are removed in your driver. So I am thinking that it is easier to merge
+> the xilinx version and add whatever you need on top of that.
+>
 
-	Hans
+Thanks,
+Val.
 
-> 
-> Regards
-> Arun
-> 
->> Regards,
+> Regards,
+>
+> 	Hans
+>
+> On 11/20/13 13:24, Valentine wrote:
+>> On 11/20/2013 03:19 PM, Hans Verkuil wrote:
+>>> Hi Valentine,
 >>
->>         Hans
+>> Hi Hans,
 >>
 >>>
->>> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
->>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->>> ---
->>>  Documentation/DocBook/media/v4l/controls.xml    |   32 +++++++++++++++++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    4 +++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   44 +++++++++++++++++++++++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   20 +++++++++++
->>>  drivers/media/v4l2-core/v4l2-ctrls.c            |    4 +++
->>>  include/uapi/linux/v4l2-controls.h              |    4 +++
->>>  6 files changed, 108 insertions(+)
+>>> On 11/20/13 11:14, Valentine wrote:
+>>>> On 11/19/2013 01:50 PM, Hans Verkuil wrote:
+>>>>> Hi Valentine,
+>>>>
+>>>> Hi Hans,
+>>>> thanks for your review.
+>>>>
+>>>>>
+>>>>> I don't entirely understand how you use this driver with soc-camera.
+>>>>> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
+>>>>> act on it. Did you hack soc-camera to do this?
+>>>>
+>>>> I did not. The format is queried before reading the frame by the user-space.
+>>>> I'm not sure if there's some kind of generic interface to notify the camera
+>>>> layer about format change events. Different subdevices use different FMT_CHANGE
+>>>> defines for that. I've implemented the format change notifier based on the adv7604
+>>>> in hope that it may be useful later.
 >>>
->>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->>> index 7a3b49b..091aa4d 100644
->>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>> @@ -3161,6 +3161,38 @@ V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
->>>               </entrytbl>
->>>             </row>
+>>> Yes, I need to generalize the FMT_CHANGE event.
 >>>
->>> +           <row><entry></entry></row>
->>> +           <row>
->>> +             <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MIN_QP</constant></entry>
->>> +             <entry>integer</entry>
->>> +           </row>
->>> +           <row><entry spanname="descr">Minimum quantization parameter for VP8. Valid range: from 0 to 11.</entry>
->>> +           </row>
->>> +
->>> +           <row><entry></entry></row>
->>> +           <row>
->>> +             <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_MAX_QP</constant></entry>
->>> +             <entry>integer</entry>
->>> +           </row>
->>> +           <row><entry spanname="descr">Maximum quantization parameter for VP8. Valid range: from 0 to 127.</entry>
->>> +           </row>
->>> +
->>> +           <row><entry></entry></row>
->>> +           <row>
->>> +             <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP</constant>&nbsp;</entry>
->>> +             <entry>integer</entry>
->>> +           </row>
->>> +           <row><entry spanname="descr">Quantization parameter for an I frame for VP8. Valid range: from 0 to 127.</entry>
->>> +           </row>
->>> +
->>> +           <row><entry></entry></row>
->>> +           <row>
->>> +             <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP</constant>&nbsp;</entry>
->>> +             <entry>integer</entry>
->>> +           </row>
->>> +           <row><entry spanname="descr">Quantization parameter for a P frame for VP8. Valid range: from 0 to 127.</entry>
->>> +           </row>
->>> +
->>>            <row><entry></entry></row>
->>>          </tbody>
->>>        </tgroup>
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->>> index 6920b54..d91f757 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->>> @@ -422,6 +422,10 @@ struct s5p_mfc_vp8_enc_params {
->>>       enum v4l2_vp8_golden_frame_sel golden_frame_sel;
->>>       u8 hier_layer;
->>>       u8 hier_layer_qp[3];
->>> +     u8 rc_min_qp;
->>> +     u8 rc_max_qp;
->>> +     u8 rc_frame_qp;
->>> +     u8 rc_p_frame_qp;
->>>  };
->>>
->>>  /**
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> index 4ff3b6c..33e8ae3 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> @@ -618,6 +618,38 @@ static struct mfc_control controls[] = {
->>>               .default_value = V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV,
->>>               .menu_skip_mask = 0,
->>>       },
->>> +     {
->>> +             .id = V4L2_CID_MPEG_VIDEO_VPX_MAX_QP,
->>> +             .type = V4L2_CTRL_TYPE_INTEGER,
->>> +             .minimum = 0,
->>> +             .maximum = 127,
->>> +             .step = 1,
->>> +             .default_value = 127,
->>> +     },
->>> +     {
->>> +             .id = V4L2_CID_MPEG_VIDEO_VPX_MIN_QP,
->>> +             .type = V4L2_CTRL_TYPE_INTEGER,
->>> +             .minimum = 0,
->>> +             .maximum = 11,
->>> +             .step = 1,
->>> +             .default_value = 0,
->>> +     },
->>> +     {
->>> +             .id = V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP,
->>> +             .type = V4L2_CTRL_TYPE_INTEGER,
->>> +             .minimum = 0,
->>> +             .maximum = 127,
->>> +             .step = 1,
->>> +             .default_value = 10,
->>> +     },
->>> +     {
->>> +             .id = V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP,
->>> +             .type = V4L2_CTRL_TYPE_INTEGER,
->>> +             .minimum = 0,
->>> +             .maximum = 127,
->>> +             .step = 1,
->>> +             .default_value = 10,
->>> +     },
->>>  };
->>>
->>>  #define NUM_CTRLS ARRAY_SIZE(controls)
->>> @@ -1557,6 +1589,18 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
->>>       case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
->>>               p->codec.vp8.golden_frame_sel = ctrl->val;
->>>               break;
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:
->>> +             p->codec.vp8.rc_min_qp = ctrl->val;
->>> +             break;
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:
->>> +             p->codec.vp8.rc_max_qp = ctrl->val;
->>> +             break;
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:
->>> +             p->codec.vp8.rc_frame_qp = ctrl->val;
->>> +             break;
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:
->>> +             p->codec.vp8.rc_p_frame_qp = ctrl->val;
->>> +             break;
->>>       default:
->>>               v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
->>>                                                       ctrl->id, ctrl->val);
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
->>> index 461358c..b4886d6 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
->>> @@ -1218,6 +1218,26 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
->>>               WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
->>>       }
->>>
->>> +     /* frame QP */
->>> +     reg &= ~(0x7F);
->>> +     reg |= p_vp8->rc_frame_qp & 0x7F;
->>> +     WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
->>> +
->>> +     /* other QPs */
->>> +     WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
->>> +     if (!p->rc_frame && !p->rc_mb) {
->>> +             reg = 0;
->>> +             reg |= ((p_vp8->rc_p_frame_qp & 0x7F) << 8);
->>> +             reg |= p_vp8->rc_frame_qp & 0x7F;
->>> +             WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP_V6);
->>> +     }
->>> +
->>> +     /* max QP */
->>> +     reg = ((p_vp8->rc_max_qp & 0x7F) << 8);
->>> +     /* min QP */
->>> +     reg |= p_vp8->rc_min_qp & 0x7F;
->>> +     WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND_V6);
->>> +
->>>       /* vbv buffer size */
->>>       if (p->frame_skip_mode ==
->>>                       V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
->>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> index 60dcc0f..99a89ad 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> @@ -745,6 +745,10 @@ const char *v4l2_ctrl_get_name(u32 id)
->>>       case V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS:          return "VPX Deblocking Effect Control";
->>>       case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD:   return "VPX Golden Frame Refresh Period";
->>>       case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:          return "VPX Golden Frame Indicator";
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:                    return "VPX Minimum QP Value";
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:                    return "VPX Maximum QP Value";
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:                return "VPX I-Frame QP Value";
->>> +     case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:                return "VPX P-Frame QP Value";
->>>
->>>       /* CAMERA controls */
->>>       /* Keep the order of the 'case's the same as in videodev2.h! */
->>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
->>> index 1666aab..5b9dfc8 100644
->>> --- a/include/uapi/linux/v4l2-controls.h
->>> +++ b/include/uapi/linux/v4l2-controls.h
->>> @@ -554,6 +554,10 @@ enum v4l2_vp8_golden_frame_sel {
->>>       V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV           = 0,
->>>       V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD     = 1,
->>>  };
->>> +#define V4L2_CID_MPEG_VIDEO_VPX_MIN_QP                       (V4L2_CID_MPEG_BASE+507)
->>> +#define V4L2_CID_MPEG_VIDEO_VPX_MAX_QP                       (V4L2_CID_MPEG_BASE+508)
->>> +#define V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP           (V4L2_CID_MPEG_BASE+509)
->>> +#define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP           (V4L2_CID_MPEG_BASE+510)
->>>
->>>  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
->>>  #define V4L2_CID_MPEG_CX2341X_BASE                           (V4L2_CTRL_CLASS_MPEG | 0x1000)
->>>
+>>> But what happens if you are streaming and the HDMI connector is unplugged?
+>>> Or plugged back in again, possibly with a larger resolution? I'm not sure
+>>> if the soc_camera driver supports such scenarios.
 >>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>> It doesn't. Currently it's up to the UI to poll the format and do the necessary changes.
+>> Otherwise the picture will be incorrect.
+>>
+>>>
+>>>>
+>>>>>
+>>>>> The way it stands I would prefer to see a version of the driver without
+>>>>> soc-camera support. I wouldn't have a problem merging that as this driver
+>>>>> is a good base for further development.
+>>>>
+>>>> I've tried to implement the driver base good enough to work with both SoC
+>>>> and non-SoC cameras since I don't think having 2 separate drivers for
+>>>> different camera models is a good idea.
+>>>>
+>>>> The problem is that I'm using it with R-Car VIN SoC camera driver and don't
+>>>> have any other h/w. Having a platform data quirk for SoC camera in
+>>>> the subdevice driver seemed simple and clean enough.
+>>>
+>>> I hate it, but it isn't something you can do anything about. So it will have
+>>> to do for now.
+>>>
+>>>> Hacking SoC camera to make it support both generic and SoC cam subdevices
+>>>> doesn't seem that straightforward to me.
+>>>
+>>> Guennadi, what is the status of this? I'm getting really tired of soc-camera
+>>> infecting sub-devices. Subdev drivers should be independent of any bridge
+>>> driver using them, but soc-camera keeps breaking that. It's driving me nuts.
+>>>
+>>> I'll be honest, it's getting to the point that I want to just NACK any
+>>> future subdev drivers that depend on soc-camera, just to force a solution.
+>>> There is no technical reason for this dependency, it just takes some time
+>>> to fix soc-camera.
+>>>
+>>>> Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
+>>>> involves a lot of regression testing with other R-Car boards that use different
+>>>> subdevices with VIN.
+>>>>
+>>>> What would you suggest?
+>>>
+>>> Let's leave it as-is for now :-(
+>>>
+>>> I'm not happy, but as I said, it's not your fault.
+>>
+>> OK, thanks.
+>> Once a better solution is available we can remove the quirk.
+>>
+>>>
+>>> Regards,
+>>>
+>>>      Hans
+>>
+>> Thanks,
+>> Val.
+>>
+>>>
+>>>>
+>>>>>
+>>>>> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
+>>>>> control. It's easy to implement and that way apps can be notified when
+>>>>> the hotplug changes value.
+>>>>
+>>>> OK, thanks.
+>>>>
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>>       Hans
+>>>>
+>>>> Thanks,
+>>>> Val.
+>>>>
+>>>>>
+>>>>> On 11/15/13 13:54, Valentine Barshak wrote:
+>>>>>> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
+>>>>>> support. Only one HDMI port is supported on ADV7612.
+>>>>>>
+>>>>>> The code is based on the ADV7604 driver, and ADV7612 patch by
+>>>>>> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
+>>>>>>
+>>>>>> Changes in version 2:
+>>>>>> * Used platform data for I2C addresses setup. The driver
+>>>>>>      should work with both SoC and non-SoC camera models.
+>>>>>> * Dropped unnecessary code and unsupported callbacks.
+>>>>>> * Implemented IRQ handling for format change detection.
+>>>>>>
+>>>>>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+>>
+>>
+>
 
