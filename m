@@ -1,156 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-129.synserver.de ([212.40.185.129]:1052 "EHLO
-	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751059Ab3K0NGy (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1253 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680Ab3KTOOo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 08:06:54 -0500
-Message-ID: <5295EE8C.6070505@metafoo.de>
-Date: Wed, 27 Nov 2013 14:07:24 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
+	Wed, 20 Nov 2013 09:14:44 -0500
+Message-ID: <528CC380.8080201@xs4all.nl>
+Date: Wed, 20 Nov 2013 15:13:20 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Valentine <valentine.barshak@cogentembedded.com>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com>
-In-Reply-To: <5295E641.6060603@cogentembedded.com>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH 14/16] s5p-jpeg: Synchronize V4L2_CID_JPEG_CHROMA_SUBSAMPLING
+ control value
+References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com> <1384871228-6648-15-git-send-email-j.anaszewski@samsung.com> <528B79E1.6050102@xs4all.nl> <528CBD6C.7010801@samsung.com>
+In-Reply-To: <528CBD6C.7010801@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/27/2013 01:32 PM, Valentine wrote:
-> On 11/27/2013 04:14 PM, Hans Verkuil wrote:
->> Hi Laurent,
->>
->> On 11/27/13 12:39, Laurent Pinchart wrote:
->>> Hi Hans,
+On 11/20/13 14:47, Jacek Anaszewski wrote:
+> On 11/19/2013 03:46 PM, Hans Verkuil wrote:
+>> On 11/19/2013 03:27 PM, Jacek Anaszewski wrote:
+>>> When output queue fourcc is set to any flavour of YUV,
+>>> the V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value as
+>>> well as its in-driver cached counterpart have to be
+>>> updated with the subsampling property of the format
+>>> so as to be able to provide correct information to the
+>>> user space and preclude setting an illegal subsampling
+>>> mode for Exynos4x12 encoder.
 >>>
->>> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
->>>> On 11/26/2013 10:28 PM, Valentine wrote:
->>>>> On 11/20/2013 07:53 PM, Valentine wrote:
->>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
->>>>>>> Hi Valentine,
->>>>>
->>>>> Hi Hans,
->>>>>
->>>>>>> Did you ever look at this adv7611 driver:
->>>>>>>
->>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4a
->>>>>>> fa42af2daa12
->>>>>>
->>>>>> No, I missed that one somehow, although I did search for the adv7611/7612
->>>>>> before implementing this one. I'm going to look closer at the patch and
->>>>>> test it.
->>>>>
->>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
->>>>> I haven't been able to make it work so far. Here's the description of some
->>>>> of the issues I've encountered.
->>>>>
->>>>> The patch does not apply cleanly so I had to make small adjustments just
->>>>> to make it apply without changing the functionality.
->>>>>
->>>>> First of all the driver (adv7604_dummy_client function) does not set
->>>>> default I2C slave addresses in the I/O map in case they are not set in
->>>>> the platform data.
->>>>> This is not needed for 7604, since the default addresses are already set
->>>>> in the I/O map after chip reset. However, the map is zeroed on 7611/7612
->>>>> after power up, and we always have to set it manually.
->>>>
->>>> So, the platform data for the 7611/2 should always give i2c addresses. That
->>>> seems reasonable.
->>>>
->>>>> I had to implement the IRQ handler since the soc_camera model does not use
->>>>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing
->>>>> about adv7612 interrupt routed to a GPIO pin.
->>>>> So I had to schedule a workqueue and call adv7604_isr from there in case
->>>>> an interrupt happens.
->>>>
->>>> For our systems the adv7604 interrupts is not always hooked up to a gpio
->>>> irq, instead a register has to be read to figure out which device actually
->>>> produced the irq.
+>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> ---
+>>>   drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
+>>>   1 file changed, 5 insertions(+)
 >>>
->>> Where is that register located ? Shouldn't it be modeled as an interrupt
->>> controller ?
->>
->> It's a PCIe interrupt whose handler needs to read several FPGA registers
->> in order to figure out which interrupt was actually triggered. I don't
->> know enough about interrupt controller to understand whether it can be
->> modeled as a 'standard' interrupt.
->>
+>>> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>>> index 319be0c..d4db612 100644
+>>> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>>> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+>>> @@ -1038,6 +1038,7 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>>>   {
+>>>       struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+>>>       struct s5p_jpeg_fmt *fmt;
+>>> +    struct v4l2_control ctrl_subs;
 >>>
->>>> So I want to keep the interrupt_service_routine(). However, adding a gpio
->>>> field to the platform_data that, if set, will tell the driver to request an
->>>> irq and setup a workqueue that calls interrupt_service_routine() would be
->>>> fine with me. That will benefit a lot of people since using gpios is much
->>>> more common.
+>>>       fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
+>>>                           FMT_TYPE_OUTPUT);
+>>> @@ -1048,6 +1049,10 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+>>>           return -EINVAL;
+>>>       }
 >>>
->>> We should use the i2c_board_info.irq field for that, not a field in the
->>> platform data structure. The IRQ line could be hooked up to a non-GPIO IRQ.
+>>> +    ctrl_subs.id = V4L2_CID_JPEG_CHROMA_SUBSAMPLING;
+>>> +    ctrl_subs.value = fmt->subsampling;
+>>> +    v4l2_s_ctrl(priv, &ctx->ctrl_handler, &ctrl_subs);
 >>
->> Yes, of course. Although the adv7604 has two interrupt lines, so if you
->> would want to use the second, then that would still have to be specified
->> through the platform data.
+>> TRY_FMT should never have side-effects, so this isn't the correct
+>> way of implementing this.
 > 
-> In this case the GPIO should be configured as interrupt source in the platform
-> code. But this doesn't seem to work with R-Car GPIO since it is initialized
-> later, and the gpio_to_irq function returns an error.
-> The simplest way seemed to use a GPIO number in the platform data
-> to have the adv driver configure the pin and request the IRQ.
-> I'm not sure how to easily defer I2C board info IRQ setup (and
-> camera/subdevice probing)
-> until GPIO driver is ready.
-
-The GPIO driver should set up the GPIO pin as a interrupt pin when the
-interrupt is requested. We should not have to add hacks to adv7604 driver to
-workaround a broken GPIO driver.
-
+> I am aware of it, but I couldn't have found more suitable place
+> for implementing this. Below is the rationale standing behind
+> such an implementation:
 > 
->>
->>>
->>>>> The driver enables multiple interrupts on the chip, however, the
->>>>> adv7604_isr callback doesn't seem to handle them correctly.
->>>>> According to the docs:
->>>>> "If an interrupt event occurs, and then a second interrupt event occurs
->>>>> before the system controller has cleared or masked the first interrupt
->>>>> event, the ADV7611 does not generate a second interrupt signal."
->>>>>
->>>>> However, the interrupt_service_routine doesn't account for that.
->>>>> For example, in case fmt_change interrupt happens while fmt_change_digital
->>>>> interrupt is being processed by the adv7604_isr routine. If fmt_change
->>>>> status is set just before we clear fmt_change_digital, we never clear
->>>>> fmt_change. Thus, we end up with fmt_change interrupt missed and
->>>>> therefore further interrupts disabled. I've tried to call the adv7604_isr
->>>>> routine in a loop and return from the worlqueue only when all interrupt
->>>>> status bits are cleared. This did help a bit, but sometimes I started
->>>>> getting lots of I2C read/write errors for some reason.
->>>>
->>>> I'm not sure if there is much that can be done about this. The code reads
->>>> the interrupt status, then clears the interrupts right after. There is
->>>> always a race condition there since this isn't atomic ('read and clear').
->>>> Unless Lars-Peter has a better idea?
->>>>
->>>> What can be improved, though, is to clear not just the interrupts that were
->>>> read, but all the interrupts that are unmasked. You are right, you could
->>>> loose an interrupt that way.
->>>
->>> Wouldn't level-trigerred interrupts fix the issue ?
+>   - Exynos4x12 device doesn't generate an eoc interrupt if the
+>     subsampling property of an output queue format is lower than the
+>     target jpeg subsampling (e.g. V4L2_PIX_FMT_YUYV [4:2:2 subsampling]
+>     and JPEG 4:4:4)
+>   - It should be possible to inform the user space application that the
+>     subsampling it wants to set is not supported with the current output
+>     queue fourcc.
+>   - It is possible that after calling S_EXT_CTRLS the application
+>     will call S_FMT on output queue with different fourcc which will
+>     change the allowed scope of JPEG subsampling settings. Let's assume
+>     the following flow of ioctls:
+>       - S_FMT V4L2_PIX_FMT_YUYV (4:2:2)
+>       - S_EXT_CTRLS V4L2_JPEG_CHROMA_SUBSAMPLING_422
+>       - S_FMT V4L2_PIX_FMT_YUV420
+>     Now the JPEG subsampling set is illegal as 4:2:2 is lower than 4:2:0
+>     (lower refers here to the lower number of luma samples assigned
+>     to the single chroma sample). It is evident now that the change
+>     of output queue fourcc entails change of the allowed scope of JPEG
+>     subsampling settings. The way I implemented it reflects this
+>     constraint precisely. We could go for adjusting the JPEG subsampling
+>     e.g. in the device_run callback but the user space application
+>     wouldn't know about it unless it called G_EXT_CTRLS ioctl after end
+>     of conversion.
 > 
-> In this case we need to disable the IRQ line in the IRQ handler and
-> re-enable it in the workqueue.
-> (we can't call the interrupt service routine from the interrupt context.)
-> 
-> This however didn't seem to work with R-Car GPIO.
-> Calling disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler
-> doesn't seem
-> to disable it for some reason.
+> In view of the above it is clear that calling S_FMT in this case HAS
+> side effect no matter whether we take it into account in the driver
+> implementation or not. Nevertheless maybe there is some more elegant
+> way of handling this problem I am not aware of. I am open to any
+> interesting ideas.
 
-Use a threaded interrupt instead of workqueue + disable_irq_nosync, that
-should work fine.
+I think you misunderstood me. It is OK that S_FMT changes the control,
+but TRY_FMT shouldn't. So the code that changes the subsampling control
+should be moved to s5p_jpeg_s_fmt_vid_out.
 
-- Lars
+Regards,
+
+	Hans
