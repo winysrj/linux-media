@@ -1,56 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43314 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754833Ab3KENDx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:53 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 11/29] [media] s5h1420: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:24 -0200
-Message-Id: <1383645702-30636-12-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3577 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753265Ab3KTPoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Nov 2013 10:44:09 -0500
+Message-ID: <528CD86D.70506@xs4all.nl>
+Date: Wed, 20 Nov 2013 16:42:37 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Valentine <valentine.barshak@cogentembedded.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com>
+In-Reply-To: <528CA9E1.2020401@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/dvb-frontends/s5h1420.c:851:1: warning: 's5h1420_tuner_i2c_tuner_xfer' uses dynamic stack allocation [enabled by default]
-Instead, let's enforce a limit for the buffer.
-In the specific case of this frontend, only ttpci uses it. The maximum
-number of messages there is two, on I2C read operations. As the logic
-can add an extra operation, change the size to 3.
+Hi Valentine,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/s5h1420.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Did you ever look at this adv7611 driver:
 
-diff --git a/drivers/media/dvb-frontends/s5h1420.c b/drivers/media/dvb-frontends/s5h1420.c
-index e2fec9ebf947..97c400a4297f 100644
---- a/drivers/media/dvb-frontends/s5h1420.c
-+++ b/drivers/media/dvb-frontends/s5h1420.c
-@@ -836,9 +836,16 @@ static u32 s5h1420_tuner_i2c_func(struct i2c_adapter *adapter)
- static int s5h1420_tuner_i2c_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[], int num)
- {
- 	struct s5h1420_state *state = i2c_get_adapdata(i2c_adap);
--	struct i2c_msg m[1 + num];
-+	struct i2c_msg m[3];
- 	u8 tx_open[2] = { CON_1, state->CON_1_val | 1 }; /* repeater stops once there was a stop condition */
- 
-+	if (1 + num > ARRAY_SIZE(m)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c xfer: num=%d is too big!\n",
-+		       KBUILD_MODNAME, num);
-+		return  -EOPNOTSUPP;
-+	}
-+
- 	memset(m, 0, sizeof(struct i2c_msg) * (1 + num));
- 
- 	m[0].addr = state->config->demod_address;
--- 
-1.8.3.1
+https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
+
+It adds adv761x support to the adv7604 in a pretty clean way.
+
+Thinking it over I prefer to use that code (although you will have to
+add the soc-camera hack for the time being) over your driver.
+
+Others need adv7611 support as well, but with all the dv_timings etc. features
+that are removed in your driver. So I am thinking that it is easier to merge
+the xilinx version and add whatever you need on top of that.
+
+Regards,
+
+	Hans
+
+On 11/20/13 13:24, Valentine wrote:
+> On 11/20/2013 03:19 PM, Hans Verkuil wrote:
+>> Hi Valentine,
+> 
+> Hi Hans,
+> 
+>>
+>> On 11/20/13 11:14, Valentine wrote:
+>>> On 11/19/2013 01:50 PM, Hans Verkuil wrote:
+>>>> Hi Valentine,
+>>>
+>>> Hi Hans,
+>>> thanks for your review.
+>>>
+>>>>
+>>>> I don't entirely understand how you use this driver with soc-camera.
+>>>> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
+>>>> act on it. Did you hack soc-camera to do this?
+>>>
+>>> I did not. The format is queried before reading the frame by the user-space.
+>>> I'm not sure if there's some kind of generic interface to notify the camera
+>>> layer about format change events. Different subdevices use different FMT_CHANGE
+>>> defines for that. I've implemented the format change notifier based on the adv7604
+>>> in hope that it may be useful later.
+>>
+>> Yes, I need to generalize the FMT_CHANGE event.
+>>
+>> But what happens if you are streaming and the HDMI connector is unplugged?
+>> Or plugged back in again, possibly with a larger resolution? I'm not sure
+>> if the soc_camera driver supports such scenarios.
+> 
+> It doesn't. Currently it's up to the UI to poll the format and do the necessary changes.
+> Otherwise the picture will be incorrect.
+> 
+>>
+>>>
+>>>>
+>>>> The way it stands I would prefer to see a version of the driver without
+>>>> soc-camera support. I wouldn't have a problem merging that as this driver
+>>>> is a good base for further development.
+>>>
+>>> I've tried to implement the driver base good enough to work with both SoC
+>>> and non-SoC cameras since I don't think having 2 separate drivers for
+>>> different camera models is a good idea.
+>>>
+>>> The problem is that I'm using it with R-Car VIN SoC camera driver and don't
+>>> have any other h/w. Having a platform data quirk for SoC camera in
+>>> the subdevice driver seemed simple and clean enough.
+>>
+>> I hate it, but it isn't something you can do anything about. So it will have
+>> to do for now.
+>>
+>>> Hacking SoC camera to make it support both generic and SoC cam subdevices
+>>> doesn't seem that straightforward to me.
+>>
+>> Guennadi, what is the status of this? I'm getting really tired of soc-camera
+>> infecting sub-devices. Subdev drivers should be independent of any bridge
+>> driver using them, but soc-camera keeps breaking that. It's driving me nuts.
+>>
+>> I'll be honest, it's getting to the point that I want to just NACK any
+>> future subdev drivers that depend on soc-camera, just to force a solution.
+>> There is no technical reason for this dependency, it just takes some time
+>> to fix soc-camera.
+>>
+>>> Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
+>>> involves a lot of regression testing with other R-Car boards that use different
+>>> subdevices with VIN.
+>>>
+>>> What would you suggest?
+>>
+>> Let's leave it as-is for now :-(
+>>
+>> I'm not happy, but as I said, it's not your fault.
+> 
+> OK, thanks.
+> Once a better solution is available we can remove the quirk.
+> 
+>>
+>> Regards,
+>>
+>>     Hans
+> 
+> Thanks,
+> Val.
+> 
+>>
+>>>
+>>>>
+>>>> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
+>>>> control. It's easy to implement and that way apps can be notified when
+>>>> the hotplug changes value.
+>>>
+>>> OK, thanks.
+>>>
+>>>>
+>>>> Regards,
+>>>>
+>>>>      Hans
+>>>
+>>> Thanks,
+>>> Val.
+>>>
+>>>>
+>>>> On 11/15/13 13:54, Valentine Barshak wrote:
+>>>>> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
+>>>>> support. Only one HDMI port is supported on ADV7612.
+>>>>>
+>>>>> The code is based on the ADV7604 driver, and ADV7612 patch by
+>>>>> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
+>>>>>
+>>>>> Changes in version 2:
+>>>>> * Used platform data for I2C addresses setup. The driver
+>>>>>     should work with both SoC and non-SoC camera models.
+>>>>> * Dropped unnecessary code and unsupported callbacks.
+>>>>> * Implemented IRQ handling for format change detection.
+>>>>>
+>>>>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+> 
+> 
 
