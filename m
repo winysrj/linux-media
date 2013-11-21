@@ -1,111 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1297 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753498Ab3K2DdK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Nov 2013 22:33:10 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAT3X7S4071511
-	for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 04:33:09 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 302D02A2220
-	for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 04:33:03 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131129033303.302D02A2220@tschai.lan>
-Date: Fri, 29 Nov 2013 04:33:03 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:37916 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754864Ab3KUVTQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 16:19:16 -0500
+Message-ID: <528E78CC.2040808@iki.fi>
+Date: Thu, 21 Nov 2013 23:19:08 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com> <528E4F7B.4040208@xs4all.nl> <528E51EB.2080404@iki.fi> <20131121171203.65719175@samsung.com> <528E6B99.5030108@iki.fi> <20131121185449.1104ea67@samsung.com>
+In-Reply-To: <20131121185449.1104ea67@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 21.11.2013 22:54, Mauro Carvalho Chehab wrote:
+> Em Thu, 21 Nov 2013 22:22:49 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 21.11.2013 21:12, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 21 Nov 2013 20:33:15 +0200
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>
+>>>> On 21.11.2013 20:22, Hans Verkuil wrote:
 
-Results of the daily build of media_tree:
+>>>>> BTW, can the sample rate change while streaming? Typically things you set
+>>>>> through S_FMT can not be changed while streaming.
+>>>>
+>>>> Yes, but in practice it is uncommon. When I reverse-engineered Mirics
+>>>> MSi2500 USB ADC I did it hundred of times. Just started streaming and
+>>>> injected numbers to ADC control registers, then calculated sampling rate
+>>>> from the stream.
+>>>
+>>> That's not an use case. It is just a developer's procedure. Anyway, you
+>>> could still measure the bit rate like that, if you do a stream start and
+>>> stop.
+>>>
+>>>> That is only use case I know currently, there still could be some others.
+>>>
+>>> Seriously? Since the Shannon theorem, all theory used on DSP assumes that
+>>> the samples are spaced at the very same bit rate.
+>>>
+>>>> Nothing prevents do to it, the key issue is that
+>>>> sampling rate is needed to known by app.
+>>>
+>>> No, it is harder than that: if the bit rate changes, then you need to pack
+>>> the sampling rate changes when they occur inside the stream, as otherwise
+>>> userspace will have no means to detect such changes.
+>>
+>> Heh, I cannot understood you. Could you explain why it works for me?
+>> Here is video I recorded just for you:
+>> http://palosaari.fi/linux/v4l-dvb/mirics_msi3101_sdrsharp_sampling_rate.mp4
+>>
+>> It is Mirics MSi3101 streaming FM radio with sampling rate 2.048 Msps,
+>> then I switch to 1.024 Msps and back few times - on the fly. IMHO
+>> results are just as expected. Sound start cracking when DSP application
+>> sampling rate does not match, but when you change it back to correct it
+>> recovers.
+>
+> In other words, changing the sampling rate while streaming breaks decoding.
 
-date:		Fri Nov 29 04:00:17 CET 2013
-git branch:	test
-git hash:	258d2fbf874c87830664cb7ef41f9741c1abffac
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+Of course, in a case DSP does not know what it is. I have found that 
+changing frequency during streaming breaks my audio as well.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
 
-Detailed results are available here:
+>> If I will add button to tell app DSP that sampling rate is changed, it
+>> will work for both cases. I haven't yet implemented that settings
+>> button, it is hard coded to SDRSharp plugin.
+>>
+>> Could you explain why it works if it is impossible as you said?
+>
+> I can't imagine any "magic" button that will be able to discover
+> on what exact sample the sampling rate changed. The hardware may
+> have buffers; the DMA engines and the USB stack for sure have, and
+> also V4L. Knowing on what exact sample the sampling rate changed
+> would require hardware support, to properly tag the sample where the
+> change started to apply.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+"Magic button". It is just DSP application which sends request to 
+hardware. And if hardware says OK, that magic SDR application says for 
+own DSP hey change sampling rate to mach stream.
 
-Full logs are available here:
+There is huge amount of bits streaming, no need to tag. You could just 
+throw away second or two - does not matter. Imagine it similarly like a 
+UDP VoIP call - when you lose data, so what, it is 20ms of audio and 
+none cares.
+It is similarly here, if you lose some data due to sampling rate 
+mismatch, so what. It is only few ms of audio (or some other). One way 
+radio channel is something it should be robust for such issues - you 
+cannot request retry.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+> If the hardware supports it, I don't see an reason why blocking calling
+> VIDIOC_S_FMT in the middle of a stream.
+>
+> However, on all other hardwares, samples will be lost or will be
+> badly decoded, with would cause audio/video artifacts or even break
+> the decoding code if not properly written.
+>
+> Anyway, if samples will be lost anyway, the right thing to do is to
+> just stop streaming, change the sampling rate and start streaming
+> again. This way, you'll know that all buffers received before the
+> changes will have the old sampling rate, and all new buffers, the new one.
 
-The Media Infrastructure API from this daily build is here:
+I cannot agree. It is too slow, without real benefits, for many use cases.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Also, I am pretty sure many of the hw DSP implementations will not 
+restart streaming when they hunt for demodulation lock. There is likely 
+just a long shift-register or FIFO where bits are running even different 
+sampling rates etc. are tested.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
