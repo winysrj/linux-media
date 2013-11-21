@@ -1,109 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4920 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab3KSDb7 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3222 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754363Ab3KUPWn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Nov 2013 22:31:59 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAJ3Vtqu007253
-	for <linux-media@vger.kernel.org>; Tue, 19 Nov 2013 04:31:57 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 264122A221D
-	for <linux-media@vger.kernel.org>; Tue, 19 Nov 2013 04:31:51 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 21 Nov 2013 10:22:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131119033151.264122A221D@tschai.lan>
-Date: Tue, 19 Nov 2013 04:31:51 +0100 (CET)
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	awalls@md.metrocast.net, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/8] vb2: return ENODATA in start_streaming in case of too few buffers.
+Date: Thu, 21 Nov 2013 16:22:04 +0100
+Message-Id: <1385047326-23099-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c   | 2 +-
+ drivers/media/platform/davinci/vpif_capture.c   | 2 +-
+ drivers/media/platform/davinci/vpif_display.c   | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c     | 2 +-
+ drivers/media/platform/soc_camera/mx2_camera.c  | 2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 ++
+ 7 files changed, 8 insertions(+), 6 deletions(-)
 
-date:		Tue Nov 19 04:00:33 CET 2013
-git branch:	test
-git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index eac472b..53be7fc 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -347,7 +347,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* If buffer queue is empty, return error */
+ 	if (list_empty(&layer->dma_queue)) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "buffer queue is empty\n");
+-		return -EINVAL;
++		return -ENODATA;
+ 	}
+ 	/* Get the next frame from the buffer queue */
+ 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 52ac5e6..4b04a27 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -277,7 +277,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (list_empty(&common->dma_queue)) {
+ 		spin_unlock_irqrestore(&common->irqlock, flags);
+ 		vpif_dbg(1, debug, "buffer queue is empty\n");
+-		return -EIO;
++		return -ENODATA;
+ 	}
+ 
+ 	/* Get the next frame from the buffer queue */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index c31bcf1..c5070dc 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -239,7 +239,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (list_empty(&common->dma_queue)) {
+ 		spin_unlock_irqrestore(&common->irqlock, flags);
+ 		vpif_err("buffer queue is empty\n");
+-		return -EIO;
++		return -ENODATA;
+ 	}
+ 
+ 	/* Get the next frame from the buffer queue */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4ff3b6c..3bdfe85 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1863,7 +1863,7 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		if (ctx->src_bufs_cnt < ctx->pb_count) {
+ 			mfc_err("Need minimum %d OUTPUT buffers\n",
+ 					ctx->pb_count);
+-			return -EINVAL;
++			return -ENODATA;
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 641b1f0..7d2fe64 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -948,7 +948,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	if (count == 0) {
+ 		mxr_dbg(mdev, "no output buffers queued\n");
+-		return -EINVAL;
++		return -ENODATA;
+ 	}
+ 
+ 	/* block any changes in output configuration */
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index 45a0276..587e3d1 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -659,7 +659,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	unsigned long flags;
+ 
+ 	if (count < 2)
+-		return -EINVAL;
++		return -ENODATA;
+ 
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 24d98a6..a81b0ab 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1201,6 +1201,8 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	unsigned long addr;
+ 	int ret;
+ 
++	if (count == 0)
++		return -ENODATA;
+ 	ret = mutex_lock_interruptible(&video->lock);
+ 	if (ret)
+ 		goto streamoff;
+-- 
+1.8.4.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
