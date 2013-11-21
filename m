@@ -1,173 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4472 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab3K0HRg (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4283 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab3KUSXV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 02:17:36 -0500
-Message-ID: <52959C7B.6020300@xs4all.nl>
-Date: Wed, 27 Nov 2013 08:17:15 +0100
+	Thu, 21 Nov 2013 13:23:21 -0500
+Message-ID: <528E4F7B.4040208@xs4all.nl>
+Date: Thu, 21 Nov 2013 19:22:51 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 4/8] vb2: retry start_streaming in case of insufficient
- buffers.
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <5458942.sLkCAMs10P@avalon> <528F192B.6090709@xs4all.nl> <2969217.JjDzNKjWJr@avalon>
-In-Reply-To: <2969217.JjDzNKjWJr@avalon>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Antti Palosaari <crope@iki.fi>, LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com>
+In-Reply-To: <20131121154923.32d76094@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2013 04:46 PM, Laurent Pinchart wrote:
-> Hi Hans,
+On 11/21/2013 06:49 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 21 Nov 2013 19:05:05 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
 > 
-> On Friday 22 November 2013 09:43:23 Hans Verkuil wrote:
->> On 11/21/2013 08:09 PM, Laurent Pinchart wrote:
->>> On Thursday 21 November 2013 16:22:02 Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> If start_streaming returns -ENODATA, then it will be retried the next
->>>> time a buffer is queued. This means applications no longer need to know
->>>> how many buffers need to be queued before STREAMON can be called. This is
->>>> particularly useful for output stream I/O.
->>>>
->>>> If a DMA engine needs at least X buffers before it can start streaming,
->>>> then for applications to get a buffer out as soon as possible they need
->>>> to know the minimum number of buffers to queue before STREAMON can be
->>>> called. You can't just try STREAMON after every buffer since on failure
->>>> STREAMON will dequeue all your buffers. (Is that a bug or a feature?
->>>> Frankly, I'm not sure).
->>>>
->>>> This patch simplifies applications substantially: they can just call
->>>> STREAMON at the beginning and then start queuing buffers and the DMA
->>>> engine will kick in automagically once enough buffers are available.
->>>>
->>>> This also fixes using write() to stream video: the fileio implementation
->>>> calls streamon without having any queued buffers, which will fail today
->>>> for any driver that requires a minimum number of buffers.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>
->>>>  drivers/media/v4l2-core/videobuf2-core.c | 66 +++++++++++++++++++-------
->>>>  include/media/videobuf2-core.h           | 15 ++++++--
->>>>  2 files changed, 64 insertions(+), 17 deletions(-)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->>>> b/drivers/media/v4l2-core/videobuf2-core.c index 9ea3ae9..5bb91f7 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>> @@ -1332,6 +1332,39 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
->>>> v4l2_buffer *b) }
->>>>
->>>>  EXPORT_SYMBOL_GPL(vb2_prepare_buf);
->>>>
->>>> +/**
->>>> + * vb2_start_streaming() - Attempt to start streaming.
->>>> + * @q:		videobuf2 queue
->>>> + *
->>>> + * If there are not enough buffers, then retry_start_streaming is set to
->>>> + * true and 0 is returned. The next time a buffer is queued and
->>>> + * retry_start_streaming is true, this function will be called again to
->>>> + * retry starting the DMA engine.
->>>> + */
->>>> +static int vb2_start_streaming(struct vb2_queue *q)
->>>> +{
->>>> +	int ret;
->>>> +
->>>> +	/* Tell the driver to start streaming */
->>>> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
->>>> +
->>>> +	/*
->>>> +	 * If there are not enough buffers queued to start streaming, then
->>>> +	 * the start_streaming operation will return -ENODATA and you have to
->>>> +	 * retry when the next buffer is queued.
->>>> +	 */
->>>> +	if (ret == -ENODATA) {
->>>> +		dprintk(1, "qbuf: not enough buffers, retry when more buffers are
->>>> queued.\n");
->>>> +		q->retry_start_streaming = true;
->>>> +		return 0;
->>>> +	}
->>>> +	if (ret)
->>>> +		dprintk(1, "qbuf: driver refused to start streaming\n");
->>>> +	else
->>>> +		q->retry_start_streaming = false;
->>>> +	return ret;
->>>> +}
->>>> +
->>>>  static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->>>>  {
->>>>  	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
->>>> @@ -1377,6 +1410,12 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
->>>> struct v4l2_buffer *b) /* Fill buffer information for the userspace */
->>>>
->>>>  	__fill_v4l2_buffer(vb, b);
->>>>
->>>> +	if (q->retry_start_streaming) {
->>>> +		ret = vb2_start_streaming(q);
->>>> +		if (ret)
->>>> +			return ret;
->>>> +	}
->>>> +
->>>>  	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb-
->>>> v4l2_buf.index);
->>>> return 0;
->>>>  }
->>>>
->>>> @@ -1526,7 +1565,8 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
->>>>  		return -EINVAL;
->>>>  	}
->>>>
->>>> -	wait_event(q->done_wq, !atomic_read(&q->queued_count));
->>>> +	if (!q->retry_start_streaming)
->>>> +		wait_event(q->done_wq, !atomic_read(&q->queued_count));
->>>>  	return 0;
->>>>  
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
->>>> @@ -1640,6 +1680,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->>>>  {
->>>>  	unsigned int i;
->>>>
->>>> +	if (q->retry_start_streaming)
->>>> +		q->retry_start_streaming = q->streaming = 0;
->>>> +
->>>>  	/*
->>>>  	 * Tell driver to stop all transactions and release all queued
->>>>  	 * buffers.
->>>> @@ -1689,12 +1732,9 @@ static int vb2_internal_streamon(struct vb2_queue
->>>> *q, enum v4l2_buf_type type) list_for_each_entry(vb, &q->queued_list,
->>>> queued_entry)
->>>>
->>>>  		__enqueue_in_driver(vb);
->>>>
->>>> -	/*
->>>> -	 * Let driver notice that streaming state has been enabled.
->>>> -	 */
->>>> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
->>>> +	/* Tell driver to start streaming. */
->>>
->>> Wouldn't it be better to reset q->retry_start_streaming to 0 here instead
->>> of in the several other locations ?
+>> Hello
+>> I am adding new property for sampling rate that is ideally the only 
+>> obligatory parameter required by SDR. It is value that could be only 
+>> positive and bigger the better, lets say unsigned 64 bit is quite ideal. 
+>> That value sets maximum radio frequency possible to receive (ideal SDR).
 >>
->> I don't follow. retry_start_streaming is set only in vb2_start_streaming or
->> in queue_cancel. I'm not sure what vb2_internal_streamon has to do with
->> this.
+>> Valid values are not always in some single range from X to Y, there 
+>> could be some multiple value ranges.
+>>
+>> For example possible values: 1000-2000, 23459, 900001-2800000
+>>
+>> Reading possible values from device could be nice, but not necessary. 
+>> Reading current value is more important.
+>>
+>> Here is what I though earlier as a requirements:
+>>
+>> sampling rate
+>> *  values: 1 - infinity (unit: Hz, samples per second)
+>>       currently 500 MHz is more than enough
+>> *  operations
+>>       GET, inquire what HW supports
+>>       GET, get current value
+>>       SET, set desired value
+>>
+>>
+>> I am not sure what is best way to implement that kind of thing.
+>> IOCTL like frequency
+>> V4L2 Control?
+>> put it into stream format request?
+>>
+>> Sampling rate is actually frequency of ADC. As there devices has almost 
+>> always tuner too (practical SDR) there is need for tuner frequency too. 
+>> As tuner is still own entity, is it possible to use same frequency 
+>> parameter for both ADC and RF tuner in same device?
 > 
-> My point is that the code would be simpler and less error-prone if we reset 
-> retry_start_streaming in a single location right before starting the stream 
-> instead of in multiple locations when stopping the stream. There would be less 
-> chances to introduce a bug when refactoring code in the future in that case.
+> Well, a SDR capture device will always have ADC and RF tuner.
+> 
+> A SDR output device will always have a DAC and a RF transmitter.
+> 
+> On both cases, the sampling rate and the sampling format are mandatory
+> arguments.
+> 
+> In any case, the V4L2 API has already support for setting the mandatory
+> parameters of the expected stream, at struct v4l2_format.
+> 
+> So, it makes sense do do:
+> 
+>  struct v4l2_format {
+>          __u32    type;
+>          union {
+>                  struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+>                  struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+>                  struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+>                  struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+>                  struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+> +                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+>                  __u8    raw_data[200];                   /* user-defined */
+>          } fmt;
+>  };
+> 
+> And add the mandatory parameters for SDR inside its own structure, e. g.
+> struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
+> is different than the one for video or vbi, so you'll need to add a new
+> streaming type for SDR anyway.
+> 
+> Btw, that's what I proposed here:
+> 
+> http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
+> 
+> With regards to the sampling rate range, my proposal there were to add a min/max
+> value for it, to be used by VIDIOC_G_FMT, as proposed on:
+> 	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
+> 
+> So, the v4l2_sdr_format should be like:
+> 
+> +struct v4l2_sdr_format {
+> +       __u32                           sampleformat;
+> +       __u32                           sample_rate;            /* in Hz */
+> +       __u32                           min_sample_rate;        /* in Hz */
+> +       __u32                           max_sample_rate;        /* in Hz */
+> +
+> +} __attribute__ ((packed));
+> 
+> Where sampleformat would be something similar to FOURCC, defining the
+> size of each sample, its format, and if the sampling is in quadradure,
+> if they're plain PCM samples, or something more complex, like DPCM, RLE,
+> etc.
+> 
+> In the specific case of enumerating the sampling rate range, if the 
+> sampling rate can have multiple ranges, then maybe we'll need to do
+> something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
 
-But that's what happens: it's set when starting the stream (vb2_start_streaming)
-and cleared when stopping the stream (__vb2_queue_cancel). I really can't make
-it simpler than that.
+Could this ioctl be adapted for this:
 
-I still don't see what it is you want to improve here.
+http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-freq-bands
+
+BTW, can the sample rate change while streaming? Typically things you set
+through S_FMT can not be changed while streaming.
 
 Regards,
 
