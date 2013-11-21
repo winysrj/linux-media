@@ -1,37 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58441 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755031Ab3KFR5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Nov 2013 12:57:47 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/8] a8293: add small sleep in order to settle LNB voltage
-Date: Wed,  6 Nov 2013 19:57:29 +0200
-Message-Id: <1383760655-11388-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1383760655-11388-1-git-send-email-crope@iki.fi>
-References: <1383760655-11388-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3135 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897Ab3KUH4X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 02:56:23 -0500
+Message-ID: <528DBC90.5060707@xs4all.nl>
+Date: Thu, 21 Nov 2013 08:56:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	PawelOsciak <pawel@osciak.com>
+Subject: Re: [PATCH RFC] videobuf2: Improve file I/O emulation to handle buffers
+ in any order
+References: <1384995906.1917.12.camel@palomino.walls.org>
+In-Reply-To: <1384995906.1917.12.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/a8293.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hi Andy,
 
-diff --git a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
-index 74fbb5d..780da58 100644
---- a/drivers/media/dvb-frontends/a8293.c
-+++ b/drivers/media/dvb-frontends/a8293.c
-@@ -96,6 +96,8 @@ static int a8293_set_voltage(struct dvb_frontend *fe,
- 	if (ret)
- 		goto err;
- 
-+	usleep_range(1500, 50000);
-+
- 	return ret;
- err:
- 	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
--- 
-1.8.4.2
+As I mentioned in irc I have been working in this same area as well, so
+I'll take this patch and merge it in my tree and test it as well.
+
+I suspect that it might be easiest if I add the patch to my upcoming
+patch series in order to prevent merge conflicts. I'll know more later
+today.
+
+Regards,
+
+	Hans
+
+On 11/21/2013 02:05 AM, Andy Walls wrote:
+> (This patch is RFC, because it was compiled and tested against kernel
+> v3.5)
+> 
+> videobuf2 file I/O emulation assumed that buffers dequeued from the
+> driver would return in the order they were enqueued in the driver. 
+> 
+> Improve the file I/O emulator's book-keeping to remove this assumption.
+> 
+> Also remove the, AFAICT, assumption that only read() calls would need to
+> dequeue a buffer from the driver.
+> 
+> Also set the buf->size properly, if a write() dequeues a buffer.
+> 
+> 
+> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: PawelOsciak<pawel@osciak.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> 
+> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+> index 9d4e9ed..f330aa4 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -1796,6 +1796,7 @@ struct vb2_fileio_data {
+>  	unsigned int dq_count;
+>  	unsigned int flags;
+>  };
+> +#define FILEIO_INDEX_NOT_SET	((unsigned int) INT_MAX)
+>  
+>  /**
+>   * __vb2_init_fileio() - initialize file io emulator
+> @@ -1889,6 +1890,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>  				goto err_reqbufs;
+>  			fileio->bufs[i].queued = 1;
+>  		}
+> +		fileio->index = FILEIO_INDEX_NOT_SET;
+>  
+>  		/*
+>  		 * Start streaming.
+> @@ -1975,15 +1977,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>  	 */
+>  	q->fileio = NULL;
+>  
+> -	index = fileio->index;
+> -	buf = &fileio->bufs[index];
+> -
+>  	/*
+>  	 * Check if we need to dequeue the buffer.
+>  	 */
+> -	if (buf->queued) {
+> -		struct vb2_buffer *vb;
+> -
+> +	index = fileio->index;
+> +	if (index == FILEIO_INDEX_NOT_SET) {
+>  		/*
+>  		 * Call vb2_dqbuf to get buffer back.
+>  		 */
+> @@ -1997,12 +1995,19 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>  			goto end;
+>  		fileio->dq_count += 1;
+>  
+> +		fileio->index = fileio->b.index;
+> +		index = fileio->index;
+> +		buf = &fileio->bufs[index];
+> +		
+>  		/*
+>  		 * Get number of bytes filled by the driver
+>  		 */
+> -		vb = q->bufs[index];
+> -		buf->size = vb2_get_plane_payload(vb, 0);
+> +		buf->pos = 0;
+>  		buf->queued = 0;
+> +		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
+> +				 : vb2_plane_size(q->bufs[index], 0);
+> +	} else {
+> +		buf = &fileio->bufs[index];
+>  	}
+>  
+>  	/*
+> @@ -2070,13 +2075,28 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>  		 */
+>  		buf->pos = 0;
+>  		buf->queued = 1;
+> -		buf->size = q->bufs[0]->v4l2_planes[0].length;
+> +		buf->size = vb2_plane_size(q->bufs[index], 0);
+>  		fileio->q_count += 1;
+>  
+>  		/*
+> -		 * Switch to the next buffer
+> +		 * Decide on the next buffer
+>  		 */
+> -		fileio->index = (index + 1) % q->num_buffers;
+> +		if (read || (q->num_buffers == 1)) {
+> +			/* Use the next buffer the driver provides back */
+> +			fileio->index = FILEIO_INDEX_NOT_SET;
+> +		} else {
+> +			/* Prefer a buffer that is not quequed in the driver */
+> +			int initial_index = fileio->index;
+> +			fileio->index = FILEIO_INDEX_NOT_SET;
+> +			do {
+> +				if (++index == q->num_buffers)
+> +					index = 0;
+> +				if (!fileio->bufs[index].queued) {
+> +					fileio->index = index;
+> +					break;
+> +				}
+> +			} while (index != initial_index);
+> +		}
+>  
+>  		/*
+>  		 * Start streaming if required.
+> 
+> 
 
