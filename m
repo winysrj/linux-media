@@ -1,40 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48333 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751618Ab3KDAG3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Nov 2013 19:06:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2750 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab3KUPWr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 10:22:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 17/18] v4l: omap4iss: Don't initialize fields to 0 manually
-Date: Mon,  4 Nov 2013 01:06:42 +0100
-Message-Id: <1383523603-3907-18-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	awalls@md.metrocast.net, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 7/8] vb2: add thread support
+Date: Thu, 21 Nov 2013 16:22:05 +0100
+Message-Id: <1385047326-23099-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The iss_device structure is allocated with kzalloc, there's no need to
-initialize its fields to 0 explicitly.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In order to implement vb2 DVB or ALSA support you need to be able to start
+a kernel thread that queues and dequeues buffers, calling a callback
+function for every captured/displayed buffer. This patch adds support for
+that.
+
+It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the DVB
+specific stuff stripped out, thus making it much more generic.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/omap4iss/iss.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 134 +++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h           |  28 +++++++
+ 2 files changed, 162 insertions(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index c7dffa6..7d427d5 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -1306,7 +1306,6 @@ static int iss_probe(struct platform_device *pdev)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7d1498f..66cd81d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -6,6 +6,9 @@
+  * Author: Pawel Osciak <pawel@osciak.com>
+  *	   Marek Szyprowski <m.szyprowski@samsung.com>
+  *
++ * The vb2_thread implementation was based on code from videobuf-dvb.c:
++ * 	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation.
+@@ -18,6 +21,8 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/freezer.h>
++#include <linux/kthread.h>
  
- 	iss->dev = &pdev->dev;
- 	iss->pdata = pdata;
--	iss->ref_count = 0;
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -2500,6 +2505,135 @@ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ }
+ EXPORT_SYMBOL_GPL(vb2_write);
  
- 	iss->raw_dmamask = DMA_BIT_MASK(32);
- 	iss->dev->dma_mask = &iss->raw_dmamask;
++struct vb2_threadio_data {
++	struct task_struct *thread;
++	vb2_thread_fnc fnc;
++	void *priv;
++	bool stop;
++};
++
++static int vb2_thread(void *data)
++{
++	struct vb2_queue *q = data;
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int prequeue = 0;
++	int index = 0;
++	int ret = 0;
++
++	if (V4L2_TYPE_IS_OUTPUT(q->type))
++		prequeue = q->num_buffers;
++
++	set_freezable();
++
++	for (;;) {
++		struct vb2_buffer *vb;
++
++		/*
++		 * Call vb2_dqbuf to get buffer back.
++		 */
++		memset(&fileio->b, 0, sizeof(fileio->b));
++		fileio->b.type = q->type;
++		fileio->b.memory = q->memory;
++		if (prequeue) {
++			fileio->b.index = index++;
++			prequeue--;
++		} else {
++			call_qop(q, wait_finish, q);
++			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++			call_qop(q, wait_prepare, q);
++			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
++		}
++		if (threadio->stop)
++			break;
++		if (ret)
++			break;
++		try_to_freeze();
++
++		vb = q->bufs[fileio->b.index];
++		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
++			ret = threadio->fnc(vb, threadio->priv);
++		if (ret)
++			break;
++		call_qop(q, wait_finish, q);
++		ret = vb2_internal_qbuf(q, &fileio->b);
++		call_qop(q, wait_prepare, q);
++		if (ret)
++			break;
++	}
++
++	/* Hmm, linux becomes *very* unhappy without this ... */
++	while (!kthread_should_stop()) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++	}
++	return 0;
++}
++
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name)
++{
++	struct vb2_threadio_data *threadio;
++	int ret = 0;
++
++	if (q->threadio)
++		return -EBUSY;
++	if (vb2_is_busy(q))
++		return -EBUSY;
++	if (WARN_ON(q->fileio))
++		return -EBUSY;
++
++	threadio = kzalloc(sizeof(*threadio), GFP_KERNEL);
++	if (threadio == NULL)
++		return -ENOMEM;
++	threadio->fnc = fnc;
++	threadio->priv = priv;
++
++	ret = __vb2_init_fileio(q, !V4L2_TYPE_IS_OUTPUT(q->type));
++	dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
++	if (ret)
++		goto nomem;
++	q->threadio = threadio;
++	threadio->thread = kthread_run(vb2_thread, q, "vb2-%s", thread_name);
++	if (IS_ERR(threadio->thread)) {
++		ret = PTR_ERR(threadio->thread);
++		threadio->thread = NULL;
++		goto nothread;
++	}
++	return 0;
++
++nothread:
++	__vb2_cleanup_fileio(q);
++nomem:
++	kfree(threadio);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_start);
++
++int vb2_thread_stop(struct vb2_queue *q)
++{
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int err;
++
++	if (threadio == NULL)
++		return 0;
++	call_qop(q, wait_finish, q);
++	threadio->stop = true;
++	vb2_internal_streamoff(q, q->type);
++	call_qop(q, wait_prepare, q);
++	q->fileio = NULL;
++	fileio->req.count = 0;
++	vb2_reqbufs(q, &fileio->req);
++	kfree(fileio);
++	err = kthread_stop(threadio->thread);
++	threadio->thread = NULL;
++	kfree(threadio);
++	q->fileio = NULL;
++	q->threadio = NULL;
++	return err;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_stop);
+ 
+ /*
+  * The following functions are not part of the vb2 core API, but are helper
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 2d88897..5f6347a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -20,6 +20,7 @@
+ 
+ struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
++struct vb2_threadio_data;
+ 
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+@@ -328,6 +329,7 @@ struct v4l2_fh;
+  *		buffers queued. If set, then retry calling start_streaming when
+  *		queuing a new buffer.
+  * @fileio:	file io emulator internal data, used only if emulator is active
++ * @threadio:	thread io internal data, used only if thread is active
+  */
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+@@ -362,6 +364,7 @@ struct vb2_queue {
+ 	unsigned int			retry_start_streaming:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
++	struct vb2_threadio_data	*threadio;
+ };
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+@@ -400,6 +403,31 @@ size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
+ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
++/**
++ * vb2_thread_fnc - callback function for use with vb2_thread
++ *
++ * This is called whenever a buffer is dequeued in the thread.
++ */
++typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
++
++/**
++ * vb2_thread_start() - start a thread for the given queue.
++ * @q:		videobuf queue
++ * @fnc:	callback function
++ * @priv:	priv pointer passed to the callback function
++ * @thread_name:the name of the thread. This will be prefixed with "vb2-".
++ *
++ * This starts a thread that will queue and dequeue until an error occurs
++ * or @vb2_thread_stop is called.
++ */
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name);
++
++/**
++ * vb2_thread_stop() - stop the thread for the given queue.
++ * @q:		videobuf queue
++ */
++int vb2_thread_stop(struct vb2_queue *q);
+ 
+ /**
+  * vb2_is_streaming() - return streaming status of the queue
 -- 
-1.8.1.5
+1.8.4.3
 
