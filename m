@@ -1,109 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2467 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756404Ab3KXDcw (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:29299 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753211Ab3KUSmr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Nov 2013 22:32:52 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAO3WmME035165
-	for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 04:32:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 563E22A221E
-	for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 04:32:37 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131124033237.563E22A221E@tschai.lan>
-Date: Sun, 24 Nov 2013 04:32:37 +0100 (CET)
+	Thu, 21 Nov 2013 13:42:47 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWM000T0MLIUL30@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Nov 2013 13:42:45 -0500 (EST)
+Date: Thu, 21 Nov 2013 16:42:41 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>, LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+Message-id: <20131121164241.09239160@samsung.com>
+In-reply-to: <528E4F7B.4040208@xs4all.nl>
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com>
+ <528E4F7B.4040208@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Thu, 21 Nov 2013 19:22:51 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> On 11/21/2013 06:49 PM, Mauro Carvalho Chehab wrote:
+> > Em Thu, 21 Nov 2013 19:05:05 +0200
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> > 
+> >> Hello
+> >> I am adding new property for sampling rate that is ideally the only 
+> >> obligatory parameter required by SDR. It is value that could be only 
+> >> positive and bigger the better, lets say unsigned 64 bit is quite ideal. 
+> >> That value sets maximum radio frequency possible to receive (ideal SDR).
+> >>
+> >> Valid values are not always in some single range from X to Y, there 
+> >> could be some multiple value ranges.
+> >>
+> >> For example possible values: 1000-2000, 23459, 900001-2800000
+> >>
+> >> Reading possible values from device could be nice, but not necessary. 
+> >> Reading current value is more important.
+> >>
+> >> Here is what I though earlier as a requirements:
+> >>
+> >> sampling rate
+> >> *  values: 1 - infinity (unit: Hz, samples per second)
+> >>       currently 500 MHz is more than enough
+> >> *  operations
+> >>       GET, inquire what HW supports
+> >>       GET, get current value
+> >>       SET, set desired value
+> >>
+> >>
+> >> I am not sure what is best way to implement that kind of thing.
+> >> IOCTL like frequency
+> >> V4L2 Control?
+> >> put it into stream format request?
+> >>
+> >> Sampling rate is actually frequency of ADC. As there devices has almost 
+> >> always tuner too (practical SDR) there is need for tuner frequency too. 
+> >> As tuner is still own entity, is it possible to use same frequency 
+> >> parameter for both ADC and RF tuner in same device?
+> > 
+> > Well, a SDR capture device will always have ADC and RF tuner.
+> > 
+> > A SDR output device will always have a DAC and a RF transmitter.
+> > 
+> > On both cases, the sampling rate and the sampling format are mandatory
+> > arguments.
+> > 
+> > In any case, the V4L2 API has already support for setting the mandatory
+> > parameters of the expected stream, at struct v4l2_format.
+> > 
+> > So, it makes sense do do:
+> > 
+> >  struct v4l2_format {
+> >          __u32    type;
+> >          union {
+> >                  struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+> >                  struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+> >                  struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+> >                  struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+> >                  struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+> > +                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+> >                  __u8    raw_data[200];                   /* user-defined */
+> >          } fmt;
+> >  };
+> > 
+> > And add the mandatory parameters for SDR inside its own structure, e. g.
+> > struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
+> > is different than the one for video or vbi, so you'll need to add a new
+> > streaming type for SDR anyway.
+> > 
+> > Btw, that's what I proposed here:
+> > 
+> > http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
+> > 
+> > With regards to the sampling rate range, my proposal there were to add a min/max
+> > value for it, to be used by VIDIOC_G_FMT, as proposed on:
+> > 	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
+> > 
+> > So, the v4l2_sdr_format should be like:
+> > 
+> > +struct v4l2_sdr_format {
+> > +       __u32                           sampleformat;
+> > +       __u32                           sample_rate;            /* in Hz */
+> > +       __u32                           min_sample_rate;        /* in Hz */
+> > +       __u32                           max_sample_rate;        /* in Hz */
+> > +
+> > +} __attribute__ ((packed));
+> > 
+> > Where sampleformat would be something similar to FOURCC, defining the
+> > size of each sample, its format, and if the sampling is in quadradure,
+> > if they're plain PCM samples, or something more complex, like DPCM, RLE,
+> > etc.
+> > 
+> > In the specific case of enumerating the sampling rate range, if the 
+> > sampling rate can have multiple ranges, then maybe we'll need to do
+> > something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
+> 
+> Could this ioctl be adapted for this:
+> 
+> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-freq-bands
 
-date:		Sun Nov 24 04:00:29 CET 2013
-git branch:	test
-git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+I don't think so. Btw, it makes sense to have different frequency bands
+for SDR too.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+> BTW, can the sample rate change while streaming? Typically things you set
+> through S_FMT can not be changed while streaming.
 
-Detailed results are available here:
+I don't think you can. If the sampling rate changes, you need to know exactly
+on what sample the bit rate changed, or otherwise you can't decode the
+samples.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+In other words, you need to first stream off, then change the sampling rate,
+then do a stream on.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
