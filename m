@@ -1,273 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43267 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185Ab3KJWv0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 17:51:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 10/19] uvcvideo: Support UVC 1.5 runtime control property.
-Date: Sun, 10 Nov 2013 23:51:58 +0100
-Message-ID: <13311326.FFLzkgypQQ@avalon>
-In-Reply-To: <1377829038-4726-11-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-11-git-send-email-posciak@chromium.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:52771 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751506Ab3KUUW5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 15:22:57 -0500
+Message-ID: <528E6B99.5030108@iki.fi>
+Date: Thu, 21 Nov 2013 22:22:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com> <528E4F7B.4040208@xs4all.nl> <528E51EB.2080404@iki.fi> <20131121171203.65719175@samsung.com>
+In-Reply-To: <20131121171203.65719175@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+On 21.11.2013 21:12, Mauro Carvalho Chehab wrote:
+> Em Thu, 21 Nov 2013 20:33:15 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 21.11.2013 20:22, Hans Verkuil wrote:
+>>> On 11/21/2013 06:49 PM, Mauro Carvalho Chehab wrote:
+>>>> Em Thu, 21 Nov 2013 19:05:05 +0200
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> Hello
+>>>>> I am adding new property for sampling rate that is ideally the only
+>>>>> obligatory parameter required by SDR. It is value that could be only
+>>>>> positive and bigger the better, lets say unsigned 64 bit is quite ideal.
+>>>>> That value sets maximum radio frequency possible to receive (ideal SDR).
+>>>>>
+>>>>> Valid values are not always in some single range from X to Y, there
+>>>>> could be some multiple value ranges.
+>>>>>
+>>>>> For example possible values: 1000-2000, 23459, 900001-2800000
+>>>>>
+>>>>> Reading possible values from device could be nice, but not necessary.
+>>>>> Reading current value is more important.
+>>>>>
+>>>>> Here is what I though earlier as a requirements:
+>>>>>
+>>>>> sampling rate
+>>>>> *  values: 1 - infinity (unit: Hz, samples per second)
+>>>>>         currently 500 MHz is more than enough
+>>>>> *  operations
+>>>>>         GET, inquire what HW supports
+>>>>>         GET, get current value
+>>>>>         SET, set desired value
+>>>>>
+>>>>>
+>>>>> I am not sure what is best way to implement that kind of thing.
+>>>>> IOCTL like frequency
+>>>>> V4L2 Control?
+>>>>> put it into stream format request?
+>>>>>
+>>>>> Sampling rate is actually frequency of ADC. As there devices has almost
+>>>>> always tuner too (practical SDR) there is need for tuner frequency too.
+>>>>> As tuner is still own entity, is it possible to use same frequency
+>>>>> parameter for both ADC and RF tuner in same device?
+>>>>
+>>>> Well, a SDR capture device will always have ADC and RF tuner.
+>>>>
+>>>> A SDR output device will always have a DAC and a RF transmitter.
+>>>>
+>>>> On both cases, the sampling rate and the sampling format are mandatory
+>>>> arguments.
+>>>>
+>>>> In any case, the V4L2 API has already support for setting the mandatory
+>>>> parameters of the expected stream, at struct v4l2_format.
+>>>>
+>>>> So, it makes sense do do:
+>>>>
+>>>>    struct v4l2_format {
+>>>>            __u32    type;
+>>>>            union {
+>>>>                    struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+>>>>                    struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+>>>>                    struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+>>>>                    struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+>>>>                    struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+>>>> +                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+>>>>                    __u8    raw_data[200];                   /* user-defined */
+>>>>            } fmt;
+>>>>    };
+>>>>
+>>>> And add the mandatory parameters for SDR inside its own structure, e. g.
+>>>> struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
+>>>> is different than the one for video or vbi, so you'll need to add a new
+>>>> streaming type for SDR anyway.
+>>>>
+>>>> Btw, that's what I proposed here:
+>>>>
+>>>> http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
+>>>>
+>>>> With regards to the sampling rate range, my proposal there were to add a min/max
+>>>> value for it, to be used by VIDIOC_G_FMT, as proposed on:
+>>>> 	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
+>>>>
+>>>> So, the v4l2_sdr_format should be like:
+>>>>
+>>>> +struct v4l2_sdr_format {
+>>>> +       __u32                           sampleformat;
+>>>> +       __u32                           sample_rate;            /* in Hz */
+>>>> +       __u32                           min_sample_rate;        /* in Hz */
+>>>> +       __u32                           max_sample_rate;        /* in Hz */
+>>>> +
+>>>> +} __attribute__ ((packed));
+>>>>
+>>>> Where sampleformat would be something similar to FOURCC, defining the
+>>>> size of each sample, its format, and if the sampling is in quadradure,
+>>>> if they're plain PCM samples, or something more complex, like DPCM, RLE,
+>>>> etc.
+>>>>
+>>>> In the specific case of enumerating the sampling rate range, if the
+>>>> sampling rate can have multiple ranges, then maybe we'll need to do
+>>>> something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
+>>>
+>>> Could this ioctl be adapted for this:
+>>>
+>>> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-freq-bands
+>>>
+>>> BTW, can the sample rate change while streaming? Typically things you set
+>>> through S_FMT can not be changed while streaming.
+>>
+>> Yes, but in practice it is uncommon. When I reverse-engineered Mirics
+>> MSi2500 USB ADC I did it hundred of times. Just started streaming and
+>> injected numbers to ADC control registers, then calculated sampling rate
+>> from the stream.
+>
+> That's not an use case. It is just a developer's procedure. Anyway, you
+> could still measure the bit rate like that, if you do a stream start and
+> stop.
+>
+>> That is only use case I know currently, there still could be some others.
+>
+> Seriously? Since the Shannon theorem, all theory used on DSP assumes that
+> the samples are spaced at the very same bit rate.
+>
+>> Nothing prevents do to it, the key issue is that
+>> sampling rate is needed to known by app.
+>
+> No, it is harder than that: if the bit rate changes, then you need to pack
+> the sampling rate changes when they occur inside the stream, as otherwise
+> userspace will have no means to detect such changes.
 
-Thank you for the patch.
+Heh, I cannot understood you. Could you explain why it works for me? 
+Here is video I recorded just for you:
+http://palosaari.fi/linux/v4l-dvb/mirics_msi3101_sdrsharp_sampling_rate.mp4
 
-On Friday 30 August 2013 11:17:09 Pawel Osciak wrote:
-> UVC 1.5 introduces the concept of runtime controls, which can be set during
-> streaming. Non-runtime controls can only be changed while device is idle.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c | 45 ++++++++++++++++++++++++++++++-------
->  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++------
->  drivers/media/usb/uvc/uvcvideo.h | 12 +++++++----
->  3 files changed, 57 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> b/drivers/media/usb/uvc/uvc_ctrl.c index d735c88..b0a19b9 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -1076,8 +1076,19 @@ void __uvc_ctrl_unlock(struct uvc_video_chain *chain)
-> mutex_unlock(&chain->pipeline->ctrl_mutex);
->  }
-> 
-> +static int uvc_check_ctrl_runtime(struct uvc_control *ctrl, bool streaming)
-> +{
-> +	if (streaming && !ctrl->in_runtime) {
-> +		uvc_trace(UVC_TRACE_CONTROL,
-> +				"Control disabled while streaming\n");
-> +		return -EBUSY;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-> -	struct v4l2_queryctrl *v4l2_ctrl)
-> +			struct v4l2_queryctrl *v4l2_ctrl, bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> @@ -1093,6 +1104,10 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain
-> *chain, goto done;
->  	}
-> 
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		goto done;
-> +
+It is Mirics MSi3101 streaming FM radio with sampling rate 2.048 Msps, 
+then I switch to 1.024 Msps and back few times - on the fly. IMHO 
+results are just as expected. Sound start cracking when DSP application 
+sampling rate does not match, but when you change it back to correct it 
+recovers.
 
-Do we really need to disallow querying controls during streaming ? Shouldn't 
-we cache the runtime controls at init time instead ?
+If I will add button to tell app DSP that sampling rate is changed, it 
+will work for both cases. I haven't yet implemented that settings 
+button, it is hard coded to SDRSharp plugin.
 
->  	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
->  done:
->  	__uvc_ctrl_unlock(chain);
-> @@ -1109,7 +1124,7 @@ done:
->   * manually.
->   */
->  int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> -	struct v4l2_querymenu *query_menu)
-> +	struct v4l2_querymenu *query_menu, bool streaming)
->  {
->  	struct uvc_menu_info *menu_info;
->  	struct uvc_control_mapping *mapping;
-> @@ -1132,6 +1147,10 @@ int uvc_query_v4l2_menu(struct uvc_video_chain
-> *chain, goto done;
->  	}
-> 
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		goto done;
-> +
+Could you explain why it works if it is impossible as you said?
 
-Same here.
 
->  	if (query_menu->index >= mapping->menu_count) {
->  		ret = -EINVAL;
->  		goto done;
-> @@ -1436,21 +1455,26 @@ done:
->  	return ret;
->  }
-> 
-> -int uvc_ctrl_get(struct uvc_video_chain *chain,
-> -	struct v4l2_ext_control *xctrl)
-> +int uvc_ctrl_get(struct uvc_video_chain *chain, struct v4l2_ext_control
-> *xctrl,
-> +		 bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> +	int ret;
-> 
->  	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
->  	if (ctrl == NULL)
->  		return -EINVAL;
-> 
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		return ret;
-> +
+> This is the very same problem on video streams: we currently don't allow
+> calling VIDIOC_S_FMT in the middle of some transmission, as there's no
+> way to signalize when the changes are applied.
+>
+> We used to allow it in the past, at least on bttv, as the old code, from
+> V4L1 times used to always allocate memory for the max possible resolution.
+> So, it used to support streaming resizing after start streaming.
+>
+> There were even one V4L1 application doing that, basically due to a
+> programer's mistake:
+>
+> The program used to first start streaming, and then changing the image
+> size, very quickly. I suspect that the original developer never suspected
+> about the application misbehavior, but that became a nightmare when we
+> removed V4L1 support. I ended by fixing the application in the process.
+>
+>> It is app developer choice if
+>> he wants to restart streaming when changes sampling rate.
+>>
+>> ADC sampling frequency has no direct relation to stream format. See for
+>> example those Mirics libv4lconvert patches I send earlier that week.
+>
+> The same applies to all write parameters passed via the pix_format structs:
+> they're orthogonal (e. g. one don't depend on the others).
+>
+> In the specific case of v4l2_pix_format, the parameters filled by userspace
+> are orthogonal: width, height, pixelformat, field.
+>
+> Ok, not all configs are valid, and the device may have some restrictions.
+> So, the driver can round those parameters to the closest possible value,
+> if needed.
+>
+> The bytesperline, sizeimage and colorspace are parameters filled by the
+> driver. The first two parameters are derived from the image size and
+> pixelformat.
+>
+> The colorspace parameter is a driver-dependent fixed value (Actually,
+> a few special drivers allow userspace to fill the colorspace too,
+> like the mem2mem drivers - but this is an exception).
+>
+> Regards,
+> Mauro
+>
 
-Even for the get operation, would it be possible to use the cached value ? Can 
-a runtime control be also an auto-update or asynchronous control ?
 
->  	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
->  }
-> 
-> -int uvc_ctrl_set(struct uvc_video_chain *chain,
-> -	struct v4l2_ext_control *xctrl)
-> +int uvc_ctrl_set(struct uvc_video_chain *chain, struct v4l2_ext_control
-> *xctrl,
-> +		 bool streaming)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_control_mapping *mapping;
-> @@ -1466,6 +1490,10 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
->  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
->  		return -EACCES;
-> 
-> +	ret = uvc_check_ctrl_runtime(ctrl, streaming);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* Clamp out of range values. */
->  	switch (mapping->v4l2_type) {
->  	case V4L2_CTRL_TYPE_INTEGER:
-> @@ -1885,8 +1913,9 @@ static int uvc_ctrl_add_info(struct uvc_device *dev,
-> struct uvc_control *ctrl, ctrl->initialized = 1;
-> 
->  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
-> -		"entity %u\n", ctrl->info.entity, ctrl->info.selector,
-> -		dev->udev->devpath, ctrl->entity->id);
-> +		"entity %u, init/runtime %d/%d\n", ctrl->info.entity,
+regards
+Antti
 
-%u/%u ?
-
-> +		ctrl->info.selector, dev->udev->devpath, ctrl->entity->id,
-> +		ctrl->on_init, ctrl->in_runtime);
-> 
->  done:
->  	if (ret < 0)
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index a899159..decd65f 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -597,7 +597,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg)
-> 
->  	/* Get, Set & Query control */
->  	case VIDIOC_QUERYCTRL:
-> -		return uvc_query_v4l2_ctrl(chain, arg);
-> +		return uvc_query_v4l2_ctrl(chain, arg,
-> +					uvc_is_stream_streaming(stream));
-
-Can't this (and all the similar constructs below) race with the 
-VIDIOC_STREAMON/OFF ioctls ?
-
->  	case VIDIOC_G_CTRL:
->  	{
-> @@ -611,7 +612,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) if (ret < 0)
->  			return ret;
-> 
-> -		ret = uvc_ctrl_get(chain, &xctrl);
-> +		ret = uvc_ctrl_get(chain, &xctrl,
-> +					uvc_is_stream_streaming(stream));
->  		uvc_ctrl_rollback(handle);
->  		if (ret >= 0)
->  			ctrl->value = xctrl.value;
-> @@ -635,7 +637,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) if (ret < 0)
->  			return ret;
-> 
-> -		ret = uvc_ctrl_set(chain, &xctrl);
-> +		ret = uvc_ctrl_set(chain, &xctrl,
-> +					uvc_is_stream_streaming(stream));
->  		if (ret < 0) {
->  			uvc_ctrl_rollback(handle);
->  			return ret;
-> @@ -647,7 +650,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) }
-> 
->  	case VIDIOC_QUERYMENU:
-> -		return uvc_query_v4l2_menu(chain, arg);
-> +		return uvc_query_v4l2_menu(chain, arg,
-> +					uvc_is_stream_streaming(stream));
-> 
->  	case VIDIOC_G_EXT_CTRLS:
->  	{
-> @@ -660,7 +664,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) return ret;
-> 
->  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> -			ret = uvc_ctrl_get(chain, ctrl);
-> +			ret = uvc_ctrl_get(chain, ctrl,
-> +					uvc_is_stream_streaming(stream));
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
->  				ctrls->error_idx = i;
-> @@ -688,7 +693,8 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) return ret;
-> 
->  		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> -			ret = uvc_ctrl_set(chain, ctrl);
-> +			ret = uvc_ctrl_set(chain, ctrl,
-> +					uvc_is_stream_streaming(stream));
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
->  				ctrls->error_idx = cmd == VIDIOC_S_EXT_CTRLS
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 88f5e38..46ffd92 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -694,6 +694,10 @@ extern int uvc_query_ctrl(struct uvc_device *dev, __u8
-> query, __u8 unit, void uvc_video_clock_update(struct uvc_streaming *stream,
->  			    struct v4l2_buffer *v4l2_buf,
->  			    struct uvc_buffer *buf);
-> +static inline bool uvc_is_stream_streaming(struct uvc_streaming *stream)
-> +{
-> +	return vb2_is_streaming(&stream->queue.queue);
-> +}
-> 
->  /* Status */
->  extern int uvc_status_init(struct uvc_device *dev);
-> @@ -705,9 +709,9 @@ extern void uvc_status_stop(struct uvc_device *dev);
->  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
-> 
->  extern int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-> -		struct v4l2_queryctrl *v4l2_ctrl);
-> +		struct v4l2_queryctrl *v4l2_ctrl, bool streaming);
->  extern int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> -		struct v4l2_querymenu *query_menu);
-> +		struct v4l2_querymenu *query_menu, bool streaming);
-> 
->  extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
->  		const struct uvc_control_mapping *mapping);
-> @@ -731,9 +735,9 @@ static inline int uvc_ctrl_rollback(struct uvc_fh
-> *handle) }
-> 
->  extern int uvc_ctrl_get(struct uvc_video_chain *chain,
-> -		struct v4l2_ext_control *xctrl);
-> +		struct v4l2_ext_control *xctrl, bool streaming);
->  extern int uvc_ctrl_set(struct uvc_video_chain *chain,
-> -		struct v4l2_ext_control *xctrl);
-> +		struct v4l2_ext_control *xctrl, bool streaming);
-> 
->  extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
->  		struct uvc_xu_control_query *xqry);
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
