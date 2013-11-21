@@ -1,61 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:57229 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756403Ab3KFOVn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 09:21:43 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org (open list:SMIA AND SMIA++ I...),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] smiapp: Fix BUG_ON() on an impossible condition
-Date: Wed,  6 Nov 2013 15:21:30 +0100
-Message-Id: <1383747690-20003-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:48854 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754928Ab3KURta (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 12:49:30 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWM0097GK5RQA00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Nov 2013 12:49:28 -0500 (EST)
+Date: Thu, 21 Nov 2013 15:49:23 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+Message-id: <20131121154923.32d76094@samsung.com>
+In-reply-to: <528E3D41.5010508@iki.fi>
+References: <528E3D41.5010508@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-internal_csi_format_idx and csi_format_idx are unsigned integers,
-therefore they can never be nevative.
+Em Thu, 21 Nov 2013 19:05:05 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-CC      drivers/media/i2c/smiapp/smiapp-core.o
-In file included from include/linux/err.h:4:0,
-                 from include/linux/clk.h:15,
-                 from drivers/media/i2c/smiapp/smiapp-core.c:29:
-drivers/media/i2c/smiapp/smiapp-core.c: In function ‘smiapp_update_mbus_formats’:
-include/linux/kernel.h:669:20: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
- #define min(x, y) ({    \
-                    ^
-include/linux/compiler.h:153:42: note: in definition of macro ‘unlikely’
- # define unlikely(x) __builtin_expect(!!(x), 0)
-                                          ^
-drivers/media/i2c/smiapp/smiapp-core.c:402:2: note: in expansion of macro ‘BUG_ON’
-  BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
-  ^
-drivers/media/i2c/smiapp/smiapp-core.c:402:9: note: in expansion of macro ‘min’
-  BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
-         ^
+> Hello
+> I am adding new property for sampling rate that is ideally the only 
+> obligatory parameter required by SDR. It is value that could be only 
+> positive and bigger the better, lets say unsigned 64 bit is quite ideal. 
+> That value sets maximum radio frequency possible to receive (ideal SDR).
+> 
+> Valid values are not always in some single range from X to Y, there 
+> could be some multiple value ranges.
+> 
+> For example possible values: 1000-2000, 23459, 900001-2800000
+> 
+> Reading possible values from device could be nice, but not necessary. 
+> Reading current value is more important.
+> 
+> Here is what I though earlier as a requirements:
+> 
+> sampling rate
+> *  values: 1 - infinity (unit: Hz, samples per second)
+>       currently 500 MHz is more than enough
+> *  operations
+>       GET, inquire what HW supports
+>       GET, get current value
+>       SET, set desired value
+> 
+> 
+> I am not sure what is best way to implement that kind of thing.
+> IOCTL like frequency
+> V4L2 Control?
+> put it into stream format request?
+> 
+> Sampling rate is actually frequency of ADC. As there devices has almost 
+> always tuner too (practical SDR) there is need for tuner frequency too. 
+> As tuner is still own entity, is it possible to use same frequency 
+> parameter for both ADC and RF tuner in same device?
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 1 -
- 1 file changed, 1 deletion(-)
+Well, a SDR capture device will always have ADC and RF tuner.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index ae66d91..fbd48f0 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -399,7 +399,6 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
- 
- 	BUG_ON(max(internal_csi_format_idx, csi_format_idx) + pixel_order
- 	       >= ARRAY_SIZE(smiapp_csi_data_formats));
--	BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
- 
- 	dev_dbg(&client->dev, "new pixel order %s\n",
- 		pixel_order_str[pixel_order]);
--- 
-1.8.4.rc3
+A SDR output device will always have a DAC and a RF transmitter.
 
+On both cases, the sampling rate and the sampling format are mandatory
+arguments.
+
+In any case, the V4L2 API has already support for setting the mandatory
+parameters of the expected stream, at struct v4l2_format.
+
+So, it makes sense do do:
+
+ struct v4l2_format {
+         __u32    type;
+         union {
+                 struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+                 struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+                 struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+                 struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+                 struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
++                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+                 __u8    raw_data[200];                   /* user-defined */
+         } fmt;
+ };
+
+And add the mandatory parameters for SDR inside its own structure, e. g.
+struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
+is different than the one for video or vbi, so you'll need to add a new
+streaming type for SDR anyway.
+
+Btw, that's what I proposed here:
+
+http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
+
+With regards to the sampling rate range, my proposal there were to add a min/max
+value for it, to be used by VIDIOC_G_FMT, as proposed on:
+	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
+
+So, the v4l2_sdr_format should be like:
+
++struct v4l2_sdr_format {
++       __u32                           sampleformat;
++       __u32                           sample_rate;            /* in Hz */
++       __u32                           min_sample_rate;        /* in Hz */
++       __u32                           max_sample_rate;        /* in Hz */
++
++} __attribute__ ((packed));
+
+Where sampleformat would be something similar to FOURCC, defining the
+size of each sample, its format, and if the sampling is in quadradure,
+if they're plain PCM samples, or something more complex, like DPCM, RLE,
+etc.
+
+In the specific case of enumerating the sampling rate range, if the 
+sampling rate can have multiple ranges, then maybe we'll need to do
+something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
+
+Regards,
+Mauro
