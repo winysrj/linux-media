@@ -1,35 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2736 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753064Ab3KVJV6 (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:53814 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751420Ab3KUDip (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Nov 2013 04:21:58 -0500
-Message-ID: <528F2219.1000307@xs4all.nl>
-Date: Fri, 22 Nov 2013 10:21:29 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 20 Nov 2013 22:38:45 -0500
+Received: by mail-bk0-f52.google.com with SMTP id u14so105119bkz.39
+        for <linux-media@vger.kernel.org>; Wed, 20 Nov 2013 19:38:44 -0800 (PST)
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] cx18: check for allocation failure in cx18_read_eeprom()
-References: <20131122075146.GB15726@elgon.mountain> <20131122091309.GH5443@mwanda>
-In-Reply-To: <20131122091309.GH5443@mwanda>
+Date: Thu, 21 Nov 2013 11:38:44 +0800
+Message-ID: <CAPgLHd8kj=RF2N0oxkPjriLf=BSR58MX8rM5KPiiUWE0YE-1Cg@mail.gmail.com>
+Subject: [PATCH] [media] cx88: use correct pci drvdata type in cx88_audio_finidev()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	sachin.kamat@linaro.org, gregkh@linuxfoundation.org,
+	michael.opdenacker@free-electrons.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Should we perhaps change the MAINTAINERS file to point to the linux-media list
-instead?
+We had set the pci drvdata in cx88_audio_initdev() as a type of
+struct snd_card, so cx88_audio_finidev() should used it as the
+same type too.
 
-Regards,
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/pci/cx88/cx88-alsa.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-	Hans
-
-On 11/22/2013 10:13 AM, Dan Carpenter wrote:
-> Btw, the MAINTAINERS file says the ivtv list is moderated but actually
-> it's a subscriber only list...  Sucks.
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 400eb1c..d014206e 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -931,9 +931,9 @@ error:
+  */
+ static void cx88_audio_finidev(struct pci_dev *pci)
+ {
+-	struct cx88_audio_dev *card = pci_get_drvdata(pci);
++	struct snd_card *card = pci_get_drvdata(pci);
+ 
+-	snd_card_free((void *)card);
++	snd_card_free(card);
+ 
+ 	devno--;
+ }
 
