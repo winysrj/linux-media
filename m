@@ -1,156 +1,471 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54900 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753690Ab3KKORj (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1909 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751957Ab3KUPWl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Nov 2013 09:17:39 -0500
-Message-ID: <1384179541.1949.24.camel@palomino.walls.org>
-Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
-From: Andy Walls <awalls@md.metrocast.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 11 Nov 2013 09:19:01 -0500
-In-Reply-To: <1384103776-4788-1-git-send-email-crope@iki.fi>
-References: <1384103776-4788-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 21 Nov 2013 10:22:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	awalls@md.metrocast.net, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 8/8] vb2: Add videobuf2-dvb support.
+Date: Thu, 21 Nov 2013 16:22:06 +0100
+Message-Id: <1385047326-23099-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2013-11-10 at 19:16 +0200, Antti Palosaari wrote:
-> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
-> used format for baseband signals.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Annti,
+With the new vb2_thread_start/stop core code it is very easy to implement
+videobuf2-dvb. This should simplify coverting existing videobuf drivers to
+vb2.
 
-I don't think this a good idea.  Floating point representations are
-inherently non-portable.  Even though most everything now uses IEEE-754
-representation, things like denormaliazed numbers may be treated
-differently by different machines.  If someone saves the data to a file,
-endianess issues aside, there are no guarantees that a different machine
-reading is going to interpret all the floating point data from that file
-properly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/Kconfig         |   4 +
+ drivers/media/v4l2-core/Makefile        |   1 +
+ drivers/media/v4l2-core/videobuf2-dvb.c | 336 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-dvb.h           |  58 ++++++
+ 4 files changed, 399 insertions(+)
+ create mode 100644 drivers/media/v4l2-core/videobuf2-dvb.c
+ create mode 100644 include/media/videobuf2-dvb.h
 
-I really would recommend staying with scaled integer representations or
-explicit integer mantissa, exponent representations.
-
-Two more comments below...
-
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  contrib/freebsd/include/linux/videodev2.h |  4 ++++
->  include/linux/videodev2.h                 |  4 ++++
->  lib/libv4lconvert/libv4lconvert.c         | 29 ++++++++++++++++++++++++++++-
->  3 files changed, 36 insertions(+), 1 deletion(-)
-> 
-> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
-> index 1fcfaeb..8829400 100644
-> --- a/contrib/freebsd/include/linux/videodev2.h
-> +++ b/contrib/freebsd/include/linux/videodev2.h
-> @@ -465,6 +465,10 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
->  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
->  
-> +/* SDR */
-> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
-> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-> +
->  /*
->   *	F O R M A T   E N U M E R A T I O N
->   */
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 437f1b0..14299a6 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -431,6 +431,10 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
->  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
->  
-> +/* SDR */
-> +#define V4L2_PIX_FMT_FLOAT    v4l2_fourcc('D', 'F', '3', '2') /* float 32-bit */
-> +#define V4L2_PIX_FMT_U8       v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-> +
->  /*
->   *	F O R M A T   E N U M E R A T I O N
->   */
-> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> index e2afc27..38c9125 100644
-> --- a/lib/libv4lconvert/libv4lconvert.c
-> +++ b/lib/libv4lconvert/libv4lconvert.c
-> @@ -78,7 +78,8 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
->  	{ V4L2_PIX_FMT_RGB24,		24,	 1,	 5,	0 }, \
->  	{ V4L2_PIX_FMT_BGR24,		24,	 1,	 5,	0 }, \
->  	{ V4L2_PIX_FMT_YUV420,		12,	 6,	 1,	0 }, \
-> -	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }
-> +	{ V4L2_PIX_FMT_YVU420,		12,	 6,	 1,	0 }, \
-> +	{ V4L2_PIX_FMT_FLOAT,		 0,	 0,	 0,	0 }
->  
->  static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
->  	SUPPORTED_DST_PIXFMTS,
-> @@ -131,6 +132,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
->  	{ V4L2_PIX_FMT_Y6,		 8,	20,	20,	0 },
->  	{ V4L2_PIX_FMT_Y10BPACK,	10,	20,	20,	0 },
->  	{ V4L2_PIX_FMT_Y16,		16,	20,	20,	0 },
-> +	/* SDR formats */
-> +	{ V4L2_PIX_FMT_U8,		0,	0,	0,	0 },
->  };
->  
->  static const struct v4lconvert_pixfmt supported_dst_pixfmts[] = {
-> @@ -1281,6 +1284,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
->  		}
->  		break;
->  
-> +	/* SDR */
-> +	case V4L2_PIX_FMT_U8:
-> +		switch (dest_pix_fmt) {
-> +		case V4L2_PIX_FMT_FLOAT:
-> +			{
-> +				/* 8-bit unsigned to 32-bit float */
-> +				unsigned int i;
-> +				float ftmp;
-> +				for (i = 0; i < src_size; i++) {
-> +					ftmp = *src++;
-> +					ftmp -= 127.5;
-> +					ftmp /= 127.5;
-> +					memcpy(dest, &ftmp, 4);
-> +					dest += 4;
-
-Replace the 4's with sizeof(float).
-
-You have no guarantees that sizeof(float) == 4, but it is usally a safe
-assumption for 'float' on Unix.
-
-sizeof(long double) is certainly different for IA32 machines (80 bits)
-vs. other 32 bit platforms.  I was burned by this many years ago on a
-RedHat 9.0 machine (the GNU Ada Translator's libm bindings made some bad
-assumptions about the size of float types).
-
-
-> +				}
-> +			}
-> +		}
-> +		break;
-> +
->  	default:
->  		V4LCONVERT_ERR("Unknown src format in conversion\n");
->  		errno = EINVAL;
-> @@ -1349,6 +1371,11 @@ int v4lconvert_convert(struct v4lconvert_data *data,
->  		temp_needed =
->  			my_src_fmt.fmt.pix.width * my_src_fmt.fmt.pix.height * 3 / 2;
->  		break;
-> +	/* SDR */
-> +	case V4L2_PIX_FMT_FLOAT:
-> +		dest_needed = src_size * 4; /* 8-bit to 32-bit */
-
-Change the 4 to sizeof(float).
-
-> +		temp_needed = dest_needed;
-> +		break;
->  	default:
->  		V4LCONVERT_ERR("Unknown dest format in conversion\n");
->  		errno = EINVAL;
-
-Regards,
-Andy
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 8c05565..8cc76da 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -84,6 +84,10 @@ config VIDEOBUF2_DMA_SG
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+ 
++config VIDEOBUF2_DVB
++	tristate
++	select VIDEOBUF2_CORE
++
+ config VIDEO_V4L2_INT_DEVICE
+ 	tristate "V4L2 int device (DEPRECATED)"
+ 	depends on VIDEO_V4L2
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index 1a85eee..c73ac0d 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
++obj-$(CONFIG_VIDEOBUF2_DVB) += videobuf2-dvb.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+diff --git a/drivers/media/v4l2-core/videobuf2-dvb.c b/drivers/media/v4l2-core/videobuf2-dvb.c
+new file mode 100644
+index 0000000..d092698
+--- /dev/null
++++ b/drivers/media/v4l2-core/videobuf2-dvb.c
+@@ -0,0 +1,336 @@
++/*
++ *
++ * some helper function for simple DVB cards which simply DMA the
++ * complete transport stream and let the computer sort everything else
++ * (i.e. we are using the software demux, ...).  Also uses the
++ * video-buf to manage DMA buffers.
++ *
++ * (c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/slab.h>
++
++#include <media/videobuf2-dvb.h>
++
++/* ------------------------------------------------------------------ */
++
++MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
++MODULE_LICENSE("GPL");
++
++/* ------------------------------------------------------------------ */
++
++static int dvb_fnc(struct vb2_buffer *vb, void *priv)
++{
++	struct vb2_dvb *dvb = priv;
++
++	dvb_dmx_swfilter(&dvb->demux, vb2_plane_vaddr(vb, 0),
++				      vb2_get_plane_payload(vb, 0));
++	return 0;
++}
++
++static int vb2_dvb_start_feed(struct dvb_demux_feed *feed)
++{
++	struct dvb_demux *demux = feed->demux;
++	struct vb2_dvb *dvb = demux->priv;
++	int rc = 0;
++
++	if (!demux->dmx.frontend)
++		return -EINVAL;
++
++	mutex_lock(&dvb->lock);
++	dvb->nfeeds++;
++
++	if (!dvb->dvbq.threadio) {
++		rc = vb2_thread_start(&dvb->dvbq, dvb_fnc, dvb, dvb->name);
++		if (rc)
++			dvb->nfeeds--;
++	}
++	if (!rc)
++		rc = dvb->nfeeds;
++	mutex_unlock(&dvb->lock);
++	return rc;
++}
++
++static int vb2_dvb_stop_feed(struct dvb_demux_feed *feed)
++{
++	struct dvb_demux *demux = feed->demux;
++	struct vb2_dvb *dvb = demux->priv;
++	int err = 0;
++
++	mutex_lock(&dvb->lock);
++	dvb->nfeeds--;
++	if (0 == dvb->nfeeds)
++		err = vb2_thread_stop(&dvb->dvbq);
++	mutex_unlock(&dvb->lock);
++	return err;
++}
++
++static int vb2_dvb_register_adapter(struct vb2_dvb_frontends *fe,
++			  struct module *module,
++			  void *adapter_priv,
++			  struct device *device,
++			  char *adapter_name,
++			  short *adapter_nr,
++			  int mfe_shared)
++{
++	int result;
++
++	mutex_init(&fe->lock);
++
++	/* register adapter */
++	result = dvb_register_adapter(&fe->adapter, adapter_name, module,
++		device, adapter_nr);
++	if (result < 0) {
++		pr_warn("%s: dvb_register_adapter failed (errno = %d)\n",
++		       adapter_name, result);
++	}
++	fe->adapter.priv = adapter_priv;
++	fe->adapter.mfe_shared = mfe_shared;
++
++	return result;
++}
++
++static int vb2_dvb_register_frontend(struct dvb_adapter *adapter,
++	struct vb2_dvb *dvb)
++{
++	int result;
++
++	/* register frontend */
++	result = dvb_register_frontend(adapter, dvb->frontend);
++	if (result < 0) {
++		pr_warn("%s: dvb_register_frontend failed (errno = %d)\n",
++		       dvb->name, result);
++		goto fail_frontend;
++	}
++
++	/* register demux stuff */
++	dvb->demux.dmx.capabilities =
++		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
++		DMX_MEMORY_BASED_FILTERING;
++	dvb->demux.priv       = dvb;
++	dvb->demux.filternum  = 256;
++	dvb->demux.feednum    = 256;
++	dvb->demux.start_feed = vb2_dvb_start_feed;
++	dvb->demux.stop_feed  = vb2_dvb_stop_feed;
++	result = dvb_dmx_init(&dvb->demux);
++	if (result < 0) {
++		pr_warn("%s: dvb_dmx_init failed (errno = %d)\n",
++		       dvb->name, result);
++		goto fail_dmx;
++	}
++
++	dvb->dmxdev.filternum    = 256;
++	dvb->dmxdev.demux        = &dvb->demux.dmx;
++	dvb->dmxdev.capabilities = 0;
++	result = dvb_dmxdev_init(&dvb->dmxdev, adapter);
++
++	if (result < 0) {
++		pr_warn("%s: dvb_dmxdev_init failed (errno = %d)\n",
++		       dvb->name, result);
++		goto fail_dmxdev;
++	}
++
++	dvb->fe_hw.source = DMX_FRONTEND_0;
++	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_hw);
++	if (result < 0) {
++		pr_warn("%s: add_frontend failed (DMX_FRONTEND_0, errno = %d)\n",
++		       dvb->name, result);
++		goto fail_fe_hw;
++	}
++
++	dvb->fe_mem.source = DMX_MEMORY_FE;
++	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_mem);
++	if (result < 0) {
++		pr_warn("%s: add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
++		       dvb->name, result);
++		goto fail_fe_mem;
++	}
++
++	result = dvb->demux.dmx.connect_frontend(&dvb->demux.dmx, &dvb->fe_hw);
++	if (result < 0) {
++		pr_warn("%s: connect_frontend failed (errno = %d)\n",
++		       dvb->name, result);
++		goto fail_fe_conn;
++	}
++
++	/* register network adapter */
++	result = dvb_net_init(adapter, &dvb->net, &dvb->demux.dmx);
++	if (result < 0) {
++		pr_warn("%s: dvb_net_init failed (errno = %d)\n",
++		       dvb->name, result);
++		goto fail_fe_conn;
++	}
++	return 0;
++
++fail_fe_conn:
++	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
++fail_fe_mem:
++	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
++fail_fe_hw:
++	dvb_dmxdev_release(&dvb->dmxdev);
++fail_dmxdev:
++	dvb_dmx_release(&dvb->demux);
++fail_dmx:
++	dvb_unregister_frontend(dvb->frontend);
++fail_frontend:
++	dvb_frontend_detach(dvb->frontend);
++	dvb->frontend = NULL;
++
++	return result;
++}
++
++/* ------------------------------------------------------------------ */
++/* Register a single adapter and one or more frontends */
++int vb2_dvb_register_bus(struct vb2_dvb_frontends *f,
++			 struct module *module,
++			 void *adapter_priv,
++			 struct device *device,
++			 short *adapter_nr,
++			 int mfe_shared)
++{
++	struct list_head *list, *q;
++	struct vb2_dvb_frontend *fe;
++	int res;
++
++	fe = vb2_dvb_get_frontend(f, 1);
++	if (!fe) {
++		pr_warn("Unable to register the adapter which has no frontends\n");
++		return -EINVAL;
++	}
++
++	/* Bring up the adapter */
++	res = vb2_dvb_register_adapter(f, module, adapter_priv, device,
++		fe->dvb.name, adapter_nr, mfe_shared);
++	if (res < 0) {
++		pr_warn("vb2_dvb_register_adapter failed (errno = %d)\n", res);
++		return res;
++	}
++
++	/* Attach all of the frontends to the adapter */
++	mutex_lock(&f->lock);
++	list_for_each_safe(list, q, &f->felist) {
++		fe = list_entry(list, struct vb2_dvb_frontend, felist);
++		res = vb2_dvb_register_frontend(&f->adapter, &fe->dvb);
++		if (res < 0) {
++			pr_warn("%s: vb2_dvb_register_frontend failed (errno = %d)\n",
++				fe->dvb.name, res);
++			goto err;
++		}
++	}
++	mutex_unlock(&f->lock);
++	return 0;
++
++err:
++	mutex_unlock(&f->lock);
++	vb2_dvb_unregister_bus(f);
++	return res;
++}
++EXPORT_SYMBOL(vb2_dvb_register_bus);
++
++void vb2_dvb_unregister_bus(struct vb2_dvb_frontends *f)
++{
++	vb2_dvb_dealloc_frontends(f);
++
++	dvb_unregister_adapter(&f->adapter);
++}
++EXPORT_SYMBOL(vb2_dvb_unregister_bus);
++
++struct vb2_dvb_frontend *vb2_dvb_get_frontend(
++	struct vb2_dvb_frontends *f, int id)
++{
++	struct list_head *list, *q;
++	struct vb2_dvb_frontend *fe, *ret = NULL;
++
++	mutex_lock(&f->lock);
++
++	list_for_each_safe(list, q, &f->felist) {
++		fe = list_entry(list, struct vb2_dvb_frontend, felist);
++		if (fe->id == id) {
++			ret = fe;
++			break;
++		}
++	}
++
++	mutex_unlock(&f->lock);
++
++	return ret;
++}
++EXPORT_SYMBOL(vb2_dvb_get_frontend);
++
++int vb2_dvb_find_frontend(struct vb2_dvb_frontends *f,
++	struct dvb_frontend *p)
++{
++	struct list_head *list, *q;
++	struct vb2_dvb_frontend *fe = NULL;
++	int ret = 0;
++
++	mutex_lock(&f->lock);
++
++	list_for_each_safe(list, q, &f->felist) {
++		fe = list_entry(list, struct vb2_dvb_frontend, felist);
++		if (fe->dvb.frontend == p) {
++			ret = fe->id;
++			break;
++		}
++	}
++
++	mutex_unlock(&f->lock);
++
++	return ret;
++}
++EXPORT_SYMBOL(vb2_dvb_find_frontend);
++
++struct vb2_dvb_frontend *vb2_dvb_alloc_frontend(
++	struct vb2_dvb_frontends *f, int id)
++{
++	struct vb2_dvb_frontend *fe;
++
++	fe = kzalloc(sizeof(struct vb2_dvb_frontend), GFP_KERNEL);
++	if (fe == NULL)
++		return NULL;
++
++	fe->id = id;
++	mutex_init(&fe->dvb.lock);
++
++	mutex_lock(&f->lock);
++	list_add_tail(&fe->felist, &f->felist);
++	mutex_unlock(&f->lock);
++	return fe;
++}
++EXPORT_SYMBOL(vb2_dvb_alloc_frontend);
++
++void vb2_dvb_dealloc_frontends(struct vb2_dvb_frontends *f)
++{
++	struct list_head *list, *q;
++	struct vb2_dvb_frontend *fe;
++
++	mutex_lock(&f->lock);
++	list_for_each_safe(list, q, &f->felist) {
++		fe = list_entry(list, struct vb2_dvb_frontend, felist);
++		if (fe->dvb.net.dvbdev) {
++			dvb_net_release(&fe->dvb.net);
++			fe->dvb.demux.dmx.remove_frontend(&fe->dvb.demux.dmx,
++				&fe->dvb.fe_mem);
++			fe->dvb.demux.dmx.remove_frontend(&fe->dvb.demux.dmx,
++				&fe->dvb.fe_hw);
++			dvb_dmxdev_release(&fe->dvb.dmxdev);
++			dvb_dmx_release(&fe->dvb.demux);
++			dvb_unregister_frontend(fe->dvb.frontend);
++		}
++		if (fe->dvb.frontend)
++			/* always allocated, may have been reset */
++			dvb_frontend_detach(fe->dvb.frontend);
++		list_del(list); /* remove list entry */
++		kfree(fe);	/* free frontend allocation */
++	}
++	mutex_unlock(&f->lock);
++}
++EXPORT_SYMBOL(vb2_dvb_dealloc_frontends);
+diff --git a/include/media/videobuf2-dvb.h b/include/media/videobuf2-dvb.h
+new file mode 100644
+index 0000000..8f61456
+--- /dev/null
++++ b/include/media/videobuf2-dvb.h
+@@ -0,0 +1,58 @@
++#ifndef _VIDEOBUF2_DVB_H_
++#define	_VIDEOBUF2_DVB_H_
++
++#include <dvbdev.h>
++#include <dmxdev.h>
++#include <dvb_demux.h>
++#include <dvb_net.h>
++#include <dvb_frontend.h>
++#include <media/videobuf2-core.h>
++
++struct vb2_dvb {
++	/* filling that the job of the driver */
++	char			*name;
++	struct dvb_frontend	*frontend;
++	struct vb2_queue	dvbq;
++
++	/* video-buf-dvb state info */
++	struct mutex		lock;
++	int			nfeeds;
++
++	/* vb2_dvb_(un)register manages this */
++	struct dvb_demux	demux;
++	struct dmxdev		dmxdev;
++	struct dmx_frontend	fe_hw;
++	struct dmx_frontend	fe_mem;
++	struct dvb_net		net;
++};
++
++struct vb2_dvb_frontend {
++	struct list_head felist;
++	int id;
++	struct vb2_dvb dvb;
++};
++
++struct vb2_dvb_frontends {
++	struct list_head felist;
++	struct mutex lock;
++	struct dvb_adapter adapter;
++	int active_fe_id; /* Indicates which frontend in the felist is in use */
++	int gate; /* Frontend with gate control 0=!MFE,1=fe0,2=fe1 etc */
++};
++
++int vb2_dvb_register_bus(struct vb2_dvb_frontends *f,
++			 struct module *module,
++			 void *adapter_priv,
++			 struct device *device,
++			 short *adapter_nr,
++			 int mfe_shared);
++
++void vb2_dvb_unregister_bus(struct vb2_dvb_frontends *f);
++
++struct vb2_dvb_frontend *vb2_dvb_alloc_frontend(struct vb2_dvb_frontends *f, int id);
++void vb2_dvb_dealloc_frontends(struct vb2_dvb_frontends *f);
++
++struct vb2_dvb_frontend *vb2_dvb_get_frontend(struct vb2_dvb_frontends *f, int id);
++int vb2_dvb_find_frontend(struct vb2_dvb_frontends *f, struct dvb_frontend *p);
++
++#endif			/* _VIDEOBUF2_DVB_H_ */
+-- 
+1.8.4.3
 
