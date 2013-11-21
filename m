@@ -1,75 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60749 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153Ab3KBQdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Zoran Turalija <zoran.turalija@gmail.com>,
-	=?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
-Subject: [PATCHv2 15/29] stb0899_drv: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:23 -0200
-Message-Id: <1383399097-11615-16-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47090 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754014Ab3KUSdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Nov 2013 13:33:22 -0500
+Message-ID: <528E51EB.2080404@iki.fi>
+Date: Thu, 21 Nov 2013 20:33:15 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com> <528E4F7B.4040208@xs4all.nl>
+In-Reply-To: <528E4F7B.4040208@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+On 21.11.2013 20:22, Hans Verkuil wrote:
+> On 11/21/2013 06:49 PM, Mauro Carvalho Chehab wrote:
+>> Em Thu, 21 Nov 2013 19:05:05 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> Hello
+>>> I am adding new property for sampling rate that is ideally the only
+>>> obligatory parameter required by SDR. It is value that could be only
+>>> positive and bigger the better, lets say unsigned 64 bit is quite ideal.
+>>> That value sets maximum radio frequency possible to receive (ideal SDR).
+>>>
+>>> Valid values are not always in some single range from X to Y, there
+>>> could be some multiple value ranges.
+>>>
+>>> For example possible values: 1000-2000, 23459, 900001-2800000
+>>>
+>>> Reading possible values from device could be nice, but not necessary.
+>>> Reading current value is more important.
+>>>
+>>> Here is what I though earlier as a requirements:
+>>>
+>>> sampling rate
+>>> *  values: 1 - infinity (unit: Hz, samples per second)
+>>>        currently 500 MHz is more than enough
+>>> *  operations
+>>>        GET, inquire what HW supports
+>>>        GET, get current value
+>>>        SET, set desired value
+>>>
+>>>
+>>> I am not sure what is best way to implement that kind of thing.
+>>> IOCTL like frequency
+>>> V4L2 Control?
+>>> put it into stream format request?
+>>>
+>>> Sampling rate is actually frequency of ADC. As there devices has almost
+>>> always tuner too (practical SDR) there is need for tuner frequency too.
+>>> As tuner is still own entity, is it possible to use same frequency
+>>> parameter for both ADC and RF tuner in same device?
+>>
+>> Well, a SDR capture device will always have ADC and RF tuner.
+>>
+>> A SDR output device will always have a DAC and a RF transmitter.
+>>
+>> On both cases, the sampling rate and the sampling format are mandatory
+>> arguments.
+>>
+>> In any case, the V4L2 API has already support for setting the mandatory
+>> parameters of the expected stream, at struct v4l2_format.
+>>
+>> So, it makes sense do do:
+>>
+>>   struct v4l2_format {
+>>           __u32    type;
+>>           union {
+>>                   struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+>>                   struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+>>                   struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+>>                   struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+>>                   struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+>> +                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+>>                   __u8    raw_data[200];                   /* user-defined */
+>>           } fmt;
+>>   };
+>>
+>> And add the mandatory parameters for SDR inside its own structure, e. g.
+>> struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
+>> is different than the one for video or vbi, so you'll need to add a new
+>> streaming type for SDR anyway.
+>>
+>> Btw, that's what I proposed here:
+>>
+>> http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
+>>
+>> With regards to the sampling rate range, my proposal there were to add a min/max
+>> value for it, to be used by VIDIOC_G_FMT, as proposed on:
+>> 	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
+>>
+>> So, the v4l2_sdr_format should be like:
+>>
+>> +struct v4l2_sdr_format {
+>> +       __u32                           sampleformat;
+>> +       __u32                           sample_rate;            /* in Hz */
+>> +       __u32                           min_sample_rate;        /* in Hz */
+>> +       __u32                           max_sample_rate;        /* in Hz */
+>> +
+>> +} __attribute__ ((packed));
+>>
+>> Where sampleformat would be something similar to FOURCC, defining the
+>> size of each sample, its format, and if the sampling is in quadradure,
+>> if they're plain PCM samples, or something more complex, like DPCM, RLE,
+>> etc.
+>>
+>> In the specific case of enumerating the sampling rate range, if the
+>> sampling rate can have multiple ranges, then maybe we'll need to do
+>> something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
+>
+> Could this ioctl be adapted for this:
+>
+> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-freq-bands
+>
+> BTW, can the sample rate change while streaming? Typically things you set
+> through S_FMT can not be changed while streaming.
 
-	drivers/media/dvb-frontends/stb0899_drv.c:540:1: warning: 'stb0899_write_regs' uses dynamic stack allocation [enabled by default]
+Yes, but in practice it is uncommon. When I reverse-engineered Mirics 
+MSi2500 USB ADC I did it hundred of times. Just started streaming and 
+injected numbers to ADC control registers, then calculated sampling rate 
+from the stream. That is only use case I know currently, there still 
+could be some others. Nothing prevents do to it, the key issue is that 
+sampling rate is needed to known by app. It is app developer choice if 
+he wants to restart streaming when changes sampling rate.
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 80, it seem safe to use 80 as the hard limit for all
-those devices. On most cases, the limit is a way lower than that, but
-80 is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
+ADC sampling frequency has no direct relation to stream format. See for 
+example those Mirics libv4lconvert patches I send earlier that week.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Zoran Turalija <zoran.turalija@gmail.com>
-Cc: "Reinhard Nißl" <rnissl@gmx.de>
----
- drivers/media/dvb-frontends/stb0899_drv.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 3dd5714eadba..9df77899b219 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -499,7 +499,7 @@ err:
- int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data, u32 count)
- {
- 	int ret;
--	u8 buf[2 + count];
-+	u8 buf[80];
- 	struct i2c_msg i2c_msg = {
- 		.addr	= state->config->demod_address,
- 		.flags	= 0,
-@@ -507,6 +507,13 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
- 		.len	= 2 + count
- 	};
- 
-+	if (2 + count > sizeof(buf)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, count);
-+		return -EREMOTEIO;
-+	}
-+
- 	buf[0] = reg >> 8;
- 	buf[1] = reg & 0xff;
- 	memcpy(&buf[2], data, count);
+regards
+Antti
 -- 
-1.8.3.1
-
+http://palosaari.fi/
