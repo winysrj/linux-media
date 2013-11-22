@@ -1,237 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42955 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061Ab3KJVqY (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:35295 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756183Ab3KVWMT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 16:46:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1 06/19] uvcvideo: Recognize UVC 1.5 encoding units.
-Date: Sun, 10 Nov 2013 22:46:56 +0100
-Message-ID: <4825160.M0Y4h4LHcI@avalon>
-In-Reply-To: <1377829038-4726-7-git-send-email-posciak@chromium.org>
-References: <1377829038-4726-1-git-send-email-posciak@chromium.org> <1377829038-4726-7-git-send-email-posciak@chromium.org>
+	Fri, 22 Nov 2013 17:12:19 -0500
+Date: Fri, 22 Nov 2013 14:12:13 -0800
+From: Kristian =?iso-8859-1?Q?H=F8gsberg?= <hoegsberg@gmail.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Keith Packard <keithp@keithp.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	intel-gfx <intel-gfx@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Mesa Dev <mesa-dev@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Intel-gfx] [Mesa-dev] [PATCH] dri3, i915, i965: Add
+ __DRI_IMAGE_FOURCC_SARGB8888
+Message-ID: <20131122221213.GA3234@tokamak.local>
+References: <1385093524-22276-1-git-send-email-keithp@keithp.com>
+ <20131122102632.GQ27344@phenom.ffwll.local>
+ <86d2lsem3m.fsf@miki.keithp.com>
+ <CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
-
-Thank you for the patch.
-
-On Friday 30 August 2013 11:17:05 Pawel Osciak wrote:
-> Add encoding unit definitions and descriptor parsing code and allow them to
-> be added to chains.
+On Fri, Nov 22, 2013 at 05:17:37PM +0100, Daniel Vetter wrote:
+> On Fri, Nov 22, 2013 at 12:01 PM, Keith Packard <keithp@keithp.com> wrote:
+> > Daniel Vetter <daniel@ffwll.ch> writes:
+> >
+> >> Hm, where do we have the canonical source for all these fourcc codes? I'm
+> >> asking since we have our own copy in the kernel as drm_fourcc.h, and that
+> >> one is part of the userspace ABI since we use it to pass around
+> >> framebuffer formats and format lists.
+> >
+> > I think it's the kernel? I really don't know, as the whole notion of
+> > fourcc codes seems crazy to me...
+> >
+> > Feel free to steal this code and stick it in the kernel if you like.
 > 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c   | 37 ++++++++++++++++++---
->  drivers/media/usb/uvc/uvc_driver.c | 67 ++++++++++++++++++++++++++++++-----
->  drivers/media/usb/uvc/uvcvideo.h   | 14 +++++++-
->  include/uapi/linux/usb/video.h     |  1 +
->  4 files changed, 105 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> b/drivers/media/usb/uvc/uvc_ctrl.c index ba159a4..72d6724 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -777,6 +777,7 @@ static const __u8 uvc_processing_guid[16] =
-> UVC_GUID_UVC_PROCESSING; static const __u8 uvc_camera_guid[16] =
-> UVC_GUID_UVC_CAMERA;
->  static const __u8 uvc_media_transport_input_guid[16] =
->  	UVC_GUID_UVC_MEDIA_TRANSPORT_INPUT;
-> +static const __u8 uvc_encoding_guid[16] = UVC_GUID_UVC_ENCODING;
-> 
->  static int uvc_entity_match_guid(const struct uvc_entity *entity,
->  	const __u8 guid[16])
-> @@ -795,6 +796,9 @@ static int uvc_entity_match_guid(const struct uvc_entity
-> *entity, return memcmp(entity->extension.guidExtensionCode,
->  			      guid, 16) == 0;
-> 
-> +	case UVC_VC_ENCODING_UNIT:
-> +		return memcmp(uvc_encoding_guid, guid, 16) == 0;
-> +
->  	default:
->  		return 0;
->  	}
-> @@ -2105,12 +2109,13 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
->  {
->  	struct uvc_entity *entity;
->  	unsigned int i;
-> +	int num_found;
-> 
->  	/* Walk the entities list and instantiate controls */
->  	list_for_each_entry(entity, &dev->entities, list) {
->  		struct uvc_control *ctrl;
-> -		unsigned int bControlSize = 0, ncontrols;
-> -		__u8 *bmControls = NULL;
-> +		unsigned int bControlSize = 0, ncontrols = 0;
-> +		__u8 *bmControls = NULL, *bmControlsRuntime = NULL;
-> 
->  		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
->  			bmControls = entity->extension.bmControls;
-> @@ -2121,13 +2126,25 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
->  		} else if (UVC_ENTITY_TYPE(entity) == UVC_ITT_CAMERA) {
->  			bmControls = entity->camera.bmControls;
->  			bControlSize = entity->camera.bControlSize;
-> +		} else if (UVC_ENTITY_TYPE(entity) == UVC_VC_ENCODING_UNIT) {
-> +			bmControls = entity->encoding.bmControls;
-> +			bmControlsRuntime = entity->encoding.bmControlsRuntime;
-> +			bControlSize = entity->encoding.bControlSize;
->  		}
-> 
->  		/* Remove bogus/blacklisted controls */
->  		uvc_ctrl_prune_entity(dev, entity);
-> 
->  		/* Count supported controls and allocate the controls array */
-> -		ncontrols = memweight(bmControls, bControlSize);
-> +		for (i = 0; i < bControlSize; ++i) {
-> +			if (bmControlsRuntime) {
-> +				ncontrols += hweight8(bmControls[i]
-> +						      | bmControlsRuntime[i]);
+> Well, I wasn't ever in favour of using fourcc codes since they're just
+> not standardized at all, highly redundant in some cases and also miss
+> lots of stuff we actually need (like all the rgb formats).
 
-Nitpicking, could you move the | to the end of the previous line to match the 
-style of the rest of the code ?
+These drm codes are not fourcc codes in any other way than that
+they're defined by creating a 32 bit value by picking four characters.
+I don't know what PTSD triggers people have from hearing "fourcc", but
+it seems severe.  Forget all that, these codes are DRM specific
+defines that are not inteded to match anything anybody else does.  It
+doesn't matter if these match of conflict with v4l, fourcc.org,
+wikipedia.org or what the amiga did.  They're just tokens that let us
+define succintly what the pixel format of a kms framebuffer is and
+tell the kernel.
 
-> +			} else {
-> +				ncontrols += hweight8(bmControls[i]);
-> +			}
+I don't know what else you'd propose?  Pass an X visual in the ioctl?
+An EGL config?  This is our name space, we can add stuff as we need
+(as Keith is doing here). include/uapi/drm/drm_fourcc.h is the
+canonical source for these values and we should add
+DRM_FORMAT_SARGB8888 there to make sure we don't clash.
 
-The { } are not needed.
+Why are these codes in mesa (and gbm and wl_drm protocol) then?
+Because it turns out that once you have an stable and established
+namespace for pixel formats (and a kernel userspace header is about as
+stable and established as it gets) it makes a lot of sense to reuse
+those values.
 
-> +		}
-> +
->  		if (ncontrols == 0)
->  			continue;
+I already explained to Keith why we use different sets of format codes
+in the DRI interface, but it's always fun to slam other peoples code.
+Anyway, it's pretty simple, the __DRI_IMAGE_FORMAT_* defines predate
+the introduction of drm_fourcc.h.  When we later added suport for
+planar YUV __DRIimages, the kernel had picked up drm_fourcc.h after a
+long sad bikeshedding flamewar, which included the planar formats we
+needed.  At this point we could continue using our custom
+__DRI_IMAGE_FORMAT_* defines or we could switch to the tokens that we
+had finally converged on.  But don't let me ruin a good old snide remark.
+
+> Cc'ing the heck out of this to get kernel people to hopefully notice.
+> Maybe someone takes charge of this ... Otherwise meh.
+
+I don't know what you want to change.  These values are already kernel
+ABI, we use them in drmAddFB2, and again, I don't understand what
+problem you're seeing.
+
+Kristian
+
+> >> Just afraid to create long-term maintainance madness here with the
+> >> kernel's iron thou-shalt-not-break-userspace-ever rule ... Not likely
+> >> we'll ever accept srgb for framebuffers though.
+> >
+> > Would suck to collide with something we do want though.
 > 
-> @@ -2139,8 +2156,17 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
-> 
->  		/* Initialize all supported controls */
->  		ctrl = entity->controls;
-> -		for (i = 0; i < bControlSize * 8; ++i) {
-> -			if (uvc_test_bit(bmControls, i) == 0)
-> +		for (i = 0, num_found = 0;
-> +			i < bControlSize * 8 && num_found < ncontrols; ++i) {
-> +			if (uvc_test_bit(bmControls, i) == 1)
-> +				ctrl->on_init = 1;
-> +			if (bmControlsRuntime &&
-> +				uvc_test_bit(bmControlsRuntime, i) == 1)
-> +				ctrl->in_runtime = 1;
-> +			else if (!bmControlsRuntime)
-> +				ctrl->in_runtime = ctrl->on_init;
-> +
-> +			if (ctrl->on_init == 0 && ctrl->in_runtime == 0)
->  				continue;
-
-Wouldn't it simplify the code if you assigned bmControls to bmControlsRuntime 
-when bmControlsRuntime is NULL before counting the controls above ? You could 
-get rid of the if inside the count loop, and you could also simplify this 
-construct.
-
-> 
->  			ctrl->entity = entity;
-> @@ -2148,6 +2174,7 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
-> 
->  			uvc_ctrl_init_ctrl(dev, ctrl);
->  			ctrl++;
-> +			num_found++;
->  		}
->  	}
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index d7ff707..d950b40 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1155,6 +1155,37 @@ static int uvc_parse_standard_control(struct
-> uvc_device *dev, list_add_tail(&unit->list, &dev->entities);
->  		break;
-> 
-> +	case UVC_VC_ENCODING_UNIT:
-> +		n = buflen >= 7 ? buffer[6] : 0;
-> +
-> +		if (buflen < 7 + 2 * n) {
-> +			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
-> +				"interface %d ENCODING_UNIT error\n",
-> +				udev->devnum, alts->desc.bInterfaceNumber);
-> +			return -EINVAL;
-> +		}
-> +
-> +		unit = uvc_alloc_entity(buffer[2], buffer[3], 2, 2 * n);
-> +		if (unit == NULL)
-> +			return -ENOMEM;
-> +
-> +		memcpy(unit->baSourceID, &buffer[4], 1);
-> +		unit->encoding.bControlSize = buffer[6];
-> +		unit->encoding.bmControls = (__u8 *)unit + sizeof(*unit);
-> +		memcpy(unit->encoding.bmControls, &buffer[7], n);
-> +		unit->encoding.bmControlsRuntime = unit->encoding.bmControls
-> +						 + n;
-> +		memcpy(unit->encoding.bmControlsRuntime, &buffer[7 + n], n);
-> +
-> +		if (buffer[5] != 0)
-> +			usb_string(udev, buffer[5], unit->name,
-> +				   sizeof(unit->name));
-> +		else
-> +			sprintf(unit->name, "encoding %u", buffer[3]);
-
-Could you s/encoding/Encoding/ to match the other unit names ?
-
-> +
-> +		list_add_tail(&unit->list, &dev->entities);
-> +		break;
-> +
->  	default:
->  		uvc_trace(UVC_TRACE_DESCR, "Found an unknown CS_INTERFACE "
->  			"descriptor (%u)\n", buffer[2]);
-> @@ -1251,25 +1282,31 @@ static void uvc_delete_chain(struct uvc_video_chain
-> *chain) *
->   * - one or more Output Terminals (USB Streaming or Display)
->   * - zero or one Processing Unit
-> + * - zero or one Encoding Unit
->   * - zero, one or more single-input Selector Units
->   * - zero or one multiple-input Selector Units, provided all inputs are
->   *   connected to input terminals
-> - * - zero, one or mode single-input Extension Units
-> + * - zero, one or more single-input Extension Units
->   * - one or more Input Terminals (Camera, External or USB Streaming)
->   *
-> - * The terminal and units must match on of the following structures:
-> + * The terminal and units must match one of the following structures:
-
-While we're at it, s/terminal/terminals/ ?
-
->   *
-> - * ITT_*(0) -> +---------+    +---------+    +---------+ -> TT_STREAMING(0)
-> - * ...         | SU{0,1} | -> | PU{0,1} | -> | XU{0,n} |    ...
-> - * ITT_*(n) -> +---------+    +---------+    +---------+ -> TT_STREAMING(n)
-> + * ITT_*(0) -> +---------+                        -> TT_STREAMING(0) + *
-> ...         | SU{0,1} | ->        (...)           ...
-> + * ITT_*(n) -> +---------+                        -> TT_STREAMING(n)
-> + *
-> + *    Where (...), in any order:
-> + *             +---------+    +---------+    +---------+
-> + *             | PU{0,1} | -> | XU{0,n} | -> | EU{0,1} |
-> + *             +---------+    +---------+    +---------+
->   *
->   *                 +---------+    +---------+ -> OTT_*(0)
->   * TT_STREAMING -> | PU{0,1} | -> | XU{0,n} |    ...
->   *                 +---------+    +---------+ -> OTT_*(n)
->   *
-> - * The Processing Unit and Extension Units can be in any order. Additional
-> - * Extension Units connected to the main chain as single-unit branches are
-> - * also supported. Single-input Selector Units are ignored.
-> + * The Processing Unit, the Encoding Unit and Extension Units can be in any
-> + * order. Additional Extension Units connected to the main chain as
-> single-unit
-> + * branches are also supported. Single-input Selector Units are ignored. */
->  static int uvc_scan_chain_entity(struct uvc_video_chain *chain,
->  	struct uvc_entity *entity)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> Yeah, it'd suck. But given how fourcc works we probably have that
+> already, just haven't noticed yet :(
+> -Daniel
+> -- 
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/intel-gfx
