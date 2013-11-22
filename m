@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60753 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390Ab3KBQdm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:42 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Patrick Boettcher <pb@linuxtv.org>
-Subject: [PATCHv2 12/29] s5h1420: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:20 -0200
-Message-Id: <1383399097-11615-13-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:60200 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755339Ab3KVOLf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Nov 2013 09:11:35 -0500
+Message-ID: <528F660F.9050100@iki.fi>
+Date: Fri, 22 Nov 2013 16:11:27 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] af9035: unlock on error in af9035_i2c_master_xfer()
+References: <20131122075045.GA15726@elgon.mountain>
+In-Reply-To: <20131122075045.GA15726@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-	drivers/media/dvb-frontends/s5h1420.c:851:1: warning: 's5h1420_tuner_i2c_tuner_xfer' uses dynamic stack allocation [enabled by default]
+Antti
 
-Instead, let's enforce a limit for the buffer.
+On 22.11.2013 09:50, Dan Carpenter wrote:
+> We introduced a couple new error paths which are missing unlocks.
+>
+> Fixes: 7760e148350b ('[media] af9035: Don't use dynamic static allocation')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index c8fcd78425bd..625ef2489b23 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -245,7 +245,8 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+>   				dev_warn(&d->udev->dev,
+>   					 "%s: i2c xfer: len=%d is too big!\n",
+>   					 KBUILD_MODNAME, msg[0].len);
+> -				return -EOPNOTSUPP;
+> +				ret = -EOPNOTSUPP;
+> +				goto unlock;
+>   			}
+>   			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+>   			buf[0] = msg[1].len;
+> @@ -281,7 +282,8 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+>   				dev_warn(&d->udev->dev,
+>   					 "%s: i2c xfer: len=%d is too big!\n",
+>   					 KBUILD_MODNAME, msg[0].len);
+> -				return -EOPNOTSUPP;
+> +				ret = -EOPNOTSUPP;
+> +				goto unlock;
+>   			}
+>   			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+>   			buf[0] = msg[0].len;
+> @@ -319,6 +321,7 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+>   		ret = -EOPNOTSUPP;
+>   	}
+>
+> +unlock:
+>   	mutex_unlock(&d->i2c_mutex);
+>
+>   	if (ret < 0)
+>
 
-In the specific case of this frontend, only ttpci uses it. The maximum
-number of messages there is two, on I2C read operations. As the logic
-can add an extra operation, change the size to 3.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Patrick Boettcher <pb@linuxtv.org>
----
- drivers/media/dvb-frontends/s5h1420.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/s5h1420.c b/drivers/media/dvb-frontends/s5h1420.c
-index e2fec9ebf947..e0b0366ccfa5 100644
---- a/drivers/media/dvb-frontends/s5h1420.c
-+++ b/drivers/media/dvb-frontends/s5h1420.c
-@@ -836,9 +836,16 @@ static u32 s5h1420_tuner_i2c_func(struct i2c_adapter *adapter)
- static int s5h1420_tuner_i2c_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[], int num)
- {
- 	struct s5h1420_state *state = i2c_get_adapdata(i2c_adap);
--	struct i2c_msg m[1 + num];
-+	struct i2c_msg m[3];
- 	u8 tx_open[2] = { CON_1, state->CON_1_val | 1 }; /* repeater stops once there was a stop condition */
- 
-+	if (1 + num > ARRAY_SIZE(m)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c xfer: num=%d is too big!\n",
-+		       KBUILD_MODNAME, num);
-+		return  -EREMOTEIO;
-+	}
-+
- 	memset(m, 0, sizeof(struct i2c_msg) * (1 + num));
- 
- 	m[0].addr = state->config->demod_address;
 -- 
-1.8.3.1
-
+http://palosaari.fi/
