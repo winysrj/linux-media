@@ -1,81 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.swsoft.eu ([109.70.220.8]:57149 "EHLO relay.swsoft.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753177Ab3KCMUr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Nov 2013 07:20:47 -0500
-Date: Sun, 3 Nov 2013 13:20:45 +0100
-From: Maik Broemme <mbroemme@parallels.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/12] dvb-frontends: Support for DVB-C2 to DVB frontends
-Message-ID: <20131103122045.GR7956@parallels.com>
-References: <20131103002235.GD7956@parallels.com>
- <20131103002425.GE7956@parallels.com>
- <20131103072351.5aaed530@samsung.com>
- <21110.10712.785130.198472@morden.metzler>
+Received: from aserp1040.oracle.com ([141.146.126.69]:45287 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975Ab3KVHwy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Nov 2013 02:52:54 -0500
+Date: Fri, 22 Nov 2013 10:51:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] cx18: check for allocation failure in
+ cx18_read_eeprom()
+Message-ID: <20131122075146.GB15726@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <21110.10712.785130.198472@morden.metzler>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ralph,
+It upsets static checkers when we don't check for allocation failure.  I
+moved the memset() of "tv" earlier so we don't use uninitialized data on
+error.
 
-Ralph Metzler <rjkm@metzlerbros.de> wrote:
-> Mauro Carvalho Chehab writes:
->  > Em Sun, 3 Nov 2013 01:24:25 +0100
->  > Maik Broemme <mbroemme@parallels.com> escreveu:
->  > 
->  > > Added support for DVB-C2 to DVB frontends. It will be required
->  > > by cxd2843 and tda18212dd (Digital Devices) frontends.
->  > > 
->  > > Signed-off-by: Maik Broemme <mbroemme@parallels.com>
->  > > ---
->  > >  include/uapi/linux/dvb/frontend.h | 1 +
->  > >  1 file changed, 1 insertion(+)
->  > > 
->  > > diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
->  > > index c56d77c..98648eb 100644
->  > > --- a/include/uapi/linux/dvb/frontend.h
->  > > +++ b/include/uapi/linux/dvb/frontend.h
->  > > @@ -410,6 +410,7 @@ typedef enum fe_delivery_system {
->  > >  	SYS_DVBT2,
->  > >  	SYS_TURBO,
->  > >  	SYS_DVBC_ANNEX_C,
->  > > +	SYS_DVBC2,
->  > >  } fe_delivery_system_t;
->  > >  
->  > >  /* backward compatibility */
->  > 
->  > Please update also the documentation, at Documentation/DocBook/media/dvb.
->  > 
->  > Doesn't DVB-C2 provide any newer property? If so, please add it there as
->  > well, and at frontend.h.
->  > 
-> 
-> I asked about this on linux-media a week or so ago. The main question was
-> concerning STREAM_ID. I asked if it would be fine to combine PLP and
-> slice id (each 8 bit) into stream_id or if there should be a separate 
-> new property. And for which one, PLP or slice id? 
-> Probably slice id, because stream_id is also used for PLP in T2?
-> I combined them into stream_id for now (but that was after the 0.9.10 version
-> of the dddvb package).
-> 
+Fixes: 1d212cf0c2d8 ('[media] cx18: struct i2c_client is too big for stack')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Do you have a patch ready at this time? I'm asking because CXD2843ER
-depends on DVB-C2 changes.
-
-> There are also many new qam types, etc. but, as I said back then, it was not  
-> urgent for me to add those because the Sony demod does not allow setting those.
-> At least it is not documented how to do it.
-> 
-> 
-> Regards,
-> Ralph
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Maik
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index c1f8cc6f14b2..716bdc57fac6 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -327,13 +327,16 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
+ 	struct i2c_client *c;
+ 	u8 eedata[256];
+ 
++	memset(tv, 0, sizeof(*tv));
++
+ 	c = kzalloc(sizeof(*c), GFP_KERNEL);
++	if (!c)
++		return;
+ 
+ 	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
+ 	c->adapter = &cx->i2c_adap[0];
+ 	c->addr = 0xa0 >> 1;
+ 
+-	memset(tv, 0, sizeof(*tv));
+ 	if (tveeprom_read(c, eedata, sizeof(eedata)))
+ 		goto ret;
+ 
