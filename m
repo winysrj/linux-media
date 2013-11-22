@@ -1,109 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1346 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587Ab3KVDcG (ORCPT
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:45576 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755780Ab3KVQRi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 22:32:06 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAM3W23w055315
-	for <linux-media@vger.kernel.org>; Fri, 22 Nov 2013 04:32:04 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 0DF682A221E
-	for <linux-media@vger.kernel.org>; Fri, 22 Nov 2013 04:31:54 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131122033154.0DF682A221E@tschai.lan>
-Date: Fri, 22 Nov 2013 04:31:54 +0100 (CET)
+	Fri, 22 Nov 2013 11:17:38 -0500
+Received: by mail-ob0-f176.google.com with SMTP id va2so1493367obc.7
+        for <linux-media@vger.kernel.org>; Fri, 22 Nov 2013 08:17:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <86d2lsem3m.fsf@miki.keithp.com>
+References: <1385093524-22276-1-git-send-email-keithp@keithp.com>
+	<20131122102632.GQ27344@phenom.ffwll.local>
+	<86d2lsem3m.fsf@miki.keithp.com>
+Date: Fri, 22 Nov 2013 17:17:37 +0100
+Message-ID: <CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
+Subject: Re: [Mesa-dev] [PATCH] dri3, i915, i965: Add __DRI_IMAGE_FOURCC_SARGB8888
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Keith Packard <keithp@keithp.com>
+Cc: Mesa Dev <mesa-dev@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	intel-gfx <intel-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Nov 22, 2013 at 12:01 PM, Keith Packard <keithp@keithp.com> wrote:
+> Daniel Vetter <daniel@ffwll.ch> writes:
+>
+>> Hm, where do we have the canonical source for all these fourcc codes? I'm
+>> asking since we have our own copy in the kernel as drm_fourcc.h, and that
+>> one is part of the userspace ABI since we use it to pass around
+>> framebuffer formats and format lists.
+>
+> I think it's the kernel? I really don't know, as the whole notion of
+> fourcc codes seems crazy to me...
+>
+> Feel free to steal this code and stick it in the kernel if you like.
 
-Results of the daily build of media_tree:
+Well, I wasn't ever in favour of using fourcc codes since they're just
+not standardized at all, highly redundant in some cases and also miss
+lots of stuff we actually need (like all the rgb formats).
 
-date:		Fri Nov 22 04:00:33 CET 2013
-git branch:	test
-git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+Cc'ing the heck out of this to get kernel people to hopefully notice.
+Maybe someone takes charge of this ... Otherwise meh.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+>> Just afraid to create long-term maintainance madness here with the
+>> kernel's iron thou-shalt-not-break-userspace-ever rule ... Not likely
+>> we'll ever accept srgb for framebuffers though.
+>
+> Would suck to collide with something we do want though.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Yeah, it'd suck. But given how fourcc works we probably have that
+already, just haven't noticed yet :(
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
