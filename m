@@ -1,1231 +1,502 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2900 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834Ab3KTLVd (ORCPT
+Received: from mail-1.atlantis.sk ([80.94.52.57]:45533 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755526Ab3KVWlb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Nov 2013 06:21:33 -0500
-Message-ID: <528C9ADB.3050803@xs4all.nl>
-Date: Wed, 20 Nov 2013 12:19:55 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Valentine <valentine.barshak@cogentembedded.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com>
-In-Reply-To: <528C8BA1.9070706@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 22 Nov 2013 17:41:31 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] bttv: Convert to generic TEA575x interface
+Date: Fri, 22 Nov 2013 23:41:16 +0100
+Message-Id: <1385160076-2961-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Valentine,
+Remove tea575x-specific code from bttv and use the common driver instead.
+Only set_frequency is implemented (signal/stereo detection or seek would
+require more changes to bttv).
 
-On 11/20/13 11:14, Valentine wrote:
-> On 11/19/2013 01:50 PM, Hans Verkuil wrote:
->> Hi Valentine,
-> 
-> Hi Hans,
-> thanks for your review.
-> 
->>
->> I don't entirely understand how you use this driver with soc-camera.
->> Since soc-camera doesn't support FMT_CHANGE notifies it can't really
->> act on it. Did you hack soc-camera to do this?
-> 
-> I did not. The format is queried before reading the frame by the user-space.
-> I'm not sure if there's some kind of generic interface to notify the camera
-> layer about format change events. Different subdevices use different FMT_CHANGE
-> defines for that. I've implemented the format change notifier based on the adv7604
-> in hope that it may be useful later.
+Tested on Video Highway Xtreme.
+I don't have the Miro/Pinnacle or Terratec Active Radio Upgrade to test.
 
-Yes, I need to generalize the FMT_CHANGE event.
+Miro/Pinnacle seems to be simple and should work.
 
-But what happens if you are streaming and the HDMI connector is unplugged?
-Or plugged back in again, possibly with a larger resolution? I'm not sure
-if the soc_camera driver supports such scenarios.
+However, I don't understand the Terratec Active Radio Upgrade code. The HW
+seems to need IOR, IOW and CSEL signals that were taken from ISA bus on
+older cards (IOR and IOW directly and CSEL from some address decoder) and
+are emulated here using GPIOs. But the code manipulating these signals in
+bttv seems to be broken - it never asserts the IOR signal. If anyone has
+this HW, please test if I got that right.
 
-> 
->>
->> The way it stands I would prefer to see a version of the driver without
->> soc-camera support. I wouldn't have a problem merging that as this driver
->> is a good base for further development.
-> 
-> I've tried to implement the driver base good enough to work with both SoC
-> and non-SoC cameras since I don't think having 2 separate drivers for
-> different camera models is a good idea.
-> 
-> The problem is that I'm using it with R-Car VIN SoC camera driver and don't
-> have any other h/w. Having a platform data quirk for SoC camera in
-> the subdevice driver seemed simple and clean enough.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/bt8xx/Kconfig       |    1 +
+ drivers/media/pci/bt8xx/bttv-cards.c  |  317 ++++++++++++---------------------
+ drivers/media/pci/bt8xx/bttv-driver.c |    6 +-
+ drivers/media/pci/bt8xx/bttvp.h       |   14 +-
+ drivers/media/radio/Kconfig           |    4 +-
+ 5 files changed, 125 insertions(+), 217 deletions(-)
 
-I hate it, but it isn't something you can do anything about. So it will have
-to do for now.
-
-> Hacking SoC camera to make it support both generic and SoC cam subdevices
-> doesn't seem that straightforward to me.
-
-Guennadi, what is the status of this? I'm getting really tired of soc-camera
-infecting sub-devices. Subdev drivers should be independent of any bridge
-driver using them, but soc-camera keeps breaking that. It's driving me nuts.
-
-I'll be honest, it's getting to the point that I want to just NACK any
-future subdev drivers that depend on soc-camera, just to force a solution.
-There is no technical reason for this dependency, it just takes some time
-to fix soc-camera.
-
-> Re-implementing R-Car VIN as a non-SoC model seems quite a big task that
-> involves a lot of regression testing with other R-Car boards that use different
-> subdevices with VIN.
-> 
-> What would you suggest?
-
-Let's leave it as-is for now :-(
-
-I'm not happy, but as I said, it's not your fault.
-
-Regards,
-
-	Hans
-
-> 
->>
->> You do however have to add support for the V4L2_CID_DV_RX_POWER_PRESENT
->> control. It's easy to implement and that way apps can be notified when
->> the hotplug changes value.
-> 
-> OK, thanks.
-> 
->>
->> Regards,
->>
->>     Hans
-> 
-> Thanks,
-> Val.
-> 
->>
->> On 11/15/13 13:54, Valentine Barshak wrote:
->>> This adds ADV7611/ADV7612 Xpressview  HDMI Receiver base
->>> support. Only one HDMI port is supported on ADV7612.
->>>
->>> The code is based on the ADV7604 driver, and ADV7612 patch by
->>> Shinobu Uehara <shinobu.uehara.xc@renesas.com>
->>>
->>> Changes in version 2:
->>> * Used platform data for I2C addresses setup. The driver
->>>    should work with both SoC and non-SoC camera models.
->>> * Dropped unnecessary code and unsupported callbacks.
->>> * Implemented IRQ handling for format change detection.
->>>
->>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
->>> ---
->>>   drivers/media/i2c/Kconfig   |   11 +
->>>   drivers/media/i2c/Makefile  |    1 +
->>>   drivers/media/i2c/adv761x.c | 1009 +++++++++++++++++++++++++++++++++++++++++++
->>>   include/media/adv761x.h     |   38 ++
->>>   4 files changed, 1059 insertions(+)
->>>   create mode 100644 drivers/media/i2c/adv761x.c
->>>   create mode 100644 include/media/adv761x.h
->>>
->>> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->>> index 75c8a03..2388642 100644
->>> --- a/drivers/media/i2c/Kconfig
->>> +++ b/drivers/media/i2c/Kconfig
->>> @@ -206,6 +206,17 @@ config VIDEO_ADV7604
->>>         To compile this driver as a module, choose M here: the
->>>         module will be called adv7604.
->>>
->>> +config VIDEO_ADV761X
->>> +    tristate "Analog Devices ADV761X decoder"
->>> +    depends on VIDEO_V4L2 && I2C
->>> +    ---help---
->>> +      Support for the Analog Devices ADV7611/ADV7612 video decoder.
->>> +
->>> +      This is an Analog Devices Xpressview HDMI Receiver.
->>> +
->>> +      To compile this driver as a module, choose M here: the
->>> +      module will be called adv761x.
->>> +
->>>   config VIDEO_ADV7842
->>>       tristate "Analog Devices ADV7842 decoder"
->>>       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
->>> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
->>> index e03f177..d78d627 100644
->>> --- a/drivers/media/i2c/Makefile
->>> +++ b/drivers/media/i2c/Makefile
->>> @@ -26,6 +26,7 @@ obj-$(CONFIG_VIDEO_ADV7183) += adv7183.o
->>>   obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
->>>   obj-$(CONFIG_VIDEO_ADV7393) += adv7393.o
->>>   obj-$(CONFIG_VIDEO_ADV7604) += adv7604.o
->>> +obj-$(CONFIG_VIDEO_ADV761X) += adv761x.o
->>>   obj-$(CONFIG_VIDEO_ADV7842) += adv7842.o
->>>   obj-$(CONFIG_VIDEO_AD9389B) += ad9389b.o
->>>   obj-$(CONFIG_VIDEO_ADV7511) += adv7511.o
->>> diff --git a/drivers/media/i2c/adv761x.c b/drivers/media/i2c/adv761x.c
->>> new file mode 100644
->>> index 0000000..95939f5
->>> --- /dev/null
->>> +++ b/drivers/media/i2c/adv761x.c
->>> @@ -0,0 +1,1009 @@
->>> +/*
->>> + * adv761x Analog Devices ADV761X HDMI receiver driver
->>> + *
->>> + * Copyright (C) 2013 Cogent Embedded, Inc.
->>> + * Copyright (C) 2013 Renesas Electronics Corporation
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + */
->>> +
->>> +#include <linux/errno.h>
->>> +#include <linux/gpio.h>
->>> +#include <linux/i2c.h>
->>> +#include <linux/init.h>
->>> +#include <linux/interrupt.h>
->>> +#include <linux/kernel.h>
->>> +#include <linux/module.h>
->>> +#include <linux/rwsem.h>
->>> +#include <linux/slab.h>
->>> +#include <linux/videodev2.h>
->>> +#include <media/adv761x.h>
->>> +#include <media/soc_camera.h>
->>> +#include <media/v4l2-ctrls.h>
->>> +#include <media/v4l2-device.h>
->>> +#include <media/v4l2-ioctl.h>
->>> +
->>> +#define ADV761X_DRIVER_NAME "adv761x"
->>> +
->>> +/* VERT_FILTER_LOCKED and DE_REGEN_FILTER_LOCKED flags */
->>> +#define ADV761X_HDMI_F_LOCKED(v)    (((v) & 0xa0) == 0xa0)
->>> +
->>> +/* Maximum supported resolution */
->>> +#define ADV761X_MAX_WIDTH        1920
->>> +#define ADV761X_MAX_HEIGHT        1080
->>> +
->>> +/* Use SoC camera subdev desc private data for platform_data */
->>> +#define ADV761X_SOC_CAM_QUIRK        0x1
->>> +
->>> +static int debug;
->>> +module_param(debug, int, 0644);
->>> +MODULE_PARM_DESC(debug, "debug level (0-2)");
->>> +
->>> +struct adv761x_color_format {
->>> +    enum v4l2_mbus_pixelcode code;
->>> +    enum v4l2_colorspace colorspace;
->>> +};
->>> +
->>> +/* Supported color format list */
->>> +static const struct adv761x_color_format adv761x_cfmts[] = {
->>> +    {
->>> +        .code        = V4L2_MBUS_FMT_RGB888_1X24,
->>> +        .colorspace    = V4L2_COLORSPACE_SRGB,
->>> +    },
->>> +};
->>> +
->>> +/* ADV761X descriptor structure */
->>> +struct adv761x_state {
->>> +    struct v4l2_subdev            sd;
->>> +    struct media_pad            pad;
->>> +    struct v4l2_ctrl_handler        ctrl_hdl;
->>> +
->>> +    u8                    edid[256];
->>> +    unsigned                edid_blocks;
->>> +
->>> +    struct rw_semaphore            rwsem;
->>> +    const struct adv761x_color_format    *cfmt;
->>> +    u32                    width;
->>> +    u32                    height;
->>> +    enum v4l2_field                scanmode;
->>> +    u32                    status;
->>> +
->>> +    int                    gpio;
->>> +    int                    irq;
->>> +
->>> +    struct workqueue_struct            *work_queue;
->>> +    struct delayed_work            enable_hotplug;
->>> +    struct work_struct            interrupt_service;
->>> +
->>> +    struct i2c_client            *i2c_cec;
->>> +    struct i2c_client            *i2c_inf;
->>> +    struct i2c_client            *i2c_dpll;
->>> +    struct i2c_client            *i2c_rep;
->>> +    struct i2c_client            *i2c_edid;
->>> +    struct i2c_client            *i2c_hdmi;
->>> +    struct i2c_client            *i2c_cp;
->>> +};
->>> +
->>> +static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
->>> +{
->>> +    return &container_of(ctrl->handler, struct adv761x_state, ctrl_hdl)->sd;
->>> +}
->>> +
->>> +static inline struct adv761x_state *to_state(struct v4l2_subdev *sd)
->>> +{
->>> +    return container_of(sd, struct adv761x_state, sd);
->>> +}
->>> +
->>> +/* I2C I/O operations */
->>> +static s32 adv_smbus_read_byte_data(struct i2c_client *client, u8 command)
->>> +{
->>> +    s32 ret, i;
->>> +
->>> +    for (i = 0; i < 3; i++) {
->>> +        ret = i2c_smbus_read_byte_data(client, command);
->>> +        if (ret >= 0)
->>> +            return ret;
->>> +    }
->>> +
->>> +    v4l_err(client, "Reading addr:%02x reg:%02x\n failed",
->>> +        client->addr, command);
->>> +    return ret;
->>> +}
->>> +
->>> +static s32 adv_smbus_write_byte_data(struct i2c_client *client, u8 command,
->>> +                     u8 value)
->>> +{
->>> +    s32 ret, i;
->>> +
->>> +    for (i = 0; i < 3; i++) {
->>> +        ret = i2c_smbus_write_byte_data(client, command, value);
->>> +        if (!ret)
->>> +            return 0;
->>> +    }
->>> +
->>> +    v4l_err(client, "Writing addr:%02x reg:%02x val:%02x failed\n",
->>> +        client->addr, command, value);
->>> +    return ret;
->>> +}
->>> +
->>> +static s32 adv_smbus_write_i2c_block_data(struct i2c_client *client, u8 command,
->>> +                      u8 length, const u8 *values)
->>> +{
->>> +    s32 ret, i;
->>> +
->>> +    ret = i2c_smbus_write_i2c_block_data(client, command, length, values);
->>> +    if (!ret)
->>> +        return 0;
->>> +
->>> +    for (i = 0; i < length; i++) {
->>> +        ret = adv_smbus_write_byte_data(client, command + i, values[i]);
->>> +        if (ret)
->>> +            break;
->>> +    }
->>> +
->>> +    return ret;
->>> +}
->>> +
->>> +static inline int io_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct i2c_client *client = v4l2_get_subdevdata(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(client, reg);
->>> +}
->>> +
->>> +static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct i2c_client *client = v4l2_get_subdevdata(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(client, reg, val);
->>> +}
->>> +
->>> +static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_cec, reg);
->>> +}
->>> +
->>> +static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
->>> +}
->>> +
->>> +static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_inf, reg);
->>> +}
->>> +
->>> +static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_inf, reg, val);
->>> +}
->>> +
->>> +static inline int dpll_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_dpll, reg);
->>> +}
->>> +
->>> +static inline int dpll_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_dpll, reg, val);
->>> +}
->>> +
->>> +static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_rep, reg);
->>> +}
->>> +
->>> +static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_rep, reg, val);
->>> +}
->>> +
->>> +static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_edid, reg);
->>> +}
->>> +
->>> +static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_edid, reg, val);
->>> +}
->>> +
->>> +static inline int edid_write_block(struct v4l2_subdev *sd,
->>> +                   unsigned len, const u8 *val)
->>> +{
->>> +    struct i2c_client *client = v4l2_get_subdevdata(sd);
->>> +    struct adv761x_state *state = to_state(sd);
->>> +    int ret = 0;
->>> +    int i;
->>> +
->>> +    v4l2_dbg(2, debug, sd, "Writing EDID block (%d bytes)\n", len);
->>> +
->>> +    v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)0);
->>> +
->>> +    /* Disable I2C access to internal EDID ram from DDC port */
->>> +    rep_write(sd, 0x74, 0x0);
->>> +
->>> +    for (i = 0; !ret && i < len; i += I2C_SMBUS_BLOCK_MAX)
->>> +        ret = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
->>> +                I2C_SMBUS_BLOCK_MAX, val + i);
->>> +    if (ret)
->>> +        return ret;
->>> +
->>> +    /*
->>> +     * ADV761x calculates the checksums and enables I2C access
->>> +     * to internal EDID ram from DDC port.
->>> +     */
->>> +    rep_write(sd, 0x74, 0x01);
->>> +
->>> +    for (i = 0; i < 1000; i++) {
->>> +        if (rep_read(sd, 0x76) & 0x1) {
->>> +            /* Enable hotplug after 100 ms */
->>> +            queue_delayed_work(state->work_queue,
->>> +                       &state->enable_hotplug, HZ / 10);
->>> +            return 0;
->>> +        }
->>> +        schedule();
->>> +    }
->>> +
->>> +    v4l_err(client, "Enabling EDID failed\n");
->>> +    return -EIO;
->>> +}
->>> +
->>> +static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
->>> +}
->>> +
->>> +static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
->>> +}
->>> +
->>> +static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_read_byte_data(state->i2c_cp, reg);
->>> +}
->>> +
->>> +static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    return adv_smbus_write_byte_data(state->i2c_cp, reg, val);
->>> +}
->>> +
->>> +static inline int adv761x_power_off(struct v4l2_subdev *sd)
->>> +{
->>> +    return io_write(sd, 0x0c, 0x62);
->>> +}
->>> +
->>> +static int adv761x_core_init(struct v4l2_subdev *sd)
->>> +{
->>> +    io_write(sd, 0x01, 0x06);    /* V-FREQ = 60Hz */
->>> +                    /* Prim_Mode = HDMI-GR */
->>> +    io_write(sd, 0x02, 0xf2);    /* Auto CSC, RGB out */
->>> +                    /* Disable op_656 bit */
->>> +    io_write(sd, 0x03, 0x42);    /* 36 bit SDR 444 Mode 0 */
->>> +    io_write(sd, 0x05, 0x28);    /* AV Codes Off */
->>> +    io_write(sd, 0x0b, 0x44);    /* Power up part */
->>> +    io_write(sd, 0x0c, 0x42);    /* Power up part */
->>> +    io_write(sd, 0x14, 0x7f);    /* Max Drive Strength */
->>> +    io_write(sd, 0x15, 0x80);    /* Disable Tristate of Pins */
->>> +                    /* (Audio output pins active) */
->>> +    io_write(sd, 0x19, 0x83);    /* LLC DLL phase */
->>> +    io_write(sd, 0x33, 0x40);    /* LLC DLL enable */
->>> +
->>> +    cp_write(sd, 0xba, 0x01);    /* Set HDMI FreeRun */
->>> +    cp_write(sd, 0x3e, 0x80);    /* Enable color adjustments */
->>> +
->>> +    hdmi_write(sd, 0x9b, 0x03);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x00, 0x08);    /* Set HDMI Input Port A */
->>> +                    /* (BG_MEAS_PORT_SEL = 001b) */
->>> +    hdmi_write(sd, 0x02, 0x03);    /* Enable Ports A & B in */
->>> +                    /* background mode */
->>> +    hdmi_write(sd, 0x6d, 0x80);    /* Enable TDM mode */
->>> +    hdmi_write(sd, 0x03, 0x18);    /* I2C mode 24 bits */
->>> +    hdmi_write(sd, 0x83, 0xfc);    /* Enable clock terminators */
->>> +                    /* for port A & B */
->>> +    hdmi_write(sd, 0x6f, 0x0c);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x85, 0x1f);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x87, 0x70);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x8d, 0x04);    /* LFG Port A */
->>> +    hdmi_write(sd, 0x8e, 0x1e);    /* HFG Port A */
->>> +    hdmi_write(sd, 0x1a, 0x8a);    /* unmute audio */
->>> +    hdmi_write(sd, 0x57, 0xda);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x58, 0x01);    /* ADI recommended setting */
->>> +    hdmi_write(sd, 0x75, 0x10);    /* DDC drive strength */
->>> +    hdmi_write(sd, 0x90, 0x04);    /* LFG Port B */
->>> +    hdmi_write(sd, 0x91, 0x1e);    /* HFG Port B */
->>> +    hdmi_write(sd, 0x04, 0x03);
->>> +    hdmi_write(sd, 0x14, 0x00);
->>> +    hdmi_write(sd, 0x15, 0x00);
->>> +    hdmi_write(sd, 0x16, 0x00);
->>> +
->>> +    rep_write(sd, 0x40, 0x81);    /* Disable HDCP 1.1 features */
->>> +    rep_write(sd, 0x74, 0x00);    /* Disable the Internal EDID */
->>> +                    /* for all ports */
->>> +
->>> +    /* Setup interrupts */
->>> +    io_write(sd, 0x40, 0xc2);    /* Active high until cleared */
->>> +    io_write(sd, 0x6e, 0x03);    /* INT1 HDMI DE_REGEN and V_LOCK */
->>> +
->>> +    return v4l2_ctrl_handler_setup(sd->ctrl_handler);
->>> +}
->>> +
->>> +static int adv761x_hdmi_info(struct v4l2_subdev *sd, enum v4l2_field *scanmode,
->>> +                 u32 *width, u32 *height)
->>> +{
->>> +    int msb, val;
->>> +
->>> +    /* Line width */
->>> +    msb = hdmi_read(sd, 0x07);
->>> +    if (msb < 0)
->>> +        return msb;
->>> +
->>> +    if (!ADV761X_HDMI_F_LOCKED(msb))
->>> +        return -EAGAIN;
->>> +
->>> +    /* Interlaced or progressive */
->>> +    val = hdmi_read(sd, 0x0b);
->>> +    if (val < 0)
->>> +        return val;
->>> +
->>> +    *scanmode = (val & 0x20) ? V4L2_FIELD_INTERLACED : V4L2_FIELD_NONE;
->>> +    val = hdmi_read(sd, 0x08);
->>> +    if (val < 0)
->>> +        return val;
->>> +
->>> +    val |= (msb & 0x1f) << 8;
->>> +    *width = val;
->>> +
->>> +    /* Lines per frame */
->>> +    msb = hdmi_read(sd, 0x09);
->>> +    if (msb < 0)
->>> +        return msb;
->>> +
->>> +    val = hdmi_read(sd, 0x0a);
->>> +    if (val < 0)
->>> +        return val;
->>> +
->>> +    val |= (msb & 0x1f) << 8;
->>> +    if (*scanmode == V4L2_FIELD_INTERLACED)
->>> +        val <<= 1;
->>> +    *height = val;
->>> +
->>> +    if (*width == 0 || *height == 0)
->>> +        return -EIO;
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +/* Hotplug work */
->>> +static void adv761x_enable_hotplug(struct work_struct *work)
->>> +{
->>> +    struct delayed_work *dwork = to_delayed_work(work);
->>> +    struct adv761x_state *state = container_of(dwork, struct adv761x_state,
->>> +                           enable_hotplug);
->>> +    struct v4l2_subdev *sd = &state->sd;
->>> +
->>> +    v4l2_dbg(2, debug, sd, "Enable hotplug\n");
->>> +    v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)1);
->>> +}
->>> +
->>> +/* IRQ work */
->>> +static void adv761x_interrupt_service(struct work_struct *work)
->>> +{
->>> +    struct adv761x_state *state = container_of(work, struct adv761x_state,
->>> +                           interrupt_service);
->>> +    struct v4l2_subdev *sd = &state->sd;
->>> +    enum v4l2_field scanmode;
->>> +    u32 width, height;
->>> +    u32 status = 0;
->>> +    int ret;
->>> +
->>> +    /* Clear HDMI interrupts */
->>> +    io_write(sd, 0x6c, 0xff);
->>> +
->>> +    ret = adv761x_hdmi_info(sd, &scanmode, &width, &height);
->>> +    if (ret) {
->>> +        if (state->status == V4L2_IN_ST_NO_SIGNAL)
->>> +            return;
->>> +
->>> +        width = ADV761X_MAX_WIDTH;
->>> +        height = ADV761X_MAX_HEIGHT;
->>> +        scanmode = V4L2_FIELD_NONE;
->>> +        status = V4L2_IN_ST_NO_SIGNAL;
->>> +    }
->>> +
->>> +    if (status)
->>> +        v4l2_dbg(2, debug, sd, "No HDMI video input detected\n");
->>> +    else
->>> +        v4l2_dbg(2, debug, sd, "HDMI video input detected (%ux%u%c)\n",
->>> +             width, height,
->>> +             scanmode == V4L2_FIELD_NONE ? 'p' : 'i');
->>> +
->>> +    down_write(&state->rwsem);
->>> +    state->width = width;
->>> +    state->height = height;
->>> +    state->scanmode = scanmode;
->>> +    state->status = status;
->>> +    up_write(&state->rwsem);
->>> +
->>> +    v4l2_subdev_notify(sd, ADV761X_FMT_CHANGE, NULL);
->>> +}
->>> +
->>> +/* IRQ handler */
->>> +static irqreturn_t adv761x_irq_handler(int irq, void *devid)
->>> +{
->>> +    struct adv761x_state *state = devid;
->>> +
->>> +    queue_work(state->work_queue, &state->interrupt_service);
->>> +    return IRQ_HANDLED;
->>> +}
->>> +
->>> +/* v4l2_subdev_core_ops */
->>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->>> +static void adv761x_inv_register(struct v4l2_subdev *sd)
->>> +{
->>> +    v4l2_info(sd, "0x000-0x0ff: IO Map\n");
->>> +    v4l2_info(sd, "0x100-0x1ff: CEC Map\n");
->>> +    v4l2_info(sd, "0x200-0x2ff: InfoFrame Map\n");
->>> +    v4l2_info(sd, "0x300-0x3ff: DPLL Map\n");
->>> +    v4l2_info(sd, "0x400-0x4ff: Repeater Map\n");
->>> +    v4l2_info(sd, "0x500-0x5ff: EDID Map\n");
->>> +    v4l2_info(sd, "0x600-0x6ff: HDMI Map\n");
->>> +    v4l2_info(sd, "0x700-0x7ff: CP Map\n");
->>> +}
->>> +
->>> +static int adv761x_g_register(struct v4l2_subdev *sd,
->>> +                  struct v4l2_dbg_register *reg)
->>> +{
->>> +    reg->size = 1;
->>> +    switch (reg->reg >> 8) {
->>> +    case 0:
->>> +        reg->val = io_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 1:
->>> +        reg->val = cec_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 2:
->>> +        reg->val = infoframe_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 3:
->>> +        reg->val = dpll_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 4:
->>> +        reg->val = rep_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 5:
->>> +        reg->val = edid_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 6:
->>> +        reg->val = hdmi_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    case 7:
->>> +        reg->val = cp_read(sd, reg->reg & 0xff);
->>> +        break;
->>> +    default:
->>> +        v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
->>> +        adv761x_inv_register(sd);
->>> +        break;
->>> +    }
->>> +    return 0;
->>> +}
->>> +
->>> +static int adv761x_s_register(struct v4l2_subdev *sd,
->>> +                  const struct v4l2_dbg_register *reg)
->>> +{
->>> +    switch (reg->reg >> 8) {
->>> +    case 0:
->>> +        io_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 1:
->>> +        cec_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 2:
->>> +        infoframe_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 3:
->>> +        dpll_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 4:
->>> +        rep_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 5:
->>> +        edid_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 6:
->>> +        hdmi_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    case 7:
->>> +        cp_write(sd, reg->reg & 0xff, reg->val & 0xff);
->>> +        break;
->>> +    default:
->>> +        v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
->>> +        adv761x_inv_register(sd);
->>> +        break;
->>> +    }
->>> +    return 0;
->>> +}
->>> +#endif    /* CONFIG_VIDEO_ADV_DEBUG */
->>> +
->>> +/* v4l2_subdev_video_ops */
->>> +static int adv761x_g_input_status(struct v4l2_subdev *sd, u32 *status)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    down_read(&state->rwsem);
->>> +    *status = state->status;
->>> +    up_read(&state->rwsem);
->>> +    return 0;
->>> +}
->>> +
->>> +static int adv761x_g_mbus_fmt(struct v4l2_subdev *sd,
->>> +                  struct v4l2_mbus_framefmt *mf)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    down_read(&state->rwsem);
->>> +    mf->width = state->width;
->>> +    mf->height = state->height;
->>> +    mf->field = state->scanmode;
->>> +    mf->code = state->cfmt->code;
->>> +    mf->colorspace = state->cfmt->colorspace;
->>> +    up_read(&state->rwsem);
->>> +    return 0;
->>> +}
->>> +
->>> +static int adv761x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
->>> +                 enum v4l2_mbus_pixelcode *code)
->>> +{
->>> +    /* Check requested format index is within range */
->>> +    if (index >= ARRAY_SIZE(adv761x_cfmts))
->>> +        return -EINVAL;
->>> +
->>> +    *code = adv761x_cfmts[index].code;
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +static int adv761x_g_mbus_config(struct v4l2_subdev *sd,
->>> +                 struct v4l2_mbus_config *cfg)
->>> +{
->>> +    cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
->>> +        V4L2_MBUS_VSYNC_ACTIVE_LOW | V4L2_MBUS_HSYNC_ACTIVE_LOW |
->>> +        V4L2_MBUS_DATA_ACTIVE_HIGH;
->>> +    cfg->type = V4L2_MBUS_PARALLEL;
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +/* v4l2_subdev_pad_ops */
->>> +static int adv761x_get_edid(struct v4l2_subdev *sd,
->>> +                struct v4l2_subdev_edid *edid)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    if (edid->pad != 0)
->>> +        return -EINVAL;
->>> +
->>> +    if (edid->blocks == 0)
->>> +        return -EINVAL;
->>> +
->>> +    if (edid->start_block >= state->edid_blocks)
->>> +        return -EINVAL;
->>> +
->>> +    if (edid->start_block + edid->blocks > state->edid_blocks)
->>> +        edid->blocks = state->edid_blocks - edid->start_block;
->>> +    if (!edid->edid)
->>> +        return -EINVAL;
->>> +
->>> +    memcpy(edid->edid + edid->start_block * 128,
->>> +           state->edid + edid->start_block * 128,
->>> +           edid->blocks * 128);
->>> +    return 0;
->>> +}
->>> +
->>> +static int adv761x_set_edid(struct v4l2_subdev *sd,
->>> +                struct v4l2_subdev_edid *edid)
->>> +{
->>> +    struct adv761x_state *state = to_state(sd);
->>> +    int ret;
->>> +
->>> +    if (edid->pad != 0)
->>> +        return -EINVAL;
->>> +
->>> +    if (edid->start_block != 0)
->>> +        return -EINVAL;
->>> +
->>> +    if (edid->blocks == 0) {
->>> +        /* Pull down the hotplug pin */
->>> +        v4l2_subdev_notify(sd, ADV761X_HOTPLUG, (void *)0);
->>> +        /* Disable I2C access to internal EDID RAM from DDC port */
->>> +        rep_write(sd, 0x74, 0x0);
->>> +        state->edid_blocks = 0;
->>> +        return 0;
->>> +    }
->>> +
->>> +    if (edid->blocks > 2)
->>> +        return -E2BIG;
->>> +
->>> +    if (!edid->edid)
->>> +        return -EINVAL;
->>> +
->>> +    memcpy(state->edid, edid->edid, 128 * edid->blocks);
->>> +    state->edid_blocks = edid->blocks;
->>> +
->>> +    ret = edid_write_block(sd, 128 * edid->blocks, state->edid);
->>> +    if (ret < 0)
->>> +        v4l2_err(sd, "Writing EDID failed\n");
->>> +
->>> +    return ret;
->>> +}
->>> +
->>> +/* v4l2_ctrl_ops */
->>> +static int adv761x_s_ctrl(struct v4l2_ctrl *ctrl)
->>> +{
->>> +    struct v4l2_subdev *sd = to_sd(ctrl);
->>> +    u8 val = ctrl->val;
->>> +    int ret;
->>> +
->>> +    switch (ctrl->id) {
->>> +    case V4L2_CID_BRIGHTNESS:
->>> +        ret = cp_write(sd, 0x3c, val);
->>> +        break;
->>> +    case V4L2_CID_CONTRAST:
->>> +        ret = cp_write(sd, 0x3a, val);
->>> +        break;
->>> +    case V4L2_CID_SATURATION:
->>> +        ret = cp_write(sd, 0x3b, val);
->>> +        break;
->>> +    case V4L2_CID_HUE:
->>> +        ret = cp_write(sd, 0x3d, val);
->>> +        break;
->>> +    default:
->>> +        ret = -EINVAL;
->>> +        break;
->>> +    }
->>> +
->>> +    return ret;
->>> +}
->>> +
->>> +/* V4L structures */
->>> +static const struct v4l2_subdev_core_ops adv761x_core_ops = {
->>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->>> +    .g_register    = adv761x_g_register,
->>> +    .s_register    = adv761x_s_register,
->>> +#endif
->>> +};
->>> +
->>> +static const struct v4l2_subdev_video_ops adv761x_video_ops = {
->>> +    .g_input_status = adv761x_g_input_status,
->>> +    .g_mbus_fmt    = adv761x_g_mbus_fmt,
->>> +    .try_mbus_fmt    = adv761x_g_mbus_fmt,
->>> +    .s_mbus_fmt    = adv761x_g_mbus_fmt,
->>> +    .enum_mbus_fmt    = adv761x_enum_mbus_fmt,
->>> +    .g_mbus_config    = adv761x_g_mbus_config,
->>> +};
->>> +
->>> +static const struct v4l2_subdev_pad_ops adv761x_pad_ops = {
->>> +    .get_edid = adv761x_get_edid,
->>> +    .set_edid = adv761x_set_edid,
->>> +};
->>> +
->>> +static const struct v4l2_subdev_ops adv761x_ops = {
->>> +    .core = &adv761x_core_ops,
->>> +    .video = &adv761x_video_ops,
->>> +    .pad = &adv761x_pad_ops,
->>> +};
->>> +
->>> +static const struct v4l2_ctrl_ops adv761x_ctrl_ops = {
->>> +    .s_ctrl = adv761x_s_ctrl,
->>> +};
->>> +
->>> +/* Device initialization and clean-up */
->>> +static void adv761x_unregister_clients(struct adv761x_state *state)
->>> +{
->>> +    if (state->i2c_cec)
->>> +        i2c_unregister_device(state->i2c_cec);
->>> +    if (state->i2c_inf)
->>> +        i2c_unregister_device(state->i2c_inf);
->>> +    if (state->i2c_dpll)
->>> +        i2c_unregister_device(state->i2c_dpll);
->>> +    if (state->i2c_rep)
->>> +        i2c_unregister_device(state->i2c_rep);
->>> +    if (state->i2c_edid)
->>> +        i2c_unregister_device(state->i2c_edid);
->>> +    if (state->i2c_hdmi)
->>> +        i2c_unregister_device(state->i2c_hdmi);
->>> +    if (state->i2c_cp)
->>> +        i2c_unregister_device(state->i2c_cp);
->>> +}
->>> +
->>> +static struct i2c_client *adv761x_dummy_client(struct v4l2_subdev *sd,
->>> +                           u8 addr, u8 def_addr, u8 io_reg)
->>> +{
->>> +    struct i2c_client *client = v4l2_get_subdevdata(sd);
->>> +
->>> +    if (!addr)
->>> +        addr = def_addr;
->>> +
->>> +    io_write(sd, io_reg, addr << 1);
->>> +    return i2c_new_dummy(client->adapter, addr);
->>> +}
->>> +
->>> +static inline int adv761x_check_rev(struct i2c_client *client)
->>> +{
->>> +    int msb, rev;
->>> +
->>> +    msb = adv_smbus_read_byte_data(client, 0xea);
->>> +    if (msb < 0)
->>> +        return msb;
->>> +
->>> +    rev = adv_smbus_read_byte_data(client, 0xeb);
->>> +    if (rev < 0)
->>> +        return rev;
->>> +
->>> +    rev |= msb << 8;
->>> +
->>> +    switch (rev) {
->>> +    case 0x2051:
->>> +        return 7611;
->>> +    case 0x2041:
->>> +        return 7612;
->>> +    default:
->>> +        break;
->>> +    }
->>> +
->>> +    return -ENODEV;
->>> +}
->>> +
->>> +static int adv761x_probe(struct i2c_client *client,
->>> +             const struct i2c_device_id *id)
->>> +{
->>> +    struct adv761x_platform_data *pdata;
->>> +    struct adv761x_state *state;
->>> +    struct v4l2_ctrl_handler *ctrl_hdl;
->>> +    struct v4l2_subdev *sd;
->>> +    int irq, ret;
->>> +
->>> +    /* Check if the adapter supports the needed features */
->>> +    if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
->>> +        return -EIO;
->>> +
->>> +    /* Check chip revision */
->>> +    ret = adv761x_check_rev(client);
->>> +    if (ret < 0)
->>> +        return ret;
->>> +
->>> +    v4l_info(client, "Chip found @ 0x%02x (adv%d)\n", client->addr, ret);
->>> +
->>> +    /* Get platform data */
->>> +    if (id->driver_data == ADV761X_SOC_CAM_QUIRK) {
->>> +        struct soc_camera_subdev_desc *ssdd;
->>> +
->>> +        v4l_info(client, "Using SoC camera glue\n");
->>> +        ssdd = soc_camera_i2c_to_desc(client);
->>> +        pdata = ssdd ? ssdd->drv_priv : NULL;
->>> +    } else {
->>> +        pdata = client->dev.platform_data;
->>> +    }
->>> +
->>> +    if (!pdata) {
->>> +        v4l_err(client, "No platform data found\n");
->>> +        return -ENODEV;
->>> +    }
->>> +
->>> +    state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
->>> +    if (state == NULL) {
->>> +        v4l_err(client, "Memory allocation failed\n");
->>> +        return -ENOMEM;
->>> +    }
->>> +
->>> +    init_rwsem(&state->rwsem);
->>> +
->>> +    /* Setup default values */
->>> +    state->cfmt = &adv761x_cfmts[0];
->>> +    state->width = ADV761X_MAX_WIDTH;
->>> +    state->height = ADV761X_MAX_HEIGHT;
->>> +    state->scanmode = V4L2_FIELD_NONE;
->>> +    state->status = V4L2_IN_ST_NO_SIGNAL;
->>> +    state->gpio = -1;
->>> +
->>> +    /* Setup subdev */
->>> +    sd = &state->sd;
->>> +    v4l2_i2c_subdev_init(sd, client, &adv761x_ops);
->>> +    sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->>> +
->>> +    /* Setup I2C clients */
->>> +    state->i2c_cec = adv761x_dummy_client(sd, pdata->i2c_cec, 0x40, 0xf4);
->>> +    state->i2c_inf = adv761x_dummy_client(sd, pdata->i2c_inf, 0x3e, 0xf5);
->>> +    state->i2c_dpll = adv761x_dummy_client(sd, pdata->i2c_dpll, 0x26, 0xf8);
->>> +    state->i2c_rep = adv761x_dummy_client(sd, pdata->i2c_rep, 0x32, 0xf9);
->>> +    state->i2c_edid = adv761x_dummy_client(sd, pdata->i2c_edid, 0x36, 0xfa);
->>> +    state->i2c_hdmi = adv761x_dummy_client(sd, pdata->i2c_hdmi, 0x34, 0xfb);
->>> +    state->i2c_cp = adv761x_dummy_client(sd, pdata->i2c_cp, 0x22, 0xfd);
->>> +    if (!state->i2c_cec || !state->i2c_inf || !state->i2c_dpll ||
->>> +        !state->i2c_rep || !state->i2c_edid ||
->>> +        !state->i2c_hdmi || !state->i2c_cp) {
->>> +        ret = -ENODEV;
->>> +        v4l2_err(sd, "I2C clients setup failed\n");
->>> +        goto err_i2c;
->>> +    }
->>> +
->>> +    /* Setup control handlers */
->>> +    ctrl_hdl = &state->ctrl_hdl;
->>> +    v4l2_ctrl_handler_init(ctrl_hdl, 4);
->>> +    v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->>> +              V4L2_CID_BRIGHTNESS, -128, 127, 1, 0);
->>> +    v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->>> +              V4L2_CID_CONTRAST, 0, 255, 1, 128);
->>> +    v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->>> +              V4L2_CID_SATURATION, 0, 255, 1, 128);
->>> +    v4l2_ctrl_new_std(ctrl_hdl, &adv761x_ctrl_ops,
->>> +              V4L2_CID_HUE, 0, 255, 1, 0);
->>> +    sd->ctrl_handler = ctrl_hdl;
->>> +    if (ctrl_hdl->error) {
->>> +        ret = ctrl_hdl->error;
->>> +        v4l2_err(sd, "Control handlers setup failed\n");
->>> +        goto err_hdl;
->>> +    }
->>> +
->>> +    /* Setup media entity */
->>> +    state->pad.flags = MEDIA_PAD_FL_SOURCE;
->>> +    ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
->>> +    if (ret) {
->>> +        v4l2_err(sd, "Media entity setup failed\n");
->>> +        goto err_hdl;
->>> +    }
->>> +
->>> +    /* Setup work queue */
->>> +    state->work_queue = create_singlethread_workqueue(client->name);
->>> +    if (!state->work_queue) {
->>> +        ret = -ENOMEM;
->>> +        v4l2_err(sd, "Work queue setup failed\n");
->>> +        goto err_entity;
->>> +    }
->>> +
->>> +    INIT_DELAYED_WORK(&state->enable_hotplug, adv761x_enable_hotplug);
->>> +    INIT_WORK(&state->interrupt_service, adv761x_interrupt_service);
->>> +
->>> +    /* Setup IRQ */
->>> +    irq = client->irq;
->>> +    if (irq <= 0) {
->>> +        v4l_info(client, "Using GPIO IRQ\n");
->>> +        ret = gpio_request_one(pdata->gpio, GPIOF_IN,
->>> +                       ADV761X_DRIVER_NAME);
->>> +        if (ret) {
->>> +            v4l_err(client, "GPIO setup failed\n");
->>> +            goto err_work;
->>> +        }
->>> +
->>> +        state->gpio = pdata->gpio;
->>> +        irq = gpio_to_irq(pdata->gpio);
->>> +    }
->>> +
->>> +    if (irq <= 0) {
->>> +        ret = -ENODEV;
->>> +        v4l_err(client, "IRQ not found\n");
->>> +        goto err_gpio;
->>> +    }
->>> +
->>> +    ret = request_irq(irq, adv761x_irq_handler, IRQF_TRIGGER_RISING,
->>> +              ADV761X_DRIVER_NAME, state);
->>> +    if (ret) {
->>> +        v4l_err(client, "IRQ setup failed\n");
->>> +        goto err_gpio;
->>> +    }
->>> +
->>> +    state->irq = irq;
->>> +
->>> +    /* Setup core registers */
->>> +    ret = adv761x_core_init(sd);
->>> +    if (ret < 0) {
->>> +        v4l_err(client, "Core setup failed\n");
->>> +        goto err_core;
->>> +    }
->>> +
->>> +    return 0;
->>> +
->>> +err_core:
->>> +    adv761x_power_off(sd);
->>> +    free_irq(state->irq, state);
->>> +err_gpio:
->>> +    if (gpio_is_valid(state->gpio))
->>> +        gpio_free(state->gpio);
->>> +err_work:
->>> +    cancel_work_sync(&state->interrupt_service);
->>> +    cancel_delayed_work_sync(&state->enable_hotplug);
->>> +    destroy_workqueue(state->work_queue);
->>> +err_entity:
->>> +    media_entity_cleanup(&sd->entity);
->>> +err_hdl:
->>> +    v4l2_ctrl_handler_free(ctrl_hdl);
->>> +err_i2c:
->>> +    adv761x_unregister_clients(state);
->>> +    return ret;
->>> +}
->>> +
->>> +static int adv761x_remove(struct i2c_client *client)
->>> +{
->>> +    struct v4l2_subdev *sd = i2c_get_clientdata(client);
->>> +    struct adv761x_state *state = to_state(sd);
->>> +
->>> +    /* Release IRQ/GPIO */
->>> +    free_irq(state->irq, state);
->>> +    if (gpio_is_valid(state->gpio))
->>> +        gpio_free(state->gpio);
->>> +
->>> +    /* Destroy workqueue */
->>> +    cancel_work_sync(&state->interrupt_service);
->>> +    cancel_delayed_work_sync(&state->enable_hotplug);
->>> +    destroy_workqueue(state->work_queue);
->>> +
->>> +    /* Power off */
->>> +    adv761x_power_off(sd);
->>> +
->>> +    /* Clean up*/
->>> +    v4l2_device_unregister_subdev(sd);
->>> +    media_entity_cleanup(&sd->entity);
->>> +    v4l2_ctrl_handler_free(sd->ctrl_handler);
->>> +    adv761x_unregister_clients(state);
->>> +    return 0;
->>> +}
->>> +
->>> +static const struct i2c_device_id adv761x_id[] = {
->>> +    { "adv761x", 0 },
->>> +    { "adv761x-soc_cam", ADV761X_SOC_CAM_QUIRK },
->>> +    { },
->>> +};
->>> +
->>> +MODULE_DEVICE_TABLE(i2c, adv761x_id);
->>> +
->>> +static struct i2c_driver adv761x_driver = {
->>> +    .driver = {
->>> +        .owner    = THIS_MODULE,
->>> +        .name    = ADV761X_DRIVER_NAME,
->>> +    },
->>> +    .probe        = adv761x_probe,
->>> +    .remove        = adv761x_remove,
->>> +    .id_table    = adv761x_id,
->>> +};
->>> +
->>> +module_i2c_driver(adv761x_driver);
->>> +
->>> +MODULE_LICENSE("GPL v2");
->>> +MODULE_DESCRIPTION("ADV761X HDMI receiver video decoder driver");
->>> +MODULE_AUTHOR("Valentine Barshak <valentine.barshak@cogentembedded.com>");
->>> diff --git a/include/media/adv761x.h b/include/media/adv761x.h
->>> new file mode 100644
->>> index 0000000..ec54361
->>> --- /dev/null
->>> +++ b/include/media/adv761x.h
->>> @@ -0,0 +1,38 @@
->>> +/*
->>> + * adv761x Analog Devices ADV761X HDMI receiver driver
->>> + *
->>> + * Copyright (C) 2013 Cogent Embedded, Inc.
->>> + * Copyright (C) 2013 Renesas Electronics Corporation
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + */
->>> +
->>> +#ifndef _ADV761X_H_
->>> +#define _ADV761X_H_
->>> +
->>> +struct adv761x_platform_data {
->>> +    /* INT1 GPIO IRQ */
->>> +    int gpio;
->>> +
->>> +    /* I2C addresses: 0 == use default */
->>> +    u8 i2c_cec;
->>> +    u8 i2c_inf;
->>> +    u8 i2c_dpll;
->>> +    u8 i2c_rep;
->>> +    u8 i2c_edid;
->>> +    u8 i2c_hdmi;
->>> +    u8 i2c_cp;
->>> +};
->>> +
->>> +/* Notify events */
->>> +#define ADV761X_HOTPLUG        1
->>> +#define ADV761X_FMT_CHANGE    2
->>> +
->>> +#endif    /* _ADV761X_H_ */
->>>
->>
-> 
+diff --git a/drivers/media/pci/bt8xx/Kconfig b/drivers/media/pci/bt8xx/Kconfig
+index 61d09e0..4936dcb1 100644
+--- a/drivers/media/pci/bt8xx/Kconfig
++++ b/drivers/media/pci/bt8xx/Kconfig
+@@ -11,6 +11,7 @@ config VIDEO_BT848
+ 	select VIDEO_TVAUDIO if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_TDA7432 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_SAA6588 if MEDIA_SUBDRV_AUTOSELECT
++	select RADIO_TEA575X
+ 	---help---
+ 	  Support for BT848 based frame grabber/overlay boards. This includes
+ 	  the Miro, Hauppauge and STB boards. Please read the material in
+diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+index d85cb0a..4a444e8 100644
+--- a/drivers/media/pci/bt8xx/bttv-cards.c
++++ b/drivers/media/pci/bt8xx/bttv-cards.c
+@@ -83,8 +83,7 @@ static void gv800s_init(struct bttv *btv);
+ static void td3116_muxsel(struct bttv *btv, unsigned int input);
+ 
+ static int terratec_active_radio_upgrade(struct bttv *btv);
+-static int tea5757_read(struct bttv *btv);
+-static int tea5757_write(struct bttv *btv, int value);
++static int tea575x_init(struct bttv *btv);
+ static void identify_by_eeprom(struct bttv *btv,
+ 			       unsigned char eeprom_data[256]);
+ static int pvr_boot(struct bttv *btv);
+@@ -3053,12 +3052,12 @@ static void miro_pinnacle_gpio(struct bttv *btv)
+ 		if (0 == (gpio & 0x20)) {
+ 			btv->has_radio = 1;
+ 			if (!miro_fmtuner[id]) {
+-				btv->has_matchbox = 1;
+-				btv->mbox_we    = (1<<6);
+-				btv->mbox_most  = (1<<7);
+-				btv->mbox_clk   = (1<<8);
+-				btv->mbox_data  = (1<<9);
+-				btv->mbox_mask  = (1<<6)|(1<<7)|(1<<8)|(1<<9);
++				btv->has_tea575x = 1;
++				btv->tea_gpio.wren = 6;
++				btv->tea_gpio.most = 7;
++				btv->tea_gpio.clk  = 8;
++				btv->tea_gpio.data = 9;
++				tea575x_init(btv);
+ 			}
+ 		} else {
+ 			btv->has_radio = 0;
+@@ -3072,7 +3071,7 @@ static void miro_pinnacle_gpio(struct bttv *btv)
+ 		pr_info("%d: miro: id=%d tuner=%d radio=%s stereo=%s\n",
+ 			btv->c.nr, id+1, btv->tuner_type,
+ 			!btv->has_radio ? "no" :
+-			(btv->has_matchbox ? "matchbox" : "fmtuner"),
++			(btv->has_tea575x ? "tea575x" : "fmtuner"),
+ 			(-1 == msp) ? "no" : "yes");
+ 	} else {
+ 		/* new cards with microtune tuner */
+@@ -3347,12 +3346,12 @@ void bttv_init_card2(struct bttv *btv)
+ 		break;
+ 	case BTTV_BOARD_VHX:
+ 		btv->has_radio    = 1;
+-		btv->has_matchbox = 1;
+-		btv->mbox_we      = 0x20;
+-		btv->mbox_most    = 0;
+-		btv->mbox_clk     = 0x08;
+-		btv->mbox_data    = 0x10;
+-		btv->mbox_mask    = 0x38;
++		btv->has_tea575x  = 1;
++		btv->tea_gpio.wren = 5;
++		btv->tea_gpio.most = 6;
++		btv->tea_gpio.clk  = 3;
++		btv->tea_gpio.data = 4;
++		tea575x_init(btv);
+ 		break;
+ 	case BTTV_BOARD_VOBIS_BOOSTAR:
+ 	case BTTV_BOARD_TERRATV:
+@@ -3710,33 +3709,112 @@ static void hauppauge_eeprom(struct bttv *btv)
+ 		btv->radio_uses_msp_demodulator = 1;
+ }
+ 
+-static int terratec_active_radio_upgrade(struct bttv *btv)
++/* ----------------------------------------------------------------------- */
++
++static void bttv_tea575x_set_pins(struct snd_tea575x *tea, u8 pins)
++{
++	struct bttv *btv = tea->private_data;
++	struct bttv_tea575x_gpio gpio = btv->tea_gpio;
++	u16 val = 0;
++
++	val |= (pins & TEA575X_DATA) ? (1 << gpio.data) : 0;
++	val |= (pins & TEA575X_CLK)  ? (1 << gpio.clk)  : 0;
++	val |= (pins & TEA575X_WREN) ? (1 << gpio.wren) : 0;
++
++	gpio_bits((1 << gpio.data) | (1 << gpio.clk) | (1 << gpio.wren), val);
++	if (btv->mbox_ior) {
++		/* IOW and CSEL active */
++		gpio_bits(btv->mbox_iow | btv->mbox_csel, 0);
++		udelay(5);
++		/* all inactive */
++		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
++			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
++	}
++}
++
++static u8 bttv_tea575x_get_pins(struct snd_tea575x *tea)
+ {
+-	int freq;
++	struct bttv *btv = tea->private_data;
++	struct bttv_tea575x_gpio gpio = btv->tea_gpio;
++	u8 ret = 0;
++	u16 val;
++
++	if (btv->mbox_ior) {
++		/* IOR and CSEL active */
++		gpio_bits(btv->mbox_ior | btv->mbox_csel, 0);
++		udelay(5);
++	}
++	val = gpio_read();
++	if (btv->mbox_ior) {
++		/* all inactive */
++		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
++			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
++	}
++
++	if (val & (1 << gpio.data))
++		ret |= TEA575X_DATA;
++	if (val & (1 << gpio.most))
++		ret |= TEA575X_MOST;
++
++	return ret;
++}
++
++static void bttv_tea575x_set_direction(struct snd_tea575x *tea, bool output)
++{
++	struct bttv *btv = tea->private_data;
++	struct bttv_tea575x_gpio gpio = btv->tea_gpio;
++	u32 mask = (1 << gpio.clk) | (1 << gpio.wren) | (1 << gpio.data) |
++		   (1 << gpio.most);
++
++	if (output)
++		gpio_inout(mask, (1 << gpio.data) | (1 << gpio.clk) |
++				 (1 << gpio.wren));
++	else
++		gpio_inout(mask, (1 << gpio.clk) | (1 << gpio.wren));
++}
++
++static struct snd_tea575x_ops bttv_tea_ops = {
++	.set_pins = bttv_tea575x_set_pins,
++	.get_pins = bttv_tea575x_get_pins,
++	.set_direction = bttv_tea575x_set_direction,
++};
++
++static int tea575x_init(struct bttv *btv)
++{
++	btv->tea.private_data = btv;
++	btv->tea.ops = &bttv_tea_ops;
++	if (!snd_tea575x_hw_init(&btv->tea)) {
++		pr_info("%d: detected TEA575x radio\n", btv->c.nr);
++		btv->tea.mute = false;
++		return 0;
++	}
+ 
++	btv->has_tea575x = 0;
++	btv->has_radio = 0;
++
++	return -ENODEV;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static int terratec_active_radio_upgrade(struct bttv *btv)
++{
+ 	btv->has_radio    = 1;
+-	btv->has_matchbox = 1;
+-	btv->mbox_we      = 0x10;
+-	btv->mbox_most    = 0x20;
+-	btv->mbox_clk     = 0x08;
+-	btv->mbox_data    = 0x04;
+-	btv->mbox_mask    = 0x3c;
++	btv->has_tea575x  = 1;
++	btv->tea_gpio.wren = 4;
++	btv->tea_gpio.most = 5;
++	btv->tea_gpio.clk  = 3;
++	btv->tea_gpio.data = 2;
+ 
+ 	btv->mbox_iow     = 1 <<  8;
+ 	btv->mbox_ior     = 1 <<  9;
+ 	btv->mbox_csel    = 1 << 10;
+ 
+-	freq=88000/62.5;
+-	tea5757_write(btv, 5 * freq + 0x358); /* write 0x1ed8 */
+-	if (0x1ed8 == tea5757_read(btv)) {
++	if (!tea575x_init(btv)) {
+ 		pr_info("%d: Terratec Active Radio Upgrade found\n", btv->c.nr);
+-		btv->has_radio    = 1;
+-		btv->has_saa6588  = 1;
+-		btv->has_matchbox = 1;
+-	} else {
+-		btv->has_radio    = 0;
+-		btv->has_matchbox = 0;
++		btv->has_saa6588 = 1;
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -4167,181 +4245,6 @@ init_RTV24 (struct bttv *btv)
+ 	pr_info("%d: Adlink RTV-24 initialisation complete\n", btv->c.nr);
+ }
+ 
+-
+-
+-/* ----------------------------------------------------------------------- */
+-/* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
+-/*
+- * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
+- * This code is placed under the terms of the GNU General Public License
+- *
+- * Brutally hacked by Dan Sheridan <dan.sheridan@contact.org.uk> djs52 8/3/00
+- */
+-
+-static void bus_low(struct bttv *btv, int bit)
+-{
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
+-			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
+-		udelay(5);
+-	}
+-
+-	gpio_bits(bit,0);
+-	udelay(5);
+-
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_iow | btv->mbox_csel, 0);
+-		udelay(5);
+-	}
+-}
+-
+-static void bus_high(struct bttv *btv, int bit)
+-{
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
+-			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
+-		udelay(5);
+-	}
+-
+-	gpio_bits(bit,bit);
+-	udelay(5);
+-
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_iow | btv->mbox_csel, 0);
+-		udelay(5);
+-	}
+-}
+-
+-static int bus_in(struct bttv *btv, int bit)
+-{
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
+-			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
+-		udelay(5);
+-
+-		gpio_bits(btv->mbox_iow | btv->mbox_csel, 0);
+-		udelay(5);
+-	}
+-	return gpio_read() & (bit);
+-}
+-
+-/* TEA5757 register bits */
+-#define TEA_FREQ		0:14
+-#define TEA_BUFFER		15:15
+-
+-#define TEA_SIGNAL_STRENGTH	16:17
+-
+-#define TEA_PORT1		18:18
+-#define TEA_PORT0		19:19
+-
+-#define TEA_BAND		20:21
+-#define TEA_BAND_FM		0
+-#define TEA_BAND_MW		1
+-#define TEA_BAND_LW		2
+-#define TEA_BAND_SW		3
+-
+-#define TEA_MONO		22:22
+-#define TEA_ALLOW_STEREO	0
+-#define TEA_FORCE_MONO		1
+-
+-#define TEA_SEARCH_DIRECTION	23:23
+-#define TEA_SEARCH_DOWN		0
+-#define TEA_SEARCH_UP		1
+-
+-#define TEA_STATUS		24:24
+-#define TEA_STATUS_TUNED	0
+-#define TEA_STATUS_SEARCHING	1
+-
+-/* Low-level stuff */
+-static int tea5757_read(struct bttv *btv)
+-{
+-	unsigned long timeout;
+-	int value = 0;
+-	int i;
+-
+-	/* better safe than sorry */
+-	gpio_inout(btv->mbox_mask, btv->mbox_clk | btv->mbox_we);
+-
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
+-			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
+-		udelay(5);
+-	}
+-
+-	if (bttv_gpio)
+-		bttv_gpio_tracking(btv,"tea5757 read");
+-
+-	bus_low(btv,btv->mbox_we);
+-	bus_low(btv,btv->mbox_clk);
+-
+-	udelay(10);
+-	timeout= jiffies + msecs_to_jiffies(1000);
+-
+-	/* wait for DATA line to go low; error if it doesn't */
+-	while (bus_in(btv,btv->mbox_data) && time_before(jiffies, timeout))
+-		schedule();
+-	if (bus_in(btv,btv->mbox_data)) {
+-		pr_warn("%d: tea5757: read timeout\n", btv->c.nr);
+-		return -1;
+-	}
+-
+-	dprintk("%d: tea5757:", btv->c.nr);
+-	for (i = 0; i < 24; i++) {
+-		udelay(5);
+-		bus_high(btv,btv->mbox_clk);
+-		udelay(5);
+-		dprintk_cont("%c",
+-			     bus_in(btv, btv->mbox_most) == 0 ? 'T' : '-');
+-		bus_low(btv,btv->mbox_clk);
+-		value <<= 1;
+-		value |= (bus_in(btv,btv->mbox_data) == 0)?0:1;  /* MSB first */
+-		dprintk_cont("%c",
+-			     bus_in(btv, btv->mbox_most) == 0 ? 'S' : 'M');
+-	}
+-	dprintk_cont("\n");
+-	dprintk("%d: tea5757: read 0x%X\n", btv->c.nr, value);
+-	return value;
+-}
+-
+-static int tea5757_write(struct bttv *btv, int value)
+-{
+-	int i;
+-	int reg = value;
+-
+-	gpio_inout(btv->mbox_mask, btv->mbox_clk | btv->mbox_we | btv->mbox_data);
+-
+-	if (btv->mbox_ior) {
+-		gpio_bits(btv->mbox_ior | btv->mbox_iow | btv->mbox_csel,
+-			  btv->mbox_ior | btv->mbox_iow | btv->mbox_csel);
+-		udelay(5);
+-	}
+-	if (bttv_gpio)
+-		bttv_gpio_tracking(btv,"tea5757 write");
+-
+-	dprintk("%d: tea5757: write 0x%X\n", btv->c.nr, value);
+-	bus_low(btv,btv->mbox_clk);
+-	bus_high(btv,btv->mbox_we);
+-	for (i = 0; i < 25; i++) {
+-		if (reg & 0x1000000)
+-			bus_high(btv,btv->mbox_data);
+-		else
+-			bus_low(btv,btv->mbox_data);
+-		reg <<= 1;
+-		bus_high(btv,btv->mbox_clk);
+-		udelay(10);
+-		bus_low(btv,btv->mbox_clk);
+-		udelay(10);
+-	}
+-	bus_low(btv,btv->mbox_we);  /* unmute !!! */
+-	return 0;
+-}
+-
+-void tea5757_set_freq(struct bttv *btv, unsigned short freq)
+-{
+-	dprintk("tea5757_set_freq %d\n",freq);
+-	tea5757_write(btv, 5 * freq + 0x358); /* add 10.7MHz (see docs) */
+-}
+-
+ /* RemoteVision MX (rv605) muxsel helper [Miguel Freitas]
+  *
+  * This is needed because rv605 don't use a normal multiplex, but a crosspoint
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index a3b1ee9..51ffbc1 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1875,8 +1875,10 @@ static void bttv_set_frequency(struct bttv *btv, const struct v4l2_frequency *f)
+ 	if (new_freq.type == V4L2_TUNER_RADIO) {
+ 		radio_enable(btv);
+ 		btv->radio_freq = new_freq.frequency;
+-		if (btv->has_matchbox)
+-			tea5757_set_freq(btv, btv->radio_freq);
++		if (btv->has_tea575x) {
++			btv->tea.freq = btv->radio_freq;
++			snd_tea575x_set_freq(&btv->tea);
++		}
+ 	} else {
+ 		btv->tv_freq = new_freq.frequency;
+ 	}
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index 6eefb59..157af4e 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -42,6 +42,7 @@
+ #include <media/tveeprom.h>
+ #include <media/rc-core.h>
+ #include <media/ir-kbd-i2c.h>
++#include <media/tea575x.h>
+ 
+ #include "bt848.h"
+ #include "bttv.h"
+@@ -361,6 +362,10 @@ struct bttv_suspend_state {
+ 	struct bttv_buffer     *vbi;
+ };
+ 
++struct bttv_tea575x_gpio {
++	u8 data, clk, wren, most;
++};
++
+ struct bttv {
+ 	struct bttv_core c;
+ 
+@@ -447,12 +452,9 @@ struct bttv {
+ 
+ 	/* miro/pinnacle + Aimslab VHX
+ 	   philips matchbox (tea5757 radio tuner) support */
+-	int has_matchbox;
+-	int mbox_we;
+-	int mbox_data;
+-	int mbox_clk;
+-	int mbox_most;
+-	int mbox_mask;
++	int has_tea575x;
++	struct bttv_tea575x_gpio tea_gpio;
++	struct snd_tea575x tea;
+ 
+ 	/* ISA stuff (Terratec Active Radio Upgrade) */
+ 	int mbox_ior;
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 6ecdc39..992ebe3 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -10,11 +10,11 @@ menuconfig RADIO_ADAPTERS
+ 	---help---
+ 	  Say Y here to enable selecting AM/FM radio adapters.
+ 
+-if RADIO_ADAPTERS && VIDEO_V4L2
+-
+ config RADIO_TEA575X
+ 	tristate
+ 
++if RADIO_ADAPTERS && VIDEO_V4L2
++
+ config RADIO_SI470X
+ 	bool "Silicon Labs Si470x FM Radio Receiver support"
+ 	depends on VIDEO_V4L2
+-- 
+Ondrej Zary
 
