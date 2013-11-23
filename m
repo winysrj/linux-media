@@ -1,164 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49319 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753758Ab3KETxa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 14:53:30 -0500
-Date: Tue, 5 Nov 2013 20:53:25 +0100
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: lbyang <lbyang@marvell.com>
-Cc: corbet@lwn.net, linux-media@vger.kernel.org, linux@arm.linux.org.uk
-Subject: Re: [RFC] [PATCH] media: marvell-ccic: use devm to release clk
-Message-ID: <20131105195325.GP14892@pengutronix.de>
-References: <1383643996.30496.3.camel@younglee-desktop>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:35832 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab3KWLPL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Nov 2013 06:15:11 -0500
+Received: by mail-la0-f53.google.com with SMTP id ea20so1677765lab.12
+        for <linux-media@vger.kernel.org>; Sat, 23 Nov 2013 03:15:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1383643996.30496.3.camel@younglee-desktop>
+In-Reply-To: <5290899A.8070707@xs4all.nl>
+References: <5290899A.8070707@xs4all.nl>
+Date: Sat, 23 Nov 2013 16:45:09 +0530
+Message-ID: <CAHFNz9J==ebJN-um61-UeeWce81usYpn-QWD8PB2FsGqZwLupg@mail.gmail.com>
+Subject: Re: [PATCHv2 dvb-apps] Silence last warnings in dvbscan.c
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 05, 2013 at 05:33:16PM +0800, lbyang wrote:
-> From: Libin Yang <lbyang@marvell.com>
-> Date: Tue, 5 Nov 2013 16:29:07 +0800
-> Subject: [PATCH] media: marvell-ccic: use devm to release clk
-> 
-> This patch uses devm to release the clks instead of releasing
-> manually.
-> And it adds enable/disable mipi_clk when getting its rate.
-> 
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-The driver still is no beauty, but with this patch the clk usage at
-least seems to be API conformant.
+On Sat, Nov 23, 2013 at 4:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Mike,
+>
+> This is the revised version of the patch I mailed earlier. As you requested
+> I now use #if 0 instead of commenting out line to silence the warnings.
+>
+> Regards,
+>
+>         Hans
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> diff -r 7161fa4a3e33 util/dvbscan/dvbscan.c
+> --- a/util/dvbscan/dvbscan.c    Thu Nov 14 16:45:24 2013 -0500
+> +++ b/util/dvbscan/dvbscan.c    Sat Nov 23 11:54:53 2013 +0100
+> @@ -74,8 +74,8 @@
+>                 "                                               Dual LO, H:5150MHz, V:5750MHz.\n"
+>                 "                        * One of the sec definitions from the secfile if supplied\n"
+>                 " -satpos <position>    Specify DISEQC switch position for DVB-S.\n"
+> -               " -inversion <on|off|auto> Specify inversion (default: auto).\n"
+> -               " -uk-ordering          Use UK DVB-T channel ordering if present.\n"
+> +               " -inversion <on|off|auto> Specify inversion (default: auto) (note: this option is ignored).\n"
+> +               " -uk-ordering          Use UK DVB-T channel ordering if present (note: this option is ignored).\n"
+>                 " -timeout <secs>       Specify filter timeout to use (standard specced values will be used by default)\n"
+>                 " -filter <filter>      Specify service filter, a comma seperated list of the following tokens:\n"
+>                 "                        (If no filter is supplied, all services will be output)\n"
+> @@ -83,10 +83,11 @@
+>                 "                        * radio - Output radio channels\n"
+>                 "                        * other - Output other channels\n"
+>                 "                        * encrypted - Output encrypted channels\n"
+> -               " -out raw <filename>|-  Output in raw format to <filename> or stdout\n"
+> +               " -out raw <filename>|- Output in raw format to <filename> or stdout\n"
+>                 "      channels <filename>|-  Output in channels.conf format to <filename> or stdout.\n"
+>                 "      vdr12 <filename>|- Output in vdr 1.2.x format to <filename> or stdout.\n"
+>                 "      vdr13 <filename>|- Output in vdr 1.3.x format to <filename> or stdout.\n"
+> +               "                       Note: this option is ignored.\n"
+>                 " <initial scan file>\n";
+>         fprintf(stderr, "%s\n", _usage);
+>
+> @@ -121,15 +122,17 @@
+>         char *secfile = NULL;
+>         char *secid = NULL;
+>         int satpos = 0;
+> -       enum dvbfe_spectral_inversion inversion = DVBFE_INVERSION_AUTO;
+>         int service_filter = -1;
+> -       int uk_ordering = 0;
+>         int timeout = 5;
+> -       int output_type = OUTPUT_TYPE_RAW;
+> -       char *output_filename = NULL;
+>         char *scan_filename = NULL;
+>         struct dvbsec_config sec;
+>         int valid_sec = 0;
+> +#if 0
+> +       char *output_filename = NULL;
+> +       enum dvbfe_spectral_inversion inversion = DVBFE_INVERSION_AUTO;
+> +       int output_type = OUTPUT_TYPE_RAW;
+> +       int uk_ordering = 0;
+> +#endif
+>
+>         while(argpos != argc) {
+>                 if (!strcmp(argv[argpos], "-h")) {
+> @@ -171,6 +174,7 @@
+>                 } else if (!strcmp(argv[argpos], "-inversion")) {
+>                         if ((argc - argpos) < 2)
+>                                 usage();
+> +#if 0
+>                         if (!strcmp(argv[argpos+1], "off")) {
+>                                 inversion = DVBFE_INVERSION_OFF;
+>                         } else if (!strcmp(argv[argpos+1], "on")) {
+> @@ -180,11 +184,14 @@
+>                         } else {
+>                                 usage();
+>                         }
+> +#endif
+>                         argpos+=2;
+>                 } else if (!strcmp(argv[argpos], "-uk-ordering")) {
+>                         if ((argc - argpos) < 1)
+>                                 usage();
+> +#if 0
+>                         uk_ordering = 1;
+> +#endif
+>                 } else if (!strcmp(argv[argpos], "-timeout")) {
+>                         if ((argc - argpos) < 2)
+>                                 usage();
+> @@ -211,6 +218,7 @@
+>                 } else if (!strcmp(argv[argpos], "-out")) {
+>                         if ((argc - argpos) < 3)
+>                                 usage();
+> +#if 0
+>                         if (!strcmp(argv[argpos+1], "raw")) {
+>                                 output_type = OUTPUT_TYPE_RAW;
+>                         } else if (!strcmp(argv[argpos+1], "channels")) {
+> @@ -225,6 +233,7 @@
+>                         output_filename = argv[argpos+2];
+>                         if (!strcmp(output_filename, "-"))
+>                                 output_filename = NULL;
+> +#endif
+>                 } else {
+>                         if ((argc - argpos) != 1)
+>                                 usage();
+> --
 
-Acked-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Sorry, I missed you earlier patch.
 
-> ---
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   39
-> +++++-----------------
->  1 file changed, 8 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index 70cb57f..054507f 100644
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -142,12 +142,6 @@ static int mmpcam_power_up(struct mcam_camera
-> *mcam)
->  	struct mmp_camera *cam = mcam_to_cam(mcam);
->  	struct mmp_camera_platform_data *pdata;
->  
-> -	if (mcam->bus_type == V4L2_MBUS_CSI2) {
-> -		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
-> -		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
-> -			return PTR_ERR(cam->mipi_clk);
-> -	}
-> -
->  /*
->   * Turn on power and clocks to the controller.
->   */
-> @@ -186,12 +180,6 @@ static void mmpcam_power_down(struct mcam_camera
-> *mcam)
->  	gpio_set_value(pdata->sensor_power_gpio, 0);
->  	gpio_set_value(pdata->sensor_reset_gpio, 0);
->  
-> -	if (mcam->bus_type == V4L2_MBUS_CSI2 && !IS_ERR(cam->mipi_clk)) {
-> -		if (cam->mipi_clk)
-> -			devm_clk_put(mcam->dev, cam->mipi_clk);
-> -		cam->mipi_clk = NULL;
-> -	}
-> -
->  	mcam_clk_disable(mcam);
->  }
->  
-> @@ -292,8 +280,9 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
->  		return;
->  
->  	/* get the escape clk, this is hard coded */
-> +	clk_prepare_enable(cam->mipi_clk);
->  	tx_clk_esc = (clk_get_rate(cam->mipi_clk) / 1000000) / 12;
-> -
-> +	clk_disable_unprepare(cam->mipi_clk);
->  	/*
->  	 * dphy[2] - CSI2_DPHY6:
->  	 * bit 0 ~ bit 7: CK Term Enable
-> @@ -325,19 +314,6 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
->  	return IRQ_RETVAL(handled);
->  }
->  
-> -static void mcam_deinit_clk(struct mcam_camera *mcam)
-> -{
-> -	unsigned int i;
-> -
-> -	for (i = 0; i < NR_MCAM_CLK; i++) {
-> -		if (!IS_ERR(mcam->clk[i])) {
-> -			if (mcam->clk[i])
-> -				devm_clk_put(mcam->dev, mcam->clk[i]);
-> -		}
-> -		mcam->clk[i] = NULL;
-> -	}
-> -}
-> -
->  static void mcam_init_clk(struct mcam_camera *mcam)
->  {
->  	unsigned int i;
-> @@ -371,7 +347,6 @@ static int mmpcam_probe(struct platform_device
-> *pdev)
->  	if (cam == NULL)
->  		return -ENOMEM;
->  	cam->pdev = pdev;
-> -	cam->mipi_clk = NULL;
->  	INIT_LIST_HEAD(&cam->devlist);
->  
->  	mcam = &cam->mcam;
-> @@ -387,6 +362,11 @@ static int mmpcam_probe(struct platform_device
-> *pdev)
->  	mcam->mclk_div = pdata->mclk_div;
->  	mcam->bus_type = pdata->bus_type;
->  	mcam->dphy = pdata->dphy;
-> +	if (mcam->bus_type == V4L2_MBUS_CSI2) {
-> +		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
-> +		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
-> +			return PTR_ERR(cam->mipi_clk);
-> +	}
->  	mcam->mipi_enabled = false;
->  	mcam->lane = pdata->lane;
->  	mcam->chip_id = MCAM_ARMADA610;
-> @@ -444,7 +424,7 @@ static int mmpcam_probe(struct platform_device
-> *pdev)
->  	 */
->  	ret = mmpcam_power_up(mcam);
->  	if (ret)
-> -		goto out_deinit_clk;
-> +		return ret;
->  	ret = mccic_register(mcam);
->  	if (ret)
->  		goto out_power_down;
-> @@ -469,8 +449,6 @@ out_unregister:
->  	mccic_shutdown(mcam);
->  out_power_down:
->  	mmpcam_power_down(mcam);
-> -out_deinit_clk:
-> -	mcam_deinit_clk(mcam);
->  	return ret;
->  }
->  
-> @@ -482,7 +460,6 @@ static int mmpcam_remove(struct mmp_camera *cam)
->  	mmpcam_remove_device(cam);
->  	mccic_shutdown(mcam);
->  	mmpcam_power_down(mcam);
-> -	mcam_deinit_clk(mcam);
->  	return 0;
->  }
->  
-> -- 
-> 1.7.9.5
-> 
-> 
-> 
-> 
+Please remove the obsolete flags and the #if 0. Those are pointless.
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Regards,
+
+Manu
