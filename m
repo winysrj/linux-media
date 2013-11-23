@@ -1,56 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54737 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757540Ab3K0RWk (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3889 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab3KWDb7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 12:22:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Valentine <valentine.barshak@cogentembedded.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-Date: Wed, 27 Nov 2013 17:29:47 +0100
-Message-ID: <3727129.B5lM1JXKsv@avalon>
-In-Reply-To: <529606AA.7050209@metafoo.de>
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <5295E231.9030200@cisco.com> <529606AA.7050209@metafoo.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 22 Nov 2013 22:31:59 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAN3VuON084909
+	for <linux-media@vger.kernel.org>; Sat, 23 Nov 2013 04:31:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 50D6F2A221E
+	for <linux-media@vger.kernel.org>; Sat, 23 Nov 2013 04:31:46 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131123033146.50D6F2A221E@tschai.lan>
+Date: Sat, 23 Nov 2013 04:31:46 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 27 November 2013 15:50:18 Lars-Peter Clausen wrote:
-> On 11/27/2013 01:14 PM, Hans Verkuil wrote:
-> [...]
-> 
-> >>> For our systems the adv7604 interrupts is not always hooked up to a gpio
-> >>> irq, instead a register has to be read to figure out which device
-> >>> actually produced the irq.
-> >> 
-> >> Where is that register located ? Shouldn't it be modeled as an interrupt
-> >> controller ?
-> > 
-> > It's a PCIe interrupt whose handler needs to read several FPGA registers
-> > in order to figure out which interrupt was actually triggered. I don't
-> > know enough about interrupt controller to understand whether it can be
-> > modeled as a 'standard' interrupt.
-> 
-> This sounds as if it should be implemented as a irq_chip driver. There are a
-> couple of examples in drivers/irqchip/
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Exactly, that was my point. A piece of hardware that takes several interrupt 
-inputs, includes mask and flag registers and generate a single interrupt 
-towards the system is an interrupt controller and should have be handled by 
-the Linux irqchip infrastructure.
+Results of the daily build of media_tree:
 
--- 
-Regards,
+date:		Sat Nov 23 04:00:28 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-Laurent Pinchart
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
