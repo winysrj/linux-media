@@ -1,109 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43308 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754421Ab3KENDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 21/29] [media] v4l2-async: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:34 -0200
-Message-Id: <1383645702-30636-22-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-out.m-online.net ([212.18.0.9]:35563 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371Ab3KXSjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Nov 2013 13:39:16 -0500
+Date: Sun, 24 Nov 2013 19:39:08 +0100
+From: Gerhard Sittig <gsi@denx.de>
+To: linuxppc-dev@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org,
+	Anatolij Gustschin <agust@denx.de>,
+	Mike Turquette <mturquette@linaro.org>
+Cc: Scott Wood <scottwood@freescale.com>, Detlev Zundel <dzu@denx.de>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	David Woodhouse <dwmw2@infradead.org>,
+	devicetree@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Jiri Slaby <jslaby@suse.cz>,
+	Kumar Gala <galak@kernel.crashing.org>,
+	linux-can@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mtd@lists.infradead.org, linux-serial@vger.kernel.org,
+	linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
+	Marc Kleine-Budde <mkl@pengutronix.de>,
+	Mark Brown <broonie@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Paul Mackerras <paulus@samba.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Wolfgang Grandegger <wg@grandegger.com>
+Subject: Re: [PATCH v5 00/17] add COMMON_CLK support for PowerPC MPC512x
+Message-ID: <20131124183908.GG2760@book.gsilab.sittig.org>
+References: <1384729577-7336-1-git-send-email-gsi@denx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1384729577-7336-1-git-send-email-gsi@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/v4l2-core/v4l2-async.c:238:1: warning: 'v4l2_async_notifier_unregister' uses dynamic stack allocation [enabled by default]
+On Mon, Nov 18, 2013 at 00:06 +0100, Gerhard Sittig wrote:
+> 
+> the series is based on v3.12, but I'll rebase against v3.13-rc1
+> (when available) or any other subtree upon request
 
-Instead, let's enforce a limit for the buffer.
+Now that v3.13-rc1 is out, I noticed that the series no longer
+applies cleanly (minor context changes and conflicts) and needs
+minor adjustment.
 
-In this specific case, there's a hard limit imposed by V4L2_MAX_SUBDEVS,
-with is currently 128. That means that the buffer size can be up to
-128x8 = 1024 bytes (on a 64bits kernel), with is too big for stack.
+Compilation of 4/17 requires <linux/of_address.h> which no longer
+is included implicitly.
 
-Worse than that, someone could increase it and cause real troubles.
-So, let's use dynamically allocated data, instead.
+PPC_CLOCK removal in 7/17 should remove <asm/clk_interface.h> as
+well after all references to this header file have gone.  (And
+the context of the patch has changed.)
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+The context of 16/17 for DIU initialization has changed.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index c85d69da35bd..b56c9f300ecb 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -189,23 +189,41 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	struct v4l2_subdev *sd, *tmp;
- 	unsigned int notif_n_subdev = notifier->num_subdevs;
- 	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
--	struct device *dev[n_subdev];
-+	struct device **dev;
- 	int i = 0;
- 
- 	if (!notifier->v4l2_dev)
- 		return;
- 
-+	dev = kmalloc(n_subdev * sizeof(*dev), GFP_KERNEL);
-+	if (!dev) {
-+		dev_err(notifier->v4l2_dev->dev,
-+			"Failed to allocate device cache!\n");
-+	}
-+
- 	mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		dev[i] = get_device(sd->dev);
-+		struct device *d;
-+
-+		d = get_device(sd->dev);
- 
- 		v4l2_async_cleanup(sd);
- 
- 		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(dev[i++]);
-+		device_release_driver(d);
-+
-+
-+		/*
-+		 * Store device at the device cache, in order to call
-+		 * put_device() on the final step
-+		 */
-+		if (dev)
-+			dev[i++] = d;
-+		else
-+			put_device(d);
- 
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
-@@ -213,6 +231,12 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 
- 	mutex_unlock(&list_lock);
- 
-+	/*
-+	 * Call device_attach() to reprobe devices
-+	 *
-+	 * NOTE: If dev allocation fails, i is 0, and the hole loop won't be
-+	 * executed.
-+	 */
- 	while (i--) {
- 		struct device *d = dev[i];
- 
-@@ -228,6 +252,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		}
- 		put_device(d);
- 	}
-+	kfree(dev);
- 
- 	notifier->v4l2_dev = NULL;
- 
+I'll wait for a few more days whether there is more feedback for
+v5 (especially on the device tree backwards compat approach),
+then will rebase and send out v6 of the series.
+
+
+virtually yours
+Gerhard Sittig
 -- 
-1.8.3.1
-
+DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
+HRB 165235 Munich, Office: Kirchenstr. 5, D-82194 Groebenzell, Germany
+Phone: +49-8142-66989-0 Fax: +49-8142-66989-80  Email: office@denx.de
