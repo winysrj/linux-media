@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db8lp0189.outbound.messaging.microsoft.com ([213.199.154.189]:51298
-	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792Ab3KALhH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 07:37:07 -0400
-From: Nicolin Chen <b42378@freescale.com>
-To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
-	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
-	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
-	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
-	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
-	<lgirdwood@gmail.com>, <broonie@kernel.org>,
-	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
-	<haojian.zhuang@gmail.com>
-CC: <linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>
-Subject: [PATCH 8/8] ASoC: pxa: use gen_pool_dma_alloc() to allocate dma buffer
-Date: Fri, 1 Nov 2013 19:36:06 +0800
-Message-ID: <290c4ed99f88c1d07544bf5f8f0c9a1d09395bed.1383303752.git.b42378@freescale.com>
-In-Reply-To: <cover.1383303752.git.b42378@freescale.com>
-References: <cover.1383303752.git.b42378@freescale.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1176 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752279Ab3KXNJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Nov 2013 08:09:41 -0500
+Message-ID: <5291FA8F.3080708@redhat.com>
+Date: Sun, 24 Nov 2013 14:09:35 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Geert Stappers <stappers@stappers.nl>, mjs <mjstork@gmail.com>
+Subject: [GIT PULL FIXES for 3.13] 2 small gspca and 2 small radio-shark fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
+Hi Mauro,
 
-Signed-off-by: Nicolin Chen <b42378@freescale.com>
----
- sound/soc/pxa/mmp-pcm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This pull-req supersedes my previous GIT PULL FIXES for 3.13, new
+in this pull-req is an additional usb-id for the gspca_sunplus
+driver.
 
-diff --git a/sound/soc/pxa/mmp-pcm.c b/sound/soc/pxa/mmp-pcm.c
-index 8235e23..7929e19 100644
---- a/sound/soc/pxa/mmp-pcm.c
-+++ b/sound/soc/pxa/mmp-pcm.c
-@@ -201,10 +201,9 @@ static int mmp_pcm_preallocate_dma_buffer(struct snd_pcm_substream *substream,
- 	if (!gpool)
- 		return -ENOMEM;
- 
--	buf->area = (unsigned char *)gen_pool_alloc(gpool, size);
-+	buf->area = gen_pool_dma_alloc(gpool, size, &buf->addr);
- 	if (!buf->area)
- 		return -ENOMEM;
--	buf->addr = gen_pool_virt_to_phys(gpool, (unsigned long)buf->area);
- 	buf->bytes = size;
- 	return 0;
- }
--- 
-1.8.4
+Please pull from my tree for 4 small fixes for 3.13 :
 
+The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
 
+   [media] media: st-rc: Add ST remote control driver (2013-10-31 08:20:08 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.13
+
+for you to fetch changes up to f2e6f9b1b8812e54fbdea0aba270cfab04d77e75:
+
+   gspca_sunplus: Add new usb-id for 06d6:0041 (2013-11-24 14:03:57 +0100)
+
+----------------------------------------------------------------
+Geert Uytterhoeven (1):
+       radio-shark: Mark shark_resume_leds() inline to kill compiler warning
+
+Hans de Goede (2):
+       radio-shark2: Mark shark_resume_leds() inline to kill compiler warning
+       gspca_sunplus: Add new usb-id for 06d6:0041
+
+Ondrej Zary (1):
+       gspca-stk1135: Add delay after configuring clock
+
+  drivers/media/radio/radio-shark.c  | 2 +-
+  drivers/media/radio/radio-shark2.c | 2 +-
+  drivers/media/usb/gspca/stk1135.c  | 3 +++
+  drivers/media/usb/gspca/sunplus.c  | 1 +
+  4 files changed, 6 insertions(+), 2 deletions(-)
+
+Thanks & Regards,
+
+Hans
