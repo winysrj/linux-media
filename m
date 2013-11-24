@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51396 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134Ab3KDKEQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 05:04:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 21/18] v4l: omap4iss: Move code out of mutex-protected section
-Date: Mon,  4 Nov 2013 11:04:41 +0100
-Message-Id: <1383559481-9960-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:62969 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752440Ab3KXNPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Nov 2013 08:15:37 -0500
+Message-ID: <5291FBF3.8060003@redhat.com>
+Date: Sun, 24 Nov 2013 14:15:31 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Geert Stappers <stappers@stappers.nl>, mjs <mjstork@gmail.com>
+Subject: [GIT PULL FIXES for 3.13] 2 small gspca and 2 small radio-shark fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pad::get_fmt call must be protected by a mutex, but preparing its
-arguments doesn't need to be. Move the non-critical code out of the
-mutex-protected section.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss_video.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+This is a resend of my pull-req from a few minutes ago. I had
+made an error in the Cc: stable (I used linux.org instead of kernel.org),
+this pull-req is for the fixed commit (up to commit id changed).
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 63419b3..6800623 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -243,12 +243,11 @@ __iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
- 	if (subdev == NULL)
- 		return -EINVAL;
- 
--	mutex_lock(&video->mutex);
--
- 	fmt.pad = pad;
- 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
- 
-+	mutex_lock(&video->mutex);
-+	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
- 	mutex_unlock(&video->mutex);
- 
- 	if (ret)
--- 
-1.8.1.5
+This pull-req supersedes my previous GIT PULL FIXES for 3.13, new
+in this pull-req is an additional usb-id for the gspca_sunplus
+driver.
 
+Please pull from my tree for 4 small fixes for 3.13 :
+
+The following changes since commit 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
+
+   [media] media: st-rc: Add ST remote control driver (2013-10-31 08:20:08 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.13
+
+for you to fetch changes up to da7e5a168b689da740d7c63cb26cbb8a05a4fc5d:
+
+   gspca_sunplus: Add new usb-id for 06d6:0041 (2013-11-24 14:12:18 +0100)
+
+----------------------------------------------------------------
+Geert Uytterhoeven (1):
+       radio-shark: Mark shark_resume_leds() inline to kill compiler warning
+
+Hans de Goede (2):
+       radio-shark2: Mark shark_resume_leds() inline to kill compiler warning
+       gspca_sunplus: Add new usb-id for 06d6:0041
+
+Ondrej Zary (1):
+       gspca-stk1135: Add delay after configuring clock
+
+  drivers/media/radio/radio-shark.c  | 2 +-
+  drivers/media/radio/radio-shark2.c | 2 +-
+  drivers/media/usb/gspca/stk1135.c  | 3 +++
+  drivers/media/usb/gspca/sunplus.c  | 1 +
+  4 files changed, 6 insertions(+), 2 deletions(-)
+
+Thanks & Regards,
+
+Hans
