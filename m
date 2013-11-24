@@ -1,80 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33211 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754623Ab3KFR5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Nov 2013 12:57:47 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 0/8] PCTV DVB-S2 Stick (461e) [2013:0258] driver
-Date: Wed,  6 Nov 2013 19:57:27 +0200
-Message-Id: <1383760655-11388-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:40419 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176Ab3KXSOs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Nov 2013 13:14:48 -0500
+Received: by mail-la0-f47.google.com with SMTP id ep20so2280455lab.6
+        for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 10:14:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAA9z4Lbro=UjZjcjK1e51ikVG7Q2XU9Ei1XWPELCq47iGowkWg@mail.gmail.com>
+References: <20130603171607.73d0b856@endymion.delvare>
+	<20130603172150.1aaf1904@endymion.delvare>
+	<CAHFNz9LX0WzmO1zvn51Ge8VQkfiPrao3AQVLprhqrp1V-0h=fQ@mail.gmail.com>
+	<CAA9z4Lbro=UjZjcjK1e51ikVG7Q2XU9Ei1XWPELCq47iGowkWg@mail.gmail.com>
+Date: Sun, 24 Nov 2013 23:44:46 +0530
+Message-ID: <CAHFNz9L2VcZcc5bw3L4ABH98q82KGTEp__2=O2zXu-yLDQ184A@mail.gmail.com>
+Subject: Re: [PATCH 2/3] femon: Display SNR in dB
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch serie adds support for PCTV Systems latest DVB-S/S2 USB
-stick, model numbered as 461e.
-
-I found only German version of product page [1], maybe English is
-coming soon as this is quite young device. Device looks 100% similar
-than older PCTV DVB-S2 Stick 460e, but internally demodulator and tuner
-are different.
-
-There is two new Linux drivers for demod and tuner.
-Montage M88DS3103 DVB-S/S2 demodulator driver
-Montage M88TS2022 silicon tuner driver
-
-M88DS3103 requires firmware which is available my LinuxTV project page [2].
-
-That driver could be downloaded from my LinuxTV.org Git tree [3].
-
-Feel free to test!
-
-[1] http://www.pctvsystems.com/Products/ProductsEuropeAsia/Satelliteproducts/PCTVDVBS2Stick/tabid/236/language/de-DE/Default.aspx
-[2] http://palosaari.fi/linux/v4l-dvb/firmware/M88DS3103/
-[3] http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv_461e
+On Sun, Nov 24, 2013 at 11:32 PM, Chris Lee <updatelee@gmail.com> wrote:
+> This is a frustration of mine. Some report it in SNR others report it
+> in terms of % (current snr / (max_snr-min_snr)) others its completely
+> random.
+>
+> Seems many dvb-s report arbitrary % which is stupid and many atsc
+> report snr by 123 would be 12.3db. But there isnt any standardization
+> around.
+>
+> imo everything should be reported in terms of db, why % was ever
+> chosen is beyond logic.
 
 
-regards
-Antti
-
-Antti Palosaari (8):
-  em28xx: add support for Empia EM28178
-  a8293: add small sleep in order to settle LNB voltage
-  Montage M88DS3103 DVB-S/S2 demodulator driver
-  Montage M88TS2022 silicon tuner driver
-  em28xx: add support for PCTV DVB-S2 Stick (461e) [2013:0258]
-  m88ds3103: add parent for I2C adapter
-  MAINTAINERS: add M88DS3103
-  MAINTAINERS: add M88TS2022
-
- MAINTAINERS                                  |   20 +
- drivers/media/dvb-frontends/Kconfig          |    7 +
- drivers/media/dvb-frontends/Makefile         |    1 +
- drivers/media/dvb-frontends/a8293.c          |    2 +
- drivers/media/dvb-frontends/m88ds3103.c      | 1294 ++++++++++++++++++++++++++
- drivers/media/dvb-frontends/m88ds3103.h      |  108 +++
- drivers/media/dvb-frontends/m88ds3103_priv.h |  218 +++++
- drivers/media/tuners/Kconfig                 |    7 +
- drivers/media/tuners/Makefile                |    1 +
- drivers/media/tuners/m88ts2022.c             |  664 +++++++++++++
- drivers/media/tuners/m88ts2022.h             |   72 ++
- drivers/media/tuners/m88ts2022_priv.h        |   38 +
- drivers/media/usb/em28xx/Kconfig             |    2 +
- drivers/media/usb/em28xx/em28xx-cards.c      |   40 +
- drivers/media/usb/em28xx/em28xx-core.c       |    9 +-
- drivers/media/usb/em28xx/em28xx-dvb.c        |   49 +
- drivers/media/usb/em28xx/em28xx-input.c      |    2 +
- drivers/media/usb/em28xx/em28xx-reg.h        |    1 +
- drivers/media/usb/em28xx/em28xx.h            |    1 +
- 19 files changed, 2533 insertions(+), 3 deletions(-)
- create mode 100644 drivers/media/dvb-frontends/m88ds3103.c
- create mode 100644 drivers/media/dvb-frontends/m88ds3103.h
- create mode 100644 drivers/media/dvb-frontends/m88ds3103_priv.h
- create mode 100644 drivers/media/tuners/m88ts2022.c
- create mode 100644 drivers/media/tuners/m88ts2022.h
- create mode 100644 drivers/media/tuners/m88ts2022_priv.h
-
--- 
-1.8.4.2
-
+Because dB terminology did not fit all frontends. For some it does
+fit, but again not all. Some frontends by default don't have a dB
+specification; some reverse engineered ones unable to.
