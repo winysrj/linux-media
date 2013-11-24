@@ -1,192 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:58190 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751808Ab3KORSh (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2467 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756404Ab3KXDcw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 12:18:37 -0500
-Date: Fri, 15 Nov 2013 17:18:10 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Sebastian Reichel <sre@debian.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"rob.herring@calxeda.com" <rob.herring@calxeda.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>
-Subject: Re: [early RFC] Device Tree bindings for OMAP3 Camera Subsystem
-Message-ID: <20131115171809.GJ24831@e106331-lin.cambridge.arm.com>
-References: <20131103220315.GA11659@earth.universe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20131103220315.GA11659@earth.universe>
-Content-Language: en-US
+	Sat, 23 Nov 2013 22:32:52 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAO3WmME035165
+	for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 04:32:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 563E22A221E
+	for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 04:32:37 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131124033237.563E22A221E@tschai.lan>
+Date: Sun, 24 Nov 2013 04:32:37 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 03, 2013 at 10:03:15PM +0000, Sebastian Reichel wrote:
-> Hi,
-> 
-> This is an early RFC for omap3isp DT support. For now i just created a potential DT
-> binding documentation based on the existing platform data:
-> 
-> Binding for the OMAP3 Camera subsystem with the image signal processor (ISP) feature.
-> 
-> omap3isp node
-> -------------
-> 
-> Required properties:
-> 
-> - compatible	: should be "ti,omap3isp" for OMAP3;
-> - reg		: physical addresses and length of the registers set;
-> - clocks	: list of clock specifiers, corresponding to entries in
-> 		  clock-names property;
-> - clock-names	: must contain "cam_ick", "cam_mclk", "csi2_96m_fck",
-> 		  "l3_ick" entries, matching entries in the clocks property;
-> - interrupts	: must contain mmu interrupt;
-> - ti,iommu	: phandle to isp mmu;
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-s/;/./ (or s/;//)
+Results of the daily build of media_tree:
 
-> 
-> Optional properties:
-> 
-> - VDD_CSIPHY1-supply	: regulator for csi phy1
-> - VDD_CSIPHY2-supply	: regulator for csi phy2
+date:		Sun Nov 24 04:00:29 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-I'd make these lower-case. Upper case is unusual, and lower-case is
-preferred.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> - ti,isp-xclk-1		: device(s) attached to ISP's first external clock
-> - ti,isp-xclk-2		: device(s) attached to ISP's second external clock
+Detailed results are available here:
 
-If the ISP is acting as a clock controller, it should have #clock-cells,
-and export clocks to the consumers. They can in turn refer to th ISP via
-the standard clocks property.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> 
-> device-group subnode
-> --------------------
-> 
-> Required properties:
-> - ti,isp-interface-type	: Integer describing the interface type, one of the following
->    * 0 = ISP_INTERFACE_PARALLEL
->    * 1 = ISP_INTERFACE_CSI2A_PHY2
->    * 2 = ISP_INTERFACE_CCP2B_PHY1
->    * 3 = ISP_INTERFACE_CCP2B_PHY2
->    * 4 = ISP_INTERFACE_CSI2C_PHY1
+Full logs are available here:
 
-Are these PHYs always present?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Are they external to the ISP?
+The Media Infrastructure API from this daily build is here:
 
-It's not possible for several of these to be valid simultaneously?
-
-> - ti,isp-devices	: Array of phandles to devices connected via the interface
-
-Which devices are these? This looks backwards to me...
-
-> - One of the following configuration nodes (depending on ti,isp-interface-type)
->  - ti,ccp2-bus-cfg	: CCP2 bus configuration (needed for ISP_INTERFACE_CCP*)
->  - ti,parallel-bus-cfg	: PARALLEL bus configuration (needed for ISP_INTERFACE_PARALLEL)
->  - ti,csi2-bus-cfg	: CSI bus configuration (needed for ISP_INTERFACE_CSI*)
-> 
-> ccp2-bus-cfg subnode
-> --------------------
-> 
-> Required properties:
-> - ti,video-port-clock-divisor	: integer; used for video port output clock control
-> 
-> Optional properties:
-> - ti,inverted-clock		: boolean; clock/strobe signal is inverted
-> - ti,enable-crc			: boolean; enable crc checking
-
-Why can't this be a run-time option?
-
-> - ti,ccp2-mode-mipi		: boolean; port is used in MIPI-CSI1 mode (default: CCP2 mode)
-> - ti,phy-layer-is-strobe	: boolean; use data/strobe physical layer (default: data/clock physical layer)
-> - ti,data-lane-configuration	: integer array with position and polarity information for lane 1 and 2
-> - ti,clock-lane-configuration	: integer array with position and polarity information for clock lane
-
-In what precise format?
-
-> 
-> parallel-bus-cfg subnode
-> ------------------------
-> 
-> Required properties:
-> - ti,data-lane-shift				: integer; shift data lanes by this amount
-> 
-> Optional properties:
-> - ti,clock-falling-edge				: boolean; sample on falling edge (default: rising edge)
-> - ti,horizontal-synchronization-active-low	: boolean; default: active high
-> - ti,vertical-synchronization-active-low	: boolean; default: active high
-> - ti,data-polarity-ones-complement		: boolean; data polarity is one's complement
-> 
-> csi2-bus-cfg subnode
-> --------------------
-> 
-> Required properties:
-> - ti,video-port-clock-divisor	: integer; used for video port output clock control
-> 
-> Optional properties:
-> - ti,data-lane-configuration	: integer array with position and polarity information for lane 1 and 2
-> - ti,clock-lane-configuration	: integer array with position and polarity information for clock lane
-> - ti,enable-crc			: boolean; enable crc checking
-
-Similarly, run-time selectable?
-
-> 
-> Example for Nokia N900
-> ----------------------
-> 
-> omap3isp: isp@480BC000 {
-> 	compatible = "ti,omap3isp";
-> 	reg = <
-> 		/* OMAP3430+ */
-> 		0x480BC000 0x070	/* base */
-> 		0x480BC100 0x078	/* cbuf */
-> 		0x480BC400 0x1F0 	/* cpp2 */
-> 		0x480BC600 0x0A8	/* ccdc */
-> 		0x480BCA00 0x048	/* hist */
-> 		0x480BCC00 0x060	/* h3a  */
-> 		0x480BCE00 0x0A0	/* prev */
-> 		0x480BD000 0x0AC	/* resz */
-> 		0x480BD200 0x0FC	/* sbl  */
-> 		0x480BD400 0x070	/* mmu  */
-> 	>;
-
-The binding implied a single contiguous reg entry. These look like they
-are in a contiguous register space, is it not possible to describe them
-via a single large contiguous entry?
-
-Also, please bracket individual entries in a list like so:
-
-reg = <0x0 0x4>,
-      <0x44 0x27>,
-      <0x800 0x63>;
-
-It's far easier to read arbitrary lists when they're bracketed
-consistently.
-
-> 
-> 	clocks = < &cam_ick &cam_mclk &csi2_96m_fck &l3_ick >;
-
-Similarly here.
-
-> 	clock-names = "cam_ick", "cam_mclk", "csi2_96m_fck", "l3_ick";
-> 
-> 	interrupts = <24>;
-> 
-> 	ti,iommu = <&mmu_isp>;
-> 
-> 	ti,isp-xclk-1 = <
-> 		&et8ek8
-> 		&smiapp_dfl
-> 	>;
-
-And here (though I think this property is unnecessary).
-
-Thanks,
-Mark.
+http://www.xs4all.nl/~hverkuil/spec/media.html
