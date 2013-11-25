@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:39927
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751919Ab3KALtU (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:39697 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab3KYJ7O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 07:49:20 -0400
-From: Nicolin Chen <b42378@freescale.com>
-To: <akpm@linux-foundation.org>, <joe@perches.com>, <nsekhar@ti.com>,
-	<khilman@deeprootsystems.com>, <linux@arm.linux.org.uk>,
-	<dan.j.williams@intel.com>, <vinod.koul@intel.com>,
-	<m.chehab@samsung.com>, <hjk@hansjkoch.de>,
-	<gregkh@linuxfoundation.org>, <perex@perex.cz>, <tiwai@suse.de>,
-	<lgirdwood@gmail.com>, <broonie@kernel.org>,
-	<rmk+kernel@arm.linux.org.uk>, <eric.y.miao@gmail.com>,
-	<haojian.zhuang@gmail.com>
-CC: <linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>
-Subject: [PATCH][RESEND 8/8] ASoC: pxa: use gen_pool_dma_alloc() to allocate dma buffer
-Date: Fri, 1 Nov 2013 19:48:21 +0800
-Message-ID: <290c4ed99f88c1d07544bf5f8f0c9a1d09395bed.1383306365.git.b42378@freescale.com>
-In-Reply-To: <cover.1383306365.git.b42378@freescale.com>
-References: <cover.1383306365.git.b42378@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Mon, 25 Nov 2013 04:59:14 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWT003KHD2P7K40@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:59:13 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
+	s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 13/16] s5p-jpeg: Allow for wider JPEG subsampling scope for
+ Exynos4x12 encoder
+Date: Mon, 25 Nov 2013 10:58:20 +0100
+Message-id: <1385373503-1657-14-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since gen_pool_dma_alloc() is introduced, we implement it to simplify code.
+Exynos4x12 supports wider scope of subsampling modes than
+S5PC210. Adjust corresponding mask accordingly.
 
-Signed-off-by: Nicolin Chen <b42378@freescale.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- sound/soc/pxa/mmp-pcm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/sound/soc/pxa/mmp-pcm.c b/sound/soc/pxa/mmp-pcm.c
-index 8235e23..7929e19 100644
---- a/sound/soc/pxa/mmp-pcm.c
-+++ b/sound/soc/pxa/mmp-pcm.c
-@@ -201,10 +201,9 @@ static int mmp_pcm_preallocate_dma_buffer(struct snd_pcm_substream *substream,
- 	if (!gpool)
- 		return -ENOMEM;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 76d8c12..e85ac6a 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1246,7 +1246,8 @@ static int s5p_jpeg_controls_create(struct s5p_jpeg_ctx *ctx)
+ 		v4l2_ctrl_new_std(&ctx->ctrl_handler, &s5p_jpeg_ctrl_ops,
+ 				  V4L2_CID_JPEG_RESTART_INTERVAL,
+ 				  0, 3, 0xffff, 0);
+-		mask = ~0x06; /* 422, 420 */
++		if (ctx->jpeg->variant->version == SJPEG_S5P)
++			mask = ~0x06; /* 422, 420 */
+ 	}
  
--	buf->area = (unsigned char *)gen_pool_alloc(gpool, size);
-+	buf->area = gen_pool_dma_alloc(gpool, size, &buf->addr);
- 	if (!buf->area)
- 		return -ENOMEM;
--	buf->addr = gen_pool_virt_to_phys(gpool, (unsigned long)buf->area);
- 	buf->bytes = size;
- 	return 0;
- }
+ 	ctrl = v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &s5p_jpeg_ctrl_ops,
 -- 
-1.8.4
-
+1.7.9.5
 
