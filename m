@@ -1,139 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54459 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756518Ab3K0Qcr (ORCPT
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:54649 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab3KYJMi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 11:32:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Valentine <valentine.barshak@cogentembedded.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-Date: Wed, 27 Nov 2013 17:32:36 +0100
-Message-ID: <3492580.V1k5XZPn5x@avalon>
-In-Reply-To: <5295E231.9030200@cisco.com>
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com>
+	Mon, 25 Nov 2013 04:12:38 -0500
+Received: by mail-oa0-f44.google.com with SMTP id m1so4044258oag.31
+        for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 01:12:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAPybu_3GCT2joBHM4_yBAKXj=VQHy67J3sd5+oMVujj9aQV3eQ@mail.gmail.com>
+References: <1383763336-5822-1-git-send-email-ricardo.ribalda@gmail.com>
+ <3183788.gODlx1VQRn@avalon> <CAPybu_1qCzDO15d1X2RAfqip9WepMQ88A=YYRWwJPDf1OxhsDA@mail.gmail.com>
+ <20131108103921.GB25342@valkosipuli.retiisi.org.uk> <CAPybu_3GCT2joBHM4_yBAKXj=VQHy67J3sd5+oMVujj9aQV3eQ@mail.gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 25 Nov 2013 10:12:16 +0100
+Message-ID: <CAPybu_3FwcT-be+a6uEiJSqe9D3SZ1NZ-zsEgafSTKQYuAR0gw@mail.gmail.com>
+Subject: Re: [PATCH v5] videodev2: Set vb2_rect's width and height as unsigned
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	"open list:MT9M032 APTINA SE..." <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello
 
-On Wednesday 27 November 2013 13:14:41 Hans Verkuil wrote:
-> On 11/27/13 12:39, Laurent Pinchart wrote:
-> > On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
-> >> On 11/26/2013 10:28 PM, Valentine wrote:
-> >>> On 11/20/2013 07:53 PM, Valentine wrote:
-> >>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
-> >>>>> Hi Valentine,
-> >>> 
-> >>> Hi Hans,
-> >>> 
-> >>>>> Did you ever look at this adv7611 driver:
-> >>>>> 
-> >>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e
-> >>>>> 4afa42af2daa12
-> >>>> 
-> >>>> No, I missed that one somehow, although I did search for the
-> >>>> adv7611/7612 before implementing this one. I'm going to look closer at
-> >>>> the patch and test it.
-> >>> 
-> >>> I've tried the patch and I doubt that it was ever tested on adv7611.
-> >>> I haven't been able to make it work so far. Here's the description of
-> >>> some of the issues I've encountered.
-> >>> 
-> >>> The patch does not apply cleanly so I had to make small adjustments just
-> >>> to make it apply without changing the functionality.
-> >>> 
-> >>> First of all the driver (adv7604_dummy_client function) does not set
-> >>> default I2C slave addresses in the I/O map in case they are not set in
-> >>> the platform data.
-> >>> This is not needed for 7604, since the default addresses are already set
-> >>> in the I/O map after chip reset. However, the map is zeroed on 7611/7612
-> >>> after power up, and we always have to set it manually.
-> >> 
-> >> So, the platform data for the 7611/2 should always give i2c addresses.
-> >> That seems reasonable.
-> >> 
-> >>> I had to implement the IRQ handler since the soc_camera model does not
-> >>> use interrupt_service_routine subdevice callback and R-Car VIN knows
-> >>> nothing about adv7612 interrupt routed to a GPIO pin. So I had to
-> >>> schedule a workqueue and call adv7604_isr from there in case an
-> >>> interrupt happens.
-> >> 
-> >> For our systems the adv7604 interrupts is not always hooked up to a gpio
-> >> irq, instead a register has to be read to figure out which device
-> >> actually produced the irq.
-> > 
-> > Where is that register located ? Shouldn't it be modeled as an interrupt
-> > controller ?
-> 
-> It's a PCIe interrupt whose handler needs to read several FPGA registers
-> in order to figure out which interrupt was actually triggered. I don't
-> know enough about interrupt controller to understand whether it can be
-> modeled as a 'standard' interrupt.
+Is there anything that needs to be addressed on this patch?
 
-I've replied to this separately.
+Thanks!
 
-> >> So I want to keep the interrupt_service_routine(). However, adding a gpio
-> >> field to the platform_data that, if set, will tell the driver to request
-> >> an irq and setup a workqueue that calls interrupt_service_routine() would
-> >> be fine with me. That will benefit a lot of people since using gpios is
-> >> much more common.
-> > 
-> > We should use the i2c_board_info.irq field for that, not a field in the
-> > platform data structure. The IRQ line could be hooked up to a non-GPIO
-> > IRQ.
-> 
-> Yes, of course. Although the adv7604 has two interrupt lines, so if you
-> would want to use the second, then that would still have to be specified
-> through the platform data.
+On Fri, Nov 8, 2013 at 2:41 PM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> Hello Sakari
+>
+> On Fri, Nov 8, 2013 at 11:39 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> On Fri, Nov 08, 2013 at 11:12:54AM +0100, Ricardo Ribalda Delgado wrote:
+>> ...
+>>> Also I am not aware of a reason why clamp_t is better than clamp (I am
+>>> probably wrong here....). If there is a good reason for not using
+>>> clamp_t I have no problem in reviewing again the patch and use
+>>> unsigned constants.
+>>
+>> clamp_t() should only be used if you need to force a type for the clamping
+>> operation. It's always better if you don't have to, and all the arguments
+>> are of the same type: type casting can have an effect on the end result and
+>> bugs related to that can be difficult to find.
+>>
+>
+> But IMHO in these case, we will cause much more castings in other
+> places. I find more descriptive a casting via clamp_t, than via ().
+>
+> Regards!
+>
+>> --
+>> Kind regards,
+>>
+>> Sakari Ailus
+>> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+>
+>
+>
+> --
+> Ricardo Ribalda
 
-I believe we should then extend the I2C interrupt support. The reason for 
-doing so is that we want to use the interrupt DT bindings for DT platforms, 
-and those are handled by the I2C core.
 
-> >>> The driver enables multiple interrupts on the chip, however, the
-> >>> adv7604_isr callback doesn't seem to handle them correctly.
-> >>> According to the docs:
-> >>> "If an interrupt event occurs, and then a second interrupt event occurs
-> >>> before the system controller has cleared or masked the first interrupt
-> >>> event, the ADV7611 does not generate a second interrupt signal."
-> >>> 
-> >>> However, the interrupt_service_routine doesn't account for that.
-> >>> For example, in case fmt_change interrupt happens while
-> >>> fmt_change_digital interrupt is being processed by the adv7604_isr
-> >>> routine. If fmt_change status is set just before we clear
-> >>> fmt_change_digital, we never clear fmt_change. Thus, we end up with
-> >>> fmt_change interrupt missed and therefore further interrupts disabled.
-> >>> I've tried to call the adv7604_isr routine in a loop and return from the
-> >>> worlqueue only when all interrupt status bits are cleared. This did help
-> >>> a bit, but sometimes I started getting lots of I2C read/write errors for
-> >>> some reason.
-> >> 
-> >> I'm not sure if there is much that can be done about this. The code reads
-> >> the interrupt status, then clears the interrupts right after. There is
-> >> always a race condition there since this isn't atomic ('read and clear').
-> >> Unless Lars-Peter has a better idea?
-> >> 
-> >> What can be improved, though, is to clear not just the interrupts that
-> >> were read, but all the interrupts that are unmasked. You are right, you
-> >> couldloose an interrupt that way.
-> > 
-> > Wouldn't level-trigerred interrupts fix the issue ?
-> 
-> See my earlier reply.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ricardo Ribalda
