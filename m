@@ -1,87 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:47714 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081Ab3KXSw3 (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3618 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717Ab3KYIU5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Nov 2013 13:52:29 -0500
-Received: by mail-wg0-f52.google.com with SMTP id x13so3027710wgg.7
-        for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 10:52:28 -0800 (PST)
+	Mon, 25 Nov 2013 03:20:57 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAP8Kssq066123
+	for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 09:20:56 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4B3612A2220
+	for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 09:20:41 +0100 (CET)
+Message-ID: <52930859.9060908@xs4all.nl>
+Date: Mon, 25 Nov 2013 09:20:41 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAA9z4LapwReWVi64eu7fQOpb-xfGC9gWf=5Yz4x22jnYOmMAiw@mail.gmail.com>
-References: <20130603171607.73d0b856@endymion.delvare>
-	<20130603172150.1aaf1904@endymion.delvare>
-	<CAHFNz9LX0WzmO1zvn51Ge8VQkfiPrao3AQVLprhqrp1V-0h=fQ@mail.gmail.com>
-	<CAA9z4Lbro=UjZjcjK1e51ikVG7Q2XU9Ei1XWPELCq47iGowkWg@mail.gmail.com>
-	<CAGoCfixzV+N7WMhwA=e72pvQJREV5KaR0By=O6+emgsS5eQwGA@mail.gmail.com>
-	<CAA9z4LapwReWVi64eu7fQOpb-xfGC9gWf=5Yz4x22jnYOmMAiw@mail.gmail.com>
-Date: Sun, 24 Nov 2013 13:52:27 -0500
-Message-ID: <CAGoCfiym-UbVn39r+nmY9kHK1jUmuH+n6jV5ougmUAxrZJnf9w@mail.gmail.com>
-Subject: Re: [PATCH 2/3] femon: Display SNR in dB
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Chris Lee <updatelee@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: linux-media@vger.kernel.org
+Subject: Re: cron job: media_tree daily build: OK
+References: <20131125033237.936AF2A221F@tschai.lan>
+In-Reply-To: <20131125033237.936AF2A221F@tschai.lan>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 24, 2013 at 1:40 PM, Chris Lee <updatelee@gmail.com> wrote:
-> I made an exception in my app if the system is ATSC/QAM it uses the
-> snr = snr * 10.0 and havent found a card yet that it doesnt work with.
-> Ive also converted quite a few of my dvb-s tuners to report db in the
-> same way. Havent found a card yet that doesnt have the ability to
-> report snr in db. Im sure there is one, but I wonder how old it is and
-> if anyone still uses them.
+Finally! It's producing an OK result. It's been a long, long time since we
+managed that.
 
-The devices which have the ldgt3303 demodulator report in (SNR *
-1/256), and there are still quite a few of those out there and in use.
- But yeah, since most of the ATSC/ClearQAM devices out there nowadays
-have a demod driver written by one of three people, all who agreed on
-the same format, you won't find many devices out there nowadays which
-don't use 0.1 dB increments.
+Next step: continue whittling away at the sparse warnings/errors.
 
-That said, everything in the previous paragraph applies exclusively to
-ATSC/ClearQAM devices.  There is much more variation once you start
-talking about DVB-T/S/S2, etc.
+Regards,
 
-> I have found a few tuner/demods that dont have a method of reporting
-> signal strength and just use a calc based off the snr in db to make a
-> fake strength.
+	Hans
 
-Yup, there is definitely more ambiguity across demods with the signal
-strength field.  In some cases it reports the same as the SNR field,
-in other cases it scales the SNR to a 0-65535 range, in yet other
-cases it returns garbage or no value at all.
+On 11/25/2013 04:32 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:		Mon Nov 25 04:00:27 CET 2013
+> git branch:	test
+> git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+> gcc version:	i686-linux-gcc (GCC) 4.8.1
+> sparse version:	0.4.5-rc1
+> host hardware:	x86_64
+> host os:	3.12-0.slh.2-amd64
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-exynos: OK
+> linux-git-arm-mx: OK
+> linux-git-arm-omap: OK
+> linux-git-arm-omap1: OK
+> linux-git-arm-pxa: OK
+> linux-git-blackfin: OK
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> linux-2.6.31.14-i686: OK
+> linux-2.6.32.27-i686: OK
+> linux-2.6.33.7-i686: OK
+> linux-2.6.34.7-i686: OK
+> linux-2.6.35.9-i686: OK
+> linux-2.6.36.4-i686: OK
+> linux-2.6.37.6-i686: OK
+> linux-2.6.38.8-i686: OK
+> linux-2.6.39.4-i686: OK
+> linux-3.0.60-i686: OK
+> linux-3.1.10-i686: OK
+> linux-3.2.37-i686: OK
+> linux-3.3.8-i686: OK
+> linux-3.4.27-i686: OK
+> linux-3.5.7-i686: OK
+> linux-3.6.11-i686: OK
+> linux-3.7.4-i686: OK
+> linux-3.8-i686: OK
+> linux-3.9.2-i686: OK
+> linux-3.10.1-i686: OK
+> linux-3.11.1-i686: OK
+> linux-3.12-i686: OK
+> linux-2.6.31.14-x86_64: OK
+> linux-2.6.32.27-x86_64: OK
+> linux-2.6.33.7-x86_64: OK
+> linux-2.6.34.7-x86_64: OK
+> linux-2.6.35.9-x86_64: OK
+> linux-2.6.36.4-x86_64: OK
+> linux-2.6.37.6-x86_64: OK
+> linux-2.6.38.8-x86_64: OK
+> linux-2.6.39.4-x86_64: OK
+> linux-3.0.60-x86_64: OK
+> linux-3.1.10-x86_64: OK
+> linux-3.2.37-x86_64: OK
+> linux-3.3.8-x86_64: OK
+> linux-3.4.27-x86_64: OK
+> linux-3.5.7-x86_64: OK
+> linux-3.6.11-x86_64: OK
+> linux-3.7.4-x86_64: OK
+> linux-3.8-x86_64: OK
+> linux-3.9.2-x86_64: OK
+> linux-3.10.1-x86_64: OK
+> linux-3.11.1-x86_64: OK
+> linux-3.12-x86_64: OK
+> apps: OK
+> spec-git: OK
+> sparse version:	0.4.5-rc1
+> sparse: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-> How I look at is if snr in % is completely arbitrary and means nothing
-> when compared from one tuner to another, whats the harm in that
-> particularly weird tuner/demod of reporting a fake SNR that is
-> arbitrary and have every other device in Linux report something
-> useful. Seems dumb to have every device in Linux report an arbitrary
-> useless value just because one or two devices cant report anything
-> useful.
-
-The whole argument over the years is what that "useful format" should
-be.  The problem is bad enough where a whole new API has been proposed
-which allows the demod to specify its reporting format explicitly.
-That proposed new API has a whole host of *other* problems, but that
-was the last attempt to bring some clarity to the problem.
-
-> I just hate seeing every device reporting useless values just because
-> one or two tuner/demods are reporting useless values. Why destroy that
-> useful data for the sake of making all data uniformly useless.
-
-Unfortunately we're not talking about one or two - we're talking about
-dozens.  I wouldn't be remotely surprised to see that more than 50% of
-devices out there do not report in 0.1dB increments.  Certainly a
-large part of the problem is that users such as yourself have a
-slightly skewed viewpoint because your experience is based on the
-handful of tuners you own (if you actually own a handful, that's
-comparatively quite a lot - most people only own a single tuner).
-
-Yeah, the situation is frustrating.  No easy answers here.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
