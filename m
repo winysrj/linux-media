@@ -1,86 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60736 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753005Ab3KBQdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 10/29] rc: Fir warnings on m68k arch
-Date: Sat,  2 Nov 2013 11:31:18 -0200
-Message-Id: <1383399097-11615-11-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nm34.bullet.mail.ne1.yahoo.com ([98.138.229.27]:33184 "EHLO
+	nm34.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754455Ab3KYSGT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Nov 2013 13:06:19 -0500
+Message-ID: <1385402616.45186.YahooMailNeo@web162606.mail.bf1.yahoo.com>
+Date: Mon, 25 Nov 2013 10:03:36 -0800 (PST)
+From: Golden Shadow <firas73737@yahoo.com>
+Reply-To: Golden Shadow <firas73737@yahoo.com>
+Subject: IPTV Newbie Question/Which Satellite Receiver to Use!
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following warnings:
-	drivers/media/rc/fintek-cir.c: In function 'fintek_cr_write':
-	drivers/media/rc/fintek-cir.c:45:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c:46:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c: In function 'fintek_cr_read':
-	drivers/media/rc/fintek-cir.c:54:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c:55:8: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c: In function 'fintek_config_mode_enable':
-	drivers/media/rc/fintek-cir.c:80:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c:81:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/fintek-cir.c: In function 'fintek_config_mode_disable':
-	drivers/media/rc/fintek-cir.c:87:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c: In function 'nvt_cr_write':
-	drivers/media/rc/nuvoton-cir.c:45:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c:46:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c: In function 'nvt_cr_read':
-	drivers/media/rc/nuvoton-cir.c:52:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c:53:9: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c: In function 'nvt_efm_enable':
-	drivers/media/rc/nuvoton-cir.c:74:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c:75:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c: In function 'nvt_efm_disable':
-	drivers/media/rc/nuvoton-cir.c:81:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c: In function 'nvt_select_logical_dev':
-	drivers/media/rc/nuvoton-cir.c:91:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-	drivers/media/rc/nuvoton-cir.c:92:2: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-
-Those are caused because the I/O port is u32, instead of u8.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/rc/fintek-cir.h  | 4 ++--
- drivers/media/rc/nuvoton-cir.h | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/rc/fintek-cir.h b/drivers/media/rc/fintek-cir.h
-index 82516a1d39b0..b698f3d2ced9 100644
---- a/drivers/media/rc/fintek-cir.h
-+++ b/drivers/media/rc/fintek-cir.h
-@@ -76,8 +76,8 @@ struct fintek_dev {
- 	} tx;
- 
- 	/* Config register index/data port pair */
--	u8 cr_ip;
--	u8 cr_dp;
-+	u32 cr_ip;
-+	u32 cr_dp;
- 
- 	/* hardware I/O settings */
- 	unsigned long cir_addr;
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 7c3674ff5ea2..07e83108df0f 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -84,8 +84,8 @@ struct nvt_dev {
- 	} tx;
- 
- 	/* EFER Config register index/data pair */
--	u8 cr_efir;
--	u8 cr_efdr;
-+	u32 cr_efir;
-+	u32 cr_efdr;
- 
- 	/* hardware I/O settings */
- 	unsigned long cir_addr;
--- 
-1.8.3.1
+Hello there!
+I am new to IPTV and Video4Linux. I need to implement an IPTV solution that would stream DVB satellite channels in a network. What is the satellite receiver do you recommend me to use on my Linux Centos 6.4 server? The satellite receiver should support encrypted channels. Is it better to use a USB or PCIe receiver? Another question, I'm thinking of using VLC for streaming, do you recommend a better streaming software for my case?
+Thanks a lot,
+Firas
 
