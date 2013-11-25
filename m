@@ -1,120 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54506 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755015Ab3K0Qkl (ORCPT
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:38532 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753665Ab3KYQXF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 11:40:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Valentine <valentine.barshak@cogentembedded.com>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-Date: Wed, 27 Nov 2013 17:40:44 +0100
-Message-ID: <2150651.hQNra4Rlob@avalon>
-In-Reply-To: <5295E641.6060603@cogentembedded.com>
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com>
+	Mon, 25 Nov 2013 11:23:05 -0500
+Received: by mail-oa0-f53.google.com with SMTP id m1so4502320oag.26
+        for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 08:23:04 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <52936FB7.9030307@samsung.com>
+References: <1383767329-29985-1-git-send-email-ricardo.ribalda@gmail.com>
+ <3377d5e29bf6444086575515325b3555@TTTEX01.ds1.internal> <52936FB7.9030307@samsung.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 25 Nov 2013 17:22:44 +0100
+Message-ID: <CAPybu_3_82jT7xR9C5_3bAG5d4TE+e5Hu04xzWxGVdgLu67DYw@mail.gmail.com>
+Subject: Re: [PATCH] videobuf2-dma-sg: Support io userptr operations on io memory
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: =?ISO-8859-1?Q?Matthias_W=E4chter?= <matthias.waechter@tttech.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
+	"sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Valentine,
+Hello Marek
 
-(CC'ing Linus Walleij, Wolfram Sang and LAKML)
+Could you review the patch? Is there something that needs to be fixed?
 
-On Wednesday 27 November 2013 16:32:01 Valentine wrote:
-> On 11/27/2013 04:14 PM, Hans Verkuil wrote:
-> > On 11/27/13 12:39, Laurent Pinchart wrote:
-> >> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
-> >>> On 11/26/2013 10:28 PM, Valentine wrote:
-> >>>> On 11/20/2013 07:53 PM, Valentine wrote:
-> >>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+Thanks!
 
-[snip]
-
-> >>> So I want to keep the interrupt_service_routine(). However, adding a
-> >>> gpio field to the platform_data that, if set, will tell the driver to
-> >>> request an irq and setup a workqueue that calls
-> >>> interrupt_service_routine() would be fine with me. That will benefit a
-> >>> lot of people since using gpios is much more common.
-> >> 
-> >> We should use the i2c_board_info.irq field for that, not a field in the
-> >> platform data structure. The IRQ line could be hooked up to a non-GPIO
-> >> IRQ.
-> > 
-> > Yes, of course. Although the adv7604 has two interrupt lines, so if you
-> > would want to use the second, then that would still have to be specified
-> > through the platform data.
-> 
-> In this case the GPIO should be configured as interrupt source in the
-> platform code. But this doesn't seem to work with R-Car GPIO since it is
-> initialized later, and the gpio_to_irq function returns an error.
-> The simplest way seemed to use a GPIO number in the platform data
-> to have the adv driver configure the pin and request the IRQ.
-> I'm not sure how to easily defer I2C board info IRQ setup (and
-> camera/subdevice probing) until GPIO driver is ready.
-
-Good question. This looks like a core problem to me, not specific to the 
-adv761x driver. Linus, Wolfram, do you have a comment on that ?
-
-> >>>> The driver enables multiple interrupts on the chip, however, the
-> >>>> adv7604_isr callback doesn't seem to handle them correctly.
-> >>>> According to the docs:
-> >>>> "If an interrupt event occurs, and then a second interrupt event occurs
-> >>>> before the system controller has cleared or masked the first interrupt
-> >>>> event, the ADV7611 does not generate a second interrupt signal."
-> >>>> 
-> >>>> However, the interrupt_service_routine doesn't account for that.
-> >>>> For example, in case fmt_change interrupt happens while
-> >>>> fmt_change_digital interrupt is being processed by the adv7604_isr
-> >>>> routine. If fmt_change status is set just before we clear
-> >>>> fmt_change_digital, we never clear fmt_change. Thus, we end up with
-> >>>> fmt_change interrupt missed and therefore further interrupts disabled.
-> >>>> I've tried to call the adv7604_isr routine in a loop and return from
-> >>>> the worlqueue only when all interrupt status bits are cleared. This did
-> >>>> help a bit, but sometimes I started getting lots of I2C read/write
-> >>>> errors for some reason.
-> >>> 
-> >>> I'm not sure if there is much that can be done about this. The code
-> >>> reads the interrupt status, then clears the interrupts right after.
-> >>> There is always a race condition there since this isn't atomic ('read
-> >>> and clear'). Unless Lars-Peter has a better idea?
-> >>> 
-> >>> What can be improved, though, is to clear not just the interrupts that
-> >>> were read, but all the interrupts that are unmasked. You are right, you
-> >>> could loose an interrupt that way.
-> >> 
-> >> Wouldn't level-trigerred interrupts fix the issue ?
-> 
-> In this case we need to disable the IRQ line in the IRQ handler and
-> re-enable it in the workqueue. (we can't call the interrupt service routine
-> from the interrupt context.)
-
-Can't we just flag the interrupt in a non-threaded IRQ handler, acknowledge 
-the interrupt and then schedule work on a workqueue for the bottom half ?
-
-> This however didn't seem to work with R-Car GPIO. Calling
-> disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler doesn't seem
-> to disable it for some reason.
-> 
-> Also if the isr is called by the upper level camera driver, we assume that
-> it needs special handling (disabling/enabling) for the ADV76xx interrupt
-> although it uses the API interrupt_service_routine callback. Not a big
-> deal, but still doesn't look pretty to me.
+On Mon, Nov 25, 2013 at 4:41 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Hello,
 >
-> > See my earlier reply.
+>
+> On 2013-11-11 12:36, Matthias Wächter wrote:
+>>
+>> > @@ -180,7 +186,26 @@ static void *vb2_dma_sg_get_userptr(void
+>> > *alloc_ctx, unsigned long vaddr,
+>> >       if (!buf->pages)
+>> >               return NULL;
+>> >
+>> > -     num_pages_from_user = get_user_pages(current, current->mm,
+>> > +     buf->vma = find_vma(current->mm, vaddr);
+>> > +     if (!buf->vma) {
+>> > +             dprintk(1, "no vma for address %lu\n", vaddr);
+>> > +             return NULL;
+>> > +     }
+>> > +
+>> > +     if (vma_is_io(buf->vma)) {
+>> > +             for (num_pages_from_user = 0;
+>> > +                  num_pages_from_user < buf->num_pages;
+>> > +                  ++num_pages_from_user, vaddr += PAGE_SIZE) {
+>> > +                     unsigned long pfn;
+>> > +
+>> > +                     if (follow_pfn(buf->vma, vaddr, &pfn)) {
+>> > +                             dprintk(1, "no page for address %lu\n",
+>> > vaddr);
+>> > +                             break;
+>> > +                     }
+>> > +                     buf->pages[num_pages_from_user] =
+>> > pfn_to_page(pfn);
+>> > +             }
+>> > +     } else
+>> > +             num_pages_from_user = get_user_pages(current, current->mm,
+>> >                                            vaddr & PAGE_MASK,
+>> >                                            buf->num_pages,
+>> >                                            write,
+>>
+>> Can you safely assume that your userptr will cover only one vma? At least,
+>> get_user_pages (calling __get_user_pages) does not assume that and calls
+>> find_vma() whenever vma->vm_end is reached.
+>
+>
+> We care only about io mappings which cover only one vma. Such mappings
+> are created by other device drivers and can be used mainly for
+> zero-copy buffer sharing between multimedia devices. Although it is
+> technically possible to provide code for multiple vma, there will be
+> no real use case for it.
+>
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung R&D Institute Poland
+>
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ricardo Ribalda
