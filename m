@@ -1,61 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:33319 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756297Ab3KFNOp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 08:14:45 -0500
-Received: by mail-pa0-f50.google.com with SMTP id fb1so10414469pad.23
-        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 05:14:45 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com>
-References: <1383666180-9773-1-git-send-email-knightrider@are.ma>
-	<CAOcJUbxCjEWk47MkJP15QBAuGd3ePYS3ZRMduqdMCrVT362-8Q@mail.gmail.com>
-	<CAKnK8-Q51UOqGc1T2jfJENm5pOWAutytKLcDkhgkM3yWjAtJ2w@mail.gmail.com>
-	<CAKnK8-Rva-m-tVN3n16Q3O0D5bhYrNsFm4+1f8=xvp92aMa-uA@mail.gmail.com>
-Date: Wed, 6 Nov 2013 08:14:45 -0500
-Message-ID: <CAOcJUbx96JYHaqQd3BG-p3h1M9TXjvkvffnzURBgUrWoWOk9HQ@mail.gmail.com>
-Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T) cards
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: =?UTF-8?B?44G744Gh?= <knightrider@are.ma>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3617 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab3KYDcy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Nov 2013 22:32:54 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAP3WonE060774
+	for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 04:32:52 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 936AF2A221F
+	for <linux-media@vger.kernel.org>; Mon, 25 Nov 2013 04:32:37 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20131125033237.936AF2A221F@tschai.lan>
+Date: Mon, 25 Nov 2013 04:32:37 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 5, 2013 at 5:30 PM, ほち <knightrider@are.ma> wrote:
-> Michael Krufky <mkrufky <at> linuxtv.org> writes:
->
->> As the DVB maintainer, I am telling you that I won't merge this as a
->> monolithic driver.  The standard is to separate the driver into
->> modules where possible, unless there is a valid reason for doing
->> otherwise.
->>
->> I understand that you used the PT1 driver as a reference, but we're
->> trying to enforce a standard of codingstyle within the kernel.  I
->> recommend looking at the other DVB drivers as well.
->
-> OK Sir. Any good / latest examples?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-There are plenty of DVB drivers to look at under drivers/media/  ...
-you may notice that there are v4l and dvb device drivers together
-under this hierarchy.  It's easy to tell which drivers support DVB
-when you look at the source.
+Results of the daily build of media_tree:
 
-I could name a few specific ones, but i'd really recommend for you to
-take a look at a bunch of them.  No single driver should be considered
-a 'prefect example' as they are all under constant maintenance.
+date:		Mon Nov 25 04:00:27 CET 2013
+git branch:	test
+git hash:	80f93c7b0f4599ffbdac8d964ecd1162b8b618b9
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-Also, many of these drivers are for devices that support both v4l and
-DVB interfaces.  One example is the cx23885 driver.  Still, please try
-to look over the entire media tree, as that would give a better idea
-of how the drivers are structured.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Best regards,
+Detailed results are available here:
 
-Mike Krufky
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
