@@ -1,234 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:52925 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab3K3Wv4 (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:49992 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754120Ab3KYO5O convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Nov 2013 17:51:56 -0500
-From: Gerhard Sittig <gsi@denx.de>
-To: linuxppc-dev@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org,
-	Anatolij Gustschin <agust@denx.de>,
-	Mike Turquette <mturquette@linaro.org>
-Cc: Scott Wood <scottwood@freescale.com>, Detlev Zundel <dzu@denx.de>,
-	Gerhard Sittig <gsi@denx.de>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	devicetree@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Jiri Slaby <jslaby@suse.cz>,
-	Kumar Gala <galak@kernel.crashing.org>,
-	linux-can@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, linux-serial@vger.kernel.org,
-	linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-	Marc Kleine-Budde <mkl@pengutronix.de>,
-	Mark Brown <broonie@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Paul Mackerras <paulus@samba.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Wolfgang Grandegger <wg@grandegger.com>
-Subject: [PATCH v6 00/17] add COMMON_CLK support for PowerPC MPC512x
-Date: Sat, 30 Nov 2013 23:51:20 +0100
-Message-Id: <1385851897-23475-1-git-send-email-gsi@denx.de>
+	Mon, 25 Nov 2013 09:57:14 -0500
+MIME-Version: 1.0
+In-Reply-To: <20131123011037.GO10036@intel.com>
+References: <1385093524-22276-1-git-send-email-keithp@keithp.com>
+	<20131122102632.GQ27344@phenom.ffwll.local>
+	<86d2lsem3m.fsf@miki.keithp.com>
+	<CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
+	<20131122221213.GA3234@tokamak.local>
+	<20131122230504.GK10036@intel.com>
+	<86pppsvw8e.fsf@miki.keithp.com>
+	<20131123011037.GO10036@intel.com>
+Date: Mon, 25 Nov 2013 15:57:13 +0100
+Message-ID: <CAMuHMdW8-BqchN2MfErwEL8Re00fLGZE=zCRQYzVaHi0TFuJFA@mail.gmail.com>
+Subject: Re: [Intel-gfx] [Mesa-dev] [PATCH] dri3, i915, i965: Add __DRI_IMAGE_FOURCC_SARGB8888
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: Keith Packard <keithp@keithp.com>,
+	=?UTF-8?Q?Kristian_H=C3=B8gsberg?= <hoegsberg@gmail.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	intel-gfx <intel-gfx@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Mesa Dev <mesa-dev@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this series introduces support for the common clock framework (CCF,
-COMMON_CLK Kconfig option) in the PowerPC based MPC512x platform,
-which brings device tree based clock lookup as well
+On Sat, Nov 23, 2013 at 2:10 AM, Ville Syrjälä
+<ville.syrjala@linux.intel.com> wrote:
+> On Fri, Nov 22, 2013 at 03:43:13PM -0800, Keith Packard wrote:
+>> Ville Syrjälä <ville.syrjala@linux.intel.com> writes:
+>>
+>> > What is this format anyway? -ENODOCS
+>>
+>> Same as MESA_FORMAT_SARGB8 and __DRI_IMAGE_FORMAT_SARGB8 :-)
+>>
+>> > If its just an srgb version of ARGB8888, then I wouldn't really want it
+>> > in drm_fourcc.h. I expect colorspacy stuff will be handled by various
+>> > crtc/plane properties in the kernel so we don't need to encode that
+>> > stuff into the fb format.
+>>
+>> It's not any different from splitting YUV codes from RGB codes;
+>
+> Not really. Saying something is YUV (or rather Y'CbCr) doesn't
+> actually tell you the color space. It just tells you whether the
+> information is encoded as R+G+B or Y+Cb+Cr. How you convert between
+> them is another matter. You need to know the gamma, color primaries,
+> chroma siting for sub-sampled YCbCr formats, etc.
 
-at subsystem maintainers:
+Yep. Fbdev has a separation of type (how pixel values are laid out in memory),
+fb_bitfield structs (how tuples are formed into pixels), and visual (how to
+interprete the tuples).
 
-this series was streamlined for conflict free application through the
-subsystems' individual trees, and consists of the following phases
-- PCI peripheral driver cleanup (1/17) (may get dropped if the
-  Layerscape series gets preferred)
-- introduction of CCF support including migration workarounds and
-  backwards compatibility, device tree updates (2/17 - 7/17) --
-  nevertheless I suggest to take the .dts/.dtsi updates through the
-  PowerPC tree, the extensions are straight forward and strictly are
-  clock related, and complement the CCF platform support
-- peripheral driver adjustment to the CCF approach (8/17 - 16/17)
-- removal of migration workarounds (17/17)
+The fb_bitfield structs do have RGB-centric names, but you could use them
+for e.g. Y, Cb, Cr, and alpha, giving a proper visual. Unfortunately the
+YCbCr visuals haven't made it into mainline.
 
-at device tree maintainers:
+FOURCC unifies all of that in (not so) unique 32-bit IDs.
 
-- the series does not introduce new bindings, it implements the existing
-  clock binding (OF clock provider, DT based clock lookup) and so
-  adjusts and extends DTS files
-- the code is backwards compatible, and keeps working with device trees
-  which don't contain clock related information
+Gr{oetje,eeting}s,
 
+                        Geert
 
-the series is based on v3.13-rc1
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-the series passes 'checkpatch.pl --strict' except for one warning which
-cannot get resolved, since the <linux/clk-provider.h> API dictates the
-data type, "fixing" the checkpatch warning would break compilation
-
-  WARNING: static const char * array should probably be static const char * const
-  #421: FILE: arch/powerpc/platforms/512x/clock-commonclk.c:343:
-  +static const char *parent_names_mux0[] = {
-
-  total: 0 errors, 1 warnings, 0 checks, 835 lines checked
-
-the series has been build tested (each step on PowerPC 512x, 52xx, 5xxx
-multi platform, 83xx, 85xx, 86xx, and on ARM v6/v7), run tested (each
-step on 512x, the switch to CCF on 52xx), and tested for backwards
-compatibility (each step on 512x with a v3.11 dtb file)
-
-
-changes in v6 (2013-11-30)
-- catch up with changes between v3.12 and v3.13-rc1 (conflict
-  resolution, explicit include for <linux/of_address.h> in 4/17)
-- remove the no longer referenced <asm/clk_interface.h> file from
-  arch/powerpc/include/ in the s/PPC_CLOCK/COMMON_CLK/ switch (7/17)
-
-changes in v5 (2013-11-18)
-- extend comments in the PCI driver cleanup (probe() vs setup_arch()
-  discussion, no code change); all other peripheral driver cleanup from
-  v4 was taken into mainline
-- concentrate migration support in a separate routine for improved
-  maintainability
-- fix the oscillator frequency lookup ('osc' reference) in the CCF
-  platform support code which creates the clock tree
-- add backwards compatibility with device trees that lack clock specs,
-  concentrate compat support in a separate routine for improved
-  maintainability, add it in a separate patch for easier review
-- consistent use of the 'ipg' name in DTS files for the register access
-  clock item of peripherals
-- switch from PPC_CLOCK to COMMON_CLK at the same time for 512x and 52xx
-  (keep multi-platform setups operational), in a separate patch
-- move removal of migration support to the very end of the series, it's
-  no longer intertwined with peripheral driver adjustment
-- SPI and UART: get 'mclk' and 'ipg' clock items in a more consistent
-  order (less obfuscation in the diff)
-- add/adjust Cc: and Acked-By: entries, rework commit messages and
-  comments where appropriate
-
-changes in v4 (2013-08-06)
-- remove explicit devm_clk_put() calls as these will occur implicitly
-  upon device release (01/31, 02/31, 03/31, 04/31, 05/31, 06/31, 08/31,
-  09/31, 27/31)
-- split the PSC (SPI, UART) and MSCAN (CAN) related MCLK subtrees into
-  separate 'ipg'/'bdlc' gated clock items for register access as well as
-  the 'mclk' clock subtrees that apply to bitrates -- this eliminates
-  the need for "shared gates" and further reduces clock pre-enable
-  workarounds (11/31, 15/31, 17/31, 18/31, 20/31, 21/31, 22/31, 27/31)
-- further adjust the CAN clock driver, fix an incomplete error code path
-  in the network device open callback (11/31), only enable the bitrate
-  clock when the network device is open (27/31)
-- remove debug output in the clock tree setup when introducing the
-  platform's clock driver, there already is CONFIG_COMMON_CLK_DEBUG to
-  retrieve more complete information (17/31)
-- remove an "enums don't work here" comment in the dt-bindings header
-  file (15/31)
-- reword and update commit messages (body and/or subject) where
-  appropriate (03/31, 04/31, 05/31, 06/31, 08/31, 09/31, 11/31, 12/31,
-  17/31, 20/31, 21/31, 22/31, 27/31, 28/31, 30/31, 31/31)
-- add 'Reviewed-By' attributes which were received for v3
-
-changes in v3 (2013-07-22)
-- rebase the series against v3.11-rc2
-- re-ordered the series to first address all general clock handling
-  concerns in existing drivers, before introducing common clock support
-  in the platform's clock driver
-- slightly rework the SPI (01/31), UART (02/31), and PSC FIFO (23/31)
-  clock handling in comparison to v2 which introduced those fixes
-  (devm_{get,put}_clk() calls, fewer goto labels in error paths)
-- fix and improve clock handling (balance allocation and release of
-  clocks, check for errors during setup) in all of the other drivers
-  which this series has touched before in naive ways: USB (03/31), NAND
-  flash (04/31), video capture (05/31), I2C (06/31), ethernet (08/31),
-  PCI (09/31), CAN (11/31)
-- silence a build warning in the ethernet driver (07/31)
-- eliminate all PPC_CLOCK references, use 'per' clock names for NAND
-  flash (25/31) and VIU (26/31) as well
-- unbreak CAN operation for the period between introducing common clock
-  support in the platform's clock driver and introducing common clock
-  support in the CAN peripheral driver as well as providing clock specs
-  in the device tree (provide clkdev aliases for SYS and REF)
-- improve common clock support for CAN (devm_{get,put}_clk() calls,
-  check enable() errors, keep a reference to used clocks, disable and
-  put clocks after use)
-- reworded several commit messages to better reflect the kind of change
-  and because fixes were applied before adding common infrastructure
-  support
-- point to individual numbered patches of the series in the list of
-  changes for v2 as well
-
-changes in v2 (2013-07-18)
-- cleanup of the UART (02/24) and SPI (01/24) clock handling before the
-  introduction of common clock support for the platform, as incomplete
-  clock handling becomes fatal or more dangerous later (which in turn
-  changes the context of the "device tree lookup only" followup patch
-  later)
-- reordered the sequence of patches to keep the serial communication
-  related parts together (UART, SPI, and PSC FIFO changes after common
-  clock support was introduced, which have become 11-14/24 now)
-- updated commit messages for the clock API use cleanup in the serial
-  communication drivers, updated comments and reworded commit messages
-  in the core clock driver to expand on the pre-enable workaround and
-  clkdev registration (09/24)
-- keep a reference to the PSC FIFO clock during use instead of looking
-  up the clock again in the uninit() routine (14/24)
-- remove the clkdev.h header file inclusion directive with the removal
-  of the clkdev registration call (13/24)
-
-initial v1 (2013-07-15)
-
-
-Gerhard Sittig (17):
-  powerpc/fsl-pci: improve clock API use
-  dts: mpc512x: introduce dt-bindings/clock/ header
-  dts: mpc512x: add clock related device tree specs
-  clk: mpc512x: introduce COMMON_CLK for MPC512x (disabled)
-  clk: mpc512x: add backwards compat to the CCF code
-  dts: mpc512x: add clock specs for client lookups
-  clk: mpc5xxx: switch to COMMON_CLK, retire PPC_CLOCK
-  spi: mpc512x: adjust to OF based clock lookup
-  serial: mpc512x: adjust for OF based clock lookup
-  serial: mpc512x: setup the PSC FIFO clock as well
-  USB: fsl-mph-dr-of: adjust for OF based clock lookup
-  mtd: mpc5121_nfc: adjust for OF based clock lookup
-  [media] fsl-viu: adjust for OF based clock lookup
-  net: can: mscan: adjust to common clock support for mpc512x
-  net: can: mscan: remove non-CCF code for MPC512x
-  powerpc/mpc512x: improve DIU related clock setup
-  clk: mpc512x: remove migration support workarounds
-
- arch/powerpc/Kconfig                          |    5 -
- arch/powerpc/boot/dts/ac14xx.dts              |    7 +
- arch/powerpc/boot/dts/mpc5121.dtsi            |  113 ++-
- arch/powerpc/include/asm/clk_interface.h      |   20 -
- arch/powerpc/kernel/Makefile                  |    1 -
- arch/powerpc/kernel/clock.c                   |   82 ---
- arch/powerpc/platforms/512x/Kconfig           |    2 +-
- arch/powerpc/platforms/512x/Makefile          |    3 +-
- arch/powerpc/platforms/512x/clock-commonclk.c |  951 +++++++++++++++++++++++++
- arch/powerpc/platforms/512x/clock.c           |  754 --------------------
- arch/powerpc/platforms/512x/mpc512x_shared.c  |  169 +++--
- arch/powerpc/platforms/52xx/Kconfig           |    2 +-
- arch/powerpc/sysdev/fsl_pci.c                 |   52 ++
- drivers/media/platform/fsl-viu.c              |    2 +-
- drivers/mtd/nand/mpc5121_nfc.c                |    2 +-
- drivers/net/can/mscan/mpc5xxx_can.c           |  270 ++++---
- drivers/spi/spi-mpc512x-psc.c                 |   26 +-
- drivers/tty/serial/mpc52xx_uart.c             |   90 ++-
- drivers/usb/host/fsl-mph-dr-of.c              |   13 +-
- include/dt-bindings/clock/mpc512x-clock.h     |   69 ++
- include/linux/clk-provider.h                  |   16 +
- 21 files changed, 1557 insertions(+), 1092 deletions(-)
- delete mode 100644 arch/powerpc/include/asm/clk_interface.h
- delete mode 100644 arch/powerpc/kernel/clock.c
- create mode 100644 arch/powerpc/platforms/512x/clock-commonclk.c
- delete mode 100644 arch/powerpc/platforms/512x/clock.c
- create mode 100644 include/dt-bindings/clock/mpc512x-clock.h
-
--- 
-1.7.10.4
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
