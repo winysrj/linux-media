@@ -1,66 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60759 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415Ab3KBQdm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:42 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 21/29] cimax2: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:29 -0200
-Message-Id: <1383399097-11615-22-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.samsung.com ([203.254.224.25]:58468 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767Ab3KYJ6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Nov 2013 04:58:40 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWT00JDUD1LBV40@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:58:33 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
+	s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v2 00/16] Add support for Exynox4x12 to the s5p-jpeg driver
+Date: Mon, 25 Nov 2013 10:58:07 +0100
+Message-id: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
+This is the second version of the series that adds support for the
+Exynos4x12 device to the s5p_jpeg driver along with accompanying
+fixes. It contains following improvements
+(Hans, Sylwester thanks for the review):
 
-	drivers/media/pci/cx23885/cimax2.c
+- moved adjusting chroma subsampling control value from s_ctrl
+  to try_ctrl callback and switched from using v4l2_s_ctrl to
+  v4l2_ctrl_s_ctrl
+- avoided big switch statement in favour of lookup tables
+  for adjusting capture queue fourcc during decoding phase
+- avoided unnecessary displacement of clk_get call in the probe function
+- renamed decoded_subsampling_to_v4l2 to s5p_jpeg_to_user_subsampling
+- added freeing ctrl_handler when v4l2_ctrl_handler_setup fails
+- calling s5p_jpeg_runtime_suspend and s5p_jpeg_runtime_resume
+  only when pm_runtime_suspended returns false
 
-Instead, let's enforce a limit for the buffer. Considering that I2C
-transfers are generally limited, and that devices used on USB has a
-max data length of 80, it seem safe to use 80 as the hard limit for all
-those devices. On most cases, the limit is a way lower than that, but
-80 is small enough to not affect the Kernel stack, and it is a no brain
-limit, as using smaller ones would require to either carefully each
-driver or to take a look on each datasheet.
+Thanks,
+Jacek Anaszewski
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/pci/cx23885/cimax2.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Jacek Anaszewski (16):
+  s5p-jpeg: Reorder quantization tables
+  s5p-jpeg: Fix output YUV 4:2:0 fourcc for decoder
+  s5p-jpeg: Fix erroneous condition while validating bytesperline value
+  s5p-jpeg: Remove superfluous call to the jpeg_bound_align_image
+    function
+  s5p-jpeg: Rename functions specific to the S5PC210 SoC accordingly
+  s5p-jpeg: Fix clock resource management
+  s5p-jpeg: Fix lack of spin_lock protection
+  s5p-jpeg: Synchronize cached controls with V4L2 core
+  s5p-jpeg: Split jpeg-hw.h to jpeg-hw-s5p.c and jpeg-hw-s5p.c
+  s5p-jpeg: Add hardware API for the exynos4x12 JPEG codec.
+  s5p-jpeg: Retrieve "YCbCr subsampling" field from the jpeg header
+  s5p-jpeg: Ensure correct capture format for Exynos4x12
+  s5p-jpeg: Allow for wider JPEG subsampling scope for Exynos4x12
+    encoder
+  s5p-jpeg: Synchronize V4L2_CID_JPEG_CHROMA_SUBSAMPLING control value
+  s5p-jpeg: Ensure setting correct value of the chroma subsampling
+    control
+  s5p-jpeg: Adjust g_volatile_ctrl callback to Exynos4x12 needs
 
-diff --git a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
-index 7344849183a7..e6515f48aa8d 100644
---- a/drivers/media/pci/cx23885/cimax2.c
-+++ b/drivers/media/pci/cx23885/cimax2.c
-@@ -125,7 +125,7 @@ static int netup_write_i2c(struct i2c_adapter *i2c_adap, u8 addr, u8 reg,
- 						u8 *buf, int len)
- {
- 	int ret;
--	u8 buffer[len + 1];
-+	u8 buffer[80];
- 
- 	struct i2c_msg msg = {
- 		.addr	= addr,
-@@ -134,6 +134,13 @@ static int netup_write_i2c(struct i2c_adapter *i2c_adap, u8 addr, u8 reg,
- 		.len	= len + 1
- 	};
- 
-+	if (1 + len > sizeof(buffer)) {
-+		printk(KERN_WARNING
-+		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		       KBUILD_MODNAME, reg, len);
-+		return -EREMOTEIO;
-+	}
-+
- 	buffer[0] = reg;
- 	memcpy(&buffer[1], buf, len);
- 
+ drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 1089 ++++++++++++++++----
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |   75 +-
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.c   |  293 ++++++
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.h   |   44 +
+ .../platform/s5p-jpeg/{jpeg-hw.h => jpeg-hw-s5p.c} |   82 +-
+ drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h      |   63 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  215 +++-
+ 8 files changed, 1614 insertions(+), 249 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos.h
+ rename drivers/media/platform/s5p-jpeg/{jpeg-hw.h => jpeg-hw-s5p.c} (71%)
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
+
 -- 
-1.8.3.1
+1.7.9.5
 
