@@ -1,190 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52462 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab3K0KfD (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:58576 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab3KYJ7L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 05:35:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 4/8] vb2: retry start_streaming in case of insufficient buffers.
-Date: Wed, 27 Nov 2013 11:35:06 +0100
-Message-ID: <16899461.lmBDEGk2B3@avalon>
-In-Reply-To: <52959C7B.6020300@xs4all.nl>
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <2969217.JjDzNKjWJr@avalon> <52959C7B.6020300@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 25 Nov 2013 04:59:11 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWT00J0XD2MKU40@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:59:10 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
+	s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 12/16] s5p-jpeg: Ensure correct capture format for Exynos4x12
+Date: Mon, 25 Nov 2013 10:58:19 +0100
+Message-id: <1385373503-1657-13-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Adjust capture format to the Exynos4x12 device limitations,
+according to the subsampling value parsed from the source
+JPEG image header. If the capture format was set to YUV with
+subsampling lower than the one of the source JPEG image
+the decoding process would not succeed.
 
-Re-reading the code I can't see my original point anymore :-/ Let's assume I 
-was just wrong. I have two additional small comments though, please see below.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |  113 +++++++++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
 
-On Wednesday 27 November 2013 08:17:15 Hans Verkuil wrote:
-> On 11/26/2013 04:46 PM, Laurent Pinchart wrote:
-> > On Friday 22 November 2013 09:43:23 Hans Verkuil wrote:
-> >> On 11/21/2013 08:09 PM, Laurent Pinchart wrote:
-> >>> On Thursday 21 November 2013 16:22:02 Hans Verkuil wrote:
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> 
-> >>>> If start_streaming returns -ENODATA, then it will be retried the next
-> >>>> time a buffer is queued. This means applications no longer need to know
-> >>>> how many buffers need to be queued before STREAMON can be called. This
-> >>>> is particularly useful for output stream I/O.
-> >>>> 
-> >>>> If a DMA engine needs at least X buffers before it can start streaming,
-> >>>> then for applications to get a buffer out as soon as possible they need
-> >>>> to know the minimum number of buffers to queue before STREAMON can be
-> >>>> called. You can't just try STREAMON after every buffer since on failure
-> >>>> STREAMON will dequeue all your buffers. (Is that a bug or a feature?
-> >>>> Frankly, I'm not sure).
-> >>>> 
-> >>>> This patch simplifies applications substantially: they can just call
-> >>>> STREAMON at the beginning and then start queuing buffers and the DMA
-> >>>> engine will kick in automagically once enough buffers are available.
-> >>>> 
-> >>>> This also fixes using write() to stream video: the fileio
-> >>>> implementation calls streamon without having any queued buffers, which
-> >>>> will fail today for any driver that requires a minimum number of
-> >>>> buffers.
-> >>>> 
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> ---
-> >>>> 
-> >>>>  drivers/media/v4l2-core/videobuf2-core.c | 66 +++++++++++++++++-------
-> >>>>  include/media/videobuf2-core.h           | 15 ++++++--
-> >>>>  2 files changed, 64 insertions(+), 17 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> b/drivers/media/v4l2-core/videobuf2-core.c index 9ea3ae9..5bb91f7
-> >>>> 100644
-> >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> @@ -1332,6 +1332,39 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> >>>> v4l2_buffer *b) }
-> >>>> 
-> >>>>  EXPORT_SYMBOL_GPL(vb2_prepare_buf);
-> >>>> 
-> >>>> +/**
-> >>>> + * vb2_start_streaming() - Attempt to start streaming.
-> >>>> + * @q:		videobuf2 queue
-> >>>> + *
-> >>>> + * If there are not enough buffers, then retry_start_streaming is set
-> >>>> to
-> >>>> + * true and 0 is returned. The next time a buffer is queued and
-> >>>> + * retry_start_streaming is true, this function will be called again
-> >>>> to
-> >>>> + * retry starting the DMA engine.
-> >>>> + */
-> >>>> +static int vb2_start_streaming(struct vb2_queue *q)
-> >>>> +{
-> >>>> +	int ret;
-> >>>> +
-> >>>> +	/* Tell the driver to start streaming */
-> >>>> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> >>>> +
-> >>>> +	/*
-> >>>> +	 * If there are not enough buffers queued to start streaming, then
-> >>>> +	 * the start_streaming operation will return -ENODATA and you have to
-> >>>> +	 * retry when the next buffer is queued.
-> >>>> +	 */
-> >>>> +	if (ret == -ENODATA) {
-> >>>> +		dprintk(1, "qbuf: not enough buffers, retry when more buffers are
-> >>>> queued.\n");
-> >>>> +		q->retry_start_streaming = true;
-
-retry_start_streaming is an unsigned int, should you use 1 and 0 here ?
-
-> >>>> +		return 0;
-> >>>> +	}
-> >>>> +	if (ret)
-> >>>> +		dprintk(1, "qbuf: driver refused to start streaming\n");
-> >>>> +	else
-> >>>> +		q->retry_start_streaming = false;
-> >>>> +	return ret;
-> >>>> +}
-> >>>> +
-> >>>>  static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer
-> >>>>  *b)
-> >>>>  {
-> >>>>  	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> >>>> @@ -1377,6 +1410,12 @@ static int vb2_internal_qbuf(struct vb2_queue
-> >>>> *q,
-> >>>> struct v4l2_buffer *b) /* Fill buffer information for the userspace */
-> >>>>  	__fill_v4l2_buffer(vb, b);
-> >>>> 
-> >>>> +	if (q->retry_start_streaming) {
-> >>>> +		ret = vb2_start_streaming(q);
-> >>>> +		if (ret)
-> >>>> +			return ret;
-> >>>> +	}
-> >>>> +
-> >>>>  	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb-
-> >>>> v4l2_buf.index);
-> >>>> return 0;
-> >>>>  }
-> >>>> 
-> >>>> @@ -1526,7 +1565,8 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
-> >>>>  		return -EINVAL;
-> >>>>  	}
-> >>>> 
-> >>>> -	wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> >>>> +	if (!q->retry_start_streaming)
-> >>>> +		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> >>>>  	return 0;
-> >>>>  }
-> >>>>  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-> >>>> @@ -1640,6 +1680,9 @@ static void __vb2_queue_cancel(struct vb2_queue
-> >>>> *q)
-> >>>>  {
-> >>>>  	unsigned int i;
-> >>>> 
-> >>>> +	if (q->retry_start_streaming)
-> >>>> +		q->retry_start_streaming = q->streaming = 0;
-
-The kernel coding style discourages multiple assignments per line.
-
-> >>>> +
-> >>>>  	/*
-> >>>>  	 * Tell driver to stop all transactions and release all queued
-> >>>>  	 * buffers.
-> >>>> @@ -1689,12 +1732,9 @@ static int vb2_internal_streamon(struct
-> >>>> vb2_queue *q, enum v4l2_buf_type type)
-> >>>>  list_for_each_entry(vb, &q->queued_list, queued_entry)
-> >>>>  		__enqueue_in_driver(vb);
-> >>>> 
-> >>>> -	/*
-> >>>> -	 * Let driver notice that streaming state has been enabled.
-> >>>> -	 */
-> >>>> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> >>>> +	/* Tell driver to start streaming. */
-> >>> 
-> >>> Wouldn't it be better to reset q->retry_start_streaming to 0 here
-> >>> instead of in the several other locations ?
-> >> 
-> >> I don't follow. retry_start_streaming is set only in vb2_start_streaming
-> >> or in queue_cancel. I'm not sure what vb2_internal_streamon has to do
-> >> with this.
-> > 
-> > My point is that the code would be simpler and less error-prone if we
-> > reset retry_start_streaming in a single location right before starting the
-> > stream instead of in multiple locations when stopping the stream. There
-> > would be less chances to introduce a bug when refactoring code in the
-> > future in that case.
->
-> But that's what happens: it's set when starting the stream
-> (vb2_start_streaming) and cleared when stopping the stream
-> (__vb2_queue_cancel). I really can't make it simpler than that.
-> 
-> I still don't see what it is you want to improve here.
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index cb55f67..76d8c12 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -358,6 +358,99 @@ static const unsigned char hactblg0[162] = {
+ 	0xf9, 0xfa
+ };
+ 
++/*
++ * Fourcc downgrade schema lookup tables for 422 and 420
++ * chroma subsampling - fourcc on each position maps on the
++ * fourcc from the table fourcc_to_dwngrd_schema_id which allows
++ * to get the most suitable fourcc counterpart for the given
++ * downgraded subsampling property.
++ */
++static const u32 subs422_fourcc_dwngrd_schema[] = {
++	V4L2_PIX_FMT_NV16,
++	V4L2_PIX_FMT_NV61,
++};
++
++static const u32 subs420_fourcc_dwngrd_schema[] = {
++	V4L2_PIX_FMT_NV12,
++	V4L2_PIX_FMT_NV21,
++	V4L2_PIX_FMT_NV12,
++	V4L2_PIX_FMT_NV21,
++	V4L2_PIX_FMT_NV12,
++	V4L2_PIX_FMT_NV21,
++	V4L2_PIX_FMT_GREY,
++	V4L2_PIX_FMT_GREY,
++	V4L2_PIX_FMT_GREY,
++	V4L2_PIX_FMT_GREY,
++};
++
++/*
++ * Lookup table for translation of a fourcc to the position
++ * of its downgraded counterpart in the *fourcc_dwngrd_schema
++ * tables.
++ */
++static const u32 fourcc_to_dwngrd_schema_id[] = {
++	V4L2_PIX_FMT_NV24,
++	V4L2_PIX_FMT_NV42,
++	V4L2_PIX_FMT_NV16,
++	V4L2_PIX_FMT_NV61,
++	V4L2_PIX_FMT_YUYV,
++	V4L2_PIX_FMT_YVYU,
++	V4L2_PIX_FMT_NV12,
++	V4L2_PIX_FMT_NV21,
++	V4L2_PIX_FMT_YUV420,
++	V4L2_PIX_FMT_GREY,
++};
++
++static int s5p_jpeg_get_dwngrd_sch_id_by_fourcc(u32 fourcc)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(fourcc_to_dwngrd_schema_id); ++i) {
++		if (fourcc_to_dwngrd_schema_id[i] == fourcc)
++			return i;
++	}
++
++	return -EINVAL;
++}
++
++static int s5p_jpeg_adjust_fourcc_to_subsampling(
++					enum v4l2_jpeg_chroma_subsampling subs,
++					u32 in_fourcc,
++					u32 *out_fourcc,
++					struct s5p_jpeg_ctx *ctx)
++{
++	int dwngrd_sch_id;
++
++	if (ctx->subsampling != V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
++		dwngrd_sch_id =
++			s5p_jpeg_get_dwngrd_sch_id_by_fourcc(in_fourcc);
++		if (dwngrd_sch_id < 0)
++			return -EINVAL;
++	}
++
++	switch (ctx->subsampling) {
++	case V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY:
++		*out_fourcc = V4L2_PIX_FMT_GREY;
++		break;
++	case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
++		if (dwngrd_sch_id >
++				ARRAY_SIZE(subs420_fourcc_dwngrd_schema) - 1)
++			return -EINVAL;
++		*out_fourcc = subs420_fourcc_dwngrd_schema[dwngrd_sch_id];
++		break;
++	case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
++		if (dwngrd_sch_id >
++				ARRAY_SIZE(subs422_fourcc_dwngrd_schema) - 1)
++			return -EINVAL;
++		*out_fourcc = subs422_fourcc_dwngrd_schema[dwngrd_sch_id];
++		break;
++	default:
++		*out_fourcc = V4L2_PIX_FMT_GREY;
++		break;
++	}
++
++	return 0;
++}
++
+ static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
+ {
+ 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
+@@ -941,7 +1034,9 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
++	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct s5p_jpeg_fmt *fmt;
++	int ret;
+ 
+ 	fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
+ 						FMT_TYPE_CAPTURE);
+@@ -952,6 +1047,24 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
++	/*
++	 * The exynos4x12 device requires resulting YUV image
++	 * subsampling not to be lower than the input jpeg subsampling.
++	 * If this requirement is not met then downgrade the requested
++	 * capture format to the one with subsampling equal to the input jpeg.
++	 */
++	if ((ctx->jpeg->variant->version != SJPEG_S5P) &&
++	    (ctx->mode == S5P_JPEG_DECODE) &&
++	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
++	    (fmt->subsampling < ctx->subsampling)) {
++		ret = s5p_jpeg_adjust_fourcc_to_subsampling(ctx->subsampling,
++							    fmt->fourcc,
++							    &pix->pixelformat,
++							    ctx);
++		if (ret < 0)
++			pix->pixelformat = V4L2_PIX_FMT_GREY;
++	}
++
+ 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_CAPTURE);
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
