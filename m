@@ -1,86 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:48332 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911Ab3KEGNz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 01:13:55 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v11 11/12] V4L: Add DT binding doc for s5k4e5 image sensor
-Date: Tue,  5 Nov 2013 11:42:42 +0530
-Message-Id: <1383631964-26514-12-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
-References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:58478 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab3KYJ6o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Nov 2013 04:58:44 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWT00JF0D1V3440@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Nov 2013 18:58:43 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, andrzej.p@samsung.com,
+	s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 03/16] s5p-jpeg: Fix erroneous condition while validating
+ bytesperline value
+Date: Mon, 25 Nov 2013 10:58:10 +0100
+Message-id: <1385373503-1657-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
+References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-S5K4E5 is a Samsung raw image sensor controlled via I2C.
-This patch adds the DT binding documentation for the same.
+The aim of the condition is ensuring that the bytesperline
+value set by the user space application is proper for the
+given format and adjusting it if isn't. As the depth value
+of the format description entry is expressed in bits then
+the bytesperline value needs to be divided, not multiplied,
+by that value to get the number of bytes required to store
+single line of image samples.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- .../devicetree/bindings/media/samsung-s5k4e5.txt   |   45 ++++++++++++++++++++
- 1 file changed, 45 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-new file mode 100644
-index 0000000..fc37792
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k4e5.txt
-@@ -0,0 +1,45 @@
-+* Samsung S5K4E5 Raw Image Sensor
-+
-+S5K4E5 is a raw image sensor with maximum resolution of 2560x1920
-+pixels. Data transfer is carried out via MIPI CSI-2 port and controls
-+via I2C bus.
-+
-+Required Properties:
-+- compatible	: should contain "samsung,s5k4e5"
-+- reg		: I2C device address
-+- reset-gpios	: specifier of a GPIO connected to the RESET pin
-+- clocks	: should refer to the clock named in clock-names, from
-+		  the common clock bindings
-+- clock-names	: should contain "extclk" entry
-+- svdda-supply	: core voltage supply
-+- svddio-supply	: I/O voltage supply
-+
-+Optional Properties:
-+- clock-frequency : the frequency at which the "extclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used
-+
-+The device node should be added to respective control bus controller
-+(e.g. I2C0) nodes and linked to the csis port node, using the common
-+video interfaces bindings, defined in video-interfaces.txt.
-+
-+Example:
-+
-+	i2c-isp@13130000 {
-+		s5k4e5@20 {
-+			compatible = "samsung,s5k4e5";
-+			reg = <0x20>;
-+			reset-gpios = <&gpx1 2 1>;
-+			clock-frequency = <24000000>;
-+			clocks = <&clock 129>;
-+			clock-names = "extclk"
-+			svdda-supply = <...>;
-+			svddio-supply = <...>;
-+			port {
-+				is_s5k4e5_ep: endpoint {
-+					data-lanes = <1 2 3 4>;
-+					remote-endpoint = <&csis0_ep>;
-+				};
-+			};
-+		};
-+	};
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 0f567c5..a1366f0 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -670,7 +670,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
+ 			bpl = pix->width; /* planar */
+ 
+ 		if (fmt->colplanes == 1 && /* packed */
+-		    (bpl << 3) * fmt->depth < pix->width)
++		    (bpl << 3) / fmt->depth < pix->width)
+ 			bpl = (pix->width * fmt->depth) >> 3;
+ 
+ 		pix->bytesperline = bpl;
 -- 
 1.7.9.5
 
