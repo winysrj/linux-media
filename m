@@ -1,224 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4573 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931Ab3K2J7P (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9464 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753690Ab3KZPDT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 04:59:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 1/9] vb2: push the mmap semaphore down to __buf_prepare()
-Date: Fri, 29 Nov 2013 10:58:36 +0100
-Message-Id: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
-In-Reply-To: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
-References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 26 Nov 2013 10:03:19 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MWV00GF8LTGRC30@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 26 Nov 2013 15:03:17 +0000 (GMT)
+Message-id: <5294B834.60305@samsung.com>
+Date: Tue, 26 Nov 2013 16:03:16 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
+	sylvester.nawrocki@gmail.com,
+	=?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias.waechter@tttech.com>
+Subject: Re: [PATCH v2] videobuf2-dma-sg: Support io userptr operations on io
+ memory
+References: <1385470724-20632-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1385470724-20632-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Rather than taking the mmap semaphore at a relatively high-level function,
-push it down to the place where it is really needed.
+On 2013-11-26 13:58, Ricardo Ribalda Delgado wrote:
+> Memory exported via remap_pfn_range cannot be remapped via
+> get_user_pages.
+>
+> Other videobuf2 methods (like the dma-contig) supports io memory.
+>
+> This patch adds support for this kind of memory.
+>
+> v2: Comments by Marek Szyprowski
+> -Use vb2_get_vma and vb2_put_vma
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
-vb2 calls. The only way I can see that a race can happen is when two
-threads queue the same buffer. The solution for that it to introduce
-a PREPARING state.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Moving it down offers opportunities to simplify the code.
+> ---
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c | 54 +++++++++++++++++++++++++++---
+>   1 file changed, 49 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 2f86054..104e4b9 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -40,6 +40,7 @@ struct vb2_dma_sg_buf {
+>   	unsigned int			num_pages;
+>   	atomic_t			refcount;
+>   	struct vb2_vmarea_handler	handler;
+> +	struct vm_area_struct		*vma;
+>   };
+>   
+>   static void vb2_dma_sg_put(void *buf_priv);
+> @@ -155,12 +156,18 @@ static void vb2_dma_sg_put(void *buf_priv)
+>   	}
+>   }
+>   
+> +static inline int vma_is_io(struct vm_area_struct *vma)
+> +{
+> +	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+> +}
+> +
+>   static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+>   				    unsigned long size, int write)
+>   {
+>   	struct vb2_dma_sg_buf *buf;
+>   	unsigned long first, last;
+>   	int num_pages_from_user;
+> +	struct vm_area_struct *vma;
+>   
+>   	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>   	if (!buf)
+> @@ -178,9 +185,40 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+>   	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>   			     GFP_KERNEL);
+>   	if (!buf->pages)
+> -		return NULL;
+> +		goto userptr_fail_alloc_pages;
+> +
+> +	vma = find_vma(current->mm, vaddr);
+> +	if (!vma) {
+> +		dprintk(1, "no vma for address %lu\n", vaddr);
+> +		goto userptr_fail_find_vma;
+> +	}
+> +
+> +	if (vma->vm_end < vaddr + size) {
+> +		dprintk(1, "vma at %lu is too small for %lu bytes\n",
+> +			vaddr, size);
+> +		goto userptr_fail_find_vma;
+> +	}
+> +
+> +	buf->vma = vb2_get_vma(vma);
+> +	if (!buf->vma) {
+> +		dprintk(1, "failed to copy vma\n");
+> +		goto userptr_fail_find_vma;
+> +	}
+> +
+> +	if (vma_is_io(buf->vma)) {
+> +		for (num_pages_from_user = 0;
+> +		     num_pages_from_user < buf->num_pages;
+> +		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
+> +			unsigned long pfn;
+>   
+> -	num_pages_from_user = get_user_pages(current, current->mm,
+> +			if (follow_pfn(buf->vma, vaddr, &pfn)) {
+> +				dprintk(1, "no page for address %lu\n", vaddr);
+> +				break;
+> +			}
+> +			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+> +		}
+> +	} else
+> +		num_pages_from_user = get_user_pages(current, current->mm,
+>   					     vaddr & PAGE_MASK,
+>   					     buf->num_pages,
+>   					     write,
+> @@ -201,9 +239,13 @@ userptr_fail_alloc_table_from_pages:
+>   userptr_fail_get_user_pages:
+>   	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+>   	       num_pages_from_user, buf->num_pages);
+> -	while (--num_pages_from_user >= 0)
+> -		put_page(buf->pages[num_pages_from_user]);
+> +	if (!vma_is_io(buf->vma))
+> +		while (--num_pages_from_user >= 0)
+> +			put_page(buf->pages[num_pages_from_user]);
+> +	vb2_put_vma(buf->vma);
+> +userptr_fail_find_vma:
+>   	kfree(buf->pages);
+> +userptr_fail_alloc_pages:
+>   	kfree(buf);
+>   	return NULL;
+>   }
+> @@ -225,9 +267,11 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>   	while (--i >= 0) {
+>   		if (buf->write)
+>   			set_page_dirty_lock(buf->pages[i]);
+> -		put_page(buf->pages[i]);
+> +		if (!vma_is_io(buf->vma))
+> +			put_page(buf->pages[i]);
+>   	}
+>   	kfree(buf->pages);
+> +	vb2_put_vma(buf->vma);
+>   	kfree(buf);
+>   }
+>   
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 82 ++++++++++++++------------------
- include/media/videobuf2-core.h           |  2 +
- 2 files changed, 38 insertions(+), 46 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b19b306..c8a1f22b5 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -462,6 +462,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 	case VB2_BUF_STATE_PREPARED:
- 		b->flags |= V4L2_BUF_FLAG_PREPARED;
- 		break;
-+	case VB2_BUF_STATE_PREPARING:
- 	case VB2_BUF_STATE_DEQUEUED:
- 		/* nothing */
- 		break;
-@@ -1207,6 +1208,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	struct rw_semaphore *mmap_sem;
- 	int ret;
- 
- 	ret = __verify_length(vb, b);
-@@ -1216,12 +1218,31 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		return ret;
- 	}
- 
-+	vb->state = VB2_BUF_STATE_PREPARING;
- 	switch (q->memory) {
- 	case V4L2_MEMORY_MMAP:
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
-+		/*
-+		 * In case of user pointer buffers vb2 allocators need to get direct
-+		 * access to userspace pages. This requires getting the mmap semaphore
-+		 * for read access in the current process structure. The same semaphore
-+		 * is taken before calling mmap operation, while both qbuf/prepare_buf
-+		 * and mmap are called by the driver or v4l2 core with the driver's lock
-+		 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
-+		 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
-+		 * core releases the driver's lock, takes mmap_sem and then takes the
-+		 * driver's lock again.
-+		 */
-+		mmap_sem = &current->mm->mmap_sem;
-+		call_qop(q, wait_prepare, q);
-+		down_read(mmap_sem);
-+		call_qop(q, wait_finish, q);
-+
- 		ret = __qbuf_userptr(vb, b);
-+
-+		up_read(mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-@@ -1235,8 +1256,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = call_qop(q, buf_prepare, vb);
- 	if (ret)
- 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
--	else
--		vb->state = VB2_BUF_STATE_PREPARED;
-+	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
- 
- 	return ret;
- }
-@@ -1247,80 +1267,47 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 						   struct v4l2_buffer *,
- 						   struct vb2_buffer *))
- {
--	struct rw_semaphore *mmap_sem = NULL;
- 	struct vb2_buffer *vb;
- 	int ret;
- 
--	/*
--	 * In case of user pointer buffers vb2 allocators need to get direct
--	 * access to userspace pages. This requires getting the mmap semaphore
--	 * for read access in the current process structure. The same semaphore
--	 * is taken before calling mmap operation, while both qbuf/prepare_buf
--	 * and mmap are called by the driver or v4l2 core with the driver's lock
--	 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
--	 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
--	 * core releases the driver's lock, takes mmap_sem and then takes the
--	 * driver's lock again.
--	 *
--	 * To avoid racing with other vb2 calls, which might be called after
--	 * releasing the driver's lock, this operation is performed at the
--	 * beginning of qbuf/prepare_buf processing. This way the queue status
--	 * is consistent after getting the driver's lock back.
--	 */
--	if (q->memory == V4L2_MEMORY_USERPTR) {
--		mmap_sem = &current->mm->mmap_sem;
--		call_qop(q, wait_prepare, q);
--		down_read(mmap_sem);
--		call_qop(q, wait_finish, q);
--	}
--
- 	if (q->fileio) {
- 		dprintk(1, "%s(): file io in progress\n", opname);
--		ret = -EBUSY;
--		goto unlock;
-+		return -EBUSY;
- 	}
- 
- 	if (b->type != q->type) {
- 		dprintk(1, "%s(): invalid buffer type\n", opname);
--		ret = -EINVAL;
--		goto unlock;
-+		return -EINVAL;
- 	}
- 
- 	if (b->index >= q->num_buffers) {
- 		dprintk(1, "%s(): buffer index out of range\n", opname);
--		ret = -EINVAL;
--		goto unlock;
-+		return -EINVAL;
- 	}
- 
- 	vb = q->bufs[b->index];
- 	if (NULL == vb) {
- 		/* Should never happen */
- 		dprintk(1, "%s(): buffer is NULL\n", opname);
--		ret = -EINVAL;
--		goto unlock;
-+		return -EINVAL;
- 	}
- 
- 	if (b->memory != q->memory) {
- 		dprintk(1, "%s(): invalid memory type\n", opname);
--		ret = -EINVAL;
--		goto unlock;
-+		return -EINVAL;
- 	}
- 
- 	ret = __verify_planes_array(vb, b);
- 	if (ret)
--		goto unlock;
-+		return ret;
- 
- 	ret = handler(q, b, vb);
--	if (ret)
--		goto unlock;
--
--	/* Fill buffer information for the userspace */
--	__fill_v4l2_buffer(vb, b);
-+	if (!ret) {
-+		/* Fill buffer information for the userspace */
-+		__fill_v4l2_buffer(vb, b);
- 
--	dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
--unlock:
--	if (mmap_sem)
--		up_read(mmap_sem);
-+		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
-+	}
- 	return ret;
- }
- 
-@@ -1369,6 +1356,9 @@ static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 			return ret;
- 	case VB2_BUF_STATE_PREPARED:
- 		break;
-+	case VB2_BUF_STATE_PREPARING:
-+		dprintk(1, "qbuf: buffer still being prepared\n");
-+		return -EINVAL;
- 	default:
- 		dprintk(1, "qbuf: buffer already in use\n");
- 		return -EINVAL;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bd8218b..4bc4ad2 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -142,6 +142,7 @@ enum vb2_fileio_flags {
- /**
-  * enum vb2_buffer_state - current video buffer state
-  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
-+ * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
-  * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
-  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
-  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
-@@ -154,6 +155,7 @@ enum vb2_fileio_flags {
-  */
- enum vb2_buffer_state {
- 	VB2_BUF_STATE_DEQUEUED,
-+	VB2_BUF_STATE_PREPARING,
- 	VB2_BUF_STATE_PREPARED,
- 	VB2_BUF_STATE_QUEUED,
- 	VB2_BUF_STATE_ACTIVE,
+Best regards
 -- 
-1.8.4.rc3
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
