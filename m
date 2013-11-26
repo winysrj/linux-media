@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43939 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299Ab3KOTL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Nov 2013 14:11:29 -0500
-Message-ID: <528671DF.7040707@iki.fi>
-Date: Fri, 15 Nov 2013 21:11:27 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-out-062.synserver.de ([212.40.185.62]:1047 "EHLO
+	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758360Ab3KZWCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 17:02:44 -0500
+Message-ID: <52951AA7.4030202@metafoo.de>
+Date: Tue, 26 Nov 2013 23:03:19 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] libv4lconvert: SDR conversion from U8 to FLOAT
-References: <1384103776-4788-1-git-send-email-crope@iki.fi> <5280D83C.5060809@xs4all.nl> <5280DE3D.5040408@iki.fi>
-In-Reply-To: <5280DE3D.5040408@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Valentine <valentine.barshak@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <52951604.2050603@metafoo.de> <692757747.1f4Evv5u9p@avalon>
+In-Reply-To: <692757747.1f4Evv5u9p@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.11.2013 15:40, Antti Palosaari wrote:
-> On 11.11.2013 15:14, Hans Verkuil wrote:
->> On 11/10/2013 06:16 PM, Antti Palosaari wrote:
->>> Convert unsigned 8 to float 32 [-1 to +1], which is commonly
->>> used format for baseband signals.
+On 11/26/2013 11:00 PM, Laurent Pinchart wrote:
+> Hi Lars,
+> 
+> On Tuesday 26 November 2013 22:43:32 Lars-Peter Clausen wrote:
+>> On 11/26/2013 10:28 PM, Valentine wrote:
+>>> On 11/20/2013 07:53 PM, Valentine wrote:
+>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>>>> Hi Valentine,
+>>>
+>>> Hi Hans,
+>>>
+>>>>> Did you ever look at this adv7611 driver:
+>>>>>
+>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4a
+>>>>> fa42af2daa12
+>>>> No, I missed that one somehow, although I did search for the adv7611/7612
+>>>> before implementing this one.
+>>>> I'm going to look closer at the patch and test it.
+>>>
+>>> I've tried the patch and I doubt that it was ever tested on adv7611.
+>>
+>> It was and it works.
+>>
+>>> I haven't been able to make it work so far. Here's the description of some
+>>> of the issues I've encountered.
+>>>
+>>> The patch does not apply cleanly so I had to make small adjustments just
+>>> to make it apply without changing the functionality.
+>>
+>> I have an updated version of the patch, which I intend to submit soon.
+> 
+> Is it publicly available already ?
+> 
 
+Just started working on it the other day.
 
-> I am also going to make some tests to find out if actual float
-> conversion is faster against pre-calculated LUT, in Kernel or in
-> libv4lconvert and so. Worst scenario I have currently is Mirics ADC with
-> 14-bit resolution => 16384 quantization levels => 32-bit float LUT will
-> be 16384 * 4 = 65536 bytes. Wonder if that much big LUT is allowed to
-> library - but maybe you could alloc() and populate LUT on the fly if
-> needed. Or maybe native conversion is fast enough.
+>> [...]
+>>
+>>>>> It adds adv761x support to the adv7604 in a pretty clean way.
+>>>
+>>> Doesn't seem that clean to me after having a look at it.
+>>> It tries to handle both 7604 and 7611 chips in the same way, though,
+>>> I'm not exactly sure if it's a good idea since 7611/12 is a pure HDMI
+>>> receiver with no analog inputs.
+>>
+>> It is the same HDMI core (with minor modifications) though. So you end end
+>> up with largely the same code for the 7604 and the 7611.
+> 
 
-That integer to float conversion uses quite much CPU still, even I use 
-only 2M sampling rate.
-
-When I do it inside Kernel, in URB completion handler at the same time 
-when copying data to videobuf2, using pre-calculated LUTs and using mmap 
-it eats 0.5% CPU to transfer stream to app.
-
-When I do same but using libv4lconvert as that patch, it takes ~11% CPU.
-
-And it was only 2M sampling rate, Mirics could go something like 15M.
-
-I wonder if I can optimize libv4lconvert to go near in Kernel LUT 
-conversion...
-
-CPU: AMD Phenom(tm) II X4 955 Processor
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
