@@ -1,53 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:50422 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976Ab3KXSU3 (ORCPT
+Received: from smtp-out-058.synserver.de ([212.40.185.58]:1028 "EHLO
+	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757686Ab3KZVm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Nov 2013 13:20:29 -0500
-Received: by mail-we0-f176.google.com with SMTP id t61so2964341wes.35
-        for <linux-media@vger.kernel.org>; Sun, 24 Nov 2013 10:20:27 -0800 (PST)
+	Tue, 26 Nov 2013 16:42:58 -0500
+Message-ID: <52951604.2050603@metafoo.de>
+Date: Tue, 26 Nov 2013 22:43:32 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-In-Reply-To: <CAA9z4Lbro=UjZjcjK1e51ikVG7Q2XU9Ei1XWPELCq47iGowkWg@mail.gmail.com>
-References: <20130603171607.73d0b856@endymion.delvare>
-	<20130603172150.1aaf1904@endymion.delvare>
-	<CAHFNz9LX0WzmO1zvn51Ge8VQkfiPrao3AQVLprhqrp1V-0h=fQ@mail.gmail.com>
-	<CAA9z4Lbro=UjZjcjK1e51ikVG7Q2XU9Ei1XWPELCq47iGowkWg@mail.gmail.com>
-Date: Sun, 24 Nov 2013 13:20:26 -0500
-Message-ID: <CAGoCfixzV+N7WMhwA=e72pvQJREV5KaR0By=O6+emgsS5eQwGA@mail.gmail.com>
-Subject: Re: [PATCH 2/3] femon: Display SNR in dB
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Chris Lee <updatelee@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Valentine <valentine.barshak@cogentembedded.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com>
+In-Reply-To: <52951270.9040804@cogentembedded.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 24, 2013 at 1:02 PM, Chris Lee <updatelee@gmail.com> wrote:
-> This is a frustration of mine. Some report it in SNR others report it
-> in terms of % (current snr / (max_snr-min_snr)) others its completely
-> random.
->
-> Seems many dvb-s report arbitrary % which is stupid and many atsc
-> report snr by 123 would be 12.3db. But there isnt any standardization
-> around.
->
-> imo everything should be reported in terms of db, why % was ever
-> chosen is beyond logic.
->
-> Is this something we can get ratified ?
+On 11/26/2013 10:28 PM, Valentine wrote:
+> On 11/20/2013 07:53 PM, Valentine wrote:
+>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>> Hi Valentine,
+> 
+> Hi Hans,
+> 
+>>>
+>>> Did you ever look at this adv7611 driver:
+>>>
+>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
+>>>
+>>
+>> No, I missed that one somehow, although I did search for the adv7611/7612
+>> before implementing this one.
+>> I'm going to look closer at the patch and test it.
+>>
+> 
+> I've tried the patch and I doubt that it was ever tested on adv7611.
 
-I wouldn't hold your breath.  We've been arguing about this for years.
- You can check the archives for the dozens of messages exchanged on
-the topic.
+It was and it works.
 
-Given almost all the Linux drivers for ATSC/ClearQAM devices sold
-today report in 0.1 dB increments, I'm tempted to put a hack in the
-various applications to assume all ATSC devices are in that format.
-I've essentially given up on any hope that there will be any agreement
-on a kernel API which applications can rely on for a uniform format.
+> I haven't been able to make it work so far. Here's the description of some
+> of the issues
+> I've encountered.
+> 
+> The patch does not apply cleanly so I had to make small adjustments just to
+> make it apply
+> without changing the functionality.
 
-Devin
+I have an updated version of the patch, which I intend to submit soon.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+[...]
+>>>
+>>> It adds adv761x support to the adv7604 in a pretty clean way.
+> 
+> Doesn't seem that clean to me after having a look at it.
+> It tries to handle both 7604 and 7611 chips in the same way, though,
+> I'm not exactly sure if it's a good idea since 7611/12 is a pure HDMI
+> receiver with no analog inputs.
+
+It is the same HDMI core (with minor modifications) though. So you end end
+up with largely the same code for the 7604 and the 7611.
+
+- Lars
