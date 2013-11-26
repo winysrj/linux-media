@@ -1,124 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:48854 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754928Ab3KURta (ORCPT
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:51741 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab3KZOPa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Nov 2013 12:49:30 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWM0097GK5RQA00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 21 Nov 2013 12:49:28 -0500 (EST)
-Date: Thu, 21 Nov 2013 15:49:23 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: SDR sampling rate - control or IOCTL?
-Message-id: <20131121154923.32d76094@samsung.com>
-In-reply-to: <528E3D41.5010508@iki.fi>
-References: <528E3D41.5010508@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Tue, 26 Nov 2013 09:15:30 -0500
+Received: by mail-ie0-f177.google.com with SMTP id tp5so9255659ieb.36
+        for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 06:15:29 -0800 (PST)
+From: Mauro Dreissig <mukadr@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org,
+	Mauro Dreissig <mukadr@gmail.com>
+Subject: [PATCH 1/2] staging: as102: Declare local variables as static
+Date: Tue, 26 Nov 2013 09:15:20 -0500
+Message-Id: <1385475321-4245-2-git-send-email-mukadr@gmail.com>
+In-Reply-To: <1385475321-4245-1-git-send-email-mukadr@gmail.com>
+References: <1385475321-4245-1-git-send-email-mukadr@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Nov 2013 19:05:05 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+As pointed out by sparse:
 
-> Hello
-> I am adding new property for sampling rate that is ideally the only 
-> obligatory parameter required by SDR. It is value that could be only 
-> positive and bigger the better, lets say unsigned 64 bit is quite ideal. 
-> That value sets maximum radio frequency possible to receive (ideal SDR).
-> 
-> Valid values are not always in some single range from X to Y, there 
-> could be some multiple value ranges.
-> 
-> For example possible values: 1000-2000, 23459, 900001-2800000
-> 
-> Reading possible values from device could be nice, but not necessary. 
-> Reading current value is more important.
-> 
-> Here is what I though earlier as a requirements:
-> 
-> sampling rate
-> *  values: 1 - infinity (unit: Hz, samples per second)
->       currently 500 MHz is more than enough
-> *  operations
->       GET, inquire what HW supports
->       GET, get current value
->       SET, set desired value
-> 
-> 
-> I am not sure what is best way to implement that kind of thing.
-> IOCTL like frequency
-> V4L2 Control?
-> put it into stream format request?
-> 
-> Sampling rate is actually frequency of ADC. As there devices has almost 
-> always tuner too (practical SDR) there is need for tuner frequency too. 
-> As tuner is still own entity, is it possible to use same frequency 
-> parameter for both ADC and RF tuner in same device?
+drivers/staging/media/as102/as102_fw.c:29:6: warning: symbol 'as102_st_fw1' was not declared. Should it be static?
+drivers/staging/media/as102/as102_fw.c:30:6: warning: symbol 'as102_st_fw2' was not declared. Should it be static?
+drivers/staging/media/as102/as102_fw.c:31:6: warning: symbol 'as102_dt_fw1' was not declared. Should it be static?
+drivers/staging/media/as102/as102_fw.c:32:6: warning: symbol 'as102_dt_fw2' was not declared. Should it be static?
+drivers/staging/media/as102/as102_usb_drv.c:194:25: warning: symbol 'as102_priv_ops' was not declared. Should it be static?
 
-Well, a SDR capture device will always have ADC and RF tuner.
+Also use the const qualifier on the firmware name strings.
 
-A SDR output device will always have a DAC and a RF transmitter.
+Signed-off-by: Mauro Dreissig <mukadr@gmail.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/staging/media/as102/as102_fw.c      | 10 +++++-----
+ drivers/staging/media/as102/as102_usb_drv.c |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-On both cases, the sampling rate and the sampling format are mandatory
-arguments.
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index b9670ee..9e7c6d7 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -26,10 +26,10 @@
+ #include "as102_drv.h"
+ #include "as102_fw.h"
+ 
+-char as102_st_fw1[] = "as102_data1_st.hex";
+-char as102_st_fw2[] = "as102_data2_st.hex";
+-char as102_dt_fw1[] = "as102_data1_dt.hex";
+-char as102_dt_fw2[] = "as102_data2_dt.hex";
++static const char as102_st_fw1[] = "as102_data1_st.hex";
++static const char as102_st_fw2[] = "as102_data2_st.hex";
++static const char as102_dt_fw1[] = "as102_data1_dt.hex";
++static const char as102_dt_fw2[] = "as102_data2_dt.hex";
+ 
+ static unsigned char atohx(unsigned char *dst, char *src)
+ {
+@@ -167,7 +167,7 @@ int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap)
+ 	int errno = -EFAULT;
+ 	const struct firmware *firmware = NULL;
+ 	unsigned char *cmd_buf = NULL;
+-	char *fw1, *fw2;
++	const char *fw1, *fw2;
+ 	struct usb_device *dev = bus_adap->usb_dev;
+ 
+ 	ENTER();
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index 9f275f0..0eaced3 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -191,7 +191,7 @@ static int as102_read_ep2(struct as10x_bus_adapter_t *bus_adap,
+ 	return ret ? ret : actual_len;
+ }
+ 
+-struct as102_priv_ops_t as102_priv_ops = {
++static struct as102_priv_ops_t as102_priv_ops = {
+ 	.upload_fw_pkt	= as102_send_ep1,
+ 	.xfer_cmd	= as102_usb_xfer_cmd,
+ 	.as102_read_ep2	= as102_read_ep2,
+-- 
+1.8.5.rc3
 
-In any case, the V4L2 API has already support for setting the mandatory
-parameters of the expected stream, at struct v4l2_format.
-
-So, it makes sense do do:
-
- struct v4l2_format {
-         __u32    type;
-         union {
-                 struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-                 struct v4l2_pix_format_mplane   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-                 struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
-                 struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
-                 struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+                struct v4l2_sdr_format          sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
-                 __u8    raw_data[200];                   /* user-defined */
-         } fmt;
- };
-
-And add the mandatory parameters for SDR inside its own structure, e. g.
-struct v4l2_sdr_format. Of course, the meta-data provided by a SDR device
-is different than the one for video or vbi, so you'll need to add a new
-streaming type for SDR anyway.
-
-Btw, that's what I proposed here:
-
-http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/sdr:/include/uapi/linux/videodev2.h
-
-With regards to the sampling rate range, my proposal there were to add a min/max
-value for it, to be used by VIDIOC_G_FMT, as proposed on:
-	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/c3a73f84f038f043aeda5d5bfccc6fea66291451
-
-So, the v4l2_sdr_format should be like:
-
-+struct v4l2_sdr_format {
-+       __u32                           sampleformat;
-+       __u32                           sample_rate;            /* in Hz */
-+       __u32                           min_sample_rate;        /* in Hz */
-+       __u32                           max_sample_rate;        /* in Hz */
-+
-+} __attribute__ ((packed));
-
-Where sampleformat would be something similar to FOURCC, defining the
-size of each sample, its format, and if the sampling is in quadradure,
-if they're plain PCM samples, or something more complex, like DPCM, RLE,
-etc.
-
-In the specific case of enumerating the sampling rate range, if the 
-sampling rate can have multiple ranges, then maybe we'll need to do
-something more complex like what was done on VIDIOC_ENUM_FRAMESIZES.
-
-Regards,
-Mauro
