@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60720 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab3KBQdj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Nov 2013 12:33:39 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 29/29] lirc_zilog: Don't use dynamic static allocation
-Date: Sat,  2 Nov 2013 11:31:37 -0200
-Message-Id: <1383399097-11615-30-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-References: <1383399097-11615-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46598 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757264Ab3KZQGv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 11:06:51 -0500
+Received: from avalon.localnet (unknown [109.134.93.159])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 42E5235A49
+	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 17:06:06 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.14] OMAP3 ISP fix
+Date: Tue, 26 Nov 2013 17:06:53 +0100
+Message-ID: <20681285.3SfEVTvYXU@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-ompilation complains about it on some archs:
+Hi Mauro,
 
-	drivers/staging/media/lirc/lirc_zilog.c:967:1: warning: 'read' uses dynamic stack allocation [enabled by default]
+The following changes since commit 258d2fbf874c87830664cb7ef41f9741c1abffac:
 
-Instead, let's enforce a limit for the buffer to be 80. That should
-be more than enough.
+  Merge tag 'v3.13-rc1' into patchwork (2013-11-25 05:57:23 -0200)
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/staging/media/lirc/lirc_zilog.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+are available in the git repository at:
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 11d5338b4f2f..9bcd52a962d4 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -941,7 +941,14 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
- 			schedule();
- 			set_current_state(TASK_INTERRUPTIBLE);
- 		} else {
--			unsigned char buf[rbuf->chunk_size];
-+			unsigned char buf[80];
-+
-+			if (rbuf->chunk_size > sizeof(buf)) {
-+				zilog_error("chunk_size is too big (%d)!\n",
-+					    rbuf->chunk_size);
-+				ret = -EIO;
-+				break;
-+			}
- 			m = lirc_buffer_read(rbuf, buf);
- 			if (m == rbuf->chunk_size) {
- 				ret = copy_to_user((void *)outbuf+written, buf,
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to 11b1ea50ce6589cf532761ffce79bbcda17f8c3e:
+
+  v4l: omap3isp: Don't check for missing get_fmt op on remote subdev 
+(2013-11-26 17:04:34 +0100)
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      v4l: omap3isp: Don't check for missing get_fmt op on remote subdev
+
+ drivers/media/platform/omap3isp/ispvideo.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
