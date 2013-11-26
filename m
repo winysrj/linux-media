@@ -1,420 +1,688 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:34225 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911Ab3KEGOA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 01:14:00 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, hverkuil@xs4all.nl, swarren@wwwdotorg.org,
-	mark.rutland@arm.com, Pawel.Moll@arm.com, galak@codeaurora.org,
-	a.hajda@samsung.com, sachin.kamat@linaro.org,
-	shaik.ameer@samsung.com, kilyeon.im@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v11 12/12] V4L: Add s5k4e5 sensor driver
-Date: Tue,  5 Nov 2013 11:42:43 +0530
-Message-Id: <1383631964-26514-13-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
-References: <1383631964-26514-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:58064 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab3KZOPc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 09:15:32 -0500
+Received: by mail-ie0-f173.google.com with SMTP id to1so9411134ieb.32
+        for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 06:15:31 -0800 (PST)
+From: Mauro Dreissig <mukadr@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org,
+	Mauro Dreissig <mukadr@gmail.com>
+Subject: [PATCH 2/2] staging: as102: Remove ENTER/LEAVE debugging macros
+Date: Tue, 26 Nov 2013 09:15:21 -0500
+Message-Id: <1385475321-4245-3-git-send-email-mukadr@gmail.com>
+In-Reply-To: <1385475321-4245-1-git-send-email-mukadr@gmail.com>
+References: <1385475321-4245-1-git-send-email-mukadr@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds subdev driver for Samsung S5K4E5 raw image sensor.
-Like s5k6a3, it is also another fimc-is firmware controlled
-sensor. This minimal sensor driver doesn't do any I2C communications
-as its done by ISP firmware. It can be updated if needed to a
-regular sensor driver by adding the I2C communication.
+Too much noise, also does not cover every possible code paths.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Mauro Dreissig <mukadr@gmail.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/i2c/Kconfig  |    8 ++
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/s5k4e5.c |  344 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 353 insertions(+)
- create mode 100644 drivers/media/i2c/s5k4e5.c
+ drivers/staging/media/as102/as102_drv.c        | 10 ----------
+ drivers/staging/media/as102/as102_drv.h        |  8 --------
+ drivers/staging/media/as102/as102_fe.c         | 26 --------------------------
+ drivers/staging/media/as102/as102_fw.c         |  6 ------
+ drivers/staging/media/as102/as102_usb_drv.c    | 25 -------------------------
+ drivers/staging/media/as102/as10x_cmd.c        | 21 ---------------------
+ drivers/staging/media/as102/as10x_cmd_cfg.c    |  9 ---------
+ drivers/staging/media/as102/as10x_cmd_stream.c | 12 ------------
+ 8 files changed, 117 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index f7e9147..271028b 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -572,6 +572,14 @@ config VIDEO_S5K6A3
- 	  This is a V4L2 sensor-level driver for Samsung S5K6A3 raw
- 	  camera sensor.
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index ac92eaf..62218db 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -112,8 +112,6 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 	struct as10x_bus_adapter_t *bus_adap = &dev->bus_adap;
+ 	int ret = -EFAULT;
  
-+config VIDEO_S5K4E5
-+	tristate "Samsung S5K4E5 sensor support"
-+	depends on MEDIA_CAMERA_SUPPORT
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
-+	---help---
-+	  This is a V4L2 sensor-level driver for Samsung S5K4E5 raw
-+	  camera sensor.
-+
- config VIDEO_S5K4ECGX
-         tristate "Samsung S5K4ECGX sensor support"
-         depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index cf3cf03..0aeed8e 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
- obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
- obj-$(CONFIG_VIDEO_S5K6A3)	+= s5k6a3.o
-+obj-$(CONFIG_VIDEO_S5K4E5)	+= s5k4e5.o
- obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
- obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
- obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
-diff --git a/drivers/media/i2c/s5k4e5.c b/drivers/media/i2c/s5k4e5.c
-new file mode 100644
-index 0000000..5d4007e
---- /dev/null
-+++ b/drivers/media/i2c/s5k4e5.c
-@@ -0,0 +1,344 @@
-+/*
-+ * Samsung S5K4E5 image sensor driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Arun Kumar K <arun.kk@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/slab.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-subdev.h>
-+
-+#define S5K4E5_SENSOR_MAX_WIDTH		2576
-+#define S5K4E5_SENSOR_MAX_HEIGHT	1930
-+
-+#define S5K4E5_SENSOR_MIN_WIDTH		(32 + 16)
-+#define S5K4E5_SENSOR_MIN_HEIGHT	(32 + 10)
-+
-+#define S5K4E5_DEF_WIDTH		1296
-+#define S5K4E5_DEF_HEIGHT		732
-+
-+#define S5K4E5_DRV_NAME			"S5K4E5"
-+#define S5K4E5_CLK_NAME			"extclk"
-+
-+#define S5K4E5_NUM_SUPPLIES		2
-+
-+#define S5K4E5_DEF_CLK_FREQ		24000000
-+
-+/**
-+ * struct s5k4e5 - s5k4e5 sensor data structure
-+ * @dev: pointer to this I2C client device structure
-+ * @subdev: the image sensor's v4l2 subdev
-+ * @pad: subdev media source pad
-+ * @supplies: image sensor's voltage regulator supplies
-+ * @gpio_reset: GPIO connected to the sensor's reset pin
-+ * @lock: mutex protecting the structure's members below
-+ * @format: media bus format at the sensor's source pad
-+ */
-+struct s5k4e5 {
-+	struct device *dev;
-+	struct v4l2_subdev subdev;
-+	struct media_pad pad;
-+	struct regulator_bulk_data supplies[S5K4E5_NUM_SUPPLIES];
-+	int gpio_reset;
-+	struct mutex lock;
-+	struct v4l2_mbus_framefmt format;
-+	struct clk *clock;
-+	u32 clock_frequency;
-+};
-+
-+static const char * const s5k4e5_supply_names[] = {
-+	"svdda",
-+	"svddio"
-+};
-+
-+static inline struct s5k4e5 *sd_to_s5k4e5(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct s5k4e5, subdev);
-+}
-+
-+static const struct v4l2_mbus_framefmt s5k4e5_formats[] = {
-+	{
-+		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+		.field = V4L2_FIELD_NONE,
-+	}
-+};
-+
-+static const struct v4l2_mbus_framefmt *find_sensor_format(
-+	struct v4l2_mbus_framefmt *mf)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(s5k4e5_formats); i++)
-+		if (mf->code == s5k4e5_formats[i].code)
-+			return &s5k4e5_formats[i];
-+
-+	return &s5k4e5_formats[0];
-+}
-+
-+static int s5k4e5_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->index >= ARRAY_SIZE(s5k4e5_formats))
-+		return -EINVAL;
-+
-+	code->code = s5k4e5_formats[code->index].code;
-+	return 0;
-+}
-+
-+static void s5k4e5_try_format(struct v4l2_mbus_framefmt *mf)
-+{
-+	const struct v4l2_mbus_framefmt *fmt;
-+
-+	fmt = find_sensor_format(mf);
-+	mf->code = fmt->code;
-+	v4l_bound_align_image(&mf->width,
-+			S5K4E5_SENSOR_MIN_WIDTH, S5K4E5_SENSOR_MAX_WIDTH, 0,
-+			&mf->height,
-+			S5K4E5_SENSOR_MIN_HEIGHT, S5K4E5_SENSOR_MAX_HEIGHT, 0,
-+			0);
-+}
-+
-+static struct v4l2_mbus_framefmt *__s5k4e5_get_format(
-+		struct s5k4e5 *sensor, struct v4l2_subdev_fh *fh,
-+		u32 pad, enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
-+
-+	return &sensor->format;
-+}
-+
-+static int s5k4e5_set_fmt(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct s5k4e5 *sensor = sd_to_s5k4e5(sd);
-+	struct v4l2_mbus_framefmt *mf;
-+
-+	s5k4e5_try_format(&fmt->format);
-+
-+	mf = __s5k4e5_get_format(sensor, fh, fmt->pad, fmt->which);
-+	if (mf) {
-+		mutex_lock(&sensor->lock);
-+		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+			*mf = fmt->format;
-+		mutex_unlock(&sensor->lock);
-+	}
-+	return 0;
-+}
-+
-+static int s5k4e5_get_fmt(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct s5k4e5 *sensor = sd_to_s5k4e5(sd);
-+	struct v4l2_mbus_framefmt *mf;
-+
-+	mf = __s5k4e5_get_format(sensor, fh, fmt->pad, fmt->which);
-+
-+	mutex_lock(&sensor->lock);
-+	fmt->format = *mf;
-+	mutex_unlock(&sensor->lock);
-+	return 0;
-+}
-+
-+static struct v4l2_subdev_pad_ops s5k4e5_pad_ops = {
-+	.enum_mbus_code	= s5k4e5_enum_mbus_code,
-+	.get_fmt	= s5k4e5_get_fmt,
-+	.set_fmt	= s5k4e5_set_fmt,
-+};
-+
-+static int s5k4e5_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
-+
-+	*format		= s5k4e5_formats[0];
-+	format->width	= S5K4E5_DEF_WIDTH;
-+	format->height	= S5K4E5_DEF_HEIGHT;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops s5k4e5_sd_internal_ops = {
-+	.open = s5k4e5_open,
-+};
-+
-+static int s5k4e5_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct s5k4e5 *sensor = sd_to_s5k4e5(sd);
-+	int gpio = sensor->gpio_reset;
-+	int ret = 0;
-+
-+	if (on) {
-+		ret = clk_set_rate(sensor->clock, sensor->clock_frequency);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret = pm_runtime_get(sensor->dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret = regulator_bulk_enable(S5K4E5_NUM_SUPPLIES,
-+					    sensor->supplies);
-+		if (ret < 0)
-+			goto rpm_put;
-+
-+		ret = clk_prepare_enable(sensor->clock);
-+		if (ret < 0)
-+			goto reg_dis;
-+
-+		if (gpio_is_valid(gpio)) {
-+			gpio_set_value(gpio, 1);
-+			usleep_range(600, 800);
-+			gpio_set_value(gpio, 0);
-+			usleep_range(10000, 11000);
-+			gpio_set_value(gpio, 1);
-+		}
-+
-+		/* Delay needed for the sensor initialization */
-+		msleep(20);
-+	} else {
-+		if (gpio_is_valid(gpio))
-+			gpio_set_value(gpio, 0);
-+
-+		clk_disable_unprepare(sensor->clock);
-+reg_dis:
-+		regulator_bulk_disable(S5K4E5_NUM_SUPPLIES,
-+						sensor->supplies);
-+rpm_put:
-+		pm_runtime_put(sensor->dev);
-+	}
-+	return ret;
-+}
-+
-+static struct v4l2_subdev_core_ops s5k4e5_core_ops = {
-+	.s_power = s5k4e5_s_power,
-+};
-+
-+static struct v4l2_subdev_ops s5k4e5_subdev_ops = {
-+	.core = &s5k4e5_core_ops,
-+	.pad = &s5k4e5_pad_ops,
-+};
-+
-+static int s5k4e5_probe(struct i2c_client *client,
-+				const struct i2c_device_id *id)
-+{
-+	struct device *dev = &client->dev;
-+	struct s5k4e5 *sensor;
-+	struct v4l2_subdev *sd;
-+	int gpio, i, ret;
-+
-+	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-+	if (!sensor)
-+		return -ENOMEM;
-+
-+	mutex_init(&sensor->lock);
-+	sensor->gpio_reset = -EINVAL;
-+	sensor->clock = ERR_PTR(-EINVAL);
-+	sensor->dev = dev;
-+
-+	gpio = of_get_named_gpio_flags(dev->of_node, "reset-gpios", 0, NULL);
-+	if (gpio_is_valid(gpio)) {
-+		ret = devm_gpio_request_one(dev, gpio, GPIOF_OUT_INIT_LOW,
-+							S5K4E5_DRV_NAME);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	sensor->gpio_reset = gpio;
-+
-+	if (of_property_read_u32(dev->of_node, "clock-frequency",
-+				 &sensor->clock_frequency)) {
-+		/* Fallback to default value */
-+		sensor->clock_frequency = S5K4E5_DEF_CLK_FREQ;
-+	}
-+
-+	for (i = 0; i < S5K4E5_NUM_SUPPLIES; i++)
-+		sensor->supplies[i].supply = s5k4e5_supply_names[i];
-+
-+	ret = devm_regulator_bulk_get(&client->dev, S5K4E5_NUM_SUPPLIES,
-+				      sensor->supplies);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Defer probing if the clock is not available yet */
-+	sensor->clock = clk_get(dev, S5K4E5_CLK_NAME);
-+	if (IS_ERR(sensor->clock))
-+		return -EPROBE_DEFER;
-+
-+	sd = &sensor->subdev;
-+	v4l2_i2c_subdev_init(sd, client, &s5k4e5_subdev_ops);
-+	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	sensor->format.code = s5k4e5_formats[0].code;
-+	sensor->format.width = S5K4E5_DEF_WIDTH;
-+	sensor->format.height = S5K4E5_DEF_HEIGHT;
-+
-+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	pm_runtime_no_callbacks(dev);
-+	pm_runtime_enable(dev);
-+
-+	ret = v4l2_async_register_subdev(sd);
-+
-+	return ret;
-+}
-+
-+static int s5k4e5_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id s5k4e5_ids[] = {
-+	{ }
-+};
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id s5k4e5_of_match[] = {
-+	{ .compatible = "samsung,s5k4e5" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, s5k4e5_of_match);
-+#endif
-+
-+static struct i2c_driver s5k4e5_driver = {
-+	.driver = {
-+		.of_match_table	= of_match_ptr(s5k4e5_of_match),
-+		.name		= S5K4E5_DRV_NAME,
-+		.owner		= THIS_MODULE,
-+	},
-+	.probe		= s5k4e5_probe,
-+	.remove		= s5k4e5_remove,
-+	.id_table	= s5k4e5_ids,
-+};
-+
-+module_i2c_driver(s5k4e5_driver);
-+
-+MODULE_DESCRIPTION("S5K4E5 image sensor subdev driver");
-+MODULE_AUTHOR("Arun Kumar K <arun.kk@samsung.com>");
-+MODULE_LICENSE("GPL v2");
+-	ENTER();
+-
+ 	if (mutex_lock_interruptible(&dev->bus_adap.lock)) {
+ 		dprintk(debug, "mutex_lock_interruptible(lock) failed !\n");
+ 		return -EBUSY;
+@@ -141,8 +139,6 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 	}
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+-
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -152,8 +148,6 @@ static int as102_dvb_dmx_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 	struct dvb_demux *demux = dvbdmxfeed->demux;
+ 	struct as102_dev_t *as102_dev = demux->priv;
+ 
+-	ENTER();
+-
+ 	if (mutex_lock_interruptible(&as102_dev->sem))
+ 		return -ERESTARTSYS;
+ 
+@@ -165,7 +159,6 @@ static int as102_dvb_dmx_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 		ret = as102_start_stream(as102_dev);
+ 
+ 	mutex_unlock(&as102_dev->sem);
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -174,8 +167,6 @@ static int as102_dvb_dmx_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 	struct dvb_demux *demux = dvbdmxfeed->demux;
+ 	struct as102_dev_t *as102_dev = demux->priv;
+ 
+-	ENTER();
+-
+ 	if (mutex_lock_interruptible(&as102_dev->sem))
+ 		return -ERESTARTSYS;
+ 
+@@ -187,7 +178,6 @@ static int as102_dvb_dmx_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 				 dvbdmxfeed->pid, 0);
+ 
+ 	mutex_unlock(&as102_dev->sem);
+-	LEAVE();
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index b0e5a23..a06837d 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -38,14 +38,6 @@ extern int elna_enable;
+ 		printk(args);	\
+ 	} } while (0)
+ 
+-#ifdef TRACE
+-#define ENTER()	pr_debug(">> enter %s\n", __func__)
+-#define LEAVE()	pr_debug("<< leave %s\n", __func__)
+-#else
+-#define ENTER()
+-#define LEAVE()
+-#endif
+-
+ #define AS102_DEVICE_MAJOR	192
+ 
+ #define AS102_USB_BUF_SIZE	512
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index 9ce8c9d..72b2c48 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -34,8 +34,6 @@ static int as102_fe_set_frontend(struct dvb_frontend *fe)
+ 	struct as102_dev_t *dev;
+ 	struct as10x_tune_args tune_args = { 0 };
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+@@ -52,7 +50,6 @@ static int as102_fe_set_frontend(struct dvb_frontend *fe)
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+ 
+-	LEAVE();
+ 	return (ret < 0) ? -EINVAL : 0;
+ }
+ 
+@@ -63,8 +60,6 @@ static int as102_fe_get_frontend(struct dvb_frontend *fe)
+ 	struct as102_dev_t *dev;
+ 	struct as10x_tps tps = { 0 };
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -EINVAL;
+@@ -80,13 +75,11 @@ static int as102_fe_get_frontend(struct dvb_frontend *fe)
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+ 
+-	LEAVE();
+ 	return (ret < 0) ? -EINVAL : 0;
+ }
+ 
+ static int as102_fe_get_tune_settings(struct dvb_frontend *fe,
+ 			struct dvb_frontend_tune_settings *settings) {
+-	ENTER();
+ 
+ #if 0
+ 	dprintk(debug, "step_size    = %d\n", settings->step_size);
+@@ -97,7 +90,6 @@ static int as102_fe_get_tune_settings(struct dvb_frontend *fe,
+ 
+ 	settings->min_delay_ms = 1000;
+ 
+-	LEAVE();
+ 	return 0;
+ }
+ 
+@@ -108,8 +100,6 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct as102_dev_t *dev;
+ 	struct as10x_tune_status tstate = { 0 };
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+@@ -168,7 +158,6 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ out:
+ 	mutex_unlock(&dev->bus_adap.lock);
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -183,15 +172,12 @@ static int as102_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct as102_dev_t *dev;
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+ 
+ 	*snr = dev->demod_stats.mer;
+ 
+-	LEAVE();
+ 	return 0;
+ }
+ 
+@@ -199,15 +185,12 @@ static int as102_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct as102_dev_t *dev;
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+ 
+ 	*ber = dev->ber;
+ 
+-	LEAVE();
+ 	return 0;
+ }
+ 
+@@ -216,15 +199,12 @@ static int as102_fe_read_signal_strength(struct dvb_frontend *fe,
+ {
+ 	struct as102_dev_t *dev;
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+ 
+ 	*strength = (((0xffff * 400) * dev->signal_strength + 41000) * 2);
+ 
+-	LEAVE();
+ 	return 0;
+ }
+ 
+@@ -232,8 +212,6 @@ static int as102_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+ 	struct as102_dev_t *dev;
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+@@ -243,7 +221,6 @@ static int as102_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	else
+ 		*ucblocks = 0;
+ 
+-	LEAVE();
+ 	return 0;
+ }
+ 
+@@ -252,8 +229,6 @@ static int as102_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ 	struct as102_dev_t *dev;
+ 	int ret;
+ 
+-	ENTER();
+-
+ 	dev = (struct as102_dev_t *) fe->tuner_priv;
+ 	if (dev == NULL)
+ 		return -ENODEV;
+@@ -272,7 +247,6 @@ static int as102_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+ 
+-	LEAVE();
+ 	return ret;
+ }
+ 
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index 9e7c6d7..f33f752 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -109,8 +109,6 @@ static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 	int total_read_bytes = 0, errno = 0;
+ 	unsigned char addr_has_changed = 0;
+ 
+-	ENTER();
+-
+ 	for (total_read_bytes = 0; total_read_bytes < firmware->size; ) {
+ 		int read_bytes = 0, data_len = 0;
+ 
+@@ -158,7 +156,6 @@ static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 		}
+ 	}
+ error:
+-	LEAVE();
+ 	return (errno == 0) ? total_read_bytes : errno;
+ }
+ 
+@@ -170,8 +167,6 @@ int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap)
+ 	const char *fw1, *fw2;
+ 	struct usb_device *dev = bus_adap->usb_dev;
+ 
+-	ENTER();
+-
+ 	/* select fw file to upload */
+ 	if (dual_tuner) {
+ 		fw1 = as102_dt_fw1;
+@@ -233,6 +228,5 @@ error:
+ 	kfree(cmd_buf);
+ 	release_firmware(firmware);
+ 
+-	LEAVE();
+ 	return errno;
+ }
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index 0eaced3..8759553 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -92,7 +92,6 @@ static int as102_usb_xfer_cmd(struct as10x_bus_adapter_t *bus_adap,
+ 			      unsigned char *recv_buf, int recv_buf_len)
+ {
+ 	int ret = 0;
+-	ENTER();
+ 
+ 	if (send_buf != NULL) {
+ 		ret = usb_control_msg(bus_adap->usb_dev,
+@@ -140,7 +139,6 @@ static int as102_usb_xfer_cmd(struct as10x_bus_adapter_t *bus_adap,
+ #endif
+ 	}
+ 
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -240,8 +238,6 @@ static void as102_free_usb_stream_buffer(struct as102_dev_t *dev)
+ {
+ 	int i;
+ 
+-	ENTER();
+-
+ 	for (i = 0; i < MAX_STREAM_URB; i++)
+ 		usb_free_urb(dev->stream_urb[i]);
+ 
+@@ -249,15 +245,12 @@ static void as102_free_usb_stream_buffer(struct as102_dev_t *dev)
+ 			MAX_STREAM_URB * AS102_USB_BUF_SIZE,
+ 			dev->stream,
+ 			dev->dma_addr);
+-	LEAVE();
+ }
+ 
+ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
+ {
+ 	int i, ret = 0;
+ 
+-	ENTER();
+-
+ 	dev->stream = usb_alloc_coherent(dev->bus_adap.usb_dev,
+ 				       MAX_STREAM_URB * AS102_USB_BUF_SIZE,
+ 				       GFP_KERNEL,
+@@ -287,7 +280,6 @@ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
+ 
+ 		dev->stream_urb[i] = urb;
+ 	}
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -318,23 +310,17 @@ static void as102_usb_release(struct kref *kref)
+ {
+ 	struct as102_dev_t *as102_dev;
+ 
+-	ENTER();
+-
+ 	as102_dev = container_of(kref, struct as102_dev_t, kref);
+ 	if (as102_dev != NULL) {
+ 		usb_put_dev(as102_dev->bus_adap.usb_dev);
+ 		kfree(as102_dev);
+ 	}
+-
+-	LEAVE();
+ }
+ 
+ static void as102_usb_disconnect(struct usb_interface *intf)
+ {
+ 	struct as102_dev_t *as102_dev;
+ 
+-	ENTER();
+-
+ 	/* extract as102_dev_t from usb_device private data */
+ 	as102_dev = usb_get_intfdata(intf);
+ 
+@@ -353,8 +339,6 @@ static void as102_usb_disconnect(struct usb_interface *intf)
+ 	kref_put(&as102_dev->kref, as102_usb_release);
+ 
+ 	pr_info("%s: device has been disconnected\n", DRIVER_NAME);
+-
+-	LEAVE();
+ }
+ 
+ static int as102_usb_probe(struct usb_interface *intf,
+@@ -364,8 +348,6 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 	struct as102_dev_t *as102_dev;
+ 	int i;
+ 
+-	ENTER();
+-
+ 	/* This should never actually happen */
+ 	if (ARRAY_SIZE(as102_usb_id_table) !=
+ 	    (sizeof(as102_device_names) / sizeof(const char *))) {
+@@ -424,7 +406,6 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 	/* register dvb layer */
+ 	ret = as102_dvb_register(as102_dev);
+ 
+-	LEAVE();
+ 	return ret;
+ 
+ failed:
+@@ -439,8 +420,6 @@ static int as102_open(struct inode *inode, struct file *file)
+ 	struct usb_interface *intf = NULL;
+ 	struct as102_dev_t *dev = NULL;
+ 
+-	ENTER();
+-
+ 	/* read minor from inode */
+ 	minor = iminor(inode);
+ 
+@@ -467,7 +446,6 @@ static int as102_open(struct inode *inode, struct file *file)
+ 	kref_get(&dev->kref);
+ 
+ exit:
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -476,15 +454,12 @@ static int as102_release(struct inode *inode, struct file *file)
+ 	int ret = 0;
+ 	struct as102_dev_t *dev = NULL;
+ 
+-	ENTER();
+-
+ 	dev = file->private_data;
+ 	if (dev != NULL) {
+ 		/* decrement the count on our device */
+ 		kref_put(&dev->kref, as102_usb_release);
+ 	}
+ 
+-	LEAVE();
+ 	return ret;
+ }
+ 
+diff --git a/drivers/staging/media/as102/as10x_cmd.c b/drivers/staging/media/as102/as10x_cmd.c
+index a73df10..9e49f15 100644
+--- a/drivers/staging/media/as102/as10x_cmd.c
++++ b/drivers/staging/media/as102/as10x_cmd.c
+@@ -34,8 +34,6 @@ int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap)
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -63,7 +61,6 @@ int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap)
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -78,8 +75,6 @@ int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap)
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -106,7 +101,6 @@ int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap)
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -123,8 +117,6 @@ int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *preq, *prsp;
+ 
+-	ENTER();
+-
+ 	preq = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -164,7 +156,6 @@ int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -181,8 +172,6 @@ int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t  *preq, *prsp;
+ 
+-	ENTER();
+-
+ 	preq = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -220,7 +209,6 @@ int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
+ 	pstatus->BER = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.BER);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -236,8 +224,6 @@ int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap, struct as10x_tps *ptps)
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -281,7 +267,6 @@ int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap, struct as10x_tps *ptps)
+ 	ptps->cell_ID = le16_to_cpu(prsp->body.get_tps.rsp.tps.cell_ID);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -298,8 +283,6 @@ int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t *adap,
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -343,7 +326,6 @@ int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t *adap,
+ 		prsp->body.get_demod_stats.rsp.stats.has_started;
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -361,8 +343,6 @@ int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
+ 	int error = AS10X_CMD_ERROR;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -397,7 +377,6 @@ int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
+ 	*is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+diff --git a/drivers/staging/media/as102/as10x_cmd_cfg.c b/drivers/staging/media/as102/as10x_cmd_cfg.c
+index 4a2bbd7..b1e300d 100644
+--- a/drivers/staging/media/as102/as10x_cmd_cfg.c
++++ b/drivers/staging/media/as102/as10x_cmd_cfg.c
+@@ -40,8 +40,6 @@ int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 	int  error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -81,7 +79,6 @@ int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 	}
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -99,8 +96,6 @@ int as10x_cmd_set_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -136,7 +131,6 @@ int as10x_cmd_set_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 	error = as10x_context_rsp_parse(prsp, CONTROL_PROC_CONTEXT_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -156,8 +150,6 @@ int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode)
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -188,7 +180,6 @@ int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode)
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_ELNA_CHANGE_MODE_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+diff --git a/drivers/staging/media/as102/as10x_cmd_stream.c b/drivers/staging/media/as102/as10x_cmd_stream.c
+index 6d000f6..1088ca1 100644
+--- a/drivers/staging/media/as102/as10x_cmd_stream.c
++++ b/drivers/staging/media/as102/as10x_cmd_stream.c
+@@ -34,8 +34,6 @@ int as10x_cmd_add_PID_filter(struct as10x_bus_adapter_t *adap,
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -77,7 +75,6 @@ int as10x_cmd_add_PID_filter(struct as10x_bus_adapter_t *adap,
+ 	}
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -94,8 +91,6 @@ int as10x_cmd_del_PID_filter(struct as10x_bus_adapter_t *adap,
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -126,7 +121,6 @@ int as10x_cmd_del_PID_filter(struct as10x_bus_adapter_t *adap,
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -141,8 +135,6 @@ int as10x_cmd_start_streaming(struct as10x_bus_adapter_t *adap)
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -172,7 +164,6 @@ int as10x_cmd_start_streaming(struct as10x_bus_adapter_t *adap)
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
+ 
+@@ -187,8 +178,6 @@ int as10x_cmd_stop_streaming(struct as10x_bus_adapter_t *adap)
+ 	int8_t error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-	ENTER();
+-
+ 	pcmd = adap->cmd;
+ 	prsp = adap->rsp;
+ 
+@@ -218,6 +207,5 @@ int as10x_cmd_stop_streaming(struct as10x_bus_adapter_t *adap)
+ 	error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
+ 
+ out:
+-	LEAVE();
+ 	return error;
+ }
 -- 
-1.7.9.5
+1.8.5.rc3
 
