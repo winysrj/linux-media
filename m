@@ -1,56 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39340 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757949Ab3KICsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Nov 2013 21:48:08 -0500
-Message-ID: <527DA266.2030903@iki.fi>
-Date: Sat, 09 Nov 2013 04:48:06 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/8] Montage M88DS3103 DVB-S/S2 demodulator driver
-References: <1383760655-11388-1-git-send-email-crope@iki.fi>	<1383760655-11388-4-git-send-email-crope@iki.fi> <CAHFNz9KKajctZphw5bNCoYAyG15Bo+SDWNY=TXR0o337dXyzKA@mail.gmail.com>
-In-Reply-To: <CAHFNz9KKajctZphw5bNCoYAyG15Bo+SDWNY=TXR0o337dXyzKA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4934 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119Ab3KZDRf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Nov 2013 22:17:35 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAQ3HViH024330
+	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 04:17:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 3E0822A2220
+	for <linux-media@vger.kernel.org>; Tue, 26 Nov 2013 04:17:17 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131126031717.3E0822A2220@tschai.lan>
+Date: Tue, 26 Nov 2013 04:17:17 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.11.2013 04:35, Manu Abraham wrote:
-> On Wed, Nov 6, 2013 at 11:27 PM, Antti Palosaari <crope@iki.fi> wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
->> +/*
->> + * Driver implements own I2C-adapter for tuner I2C access. That's since chip
->> + * has I2C-gate control which closes gate automatically after I2C transfer.
->> + * Using own I2C adapter we can workaround that.
->> + */
->
->
-> Why should the demodulator implement it's own adapter for tuner access ?
+date:		Tue Nov 26 04:00:24 CET 2013
+git branch:	test
+git hash:	258d2fbf874c87830664cb7ef41f9741c1abffac
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-In order to implement it properly.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12-i686: ERRORS
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12-x86_64: ERRORS
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
 
-> DS3103 is identical to DS3002, DS3000 which is similar to all other
-> dvb demodulators. Comparing datsheets of these demodulators
-> with others, I can't see any difference in the repeater setup, except
-> for an additional bit field to control the repeater block itself.
->
-> Also, from what I see, the vendor; Montage has a driver, which appears
-> to be more code complete looking at this url. http://goo.gl/biaPYu
->
-> Do you still think the DS3103 is much different in comparison ?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-There was even some patches, maybe 2 years, ago in order to mainline 
-that but it never happened.
+Full logs are available here:
 
-More complete is here 53 vs. 86 register writes, so yes it is more ~40 
-more complete if you like to compare it like that.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-regards
-Antti
+The Media Infrastructure API from this daily build is here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/media.html
