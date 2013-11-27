@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:64170 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756324Ab3KFKKl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 05:10:41 -0500
-Received: by mail-oa0-f54.google.com with SMTP id n16so1945814oag.27
-        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 02:10:40 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <2965670.TUVZegLOBr@avalon>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org>
-	<1382065635-27855-2-git-send-email-sachin.kamat@linaro.org>
-	<2965670.TUVZegLOBr@avalon>
-Date: Wed, 6 Nov 2013 15:40:40 +0530
-Message-ID: <CAK9yfHwnp9PW5UAOQrHnAdLBux-Lb_A79bdf_r9358qK9Eq0vw@mail.gmail.com>
-Subject: Re: [PATCH 2/6] [media] mt9p031: Include linux/of.h header
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49533 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759454Ab3K0BSo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 20:18:44 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-sh@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 06/15] v4l: sh_vou: Enable driver compilation with COMPILE_TEST
+Date: Wed, 27 Nov 2013 02:18:28 +0100
+Message-Id: <1385515117-23664-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1385515117-23664-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1385515117-23664-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 November 2013 06:58, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sachin,
->
-> Thank you for the patch, and sorry for the late reply.
->
-> On Friday 18 October 2013 08:37:11 Sachin Kamat wrote:
->> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to avoid
->> build breakage in the future.
->>
->> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> I've taken the patch in my tree and will push it upstream.
+This helps increasing build testing coverage.
 
-Thanks Laurent.
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Simon Horman <horms@verge.net.au>
+---
+ drivers/media/platform/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index d7f0249..7f6ea65 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -36,7 +36,8 @@ source "drivers/media/platform/blackfin/Kconfig"
+ config VIDEO_SH_VOU
+ 	tristate "SuperH VOU video output driver"
+ 	depends on MEDIA_CAMERA_SUPPORT
+-	depends on VIDEO_DEV && ARCH_SHMOBILE && I2C
++	depends on VIDEO_DEV && I2C
++	depends on ARCH_SHMOBILE || COMPILE_TEST
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	  Support for the Video Output Unit (VOU) on SuperH SoCs.
 -- 
-With warm regards,
-Sachin
+1.8.3.2
+
