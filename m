@@ -1,217 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3660 "EHLO
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2893 "EHLO
 	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932118Ab3KFJIy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 04:08:54 -0500
-Message-ID: <527A06C7.6070207@xs4all.nl>
-Date: Wed, 06 Nov 2013 10:07:19 +0100
+	with ESMTP id S1752099Ab3K0LUI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 06:20:08 -0500
+Message-ID: <5295D505.4010906@xs4all.nl>
+Date: Wed, 27 Nov 2013 12:18:29 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:SAMSUNG S5P/EXYNO..." <linux-media@vger.kernel.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH v5] videobuf2: Add missing lock held on vb2_fop_relase
-References: <1383726282-25668-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1383726282-25668-1-git-send-email-ricardo.ribalda@gmail.com>
+To: Valentine <valentine.barshak@cogentembedded.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <5295C980.7050201@cogentembedded.com>
+In-Reply-To: <5295C980.7050201@cogentembedded.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/06/13 09:24, Ricardo Ribalda Delgado wrote:
-> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+On 11/27/13 11:29, Valentine wrote:
+> On 11/27/2013 12:21 PM, Hans Verkuil wrote:
+>> On 11/26/2013 10:28 PM, Valentine wrote:
+>>> On 11/20/2013 07:53 PM, Valentine wrote:
+>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>>>> Hi Valentine,
 > 
-> vb2_fop_relase does not held the lock although it is modifying the
+> Hi Hans,
+> 
+>>>
+>>> Hi Hans,
+>>>
+>>>>>
+>>>>> Did you ever look at this adv7611 driver:
+>>>>>
+>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4afa42af2daa12
+>>>>
+>>>> No, I missed that one somehow, although I did search for the adv7611/7612 before implementing this one.
+>>>> I'm going to look closer at the patch and test it.
+>>>>
+>>>
+>>> I've tried the patch and I doubt that it was ever tested on adv7611.
+>>> I haven't been able to make it work so far. Here's the description of some of the issues
+>>> I've encountered.
+>>>
+>>> The patch does not apply cleanly so I had to make small adjustments just to make it apply
+>>> without changing the functionality.
+>>>
+>>> First of all the driver (adv7604_dummy_client function) does not set default I2C slave addresses
+>>> in the I/O map in case they are not set in the platform data.
+>>> This is not needed for 7604, since the default addresses are already set in the I/O map after chip reset.
+>>> However, the map is zeroed on 7611/7612 after power up, and we always have to set it manually.
+>>
+>> So, the platform data for the 7611/2 should always give i2c addresses. That seems
+>> reasonable.
+> 
+> Yes, but currently the comment in include/media/adv7604.h says
+> "i2c addresses: 0 == use default", and this is true for 7604, but
+> it doesn't work for 7611.
+> 
+> Probably the recommended value from the docs should be set by
+> the driver in case an I2C address is zero in the platform data.
+> This will help us to keep the same approach across all 76xx chips.
 
-Small typo: _relase -> _release
+That would work for me.
 
-> queue->owner field.
 > 
-> This could lead to race conditions on the vb2_perform_io function
-> when multiple applications are accessing the video device via
-> read/write API:
+>>
+>>> I had to implement the IRQ handler since the soc_camera model does not use
+>>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing about adv7612
+>>> interrupt routed to a GPIO pin.
+>>> So I had to schedule a workqueue and call adv7604_isr from there in case an interrupt happens.
+>>
+>> For our systems the adv7604 interrupts is not always hooked up to a gpio irq, instead
+>> a register has to be read to figure out which device actually produced the irq. So I
+>> want to keep the interrupt_service_routine(). However, adding a gpio field to the
+>> platform_data that, if set, will tell the driver to request an irq and setup a
+>> workqueue that calls interrupt_service_routine() would be fine with me. That will
+>> benefit a lot of people since using gpios is much more common.
+>>
+>>> The driver enables multiple interrupts on the chip, however, the adv7604_isr callback doesn't
+>>> seem to handle them correctly.
+>>> According to the docs:
+>>> "If an interrupt event occurs, and then a second interrupt event occurs before the system controller
+>>> has cleared or masked the first interrupt event, the ADV7611 does not generate a second interrupt signal."
+>>>
+>>> However, the interrupt_service_routine doesn't account for that.
+>>> For example, in case fmt_change interrupt happens while fmt_change_digital interrupt is being
+>>> processed by the adv7604_isr routine. If fmt_change status is set just before we clear fmt_change_digital,
+>>> we never clear fmt_change. Thus, we end up with fmt_change interrupt missed and therefore further interrupts disabled.
+>>> I've tried to call the adv7604_isr routine in a loop and return from the worlqueue only when all interrupt status bits are cleared.
+>>> This did help a bit, but sometimes I started getting lots of I2C read/write errors for some reason.
+>>
+>> I'm not sure if there is much that can be done about this. The code reads the
+>> interrupt status, then clears the interrupts right after. There is always a
+>> race condition there since this isn't atomic ('read and clear'). Unless Lars-Peter
+>> has a better idea?
+>>
+>> What can be improved, though, is to clear not just the interrupts that were
+>> read, but all the interrupts that are unmasked. You are right, you could
+>> loose an interrupt that way.
+>>
+>>> I'm also not sure how the dv_timing API should be used.
+>>> The internal adv7604 state->timings structure is used when getting mbus format.
+>>> However, the driver does not set the structure neither at start-up nor in the interrupt service callback when format changes.
+>>> Is it supposed to be set by the upper level camera driver?
+>>
+>> It would be nice if the adv7604 would set up an initial timings format. In our
+>> case it is indeed the bridge driver that sets it up, but in the general case it
+>> is better if the i2c driver also sets an initial timings struct. 720p60 is
+>> generally a good initial value.
+>>
+>> The irq certainly shouldn't change timings: changing timings will most likely
+>> require changes in the video buffer sizes, which generally requires stopping
+>> streaming, reconfiguring the pipeline and restarting streaming. That's not
+>> something the i2c driver can do.
+>>
+>> The confusion you have with mbus vs dv_timings is that soc_camera lacks dv_timings
+>> support. It was designed for sensors, although there is now some support for SDTV
+>> receivers (s/g_std ioctls), but dv_timings support has to be added there as well
+>> along the lines of what is done for s/g_std. Basically it is just a passthrough.
+>>
+>> The way s_mbus_fmt is defined in adv7604 today is correct. s_dv_timings should be
+>> called to change the format, s_mbus_fmt should just return the current width/height.
+>> For HDTV there is more involved than just width and height when changing formats,
+>> just as SDTV.
+>>
+>> So the right approach is to add support for query/enum/s/g_dv_timings and dv_timings_cap
+>> to soc_camera (just passthroughs). Then you can use it the way you are supposed to.
+>>
+>>> For example, when the camera driver receives v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
+>>> does it have to do the following:
+>>> v4l2_subdev_call(sd, video, query_dv_timings, timings);
+>>> v4l2_subdev_call(sd, video, s_dv_timings, timings);?
+>>>
+>>> I don't think that this is how it should work.
+>>
+>> And it shouldn't work like that. The soc_camera driver has to send out a FMT_CHANGE
+>> event to the application. It is the application that will receive that event, and
+>> will have to call QUERY_DV_TIMINGS, stop streaming, allocate new buffers to accomodate
+>> the new buffer size, call S_DV_TIMINGS and STREAMON to restart the newly configured
+>> pipeline.
+>>
 > 
-> [ 308.297741] BUG: unable to handle kernel NULL pointer dereference at
-> 0000000000000260
-> [ 308.297759] IP: [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-> [videobuf2_core]
-> [ 308.297794] PGD 159719067 PUD 158119067 PMD 0
-> [ 308.297812] Oops: 0000 #1 SMP
-> [ 308.297826] Modules linked in: qt5023_video videobuf2_dma_sg
-> qtec_xform videobuf2_vmalloc videobuf2_memops videobuf2_core
-> qtec_white qtec_mem gpio_xilinx qtec_cmosis qtec_pcie fglrx(PO)
-> spi_xilinx spi_bitbang qt5023
-> [ 308.297888] CPU: 1 PID: 2189 Comm: java Tainted: P O 3.11.0-qtec-standard #1
-> [ 308.297919] Hardware name: QTechnology QT5022/QT5022, BIOS
-> PM_2.1.0.309 X64 05/23/2013
-> [ 308.297952] task: ffff8801564e1690 ti: ffff88014dc02000 task.ti:
-> ffff88014dc02000
-> [ 308.297962] RIP: 0010:[<ffffffffa07a9fd2>] [<ffffffffa07a9fd2>]
-> vb2_perform_fileio+0x372/0x610 [videobuf2_core]
-> [ 308.297985] RSP: 0018:ffff88014dc03df8 EFLAGS: 00010202
-> [ 308.297995] RAX: 0000000000000000 RBX: ffff880158a23000 RCX: dead000000100100
-> [ 308.298003] RDX: 0000000000000000 RSI: dead000000200200 RDI: 0000000000000000
-> [ 308.298012] RBP: ffff88014dc03e58 R08: 0000000000000000 R09: 0000000000000001
-> [ 308.298020] R10: ffffea00051e8380 R11: ffff88014dc03fd8 R12: ffff880158a23070
-> [ 308.298029] R13: ffff8801549040b8 R14: 0000000000198000 R15: 0000000001887e60
-> [ 308.298040] FS: 00007f65130d5700(0000) GS:ffff88015ed00000(0000)
-> knlGS:0000000000000000
-> [ 308.298049] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [ 308.298057] CR2: 0000000000000260 CR3: 0000000159630000 CR4: 00000000000007e0
-> [ 308.298064] Stack:
-> [ 308.298071] ffff880156416c00 0000000000198000 0000000000000000
-> ffff880100000001
-> [ 308.298087] ffff88014dc03f50 00000000810a79ca 0002000000000001
-> ffff880154904718
-> [ 308.298101] ffff880156416c00 0000000000198000 ffff880154904338
-> ffff88014dc03f50
-> [ 308.298116] Call Trace:
-> [ 308.298143] [<ffffffffa07aa3c4>] vb2_read+0x14/0x20 [videobuf2_core]
-> [ 308.298198] [<ffffffffa07aa494>] vb2_fop_read+0xc4/0x120 [videobuf2_core]
-> [ 308.298252] [<ffffffff8154ee9e>] v4l2_read+0x7e/0xc0
-> [ 308.298296] [<ffffffff8116e639>] vfs_read+0xa9/0x160
-> [ 308.298312] [<ffffffff8116e882>] SyS_read+0x52/0xb0
-> [ 308.298328] [<ffffffff81784179>] tracesys+0xd0/0xd5
-> [ 308.298335] Code: e5 d6 ff ff 83 3d be 24 00 00 04 89 c2 4c 8b 45 b0
-> 44 8b 4d b8 0f 8f 20 02 00 00 85 d2 75 32 83 83 78 03 00 00 01 4b 8b
-> 44 c5 48 <8b> 88 60 02 00 00 85 c9 0f 84 b0 00 00 00 8b 40 58 89 c2 41
-> 89
-> [ 308.298487] RIP [<ffffffffa07a9fd2>] vb2_perform_fileio+0x372/0x610
-> [videobuf2_core]
-> [ 308.298507] RSP <ffff88014dc03df8>
-> [ 308.298514] CR2: 0000000000000260
-> [ 308.298526] ---[ end trace e8f01717c96d1e41 ]---
-> 
-> Signed-off-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-> ---
-> 
-> v2: Comments by Sylvester Nawrocki
-> 
-> fimc-capture and fimc-lite where calling vb2_fop_release with the lock held.
-> Therefore a new __vb2_fop_release function has been created to be used by
-> drivers that overload the release function.
-> 
-> v3: Comments by Sylvester Nawrocki and Mauro Carvalho Chehab
-> 
-> Use vb2_fop_release_locked instead of __vb2_fop_release
-> 
-> v4: Comments by Sylvester Nawrocki
-> 
-> Rename vb2_fop_release_locked to __vb2_fop_release and fix patch format
-> 
-> v5: Comments by Sylvester Nawrocki and Hans Verkuil
-> 
-> Rename __vb2_fop_release to vb2_fop_release_unlock and rearrange
-> arguments
+> IIUC, we can't just use VIDIOC_S_FMT, prepare the buffers and read a frame from HDTV.
+> We have to query dv_timings instead.
 
-I know I suggested the vb2_fop_release_unlock name, but on second thoughts
-that's not a good name. I suggest vb2_fop_release_no_lock instead.
-'_unlock' suggests that there is a _lock version as well, which isn't the
-case here.
+Right.
 
-After making that change you can add my:
+> It looks like VIDIOC_G_FMT, VIDIOC_S_FMT, VIDIOC_TRY_FMT may in fact return incorrect
+> data unless the application queries and sets DV timings before using S/G/TRY FMT ioctls.
+> What's the use of the FMT ioctls then?
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The FMT ioctls define the size of your memory buffers. Depending on your use
+case (crop/compose settings, stride, padding) you might want to allocate different
+sized buffers than you would expect from just the timings.
+
+Also, different DV timings will map to identical resolutions: different
+frame rates/pixelclocks, reduced blanking modes, differences in polarities,
+etc.
+
+It's no different than e.g. PAL vs SECAM: same resolution, but very different
+otherwise.
+
+In other words: the DV_TIMINGS and STD ioctls negotiate the video signal
+detection/setup and the FMT ioctls deal with the memory format. Setting the
+video signal (S_STD or S_DV_TIMINGS) must be done first and it will typically
+reset the v4l2_format settings. If streaming is in progress S_STD or
+S_DV_TIMINGS must return EBUSY (unless there is no change, in which case
+they can return 0 immediately).
+
+> 
+>> And we still haven't defined that FMT_CHANGE event. This is literally the first time
+>> that an upstreamed bridge driver has to support this.
+>>
+>> I will make an RFC for this today or tomorrow. It's really time that we add it.
+> 
+> Thanks!
+> 
+>>
+>>>
+>>> Anyways, I've tried to call query_dv_timings to initialize state->timings from the interrupt service workqueue.
+>>
+>> That's absolutely a no-go. Drivers should never change format midstream.
+>>
+>>> I've been able to catch format change events though it looks very sloppy at the moment.
+>>>
+>>> BTW, the driver doesn't provide any locking for reading/writing the state->settings which I believe could cause
+>>> some issues reading incomplete format when it changes asynchronously to the subdevice g_mbus_fmt operation.
+>>
+>> That shouldn't happen asynchronously. If you have asynchronous behavior like that, then
+>> that needs a close look.
+>>
+>> Another issue you have is how to set up the EDID in the receiver. Currently this
+>> is done through the v4l2-subdevX device node of the subdev and the VIDIOC_SUBDEV_G/S_EDID
+>> ioctls. However, soc_camera does not create those device nodes at the moment.
+>> For simple pipelines this may be overkill anyway. In our (non-upstreamed) bridge
+>> drivers we just implement VIDIOC_SUBDEV_G/S_EDID in the bridge driver and
+>> pass it through to the subdev. I have to think about this a bit more, perhaps
+>> I should create VIDIOC_G/S_EDID ioctls that can be used by standard, simple
+>> v4l2 devices as well. I'll add it to the RFC.
+>>
+>> Regardless, soc_camera needs to add support for setting/getting EDIDs one way
+>> or another.
+>>
+>>>
+>>>>>
+>>>>> It adds adv761x support to the adv7604 in a pretty clean way.
+>>>
+>>> Doesn't seem that clean to me after having a look at it.
+>>> It tries to handle both 7604 and 7611 chips in the same way, though,
+>>> I'm not exactly sure if it's a good idea since 7611/12 is a pure HDMI receiver with no analog inputs.
+>>
+>> The analog support of the adv7604 is pretty separate from the HDMI part, so
+>> I don't see that as a big deal. That said, I do have to reevaluate that when
+>> I see the latest version of this patch from Analog Devices later this week.
+>>
+>>>
+>>>>>
+>>>>> Thinking it over I prefer to use that code (although you will have to
+>>>>> add the soc-camera hack for the time being) over your driver.
+>>>>>
+>>>>> Others need adv7611 support as well, but with all the dv_timings etc. features
+>>>>> that are removed in your driver. So I am thinking that it is easier to merge
+>>>>> the xilinx version and add whatever you need on top of that.
+>>>
+>>> To be honest I'm more inclined to drop non-soc camera support from my driver and
+>>> move it to media/i2c/soc_camera/ the moment. That would be easier.
+>>
+>> I won't accept that, sorry.The issues you have derive more from misunderstanding
+>> the way an HDTV receiver is supposed to work (it's not all that easy to wrap your
+>> head around it) and from missing functionality for HDTV in soc_camera and even in
+>> the V4L2 API (because certain bridge drivers that demonstrate how it works couldn't
+>> be upstreamed and we want to avoid adding API additions without having drivers
+>> using it).
+> 
+> Thank you very much for your explanations.
+> Yes, it's kind of hard to get a hold of it with some functionality missing in the API
+> and the drivers. Your help is much appreciated.
+
+No problem, I'd like to get this sorted as well.
 
 Regards,
 
 	Hans
-
-> 
->  drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
->  drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
->  drivers/media/v4l2-core/videobuf2-core.c         | 20 +++++++++++++++++++-
->  include/media/videobuf2-core.h                   |  1 +
->  4 files changed, 22 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-> index fb27ff7..3035e3b 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-> @@ -549,7 +549,7 @@ static int fimc_capture_release(struct file *file)
->  		vc->streaming = false;
->  	}
->  
-> -	ret = vb2_fop_release(file);
-> +	ret = vb2_fop_release_unlock(file);
->  
->  	if (close) {
->  		clear_bit(ST_CAPT_BUSY, &fimc->state);
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-> index e5798f7..dc87429 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -546,7 +546,7 @@ static int fimc_lite_release(struct file *file)
->  		mutex_unlock(&entity->parent->graph_mutex);
->  	}
->  
-> -	vb2_fop_release(file);
-> +	vb2_fop_release_unlock(file);
->  	pm_runtime_put(&fimc->pdev->dev);
->  	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
->  
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 594c75e..2716714 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2619,18 +2619,36 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->  }
->  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
->  
-> -int vb2_fop_release(struct file *file)
-> +static int _vb2_fop_release(struct file *file, struct mutex *lock)
->  {
->  	struct video_device *vdev = video_devdata(file);
->  
->  	if (file->private_data == vdev->queue->owner) {
-> +		if (lock)
-> +			mutex_lock(lock);
->  		vb2_queue_release(vdev->queue);
->  		vdev->queue->owner = NULL;
-> +		if (lock)
-> +			mutex_unlock(lock);
->  	}
->  	return v4l2_fh_release(file);
->  }
-> +
-> +int vb2_fop_release(struct file *file)
-> +{
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
-> +
-> +	return _vb2_fop_release(file, lock);
-> +}
->  EXPORT_SYMBOL_GPL(vb2_fop_release);
->  
-> +int vb2_fop_release_unlock(struct file *file)
-> +{
-> +	return _vb2_fop_release(file, NULL);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_fop_release_unlock);
-> +
->  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->  		size_t count, loff_t *ppos)
->  {
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 6781258..6fcb603 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -491,6 +491,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
->  
->  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
->  int vb2_fop_release(struct file *file);
-> +int vb2_fop_release_unlock(struct file *file);
->  ssize_t vb2_fop_write(struct file *file, char __user *buf,
->  		size_t count, loff_t *ppos);
->  ssize_t vb2_fop_read(struct file *file, char __user *buf,
-> 
-
