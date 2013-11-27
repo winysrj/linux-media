@@ -1,247 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47506 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753085Ab3KGX1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Nov 2013 18:27:42 -0500
-Message-ID: <527C21E7.7040404@iki.fi>
-Date: Fri, 08 Nov 2013 01:27:35 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54506 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755015Ab3K0Qkl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 11:40:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Valentine <valentine.barshak@cogentembedded.com>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+Date: Wed, 27 Nov 2013 17:40:44 +0100
+Message-ID: <2150651.hQNra4Rlob@avalon>
+In-Reply-To: <5295E641.6060603@cogentembedded.com>
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 18/29] [media] tuners: Don't use dynamic static allocation
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com> <1383645702-30636-19-git-send-email-m.chehab@samsung.com> <527926CB.8070006@iki.fi> <527BE215.4080702@iki.fi> <20131107191345.27ab51df@samsung.com>
-In-Reply-To: <20131107191345.27ab51df@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi Valentine,
 
-Antti
+(CC'ing Linus Walleij, Wolfram Sang and LAKML)
 
-On 07.11.2013 23:13, Mauro Carvalho Chehab wrote:
-> Em Thu, 07 Nov 2013 20:55:17 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> Mauro,
->> I just notified these are all broken. The reason is here that I2C
->> adapter sets I2C operation length using sizeof(buf).
->
-> Gah!
->
->> Please take a look of all there patches and check existing use of
->> sizeof(buf).
->
-> Thanks for review!
->
-> Well not all were broken, as, on most drivers weren't using sizeof().
->
-> Anyway, I double-checked everything and fixed the drivers.
->
-> Instead of just mailbombing a 29 patch series, it seems better to just
-> paste here the differences from v4, and add a pointer to a git tree
-> with the full series of patches:
-> 	
-> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/build-fixes-v4
->
-> Enclosed is the diff against v3.
->
-> PS.: it also addresses the issue pointed by Andy.
->
-> Regards,
-> Mauro
->
-> -
->
-> diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-> index 19ba66ad23fa..fb504f1e9125 100644
-> --- a/drivers/media/dvb-frontends/af9013.c
-> +++ b/drivers/media/dvb-frontends/af9013.c
-> @@ -58,7 +58,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
->   		{
->   			.addr = priv->config.i2c_addr,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 3 + len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-> index 11f1555e66dc..30ee59052157 100644
-> --- a/drivers/media/dvb-frontends/af9033.c
-> +++ b/drivers/media/dvb-frontends/af9033.c
-> @@ -48,7 +48,7 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
->   		{
->   			.addr = state->cfg.i2c_addr,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 3 + len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-> index b908800b390d..7efb796c472c 100644
-> --- a/drivers/media/dvb-frontends/rtl2830.c
-> +++ b/drivers/media/dvb-frontends/rtl2830.c
-> @@ -39,7 +39,7 @@ static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
->   		{
->   			.addr = priv->cfg.i2c_addr,
->   			.flags = 0,
-> -			.len = 1+len,
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-> index cd1e6965ac11..ff73da9365e3 100644
-> --- a/drivers/media/dvb-frontends/rtl2832.c
-> +++ b/drivers/media/dvb-frontends/rtl2832.c
-> @@ -170,7 +170,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
->   		{
->   			.addr = priv->cfg.i2c_addr,
->   			.flags = 0,
-> -			.len = 1+len,
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/dvb-frontends/s5h1420.c b/drivers/media/dvb-frontends/s5h1420.c
-> index 97c400a4297f..93eeaf7118fd 100644
-> --- a/drivers/media/dvb-frontends/s5h1420.c
-> +++ b/drivers/media/dvb-frontends/s5h1420.c
-> @@ -854,7 +854,7 @@ static int s5h1420_tuner_i2c_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c
->
->   	memcpy(&m[1], msg, sizeof(struct i2c_msg) * num);
->
-> -	return i2c_transfer(state->i2c, m, 1+num) == 1 + num ? num : -EIO;
-> +	return i2c_transfer(state->i2c, m, 1 + num) == 1 + num ? num : -EIO;
->   }
->
->   static struct i2c_algorithm s5h1420_tuner_i2c_algo = {
-> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-> index 1d8bc2ea4b10..8ad3a57cf640 100644
-> --- a/drivers/media/dvb-frontends/tda10071.c
-> +++ b/drivers/media/dvb-frontends/tda10071.c
-> @@ -35,7 +35,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->   		{
->   			.addr = priv->cfg.demod_i2c_addr,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> @@ -76,7 +76,7 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->   		}, {
->   			.addr = priv->cfg.demod_i2c_addr,
->   			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> +			.len = len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-> index 87f5bcf29e90..c1f8cc6f14b2 100644
-> --- a/drivers/media/pci/cx18/cx18-driver.c
-> +++ b/drivers/media/pci/cx18/cx18-driver.c
-> @@ -327,7 +327,7 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
->   	struct i2c_client *c;
->   	u8 eedata[256];
->
-> -	c = kzalloc(sizeof(*c), GFP_ATOMIC);
-> +	c = kzalloc(sizeof(*c), GFP_KERNEL);
->
->   	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
->   	c->adapter = &cx->i2c_adap[0];
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 30192463c9e1..c9cc1232f2e5 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -32,7 +32,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		{
->   			.addr = priv->cfg->i2c_addr,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> @@ -73,7 +73,7 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->   		}, {
->   			.addr = priv->cfg->i2c_addr,
->   			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> +			.len = len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-> index 430fa5163ec7..3aecaf465094 100644
-> --- a/drivers/media/tuners/fc2580.c
-> +++ b/drivers/media/tuners/fc2580.c
-> @@ -49,7 +49,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		{
->   			.addr = priv->cfg->i2c_addr,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> @@ -89,7 +89,7 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
->   		}, {
->   			.addr = priv->cfg->i2c_addr,
->   			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> +			.len = len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-> index b3a4adf9ff8f..abe256e1f843 100644
-> --- a/drivers/media/tuners/tda18212.c
-> +++ b/drivers/media/tuners/tda18212.c
-> @@ -40,7 +40,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		{
->   			.addr = priv->cfg->i2c_address,
->   			.flags = 0,
-> -			.len = sizeof(buf),
-> +			.len = 1 + len,
->   			.buf = buf,
->   		}
->   	};
-> @@ -81,7 +81,7 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
->   		}, {
->   			.addr = priv->cfg->i2c_address,
->   			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> +			.len = len,
->   			.buf = buf,
->   		}
->   	};
-> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-> index 7e2b32ee5349..9300e9361e3b 100644
-> --- a/drivers/media/tuners/tda18218.c
-> +++ b/drivers/media/tuners/tda18218.c
-> @@ -83,7 +83,7 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
->   		}, {
->   			.addr = priv->cfg->i2c_address,
->   			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> +			.len = reg + len,
->   			.buf = buf,
->   		}
->   	};
->
->
-> Cheers,
-> Mauro
->
+On Wednesday 27 November 2013 16:32:01 Valentine wrote:
+> On 11/27/2013 04:14 PM, Hans Verkuil wrote:
+> > On 11/27/13 12:39, Laurent Pinchart wrote:
+> >> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
+> >>> On 11/26/2013 10:28 PM, Valentine wrote:
+> >>>> On 11/20/2013 07:53 PM, Valentine wrote:
+> >>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
 
+[snip]
+
+> >>> So I want to keep the interrupt_service_routine(). However, adding a
+> >>> gpio field to the platform_data that, if set, will tell the driver to
+> >>> request an irq and setup a workqueue that calls
+> >>> interrupt_service_routine() would be fine with me. That will benefit a
+> >>> lot of people since using gpios is much more common.
+> >> 
+> >> We should use the i2c_board_info.irq field for that, not a field in the
+> >> platform data structure. The IRQ line could be hooked up to a non-GPIO
+> >> IRQ.
+> > 
+> > Yes, of course. Although the adv7604 has two interrupt lines, so if you
+> > would want to use the second, then that would still have to be specified
+> > through the platform data.
+> 
+> In this case the GPIO should be configured as interrupt source in the
+> platform code. But this doesn't seem to work with R-Car GPIO since it is
+> initialized later, and the gpio_to_irq function returns an error.
+> The simplest way seemed to use a GPIO number in the platform data
+> to have the adv driver configure the pin and request the IRQ.
+> I'm not sure how to easily defer I2C board info IRQ setup (and
+> camera/subdevice probing) until GPIO driver is ready.
+
+Good question. This looks like a core problem to me, not specific to the 
+adv761x driver. Linus, Wolfram, do you have a comment on that ?
+
+> >>>> The driver enables multiple interrupts on the chip, however, the
+> >>>> adv7604_isr callback doesn't seem to handle them correctly.
+> >>>> According to the docs:
+> >>>> "If an interrupt event occurs, and then a second interrupt event occurs
+> >>>> before the system controller has cleared or masked the first interrupt
+> >>>> event, the ADV7611 does not generate a second interrupt signal."
+> >>>> 
+> >>>> However, the interrupt_service_routine doesn't account for that.
+> >>>> For example, in case fmt_change interrupt happens while
+> >>>> fmt_change_digital interrupt is being processed by the adv7604_isr
+> >>>> routine. If fmt_change status is set just before we clear
+> >>>> fmt_change_digital, we never clear fmt_change. Thus, we end up with
+> >>>> fmt_change interrupt missed and therefore further interrupts disabled.
+> >>>> I've tried to call the adv7604_isr routine in a loop and return from
+> >>>> the worlqueue only when all interrupt status bits are cleared. This did
+> >>>> help a bit, but sometimes I started getting lots of I2C read/write
+> >>>> errors for some reason.
+> >>> 
+> >>> I'm not sure if there is much that can be done about this. The code
+> >>> reads the interrupt status, then clears the interrupts right after.
+> >>> There is always a race condition there since this isn't atomic ('read
+> >>> and clear'). Unless Lars-Peter has a better idea?
+> >>> 
+> >>> What can be improved, though, is to clear not just the interrupts that
+> >>> were read, but all the interrupts that are unmasked. You are right, you
+> >>> could loose an interrupt that way.
+> >> 
+> >> Wouldn't level-trigerred interrupts fix the issue ?
+> 
+> In this case we need to disable the IRQ line in the IRQ handler and
+> re-enable it in the workqueue. (we can't call the interrupt service routine
+> from the interrupt context.)
+
+Can't we just flag the interrupt in a non-threaded IRQ handler, acknowledge 
+the interrupt and then schedule work on a workqueue for the bottom half ?
+
+> This however didn't seem to work with R-Car GPIO. Calling
+> disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler doesn't seem
+> to disable it for some reason.
+> 
+> Also if the isr is called by the upper level camera driver, we assume that
+> it needs special handling (disabling/enabling) for the ADV76xx interrupt
+> although it uses the API interrupt_service_routine callback. Not a big
+> deal, but still doesn't look pretty to me.
+>
+> > See my earlier reply.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
