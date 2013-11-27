@@ -1,234 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:44626 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab3KQXGy (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:57020 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295Ab3K0Nqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Nov 2013 18:06:54 -0500
-From: Gerhard Sittig <gsi@denx.de>
-To: linuxppc-dev@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org,
-	Anatolij Gustschin <agust@denx.de>,
-	Mike Turquette <mturquette@linaro.org>
-Cc: Scott Wood <scottwood@freescale.com>, Detlev Zundel <dzu@denx.de>,
-	Gerhard Sittig <gsi@denx.de>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	devicetree@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Jiri Slaby <jslaby@suse.cz>,
-	Kumar Gala <galak@kernel.crashing.org>,
-	linux-can@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, linux-serial@vger.kernel.org,
-	linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-	Marc Kleine-Budde <mkl@pengutronix.de>,
-	Mark Brown <broonie@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
+	Wed, 27 Nov 2013 08:46:40 -0500
+Received: by mail-la0-f50.google.com with SMTP id el20so5148578lab.23
+        for <linux-media@vger.kernel.org>; Wed, 27 Nov 2013 05:46:38 -0800 (PST)
+Message-ID: <5295F7BC.7010305@cogentembedded.com>
+Date: Wed, 27 Nov 2013 17:46:36 +0400
+From: Valentine <valentine.barshak@cogentembedded.com>
+MIME-Version: 1.0
+To: Lars-Peter Clausen <lars@metafoo.de>
+CC: Hans Verkuil <hansverk@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Paul Mackerras <paulus@samba.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Wolfgang Grandegger <wg@grandegger.com>
-Subject: [PATCH v5 00/17] add COMMON_CLK support for PowerPC MPC512x
-Date: Mon, 18 Nov 2013 00:06:00 +0100
-Message-Id: <1384729577-7336-1-git-send-email-gsi@denx.de>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com> <5295EE8C.6070505@metafoo.de>
+In-Reply-To: <5295EE8C.6070505@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this series introduces support for the common clock framework (CCF,
-COMMON_CLK Kconfig option) in the PowerPC based MPC512x platform, which
-brings device tree based clock lookup as well
+On 11/27/2013 05:07 PM, Lars-Peter Clausen wrote:
+> On 11/27/2013 01:32 PM, Valentine wrote:
+>> On 11/27/2013 04:14 PM, Hans Verkuil wrote:
+>>> Hi Laurent,
+>>>
+>>> On 11/27/13 12:39, Laurent Pinchart wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
+>>>>> On 11/26/2013 10:28 PM, Valentine wrote:
+>>>>>> On 11/20/2013 07:53 PM, Valentine wrote:
+>>>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>>>>>>> Hi Valentine,
+>>>>>>
+>>>>>> Hi Hans,
+>>>>>>
+>>>>>>>> Did you ever look at this adv7611 driver:
+>>>>>>>>
+>>>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4a
+>>>>>>>> fa42af2daa12
+>>>>>>>
+>>>>>>> No, I missed that one somehow, although I did search for the adv7611/7612
+>>>>>>> before implementing this one. I'm going to look closer at the patch and
+>>>>>>> test it.
+>>>>>>
+>>>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
+>>>>>> I haven't been able to make it work so far. Here's the description of some
+>>>>>> of the issues I've encountered.
+>>>>>>
+>>>>>> The patch does not apply cleanly so I had to make small adjustments just
+>>>>>> to make it apply without changing the functionality.
+>>>>>>
+>>>>>> First of all the driver (adv7604_dummy_client function) does not set
+>>>>>> default I2C slave addresses in the I/O map in case they are not set in
+>>>>>> the platform data.
+>>>>>> This is not needed for 7604, since the default addresses are already set
+>>>>>> in the I/O map after chip reset. However, the map is zeroed on 7611/7612
+>>>>>> after power up, and we always have to set it manually.
+>>>>>
+>>>>> So, the platform data for the 7611/2 should always give i2c addresses. That
+>>>>> seems reasonable.
+>>>>>
+>>>>>> I had to implement the IRQ handler since the soc_camera model does not use
+>>>>>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing
+>>>>>> about adv7612 interrupt routed to a GPIO pin.
+>>>>>> So I had to schedule a workqueue and call adv7604_isr from there in case
+>>>>>> an interrupt happens.
+>>>>>
+>>>>> For our systems the adv7604 interrupts is not always hooked up to a gpio
+>>>>> irq, instead a register has to be read to figure out which device actually
+>>>>> produced the irq.
+>>>>
+>>>> Where is that register located ? Shouldn't it be modeled as an interrupt
+>>>> controller ?
+>>>
+>>> It's a PCIe interrupt whose handler needs to read several FPGA registers
+>>> in order to figure out which interrupt was actually triggered. I don't
+>>> know enough about interrupt controller to understand whether it can be
+>>> modeled as a 'standard' interrupt.
+>>>
+>>>>
+>>>>> So I want to keep the interrupt_service_routine(). However, adding a gpio
+>>>>> field to the platform_data that, if set, will tell the driver to request an
+>>>>> irq and setup a workqueue that calls interrupt_service_routine() would be
+>>>>> fine with me. That will benefit a lot of people since using gpios is much
+>>>>> more common.
+>>>>
+>>>> We should use the i2c_board_info.irq field for that, not a field in the
+>>>> platform data structure. The IRQ line could be hooked up to a non-GPIO IRQ.
+>>>
+>>> Yes, of course. Although the adv7604 has two interrupt lines, so if you
+>>> would want to use the second, then that would still have to be specified
+>>> through the platform data.
+>>
+>> In this case the GPIO should be configured as interrupt source in the platform
+>> code. But this doesn't seem to work with R-Car GPIO since it is initialized
+>> later, and the gpio_to_irq function returns an error.
+>> The simplest way seemed to use a GPIO number in the platform data
+>> to have the adv driver configure the pin and request the IRQ.
+>> I'm not sure how to easily defer I2C board info IRQ setup (and
+>> camera/subdevice probing)
+>> until GPIO driver is ready.
+>
+> The GPIO driver should set up the GPIO pin as a interrupt pin when the
+> interrupt is requested. We should not have to add hacks to adv7604 driver to
+> workaround a broken GPIO driver.
 
-at subsystem maintainers:
+The GPIO driver does set up the pin as IRQ when the interrupt is requested.
+The problem is that we can't get the IRQ number from the GPIO pin number until
+the GPIO driver is started, which happens after the I2C device is registered
+by the platform code.
 
-this series was streamlined for conflict free application through the
-subsystems' individual trees, and consists of the following phases
-- peripheral driver cleanup (1/17) (not essential, in fact comments only
-  and code which is a NOP)
-- introduction of CCF support including migration workarounds and
-  backwards compatibility, device tree updates (2/17 - 7/17)
-  (nevertheless I suggest to take the .dts/.dtsi updates through the
-  PowerPC tree, the extensions are straight forward and strictly are
-  clock related, and complement the CCF platform support)
-- peripheral driver adjustment to the CCF approach (8/17 - 16/17)
-- removal of migration workarounds (17/17)
+So, the platform (board) init can't set up the i2c board info IRQ.
+Using GPIO numbers in platform data seems a simple solution to that.
+Besides, the chip supports two IRQ lines (as Hans has mentioned), while
+the I2C board info has only one irq member.
 
-at device tree maintainers:
+I'm not sure that gpio_to_irq is supposed to always work (even at early board initialization)
+and never return -EPROBE_DEFER.
+If it is, then it's a GPIO driver issue. Otherwise, this is a question of I2C slave deferred probing,
+I think, which is not that simple.
 
-- the series does not introduce new bindings, but implements the
-  existing clock binding (OF clock provider, DT based clock lookup) and
-  so adjusts and extends DTS files
-- the code is backwards compatible, and keeps working with device trees
-  which don't contain clock related information
+>
+>>
+>>>
+>>>>
+>>>>>> The driver enables multiple interrupts on the chip, however, the
+>>>>>> adv7604_isr callback doesn't seem to handle them correctly.
+>>>>>> According to the docs:
+>>>>>> "If an interrupt event occurs, and then a second interrupt event occurs
+>>>>>> before the system controller has cleared or masked the first interrupt
+>>>>>> event, the ADV7611 does not generate a second interrupt signal."
+>>>>>>
+>>>>>> However, the interrupt_service_routine doesn't account for that.
+>>>>>> For example, in case fmt_change interrupt happens while fmt_change_digital
+>>>>>> interrupt is being processed by the adv7604_isr routine. If fmt_change
+>>>>>> status is set just before we clear fmt_change_digital, we never clear
+>>>>>> fmt_change. Thus, we end up with fmt_change interrupt missed and
+>>>>>> therefore further interrupts disabled. I've tried to call the adv7604_isr
+>>>>>> routine in a loop and return from the worlqueue only when all interrupt
+>>>>>> status bits are cleared. This did help a bit, but sometimes I started
+>>>>>> getting lots of I2C read/write errors for some reason.
+>>>>>
+>>>>> I'm not sure if there is much that can be done about this. The code reads
+>>>>> the interrupt status, then clears the interrupts right after. There is
+>>>>> always a race condition there since this isn't atomic ('read and clear').
+>>>>> Unless Lars-Peter has a better idea?
+>>>>>
+>>>>> What can be improved, though, is to clear not just the interrupts that were
+>>>>> read, but all the interrupts that are unmasked. You are right, you could
+>>>>> loose an interrupt that way.
+>>>>
+>>>> Wouldn't level-trigerred interrupts fix the issue ?
+>>
+>> In this case we need to disable the IRQ line in the IRQ handler and
+>> re-enable it in the workqueue.
+>> (we can't call the interrupt service routine from the interrupt context.)
+>>
+>> This however didn't seem to work with R-Car GPIO.
+>> Calling disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler
+>> doesn't seem
+>> to disable it for some reason.
+>
+> Use a threaded interrupt instead of workqueue + disable_irq_nosync, that
+> should work fine.
 
+I've tried that too. It doesn't work either, perhaps for the same reason.
 
-the series is based on v3.12, but I'll rebase against v3.13-rc1 (when
-available) or any other subtree upon request
+>
+> - Lars
+>
 
-the series passes 'checkpatch.pl --strict' except for one warning which
-cannot get resolved, since the <linux/clk-provider.h> API dictates the
-data type, "fixing" the checkpatch warning would break compilation
-
-  WARNING: static const char * array should probably be static const char * const
-  #420: FILE: arch/powerpc/platforms/512x/clock-commonclk.c:342:
-  +static const char *parent_names_mux0[] = {
-
-  total: 0 errors, 1 warnings, 0 checks, 834 lines checked
-
-checkpatch appears to choke on the NODE_CHK() macro in the backwards
-compat patch, while I cannot see why since it groks the FOR_NODES() and
-NODE_PREP() macros
-
-  Use of uninitialized value $c in pattern match (m//) at ./scripts/checkpatch.pl line 3280.
-  Use of uninitialized value in substr at ./scripts/checkpatch.pl line 3287.
-  Use of uninitialized value $s in substr at ./scripts/checkpatch.pl line 3287.
-
-
-the series has been build tested (each step on PowerPC 512x, 52xx, 5xxx
-multi platform, 83xx, 85xx, 86xx, and on ARM v6/v7), run tested (each
-step on 512x, the switch to CCF on 52xx), and tested for backwards
-compatibility (each step on 512x with a v3.11 dtb)
-
-
-changes in v5:
-- extend comments in the PCI driver cleanup (probe() vs setup_arch()
-  discussion, no code change); all other peripheral driver cleanup from
-  v4 was taken into mainline
-- concentrate migration support in a separate routine for improved
-  maintainability
-- fix the oscillator frequency lookup ('osc' reference) in the CCF
-  platform support code which creates the clock tree
-- add backwards compatibility with device trees that lack clock specs,
-  concentrate compat support in a separate routine for improved
-  maintainability, add it in a separate patch for easier review
-- consistent use of the 'ipg' name in DTS files for the register access
-  clock item of peripherals
-- switch from PPC_CLOCK to COMMON_CLK at the same time for 512x and 52xx
-  (keep multi-platform setups operational), in a separate patch
-- move removal of migration support to the very end of the series, it's
-  no longer intertwined with peripheral driver adjustment
-- SPI and UART: get 'mclk' and 'ipg' clock items in a more consistent
-  order (less obfuscation in the diff)
-- add/adjust Cc: and Acked-By: entries, rework commit messages and
-  comments where appropriate
-
-changes in v4:
-- remove explicit devm_clk_put() calls as these will occur implicitly
-  upon device release (01/31, 02/31, 03/31, 04/31, 05/31, 06/31, 08/31,
-  09/31, 27/31)
-- split the PSC (SPI, UART) and MSCAN (CAN) related MCLK subtrees into
-  separate 'ipg'/'bdlc' gated clock items for register access as well as
-  the 'mclk' clock subtrees that apply to bitrates -- this eliminates
-  the need for "shared gates" and further reduces clock pre-enable
-  workarounds (11/31, 15/31, 17/31, 18/31, 20/31, 21/31, 22/31, 27/31)
-- further adjust the CAN clock driver, fix an incomplete error code path
-  in the network device open callback (11/31), only enable the bitrate
-  clock when the network device is open (27/31)
-- remove debug output in the clock tree setup when introducing the
-  platform's clock driver, there already is CONFIG_COMMON_CLK_DEBUG to
-  retrieve more complete information (17/31)
-- remove an "enums don't work here" comment in the dt-bindings header
-  file (15/31)
-- reword and update commit messages (body and/or subject) where
-  appropriate (03/31, 04/31, 05/31, 06/31, 08/31, 09/31, 11/31, 12/31,
-  17/31, 20/31, 21/31, 22/31, 27/31, 28/31, 30/31, 31/31)
-- add 'Reviewed-By' attributes which were received for v3
-
-changes in v3:
-- rebase the series against v3.11-rc2
-- re-ordered the series to first address all general clock handling
-  concerns in existing drivers, before introducing common clock support
-  in the platform's clock driver
-- slightly rework the SPI (01/31), UART (02/31), and PSC FIFO (23/31)
-  clock handling in comparison to v2 which introduced those fixes
-  (devm_{get,put}_clk() calls, fewer goto labels in error paths)
-- fix and improve clock handling (balance allocation and release of
-  clocks, check for errors during setup) in all of the other drivers
-  which this series has touched before in naive ways: USB (03/31), NAND
-  flash (04/31), video capture (05/31), I2C (06/31), ethernet (08/31),
-  PCI (09/31), CAN (11/31)
-- silence a build warning in the ethernet driver (07/31)
-- eliminate all PPC_CLOCK references, use 'per' clock names for NAND
-  flash (25/31) and VIU (26/31) as well
-- unbreak CAN operation for the period between introducing common clock
-  support in the platform's clock driver and introducing common clock
-  support in the CAN peripheral driver as well as providing clock specs
-  in the device tree (provide clkdev aliases for SYS and REF)
-- improve common clock support for CAN (devm_{get,put}_clk() calls,
-  check enable() errors, keep a reference to used clocks, disable and
-  put clocks after use)
-- reworded several commit messages to better reflect the kind of change
-  and because fixes were applied before adding common infrastructure
-  support
-- point to individual numbered patches of the series in the list of
-  changes for v2 as well
-
-changes in v2:
-- cleanup of the UART (02/24) and SPI (01/24) clock handling before the
-  introduction of common clock support for the platform, as incomplete
-  clock handling becomes fatal or more dangerous later (which in turn
-  changes the context of the "device tree lookup only" followup patch
-  later)
-- reordered the sequence of patches to keep the serial communication
-  related parts together (UART, SPI, and PSC FIFO changes after common
-  clock support was introduced, which have become 11-14/24 now)
-- updated commit messages for the clock API use cleanup in the serial
-  communication drivers, updated comments and reworded commit messages
-  in the core clock driver to expand on the pre-enable workaround and
-  clkdev registration (09/24)
-- keep a reference to the PSC FIFO clock during use instead of looking
-  up the clock again in the uninit() routine (14/24)
-- remove the clkdev.h header file inclusion directive with the removal
-  of the clkdev registration call (13/24)
-
-
-Gerhard Sittig (17):
-  powerpc/fsl-pci: improve clock API use
-  dts: mpc512x: introduce dt-bindings/clock/ header
-  dts: mpc512x: add clock related device tree specs
-  clk: mpc512x: introduce COMMON_CLK for MPC512x (disabled)
-  clk: mpc512x: add backwards compat to the CCF code
-  dts: mpc512x: add clock specs for client lookups
-  clk: mpc5xxx: switch to COMMON_CLK, retire PPC_CLOCK
-  spi: mpc512x: adjust to OF based clock lookup
-  serial: mpc512x: adjust for OF based clock lookup
-  serial: mpc512x: setup the PSC FIFO clock as well
-  USB: fsl-mph-dr-of: adjust for OF based clock lookup
-  mtd: mpc5121_nfc: adjust for OF based clock lookup
-  [media] fsl-viu: adjust for OF based clock lookup
-  net: can: mscan: adjust to common clock support for mpc512x
-  net: can: mscan: remove non-CCF code for MPC512x
-  powerpc/mpc512x: improve DIU related clock setup
-  clk: mpc512x: remove migration support workarounds
-
- arch/powerpc/Kconfig                          |    5 -
- arch/powerpc/boot/dts/ac14xx.dts              |    7 +
- arch/powerpc/boot/dts/mpc5121.dtsi            |  113 ++-
- arch/powerpc/kernel/Makefile                  |    1 -
- arch/powerpc/kernel/clock.c                   |   82 ---
- arch/powerpc/platforms/512x/Kconfig           |    2 +-
- arch/powerpc/platforms/512x/Makefile          |    3 +-
- arch/powerpc/platforms/512x/clock-commonclk.c |  950 +++++++++++++++++++++++++
- arch/powerpc/platforms/512x/clock.c           |  753 --------------------
- arch/powerpc/platforms/512x/mpc512x_shared.c  |  169 +++--
- arch/powerpc/platforms/52xx/Kconfig           |    2 +-
- arch/powerpc/sysdev/fsl_pci.c                 |   52 ++
- drivers/media/platform/fsl-viu.c              |    2 +-
- drivers/mtd/nand/mpc5121_nfc.c                |    2 +-
- drivers/net/can/mscan/mpc5xxx_can.c           |  270 ++++---
- drivers/spi/spi-mpc512x-psc.c                 |   26 +-
- drivers/tty/serial/mpc52xx_uart.c             |   90 ++-
- drivers/usb/host/fsl-mph-dr-of.c              |   13 +-
- include/dt-bindings/clock/mpc512x-clock.h     |   69 ++
- include/linux/clk-provider.h                  |   16 +
- 20 files changed, 1556 insertions(+), 1071 deletions(-)
- delete mode 100644 arch/powerpc/kernel/clock.c
- create mode 100644 arch/powerpc/platforms/512x/clock-commonclk.c
- delete mode 100644 arch/powerpc/platforms/512x/clock.c
- create mode 100644 include/dt-bindings/clock/mpc512x-clock.h
-
--- 
-1.7.10.4
-
+Thanks,
+Val.
