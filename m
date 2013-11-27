@@ -1,78 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57944 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753999Ab3KAWld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Nov 2013 18:41:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 04/11] cx18: struct i2c_client is too big for stack
-Date: Fri,  1 Nov 2013 17:39:23 -0200
-Message-Id: <1383334770-27130-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-References: <1383334770-27130-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:55743 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752708Ab3K0DPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 22:15:12 -0500
+Message-ID: <52956442.50001@gmail.com>
+Date: Wed, 27 Nov 2013 11:17:22 +0800
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+MIME-Version: 1.0
+To: hans.verkuil@cisco.com, m.chehab@samsung.com
+CC: rkuo <rkuo@codeaurora.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
+Subject: [PATCH] drivers: staging: media: go7007: go7007-usb.c use pr_*()
+ instead of dev_*() before 'go' initialized in go7007_usb_probe()
+References: <528AEFB7.4060301@gmail.com> <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com> <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>
+In-Reply-To: <5294255E.7040105@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-driver.c: In function 'cx18_read_eeprom':
-/devel/v4l/ktest-build/drivers/media/pci/cx18/cx18-driver.c:357:1: warning: the frame size of 1072 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+dev_*() assumes 'go' is already initialized, so need use pr_*() instead
+of before 'go' initialized. Related warning (with allmodconfig under
+hexagon):
 
-Dynamically allocate/deallocate it when eeprom read is needed
+    CC [M]  drivers/staging/media/go7007/go7007-usb.o
+  drivers/staging/media/go7007/go7007-usb.c: In function 'go7007_usb_probe':
+  drivers/staging/media/go7007/go7007-usb.c:1060:2: warning: 'go' may be used uninitialized in this function [-Wuninitialized]
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Also remove useless code after 'return' statement.
+
+
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 ---
- drivers/media/pci/cx18/cx18-driver.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/staging/media/go7007/go7007-usb.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index ff7232023f56..87f5bcf29e90 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -324,23 +324,24 @@ static void cx18_eeprom_dump(struct cx18 *cx, unsigned char *eedata, int len)
- /* Hauppauge card? get values from tveeprom */
- void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
- {
--	struct i2c_client c;
-+	struct i2c_client *c;
- 	u8 eedata[256];
+diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+index 58684da..30310e9 100644
+--- a/drivers/staging/media/go7007/go7007-usb.c
++++ b/drivers/staging/media/go7007/go7007-usb.c
+@@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 	char *name;
+ 	int video_pipe, i, v_urb_len;
  
--	memset(&c, 0, sizeof(c));
--	strlcpy(c.name, "cx18 tveeprom tmp", sizeof(c.name));
--	c.adapter = &cx->i2c_adap[0];
--	c.addr = 0xA0 >> 1;
-+	c = kzalloc(sizeof(*c), GFP_ATOMIC);
-+
-+	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
-+	c->adapter = &cx->i2c_adap[0];
-+	c->addr = 0xa0 >> 1;
+-	dev_dbg(go->dev, "probing new GO7007 USB board\n");
++	pr_devel("probing new GO7007 USB board\n");
  
- 	memset(tv, 0, sizeof(*tv));
--	if (tveeprom_read(&c, eedata, sizeof(eedata)))
--		return;
-+	if (tveeprom_read(c, eedata, sizeof(eedata)))
-+		goto ret;
- 
- 	switch (cx->card->type) {
- 	case CX18_CARD_HVR_1600_ESMT:
- 	case CX18_CARD_HVR_1600_SAMSUNG:
- 	case CX18_CARD_HVR_1600_S5H1411:
--		tveeprom_hauppauge_analog(&c, tv, eedata);
-+		tveeprom_hauppauge_analog(c, tv, eedata);
+ 	switch (id->driver_info) {
+ 	case GO7007_BOARDID_MATRIX_II:
+@@ -1097,13 +1097,10 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 		board = &board_px_tv402u;
  		break;
- 	case CX18_CARD_YUAN_MPC718:
- 	case CX18_CARD_GOTVIEW_PCI_DVD3:
-@@ -354,6 +355,9 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
- 		cx18_eeprom_dump(cx, eedata, sizeof(eedata));
+ 	case GO7007_BOARDID_LIFEVIEW_LR192:
+-		dev_err(go->dev, "The Lifeview TV Walker Ultra is not supported. Sorry!\n");
++		pr_err("The Lifeview TV Walker Ultra is not supported. Sorry!\n");
+ 		return -ENODEV;
+-		name = "Lifeview TV Walker Ultra";
+-		board = &board_lifeview_lr192;
+-		break;
+ 	case GO7007_BOARDID_SENSORAY_2250:
+-		dev_info(go->dev, "Sensoray 2250 found\n");
++		pr_info("Sensoray 2250 found\n");
+ 		name = "Sensoray 2250/2251";
+ 		board = &board_sensoray_2250;
  		break;
+@@ -1112,7 +1109,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 		board = &board_ads_usbav_709;
+ 		break;
+ 	default:
+-		dev_err(go->dev, "unknown board ID %d!\n",
++		pr_err("unknown board ID %d!\n",
+ 				(unsigned int)id->driver_info);
+ 		return -ENODEV;
  	}
-+
-+ret:
-+	kfree(c);
- }
- 
- static void cx18_process_eeprom(struct cx18 *cx)
 -- 
-1.8.3.1
-
+1.7.7.6
