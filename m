@@ -1,306 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43067 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab3K2Wu6 (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:43312 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753346Ab3K0McF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 17:50:58 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 2/6] v4l: vsp1: Add cropping support
-Date: Fri, 29 Nov 2013 23:50:48 +0100
-Message-Id: <1385765452-25754-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1385765452-25754-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1385765452-25754-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 27 Nov 2013 07:32:05 -0500
+Received: by mail-lb0-f178.google.com with SMTP id c11so5368056lbj.37
+        for <linux-media@vger.kernel.org>; Wed, 27 Nov 2013 04:32:03 -0800 (PST)
+Message-ID: <5295E641.6060603@cogentembedded.com>
+Date: Wed, 27 Nov 2013 16:32:01 +0400
+From: Valentine <valentine.barshak@cogentembedded.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hansverk@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com>
+In-Reply-To: <5295E231.9030200@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement the get and set selection operations on the RPF and WPF
-entities. Only the crop targets are currently available.
+On 11/27/2013 04:14 PM, Hans Verkuil wrote:
+> Hi Laurent,
+>
+> On 11/27/13 12:39, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
+>>> On 11/26/2013 10:28 PM, Valentine wrote:
+>>>> On 11/20/2013 07:53 PM, Valentine wrote:
+>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>>>>> Hi Valentine,
+>>>>
+>>>> Hi Hans,
+>>>>
+>>>>>> Did you ever look at this adv7611 driver:
+>>>>>>
+>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4a
+>>>>>> fa42af2daa12
+>>>>>
+>>>>> No, I missed that one somehow, although I did search for the adv7611/7612
+>>>>> before implementing this one. I'm going to look closer at the patch and
+>>>>> test it.
+>>>>
+>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
+>>>> I haven't been able to make it work so far. Here's the description of some
+>>>> of the issues I've encountered.
+>>>>
+>>>> The patch does not apply cleanly so I had to make small adjustments just
+>>>> to make it apply without changing the functionality.
+>>>>
+>>>> First of all the driver (adv7604_dummy_client function) does not set
+>>>> default I2C slave addresses in the I/O map in case they are not set in
+>>>> the platform data.
+>>>> This is not needed for 7604, since the default addresses are already set
+>>>> in the I/O map after chip reset. However, the map is zeroed on 7611/7612
+>>>> after power up, and we always have to set it manually.
+>>>
+>>> So, the platform data for the 7611/2 should always give i2c addresses. That
+>>> seems reasonable.
+>>>
+>>>> I had to implement the IRQ handler since the soc_camera model does not use
+>>>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing
+>>>> about adv7612 interrupt routed to a GPIO pin.
+>>>> So I had to schedule a workqueue and call adv7604_isr from there in case
+>>>> an interrupt happens.
+>>>
+>>> For our systems the adv7604 interrupts is not always hooked up to a gpio
+>>> irq, instead a register has to be read to figure out which device actually
+>>> produced the irq.
+>>
+>> Where is that register located ? Shouldn't it be modeled as an interrupt
+>> controller ?
+>
+> It's a PCIe interrupt whose handler needs to read several FPGA registers
+> in order to figure out which interrupt was actually triggered. I don't
+> know enough about interrupt controller to understand whether it can be
+> modeled as a 'standard' interrupt.
+>
+>>
+>>> So I want to keep the interrupt_service_routine(). However, adding a gpio
+>>> field to the platform_data that, if set, will tell the driver to request an
+>>> irq and setup a workqueue that calls interrupt_service_routine() would be
+>>> fine with me. That will benefit a lot of people since using gpios is much
+>>> more common.
+>>
+>> We should use the i2c_board_info.irq field for that, not a field in the
+>> platform data structure. The IRQ line could be hooked up to a non-GPIO IRQ.
+>
+> Yes, of course. Although the adv7604 has two interrupt lines, so if you
+> would want to use the second, then that would still have to be specified
+> through the platform data.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_rpf.c  | 34 ++++++++----
- drivers/media/platform/vsp1/vsp1_rwpf.c | 96 +++++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_rwpf.h | 10 ++++
- drivers/media/platform/vsp1/vsp1_wpf.c  | 17 +++---
- 4 files changed, 141 insertions(+), 16 deletions(-)
+In this case the GPIO should be configured as interrupt source in the platform
+code. But this doesn't seem to work with R-Car GPIO since it is initialized
+later, and the gpio_to_irq function returns an error.
+The simplest way seemed to use a GPIO number in the platform data
+to have the adv driver configure the pin and request the IRQ.
+I'm not sure how to easily defer I2C board info IRQ setup (and camera/subdevice probing)
+until GPIO driver is ready.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 254871d..bce2be5 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -47,25 +47,36 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
- 	const struct vsp1_format_info *fmtinfo = rpf->video.fmtinfo;
- 	const struct v4l2_pix_format_mplane *format = &rpf->video.format;
-+	const struct v4l2_rect *crop = &rpf->crop;
- 	u32 pstride;
- 	u32 infmt;
- 
- 	if (!enable)
- 		return 0;
- 
--	/* Source size and stride. Cropping isn't supported yet. */
-+	/* Source size, stride and crop offsets.
-+	 *
-+	 * The crop offsets correspond to the location of the crop rectangle top
-+	 * left corner in the plane buffer. Only two offsets are needed, as
-+	 * planes 2 and 3 always have identical strides.
-+	 */
- 	vsp1_rpf_write(rpf, VI6_RPF_SRC_BSIZE,
--		       (format->width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
--		       (format->height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
-+		       (crop->width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
-+		       (crop->height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
- 	vsp1_rpf_write(rpf, VI6_RPF_SRC_ESIZE,
--		       (format->width << VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT) |
--		       (format->height << VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT));
-+		       (crop->width << VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT) |
-+		       (crop->height << VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT));
- 
-+	rpf->offsets[0] = crop->top * format->plane_fmt[0].bytesperline
-+			+ crop->left * fmtinfo->bpp[0] / 8;
- 	pstride = format->plane_fmt[0].bytesperline
- 		<< VI6_RPF_SRCM_PSTRIDE_Y_SHIFT;
--	if (format->num_planes > 1)
-+	if (format->num_planes > 1) {
-+		rpf->offsets[1] = crop->top * format->plane_fmt[1].bytesperline
-+				+ crop->left * fmtinfo->bpp[1] / 8;
- 		pstride |= format->plane_fmt[1].bytesperline
- 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
-+	}
- 
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_PSTRIDE, pstride);
- 
-@@ -113,6 +124,8 @@ static struct v4l2_subdev_pad_ops rpf_pad_ops = {
- 	.enum_frame_size = vsp1_rwpf_enum_frame_size,
- 	.get_fmt = vsp1_rwpf_get_format,
- 	.set_fmt = vsp1_rwpf_set_format,
-+	.get_selection = vsp1_rwpf_get_selection,
-+	.set_selection = vsp1_rwpf_set_selection,
- };
- 
- static struct v4l2_subdev_ops rpf_ops = {
-@@ -129,11 +142,14 @@ static void rpf_vdev_queue(struct vsp1_video *video,
- {
- 	struct vsp1_rwpf *rpf = container_of(video, struct vsp1_rwpf, video);
- 
--	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y, buf->addr[0]);
-+	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
-+		       buf->addr[0] + rpf->offsets[0]);
- 	if (buf->buf.num_planes > 1)
--		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0, buf->addr[1]);
-+		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
-+			       buf->addr[1] + rpf->offsets[1]);
- 	if (buf->buf.num_planes > 2)
--		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1, buf->addr[2]);
-+		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
-+			       buf->addr[2] + rpf->offsets[1]);
- }
- 
- static const struct vsp1_video_operations rpf_vdev_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index 9752d55..782f770 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -71,6 +71,19 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
-+static struct v4l2_rect *
-+vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_fh *fh, u32 which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_crop(fh, RWPF_PAD_SINK);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &rwpf->crop;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- 			 struct v4l2_subdev_format *fmt)
- {
-@@ -87,6 +100,7 @@ int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *crop;
- 
- 	/* Default to YUV if the requested format is not supported. */
- 	if (fmt->format.code != V4L2_MBUS_FMT_ARGB8888_1X32 &&
-@@ -115,6 +129,13 @@ int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- 
- 	fmt->format = *format;
- 
-+	/* Update the sink crop rectangle. */
-+	crop = vsp1_rwpf_get_crop(rwpf, fh, fmt->which);
-+	crop->left = 0;
-+	crop->top = 0;
-+	crop->width = fmt->format.width;
-+	crop->height = fmt->format.height;
-+
- 	/* Propagate the format to the source pad. */
- 	format = vsp1_entity_get_pad_format(&rwpf->entity, fh, RWPF_PAD_SOURCE,
- 					    fmt->which);
-@@ -122,3 +143,78 @@ int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- 
- 	return 0;
- }
-+
-+int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh,
-+			    struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	/* Cropping is implemented on the sink pad. */
-+	if (sel->pad != RWPF_PAD_SINK)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = *vsp1_rwpf_get_crop(rwpf, fh, sel->which);
-+		break;
-+
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		format = vsp1_entity_get_pad_format(&rwpf->entity, fh,
-+						    RWPF_PAD_SINK, sel->which);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = format->width;
-+		sel->r.height = format->height;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh,
-+			    struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *crop;
-+
-+	/* Cropping is implemented on the sink pad. */
-+	if (sel->pad != RWPF_PAD_SINK)
-+		return -EINVAL;
-+
-+	if (sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	/* Make sure the crop rectangle is entirely contained in the image. The
-+	 * WPF top and left offsets are limited to 255.
-+	 */
-+	format = vsp1_entity_get_pad_format(&rwpf->entity, fh, RWPF_PAD_SINK,
-+					    sel->which);
-+	sel->r.left = min_t(unsigned int, sel->r.left, format->width - 2);
-+	sel->r.top = min_t(unsigned int, sel->r.top, format->height - 2);
-+	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
-+		sel->r.left = min_t(unsigned int, sel->r.left, 255);
-+		sel->r.top = min_t(unsigned int, sel->r.top, 255);
-+	}
-+	sel->r.width = min_t(unsigned int, sel->r.width,
-+			     format->width - sel->r.left);
-+	sel->r.height = min_t(unsigned int, sel->r.height,
-+			      format->height - sel->r.top);
-+
-+	crop = vsp1_rwpf_get_crop(rwpf, fh, sel->which);
-+	*crop = sel->r;
-+
-+	/* Propagate the format to the source pad. */
-+	format = vsp1_entity_get_pad_format(&rwpf->entity, fh, RWPF_PAD_SOURCE,
-+					    sel->which);
-+	format->width = crop->width;
-+	format->height = crop->height;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index c182d85..6cbdb54 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -29,6 +29,10 @@ struct vsp1_rwpf {
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
-+
-+	struct v4l2_rect crop;
-+
-+	unsigned int offsets[2];
- };
- 
- static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
-@@ -49,5 +53,11 @@ int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- 			 struct v4l2_subdev_format *fmt);
- int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
- 			 struct v4l2_subdev_format *fmt);
-+int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh,
-+			    struct v4l2_subdev_selection *sel);
-+int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh,
-+			    struct v4l2_subdev_selection *sel);
- 
- #endif /* __VSP1_RWPF_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index db4b85e..7baed81 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -48,8 +48,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct vsp1_pipeline *pipe =
- 		to_vsp1_pipeline(&wpf->entity.subdev.entity);
- 	struct vsp1_device *vsp1 = wpf->entity.vsp1;
--	const struct v4l2_mbus_framefmt *format =
--		&wpf->entity.formats[RWPF_PAD_SOURCE];
-+	const struct v4l2_rect *crop = &wpf->crop;
- 	unsigned int i;
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
-@@ -68,7 +67,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 
- 	vsp1_wpf_write(wpf, VI6_WPF_SRCRPF, srcrpf);
- 
--	/* Destination stride. Cropping isn't supported yet. */
-+	/* Destination stride. */
- 	if (!pipe->lif) {
- 		struct v4l2_pix_format_mplane *format = &wpf->video.format;
- 
-@@ -79,10 +78,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 				       format->plane_fmt[1].bytesperline);
- 	}
- 
--	vsp1_wpf_write(wpf, VI6_WPF_HSZCLIP,
--		       format->width << VI6_WPF_SZCLIP_SIZE_SHIFT);
--	vsp1_wpf_write(wpf, VI6_WPF_VSZCLIP,
--		       format->height << VI6_WPF_SZCLIP_SIZE_SHIFT);
-+	vsp1_wpf_write(wpf, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
-+		       (crop->left << VI6_WPF_SZCLIP_OFST_SHIFT) |
-+		       (crop->width << VI6_WPF_SZCLIP_SIZE_SHIFT));
-+	vsp1_wpf_write(wpf, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
-+		       (crop->top << VI6_WPF_SZCLIP_OFST_SHIFT) |
-+		       (crop->height << VI6_WPF_SZCLIP_SIZE_SHIFT));
- 
- 	/* Format */
- 	if (!pipe->lif) {
-@@ -130,6 +131,8 @@ static struct v4l2_subdev_pad_ops wpf_pad_ops = {
- 	.enum_frame_size = vsp1_rwpf_enum_frame_size,
- 	.get_fmt = vsp1_rwpf_get_format,
- 	.set_fmt = vsp1_rwpf_set_format,
-+	.get_selection = vsp1_rwpf_get_selection,
-+	.set_selection = vsp1_rwpf_set_selection,
- };
- 
- static struct v4l2_subdev_ops wpf_ops = {
--- 
-1.8.3.2
+>
+>>
+>>>> The driver enables multiple interrupts on the chip, however, the
+>>>> adv7604_isr callback doesn't seem to handle them correctly.
+>>>> According to the docs:
+>>>> "If an interrupt event occurs, and then a second interrupt event occurs
+>>>> before the system controller has cleared or masked the first interrupt
+>>>> event, the ADV7611 does not generate a second interrupt signal."
+>>>>
+>>>> However, the interrupt_service_routine doesn't account for that.
+>>>> For example, in case fmt_change interrupt happens while fmt_change_digital
+>>>> interrupt is being processed by the adv7604_isr routine. If fmt_change
+>>>> status is set just before we clear fmt_change_digital, we never clear
+>>>> fmt_change. Thus, we end up with fmt_change interrupt missed and
+>>>> therefore further interrupts disabled. I've tried to call the adv7604_isr
+>>>> routine in a loop and return from the worlqueue only when all interrupt
+>>>> status bits are cleared. This did help a bit, but sometimes I started
+>>>> getting lots of I2C read/write errors for some reason.
+>>>
+>>> I'm not sure if there is much that can be done about this. The code reads
+>>> the interrupt status, then clears the interrupts right after. There is
+>>> always a race condition there since this isn't atomic ('read and clear').
+>>> Unless Lars-Peter has a better idea?
+>>>
+>>> What can be improved, though, is to clear not just the interrupts that were
+>>> read, but all the interrupts that are unmasked. You are right, you could
+>>> loose an interrupt that way.
+>>
+>> Wouldn't level-trigerred interrupts fix the issue ?
 
+In this case we need to disable the IRQ line in the IRQ handler and re-enable it in the workqueue.
+(we can't call the interrupt service routine from the interrupt context.)
+
+This however didn't seem to work with R-Car GPIO.
+Calling disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler doesn't seem
+to disable it for some reason.
+
+Also if the isr is called by the upper level camera driver, we assume that it needs
+special handling (disabling/enabling) for the ADV76xx interrupt although it uses the API
+interrupt_service_routine callback. Not a big deal, but still doesn't look pretty to me.
+
+>
+> See my earlier reply.
+>
+> Regards,
+>
+> 	Hans
+>
+
+Thanks,
+Val.
