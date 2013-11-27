@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:19210 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960Ab3KSO1k (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:42040 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966Ab3K0DiL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:27:40 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWI00LYLLI3VD30@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Nov 2013 23:27:39 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 04/16] s5p-jpeg: Remove superfluous call to the
- jpeg_bound_align_image function
-Date: Tue, 19 Nov 2013 15:26:56 +0100
-Message-id: <1384871228-6648-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
-References: <1384871228-6648-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 26 Nov 2013 22:38:11 -0500
+Message-ID: <529569A5.1020008@gmail.com>
+Date: Wed, 27 Nov 2013 11:40:21 +0800
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+MIME-Version: 1.0
+To: Joe Perches <joe@perches.com>
+CC: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	rkuo <rkuo@codeaurora.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
+Subject: Re: [PATCH] drivers: staging: media: go7007: go7007-usb.c use pr_*()
+ instead of dev_*() before 'go' initialized in go7007_usb_probe()
+References: <528AEFB7.4060301@gmail.com>  <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com>  <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>  <52956442.50001@gmail.com> <1385522475.18487.34.camel@joe-AO722>
+In-Reply-To: <1385522475.18487.34.camel@joe-AO722>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Aligning capture queue image dimensions while enqueuing output
-queue doesn't make a sense as the S_FMT ioctl might have not
-been called for the capture queue until that moment, whereas
-it is required to know capture format as the type of alignment
-heavily depends on it.
+On 11/27/2013 11:21 AM, Joe Perches wrote:
+> On Wed, 2013-11-27 at 11:17 +0800, Chen Gang wrote:
+>> dev_*() assumes 'go' is already initialized, so need use pr_*() instead
+>> of before 'go' initialized.
+> []
+>> diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+> []
+>> @@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
+>>  	char *name;
+>>  	int video_pipe, i, v_urb_len;
+>>  
+>> -	dev_dbg(go->dev, "probing new GO7007 USB board\n");
+>> +	pr_devel("probing new GO7007 USB board\n");
+> 
+> pr_devel is commonly compiled out completely unless DEBUG is #defined.
+> You probably want to use pr_debug here.
+>  
+> 
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    7 -------
- 1 file changed, 7 deletions(-)
+Oh, yes, it is my fault, I will send patch v2.  :-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index a1366f0..a6ec8c6 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1089,13 +1089,6 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		q_data = &ctx->cap_q;
- 		q_data->w = tmp.w;
- 		q_data->h = tmp.h;
--
--		jpeg_bound_align_image(&q_data->w, S5P_JPEG_MIN_WIDTH,
--				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
--				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
--				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
--				      );
--		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
- 	}
- 
- 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+
+Thanks.
 -- 
-1.7.9.5
-
+Chen Gang
