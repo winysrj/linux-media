@@ -1,98 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:57937 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756403Ab3KFPD5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Nov 2013 10:03:57 -0500
-Received: by mail-ob0-f175.google.com with SMTP id va2so2354970obc.6
-        for <linux-media@vger.kernel.org>; Wed, 06 Nov 2013 07:03:57 -0800 (PST)
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:64403 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901Ab3K0EWM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Nov 2013 23:22:12 -0500
+Message-ID: <529573F6.9080106@gmail.com>
+Date: Wed, 27 Nov 2013 12:24:22 +0800
+From: Chen Gang <gang.chen.5i5j@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20131106145839.GE24988@valkosipuli.retiisi.org.uk>
-References: <1383747690-20003-1-git-send-email-ricardo.ribalda@gmail.com> <20131106145839.GE24988@valkosipuli.retiisi.org.uk>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 6 Nov 2013 16:03:37 +0100
-Message-ID: <CAPybu_1nxwEJCDA33j0TAP_NtvGB-Zs=9RxbrBT9jdi01aTNuA@mail.gmail.com>
-Subject: Re: [PATCH] smiapp: Fix BUG_ON() on an impossible condition
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:SMIA AND SMIA++ I..." <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: Joe Perches <joe@perches.com>,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	rkuo <rkuo@codeaurora.org>, hans.verkuil@cisco.com,
+	m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] drivers: staging: media: go7007: go7007-usb.c use
+ pr_*() instead of dev_*() before 'go' initialized in go7007_usb_probe()
+References: <528AEFB7.4060301@gmail.com> <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com> <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com> <52956442.50001@gmail.com> <1385522475.18487.34.camel@joe-AO722> <529569A5.1020008@gmail.com> <52956B78.6050107@gmail.com> <20131127040338.GB23930@kroah.com>
+In-Reply-To: <20131127040338.GB23930@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari
-
-I always try to send the patches to the mails found by
-get-maintainer.pl, I thought it was unpolite not doint so :). In the
-future I will try to send the mails only to the media list.
-
-I don't have a tree, so please do as you wish.
-
-
-Thanks!
-
-On Wed, Nov 6, 2013 at 3:58 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Ricardo,
->
-> Thanks for the patch.
->
-> I've removed LKML from cc since I don't think this is anything but noise
-> there.
->
-> On Wed, Nov 06, 2013 at 03:21:30PM +0100, Ricardo Ribalda Delgado wrote:
->> internal_csi_format_idx and csi_format_idx are unsigned integers,
->> therefore they can never be nevative.
+On 11/27/2013 12:03 PM, Greg KH wrote:
+> On Wed, Nov 27, 2013 at 11:48:08AM +0800, Chen Gang wrote:
+>> dev_*() assumes 'go' is already initialized, so need use pr_*() instead
+>> of before 'go' initialized. Related warning (with allmodconfig under
+>> hexagon):
 >>
->> CC      drivers/media/i2c/smiapp/smiapp-core.o
->> In file included from include/linux/err.h:4:0,
->>                  from include/linux/clk.h:15,
->>                  from drivers/media/i2c/smiapp/smiapp-core.c:29:
->> drivers/media/i2c/smiapp/smiapp-core.c: In function ‘smiapp_update_mbus_formats’:
->> include/linux/kernel.h:669:20: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->>  #define min(x, y) ({    \
->>                     ^
->> include/linux/compiler.h:153:42: note: in definition of macro ‘unlikely’
->>  # define unlikely(x) __builtin_expect(!!(x), 0)
->>                                           ^
->> drivers/media/i2c/smiapp/smiapp-core.c:402:2: note: in expansion of macro ‘BUG_ON’
->>   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->>   ^
->> drivers/media/i2c/smiapp/smiapp-core.c:402:9: note: in expansion of macro ‘min’
->>   BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->>          ^
+>>     CC [M]  drivers/staging/media/go7007/go7007-usb.o
+>>   drivers/staging/media/go7007/go7007-usb.c: In function 'go7007_usb_probe':
+>>   drivers/staging/media/go7007/go7007-usb.c:1060:2: warning: 'go' may be used uninitialized in this function [-Wuninitialized]
 >>
->> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> ---
->>  drivers/media/i2c/smiapp/smiapp-core.c | 1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
->> index ae66d91..fbd48f0 100644
->> --- a/drivers/media/i2c/smiapp/smiapp-core.c
->> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
->> @@ -399,7 +399,6 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
->>
->>       BUG_ON(max(internal_csi_format_idx, csi_format_idx) + pixel_order
->>              >= ARRAY_SIZE(smiapp_csi_data_formats));
->> -     BUG_ON(min(internal_csi_format_idx, csi_format_idx) < 0);
->>
->>       dev_dbg(&client->dev, "new pixel order %s\n",
->>               pixel_order_str[pixel_order]);
->
-> I wonder how this hasn't been noticed before. :-) No harm done, though.
->
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
->
-> Should I take the patch to my tree? I don't think I have other pending
-> patches for smiapp so I'm fine that you have it in yours, too.
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+>> Also remove useless code after 'return' statement.
+> 
+> This should all be fixed in my staging-linus branch already, right?  No
+> need for this anymore from what I can tell, sorry.
+> 
+
+That's all right (in fact don't need sorry).  :-)
+
+And excuse me, I am not quite familiar upstream kernel version merging
+and branches. Is it still better/suitable/possible to sync some bug fix
+patches from staging brach to next brach?
 
 
-
+Thanks.
 -- 
-Ricardo Ribalda
+Chen Gang
