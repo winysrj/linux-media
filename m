@@ -1,78 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33221 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751785Ab3KAULj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Nov 2013 16:11:39 -0400
-Message-ID: <52740AFA.2090704@iki.fi>
-Date: Fri, 01 Nov 2013 22:11:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-out-138.synserver.de ([212.40.185.138]:1083 "EHLO
+	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751749Ab3K0Otx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 09:49:53 -0500
+Message-ID: <529606AA.7050209@metafoo.de>
+Date: Wed, 27 Nov 2013 15:50:18 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: CrazyCat <crazycat69@narod.ru>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cxd2820r_c: Fix if_ctl calculation
-References: <527409DE.4010606@narod.ru>
-In-Reply-To: <527409DE.4010606@narod.ru>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hansverk@cisco.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Valentine <valentine.barshak@cogentembedded.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com>
+In-Reply-To: <5295E231.9030200@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-$ wget --no-check-certificate -O - 
-https://patchwork.linuxtv.org/patch/20516/mbox/ | git am -s
---2013-11-01 22:10:30--  https://patchwork.linuxtv.org/patch/20516/mbox/
-Resolving patchwork.linuxtv.org (patchwork.linuxtv.org)... 130.149.80.248
-Connecting to patchwork.linuxtv.org 
-(patchwork.linuxtv.org)|130.149.80.248|:443... connected.
-WARNING: cannot verify patchwork.linuxtv.org's certificate, issued by 
-‘/C=XX/ST=There is no such thing outside 
-US/L=Everywhere/O=OCOSA/OU=Office for Complication of Otherwise Simple 
-Affairs/CN=www.linuxtv.org/emailAddress=root@www.linuxtv.org’:
-   Self-signed certificate encountered.
-     WARNING: certificate common name ‘www.linuxtv.org’ doesn't match 
-requested host name ‘patchwork.linuxtv.org’.
-HTTP request sent, awaiting response... 200 OK
-Length: unspecified [text/plain]
-Saving to: ‘STDOUT’
+On 11/27/2013 01:14 PM, Hans Verkuil wrote:
+[...]
+>>> For our systems the adv7604 interrupts is not always hooked up to a gpio
+>>> irq, instead a register has to be read to figure out which device actually
+>>> produced the irq.
+>>
+>> Where is that register located ? Shouldn't it be modeled as an interrupt 
+>> controller ?
+> 
+> It's a PCIe interrupt whose handler needs to read several FPGA registers
+> in order to figure out which interrupt was actually triggered. I don't
+> know enough about interrupt controller to understand whether it can be
+> modeled as a 'standard' interrupt.
 
-     [ <=> 
- 
-        ] 1 218       --.-K/s   in 0s
+This sounds as if it should be implemented as a irq_chip driver. There are a
+couple of examples in drivers/irqchip/
 
-2013-11-01 22:10:30 (8,89 MB/s) - written to stdout [1218]
+- Lars
 
-Applying: cxd2820r_c: Fix if_ctl calculation
-error: patch failed: drivers/media/dvb-frontends/cxd2820r_c.c:78
-error: drivers/media/dvb-frontends/cxd2820r_c.c: patch does not apply
-Patch failed at 0001 cxd2820r_c: Fix if_ctl calculation
-The copy of the patch that failed is found in:
-    /home/crope/linuxtv/code/linux/.git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
-
-
-On 01.11.2013 22:06, CrazyCat wrote:
-> Fix tune for DVB-C.
->
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-> diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c
-> b/drivers/media/dvb-frontends/cxd2820r_c.c
-> index 125a440..5c6ab49 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r_c.c
-> +++ b/drivers/media/dvb-frontends/cxd2820r_c.c
-> @@ -78,7 +78,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
->
->       num = if_freq / 1000; /* Hz => kHz */
->       num *= 0x4000;
-> -    if_ctl = cxd2820r_div_u64_round_closest(num, 41000);
-> +    if_ctl = 0x4000 - cxd2820r_div_u64_round_closest(num, 41000);
->       buf[0] = (if_ctl >> 8) & 0x3f;
->       buf[1] = (if_ctl >> 0) & 0xff;
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-http://palosaari.fi/
