@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4455 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531Ab3KDOOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Nov 2013 09:14:07 -0500
-Message-ID: <5277ABA3.3060703@xs4all.nl>
-Date: Mon, 04 Nov 2013 15:13:55 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-CC: Dinesh Ram <dinesh.ram@cern.ch>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	d ram <dinesh.ram086@gmail.com>
-Subject: Re: [Review Patch 0/9] si4713 usb device driver
-References: <1381850685-26162-1-git-send-email-dinesh.ram@cern.ch> <CAC-25o8idLQUjQd9JK-n13bJdOH2riSakfP8GzMqXr=D8NV9CQ@mail.gmail.com> <527769FA.9080207@xs4all.nl> <CAC-25o9FqkS_g_-RAFn6UuGqKKBhazxtorqzyt=R8ZNDQN23Tw@mail.gmail.com>
-In-Reply-To: <CAC-25o9FqkS_g_-RAFn6UuGqKKBhazxtorqzyt=R8ZNDQN23Tw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53777 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757681Ab3K0U3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 15:29:16 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] af9035: fix broken I2C and USB I/O
+Date: Wed, 27 Nov 2013 22:28:48 +0200
+Message-Id: <1385584128-2632-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1385584128-2632-1-git-send-email-crope@iki.fi>
+References: <1385584128-2632-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/04/2013 03:09 PM, edubezval@gmail.com wrote:
-> Hans,
-> 
-> On Mon, Nov 4, 2013 at 5:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 10/15/2013 07:37 PM, edubezval@gmail.com wrote:
->>> Hello Dinesh,
->>>
->>> On Tue, Oct 15, 2013 at 11:24 AM, Dinesh Ram <dinesh.ram@cern.ch> wrote:
->>>> Hello Eduardo,
->>>>
->>>> In this patch series, I have addressed the comments by you
->>>> concerning my last patch series.
->>>> In the resulting patches, I have corrected most of the
->>>> style issues and adding of comments. However, some warnings
->>>> given out by checkpatch.pl (mostly complaing about lines longer
->>>> than 80 characters) are still there because I saw that code readibility
->>>> suffers by breaking up those lines.
->>>>
->>>> Also Hans has contributed patches 8 and 9 in this patch series
->>>> which address the issues of the handling of unknown regulators,
->>>> which have apparently changed since 3.10. Hans has tested it and the
->>>> driver loads again.
->>>>
->>>> Let me know when you are able to test it again.
->>>>
->>>
->>> Hopefully I will be able to give it a shot on n900 and on silabs
->>> devboard until the end of the week. Thanks for not giving up.
->>
->> Did you find time to do this? I'm waiting for feedback from you.
-> 
-> sorry for the late answer, I was offline for two weeks taking care of
-> my newborn  son :-).
+There was three small buffer len calculation bugs which caused
+driver non-working. These are coming from recent commit:
+commit 7760e148350bf6df95662bc0db3734e9d991cb03
+[media] af9035: Don't use dynamic static allocation
 
-An excellent reason! Congratulations!
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-	Hans
-
-> 
-> I am giving the series a second shot.
-> 
->>
->> Regards,
->>
->>         Hans
-> 
-> 
-> 
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index c8fcd78..403bf43 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -131,7 +131,7 @@ static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
+ {
+ 	u8 wbuf[MAX_XFER_SIZE];
+ 	u8 mbox = (reg >> 16) & 0xff;
+-	struct usb_req req = { CMD_MEM_WR, mbox, sizeof(wbuf), wbuf, 0, NULL };
++	struct usb_req req = { CMD_MEM_WR, mbox, 6 + len, wbuf, 0, NULL };
+ 
+ 	if (6 + len > sizeof(wbuf)) {
+ 		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
+@@ -238,7 +238,7 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 		} else {
+ 			/* I2C */
+ 			u8 buf[MAX_XFER_SIZE];
+-			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
++			struct usb_req req = { CMD_I2C_RD, 0, 5 + msg[0].len,
+ 					buf, msg[1].len, msg[1].buf };
+ 
+ 			if (5 + msg[0].len > sizeof(buf)) {
+@@ -274,8 +274,8 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 		} else {
+ 			/* I2C */
+ 			u8 buf[MAX_XFER_SIZE];
+-			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+-					0, NULL };
++			struct usb_req req = { CMD_I2C_WR, 0, 5 + msg[0].len,
++					buf, 0, NULL };
+ 
+ 			if (5 + msg[0].len > sizeof(buf)) {
+ 				dev_warn(&d->udev->dev,
+-- 
+1.8.4.2
 
