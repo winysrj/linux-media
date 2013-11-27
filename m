@@ -1,82 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2355 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122Ab3KJLpW (ORCPT
+Received: from smtp-out-119.synserver.de ([212.40.185.119]:1086 "EHLO
+	smtp-out-025.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751106Ab3K0J66 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Nov 2013 06:45:22 -0500
-Message-ID: <527F71CA.9040205@xs4all.nl>
-Date: Sun, 10 Nov 2013 12:45:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 27 Nov 2013 04:58:58 -0500
+Message-ID: <5295C282.1030106@metafoo.de>
+Date: Wed, 27 Nov 2013 10:59:30 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Lorenz_R=F6hrl?= <sheepshit@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: BUG: Freeze upon loading bttv module
-References: <527E606A.40101@gmx.de> <527EBEA4.1070202@xs4all.nl> <527F4551.6090708@gmx.de>
-In-Reply-To: <527F4551.6090708@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Valentine <valentine.barshak@cogentembedded.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl>
+In-Reply-To: <5295AB82.2010003@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lorenz,
+[...]
+>> I had to implement the IRQ handler since the soc_camera model does not use
+>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing about adv7612
+>> interrupt routed to a GPIO pin.
+>> So I had to schedule a workqueue and call adv7604_isr from there in case an interrupt happens.
+> 
+> For our systems the adv7604 interrupts is not always hooked up to a gpio irq, instead
+> a register has to be read to figure out which device actually produced the irq. So I
+> want to keep the interrupt_service_routine(). However, adding a gpio field to the
+> platform_data that, if set, will tell the driver to request an irq and setup a
+> workqueue that calls interrupt_service_routine() would be fine with me. That will
+> benefit a lot of people since using gpios is much more common.
 
-On 11/10/2013 09:35 AM, Lorenz Röhrl wrote:
-> Hi Hans,
+I'll look into adding that since I'm using a GPIO for the interrupt on my
+platform as well.
+
 > 
-> 
-> On 11/10/2013 12:00 AM, Hans Verkuil wrote:
+>> The driver enables multiple interrupts on the chip, however, the adv7604_isr callback doesn't
+>> seem to handle them correctly.
+>> According to the docs:
+>> "If an interrupt event occurs, and then a second interrupt event occurs before the system controller
+>> has cleared or masked the first interrupt event, the ADV7611 does not generate a second interrupt signal."
 >>
->> Can you try this patch? I'm not 100% but I think this might be the cause of
->> the problem.
->>
->> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
->> index c6532de..4f0aaa5 100644
->> --- a/drivers/media/pci/bt8xx/bttv-driver.c
->> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
->> @@ -4182,7 +4182,8 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
->>   	}
->>   	btv->std = V4L2_STD_PAL;
->>   	init_irqreg(btv);
->> -	v4l2_ctrl_handler_setup(hdl);
->> +	if (!bttv_tvcards[btv->c.type].no_video)
->> +		v4l2_ctrl_handler_setup(hdl);
->>   	if (hdl->error) {
->>   		result = hdl->error;
->>   		goto fail2;
->>
->>
+>> However, the interrupt_service_routine doesn't account for that.
+>> For example, in case fmt_change interrupt happens while fmt_change_digital interrupt is being
+>> processed by the adv7604_isr routine. If fmt_change status is set just before we clear fmt_change_digital,
+>> we never clear fmt_change. Thus, we end up with fmt_change interrupt missed and therefore further interrupts disabled.
+>> I've tried to call the adv7604_isr routine in a loop and return from the worlqueue only when all interrupt status bits are cleared.
+>> This did help a bit, but sometimes I started getting lots of I2C read/write errors for some reason.
 > 
-> I tried the patch and indeed it's working :)
-> No freeze on loading the module and the dvb-device is also working.
+> I'm not sure if there is much that can be done about this. The code reads the
+> interrupt status, then clears the interrupts right after. There is always a
+> race condition there since this isn't atomic ('read and clear'). Unless Lars-Peter
+> has a better idea?
+>
 
-Thanks for testing this! Good news that it fixed the problem.
+As far as I understand it the interrupts lines are level triggered and will
+stay asserted as long as there are unmasked, non-acked IRQS. So the
+interrupt handler should be re-entered if there are still pending
+interrupts. Is it possible that you setup a edge triggered interrupt, in
+that case the handler wouldn't be reentered if the signal stays asserted?
 
-> 
-> lolo@hurra ~ % ls /dev/dvb/adapter0
-> demux0  dvr0  frontend0
-> 
-> lolo@hurra ~ % dmesg |grep bttv
-> [    0.871060] bttv: driver version 0.9.19 loaded
-> [    0.872005] bttv: using 8 buffers with 2080k (520 pages) each for capture
-> [    0.873137] bttv: Bt8xx card found (0)
-> [    0.874186] bttv: 0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, 
-> latency: 32, mmio: 0xf0401000
-> [    0.875156] bttv: 0: detected: Twinhan VisionPlus DVB [card=113], PCI 
-> subsystem ID is 1822:0001
-> [    0.876138] bttv: 0: using: Twinhan DST + clones [card=113,autodetected]
-> [    0.884082] bttv: 0: tuner absent
-> [    0.894011] bttv: 0: add subdevice "dvb0"
-> [    0.901398] DVB: registering new adapter (bttv0)
-> 
-> 
-> Will this patch be included upstream? When will it appear in official 
-> kernel sources?
+But that's just my understanding from the manual, I'll have to verify
+whether the hardware does indeed work like that.
 
-I'll make a pull request for this tomorrow for 3.13 with a CC to the stable kernel
-mailinglist. It will probably take a few weeks before it appears in the mainline
-kernel and in the older, stable, kernels. I would expect this to be fixed by the
-end of the year.
-
-Regards,
-
-	Hans
+- Lars
