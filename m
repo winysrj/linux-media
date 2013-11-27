@@ -1,243 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41597 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754217Ab3K2SQk (ORCPT
+Received: from smtprelay0172.hostedemail.com ([216.40.44.172]:33105 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752784Ab3K0DVU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Nov 2013 13:16:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 1/9] vb2: push the mmap semaphore down to __buf_prepare()
-Date: Fri, 29 Nov 2013 19:16:39 +0100
-Message-ID: <1515245.TOT59KTYAx@avalon>
-In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
-References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl> <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 26 Nov 2013 22:21:20 -0500
+Message-ID: <1385522475.18487.34.camel@joe-AO722>
+Subject: Re: [PATCH] drivers: staging: media: go7007: go7007-usb.c use
+ pr_*() instead of dev_*() before 'go' initialized in go7007_usb_probe()
+From: Joe Perches <joe@perches.com>
+To: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	rkuo <rkuo@codeaurora.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
+Date: Tue, 26 Nov 2013 19:21:15 -0800
+In-Reply-To: <52956442.50001@gmail.com>
+References: <528AEFB7.4060301@gmail.com>
+	 <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com>
+	 <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com>
+	 <52956442.50001@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Wed, 2013-11-27 at 11:17 +0800, Chen Gang wrote:
+> dev_*() assumes 'go' is already initialized, so need use pr_*() instead
+> of before 'go' initialized.
+[]
+> diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+[]
+> @@ -1057,7 +1057,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
+>  	char *name;
+>  	int video_pipe, i, v_urb_len;
+>  
+> -	dev_dbg(go->dev, "probing new GO7007 USB board\n");
+> +	pr_devel("probing new GO7007 USB board\n");
 
-Thank you for the patch.
-
-On Friday 29 November 2013 10:58:36 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Rather than taking the mmap semaphore at a relatively high-level function,
-> push it down to the place where it is really needed.
-> 
-> It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
-> vb2 calls. The only way I can see that a race can happen is when two
-> threads queue the same buffer. The solution for that it to introduce
-> a PREPARING state.
-
-This looks better to me, but what about a vb2_reqbufs(0) call being processed 
-during the time window where we release the queue mutex ?
-
-> Moving it down offers opportunities to simplify the code.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 82 +++++++++++++----------------
->  include/media/videobuf2-core.h           |  2 +
->  2 files changed, 38 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index b19b306..c8a1f22b5 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -462,6 +462,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
-> struct v4l2_buffer *b) case VB2_BUF_STATE_PREPARED:
->  		b->flags |= V4L2_BUF_FLAG_PREPARED;
->  		break;
-> +	case VB2_BUF_STATE_PREPARING:
->  	case VB2_BUF_STATE_DEQUEUED:
->  		/* nothing */
->  		break;
-> @@ -1207,6 +1208,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
-> static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer
-> *b) {
->  	struct vb2_queue *q = vb->vb2_queue;
-> +	struct rw_semaphore *mmap_sem;
->  	int ret;
-> 
->  	ret = __verify_length(vb, b);
-> @@ -1216,12 +1218,31 @@ static int __buf_prepare(struct vb2_buffer *vb,
-> const struct v4l2_buffer *b) return ret;
->  	}
-> 
-> +	vb->state = VB2_BUF_STATE_PREPARING;
->  	switch (q->memory) {
->  	case V4L2_MEMORY_MMAP:
->  		ret = __qbuf_mmap(vb, b);
->  		break;
->  	case V4L2_MEMORY_USERPTR:
-> +		/*
-> +		 * In case of user pointer buffers vb2 allocators need to get direct
-> +		 * access to userspace pages. This requires getting the mmap 
-semaphore
-> +		 * for read access in the current process structure. The same 
-semaphore
-> +		 * is taken before calling mmap operation, while both 
-qbuf/prepare_buf
-> +		 * and mmap are called by the driver or v4l2 core with the driver's 
-lock
-> +		 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in 
-mmap
-> +		 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
-> +		 * core releases the driver's lock, takes mmap_sem and then takes the
-> +		 * driver's lock again.
-> +		 */
-> +		mmap_sem = &current->mm->mmap_sem;
-> +		call_qop(q, wait_prepare, q);
-> +		down_read(mmap_sem);
-> +		call_qop(q, wait_finish, q);
-> +
->  		ret = __qbuf_userptr(vb, b);
-> +
-> +		up_read(mmap_sem);
->  		break;
->  	case V4L2_MEMORY_DMABUF:
->  		ret = __qbuf_dmabuf(vb, b);
-> @@ -1235,8 +1256,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const
-> struct v4l2_buffer *b) ret = call_qop(q, buf_prepare, vb);
->  	if (ret)
->  		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
-> -	else
-> -		vb->state = VB2_BUF_STATE_PREPARED;
-> +	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
-> 
->  	return ret;
->  }
-> @@ -1247,80 +1267,47 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue
-> *q, struct v4l2_buffer *b, struct v4l2_buffer *,
->  						   struct vb2_buffer *))
->  {
-> -	struct rw_semaphore *mmap_sem = NULL;
->  	struct vb2_buffer *vb;
->  	int ret;
-> 
-> -	/*
-> -	 * In case of user pointer buffers vb2 allocators need to get direct
-> -	 * access to userspace pages. This requires getting the mmap semaphore
-> -	 * for read access in the current process structure. The same semaphore
-> -	 * is taken before calling mmap operation, while both qbuf/prepare_buf
-> -	 * and mmap are called by the driver or v4l2 core with the driver's lock
-> -	 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
-> -	 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
-> -	 * core releases the driver's lock, takes mmap_sem and then takes the
-> -	 * driver's lock again.
-> -	 *
-> -	 * To avoid racing with other vb2 calls, which might be called after
-> -	 * releasing the driver's lock, this operation is performed at the
-> -	 * beginning of qbuf/prepare_buf processing. This way the queue status
-> -	 * is consistent after getting the driver's lock back.
-> -	 */
-> -	if (q->memory == V4L2_MEMORY_USERPTR) {
-> -		mmap_sem = &current->mm->mmap_sem;
-> -		call_qop(q, wait_prepare, q);
-> -		down_read(mmap_sem);
-> -		call_qop(q, wait_finish, q);
-> -	}
-> -
->  	if (q->fileio) {
->  		dprintk(1, "%s(): file io in progress\n", opname);
-> -		ret = -EBUSY;
-> -		goto unlock;
-> +		return -EBUSY;
->  	}
-> 
->  	if (b->type != q->type) {
->  		dprintk(1, "%s(): invalid buffer type\n", opname);
-> -		ret = -EINVAL;
-> -		goto unlock;
-> +		return -EINVAL;
->  	}
-> 
->  	if (b->index >= q->num_buffers) {
->  		dprintk(1, "%s(): buffer index out of range\n", opname);
-> -		ret = -EINVAL;
-> -		goto unlock;
-> +		return -EINVAL;
->  	}
-> 
->  	vb = q->bufs[b->index];
->  	if (NULL == vb) {
->  		/* Should never happen */
->  		dprintk(1, "%s(): buffer is NULL\n", opname);
-> -		ret = -EINVAL;
-> -		goto unlock;
-> +		return -EINVAL;
->  	}
-> 
->  	if (b->memory != q->memory) {
->  		dprintk(1, "%s(): invalid memory type\n", opname);
-> -		ret = -EINVAL;
-> -		goto unlock;
-> +		return -EINVAL;
->  	}
-> 
->  	ret = __verify_planes_array(vb, b);
->  	if (ret)
-> -		goto unlock;
-> +		return ret;
-> 
->  	ret = handler(q, b, vb);
-> -	if (ret)
-> -		goto unlock;
-> -
-> -	/* Fill buffer information for the userspace */
-> -	__fill_v4l2_buffer(vb, b);
-> +	if (!ret) {
-> +		/* Fill buffer information for the userspace */
-> +		__fill_v4l2_buffer(vb, b);
-> 
-> -	dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
-> -unlock:
-> -	if (mmap_sem)
-> -		up_read(mmap_sem);
-> +		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb-
->v4l2_buf.index);
-> +	}
->  	return ret;
->  }
-> 
-> @@ -1369,6 +1356,9 @@ static int __vb2_qbuf(struct vb2_queue *q, struct
-> v4l2_buffer *b, return ret;
->  	case VB2_BUF_STATE_PREPARED:
->  		break;
-> +	case VB2_BUF_STATE_PREPARING:
-> +		dprintk(1, "qbuf: buffer still being prepared\n");
-> +		return -EINVAL;
->  	default:
->  		dprintk(1, "qbuf: buffer already in use\n");
->  		return -EINVAL;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bd8218b..4bc4ad2 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -142,6 +142,7 @@ enum vb2_fileio_flags {
->  /**
->   * enum vb2_buffer_state - current video buffer state
->   * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
-> + * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
->   * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
->   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
->   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
-> @@ -154,6 +155,7 @@ enum vb2_fileio_flags {
->   */
->  enum vb2_buffer_state {
->  	VB2_BUF_STATE_DEQUEUED,
-> +	VB2_BUF_STATE_PREPARING,
->  	VB2_BUF_STATE_PREPARED,
->  	VB2_BUF_STATE_QUEUED,
->  	VB2_BUF_STATE_ACTIVE,
--- 
-Regards,
-
-Laurent Pinchart
+pr_devel is commonly compiled out completely unless DEBUG is #defined.
+You probably want to use pr_debug here.
+ 
 
