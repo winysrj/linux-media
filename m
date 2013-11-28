@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44415 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757024Ab3KYOPZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 09:15:25 -0500
-Date: Mon, 25 Nov 2013 16:15:20 +0200
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Kristian =?iso-8859-1?Q?H=F8gsberg?= <hoegsberg@gmail.com>,
-	intel-gfx <intel-gfx@lists.freedesktop.org>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Mesa Dev <mesa-dev@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Intel-gfx] [Mesa-dev] [PATCH] dri3, i915, i965: Add
- __DRI_IMAGE_FOURCC_SARGB8888
-Message-ID: <20131125141520.GP10036@intel.com>
-References: <1385093524-22276-1-git-send-email-keithp@keithp.com>
- <20131122102632.GQ27344@phenom.ffwll.local>
- <86d2lsem3m.fsf@miki.keithp.com>
- <CAKMK7uEqHKOmMFXZLKno1q08X1B=U7XcJiExHaHbO9VdMeCihQ@mail.gmail.com>
- <20131122221213.GA3234@tokamak.local>
- <20131125085723.GW27344@phenom.ffwll.local>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:34509 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753338Ab3K1BqA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 20:46:00 -0500
+Message-ID: <5296A0CF.2020405@gmail.com>
+Date: Thu, 28 Nov 2013 09:47:59 +0800
+From: Chen Gang <gang.chen.5i5j@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20131125085723.GW27344@phenom.ffwll.local>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Greg KH <gregkh@linuxfoundation.org>,
+	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	rkuo <rkuo@codeaurora.org>, hans.verkuil@cisco.com,
+	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: Re: [PATCH v2] drivers: staging: media: go7007: go7007-usb.c use
+ pr_*() instead of dev_*() before 'go' initialized in go7007_usb_probe()
+References: <20131125011938.GB18921@codeaurora.org> <5292B845.3010404@gmail.com> <5292B8A0.7020409@gmail.com> <5294255E.7040105@gmail.com> <52956442.50001@gmail.com> <1385522475.18487.34.camel@joe-AO722> <529569A5.1020008@gmail.com> <52956B78.6050107@gmail.com> <20131127040338.GB23930@kroah.com> <529573F6.9080106@gmail.com> <20131127104325.GE28413@mwanda>
+In-Reply-To: <20131127104325.GE28413@mwanda>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 25, 2013 at 09:57:23AM +0100, Daniel Vetter wrote:
-> On Fri, Nov 22, 2013 at 02:12:13PM -0800, Kristian Høgsberg wrote:
-> > I don't know what else you'd propose?  Pass an X visual in the ioctl?
-> > An EGL config?  This is our name space, we can add stuff as we need
-> > (as Keith is doing here). include/uapi/drm/drm_fourcc.h is the
-> > canonical source for these values and we should add
-> > DRM_FORMAT_SARGB8888 there to make sure we don't clash.
+On 11/27/2013 06:43 PM, Dan Carpenter wrote:
+> On Wed, Nov 27, 2013 at 12:24:22PM +0800, Chen Gang wrote:
+>> On 11/27/2013 12:03 PM, Greg KH wrote:
+>>> On Wed, Nov 27, 2013 at 11:48:08AM +0800, Chen Gang wrote:
+>>>> dev_*() assumes 'go' is already initialized, so need use pr_*() instead
+>>>> of before 'go' initialized. Related warning (with allmodconfig under
+>>>> hexagon):
+>>>>
+>>>>     CC [M]  drivers/staging/media/go7007/go7007-usb.o
+>>>>   drivers/staging/media/go7007/go7007-usb.c: In function 'go7007_usb_probe':
+>>>>   drivers/staging/media/go7007/go7007-usb.c:1060:2: warning: 'go' may be used uninitialized in this function [-Wuninitialized]
+>>>>
+>>>> Also remove useless code after 'return' statement.
+>>>
+>>> This should all be fixed in my staging-linus branch already, right?  No
+>>> need for this anymore from what I can tell, sorry.
+>>>
+>>
+>> That's all right (in fact don't need sorry).  :-)
+>>
+>> And excuse me, I am not quite familiar upstream kernel version merging
+>> and branches. Is it still better/suitable/possible to sync some bug fix
+>> patches from staging brach to next brach?
 > 
-> Well that's kinda the problem. If you don't expect the kernel to clash
-> with whatever mesa is using internally then we should add it to the
-> kernel, first. That's kinda what Dave's recent rant has all been about.
+> next syncs with everyone once a day.
 > 
-> The other issue was that originally the idea behind fourcc was to have one
-> formate namespace shared between drm, v4l and whomever else cares. If
-> people are happy to drop that idea on the floor I won't shed a single
-> tear.
 
-I broke that idea alredy when I cooked up the current drm fourccs.
-I didn't cross check them with any other fourcc source, so I'm 100%
-sure most of them don't match anything else.
+OK, thanks.  :-)
 
 -- 
-Ville Syrjälä
-Intel OTC
+Chen Gang
