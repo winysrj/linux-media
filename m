@@ -1,102 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43309 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765Ab3KENDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 08:03:51 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 26/29] [media] af9035: Don't use dynamic static allocation
-Date: Tue,  5 Nov 2013 08:01:39 -0200
-Message-Id: <1383645702-30636-27-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2115 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754213Ab3K1Dd2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Nov 2013 22:33:28 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAS3XPAS069186
+	for <linux-media@vger.kernel.org>; Thu, 28 Nov 2013 04:33:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 5340C2A2220
+	for <linux-media@vger.kernel.org>; Thu, 28 Nov 2013 04:33:23 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131128033323.5340C2A2220@tschai.lan>
+Date: Thu, 28 Nov 2013 04:33:23 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dynamic static allocation is evil, as Kernel stack is too low, and
-compilation complains about it on some archs:
-	drivers/media/usb/dvb-usb-v2/af9035.c:142:1: warning: 'af9035_wr_regs' uses dynamic stack allocation [enabled by default]
-	drivers/media/usb/dvb-usb-v2/af9035.c:305:1: warning: 'af9035_i2c_master_xfer' uses dynamic stack allocation [enabled by default]
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Instead, let's enforce a limit for the buffer to be the max size of
-a control URB payload data (64 bytes).
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+date:		Thu Nov 28 04:00:29 CET 2013
+git branch:	test
+git hash:	258d2fbf874c87830664cb7ef41f9741c1abffac
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 1ea17dc2a76e..c8fcd78425bd 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -21,6 +21,9 @@
- 
- #include "af9035.h"
- 
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  64
-+
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static u16 af9035_checksum(const u8 *buf, size_t len)
-@@ -126,10 +129,16 @@ exit:
- /* write multiple registers */
- static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
- {
--	u8 wbuf[6 + len];
-+	u8 wbuf[MAX_XFER_SIZE];
- 	u8 mbox = (reg >> 16) & 0xff;
- 	struct usb_req req = { CMD_MEM_WR, mbox, sizeof(wbuf), wbuf, 0, NULL };
- 
-+	if (6 + len > sizeof(wbuf)) {
-+		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
-+			 KBUILD_MODNAME, len);
-+		return -EOPNOTSUPP;
-+	}
-+
- 	wbuf[0] = len;
- 	wbuf[1] = 2;
- 	wbuf[2] = 0;
-@@ -228,9 +237,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 					msg[1].len);
- 		} else {
- 			/* I2C */
--			u8 buf[5 + msg[0].len];
-+			u8 buf[MAX_XFER_SIZE];
- 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
- 					buf, msg[1].len, msg[1].buf };
-+
-+			if (5 + msg[0].len > sizeof(buf)) {
-+				dev_warn(&d->udev->dev,
-+					 "%s: i2c xfer: len=%d is too big!\n",
-+					 KBUILD_MODNAME, msg[0].len);
-+				return -EOPNOTSUPP;
-+			}
- 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[1].len;
- 			buf[1] = msg[0].addr << 1;
-@@ -257,9 +273,16 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 					msg[0].len - 3);
- 		} else {
- 			/* I2C */
--			u8 buf[5 + msg[0].len];
-+			u8 buf[MAX_XFER_SIZE];
- 			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
- 					0, NULL };
-+
-+			if (5 + msg[0].len > sizeof(buf)) {
-+				dev_warn(&d->udev->dev,
-+					 "%s: i2c xfer: len=%d is too big!\n",
-+					 KBUILD_MODNAME, msg[0].len);
-+				return -EOPNOTSUPP;
-+			}
- 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[0].len;
- 			buf[1] = msg[0].addr << 1;
--- 
-1.8.3.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
