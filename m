@@ -1,182 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:57020 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295Ab3K0Nqk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 08:46:40 -0500
-Received: by mail-la0-f50.google.com with SMTP id el20so5148578lab.23
-        for <linux-media@vger.kernel.org>; Wed, 27 Nov 2013 05:46:38 -0800 (PST)
-Message-ID: <5295F7BC.7010305@cogentembedded.com>
-Date: Wed, 27 Nov 2013 17:46:36 +0400
-From: Valentine <valentine.barshak@cogentembedded.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:42020 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751653Ab3K1L1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Nov 2013 06:27:37 -0500
+Message-ID: <5297286A.5020809@schinagl.nl>
+Date: Thu, 28 Nov 2013 12:26:34 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <7965472.68k6QZsVH1@avalon> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com> <5295EE8C.6070505@metafoo.de>
-In-Reply-To: <5295EE8C.6070505@metafoo.de>
+To: Golden Shadow <firas73737@yahoo.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: IPTV Newbie Question/Which Satellite Receiver to Use!
+References: <1385402616.45186.YahooMailNeo@web162606.mail.bf1.yahoo.com> <5294AE6C.6020105@schinagl.nl> <1385495819.77730.YahooMailNeo@web162601.mail.bf1.yahoo.com>
+In-Reply-To: <1385495819.77730.YahooMailNeo@web162601.mail.bf1.yahoo.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/27/2013 05:07 PM, Lars-Peter Clausen wrote:
-> On 11/27/2013 01:32 PM, Valentine wrote:
->> On 11/27/2013 04:14 PM, Hans Verkuil wrote:
->>> Hi Laurent,
->>>
->>> On 11/27/13 12:39, Laurent Pinchart wrote:
->>>> Hi Hans,
->>>>
->>>> On Wednesday 27 November 2013 09:21:22 Hans Verkuil wrote:
->>>>> On 11/26/2013 10:28 PM, Valentine wrote:
->>>>>> On 11/20/2013 07:53 PM, Valentine wrote:
->>>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
->>>>>>>> Hi Valentine,
->>>>>>
->>>>>> Hi Hans,
->>>>>>
->>>>>>>> Did you ever look at this adv7611 driver:
->>>>>>>>
->>>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e4a
->>>>>>>> fa42af2daa12
->>>>>>>
->>>>>>> No, I missed that one somehow, although I did search for the adv7611/7612
->>>>>>> before implementing this one. I'm going to look closer at the patch and
->>>>>>> test it.
->>>>>>
->>>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
->>>>>> I haven't been able to make it work so far. Here's the description of some
->>>>>> of the issues I've encountered.
->>>>>>
->>>>>> The patch does not apply cleanly so I had to make small adjustments just
->>>>>> to make it apply without changing the functionality.
->>>>>>
->>>>>> First of all the driver (adv7604_dummy_client function) does not set
->>>>>> default I2C slave addresses in the I/O map in case they are not set in
->>>>>> the platform data.
->>>>>> This is not needed for 7604, since the default addresses are already set
->>>>>> in the I/O map after chip reset. However, the map is zeroed on 7611/7612
->>>>>> after power up, and we always have to set it manually.
->>>>>
->>>>> So, the platform data for the 7611/2 should always give i2c addresses. That
->>>>> seems reasonable.
->>>>>
->>>>>> I had to implement the IRQ handler since the soc_camera model does not use
->>>>>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing
->>>>>> about adv7612 interrupt routed to a GPIO pin.
->>>>>> So I had to schedule a workqueue and call adv7604_isr from there in case
->>>>>> an interrupt happens.
->>>>>
->>>>> For our systems the adv7604 interrupts is not always hooked up to a gpio
->>>>> irq, instead a register has to be read to figure out which device actually
->>>>> produced the irq.
->>>>
->>>> Where is that register located ? Shouldn't it be modeled as an interrupt
->>>> controller ?
->>>
->>> It's a PCIe interrupt whose handler needs to read several FPGA registers
->>> in order to figure out which interrupt was actually triggered. I don't
->>> know enough about interrupt controller to understand whether it can be
->>> modeled as a 'standard' interrupt.
->>>
->>>>
->>>>> So I want to keep the interrupt_service_routine(). However, adding a gpio
->>>>> field to the platform_data that, if set, will tell the driver to request an
->>>>> irq and setup a workqueue that calls interrupt_service_routine() would be
->>>>> fine with me. That will benefit a lot of people since using gpios is much
->>>>> more common.
->>>>
->>>> We should use the i2c_board_info.irq field for that, not a field in the
->>>> platform data structure. The IRQ line could be hooked up to a non-GPIO IRQ.
->>>
->>> Yes, of course. Although the adv7604 has two interrupt lines, so if you
->>> would want to use the second, then that would still have to be specified
->>> through the platform data.
->>
->> In this case the GPIO should be configured as interrupt source in the platform
->> code. But this doesn't seem to work with R-Car GPIO since it is initialized
->> later, and the gpio_to_irq function returns an error.
->> The simplest way seemed to use a GPIO number in the platform data
->> to have the adv driver configure the pin and request the IRQ.
->> I'm not sure how to easily defer I2C board info IRQ setup (and
->> camera/subdevice probing)
->> until GPIO driver is ready.
+On 26-11-13 20:56, Golden Shadow wrote:
+> Hello Oliver,
+> Thanks for your reply.
+> I could not find the PCIe cards you mentioned (L4M-Flex CI or L4M-Flex-Twin C) on the supported PCIe cards on:
+> http://www.linuxtv.org/wiki/index.php/DVB-C_PCIe_Cards#Supported_DVB-C_PCIe_Cards:
+
+The two drivers for all their cards, based on generation you have the 
+ngene and the ddbridge driver.
+
+If you search for ddbrige on the wiki you'll find what you seek.
+
+http://linuxtv.org/wiki/index.php/Linux4Media_cineS2_DVB-S2_Twin_Tuner
+
+try that page (though I had to type it, couldn't copy paste).
+
+That's info about the drivers in general for their cards, Sinds you 
+mention DVB-C now, I thought you said dvb-s before, you'd have to look 
+at the C&T devices, the wikipage dedicated to the C&T devices is
+
+http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
+
+Same base card, different tuners, same driver. Search for ddbridge and 
+you will find all you may need to know.
 >
-> The GPIO driver should set up the GPIO pin as a interrupt pin when the
-> interrupt is requested. We should not have to add hacks to adv7604 driver to
-> workaround a broken GPIO driver.
+>
+> Perhaps it's better to go for a USB device as there are more options to choose from
+> http://www.linuxtv.org/wiki/index.php/DVB-C_USB_Devices
+I strongly prefer PCI(e) based cards over USB, especially for permanent 
+installations, but to each his own.
 
-The GPIO driver does set up the pin as IRQ when the interrupt is requested.
-The problem is that we can't get the IRQ number from the GPIO pin number until
-the GPIO driver is started, which happens after the I2C device is registered
-by the platform code.
-
-So, the platform (board) init can't set up the i2c board info IRQ.
-Using GPIO numbers in platform data seems a simple solution to that.
-Besides, the chip supports two IRQ lines (as Hans has mentioned), while
-the I2C board info has only one irq member.
-
-I'm not sure that gpio_to_irq is supposed to always work (even at early board initialization)
-and never return -EPROBE_DEFER.
-If it is, then it's a GPIO driver issue. Otherwise, this is a question of I2C slave deferred probing,
-I think, which is not that simple.
-
+Oliver
+>
+>
+> But still it's not easy to pick the best one that suits a beginner needs.
+>
+> Best regards,
+> Firas
+>
+>
+>
+>
+>
+> On Tuesday, November 26, 2013 5:29 PM, Oliver Schinagl <oliver+list@schinagl.nl> wrote:
+> On 25-11-13 19:03, Golden Shadow wrote:
+>> Hello there!
+>> I am new to IPTV and Video4Linux. I need to implement an IPTV solution that would stream DVB satellite channels in a network. What is the satellite receiver do you recommend me to use on my Linux Centos 6.4 server? The satellite receiver should support encrypted channels. Is it better to use a USB or PCIe receiver? Another question, I'm thinking of using VLC for streaming, do you recommend a better streaming software for my case?
+>> Thanks a lot,
+>> Firas
+> I'm personally very satisfied with linux4media.de devices. If your
+> product of choice isn't there, look at digitaldevices.de, same company,
+> different frontend. But do buy via linux4media as that counts as a linux
+> sale ;)
+>
+> I personally have the L4M F4mini module (with mini -> pcie adapter
+> allowing me potential future options) with currently an L4M-Flex S2. I
+> only have 1 for now, but plan to upgrade to 4 laters, giving me 8 tuners
+> in single PCI-e slot. Since you say you need crypto, you could use the
+> L4M-Flex CI or L4M-Flex-Twin CI module to do that.
+>
+> Oliver
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 >>
->>>
->>>>
->>>>>> The driver enables multiple interrupts on the chip, however, the
->>>>>> adv7604_isr callback doesn't seem to handle them correctly.
->>>>>> According to the docs:
->>>>>> "If an interrupt event occurs, and then a second interrupt event occurs
->>>>>> before the system controller has cleared or masked the first interrupt
->>>>>> event, the ADV7611 does not generate a second interrupt signal."
->>>>>>
->>>>>> However, the interrupt_service_routine doesn't account for that.
->>>>>> For example, in case fmt_change interrupt happens while fmt_change_digital
->>>>>> interrupt is being processed by the adv7604_isr routine. If fmt_change
->>>>>> status is set just before we clear fmt_change_digital, we never clear
->>>>>> fmt_change. Thus, we end up with fmt_change interrupt missed and
->>>>>> therefore further interrupts disabled. I've tried to call the adv7604_isr
->>>>>> routine in a loop and return from the worlqueue only when all interrupt
->>>>>> status bits are cleared. This did help a bit, but sometimes I started
->>>>>> getting lots of I2C read/write errors for some reason.
->>>>>
->>>>> I'm not sure if there is much that can be done about this. The code reads
->>>>> the interrupt status, then clears the interrupts right after. There is
->>>>> always a race condition there since this isn't atomic ('read and clear').
->>>>> Unless Lars-Peter has a better idea?
->>>>>
->>>>> What can be improved, though, is to clear not just the interrupts that were
->>>>> read, but all the interrupts that are unmasked. You are right, you could
->>>>> loose an interrupt that way.
->>>>
->>>> Wouldn't level-trigerred interrupts fix the issue ?
->>
->> In this case we need to disable the IRQ line in the IRQ handler and
->> re-enable it in the workqueue.
->> (we can't call the interrupt service routine from the interrupt context.)
->>
->> This however didn't seem to work with R-Car GPIO.
->> Calling disable_irq_nosync(irq); from the GPIO LEVEL interrupt handler
->> doesn't seem
->> to disable it for some reason.
 >
-> Use a threaded interrupt instead of workqueue + disable_irq_nosync, that
-> should work fine.
-
-I've tried that too. It doesn't work either, perhaps for the same reason.
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> - Lars
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
-Thanks,
-Val.
