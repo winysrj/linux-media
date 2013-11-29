@@ -1,96 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3869 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab3KNOSN (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3161 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751892Ab3K2J7G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Nov 2013 09:18:13 -0500
-Message-ID: <5284DB54.6080306@xs4all.nl>
-Date: Thu, 14 Nov 2013 15:16:52 +0100
+	Fri, 29 Nov 2013 04:59:06 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: SDR API libv4lconvert remove packet headers in-Kernel or userspace
-References: <5284D863.1080306@iki.fi>
-In-Reply-To: <5284D863.1080306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 2/9] vb2: simplify qbuf/prepare_buf by removing callback.
+Date: Fri, 29 Nov 2013 10:58:37 +0100
+Message-Id: <3632e91f3a001e974e1907d286eb70b1aa42e188.1385719098.git.hans.verkuil@cisco.com>
+In-Reply-To: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
+References: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/13 15:04, Antti Palosaari wrote:
-> Hello
-> Should I feed whole raw USB packet to libv4lconvert or rip headers
-> off inside Kernel and feed only data? It is very trivial to remove
-> headers in kernel and in a case of USB it does not even cost about
-> nothing as you have to mem copy data out from URB in any case (if you
-> do it on that phase).
-> 
-> Lets take a most complex case I have. There is not only raw data, but
-> some meta-data to process samples. In that case those samples are
-> bit-shifted according to control bits in order to increase nominal
-> sample resolution from 10 to 12 bits (not sure if it is bit shift or
-> some other algo, but shifting bits sounds reasonable and testing
-> against RF-signal generator results looked correct as it is now
-> implemented).
-> 
-> So do I feed that whole USB packet to userspace or do I have to
-> remove headers + do bit bit shifting and forward only raw samples to
-> userspace?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I would definitely remove headers and any garbage but pass the rest
-to userspace as-is. There is quite a bit of conversion code in the
-example you pointed to, more than I feel belongs in the kernel, so
-moving that out to userspace makes sense IMHO.
+The callback used to merge the common code of the qbuf/prepare_buf
+code can be removed now that the mmap_sem handling is pushed down to
+__buf_prepare(). This makes the code more readable.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 118 +++++++++++++++----------------
+ 1 file changed, 59 insertions(+), 59 deletions(-)
 
-	Hans
-
->
-> 
-> That example could be found from:
-> drivers/staging/media/msi3101/sdr-msi3101.c
-> 
-> Here is what on USB packet looks like:
-> 
-> +===============================================================
-> |   00-1023 | USB packet type '384'
-> +===============================================================
-> |   00-  03 | sequence number of first sample in that USB packet
-> +---------------------------------------------------------------
-> |   04-  15 | garbage
-> +---------------------------------------------------------------
-> |   16- 175 | samples
-> +---------------------------------------------------------------
-> |  176- 179 | control bits for previous samples
-> +---------------------------------------------------------------
-> |  180- 339 | samples
-> +---------------------------------------------------------------
-> |  340- 343 | control bits for previous samples
-> +---------------------------------------------------------------
-> |  344- 503 | samples
-> +---------------------------------------------------------------
-> |  504- 507 | control bits for previous samples
-> +---------------------------------------------------------------
-> |  508- 667 | samples
-> +---------------------------------------------------------------
-> |  668- 671 | control bits for previous samples
-> +---------------------------------------------------------------
-> |  672- 831 | samples
-> +---------------------------------------------------------------
-> |  832- 835 | control bits for previous samples
-> +---------------------------------------------------------------
-> |  836- 995 | samples
-> +---------------------------------------------------------------
-> |  996- 999 | control bits for previous samples
-> +---------------------------------------------------------------
-> | 1000-1023 | garbage
-> +---------------------------------------------------------------
-> 
-> 
-> regards
-> Antti
-> 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c8a1f22b5..0cbe620 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1262,14 +1262,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ }
+ 
+ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+-				    const char *opname,
+-				    int (*handler)(struct vb2_queue *,
+-						   struct v4l2_buffer *,
+-						   struct vb2_buffer *))
++				    const char *opname)
+ {
+-	struct vb2_buffer *vb;
+-	int ret;
+-
+ 	if (q->fileio) {
+ 		dprintk(1, "%s(): file io in progress\n", opname);
+ 		return -EBUSY;
+@@ -1285,8 +1279,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
+-	vb = q->bufs[b->index];
+-	if (NULL == vb) {
++	if (q->bufs[b->index] == NULL) {
+ 		/* Should never happen */
+ 		dprintk(1, "%s(): buffer is NULL\n", opname);
+ 		return -EINVAL;
+@@ -1297,30 +1290,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
+-	ret = __verify_planes_array(vb, b);
+-	if (ret)
+-		return ret;
+-
+-	ret = handler(q, b, vb);
+-	if (!ret) {
+-		/* Fill buffer information for the userspace */
+-		__fill_v4l2_buffer(vb, b);
+-
+-		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
+-	}
+-	return ret;
+-}
+-
+-static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+-			     struct vb2_buffer *vb)
+-{
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+-		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+-			vb->state);
+-		return -EINVAL;
+-	}
+-
+-	return __buf_prepare(vb, b);
++	return __verify_planes_array(q->bufs[b->index], b);
+ }
+ 
+ /**
+@@ -1340,20 +1310,68 @@ static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+  */
+ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
+-	return vb2_queue_or_prepare_buf(q, b, "prepare_buf", __vb2_prepare_buf);
++	int ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
++	struct vb2_buffer *vb;
++
++	if (ret)
++		return ret;
++
++	vb = q->bufs[b->index];
++	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
++		return -EINVAL;
++	}
++
++	ret = __buf_prepare(vb, b);
++	if (!ret) {
++		/* Fill buffer information for the userspace */
++		__fill_v4l2_buffer(vb, b);
++
++		dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
++	}
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+ 
+-static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+-		      struct vb2_buffer *vb)
++/**
++ * vb2_qbuf() - Queue a buffer from userspace
++ * @q:		videobuf2 queue
++ * @b:		buffer structure passed from userspace to vidioc_qbuf handler
++ *		in driver
++ *
++ * Should be called from vidioc_qbuf ioctl handler of a driver.
++ * This function:
++ * 1) verifies the passed buffer,
++ * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
++ *    which driver-specific buffer initialization can be performed,
++ * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
++ *    callback for processing.
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_qbuf handler in driver.
++ */
++int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
+-	int ret;
++	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
++	struct vb2_buffer *vb;
++
++	if (ret)
++		return ret;
++
++	vb = q->bufs[b->index];
++	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
++		return -EINVAL;
++	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 		ret = __buf_prepare(vb, b);
+ 		if (ret)
+ 			return ret;
++		break;
+ 	case VB2_BUF_STATE_PREPARED:
+ 		break;
+ 	case VB2_BUF_STATE_PREPARING:
+@@ -1378,29 +1396,11 @@ static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 	if (q->streaming)
+ 		__enqueue_in_driver(vb);
+ 
+-	return 0;
+-}
++	/* Fill buffer information for the userspace */
++	__fill_v4l2_buffer(vb, b);
+ 
+-/**
+- * vb2_qbuf() - Queue a buffer from userspace
+- * @q:		videobuf2 queue
+- * @b:		buffer structure passed from userspace to vidioc_qbuf handler
+- *		in driver
+- *
+- * Should be called from vidioc_qbuf ioctl handler of a driver.
+- * This function:
+- * 1) verifies the passed buffer,
+- * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
+- *    which driver-specific buffer initialization can be performed,
+- * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
+- *    callback for processing.
+- *
+- * The return values from this function are intended to be directly returned
+- * from vidioc_qbuf handler in driver.
+- */
+-int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+-{
+-	return vb2_queue_or_prepare_buf(q, b, "qbuf", __vb2_qbuf);
++	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+-- 
+1.8.4.rc3
 
