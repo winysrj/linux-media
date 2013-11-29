@@ -1,95 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:47203 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab3K0Lh7 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2719 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3K2J7U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Nov 2013 06:37:59 -0500
-Message-ID: <5295D6FC.8080608@cisco.com>
-Date: Wed, 27 Nov 2013 12:26:52 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Valentine <valentine.barshak@cogentembedded.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
-References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <528B347E.2060107@xs4all.nl> <528C8BA1.9070706@cogentembedded.com> <528C9ADB.3050803@xs4all.nl> <528CA9E1.2020401@cogentembedded.com> <528CD86D.70506@xs4all.nl> <528CDB0B.3000109@cogentembedded.com> <52951270.9040804@cogentembedded.com> <5295AB82.2010003@xs4all.nl> <5295C282.1030106@metafoo.de>
-In-Reply-To: <5295C282.1030106@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 29 Nov 2013 04:59:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 7/9] vb2: add thread support
+Date: Fri, 29 Nov 2013 10:58:42 +0100
+Message-Id: <2d9fc3a471c865ec61e1d2243140e5985940c5b7.1385719098.git.hans.verkuil@cisco.com>
+In-Reply-To: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
+References: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+In order to implement vb2 DVB or ALSA support you need to be able to start
+a kernel thread that queues and dequeues buffers, calling a callback
+function for every captured/displayed buffer. This patch adds support for
+that.
 
-On 11/27/13 10:59, Lars-Peter Clausen wrote:
-> [...]
->>> I had to implement the IRQ handler since the soc_camera model does not use
->>> interrupt_service_routine subdevice callback and R-Car VIN knows nothing about adv7612
->>> interrupt routed to a GPIO pin.
->>> So I had to schedule a workqueue and call adv7604_isr from there in case an interrupt happens.
->>
->> For our systems the adv7604 interrupts is not always hooked up to a gpio irq, instead
->> a register has to be read to figure out which device actually produced the irq. So I
->> want to keep the interrupt_service_routine(). However, adding a gpio field to the
->> platform_data that, if set, will tell the driver to request an irq and setup a
->> workqueue that calls interrupt_service_routine() would be fine with me. That will
->> benefit a lot of people since using gpios is much more common.
-> 
-> I'll look into adding that since I'm using a GPIO for the interrupt on my
-> platform as well.
-> 
->>
->>> The driver enables multiple interrupts on the chip, however, the adv7604_isr callback doesn't
->>> seem to handle them correctly.
->>> According to the docs:
->>> "If an interrupt event occurs, and then a second interrupt event occurs before the system controller
->>> has cleared or masked the first interrupt event, the ADV7611 does not generate a second interrupt signal."
->>>
->>> However, the interrupt_service_routine doesn't account for that.
->>> For example, in case fmt_change interrupt happens while fmt_change_digital interrupt is being
->>> processed by the adv7604_isr routine. If fmt_change status is set just before we clear fmt_change_digital,
->>> we never clear fmt_change. Thus, we end up with fmt_change interrupt missed and therefore further interrupts disabled.
->>> I've tried to call the adv7604_isr routine in a loop and return from the worlqueue only when all interrupt status bits are cleared.
->>> This did help a bit, but sometimes I started getting lots of I2C read/write errors for some reason.
->>
->> I'm not sure if there is much that can be done about this. The code reads the
->> interrupt status, then clears the interrupts right after. There is always a
->> race condition there since this isn't atomic ('read and clear'). Unless Lars-Peter
->> has a better idea?
->>
-> 
-> As far as I understand it the interrupts lines are level triggered and will
-> stay asserted as long as there are unmasked, non-acked IRQS.
+It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the DVB
+specific stuff stripped out, thus making it much more generic.
 
-You are correct. If you are using level interrupts, then the current
-implementation works fine. However, when using edge interrupts (and we
-have one system that apparently has only edge-triggered GPIOs), then
-it will fail.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 134 +++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h           |  28 +++++++
+ 2 files changed, 162 insertions(+)
 
-The only way to handle that is to mask all interrupts at the start of
-the isr, process the interrupts as usual, and unmask the interrupts
-at the end of the isr. AFAICT this method should be safe as well with
-level triggered interrupts.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 853d391..a86d033 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -6,6 +6,9 @@
+  * Author: Pawel Osciak <pawel@osciak.com>
+  *	   Marek Szyprowski <m.szyprowski@samsung.com>
+  *
++ * The vb2_thread implementation was based on code from videobuf-dvb.c:
++ * 	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation.
+@@ -18,6 +21,8 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/freezer.h>
++#include <linux/kthread.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -2508,6 +2513,135 @@ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ }
+ EXPORT_SYMBOL_GPL(vb2_write);
+ 
++struct vb2_threadio_data {
++	struct task_struct *thread;
++	vb2_thread_fnc fnc;
++	void *priv;
++	bool stop;
++};
++
++static int vb2_thread(void *data)
++{
++	struct vb2_queue *q = data;
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int prequeue = 0;
++	int index = 0;
++	int ret = 0;
++
++	if (V4L2_TYPE_IS_OUTPUT(q->type))
++		prequeue = q->num_buffers;
++
++	set_freezable();
++
++	for (;;) {
++		struct vb2_buffer *vb;
++
++		/*
++		 * Call vb2_dqbuf to get buffer back.
++		 */
++		memset(&fileio->b, 0, sizeof(fileio->b));
++		fileio->b.type = q->type;
++		fileio->b.memory = q->memory;
++		if (prequeue) {
++			fileio->b.index = index++;
++			prequeue--;
++		} else {
++			call_qop(q, wait_finish, q);
++			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++			call_qop(q, wait_prepare, q);
++			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
++		}
++		if (threadio->stop)
++			break;
++		if (ret)
++			break;
++		try_to_freeze();
++
++		vb = q->bufs[fileio->b.index];
++		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
++			ret = threadio->fnc(vb, threadio->priv);
++		if (ret)
++			break;
++		call_qop(q, wait_finish, q);
++		ret = vb2_internal_qbuf(q, &fileio->b);
++		call_qop(q, wait_prepare, q);
++		if (ret)
++			break;
++	}
++
++	/* Hmm, linux becomes *very* unhappy without this ... */
++	while (!kthread_should_stop()) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++	}
++	return 0;
++}
++
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name)
++{
++	struct vb2_threadio_data *threadio;
++	int ret = 0;
++
++	if (q->threadio)
++		return -EBUSY;
++	if (vb2_is_busy(q))
++		return -EBUSY;
++	if (WARN_ON(q->fileio))
++		return -EBUSY;
++
++	threadio = kzalloc(sizeof(*threadio), GFP_KERNEL);
++	if (threadio == NULL)
++		return -ENOMEM;
++	threadio->fnc = fnc;
++	threadio->priv = priv;
++
++	ret = __vb2_init_fileio(q, !V4L2_TYPE_IS_OUTPUT(q->type));
++	dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
++	if (ret)
++		goto nomem;
++	q->threadio = threadio;
++	threadio->thread = kthread_run(vb2_thread, q, "vb2-%s", thread_name);
++	if (IS_ERR(threadio->thread)) {
++		ret = PTR_ERR(threadio->thread);
++		threadio->thread = NULL;
++		goto nothread;
++	}
++	return 0;
++
++nothread:
++	__vb2_cleanup_fileio(q);
++nomem:
++	kfree(threadio);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_start);
++
++int vb2_thread_stop(struct vb2_queue *q)
++{
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int err;
++
++	if (threadio == NULL)
++		return 0;
++	call_qop(q, wait_finish, q);
++	threadio->stop = true;
++	vb2_internal_streamoff(q, q->type);
++	call_qop(q, wait_prepare, q);
++	q->fileio = NULL;
++	fileio->req.count = 0;
++	vb2_reqbufs(q, &fileio->req);
++	kfree(fileio);
++	err = kthread_stop(threadio->thread);
++	threadio->thread = NULL;
++	kfree(threadio);
++	q->fileio = NULL;
++	q->threadio = NULL;
++	return err;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_stop);
+ 
+ /*
+  * The following functions are not part of the vb2 core API, but are helper
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 1be7f39..7dea795 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -20,6 +20,7 @@
+ 
+ struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
++struct vb2_threadio_data;
+ 
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+@@ -330,6 +331,7 @@ struct v4l2_fh;
+  *		buffers queued. If set, then retry calling start_streaming when
+  *		queuing a new buffer.
+  * @fileio:	file io emulator internal data, used only if emulator is active
++ * @threadio:	thread io internal data, used only if thread is active
+  */
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+@@ -364,6 +366,7 @@ struct vb2_queue {
+ 	unsigned int			retry_start_streaming:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
++	struct vb2_threadio_data	*threadio;
+ };
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+@@ -402,6 +405,31 @@ size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
+ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
++/**
++ * vb2_thread_fnc - callback function for use with vb2_thread
++ *
++ * This is called whenever a buffer is dequeued in the thread.
++ */
++typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
++
++/**
++ * vb2_thread_start() - start a thread for the given queue.
++ * @q:		videobuf queue
++ * @fnc:	callback function
++ * @priv:	priv pointer passed to the callback function
++ * @thread_name:the name of the thread. This will be prefixed with "vb2-".
++ *
++ * This starts a thread that will queue and dequeue until an error occurs
++ * or @vb2_thread_stop is called.
++ */
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name);
++
++/**
++ * vb2_thread_stop() - stop the thread for the given queue.
++ * @q:		videobuf queue
++ */
++int vb2_thread_stop(struct vb2_queue *q);
+ 
+ /**
+  * vb2_is_streaming() - return streaming status of the queue
+-- 
+1.8.4.rc3
 
-Disregard my comment about clearing all interrupts, that's bogus.
-
-> So the
-> interrupt handler should be re-entered if there are still pending
-> interrupts. Is it possible that you setup a edge triggered interrupt, in
-> that case the handler wouldn't be reentered if the signal stays asserted?
-> 
-> But that's just my understanding from the manual, I'll have to verify
-> whether the hardware does indeed work like that.
-> 
-> - Lars
-> 
-
-Regards,
-
-	Hans
