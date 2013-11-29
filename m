@@ -1,92 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4541 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831Ab3KKLOs (ORCPT
+Received: from smtp-out-024.synserver.de ([212.40.185.24]:1216 "EHLO
+	smtp-out-136.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752524Ab3K2UQs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Nov 2013 06:14:48 -0500
-Message-ID: <5280BC1A.7010701@xs4all.nl>
-Date: Mon, 11 Nov 2013 12:14:34 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 29 Nov 2013 15:16:48 -0500
+Message-ID: <5298F41C.7090203@metafoo.de>
+Date: Fri, 29 Nov 2013 21:07:56 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Rajil Saraswat <rajil.s@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: ivtv 1.4.2/1.4.3 broken in recent kernels?
-References: <CAFoaQoAK85BVE=eJG+JPrUT5wffnx4hD2N_xeG6cGbs-Vw6xOg@mail.gmail.com>  <1381371651.1889.21.camel@palomino.walls.org>  <CAFoaQoBiLUK=XeuW31RcSeaGaX3VB6LmAYdT9BoLsz9wxReYHQ@mail.gmail.com>  <1381620192.22245.18.camel@palomino.walls.org>  <1381668541.2209.14.camel@palomino.walls.org>  <CAFoaQoAaGhDycKfGhD2m-OSsbhxtxjbbWfj5uidJ0zMpEWQNtw@mail.gmail.com>  <1381707800.1875.63.camel@palomino.walls.org>  <CAFoaQoAjjj=nxKwWET9a5oe1JeziOz40Uc54v4hg_QB-FU-7xw@mail.gmail.com> <1382202581.2405.5.camel@palomino.walls.org>
-In-Reply-To: <1382202581.2405.5.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Valentine <valentine.barshak@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <692757747.1f4Evv5u9p@avalon> <52951AA7.4030202@metafoo.de> <16902508.hqJSb2Hj3Q@avalon> <52951B49.6000201@metafoo.de>
+In-Reply-To: <52951B49.6000201@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/19/2013 07:09 PM, Andy Walls wrote:
-> On Wed, 2013-10-16 at 01:10 +0100, Rajil Saraswat wrote:
->> I was finally able to carry out a git bisect. Had to do a git pull on
->> a fast internet hooked machine and ftp the files over to the remote
->> machine.
+On 11/26/2013 11:06 PM, Lars-Peter Clausen wrote:
+> On 11/26/2013 11:03 PM, Laurent Pinchart wrote:
+>> On Tuesday 26 November 2013 23:03:19 Lars-Peter Clausen wrote:
+>>> On 11/26/2013 11:00 PM, Laurent Pinchart wrote:
+>>>> On Tuesday 26 November 2013 22:43:32 Lars-Peter Clausen wrote:
+>>>>> On 11/26/2013 10:28 PM, Valentine wrote:
+>>>>>> On 11/20/2013 07:53 PM, Valentine wrote:
+>>>>>>> On 11/20/2013 07:42 PM, Hans Verkuil wrote:
+>>>>>>>> Hi Valentine,
+>>>>>>
+>>>>>> Hi Hans,
+>>>>>>
+>>>>>>>> Did you ever look at this adv7611 driver:
+>>>>>>>>
+>>>>>>>> https://github.com/Xilinx/linux-xlnx/commit/610b9d5de22ae7c0047c65a07e
+>>>>>>>> 4afa42af2daa12
+>>>>>>>
+>>>>>>> No, I missed that one somehow, although I did search for the
+>>>>>>> adv7611/7612 before implementing this one.
+>>>>>>> I'm going to look closer at the patch and test it.
+>>>>>>
+>>>>>> I've tried the patch and I doubt that it was ever tested on adv7611.
+>>>>>
+>>>>> It was and it works.
+>>>>>
+>>>>>> I haven't been able to make it work so far. Here's the description of
+>>>>>> some of the issues I've encountered.
+>>>>>>
+>>>>>> The patch does not apply cleanly so I had to make small adjustments just
+>>>>>> to make it apply without changing the functionality.
+>>>>>
+>>>>> I have an updated version of the patch, which I intend to submit soon.
+>>>>
+>>>> Is it publicly available already ?
+>>>
+>>> Just started working on it the other day.
 >>
->> I started with 'git bisect bad v2.6.36.4' and 'git bisect good v2.6.35.10'.
->>
->> And the result was:
->>
->> 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79 is the first bad commit
->> commit 5aa9ae5ed5d449a85fbf7aac3d1fdc241c542a79
->> Author: Hans Verkuil <hverkuil@xs4all.nl>
->> Date:   Sat Apr 24 08:23:53 2010 -0300
->>
->>     V4L/DVB: wm8775: convert to the new control framework
->>
->>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> :040000 040000 37847ffe592f255c6a9d9daedaf7bbfd3cd7b055
->> 2f094df6f65d7fb296657619c1ad6f93fe085a75 M    drivers
->>
->> I then removed the patch from linux-2.6.36-gentoo-r8 which are gentoo
->> sources, and confirmed that video/audio now works fine on v4l2-ctl -d
->> /dev/video1 --set-input 4
->>
->> I wasnt able to remove the patch in 3.10.7 which is gentoo stable
->> kernel. Any idea how can i do that?
+>> I'm working on the same chip, how can we avoid effort duplication ?
 > 
-> Try applying the following (untested) patch that is made against the
-> bleeding edge Linux kernel.  The test on the mute control state in
-> wm8775_s_routing() appears to have been inverted in the bad commit you
-> isolated.
+> I'll have something by the end of the week, latest.
 
-Can you give me your Signed-off-by?
+Sorry, this has to wait until next week. Didn't had the time to do further
+work on it this week.
 
-Thanks!
-
-	Hans
-
-> 
-> Along with '--set-input', you may also want to use v4l2-ctl to exercise
-> the mute control as well, to see if it works as expected, once this
-> patch is applied.
-> 
-> Regards,
-> Andy
-> 
-> file: wm8775_s_route_mute_test_inverted.patch
-> 
-> diff --git a/drivers/media/i2c/wm8775.c b/drivers/media/i2c/wm8775.c
-> index 3f584a7..bee7946 100644
-> --- a/drivers/media/i2c/wm8775.c
-> +++ b/drivers/media/i2c/wm8775.c
-> @@ -130,12 +130,10 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
->  		return -EINVAL;
->  	}
->  	state->input = input;
-> -	if (!v4l2_ctrl_g_ctrl(state->mute))
-> +	if (v4l2_ctrl_g_ctrl(state->mute))
->  		return 0;
->  	if (!v4l2_ctrl_g_ctrl(state->vol))
->  		return 0;
-> -	if (!v4l2_ctrl_g_ctrl(state->bal))
-> -		return 0;
->  	wm8775_set_audio(sd, 1);
->  	return 0;
->  }
-> 
-> 
+- Lars
 
