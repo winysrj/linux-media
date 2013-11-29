@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23687 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab3KYPlq (ORCPT
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:50698 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756485Ab3K2Nqa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Nov 2013 10:41:46 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MWT00BQHSXJMU70@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Nov 2013 15:41:44 +0000 (GMT)
-Content-transfer-encoding: 8BIT
-Message-id: <52936FB7.9030307@samsung.com>
-Date: Mon, 25 Nov 2013 16:41:43 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias.waechter@tttech.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+	Fri, 29 Nov 2013 08:46:30 -0500
+Received: by mail-oa0-f41.google.com with SMTP id j17so10528581oag.28
+        for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 05:46:29 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5298852F.6030303@cogentembedded.com>
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com>
+	<5295E231.9030200@cisco.com>
+	<5295E641.6060603@cogentembedded.com>
+	<2150651.hQNra4Rlob@avalon>
+	<CACRpkdZQa626hNRFcGvk4t7Z8scTCoEcf7AqO-FsL=BGk6UfeA@mail.gmail.com>
+	<52987058.80700@metafoo.de>
+	<5298852F.6030303@cogentembedded.com>
+Date: Fri, 29 Nov 2013 14:46:29 +0100
+Message-ID: <CACRpkdaKeuQk3y42XvCcjJuis0U5cpmJ8M7YG6=0Qo1Apc=HHQ@mail.gmail.com>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+From: Linus Walleij <linus.walleij@linaro.org>
+To: Valentine <valentine.barshak@cogentembedded.com>,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
-	"sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH] videobuf2-dma-sg: Support io userptr operations on io
- memory
-References: <1383767329-29985-1-git-send-email-ricardo.ribalda@gmail.com>
- <3377d5e29bf6444086575515325b3555@TTTEX01.ds1.internal>
-In-reply-to: <3377d5e29bf6444086575515325b3555@TTTEX01.ds1.internal>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Wolfram Sang <wsa@the-dreams.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Fri, Nov 29, 2013 at 1:14 PM, Valentine
+<valentine.barshak@cogentembedded.com> wrote:
+> On 11/29/2013 02:45 PM, Lars-Peter Clausen wrote:
+>> On 11/29/2013 11:37 AM, Linus Walleij wrote:
 
-On 2013-11-11 12:36, Matthias Wächter wrote:
-> > @@ -180,7 +186,26 @@ static void *vb2_dma_sg_get_userptr(void
-> > *alloc_ctx, unsigned long vaddr,
-> >       if (!buf->pages)
-> >               return NULL;
-> >
-> > -     num_pages_from_user = get_user_pages(current, current->mm,
-> > +     buf->vma = find_vma(current->mm, vaddr);
-> > +     if (!buf->vma) {
-> > +             dprintk(1, "no vma for address %lu\n", vaddr);
-> > +             return NULL;
-> > +     }
-> > +
-> > +     if (vma_is_io(buf->vma)) {
-> > +             for (num_pages_from_user = 0;
-> > +                  num_pages_from_user < buf->num_pages;
-> > +                  ++num_pages_from_user, vaddr += PAGE_SIZE) {
-> > +                     unsigned long pfn;
-> > +
-> > +                     if (follow_pfn(buf->vma, vaddr, &pfn)) {
-> > +                             dprintk(1, "no page for address %lu\n", vaddr);
-> > +                             break;
-> > +                     }
-> > +                     buf->pages[num_pages_from_user] = pfn_to_page(pfn);
-> > +             }
-> > +     } else
-> > +             num_pages_from_user = get_user_pages(current, current->mm,
-> >                                            vaddr & PAGE_MASK,
-> >                                            buf->num_pages,
-> >                                            write,
+>>> So I guess the answer to the question is something like, fix
+>>> the GPIO driver to stop requiring the GPIO lines to be requested
+>>> and configured before being used as IRQs, delete that code,
+>>> and while you're at it add a call to gpiod_lock_as_irq()
+>>> to your GPIO driver in the right spot: examples are on the
+>>> mailing list and my mark-irqs branch in the GPIO tree.
+>>
+>> As far as I understand it this already works more or less with the driver.
+>> The problem is that the IRQ numbers are dynamically allocated, while the
+>> GPIO numbers apparently are not. So the board code knows the the GPIO
+>> number
+>> at compile time and can pass this to the diver which then does a
+>> gpio_to_irq
+>> to lookup the IRQ number.
+(...)
+>> This of course isn't really a problem with
+>> devicetree, but only with platform board code.
 >
-> Can you safely assume that your userptr will cover only one vma? At least, get_user_pages (calling __get_user_pages) does not assume that and calls find_vma() whenever vma->vm_end is reached.
+> I'm not sure what's the difference here and why it is not a problem with
+> devicetree?
 
-We care only about io mappings which cover only one vma. Such mappings
-are created by other device drivers and can be used mainly for
-zero-copy buffer sharing between multimedia devices. Although it is
-technically possible to provide code for multiple vma, there will be
-no real use case for it.
+It's no problem when using devicetree because you can obtain
+the GPIOs directly from the node with of_get_gpio()
+and of_get_named_gpio() in the special DT probe path.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung R&D Institute Poland
+But don't do that! Instead switch the whole driver, and preferably
+the whole platform, to use descriptors.
 
+Yours,
+Linus Walleij
