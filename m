@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35645 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755763Ab3KFB2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Nov 2013 20:28:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	m.chehab@samsung.com
-Subject: Re: [PATCH 2/6] [media] mt9p031: Include linux/of.h header
-Date: Wed, 06 Nov 2013 02:28:50 +0100
-Message-ID: <2965670.TUVZegLOBr@avalon>
-In-Reply-To: <1382065635-27855-2-git-send-email-sachin.kamat@linaro.org>
-References: <1382065635-27855-1-git-send-email-sachin.kamat@linaro.org> <1382065635-27855-2-git-send-email-sachin.kamat@linaro.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2212 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753977Ab3K2J7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Nov 2013 04:59:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 9/9] vb2: Improve file I/O emulation to handle buffers in any order
+Date: Fri, 29 Nov 2013 10:58:44 +0100
+Message-Id: <787b5993b48147b58f86b90d1df1832ab5d6872a.1385719098.git.hans.verkuil@cisco.com>
+In-Reply-To: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
+References: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch, and sorry for the late reply.
+videobuf2 file I/O emulation assumed that buffers dequeued from the
+driver would return in the order they were enqueued in the driver.
 
-On Friday 18 October 2013 08:37:11 Sachin Kamat wrote:
-> 'of_match_ptr' is defined in linux/of.h. Include it explicitly to avoid
-> build breakage in the future.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Improve the file I/O emulator's book-keeping to remove this assumption.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Also set the buf->size properly if a write() dequeues a buffer and the
+VB2_FILEIO_WRITE_IMMEDIATELY flag is set.
 
-I've taken the patch in my tree and will push it upstream.
+Based on an initial patch by Andy Walls.
 
-> ---
->  drivers/media/i2c/mt9p031.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 4734836..1c2303d 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -19,6 +19,7 @@
->  #include <linux/i2c.h>
->  #include <linux/log2.h>
->  #include <linux/module.h>
-> +#include <linux/of.h>
->  #include <linux/of_gpio.h>
->  #include <linux/pm.h>
->  #include <linux/regulator/consumer.h>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a86d033..2aff646 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2317,6 +2317,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+ 		}
++		fileio->index = q->num_buffers;
+ 	}
+ 
+ 	/*
+@@ -2392,15 +2393,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	}
+ 	fileio = q->fileio;
+ 
+-	index = fileio->index;
+-	buf = &fileio->bufs[index];
+-
+ 	/*
+ 	 * Check if we need to dequeue the buffer.
+ 	 */
+-	if (buf->queued) {
+-		struct vb2_buffer *vb;
+-
++	index = fileio->index;
++	if (index >= q->num_buffers) {
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+@@ -2413,12 +2410,18 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			return ret;
+ 		fileio->dq_count += 1;
+ 
++		index = fileio->b.index;
++		buf = &fileio->bufs[index];
++		
+ 		/*
+ 		 * Get number of bytes filled by the driver
+ 		 */
+-		vb = q->bufs[index];
+-		buf->size = vb2_get_plane_payload(vb, 0);
++		buf->pos = 0;
+ 		buf->queued = 0;
++		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
++				 : vb2_plane_size(q->bufs[index], 0);
++	} else {
++		buf = &fileio->bufs[index];
+ 	}
+ 
+ 	/*
+@@ -2481,13 +2484,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		 */
+ 		buf->pos = 0;
+ 		buf->queued = 1;
+-		buf->size = q->bufs[0]->v4l2_planes[0].length;
++		buf->size = vb2_plane_size(q->bufs[index], 0);
+ 		fileio->q_count += 1;
+-
+-		/*
+-		 * Switch to the next buffer
+-		 */
+-		fileio->index = (index + 1) % q->num_buffers;
++		if (fileio->index < q->num_buffers)
++			fileio->index++;
+ 	}
+ 
+ 	/*
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4.rc3
 
