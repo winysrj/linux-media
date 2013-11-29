@@ -1,124 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36524 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473Ab3KMTro (ORCPT
+Received: from smtp-out-224.synserver.de ([212.40.185.224]:1297 "EHLO
+	smtp-out-136.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754937Ab3K2Nz4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Nov 2013 14:47:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Troy Kisky <troy.kisky@boundarydevices.com>,
-	Denis Carikli <denis@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	devicetree@vger.kernel.org, driverdev-devel@linuxdriverproject.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	dri-devel@lists.freedesktop.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric =?ISO-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	linux-media@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCHv4][ 3/7] staging: imx-drm: Add RGB666 support for parallel display.
-Date: Wed, 13 Nov 2013 20:48:20 +0100
-Message-ID: <21976620.UIvc2kPlHX@avalon>
-In-Reply-To: <20131113191230.GU16735@n2100.arm.linux.org.uk>
-References: <1384334603-14208-1-git-send-email-denis@eukrea.com> <5283C860.3020103@boundarydevices.com> <20131113191230.GU16735@n2100.arm.linux.org.uk>
+	Fri, 29 Nov 2013 08:55:56 -0500
+Message-ID: <52989B13.8010207@metafoo.de>
+Date: Fri, 29 Nov 2013 14:48:03 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Linus Walleij <linus.walleij@linaro.org>
+CC: Alexandre Courbot <acourbot@nvidia.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Valentine <valentine.barshak@cogentembedded.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <5295E231.9030200@cisco.com> <5295E641.6060603@cogentembedded.com> <2150651.hQNra4Rlob@avalon> <CACRpkdZQa626hNRFcGvk4t7Z8scTCoEcf7AqO-FsL=BGk6UfeA@mail.gmail.com> <52987058.80700@metafoo.de> <CACRpkdYuiwH5MzdY3HO7oBSGLqRr5t4HMvGscjsf4QL2G1wiNw@mail.gmail.com>
+In-Reply-To: <CACRpkdYuiwH5MzdY3HO7oBSGLqRr5t4HMvGscjsf4QL2G1wiNw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
-
-On Wednesday 13 November 2013 19:12:30 Russell King - ARM Linux wrote:
-> On Wed, Nov 13, 2013 at 11:43:44AM -0700, Troy Kisky wrote:
-> > On 11/13/2013 2:23 AM, Denis Carikli wrote:
-> >>   +	/* rgb666 */
-> >> 
-> >> +	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
-> >> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
-> >> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
-> >> +	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
-> >> +
-> >>   	return 0;
-> >>   }
-> > 
-> > Since,  rgb24 and bgr24 reverse the byte numbers
-> > /* rgb24 */
-> >         ipu_dc_map_clear(priv, IPU_DC_MAP_RGB24);
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 0, 7, 0xff); /* blue */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 1, 15, 0xff); /* green
-> >         */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_RGB24, 2, 23, 0xff); /* red */
-> > 
-> > /* bgr24 */
-> >         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR24);
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 2, 7, 0xff); /* red */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green
-> >         */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
-> > 
-> > Shouldn't rgb666 and bgr666 do the same?
-> > Currently we have,
-> > 
-> > /* bgr666 */
-> >         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 5, 0xfc); /* blue */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /*
-> > green */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 17, 0xfc); /* red */
+On 11/29/2013 02:42 PM, Linus Walleij wrote:
+> On Fri, Nov 29, 2013 at 11:45 AM, Lars-Peter Clausen <lars@metafoo.de> wrote:
+>> On 11/29/2013 11:37 AM, Linus Walleij wrote:
+> (...)
+>>> Specifically you should be able to request an IRQ from the irq_chip
+>>> portions of the driver without first requesting the GPIO line.
+>>>
+>>> Some drivers already support this.
+>>>
+>>> We added an internal API to the gpiolib so that the lib, *internally*
+>>> can be made aware that a certain GPIO line is used for IRQs,
+>>> see commit d468bf9ecaabd3bf3a6134e5a369ced82b1d1ca1
+>>> "gpio: add API to be strict about GPIO IRQ usage"
+>>>
+>>> So I guess the answer to the question is something like, fix
+>>> the GPIO driver to stop requiring the GPIO lines to be requested
+>>> and configured before being used as IRQs, delete that code,
+>>> and while you're at it add a call to gpiod_lock_as_irq()
+>>> to your GPIO driver in the right spot: examples are on the
+>>> mailing list and my mark-irqs branch in the GPIO tree.
+>>
+>> As far as I understand it this already works more or less with the driver.
+>> The problem is that the IRQ numbers are dynamically allocated, while the
+>> GPIO numbers apparently are not. So the board code knows the the GPIO number
+>> at compile time and can pass this to the diver which then does a gpio_to_irq
+>> to lookup the IRQ number. This of course isn't really a problem with
+>> devicetree, but only with platform board code.
 > 
-> Yes, I concur - this doesn't make sense to me.  BGR666 would mean in
-> memory:
-> 
->         1    11
->         7    21    65    0
->         BBBBBBGGGGGGRRRRRR
-> 
-> which reflects the same order for "RGB24" above.
+> This has been solved *also* for platform board code by the new, fresh
+> GPIO descriptor mechanism, see Documentation/gpio/*
+> in Torvalds' git HEAD.
 
-Beside component order and number of bits per component, an in-memory RGB 
-format also defines the memory endianness and, for formats that don't span an 
-interger number of bytes, the left or right alignment.
+This works when the GPIO numbers are dynamically allocated (which are static
+in this case), but not for IRQ numbers.
 
-BGR666 is currently defined in V4L2 as
-
-Byte 0                         1                        2
-Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0   7  6  5  4  3  2  1  0
-
-     b5 b4 b3 b2 b1 b0 g5 g4  g3 g2 g1 g0 r5 r4 r3 r2  r1 r0  -  -  -  -  -  -
-
-(see the *second* table in http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html)
-
-I would thus expect RGB666 to be
-
-Byte 0                         1                        2
-Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0   7  6  5  4  3  2  1  0
-
-     r5 r4 r3 r2 r1 r0 g5 g4  g3 g2 g1 g0 b5 b4 b3 b2  b1 b0  -  -  -  -  -  -
-
-We can also define right-aligned formats if needed.
-
-> > Where I'd expect to see
-> > /* bgr666 */
-> > 
-> >         ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 17, 0xfc); /* blue
-> >         */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /*
-> > green */
-> >         ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 5, 0xfc); /* red */
-> 
-> So this makes sense to me.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+- Lars
