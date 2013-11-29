@@ -1,84 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2455 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416Ab3KVJDT (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1297 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753498Ab3K2DdK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Nov 2013 04:03:19 -0500
-Message-ID: <528F1DB9.6030702@xs4all.nl>
-Date: Fri, 22 Nov 2013 10:02:49 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/8] vb2: push the mmap semaphore down to __buf_prepare()
-References: <1385047326-23099-1-git-send-email-hverkuil@xs4all.nl> <1385047326-23099-2-git-send-email-hverkuil@xs4all.nl> <6539252.6X3kkSkupS@avalon>
-In-Reply-To: <6539252.6X3kkSkupS@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 28 Nov 2013 22:33:10 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id rAT3X7S4071511
+	for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 04:33:09 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 302D02A2220
+	for <linux-media@vger.kernel.org>; Fri, 29 Nov 2013 04:33:03 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131129033303.302D02A2220@tschai.lan>
+Date: Fri, 29 Nov 2013 04:33:03 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/21/2013 08:04 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 21 November 2013 16:21:59 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Rather than taking the mmap semaphore at a relatively high-level function,
->> push it down to the place where it is really needed.
->>
->> It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
->> vb2 calls, however, I see no way that any race can happen.
-> 
-> What about the following scenario ? Both QBUF calls are performed on the same 
-> buffer.
-> 
-> 	CPU 0							CPU 1
-> 	-------------------------------------------------------------------------
-> 	QBUF								QBUF
-> 		locks the queue mutex				waits for the queue mutex
-> 	vb2_qbuf
-> 	vb2_queue_or_prepare_buf
-> 	__vb2_qbuf
-> 		checks vb->state, calls
-> 	__buf_prepare
-> 	call_qop(q, wait_prepare, q);
-> 		unlocks the queue mutex
-> 										locks the queue mutex
-> 									vb2_qbuf
-> 									vb2_queue_or_prepare_buf
-> 									__vb2_qbuf
-> 										checks vb->state, calls
-> 									__buf_prepare
-> 									call_qop(q, wait_prepare, q);
-> 										unlocks the queue mutex
-> 
-> 									queue the buffer, set buffer
-> 									 state to queue
-> 
-> 	queue the buffer, set buffer
-> 	 state to queue
-> 
-> 
-> We would thus end up queueing the buffer twice. The vb->state check needs to 
-> be performed after the brief release of the queue mutex.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Good point, I hadn't thought about that scenario. However, using mmap_sem to
-introduce a large critical section just to protect against state changes is IMHO
-not the right approach. Why not introduce a VB2_BUF_STATE_PREPARING state?
+Results of the daily build of media_tree:
 
-That's set at the start of __buf_prepare while the queue mutex is still held, and
-which prevents other threads of queuing the same buffer again. If the prepare fails,
-then the state is reverted back to DEQUEUED.
+date:		Fri Nov 29 04:00:17 CET 2013
+git branch:	test
+git hash:	258d2fbf874c87830664cb7ef41f9741c1abffac
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-__fill_v4l2_buffer() will handle the PREPARING state as if it was the DEQUEUED state.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-What do you think?
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-	Hans
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
