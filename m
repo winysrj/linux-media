@@ -1,227 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:42239 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755647Ab3KVTsc (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41597 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab3K2SQk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Nov 2013 14:48:32 -0500
-Message-ID: <528FB50C.6060909@mentor.com>
-Date: Fri, 22 Nov 2013 12:48:28 -0700
-From: Wade Farnsworth <wade_farnsworth@mentor.com>
+	Fri, 29 Nov 2013 13:16:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	pawel@osciak.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 1/9] vb2: push the mmap semaphore down to __buf_prepare()
+Date: Fri, 29 Nov 2013 19:16:39 +0100
+Message-ID: <1515245.TOT59KTYAx@avalon>
+In-Reply-To: <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl> <f9d4d16ac6acde33e1c5c569cea9ae5886e7a1d7.1385719098.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>
-Subject: [PATCH] v4l2-dev: Add tracepoints for QBUF and DQBUF
-References: <52614DB9.8090908@mentor.com>
-In-Reply-To: <52614DB9.8090908@mentor.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add tracepoints to the QBUF and DQBUF ioctls to enable rudimentary
-performance measurements using standard kernel tracers.
+Hi Hans,
 
-Signed-off-by: Wade Farnsworth <wade_farnsworth@mentor.com>
----
+Thank you for the patch.
 
-This is the update to the RFC patch I posted a few weeks back.  I've added 
-several bits of metadata to the tracepoint output per Mauro's suggestion.
+On Friday 29 November 2013 10:58:36 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Rather than taking the mmap semaphore at a relatively high-level function,
+> push it down to the place where it is really needed.
+> 
+> It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
+> vb2 calls. The only way I can see that a race can happen is when two
+> threads queue the same buffer. The solution for that it to introduce
+> a PREPARING state.
 
- drivers/media/v4l2-core/v4l2-dev.c |    9 ++
- include/trace/events/v4l2.h        |  157 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 166 insertions(+), 0 deletions(-)
- create mode 100644 include/trace/events/v4l2.h
+This looks better to me, but what about a vb2_reqbufs(0) call being processed 
+during the time window where we release the queue mutex ?
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index b5aaaac..1cc1749 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -31,6 +31,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- 
-+
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/v4l2.h>
-+
- #define VIDEO_NUM_DEVICES	256
- #define VIDEO_NAME              "video4linux"
- 
-@@ -391,6 +395,11 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	} else
- 		ret = -ENOTTY;
- 
-+	if (cmd == VIDIOC_DQBUF)
-+		trace_v4l2_dqbuf(vdev->minor, (struct v4l2_buffer *)arg);
-+	else if (cmd == VIDIOC_QBUF)
-+		trace_v4l2_qbuf(vdev->minor, (struct v4l2_buffer *)arg);
-+
- 	return ret;
- }
- 
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-new file mode 100644
-index 0000000..0b7d6cb
---- /dev/null
-+++ b/include/trace/events/v4l2.h
-@@ -0,0 +1,157 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM v4l2
-+
-+#if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_V4L2_H
-+
-+#include <linux/tracepoint.h>
-+
-+#define show_type(type)							       \
-+	__print_symbolic(type,						       \
-+		{ V4L2_BUF_TYPE_VIDEO_CAPTURE,	      "VIDEO_CAPTURE" },       \
-+		{ V4L2_BUF_TYPE_VIDEO_OUTPUT,	      "VIDEO_OUTPUT" },	       \
-+		{ V4L2_BUF_TYPE_VIDEO_OVERLAY,	      "VIDEO_OVERLAY" },       \
-+		{ V4L2_BUF_TYPE_VBI_CAPTURE,	      "VBI_CAPTURE" },	       \
-+		{ V4L2_BUF_TYPE_VBI_OUTPUT,	      "VBI_OUTPUT" },	       \
-+		{ V4L2_BUF_TYPE_SLICED_VBI_CAPTURE,   "SLICED_VBI_CAPTURE" },  \
-+		{ V4L2_BUF_TYPE_SLICED_VBI_OUTPUT,    "SLICED_VBI_OUTPUT" },   \
-+		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
-+		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
-+		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
-+		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
-+
-+#define show_field(field)						\
-+	__print_symbolic(field,						\
-+		{ V4L2_FIELD_ANY,		"ANY" },		\
-+		{ V4L2_FIELD_NONE,		"NONE" },		\
-+		{ V4L2_FIELD_TOP,		"TOP" },		\
-+		{ V4L2_FIELD_BOTTOM,		"BOTTOM" },		\
-+		{ V4L2_FIELD_INTERLACED,	"INTERLACED" },		\
-+		{ V4L2_FIELD_SEQ_TB,		"SEQ_TB" },		\
-+		{ V4L2_FIELD_SEQ_BT,		"SEQ_BT" },		\
-+		{ V4L2_FIELD_ALTERNATE,		"ALTERNATE" },		\
-+		{ V4L2_FIELD_INTERLACED_TB,	"INTERLACED_TB" },      \
-+		{ V4L2_FIELD_INTERLACED_BT,	"INTERLACED_BT" })
-+
-+#define show_timecode_type(type)					\
-+	__print_symbolic(type,						\
-+		{ V4L2_TC_TYPE_24FPS,		"24FPS" },		\
-+		{ V4L2_TC_TYPE_25FPS,		"25FPS" },		\
-+		{ V4L2_TC_TYPE_30FPS,		"30FPS" },		\
-+		{ V4L2_TC_TYPE_50FPS,		"50FPS" },		\
-+		{ V4L2_TC_TYPE_60FPS,		"60FPS" })
-+
-+#define show_flags(flags)						      \
-+	__print_flags(flags, "|",					      \
-+		{ V4L2_BUF_FLAG_MAPPED,		     "MAPPED" },	      \
-+		{ V4L2_BUF_FLAG_QUEUED,		     "QUEUED" },	      \
-+		{ V4L2_BUF_FLAG_DONE,		     "DONE" },		      \
-+		{ V4L2_BUF_FLAG_KEYFRAME,	     "KEYFRAME" },	      \
-+		{ V4L2_BUF_FLAG_PFRAME,		     "PFRAME" },	      \
-+		{ V4L2_BUF_FLAG_BFRAME,		     "BFRAME" },	      \
-+		{ V4L2_BUF_FLAG_ERROR,		     "ERROR" },		      \
-+		{ V4L2_BUF_FLAG_TIMECODE,	     "TIMECODE" },	      \
-+		{ V4L2_BUF_FLAG_PREPARED,	     "PREPARED" },	      \
-+		{ V4L2_BUF_FLAG_NO_CACHE_INVALIDATE, "NO_CACHE_INVALIDATE" }, \
-+		{ V4L2_BUF_FLAG_NO_CACHE_CLEAN,	     "NO_CACHE_CLEAN" },      \
-+		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
-+		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
-+		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
-+		{ V4L2_BUF_FLAG_TIMESTAMP_COPY,	     "TIMESTAMP_COPY" })
-+
-+#define show_timecode_flags(flags)				          \
-+	__print_flags(flags, "|",				          \
-+		{ V4L2_TC_FLAG_DROPFRAME,       "DROPFRAME" },		  \
-+		{ V4L2_TC_FLAG_COLORFRAME,      "COLORFRAME" },      	  \
-+		{ V4L2_TC_USERBITS_USERDEFINED,	"USERBITS_USERDEFINED" }, \
-+		{ V4L2_TC_USERBITS_8BITCHARS,	"USERBITS_8BITCHARS" })
-+
-+#define V4L2_TRACE_EVENT(event_name)					\
-+	TRACE_EVENT(event_name,						\
-+		TP_PROTO(int minor, struct v4l2_buffer *buf),		\
-+									\
-+		TP_ARGS(minor, buf),					\
-+									\
-+		TP_STRUCT__entry(					\
-+			__field(int, minor)				\
-+			__field(u32, index)				\
-+			__field(u32, type)				\
-+			__field(u32, bytesused)				\
-+			__field(u32, flags)				\
-+			__field(u32, field)				\
-+			__field(s64, timestamp)				\
-+			__field(u32, timecode_type)			\
-+			__field(u32, timecode_flags)			\
-+			__field(u8, timecode_frames)			\
-+			__field(u8, timecode_seconds)			\
-+			__field(u8, timecode_minutes)			\
-+			__field(u8, timecode_hours)			\
-+			__field(u8, timecode_userbits0)			\
-+			__field(u8, timecode_userbits1)			\
-+			__field(u8, timecode_userbits2)			\
-+			__field(u8, timecode_userbits3)			\
-+			__field(u32, sequence)				\
-+		),							\
-+									\
-+		TP_fast_assign(						\
-+			__entry->minor = minor;				\
-+			__entry->index = buf->index;			\
-+			__entry->type = buf->type;			\
-+			__entry->bytesused = buf->bytesused;		\
-+			__entry->flags = buf->flags;			\
-+			__entry->field = buf->field;			\
-+			__entry->timestamp =				\
-+				timeval_to_ns(&buf->timestamp);		\
-+			__entry->timecode_type = buf->timecode.type;	\
-+			__entry->timecode_flags = buf->timecode.flags;	\
-+			__entry->timecode_frames =			\
-+				buf->timecode.frames;			\
-+			__entry->timecode_seconds =			\
-+				buf->timecode.seconds;			\
-+			__entry->timecode_minutes =			\
-+				buf->timecode.minutes;			\
-+			__entry->timecode_hours = buf->timecode.hours;	\
-+			__entry->timecode_userbits0 =			\
-+				buf->timecode.userbits[0];		\
-+			__entry->timecode_userbits1 =			\
-+				buf->timecode.userbits[1];		\
-+			__entry->timecode_userbits2 =			\
-+				buf->timecode.userbits[2];		\
-+			__entry->timecode_userbits3 =			\
-+				buf->timecode.userbits[3];		\
-+			__entry->sequence = buf->sequence;		\
-+		),							\
-+									\
-+		TP_printk("minor = %d, index = %u, type = %s, "		\
-+			  "bytesused = %u, flags = %s, "		\
-+			  "field = %s, timestamp = %llu, timecode = { "	\
-+			  "type = %s, flags = %s, frames = %u, "	\
-+			  "seconds = %u, minutes = %u, hours = %u, "	\
-+			  "userbits = { %u %u %u %u } }, "		\
-+			  "sequence = %u", __entry->minor, 		\
-+			  __entry->index, show_type(__entry->type), 	\
-+			  __entry->bytesused,				\
-+			  show_flags(__entry->flags), 			\
-+			  show_field(__entry->field),			\
-+			  __entry->timestamp,				\
-+			  show_timecode_type(__entry->timecode_type),	\
-+			  show_timecode_flags(__entry->timecode_flags),	\
-+			  __entry->timecode_frames,			\
-+			  __entry->timecode_seconds,			\
-+			  __entry->timecode_minutes,			\
-+			  __entry->timecode_hours,			\
-+			  __entry->timecode_userbits0,			\
-+			  __entry->timecode_userbits1,			\
-+			  __entry->timecode_userbits2,			\
-+			  __entry->timecode_userbits3,			\
-+			  __entry->sequence				\
-+		)							\
-+	)
-+
-+V4L2_TRACE_EVENT(v4l2_dqbuf);
-+V4L2_TRACE_EVENT(v4l2_qbuf);
-+
-+#endif /* if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ) */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+> Moving it down offers opportunities to simplify the code.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 82 +++++++++++++----------------
+>  include/media/videobuf2-core.h           |  2 +
+>  2 files changed, 38 insertions(+), 46 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index b19b306..c8a1f22b5 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -462,6 +462,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
+> struct v4l2_buffer *b) case VB2_BUF_STATE_PREPARED:
+>  		b->flags |= V4L2_BUF_FLAG_PREPARED;
+>  		break;
+> +	case VB2_BUF_STATE_PREPARING:
+>  	case VB2_BUF_STATE_DEQUEUED:
+>  		/* nothing */
+>  		break;
+> @@ -1207,6 +1208,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+> static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer
+> *b) {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> +	struct rw_semaphore *mmap_sem;
+>  	int ret;
+> 
+>  	ret = __verify_length(vb, b);
+> @@ -1216,12 +1218,31 @@ static int __buf_prepare(struct vb2_buffer *vb,
+> const struct v4l2_buffer *b) return ret;
+>  	}
+> 
+> +	vb->state = VB2_BUF_STATE_PREPARING;
+>  	switch (q->memory) {
+>  	case V4L2_MEMORY_MMAP:
+>  		ret = __qbuf_mmap(vb, b);
+>  		break;
+>  	case V4L2_MEMORY_USERPTR:
+> +		/*
+> +		 * In case of user pointer buffers vb2 allocators need to get direct
+> +		 * access to userspace pages. This requires getting the mmap 
+semaphore
+> +		 * for read access in the current process structure. The same 
+semaphore
+> +		 * is taken before calling mmap operation, while both 
+qbuf/prepare_buf
+> +		 * and mmap are called by the driver or v4l2 core with the driver's 
+lock
+> +		 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in 
+mmap
+> +		 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
+> +		 * core releases the driver's lock, takes mmap_sem and then takes the
+> +		 * driver's lock again.
+> +		 */
+> +		mmap_sem = &current->mm->mmap_sem;
+> +		call_qop(q, wait_prepare, q);
+> +		down_read(mmap_sem);
+> +		call_qop(q, wait_finish, q);
+> +
+>  		ret = __qbuf_userptr(vb, b);
+> +
+> +		up_read(mmap_sem);
+>  		break;
+>  	case V4L2_MEMORY_DMABUF:
+>  		ret = __qbuf_dmabuf(vb, b);
+> @@ -1235,8 +1256,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const
+> struct v4l2_buffer *b) ret = call_qop(q, buf_prepare, vb);
+>  	if (ret)
+>  		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
+> -	else
+> -		vb->state = VB2_BUF_STATE_PREPARED;
+> +	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
+> 
+>  	return ret;
+>  }
+> @@ -1247,80 +1267,47 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue
+> *q, struct v4l2_buffer *b, struct v4l2_buffer *,
+>  						   struct vb2_buffer *))
+>  {
+> -	struct rw_semaphore *mmap_sem = NULL;
+>  	struct vb2_buffer *vb;
+>  	int ret;
+> 
+> -	/*
+> -	 * In case of user pointer buffers vb2 allocators need to get direct
+> -	 * access to userspace pages. This requires getting the mmap semaphore
+> -	 * for read access in the current process structure. The same semaphore
+> -	 * is taken before calling mmap operation, while both qbuf/prepare_buf
+> -	 * and mmap are called by the driver or v4l2 core with the driver's lock
+> -	 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
+> -	 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
+> -	 * core releases the driver's lock, takes mmap_sem and then takes the
+> -	 * driver's lock again.
+> -	 *
+> -	 * To avoid racing with other vb2 calls, which might be called after
+> -	 * releasing the driver's lock, this operation is performed at the
+> -	 * beginning of qbuf/prepare_buf processing. This way the queue status
+> -	 * is consistent after getting the driver's lock back.
+> -	 */
+> -	if (q->memory == V4L2_MEMORY_USERPTR) {
+> -		mmap_sem = &current->mm->mmap_sem;
+> -		call_qop(q, wait_prepare, q);
+> -		down_read(mmap_sem);
+> -		call_qop(q, wait_finish, q);
+> -	}
+> -
+>  	if (q->fileio) {
+>  		dprintk(1, "%s(): file io in progress\n", opname);
+> -		ret = -EBUSY;
+> -		goto unlock;
+> +		return -EBUSY;
+>  	}
+> 
+>  	if (b->type != q->type) {
+>  		dprintk(1, "%s(): invalid buffer type\n", opname);
+> -		ret = -EINVAL;
+> -		goto unlock;
+> +		return -EINVAL;
+>  	}
+> 
+>  	if (b->index >= q->num_buffers) {
+>  		dprintk(1, "%s(): buffer index out of range\n", opname);
+> -		ret = -EINVAL;
+> -		goto unlock;
+> +		return -EINVAL;
+>  	}
+> 
+>  	vb = q->bufs[b->index];
+>  	if (NULL == vb) {
+>  		/* Should never happen */
+>  		dprintk(1, "%s(): buffer is NULL\n", opname);
+> -		ret = -EINVAL;
+> -		goto unlock;
+> +		return -EINVAL;
+>  	}
+> 
+>  	if (b->memory != q->memory) {
+>  		dprintk(1, "%s(): invalid memory type\n", opname);
+> -		ret = -EINVAL;
+> -		goto unlock;
+> +		return -EINVAL;
+>  	}
+> 
+>  	ret = __verify_planes_array(vb, b);
+>  	if (ret)
+> -		goto unlock;
+> +		return ret;
+> 
+>  	ret = handler(q, b, vb);
+> -	if (ret)
+> -		goto unlock;
+> -
+> -	/* Fill buffer information for the userspace */
+> -	__fill_v4l2_buffer(vb, b);
+> +	if (!ret) {
+> +		/* Fill buffer information for the userspace */
+> +		__fill_v4l2_buffer(vb, b);
+> 
+> -	dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
+> -unlock:
+> -	if (mmap_sem)
+> -		up_read(mmap_sem);
+> +		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb-
+>v4l2_buf.index);
+> +	}
+>  	return ret;
+>  }
+> 
+> @@ -1369,6 +1356,9 @@ static int __vb2_qbuf(struct vb2_queue *q, struct
+> v4l2_buffer *b, return ret;
+>  	case VB2_BUF_STATE_PREPARED:
+>  		break;
+> +	case VB2_BUF_STATE_PREPARING:
+> +		dprintk(1, "qbuf: buffer still being prepared\n");
+> +		return -EINVAL;
+>  	default:
+>  		dprintk(1, "qbuf: buffer already in use\n");
+>  		return -EINVAL;
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index bd8218b..4bc4ad2 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -142,6 +142,7 @@ enum vb2_fileio_flags {
+>  /**
+>   * enum vb2_buffer_state - current video buffer state
+>   * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
+> + * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+>   * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+>   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
+>   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+> @@ -154,6 +155,7 @@ enum vb2_fileio_flags {
+>   */
+>  enum vb2_buffer_state {
+>  	VB2_BUF_STATE_DEQUEUED,
+> +	VB2_BUF_STATE_PREPARING,
+>  	VB2_BUF_STATE_PREPARED,
+>  	VB2_BUF_STATE_QUEUED,
+>  	VB2_BUF_STATE_ACTIVE,
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
