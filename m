@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40566 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751408Ab3KBVnh (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4463 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751892Ab3K2J7C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Nov 2013 17:43:37 -0400
-Date: Sat, 2 Nov 2013 23:43:02 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] as3645a: Remove set_power() from platform data
-Message-ID: <20131102214302.GA21655@valkosipuli.retiisi.org.uk>
-References: <1337137969-30575-1-git-send-email-sakari.ailus@iki.fi>
- <5818890.hvZb7JEbAH@avalon>
- <20120523111951.GU3373@valkosipuli.retiisi.org.uk>
- <9767260.z6C75JdBQb@avalon>
- <20120523120641.GV3373@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120523120641.GV3373@valkosipuli.retiisi.org.uk>
+	Fri, 29 Nov 2013 04:59:02 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net
+Subject: [RFCv2 PATCH 0/9] vb2: various cleanups and improvements
+Date: Fri, 29 Nov 2013 10:58:35 +0100
+Message-Id: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 23, 2012 at 03:06:41PM +0300, Sakari Ailus wrote:
-> On Wed, May 23, 2012 at 01:31:26PM +0200, Laurent Pinchart wrote:
-> > Hi Sakari,
-> ...
-> > > > If the chip is powered on constantly, why do we need a .s_power() subdev
-> > > > operation at all ?
-> > > 
-> > > I don't know why was it there in the first place. Probably to make it easier
-> > > to use the driver on boards that required e.g. a regulator for the chip.
-> > > 
-> > > But typically they're connected to battery directly. The idle power
-> > > consumption is just some tens of µA.
-> > 
-> > What about on the N9 ?
-> 
-> That function pointer is NULL for N9. I used to configure the GPIOs but that
-> was wrong in the first place.
+This patch series does some cleanups in the qbuf/prepare_buf handling
+(the first two patches). The third patch removes the 'fileio = NULL'
+hack. That hack no longer works when dealing with asynchronous calls
+from a kernel thread so it had to be fixed.
 
-Ping.
+The next three patches implement retrying start_streaming() if there are
+not enough buffers queued for the DMA engine to start. I know that there
+are more drivers that can be simplified with this feature available in
+the core. Those drivers do the retry of start_streaming in the buf_queue
+op which frankly defeats the purpose of having a central start_streaming
+op. But I leave it to the driver developers to decide whether or not to
+cleanup their drivers.
 
-Should we either remove the s_power() callback altogether or just the
-platform data callback function (which is unused)?
+The big advantage is that apps can just call STREAMON first, then start
+queuing buffers without having to know the minimum number of buffers that
+have to be queued before the DMA engine will kick in. It always annoyed
+me that vb2 didn't take care of that for me as it is easy enough to do.
 
-It is indeed possible that the device was powered from a regulator which
-isn't always on but we don't have such use cases right now.
+The next two patches add vb2 thread support which is necessary
+for both videobuf2-dvb (the vb2 replacement of videobuf-dvb) and for e.g.
+alsa drivers where you use the same trick as with dvb.
 
--- 
-Cheers,
+The thread implementation has been tested with both alsa recording and
+playback for an internal driver (sorry, I can't share the source yet).
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The final patch adds a fix based on a patch from Andy that removes the
+file I/O emulation assumption that buffers are dequeued in the same
+order that they were enqueued.
+
+Regards,
+
+        Hans
+
