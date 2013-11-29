@@ -1,122 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:46580 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab3KWNpy (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42803 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753712Ab3K2VzQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Nov 2013 08:45:54 -0500
-From: andrew.liu200917@gmail.com
-To: michael.hennerich@analog.com, dmitry.torokhov@gmail.com,
-	device-drivers-devel@blackfin.uclinux.org
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Andrew Liu <andrew.liu200917@gmail.com>
-Subject: [PATCH] input:keyboard: "keycode & KEY_MAX" changes some keycode value.
-Date: Sat, 23 Nov 2013 21:45:45 +0800
-Message-Id: <1385214345-10385-1-git-send-email-andrew.liu200917@gmail.com>
+	Fri, 29 Nov 2013 16:55:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [GIT PULL FOR v3.14] V4L/MC link validation simplification
+Date: Fri, 29 Nov 2013 22:55:15 +0100
+Message-ID: <25664680.z7NM0RO0lR@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew Liu <andrew.liu200917@gmail.com>
+Hi Mauro,
 
-For exmaple, keycode: KEY_OK(0x160) is changed by "and" operation with
-KEY_MAX(0x2ff) to KEY_KPENTER(96).
+The following changes since commit fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575:
 
-Signed-off-by: Andrew Liu <andrew.liu200917@gmail.com>
----
- drivers/input/keyboard/adp5588-keys.c |    8 ++++++--
- drivers/input/keyboard/adp5589-keys.c |    8 ++++++--
- drivers/input/keyboard/bf54x-keys.c   |    8 ++++++--
- drivers/input/misc/pcf8574_keypad.c   |    6 +++++-
- drivers/media/pci/ttpci/av7110_ir.c   |    1 +
- 5 files changed, 24 insertions(+), 7 deletions(-)
+  [media] media: marvell-ccic: use devm to release clk (2013-11-29 14:46:47 
+-0200)
 
-diff --git a/drivers/input/keyboard/adp5588-keys.c b/drivers/input/keyboard/adp5588-keys.c
-index dbd2047..1ce559e 100644
---- a/drivers/input/keyboard/adp5588-keys.c
-+++ b/drivers/input/keyboard/adp5588-keys.c
-@@ -535,8 +535,12 @@ static int adp5588_probe(struct i2c_client *client,
- 	if (pdata->repeat)
- 		__set_bit(EV_REP, input->evbit);
- 
--	for (i = 0; i < input->keycodemax; i++)
--		__set_bit(kpad->keycode[i] & KEY_MAX, input->keybit);
-+	for (i = 0; i < input->keycodemax; i++) {
-+		if (kpad->keycode[i] > KEY_MAX)
-+			kpad->keycode[i] = 0;
-+		else if (kpad->keycode[i] > KEY_RESERVED)
-+			__set_bit(kpad->keycode[i], input->keybit);
-+	}
- 	__clear_bit(KEY_RESERVED, input->keybit);
- 
- 	if (kpad->gpimapsize)
-diff --git a/drivers/input/keyboard/adp5589-keys.c b/drivers/input/keyboard/adp5589-keys.c
-index 67d12b3..22ca2a5 100644
---- a/drivers/input/keyboard/adp5589-keys.c
-+++ b/drivers/input/keyboard/adp5589-keys.c
-@@ -991,8 +991,12 @@ static int adp5589_probe(struct i2c_client *client,
- 	if (pdata->repeat)
- 		__set_bit(EV_REP, input->evbit);
- 
--	for (i = 0; i < input->keycodemax; i++)
--		__set_bit(kpad->keycode[i] & KEY_MAX, input->keybit);
-+	for (i = 0; i < input->keycodemax; i++) {
-+		if (kpad->keycode[i] > KEY_MAX)
-+			kpad->keycode[i] = 0;
-+		else if (kpad->keycode[i] > KEY_RESERVED)
-+			__set_bit(kpad->keycode[i], input->keybit);
-+	}
- 	__clear_bit(KEY_RESERVED, input->keybit);
- 
- 	if (kpad->gpimapsize)
-diff --git a/drivers/input/keyboard/bf54x-keys.c b/drivers/input/keyboard/bf54x-keys.c
-index fc88fb4..96f54e7 100644
---- a/drivers/input/keyboard/bf54x-keys.c
-+++ b/drivers/input/keyboard/bf54x-keys.c
-@@ -288,8 +288,12 @@ static int bfin_kpad_probe(struct platform_device *pdev)
- 	if (pdata->repeat)
- 		__set_bit(EV_REP, input->evbit);
- 
--	for (i = 0; i < input->keycodemax; i++)
--		__set_bit(bf54x_kpad->keycode[i] & KEY_MAX, input->keybit);
-+	for (i = 0; i < input->keycodemax; i++) {
-+		if (bf54x_kpad->keycode[i] > KEY_MAX)
-+			bf54x_kpad->keycode[i] = 0;
-+		else if (bf54x_kpad->keycode[i] > KEY_RESERVED)
-+			__set_bit(bf54x_kpad->keycode[i], input->keybit);
-+	}
- 	__clear_bit(KEY_RESERVED, input->keybit);
- 
- 	error = input_register_device(input);
-diff --git a/drivers/input/misc/pcf8574_keypad.c b/drivers/input/misc/pcf8574_keypad.c
-index e373929..48829f3 100644
---- a/drivers/input/misc/pcf8574_keypad.c
-+++ b/drivers/input/misc/pcf8574_keypad.c
-@@ -114,8 +114,12 @@ static int pcf8574_kp_probe(struct i2c_client *client, const struct i2c_device_i
- 
- 	for (i = 0; i < ARRAY_SIZE(pcf8574_kp_btncode); i++) {
- 		lp->btncode[i] = pcf8574_kp_btncode[i];
--		__set_bit(lp->btncode[i] & KEY_MAX, idev->keybit);
-+		if (lp->btncode[i] > KEY_MAX)
-+			lp->btncode[i] = 0;
-+		else if (lp->btncode[i] > KEY_RESERVED)
-+			__set_bit(lp->btncode[i], idev->keybit);
- 	}
-+	__clear_bit(KEY_RESERVED, idev->keybit);
- 
- 	sprintf(lp->name, DRV_NAME);
- 	sprintf(lp->phys, "kp_data/input0");
-diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-index 0e763a7..7fdac45 100644
---- a/drivers/media/pci/ttpci/av7110_ir.c
-+++ b/drivers/media/pci/ttpci/av7110_ir.c
-@@ -201,6 +201,7 @@ static void input_register_keys(struct infrared *ir)
- 		else if (ir->key_map[i] > KEY_RESERVED)
- 			set_bit(ir->key_map[i], ir->input_dev->keybit);
- 	}
-+	__clear_bit(KEY_RESERVED, ir->input_dev->keybit);
- 
- 	ir->input_dev->keycode = ir->key_map;
- 	ir->input_dev->keycodesize = sizeof(ir->key_map[0]);
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/must-connect
+
+for you to fetch changes up to 5487b0e119d29c2e72e6694cf77f8cc74240ace6:
+
+  omap3isp: Add resizer data rate configuration to resizer_link_validate 
+(2013-11-29 22:45:01 +0100)
+
+----------------------------------------------------------------
+Sakari Ailus (4):
+      media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
+      media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT 
+flag
+      omap3isp: Mark which pads must connect
+      omap3isp: Add resizer data rate configuration to resizer_link_validate
+
+ .../DocBook/media/v4l/media-ioc-enum-links.xml          |  9 ++++
+ drivers/media/media-entity.c                            | 41 +++++++++++++---
+ drivers/media/platform/omap3isp/ispccdc.c               |  3 +-
+ drivers/media/platform/omap3isp/ispccp2.c               |  3 +-
+ drivers/media/platform/omap3isp/ispcsi2.c               |  3 +-
+ drivers/media/platform/omap3isp/isppreview.c            |  3 +-
+ drivers/media/platform/omap3isp/ispresizer.c            | 18 +++++++-
+ drivers/media/platform/omap3isp/ispstat.c               |  2 +-
+ drivers/media/platform/omap3isp/ispvideo.c              | 60 ++--------------
+ include/uapi/linux/media.h                              |  1 +
+ 10 files changed, 74 insertions(+), 69 deletions(-)
+
 -- 
-1.7.1
+Regards,
+
+Laurent Pinchart
 
