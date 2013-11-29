@@ -1,245 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:63272 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750939Ab3KGVOj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Nov 2013 16:14:39 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MVW0020BWCA9G00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Nov 2013 16:14:38 -0500 (EST)
-Date: Thu, 07 Nov 2013 19:13:45 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 18/29] [media] tuners: Don't use dynamic static
- allocation
-Message-id: <20131107191345.27ab51df@samsung.com>
-In-reply-to: <527BE215.4080702@iki.fi>
-References: <1383645702-30636-1-git-send-email-m.chehab@samsung.com>
- <1383645702-30636-19-git-send-email-m.chehab@samsung.com>
- <527926CB.8070006@iki.fi> <527BE215.4080702@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42193 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab3K2UDg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Nov 2013 15:03:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Lars-Peter Clausen <lars@metafoo.de>,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Valentine <valentine.barshak@cogentembedded.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH V2] media: i2c: Add ADV761X support
+Date: Fri, 29 Nov 2013 21:03:35 +0100
+Message-ID: <4019101.1xqI2NZaQP@avalon>
+In-Reply-To: <CACRpkda89fqGd6+ShvFXz-7i56KfG43EggBtjbdKyOCGnJu5Cg@mail.gmail.com>
+References: <1384520071-16463-1-git-send-email-valentine.barshak@cogentembedded.com> <52989B13.8010207@metafoo.de> <CACRpkda89fqGd6+ShvFXz-7i56KfG43EggBtjbdKyOCGnJu5Cg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 07 Nov 2013 20:55:17 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Linus,
 
-> Mauro,
-> I just notified these are all broken. The reason is here that I2C 
-> adapter sets I2C operation length using sizeof(buf).
+On Friday 29 November 2013 20:52:17 Linus Walleij wrote:
+> On Fri, Nov 29, 2013 at 2:48 PM, Lars-Peter Clausen wrote:
+> > On 11/29/2013 02:42 PM, Linus Walleij wrote:
+> >> On Fri, Nov 29, 2013 at 11:45 AM, Lars-Peter Clausen wrote:
+> >>> As far as I understand it this already works more or less with the
+> >>> driver.
+> >>> The problem is that the IRQ numbers are dynamically allocated, while the
+> >>> GPIO numbers apparently are not. So the board code knows the the GPIO
+> >>> number at compile time and can pass this to the diver which then does a
+> >>> gpio_to_irq to lookup the IRQ number. This of course isn't really a
+> >>> problem with devicetree, but only with platform board code.
+> >> 
+> >> This has been solved *also* for platform board code by the new, fresh
+> >> GPIO descriptor mechanism, see Documentation/gpio/*
+> >> in Torvalds' git HEAD.
+> > 
+> > This works when the GPIO numbers are dynamically allocated (which are
+> > static in this case), but not for IRQ numbers.
+> 
+> Sorry I don't get what you're after here. I'm not the subsystem maintainer
+> for IRQ chips ...
+> 
+> In the DT boot path for platform or AMBA devices the IRQs are automatically
+> resolved to resources and passed with the device so that is certainly not
+> the problem, right?
+> 
+> I guess you may be referring to the problem of instatiating a dynamic IRQ
+> chip in *board code* and then passing the obtained dynamic IRQ numbers as
+> resources to the devices also created in a board file?
 
-Gah!
+What we need is to pass an IRQ number to the device driver through platform 
+device resources. When the adv761x IRQ line is connected to a GPIO (for which 
+we know the number), the natural way to do so it to call gpio_to_irq() to 
+convert the GPIO number to the IRQ number. However, calling this function in 
+board code will fail as the GPIO driver hasn't probed the GPIO device.
 
-> Please take a look of all there patches and check existing use of 
-> sizeof(buf).
+We could pass the GPIO number to the device through platform data, but if the 
+IRQ line is connected to a SoC dedicated IRQ input not handled by a GPIO 
+driver that won't work either. Furthermore, this would just be a workaround, 
+as the driver needs an IRQ and shouldn't have to care about GPIOs.
 
-Thanks for review!
+> That would be like you're asking for a function that would return the base
+> of an irq_chip, that needs to be discussed with the irq maintainers, so not
+> much I can say, but maybe I misunderstood this?
 
-Well not all were broken, as, on most drivers weren't using sizeof().
-
-Anyway, I double-checked everything and fixed the drivers.
-
-Instead of just mailbombing a 29 patch series, it seems better to just
-paste here the differences from v4, and add a pointer to a git tree
-with the full series of patches:
-	
-	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/build-fixes-v4
-
-Enclosed is the diff against v3.
-
-PS.: it also addresses the issue pointed by Andy.
-
+-- 
 Regards,
-Mauro
 
--
+Laurent Pinchart
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 19ba66ad23fa..fb504f1e9125 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -58,7 +58,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
- 		{
- 			.addr = priv->config.i2c_addr,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 3 + len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 11f1555e66dc..30ee59052157 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -48,7 +48,7 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
- 		{
- 			.addr = state->cfg.i2c_addr,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 3 + len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index b908800b390d..7efb796c472c 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -39,7 +39,7 @@ static int rtl2830_wr(struct rtl2830_priv *priv, u8 reg, const u8 *val, int len)
- 		{
- 			.addr = priv->cfg.i2c_addr,
- 			.flags = 0,
--			.len = 1+len,
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index cd1e6965ac11..ff73da9365e3 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -170,7 +170,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
- 		{
- 			.addr = priv->cfg.i2c_addr,
- 			.flags = 0,
--			.len = 1+len,
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/dvb-frontends/s5h1420.c b/drivers/media/dvb-frontends/s5h1420.c
-index 97c400a4297f..93eeaf7118fd 100644
---- a/drivers/media/dvb-frontends/s5h1420.c
-+++ b/drivers/media/dvb-frontends/s5h1420.c
-@@ -854,7 +854,7 @@ static int s5h1420_tuner_i2c_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c
- 
- 	memcpy(&m[1], msg, sizeof(struct i2c_msg) * num);
- 
--	return i2c_transfer(state->i2c, m, 1+num) == 1 + num ? num : -EIO;
-+	return i2c_transfer(state->i2c, m, 1 + num) == 1 + num ? num : -EIO;
- }
- 
- static struct i2c_algorithm s5h1420_tuner_i2c_algo = {
-diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-index 1d8bc2ea4b10..8ad3a57cf640 100644
---- a/drivers/media/dvb-frontends/tda10071.c
-+++ b/drivers/media/dvb-frontends/tda10071.c
-@@ -35,7 +35,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
- 		{
- 			.addr = priv->cfg.demod_i2c_addr,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-@@ -76,7 +76,7 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
- 		}, {
- 			.addr = priv->cfg.demod_i2c_addr,
- 			.flags = I2C_M_RD,
--			.len = sizeof(buf),
-+			.len = len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index 87f5bcf29e90..c1f8cc6f14b2 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -327,7 +327,7 @@ void cx18_read_eeprom(struct cx18 *cx, struct tveeprom *tv)
- 	struct i2c_client *c;
- 	u8 eedata[256];
- 
--	c = kzalloc(sizeof(*c), GFP_ATOMIC);
-+	c = kzalloc(sizeof(*c), GFP_KERNEL);
- 
- 	strlcpy(c->name, "cx18 tveeprom tmp", sizeof(c->name));
- 	c->adapter = &cx->i2c_adap[0];
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 30192463c9e1..c9cc1232f2e5 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -32,7 +32,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
- 		{
- 			.addr = priv->cfg->i2c_addr,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-@@ -73,7 +73,7 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
- 		}, {
- 			.addr = priv->cfg->i2c_addr,
- 			.flags = I2C_M_RD,
--			.len = sizeof(buf),
-+			.len = len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-index 430fa5163ec7..3aecaf465094 100644
---- a/drivers/media/tuners/fc2580.c
-+++ b/drivers/media/tuners/fc2580.c
-@@ -49,7 +49,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
- 		{
- 			.addr = priv->cfg->i2c_addr,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-@@ -89,7 +89,7 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
- 		}, {
- 			.addr = priv->cfg->i2c_addr,
- 			.flags = I2C_M_RD,
--			.len = sizeof(buf),
-+			.len = len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index b3a4adf9ff8f..abe256e1f843 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -40,7 +40,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 		{
- 			.addr = priv->cfg->i2c_address,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = 1 + len,
- 			.buf = buf,
- 		}
- 	};
-@@ -81,7 +81,7 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 		}, {
- 			.addr = priv->cfg->i2c_address,
- 			.flags = I2C_M_RD,
--			.len = sizeof(buf),
-+			.len = len,
- 			.buf = buf,
- 		}
- 	};
-diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-index 7e2b32ee5349..9300e9361e3b 100644
---- a/drivers/media/tuners/tda18218.c
-+++ b/drivers/media/tuners/tda18218.c
-@@ -83,7 +83,7 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
- 		}, {
- 			.addr = priv->cfg->i2c_address,
- 			.flags = I2C_M_RD,
--			.len = sizeof(buf),
-+			.len = reg + len,
- 			.buf = buf,
- 		}
- 	};
-
-
-Cheers,
-Mauro
