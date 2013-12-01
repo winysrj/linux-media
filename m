@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:20409 "EHLO smtp208.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752510Ab3LPIRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 03:17:06 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH 0/2] Documentation/DocBook/media/v4l: typos
-Date: Mon, 16 Dec 2013 09:16:44 +0100
-Message-Id: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:62645 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab3LAVGV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:21 -0500
+Received: by mail-ea0-f170.google.com with SMTP id k10so8514642eaj.1
+        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:20 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 4/7] em28xx: reduce the polling interval for buttons
+Date: Sun,  1 Dec 2013 22:06:54 +0100
+Message-Id: <1385932017-2276-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+For GPI-connected buttons without (hardware) debouncing, the polling interval 
+needs to be reduced to detect button presses properly.
 
-here are a couple of fixes for typos in
-Documentation/DocBook/media/v4l/subdev-formats.xml
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-input.c |    2 +-
+ 1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
 
-Ciao,
-   Antonio
-
-Antonio Ospite (2):
-  [media] Documentation/DocBook/media/v4l/subdev-formats.xml: fix a typo
-  [media] Documentation/DocBook/media/v4l: fix typo, s/packet/packed/
-
- Documentation/DocBook/media/v4l/subdev-formats.xml | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index ebc5387..c8f7ecb 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -31,7 +31,7 @@
+ #include "em28xx.h"
+ 
+ #define EM28XX_SNAPSHOT_KEY KEY_CAMERA
+-#define EM28XX_BUTTONS_QUERY_INTERVAL 500
++#define EM28XX_BUTTONS_QUERY_INTERVAL 100
+ 
+ static unsigned int ir_debug;
+ module_param(ir_debug, int, 0644);
 -- 
-Antonio Ospite
-http://ao2.it
+1.7.10.4
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
