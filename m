@@ -1,61 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:65496 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab3LJV1I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 16:27:08 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MXM00MYM0X6EG00@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 10 Dec 2013 16:27:06 -0500 (EST)
-Date: Tue, 10 Dec 2013 19:27:02 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/7] em28xx: reduce the polling interval for buttons
-Message-id: <20131210192702.6b2412ee@samsung.com>
-In-reply-to: <1385932017-2276-5-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:35834 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab3LAVGW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:22 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so8210595eae.5
+        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:21 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 5/7] em28xx: prepare for supporting multiple LEDs
+Date: Sun,  1 Dec 2013 22:06:55 +0100
+Message-Id: <1385932017-2276-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
 References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
- <1385932017-2276-5-git-send-email-fschaefer.oss@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun,  1 Dec 2013 22:06:54 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Introduce a LED role and store all LEDs in an array.
+Also provide a helper function to retrieve a specific LED.
 
-> For GPI-connected buttons without (hardware) debouncing, the polling interval 
-> needs to be reduced to detect button presses properly.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-input.c |    2 +-
->  1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index ebc5387..c8f7ecb 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -31,7 +31,7 @@
->  #include "em28xx.h"
->  
->  #define EM28XX_SNAPSHOT_KEY KEY_CAMERA
-> -#define EM28XX_BUTTONS_QUERY_INTERVAL 500
-> +#define EM28XX_BUTTONS_QUERY_INTERVAL 100
->  
->  static unsigned int ir_debug;
->  module_param(ir_debug, int, 0644);
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   31 ++++++++++++++++++++++++-------
+ drivers/media/usb/em28xx/em28xx.h      |   10 +++++++++-
+ 2 Dateien geändert, 33 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
 
-I don't like this patch. If the reduced timeout is needed for the GPI
-connected buttons, you should not change it for the other buttons, as
-polling has a high cost, in terms of CPU sleep state (so, a more frequent
-polling time drains more power - meaning a lower time when battery is in
-usage).
-
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 31d6ab2..4a8179a 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -600,6 +600,22 @@ int em28xx_colorlevels_set_default(struct em28xx *dev)
+ 	return em28xx_write_reg(dev, EM28XX_R1A_BOFFSET, 0x00);
+ }
+ 
++const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
++					 enum em28xx_led_role role)
++{
++	if (dev->board.leds) {
++		u8 k = 0;
++		while (dev->board.leds[k].role >= 0 &&
++			       dev->board.leds[k].role < EM28XX_NUM_LED_ROLES) {
++			if (dev->board.leds[k].role == role)
++				return &dev->board.leds[k];
++			k++;
++		}
++	}
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(em28xx_find_led);
++
+ int em28xx_capture_start(struct em28xx *dev, int start)
+ {
+ 	int rc;
+@@ -645,13 +661,14 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+ 		return rc;
+ 
+ 	/* Switch (explicitly controlled) analog capturing LED on/off */
+-	if ((dev->mode == EM28XX_ANALOG_MODE)
+-	    && dev->board.analog_capturing_led) {
+-		struct em28xx_led *led = dev->board.analog_capturing_led;
+-		em28xx_write_reg_bits(dev, led->gpio_reg,
+-				      (!start ^ led->inverted) ?
+-				      ~led->gpio_mask : led->gpio_mask,
+-				      led->gpio_mask);
++	if (dev->mode == EM28XX_ANALOG_MODE) {
++		const struct em28xx_led *led;
++		led = em28xx_find_led(dev, EM28XX_LED_ANALOG_CAPTURING);
++		if (led)
++			em28xx_write_reg_bits(dev, led->gpio_reg,
++					      (!start ^ led->inverted) ?
++					      ~led->gpio_mask : led->gpio_mask,
++					      led->gpio_mask);
+ 	}
+ 
+ 	return rc;
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index df828c6..f60f236 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -377,7 +377,13 @@ enum em28xx_adecoder {
+ 	EM28XX_TVAUDIO,
+ };
+ 
++enum em28xx_led_role {
++	EM28XX_LED_ANALOG_CAPTURING = 0,
++	EM28XX_NUM_LED_ROLES, /* must be the last */
++};
++
+ struct em28xx_led {
++	enum em28xx_led_role role;
+ 	u8 gpio_reg;
+ 	u8 gpio_mask;
+ 	bool inverted;
+@@ -433,7 +439,7 @@ struct em28xx_board {
+ 	char			  *ir_codes;
+ 
+ 	/* LEDs that need to be controlled explicitly */
+-	struct em28xx_led	  *analog_capturing_led;
++	struct em28xx_led	  *leds;
+ 
+ 	/* Buttons */
+ 	struct em28xx_button	  *buttons;
+@@ -711,6 +717,8 @@ int em28xx_audio_analog_set(struct em28xx *dev);
+ int em28xx_audio_setup(struct em28xx *dev);
+ 
+ int em28xx_colorlevels_set_default(struct em28xx *dev);
++const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
++					 enum em28xx_led_role role);
+ int em28xx_capture_start(struct em28xx *dev, int start);
+ int em28xx_vbi_supported(struct em28xx *dev);
+ int em28xx_set_outfmt(struct em28xx *dev);
 -- 
+1.7.10.4
 
-Cheers,
-Mauro
