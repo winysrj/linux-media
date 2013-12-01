@@ -1,276 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:44303 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755619Ab3L3Mta (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 07:49:30 -0500
-Received: by mail-ea0-f169.google.com with SMTP id l9so4421913eaj.0
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:29 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 08/18] libdvbv5: implement MGT parser
-Date: Mon, 30 Dec 2013 13:48:41 +0100
-Message-Id: <1388407731-24369-8-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:39100 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752130Ab3LAVGY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:24 -0500
+Received: by mail-ea0-f170.google.com with SMTP id k10so8390296eaj.15
+        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:23 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 7/7] em28xx: add support for the SpeedLink Vicious And Devine Laplace webcams
+Date: Sun,  1 Dec 2013 22:06:57 +0100
+Message-Id: <1385932017-2276-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors/mgt.h  |  80 ++++++++++++++++++++++++++++
- lib/libdvbv5/Makefile.am       |   1 +
- lib/libdvbv5/descriptors.c     |   2 +
- lib/libdvbv5/descriptors/mgt.c | 117 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 200 insertions(+)
- create mode 100644 lib/include/descriptors/mgt.h
- create mode 100644 lib/libdvbv5/descriptors/mgt.c
+The SpeedLink Vicious And Devine Laplace webcam is using an EM2765 bridge and
+an OV2640 sensor. It has a built-in microphone (USB standard device class)
+and provides 3 buttons (snapshot, illumination, mute) and 2 LEDs (capturing/mute
+and illumination/flash). It is also equipped with an eeprom.
+The device is available in two colors: white (1ae7:9003) and black (1ae7:9004).
+For further details see http://linuxtv.org/wiki/index.php/VAD_Laplace.
 
-diff --git a/lib/include/descriptors/mgt.h b/lib/include/descriptors/mgt.h
-new file mode 100644
-index 0000000..9eaac02
---- /dev/null
-+++ b/lib/include/descriptors/mgt.h
-@@ -0,0 +1,80 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#ifndef _MGT_H
-+#define _MGT_H
-+
-+#include <stdint.h>
-+#include <unistd.h> /* ssize_t */
-+
-+#include "descriptors/atsc_header.h"
-+#include "descriptors.h"
-+
-+#define ATSC_TABLE_MGT 0xC7
-+
-+struct atsc_table_mgt_table {
-+	uint16_t type;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t pid:13;
-+			uint16_t one:3;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+        uint8_t type_version:5;
-+        uint8_t one2:3;
-+        uint32_t size;
-+	union {
-+		uint16_t bitfield2;
-+		struct {
-+			uint16_t desc_length:12;
-+			uint16_t one3:4;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+	struct dvb_desc *descriptor;
-+	struct atsc_table_mgt_table *next;
-+} __attribute__((packed));
-+
-+struct atsc_table_mgt {
-+	struct atsc_table_header header;
-+        uint16_t tables;
-+        struct atsc_table_mgt_table *table;
-+	struct dvb_desc *descriptor;
-+} __attribute__((packed));
-+
-+
-+#define atsc_mgt_table_foreach( _tran, _mgt ) \
-+  for( struct atsc_table_mgt_table *_tran = _mgt->table; _tran; _tran = _tran->next ) \
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+void atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+void atsc_table_mgt_free(struct atsc_table_mgt *mgt);
-+void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 33693cc..7755e05 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -49,6 +49,7 @@ libdvbv5_la_SOURCES = \
-   descriptors/sdt.c  ../include/descriptors/sdt.h \
-   descriptors/vct.c  ../include/descriptors/vct.h \
-   descriptors/eit.c  ../include/descriptors/eit.h \
-+  descriptors/mgt.c  ../include/descriptors/mgt.h \
-   descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h \
-   descriptors/mpeg_ts.c  ../include/descriptors/mpeg_ts.h \
-   descriptors/mpeg_pes.c  ../include/descriptors/mpeg_pes.h \
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index bc3d51a..7b9e9d0 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -36,6 +36,7 @@
- #include "descriptors/sdt.h"
- #include "descriptors/eit.h"
- #include "descriptors/vct.h"
-+#include "descriptors/mgt.h"
- #include "descriptors/desc_language.h"
- #include "descriptors/desc_network_name.h"
- #include "descriptors/desc_cable_delivery.h"
-@@ -84,6 +85,7 @@ const struct dvb_table_init dvb_table_initializers[] = {
- 	[DVB_TABLE_TVCT] = { dvb_table_vct_init, sizeof(struct dvb_table_vct) },
- 	[DVB_TABLE_CVCT] = { dvb_table_vct_init, sizeof(struct dvb_table_vct) },
- 	[DVB_TABLE_EIT_SCHEDULE] = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
-+	[ATSC_TABLE_MGT]         = { atsc_table_mgt_init, sizeof(struct atsc_table_mgt) },
+Please note the following limitations that need to be addressed later:
+- resolution limited to 640x480 (sensor supports 1600x1200)
+- picture quality needs to be improved
+- AV-mute button doesn't work yet
+
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   72 +++++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 2 Dateien geändert, 73 Zeilen hinzugefügt(+)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index ebb112c..6454309 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -412,6 +412,21 @@ static struct em28xx_reg_seq pctv_520e[] = {
+ 	{	-1,			-1,	-1,	-1},
  };
  
- char *default_charset = "iso-8859-1";
-diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
-new file mode 100644
-index 0000000..09d1cf2
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/mgt.c
-@@ -0,0 +1,117 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
++/* 1ae7:9003/9004 SpeedLink Vicious And Devine Laplace webcam
++ * reg 0x80/0x84:
++ * GPIO_0: capturing LED, 0=on, 1=off
++ * GPIO_2: AV mute button, 0=pressed, 1=unpressed
++ * GPIO 3: illumination button, 0=pressed, 1=unpressed
++ * GPIO_6: illumination/flash LED, 0=on, 1=off
++ * reg 0x81/0x85:
++ * GPIO_7: snapshot button, 0=pressed, 1=unpressed
 + */
++static struct em28xx_reg_seq speedlink_vad_laplace_reg_seq[] = {
++	{EM2820_R08_GPIO_CTRL,		0xf7,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xb2,	10},
++	{	-1,			-1,	-1,	-1},
++};
 +
-+#include "descriptors/mgt.h"
-+#include "dvb-fe.h"
+ /*
+  *  Button definitions
+  */
+@@ -426,6 +441,41 @@ static struct em28xx_button std_snapshot_button[] = {
+ 	{-1, 0, 0, 0, 0},
+ };
+ 
++static struct em28xx_button speedlink_vad_laplace_buttons[] = {
++	{
++		.role     = EM28XX_BUTTON_SNAPSHOT,
++		.reg_r    = EM2874_R85_GPIO_P1_STATE,
++		.mask     = 0x80,
++		.inverted = 1,
++	},
++	{
++		.role     = EM28XX_BUTTON_ILLUMINATION,
++		.reg_r    = EM2874_R84_GPIO_P0_STATE,
++		.mask     = 0x08,
++		.inverted = 1,
++	},
++	{-1, 0, 0, 0, 0},
++};
 +
-+void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
-+{
-+	const uint8_t *p = buf;
-+	struct atsc_table_mgt *mgt = (struct atsc_table_mgt *) table;
-+	struct dvb_desc **head_desc;
-+	struct atsc_table_mgt_table **head;
-+	/*int desc_length;*/
++/*
++ *  LED definitions
++ */
++static struct em28xx_led speedlink_vad_laplace_leds[] = {
++	{
++		.role      = EM28XX_LED_ANALOG_CAPTURING,
++		.gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
++		.gpio_mask = 0x01,
++		.inverted  = 1,
++	},
++	{
++		.role      = EM28XX_LED_ILLUMINATION,
++		.gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
++		.gpio_mask = 0x40,
++		.inverted  = 1,
++	},
++	{-1, 0, 0, 0},
++};
 +
-+	if (*table_length > 0) {
-+		/* find end of curent lists */
-+		head_desc = &mgt->descriptor;
-+		while (*head_desc != NULL)
-+			head_desc = &(*head_desc)->next;
-+		head = &mgt->table;
-+		while (*head != NULL)
-+			head = &(*head)->next;
-+	} else {
-+		memcpy(table, p, sizeof(struct atsc_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table));
-+		*table_length = sizeof(struct atsc_table_mgt);
-+
-+		mgt->descriptor = NULL;
-+		mgt->table = NULL;
-+		head_desc = &mgt->descriptor;
-+		head = &mgt->table;
-+		bswap16(mgt->tables);
-+	}
-+	p += sizeof(struct atsc_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table);
-+
-+	/*dvb_parse_descriptors(parms, p, desc_length, head_desc);*/
-+	/*p += desc_length;*/
-+        int i = 0;
-+	struct atsc_table_mgt_table *last = NULL;
-+	while (i++ < mgt->tables && (uint8_t *) p < buf + buflen - 4) {
-+		struct atsc_table_mgt_table *table = (struct atsc_table_mgt_table *) malloc(sizeof(struct atsc_table_mgt_table));
-+		memcpy(table, p, sizeof(struct atsc_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next));
-+		p += sizeof(struct atsc_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next);
-+
-+		bswap16(table->type);
-+		bswap16(table->bitfield);
-+		bswap16(table->bitfield2);
-+		bswap32(table->size);
-+		table->descriptor = NULL;
-+		table->next = NULL;
-+
-+		if(!*head)
-+			*head = table;
-+		if(last)
-+			last->next = table;
-+
-+		/* get the descriptors for each table */
-+		struct dvb_desc **head_desc = &table->descriptor;
-+		dvb_parse_descriptors(parms, p, table->desc_length, head_desc);
-+
-+		p += table->desc_length;
-+		last = table;
-+	}
-+}
-+
-+void atsc_table_mgt_free(struct atsc_table_mgt *mgt)
-+{
-+	struct atsc_table_mgt_table *table = mgt->table;
-+	dvb_free_descriptors((struct dvb_desc **) &mgt->descriptor);
-+	while(table) {
-+		dvb_free_descriptors((struct dvb_desc **) &table->descriptor);
-+		struct atsc_table_mgt_table *tmp = table;
-+		table = table->next;
-+		free(tmp);
-+	}
-+	free(mgt);
-+}
-+
-+void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt)
-+{
-+	dvb_log("MGT");
-+	atsc_table_header_print(parms, &mgt->header);
-+	dvb_log("| tables           %d", mgt->tables);
-+	/*dvb_print_descriptors(parms, mgt->descriptor);*/
-+	const struct atsc_table_mgt_table *table = mgt->table;
-+	uint16_t tables = 0;
-+	while(table) {
-+                dvb_log("|- type %04x    %d", table->type, table->pid);
-+                dvb_log("|  one          %d", table->one);
-+                dvb_log("|  one2         %d", table->one2);
-+                dvb_log("|  type version %d", table->type_version);
-+                dvb_log("|  size         %d", table->size);
-+                dvb_log("|  one3         %d", table->one3);
-+                dvb_log("|  desc_length  %d", table->desc_length);
-+		dvb_print_descriptors(parms, table->descriptor);
-+		table = table->next;
-+		tables++;
-+	}
-+	dvb_log("|_  %d tables", tables);
-+}
-+
+ /*
+  *  Board definitions
+  */
+@@ -2057,6 +2107,24 @@ struct em28xx_board em28xx_boards[] = {
+ 		.tuner_gpio	= default_tuner_gpio,
+ 		.def_i2c_bus	= 1,
+ 	},
++	/* 1ae7:9003/9004 SpeedLink Vicious And Devine Laplace webcam
++	 * Empia EM2765 + OmniVision OV2640 */
++	[EM2765_BOARD_SPEEDLINK_VAD_LAPLACE] = {
++		.name         = "SpeedLink Vicious And Devine Laplace webcam",
++		.xclk         = EM28XX_XCLK_FREQUENCY_24MHZ,
++		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
++				EM28XX_I2C_FREQ_100_KHZ,
++		.def_i2c_bus  = 1,
++		.tuner_type   = TUNER_ABSENT,
++		.is_webcam    = 1,
++		.input        = { {
++			.type     = EM28XX_VMUX_COMPOSITE1,
++			.amux     = EM28XX_AMUX_VIDEO,
++			.gpio     = speedlink_vad_laplace_reg_seq,
++		} },
++		.buttons = speedlink_vad_laplace_buttons,
++		.leds = speedlink_vad_laplace_leds,
++	},
+ };
+ const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+ 
+@@ -2222,6 +2290,10 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2884_BOARD_PCTV_520E },
+ 	{ USB_DEVICE(0x1b80, 0xe1cc),
+ 			.driver_info = EM2874_BOARD_DELOCK_61959 },
++	{ USB_DEVICE(0x1ae7, 0x9003),
++			.driver_info = EM2765_BOARD_SPEEDLINK_VAD_LAPLACE },
++	{ USB_DEVICE(0x1ae7, 0x9004),
++			.driver_info = EM2765_BOARD_SPEEDLINK_VAD_LAPLACE },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 43e2968..6e26fba 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -132,6 +132,7 @@
+ #define EM2884_BOARD_C3TECH_DIGITAL_DUO		  88
+ #define EM2874_BOARD_DELOCK_61959		  89
+ #define EM2874_BOARD_KWORLD_UB435Q_V2		  90
++#define EM2765_BOARD_SPEEDLINK_VAD_LAPLACE	  91
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
 -- 
-1.8.3.2
+1.7.10.4
 
