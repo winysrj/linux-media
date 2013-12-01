@@ -1,259 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50200 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755246Ab3L1MQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 24/24] em28xx: cleanup I2C debug messages
-Date: Sat, 28 Dec 2013 10:16:16 -0200
-Message-Id: <1388232976-20061-25-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:41141 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab3LAVGW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:22 -0500
+Received: by mail-ea0-f175.google.com with SMTP id z10so8343821ead.34
+        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:21 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/7] em28xx: add debouncing mechanism for GPI-connected buttons
+Date: Sun,  1 Dec 2013 22:06:53 +0100
+Message-Id: <1385932017-2276-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+So far, the driver only supports a snapshot button which is assigned to
+register 0x0c bit 5. This special port has a built-in debouncing mechanism.
+For buttons connected to ordinary GPI ports, this patch implements a software
+debouncing mechanism.
 
-The I2C output messages is too polluted. Clean it a little
-bit, by:
-	- use the proper core support for memory dumps;
-	- hide most stuff under the i2c_debug umbrella;
-	- add the missing KERN_CONT where needed;
-	- use 2 levels or verbosity. Only the second one
-	  will show the I2C transfer data.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 91 ++++++++++++++++++-----------------
- 1 file changed, 47 insertions(+), 44 deletions(-)
+ drivers/media/usb/em28xx/em28xx-input.c |   30 +++++++++++++++++++-----------
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 2 Dateien geändert, 20 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 16862c4cc745..ff288023e330 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(i2c_scan, "scan i2c bus at insmod time");
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 20c6a8a..ebc5387 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -479,7 +479,7 @@ static void em28xx_query_buttons(struct work_struct *work)
+ 		container_of(work, struct em28xx, buttons_query_work.work);
+ 	u8 i, j;
+ 	int regval;
+-	bool pressed;
++	bool is_pressed, was_pressed;
  
- static unsigned int i2c_debug;
- module_param(i2c_debug, int, 0644);
--MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-+MODULE_PARM_DESC(i2c_debug, "i2c debug message level (1: normal debug, 2: show I2C transfers)");
- 
- /*
-  * em2800_i2c_send_bytes()
-@@ -80,7 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x80 + len - 1)
- 			return len;
- 		if (ret == 0x94 + len - 1) {
--			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-+			if (i2c_debug)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -EIO;
- 		}
- 		if (ret < 0) {
-@@ -90,7 +92,8 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		}
- 		msleep(5);
- 	}
--	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-+	if (i2c_debug)
-+		em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EIO;
- }
- 
-@@ -124,7 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x84 + len - 1)
- 			break;
- 		if (ret == 0x94 + len - 1) {
--			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-+			if (i2c_debug)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -EIO;
- 		}
- 		if (ret < 0) {
-@@ -134,8 +139,11 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		}
- 		msleep(5);
- 	}
--	if (ret != 0x84 + len - 1)
--		em28xx_warn("read from i2c device at 0x%x timed out\n", addr);
-+	if (ret != 0x84 + len - 1) {
-+		if (i2c_debug)
-+			em28xx_warn("read from i2c device at 0x%x timed out\n",
-+				    addr);
-+	}
- 
- 	/* get the received message */
- 	ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
-@@ -212,8 +220,9 @@ retry:
- 	}
- 
- 	if (ret == 0x10) {
--		em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
--			    addr);
-+		if (i2c_debug)
-+			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+				    addr);
- 		return -EIO;
- 	}
- 	em28xx_warn("write to i2c device at 0x%x timed out (ret=0x%02x)\n",
-@@ -269,7 +278,9 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	} while (time_is_after_jiffies(timeout));
- 
- 	if (ret == 0x10) {
--		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
-+		if (i2c_debug)
-+			em28xx_warn("I2C transfer timeout on read from addr 0x%02x",
-+				    addr);
- 		return -EIO;
- 	}
- 
-@@ -381,7 +392,8 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	if (!ret)
- 		return len;
- 	else if (ret > 0) {
--		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
-+		if (i2c_debug)
-+			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
- 		return -EIO;
- 	}
- 
-@@ -424,10 +436,6 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
- 		rc = em2800_i2c_check_for_device(dev, addr);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
- 		rc = em25xx_bus_B_check_for_device(dev, addr);
--	if (rc < 0) {
--		if (i2c_debug)
--			printk(" no device\n");
--	}
- 	return rc;
- }
- 
-@@ -436,7 +444,7 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
- {
- 	struct em28xx *dev = i2c_bus->dev;
- 	u16 addr = msg.addr << 1;
--	int byte, rc = -EOPNOTSUPP;
-+	int rc = -EOPNOTSUPP;
- 
- 	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
- 		rc = em28xx_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
-@@ -444,10 +452,6 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
- 		rc = em2800_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
- 		rc = em25xx_bus_B_recv_bytes(dev, addr, msg.buf, msg.len);
--	if (i2c_debug) {
--		for (byte = 0; byte < msg.len; byte++)
--			printk(" %02x", msg.buf[byte]);
--	}
- 	return rc;
- }
- 
-@@ -456,12 +460,8 @@ static inline int i2c_send_bytes(struct em28xx_i2c_bus *i2c_bus,
- {
- 	struct em28xx *dev = i2c_bus->dev;
- 	u16 addr = msg.addr << 1;
--	int byte, rc = -EOPNOTSUPP;
-+	int rc = -EOPNOTSUPP;
- 
--	if (i2c_debug) {
--		for (byte = 0; byte < msg.len; byte++)
--			printk(" %02x", msg.buf[byte]);
--	}
- 	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
- 		rc = em28xx_i2c_send_bytes(dev, addr, msg.buf, msg.len, stop);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800)
-@@ -506,7 +506,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 	}
- 	for (i = 0; i < num; i++) {
- 		addr = msgs[i].addr << 1;
--		if (i2c_debug)
-+		if (i2c_debug > 1)
- 			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
- 			       dev->name, __func__ ,
- 			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-@@ -515,24 +515,33 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		if (!msgs[i].len) { /* no len: check only for device presence */
- 			rc = i2c_check_for_device(i2c_bus, addr);
- 			if (rc < 0) {
-+				if (i2c_debug > 1)
-+					printk(KERN_CONT " no device\n");
- 				rt_mutex_unlock(&dev->i2c_bus_lock);
- 				return rc;
+ 	/* Poll and evaluate all addresses */
+ 	for (i = 0; i < dev->num_button_polling_addresses; i++) {
+@@ -497,12 +497,21 @@ static void em28xx_query_buttons(struct work_struct *work)
+ 				j++;
+ 				continue;
  			}
- 		} else if (msgs[i].flags & I2C_M_RD) {
- 			/* read bytes */
- 			rc = i2c_recv_bytes(i2c_bus, msgs[i]);
-+
-+			if (i2c_debug > 1 && rc >= 0)
-+				printk(KERN_CONT " %*ph",
-+				       msgs[i].len, msgs[i].buf);
- 		} else {
-+			if (i2c_debug > 1)
-+				printk(KERN_CONT " %*ph",
-+				       msgs[i].len, msgs[i].buf);
-+
- 			/* write bytes */
- 			rc = i2c_send_bytes(i2c_bus, msgs[i], i == num - 1);
+-			/* Determine if button is pressed */
+-			pressed = regval & button->mask;
+-			if (button->inverted)
+-				pressed = !pressed;
++			/* Determine if button is and was pressed last time */
++			is_pressed = regval & button->mask;
++			was_pressed = dev->button_polling_last_values[i]
++				       & button->mask;
++			if (button->inverted) {
++				is_pressed = !is_pressed;
++				was_pressed = !was_pressed;
++			}
++			/* Clear button state (if needed) */
++			if (is_pressed && button->reg_clearing)
++				em28xx_write_reg(dev, button->reg_clearing,
++						 (~regval & button->mask)
++						    | (regval & ~button->mask));
+ 			/* Handle button state */
+-			if (!pressed) {
++			if (!is_pressed || was_pressed) {
+ 				j++;
+ 				continue;
+ 			}
+@@ -518,14 +527,11 @@ static void em28xx_query_buttons(struct work_struct *work)
+ 			default:
+ 				WARN_ONCE(1, "BUG: unhandled button role.");
+ 			}
+-			/* Clear button state (if needed) */
+-			if (button->reg_clearing)
+-				em28xx_write_reg(dev, button->reg_clearing,
+-						 (~regval & button->mask)
+-						    | (regval & ~button->mask));
+ 			/* Next button */
+ 			j++;
  		}
- 		if (rc < 0) {
--			if (i2c_debug)
--				printk(" ERROR: %i\n", rc);
-+			if (i2c_debug > 1)
-+				printk(KERN_CONT " ERROR: %i\n", rc);
- 			rt_mutex_unlock(&dev->i2c_bus_lock);
- 			return rc;
--		}
--		if (i2c_debug)
--			printk("\n");
-+		} else if (i2c_debug > 1)
-+			printk(KERN_CONT "\n");
++		/* Save current value for comparison during the next polling */
++		dev->button_polling_last_values[i] = regval;
  	}
+ 	/* Schedule next poll */
+ 	schedule_delayed_work(&dev->buttons_query_work,
+@@ -611,6 +617,8 @@ static void em28xx_init_buttons(struct em28xx *dev)
  
- 	rt_mutex_unlock(&dev->i2c_bus_lock);
-@@ -615,7 +624,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 	 * calculation and returned device dataset. Simplifies the code a lot,
- 	 * but we might have to deal with multiple sizes in the future !
- 	 */
--	int i, err;
-+	int err;
- 	struct em28xx_eeprom *dev_config;
- 	u8 buf, *data;
- 
-@@ -646,20 +655,14 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 		goto error;
- 	}
- 
--	/* Display eeprom content */
--	for (i = 0; i < len; i++) {
--		if (0 == (i % 16)) {
--			if (dev->eeprom_addrwidth_16bit)
--				em28xx_info("i2c eeprom %04x:", i);
--			else
--				em28xx_info("i2c eeprom %02x:", i);
--		}
--		printk(" %02x", data[i]);
--		if (15 == (i % 16))
--			printk("\n");
-+	if (i2c_debug) {
-+		/* Display eeprom content */
-+		print_hex_dump(KERN_INFO, "eeprom ", DUMP_PREFIX_OFFSET,
-+			       16, 1, data, len, true);
-+
-+		if (dev->eeprom_addrwidth_16bit)
-+			em28xx_info("eeprom %06x: ... (skipped)\n", 256);
- 	}
--	if (dev->eeprom_addrwidth_16bit)
--		em28xx_info("i2c eeprom %04x: ... (skipped)\n", i);
- 
- 	if (dev->eeprom_addrwidth_16bit &&
- 	    data[0] == 0x26 && data[3] == 0x00) {
+ 	/* Start polling */
+ 	if (dev->num_button_polling_addresses) {
++		memset(dev->button_polling_last_values, 0,
++					       EM28XX_NUM_BUTTON_ADDRESSES_MAX);
+ 		INIT_DELAYED_WORK(&dev->buttons_query_work,
+ 							  em28xx_query_buttons);
+ 		schedule_delayed_work(&dev->buttons_query_work,
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index e185d00..df828c6 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -669,6 +669,7 @@ struct em28xx {
+ 	/* Button state polling */
+ 	struct delayed_work buttons_query_work;
+ 	u8 button_polling_addresses[EM28XX_NUM_BUTTON_ADDRESSES_MAX];
++	u8 button_polling_last_values[EM28XX_NUM_BUTTON_ADDRESSES_MAX];
+ 	u8 num_button_polling_addresses;
+ 	/* Snapshot button input device */
+ 	char snapshot_button_path[30];	/* path of the input dev */
 -- 
-1.8.3.1
+1.7.10.4
 
