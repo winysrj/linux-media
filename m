@@ -1,79 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:36425 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161424Ab3LFNPI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 08:15:08 -0500
-Date: Fri, 6 Dec 2013 14:14:04 +0100
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Denis Carikli <denis@eukrea.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Marek Vasut <marex@denx.de>, devel@driverdev.osuosl.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	devicetree@vger.kernel.org, driverdev-devel@linuxdriverproject.org,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Eric =?utf-8?Q?B=C3=A9nard?= <eric@eukrea.com>
-Subject: Re: [PATCHv5][ 2/8] staging: imx-drm: Add RGB666 support for
- parallel display.
-Message-ID: <20131206131403.GA30960@ulmo.nvidia.com>
-References: <1386268092-21719-1-git-send-email-denis@eukrea.com>
- <1386268092-21719-2-git-send-email-denis@eukrea.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
-Content-Disposition: inline
-In-Reply-To: <1386268092-21719-2-git-send-email-denis@eukrea.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2700 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439Ab3LBDda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 22:33:30 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB23XQvf004385
+	for <linux-media@vger.kernel.org>; Mon, 2 Dec 2013 04:33:28 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 45CF22A2221
+	for <linux-media@vger.kernel.org>; Mon,  2 Dec 2013 04:33:19 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131202033319.45CF22A2221@tschai.lan>
+Date: Mon,  2 Dec 2013 04:33:19 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-On Thu, Dec 05, 2013 at 07:28:06PM +0100, Denis Carikli wrote:
-[...]
-> diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-[...]
-> @@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
->  		return IPU_DC_MAP_BGR666;
->  	case V4L2_PIX_FMT_BGR24:
->  		return IPU_DC_MAP_BGR24;
-> +	case V4L2_PIX_FMT_RGB666:
-> +		return IPU_DC_MAP_RGB666;
+date:		Mon Dec  2 04:00:30 CET 2013
+git branch:	test
+git hash:	fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-Why is this DRM driver even using V4L2 pixel formats in the first place?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Thierry
+Detailed results are available here:
 
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Full logs are available here:
 
-iQIcBAEBAgAGBQJSoc2bAAoJEN0jrNd/PrOhHrwP/RHuIytU1Sx350RAonwEhjbe
-hZZycaxb+1j5FPvcDhAW3Sx9+sTpqZlYFJMaT7YV5v87Wq0wfKN/oA3HYdOpJFwc
-rmBcPw6Y+s4gXZPkdJcyD8y2rpaUZiyVKCNoTABuk3n+Ubpft9hqVsIX4Yry6Q/G
-5Dn3okFO7CtIXbp4f45lJ14bCD+/g+akN8jOY3q3rwrfrgKkG2x+6LGEvxlKJbao
-ZmitgdO1BrgkPNzJZIGU/odsIjLyPWXsCJa7Did3J5x5ajIoZq+LJkPkrvos7A4u
-wIQZKjx9vMVgiVaaykLq8mgtbT0Q+68HVDad1Dw2XNuvbEmbpfsAbw/dcTVheSq3
-7YHJLOCTM7vnW1BsxuQeKizRjJMg24tcNCqowD/oWEIZjDonoGruRBz5pC6y6csV
-yg3m0pSkGkD25K5lZmAuJ/opLDUy4r7v9zTeMytqssyPeC6PjLKGdDzXXs79OHE+
-DeXlnGA9xUt8fUx7SXy+MXspcGND/WQFsg1ZgPTv3/i21/uk7rmAuH0EijDJNh12
-eXXqc6b7vLJ5n5wEPODRzn5j6wkTbDPn1kxe3oojWaLseda54uLZvVLfxBx/mOJG
-cQ3GhkvL9tlRBtJ8Qp7AB+VIE5dSWLKa29c8A0tFKGlm5vR+fTCwWP9mfE85p3Pl
-qSqMDDYRWZ9ML9/ZGffL
-=pGqH
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
---u3/rZRmxL6MmkK24--
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
