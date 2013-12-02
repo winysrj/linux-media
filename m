@@ -1,59 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4996 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932979Ab3LIM1f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 07:27:35 -0500
-Received: from tschai.lan (173-38-208-170.cisco.com [173.38.208.170])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB9CRWSg011364
-	for <linux-media@vger.kernel.org>; Mon, 9 Dec 2013 13:27:34 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BF03D2A2223
-	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 13:27:27 +0100 (CET)
-Message-ID: <52A5B72F.5040204@xs4all.nl>
-Date: Mon, 09 Dec 2013 13:27:27 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:34510 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755755Ab3LBUvL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Dec 2013 15:51:11 -0500
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] media: Add BCM2048 radio driver
+Date: Mon, 2 Dec 2013 21:51:07 +0100
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Nils Faerber <nils.faerber@kernelconcepts.de>,
+	Joni Lapilainen <joni.lapilainen@gmail.com>,
+	=?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?=
+	 =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?=
+	<freemangordon@abv.bg>
+References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201310262245.03279@pali> <52778780.6060802@xs4all.nl>
+In-Reply-To: <52778780.6060802@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.14] vb2 fixes
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart86654926.erhikFO6YK";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
+Message-Id: <201312022151.07599@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various vb2 fixes. I've asked Marek if I could take care of these since I have
-more vb2 patches pending.
+--nextPart86654926.erhikFO6YK
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Monday 04 November 2013 12:39:44 Hans Verkuil wrote:
+> Hi Pali,
+>=20
+> On 10/26/2013 10:45 PM, Pali Roh=C3=A1r wrote:
+> > On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
+> >>> Hans, so can it be added to drivers/staging/media tree?
+> >>=20
+> >> Yes, that is an option. It's up to you to decide what you
+> >> want. Note that if no cleanup work is done on the staging
+> >> driver for a long time, then it can be removed again.
+> >>=20
+> >> Regards,
+> >>=20
+> >>     Hans
+> >=20
+> > Ok, so if you can add it to staging tree. When driver will
+> > be in mainline other developers can look at it too. Now
+> > when driver is hidden, nobody know where to find it... You
+> > can see how upstream development for Nokia N900 HW going
+> > on: http://elinux.org/N900
+>=20
+> Please check my tree:
+>=20
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/h
+> eads/bcm
+>=20
+> If you're OK, then I'll queue it for 3.14 (it's too late for
+> 3.13).
+>=20
+> Regards,
+>=20
+> 	Hans
 
-	Hans
+Hi, sorry for late reply. I looked into your tree and difference=20
+is that you only removed "linux/slab.h" include. So it it is not=20
+needed, then it is OK.
 
-The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
+--nextPart86654926.erhikFO6YK
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-are available in the git repository at:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-  git://linuxtv.org/hverkuil/media_tree.git vb2
+iEYEABECAAYFAlKc8rsACgkQi/DJPQPkQ1KZYACfe6LqwqpLIcqHjek+R6MeIELl
+21YAnRX+QZzH/U8QdK0DS+HGHj92cPXp
+=ot2P
+-----END PGP SIGNATURE-----
 
-for you to fetch changes up to 46b150a09ec3c12053a334e5f545cc84f3c959e3:
-
-  videobuf2-dma-sg: Support io userptr operations on io memory (2013-12-09 13:25:18 +0100)
-
-----------------------------------------------------------------
-Ricardo Ribalda (4):
-      videobuf2-dma-sg: Fix typo on debug message
-      vb2: Return 0 when streamon and streamoff are already on/off
-      videobuf2: Add missing lock held on vb2_fop_release
-      videobuf2-dma-sg: Support io userptr operations on io memory
-
-Seung-Woo Kim (1):
-      videobuf2: Add log for size checking error in __qbuf_dmabuf
-
- drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c    |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c         | 25 ++++++++++++++++++++-----
- drivers/media/v4l2-core/videobuf2-dma-sg.c       | 53 ++++++++++++++++++++++++++++++++++++++++++++++++-----
- include/media/videobuf2-core.h                   |  1 +
- 5 files changed, 71 insertions(+), 12 deletions(-)
+--nextPart86654926.erhikFO6YK--
