@@ -1,129 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50211 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755247Ab3L1MQ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:29 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 19/24] em28xx: unify module version
-Date: Sat, 28 Dec 2013 10:16:11 -0200
-Message-Id: <1388232976-20061-20-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:34070 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752888Ab3LBXPF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Dec 2013 18:15:05 -0500
+From: Jingoo Han <jg1.han@samsung.com>
+To: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>,
+	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+References: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
+In-reply-to: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
+Subject: [PATCH 15/39] media: pci: remove DEFINE_PCI_DEVICE_TABLE macro
+Date: Tue, 03 Dec 2013 08:15:04 +0900
+Message-id: <002401ceefb4$55175fb0$ff461f10$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Don't use DEFINE_PCI_DEVICE_TABLE macro, because this macro
+is not preferred.
 
-Use the same module version on all em28xx sub-modules, and use
-the same naming convention to describe the driver.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 3 ++-
- drivers/media/usb/em28xx/em28xx-core.c  | 2 --
- drivers/media/usb/em28xx/em28xx-dvb.c   | 4 +++-
- drivers/media/usb/em28xx/em28xx-input.c | 3 ++-
- drivers/media/usb/em28xx/em28xx-video.c | 4 +---
- drivers/media/usb/em28xx/em28xx.h       | 1 +
- 6 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/media/pci/cx25821/cx25821-alsa.c |    2 +-
+ drivers/media/pci/cx25821/cx25821-core.c |    2 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 263886adcf26..a6eef06ffdcd 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -747,7 +747,8 @@ static void __exit em28xx_alsa_unregister(void)
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Markus Rechberger <mrechberger@gmail.com>");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
--MODULE_DESCRIPTION("Em28xx Audio driver");
-+MODULE_DESCRIPTION(DRIVER_DESC " - audio interface");
-+MODULE_VERSION(EM28XX_VERSION);
+diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
+index 6e91e84..b1e08c3 100644
+--- a/drivers/media/pci/cx25821/cx25821-alsa.c
++++ b/drivers/media/pci/cx25821/cx25821-alsa.c
+@@ -618,7 +618,7 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
+  * Only boards with eeprom and byte 1 at eeprom=1 have it
+  */
  
- module_init(em28xx_alsa_register);
- module_exit(em28xx_alsa_unregister);
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 36b2f1ab4474..2ad84ff1fc4f 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -39,8 +39,6 @@
- 		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
- 		      "Sascha Sommer <saschasommer@freenet.de>"
+-static DEFINE_PCI_DEVICE_TABLE(cx25821_audio_pci_tbl) = {
++static const struct pci_device_id cx25821_audio_pci_tbl[] = {
+ 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{0,}
+ };
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index b762c5b..e81173c 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -1361,7 +1361,7 @@ static void cx25821_finidev(struct pci_dev *pci_dev)
+ 	kfree(dev);
+ }
  
--#define DRIVER_DESC         "Empia em28xx based USB core driver"
--
- MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index f72663a9b5c5..7fa1c804c34c 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -54,9 +54,11 @@
- #include "m88ds3103.h"
- #include "m88ts2022.h"
+-static DEFINE_PCI_DEVICE_TABLE(cx25821_pci_tbl) = {
++static const struct pci_device_id cx25821_pci_tbl[] = {
+ 	{
+ 		/* CX25821 Athena */
+ 		.vendor = 0x14f1,
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 77edc11..e5cfb6c 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -1303,7 +1303,7 @@ static int sta2x11_vip_resume(struct pci_dev *pdev)
  
--MODULE_DESCRIPTION("driver for em28xx based DVB cards");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION(DRIVER_DESC " - digital TV interface");
-+MODULE_VERSION(EM28XX_VERSION);
-+
+ #endif
  
- static unsigned int debug;
- module_param(debug, int, 0644);
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index eed7dd79f734..f3b629dd57ae 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -836,7 +836,8 @@ static void __exit em28xx_rc_unregister(void)
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
--MODULE_DESCRIPTION("Em28xx Input driver");
-+MODULE_DESCRIPTION(DRIVER_DESC " - input interface");
-+MODULE_VERSION(EM28XX_VERSION);
- 
- module_init(em28xx_rc_register);
- module_exit(em28xx_rc_unregister);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index ea3653248d25..c0f74e58037c 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -50,8 +50,6 @@
- 		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
- 		      "Sascha Sommer <saschasommer@freenet.de>"
- 
--#define DRIVER_DESC         "Empia em28xx based USB video device driver"
--
- static unsigned int isoc_debug;
- module_param(isoc_debug, int, 0644);
- MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
-@@ -78,7 +76,7 @@ do {\
-   } while (0)
- 
- MODULE_AUTHOR(DRIVER_AUTHOR);
--MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_DESCRIPTION(DRIVER_DESC " - v4l2 interface");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(EM28XX_VERSION);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index ac79501f5d9f..db47c2236ca4 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -27,6 +27,7 @@
- #define _EM28XX_H
- 
- #define EM28XX_VERSION "0.2.1"
-+#define DRIVER_DESC    "Empia em28xx device driver"
- 
- #include <linux/workqueue.h>
- #include <linux/i2c.h>
+-static DEFINE_PCI_DEVICE_TABLE(sta2x11_vip_pci_tbl) = {
++static const struct pci_device_id sta2x11_vip_pci_tbl[] = {
+ 	{PCI_DEVICE(PCI_VENDOR_ID_STMICRO, PCI_DEVICE_ID_STMICRO_VIP)},
+ 	{0,}
+ };
 -- 
-1.8.3.1
+1.7.10.4
+
 
