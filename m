@@ -1,164 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1954 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab3LJPMV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:12:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4402 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab3LCDde (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Dec 2013 22:33:34 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB33XU1H053037
+	for <linux-media@vger.kernel.org>; Tue, 3 Dec 2013 04:33:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 556172A2222
+	for <linux-media@vger.kernel.org>; Tue,  3 Dec 2013 04:33:22 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 18/22] adv7842: i2c dummy clients registration.
-Date: Tue, 10 Dec 2013 16:04:04 +0100
-Message-Id: <b78292ff6716bf53c627c99d02835b62a381a688.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131203033322.556172A2222@tschai.lan>
+Date: Tue,  3 Dec 2013 04:33:22 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Clear i2c_clients ptr when unregistered.
-Warn if configured i2c-addr is zero.
+Results of the daily build of media_tree:
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 83 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 63 insertions(+), 20 deletions(-)
+date:		Tue Dec  3 04:00:27 CET 2013
+git branch:	test
+git hash:	fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index c3ac4e9..64f0611 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2803,8 +2803,9 @@ static const struct v4l2_ctrl_config adv7842_ctrl_free_run_color = {
- };
- 
- 
--static void adv7842_unregister_clients(struct adv7842_state *state)
-+static void adv7842_unregister_clients(struct v4l2_subdev *sd)
- {
-+	struct adv7842_state *state = to_state(sd);
- 	if (state->i2c_avlink)
- 		i2c_unregister_device(state->i2c_avlink);
- 	if (state->i2c_cec)
-@@ -2827,15 +2828,71 @@ static void adv7842_unregister_clients(struct adv7842_state *state)
- 		i2c_unregister_device(state->i2c_cp);
- 	if (state->i2c_vdp)
- 		i2c_unregister_device(state->i2c_vdp);
-+
-+	state->i2c_avlink = NULL;
-+	state->i2c_cec = NULL;
-+	state->i2c_infoframe = NULL;
-+	state->i2c_sdp_io = NULL;
-+	state->i2c_sdp = NULL;
-+	state->i2c_afe = NULL;
-+	state->i2c_repeater = NULL;
-+	state->i2c_edid = NULL;
-+	state->i2c_hdmi = NULL;
-+	state->i2c_cp = NULL;
-+	state->i2c_vdp = NULL;
- }
- 
--static struct i2c_client *adv7842_dummy_client(struct v4l2_subdev *sd,
-+static struct i2c_client *adv7842_dummy_client(struct v4l2_subdev *sd, const char *desc,
- 					       u8 addr, u8 io_reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct i2c_client *cp;
- 
- 	io_write(sd, io_reg, addr << 1);
--	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-+
-+	if (addr == 0) {
-+		v4l2_err(sd, "no %s i2c addr configured\n", desc);
-+		return NULL;
-+	}
-+
-+	cp = i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-+	if (!cp)
-+		v4l2_err(sd, "register %s on i2c addr 0x%x failed\n", desc, addr);
-+
-+	return cp;
-+}
-+
-+static int adv7842_register_clients(struct v4l2_subdev *sd)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	struct adv7842_platform_data *pdata = &state->pdata;
-+
-+	state->i2c_avlink = adv7842_dummy_client(sd, "avlink", pdata->i2c_avlink, 0xf3);
-+	state->i2c_cec = adv7842_dummy_client(sd, "cec", pdata->i2c_cec, 0xf4);
-+	state->i2c_infoframe = adv7842_dummy_client(sd, "infoframe", pdata->i2c_infoframe, 0xf5);
-+	state->i2c_sdp_io = adv7842_dummy_client(sd, "sdp_io", pdata->i2c_sdp_io, 0xf2);
-+	state->i2c_sdp = adv7842_dummy_client(sd, "sdp", pdata->i2c_sdp, 0xf1);
-+	state->i2c_afe = adv7842_dummy_client(sd, "afe", pdata->i2c_afe, 0xf8);
-+	state->i2c_repeater = adv7842_dummy_client(sd, "repeater", pdata->i2c_repeater, 0xf9);
-+	state->i2c_edid = adv7842_dummy_client(sd, "edid", pdata->i2c_edid, 0xfa);
-+	state->i2c_hdmi = adv7842_dummy_client(sd, "hdmi", pdata->i2c_hdmi, 0xfb);
-+	state->i2c_cp = adv7842_dummy_client(sd, "cp", pdata->i2c_cp, 0xfd);
-+	state->i2c_vdp = adv7842_dummy_client(sd, "vdp", pdata->i2c_vdp, 0xfe);
-+
-+	if (!state->i2c_avlink ||
-+	    !state->i2c_cec ||
-+	    !state->i2c_infoframe ||
-+	    !state->i2c_sdp_io ||
-+	    !state->i2c_sdp ||
-+	    !state->i2c_afe ||
-+	    !state->i2c_repeater ||
-+	    !state->i2c_edid ||
-+	    !state->i2c_hdmi ||
-+	    !state->i2c_cp ||
-+	    !state->i2c_vdp)
-+		return -1;
-+
-+	return 0;
- }
- 
- static int adv7842_probe(struct i2c_client *client,
-@@ -2937,21 +2994,7 @@ static int adv7842_probe(struct i2c_client *client,
- 		goto err_hdl;
- 	}
- 
--	state->i2c_avlink = adv7842_dummy_client(sd, pdata->i2c_avlink, 0xf3);
--	state->i2c_cec = adv7842_dummy_client(sd, pdata->i2c_cec, 0xf4);
--	state->i2c_infoframe = adv7842_dummy_client(sd, pdata->i2c_infoframe, 0xf5);
--	state->i2c_sdp_io = adv7842_dummy_client(sd, pdata->i2c_sdp_io, 0xf2);
--	state->i2c_sdp = adv7842_dummy_client(sd, pdata->i2c_sdp, 0xf1);
--	state->i2c_afe = adv7842_dummy_client(sd, pdata->i2c_afe, 0xf8);
--	state->i2c_repeater = adv7842_dummy_client(sd, pdata->i2c_repeater, 0xf9);
--	state->i2c_edid = adv7842_dummy_client(sd, pdata->i2c_edid, 0xfa);
--	state->i2c_hdmi = adv7842_dummy_client(sd, pdata->i2c_hdmi, 0xfb);
--	state->i2c_cp = adv7842_dummy_client(sd, pdata->i2c_cp, 0xfd);
--	state->i2c_vdp = adv7842_dummy_client(sd, pdata->i2c_vdp, 0xfe);
--	if (!state->i2c_avlink || !state->i2c_cec || !state->i2c_infoframe ||
--	    !state->i2c_sdp_io || !state->i2c_sdp || !state->i2c_afe ||
--	    !state->i2c_repeater || !state->i2c_edid || !state->i2c_hdmi ||
--	    !state->i2c_cp || !state->i2c_vdp) {
-+	if (adv7842_register_clients(sd) < 0) {
- 		err = -ENOMEM;
- 		v4l2_err(sd, "failed to create all i2c clients\n");
- 		goto err_i2c;
-@@ -2987,7 +3030,7 @@ err_work_queues:
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
- err_i2c:
--	adv7842_unregister_clients(state);
-+	adv7842_unregister_clients(sd);
- err_hdl:
- 	v4l2_ctrl_handler_free(hdl);
- 	return err;
-@@ -3006,7 +3049,7 @@ static int adv7842_remove(struct i2c_client *client)
- 	destroy_workqueue(state->work_queues);
- 	v4l2_device_unregister_subdev(sd);
- 	media_entity_cleanup(&sd->entity);
--	adv7842_unregister_clients(to_state(sd));
-+	adv7842_unregister_clients(sd);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	return 0;
- }
--- 
-1.8.4.rc3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
