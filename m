@@ -1,141 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2047 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754066Ab3LJPGF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:05 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ve0-f179.google.com ([209.85.128.179]:36110 "EHLO
+	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752350Ab3LCKeU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 05:34:20 -0500
+Received: by mail-ve0-f179.google.com with SMTP id jw12so9796457veb.24
+        for <linux-media@vger.kernel.org>; Tue, 03 Dec 2013 02:34:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAK7=TuFhuuEHL9gQmAcxphUXbYJ9AgYhC41cty94XVQfusDOzg@mail.gmail.com>
+References: <CAK7=TuFhuuEHL9gQmAcxphUXbYJ9AgYhC41cty94XVQfusDOzg@mail.gmail.com>
+Date: Tue, 3 Dec 2013 11:34:19 +0100
+Message-ID: <CAK7=TuF214D5oWBCu7_VxfivK7R-5F_s-vbnx+_=ZcvvjgVhNQ@mail.gmail.com>
+Subject: Re: TeVii S471 issues with HotBird tp.11411h
+From: Tomasz Bubel <tbubel@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/22] adv7842: 625/525 line standard jitter fix.
-Date: Tue, 10 Dec 2013 16:03:55 +0100
-Message-Id: <288fecdf2de7f90beb60ca3b32cabd2fe257b879.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Hi all.
+Strange, yesterday I ran my HTPC from a HD drive with Win7 and tested
+transponder 11411h in ProgDVB and works well. 75% of the signal, SNR
+99%.
 
-Both the PAL and NTSC standards are interlaced where a
-frame consist of two fields. Total number of lines in a frame in both systems
-are an odd number so the two fields will have different length.
+I think it is a bug / problem in the Linux driver for TeVii S471.
+Unfortunately, I lack the skills to improve it.
 
-In the 625 line standard ("PAL") the odd field of the frame is transmitted first,
-while in the 525 standard ("NTSC") the even field is transmitted first.
+2013/11/29 Tomasz Bubel <tbubel@gmail.com>:
+> Hi everyone,
+> In my htpc i have:
+> - 1x TeVii S471
+> - 1x Hauppauge WinTV-Nova-HD-S2.
+> - gentoo linux with 3.12.0 kernel.
+> - drivers from media_tree:
+> "Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+> 258d2fbf874c87830664cb7ef41f9741c1abffac Merge tag 'v3.13-rc1' into patchwork
+> 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae Linux 3.13-rc1
+> 57498f9cb91be1eebea48f1dc833ebf162606ad5 Merge tag
+> 'ecryptfs-3.13-rc1-quiet-checkers' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs"
+>
+> I'm using 90cm offset dish antenna with Quad LNB.
+>
+> Everything works pretty well except that I can't get picture from
+> HotBird tp.11411h with TeVii S471.
+>
+> szap -a 0 -c channelsx.conf -n 986 -H:
+> reading channels from file 'channelsx.conf'
+> zapping to 986 'DOMO+ HD(CYFRA+)':
+> sat 0, frequency = 11411 MHz H, symbolrate 27500000, vpid = 0x00a7,
+> apid = 0x006c sid = 0x379e
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 00 | signal  11% | snr  47% | ber 0 | unc 0 |
+> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  47% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  31% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  23% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
+> status 00 | signal  11% | snr  63% | ber -1 | unc 0 |
+>
+> Notice low signal value and changes of snr.
+>
+> Same tp. this time hauppauge:
+>
+> szap -a 1 -c channelsx.conf -n 986 -H
+> reading channels from file 'channelsx.conf'
+> zapping to 986 'DOMO+ HD(CYFRA+)':
+> sat 0, frequency = 11411 MHz H, symbolrate 27500000, vpid = 0x00a7,
+> apid = 0x006c sid = 0x379e
+> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+> status 1f | signal  80% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
+>
+> Also in dmesg i notice  multiple firmware messages, is this normal behaviour?
+>
+> [  357.134498] ds3000_firmware_ondemand: Waiting for firmware upload
+> (dvb-fe-ds3000.fw)...
+> [  357.135376] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+> [  459.620503] ds3000_firmware_ondemand: Waiting for firmware upload
+> (dvb-fe-ds3000.fw)...
+> [  459.620545] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+> [  460.534720] ds3000_firmware_ondemand: Waiting for firmware upload
+> (dvb-fe-ds3000.fw)...
+> [  460.534744] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+> [ 2799.910498] ds3000_firmware_ondemand: Waiting for firmware upload
+> (dvb-fe-ds3000.fw)...
+> [ 2799.910540] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+> [ 2896.285493] ds3000_firmware_ondemand: Waiting for firmware upload
+> (dvb-fe-ds3000.fw)...
+>
+> Can any one help? What information I should provide?
+>
+> --
+> Pozdrawiam,
+> Tomasz Bubel
 
-This adds the possibility to change output config between the fields and standards.
 
-This setting will reduce the "format-jitter" on the signal sent by the pixelport
-moving the difference between the fields to vertical front/back-porch only.
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 56 ++++++++++++++++++++++++++++++++-------------
- include/media/adv7842.h     |  3 ++-
- 2 files changed, 42 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 6335d9f..3e8d7cc 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2343,15 +2343,55 @@ static int adv7842_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	return 0;
- }
- 
-+static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_adjustment *s)
-+{
-+	if (s && s->adjust) {
-+		sdp_io_write(sd, 0x94, (s->hs_beg >> 8) & 0xf);
-+		sdp_io_write(sd, 0x95, s->hs_beg & 0xff);
-+		sdp_io_write(sd, 0x96, (s->hs_width >> 8) & 0xf);
-+		sdp_io_write(sd, 0x97, s->hs_width & 0xff);
-+		sdp_io_write(sd, 0x98, (s->de_beg >> 8) & 0xf);
-+		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
-+		sdp_io_write(sd, 0x9a, (s->de_end >> 8) & 0xf);
-+		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
-+		sdp_io_write(sd, 0xac, s->de_v_beg_o);
-+		sdp_io_write(sd, 0xad, s->de_v_beg_e);
-+		sdp_io_write(sd, 0xae, s->de_v_end_o);
-+		sdp_io_write(sd, 0xaf, s->de_v_end_e);
-+	} else {
-+		/* set to default */
-+		sdp_io_write(sd, 0x94, 0x00);
-+		sdp_io_write(sd, 0x95, 0x00);
-+		sdp_io_write(sd, 0x96, 0x00);
-+		sdp_io_write(sd, 0x97, 0x20);
-+		sdp_io_write(sd, 0x98, 0x00);
-+		sdp_io_write(sd, 0x99, 0x00);
-+		sdp_io_write(sd, 0x9a, 0x00);
-+		sdp_io_write(sd, 0x9b, 0x00);
-+		sdp_io_write(sd, 0xac, 0x04);
-+		sdp_io_write(sd, 0xad, 0x04);
-+		sdp_io_write(sd, 0xae, 0x04);
-+		sdp_io_write(sd, 0xaf, 0x04);
-+	}
-+}
-+
- static int adv7842_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- {
- 	struct adv7842_state *state = to_state(sd);
-+	struct adv7842_platform_data *pdata = &state->pdata;
- 
- 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
- 
- 	if (state->mode != ADV7842_MODE_SDP)
- 		return -ENODATA;
- 
-+	if (norm & V4L2_STD_625_50)
-+		adv7842_s_sdp_io(sd, &pdata->sdp_io_sync_625);
-+	else if (norm & V4L2_STD_525_60)
-+		adv7842_s_sdp_io(sd, &pdata->sdp_io_sync_525);
-+	else
-+		adv7842_s_sdp_io(sd, NULL);
-+
- 	if (norm & V4L2_STD_ALL) {
- 		state->norm = norm;
- 		return 0;
-@@ -2421,22 +2461,6 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 
- 	sdp_csc_coeff(sd, &pdata->sdp_csc_coeff);
- 
--	if (pdata->sdp_io_sync.adjust) {
--		const struct adv7842_sdp_io_sync_adjustment *s = &pdata->sdp_io_sync;
--		sdp_io_write(sd, 0x94, (s->hs_beg>>8) & 0xf);
--		sdp_io_write(sd, 0x95, s->hs_beg & 0xff);
--		sdp_io_write(sd, 0x96, (s->hs_width>>8) & 0xf);
--		sdp_io_write(sd, 0x97, s->hs_width & 0xff);
--		sdp_io_write(sd, 0x98, (s->de_beg>>8) & 0xf);
--		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
--		sdp_io_write(sd, 0x9a, (s->de_end>>8) & 0xf);
--		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
--		sdp_io_write(sd, 0xac, s->de_v_beg_o);
--		sdp_io_write(sd, 0xad, s->de_v_beg_e);
--		sdp_io_write(sd, 0xae, s->de_v_end_o);
--		sdp_io_write(sd, 0xaf, s->de_v_end_e);
--	}
--
- 	/* todo, improve settings for sdram */
- 	if (pdata->sd_ram_size >= 128) {
- 		sdp_write(sd, 0x12, 0x0d); /* Frame TBC,3D comb enabled */
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index f4e9d0d..5327ba3 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -197,7 +197,8 @@ struct adv7842_platform_data {
- 
- 	struct adv7842_sdp_csc_coeff sdp_csc_coeff;
- 
--	struct adv7842_sdp_io_sync_adjustment sdp_io_sync;
-+	struct adv7842_sdp_io_sync_adjustment sdp_io_sync_625;
-+	struct adv7842_sdp_io_sync_adjustment sdp_io_sync_525;
- 
- 	/* i2c addresses */
- 	u8 i2c_sdp_io;
 -- 
-1.8.4.rc3
-
+Pozdrawiam,
+Tomasz Bubel
