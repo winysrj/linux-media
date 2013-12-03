@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46877 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751168Ab3LLBZU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 20:25:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Robert Baldyga <r.baldyga@samsung.com>,
-	Bhupesh SHARMA <bhupesh.linux@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 0/4] Bugfixes for UVC gadget test application
-Date: Thu, 12 Dec 2013 02:25:32 +0100
-Message-ID: <1850935.I9uHGgxyVW@avalon>
-In-Reply-To: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
-References: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+Received: from nm42.bullet.mail.ne1.yahoo.com ([98.138.120.49]:47728 "HELO
+	nm42.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751067Ab3LCILM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Dec 2013 03:11:12 -0500
+Message-ID: <1386057753.44323.YahooMailBasic@web162904.mail.bf1.yahoo.com>
+Date: Tue, 3 Dec 2013 00:02:33 -0800 (PST)
+From: Aliman <aymaan_ali@voila.fr>
+Reply-To: aymaan.ali@voila.fr
+Subject: I expect your urgent response
+To: undisclosed recipients:;
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Greetings from Dr. Ayman Aliman
 
-[Repost with Bhupesh's hopefully correct e-mail address]
+Dear friend, I am DR. AYMAN ALIMAN. THE MANAGER, AUDIT AND ACCOUNTING DEPT.BANK OF AFRICA (B.O.A) Burkina Faso . 
 
-On Tuesday 10 December 2013 12:40:33 Robert Baldyga wrote:
-> Hello,
-> 
-> This patchset fixes UVC gadget test application, created by Laurent Pinchart
-> (git tree available here: git://git.ideasonboard.org/uvc-gadget.git), with
-> applied patches created by Bhupesh Sharma (which can be found here:
-> http://www.spinics.net/lists/linux-usb/msg84376.html).
-> 
-> It improves video-capture device handling, and adds few other fixes.
-> More details can be found in commit messages.
+I know my message will come to you as a surprise. Don't worry I was totally convinced to write you, I hoped that you will not expose or betray this trust and confident that i am about to repose on you for the mutual benefit of our families. 
 
-Thank you for the patches. This is a nice reminder that I still haven't 
-reviewed Bhupesh's patches. I've tried to get back to them, but the size of 
-the first patch makes it too complex to review for the limited time I have 
-now. Unless the "UVC gadget: Add support for integration with a video-capture 
-device and other fixes" patch gets split in smaller chunks I won't have time 
-to handle it before February at the earliest.
+I need your urgent assistance in transferring sum of (USD $18.700, 000.00) into your account within 10 to 14 banking days. This requires a private arrangement; the details of the transaction will be furnished to you if you indicate your interest in this proposal. 
 
-> Best regards
-> Robert Baldyga
-> Samsung R&D Institute Poland
-> 
-> Robert Baldyga (4):
->   closing uvc file when init fails
->   remove set_format from uvc_events_process_data
->   fix v4l2 stream handling
->   remove flooding debugs
-> 
->  uvc-gadget.c |   68  +++++++++---------------------------------------------
->  1 file changed, 10 insertions(+), 58 deletions(-)
+This money has been dormant for years in our bank without claim, I want the bank to release the money to you as the nearest person (owner of the account)who died along with his entire family during the Iraq war in 2006
 
--- 
-Regards,
+I don't want the money to go into our bank treasurer account as an abandoned fund. So this is the reason why i contact you so that the bank will release the money to you as the next of kin to the death customer and we share the money together. Please i would like you to keep this proposal as a top secret. 
 
-Laurent Pinchart
+Upon receipt of your reply, I will give you full details on how the business project will be executed and also note that you will have 40% of the above mentioned sum.
+
+Kindly fill this information's requested below in returns then i will give you more details with application form for the claim. 
+
+Your full name: -- 
+Your Country: -- 
+Phone Number: -- 
+Your Age and occupation: -- 
+
+I expect your urgent response if you agree to handle this project. 
+
+Best regard. 
+
+Dr. Ayman Aliman
