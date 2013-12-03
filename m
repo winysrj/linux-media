@@ -1,489 +1,153 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:39270 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756347Ab3LaVS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Dec 2013 16:18:28 -0500
-Received: by mail-ee0-f50.google.com with SMTP id c41so5806126eek.9
-        for <linux-media@vger.kernel.org>; Tue, 31 Dec 2013 13:18:27 -0800 (PST)
-Message-ID: <52C334A0.7060401@gmail.com>
-Date: Tue, 31 Dec 2013 22:18:24 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <ashley.fry@ge.com>) id 1VnpjL-0000fS-2I
+	for linux-dvb@linuxtv.org; Tue, 03 Dec 2013 14:09:36 +0100
+Received: from exprod5og104.obsmtp.com ([64.18.0.178])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-7) with smtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1VnpjJ-0005pd-0R; Tue, 03 Dec 2013 14:09:34 +0100
+From: "Fry, Ashley (GE Intelligent Platforms)" <ashley.fry@ge.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Tue, 3 Dec 2013 13:09:24 +0000
+Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF1071FE34@LONURLNA02.e2k.ad.ge.com>
+Content-Language: en-US
 MIME-Version: 1.0
-To: m silverstri <michael.j.silverstri@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Question about 'Generic V4L2 Andriod camera HAL' slide
-References: <CABMudhSsnVOK_bL0RD=diwkM3WK11S0dr1Tv+HFJFmKTy44B1w@mail.gmail.com>
-In-Reply-To: <CABMudhSsnVOK_bL0RD=diwkM3WK11S0dr1Tv+HFJFmKTy44B1w@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------020804060303050904060903"
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Subject: [linux-dvb] Ubuntu 12.04.3 version
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0979235809=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020804060303050904060903
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--===============0979235809==
+Content-Language: en-US
+Content-Type: multipart/alternative;
+	boundary="_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_"
+
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hoping someone can help, Ubuntu 12.04.3 has Linuxtv build into the kernel, =
+it's not working.
+Latest version obtained by :-
+sudo git clone git://linuxtv.org/media_build.git
+Has more issue.
+So wanting to download the source from git://linuxtv.org/ which is source f=
+or they version they used to originally build Ubuntu 12.04.3.
+Some advice on how I do this would be appreciated ?
+
+Many thx.
+
+
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
+//www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+<meta name=3D"Generator" content=3D"Microsoft Word 14 (filtered medium)">
+<style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";
+	mso-fareast-language:EN-US;}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+pre
+	{mso-style-priority:99;
+	mso-style-link:"HTML Preformatted Char";
+	margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:10.0pt;
+	font-family:"Courier New";}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+span.HTMLPreformattedChar
+	{mso-style-name:"HTML Preformatted Char";
+	mso-style-priority:99;
+	mso-style-link:"HTML Preformatted";
+	font-family:"Courier New";
+	mso-fareast-language:EN-GB;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-family:"Calibri","sans-serif";
+	mso-fareast-language:EN-US;}
+@page WordSection1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]-->
+</head>
+<body lang=3D"EN-GB" link=3D"blue" vlink=3D"purple">
+<div class=3D"WordSection1">
+<p class=3D"MsoNormal">Hoping someone can help, Ubuntu 12.04.3 has Linuxtv =
+build into the kernel, it&#8217;s not working.<o:p></o:p></p>
+<p class=3D"MsoNormal">Latest version obtained by :- <o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:10.0pt;font-family:&quot;Co=
+urier New&quot;;mso-fareast-language:EN-GB">sudo git clone git://linuxtv.or=
+g/media_build.git<o:p></o:p></span></p>
+<p class=3D"MsoNormal">Has more issue. <o:p></o:p></p>
+<p class=3D"MsoNormal">So wanting to download the source from <span style=
+=3D"font-size:10.0pt;font-family:&quot;Courier New&quot;;mso-fareast-langua=
+ge:EN-GB">
+git://linuxtv.org/ which is source for they </span>version they used to ori=
+ginally build Ubuntu 12.04.3.<o:p></o:p></p>
+<p class=3D"MsoNormal">Some advice on how I do this would be appreciated ?<=
+o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Many thx.<o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+</div>
+</body>
+</html>
+
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_--
+
+
+--===============0979235809==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-
-Hi,
-
-I suspect it was about a mem-to-mem test program originally written
-by Pawel Osciak: https://linuxtv.org/patch/2187
-
-I've attached a little bit updated version I used recently for testing
-some changes at the v4l2-mem2mem kernel module.
-
-You can also find some more test programs here:
-http://git.infradead.org/users/kmpark/public-apps/tree
-
-Regards,
-Sylwester
-
-On 12/31/2013 01:36 AM, m silverstri wrote:
-> Hi,
->
-> I google and find the presentation for Generic V4L2 Andriod camera
-> HAL, in there it said
->
-> * "A VEU mem2mem driver has been written to convert YUV camera output
-> to a 16-bit RGB format"
-> and
-> * "A test program from Sylwester has been xed and extended."
->
-> Can you please tell me where I can find the test program from Sylwester?
->
-> Thank you.
-> Mike
-
---------------020804060303050904060903
-Content-Type: text/x-csrc;
- name="process-vmalloc.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="process-vmalloc.c"
-
-/**
- * process-vmalloc.c
- * Capture+output (process) V4L2 device tester.
- *
- * Pawel Osciak, p.osciak@samsung.com
- * 2009, Samsung Electronics Co., Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <time.h>
-#include <errno.h>
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <stdint.h>
-
-#include <linux/fb.h>
-#include <linux/videodev2.h>
-
-#include <sys/mman.h>
-
-#define V4L2_CID_TRANS_TIME_MSEC        (V4L2_CID_PRIVATE_BASE)
-#define V4L2_CID_TRANS_NUM_BUFS         (V4L2_CID_PRIVATE_BASE + 1)
-
-#define VIDEO_DEV_NAME	"/dev/video0"
-#define FB_DEV_NAME	"/dev/fb0"
-#define NUM_BUFS	4
-#define NUM_FRAMES	16
-
-#define perror_exit(cond, func)\
-	if (cond) {\
-		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-		perror(func);\
-		exit(EXIT_FAILURE);\
-	}
-
-#define error_exit(cond, func)\
-	if (cond) {\
-		fprintf(stderr, "%s:%d: failed\n", func, __LINE__);\
-		exit(EXIT_FAILURE);\
-	}
-
-#define perror_ret(cond, func)\
-	if (cond) {\
-		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-		perror(func);\
-		return ret;\
-	}
-
-#define memzero(x)\
-	memset(&(x), 0, sizeof (x));
-
-#define PROCESS_DEBUG 1
-#ifdef PROCESS_DEBUG
-#define debug(msg, ...)\
-	fprintf(stderr, "%s: " msg, __func__, ##__VA_ARGS__);
-#else
-#define debug(msg, ...)
-#endif
-
-static int vid_fd, fb_fd;
-static void *fb_addr;
-static char *p_src_buf[NUM_BUFS], *p_dst_buf[NUM_BUFS];
-static size_t src_buf_size[NUM_BUFS], dst_buf_size[NUM_BUFS];
-static uint32_t num_src_bufs = 0, num_dst_bufs = 0;
-
-/* Command-line params */
-int initial_delay = 0;
-int fb_x, fb_y, width, height;
-int translen = 1;
-/* For displaying multi-buffer transaction simulations, indicates current
- * buffer in an ongoing transaction */
-int curr_buf = 0;
-int transtime = 1000;
-int num_frames = 0;
-off_t fb_off, fb_line_w, fb_buf_w;
-struct fb_var_screeninfo fbinfo;
-
-static void init_video_dev(void)
-{
-	int ret;
-	struct v4l2_capability cap;
-	struct v4l2_format fmt;
-	struct v4l2_control ctrl;
-
-	vid_fd = open(VIDEO_DEV_NAME, O_RDWR | O_NONBLOCK, 0);
-	perror_exit(vid_fd < 0, "open");
-
-	ctrl.id = V4L2_CID_TRANS_TIME_MSEC;
-	ctrl.value = transtime;
-	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-	perror_exit(ret != 0, "ioctl");
-
-	ctrl.id = V4L2_CID_TRANS_NUM_BUFS;
-	ctrl.value = translen;
-	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-	perror_exit(ret != 0, "ioctl");
-
-	ret = ioctl(vid_fd, VIDIOC_QUERYCAP, &cap);
-	perror_exit(ret != 0, "ioctl");
-
-	if (!(cap.capabilities & V4L2_CAP_VIDEO_M2M)) {
-		fprintf(stderr, "Device does not support mem-to-mem\n");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Set format for capture */
-	fmt.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width	= width;
-	fmt.fmt.pix.height	= height;
-	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-
-	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-	perror_exit(ret != 0, "ioctl");
-
-	/* The same format for output */
-	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	fmt.fmt.pix.width	= width;
-	fmt.fmt.pix.height	= height;
-	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-
-	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-	perror_exit(ret != 0, "ioctl");
-}
-
-static void gen_src_buf(void *p, size_t size)
-{
-	uint8_t val;
-
-	val = rand() % 256;
-	memset(p, val, size);
-}
-
-static void gen_dst_buf(void *p, size_t size)
-{
-	/* White */
-	memset(p, 255, 0);
-}
-
-static int read_frame(int last)
-{
-	struct v4l2_buffer buf;
-	int ret;
-	int j;
-	char * p_fb = fb_addr + fb_off;
-
-	memzero(buf);
-
-	buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	buf.memory	= V4L2_MEMORY_MMAP;
-
-	debug("Dequeuing source buffer...\n");
-	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-	debug("Dequeued source buffer, index: %d\n", buf.index);
-	if (ret) {
-		switch (errno) {
-		case EAGAIN:
-			debug("Got EAGAIN\n");
-			return 0;
-
-		case EIO:
-			debug("Got EIO\n");
-			return 0;
-
-		default:
-			perror("ioctl");
-			return 0;
-		}
-	}
-
-	/* Verify we've got a correct buffer */
-	assert(buf.index < num_src_bufs);
-
-	/* Enqueue back the buffer (note that the index is preserved) */
-	if (!last) {
-		gen_src_buf(p_src_buf[buf.index], src_buf_size[buf.index]);
-		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-		buf.memory	= V4L2_MEMORY_MMAP;
-		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-		perror_ret(ret != 0, "ioctl");
-	}
-
-
-	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-	debug("Dequeuing destination buffer\n");
-	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-	if (ret) {
-		switch (errno) {
-		case EAGAIN:
-			debug("Got EAGAIN\n");
-			return 0;
-
-		case EIO:
-			debug("Got EIO\n");
-			return 0;
-
-		default:
-			perror("ioctl");
-			return 1;
-		}
-	}
-	debug("Dequeued dst buffer, index: %d\n", buf.index);
-	/* Verify we've got a correct buffer */
-	assert(buf.index < num_dst_bufs);
-
-	debug("Current buffer in the transaction: %d\n", curr_buf);
-	p_fb += curr_buf * (height / translen) * fb_line_w;
-	++curr_buf;
-	if (curr_buf >= translen)
-		curr_buf = 0;
-
-	/* Display results */
-	for (j = 0; j < height / translen; ++j) {
-		memcpy(p_fb, (void *)p_dst_buf[buf.index], fb_buf_w);
-		p_fb += fb_line_w;
-	}
-
-	/* Enqueue back the buffer */
-	if (!last) {
-		gen_dst_buf(p_dst_buf[buf.index], dst_buf_size[buf.index]);
-		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-		perror_ret(ret != 0, "ioctl");
-		debug("Enqueued back dst buffer\n");
-	}
-
-	return 0;
-}
-
-void init_usage(int argc, char *argv[])
-{
-	if (argc != 9) {
-		printf("Usage: %s initial_delay bufs_per_transaction "
-			"trans_length_msec num_frames fb_offset_x fb_offset_y "
-			"width height\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
-	initial_delay = atoi(argv[1]);
-	translen = atoi(argv[2]);
-	transtime = atoi(argv[3]);
-	num_frames = atoi(argv[4]);
-	fb_x = atoi(argv[5]);
-	fb_y = atoi(argv[6]);
-	width = atoi(argv[7]);
-	height = atoi(argv[8]);
-	debug("NEW PROCESS: fb_x: %d, fb_y: %d, width: %d, height: %d, "
-		"translen: %d, transtime: %d, num_frames: %d\n",
-		fb_x, fb_y, width, height, translen, transtime, num_frames);
-}
-
-void init_fb(void)
-{
-	int ret;
-	size_t map_size;
-
-	fb_fd = open(FB_DEV_NAME, O_RDWR, 0);
-	perror_exit(fb_fd < 0, "open");
-
-	ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbinfo);
-	perror_exit(ret != 0, "ioctl");
-	debug("fbinfo: xres: %d, xres_virt: %d, yres: %d, yres_virt: %d\n",
-		fbinfo.xres, fbinfo.xres_virtual,
-		fbinfo.yres, fbinfo.yres_virtual);
-
-	fb_line_w= fbinfo.xres_virtual * (fbinfo.bits_per_pixel >> 3);
-	fb_off = fb_y * fb_line_w + fb_x * (fbinfo.bits_per_pixel >> 3);
-	fb_buf_w = width * (fbinfo.bits_per_pixel >> 3);
-	map_size = fb_line_w * fbinfo.yres_virtual;
-
-	fb_addr = mmap(0, map_size, PROT_WRITE | PROT_READ,
-			MAP_SHARED, fb_fd, 0);
-	perror_exit(fb_addr == MAP_FAILED, "mmap");
-}
-
-int main(int argc, char *argv[])
-{
-	int ret = 0;
-	int i;
-	struct v4l2_buffer buf;
-	struct v4l2_requestbuffers reqbuf;
-	enum v4l2_buf_type type;
-	int last = 0;
-
-	init_usage(argc, argv);
-	init_fb();
-
-	srand(time(NULL) ^ getpid());
-	sleep(initial_delay);
-
-	init_video_dev();
-
-	memzero(reqbuf);
-	reqbuf.count	= NUM_BUFS;
-	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	type		= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	reqbuf.memory	= V4L2_MEMORY_MMAP;
-	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-	perror_exit(ret != 0, "ioctl");
-	num_src_bufs = reqbuf.count;
-	debug("Got %d src buffers\n", num_src_bufs);
-
-	reqbuf.count	= NUM_BUFS;
-	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-	perror_exit(ret != 0, "ioctl");
-	num_dst_bufs = reqbuf.count;
-	debug("Got %d dst buffers\n", num_dst_bufs);
-
-	for (i = 0; i < num_src_bufs; ++i) {
-		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-		buf.memory	= V4L2_MEMORY_MMAP;
-		buf.index	= i;
-
-		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-		perror_exit(ret != 0, "ioctl");
-		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-
-		src_buf_size[i] = buf.length;
-		p_src_buf[i] = mmap(NULL, buf.length,
-				    PROT_READ | PROT_WRITE, MAP_SHARED,
-				    vid_fd, buf.m.offset);
-		perror_exit(MAP_FAILED == p_src_buf[i], "mmap");
-	}
-
-	for (i = 0; i < num_dst_bufs; ++i) {
-		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory	= V4L2_MEMORY_MMAP;
-		buf.index	= i;
-
-		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-		perror_exit(ret != 0, "ioctl");
-		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-
-		dst_buf_size[i] = buf.length;
-		p_dst_buf[i] = mmap(NULL, buf.length,
-				    PROT_READ | PROT_WRITE, MAP_SHARED,
-				    vid_fd, buf.m.offset);
-		perror_exit(MAP_FAILED == p_dst_buf[i], "mmap");
-	}
-
-	for (i = 0; i < num_src_bufs; ++i) {
-
-		gen_src_buf(p_src_buf[i], src_buf_size[i]);
-
-		memzero(buf);
-		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-		buf.memory	= V4L2_MEMORY_MMAP;
-		buf.index	= i;
-
-		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-		perror_exit(ret != 0, "ioctl");
-	}
-
-	for (i = 0; i < num_dst_bufs; ++i) {
-		memzero(buf);
-		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory	= V4L2_MEMORY_MMAP;
-		buf.index	= i;
-
-		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-		perror_exit(ret != 0, "ioctl");
-	}
-
-	type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
-	debug("STREAMON OUTPUT (%d): %d\n", VIDIOC_STREAMON, ret);
-	perror_exit(ret != 0, "ioctl");
-
-	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
-	debug("STREAMON CAPTURE (%d): %d\n", VIDIOC_STREAMON, ret);
-	perror_exit(ret != 0, "ioctl");
-
-	while (num_frames) {
-		fd_set read_fds;
-		int r;
-
-		FD_ZERO(&read_fds);
-		FD_SET(vid_fd, &read_fds);
-
-		debug("Before select\n");
-		//r = select(vid_fd + 1, &read_fds, NULL, NULL, 0);
-		//perror_exit(r < 0, "select");
-		debug("After select\n");
-
-		if (num_frames == 1)
-			last = 1;
-		if (read_frame(last)) {
-			fprintf(stderr, "Read frame failed\n");
-			break;
-		}
-		--num_frames;
-		printf("FRAMES LEFT: %d\n", num_frames);
-	}
-
-
-done:
-	close(vid_fd);
-	close(fb_fd);
-
-	for (i = 0; i < num_src_bufs; ++i)
-		munmap(p_src_buf[i], src_buf_size[i]);
-
-	for (i = 0; i < num_dst_bufs; ++i)
-		munmap(p_dst_buf[i], dst_buf_size[i]);
-
-	return ret;
-}
-
-
---------------020804060303050904060903--
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0979235809==--
