@@ -1,177 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4593 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472Ab3LJNZQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58380 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754109Ab3LCQhm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Dec 2013 11:37:42 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 07/15] adv7604: set CEC address (SPA) in EDID
-Date: Tue, 10 Dec 2013 14:23:12 +0100
-Message-Id: <98d775240567829432a4e5054487d925671a6263.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v2 2/3] af9035: fix broken I2C and USB I/O
+Date: Tue,  3 Dec 2013 18:37:27 +0200
+Message-Id: <1386088648-13463-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1386088648-13463-1-git-send-email-crope@iki.fi>
+References: <1386088648-13463-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+There was three small buffer len calculation bugs which caused
+driver non-working. These are coming from recent commit:
+commit 7760e148350bf6df95662bc0db3734e9d991cb03
+[media] af9035: Don't use dynamic static allocation
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/adv7604.c | 83 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 70 insertions(+), 13 deletions(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index b53373b..5e40a60 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -72,6 +72,7 @@ struct adv7604_state {
- 		u32 present;
- 		unsigned blocks;
- 	} edid;
-+	u16 spa_port_a;
- 	struct v4l2_fract aspect_ratio;
- 	u32 rgb_quantization_range;
- 	struct workqueue_struct *work_queues;
-@@ -531,9 +532,6 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
- 
- 	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n", __func__, len);
- 
--	/* Disables I2C access to internal EDID ram from DDC port */
--	rep_write_and_or(sd, 0x77, 0xf0, 0x0);
--
- 	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
- 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
- 				I2C_SMBUS_BLOCK_MAX, val + i);
-@@ -1623,9 +1621,39 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	return 0;
- }
- 
-+static int get_edid_spa_location(struct v4l2_subdev *sd, const u8 *edid)
-+{
-+	u8 d;
-+
-+	if ((edid[0x7e] != 1) ||
-+	    (edid[0x80] != 0x02) ||
-+	    (edid[0x81] != 0x03)) {
-+		return -1;
-+	}
-+
-+	/* search Vendor Specific Data Block (tag 3) */
-+	d = edid[0x82] & 0x7f;
-+	if (d > 4) {
-+		int i = 0x84;
-+		int end = 0x80 + d;
-+
-+		do {
-+			u8 tag = edid[i] >> 5;
-+			u8 len = edid[i] & 0x1f;
-+
-+			if ((tag == 3) && (len >= 5))
-+				return i + 4;
-+			i += len + 1;
-+		} while (i < end);
-+	}
-+	return -1;
-+}
-+
- static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index c8fcd78..403bf43 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -131,7 +131,7 @@ static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
  {
- 	struct adv7604_state *state = to_state(sd);
-+	int spa_loc = get_edid_spa_location(sd, edid->edid);
-+	int tmp = 0;
- 	int err;
+ 	u8 wbuf[MAX_XFER_SIZE];
+ 	u8 mbox = (reg >> 16) & 0xff;
+-	struct usb_req req = { CMD_MEM_WR, mbox, sizeof(wbuf), wbuf, 0, NULL };
++	struct usb_req req = { CMD_MEM_WR, mbox, 6 + len, wbuf, 0, NULL };
  
- 	if (edid->pad > ADV7604_EDID_PORT_D)
-@@ -1633,16 +1661,20 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	if (edid->start_block != 0)
- 		return -EINVAL;
- 	if (edid->blocks == 0) {
--		/* Pull down the hotplug pin */
-+		/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 		state->edid.present &= ~(1 << edid->pad);
- 		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
--		/* Disables I2C access to internal EDID ram from DDC port */
--		rep_write_and_or(sd, 0x77, 0xf0, 0x0);
--		state->edid.blocks = 0;
-+		rep_write_and_or(sd, 0x77, 0xf0, state->edid.present);
-+
- 		/* Fall back to a 16:9 aspect ratio */
- 		state->aspect_ratio.numerator = 16;
- 		state->aspect_ratio.denominator = 9;
--		v4l2_dbg(2, debug, sd, "%s: clear edid\n", __func__);
-+
-+		if (!state->edid.present)
-+			state->edid.blocks = 0;
-+
-+		v4l2_dbg(2, debug, sd, "%s: clear EDID pad %d, edid.present = 0x%x\n",
-+				__func__, edid->pad, state->edid.present);
- 		return 0;
- 	}
- 	if (edid->blocks > 2) {
-@@ -1652,19 +1684,45 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	if (!edid->edid)
- 		return -EINVAL;
+ 	if (6 + len > sizeof(wbuf)) {
+ 		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
+@@ -238,7 +238,7 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 		} else {
+ 			/* I2C */
+ 			u8 buf[MAX_XFER_SIZE];
+-			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
++			struct usb_req req = { CMD_I2C_RD, 0, 5 + msg[0].len,
+ 					buf, msg[1].len, msg[1].buf };
  
-+	/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
--	state->edid.present &= ~(1 << edid->pad);
--	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
-+	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
-+	rep_write_and_or(sd, 0x77, 0xf0, 0x00);
-+
-+	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
-+			__func__, edid->pad, state->edid.present);
-+	switch (edid->pad) {
-+	case ADV7604_EDID_PORT_A:
-+		state->spa_port_a = edid->edid[spa_loc];
-+		break;
-+	case ADV7604_EDID_PORT_B:
-+		rep_write(sd, 0x70, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
-+		rep_write(sd, 0x71, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		break;
-+	case ADV7604_EDID_PORT_C:
-+		rep_write(sd, 0x72, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
-+		rep_write(sd, 0x73, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		break;
-+	case ADV7604_EDID_PORT_D:
-+		rep_write(sd, 0x74, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
-+		rep_write(sd, 0x75, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		break;
-+	}
-+	rep_write(sd, 0x76, (spa_loc < 0) ? 0x00 : spa_loc);
-+	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc < 0) ? 0x00 : (spa_loc >> 2) & 0x40);
-+
-+	if (spa_loc > 0)
-+		edid->edid[spa_loc] = state->spa_port_a;
+ 			if (5 + msg[0].len > sizeof(buf)) {
+@@ -274,8 +274,8 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 		} else {
+ 			/* I2C */
+ 			u8 buf[MAX_XFER_SIZE];
+-			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+-					0, NULL };
++			struct usb_req req = { CMD_I2C_WR, 0, 5 + msg[0].len,
++					buf, 0, NULL };
  
- 	memcpy(state->edid.edid, edid->edid, 128 * edid->blocks);
- 	state->edid.blocks = edid->blocks;
- 	state->aspect_ratio = v4l2_calc_aspect_ratio(edid->edid[0x15],
- 			edid->edid[0x16]);
--	state->edid.present |= edid->pad;
-+	state->edid.present |= 1 << edid->pad;
- 
- 	err = edid_write_block(sd, 128 * edid->blocks, state->edid.edid);
- 	if (err < 0) {
--		v4l2_err(sd, "error %d writing edid\n", err);
-+		v4l2_err(sd, "error %d writing edid pad %d\n", err, edid->pad);
- 		return err;
- 	}
- 
-@@ -1984,7 +2042,6 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 				      ADI recommended setting [REF_01, c. 2.3.3] */
- 	cp_write(sd, 0xc9, 0x2d); /* use prim_mode and vid_std as free run resolution
- 				     for digital formats */
--	rep_write(sd, 0x76, 0xc0); /* SPA location for port B, C and D */
- 
- 	/* TODO from platform data */
- 	afe_write(sd, 0xb5, 0x01);  /* Setting MCLK to 256Fs */
+ 			if (5 + msg[0].len > sizeof(buf)) {
+ 				dev_warn(&d->udev->dev,
 -- 
-1.8.4.rc3
+1.8.4.2
 
