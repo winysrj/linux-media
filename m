@@ -1,83 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:34733 "EHLO smtp.outflux.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757058Ab3LESji (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Dec 2013 13:39:38 -0500
-Date: Thu, 5 Dec 2013 10:38:19 -0800
-From: Kees Cook <keescook@chromium.org>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Rusty Russell <rusty@rustcorp.com.au>
-Cc: linux-kernel@vger.kernel.org, Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Chen Liqin <liqin.linux@gmail.com>,
-	Lennox Wu <lennox.wu@gmail.com>,
-	Glauber Costa <glommer@parallels.com>,
-	Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Michal Hocko <mhocko@suse.cz>, linux-doc@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH] doc: no singing
-Message-ID: <20131205183819.GA2217@www.outflux.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:11548 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535Ab3LCSWQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 13:22:16 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MX8000EHTP2G740@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 03 Dec 2013 18:22:14 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MX800D0JTP1H260@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 03 Dec 2013 18:22:14 +0000 (GMT)
+Message-id: <529E2155.9090400@samsung.com>
+Date: Tue, 03 Dec 2013 19:22:13 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] git://linuxtv.org/snawrocki/samsung.git
+ v3.14-m2m-ioctl-helpers
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stop that, stop that! You're not going to do a song while I'm here.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
-https://lkml.org/lkml/2013/12/4/786
-http://www.youtube.com/watch?v=g3YiPC91QUk#t=62
----
- Documentation/cgroups/resource_counter.txt |    2 +-
- Documentation/video4linux/si476x.txt       |    2 +-
- arch/score/lib/checksum.S                  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+The following changes since commit fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575:
 
-diff --git a/Documentation/cgroups/resource_counter.txt b/Documentation/cgroups/resource_counter.txt
-index c4d99ed0b418..caa6d662b230 100644
---- a/Documentation/cgroups/resource_counter.txt
-+++ b/Documentation/cgroups/resource_counter.txt
-@@ -95,7 +95,7 @@ to work with it.
- 
-  f. u64 res_counter_uncharge_until
- 		(struct res_counter *rc, struct res_counter *top,
--		 unsinged long val)
-+		 unsigned long val)
- 
- 	Almost same as res_cunter_uncharge() but propagation of uncharge
- 	stops when rc == top. This is useful when kill a res_coutner in
-diff --git a/Documentation/video4linux/si476x.txt b/Documentation/video4linux/si476x.txt
-index 2f9b4875ab8a..616607955aaf 100644
---- a/Documentation/video4linux/si476x.txt
-+++ b/Documentation/video4linux/si476x.txt
-@@ -147,7 +147,7 @@ The drivers exposes following files:
-   --------------------------------------------------------------------
-   0x12		| readfreq	| Current tuned frequency
-   --------------------------------------------------------------------
--  0x14		| freqoff	| Singed frequency offset in units of
-+  0x14		| freqoff	| Signed frequency offset in units of
-   		| 		| 2ppm
-   --------------------------------------------------------------------
-   0x15		| rssi		| Signed value of RSSI in dBuV
-diff --git a/arch/score/lib/checksum.S b/arch/score/lib/checksum.S
-index 706157edc7d5..1141f2b4a501 100644
---- a/arch/score/lib/checksum.S
-+++ b/arch/score/lib/checksum.S
-@@ -137,7 +137,7 @@ ENTRY(csum_partial)
- 	ldi r25, 0
- 	mv r10, r5
- 	cmpi.c	r5, 0x8
--	blt	small_csumcpy		/* < 8(singed) bytes to copy */
-+	blt	small_csumcpy		/* < 8(signed) bytes to copy */
- 	cmpi.c	r5, 0x0
- 	beq	out
- 	andri.c	r25, src, 0x1		/* odd buffer? */
--- 
-1.7.9.5
+  [media] media: marvell-ccic: use devm to release clk (2013-11-29 14:46:47 -0200)
 
+are available in the git repository at:
 
--- 
-Kees Cook
-Chrome OS Security
+  git://linuxtv.org/snawrocki/samsung.git v3.14-m2m-ioctl-helpers
+
+for you to fetch changes up to 36b62509d06080f3c00100a41a2b5d87a83d1d49:
+
+  s5p-g2d: Use mem-to-mem ioctl helpers (2013-12-02 22:34:35 +0100)
+
+----------------------------------------------------------------
+Sylwester Nawrocki (5):
+      V4L: Add mem2mem ioctl and file operation helpers
+      mem2mem_testdev: Use mem-to-mem ioctl and vb2 helpers
+      exynos4-is: Use mem-to-mem ioctl helpers
+      s5p-jpeg: Use mem-to-mem ioctl helpers
+      s5p-g2d: Use mem-to-mem ioctl helpers
+
+ drivers/media/platform/exynos4-is/fimc-core.h |    2 -
+ drivers/media/platform/exynos4-is/fimc-m2m.c  |  148 +++++-------------------
+ drivers/media/platform/mem2mem_testdev.c      |  152 +++++--------------------
+ drivers/media/platform/s5p-g2d/g2d.c          |  124 ++++----------------
+ drivers/media/platform/s5p-g2d/g2d.h          |    1 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c   |  134 ++++------------------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h   |    2 -
+ drivers/media/v4l2-core/v4l2-mem2mem.c        |  126 ++++++++++++++++++++
+ include/media/v4l2-fh.h                       |    4 +
+ include/media/v4l2-mem2mem.h                  |   24 ++++
+ 10 files changed, 253 insertions(+), 464 deletions(-)
