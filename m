@@ -1,400 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37668 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751059Ab3LPWIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 17:08:24 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout2.samsung.com ([203.254.224.25]:18075 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845Ab3LCNOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 08:14:52 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MX8008RMFGRZZD0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 03 Dec 2013 22:14:51 +0900 (KST)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v3 7/7] msi3101: convert to SDR API
-Date: Tue, 17 Dec 2013 00:08:08 +0200
-Message-Id: <1387231688-8647-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1387231688-8647-1-git-send-email-crope@iki.fi>
-References: <1387231688-8647-1-git-send-email-crope@iki.fi>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>, lxr1234@hotmail.com,
+	jtp.park@samsung.com, m.chehab@samsung.com,
+	kyungmin.park@samsung.com
+Subject: [PATCH] media: v4l2-dev: fix video device index assignment
+Date: Tue, 03 Dec 2013 14:14:29 +0100
+Message-id: <1386076469-26761-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert to SDR API.
+The side effect of commit 1056e4388b045 ("v4l2-dev: Fix race condition on
+__video_register_device") is the increased number of index value assigned
+on video_device registration. Before that commit video_devices were
+numbered from 0, after it, the indexes starts from 1, because get_index()
+always count the device, which is being registered. Some device drivers
+rely on video_device index number for internal purposes, i.e. s5p-mfc
+driver stopped working after that patch. This patch restores the old method
+of numbering the video_device indexes.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 204 ++++++++++++++++++++--------
- 1 file changed, 148 insertions(+), 56 deletions(-)
+In my opinion this patch should be applied also to stable v3.12 series.
+---
+ drivers/media/v4l2-core/v4l2-dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 16ce417..9c54c63 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -386,10 +386,39 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index b5aaaac427ad..0a30dbf3d05c 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -872,8 +872,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
  
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
--#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
--#define V4L2_PIX_FMT_SDR_S14     v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
-+#define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
-+#define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
+ 	/* Should not happen since we thought this minor was free */
+ 	WARN_ON(video_device[vdev->minor] != NULL);
+-	video_device[vdev->minor] = vdev;
+ 	vdev->index = get_index(vdev);
++	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
  
-+static const struct v4l2_frequency_band bands_adc[] = {
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  1200000,
-+		.rangehigh  = 15000000,
-+	},
-+};
-+
-+static const struct v4l2_frequency_band bands_rf[] = {
-+	{
-+		.tuner = 1,
-+		.type = V4L2_TUNER_RF,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =   49000000 / 62.5,
-+		.rangehigh  =  263000000 / 62.5,
-+	}, {
-+		.tuner = 1,
-+		.type = V4L2_TUNER_RF,
-+		.index = 1,
-+		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  390000000 / 62.5,
-+		.rangehigh  =  960000000 / 62.5,
-+	},
-+};
-+
- /* stream formats */
- struct msi3101_format {
- 	char	*name;
-@@ -437,6 +466,7 @@ struct msi3101_state {
- 	/* Pointer to our usb_device, will be NULL after unplug */
- 	struct usb_device *udev; /* Both mutexes most be hold when setting! */
- 
-+	unsigned int f_adc, f_tuner;
- 	u32 pixelformat;
- 
- 	unsigned int isoc_errors; /* number of contiguous ISOC errors */
-@@ -479,16 +509,6 @@ leave:
- }
- 
- /*
-- * Integer to 32-bit IEEE floating point representation routine is taken
-- * from Radeon R600 driver (drivers/gpu/drm/radeon/r600_blit_kms.c).
-- *
-- * TODO: Currently we do conversion here in Kernel, but in future that will
-- * be moved to the libv4l2 library as video format conversions are.
-- */
--#define I2F_FRAC_BITS  23
--#define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
--
--/*
-  * +===========================================================================
-  * |   00-1023 | USB packet type '504'
-  * +===========================================================================
-@@ -1016,12 +1036,11 @@ static int msi3101_querycap(struct file *file, void *fh,
- 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
- 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
--			V4L2_CAP_READWRITE;
-+			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
--
- /* Videobuf2 operations */
- static int msi3101_queue_setup(struct vb2_queue *vq,
- 		const struct v4l2_format *fmt, unsigned int *nbuffers,
-@@ -1037,9 +1056,9 @@ static int msi3101_queue_setup(struct vb2_queue *vq,
- 	 *   3, wMaxPacketSize 3x 1024 bytes
- 	 * 504, max IQ sample pairs per 1024 frame
- 	 *   2, two samples, I and Q
--	 *   4, 32-bit float
-+	 *   2, 16-bit is enough for single sample
- 	 */
--	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 4); /* = 12096 */
-+	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 2);
- 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
- 			__func__, *nbuffers, sizes[0]);
- 	return 0;
-@@ -1527,28 +1546,27 @@ static struct vb2_ops msi3101_vb2_ops = {
- 
- static int msi3101_enum_input(struct file *file, void *fh, struct v4l2_input *i)
- {
--	if (i->index != 0)
-+	if (i->index > 0)
- 		return -EINVAL;
--
--	strlcpy(i->name, "SDR data", sizeof(i->name));
--	i->type = V4L2_INPUT_TYPE_CAMERA;
--
-+	strlcpy(i->name, "Antenna #0", sizeof(i->name));
-+	i->type = V4L2_INPUT_TYPE_TUNER;
- 	return 0;
- }
- 
- static int msi3101_g_input(struct file *file, void *fh, unsigned int *i)
- {
- 	*i = 0;
--
- 	return 0;
- }
- 
- static int msi3101_s_input(struct file *file, void *fh, unsigned int i)
- {
--	return i ? -EINVAL : 0;
-+	if (i > 0)
-+		return -EINVAL;
-+	return 0;
- }
- 
--static int msi3101_enum_fmt_vid_cap(struct file *file, void *priv,
-+static int msi3101_enum_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_fmtdesc *f)
- {
- 	struct msi3101_state *s = video_drvdata(file);
-@@ -1563,70 +1581,70 @@ static int msi3101_enum_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int msi3101_g_fmt_vid_cap(struct file *file, void *priv,
-+static int msi3101_g_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct msi3101_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
--	f->fmt.pix.pixelformat = s->pixelformat;
-+	f->fmt.sdr.pixelformat = s->pixelformat;
- 
- 	return 0;
- }
- 
--static int msi3101_s_fmt_vid_cap(struct file *file, void *priv,
-+static int msi3101_s_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct msi3101_state *s = video_drvdata(file);
- 	struct vb2_queue *q = &s->vb_queue;
- 	int i;
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.pix.pixelformat);
-+			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
- 
- 	for (i = 0; i < NUM_FORMATS; i++) {
--		if (formats[i].pixelformat == f->fmt.pix.pixelformat) {
--			s->pixelformat = f->fmt.pix.pixelformat;
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			s->pixelformat = f->fmt.sdr.pixelformat;
- 			return 0;
- 		}
- 	}
- 
--	f->fmt.pix.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
- 	s->pixelformat = formats[0].pixelformat;
- 
- 	return 0;
- }
- 
--static int msi3101_try_fmt_vid_cap(struct file *file, void *priv,
-+static int msi3101_try_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct msi3101_state *s = video_drvdata(file);
- 	int i;
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.pix.pixelformat);
-+			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
- 	for (i = 0; i < NUM_FORMATS; i++) {
--		if (formats[i].pixelformat == f->fmt.pix.pixelformat)
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
- 			return 0;
- 	}
- 
--	f->fmt.pix.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
- 
- 	return 0;
- }
- 
--static int vidioc_s_tuner(struct file *file, void *priv,
-+static int msi3101_s_tuner(struct file *file, void *priv,
- 		const struct v4l2_tuner *v)
- {
- 	struct msi3101_state *s = video_drvdata(file);
-@@ -1635,35 +1653,106 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
-+static int msi3101_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
- {
- 	struct msi3101_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	strcpy(v->name, "SDR RX");
--	v->capability = V4L2_TUNER_CAP_LOW;
-+	if (v->index == 0) {
-+		strlcpy(v->name, "ADC: Mirics MSi2500", sizeof(v->name));
-+		v->type = V4L2_TUNER_ADC;
-+		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =   1200000;
-+		v->rangehigh = 15000000;
-+	} else if (v->index == 1) {
-+		strlcpy(v->name, "RF: Mirics MSi001", sizeof(v->name));
-+		v->type = V4L2_TUNER_RF;
-+		v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =    49000000 / 62.5;
-+		v->rangehigh =  960000000 / 62.5;
-+	} else {
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- }
- 
--static int vidioc_s_frequency(struct file *file, void *priv,
-+static int msi3101_g_frequency(struct file *file, void *priv,
-+		struct v4l2_frequency *f)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	int ret  = 0;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
-+			__func__, f->tuner, f->type);
-+
-+	if (f->tuner == 0)
-+		f->frequency = s->f_adc;
-+	else if (f->tuner == 1)
-+		f->frequency = s->f_tuner;
-+	else
-+		return -EINVAL;
-+
-+	return ret;
-+}
-+
-+static int msi3101_s_frequency(struct file *file, void *priv,
- 		const struct v4l2_frequency *f)
- {
- 	struct msi3101_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s: frequency=%lu Hz (%u)\n",
--			__func__, f->frequency * 625UL / 10UL, f->frequency);
-+	int ret;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
-+			__func__, f->tuner, f->type, f->frequency);
-+
-+	if (f->tuner == 0) {
-+		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
-+				__func__, f->frequency);
-+		s->f_adc = f->frequency;
-+		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_sampling_rate,
-+				f->frequency);
-+	} else if (f->tuner == 1) {
-+		dev_dbg(&s->udev->dev, "%s: RF frequency=%lu Hz\n",
-+				__func__, f->frequency * 625UL / 10UL);
-+		s->f_tuner = f->frequency;
-+		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
-+				f->frequency * 625UL / 10UL);
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int msi3101_enum_freq_bands(struct file *file, void *priv,
-+		struct v4l2_frequency_band *band)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
-+			__func__, band->tuner, band->type, band->index);
-+
-+	if (band->tuner == 0) {
-+		if (band->index >= ARRAY_SIZE(bands_adc))
-+			return -EINVAL;
-+
-+		*band = bands_adc[band->index];
-+	} else if (band->tuner == 1) {
-+		if (band->index >= ARRAY_SIZE(bands_rf))
-+			return -EINVAL;
- 
--	return v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
--			f->frequency * 625UL / 10UL);
-+		*band = bands_rf[band->index];
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return 0;
- }
- 
- static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
- 	.vidioc_querycap          = msi3101_querycap,
- 
--	.vidioc_enum_fmt_vid_cap  = msi3101_enum_fmt_vid_cap,
--	.vidioc_g_fmt_vid_cap     = msi3101_g_fmt_vid_cap,
--	.vidioc_s_fmt_vid_cap     = msi3101_s_fmt_vid_cap,
--	.vidioc_try_fmt_vid_cap   = msi3101_try_fmt_vid_cap,
-+	.vidioc_enum_fmt_sdr_cap  = msi3101_enum_fmt_sdr_cap,
-+	.vidioc_g_fmt_sdr_cap     = msi3101_g_fmt_sdr_cap,
-+	.vidioc_s_fmt_sdr_cap     = msi3101_s_fmt_sdr_cap,
-+	.vidioc_try_fmt_sdr_cap   = msi3101_try_fmt_sdr_cap,
- 
- 	.vidioc_enum_input        = msi3101_enum_input,
- 	.vidioc_g_input           = msi3101_g_input,
-@@ -1679,9 +1768,12 @@ static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
- 	.vidioc_streamon          = vb2_ioctl_streamon,
- 	.vidioc_streamoff         = vb2_ioctl_streamoff,
- 
--	.vidioc_g_tuner           = vidioc_g_tuner,
--	.vidioc_s_tuner           = vidioc_s_tuner,
--	.vidioc_s_frequency       = vidioc_s_frequency,
-+	.vidioc_g_tuner           = msi3101_g_tuner,
-+	.vidioc_s_tuner           = msi3101_s_tuner,
-+
-+	.vidioc_g_frequency       = msi3101_g_frequency,
-+	.vidioc_s_frequency       = msi3101_s_frequency,
-+	.vidioc_enum_freq_bands   = msi3101_enum_freq_bands,
- 
- 	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-@@ -1844,7 +1936,7 @@ static int msi3101_probe(struct usb_interface *intf,
- 	s->udev = udev;
- 
- 	/* Init videobuf2 queue structure */
--	s->vb_queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
- 	s->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
- 	s->vb_queue.drv_priv = s;
- 	s->vb_queue.buf_struct_size = sizeof(struct msi3101_frame_buf);
-@@ -1892,7 +1984,7 @@ static int msi3101_probe(struct usb_interface *intf,
- 	s->vdev.v4l2_dev = &s->v4l2_dev;
- 	s->vdev.lock = &s->v4l2_lock;
- 
--	ret = video_register_device(&s->vdev, VFL_TYPE_GRABBER, -1);
-+	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
- 	if (ret < 0) {
- 		dev_err(&s->udev->dev,
- 				"Failed to register as video device (%d)\n",
+ 	if (vdev->ioctl_ops)
 -- 
-1.8.4.2
+1.7.9.5
 
