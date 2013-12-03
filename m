@@ -1,46 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:61878 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751945Ab3LPIWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 03:22:46 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH 1/2] [media] Documentation/DocBook/media/v4l/subdev-formats.xml: fix a typo
-Date: Mon, 16 Dec 2013 09:16:45 +0100
-Message-Id: <1387181806-17021-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
-References: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35693 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753309Ab3LCNYB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Dec 2013 08:24:01 -0500
+Date: Tue, 3 Dec 2013 15:23:56 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, lxr1234@hotmail.com,
+	jtp.park@samsung.com, m.chehab@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH] media: v4l2-dev: fix video device index assignment
+Message-ID: <20131203132355.GB30652@valkosipuli.retiisi.org.uk>
+References: <1386076469-26761-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1386076469-26761-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The xref to the v4l2-mbus-pixelcode-yuv8 table gets rendered as "Table
-4.22, “YUV Formats”", so use the verb in the third person singular
-because it refers to "Table":
-  s/list/lists/
+Hi, Marek!
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the patch.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index f72c1cc..bbe30cd 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -1178,7 +1178,7 @@
-       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
-       </para>
- 
--	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> list existing packet YUV
-+	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> lists existing packet YUV
- 	formats and describes the organization of each pixel data in each sample.
- 	When a format pattern is split across multiple samples each of the samples
- 	in the pattern is described.</para>
+On Tue, Dec 03, 2013 at 02:14:29PM +0100, Marek Szyprowski wrote:
+> The side effect of commit 1056e4388b045 ("v4l2-dev: Fix race condition on
+> __video_register_device") is the increased number of index value assigned
+> on video_device registration. Before that commit video_devices were
+> numbered from 0, after it, the indexes starts from 1, because get_index()
+> always count the device, which is being registered. Some device drivers
+> rely on video_device index number for internal purposes, i.e. s5p-mfc
+> driver stopped working after that patch. This patch restores the old method
+> of numbering the video_device indexes.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+> In my opinion this patch should be applied also to stable v3.12 series.
+
+I agree.
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-1.8.5.1
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
