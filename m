@@ -1,43 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4720 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab3LEHk1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 02:40:27 -0500
-Message-ID: <52A02DCF.6070404@xs4all.nl>
-Date: Thu, 05 Dec 2013 08:39:59 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: dinesh ram <dino_mc4@yahoo.co.in>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Dinesh Ram <dinesh.ram@cern.ch>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"edubezval@gmail.com" <edubezval@gmail.com>,
-	"dinesh.ram086@gmail.com" <dinesh.ram086@gmail.com>
-Subject: Re: [REVIEW PATCH 2/9] si4713 : Modified i2c driver to handle cases
- where interrupts are not used
-References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch> <2f90947b4ca40f9a5c6d87cecd7bc0b7a5f27d22.1381850640.git.dinesh.ram@cern.ch> <20131203133514.4a4da7d1.m.chehab@samsung.com> <529E0F8D.9030804@xs4all.nl> <1386129496.79520.YahooMailNeo@web190906.mail.sg3.yahoo.com>
-In-Reply-To: <1386129496.79520.YahooMailNeo@web190906.mail.sg3.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48635 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932629Ab3LDP2f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 10:28:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/5] v4l: atmel-isi: Use devm_* managed allocators
+Date: Wed,  4 Dec 2013 16:28:33 +0100
+Message-Id: <1386170916-13723-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dinesh,
+This simplifies error and cleanup code paths.
 
-On 12/04/2013 04:58 AM, dinesh ram wrote:
-> Hello Mauro and Hans,
-> 
-> I agree with Hans that this driver has been sitting here for some time now.
-> As stated, If this can be a separate follow-up patch, it would be great.
-> 
-> @Hans : Yes I can have a go at it and send you the changes to test against the hardware.
-> But I wont be able to do it before next week.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c | 56 +++++++++------------------
+ 1 file changed, 19 insertions(+), 37 deletions(-)
 
-I'll have time tomorrow, so I'll make the follow-up patch. This is taking way too
-long, so I want to push this forward as quickly as I can. Normally this never takes
-so much time...
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index b46c0ed..faa7f8d 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -862,7 +862,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 	struct atmel_isi *isi = container_of(soc_host,
+ 					struct atmel_isi, soc_host);
+ 
+-	free_irq(isi->irq, isi);
+ 	soc_camera_host_unregister(soc_host);
+ 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+ 	dma_free_coherent(&pdev->dev,
+@@ -870,12 +869,8 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ 
+-	iounmap(isi->regs);
+ 	clk_unprepare(isi->mck);
+-	clk_put(isi->mck);
+ 	clk_unprepare(isi->pclk);
+-	clk_put(isi->pclk);
+-	kfree(isi);
+ 
+ 	return 0;
+ }
+@@ -884,7 +879,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ {
+ 	unsigned int irq;
+ 	struct atmel_isi *isi;
+-	struct clk *pclk;
+ 	struct resource *regs;
+ 	int ret, i;
+ 	struct device *dev = &pdev->dev;
+@@ -898,26 +892,20 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!regs)
+-		return -ENXIO;
+-
+-	pclk = clk_get(&pdev->dev, "isi_clk");
+-	if (IS_ERR(pclk))
+-		return PTR_ERR(pclk);
+-
+-	ret = clk_prepare(pclk);
+-	if (ret)
+-		goto err_clk_prepare_pclk;
+-
+-	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
++	isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi), GFP_KERNEL);
+ 	if (!isi) {
+-		ret = -ENOMEM;
+ 		dev_err(&pdev->dev, "Can't allocate interface!\n");
+-		goto err_alloc_isi;
++		return -ENOMEM;
+ 	}
+ 
+-	isi->pclk = pclk;
++	isi->pclk = devm_clk_get(&pdev->dev, "isi_clk");
++	if (IS_ERR(isi->pclk))
++		return PTR_ERR(isi->pclk);
++
++	ret = clk_prepare(isi->pclk);
++	if (ret)
++		return ret;
++
+ 	isi->pdata = pdata;
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+@@ -925,11 +913,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ 
+ 	/* Get ISI_MCK, provided by programmable clock or external clock */
+-	isi->mck = clk_get(dev, "isi_mck");
++	isi->mck = devm_clk_get(dev, "isi_mck");
+ 	if (IS_ERR(isi->mck)) {
+ 		dev_err(dev, "Failed to get isi_mck\n");
+ 		ret = PTR_ERR(isi->mck);
+-		goto err_clk_get;
++		goto err_clk_get_mck;
+ 	}
+ 
+ 	ret = clk_prepare(isi->mck);
+@@ -964,9 +952,10 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_alloc_ctx;
+ 	}
+ 
+-	isi->regs = ioremap(regs->start, resource_size(regs));
+-	if (!isi->regs) {
+-		ret = -ENOMEM;
++	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	isi->regs = devm_ioremap_resource(&pdev->dev, regs);
++	if (IS_ERR(isi->regs)) {
++		ret = PTR_ERR(isi->regs);
+ 		goto err_ioremap;
+ 	}
+ 
+@@ -983,7 +972,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_req_irq;
+ 	}
+ 
+-	ret = request_irq(irq, isi_interrupt, 0, "isi", isi);
++	ret = devm_request_irq(&pdev->dev, irq, isi_interrupt, 0, "isi", isi);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Unable to request irq %d\n", irq);
+ 		goto err_req_irq;
+@@ -1005,9 +994,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_register_soc_camera_host:
+-	free_irq(isi->irq, isi);
+ err_req_irq:
+-	iounmap(isi->regs);
+ err_ioremap:
+ 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+ err_alloc_ctx:
+@@ -1019,13 +1006,8 @@ err_alloc_descriptors:
+ err_set_mck_rate:
+ 	clk_unprepare(isi->mck);
+ err_clk_prepare_mck:
+-	clk_put(isi->mck);
+-err_clk_get:
+-	kfree(isi);
+-err_alloc_isi:
+-	clk_unprepare(pclk);
+-err_clk_prepare_pclk:
+-	clk_put(pclk);
++err_clk_get_mck:
++	clk_unprepare(isi->pclk);
+ 
+ 	return ret;
+ }
+-- 
+1.8.3.2
 
