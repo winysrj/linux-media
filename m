@@ -1,96 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50196 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755244Ab3L1MQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 20/24] em28xx: Fix em28xx deplock
-Date: Sat, 28 Dec 2013 10:16:12 -0200
-Message-Id: <1388232976-20061-21-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:12090 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932307Ab3LDNmt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 08:42:49 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MXA0066DBFBKA80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Dec 2013 13:42:47 +0000 (GMT)
+Message-id: <529F3156.8010100@samsung.com>
+Date: Wed, 04 Dec 2013 14:42:46 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	awalls@md.metrocast.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 4/9] vb2: retry start_streaming in case of
+ insufficient buffers.
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl>
+ <087fa636fbb0da4e7d65b545cbdff7beb4f07ae3.1385719098.git.hans.verkuil@cisco.com>
+In-reply-to: <087fa636fbb0da4e7d65b545cbdff7beb4f07ae3.1385719098.git.hans.verkuil@cisco.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Hello,
 
-When em28xx extensions are loaded/removed, there are two locks:
+On 2013-11-29 10:58, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+>
+> If start_streaming returns -ENODATA, then it will be retried the next time
+> a buffer is queued. This means applications no longer need to know how many
+> buffers need to be queued before STREAMON can be called. This is particularly
+> useful for output stream I/O.
+>
+> If a DMA engine needs at least X buffers before it can start streaming, then
+> for applications to get a buffer out as soon as possible they need to know
+> the minimum number of buffers to queue before STREAMON can be called. You can't
+> just try STREAMON after every buffer since on failure STREAMON will dequeue
+> all your buffers. (Is that a bug or a feature? Frankly, I'm not sure).
+>
+> This patch simplifies applications substantially: they can just call STREAMON
+> at the beginning and then start queuing buffers and the DMA engine will
+> kick in automagically once enough buffers are available.
+>
+> This also fixes using write() to stream video: the fileio implementation
+> calls streamon without having any queued buffers, which will fail today for
+> any driver that requires a minimum number of buffers.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
 
-a single static em28xx_devlist_mutex that registers each extension
-and the struct em28xx dev->lock.
+This patch recalls me the discussion whether it should be possible to do 
+STREAM_ON
+before queuing the buffers or not. Your approach slightly changes the 
+userspace
+api, but I don't expect any problems from that. The only possible 
+drawback of this
+approach is the lack of information about real hw streaming in 
+userspace, but I
+doubt that there is any application which relies on it.
 
-When extensions are registered, em28xx_devlist_mutex is taken first,
-and then dev->lock.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Be sure that, when extensions are being removed, the same order
-will be used.
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c | 68 ++++++++++++++++++++++++++------
+>   include/media/videobuf2-core.h           | 15 +++++--
+>   2 files changed, 66 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 9857540..db1104f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1335,6 +1335,39 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+>   
+> +/**
+> + * vb2_start_streaming() - Attempt to start streaming.
+> + * @q:		videobuf2 queue
+> + *
+> + * If there are not enough buffers, then retry_start_streaming is set to
+> + * 1 and 0 is returned. The next time a buffer is queued and
+> + * retry_start_streaming is 1, this function will be called again to
+> + * retry starting the DMA engine.
+> + */
+> +static int vb2_start_streaming(struct vb2_queue *q)
+> +{
+> +	int ret;
+> +
+> +	/* Tell the driver to start streaming */
+> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
+> +
+> +	/*
+> +	 * If there are not enough buffers queued to start streaming, then
+> +	 * the start_streaming operation will return -ENODATA and you have to
+> +	 * retry when the next buffer is queued.
+> +	 */
+> +	if (ret == -ENODATA) {
+> +		dprintk(1, "qbuf: not enough buffers, retry when more buffers are queued.\n");
+> +		q->retry_start_streaming = 1;
+> +		return 0;
+> +	}
+> +	if (ret)
+> +		dprintk(1, "qbuf: driver refused to start streaming\n");
+> +	else
+> +		q->retry_start_streaming = 0;
+> +	return ret;
+> +}
+> +
+>   static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>   {
+>   	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+> @@ -1383,6 +1416,12 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>   	/* Fill buffer information for the userspace */
+>   	__fill_v4l2_buffer(vb, b);
+>   
+> +	if (q->retry_start_streaming) {
+> +		ret = vb2_start_streaming(q);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>   	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
+>   	return 0;
+>   }
+> @@ -1532,7 +1571,8 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
+>   		return -EINVAL;
+>   	}
+>   
+> -	wait_event(q->done_wq, !atomic_read(&q->queued_count));
+> +	if (!q->retry_start_streaming)
+> +		wait_event(q->done_wq, !atomic_read(&q->queued_count));
+>   	return 0;
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+> @@ -1646,6 +1686,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>   {
+>   	unsigned int i;
+>   
+> +	if (q->retry_start_streaming) {
+> +		q->retry_start_streaming = 0;
+> +		q->streaming = 0;
+> +	}
+> +
+>   	/*
+>   	 * Tell driver to stop all transactions and release all queued
+>   	 * buffers.
+> @@ -1695,12 +1740,9 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+>   	list_for_each_entry(vb, &q->queued_list, queued_entry)
+>   		__enqueue_in_driver(vb);
+>   
+> -	/*
+> -	 * Let driver notice that streaming state has been enabled.
+> -	 */
+> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
+> +	/* Tell driver to start streaming. */
+> +	ret = vb2_start_streaming(q);
+>   	if (ret) {
+> -		dprintk(1, "streamon: driver refused to start streaming\n");
+>   		__vb2_queue_cancel(q);
+>   		return ret;
+>   	}
+> @@ -2270,15 +2312,15 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>   				goto err_reqbufs;
+>   			fileio->bufs[i].queued = 1;
+>   		}
+> -
+> -		/*
+> -		 * Start streaming.
+> -		 */
+> -		ret = vb2_streamon(q, q->type);
+> -		if (ret)
+> -			goto err_reqbufs;
+>   	}
+>   
+> +	/*
+> +	 * Start streaming.
+> +	 */
+> +	ret = vb2_streamon(q, q->type);
+> +	if (ret)
+> +		goto err_reqbufs;
+> +
+>   	q->fileio = fileio;
+>   
+>   	return ret;
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 4bc4ad2..1be7f39 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -252,10 +252,13 @@ struct vb2_buffer {
+>    *			receive buffers with @buf_queue callback before
+>    *			@start_streaming is called; the driver gets the number
+>    *			of already queued buffers in count parameter; driver
+> - *			can return an error if hardware fails or not enough
+> - *			buffers has been queued, in such case all buffers that
+> - *			have been already given by the @buf_queue callback are
+> - *			invalidated.
+> + *			can return an error if hardware fails, in that case all
+> + *			buffers that have been already given by the @buf_queue
+> + *			callback are invalidated.
+> + *			If there were not enough queued buffers to start
+> + *			streaming, then this callback returns -ENODATA, and the
+> + *			vb2 core will retry calling @start_streaming when a new
+> + *			buffer is queued.
+>    * @stop_streaming:	called when 'streaming' state must be disabled; driver
+>    *			should stop any DMA transactions or wait until they
+>    *			finish and give back all buffers it got from buf_queue()
+> @@ -323,6 +326,9 @@ struct v4l2_fh;
+>    * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
+>    * @alloc_ctx:	memory type/allocator-specific contexts for each plane
+>    * @streaming:	current streaming state
+> + * @retry_start_streaming: start_streaming() was called, but there were not enough
+> + *		buffers queued. If set, then retry calling start_streaming when
+> + *		queuing a new buffer.
+>    * @fileio:	file io emulator internal data, used only if emulator is active
+>    */
+>   struct vb2_queue {
+> @@ -355,6 +361,7 @@ struct vb2_queue {
+>   	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
+>   
+>   	unsigned int			streaming:1;
+> +	unsigned int			retry_start_streaming:1;
+>   
+>   	struct vb2_fileio_data		*fileio;
+>   };
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 10 ++++++----
- drivers/media/usb/em28xx/em28xx-core.c  |  2 ++
- 2 files changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 4fe742429f2c..16383f46dae9 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3334,9 +3334,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
- 	dev->disconnected = 1;
- 
- 	if (dev->is_audio_only) {
--		mutex_lock(&dev->lock);
- 		em28xx_close_extension(dev);
--		mutex_unlock(&dev->lock);
- 		return;
- 	}
- 
-@@ -3355,19 +3353,23 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
- 	}
-+	mutex_unlock(&dev->lock);
- 
- 	em28xx_close_extension(dev);
-+
- 	/* NOTE: must be called BEFORE the resources are released */
- 
-+	mutex_lock(&dev->lock);
- 	if (!dev->users)
- 		em28xx_release_resources(dev);
- 
--	mutex_unlock(&dev->lock);
--
- 	if (!dev->users) {
-+		mutex_unlock(&dev->lock);
- 		kfree(dev->alt_max_pkt_size_isoc);
- 		kfree(dev);
-+		return;
- 	}
-+	mutex_unlock(&dev->lock);
- }
- 
- static struct usb_driver em28xx_usb_driver = {
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 2ad84ff1fc4f..d6928d83fb2a 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -1098,8 +1098,10 @@ void em28xx_close_extension(struct em28xx *dev)
- 
- 	mutex_lock(&em28xx_devlist_mutex);
- 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
-+		mutex_lock(&dev->lock);
- 		if (ops->fini)
- 			ops->fini(dev);
-+		mutex_unlock(&dev->lock);
- 	}
- 	list_del(&dev->devlist);
- 	mutex_unlock(&em28xx_devlist_mutex);
+Best regards
 -- 
-1.8.3.1
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
