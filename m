@@ -1,180 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:53957 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753413Ab3LMPO7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 10:14:59 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH 10/11] media: rc: img-ir: add Sharp decoder module
-Date: Fri, 13 Dec 2013 15:12:58 +0000
-Message-ID: <1386947579-26703-11-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout2.samsung.com ([203.254.224.25]:55781 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932703Ab3LDRNd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 12:13:33 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jiada_wang@mentor.com,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RESEND PATCH v7 2/5] clk: Provide not locked variant of
+ of_clk_get_from_provider()
+Date: Wed, 04 Dec 2013 18:12:04 +0100
+Message-id: <1386177127-2894-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
+References: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the Sharp infrared protocol.
+Add helper functions for the of_clk_providers list locking and
+an unlocked variant of of_clk_get_from_provider().
+These functions are intended to be used in the clkdev to avoid
+race condition in the device tree based clock look up in clk_get().
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/media/rc/img-ir/Kconfig        |   7 ++
- drivers/media/rc/img-ir/Makefile       |   1 +
- drivers/media/rc/img-ir/img-ir-sharp.c | 115 +++++++++++++++++++++++++++++++++
- 3 files changed, 123 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-sharp.c
+Changes since v3:
+ - none.
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 38505188df0e..24e0966a3220 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -45,3 +45,10 @@ config IR_IMG_SONY
- 	help
- 	   Say Y or M here to enable support for the Sony protocol in the ImgTec
- 	   infrared decoder block.
+Changes since v2:
+ - fixed typo in clk.h.
+
+Changes since v1:
+ - moved the function declaractions to a local header.
+---
+ drivers/clk/clk.c |   38 ++++++++++++++++++++++++++++++--------
+ drivers/clk/clk.h |   16 ++++++++++++++++
+ 2 files changed, 46 insertions(+), 8 deletions(-)
+ create mode 100644 drivers/clk/clk.h
+
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 77fcd06..c687dc8 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -21,6 +21,8 @@
+ #include <linux/init.h>
+ #include <linux/sched.h>
+ 
++#include "clk.h"
 +
-+config IR_IMG_SHARP
-+	tristate "Sharp protocol support"
-+	depends on IR_IMG && IR_IMG_HW
-+	help
-+	   Say Y or M here to enable support for the Sharp protocol in the
-+	   ImgTec infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index f3e7cc4f32e4..3c3ab4f1a9f1 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -7,3 +7,4 @@ obj-$(CONFIG_IR_IMG)		+= img-ir.o
- obj-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
- obj-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- obj-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
-+obj-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
-diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
+ static DEFINE_SPINLOCK(enable_lock);
+ static DEFINE_MUTEX(prepare_lock);
+ 
+@@ -2111,7 +2113,18 @@ static const struct of_device_id __clk_of_table_sentinel
+ 	__used __section(__clk_of_table_end);
+ 
+ static LIST_HEAD(of_clk_providers);
+-static DEFINE_MUTEX(of_clk_lock);
++static DEFINE_MUTEX(of_clk_mutex);
++
++/* of_clk_provider list locking helpers */
++void of_clk_lock(void)
++{
++	mutex_lock(&of_clk_mutex);
++}
++
++void of_clk_unlock(void)
++{
++	mutex_unlock(&of_clk_mutex);
++}
+ 
+ struct clk *of_clk_src_simple_get(struct of_phandle_args *clkspec,
+ 				     void *data)
+@@ -2155,9 +2168,9 @@ int of_clk_add_provider(struct device_node *np,
+ 	cp->data = data;
+ 	cp->get = clk_src_get;
+ 
+-	mutex_lock(&of_clk_lock);
++	mutex_lock(&of_clk_mutex);
+ 	list_add(&cp->link, &of_clk_providers);
+-	mutex_unlock(&of_clk_lock);
++	mutex_unlock(&of_clk_mutex);
+ 	pr_debug("Added clock from %s\n", np->full_name);
+ 
+ 	return 0;
+@@ -2172,7 +2185,7 @@ void of_clk_del_provider(struct device_node *np)
+ {
+ 	struct of_clk_provider *cp;
+ 
+-	mutex_lock(&of_clk_lock);
++	mutex_lock(&of_clk_mutex);
+ 	list_for_each_entry(cp, &of_clk_providers, link) {
+ 		if (cp->node == np) {
+ 			list_del(&cp->link);
+@@ -2181,24 +2194,33 @@ void of_clk_del_provider(struct device_node *np)
+ 			break;
+ 		}
+ 	}
+-	mutex_unlock(&of_clk_lock);
++	mutex_unlock(&of_clk_mutex);
+ }
+ EXPORT_SYMBOL_GPL(of_clk_del_provider);
+ 
+-struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec)
++struct clk *__of_clk_get_from_provider(struct of_phandle_args *clkspec)
+ {
+ 	struct of_clk_provider *provider;
+ 	struct clk *clk = ERR_PTR(-ENOENT);
+ 
+ 	/* Check if we have such a provider in our array */
+-	mutex_lock(&of_clk_lock);
+ 	list_for_each_entry(provider, &of_clk_providers, link) {
+ 		if (provider->node == clkspec->np)
+ 			clk = provider->get(clkspec, provider->data);
+ 		if (!IS_ERR(clk))
+ 			break;
+ 	}
+-	mutex_unlock(&of_clk_lock);
++
++	return clk;
++}
++
++struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec)
++{
++	struct clk *clk;
++
++	mutex_lock(&of_clk_mutex);
++	clk = __of_clk_get_from_provider(clkspec);
++	mutex_unlock(&of_clk_mutex);
+ 
+ 	return clk;
+ }
+diff --git a/drivers/clk/clk.h b/drivers/clk/clk.h
 new file mode 100644
-index 000000000000..4d70abc088b4
+index 0000000..795cc9f
 --- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-sharp.c
-@@ -0,0 +1,115 @@
++++ b/drivers/clk/clk.h
+@@ -0,0 +1,16 @@
 +/*
-+ * ImgTec IR Decoder setup for Sharp protocol.
++ * linux/drivers/clk/clk.h
 + *
-+ * Copyright 2012-2013 Imagination Technologies Ltd.
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#include <linux/module.h>
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert Sharp data to a scancode */
-+static int img_ir_sharp_scancode(int len, u64 raw, u64 protocols)
-+{
-+	unsigned int addr, cmd, exp, chk;
-+
-+	if (len != 15)
-+		return IMG_IR_ERR_INVALID;
-+
-+	addr = (raw >>   0) & 0x1f;
-+	cmd  = (raw >>   5) & 0xff;
-+	exp  = (raw >>  13) &  0x1;
-+	chk  = (raw >>  14) &  0x1;
-+
-+	/* validate data */
-+	if (!exp)
-+		return IMG_IR_ERR_INVALID;
-+	if (chk)
-+		/* probably the second half of the message */
-+		return IMG_IR_ERR_INVALID;
-+
-+	return addr << 8 | cmd;
-+}
-+
-+/* Convert Sharp scancode to Sharp data filter */
-+static int img_ir_sharp_filter(const struct img_ir_sc_filter *in,
-+			       struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int addr, cmd, exp = 0, chk = 0;
-+	unsigned int addr_m, cmd_m, exp_m = 0, chk_m = 0;
-+
-+	addr   = (in->data >> 8) & 0x1f;
-+	addr_m = (in->mask >> 8) & 0x1f;
-+	cmd    = (in->data >> 0) & 0xff;
-+	cmd_m  = (in->mask >> 0) & 0xff;
-+	if (cmd_m) {
-+		/* if filtering commands, we can only match the first part */
-+		exp   = 1;
-+		exp_m = 1;
-+		chk   = 0;
-+		chk_m = 1;
-+	}
-+
-+	out->data = addr        |
-+		    cmd   <<  5 |
-+		    exp   << 13 |
-+		    chk   << 14;
-+	out->mask = addr_m      |
-+		    cmd_m <<  5 |
-+		    exp_m << 13 |
-+		    chk_m << 14;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Sharp decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/sharp.php
-+ */
-+static struct img_ir_decoder img_ir_sharp = {
-+	.type = RC_BIT_SHARP,
-+	.control = {
-+		.decoden = 0,
-+		.decodend2 = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+		.d1validsel = 1,
-+	},
-+	/* main timings */
-+	.timings = {
-+		/* 0 symbol */
-+		.s10 = {
-+			.pulse = { 320	/* 320 us */ },
-+			.space = { 680	/* 1 ms period */ },
-+		},
-+		/* 1 symbol */
-+		.s11 = {
-+			.pulse = { 320	/* 230 us */ },
-+			.space = { 1680	/* 2 ms period */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 15,
-+			.maxlen = 15,
-+			.ft_min = 5000,	/* 5 ms */
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_sharp_scancode,
-+	.filter = img_ir_sharp_filter,
-+};
-+
-+static int __init img_ir_sharp_init(void)
-+{
-+	return img_ir_register_decoder(&img_ir_sharp);
-+}
-+module_init(img_ir_sharp_init);
-+
-+static void __exit img_ir_sharp_exit(void)
-+{
-+	img_ir_unregister_decoder(&img_ir_sharp);
-+}
-+module_exit(img_ir_sharp_exit);
-+
-+MODULE_AUTHOR("Imagination Technologies Ltd.");
-+MODULE_DESCRIPTION("ImgTec IR Sharp protocol support");
-+MODULE_LICENSE("GPL");
++#if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
++struct clk *__of_clk_get_from_provider(struct of_phandle_args *clkspec);
++void of_clk_lock(void);
++void of_clk_unlock(void);
++#endif
 -- 
-1.8.1.2
-
+1.7.9.5
 
