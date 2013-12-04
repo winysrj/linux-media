@@ -1,160 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:37587 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab3LNX0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 18:26:15 -0500
-Message-ID: <52ACE809.1000406@gmail.com>
-Date: Sat, 14 Dec 2013 15:21:45 -0800
-From: Connor Behan <connor.behan@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Frederik Himpe <fhimpe@telenet.be>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer
- returned: -19
-References: <1386969579.3914.13.camel@piranha.localdomain> <20131214092443.622b069d@samsung.com>
-In-Reply-To: <20131214092443.622b069d@samsung.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="43opuuhA6toJ4OQONkWvwGwPgul4wW2St"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48636 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932641Ab3LDP2f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 10:28:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/5] v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
+Date: Wed,  4 Dec 2013 16:28:34 +0100
+Message-Id: <1386170916-13723-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---43opuuhA6toJ4OQONkWvwGwPgul4wW2St
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+The PCLK and MCK clocks are prepared and unprepared at probe and remove
+time. Clock (un)preparation isn't needed before enabling/disabling the
+clocks, and the enable/disable operation happen in non-atomic context.
+We can thus defer (un)preparation to enable/disable time.
 
-On 14/12/13 03:24 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 13 Dec 2013 22:19:39 +0100
-> Frederik Himpe <fhimpe@telenet.be> escreveu:
->
->> [My excuses for multiposting, it seems gmane does not permit posting t=
-o all
->> the relevant lists]
->>
->> Since upgrading my system from Linux 3.12 to 3.12.3, my PCTV Systems
->> nanoStick T2 290e does not work anymore.
->>
->> This happens with 3.12.3:
->>
->> [    3.778817] em28174 #0: i2c eeprom 0000: 26 00 01 00 02 09 d8 85 80=
- 80 e5 80 f4 f5 94 90
->> [    3.779741] em28174 #0: i2c eeprom 0010: 78 0d e4 f0 f5 46 12 00 5a=
- c2 eb c2 e8 30 e9 03
->> [    3.780643] em28174 #0: i2c eeprom 0020: 12 09 de 30 eb 03 12 09 10=
- 30 ec f1 12 07 72 80
->> [    3.781562] em28174 #0: i2c eeprom 0030: ec 00 60 00 e5 f5 64 01 60=
- 09 e5 f5 64 09 60 03
->> [    3.782473] em28174 #0: i2c eeprom 0040: c2 c6 22 e5 f7 b4 03 13 e5=
- f6 b4 87 03 02 09 92
->> [    3.783406] em28174 #0: i2c eeprom 0050: e5 f6 b4 93 03 02 07 e6 c2=
- c6 22 c2 c6 22 12 09
->> [    3.784314] em28174 #0: i2c eeprom 0060: cf 02 06 19 1a eb 67 95 13=
- 20 4f 02 c0 13 6b 10
->> [    3.785213] em28174 #0: i2c eeprom 0070: a0 1a ba 14 ce 1a 39 57 00=
- 5c 18 00 00 00 00 00
->> [    3.786140] em28174 #0: i2c eeprom 0080: 00 00 00 00 44 36 00 00 f0=
- 10 02 00 00 00 00 00
->> [    3.787057] em28174 #0: i2c eeprom 0090: 5b 23 c0 00 00 00 20 40 20=
- 80 02 20 01 01 00 00
->> [    3.787970] em28174 #0: i2c eeprom 00a0: 00 00 00 00 00 00 00 00 00=
- 00 00 00 00 00 00 00
->> [    3.788879] em28174 #0: i2c eeprom 00b0: c6 40 00 00 00 00 a7 00 00=
- 00 00 00 00 00 00 00
->> [    3.789790] em28174 #0: i2c eeprom 00c0: 00 00 00 00 00 00 00 00 00=
- 00 00 00 00 00 38 32
->> [    3.790709] em28174 #0: i2c eeprom 00d0: 34 31 30 31 31 36 36 30 31=
- 37 31 32 32 31 46 4b
->> [    3.791625] em28174 #0: i2c eeprom 00e0: 4a 31 00 4f 53 49 30 30 33=
- 30 38 44 30 31 31 30
->> [    3.792531] em28174 #0: i2c eeprom 00f0: 46 4b 4a 31 00 00 00 00 00=
- 00 00 00 00 00 31 30
->> [    3.793444] em28174 #0: i2c eeprom 0100: ... (skipped)
->> [    3.793502] em28174 #0: EEPROM ID =3D 26 00 01 00, EEPROM hash =3D =
-0xfcf432bb
->> [    3.793559] em28174 #0: EEPROM info:
->> [    3.793616] em28174 #0: 	microcode start address =3D 0x0004, boot c=
-onfiguration =3D 0x01
->> [    3.804741] scsi 8:0:0:0: Direct-Access     Generic  Ultra HS-SD/MM=
-C  1.82 PQ: 0 ANSI: 0
->> [    3.805345] sd 8:0:0:0: Attached scsi generic sg3 type 0
->> [    3.818139] em28174 #0: 	No audio on board.
->> [    3.818194] em28174 #0: 	500mA max power
->> [    3.818247] em28174 #0: 	Table at offset 0x39, strings=3D0x1aa0, 0x=
-14ba, 0x1ace
->> [    3.818318] em28174 #0: Identified as PCTV nanoStick T2 290e (card=3D=
-78)
->> [    3.818374] em28174 #0: v4l2 driver version 0.2.0
->> [    3.821522] sd 8:0:0:0: [sdc] Attached SCSI removable disk
->> [    3.823606] em28174 #0: V4L2 video device registered as video0
->> [    3.823662] em28174 #0: dvb set to isoc mode.
->> [    3.823972] usbcore: registered new interface driver em28xx
->> [    3.844020] tda18271 1-0060: creating new instance
->> [    3.868422] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer retu=
-rned: -19
->> [    3.868492] Error reading device ID @ 1-0060, bailing out.
->> [    3.868548] tda18271_attach: [1-0060|M] error -5 on line 1285
->> [    3.868603] tda18271 1-0060: destroying instance
->> [    3.868666] Em28xx: Initialized (Em28xx dvb Extension) extension
->> [    3.894687] Registered IR keymap rc-pinnacle-pctv-hd
->> [    3.894819] input: em28xx IR (em28174 #0) as /devices/pci0000:00/00=
-00:00:1d.0/usb2/2-1/2-1.7/rc/rc0/input23
->> [    3.894979] rc0: em28xx IR (em28174 #0) as /devices/pci0000:00/0000=
-:00:1d.0/usb2/2-1/2-1.7/rc/rc0
->> [    3.895570] Em28xx: Initialized (Em28xx Input Extension) extension
->>
->> I see the same problem reported here:
->> https://github.com/Hexxeh/rpi-firmware/issues/38 where it is mentioned=
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c | 35 ++++++---------------------
+ 1 file changed, 8 insertions(+), 27 deletions(-)
 
->> that this regression also appeared in 3.10 stable series recently.
->>
->> I noticed upstream commit 8393796dfa4cf5dffcceec464c7789bec3a2f471
->> (media: dvb-frontends: Don't use dynamic static allocation)
->> entered both 3.10.22 (which is the first version introducing the
->> regression in 3.10 stable according to the linked bug), and 3.12.3.
->> This file contains stuff related to tda18271. Could this be the=20
->> culprit?
->>
-> Well, for board EM28174_BOARD_PCTV_290E, it first attaches cxd2820r
-> and then the tuner tda18271.
->
-> I suspect that the issue is at cxd2820r. Could you please apply this
-> patch:
-> 	http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/=
-?id=3D0db3fa2741ad8371c21b3a6785416a4afc0cc1d4=20
-> and see if it solves the issue?
->
-I hope this isn't too off-topic, but this problem seems similar to what
-I've been seeing with a HAUPPAGE_EXETER device:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg69081.html
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index faa7f8d..ea8816c 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -721,13 +721,13 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+-	ret = clk_enable(isi->pclk);
++	ret = clk_prepare_enable(isi->pclk);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = clk_enable(isi->mck);
++	ret = clk_prepare_enable(isi->mck);
+ 	if (ret) {
+-		clk_disable(isi->pclk);
++		clk_disable_unprepare(isi->pclk);
+ 		return ret;
+ 	}
+ 
+@@ -739,8 +739,8 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ {
+ 	struct atmel_isi *isi = ici->priv;
+ 
+-	clk_disable(isi->mck);
+-	clk_disable(isi->pclk);
++	clk_disable_unprepare(isi->mck);
++	clk_disable_unprepare(isi->pclk);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -869,9 +869,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ 
+-	clk_unprepare(isi->mck);
+-	clk_unprepare(isi->pclk);
+-
+ 	return 0;
+ }
+ 
+@@ -902,10 +899,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	ret = clk_prepare(isi->pclk);
+-	if (ret)
+-		return ret;
+-
+ 	isi->pdata = pdata;
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+@@ -916,27 +909,21 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	isi->mck = devm_clk_get(dev, "isi_mck");
+ 	if (IS_ERR(isi->mck)) {
+ 		dev_err(dev, "Failed to get isi_mck\n");
+-		ret = PTR_ERR(isi->mck);
+-		goto err_clk_get_mck;
++		return PTR_ERR(isi->mck);
+ 	}
+ 
+-	ret = clk_prepare(isi->mck);
+-	if (ret)
+-		goto err_clk_prepare_mck;
+-
+ 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+ 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+ 	if (ret < 0)
+-		goto err_set_mck_rate;
++		return ret;
+ 
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 				&isi->fb_descriptors_phys,
+ 				GFP_KERNEL);
+ 	if (!isi->p_fb_descriptors) {
+-		ret = -ENOMEM;
+ 		dev_err(&pdev->dev, "Can't allocate descriptors!\n");
+-		goto err_alloc_descriptors;
++		return -ENOMEM;
+ 	}
+ 
+ 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
+@@ -1002,12 +989,6 @@ err_alloc_ctx:
+ 			sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+-err_alloc_descriptors:
+-err_set_mck_rate:
+-	clk_unprepare(isi->mck);
+-err_clk_prepare_mck:
+-err_clk_get_mck:
+-	clk_unprepare(isi->pclk);
+ 
+ 	return ret;
+ }
+-- 
+1.8.3.2
 
-My basic problem is
-
-__tda18271_write_regs: [1-0060|M] ERROR: idx =3D 0x0, len =3D 39, i2c_tra=
-nsfer returned: -32
-
-where it attaches lgdt3305 before tda18271. Do you know a similar patch
-that could help me?
-
-
---43opuuhA6toJ4OQONkWvwGwPgul4wW2St
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQEcBAEBAgAGBQJSrOgYAAoJENU6BEW0eg2rPI8IAJBsjlQrS4GiZmpN9CLy9dSw
-v3TbBHUdJnHzrfJPxXYTK/l0iwDLzSpkSf5EsO8286ztmQiizsgsz6dcBQPTulvn
-RH0U3QEBz68Lri/BVa+sAIT+ynj3Y4McycTzDXSbH6BI2k6Qmd56VPEhY1W03FxA
-VcpWSOZ8cniaD60HuBizKj93BjZqN7ZRJB4cqhN9xwNTeFsssqzRDBzqw5weS/a/
-Bozg0s0f+XCKfua/a7LnY7aG6TWOVEYFXcPtOWSeVZksPNcHi+NJZ41tD6h88kBL
-EF7UxdHnqYxzPQnGaM32pnzf4qTwb4v4sw1RARwxxvhTczGfuGyckUKVgjfjB60=
-=Ktc7
------END PGP SIGNATURE-----
-
---43opuuhA6toJ4OQONkWvwGwPgul4wW2St--
