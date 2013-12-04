@@ -1,55 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:64792 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755632Ab3L3NfD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 08:35:03 -0500
-Received: by mail-ee0-f42.google.com with SMTP id e53so5109583eek.29
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 05:35:03 -0800 (PST)
-Message-ID: <52C176CA.2080401@googlemail.com>
-Date: Mon, 30 Dec 2013 14:36:10 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1241 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932602Ab3LDREa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 12:04:30 -0500
+Message-ID: <529F6073.4080308@xs4all.nl>
+Date: Wed, 04 Dec 2013 18:03:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: xc2028 i2c errors
-Content-Type: text/plain; charset=ISO-8859-15
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	pawel@osciak.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 7/9] vb2: add thread support
+References: <1385719124-11338-1-git-send-email-hverkuil@xs4all.nl> <1604380.oHcqFNncgD@avalon> <529EDE0D.2020202@xs4all.nl> <14003669.Z9DbBGJgYq@avalon>
+In-Reply-To: <14003669.Z9DbBGJgYq@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 12/04/2013 05:33 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday 04 December 2013 08:47:25 Hans Verkuil wrote:
+>> On 12/04/2013 02:17 AM, Laurent Pinchart wrote:
+>>> On Tuesday 03 December 2013 10:56:07 Hans Verkuil wrote:
+>>>> On 11/29/13 19:21, Laurent Pinchart wrote:
+>>>>> On Friday 29 November 2013 10:58:42 Hans Verkuil wrote:
+>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>
+>>>>>> In order to implement vb2 DVB or ALSA support you need to be able to
+>>>>>> start a kernel thread that queues and dequeues buffers, calling a
+>>>>>> callback function for every captured/displayed buffer. This patch adds
+>>>>>> support for that.
+>>>>>>
+>>>>>> It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the
+>>>>>> DVB specific stuff stripped out, thus making it much more generic.
+>>>>>
+>>>>> Do you see any use for this outside of videobuf2-dvb ? If not I wonder
+>>>>> whether the code shouldn't be moved there. The sync objects framework
+>>>>> being developed for KMS will in my opinion cover the other use cases,
+>>>>> and
+>>>>> I'd like to discourage non-DVB drivers to use vb2 threads in the
+>>>>> meantime.
+>>>>
+>>>> I'm using it for ALSA drivers which, at least in my case, require almost
+>>>> identical functionality as that needed by DVB.
+>>>
+>>> You're using videobuf2 for audio ?
+>>
+>> For this particular board the audio DMA is just another DMA channel.
+>> Handling audio DMA is identical to video DMA. Why reinvent the wheel?
+> 
+> videobuf2 is more about buffer management than DMA management. As the code is 
+> based around a two-dimensional, possibly multiplanar, buffer it's quite 
+> hackish to reuse it for audio.
 
-With the Hauppauge HVR900 (em2882/3 / xc2028 / tvp5150 / zl10353), I'm
-getting lot's of i2c error messages for ages:
+I disagree with that. vb2 has all the right hooks to start/stop DMA and
+queue/dequeue buffers. It's used for VBI as well and can just as easily
+support meta data. For this particular board there is no difference
+between audio and video DMA.
 
-...
-[   99.590735] xc2028 10-0061: Error on line 1299: -19
-[   99.645650] usbcore: registered new interface driver snd-usb-audio
-[   99.755362] xc2028 10-0061: Error on line 1299: -19
-[   99.824744] xc2028 10-0061: attaching existing instance
-[   99.824750] xc2028 10-0061: type set to XCeive xc2028/xc3028 tuner
-...
-[  141.885510] xc2028 10-0061: i2c input error: rc = -19 (should be 2)
-[  141.886496] xc2028 10-0061: i2c input error: rc = -19 (should be 2)
-...
+> Doesn't ALSA offer a buffer management library?
 
+Yes it does. But due to the peculiarities of the particular board it wasn't
+sufficient. Specifically I must copy the audio data from the alsa buffers to
+vb2 buffers since the layout of the data differs.
 
-The "line 1299" errors occurs because the xc2028 driver tries to power
-down the tuner although it is already powered down (surprise !).
-The input errors occur at the beginning of xc2028_signal() and
-xc2028_get_afc() when the driver tries to read the sync lock state and
-it causes both functions to fail.
-This also happens only when the device sleeps.
-When not powering down the tuner, everthing works fine and no i2c errors
-occur.
+As mentioned I will also work on a different board where the audio DMA is
+much more standard (i.e. the same buffer layout can be used), and I want to
+investigate if using vb2 in that case makes sense or not.
 
-With other words: xc2028 power state handling is broken.
-I don't have the datasheets and I'm not familiar with this device, so I
-don't know what's the best way to fix it.
-So unless anyone comes up with a better solution, I suggest to disable
-the power-down.
-Patch follows.
+> 
+>> The board I developed this for has somewhat peculiar audio handling (sorry,
+>> it's an internal product and I can't go into details), but I'll do the same
+>> exercise for another board that I can open source and there audio handling
+>> is standard. I want to see if I can use that to develop a videobuf2-alsa.c
+>> module that takes care of most of the alsa complexity. I don't know yet how
+>> that will work out, I'll have to experiment a bit.
+>>
+>>>> But regardless of that, I really don't like the way it was done in the
+>>>> old videobuf framework, mixing low-level videobuf calls/data structure
+>>>> accesses with DVB code. That should be separate.
+>>>>
+>>>> The vb2 core framework should provide the low-level functionality that is
+>>>> needed by the videobuf2-dvb to build on.
+>>>
+>>> Right, but I want to make sure that drivers will not start using this
+>>> directly.
+>>
+>> What sort of use-cases were you thinking of, other than DVB and ALSA? I
+>> don't off-hand see one.
+> 
+> That's the thing, I don't see any valid use case, I just want to make sure we 
+> won't get crazy use cases implemented with vb2 threads in the future :-)
+> 
+>>> It should be an internal videobuf2 API.
+>>
+>> I happily add comments to the source and header mentioning that it is for
+>> core use only and that for any other uses the mailinglist should be
+>> contacted, but I really don't want to mix core vb2 code with DVB code. That
+>> should remain separate.
+> 
+> OK, that sounds good with me.
+> 
+> What about moving thread support to videobuf2-thread.c ?
+
+I tried that originally, but in order to do that I had to make a number
+of low-level vb2 functions extern instead of static, and that was quite
+messy. So I decided against that. It's not that much code (106 lines),
+after all.
+
+That said, it might be interesting at some point to split off the fileio
+and thread handling into a separate file.
 
 Regards,
-Frank
+
+	Hans
