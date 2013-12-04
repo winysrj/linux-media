@@ -1,41 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38679 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777Ab3LTFuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 00:50:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v5 12/12] v4l2-framework.txt: add SDR device type
-Date: Fri, 20 Dec 2013 07:49:54 +0200
-Message-Id: <1387518594-11609-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
-References: <1387518594-11609-1-git-send-email-crope@iki.fi>
+Received: from exprod5og111.obsmtp.com ([64.18.0.22]:37307 "EHLO
+	exprod5og111.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932542Ab3LDPQO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 10:16:14 -0500
+From: "Fry, Ashley (GE Intelligent Platforms)" <ashley.fry@ge.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Get Previous Versions
+Date: Wed, 4 Dec 2013 15:16:08 +0000
+Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF107201D2@LONURLNA02.e2k.ad.ge.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add SDR device type to v4l2-framework.txt document.
+I have discover I can get only old linux-media-2012-06-30.tar.bz2 from http://www.linuxtv.org/downloads/drivers/
+but don't understand how I can use them within the current build system.
+I firstly I did :-
+sudo git clone git://linuxtv.org/media_build.git then sudo ./build Stopped that  after it had done the kernel patching, then extracted the new linux-media-2012-06-30.tar.bz2 It fails to builds, the media_build/v4l tree is incompatiable Whereto I go to get the media_build/v4l portion of the tree with the same date.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/video4linux/v4l2-framework.txt | 1 +
- 1 file changed, 1 insertion(+)
+The old Mercurial repository http://linuxtv.org/hg/v4l-dvb where you could get a complete tarball has been abandoned !
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 6c4866b..ae3a2cc 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -768,6 +768,7 @@ types exist:
- VFL_TYPE_GRABBER: videoX for video input/output devices
- VFL_TYPE_VBI: vbiX for vertical blank data (i.e. closed captions, teletext)
- VFL_TYPE_RADIO: radioX for radio tuners
-+VFL_TYPE_SDR: swradioX for Software Defined Radio tuners
- 
- The last argument gives you a certain amount of control over the device
- device node number used (i.e. the X in videoX). Normally you will pass -1
--- 
-1.8.4.2
+Need some help please....
 
+Thx.
