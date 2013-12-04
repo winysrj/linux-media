@@ -1,233 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33493 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751921Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 23:05:28 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44098 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755841Ab3LDA4b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:31 -0500
+Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5795336400
+	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:39 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v6 11/12] DocBook: Software Defined Radio Interface
-Date: Sun, 29 Dec 2013 06:04:03 +0200
-Message-Id: <1388289844-2766-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
-References: <1388289844-2766-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 09/25] v4l: omap4iss: Fix operators precedence in ternary operators
+Date: Wed,  4 Dec 2013 01:56:09 +0100
+Message-Id: <1386118585-12449-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2 SDR interface.
+The ternary operator ? : has a low precedence. Use parenthesis where
+needed.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |  10 ++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 107 +++++++++++++++++++++
- Documentation/DocBook/media/v4l/io.xml             |   6 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
- 6 files changed, 137 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+ drivers/staging/media/omap4iss/iss_csi2.c    | 20 +++++++-------------
+ drivers/staging/media/omap4iss/iss_ipipe.c   |  2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c |  4 ++--
+ drivers/staging/media/omap4iss/iss_resizer.c | 12 +++++-------
+ 4 files changed, 15 insertions(+), 23 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 0c7195e..85fb864 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2523,6 +2523,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index c3a5fca..ac5868ac 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -274,7 +274,7 @@ static void csi2_set_outaddr(struct iss_csi2_device *csi2, u32 addr)
+  */
+ static inline int is_usr_def_mapping(u32 format_id)
+ {
+-	return ((format_id & 0xF0) == 0x40) ? 1 : 0;
++	return (format_id & 0xF0) == 0x40 ? 1 : 0;
+ }
  
-+    <section>
-+      <title>V4L2 in Linux 3.14</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added Software Defined Radio (SDR) Interface.
-+	  </para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ /*
+@@ -766,16 +766,11 @@ void omap4iss_csi2_isr(struct iss_csi2_device *csi2)
+ 			      CSI2_IRQ_FIFO_OVF)) {
+ 		dev_dbg(iss->dev,
+ 			"CSI2 Err: OCP:%d SHORT:%d ECC:%d CPXIO:%d OVF:%d\n",
+-			(csi2_irqstatus &
+-			 CSI2_IRQ_OCP_ERR) ? 1 : 0,
+-			(csi2_irqstatus &
+-			 CSI2_IRQ_SHORT_PACKET) ? 1 : 0,
+-			(csi2_irqstatus &
+-			 CSI2_IRQ_ECC_NO_CORRECTION) ? 1 : 0,
+-			(csi2_irqstatus &
+-			 CSI2_IRQ_COMPLEXIO_ERR) ? 1 : 0,
+-			(csi2_irqstatus &
+-			 CSI2_IRQ_FIFO_OVF) ? 1 : 0);
++			csi2_irqstatus & CSI2_IRQ_OCP_ERR ? 1 : 0,
++			csi2_irqstatus & CSI2_IRQ_SHORT_PACKET ? 1 : 0,
++			csi2_irqstatus & CSI2_IRQ_ECC_NO_CORRECTION ? 1 : 0,
++			csi2_irqstatus & CSI2_IRQ_COMPLEXIO_ERR ? 1 : 0,
++			csi2_irqstatus & CSI2_IRQ_FIFO_OVF ? 1 : 0);
+ 		pipe->error = true;
+ 	}
  
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-new file mode 100644
-index 0000000..db4859f
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -0,0 +1,107 @@
-+  <title>Software Defined Radio Interface (SDR)</title>
-+
-+  <para>
-+SDR is an abbreviation of Software Defined Radio, the radio device
-+which uses application software for modulation or demodulation. This interface
-+is intended for controlling and data streaming of such devices.
-+  </para>
-+
-+  <para>
-+SDR devices are accessed through character device special files named
-+<filename>/dev/swradio0</filename> to <filename>/dev/swradio255</filename>
-+with major number 81 and dynamically allocated minor numbers 0 to 255.
-+  </para>
-+
-+  <section>
-+    <title>Querying Capabilities</title>
-+
-+    <para>
-+Devices supporting the SDR receiver interface set the
-+<constant>V4L2_CAP_SDR_CAPTURE</constant> and
-+<constant>V4L2_CAP_TUNER</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability;
-+returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-+Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-+At least one of the read/write, streaming or asynchronous I/O methods must
-+be supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Supplemental Functions</title>
-+
-+    <para>
-+SDR devices can support <link linkend="control">controls</link>, and must
-+support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
-+for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
-+frequency.
-+    </para>
-+
-+    <para>
-+The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-+the <constant>V4L2_TUNER_RF</constant> is used for RF tuners. The tuner index
-+of the RF tuner (if any) must always follow the ADC tuner index. Normally the
-+ADC tuner is #0 and the RF tuner is #1.
-+    </para>
-+
-+    <para>
-+The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Data Format Negotiation</title>
-+
-+    <para>
-+The SDR capture device uses the <link linkend="format">format</link> ioctls to
-+select the capture format. Both the sampling resolution and the data streaming
-+format are bound to that selectable format. In addition to basic
-+<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-+must be supported too.
-+    </para>
-+
-+    <para>
-+To use the <link linkend="format">format</link> ioctls applications set the
-+<structfield>type</structfield> field of a &v4l2-format; to
-+<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
-+<structfield>sdr</structfield> member of the <structfield>fmt</structfield>
-+union as needed per the desired operation.
-+Currently only the <structfield>pixelformat</structfield> field of
-+&v4l2-format-sdr; is used. The content of that field is the V4L2 fourcc code
-+of the data format.
-+    </para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-format-sdr">
-+      <title>struct <structname>v4l2_format_sdr</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+        <tbody valign="top">
-+          <row>
-+            <entry>__u32</entry>
-+            <entry><structfield>pixelformat</structfield></entry>
-+            <entry>
-+The pixel format or type of compression, set by the
-+application. This is a little endian
-+<link linkend="v4l2-fourcc">four character code</link>. V4L2 defines
-+standard RGB formats in <xref linkend="rgb-formats" />, YUV formats in
-+<xref linkend="yuv-formats" />, and reserved codes in
-+<xref linkend="reserved-formats" />
-+           </entry>
-+          </row>
-+          <row>
-+            <entry>__u8</entry>
-+            <entry><structfield>reserved[28]</structfield></entry>
-+            <entry>This array is reserved for future extensions.
-+Drivers and applications must set it to zero.</entry>
-+          </row>
-+        </tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>
-+An SDR device may support <link linkend="rw">read/write</link>
-+and/or streaming (<link linkend="mmap">memory mapping</link>
-+or <link linkend="userp">user pointer</link>) I/O.
-+    </para>
-+
-+  </section>
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4c068..1fb11e8 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1005,6 +1005,12 @@ should set this to 0.</entry>
- 	    <entry>Buffer for video output overlay (OSD), see <xref
- 		linkend="osd" />.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
-+	    <entry>11</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR), see <xref
-+		linkend="sdr" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 8469fe1..a27fcae 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -529,6 +529,7 @@ and discussions on the V4L mailing list.</revremark>
-     <section id="ttx"> &sub-dev-teletext; </section>
-     <section id="radio"> &sub-dev-radio; </section>
-     <section id="rds"> &sub-dev-rds; </section>
-+    <section id="sdr"> &sub-dev-sdr; </section>
-     <section id="event"> &sub-dev-event; </section>
-     <section id="subdev"> &sub-dev-subdev; </section>
-   </chapter>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-index ee8f56e..ffed137 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-@@ -172,6 +172,13 @@ capture and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-format-sdr;</entry>
-+	    <entry><structfield>sdr</structfield></entry>
-+	    <entry>Definition of an data format, see
-+<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>raw_data</structfield>[200]</entry>
- 	    <entry>Place holder for future extensions.</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index d5a3c97..370d49d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -296,6 +296,12 @@ modulator programming see
- <xref linkend="tuner" />.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_SDR_CAPTURE</constant></entry>
-+	    <entry>0x00100000</entry>
-+	    <entry>The device supports the
-+<link linkend="sdr">SDR Capture</link> interface.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
- 	    <entry>0x01000000</entry>
- 	    <entry>The device supports the <link
+@@ -1209,8 +1204,7 @@ static int csi2_link_setup(struct media_entity *entity,
+ 		return -EINVAL;
+ 	}
+ 
+-	ctrl->vp_only_enable =
+-		(csi2->output & CSI2_OUTPUT_MEMORY) ? false : true;
++	ctrl->vp_only_enable = csi2->output & CSI2_OUTPUT_MEMORY ? false : true;
+ 	ctrl->vp_clk_enable = !!(csi2->output & CSI2_OUTPUT_IPIPEIF);
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
+index fc38a5c5..bdafd78 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipe.c
++++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+@@ -75,7 +75,7 @@ static void ipipe_enable(struct iss_ipipe_device *ipipe, u8 enable)
+ 
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_IPIPE] + IPIPE_SRC_EN) &
+ 		~IPIPE_SRC_EN_EN) |
+-		enable ? IPIPE_SRC_EN_EN : 0,
++		(enable ? IPIPE_SRC_EN_EN : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_IPIPE] + IPIPE_SRC_EN);
+ }
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index 5464742..3d6cc88 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -85,7 +85,7 @@ static void ipipeif_write_enable(struct iss_ipipeif_device *ipipeif, u8 enable)
+ 
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_ISIF] + ISIF_SYNCEN) &
+ 		~ISIF_SYNCEN_DWEN) |
+-		enable ? ISIF_SYNCEN_DWEN : 0,
++		(enable ? ISIF_SYNCEN_DWEN : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_ISIF] + ISIF_SYNCEN);
+ }
+ 
+@@ -100,7 +100,7 @@ static void ipipeif_enable(struct iss_ipipeif_device *ipipeif, u8 enable)
+ 
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_ISIF] + ISIF_SYNCEN) &
+ 		~ISIF_SYNCEN_SYEN) |
+-		enable ? ISIF_SYNCEN_SYEN : 0,
++		(enable ? ISIF_SYNCEN_SYEN : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_ISIF] + ISIF_SYNCEN);
+ }
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index 272b92a..68eb2a7 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -118,13 +118,13 @@ static void resizer_enable(struct iss_resizer_device *resizer, u8 enable)
+ 
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RSZ_SRC_EN) &
+ 		~RSZ_SRC_EN_SRC_EN) |
+-		enable ? RSZ_SRC_EN_SRC_EN : 0,
++		(enable ? RSZ_SRC_EN_SRC_EN : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RSZ_SRC_EN);
+ 
+ 	/* TODO: Enable RSZB */
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RZA_EN) &
+ 		~RSZ_EN_EN) |
+-		enable ? RSZ_EN_EN : 0,
++		(enable ? RSZ_EN_EN : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RZA_EN);
+ }
+ 
+@@ -202,7 +202,7 @@ static void resizer_configure(struct iss_resizer_device *resizer)
+ 	/* Select RSZ input */
+ 	writel((readl(iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RSZ_SRC_FMT0) &
+ 		~RSZ_SRC_FMT0_SEL) |
+-		(resizer->input == RESIZER_INPUT_IPIPEIF) ? RSZ_SRC_FMT0_SEL : 0,
++		(resizer->input == RESIZER_INPUT_IPIPEIF ? RSZ_SRC_FMT0_SEL : 0),
+ 		iss->regs[OMAP4_ISS_MEM_ISP_RESIZER] + RSZ_SRC_FMT0);
+ 
+ 	/* RSZ ignores WEN signal from IPIPE/IPIPEIF */
+@@ -318,10 +318,8 @@ void omap4iss_resizer_isr(struct iss_resizer_device *resizer, u32 events)
+ 	if (events & (ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR |
+ 		      ISP5_IRQ_RSZ_FIFO_OVF)) {
+ 		dev_dbg(iss->dev, "RSZ Err: FIFO_IN_BLK:%d, FIFO_OVF:%d\n",
+-			(events &
+-			 ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR) ? 1 : 0,
+-			(events &
+-			 ISP5_IRQ_RSZ_FIFO_OVF) ? 1 : 0);
++			events & ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR ? 1 : 0,
++			events & ISP5_IRQ_RSZ_FIFO_OVF ? 1 : 0);
+ 		pipe->error = true;
+ 	}
+ 
 -- 
-1.8.4.2
+1.8.3.2
 
