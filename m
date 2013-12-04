@@ -1,77 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2814 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab3LJNZR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44098 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab3LDA4i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:38 -0500
+Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CBE3D35AB1
+	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:40 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/15] adv7604: remove connector type. Never used for anything useful.
-Date: Tue, 10 Dec 2013 14:23:14 +0100
-Message-Id: <43c2c0adb4598418b8ebc45bc12006eb2c2df243.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+Subject: [PATCH 18/25] v4l: omap4iss: Make __iss_video_get_format() return a v4l2_mbus_framefmt
+Date: Wed,  4 Dec 2013 01:56:18 +0100
+Message-Id: <1386118585-12449-19-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+The function will be used by a caller that needs the media bus format
+instead of the pixel format currently returned. Move the media bus
+format to pixel format conversion to the existing caller.
 
-May also be wrong if the receiver is connected to more than one connector.
-
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/adv7604.c | 4 ----
- include/media/adv7604.h     | 3 ---
- 2 files changed, 7 deletions(-)
+ drivers/staging/media/omap4iss/iss_video.c | 25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 4ce3815..7d95a28 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -77,7 +77,6 @@ struct adv7604_state {
- 	u32 rgb_quantization_range;
- 	struct workqueue_struct *work_queues;
- 	struct delayed_work delayed_work_enable_hotplug;
--	bool connector_hdmi;
- 	bool restart_stdi_once;
- 	u32 prev_input_status;
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index b4ffde8..5dbd774 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -232,7 +232,8 @@ iss_video_far_end(struct iss_video *video)
+ }
  
-@@ -1817,8 +1816,6 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ static int
+-__iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
++__iss_video_get_format(struct iss_video *video,
++		       struct v4l2_mbus_framefmt *format)
+ {
+ 	struct v4l2_subdev_format fmt;
+ 	struct v4l2_subdev *subdev;
+@@ -243,6 +244,7 @@ __iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
+ 	if (subdev == NULL)
+ 		return -EINVAL;
  
- 	v4l2_info(sd, "-----Chip status-----\n");
- 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
--	v4l2_info(sd, "Connector type: %s\n", state->connector_hdmi ?
--			"HDMI" : (is_digital_input(sd) ? "DVI-D" : "DVI-A"));
- 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
- 			((rep_read(sd, 0x7d) & 0x01) ? "Yes" : "No"),
- 			((rep_read(sd, 0x7d) & 0x02) ? "Yes" : "No"),
-@@ -2138,7 +2135,6 @@ static int adv7604_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7604_ops);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	state->connector_hdmi = pdata->connector_hdmi;
++	memset(&fmt, 0, sizeof(fmt));
+ 	fmt.pad = pad;
+ 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
  
- 	/* i2c access to adv7604? */
- 	if (adv_smbus_read_byte_data_check(client, 0xfb, false) != 0x68) {
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index 0e13d1b..0162c31 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -80,9 +80,6 @@ enum adv7604_op_format_sel {
+@@ -253,26 +255,29 @@ __iss_video_get_format(struct iss_video *video, struct v4l2_format *format)
+ 	if (ret)
+ 		return ret;
  
- /* Platform dependent definition */
- struct adv7604_platform_data {
--	/* connector - HDMI or DVI? */
--	unsigned connector_hdmi:1;
--
- 	/* DIS_PWRDNB: 1 if the PWRDNB pin is unused and unconnected */
- 	unsigned disable_pwrdnb:1;
+-	format->type = video->type;
+-	return iss_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
++	*format = fmt.format;
++	return 0;
+ }
  
+ static int
+ iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
+ {
+-	struct v4l2_format format;
++	struct v4l2_mbus_framefmt format;
++	struct v4l2_pix_format pixfmt;
+ 	int ret;
+ 
+-	memcpy(&format, &vfh->format, sizeof(format));
+ 	ret = __iss_video_get_format(video, &format);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (vfh->format.fmt.pix.pixelformat != format.fmt.pix.pixelformat ||
+-	    vfh->format.fmt.pix.height != format.fmt.pix.height ||
+-	    vfh->format.fmt.pix.width != format.fmt.pix.width ||
+-	    vfh->format.fmt.pix.bytesperline != format.fmt.pix.bytesperline ||
+-	    vfh->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage)
++	pixfmt.bytesperline = 0;
++	ret = iss_video_mbus_to_pix(video, &format, &pixfmt);
++
++	if (vfh->format.fmt.pix.pixelformat != pixfmt.pixelformat ||
++	    vfh->format.fmt.pix.height != pixfmt.height ||
++	    vfh->format.fmt.pix.width != pixfmt.width ||
++	    vfh->format.fmt.pix.bytesperline != pixfmt.bytesperline ||
++	    vfh->format.fmt.pix.sizeimage != pixfmt.sizeimage)
+ 		return -EINVAL;
+ 
+ 	return ret;
 -- 
-1.8.4.rc3
+1.8.3.2
 
