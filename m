@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <ashley.fry@ge.com>) id 1VoBqY-0006RU-AU
-	for linux-dvb@linuxtv.org; Wed, 04 Dec 2013 13:46:30 +0100
-Received: from exprod5og104.obsmtp.com ([64.18.0.178])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-8) with smtps
+	(envelope-from <ashley.fry@ge.com>) id 1VoDdp-0002tt-56
+	for linux-dvb@linuxtv.org; Wed, 04 Dec 2013 15:41:29 +0100
+Received: from exprod5og110.obsmtp.com ([64.18.0.20])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with smtps
 	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1VoBqW-0003V1-kc; Wed, 04 Dec 2013 13:46:30 +0100
+	id 1VoDdm-0007NN-9c; Wed, 04 Dec 2013 15:41:29 +0100
 From: "Fry, Ashley (GE Intelligent Platforms)" <ashley.fry@ge.com>
 To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Wed, 4 Dec 2013 12:46:21 +0000
-Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF1071FF6A@LONURLNA02.e2k.ad.ge.com>
+Date: Wed, 4 Dec 2013 14:41:18 +0000
+Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF1071FF9B@LONURLNA02.e2k.ad.ge.com>
 Content-Language: en-US
 MIME-Version: 1.0
-Subject: [linux-dvb] Get Previous Versions
+Subject: Re: [linux-dvb] Get Previous Versions
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,32 +22,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1006286010=="
+Content-Type: multipart/mixed; boundary="===============0306084825=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1006286010==
+--===============0306084825==
 Content-Language: en-US
 Content-Type: multipart/alternative;
-	boundary="_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_"
+	boundary="_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF9BLONURLNA02e2kad_"
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF9BLONURLNA02e2kad_
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Hoping someone will help me...
-
-The latest version is not working for me
-I know I can get the latest with :-
+I have discover I can get only old linux-media-2012-06-30.tar.bz2 from http=
+://www.linuxtv.org/downloads/drivers/
+but don't understand how I can use them within the current build system.
+I firstly I did :-
 sudo git clone git://linuxtv.org/media_build.git
-But git tag doesn't show any tagged versions.
-How do I get older versions to try ?
+then
+sudo ./build
+Stopped that  after it had done the kernel patching, then extracted the new=
+ linux-media-2012-06-30.tar.bz2
+It fails to builds, the media_build/v4l tree is incompatiable
+Whereto I go to get the media_build/v4l portion of the tree with the same d=
+ate.
 
 Thx.
 
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_
+
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF9BLONURLNA02e2kad_
 Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
@@ -86,20 +92,23 @@ pre
 	margin-bottom:.0001pt;
 	font-size:10.0pt;
 	font-family:"Courier New";}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
 span.HTMLPreformattedChar
 	{mso-style-name:"HTML Preformatted Char";
 	mso-style-priority:99;
 	mso-style-link:"HTML Preformatted";
 	font-family:"Courier New";
 	mso-fareast-language:EN-GB;}
+span.EmailStyle19
+	{mso-style-type:personal;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+span.EmailStyle20
+	{mso-style-type:personal-reply;
+	font-family:"Calibri","sans-serif";
+	color:#1F497D;}
 .MsoChpDefault
 	{mso-style-type:export-only;
-	font-family:"Calibri","sans-serif";
-	mso-fareast-language:EN-US;}
+	font-size:10.0pt;}
 @page WordSection1
 	{size:612.0pt 792.0pt;
 	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
@@ -114,27 +123,42 @@ div.WordSection1
 </head>
 <body lang=3D"EN-GB" link=3D"blue" vlink=3D"purple">
 <div class=3D"WordSection1">
-<p class=3D"MsoNormal">Hoping someone will help me&#8230;<o:p></o:p></p>
-<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">The latest version is not working for me<o:p></o:p><=
-/p>
-<p class=3D"MsoNormal">I know I can get the latest with :-<o:p></o:p></p>
+<p class=3D"MsoNormal">I have discover I can get only old linux-media-2012-=
+06-30.tar.bz2 from
+<a href=3D"http://www.linuxtv.org/downloads/drivers/"><span style=3D"color:=
+windowtext">http://www.linuxtv.org/downloads/drivers/</span></a><o:p></o:p>=
+</p>
+<p class=3D"MsoNormal">but don&#8217;t understand how I can use them within=
+ the current build system.<o:p></o:p></p>
+<p class=3D"MsoNormal">I firstly I did :-<o:p></o:p></p>
 <p class=3D"MsoNormal"><span style=3D"mso-fareast-language:EN-GB">sudo git =
 clone git://linuxtv.org/media_build.git<o:p></o:p></span></p>
-<p class=3D"MsoNormal">But git tag doesn&#8217;t show any tagged versions.<=
-o:p></o:p></p>
-<p class=3D"MsoNormal">How do I get older versions to try ?<o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"mso-fareast-language:EN-GB">then <o:p=
+></o:p></span></p>
+<p class=3D"MsoNormal"><span style=3D"mso-fareast-language:EN-GB">sudo ./bu=
+ild <o:p></o:p></span></p>
+<p class=3D"MsoNormal"><span style=3D"mso-fareast-language:EN-GB">Stopped t=
+hat &nbsp;after it had done the kernel patching, then extracted the new
+</span>linux-media-2012-06-30.tar.bz2<o:p></o:p></p>
+<p class=3D"MsoNormal">It fails to builds, the media_build/v4l tree is inco=
+mpatiable<o:p></o:p></p>
+<p class=3D"MsoNormal">Whereto I go to get the media_build/v4l portion of t=
+he tree with the same date.<o:p></o:p></p>
 <p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">Thx.<o:p></o:p></p>
-<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Thx.<span style=3D"mso-fareast-language:EN-GB"><o:p>=
+</o:p></span></p>
+<p class=3D"MsoNormal"><span style=3D"color:#1F497D"><o:p>&nbsp;</o:p></spa=
+n></p>
+<p class=3D"MsoNormal"><span style=3D"color:#1F497D"><o:p>&nbsp;</o:p></spa=
+n></p>
 </div>
 </body>
 </html>
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_--
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF9BLONURLNA02e2kad_--
 
 
---===============1006286010==
+--===============0306084825==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -145,4 +169,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1006286010==--
+--===============0306084825==--
