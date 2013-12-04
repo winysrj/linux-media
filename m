@@ -1,226 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2599 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553Ab3LFKSH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:18:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
-	Dinesh Ram <dinesh.ram@cern.ch>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 02/11] si4713: Modified i2c driver to handle cases where interrupts are not used
-Date: Fri,  6 Dec 2013 11:17:05 +0100
-Message-Id: <1386325034-19344-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:55794 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933145Ab3LDRNn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 12:13:43 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jiada_wang@mentor.com,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RESEND PATCH v7 4/5] clk: Add common __clk_get(),
+ __clk_put() implementations
+Date: Wed, 04 Dec 2013 18:12:06 +0100
+Message-id: <1386177127-2894-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
+References: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dinesh Ram <Dinesh.Ram@cern.ch>
+This patch adds common __clk_get(), __clk_put() clkdev helpers that
+replace their platform specific counterparts when the common clock
+API is used.
 
-Checks have been introduced at several places in the code to test if an
-interrupt is set or not. For devices which do not use the interrupt, to
-get a valid response, within a specified timeout, the device is polled
-instead.
+The owner module pointer field is added to struct clk so a reference
+to the clock supplier module can be taken by the clock consumers.
 
-Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Eduardo Valentin <edubezval@gmail.com>
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+The owner module is assigned while the clock is being registered,
+in functions _clk_register() and __clk_register().
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/media/radio/si4713/si4713.c | 108 +++++++++++++++++++++---------------
- 1 file changed, 64 insertions(+), 44 deletions(-)
+Changes since v6:
+ - squashed into this one the patch assigning module owner
+   to struct clk.
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 4f3308f..5d26b9a 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -27,11 +27,11 @@
- #include <linux/i2c.h>
+Changes since v4:
+ - dropped unnecessary struct module forward declaration from
+   clk-provider.h
+
+Changes since v3:
+ - dropped exporting of __clk_get(), __clk_put().
+
+Changes since v2:
+ - fixed handling of NULL clock pointers in __clk_get(), __clk_put();
+---
+ arch/arm/include/asm/clkdev.h      |    2 ++
+ arch/blackfin/include/asm/clkdev.h |    2 ++
+ arch/mips/include/asm/clkdev.h     |    2 ++
+ arch/sh/include/asm/clkdev.h       |    2 ++
+ drivers/clk/clk.c                  |   26 ++++++++++++++++++++++++++
+ include/linux/clk-private.h        |    3 +++
+ include/linux/clkdev.h             |    5 +++++
+ 7 files changed, 42 insertions(+)
+
+diff --git a/arch/arm/include/asm/clkdev.h b/arch/arm/include/asm/clkdev.h
+index 80751c1..4e8a4b2 100644
+--- a/arch/arm/include/asm/clkdev.h
++++ b/arch/arm/include/asm/clkdev.h
+@@ -14,12 +14,14 @@
+ 
  #include <linux/slab.h>
- #include <linux/gpio.h>
--#include <linux/regulator/consumer.h>
- #include <linux/module.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
-+#include <linux/regulator/consumer.h>
  
- #include "si4713.h"
++#ifndef CONFIG_COMMON_CLK
+ #ifdef CONFIG_HAVE_MACH_CLKDEV
+ #include <mach/clkdev.h>
+ #else
+ #define __clk_get(clk)	({ 1; })
+ #define __clk_put(clk)	do { } while (0)
+ #endif
++#endif
  
-@@ -213,6 +213,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
- 				u8 response[], const int respn, const int usecs)
+ static inline struct clk_lookup_alloc *__clkdev_alloc(size_t size)
  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
-+	unsigned long until_jiffies;
- 	u8 data1[MAX_ARGS + 1];
- 	int err;
- 
-@@ -228,30 +229,39 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
- 	if (err != argn + 1) {
- 		v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
- 			command);
--		return (err > 0) ? -EIO : err;
-+		return err < 0 ? err : -EIO;
- 	}
- 
-+	until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
-+
- 	/* Wait response from interrupt */
--	if (!wait_for_completion_timeout(&sdev->work,
-+	if (client->irq) {
-+		if (!wait_for_completion_timeout(&sdev->work,
- 				usecs_to_jiffies(usecs) + 1))
--		v4l2_warn(&sdev->sd,
-+			v4l2_warn(&sdev->sd,
- 				"(%s) Device took too much time to answer.\n",
- 				__func__);
--
--	/* Then get the response */
--	err = i2c_master_recv(client, response, respn);
--	if (err != respn) {
--		v4l2_err(&sdev->sd,
--			"Error while reading response for command 0x%02x\n",
--			command);
--		return (err > 0) ? -EIO : err;
- 	}
- 
--	DBG_BUFFER(&sdev->sd, "Response", response, respn);
--	if (check_command_failed(response[0]))
--		return -EBUSY;
-+	do {
-+		err = i2c_master_recv(client, response, respn);
-+		if (err != respn) {
-+			v4l2_err(&sdev->sd,
-+				"Error %d while reading response for command 0x%02x\n",
-+				err, command);
-+			return err < 0 ? err : -EIO;
-+		}
-+
-+		DBG_BUFFER(&sdev->sd, "Response", response, respn);
-+		if (!check_command_failed(response[0]))
-+			return 0;
- 
--	return 0;
-+		if (client->irq)
-+			return -EBUSY;
-+		msleep(1);
-+	} while (jiffies <= until_jiffies);
-+
-+	return -EBUSY;
+diff --git a/arch/blackfin/include/asm/clkdev.h b/arch/blackfin/include/asm/clkdev.h
+index 9053bed..7ac2436 100644
+--- a/arch/blackfin/include/asm/clkdev.h
++++ b/arch/blackfin/include/asm/clkdev.h
+@@ -8,7 +8,9 @@ static inline struct clk_lookup_alloc *__clkdev_alloc(size_t size)
+ 	return kzalloc(size, GFP_KERNEL);
  }
  
- /*
-@@ -344,14 +354,15 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
-  */
- static int si4713_powerup(struct si4713_device *sdev)
++#ifndef CONFIG_COMMON_CLK
+ #define __clk_put(clk)
+ #define __clk_get(clk) ({ 1; })
++#endif
+ 
+ #endif
+diff --git a/arch/mips/include/asm/clkdev.h b/arch/mips/include/asm/clkdev.h
+index 2624754..1b3ad7b 100644
+--- a/arch/mips/include/asm/clkdev.h
++++ b/arch/mips/include/asm/clkdev.h
+@@ -14,8 +14,10 @@
+ 
+ #include <linux/slab.h>
+ 
++#ifndef CONFIG_COMMON_CLK
+ #define __clk_get(clk)	({ 1; })
+ #define __clk_put(clk)	do { } while (0)
++#endif
+ 
+ static inline struct clk_lookup_alloc *__clkdev_alloc(size_t size)
  {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
- 	int err;
- 	u8 resp[SI4713_PWUP_NRESP];
- 	/*
- 	 * 	.First byte = Enabled interrupts and boot function
- 	 * 	.Second byte = Input operation mode
- 	 */
--	const u8 args[SI4713_PWUP_NARGS] = {
--		SI4713_PWUP_CTSIEN | SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-+	u8 args[SI4713_PWUP_NARGS] = {
-+		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
- 		SI4713_PWUP_OPMOD_ANALOG,
- 	};
- 
-@@ -369,6 +380,9 @@ static int si4713_powerup(struct si4713_device *sdev)
- 		gpio_set_value(sdev->gpio_reset, 1);
- 	}
- 
-+	if (client->irq)
-+		args[0] |= SI4713_PWUP_CTSIEN;
-+
- 	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
- 					args, ARRAY_SIZE(args),
- 					resp, ARRAY_SIZE(resp),
-@@ -380,7 +394,8 @@ static int si4713_powerup(struct si4713_device *sdev)
- 		v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
- 		sdev->power_state = POWER_ON;
- 
--		err = si4713_write_property(sdev, SI4713_GPO_IEN,
-+		if (client->irq)
-+			err = si4713_write_property(sdev, SI4713_GPO_IEN,
- 						SI4713_STC_INT | SI4713_CTS);
- 	} else {
- 		if (gpio_is_valid(sdev->gpio_reset))
-@@ -465,33 +480,39 @@ static int si4713_checkrev(struct si4713_device *sdev)
-  */
- static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
- {
--	int err;
-+	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
- 	u8 resp[SI4713_GET_STATUS_NRESP];
-+	unsigned long start_jiffies = jiffies;
-+	int err;
- 
--	/* Wait response from STC interrupt */
--	if (!wait_for_completion_timeout(&sdev->work,
--			usecs_to_jiffies(usecs) + 1))
-+	if (client->irq &&
-+	    !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
- 		v4l2_warn(&sdev->sd,
--			"%s: device took too much time to answer (%d usec).\n",
--				__func__, usecs);
--
--	/* Clear status bits */
--	err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
--					NULL, 0,
--					resp, ARRAY_SIZE(resp),
--					DEFAULT_TIMEOUT);
--
--	if (err < 0)
--		goto exit;
--
--	v4l2_dbg(1, debug, &sdev->sd,
--			"%s: status bits: 0x%02x\n", __func__, resp[0]);
--
--	if (!(resp[0] & SI4713_STC_INT))
--		err = -EIO;
--
--exit:
--	return err;
-+			"(%s) Device took too much time to answer.\n", __func__);
-+
-+	for (;;) {
-+		/* Clear status bits */
-+		err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-+				NULL, 0,
-+				resp, ARRAY_SIZE(resp),
-+				DEFAULT_TIMEOUT);
-+		/* The USB device returns errors when it waits for the
-+		 * STC bit to be set. Hence polling */
-+		if (err >= 0) {
-+			v4l2_dbg(1, debug, &sdev->sd,
-+				"%s: status bits: 0x%02x\n", __func__, resp[0]);
-+
-+			if (resp[0] & SI4713_STC_INT)
-+				return 0;
-+		}
-+		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
-+			return err < 0 ? err : -EIO;
-+		/* We sleep here for 3 ms in order to avoid flooding the device
-+		 * with USB requests. The si4713 USB driver was developed
-+		 * by reverse engineering the Windows USB driver. The windows
-+		 * driver also has a ~2.5 ms delay between responses. */
-+		msleep(3);
-+	}
+diff --git a/arch/sh/include/asm/clkdev.h b/arch/sh/include/asm/clkdev.h
+index 6ba9186..c419014 100644
+--- a/arch/sh/include/asm/clkdev.h
++++ b/arch/sh/include/asm/clkdev.h
+@@ -25,7 +25,9 @@ static inline struct clk_lookup_alloc *__clkdev_alloc(size_t size)
+ 		return kzalloc(size, GFP_KERNEL);
  }
  
- /*
-@@ -1024,7 +1045,6 @@ static int si4713_initialize(struct si4713_device *sdev)
- 	if (rval < 0)
- 		return rval;
++#ifndef CONFIG_COMMON_CLK
+ #define __clk_put(clk)
+ #define __clk_get(clk) ({ 1; })
++#endif
  
--
- 	sdev->frequency = DEFAULT_FREQUENCY;
- 	sdev->stereo = 1;
- 	sdev->tune_rnl = DEFAULT_TUNE_RNL;
+ #endif /* __CLKDEV_H__ */
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index c687dc8..baa2f66 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1813,6 +1813,10 @@ struct clk *__clk_register(struct device *dev, struct clk_hw *hw)
+ 	clk->flags = hw->init->flags;
+ 	clk->parent_names = hw->init->parent_names;
+ 	clk->num_parents = hw->init->num_parents;
++	if (dev && dev->driver)
++		clk->owner = dev->driver->owner;
++	else
++		clk->owner = NULL;
+ 
+ 	ret = __clk_init(dev, clk);
+ 	if (ret)
+@@ -1833,6 +1837,8 @@ static int _clk_register(struct device *dev, struct clk_hw *hw, struct clk *clk)
+ 		goto fail_name;
+ 	}
+ 	clk->ops = hw->init->ops;
++	if (dev && dev->driver)
++		clk->owner = dev->driver->owner;
+ 	clk->hw = hw;
+ 	clk->flags = hw->init->flags;
+ 	clk->num_parents = hw->init->num_parents;
+@@ -1973,6 +1979,26 @@ void devm_clk_unregister(struct device *dev, struct clk *clk)
+ }
+ EXPORT_SYMBOL_GPL(devm_clk_unregister);
+ 
++/*
++ * clkdev helpers
++ */
++int __clk_get(struct clk *clk)
++{
++	if (clk && !try_module_get(clk->owner))
++		return 0;
++
++	return 1;
++}
++
++void __clk_put(struct clk *clk)
++{
++	if (WARN_ON_ONCE(IS_ERR(clk)))
++		return;
++
++	if (clk)
++		module_put(clk->owner);
++}
++
+ /***        clk rate change notifiers        ***/
+ 
+ /**
+diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
+index 8138c94..8cb1865 100644
+--- a/include/linux/clk-private.h
++++ b/include/linux/clk-private.h
+@@ -25,10 +25,13 @@
+ 
+ #ifdef CONFIG_COMMON_CLK
+ 
++struct module;
++
+ struct clk {
+ 	const char		*name;
+ 	const struct clk_ops	*ops;
+ 	struct clk_hw		*hw;
++	struct module		*owner;
+ 	struct clk		*parent;
+ 	const char		**parent_names;
+ 	struct clk		**parents;
+diff --git a/include/linux/clkdev.h b/include/linux/clkdev.h
+index a6a6f60..94bad77 100644
+--- a/include/linux/clkdev.h
++++ b/include/linux/clkdev.h
+@@ -43,4 +43,9 @@ int clk_add_alias(const char *, const char *, char *, struct device *);
+ int clk_register_clkdev(struct clk *, const char *, const char *, ...);
+ int clk_register_clkdevs(struct clk *, struct clk_lookup *, size_t);
+ 
++#ifdef CONFIG_COMMON_CLK
++int __clk_get(struct clk *clk);
++void __clk_put(struct clk *clk);
++#endif
++
+ #endif
 -- 
-1.8.4.rc3
+1.7.9.5
 
