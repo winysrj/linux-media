@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50964 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753801Ab3LNQQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 11:16:24 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44099 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab3LDA4e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:34 -0500
+Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5C284366A4
+	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:40 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v2 2/7] v4l: add device type for Software Defined Radio
-Date: Sat, 14 Dec 2013 18:15:24 +0200
-Message-Id: <1387037729-1977-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
-References: <1387037729-1977-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 15/25] v4l: omap4iss: resizer: Stop the whole resizer to avoid FIFO overflows
+Date: Wed,  4 Dec 2013 01:56:15 +0100
+Message-Id: <1386118585-12449-16-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
-It is registered as /dev/sdr0
+When stopping the resizer due to a buffer underrun, disabling RZA only
+produces input FIFO overflows, most probably when the next frame is
+received. Disable the whole resizer to work around the problem.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 5 +++++
- include/media/v4l2-dev.h           | 3 ++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/staging/media/omap4iss/iss_resizer.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 1cc1749..c9cf54c 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
-  *	%VFL_TYPE_RADIO - A radio card
-  *
-  *	%VFL_TYPE_SUBDEV - A subdevice
-+ *
-+ *	%VFL_TYPE_SDR - Software Defined Radio
-  */
- int __video_register_device(struct video_device *vdev, int type, int nr,
- 		int warn_if_nr_in_use, struct module *owner)
-@@ -806,6 +808,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_SUBDEV:
- 		name_base = "v4l-subdev";
- 		break;
-+	case VFL_TYPE_SDR:
-+		name_base = "sdr";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c768c9f..eec6e46 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -24,7 +24,8 @@
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
- #define VFL_TYPE_SUBDEV		3
--#define VFL_TYPE_MAX		4
-+#define VFL_TYPE_SDR		4
-+#define VFL_TYPE_MAX		5
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index 793325c..5bf5080 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -266,10 +266,12 @@ static void resizer_configure(struct iss_resizer_device *resizer)
  
- /* Is this a receiver, transmitter or mem-to-mem? */
- /* Ignored for VFL_TYPE_SUBDEV. */
+ static void resizer_isr_buffer(struct iss_resizer_device *resizer)
+ {
+-	struct iss_device *iss = to_iss_device(resizer);
+ 	struct iss_buffer *buffer;
+ 
+-	iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_EN, RSZ_EN_EN);
++	/* The whole resizer needs to be stopped. Disabling RZA only produces
++	 * input FIFO overflows, most probably when the next frame is received.
++	 */
++	resizer_enable(resizer, 0);
+ 
+ 	buffer = omap4iss_video_buffer_next(&resizer->video_out);
+ 	if (buffer == NULL)
+@@ -277,7 +279,7 @@ static void resizer_isr_buffer(struct iss_resizer_device *resizer)
+ 
+ 	resizer_set_outaddr(resizer, buffer->iss_addr);
+ 
+-	iss_reg_set(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_EN, RSZ_EN_EN);
++	resizer_enable(resizer, 1);
+ }
+ 
+ /*
 -- 
-1.8.4.2
+1.8.3.2
 
