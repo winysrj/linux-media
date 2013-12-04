@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <ashley.fry@ge.com>) id 1VnpjL-0000fS-2I
-	for linux-dvb@linuxtv.org; Tue, 03 Dec 2013 14:09:36 +0100
+	(envelope-from <ashley.fry@ge.com>) id 1VoBqY-0006RU-AU
+	for linux-dvb@linuxtv.org; Wed, 04 Dec 2013 13:46:30 +0100
 Received: from exprod5og104.obsmtp.com ([64.18.0.178])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-7) with smtps
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-8) with smtps
 	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1VnpjJ-0005pd-0R; Tue, 03 Dec 2013 14:09:34 +0100
+	id 1VoBqW-0003V1-kc; Wed, 04 Dec 2013 13:46:30 +0100
 From: "Fry, Ashley (GE Intelligent Platforms)" <ashley.fry@ge.com>
 To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Tue, 3 Dec 2013 13:09:24 +0000
-Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF1071FE34@LONURLNA02.e2k.ad.ge.com>
+Date: Wed, 4 Dec 2013 12:46:21 +0000
+Message-ID: <5E7BEC406408D249B00BF3A73A0A36DF1071FF6A@LONURLNA02.e2k.ad.ge.com>
 Content-Language: en-US
 MIME-Version: 1.0
-Subject: [linux-dvb] Ubuntu 12.04.3 version
+Subject: [linux-dvb] Get Previous Versions
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,33 +22,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0979235809=="
+Content-Type: multipart/mixed; boundary="===============1006286010=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0979235809==
+--===============1006286010==
 Content-Language: en-US
 Content-Type: multipart/alternative;
-	boundary="_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_"
+	boundary="_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_"
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Hoping someone can help, Ubuntu 12.04.3 has Linuxtv build into the kernel, =
-it's not working.
-Latest version obtained by :-
+Hoping someone will help me...
+
+The latest version is not working for me
+I know I can get the latest with :-
 sudo git clone git://linuxtv.org/media_build.git
-Has more issue.
-So wanting to download the source from git://linuxtv.org/ which is source f=
-or they version they used to originally build Ubuntu 12.04.3.
-Some advice on how I do this would be appreciated ?
+But git tag doesn't show any tagged versions.
+How do I get older versions to try ?
 
-Many thx.
+Thx.
 
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_
 Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
@@ -115,31 +114,27 @@ div.WordSection1
 </head>
 <body lang=3D"EN-GB" link=3D"blue" vlink=3D"purple">
 <div class=3D"WordSection1">
-<p class=3D"MsoNormal">Hoping someone can help, Ubuntu 12.04.3 has Linuxtv =
-build into the kernel, it&#8217;s not working.<o:p></o:p></p>
-<p class=3D"MsoNormal">Latest version obtained by :- <o:p></o:p></p>
-<p class=3D"MsoNormal"><span style=3D"font-size:10.0pt;font-family:&quot;Co=
-urier New&quot;;mso-fareast-language:EN-GB">sudo git clone git://linuxtv.or=
-g/media_build.git<o:p></o:p></span></p>
-<p class=3D"MsoNormal">Has more issue. <o:p></o:p></p>
-<p class=3D"MsoNormal">So wanting to download the source from <span style=
-=3D"font-size:10.0pt;font-family:&quot;Courier New&quot;;mso-fareast-langua=
-ge:EN-GB">
-git://linuxtv.org/ which is source for they </span>version they used to ori=
-ginally build Ubuntu 12.04.3.<o:p></o:p></p>
-<p class=3D"MsoNormal">Some advice on how I do this would be appreciated ?<=
-o:p></o:p></p>
+<p class=3D"MsoNormal">Hoping someone will help me&#8230;<o:p></o:p></p>
 <p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">Many thx.<o:p></o:p></p>
+<p class=3D"MsoNormal">The latest version is not working for me<o:p></o:p><=
+/p>
+<p class=3D"MsoNormal">I know I can get the latest with :-<o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"mso-fareast-language:EN-GB">sudo git =
+clone git://linuxtv.org/media_build.git<o:p></o:p></span></p>
+<p class=3D"MsoNormal">But git tag doesn&#8217;t show any tagged versions.<=
+o:p></o:p></p>
+<p class=3D"MsoNormal">How do I get older versions to try ?<o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Thx.<o:p></o:p></p>
 <p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
 </div>
 </body>
 </html>
 
---_000_5E7BEC406408D249B00BF3A73A0A36DF1071FE34LONURLNA02e2kad_--
+--_000_5E7BEC406408D249B00BF3A73A0A36DF1071FF6ALONURLNA02e2kad_--
 
 
---===============0979235809==
+--===============1006286010==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -150,4 +145,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0979235809==--
+--===============1006286010==--
