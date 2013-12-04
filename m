@@ -1,181 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4757 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753492Ab3LJNZV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38230 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754146Ab3LDARA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 14/15] adv7604: adjust gain and offset for DVI-D signals
-Date: Tue, 10 Dec 2013 14:23:19 +0100
-Message-Id: <79ba90752da982d9cd79c51a5e17c1ce5abeb6ab.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+	Tue, 3 Dec 2013 19:17:00 -0500
+Date: Wed, 4 Dec 2013 02:16:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH -next] [media] media: i2c: lm3560: fix missing unlock
+ error in lm3560_get_ctrl().
+Message-ID: <20131204001621.GC30652@valkosipuli.retiisi.org.uk>
+References: <1384400607-18504-1-git-send-email-gshark.jeong@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1384400607-18504-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+Hi Daniel,
 
-If the input signal is DVI-D and quantization range is RGB full range,
-gain and offset must be adjusted to get the right range on the output.
+Thanks for the patch. (Dropping LKML; this isn't relevant there.)
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 98 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 9 deletions(-)
+On Thu, Nov 14, 2013 at 12:43:27PM +0900, Daniel Jeong wrote:
+> Add the missing unlock before return from function lm3560_get_ctrl()
+> to avoid deadlock. Thanks to Dan Carpenter.
+> 
+> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+> ---
+>  drivers/media/i2c/lm3560.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+> index 3317a9a..5d6eef0 100644
+> --- a/drivers/media/i2c/lm3560.c
+> +++ b/drivers/media/i2c/lm3560.c
+> @@ -172,16 +172,16 @@ static int lm3560_flash_brt_ctrl(struct lm3560_flash *flash,
+>  static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+>  {
+>  	struct lm3560_flash *flash = to_lm3560_flash(ctrl, led_no);
+> +	int rval = -EINVAL;
+>  
+>  	mutex_lock(&flash->lock);
+>  
+>  	if (ctrl->id == V4L2_CID_FLASH_FAULT) {
+> -		int rval;
+>  		s32 fault = 0;
+>  		unsigned int reg_val;
+>  		rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
+>  		if (rval < 0)
+> -			return rval;
+> +			goto out;
+>  		if (rval & FAULT_SHORT_CIRCUIT)
+>  			fault |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+>  		if (rval & FAULT_OVERTEMP)
+> @@ -189,11 +189,11 @@ static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+>  		if (rval & FAULT_TIMEOUT)
+>  			fault |= V4L2_FLASH_FAULT_TIMEOUT;
+>  		ctrl->cur.val = fault;
+> -		return 0;
+>  	}
+>  
+> +out:
+>  	mutex_unlock(&flash->lock);
+> -	return -EINVAL;
+> +	return rval;
+>  }
+>  
+>  static int lm3560_set_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 0e69b24..c195a92 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -885,12 +885,72 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
- 	cp_write(sd, 0xac, (height & 0x0f) << 4);
- }
- 
-+static void adv7604_set_offset(struct v4l2_subdev *sd, bool auto_offset, u16 offset_a, u16 offset_b, u16 offset_c)
-+{
-+	struct adv7604_state *state = to_state(sd);
-+	u8 offset_buf[4];
-+
-+	if (auto_offset) {
-+		offset_a = 0x3ff;
-+		offset_b = 0x3ff;
-+		offset_c = 0x3ff;
-+	}
-+
-+	v4l2_dbg(2, debug, sd, "%s: %s offset: a = 0x%x, b = 0x%x, c = 0x%x\n",
-+			__func__, auto_offset ? "Auto" : "Manual",
-+			offset_a, offset_b, offset_c);
-+
-+	offset_buf[0] = (cp_read(sd, 0x77) & 0xc0) | ((offset_a & 0x3f0) >> 4);
-+	offset_buf[1] = ((offset_a & 0x00f) << 4) | ((offset_b & 0x3c0) >> 6);
-+	offset_buf[2] = ((offset_b & 0x03f) << 2) | ((offset_c & 0x300) >> 8);
-+	offset_buf[3] = offset_c & 0x0ff;
-+
-+	/* Registers must be written in this order with no i2c access in between */
-+	if (adv_smbus_write_i2c_block_data(state->i2c_cp, 0x77, 4, offset_buf))
-+		v4l2_err(sd, "%s: i2c error writing to CP reg 0x77, 0x78, 0x79, 0x7a\n", __func__);
-+}
-+
-+static void adv7604_set_gain(struct v4l2_subdev *sd, bool auto_gain, u16 gain_a, u16 gain_b, u16 gain_c)
-+{
-+	struct adv7604_state *state = to_state(sd);
-+	u8 gain_buf[4];
-+	u8 gain_man = 1;
-+	u8 agc_mode_man = 1;
-+
-+	if (auto_gain) {
-+		gain_man = 0;
-+		agc_mode_man = 0;
-+		gain_a = 0x100;
-+		gain_b = 0x100;
-+		gain_c = 0x100;
-+	}
-+
-+	v4l2_dbg(2, debug, sd, "%s: %s gain: a = 0x%x, b = 0x%x, c = 0x%x\n",
-+			__func__, auto_gain ? "Auto" : "Manual",
-+			gain_a, gain_b, gain_c);
-+
-+	gain_buf[0] = ((gain_man << 7) | (agc_mode_man << 6) | ((gain_a & 0x3f0) >> 4));
-+	gain_buf[1] = (((gain_a & 0x00f) << 4) | ((gain_b & 0x3c0) >> 6));
-+	gain_buf[2] = (((gain_b & 0x03f) << 2) | ((gain_c & 0x300) >> 8));
-+	gain_buf[3] = ((gain_c & 0x0ff));
-+
-+	/* Registers must be written in this order with no i2c access in between */
-+	if (adv_smbus_write_i2c_block_data(state->i2c_cp, 0x73, 4, gain_buf))
-+		v4l2_err(sd, "%s: i2c error writing to CP reg 0x73, 0x74, 0x75, 0x76\n", __func__);
-+}
-+
- static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
-+	bool rgb_output = io_read(sd, 0x02) & 0x02;
-+	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
-+
-+	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
-+			__func__, state->rgb_quantization_range,
-+			rgb_output, hdmi_signal);
- 
--	v4l2_dbg(2, debug, sd, "%s: rgb_quantization_range = %d\n",
--		       __func__, state->rgb_quantization_range);
-+	adv7604_set_gain(sd, true, 0x0, 0x0, 0x0);
-+	adv7604_set_offset(sd, true, 0x0, 0x0, 0x0);
- 
- 	switch (state->rgb_quantization_range) {
- 	case V4L2_DV_RGB_RANGE_AUTO:
-@@ -908,7 +968,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 			break;
- 		}
- 
--		if (hdmi_read(sd, 0x05) & 0x80) {
-+		if (hdmi_signal) {
- 			/* Receiving HDMI signal
- 			 * Set automode */
- 			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-@@ -924,24 +984,45 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		} else {
- 			/* RGB full range (0-255) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+
-+			if (is_digital_input(sd) && rgb_output) {
-+				adv7604_set_offset(sd, false, 0x40, 0x40, 0x40);
-+			} else {
-+				adv7604_set_gain(sd, false, 0xe0, 0xe0, 0xe0);
-+				adv7604_set_offset(sd, false, 0x70, 0x70, 0x70);
-+			}
- 		}
- 		break;
- 	case V4L2_DV_RGB_RANGE_LIMITED:
- 		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
- 			/* YCrCb limited range (16-235) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x20);
--		} else {
--			/* RGB limited range (16-235) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+			break;
- 		}
-+
-+		/* RGB limited range (16-235) */
-+		io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+
- 		break;
- 	case V4L2_DV_RGB_RANGE_FULL:
- 		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
- 			/* YCrCb full range (0-255) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x60);
-+			break;
-+		}
-+
-+		/* RGB full range (0-255) */
-+		io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+
-+		if (is_analog_input(sd) || hdmi_signal)
-+			break;
-+
-+		/* Adjust gain/offset for DVI-D signals only */
-+		if (rgb_output) {
-+			adv7604_set_offset(sd, false, 0x40, 0x40, 0x40);
- 		} else {
--			/* RGB full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			adv7604_set_gain(sd, false, 0xe0, 0xe0, 0xe0);
-+			adv7604_set_offset(sd, false, 0x70, 0x70, 0x70);
- 		}
- 		break;
- 	}
-@@ -1367,7 +1448,6 @@ static int adv7604_s_dv_timings(struct v4l2_subdev *sd,
- 
- 	set_rgb_quantization_range(sd);
- 
--
- 	if (debug > 1)
- 		v4l2_print_dv_timings(sd->name, "adv7604_s_dv_timings: ",
- 				      timings, true);
+The patch itself looks fine, but have you actually tested rading any fault
+codes? Hint: regmap_read() returns zero on success. Yeah, I know... fault
+codes can be a pain to test, and I, too, missed this on the first review
+round.
+
+I can take the patch to my tree and send a pull req if that's fine for you.
+I case you also intend to write another, I'll take both at the same time.
+
 -- 
-1.8.4.rc3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
