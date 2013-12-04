@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58596 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751377Ab3LKXyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 18:54:25 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49946 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933078Ab3LDTPv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 14:15:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 4/4] v4l: 1 Hz resolution flag for tuners
-Date: Thu, 12 Dec 2013 01:54:03 +0200
-Message-Id: <1386806043-5331-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1386806043-5331-1-git-send-email-crope@iki.fi>
-References: <1386806043-5331-1-git-send-email-crope@iki.fi>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCH 2/6] mt9v032: Fix pixel array size
+Date: Wed,  4 Dec 2013 20:15:49 +0100
+Message-Id: <1386184553-12770-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386184553-12770-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386184553-12770-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
+The active pixel array size is 753x481 with 4 additional black rows at
+the top. Fix the driver accordingly.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/mt9v032.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6c6a601..1bac6c4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1349,6 +1349,7 @@ struct v4l2_modulator {
- #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
- #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
- #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
-+#define V4L2_TUNER_CAP_1HZ		0x1000
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 2055820..12360e4 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -27,8 +27,9 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
  
- /*  Flags for the 'rxsubchans' field */
- #define V4L2_TUNER_SUB_MONO		0x0001
+-#define MT9V032_PIXEL_ARRAY_HEIGHT			492
+-#define MT9V032_PIXEL_ARRAY_WIDTH			782
++/* The first four rows are black rows. The active area spans 753x481 pixels. */
++#define MT9V032_PIXEL_ARRAY_HEIGHT			485
++#define MT9V032_PIXEL_ARRAY_WIDTH			753
+ 
+ #define MT9V032_SYSCLK_FREQ_DEF				26600000
+ 
 -- 
-1.8.4.2
+1.8.3.2
 
