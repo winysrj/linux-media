@@ -1,102 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44086 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573Ab3LKQHv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 11:07:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 5/7] v4l: atmel-isi: Make the MCK clock optional
-Date: Wed, 11 Dec 2013 17:07:43 +0100
-Message-Id: <1386778065-14135-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-out.m-online.net ([212.18.0.9]:55863 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab3LEUwt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 15:52:49 -0500
+From: Marek Vasut <marex@denx.de>
+To: Denis Carikli <denis@eukrea.com>
+Subject: Re: [PATCHv5][ 3/8] staging: imx-drm: Correct BGR666 and the board's dts that use them.
+Date: Thu, 5 Dec 2013 21:52:43 +0100
+Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org, driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Eric =?iso-8859-1?q?B=E9nard?= <eric@eukrea.com>
+References: <1386268092-21719-1-git-send-email-denis@eukrea.com> <1386268092-21719-3-git-send-email-denis@eukrea.com>
+In-Reply-To: <1386268092-21719-3-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201312052152.43971.marex@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ISI_MCK is the sensor master clock. It should be handled by the sensor
-driver directly, as the ISI has no use for that clock. Make the clock
-optional here while platforms transition to the correct model.
+On Thursday, December 05, 2013 at 07:28:07 PM, Denis Carikli wrote:
+[...]
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 36 ++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+Can you please explain the correction here ? Why is it needed ? What was the 
+problem ?
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index ae2c8c1..3e8d412 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -725,10 +725,12 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
- 	if (ret)
- 		return ret;
- 
--	ret = clk_prepare_enable(isi->mck);
--	if (ret) {
--		clk_disable_unprepare(isi->pclk);
--		return ret;
-+	if (!IS_ERR(isi->mck)) {
-+		ret = clk_prepare_enable(isi->mck);
-+		if (ret) {
-+			clk_disable_unprepare(isi->pclk);
-+			return ret;
-+		}
- 	}
- 
- 	return 0;
-@@ -739,7 +741,8 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
- {
- 	struct atmel_isi *isi = ici->priv;
- 
--	clk_disable_unprepare(isi->mck);
-+	if (!IS_ERR(isi->mck))
-+		clk_disable_unprepare(isi->mck);
- 	clk_disable_unprepare(isi->pclk);
- }
- 
-@@ -883,7 +886,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
-+	if (!pdata || !pdata->data_width_flags) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
- 		return -EINVAL;
-@@ -905,18 +908,21 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
--	/* Get ISI_MCK, provided by programmable clock or external clock */
-+	/* ISI_MCK is the sensor master clock. It should be handled by the
-+	 * sensor driver directly, as the ISI has no use for that clock. Make
-+	 * the clock optional here while platforms transition to the correct
-+	 * model.
-+	 */
- 	isi->mck = devm_clk_get(dev, "isi_mck");
--	if (IS_ERR(isi->mck)) {
--		dev_err(dev, "Failed to get isi_mck\n");
--		return PTR_ERR(isi->mck);
-+	if (!IS_ERR(isi->mck)) {
-+		/* Set ISI_MCK's frequency, it should be faster than pixel
-+		 * clock.
-+		 */
-+		ret = clk_set_rate(isi->mck, pdata->mck_hz);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
--	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
--	ret = clk_set_rate(isi->mck, pdata->mck_hz);
--	if (ret < 0)
--		return ret;
--
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
- 				sizeof(struct fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
--- 
-1.8.3.2
+Thanks!
 
+Best regards,
+Marek Vasut
