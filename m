@@ -1,99 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb03do.versatel-west.de ([62.214.96.174]:42479 "HELO
-	mxweb03do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756124Ab3L3TVb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 14:21:31 -0500
-Message-ID: <52C1C600.5000806@cinnamon-sage.de>
-Date: Mon, 30 Dec 2013 20:14:08 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2744 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917Ab3LEHuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 02:50:05 -0500
+Message-ID: <52A0301C.5050009@xs4all.nl>
+Date: Thu, 05 Dec 2013 08:49:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Digital Devices Cine S2 V6.5, PCIe, Dual
-References: <52C146AC.6050208@grumpydevil.homelinux.org>
-In-Reply-To: <52C146AC.6050208@grumpydevil.homelinux.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>
+Subject: [GIT PULL FOR v3.14] Add radio-bcm2048 staging driver
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-Am 30.12.2013 11:10, schrieb Rudy Zijlstra:
-> Dear List,
-> 
-> I have a DVB card as mentioned in the subject
-> 
-> 03:00.0 Multimedia controller [0480]: Device [dd01:0003]
->         Subsystem: Device [dd01:0021]
->         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
->         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
->         Interrupt: pin A routed to IRQ 17
->         Region 0: Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
->         Capabilities: [50] Power Management version 3
->                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
->                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->         Capabilities: [90] Express (v2) Endpoint, MSI 00
->                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
->                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
->                 DevCtl: Report errors: Correctable- Non-Fatal+ Fatal+ Unsupported+
->                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
->                         MaxPayload 128 bytes, MaxReadReq 512 bytes
->                 DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- TransPend-
->                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s, Latency L0 unlimited, L1 <1us
->                         ClockPM- Surprise- LLActRep- BwNot-
->                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
->                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
->                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
->                 DevCap2: Completion Timeout: Range A, TimeoutDis+
->                 DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis+
->                 LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- SpeedDis-, Selectable De-emphasis: -6dB
->                          Transmit Margin: Normal Operating Range, EnterModifiedCompliance- ComplianceSOS-
->                          Compliance De-emphasis: -6dB
->                 LnkSta2: Current De-emphasis Level: -6dB
->         Capabilities: [100 v1] Vendor Specific Information: ID=0000 Rev=0 Len=00c <?>
->         Kernel driver in use: DDBridge
->         Kernel modules: ddbridge
-> 
-> Kernel 3.12.3 sees the device, but does not enable it. Only the ddbridge driver is loaded, none of the tuner/demod drivers:
-> 
-> root@mythtest:~# lsmod
-> Module                  Size  Used by
-> ddbridge               17766  0
-> 
-> Nor, judging from dmesg output, is the firmware loaded:
-> [    1.624996] Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH
-> [    1.652565] pci 0000:01:19.0: enabling device (0000 -> 0002)
-> [    1.677601] DDBridge driver detected: Digital Devices PCIe bridge
-> [    1.683598] HW ffffffff FW ffffffff
-> [    2.160410] Adding 2097148k swap on /dev/sda3.  Priority:-1 extents:1 across:2097148k
-> [    2.190386] Switched to clocksource tsc
-> 
-> 
-> What is the best kernel to have this dvb-card working?
-> Or, alternatively, the best combination of kernel version and out-of-kernel stack?
-
- I think the best out-of-kernel stack at the moment ist the one by Oliver Endriss.
- http://www.vdr-portal.de/board18-vdr-hardware/board102-dvb-karten/p1077194-#post1077194
-
- I use it for my Cine C/T and it's working really good.
+This patch series adds support for the bcm2048 radio found in the Nokia N900.
+It needs more work before it can be moved to media/radio, but it's OK for
+staging.
 
 Regards,
-Lars.
 
-> 
-> 
-> Thanks,
-> 
-> 
-> Rudy
-> 
-> 
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+	Hans
 
+The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
+
+  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git bcm
+
+for you to fetch changes up to a8cc848df020be03a3eaddca068ec1fb6816834e:
+
+  bcm2048: add TODO file for this staging driver. (2013-12-05 08:44:25 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      This adds support for the BCM2048 radio module found in Nokia N900
+      bcm2048: add TODO file for this staging driver.
+
+ drivers/staging/media/Kconfig                 |    2 +
+ drivers/staging/media/Makefile                |    1 +
+ drivers/staging/media/bcm2048/Kconfig         |   13 +
+ drivers/staging/media/bcm2048/Makefile        |    1 +
+ drivers/staging/media/bcm2048/TODO            |   18 +
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 2745 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/bcm2048/radio-bcm2048.h |   30 +
+ 7 files changed, 2810 insertions(+)
+ create mode 100644 drivers/staging/media/bcm2048/Kconfig
+ create mode 100644 drivers/staging/media/bcm2048/Makefile
+ create mode 100644 drivers/staging/media/bcm2048/TODO
+ create mode 100644 drivers/staging/media/bcm2048/radio-bcm2048.c
+ create mode 100644 drivers/staging/media/bcm2048/radio-bcm2048.h
