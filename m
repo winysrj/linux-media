@@ -1,58 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37048 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754108Ab3LCQhm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Dec 2013 11:37:42 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v2 1/3] af9033: fix broken I2C
-Date: Tue,  3 Dec 2013 18:37:26 +0200
-Message-Id: <1386088648-13463-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1386088648-13463-1-git-send-email-crope@iki.fi>
-References: <1386088648-13463-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2089 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935Ab3LEHwz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 02:52:55 -0500
+Message-ID: <52A030BE.7040709@xs4all.nl>
+Date: Thu, 05 Dec 2013 08:52:30 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Nils Faerber <nils.faerber@kernelconcepts.de>,
+	Joni Lapilainen <joni.lapilainen@gmail.com>,
+	=?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
+	<freemangordon@abv.bg>
+Subject: Re: [PATCH] media: Add BCM2048 radio driver
+References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201310262245.03279@pali> <52778780.6060802@xs4all.nl> <201312022151.07599@pali>
+In-Reply-To: <201312022151.07599@pali>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver did not work anymore since I2C has gone broken due
-to recent commit:
-commit 37ebaf6891ee81687bb558e8375c0712d8264ed8
-[media] dvb-frontends: Don't use dynamic static allocation
+On 12/02/2013 09:51 PM, Pali Rohár wrote:
+> On Monday 04 November 2013 12:39:44 Hans Verkuil wrote:
+>> Hi Pali,
+>>
+>> On 10/26/2013 10:45 PM, Pali Rohár wrote:
+>>> On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
+>>>>> Hans, so can it be added to drivers/staging/media tree?
+>>>>
+>>>> Yes, that is an option. It's up to you to decide what you
+>>>> want. Note that if no cleanup work is done on the staging
+>>>> driver for a long time, then it can be removed again.
+>>>>
+>>>> Regards,
+>>>>
+>>>>     Hans
+>>>
+>>> Ok, so if you can add it to staging tree. When driver will
+>>> be in mainline other developers can look at it too. Now
+>>> when driver is hidden, nobody know where to find it... You
+>>> can see how upstream development for Nokia N900 HW going
+>>> on: http://elinux.org/N900
+>>
+>> Please check my tree:
+>>
+>> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/h
+>> eads/bcm
+>>
+>> If you're OK, then I'll queue it for 3.14 (it's too late for
+>> 3.13).
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
+> Hi, sorry for late reply. I looked into your tree and difference 
+> is that you only removed "linux/slab.h" include. So it it is not 
+> needed, then it is OK.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+I *added* slab.h :-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 30ee590..65728c2 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -170,18 +170,18 @@ static int af9033_rd_reg_mask(struct af9033_state *state, u32 reg, u8 *val,
- static int af9033_wr_reg_val_tab(struct af9033_state *state,
- 		const struct reg_val *tab, int tab_len)
- {
-+#define MAX_TAB_LEN 212
- 	int ret, i, j;
--	u8 buf[MAX_XFER_SIZE];
-+	u8 buf[1 + MAX_TAB_LEN];
-+
-+	dev_dbg(&state->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
- 
- 	if (tab_len > sizeof(buf)) {
--		dev_warn(&state->i2c->dev,
--			 "%s: i2c wr len=%d is too big!\n",
--			 KBUILD_MODNAME, tab_len);
-+		dev_warn(&state->i2c->dev, "%s: tab len %d is too big\n",
-+				KBUILD_MODNAME, tab_len);
- 		return -EINVAL;
- 	}
- 
--	dev_dbg(&state->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
--
- 	for (i = 0, j = 0; i < tab_len; i++) {
- 		buf[j] = tab[i].val;
- 
--- 
-1.8.4.2
+Anyway, I've posted the pull request. Please note, if you want to avoid
+having this driver be removed again in the future, then you (or someone else)
+should work on addressing the issues in the TODO file I added.
 
+Regards,
+
+	Hans
