@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:42488 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab3L2DqT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 22:46:19 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYJ00DJUUH7CQ60@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:46:19 -0500 (EST)
-Date: Sun, 29 Dec 2013 01:42:00 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 06/13] libdvbv5: fix eit times
-Message-id: <20131229014200.22234596.m.chehab@samsung.com>
-In-reply-to: <1388245561-8751-6-git-send-email-neolynx@gmail.com>
-References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
- <1388245561-8751-6-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4720 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827Ab3LEHk1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 02:40:27 -0500
+Message-ID: <52A02DCF.6070404@xs4all.nl>
+Date: Thu, 05 Dec 2013 08:39:59 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: dinesh ram <dino_mc4@yahoo.co.in>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Dinesh Ram <dinesh.ram@cern.ch>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"edubezval@gmail.com" <edubezval@gmail.com>,
+	"dinesh.ram086@gmail.com" <dinesh.ram086@gmail.com>
+Subject: Re: [REVIEW PATCH 2/9] si4713 : Modified i2c driver to handle cases
+ where interrupts are not used
+References: <1e0bb141e349db9335a7d874cb3d900ec5837c66.1381850640.git.dinesh.ram@cern.ch> <2f90947b4ca40f9a5c6d87cecd7bc0b7a5f27d22.1381850640.git.dinesh.ram@cern.ch> <20131203133514.4a4da7d1.m.chehab@samsung.com> <529E0F8D.9030804@xs4all.nl> <1386129496.79520.YahooMailNeo@web190906.mail.sg3.yahoo.com>
+In-Reply-To: <1386129496.79520.YahooMailNeo@web190906.mail.sg3.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Dec 2013 16:45:54 +0100
-André Roth <neolynx@gmail.com> escreveu:
+Hi Dinesh,
 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/descriptors/eit.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+On 12/04/2013 04:58 AM, dinesh ram wrote:
+> Hello Mauro and Hans,
 > 
-> diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
-> index d13b14c..e70cf3b 100644
-> --- a/lib/libdvbv5/descriptors/eit.c
-> +++ b/lib/libdvbv5/descriptors/eit.c
-> @@ -155,9 +155,8 @@ void dvb_time(const uint8_t data[5], struct tm *tm)
->    tm->tm_mday  = day;
->    tm->tm_mon   = month - 1;
->    tm->tm_year  = year;
-> -  tm->tm_isdst = -1;
-> -  tm->tm_wday  = 0;
-> -  tm->tm_yday  = 0;
-> +  tm->tm_isdst = 1; // dst in effect, do not adjust
+> I agree with Hans that this driver has been sitting here for some time now.
+> As stated, If this can be a separate follow-up patch, it would be great.
+> 
+> @Hans : Yes I can have a go at it and send you the changes to test against the hardware.
+> But I wont be able to do it before next week.
 
-Please don't use c99 comments.
+I'll have time tomorrow, so I'll make the follow-up patch. This is taking way too
+long, so I want to push this forward as quickly as I can. Normally this never takes
+so much time...
 
-> +  mktime( tm );
+Regards,
 
-Please remove the extra spaces.
+	Hans
 
->  }
->  
->  
-
-
--- 
-
-Cheers,
-Mauro
