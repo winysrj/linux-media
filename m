@@ -1,99 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2436 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755993Ab3LTJcI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 38/50] adv7842: mute audio before switching inputs to avoid noise/pops
-Date: Fri, 20 Dec 2013 10:31:31 +0100
-Message-Id: <1387531903-20496-39-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ring0.de ([91.143.88.219]:34663 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932213Ab3LEN5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Dec 2013 08:57:11 -0500
+Date: Thu, 5 Dec 2013 14:57:06 +0100
+From: Sebastian Reichel <sre@ring0.de>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Nils Faerber <nils.faerber@kernelconcepts.de>,
+	Joni Lapilainen <joni.lapilainen@gmail.com>,
+	=?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
+	<freemangordon@abv.bg>, Pavel Machek <pavel@ucw.cz>,
+	aaro.koskinen@iki.fi
+Subject: Re: [PATCH] media: Add BCM2048 radio driver
+Message-ID: <20131205135705.GA3969@earth.universe>
+References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com>
+ <201312022151.07599@pali>
+ <52A030BE.7040709@xs4all.nl>
+ <201312051420.56852@pali>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
+Content-Disposition: inline
+In-Reply-To: <201312051420.56852@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index a26c70c..bbd80ac 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -20,10 +20,13 @@
- 
- /*
-  * References (c = chapter, p = page):
-- * REF_01 - Analog devices, ADV7842, Register Settings Recommendations,
-- *		Revision 2.5, June 2010
-+ * REF_01 - Analog devices, ADV7842,
-+ *		Register Settings Recommendations, Rev. 1.9, April 2011
-  * REF_02 - Analog devices, Software User Guide, UG-206,
-  *		ADV7842 I2C Register Maps, Rev. 0, November 2010
-+ * REF_03 - Analog devices, Hardware User Guide, UG-214,
-+ *		ADV7842 Fast Switching 2:1 HDMI 1.4 Receiver with 3D-Comb
-+ *		Decoder and Digitizer , Rev. 0, January 2011
-  */
- 
- 
-@@ -491,6 +494,11 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
- }
- 
-+static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+{
-+	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
-+}
-+
- static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -1459,14 +1467,12 @@ static void enable_input(struct v4l2_subdev *sd)
- 	case ADV7842_MODE_SDP:
- 	case ADV7842_MODE_COMP:
- 	case ADV7842_MODE_RGB:
--		/* enable */
- 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
- 		break;
- 	case ADV7842_MODE_HDMI:
--		/* enable */
--		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
- 		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
- 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
-+		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
- 		break;
- 	default:
- 		v4l2_dbg(2, debug, sd, "%s: Unknown mode %d\n",
-@@ -1477,9 +1483,9 @@ static void enable_input(struct v4l2_subdev *sd)
- 
- static void disable_input(struct v4l2_subdev *sd)
- {
--	/* disable */
-+	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio [REF_01, c. 2.2.2] */
-+	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 8.29] */
- 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
--	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
- 	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
- }
- 
-@@ -2432,6 +2438,9 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 			pdata->replicate_av_codes << 1 |
- 			pdata->invert_cbcr << 0);
- 
-+	/* HDMI audio */
-+	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
-+
- 	/* Drive strength */
- 	io_write_and_or(sd, 0x14, 0xc0, pdata->drive_strength.data<<4 |
- 			pdata->drive_strength.clock<<2 |
--- 
-1.8.4.4
+On Thu, Dec 05, 2013 at 02:20:56PM +0100, Pali Roh=E1r wrote:
+> > Anyway, I've posted the pull request. Please note, if you want
+> > to avoid having this driver be removed again in the future,
+> > then you (or someone else) should work on addressing the
+> > issues in the TODO file I added.
+>=20
+> Ok. CCing other people who works with n900 kernel.
 
+Does the bcm2048's radio part work without the bluetooth driver?
+
+-- Sebastian
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSoIYwAAoJENju1/PIO/qaYYsP/A5daxdTBFCfufgbMRcA/ssf
+0r+I3BGl1hbwztOx/3BS1RJnXDr2nCmLgeKtX7QzkTq6VTAeOLPIoaGFmeAGSKg2
+WJ9QC4Y4fVWcfz3CAv/xZ+gFccx2Bfj5P3knycrlQN1ow3AkJNuy1RTjIsTJLEHf
+mkOSimVyd4dLz46mzGcasv0Y4YOtBQjewiepoYDdg+u7Oo6j2C/mdNHEk9uZ18uV
+9Bx664UGPK33MZxeKAvW7mdra+Zv2bzBAbk2jgN51Ky+P14YsfB0xBUuzJ8nOg4A
+lxjaGMdFj1VaeaPwigLJI1Ll6Y4hoSrscdJlb4wso7WzlUl4ssQLIjxfkoAmhKt+
+c/py70Jgaly75pljqsup9A+gfedaFmLRNnYWCQiV6B1R/3U0XrtbzkcKs4yQuULf
+hpYmZQi1v72qMZX4SCVgbucCu8//41a/U+v9IQ2KsGJE33RHCpqLvQGhr++OW7Fn
+E+rrOq2KbYeI/yShfwVJJC77/Sswq0VvtJ0a15KKTaYToK6EKRWNx60QN+tMb4P/
+LHVGQ8nE/TEt0jJkcbqLN33zRqDWIUDEL4P+R4D6CRzmOpbhuDvCRRP8CsuQb47A
+gNkQnHr2qygEG4DMLzxWHTF2Vafl2U2Gq01DflPMWNzuc3Fm6rTZpHz6VYZZQVy+
+10QUdQ+O2FFjMHKVpkhC
+=sQ0l
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
