@@ -1,48 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:48686 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010Ab3L3Ql6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 11:41:58 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1242 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754270Ab3LEIWe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 03:22:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, m.chehab@samsung.com,
-	Julia Lawall <julia.lawall@lip6.fr>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 1/2] gspca_kinect: fix kinect_read() error path
-Date: Mon, 30 Dec 2013 17:41:45 +0100
-Message-Id: <1388421706-8366-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it>
-References: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 06/10] vb2: return ENODATA in start_streaming in case of too few buffers.
+Date: Thu,  5 Dec 2013 09:21:45 +0100
+Message-Id: <1386231709-14262-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The error checking code relative to the invocations of kinect_read()
-does not return the actual return code of the function just called, it
-returns "res" which still contains the value of the last invocation of
-a previous kinect_write().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Return the proper value, and while at it also report with -EREMOTEIO the
-case of a partial transfer.
-
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/gspca/kinect.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/davinci/vpbe_display.c   | 2 +-
+ drivers/media/platform/davinci/vpif_capture.c   | 2 +-
+ drivers/media/platform/davinci/vpif_display.c   | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c     | 2 +-
+ drivers/media/platform/soc_camera/mx2_camera.c  | 2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 ++
+ 7 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
-index 3773a8a..48084736 100644
---- a/drivers/media/usb/gspca/kinect.c
-+++ b/drivers/media/usb/gspca/kinect.c
-@@ -158,7 +158,7 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
- 	PDEBUG(D_USBO, "Control reply: %d", res);
- 	if (actual_len < sizeof(*rhdr)) {
- 		pr_err("send_cmd: Input control transfer failed (%d)\n", res);
--		return res;
-+		return actual_len < 0 ? actual_len : -EREMOTEIO;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index eac472b..53be7fc 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -347,7 +347,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* If buffer queue is empty, return error */
+ 	if (list_empty(&layer->dma_queue)) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "buffer queue is empty\n");
+-		return -EINVAL;
++		return -ENODATA;
  	}
- 	actual_len -= sizeof(*rhdr);
+ 	/* Get the next frame from the buffer queue */
+ 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 52ac5e6..4b04a27 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -277,7 +277,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (list_empty(&common->dma_queue)) {
+ 		spin_unlock_irqrestore(&common->irqlock, flags);
+ 		vpif_dbg(1, debug, "buffer queue is empty\n");
+-		return -EIO;
++		return -ENODATA;
+ 	}
  
+ 	/* Get the next frame from the buffer queue */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index c31bcf1..c5070dc 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -239,7 +239,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (list_empty(&common->dma_queue)) {
+ 		spin_unlock_irqrestore(&common->irqlock, flags);
+ 		vpif_err("buffer queue is empty\n");
+-		return -EIO;
++		return -ENODATA;
+ 	}
+ 
+ 	/* Get the next frame from the buffer queue */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4ff3b6c..3bdfe85 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1863,7 +1863,7 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		if (ctx->src_bufs_cnt < ctx->pb_count) {
+ 			mfc_err("Need minimum %d OUTPUT buffers\n",
+ 					ctx->pb_count);
+-			return -EINVAL;
++			return -ENODATA;
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 81b97db..220ec31 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -948,7 +948,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	if (count == 0) {
+ 		mxr_dbg(mdev, "no output buffers queued\n");
+-		return -EINVAL;
++		return -ENODATA;
+ 	}
+ 
+ 	/* block any changes in output configuration */
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index 45a0276..587e3d1 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -659,7 +659,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	unsigned long flags;
+ 
+ 	if (count < 2)
+-		return -EINVAL;
++		return -ENODATA;
+ 
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 24d98a6..a81b0ab 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1201,6 +1201,8 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	unsigned long addr;
+ 	int ret;
+ 
++	if (count == 0)
++		return -ENODATA;
+ 	ret = mutex_lock_interruptible(&video->lock);
+ 	if (ret)
+ 		goto streamoff;
 -- 
-1.8.5.2
+1.8.4.3
 
