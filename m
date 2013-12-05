@@ -1,72 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2089 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751935Ab3LEHwz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 02:52:55 -0500
-Message-ID: <52A030BE.7040709@xs4all.nl>
-Date: Thu, 05 Dec 2013 08:52:30 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Nils Faerber <nils.faerber@kernelconcepts.de>,
-	Joni Lapilainen <joni.lapilainen@gmail.com>,
-	=?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201310262245.03279@pali> <52778780.6060802@xs4all.nl> <201312022151.07599@pali>
-In-Reply-To: <201312022151.07599@pali>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53546 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753698Ab3LELjD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 06:39:03 -0500
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	laurent.pinchart@ideasonboard.com,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Grant Likely <grant.likely@linaro.org>
+Subject: [PATCH v10 0/2] S5K5BAF camera sensor driver
+Date: Thu, 05 Dec 2013 12:38:38 +0100
+Message-id: <1386243520-17117-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/02/2013 09:51 PM, Pali Rohár wrote:
-> On Monday 04 November 2013 12:39:44 Hans Verkuil wrote:
->> Hi Pali,
->>
->> On 10/26/2013 10:45 PM, Pali Rohár wrote:
->>> On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
->>>>> Hans, so can it be added to drivers/staging/media tree?
->>>>
->>>> Yes, that is an option. It's up to you to decide what you
->>>> want. Note that if no cleanup work is done on the staging
->>>> driver for a long time, then it can be removed again.
->>>>
->>>> Regards,
->>>>
->>>>     Hans
->>>
->>> Ok, so if you can add it to staging tree. When driver will
->>> be in mainline other developers can look at it too. Now
->>> when driver is hidden, nobody know where to find it... You
->>> can see how upstream development for Nokia N900 HW going
->>> on: http://elinux.org/N900
->>
->> Please check my tree:
->>
->> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/h
->> eads/bcm
->>
->> If you're OK, then I'll queue it for 3.14 (it's too late for
->> 3.13).
->>
->> Regards,
->>
->> 	Hans
-> 
-> Hi, sorry for late reply. I looked into your tree and difference 
-> is that you only removed "linux/slab.h" include. So it it is not 
-> needed, then it is OK.
+Hi,
 
-I *added* slab.h :-)
+This is the 10th iteration of S5K5BAF camera patch (time for celebration).
+All changes are described in patches.
 
-Anyway, I've posted the pull request. Please note, if you want to avoid
-having this driver be removed again in the future, then you (or someone else)
-should work on addressing the issues in the TODO file I added.
+Regards
+Andrzej
 
-Regards,
+Andrzej Hajda (2):
+  s5k5baf: add camera sensor driver
+  s5k5baf: add DT bindings for camera sensor
 
-	Hans
+ .../devicetree/bindings/media/samsung-s5k5baf.txt  |   58 +
+ MAINTAINERS                                        |    7 +
+ drivers/media/i2c/Kconfig                          |    7 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5k5baf.c                        | 2043 ++++++++++++++++++++
+ 5 files changed, 2116 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+ create mode 100644 drivers/media/i2c/s5k5baf.c
+
+-- 
+1.8.3.2
+
