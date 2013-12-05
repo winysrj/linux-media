@@ -1,187 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:10140 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491Ab3L3Kl0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 05:41:26 -0500
-From: Amit Grover <amit.grover@samsung.com>
-To: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, rob@landley.net,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com
-Cc: hans.verkuil@cisco.com, andrew.smirnov@gmail.com,
-	s.nawrocki@samsung.com, arun.kk@samsung.com,
-	anatol.pomozov@gmail.com, jmccrohan@gmail.com,
-	austin.lobo@samsung.com, Swami Nathan <swaminath.p@samsung.com>
-Subject: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range for
- Video Macro Blocks
-Date: Mon, 30 Dec 2013 16:13:06 +0530
-Message-id: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3946 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620Ab3LEDcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 22:32:51 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB53WmFn046036
+	for <linux-media@vger.kernel.org>; Thu, 5 Dec 2013 04:32:50 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 1EE2E2A2222
+	for <linux-media@vger.kernel.org>; Thu,  5 Dec 2013 04:32:37 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131205033237.1EE2E2A2222@tschai.lan>
+Date: Thu,  5 Dec 2013 04:32:37 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds Controls to set Horizontal and Vertical search range
-for Motion Estimation block for Samsung MFC video Encoders.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
-Signed-off-by: Amit Grover <amit.grover@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml    |   14 +++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
- drivers/media/v4l2-core/v4l2-ctrls.c            |   14 +++++++++++++
- include/uapi/linux/v4l2-controls.h              |    2 ++
- 6 files changed, 58 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 7a3b49b..70a0f6f 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2258,6 +2258,20 @@ Applicable to the MPEG1, MPEG2, MPEG4 encoders.</entry>
- VBV buffer control.</entry>
- 	      </row>
- 
-+		  <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-horz-search-range">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Sets the Horizontal search range for Video Macro blocks.</entry>
-+	      </row>
-+
-+		 <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-vert-search-range">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Sets the Vertical search range for Video Macro blocks.</entry>
-+	      </row>
-+
- 	      <row><entry></entry></row>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 6920b54..f2c13c3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
- struct s5p_mfc_enc_params {
- 	u16 width;
- 	u16 height;
-+	u32 horz_range;
-+	u32 vert_range;
- 
- 	u16 gop_size;
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ff3b6c..a02e7b8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
- 		.default_value = 0,
- 	},
- 	{
-+		.id = V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "horizontal search range of video macro block",
-+		.minimum = 16,
-+		.maximum = 128,
-+		.step = 16,
-+		.default_value = 32,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "vertical search range of video macro block",
-+		.minimum = 16,
-+		.maximum = 128,
-+		.step = 16,
-+		.default_value = 32,
-+	},
-+	{
- 		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
- 		.type = V4L2_CTRL_TYPE_INTEGER,
- 		.minimum = 0,
-@@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
- 		p->vbv_size = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
-+		p->horz_range = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
-+		p->vert_range = ctrl->val;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
- 		p->codec.h264.cpb_size = ctrl->val;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 461358c..47e1807 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
- 
- 	/* setting for MV range [16, 256] */
--	reg = 0;
--	reg &= ~(0x3FFF);
--	reg = 256;
-+	reg = (p->horz_range & 0x3fff);	/* conditional check in app */
- 	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
- 
--	reg = 0;
--	reg &= ~(0x3FFF);
--	reg = 256;
-+	reg = (p->vert_range & 0x3fff);	/* conditional check in app */
- 	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
- 
- 	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fb46790..7cf23d5 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -735,6 +735,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
- 	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
- 	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Control";
-+	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:		return "hor search range of video MB";
-+	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:		return "vert search range of video MB";
- 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
- 
- 	/* VPX controls */
-@@ -905,6 +907,18 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*min = 0;
- 		*max = *step = 1;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
-+		*type = V4L2_CTRL_TYPE_INTEGER;
-+		*min = 16;
-+		*max = 128;
-+		*step = 16;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
-+		*type = V4L2_CTRL_TYPE_INTEGER;
-+		*min = 16;
-+		*max = 128;
-+		*step = 16;
-+		break;
- 	case V4L2_CID_PAN_RESET:
- 	case V4L2_CID_TILT_RESET:
- 	case V4L2_CID_FLASH_STROBE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 1666aab..bcce536 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -372,6 +372,8 @@ enum v4l2_mpeg_video_multi_slice_mode {
- #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
- #define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
- #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
-+#define V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
-+#define V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
- 
- #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
- #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
--- 
-1.7.9.5
+date:		Thu Dec  5 04:00:29 CET 2013
+git branch:	test
+git hash:	3f823e094b935c1882605f8720336ee23433a16d
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
