@@ -1,66 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3418 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313Ab3L1M2e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:28:34 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBSCSVVH082414
-	for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 13:28:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 32AEA2A2228
-	for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 13:28:01 +0100 (CET)
-Message-ID: <52BEC3D1.5080607@xs4all.nl>
-Date: Sat, 28 Dec 2013 13:28:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.outflux.net ([198.145.64.163]:34733 "EHLO smtp.outflux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757058Ab3LESji (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Dec 2013 13:39:38 -0500
+Date: Thu, 5 Dec 2013 10:38:19 -0800
+From: Kees Cook <keescook@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Rusty Russell <rusty@rustcorp.com.au>
+Cc: linux-kernel@vger.kernel.org, Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Chen Liqin <liqin.linux@gmail.com>,
+	Lennox Wu <lennox.wu@gmail.com>,
+	Glauber Costa <glommer@parallels.com>,
+	Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Michal Hocko <mhocko@suse.cz>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH] doc: no singing
+Message-ID: <20131205183819.GA2217@www.outflux.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 0/4] add radio-raremono driver
-References: <1386937609-11581-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386937609-11581-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/13/2013 01:26 PM, Hans Verkuil wrote:
-> This patch series adds the new radio-raremono driver for the USB
-> 'Thanko's Raremono' AM/FM/SW receiver.
-> 
-> Since it (ab)uses the same USB IDs as the si470x SiLabs Reference
-> Design I had to add additional checks to si470x to tell the two apart.
-> 
-> While editing si470x I noticed that it passes USB buffers from the stack
-> instead of using kmalloc, so I fixed that as well.
-> 
-> I have tested the si470x checks, and the FM and AM receiver of the
-> Raremono device have been tested as well. I don't have a SW transmitter,
-> nor are there any SW transmitters here in Norway, so I couldn't test it.
-> 
-> All I can say is that it is definitely tuning since the white noise
-> changes when I change frequency. I'll try this nexy week in the Netherlands,
-> as I think there are still a few SW transmissions there I might receive.
+Stop that, stop that! You're not going to do a song while I'm here.
 
-I've tested this yesterday and the SW receiver works fine.
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+https://lkml.org/lkml/2013/12/4/786
+http://www.youtube.com/watch?v=g3YiPC91QUk#t=62
+---
+ Documentation/cgroups/resource_counter.txt |    2 +-
+ Documentation/video4linux/si476x.txt       |    2 +-
+ arch/score/lib/checksum.S                  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
+diff --git a/Documentation/cgroups/resource_counter.txt b/Documentation/cgroups/resource_counter.txt
+index c4d99ed0b418..caa6d662b230 100644
+--- a/Documentation/cgroups/resource_counter.txt
++++ b/Documentation/cgroups/resource_counter.txt
+@@ -95,7 +95,7 @@ to work with it.
+ 
+  f. u64 res_counter_uncharge_until
+ 		(struct res_counter *rc, struct res_counter *top,
+-		 unsinged long val)
++		 unsigned long val)
+ 
+ 	Almost same as res_cunter_uncharge() but propagation of uncharge
+ 	stops when rc == top. This is useful when kill a res_coutner in
+diff --git a/Documentation/video4linux/si476x.txt b/Documentation/video4linux/si476x.txt
+index 2f9b4875ab8a..616607955aaf 100644
+--- a/Documentation/video4linux/si476x.txt
++++ b/Documentation/video4linux/si476x.txt
+@@ -147,7 +147,7 @@ The drivers exposes following files:
+   --------------------------------------------------------------------
+   0x12		| readfreq	| Current tuned frequency
+   --------------------------------------------------------------------
+-  0x14		| freqoff	| Singed frequency offset in units of
++  0x14		| freqoff	| Signed frequency offset in units of
+   		| 		| 2ppm
+   --------------------------------------------------------------------
+   0x15		| rssi		| Signed value of RSSI in dBuV
+diff --git a/arch/score/lib/checksum.S b/arch/score/lib/checksum.S
+index 706157edc7d5..1141f2b4a501 100644
+--- a/arch/score/lib/checksum.S
++++ b/arch/score/lib/checksum.S
+@@ -137,7 +137,7 @@ ENTRY(csum_partial)
+ 	ldi r25, 0
+ 	mv r10, r5
+ 	cmpi.c	r5, 0x8
+-	blt	small_csumcpy		/* < 8(singed) bytes to copy */
++	blt	small_csumcpy		/* < 8(signed) bytes to copy */
+ 	cmpi.c	r5, 0x0
+ 	beq	out
+ 	andri.c	r25, src, 0x1		/* odd buffer? */
+-- 
+1.7.9.5
 
-	Hans
 
-> 
-> The initial reverse engineering for this driver was done by Dinesh Ram
-> as part of his Cisco internship, so many thanks to Dinesh for doing that
-> work.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+-- 
+Kees Cook
+Chrome OS Security
