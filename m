@@ -1,57 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mynetfone.com.au ([125.213.165.10]:60050 "EHLO
-	spam.symbionetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425Ab3LMOIV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 09:08:21 -0500
-Received: from spam.symbionetworks.com (localhost.localdomain [127.0.0.1])
-	by localhost (Email Security Appliance) with SMTP id 2A0DF18BC3D3_2AB1182B
-	for <linux-media@vger.kernel.org>; Fri, 13 Dec 2013 13:54:10 +0000 (GMT)
-Received: from boffin.lan (unknown [115.187.242.125])
-	by spam.symbionetworks.com (Sophos Email Appliance) with ESMTP id 352BA18BC3BB_2AB1181F
-	for <linux-media@vger.kernel.org>; Fri, 13 Dec 2013 13:54:09 +0000 (GMT)
-Received: (from robbak@localhost)
-	by boffin.lan (8.14.6/8.14.6/Submit) id rBDE1qoF039531
-	for linux-media@vger.kernel.org; Sat, 14 Dec 2013 00:01:52 +1000 (EST)
-	(envelope-from robbak)
-Date: Sat, 14 Dec 2013 00:01:52 +1000 (EST)
-From: Robert Backhaus <robbak@robbak.com>
-Message-Id: <201312131401.rBDE1qoF039531@boffin.lan>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1094 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754327Ab3LEIWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 03:22:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Add USB IDs for Winfast DTV Dongle Mini-D
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 09/10] vb2: Improve file I/O emulation to handle buffers in any order
+Date: Thu,  5 Dec 2013 09:21:48 +0100
+Message-Id: <1386231709-14262-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Backhaus <robbak@robbak.com>
-Date:   Fri Dec 13 22:59:10 2013 +1000
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-    Add USB IDs for the WinFast DTV Dongle Mini.
-    Device is tested and works fine under MythTV
-    
-    Signed-off-by: Robert Backhaus <robbak@robbak.com>
+videobuf2 file I/O emulation assumed that buffers dequeued from the
+driver would return in the order they were enqueued in the driver.
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 4a53454..6947621 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -317,6 +317,7 @@
- #define USB_PID_WINFAST_DTV_DONGLE_H			0x60f6
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
- #define USB_PID_WINFAST_DTV_DONGLE_GOLD			0x6029
-+#define USB_PID_WINFAST_DTV_DONGLE_MINID		0x6f0f
- #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
- #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
- #define USB_PID_GENPIX_8PSK_REV_2			0x0202
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index ecca036..fda5c64 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1407,6 +1407,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Dexatek DK DVB-T Dongle", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6680,
- 		&rtl2832u_props, "DigitalNow Quad DVB-T Receiver", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_MINID,
-+		&rtl2832u_props, "Leadtek Winfast DTV Dongle Mini D", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d3,
- 		&rtl2832u_props, "TerraTec Cinergy T Stick RC (Rev. 3)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1102,
+Improve the file I/O emulator's book-keeping to remove this assumption.
+
+Also set the buf->size properly if a write() dequeues a buffer and the
+VB2_FILEIO_WRITE_IMMEDIATELY flag is set.
+
+Based on an initial patch by Andy Walls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1434e23..7a489aa 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2317,6 +2317,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+ 		}
++		fileio->index = q->num_buffers;
+ 	}
+ 
+ 	/*
+@@ -2392,15 +2393,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	}
+ 	fileio = q->fileio;
+ 
+-	index = fileio->index;
+-	buf = &fileio->bufs[index];
+-
+ 	/*
+ 	 * Check if we need to dequeue the buffer.
+ 	 */
+-	if (buf->queued) {
+-		struct vb2_buffer *vb;
+-
++	index = fileio->index;
++	if (index >= q->num_buffers) {
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+@@ -2413,12 +2410,18 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			return ret;
+ 		fileio->dq_count += 1;
+ 
++		index = fileio->b.index;
++		buf = &fileio->bufs[index];
++		
+ 		/*
+ 		 * Get number of bytes filled by the driver
+ 		 */
+-		vb = q->bufs[index];
+-		buf->size = vb2_get_plane_payload(vb, 0);
++		buf->pos = 0;
+ 		buf->queued = 0;
++		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
++				 : vb2_plane_size(q->bufs[index], 0);
++	} else {
++		buf = &fileio->bufs[index];
+ 	}
+ 
+ 	/*
+@@ -2481,13 +2484,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		 */
+ 		buf->pos = 0;
+ 		buf->queued = 1;
+-		buf->size = q->bufs[0]->v4l2_planes[0].length;
++		buf->size = vb2_plane_size(q->bufs[index], 0);
+ 		fileio->q_count += 1;
+-
+-		/*
+-		 * Switch to the next buffer
+-		 */
+-		fileio->index = (index + 1) % q->num_buffers;
++		if (fileio->index < q->num_buffers)
++			fileio->index++;
+ 	}
+ 
+ 	/*
+-- 
+1.8.4.3
+
