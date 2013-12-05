@@ -1,156 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1101 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751Ab3LPIxb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 03:53:31 -0500
-Message-ID: <52AEBF6E.2090107@xs4all.nl>
-Date: Mon, 16 Dec 2013 09:53:02 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4469 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab3LEIWi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 03:22:38 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v2 3/7] v4l: add new tuner types for SDR
-References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-4-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 07/10] vb2: add thread support
+Date: Thu,  5 Dec 2013 09:21:46 +0100
+Message-Id: <1386231709-14262-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/14/2013 05:15 PM, Antti Palosaari wrote:
-> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_RF for SDR usage.
-> 
-> ADC is used for setting sampling rate (sampling frequency) to SDR
-> device.
-> 
-> Another tuner type, named as V4L2_TUNER_RF, is possible RF tuner.
-> Is is used to down-convert RF frequency to range ADC could sample.
-> Having RF tuner is optional, whilst in practice it is almost always
-> there.
-> 
-> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
-> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
-> type is SDR (VFL_TYPE_SDR).
-> 
-> Prohibit VIDIOC_S_HW_FREQ_SEEK explicitly when device type is SDR,
-> as device cannot do hardware seek without a hardware demodulator.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 42 ++++++++++++++++++++++++++----------
->  include/uapi/linux/videodev2.h       |  2 ++
->  2 files changed, 33 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index bc10684..6b72bd8 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->  	struct video_device *vfd = video_devdata(file);
->  	struct v4l2_frequency *p = arg;
->  
-> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +			return -EINVAL;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is wrong. As you mentioned in patch 1, the type field should always be set by
-the driver. So type is not something that is set by the user.
+In order to implement vb2 DVB support you need to be able to start
+a kernel thread that queues and dequeues buffers, calling a callback
+function for every buffer. This patch adds support for that.
 
-I would just set type to V4L2_TUNER_ADC here (all SDR devices have at least an ADC
-tuner), and let the driver change it to TUNER_RF if this tuner is really an RF
-tuner. 
+It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the DVB
+specific stuff stripped out, thus making it much more generic.
 
-> +	} else {
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +	}
->  	return ops->vidioc_g_frequency(file, fh, p);
->  }
->  
-> @@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
->  	const struct v4l2_frequency *p = arg;
->  	enum v4l2_tuner_type type;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -	if (p->type != type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +			return -EINVAL;
-> +		type = p->type;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 139 +++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h           |  32 +++++++
+ 2 files changed, 171 insertions(+)
 
-No need to set type here. It isn't used.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f415fd7..1434e23 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -6,6 +6,9 @@
+  * Author: Pawel Osciak <pawel@osciak.com>
+  *	   Marek Szyprowski <m.szyprowski@samsung.com>
+  *
++ * The vb2_thread implementation was based on code from videobuf-dvb.c:
++ *	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation.
+@@ -18,6 +21,8 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/freezer.h>
++#include <linux/kthread.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -2508,6 +2513,140 @@ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ }
+ EXPORT_SYMBOL_GPL(vb2_write);
+ 
++struct vb2_threadio_data {
++	struct task_struct *thread;
++	vb2_thread_fnc fnc;
++	void *priv;
++	bool stop;
++};
++
++static int vb2_thread(void *data)
++{
++	struct vb2_queue *q = data;
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int prequeue = 0;
++	int index = 0;
++	int ret = 0;
++
++	if (V4L2_TYPE_IS_OUTPUT(q->type))
++		prequeue = q->num_buffers;
++
++	set_freezable();
++
++	for (;;) {
++		struct vb2_buffer *vb;
++
++		/*
++		 * Call vb2_dqbuf to get buffer back.
++		 */
++		memset(&fileio->b, 0, sizeof(fileio->b));
++		fileio->b.type = q->type;
++		fileio->b.memory = q->memory;
++		if (prequeue) {
++			fileio->b.index = index++;
++			prequeue--;
++		} else {
++			call_qop(q, wait_finish, q);
++			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++			call_qop(q, wait_prepare, q);
++			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
++		}
++		if (threadio->stop)
++			break;
++		if (ret)
++			break;
++		try_to_freeze();
++
++		vb = q->bufs[fileio->b.index];
++		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
++			ret = threadio->fnc(vb, threadio->priv);
++		if (ret)
++			break;
++		call_qop(q, wait_finish, q);
++		ret = vb2_internal_qbuf(q, &fileio->b);
++		call_qop(q, wait_prepare, q);
++		if (ret)
++			break;
++	}
++
++	/* Hmm, linux becomes *very* unhappy without this ... */
++	while (!kthread_should_stop()) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++	}
++	return 0;
++}
++
++/*
++ * This function should not be used for anything else but the videobuf2-dvb
++ * support. If you think you have another good use-case for this, then please
++ * contact the linux-media mailinglist first.
++ */
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name)
++{
++	struct vb2_threadio_data *threadio;
++	int ret = 0;
++
++	if (q->threadio)
++		return -EBUSY;
++	if (vb2_is_busy(q))
++		return -EBUSY;
++	if (WARN_ON(q->fileio))
++		return -EBUSY;
++
++	threadio = kzalloc(sizeof(*threadio), GFP_KERNEL);
++	if (threadio == NULL)
++		return -ENOMEM;
++	threadio->fnc = fnc;
++	threadio->priv = priv;
++
++	ret = __vb2_init_fileio(q, !V4L2_TYPE_IS_OUTPUT(q->type));
++	dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
++	if (ret)
++		goto nomem;
++	q->threadio = threadio;
++	threadio->thread = kthread_run(vb2_thread, q, "vb2-%s", thread_name);
++	if (IS_ERR(threadio->thread)) {
++		ret = PTR_ERR(threadio->thread);
++		threadio->thread = NULL;
++		goto nothread;
++	}
++	return 0;
++
++nothread:
++	__vb2_cleanup_fileio(q);
++nomem:
++	kfree(threadio);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_start);
++
++int vb2_thread_stop(struct vb2_queue *q)
++{
++	struct vb2_threadio_data *threadio = q->threadio;
++	struct vb2_fileio_data *fileio = q->fileio;
++	int err;
++
++	if (threadio == NULL)
++		return 0;
++	call_qop(q, wait_finish, q);
++	threadio->stop = true;
++	vb2_internal_streamoff(q, q->type);
++	call_qop(q, wait_prepare, q);
++	q->fileio = NULL;
++	fileio->req.count = 0;
++	vb2_reqbufs(q, &fileio->req);
++	kfree(fileio);
++	err = kthread_stop(threadio->thread);
++	threadio->thread = NULL;
++	kfree(threadio);
++	q->fileio = NULL;
++	q->threadio = NULL;
++	return err;
++}
++EXPORT_SYMBOL_GPL(vb2_thread_stop);
+ 
+ /*
+  * The following functions are not part of the vb2 core API, but are helper
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d2a823e..3e90bc0 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -20,6 +20,7 @@
+ 
+ struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
++struct vb2_threadio_data;
+ 
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+@@ -330,6 +331,7 @@ struct v4l2_fh;
+  *		buffers queued. If set, then retry calling start_streaming when
+  *		queuing a new buffer.
+  * @fileio:	file io emulator internal data, used only if emulator is active
++ * @threadio:	thread io internal data, used only if thread is active
+  */
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+@@ -364,6 +366,7 @@ struct vb2_queue {
+ 	unsigned int			retry_start_streaming:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
++	struct vb2_threadio_data	*threadio;
+ };
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+@@ -402,6 +405,35 @@ size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
+ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+ 		loff_t *ppos, int nonblock);
++/**
++ * vb2_thread_fnc - callback function for use with vb2_thread
++ *
++ * This is called whenever a buffer is dequeued in the thread.
++ */
++typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
++
++/**
++ * vb2_thread_start() - start a thread for the given queue.
++ * @q:		videobuf queue
++ * @fnc:	callback function
++ * @priv:	priv pointer passed to the callback function
++ * @thread_name:the name of the thread. This will be prefixed with "vb2-".
++ *
++ * This starts a thread that will queue and dequeue until an error occurs
++ * or @vb2_thread_stop is called.
++ *
++ * This function should not be used for anything else but the videobuf2-dvb
++ * support. If you think you have another good use-case for this, then please
++ * contact the linux-media mailinglist first.
++ */
++int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
++		     const char *thread_name);
++
++/**
++ * vb2_thread_stop() - stop the thread for the given queue.
++ * @q:		videobuf queue
++ */
++int vb2_thread_stop(struct vb2_queue *q);
+ 
+ /**
+  * vb2_is_streaming() - return streaming status of the queue
+-- 
+1.8.4.3
 
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
->  	return ops->vidioc_s_frequency(file, fh, p);
->  }
->  
-> @@ -1383,6 +1394,10 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_hw_freq_seek *p = arg;
->  	enum v4l2_tuner_type type;
->  
-> +	/* s_hw_freq_seek is not supported for SDR for now */
-> +	if (vfd->vfl_type == VFL_TYPE_SDR)
-> +		return -EINVAL;
-> +
->  	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->  		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  	if (p->type != type)
-> @@ -1882,11 +1897,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->  	enum v4l2_tuner_type type;
->  	int err;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -
-> -	if (type != p->type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +			return -EINVAL;
-> +		type = p->type;
-
-Ditto.
-
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
-
-Perhaps this type check should be moved to a separate function. It's after
-all used by both enum_freq_bands and s_frequency.
-
->  	if (ops->vidioc_enum_freq_bands)
->  		return ops->vidioc_enum_freq_bands(file, fh, p);
->  	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index b8ee9048..c3e7780 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> +	V4L2_TUNER_ADC               = 4,
-> +	V4L2_TUNER_RF                = 5,
->  };
->  
->  enum v4l2_memory {
-> 
-
-Regards,
-
-	Hans
