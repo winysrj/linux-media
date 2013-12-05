@@ -1,204 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1320 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933573Ab3LINnd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 08:43:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	s.nawrocki@samsung.com, g.liakhovetski@gmx.de,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 2/8] vb2: simplify qbuf/prepare_buf by removing callback.
-Date: Mon,  9 Dec 2013 14:43:06 +0100
-Message-Id: <1386596592-48678-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:35736 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362Ab3LENVB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 08:21:01 -0500
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] media: Add BCM2048 radio driver
+Date: Thu, 5 Dec 2013 14:20:56 +0100
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Nils Faerber <nils.faerber@kernelconcepts.de>,
+	Joni Lapilainen <joni.lapilainen@gmail.com>,
+	=?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?=
+	 =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?=
+	<freemangordon@abv.bg>, Pavel Machek <pavel@ucw.cz>, sre@ring0.de,
+	aaro.koskinen@iki.fi
+References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201312022151.07599@pali> <52A030BE.7040709@xs4all.nl>
+In-Reply-To: <52A030BE.7040709@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart4391473.OPzRdpZXxa";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201312051420.56852@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--nextPart4391473.OPzRdpZXxa
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-The callback used to merge the common code of the qbuf/prepare_buf
-code can be removed now that the mmap_sem handling is pushed down to
-__buf_prepare(). This makes the code more readable.
+On Thursday 05 December 2013 08:52:30 Hans Verkuil wrote:
+> On 12/02/2013 09:51 PM, Pali Roh=C3=A1r wrote:
+> > On Monday 04 November 2013 12:39:44 Hans Verkuil wrote:
+> >> Hi Pali,
+> >>=20
+> >> On 10/26/2013 10:45 PM, Pali Roh=C3=A1r wrote:
+> >>> On Saturday 26 October 2013 22:22:09 Hans Verkuil wrote:
+> >>>>> Hans, so can it be added to drivers/staging/media tree?
+> >>>>=20
+> >>>> Yes, that is an option. It's up to you to decide what you
+> >>>> want. Note that if no cleanup work is done on the staging
+> >>>> driver for a long time, then it can be removed again.
+> >>>>=20
+> >>>> Regards,
+> >>>>=20
+> >>>>     Hans
+> >>>=20
+> >>> Ok, so if you can add it to staging tree. When driver will
+> >>> be in mainline other developers can look at it too. Now
+> >>> when driver is hidden, nobody know where to find it... You
+> >>> can see how upstream development for Nokia N900 HW going
+> >>> on: http://elinux.org/N900
+> >>=20
+> >> Please check my tree:
+> >>=20
+> >> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/ref
+> >> s/h eads/bcm
+> >>=20
+> >> If you're OK, then I'll queue it for 3.14 (it's too late
+> >> for 3.13).
+> >>=20
+> >> Regards,
+> >>=20
+> >> 	Hans
+> >=20
+> > Hi, sorry for late reply. I looked into your tree and
+> > difference is that you only removed "linux/slab.h" include.
+> > So it it is not needed, then it is OK.
+>=20
+> I *added* slab.h :-)
+>=20
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 118 +++++++++++++++----------------
- 1 file changed, 59 insertions(+), 59 deletions(-)
+Right, I looked at reverse diff :-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 634dc95..1754d3f 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1262,14 +1262,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- }
- 
- static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
--				    const char *opname,
--				    int (*handler)(struct vb2_queue *,
--						   struct v4l2_buffer *,
--						   struct vb2_buffer *))
-+				    const char *opname)
- {
--	struct vb2_buffer *vb;
--	int ret;
--
- 	if (q->fileio) {
- 		dprintk(1, "%s(): file io in progress\n", opname);
- 		return -EBUSY;
-@@ -1285,8 +1279,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	vb = q->bufs[b->index];
--	if (NULL == vb) {
-+	if (q->bufs[b->index] == NULL) {
- 		/* Should never happen */
- 		dprintk(1, "%s(): buffer is NULL\n", opname);
- 		return -EINVAL;
-@@ -1297,30 +1290,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	ret = __verify_planes_array(vb, b);
--	if (ret)
--		return ret;
--
--	ret = handler(q, b, vb);
--	if (!ret) {
--		/* Fill buffer information for the userspace */
--		__fill_v4l2_buffer(vb, b);
--
--		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
--	}
--	return ret;
--}
--
--static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
--			     struct vb2_buffer *vb)
--{
--	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
--		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
--			vb->state);
--		return -EINVAL;
--	}
--
--	return __buf_prepare(vb, b);
-+	return __verify_planes_array(q->bufs[b->index], b);
- }
- 
- /**
-@@ -1340,20 +1310,68 @@ static int __vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-  */
- int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
--	return vb2_queue_or_prepare_buf(q, b, "prepare_buf", __vb2_prepare_buf);
-+	int ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
-+	struct vb2_buffer *vb;
-+
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[b->index];
-+	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
-+		return -EINVAL;
-+	}
-+
-+	ret = __buf_prepare(vb, b);
-+	if (!ret) {
-+		/* Fill buffer information for the userspace */
-+		__fill_v4l2_buffer(vb, b);
-+
-+		dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
-+	}
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
- 
--static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
--		      struct vb2_buffer *vb)
-+/**
-+ * vb2_qbuf() - Queue a buffer from userspace
-+ * @q:		videobuf2 queue
-+ * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-+ *		in driver
-+ *
-+ * Should be called from vidioc_qbuf ioctl handler of a driver.
-+ * This function:
-+ * 1) verifies the passed buffer,
-+ * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-+ *    which driver-specific buffer initialization can be performed,
-+ * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-+ *    callback for processing.
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from vidioc_qbuf handler in driver.
-+ */
-+int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
--	int ret;
-+	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-+	struct vb2_buffer *vb;
-+
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[b->index];
-+	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
-+		return -EINVAL;
-+	}
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
- 		ret = __buf_prepare(vb, b);
- 		if (ret)
- 			return ret;
-+		break;
- 	case VB2_BUF_STATE_PREPARED:
- 		break;
- 	case VB2_BUF_STATE_PREPARING:
-@@ -1378,29 +1396,11 @@ static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 	if (q->streaming)
- 		__enqueue_in_driver(vb);
- 
--	return 0;
--}
-+	/* Fill buffer information for the userspace */
-+	__fill_v4l2_buffer(vb, b);
- 
--/**
-- * vb2_qbuf() - Queue a buffer from userspace
-- * @q:		videobuf2 queue
-- * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-- *		in driver
-- *
-- * Should be called from vidioc_qbuf ioctl handler of a driver.
-- * This function:
-- * 1) verifies the passed buffer,
-- * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-- *    which driver-specific buffer initialization can be performed,
-- * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-- *    callback for processing.
-- *
-- * The return values from this function are intended to be directly returned
-- * from vidioc_qbuf handler in driver.
-- */
--int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
--{
--	return vb2_queue_or_prepare_buf(q, b, "qbuf", __vb2_qbuf);
-+	dprintk(1, "%s() of buffer %d succeeded\n", __func__, vb->v4l2_buf.index);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
--- 
-1.8.4.3
+> Anyway, I've posted the pull request. Please note, if you want
+> to avoid having this driver be removed again in the future,
+> then you (or someone else) should work on addressing the
+> issues in the TODO file I added.
+>=20
+> Regards,
+>=20
+> 	Hans
 
+Ok. CCing other people who works with n900 kernel.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart4391473.OPzRdpZXxa
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKgfbgACgkQi/DJPQPkQ1KFcgCcDfRd1qPjKNFaQbLQnsFYHayu
+gpkAnRvMP6Kon53xxaYo547H79UX4Lih
+=jk1Z
+-----END PGP SIGNATURE-----
+
+--nextPart4391473.OPzRdpZXxa--
