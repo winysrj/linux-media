@@ -1,46 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58196 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755175Ab3LIAWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Dec 2013 19:22:42 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 55755600A5
-	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 02:22:39 +0200 (EET)
-Date: Mon, 9 Dec 2013 02:22:38 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 3.14] smiapp and lm3560 fixes
-Message-ID: <20131209002238.GL30652@valkosipuli.retiisi.org.uk>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1516 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753801Ab3LELzN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 06:55:13 -0500
+Message-ID: <52A0693C.7060704@xs4all.nl>
+Date: Thu, 05 Dec 2013 12:53:32 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Andrea Venturi <a.venturi@avalpa.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: advice on Easycap dongles and VBI interface..
+References: <52A058EF.9000701@avalpa.com>
+In-Reply-To: <52A058EF.9000701@avalpa.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
+Hi Andrea,
 
-  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
+On 12/05/13 11:43, Andrea Venturi wrote:
+> i'm working on a project for legacy support of a teletext server with
+> composite output interface.
+> 
+> i supposed to "ingest" teletext using the /dev/vbi support on linux
+> so i've got an Easycap dongle
+> 
+> Bus 001 Device 008: ID 05e1:0408 Syntek Semiconductor Co., Ltd
+> STK1160 Video Capture Device
+> 
+> AFAIK (i didn't open) it's using a video decoder SC7113 supposed to
+> be a clone of SAA7113.
+> 
+> this device is supposed to work on an Ubuntu 12.04 with old kernel
+> 3.2 so i had to blacklist the stock "RE" kernel module easycap and
+> install the "retrofit" from here:
+> 
+> https://github.com/ezequielgarcia/stk1160-standalone
+> 
+> i see the saa7115 is loaded and i can also see audio and video
+> through mplayer..
+> 
+> $ lsmod Module                  Size  Used by saa7115
+> 18447  1 stk1160                27732  0 videobuf2_core         28148
+> 1 stk1160 snd_ac97_codec        110213  1 stk1160 ....
+> 
+> but in the dev fs there's no sign of /dev/vbi interface..
+> 
+> so my questions are:
+> 
+> - are these SAA7113 clones really copycat with all the features
+> supported?
 
-are available in the git repository at:
+I believe so, yes.
 
-  ssh://linuxtv.org/git/sailus/media_tree.git upstream
+> - has the SAA711x driver ever been used for /dev/vbi feature? i used
+> to work with Bt878 cards for that feature.
 
-for you to fetch changes up to 1af0a5b798934777abba890abde5a3c5ef334277:
+It's been tested for saa7114 and saa7115, but I'm not sure if it was ever
+tested for saa7113. The chip can do it, and the saa7115 driver should as well,
+but the combination of saa7113 + VBI is very rare.
 
-  media: i2c: lm3560: fix missing unlock on error, fault handling (2013-12-09 01:41:23 +0200)
+> - is the stock 3.x mainline kernel of the stk1160 really
+> improved/different/VBI enabled?
 
-----------------------------------------------------------------
-Daniel Jeong (1):
-      media: i2c: lm3560: fix missing unlock on error, fault handling
+No, it doesn't have VBI support.
 
-Ricardo Ribalda Delgado (1):
-      smiapp: Fix BUG_ON() on an impossible condition
+> - is there a way to extract VBI lines on /dev/video0?
 
- drivers/media/i2c/lm3560.c             |   14 +++++++-------
- drivers/media/i2c/smiapp/smiapp-core.c |    1 -
- 2 files changed, 7 insertions(+), 8 deletions(-)
+No.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> - is there an easy way to enable or at least test (directly on the
+> USB interface) the VBI interface?
+
+No.
+
+> - finally which approach do you suggest for supporting this ancient
+> feature, if feasibiliy tests are ok: - a libusb quick hack? - an
+> implementation of the bindings between user level /dev/vbi and
+> underlying SAA711x routines?
+
+The problem is that I don't believe we have any stk1160 documentation.
+And I wonder if the device can support VBI at all.
+
+You are better off choosing devices that already have VBI support: the
+em28xx supports it, so do bt8xx, cx18 and ivtv.
+
+Regards,
+
+	Hans
