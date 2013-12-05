@@ -1,81 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4284 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756028Ab3LTJcD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 28/50] adv7842: properly enable/disable the irqs.
-Date: Fri, 20 Dec 2013 10:31:21 +0100
-Message-Id: <1387531903-20496-29-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:41158 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757159Ab3LES3E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 13:29:04 -0500
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id DDF4A2CC17
+	for <linux-media@vger.kernel.org>; Thu,  5 Dec 2013 19:28:59 +0100 (CET)
+From: Denis Carikli <denis@eukrea.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marek Vasut <marex@denx.de>, devel@driverdev.osuosl.org,
+	Denis Carikli <denis@eukrea.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org, driverdev-devel@linuxdriverproject.org,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>
+Subject: [PATCHv5][ 1/8] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Thu,  5 Dec 2013 19:28:05 +0100
+Message-Id: <1386268092-21719-1-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-The method of disabling the irq-output pin caused many "empty"
-interrupts. Instead, actually disable/enable the interrupts by
-changing the interrupt masks.
-
-Also enable STORE_MASKED_IRQ in INT1 configuration, otherwise when HDMI
-events happen while the interrupt is masked those events will be ignored
-when the interrupt is unmasked.
-
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: devicetree@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: driverdev-devel@linuxdriverproject.org
+Cc: David Airlie <airlied@linux.ie>
+Cc: dri-devel@lists.freedesktop.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Eric Bénard <eric@eukrea.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/adv7842.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 6434a93..cbbfa77 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1786,10 +1786,8 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	struct adv7842_state *state = to_state(sd);
- 	u8 fmt_change_cp, fmt_change_digital, fmt_change_sdp;
- 	u8 irq_status[5];
--	u8 irq_cfg = io_read(sd, 0x40);
- 
--	/* disable irq-pin output */
--	io_write(sd, 0x40, irq_cfg | 0x3);
-+	adv7842_irq_enable(sd, false);
- 
- 	/* read status */
- 	irq_status[0] = io_read(sd, 0x43);
-@@ -1810,6 +1808,8 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	if (irq_status[4])
- 		io_write(sd, 0x9e, irq_status[4]);
- 
-+	adv7842_irq_enable(sd, true);
-+
- 	v4l2_dbg(1, debug, sd, "%s: irq %x, %x, %x, %x, %x\n", __func__,
- 		 irq_status[0], irq_status[1], irq_status[2],
- 		 irq_status[3], irq_status[4]);
-@@ -1845,9 +1845,6 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	if (handled)
- 		*handled = true;
- 
--	/* re-enable irq-pin output */
--	io_write(sd, 0x40, irq_cfg);
--
- 	return 0;
- }
- 
-@@ -2446,7 +2443,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd,
- 	io_write(sd, 0x33, 0x40);
- 
- 	/* interrupts */
--	io_write(sd, 0x40, 0xe2); /* Configure INT1 */
-+	io_write(sd, 0x40, 0xf2); /* Configure INT1 */
- 
- 	adv7842_irq_enable(sd, true);
- 
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 79 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 166c8d6..f6a3e84 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+@@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..e8ff410 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -294,6 +294,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
 -- 
-1.8.4.4
+1.7.9.5
 
