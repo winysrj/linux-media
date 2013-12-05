@@ -1,99 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50232 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755262Ab3L1MQa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 17/24] em28xx: initialize audio latter
-Date: Sat, 28 Dec 2013 10:16:09 -0200
-Message-Id: <1388232976-20061-18-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from vstkex01.macnetix.de ([193.111.113.9]:52587 "EHLO
+	vstkex01.macnetix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756796Ab3LEPPc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 10:15:32 -0500
+From: Nikolaus Schulz <schulz@macnetix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: <linux-media@vger.kernel.org>, Nikolaus Schulz <ns@htonl.de>,
+	"Nikolaus Schulz" <schulz@macnetix.de>
+Subject: [PATCH] libdvbv5: more fixes in the T2 delivery descriptor handler
+Date: Thu, 5 Dec 2013 16:10:03 +0100
+Message-ID: <1386256203-3007-1-git-send-email-schulz@macnetix.de>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+* Fix a couple of memcpy calls, and remove a bogus one
+* Properly use lengths of centre_frequency loop and subcell_info loop
+  (they count bytes, not entries)
 
-Better to first write the GPIOs of the input mux, before initializing
-the audio.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Nikolaus Schulz <schulz@macnetix.de>
 ---
- drivers/media/usb/em28xx/em28xx-video.c | 42 ++++++++++++++++-----------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ lib/libdvbv5/descriptors/desc_t2_delivery.c |   35 ++++++++++++++-------------
+ 1 files changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 4d6c9f8e1497..ea3653248d25 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2243,8 +2243,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
- 		       EM28XX_VINCTRL_CCIR656_ENABLE;
+diff --git a/lib/libdvbv5/descriptors/desc_t2_delivery.c b/lib/libdvbv5/descriptors/desc_t2_delivery.c
+index ab4361d..07a0956 100644
+--- a/lib/libdvbv5/descriptors/desc_t2_delivery.c
++++ b/lib/libdvbv5/descriptors/desc_t2_delivery.c
+@@ -32,6 +32,7 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
+ 	struct dvb_desc_t2_delivery *d = desc;
+ 	unsigned char *p = (unsigned char *) buf;
+ 	size_t desc_len = ext->length - 1, len, len2;
++	uint8_t nmemb;
+ 	int i;
  
+ 	len = offsetof(struct dvb_desc_t2_delivery, bitfield);
+@@ -42,7 +43,7 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
+ 		return;
+ 	}
+ 	if (desc_len < len2) {
+-		memcpy(p, buf, len);
++		memcpy(d, p, len);
+ 		bswap16(d->system_id);
+ 
+ 		if (desc_len != len)
+@@ -50,44 +51,41 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
+ 
+ 		return;
+ 	}
+-	memcpy(p, buf, len2);
++	memcpy(d, p, len2);
+ 	p += len2;
+ 
+-	len = desc_len - (p - buf);
+-	memcpy(&d->centre_frequency, p, len);
+-	p += len;
 -
--
- 	/* request some modules */
+ 	if (d->tfs_flag)
+-		d->frequency_loop_length = 1;
++		d->frequency_loop_length = sizeof(*d->centre_frequency);
+ 	else {
+ 		d->frequency_loop_length = *p;
+ 		p++;
+ 	}
++	nmemb = d->frequency_loop_length / sizeof(*d->centre_frequency);
  
- 	if (dev->board.has_msp34xx)
-@@ -2296,26 +2294,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	em28xx_tuner_setup(dev);
- 	em28xx_init_camera(dev);
+-	d->centre_frequency = calloc(d->frequency_loop_length,
+-				     sizeof(*d->centre_frequency));
++	d->centre_frequency = calloc(nmemb, sizeof(*d->centre_frequency));
+ 	if (!d->centre_frequency) {
+ 		dvb_perror("Out of memory");
+ 		return;
+ 	}
  
--	/* Configure audio */
--	ret = em28xx_audio_setup(dev);
--	if (ret < 0) {
--		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
--			__func__, ret);
--		goto err;
--	}
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
--	} else {
--		/* install the em28xx notify callback */
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
--				em28xx_ctrl_notify, dev);
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
--				em28xx_ctrl_notify, dev);
--	}
--
- 	/* wake i2c devices */
- 	em28xx_wake_i2c(dev);
+-	memcpy(d->centre_frequency, p, sizeof(*d->centre_frequency) * d->frequency_loop_length);
+-	p += sizeof(*d->centre_frequency) * d->frequency_loop_length;
++	memcpy(d->centre_frequency, p, d->frequency_loop_length);
++	p += d->frequency_loop_length;
  
-@@ -2361,6 +2339,26 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+-	for (i = 0; i < d->frequency_loop_length; i++)
++	for (i = 0; i < nmemb; i++)
+ 		bswap32(d->centre_frequency[i]);
  
- 	video_mux(dev, 0);
+ 	d->subcel_info_loop_length = *p;
+ 	p++;
++	nmemb = d->subcel_info_loop_length / sizeof(*d->subcell);
  
-+	/* Configure audio */
-+	ret = em28xx_audio_setup(dev);
-+	if (ret < 0) {
-+		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-+			__func__, ret);
-+		goto err;
-+	}
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-+	} else {
-+		/* install the em28xx notify callback */
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-+				em28xx_ctrl_notify, dev);
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-+				em28xx_ctrl_notify, dev);
-+	}
-+
- 	/* Audio defaults */
- 	dev->mute = 1;
- 	dev->volume = 0x1f;
+-	d->subcell = calloc(d->subcel_info_loop_length, sizeof(*d->subcell));
++	d->subcell = calloc(nmemb, sizeof(*d->subcell));
+ 	if (!d->subcell) {
+ 		dvb_perror("Out of memory");
+ 		return;
+ 	}
+-	memcpy(d->subcell, p, sizeof(*d->subcell) * d->subcel_info_loop_length);
++	memcpy(d->subcell, p, d->subcel_info_loop_length);
+ 
+-	for (i = 0; i < d->subcel_info_loop_length; i++)
++	for (i = 0; i < nmemb; i++)
+ 		bswap16(d->subcell[i].transposer_frequency);
+ }
+ 
+@@ -97,6 +95,7 @@ void dvb_desc_t2_delivery_print(struct dvb_v5_fe_parms *parms,
+ {
+ 	const struct dvb_desc_t2_delivery *d = desc;
+ 	int i;
++	uint8_t nmemb;
+ 
+ 	dvb_log("|       DVB-T2 delivery");
+ 	dvb_log("|           plp_id                    %d", d->plp_id);
+@@ -113,10 +112,12 @@ void dvb_desc_t2_delivery_print(struct dvb_v5_fe_parms *parms,
+ 	dvb_log("|           bandwidth                 %d", d->bandwidth);
+ 	dvb_log("|           SISO MISO                 %d", d->SISO_MISO);
+ 
+-	for (i = 0; i < d->frequency_loop_length; i++)
++	nmemb = d->frequency_loop_length / sizeof(*d->centre_frequency);
++	for (i = 0; i < nmemb; i++)
+ 		dvb_log("|           centre frequency[%d]   %d", i, d->centre_frequency[i]);
+ 
+-	for (i = 0; i < d->subcel_info_loop_length; i++) {
++	nmemb = d->subcel_info_loop_length / sizeof(*d->subcell);
++	for (i = 0; i < nmemb; i++) {
+ 		dvb_log("|           cell_id_extension[%d]  %d", i, d->subcell[i].cell_id_extension);
+ 		dvb_log("|           transposer frequency   %d", d->subcell[i].transposer_frequency);
+ 	}
 -- 
-1.8.3.1
+1.7.2.5
 
