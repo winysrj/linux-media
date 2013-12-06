@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35408 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab3LSEAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 23:00:23 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2104 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553Ab3LFKRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:17:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v4 0/7] SDR API
-Date: Thu, 19 Dec 2013 05:59:59 +0200
-Message-Id: <1387425606-7458-1-git-send-email-crope@iki.fi>
+Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
+	Dinesh Ram <dinesh.ram@cern.ch>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 03/11] si4713: Reorganized includes in si4713.c/h
+Date: Fri,  6 Dec 2013 11:17:06 +0100
+Message-Id: <1386325034-19344-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is the full set of implementation.
+From: Dinesh Ram <Dinesh.Ram@cern.ch>
 
-But..... API Documentation is the really hard part as it is in XML format.
-I have wasted already quite too much time for it :/ The reason is that
-I don't have any XML editor, just plain text editor. Is there any WYSIWYG
-XML editor for Linux? If there is no even editor I wonder if it is wise at
-all to keep documentation in XML format...
+Moved the header <linux/regulator/consumer.h> from si4713.c to si4713.h
 
-We used Altova XMLSpy on our structured data formats course and I would like
-to see something similar.
+Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Eduardo Valentin <edubezval@gmail.com>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/media/radio/si4713/si4713.c | 1 -
+ drivers/media/radio/si4713/si4713.h | 1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-regards
-Antti
-
-Antti Palosaari (7):
-  v4l: add device type for Software Defined Radio
-  v4l: add new tuner types for SDR
-  v4l: 1 Hz resolution flag for tuners
-  v4l: add stream format for SDR receiver
-  v4l: define own IOCTL ops for SDR FMT
-  v4l: enable some IOCTLs for SDR receiver
-  v4l: add device capability flag for SDR receiver
-
- drivers/media/v4l2-core/v4l2-dev.c   | 26 +++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c | 75 ++++++++++++++++++++++++++++++------
- include/media/v4l2-dev.h             |  3 +-
- include/media/v4l2-ioctl.h           |  8 ++++
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 16 ++++++++
- 6 files changed, 114 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 5d26b9a..096947c 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -31,7 +31,6 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
+-#include <linux/regulator/consumer.h>
+ 
+ #include "si4713.h"
+ 
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index 25cdea2..1410cd2 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -15,6 +15,7 @@
+ #ifndef SI4713_I2C_H
+ #define SI4713_I2C_H
+ 
++#include <linux/regulator/consumer.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/si4713.h>
 -- 
-1.8.4.2
+1.8.4.rc3
 
