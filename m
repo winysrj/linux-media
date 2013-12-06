@@ -1,112 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:45784 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021Ab3LROt7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 09:49:59 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY0001RZBVANY70@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Dec 2013 23:49:58 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3847 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757141Ab3LFKRn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:17:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v3 3/8] s5p-jpeg: Retrieve "YCbCr subsampling" field from the
- jpeg header
-Date: Wed, 18 Dec 2013 15:49:30 +0100
-Message-id: <1387378175-23399-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
-References: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 08/11] si4713: move supply list to si4713_platform_data
+Date: Fri,  6 Dec 2013 11:17:11 +0100
+Message-Id: <1386325034-19344-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make s5p_jpeg_parse_hdr function capable of parsing
-"YCbCr subsampling" field of a jpeg file header.
-Store the parsed value in the context. The information
-about source JPEG subsampling is required to make validation
-of destination format possible, which must be conducted
-for exynos4x12 device as the decoding process will not succeed
-if the destination format is set to YUV with subsampling lower
-than the one of the source JPEG image. With this knowledge
-the driver can adjust the destination format appropriately.
+From: Dinesh Ram <Dinesh.Ram@cern.ch>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+The supply list is needed by the platform driver, but not by the usb driver.
+So this information belongs to the platform data and should not be hardcoded
+in the subdevice driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Eduardo Valentin <edubezval@gmail.com>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   35 ++++++++++++++++++++++++---
- 1 file changed, 31 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  7 ++++
+ drivers/media/radio/si4713/si4713.c          | 52 ++++++++++++++--------------
+ drivers/media/radio/si4713/si4713.h          |  3 +-
+ include/media/si4713.h                       |  2 ++
+ 4 files changed, 37 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 242e8b8..ffae566 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -624,10 +624,11 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
- }
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index f093af1..8760bbe 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -760,7 +760,14 @@ static struct regulator_init_data rx51_vintdig = {
+ 	},
+ };
  
- static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
--			       unsigned long buffer, unsigned long size)
-+			       unsigned long buffer, unsigned long size,
-+			       struct s5p_jpeg_ctx *ctx)
- {
- 	int c, components, notfound;
--	unsigned int height, width, word;
-+	unsigned int height, width, word, subsampling = 0;
- 	long length;
- 	struct s5p_jpeg_buffer jpeg_buffer;
- 
-@@ -666,7 +667,15 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 				break;
- 			notfound = 0;
- 
--			skip(&jpeg_buffer, components * 3);
-+			if (components == 1) {
-+				subsampling = 0x33;
-+			} else {
-+				skip(&jpeg_buffer, 1);
-+				subsampling = get_byte(&jpeg_buffer);
-+				skip(&jpeg_buffer, 1);
-+			}
++static const char * const si4713_supply_names[] = {
++	"vio",
++	"vdd",
++};
 +
-+			skip(&jpeg_buffer, components * 2);
- 			break;
+ static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
++	.supplies	= ARRAY_SIZE(si4713_supply_names),
++	.supply_names	= si4713_supply_names,
+ 	.gpio_reset	= RX51_FMTX_RESET_GPIO,
+ };
  
- 		/* skip payload-less markers */
-@@ -688,6 +697,24 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 	result->w = width;
- 	result->h = height;
- 	result->size = components;
-+
-+	switch (subsampling) {
-+	case 0x11:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-+		break;
-+	case 0x21:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
-+		break;
-+	case 0x22:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
-+		break;
-+	case 0x33:
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
-+		break;
-+	default:
-+		return false;
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 4931325..097d4e0 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -44,11 +44,6 @@ MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
+ MODULE_DESCRIPTION("I2C driver for Si4713 FM Radio Transmitter");
+ MODULE_VERSION("0.0.1");
+ 
+-static const char *si4713_supply_names[SI4713_NUM_SUPPLIES] = {
+-	"vio",
+-	"vdd",
+-};
+-
+ #define DEFAULT_RDS_PI			0x00
+ #define DEFAULT_RDS_PTY			0x00
+ #define DEFAULT_RDS_DEVIATION		0x00C8
+@@ -368,11 +363,12 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 	if (sdev->power_state)
+ 		return 0;
+ 
+-	err = regulator_bulk_enable(ARRAY_SIZE(sdev->supplies),
+-				    sdev->supplies);
+-	if (err) {
+-		v4l2_err(&sdev->sd, "Failed to enable supplies: %d\n", err);
+-		return err;
++	if (sdev->supplies) {
++		err = regulator_bulk_enable(sdev->supplies, sdev->supply_data);
++		if (err) {
++			v4l2_err(&sdev->sd, "Failed to enable supplies: %d\n", err);
++			return err;
++		}
+ 	}
+ 	if (gpio_is_valid(sdev->gpio_reset)) {
+ 		udelay(50);
+@@ -396,11 +392,12 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 		if (client->irq)
+ 			err = si4713_write_property(sdev, SI4713_GPO_IEN,
+ 						SI4713_STC_INT | SI4713_CTS);
+-	} else {
+-		if (gpio_is_valid(sdev->gpio_reset))
+-			gpio_set_value(sdev->gpio_reset, 0);
+-		err = regulator_bulk_disable(ARRAY_SIZE(sdev->supplies),
+-					     sdev->supplies);
++		return err;
 +	}
-+
- 	return !notfound;
- }
++	if (gpio_is_valid(sdev->gpio_reset))
++		gpio_set_value(sdev->gpio_reset, 0);
++	if (sdev->supplies) {
++		err = regulator_bulk_disable(sdev->supplies, sdev->supply_data);
+ 		if (err)
+ 			v4l2_err(&sdev->sd,
+ 				 "Failed to disable supplies: %d\n", err);
+@@ -432,11 +429,13 @@ static int si4713_powerdown(struct si4713_device *sdev)
+ 		v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
+ 		if (gpio_is_valid(sdev->gpio_reset))
+ 			gpio_set_value(sdev->gpio_reset, 0);
+-		err = regulator_bulk_disable(ARRAY_SIZE(sdev->supplies),
+-					     sdev->supplies);
+-		if (err)
+-			v4l2_err(&sdev->sd,
+-				 "Failed to disable supplies: %d\n", err);
++		if (sdev->supplies) {
++			err = regulator_bulk_disable(sdev->supplies,
++						     sdev->supply_data);
++			if (err)
++				v4l2_err(&sdev->sd,
++					 "Failed to disable supplies: %d\n", err);
++		}
+ 		sdev->power_state = POWER_OFF;
+ 	}
  
-@@ -1438,7 +1465,7 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
- 		     (unsigned long)vb2_plane_vaddr(vb, 0),
- 		     min((unsigned long)ctx->out_q.size,
--			 vb2_get_plane_payload(vb, 0)));
-+			 vb2_get_plane_payload(vb, 0)), ctx);
- 		if (!ctx->hdr_parsed) {
- 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- 			return;
+@@ -1381,13 +1380,14 @@ static int si4713_probe(struct i2c_client *client,
+ 		}
+ 		sdev->gpio_reset = pdata->gpio_reset;
+ 		gpio_direction_output(sdev->gpio_reset, 0);
++		sdev->supplies = pdata->supplies;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(sdev->supplies); i++)
+-		sdev->supplies[i].supply = si4713_supply_names[i];
++	for (i = 0; i < sdev->supplies; i++)
++		sdev->supply_data[i].supply = pdata->supply_names[i];
+ 
+-	rval = regulator_bulk_get(&client->dev, ARRAY_SIZE(sdev->supplies),
+-				  sdev->supplies);
++	rval = regulator_bulk_get(&client->dev, sdev->supplies,
++				  sdev->supply_data);
+ 	if (rval) {
+ 		dev_err(&client->dev, "Cannot get regulators: %d\n", rval);
+ 		goto free_gpio;
+@@ -1500,7 +1500,7 @@ free_irq:
+ free_ctrls:
+ 	v4l2_ctrl_handler_free(hdl);
+ put_reg:
+-	regulator_bulk_free(ARRAY_SIZE(sdev->supplies), sdev->supplies);
++	regulator_bulk_free(sdev->supplies, sdev->supply_data);
+ free_gpio:
+ 	if (gpio_is_valid(sdev->gpio_reset))
+ 		gpio_free(sdev->gpio_reset);
+@@ -1524,7 +1524,7 @@ static int si4713_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+-	regulator_bulk_free(ARRAY_SIZE(sdev->supplies), sdev->supplies);
++	regulator_bulk_free(sdev->supplies, sdev->supply_data);
+ 	if (gpio_is_valid(sdev->gpio_reset))
+ 		gpio_free(sdev->gpio_reset);
+ 	kfree(sdev);
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index 1410cd2..4837cf6 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -227,7 +227,8 @@ struct si4713_device {
+ 		struct v4l2_ctrl *tune_ant_cap;
+ 	};
+ 	struct completion work;
+-	struct regulator_bulk_data supplies[SI4713_NUM_SUPPLIES];
++	unsigned supplies;
++	struct regulator_bulk_data supply_data[SI4713_NUM_SUPPLIES];
+ 	int gpio_reset;
+ 	u32 power_state;
+ 	u32 rds_enabled;
+diff --git a/include/media/si4713.h b/include/media/si4713.h
+index ed7353e..f98a0a7 100644
+--- a/include/media/si4713.h
++++ b/include/media/si4713.h
+@@ -23,6 +23,8 @@
+  * Platform dependent definition
+  */
+ struct si4713_platform_data {
++	const char * const *supply_names;
++	unsigned supplies;
+ 	int gpio_reset; /* < 0 if not used */
+ };
+ 
 -- 
-1.7.9.5
+1.8.4.rc3
 
