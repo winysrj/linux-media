@@ -1,116 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38435 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030Ab3LKXyY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 18:54:24 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 3/4] v4l: add new tuner types for SDR
-Date: Thu, 12 Dec 2013 01:54:02 +0200
-Message-Id: <1386806043-5331-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1386806043-5331-1-git-send-email-crope@iki.fi>
-References: <1386806043-5331-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57912 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161645Ab3LFNe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 08:34:29 -0500
+Message-ID: <1386336562.4088.5.camel@weser.hi.pengutronix.de>
+Subject: Re: [PATCHv5][ 2/8] staging: imx-drm: Add RGB666 support for
+ parallel display.
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Denis Carikli <denis@eukrea.com>, Marek Vasut <marex@denx.de>,
+	Mark Rutland <mark.rutland@arm.com>,
+	devel@driverdev.osuosl.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Eric =?ISO-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Rob Herring <rob.herring@calxeda.com>,
+	devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	driverdev-devel@linuxdriverproject.org,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Date: Fri, 06 Dec 2013 14:29:22 +0100
+In-Reply-To: <20131206131403.GA30960@ulmo.nvidia.com>
+References: <1386268092-21719-1-git-send-email-denis@eukrea.com>
+	 <1386268092-21719-2-git-send-email-denis@eukrea.com>
+	 <20131206131403.GA30960@ulmo.nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_SDR for SDR usage.
+Am Freitag, den 06.12.2013, 14:14 +0100 schrieb Thierry Reding:
+> On Thu, Dec 05, 2013 at 07:28:06PM +0100, Denis Carikli wrote:
+> [...]
+> > diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+> [...]
+> > @@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
+> >  		return IPU_DC_MAP_BGR666;
+> >  	case V4L2_PIX_FMT_BGR24:
+> >  		return IPU_DC_MAP_BGR24;
+> > +	case V4L2_PIX_FMT_RGB666:
+> > +		return IPU_DC_MAP_RGB666;
+> 
+> Why is this DRM driver even using V4L2 pixel formats in the first place?
+> 
+Because imx-drm is actually a misnomer. The i.MX IPU is a multifunction
+device, which as one part has the display controllers, but also camera
+interfaces and mem-to-mem scaler devices, which are hooked up via the
+V4L2 interface.
 
-ADC is used for setting sampling rate (sampling frequency) to SDR
-device.
+The generic IPU part, which is used for example for programming the DMA
+channels is using V4L2 pixel formats as a common base. We have patches
+to split this out and make this fact more visible. (The IPU core will be
+placed aside the Tegra host1x driver)
 
-Another tuner type, SDR, is possible RF tuner. Is is used to
-down-convert RF frequency to range ADC could sample. It is optional
-for SDR device.
-
-Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
-VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
-type is SDR (VFL_TYPE_SDR).
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 38 +++++++++++++++++++++++++-----------
- include/uapi/linux/videodev2.h       |  2 ++
- 2 files changed, 29 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index bc10684..ee91a9f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_frequency *p = arg;
- 
--	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	if (vfd->vfl_type == VFL_TYPE_SDR) {
-+		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-+			return -EINVAL;
-+	} else {
-+		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	}
- 	return ops->vidioc_g_frequency(file, fh, p);
- }
- 
-@@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
- 
--	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
--	if (p->type != type)
--		return -EINVAL;
-+	if (vfd->vfl_type == VFL_TYPE_SDR) {
-+		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-+			return -EINVAL;
-+		type = p->type;
-+	} else {
-+		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+		if (type != p->type)
-+			return -EINVAL;
-+	}
- 	return ops->vidioc_s_frequency(file, fh, p);
- }
- 
-@@ -1882,11 +1893,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	enum v4l2_tuner_type type;
- 	int err;
- 
--	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
--
--	if (type != p->type)
--		return -EINVAL;
-+	if (vfd->vfl_type == VFL_TYPE_SDR) {
-+		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-+			return -EINVAL;
-+		type = p->type;
-+	} else {
-+		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+		if (type != p->type)
-+			return -EINVAL;
-+	}
- 	if (ops->vidioc_enum_freq_bands)
- 		return ops->vidioc_enum_freq_bands(file, fh, p);
- 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index b8ee9048..6c6a601 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -159,6 +159,8 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
-+	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_SDR               = 5,
- };
- 
- enum v4l2_memory {
+Regards,
+Lucas
 -- 
-1.8.4.2
+Pengutronix e.K.                           | Lucas Stach                 |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
