@@ -1,63 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50197 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755242Ab3L1MQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 14/24] em28xx: remove a false positive warning
-Date: Sat, 28 Dec 2013 10:16:06 -0200
-Message-Id: <1388232976-20061-15-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:59194 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759993Ab3LHWby (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Dec 2013 17:31:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH REVIEW 07/18] MAINTAINERS: add M88TS2022
+Date: Mon,  9 Dec 2013 00:31:24 +0200
+Message-Id: <1386541895-8634-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1386541895-8634-1-git-send-email-crope@iki.fi>
+References: <1386541895-8634-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+It is Montage M88TS2022 DVB-S/S2 silicon tuner driver.
 
-gcc knows nothing about jiffies. So, it produces this error:
-
-	drivers/media/usb/em28xx/em28xx-i2c.c: In function ‘em28xx_i2c_recv_bytes’:
-	drivers/media/usb/em28xx/em28xx-i2c.c:274:5: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-
-It is a false positive, however, removing it is as easy as replacing
-a while by a do/while construction.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 26f7b0a2e83a..d972e2f67214 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -241,7 +241,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	 * Zero length reads always succeed, even if no device is connected
- 	 */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0604247..16661e4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5365,6 +5365,16 @@ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ S:	Maintained
+ F:	drivers/media/dvb-frontends/m88rs2000*
  
--	while (time_is_after_jiffies(timeout)) {
-+	do {
- 		/* Read data from i2c device */
- 		ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
- 		if (ret < 0) {
-@@ -270,7 +270,8 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 		if (ret != 0x10)
- 			break;
- 		msleep(5);
--	}
-+	} while (time_is_after_jiffies(timeout));
++M88TS2022 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/media/tuners/m88ts2022*
 +
- 	if (ret == 0x10) {
- 		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
- 		return -ENODEV;
+ MA901 MASTERKIT USB FM RADIO DRIVER
+ M:      Alexey Klimov <klimov.linux@gmail.com>
+ L:      linux-media@vger.kernel.org
 -- 
-1.8.3.1
+1.8.4.2
 
