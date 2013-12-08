@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59365 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:52649 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751344Ab3LKXyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 18:54:25 -0500
+	id S1760035Ab3LHWb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Dec 2013 17:31:56 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 1/4] v4l2-core: don't clear VIDIOC_G_FREQUENCY tuner type
-Date: Thu, 12 Dec 2013 01:54:00 +0200
-Message-Id: <1386806043-5331-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1386806043-5331-1-git-send-email-crope@iki.fi>
-References: <1386806043-5331-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH REVIEW 15/18] m88ds3103: add default value for reg 56
+Date: Mon,  9 Dec 2013 00:31:32 +0200
+Message-Id: <1386541895-8634-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1386541895-8634-1-git-send-email-crope@iki.fi>
+References: <1386541895-8634-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to clear as it will be overridden in every case when
-v4l_g_frequency() is called. We will need that value later when
-new tuner types are defined.
+Reg 0x56 should be programmed to 0x01. Add default to inittab.
 
+Reported-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-frontends/m88ds3103_priv.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 68e6b5e..bc10684 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2013,7 +2013,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
- 	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
--	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
-+	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, type)),
- 	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index 80c5a25..9cc29b4 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -71,6 +71,7 @@ static const struct m88ds3103_reg_val m88ds3103_dvbs_init_reg_vals[] = {
+ 	{0x51, 0x36},
+ 	{0x52, 0x36},
+ 	{0x53, 0x36},
++	{0x56, 0x01},
+ 	{0x63, 0x0f},
+ 	{0x64, 0x30},
+ 	{0x65, 0x40},
+@@ -152,6 +153,7 @@ static const struct m88ds3103_reg_val m88ds3103_dvbs2_init_reg_vals[] = {
+ 	{0x51, 0x36},
+ 	{0x52, 0x36},
+ 	{0x53, 0x36},
++	{0x56, 0x01},
+ 	{0x63, 0x0f},
+ 	{0x64, 0x10},
+ 	{0x65, 0x20},
 -- 
 1.8.4.2
 
