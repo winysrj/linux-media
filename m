@@ -1,70 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43298 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:57512 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751397Ab3LTFuM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 00:50:12 -0500
+	id S1759992Ab3LHWby (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Dec 2013 17:31:54 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v5 01/12] v4l: add device type for Software Defined Radio
-Date: Fri, 20 Dec 2013 07:49:43 +0200
-Message-Id: <1387518594-11609-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
-References: <1387518594-11609-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH REVIEW 06/18] MAINTAINERS: add M88DS3103
+Date: Mon,  9 Dec 2013 00:31:23 +0200
+Message-Id: <1386541895-8634-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1386541895-8634-1-git-send-email-crope@iki.fi>
+References: <1386541895-8634-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
-It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
+It is Montage M88DS3103 DVB-S/S2 demodulator driver.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 6 ++++++
- include/media/v4l2-dev.h           | 3 ++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 1cc1749..a034b4c 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
-  *	%VFL_TYPE_RADIO - A radio card
-  *
-  *	%VFL_TYPE_SUBDEV - A subdevice
-+ *
-+ *	%VFL_TYPE_SDR - Software Defined Radio
-  */
- int __video_register_device(struct video_device *vdev, int type, int nr,
- 		int warn_if_nr_in_use, struct module *owner)
-@@ -806,6 +808,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_SUBDEV:
- 		name_base = "v4l-subdev";
- 		break;
-+	case VFL_TYPE_SDR:
-+		/* Use device name 'swradio' because 'sdr' was already taken. */
-+		name_base = "swradio";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c768c9f..eec6e46 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -24,7 +24,8 @@
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
- #define VFL_TYPE_SUBDEV		3
--#define VFL_TYPE_MAX		4
-+#define VFL_TYPE_SDR		4
-+#define VFL_TYPE_MAX		5
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8285ed4..0604247 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5347,6 +5347,16 @@ W:	http://www.tazenda.demon.co.uk/phil/linux-hp
+ S:	Maintained
+ F:	arch/m68k/hp300/
  
- /* Is this a receiver, transmitter or mem-to-mem? */
- /* Ignored for VFL_TYPE_SUBDEV. */
++M88DS3103 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/media/dvb-frontends/m88ds3103*
++
+ M88RS2000 MEDIA DRIVER
+ M:	Malcolm Priestley <tvboxspy@gmail.com>
+ L:	linux-media@vger.kernel.org
 -- 
 1.8.4.2
 
