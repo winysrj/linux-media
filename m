@@ -1,82 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36384 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab3LKDEX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 22:04:23 -0500
-Received: by mail-wi0-f177.google.com with SMTP id cc10so234228wib.4
-        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 19:04:22 -0800 (PST)
+Received: from smtp.gentoo.org ([140.211.166.183]:58503 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755454Ab3LIF6Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Dec 2013 00:58:24 -0500
+Message-ID: <52A55BFA.2060402@gentoo.org>
+Date: Mon, 09 Dec 2013 06:58:18 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-In-Reply-To: <CANnVQS1xg25VpaoU6W=rpC+HgyqaKLwnL4VcQ3FKN0q1r11h-Q@mail.gmail.com>
-References: <20131210160541.GA15282@ubuntu> <2939201.P8qvUzaVN6@avalon> <CANnVQS1xg25VpaoU6W=rpC+HgyqaKLwnL4VcQ3FKN0q1r11h-Q@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 11 Dec 2013 08:34:02 +0530
-Message-ID: <CA+V-a8si3Yetnrok4CuCY3C2opmSz8U6fFXyyg_dR22XMZo-vA@mail.gmail.com>
-Subject: Re: [PATCH v2] staging: media: davinci_vpfe: Rewrite return statement
- in vpfe_video.c
-To: Lisa Nguyen <lisa@xenapiadmin.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH REVIEW 03/18] Montage M88DS3103 DVB-S/S2 demodulator driver
+References: <1386541895-8634-1-git-send-email-crope@iki.fi> <1386541895-8634-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1386541895-8634-4-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lisa,
+Hi Antti,
+I have a small suggestion, see below.
 
-On Tue, Dec 10, 2013 at 11:27 PM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
-> Hi Laurent,
->
-> On Tue, Dec 10, 2013 at 8:50 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Lisa,
->>
->> Thank you for the patch.
->>
->> On Tuesday 10 December 2013 08:05:42 Lisa Nguyen wrote:
->>> Rewrite the return statement in vpfe_video.c to eliminate the
->>> use of a ternary operator. This will prevent the checkpatch.pl
->>> script from generating a warning saying to remove () from
->>> this particular return statement.
->>>
->>> Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
->>> ---
->>> Changes since v2:
->>> - Aligned -ETIMEDOUT return statement with if condition
->>>
->>>  drivers/staging/media/davinci_vpfe/vpfe_video.c |    5 ++++-
->>>  1 file changed, 4 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
->>> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 24d98a6..22e31d2
->>> 100644
->>> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
->>> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
->>> @@ -346,7 +346,10 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline
->>> *pipe) }
->>>       mutex_unlock(&mdev->graph_mutex);
->>>
->>> -     return (ret == 0) ? ret : -ETIMEDOUT ;
->>> +     if (ret == 0)
->>> +             return ret;
->>> +
->>> +     return -ETIMEDOUT;
->>
->> I don't want to point the obvious, but what about just
->>
->>         return ret ? -ETIMEDOUT : 0;
->>
->> or, if this is just about fixing the checkpatch.pl warning,
->>
->>         return ret == 0 ? ret : -ETIMEDOUT;
->>
->> (I'd prefer the first)
->
-> I understand your point :) I was making changes based on Prabhakar's
-> feedback he gave me a while back[1].
->
-Please go ahead as per Laurent's suggestion.
+On 08.12.2013 23:31, Antti Palosaari wrote:
+> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+> new file mode 100644
+> index 0000000..91b3729
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/m88ds3103.c
+> @@ -0,0 +1,1293 @@
+> +/*
+> + * Montage M88DS3103 demodulator driver
+> + *
+> + * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
+> + *
+> + *    This program is free software; you can redistribute it and/or modify
+> + *    it under the terms of the GNU General Public License as published by
+> + *    the Free Software Foundation; either version 2 of the License, or
+> + *    (at your option) any later version.
+> + *
+> + *    This program is distributed in the hope that it will be useful,
+> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *    GNU General Public License for more details.
+> + *
+> + *    You should have received a copy of the GNU General Public License along
+> + *    with this program; if not, write to the Free Software Foundation, Inc.,
+> + *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+> + */
+> +
+> +#include "m88ds3103_priv.h"
+> +
+> +static struct dvb_frontend_ops m88ds3103_ops;
+> +
+> +/* write multiple registers */
+> +static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
+> +		u8 reg, const u8 *val, int len)
+> +{
+> +	int ret;
+> +	u8 buf[1 + len];
 
-Thanks,
---Prabhakar Lad
+Looking at the recent patches for variable length arrays, I think this
+should be converted to fixed size.
+
+> +	struct i2c_msg msg[1] = {
+> +		{
+> +			.addr = priv->cfg->i2c_addr,
+> +			.flags = 0,
+> +			.len = sizeof(buf),
+> +			.buf = buf,
+> +		}
+> +	};
+> +
+> +	buf[0] = reg;
+> +	memcpy(&buf[1], val, len);
+> +
+> +	mutex_lock(&priv->i2c_mutex);
+> +	ret = i2c_transfer(priv->i2c, msg, 1);
+> +	mutex_unlock(&priv->i2c_mutex);
+> +	if (ret == 1) {
+> +		ret = 0;
+> +	} else {
+> +		dev_warn(&priv->i2c->dev,
+> +				"%s: i2c wr failed=%d reg=%02x len=%d\n",
+> +				KBUILD_MODNAME, ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +/* read multiple registers */
+> +static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
+> +		u8 reg, u8 *val, int len)
+> +{
+> +	int ret;
+> +	u8 buf[len];
+
+Same as above.
+
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = priv->cfg->i2c_addr,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &reg,
+> +		}, {
+> +			.addr = priv->cfg->i2c_addr,
+> +			.flags = I2C_M_RD,
+> +			.len = sizeof(buf),
+> +			.buf = buf,
+> +		}
+> +	};
+> +
+> +	mutex_lock(&priv->i2c_mutex);
+> +	ret = i2c_transfer(priv->i2c, msg, 2);
+> +	mutex_unlock(&priv->i2c_mutex);
+> +	if (ret == 2) {
+> +		memcpy(val, buf, len);
+> +		ret = 0;
+> +	} else {
+> +		dev_warn(&priv->i2c->dev,
+> +				"%s: i2c rd failed=%d reg=%02x len=%d\n",
+> +				KBUILD_MODNAME, ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+
+Regards
+Matthias
+
+
