@@ -1,93 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59257 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434Ab3LTFuM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 00:50:12 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v5 04/12] v4l: add stream format for SDR receiver
-Date: Fri, 20 Dec 2013 07:49:46 +0200
-Message-Id: <1387518594-11609-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
-References: <1387518594-11609-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56158 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933651Ab3LINK5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 08:10:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enrico <ebutera@users.berlios.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap3isp device tree support
+Date: Mon, 09 Dec 2013 14:11:06 +0100
+Message-ID: <99045482.9AfPL8T2Si@avalon>
+In-Reply-To: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
-for SDR receiver.
+Hi Enrico,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 11 +++++++++++
- 3 files changed, 13 insertions(+)
+On Friday 06 December 2013 11:13:50 Enrico wrote:
+> Hi,
+> 
+> i know there is some work going on for omap3isp device tree support,
+> but right now is it possible to enable it in some other way in a DT
+> kernel?
+> 
+> I've tried enabling it in board-generic.c (omap3_init_camera(...) with
+> proper platform data) but it hangs early at boot, do someone know if
+> it's possible and how to do it?
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 0397fc6..be06c21 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -149,6 +149,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
-+	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index ef94eca..b9bb1f2 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -18,6 +18,7 @@
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
- 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
-+		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
- 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
- 
- #define show_field(field)						\
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 97a5e50..c50e449 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -139,6 +139,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -1695,6 +1696,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
+Here's what I currently use to test the mt9v032 driver on my Beagleboard-xM
+with a mainline kernel. If you need proper regulators support it will get more
+complex.
+
+commit 9184392db932be81ea9d33080c1740c3a20f5132
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Mon Jun 20 13:21:17 2011 +0200
+
+    board-omap3beagle: Add support for the MT9V034 sensor module
+    
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 1f25f3e..8bc8695 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -239,7 +239,8 @@ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o pdata-quirks.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o
+-obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
++obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
++					   board-omap3beagle-camera.o
+ obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
+ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
+diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+new file mode 100644
+index 0000000..c927c23
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+@@ -0,0 +1,93 @@
++/*
++ * arch/arm/mach-omap2/board-omap3beagle-camera.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+struct v4l2_format_sdr {
-+	__u32				pixelformat;
-+	__u8				reserved[28];
-+} __attribute__ ((packed));
 +
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1712,6 +1722,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
++#include <asm/mach-types.h>
++#include <linux/clk.h>
++#include <linux/i2c.h>
++#include <linux/regulator/fixed.h>
++#include <linux/regulator/machine.h>
++#include <plat/cpu.h>
++#include <plat/i2c.h>
++
++#include <media/mt9v032.h>
++#include <media/omap3isp.h>
++
++#include "devices.h"
++
++#define MT9V034_RESET_GPIO	98
++
++static struct regulator_consumer_supply mt9v034_dummy_supplies[] = {
++	REGULATOR_SUPPLY("vaa", "3-0048"),
++	REGULATOR_SUPPLY("vdd", "3-0048"),
++	REGULATOR_SUPPLY("vdd_io", "3-0048"),
++};
++
++static const s64 mt9v034_link_freqs[] = {
++	13000000,
++	26600000,
++	27000000,
++	0,
++};
++
++static struct mt9v032_platform_data beagle_mt9v034_platform_data = {
++	.clk_pol	= 0,
++	.link_freqs	= mt9v034_link_freqs,
++	.link_def_freq	= 26600000,
++};
++
++static struct i2c_board_info mt9v034_camera_i2c_device = {
++	I2C_BOARD_INFO("mt9v034", 0x48),
++	.platform_data = &beagle_mt9v034_platform_data,
++};
++
++static struct isp_subdev_i2c_board_info mt9v034_camera_subdevs[] = {
++	{
++		.board_info = &mt9v034_camera_i2c_device,
++		.i2c_adapter_id = 3,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
++	{
++		.subdevs = mt9v034_camera_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = ISP_LANE_SHIFT_2,
++				.clk_pol = 0,
++			}
++		},
++	},
++	{ },
++};
++
++static struct isp_platform_data beagle_isp_platform_data = {
++	.xclks = {
++		[0] = {
++			.dev_id = "3-0048",
++		},
++	},
++	.subdevs = beagle_camera_subdevs,
++};
++
++static int __init beagle_camera_init(void)
++{
++	if (!of_machine_is_compatible("ti,omap3-beagle-xm"))
++		return 0;
++
++	clk_add_alias(NULL, "3-0048", "cam_xclka", NULL);
++
++	regulator_register_fixed(0, mt9v034_dummy_supplies,
++				 ARRAY_SIZE(mt9v034_dummy_supplies));
++
++	omap3_init_camera(&beagle_isp_platform_data);
++
++	return 0;
++}
++late_initcall(beagle_camera_init);
+
 -- 
-1.8.4.2
+Regards,
+
+Laurent Pinchart
 
