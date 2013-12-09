@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm6-vm9.access.bullet.mail.gq1.yahoo.com ([216.39.63.244]:48013
-	"HELO nm6-vm9.access.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754146Ab3L1Rnq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 12:43:46 -0500
-Message-ID: <52BF0C1A.4070804@att.net>
-Date: Sat, 28 Dec 2013 12:36:26 -0500
-From: "deadletterfile@att.net" <deadletterfile@att.net>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2708 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760679Ab3LII4u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 03:56:50 -0500
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB98ulpc077015
+	for <linux-media@vger.kernel.org>; Mon, 9 Dec 2013 09:56:49 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 83D862A2223
+	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 09:56:42 +0100 (CET)
+Message-ID: <52A585CA.4040603@xs4all.nl>
+Date: Mon, 09 Dec 2013 09:56:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: tehpola@gmail.com
-Subject: linuxtv patch/11200/
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="ShBCqprINhkI0bBUBT2oLVGtPOHeumJju"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.13] vb2: regression fix: always set length field.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ShBCqprINhkI0bBUBT2oLVGtPOHeumJju
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Mauro,
 
-I am writing regarding Mr. Mike Slegeir's patch 11200, which is listed
-with a 'State: Not Applicable.'
+Please queue this regression fix for 3.13.
 
-I downloaded dvb-apps using hg on an x86_64 Fedora 20 system. The
-compiled atsc_epg failed as described:
+Regards,
 
-/usr/bin/atsc_epg -f ######### -t -p 3
-tuning to ######### Hz, please wait...
-tuner locked.
-system time: Thu Dec 26 22:25:40 2013
-TS STT time: Thu Dec 26 22:25:54 2013
-MGT table:
-   0: type =3D 0x0000, PID =3D 0x1FFB, terrestrial VCT with
-current_next_indictor=3D1
-   1: type =3D 0x0200, PID =3D 0x1E00, event ETT 0
-   2: type =3D 0x0201, PID =3D 0x1E01, event ETT 1
-   3: type =3D 0x0202, PID =3D 0x1E02, event ETT 2
-   4: type =3D 0x0004, PID =3D 0x1E80, channel ETT
-   5: type =3D 0x0203, PID =3D 0x1E03, event ETT 3
-   6: type =3D 0x0100, PID =3D 0x1D00, EIT 0
-   7: type =3D 0x0101, PID =3D 0x1D01, EIT 1
-   8: type =3D 0x0102, PID =3D 0x1D02, EIT 2
-   9: type =3D 0x0301, PID =3D 0x1FFB, RRT with rating region 1
-  10: type =3D 0x0103, PID =3D 0x1D03, EIT 3
-receiving EIT .Segmentation fault (core dumped)
+	Hans
 
-Mr. Slegeir's patched atsc_epg program ran to completion with the
-desired output.
+The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
 
-I assume Mr. Slegeir nor myself have made some elementary mistake.
-Assuming the above to be true, I hope Mr. Slegeir's work might be
-readdressed and it (or a modified solution) might be merged into the
-distributed source code in the future. Thank you.
+  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
 
-Royboy626
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git vb2fix
 
---ShBCqprINhkI0bBUBT2oLVGtPOHeumJju
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+for you to fetch changes up to acc386d22c031646e3c8678c5a6c31f468ff5ea7:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+  vb2: regression fix: always set length field. (2013-12-09 09:53:21 +0100)
 
-iEYEARECAAYFAlK/DBoACgkQz1/aqdDsM3U6jwCg46ZKR4MNF2pgve0WXyHqlooc
-fGgAnjRTw/G8Ngeeeb4aDUyMFjxeCFhG
-=NpY6
------END PGP SIGNATURE-----
+----------------------------------------------------------------
+Hans Verkuil (1):
+      vb2: regression fix: always set length field.
 
---ShBCqprINhkI0bBUBT2oLVGtPOHeumJju--
+ drivers/media/v4l2-core/videobuf2-core.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
