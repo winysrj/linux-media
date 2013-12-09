@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:62645 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401Ab3LAVGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:21 -0500
-Received: by mail-ea0-f170.google.com with SMTP id k10so8514642eaj.1
-        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:20 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/7] em28xx: reduce the polling interval for buttons
-Date: Sun,  1 Dec 2013 22:06:54 +0100
-Message-Id: <1385932017-2276-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2449 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783Ab3LILnx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 06:43:53 -0500
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB9Bhnf6031987
+	for <linux-media@vger.kernel.org>; Mon, 9 Dec 2013 12:43:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 874A82A2223
+	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 12:43:45 +0100 (CET)
+Message-ID: <52A5ACF1.8010307@xs4all.nl>
+Date: Mon, 09 Dec 2013 12:43:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.13] vb2: regression fixes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For GPI-connected buttons without (hardware) debouncing, the polling interval 
-needs to be reduced to detect button presses properly.
+Mauro,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-input.c |    2 +-
- 1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
+Please queue these regression fixes for 3.13.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index ebc5387..c8f7ecb 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -31,7 +31,7 @@
- #include "em28xx.h"
- 
- #define EM28XX_SNAPSHOT_KEY KEY_CAMERA
--#define EM28XX_BUTTONS_QUERY_INTERVAL 500
-+#define EM28XX_BUTTONS_QUERY_INTERVAL 100
- 
- static unsigned int ir_debug;
- module_param(ir_debug, int, 0644);
--- 
-1.7.10.4
+This supersedes my previous earlier 3.13 pull request of today, since I realized that
+the 'fix possible memory leak' patch should also go to 3.13.
 
+Regards,
+
+	Hans
+
+The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
+
+  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git vb2fix
+
+for you to fetch changes up to 891e9e548afe4aea0152f958ff468798a4b76735:
+
+  videobuf2-dma-sg: fix possible memory leak (2013-12-09 12:40:02 +0100)
+
+----------------------------------------------------------------
+Geyslan G. Bem (1):
+      videobuf2-dma-sg: fix possible memory leak
+
+Hans Verkuil (1):
+      vb2: regression fix: always set length field.
+
+ drivers/media/v4l2-core/videobuf2-core.c   | 21 ++++++++++++++++++++-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |  3 ++-
+ 2 files changed, 22 insertions(+), 2 deletions(-)
