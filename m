@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1094 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058Ab3LQNT4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 08:19:56 -0500
-Message-ID: <52B04F02.1000507@xs4all.nl>
-Date: Tue, 17 Dec 2013 14:17:54 +0100
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2105 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933739Ab3LINns (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 08:43:48 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-CC: Martin Bugge <marbugge@cisco.com>,
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	s.nawrocki@samsung.com, g.liakhovetski@gmx.de,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 25/22] adv7842: initialize timings to CEA 640x480p59.94.
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl> <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [RFCv4 PATCH 6/8] vb2: don't set index, don't start streaming for write()
+Date: Mon,  9 Dec 2013 14:43:10 +0100
+Message-Id: <1386596592-48678-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This timing must be supported by all HDMI equipment, so that's a
-reasonable default.
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+Two fixes:
+
+- there is no need to set the index when calling dqbuf: dqbuf will
+  overwrite it.
+- __vb2_init_fileio already starts streaming for write(), so there is
+  no need to do it again in __vb2_perform_fileio. It can never have
+  worked anyway: either __vb2_init_fileio succeeds in starting streaming
+  or it is never going to happen.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7842.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 2eb4058..4bd6915 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2930,6 +2930,8 @@ static int adv7842_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
- 	struct adv7842_state *state;
-+	static const struct v4l2_dv_timings cea640x480 =
-+		V4L2_DV_BT_CEA_640X480P59_94;
- 	struct adv7842_platform_data *pdata = client->dev.platform_data;
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
-@@ -2956,6 +2958,7 @@ static int adv7842_probe(struct i2c_client *client,
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 00a3f98..a0b931e 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2423,7 +2423,6 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		memset(&fileio->b, 0, sizeof(fileio->b));
+ 		fileio->b.type = q->type;
+ 		fileio->b.memory = q->memory;
+-		fileio->b.index = index;
+ 		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
+ 		dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+ 		if (ret)
+@@ -2505,15 +2504,6 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		 * Switch to the next buffer
+ 		 */
+ 		fileio->index = (index + 1) % q->num_buffers;
+-
+-		/*
+-		 * Start streaming if required.
+-		 */
+-		if (!read && !q->streaming) {
+-			ret = vb2_internal_streamon(q, q->type);
+-			if (ret)
+-				return ret;
+-		}
+ 	}
  
- 	/* platform data */
- 	state->pdata = *pdata;
-+	state->timings = cea640x480;
- 
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
+ 	/*
 -- 
-1.8.4.rc3
-
+1.8.4.3
 
