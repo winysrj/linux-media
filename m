@@ -1,87 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36679 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750863Ab3LPXrW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 18:47:22 -0500
-Received: from dyn3-82-128-185-139.psoas.suomi.net ([82.128.185.139] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Vshsf-0002fb-7t
-	for linux-media@vger.kernel.org; Tue, 17 Dec 2013 01:47:21 +0200
-Message-ID: <52AF9108.1060101@iki.fi>
-Date: Tue, 17 Dec 2013 01:47:20 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] PCTV 461e / M88DS3103 / M88TS2022
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4808 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760319Ab3LIDdw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Dec 2013 22:33:52 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB93XmVU019220
+	for <linux-media@vger.kernel.org>; Mon, 9 Dec 2013 04:33:50 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 489092A2222
+	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 04:33:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20131209033344.489092A2222@tschai.lan>
+Date: Mon,  9 Dec 2013 04:33:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 675722b0e3917c6c917f1aa5f6d005cd3a0479f5:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-   Merge branch 'upstream-fixes' into patchwork (2013-12-13 05:04:00 -0200)
+Results of the daily build of media_tree:
 
-are available in the git repository at:
+date:		Mon Dec  9 04:00:18 CET 2013
+git branch:	test
+git hash:	3f823e094b935c1882605f8720336ee23433a16d
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-   git://linuxtv.org/anttip/media_tree.git pctv_461e
+Detailed results are available here:
 
-for you to fetch changes up to b7b5e9e0faf925a0405e61451d3f5d1331fe3e53:
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-   m88ds3103: fix possible i2c deadlock (2013-12-17 01:39:34 +0200)
+Full logs are available here:
 
-----------------------------------------------------------------
-Antti Palosaari (18):
-       em28xx: add support for Empia EM28178
-       a8293: add small sleep in order to settle LNB voltage
-       Montage M88DS3103 DVB-S/S2 demodulator driver
-       Montage M88TS2022 silicon tuner driver
-       em28xx: add support for PCTV DVB-S2 Stick (461e) [2013:0258]
-       MAINTAINERS: add M88DS3103
-       MAINTAINERS: add M88TS2022
-       m88ts2022: do not use dynamic stack allocation
-       m88ds3103: do not use dynamic stack allocation
-       m88ds3103: use I2C mux for tuner I2C adapter
-       m88ds3103: use kernel macro to round division
-       m88ds3103: fix TS mode config
-       m88ts2022: reimplement synthesizer calculations
-       m88ds3103: remove unneeded AGC from inittab
-       m88ds3103: add default value for reg 56
-       m88ds3103: I/O optimize inittab write
-       m88ts2022: convert to Kernel I2C driver model
-       m88ds3103: fix possible i2c deadlock
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-  MAINTAINERS                                  |   20 ++
-  drivers/media/dvb-frontends/Kconfig          |    7 +
-  drivers/media/dvb-frontends/Makefile         |    1 +
-  drivers/media/dvb-frontends/a8293.c          |    2 +
-  drivers/media/dvb-frontends/m88ds3103.c      | 1314 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/dvb-frontends/m88ds3103.h      |  118 ++++++++++++
-  drivers/media/dvb-frontends/m88ds3103_priv.h |  219 ++++++++++++++++++++++
-  drivers/media/tuners/Kconfig                 |    7 +
-  drivers/media/tuners/Makefile                |    1 +
-  drivers/media/tuners/m88ts2022.c             |  678 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/tuners/m88ts2022.h             |   58 ++++++
-  drivers/media/tuners/m88ts2022_priv.h        |   38 ++++
-  drivers/media/usb/em28xx/Kconfig             |    2 +
-  drivers/media/usb/em28xx/em28xx-cards.c      |   40 ++++
-  drivers/media/usb/em28xx/em28xx-core.c       |    9 +-
-  drivers/media/usb/em28xx/em28xx-dvb.c        |   54 ++++++
-  drivers/media/usb/em28xx/em28xx-input.c      |    2 +
-  drivers/media/usb/em28xx/em28xx-reg.h        |    1 +
-  drivers/media/usb/em28xx/em28xx.h            |    1 +
-  19 files changed, 2569 insertions(+), 3 deletions(-)
-  create mode 100644 drivers/media/dvb-frontends/m88ds3103.c
-  create mode 100644 drivers/media/dvb-frontends/m88ds3103.h
-  create mode 100644 drivers/media/dvb-frontends/m88ds3103_priv.h
-  create mode 100644 drivers/media/tuners/m88ts2022.c
-  create mode 100644 drivers/media/tuners/m88ts2022.h
-  create mode 100644 drivers/media/tuners/m88ts2022_priv.h
+The Media Infrastructure API from this daily build is here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/media.html
