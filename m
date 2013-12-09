@@ -1,70 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45827 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 23:05:28 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2301 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933531Ab3LINno (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 08:43:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v6 01/12] v4l: add device type for Software Defined Radio
-Date: Sun, 29 Dec 2013 06:03:53 +0200
-Message-Id: <1388289844-2766-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
-References: <1388289844-2766-1-git-send-email-crope@iki.fi>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	s.nawrocki@samsung.com, g.liakhovetski@gmx.de,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 8/8] vb2: Improve file I/O emulation to handle buffers in any order
+Date: Mon,  9 Dec 2013 14:43:12 +0100
+Message-Id: <1386596592-48678-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
-It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+videobuf2 file I/O emulation assumed that buffers dequeued from the
+driver would return in the order they were enqueued in the driver.
+
+Improve the file I/O emulator's book-keeping to remove this assumption.
+
+Also set the buf->size properly if a write() dequeues a buffer and the
+VB2_FILEIO_WRITE_IMMEDIATELY flag is set.
+
+Based on an initial patch by Andy Walls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 6 ++++++
- include/media/v4l2-dev.h           | 3 ++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 1cc1749..a034b4c 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
-  *	%VFL_TYPE_RADIO - A radio card
-  *
-  *	%VFL_TYPE_SUBDEV - A subdevice
-+ *
-+ *	%VFL_TYPE_SDR - Software Defined Radio
-  */
- int __video_register_device(struct video_device *vdev, int type, int nr,
- 		int warn_if_nr_in_use, struct module *owner)
-@@ -806,6 +808,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_SUBDEV:
- 		name_base = "v4l-subdev";
- 		break;
-+	case VFL_TYPE_SDR:
-+		/* Use device name 'swradio' because 'sdr' was already taken. */
-+		name_base = "swradio";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c768c9f..eec6e46 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -24,7 +24,8 @@
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
- #define VFL_TYPE_SUBDEV		3
--#define VFL_TYPE_MAX		4
-+#define VFL_TYPE_SDR		4
-+#define VFL_TYPE_MAX		5
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a0b931e..af89721 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2333,6 +2333,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+ 		}
++		fileio->index = q->num_buffers;
+ 	}
  
- /* Is this a receiver, transmitter or mem-to-mem? */
- /* Ignored for VFL_TYPE_SUBDEV. */
+ 	/*
+@@ -2408,15 +2409,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	}
+ 	fileio = q->fileio;
+ 
+-	index = fileio->index;
+-	buf = &fileio->bufs[index];
+-
+ 	/*
+ 	 * Check if we need to dequeue the buffer.
+ 	 */
+-	if (buf->queued) {
+-		struct vb2_buffer *vb;
+-
++	index = fileio->index;
++	if (index >= q->num_buffers) {
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+@@ -2429,12 +2426,18 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			return ret;
+ 		fileio->dq_count += 1;
+ 
++		index = fileio->b.index;
++		buf = &fileio->bufs[index];
++
+ 		/*
+ 		 * Get number of bytes filled by the driver
+ 		 */
+-		vb = q->bufs[index];
+-		buf->size = vb2_get_plane_payload(vb, 0);
++		buf->pos = 0;
+ 		buf->queued = 0;
++		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
++				 : vb2_plane_size(q->bufs[index], 0);
++	} else {
++		buf = &fileio->bufs[index];
+ 	}
+ 
+ 	/*
+@@ -2497,13 +2500,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		 */
+ 		buf->pos = 0;
+ 		buf->queued = 1;
+-		buf->size = q->bufs[0]->v4l2_planes[0].length;
++		buf->size = vb2_plane_size(q->bufs[index], 0);
+ 		fileio->q_count += 1;
+-
+-		/*
+-		 * Switch to the next buffer
+-		 */
+-		fileio->index = (index + 1) % q->num_buffers;
++		if (fileio->index < q->num_buffers)
++			fileio->index++;
+ 	}
+ 
+ 	/*
 -- 
-1.8.4.2
+1.8.4.3
 
