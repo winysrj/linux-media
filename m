@@ -1,63 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53938 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752742Ab3LPMg2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 07:36:28 -0500
-Message-ID: <52AEF3C9.9020906@iki.fi>
-Date: Mon, 16 Dec 2013 14:36:25 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v2 3/7] v4l: add new tuner types for SDR
-References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-4-git-send-email-crope@iki.fi> <52AEBF6E.2090107@xs4all.nl>
-In-Reply-To: <52AEBF6E.2090107@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:36421 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932101Ab3LITIY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 14:08:24 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] radio-bcm2048: fix signal of value
+Date: Mon,  9 Dec 2013 14:05:33 -0200
+Message-Id: <1386605133-8680-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16.12.2013 10:53, Hans Verkuil wrote:
-> On 12/14/2013 05:15 PM, Antti Palosaari wrote:
+As value can be initialized with a value lower than zero, change it
+to int, to avoid those warnings:
 
->> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->>   	struct video_device *vfd = video_devdata(file);
->>   	struct v4l2_frequency *p = arg;
->>
->> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
->> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
->> +			return -EINVAL;
->
-> This is wrong. As you mentioned in patch 1, the type field should always be set by
-> the driver. So type is not something that is set by the user.
->
-> I would just set type to V4L2_TUNER_ADC here (all SDR devices have at least an ADC
-> tuner), and let the driver change it to TUNER_RF if this tuner is really an RF
-> tuner.
+drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_rds_pi_read':
+drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
+         ^
+drivers/staging/media/bcm2048/radio-bcm2048.c:2070:1: note: in expansion of macro 'property_read'
+ property_read(rds_pi, unsigned int, "%x")
+ ^
+drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_fm_rds_flags_read':
+drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
+         ^
+drivers/staging/media/bcm2048/radio-bcm2048.c:2074:1: note: in expansion of macro 'property_read'
+ property_read(fm_rds_flags, unsigned int, "%u")
+ ^
+drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_region_bottom_frequency_read':
+drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
+         ^
+drivers/staging/media/bcm2048/radio-bcm2048.c:2077:1: note: in expansion of macro 'property_read'
+ property_read(region_bottom_frequency, unsigned int, "%u")
+ ^
+drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_region_top_frequency_read':
+drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
+         ^
+drivers/staging/media/bcm2048/radio-bcm2048.c:2078:1: note: in expansion of macro 'property_read'
+ property_read(region_top_frequency, unsigned int, "%u")
 
-I don't think so. It sounds very stupid to handle tuner type with 
-different meaning in that single case - it sounds just a is a mistake 
-(and that SDR case mistakes are not needed continue as no regressions 
-apply). I can say I was very puzzled what is the reason my tuner type is 
-always changed to wrong, until finally found it was overridden here.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-For me this looks more than it is just forced to "some" suitable value 
-in a case app does not fill it correctly - not the way driver should 
-return it to app. Tuner ID and type are here for Kernel driver could 
-identify not the opposite and that is how it should be without unneeded 
-exceptions.
-
-Also, API does not specify that kind of different meaning for tuner type 
-in a case of g_frequency.
-
-Have to search some history where that odds is coming from...
-
-
-regards
-Antti
-
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 782cc11fd037..494ec3916ef5 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -1987,7 +1987,7 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 					char *buf)			\
+ {									\
+ 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
+-	size value;							\
++	int value;							\
+ 									\
+ 	if (!bdev)							\
+ 		return -ENODEV;						\
 -- 
-http://palosaari.fi/
+1.8.3.1
+
