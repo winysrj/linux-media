@@ -1,109 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:42384 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685Ab3LPOuZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:50:25 -0500
-Message-ID: <52AF1321.80606@mentor.com>
-Date: Mon, 16 Dec 2013 07:50:09 -0700
-From: Wade Farnsworth <wade_farnsworth@mentor.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38329 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753511Ab3LIXOg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Dec 2013 18:14:36 -0500
+Message-ID: <52A64ED3.3000902@iki.fi>
+Date: Tue, 10 Dec 2013 01:14:27 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] v4l2: move tracepoints to video_usercopy
-References: <52AEBDB1.2030206@xs4all.nl>
-In-Reply-To: <52AEBDB1.2030206@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: SDR sampling rate - control or IOCTL?
+References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com> <528E4F7B.4040208@xs4all.nl> <528E51EB.2080404@iki.fi> <20131121171203.65719175@samsung.com> <528E6B99.5030108@iki.fi> <20131121185449.1104ea67@samsung.com> <528E78CC.2040808@iki.fi>
+In-Reply-To: <528E78CC.2040808@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> The (d)qbuf ioctls were traced in the low-level v4l2 ioctl function. The
-> trace was outside the serialization lock, so that can affect the usefulness
-> of the timing. In addition, the __user pointer was expected instead of a
-> proper kernel pointer.
-> 
-> By moving the tracepoints to video_usercopy we ensure that the trace calls
-> use the correct kernel pointer, and that it happens right after the ioctl
-> call to the driver, so certainly inside the serialization lock.
-> 
-> In addition, we only trace if the call was successful.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 21.11.2013 23:19, Antti Palosaari wrote:
+> On 21.11.2013 22:54, Mauro Carvalho Chehab wrote:
+>> Em Thu, 21 Nov 2013 22:22:49 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> On 21.11.2013 21:12, Mauro Carvalho Chehab wrote:
+>>>> Em Thu, 21 Nov 2013 20:33:15 +0200
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> On 21.11.2013 20:22, Hans Verkuil wrote:
+>
+>>>>>> BTW, can the sample rate change while streaming? Typically things
+>>>>>> you set
+>>>>>> through S_FMT can not be changed while streaming.
+>>>>>
+>>>>> Yes, but in practice it is uncommon. When I reverse-engineered Mirics
+>>>>> MSi2500 USB ADC I did it hundred of times. Just started streaming and
+>>>>> injected numbers to ADC control registers, then calculated sampling
+>>>>> rate
+>>>>> from the stream.
+>>>>
+>>>> That's not an use case. It is just a developer's procedure. Anyway, you
+>>>> could still measure the bit rate like that, if you do a stream start
+>>>> and
+>>>> stop.
+>>>>
+>>>>> That is only use case I know currently, there still could be some
+>>>>> others.
+>>>>
+>>>> Seriously? Since the Shannon theorem, all theory used on DSP assumes
+>>>> that
+>>>> the samples are spaced at the very same bit rate.
+>>>>
+>>>>> Nothing prevents do to it, the key issue is that
+>>>>> sampling rate is needed to known by app.
+>>>>
+>>>> No, it is harder than that: if the bit rate changes, then you need
+>>>> to pack
+>>>> the sampling rate changes when they occur inside the stream, as
+>>>> otherwise
+>>>> userspace will have no means to detect such changes.
+>>>
+>>> Heh, I cannot understood you. Could you explain why it works for me?
+>>> Here is video I recorded just for you:
+>>> http://palosaari.fi/linux/v4l-dvb/mirics_msi3101_sdrsharp_sampling_rate.mp4
+>>>
+>>>
+>>> It is Mirics MSi3101 streaming FM radio with sampling rate 2.048 Msps,
+>>> then I switch to 1.024 Msps and back few times - on the fly. IMHO
+>>> results are just as expected. Sound start cracking when DSP application
+>>> sampling rate does not match, but when you change it back to correct it
+>>> recovers.
+>>
+>> In other words, changing the sampling rate while streaming breaks
+>> decoding.
+>
+> Of course, in a case DSP does not know what it is. I have found that
+> changing frequency during streaming breaks my audio as well.
+>
+>
+>>> If I will add button to tell app DSP that sampling rate is changed, it
+>>> will work for both cases. I haven't yet implemented that settings
+>>> button, it is hard coded to SDRSharp plugin.
+>>>
+>>> Could you explain why it works if it is impossible as you said?
+>>
+>> I can't imagine any "magic" button that will be able to discover
+>> on what exact sample the sampling rate changed. The hardware may
+>> have buffers; the DMA engines and the USB stack for sure have, and
+>> also V4L. Knowing on what exact sample the sampling rate changed
+>> would require hardware support, to properly tag the sample where the
+>> change started to apply.
+>
+> "Magic button". It is just DSP application which sends request to
+> hardware. And if hardware says OK, that magic SDR application says for
+> own DSP hey change sampling rate to mach stream.
+>
+> There is huge amount of bits streaming, no need to tag. You could just
+> throw away second or two - does not matter. Imagine it similarly like a
+> UDP VoIP call - when you lose data, so what, it is 20ms of audio and
+> none cares.
+> It is similarly here, if you lose some data due to sampling rate
+> mismatch, so what. It is only few ms of audio (or some other). One way
+> radio channel is something it should be robust for such issues - you
+> cannot request retry.
+>
+>> If the hardware supports it, I don't see an reason why blocking calling
+>> VIDIOC_S_FMT in the middle of a stream.
+>>
+>> However, on all other hardwares, samples will be lost or will be
+>> badly decoded, with would cause audio/video artifacts or even break
+>> the decoding code if not properly written.
+>>
+>> Anyway, if samples will be lost anyway, the right thing to do is to
+>> just stop streaming, change the sampling rate and start streaming
+>> again. This way, you'll know that all buffers received before the
+>> changes will have the old sampling rate, and all new buffers, the new
+>> one.
+>
+> I cannot agree. It is too slow, without real benefits, for many use cases.
+>
+> Also, I am pretty sure many of the hw DSP implementations will not
+> restart streaming when they hunt for demodulation lock. There is likely
+> just a long shift-register or FIFO where bits are running even different
+> sampling rates etc. are tested.
 
-Looks good to me.
+I did some study of runtime sampling rate changes and I am very sure it 
+is *required*, especially for digital receivers, like DTV dedulators, 
+where timing is important. The main reason is synchronization - not only 
+for when channel is acquired but for run time synchronization too in 
+order to maintain receiver sync (lock).
 
-Acked-by: Wade Farnsworth <wade_farnsworth@mentor.com>
+Here is one document which explains some reasons and solutions for 
+digital receiver synchronization:
+http://www.cs.tut.fi/kurssit/TLT-5806/Synch.pdf
 
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c   | 9 ---------
->  drivers/media/v4l2-core/v4l2-ioctl.c | 9 +++++++++
->  2 files changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 1cc1749..b5aaaac 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -31,10 +31,6 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
->  
-> -
-> -#define CREATE_TRACE_POINTS
-> -#include <trace/events/v4l2.h>
-> -
->  #define VIDEO_NUM_DEVICES	256
->  #define VIDEO_NAME              "video4linux"
->  
-> @@ -395,11 +391,6 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  	} else
->  		ret = -ENOTTY;
->  
-> -	if (cmd == VIDIOC_DQBUF)
-> -		trace_v4l2_dqbuf(vdev->minor, (struct v4l2_buffer *)arg);
-> -	else if (cmd == VIDIOC_QBUF)
-> -		trace_v4l2_qbuf(vdev->minor, (struct v4l2_buffer *)arg);
-> -
->  	return ret;
->  }
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 68e6b5e..707aef7 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -28,6 +28,9 @@
->  #include <media/v4l2-device.h>
->  #include <media/videobuf2-core.h>
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/v4l2.h>
-> +
->  /* Zero out the end of the struct pointed to by p.  Everything after, but
->   * not including, the specified field is cleared. */
->  #define CLEAR_AFTER_FIELD(p, field) \
-> @@ -2338,6 +2341,12 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  	err = func(file, cmd, parg);
->  	if (err == -ENOIOCTLCMD)
->  		err = -ENOTTY;
-> +	if (err == 0) {
-> +		if (cmd == VIDIOC_DQBUF)
-> +			trace_v4l2_dqbuf(video_devdata(file)->minor, parg);
-> +		else if (cmd == VIDIOC_QBUF)
-> +			trace_v4l2_qbuf(video_devdata(file)->minor, parg);
-> +	}
->  
->  	if (has_array_args) {
->  		*kernel_ptr = user_ptr;
+You can find a lot of more information when search "Synchronization 
+Techniques for Digital Receivers"
 
+What goes to Mirics MSi2500 ADC, it has even flag to signal when 
+sampling rate is changed. Due to that you will not even lose many 
+samples and it is possible to make demodulator design simpler. It is 
+byte 5 in USB packet header which changes between 10/90 when sampling 
+rate is changed as I shown in earlier video. I am pretty sure that they 
+have had good reason to add support for run time sampling rate change as 
+it is the only software based TV demodulator solution currently.
+
+**********
+So the requirements are what I listed originally + it must be possible 
+to change sampling rate during streaming.
+
+Now I am testing similar solution than VIDIOC_ENUM_FREQ_BANDS
+
+regards
+Antti
 
 -- 
-Wade Farnsworth | Sr. Embedded Linux Dev. Engr.
-Mentor Embedded™
-Nucleus® | Linux® | Android™ | Services | UI | Multi-OS
-Android is a trademark of Google Inc. Use of this trademark is subject
-to Google Permissions.
-Linux is the registered trademark of Linus Torvalds in the U.S. and
-other countries
-
+http://palosaari.fi/
