@@ -1,21 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3776 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554Ab3LDDdR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 22:33:17 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2815 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707Ab3LJDdw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 22:33:52 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
 	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB43XDsY021960
-	for <linux-media@vger.kernel.org>; Wed, 4 Dec 2013 04:33:15 +0100 (CET)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBA3XnFt096648
+	for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 04:33:51 +0100 (CET)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 6EAAC2A2222
-	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 04:33:03 +0100 (CET)
+	by tschai.lan (Postfix) with ESMTPSA id 4F55D2A2223
+	for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 04:33:44 +0100 (CET)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131204033303.6EAAC2A2222@tschai.lan>
-Date: Wed,  4 Dec 2013 04:33:03 +0100 (CET)
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131210033344.4F55D2A2223@tschai.lan>
+Date: Tue, 10 Dec 2013 04:33:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -24,16 +24,16 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Wed Dec  4 04:00:19 CET 2013
+date:		Tue Dec 10 04:00:29 CET 2013
 git branch:	test
-git hash:	16422f552d4e70fa0953917e05f72033d629bdb8
+git hash:	356ba0213dca4dd68906bb315f8c7a46e81510ea
 gcc version:	i686-linux-gcc (GCC) 4.8.1
 sparse version:	0.4.5-rc1
 host hardware:	x86_64
 host os:	3.12-0.slh.2-amd64
 
 linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
+linux-git-arm-davinci: ERRORS
 linux-git-arm-exynos: OK
 linux-git-arm-mx: OK
 linux-git-arm-omap: OK
@@ -42,7 +42,7 @@ linux-git-arm-pxa: OK
 linux-git-blackfin: OK
 linux-git-i686: OK
 linux-git-m32r: OK
-linux-git-mips: OK
+linux-git-mips: ERRORS
 linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: OK
@@ -99,11 +99,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
