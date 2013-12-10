@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51994 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759228Ab3LFWiz (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:46367 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791Ab3LJLku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Dec 2013 17:38:55 -0500
-Date: Sat, 7 Dec 2013 00:38:51 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Jeong <gshark.jeong@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH V2 -next] [media] media: i2c: lm3560: fix missing unlock
- on error in lm3560_get_ctrl().
-Message-ID: <20131206223851.GJ30652@valkosipuli.retiisi.org.uk>
-References: <1386308607-6127-1-git-send-email-gshark.jeong@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1386308607-6127-1-git-send-email-gshark.jeong@gmail.com>
+	Tue, 10 Dec 2013 06:40:50 -0500
+From: Robert Baldyga <r.baldyga@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH 0/4] Bugfixes for UVC gadget test application
+Date: Tue, 10 Dec 2013 12:40:33 +0100
+Message-id: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hello,
 
-Thanks for the update.
+This patchset fixes UVC gadget test application, created by Laurent Pinchart
+(git tree available here: git://git.ideasonboard.org/uvc-gadget.git), with
+applied patches created by Bhupesh Sharma (which can be found here:
+http://www.spinics.net/lists/linux-usb/msg84376.html).
 
-On Fri, Dec 06, 2013 at 02:43:27PM +0900, Daniel Jeong wrote:
-> Sorry I should have checked below things before sending the first patch.
+It improves video-capture device handling, and adds few other fixes.
+More details can be found in commit messages.
 
-Applied to my tree with the above line removed, and subject changed slightly
-to mention the other change. I hope that's ok for you. The subject becomes
-"media: i2c: lm3560: fix missing unlock on error, fault handling".
+Best regards
+Robert Baldyga
+Samsung R&D Institute Poland
 
-I'll send a pull req over the week-end.
+Robert Baldyga (4):
+  closing uvc file when init fails
+  remove set_format from uvc_events_process_data
+  fix v4l2 stream handling
+  remove flooding debugs
+
+ uvc-gadget.c |   68 +++++++++-------------------------------------------------
+ 1 file changed, 10 insertions(+), 58 deletions(-)
 
 -- 
-Kind regards.
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
