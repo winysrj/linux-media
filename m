@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:51881 "EHLO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752726Ab3LQNLS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 08:11:18 -0500
-Message-ID: <52B04D70.8060201@epfl.ch>
-Date: Tue, 17 Dec 2013 14:11:12 +0100
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Reply-To: florian.vaussard@epfl.ch
-MIME-Version: 1.0
-To: Enrico <ebutera@users.berlios.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: omap3isp device tree support
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>	<52A1A76A.6070301@epfl.ch> <CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
-In-Reply-To: <CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3112 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754109Ab3LJPGH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:06:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/22] adv7842: set default input in platform-data
+Date: Tue, 10 Dec 2013 16:03:56 +0100
+Message-Id: <c5e5261e413caf2e7ebb3a68b9924a6a6d92e016.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Enrico,
+From: Martin Bugge <marbugge@cisco.com>
 
-On 12/06/2013 11:54 AM, Enrico wrote:
-> On Fri, Dec 6, 2013 at 11:31 AM, Florian Vaussard
-> <florian.vaussard@epfl.ch> wrote:
->> Hello,
->>
->> On 12/06/2013 11:13 AM, Enrico wrote:
->>> Hi,
->>>
->>> i know there is some work going on for omap3isp device tree support,
->>> but right now is it possible to enable it in some other way in a DT
->>> kernel?
->>>
->>
->> The DT support is not yet ready, but an RFC binding has been proposed.
->> It won't be ready for 3.14.
->>
->>> I've tried enabling it in board-generic.c (omap3_init_camera(...) with
->>> proper platform data) but it hangs early at boot, do someone know if
->>> it's possible and how to do it?
->>>
->>
->> I did the same a few days ago, and went through several problems
->> (panics, half DT support,...). Now I am able to probe the ISP, I still
->> have one kernel panic to fix. Hope to send the patches in 1 or 2 days.
->> We are still in a transition period, but things should calm down in the
->> coming releases.
->>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 2 +-
+ include/media/adv7842.h     | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-So I converted the iommu to DT (patches just sent), used pdata quirks
-for the isp / mtv9032 data, added a few patches from other people
-(mainly clk to fix a crash when deferring the omap3isp probe), and a few
-small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
-to boot on DT with a working MT9V032 camera. The missing part is the DT
-binding for the omap3isp, but I guess that we will have to wait a bit
-more for this.
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 3e8d7cc..4fa2e23 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2802,7 +2802,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	state->connector_hdmi = pdata->connector_hdmi;
+ 	state->mode = pdata->mode;
+ 
+-	state->hdmi_port_a = true;
++	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
+ 
+ 	/* i2c access to adv7842? */
+ 	rev = adv_smbus_read_byte_data_check(client, 0xea, false) << 8 |
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index 5327ba3..c12de2d 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -160,6 +160,9 @@ struct adv7842_platform_data {
+ 	/* Default mode */
+ 	enum adv7842_mode mode;
+ 
++	/* Default input */
++	unsigned input;
++
+ 	/* Video standard */
+ 	enum adv7842_vid_std_select vid_std_select;
+ 
+-- 
+1.8.4.rc3
 
-If you want to test, I have a development tree here [1]. Any feedback is
-welcome.
-
-Cheers,
-
-Florian
-
-[1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
