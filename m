@@ -1,114 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:41141 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab3LAVGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:22 -0500
-Received: by mail-ea0-f175.google.com with SMTP id z10so8343821ead.34
-        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:21 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/7] em28xx: add debouncing mechanism for GPI-connected buttons
-Date: Sun,  1 Dec 2013 22:06:53 +0100
-Message-Id: <1385932017-2276-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4130 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068Ab3LJPGI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:06:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 14/22] adv7842: mute audio before switching inputs to avoid noise/pops
+Date: Tue, 10 Dec 2013 16:04:00 +0100
+Message-Id: <e642262ddc675bff13ded71b1e204a254fb49af2.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So far, the driver only supports a snapshot button which is assigned to
-register 0x0c bit 5. This special port has a built-in debouncing mechanism.
-For buttons connected to ordinary GPI ports, this patch implements a software
-debouncing mechanism.
+From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-input.c |   30 +++++++++++++++++++-----------
- drivers/media/usb/em28xx/em28xx.h       |    1 +
- 2 Dateien geändert, 20 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
+ drivers/media/i2c/adv7842.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 20c6a8a..ebc5387 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -479,7 +479,7 @@ static void em28xx_query_buttons(struct work_struct *work)
- 		container_of(work, struct em28xx, buttons_query_work.work);
- 	u8 i, j;
- 	int regval;
--	bool pressed;
-+	bool is_pressed, was_pressed;
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 77b1696..943e578 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -20,10 +20,13 @@
  
- 	/* Poll and evaluate all addresses */
- 	for (i = 0; i < dev->num_button_polling_addresses; i++) {
-@@ -497,12 +497,21 @@ static void em28xx_query_buttons(struct work_struct *work)
- 				j++;
- 				continue;
- 			}
--			/* Determine if button is pressed */
--			pressed = regval & button->mask;
--			if (button->inverted)
--				pressed = !pressed;
-+			/* Determine if button is and was pressed last time */
-+			is_pressed = regval & button->mask;
-+			was_pressed = dev->button_polling_last_values[i]
-+				       & button->mask;
-+			if (button->inverted) {
-+				is_pressed = !is_pressed;
-+				was_pressed = !was_pressed;
-+			}
-+			/* Clear button state (if needed) */
-+			if (is_pressed && button->reg_clearing)
-+				em28xx_write_reg(dev, button->reg_clearing,
-+						 (~regval & button->mask)
-+						    | (regval & ~button->mask));
- 			/* Handle button state */
--			if (!pressed) {
-+			if (!is_pressed || was_pressed) {
- 				j++;
- 				continue;
- 			}
-@@ -518,14 +527,11 @@ static void em28xx_query_buttons(struct work_struct *work)
- 			default:
- 				WARN_ONCE(1, "BUG: unhandled button role.");
- 			}
--			/* Clear button state (if needed) */
--			if (button->reg_clearing)
--				em28xx_write_reg(dev, button->reg_clearing,
--						 (~regval & button->mask)
--						    | (regval & ~button->mask));
- 			/* Next button */
- 			j++;
- 		}
-+		/* Save current value for comparison during the next polling */
-+		dev->button_polling_last_values[i] = regval;
- 	}
- 	/* Schedule next poll */
- 	schedule_delayed_work(&dev->buttons_query_work,
-@@ -611,6 +617,8 @@ static void em28xx_init_buttons(struct em28xx *dev)
+ /*
+  * References (c = chapter, p = page):
+- * REF_01 - Analog devices, ADV7842, Register Settings Recommendations,
+- *		Revision 2.5, June 2010
++ * REF_01 - Analog devices, ADV7842,
++ *		Register Settings Recommendations, Rev. 1.9, April 2011
+  * REF_02 - Analog devices, Software User Guide, UG-206,
+  *		ADV7842 I2C Register Maps, Rev. 0, November 2010
++ * REF_03 - Analog devices, Hardware User Guide, UG-214,
++ *		ADV7842 Fast Switching 2:1 HDMI 1.4 Receiver with 3D-Comb
++ *		Decoder and Digitizer , Rev. 0, January 2011
+  */
  
- 	/* Start polling */
- 	if (dev->num_button_polling_addresses) {
-+		memset(dev->button_polling_last_values, 0,
-+					       EM28XX_NUM_BUTTON_ADDRESSES_MAX);
- 		INIT_DELAYED_WORK(&dev->buttons_query_work,
- 							  em28xx_query_buttons);
- 		schedule_delayed_work(&dev->buttons_query_work,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index e185d00..df828c6 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -669,6 +669,7 @@ struct em28xx {
- 	/* Button state polling */
- 	struct delayed_work buttons_query_work;
- 	u8 button_polling_addresses[EM28XX_NUM_BUTTON_ADDRESSES_MAX];
-+	u8 button_polling_last_values[EM28XX_NUM_BUTTON_ADDRESSES_MAX];
- 	u8 num_button_polling_addresses;
- 	/* Snapshot button input device */
- 	char snapshot_button_path[30];	/* path of the input dev */
+ 
+@@ -491,6 +494,11 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ 	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
+ }
+ 
++static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
++}
++
+ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+@@ -1457,14 +1465,12 @@ static void enable_input(struct v4l2_subdev *sd)
+ 	case ADV7842_MODE_SDP:
+ 	case ADV7842_MODE_COMP:
+ 	case ADV7842_MODE_RGB:
+-		/* enable */
+ 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
+ 		break;
+ 	case ADV7842_MODE_HDMI:
+-		/* enable */
+-		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
+ 		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
+ 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
++		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
+ 		break;
+ 	default:
+ 		v4l2_dbg(2, debug, sd, "%s: Unknown mode %d\n",
+@@ -1475,9 +1481,9 @@ static void enable_input(struct v4l2_subdev *sd)
+ 
+ static void disable_input(struct v4l2_subdev *sd)
+ {
+-	/* disable */
++	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio [REF_01, c. 2.2.2] */
++	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 8.29] */
+ 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
+-	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
+ 	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
+ }
+ 
+@@ -2430,6 +2436,9 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
+ 			pdata->replicate_av_codes << 1 |
+ 			pdata->invert_cbcr << 0);
+ 
++	/* HDMI audio */
++	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
++
+ 	/* Drive strength */
+ 	io_write_and_or(sd, 0x14, 0xc0, pdata->drive_strength.data<<4 |
+ 			pdata->drive_strength.clock<<2 |
 -- 
-1.7.10.4
+1.8.4.rc3
 
