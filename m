@@ -1,157 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:35384 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697Ab3LVQJq convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3984 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754158Ab3LJPGM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 11:09:46 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY7002QPU88IV50@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sun, 22 Dec 2013 11:09:44 -0500 (EST)
-Date: Sun, 22 Dec 2013 14:09:40 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: fix I2S audio sample rate definitions and info
- output
-Message-id: <20131222140940.282a6894@samsung.com>
-In-reply-to: <1387721866-8408-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1387721866-8408-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Tue, 10 Dec 2013 10:06:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 21/22] adv7842: obtain free-run mode from the platform_data.
+Date: Tue, 10 Dec 2013 16:04:07 +0100
+Message-Id: <2a70c88bfd43fba42c714f0bf7278d1c74a63085.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 22 Dec 2013 15:17:46 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Martin Bugge <marbugge@cisco.com>
 
-> The audio configuration in chip config register 0x00 and eeprom are always
-> consistent. But currently the audio configuration #defines for the chip config
-> register say 0x20 means 3 sample rates and 0x30 5 sample rates, while the eeprom
-> info output says 0x20 means 1 sample rate and 0x30 3 sample rates.
-> 
-> I've checked the datasheet excerpts I have and it seems that the meaning of
-> these bits is different for em2820/40 (1 and 3 sample rates) and em2860+
-> (3 and 5 smaple rates).
-> I have also checked my Hauppauge WinTV USB 2 (em2840) and the chip/eeprom
-> audio config 0x20 matches the sample rates reproted by the USB device
-> descriptor (32k only).
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |   24 +++++++++++++-----------
->  drivers/media/usb/em28xx/em28xx-i2c.c  |   10 ++++++++--
->  drivers/media/usb/em28xx/em28xx-reg.h  |   10 ++++++----
->  drivers/media/usb/em28xx/em28xx.h      |    3 +--
->  4 Dateien geändert, 28 Zeilen hinzugefügt(+), 19 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index f6076a5..192b657 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -525,17 +525,19 @@ int em28xx_audio_setup(struct em28xx *dev)
->  		dev->has_alsa_audio = false;
->  		dev->audio_mode.has_audio = false;
->  		return 0;
-> -	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
-> -		   EM28XX_CHIPCFG_I2S_3_SAMPRATES) {
-> -		em28xx_info("I2S Audio (3 sample rates)\n");
-> -		dev->audio_mode.i2s_3rates = 1;
-> -	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
-> -		   EM28XX_CHIPCFG_I2S_5_SAMPRATES) {
-> -		em28xx_info("I2S Audio (5 sample rates)\n");
-> -		dev->audio_mode.i2s_5rates = 1;
-> -	}
-> -
-> -	if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) != EM28XX_CHIPCFG_AC97) {
-> +	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) != EM28XX_CHIPCFG_AC97) {
-> +		if (dev->chip_id < CHIP_ID_EM2860 &&
-> +	            (cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
-> +		    EM2820_CHIPCFG_I2S_1_SAMPRATE)
-> +			dev->audio_mode.i2s_samplerates = 1;
+The free-run mode can be board-specific.
 
-No need to store it at all, as, at least currently, this is not used
-anywhere.
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 7 ++++---
+ include/media/adv7842.h     | 7 +++++--
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-This patch could be useful if we could use this to improve em28xx-audio.c.
-
-Otherwise, I would just drop the code that checks it, eventually
-just keeping the registers at em28xx-reg.h
-
-> +		else if (dev->chip_id >= CHIP_ID_EM2860 &&
-> +			 (cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
-> +			 EM2860_CHIPCFG_I2S_5_SAMPRATES)
-> +			dev->audio_mode.i2s_samplerates = 5;
-> +		else
-> +			dev->audio_mode.i2s_samplerates = 3;
-> +		em28xx_info("I2S Audio (%d sample rate(s))\n",
-> +					       dev->audio_mode.i2s_samplerates);
->  		/* Skip the code that does AC97 vendor detection */
->  		dev->audio_mode.ac97 = EM28XX_NO_AC97;
->  		goto init_audio;
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index c4ff973..f2d5f8a 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -736,10 +736,16 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
->  		em28xx_info("\tAC97 audio (5 sample rates)\n");
->  		break;
->  	case 2:
-> -		em28xx_info("\tI2S audio, sample rate=32k\n");
-> +		if (dev->chip_id < CHIP_ID_EM2860)
-> +			em28xx_info("\tI2S audio, sample rate=32k\n");
-> +		else
-> +			em28xx_info("\tI2S audio, 3 sample rates\n");
->  		break;
->  	case 3:
-> -		em28xx_info("\tI2S audio, 3 sample rates\n");
-> +		if (dev->chip_id < CHIP_ID_EM2860)
-> +			em28xx_info("\tI2S audio, 3 sample rates\n");
-> +		else
-> +			em28xx_info("\tI2S audio, 5 sample rates\n");
->  		break;
->  	}
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-> index b769ceb..311fb34 100644
-> --- a/drivers/media/usb/em28xx/em28xx-reg.h
-> +++ b/drivers/media/usb/em28xx/em28xx-reg.h
-> @@ -25,10 +25,12 @@
->  #define EM28XX_R00_CHIPCFG	0x00
->  
->  /* em28xx Chip Configuration 0x00 */
-> -#define EM28XX_CHIPCFG_VENDOR_AUDIO		0x80
-> -#define EM28XX_CHIPCFG_I2S_VOLUME_CAPABLE	0x40
-> -#define EM28XX_CHIPCFG_I2S_5_SAMPRATES		0x30
-> -#define EM28XX_CHIPCFG_I2S_3_SAMPRATES		0x20
-> +#define EM2860_CHIPCFG_VENDOR_AUDIO		0x80
-> +#define EM2860_CHIPCFG_I2S_VOLUME_CAPABLE	0x40
-> +#define EM2820_CHIPCFG_I2S_3_SAMPRATES		0x30
-> +#define EM2860_CHIPCFG_I2S_5_SAMPRATES		0x30
-> +#define EM2820_CHIPCFG_I2S_1_SAMPRATE		0x20
-> +#define EM2860_CHIPCFG_I2S_3_SAMPRATES		0x20
->  #define EM28XX_CHIPCFG_AC97			0x10
->  #define EM28XX_CHIPCFG_AUDIOMASK		0x30
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 191ef35..4d8c7d2 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -292,8 +292,7 @@ struct em28xx_audio_mode {
->  
->  	unsigned int has_audio:1;
->  
-> -	unsigned int i2s_3rates:1;
-> -	unsigned int i2s_5rates:1;
-> +	u8 i2s_samplerates;
->  };
->  
->  /* em28xx has two audio inputs: tuner and line in.
-
-
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 8b4e369..fac5c4f 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1622,8 +1622,6 @@ static void select_input(struct v4l2_subdev *sd,
+ 		/* deinterlacer enabled and 3D comb */
+ 		sdp_write_and_or(sd, 0x12, 0xf6, 0x09);
+ 
+-		sdp_write(sd, 0xdd, 0x08); /* free run auto */
+-
+ 		break;
+ 
+ 	case ADV7842_MODE_COMP:
+@@ -2536,7 +2534,10 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
+ 			pdata->drive_strength.sync);
+ 
+ 	/* HDMI free run */
+-	cp_write(sd, 0xba, (pdata->hdmi_free_run_mode << 1) | 0x01);
++	cp_write_and_or(sd, 0xba, 0xfc, pdata->hdmi_free_run & 0x03);
++
++	/* SPD free run */
++	sdp_write_and_or(sd, 0xdd, 0xf0, pdata->sdp_free_run & 0x0f);
+ 
+ 	/* TODO from platform data */
+ 	cp_write(sd, 0x69, 0x14);   /* Enable CP CSC */
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index a4851bf..4e36496 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -192,8 +192,11 @@ struct adv7842_platform_data {
+ 	unsigned sd_ram_size; /* ram size in MB */
+ 	unsigned sd_ram_ddr:1; /* ddr or sdr sdram */
+ 
+-	/* Free run */
+-	unsigned hdmi_free_run_mode;
++	/* HDMI free run, CP-reg 0xBA */
++	unsigned hdmi_free_run;
++
++	/* SDP free run, CP-reg 0xDD */
++	unsigned sdp_free_run;
+ 
+ 	struct adv7842_sdp_csc_coeff sdp_csc_coeff;
+ 
 -- 
+1.8.4.rc3
 
-Cheers,
-Mauro
