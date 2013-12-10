@@ -1,28 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-j1.jaringonecloud.my ([202.187.161.26]:46221 "EHLO
-	smtpv.jaring.my" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751215Ab3LJBsa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 20:48:30 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-qe0-f53.google.com ([209.85.128.53]:44034 "EHLO
+	mail-qe0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430Ab3LJR5T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 12:57:19 -0500
+Received: by mail-qe0-f53.google.com with SMTP id nc12so4244443qeb.40
+        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 09:57:16 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: ATTENTION:
-To: Recipients <c.care_web@blumail.org>
-From: "Membership Authentification Form" <c.care_web@blumail.org>
-Date: Tue, 10 Dec 2013 02:26:24 +0100
-Message-Id: <20131210012636.6E2C340818@vmx7.jaringonecloud.my>
+In-Reply-To: <2939201.P8qvUzaVN6@avalon>
+References: <20131210160541.GA15282@ubuntu>
+	<2939201.P8qvUzaVN6@avalon>
+Date: Tue, 10 Dec 2013 09:57:15 -0800
+Message-ID: <CANnVQS1xg25VpaoU6W=rpC+HgyqaKLwnL4VcQ3FKN0q1r11h-Q@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: media: davinci_vpfe: Rewrite return statement
+ in vpfe_video.c
+From: Lisa Nguyen <lisa@xenapiadmin.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ATTENTION:
+Hi Laurent,
 
-Monday 9th of  December 2013 08:16:22 MYT from 41.206.151.183, your account
-was recently accessed with this details, please if you recognize this
-details,ignore this message, or use this web link to reconfirm your
-account details to prevent spammers and unauthorized users to gain access
-to your account;
+On Tue, Dec 10, 2013 at 8:50 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Lisa,
+>
+> Thank you for the patch.
+>
+> On Tuesday 10 December 2013 08:05:42 Lisa Nguyen wrote:
+>> Rewrite the return statement in vpfe_video.c to eliminate the
+>> use of a ternary operator. This will prevent the checkpatch.pl
+>> script from generating a warning saying to remove () from
+>> this particular return statement.
+>>
+>> Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
+>> ---
+>> Changes since v2:
+>> - Aligned -ETIMEDOUT return statement with if condition
+>>
+>>  drivers/staging/media/davinci_vpfe/vpfe_video.c |    5 ++++-
+>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 24d98a6..22e31d2
+>> 100644
+>> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> @@ -346,7 +346,10 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline
+>> *pipe) }
+>>       mutex_unlock(&mdev->graph_mutex);
+>>
+>> -     return (ret == 0) ? ret : -ETIMEDOUT ;
+>> +     if (ret == 0)
+>> +             return ret;
+>> +
+>> +     return -ETIMEDOUT;
+>
+> I don't want to point the obvious, but what about just
+>
+>         return ret ? -ETIMEDOUT : 0;
+>
+> or, if this is just about fixing the checkpatch.pl warning,
+>
+>         return ret == 0 ? ret : -ETIMEDOUT;
+>
+> (I'd prefer the first)
 
-http://www.emailmeform.com/builder/form/z7KbBhGaf0YV9X4
+I understand your point :) I was making changes based on Prabhakar's
+feedback he gave me a while back[1].
 
-@2013 all right reserve Security Alert! Webmaster Administration.
+Should I wait until he says?
+
+Lisa
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg67833.html
