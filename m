@@ -1,142 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48827 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896Ab3L2EwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 23:52:14 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1504 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068Ab3LJPGD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:06:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/6] msi3101: add u16 LE sample format
-Date: Sun, 29 Dec 2013 06:51:38 +0200
-Message-Id: <1388292700-18369-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1388292700-18369-1-git-send-email-crope@iki.fi>
-References: <1388292700-18369-1-git-send-email-crope@iki.fi>
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 03/22] adv7842: properly enable/disable the irqs.
+Date: Tue, 10 Dec 2013 16:03:49 +0100
+Message-Id: <ab300a849c957080e2a962b73865103d6b26d0c5.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add unsigned 16-bit little endian sample format. That stream
-format is scaled from hardware 14-bit signed value. That is best
-known sampling resolution that MSi2500 ADC provides.
+From: Martin Bugge <marbugge@cisco.com>
 
-It is not guaranteed to be little endian, but host endian which is
-usually little endian - room for improvement.
+The method of disabling the irq-output pin caused many "empty"
+interrupts. Instead, actually disable/enable the interrupts by
+changing the interrupt masks.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Also enable STORE_MASKED_IRQ in INT1 configuration.
+
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 79 +++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
+ drivers/media/i2c/adv7842.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 2110488..41894c1 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -386,6 +386,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 6434a93..cbbfa77 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1786,10 +1786,8 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	struct adv7842_state *state = to_state(sd);
+ 	u8 fmt_change_cp, fmt_change_digital, fmt_change_sdp;
+ 	u8 irq_status[5];
+-	u8 irq_cfg = io_read(sd, 0x40);
  
- #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-+#define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
-@@ -432,6 +433,9 @@ static struct msi3101_format formats[] = {
- 		.name		= "I/Q 8-bit unsigned",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
- 	}, {
-+		.name		= "I/Q 16-bit unsigned little endian",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
-+	}, {
- 		.name		= "I/Q 8-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
- 	}, {
-@@ -857,6 +861,78 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
- 	return dst_len;
+-	/* disable irq-pin output */
+-	io_write(sd, 0x40, irq_cfg | 0x3);
++	adv7842_irq_enable(sd, false);
+ 
+ 	/* read status */
+ 	irq_status[0] = io_read(sd, 0x43);
+@@ -1810,6 +1808,8 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	if (irq_status[4])
+ 		io_write(sd, 0x9e, irq_status[4]);
+ 
++	adv7842_irq_enable(sd, true);
++
+ 	v4l2_dbg(1, debug, sd, "%s: irq %x, %x, %x, %x, %x\n", __func__,
+ 		 irq_status[0], irq_status[1], irq_status[2],
+ 		 irq_status[3], irq_status[4]);
+@@ -1845,9 +1845,6 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	if (handled)
+ 		*handled = true;
+ 
+-	/* re-enable irq-pin output */
+-	io_write(sd, 0x40, irq_cfg);
+-
+ 	return 0;
  }
  
-+static int msi3101_convert_stream_252_u16(struct msi3101_state *s, u8 *dst,
-+		u8 *src, unsigned int src_len)
-+{
-+	int i, j, i_max, dst_len = 0;
-+	u32 sample_num[3];
-+	u16 *u16dst = (u16 *) dst;
-+	struct {signed int x:14;} se;
-+
-+	/* There could be 1-3 1024 bytes URB frames */
-+	i_max = src_len / 1024;
-+
-+	for (i = 0; i < i_max; i++) {
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
-+		if (i == 0 && s->next_sample != sample_num[0]) {
-+			dev_dbg_ratelimited(&s->udev->dev,
-+					"%d samples lost, %d %08x:%08x\n",
-+					sample_num[0] - s->next_sample,
-+					src_len, s->next_sample, sample_num[0]);
-+		}
-+
-+		/*
-+		 * Dump all unknown 'garbage' data - maybe we will discover
-+		 * someday if there is something rational...
-+		 */
-+		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
-+
-+		/* 252 x I+Q samples */
-+		src += 16;
-+
-+		for (j = 0; j < 1008; j += 4) {
-+			unsigned int usample[2];
-+			int ssample[2];
-+
-+			usample[0] = src[j + 0] >> 0 | src[j + 1] << 8;
-+			usample[1] = src[j + 2] >> 0 | src[j + 3] << 8;
-+
-+			/* sign extension from 14-bit to signed int */
-+			ssample[0] = se.x = usample[0];
-+			ssample[1] = se.x = usample[1];
-+
-+			/* from signed to unsigned */
-+			usample[0] = ssample[0] + 8192;
-+			usample[1] = ssample[1] + 8192;
-+
-+			/* from 14-bit to 16-bit */
-+			*u16dst++ = (usample[0] << 2) | (usample[0] >> 12);
-+			*u16dst++ = (usample[1] << 2) | (usample[1] >> 12);
-+		}
-+
-+		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
-+	}
-+
-+	/* calculate samping rate and output it in 10 seconds intervals */
-+	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
-+#define MSECS 10000UL
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
-+		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
-+		s->sample = sample_num[i_max - 1];
-+		dev_dbg(&s->udev->dev,
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				src_len, samples, MSECS,
-+				samples * 1000UL / MSECS);
-+	}
-+
-+	/* next sample (sample = sample + i * 252) */
-+	s->next_sample = sample_num[i_max - 1] + 252;
-+
-+	return dst_len;
-+}
-+
- /*
-  * This gets called for the Isochronous pipe (stream). This is done in interrupt
-  * time, so it has to be fast, not crash, and not stall. Neat.
-@@ -1224,6 +1300,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
- 		s->convert_stream = msi3101_convert_stream_504_u8;
- 		reg7 = 0x000c9407;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_U16LE) {
-+		s->convert_stream = msi3101_convert_stream_252_u16;
-+		reg7 = 0x00009407;
- 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
- 		s->convert_stream = msi3101_convert_stream_504;
- 		reg7 = 0x000c9407;
+@@ -2446,7 +2443,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd,
+ 	io_write(sd, 0x33, 0x40);
+ 
+ 	/* interrupts */
+-	io_write(sd, 0x40, 0xe2); /* Configure INT1 */
++	io_write(sd, 0x40, 0xf2); /* Configure INT1 */
+ 
+ 	adv7842_irq_enable(sd, true);
+ 
 -- 
-1.8.4.2
+1.8.4.rc3
 
