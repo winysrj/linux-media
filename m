@@ -1,50 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:50302 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab3LJMR3 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2814 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476Ab3LJNZR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 07:17:29 -0500
-Received: by mail-we0-f175.google.com with SMTP id t60so4826495wes.20
-        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 04:17:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CA+V-a8v=DS=nNQuBpVMaQMY-j_t=JRPLz78=07bGdMG-nnJ4-g@mail.gmail.com>
-References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
- <1386596592-48678-8-git-send-email-hverkuil@xs4all.nl> <52A6C807.6040102@xs4all.nl>
- <CA+V-a8v=DS=nNQuBpVMaQMY-j_t=JRPLz78=07bGdMG-nnJ4-g@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 10 Dec 2013 17:47:06 +0530
-Message-ID: <CA+V-a8sVkK-sKJgqASVxAbHe81FwndBW==cffJM4dNBoBqoPXA@mail.gmail.com>
-Subject: Re: [RFCv4 PATCH 7/8] vb2: return ENODATA in start_streaming in case
- of too few buffers.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 10 Dec 2013 08:25:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 09/15] adv7604: remove connector type. Never used for anything useful.
+Date: Tue, 10 Dec 2013 14:23:14 +0100
+Message-Id: <43c2c0adb4598418b8ebc45bc12006eb2c2df243.1386681716.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 10, 2013 at 3:26 PM, Prabhakar Lad
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Hans,
->
-> On Tue, Dec 10, 2013 at 1:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> As Guennadi mentioned in his review, ENODATA will be replaced by ENOBUFS, which is
->> more appropriate.
->>
->> Prabhakar, Kamil, Tomasz, are you OK with this patch provided s/ENODATA/ENOBUFS/ ?
->>
-> +1 for ENOBUFS.
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: Mats Randgaard <matrandg@cisco.com>
 
-Regrads,
---Prabhakar Lad
+May also be wrong if the receiver is connected to more than one connector.
+
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 4 ----
+ include/media/adv7604.h     | 3 ---
+ 2 files changed, 7 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4ce3815..7d95a28 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -77,7 +77,6 @@ struct adv7604_state {
+ 	u32 rgb_quantization_range;
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+-	bool connector_hdmi;
+ 	bool restart_stdi_once;
+ 	u32 prev_input_status;
+ 
+@@ -1817,8 +1816,6 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
+-	v4l2_info(sd, "Connector type: %s\n", state->connector_hdmi ?
+-			"HDMI" : (is_digital_input(sd) ? "DVI-D" : "DVI-A"));
+ 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
+ 			((rep_read(sd, 0x7d) & 0x01) ? "Yes" : "No"),
+ 			((rep_read(sd, 0x7d) & 0x02) ? "Yes" : "No"),
+@@ -2138,7 +2135,6 @@ static int adv7604_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7604_ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	state->connector_hdmi = pdata->connector_hdmi;
+ 
+ 	/* i2c access to adv7604? */
+ 	if (adv_smbus_read_byte_data_check(client, 0xfb, false) != 0x68) {
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index 0e13d1b..0162c31 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -80,9 +80,6 @@ enum adv7604_op_format_sel {
+ 
+ /* Platform dependent definition */
+ struct adv7604_platform_data {
+-	/* connector - HDMI or DVI? */
+-	unsigned connector_hdmi:1;
+-
+ 	/* DIS_PWRDNB: 1 if the PWRDNB pin is unused and unconnected */
+ 	unsigned disable_pwrdnb:1;
+ 
+-- 
+1.8.4.rc3
+
