@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:62376 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760128Ab3LIBSE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Dec 2013 20:18:04 -0500
-Received: by mail-pd0-f177.google.com with SMTP id q10so4182446pdj.36
-        for <linux-media@vger.kernel.org>; Sun, 08 Dec 2013 17:18:04 -0800 (PST)
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:64106 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab3LJEpP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 23:45:15 -0500
 MIME-Version: 1.0
-In-Reply-To: <20131113180124.16699fa7@vujade>
-References: <20131113180124.16699fa7@vujade>
-Date: Sun, 8 Dec 2013 20:18:04 -0500
-Message-ID: <CAOcJUbwN_op_NcHAmCamrY+oQRFwm4YfC2SXr7NmGfH15fmm9g@mail.gmail.com>
-Subject: Re: [GIT PULL] git://linuxtv.org/mkrufky/dvb cx24117
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Luis Alves <ljalvs@gmail.com>
+In-Reply-To: <CACHYQ-pjOufWCEpM=YDVwEaLtdULyEWOAhf0TFCHabLgokKxbg@mail.gmail.com>
+References: <CACHYQ-pjOufWCEpM=YDVwEaLtdULyEWOAhf0TFCHabLgokKxbg@mail.gmail.com>
+Date: Tue, 10 Dec 2013 10:15:15 +0530
+Message-ID: <CALt3h79hx6aWADSbrYMGdccz2TZZUpy_X+S69CU-BGF4tGJ+qg@mail.gmail.com>
+Subject: Re: [PATCH] CHROMIUM: s5p-mfc: add controls to set vp8 enc profile
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Pawel Osciak <posciak@chromium.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"avnd.kiran" <avnd.kiran@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Pawel,
 
-What is the status of this pull request?  Patchwork says "changes
-requested" but I have no record of any changes requested....
+On Tue, Dec 10, 2013 at 6:21 AM, Pawel Osciak <posciak@chromium.org> wrote:
+> Hi Arun,
+>
+> On Mon, Dec 9, 2013 at 10:16 PM, Arun Kumar K <arun.kk@samsung.com> wrote:
+>> Add v4l2 controls to set desired profile for VP8 encoder.
+>> Acceptable levels for VP8 encoder are
+>> 0: Version 0
+>> 1: Version 1
+>> 2: Version 2
+>> 3: Version 3
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>
+> Sorry, but I'm not the author of this patch, Kiran is. I think the
+> confusion comes from the fact that I committed it to Chromium tree. I
+> think Kiran's sign-off should go first and the patch should contain:
+> "From: Kiran AVND <avnd.kiran@samsung.com>"
+>
 
-https://patchwork.linuxtv.org/patch/20728/
+Ok will make the change in next version.
 
-Thanks,
-
-Mike
-
-On Wed, Nov 13, 2013 at 6:01 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> The following changes since commit
-> 80f93c7b0f4599ffbdac8d964ecd1162b8b618b9:
->
->   [media] media: st-rc: Add ST remote control driver (2013-10-31
->   08:20:08 -0200)
->
-> are available in the git repository at:
->
->   git://linuxtv.org/mkrufky/dvb cx24117
->
-> for you to fetch changes up to 1c468cec3701eb6e26c4911f8a9e8e35cbdebc01:
->
->   cx24117: Fix LNB set_voltage function (2013-11-13 13:06:44 -0500)
->
-> ----------------------------------------------------------------
-> Luis Alves (2):
->       cx24117: Add complete demod command list
->       cx24117: Fix LNB set_voltage function
->
->  drivers/media/dvb-frontends/cx24117.c | 121
->  ++++++++++++++++++++-------------- 1 file changed, 71 insertions(+),
->  50 deletions(-)
+Thanks & Regards
+Arun
