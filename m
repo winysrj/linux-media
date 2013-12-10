@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4699 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790Ab3LQNRK (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2541 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754119Ab3LJPGH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 08:17:10 -0500
-Message-ID: <52B04E5B.6020907@xs4all.nl>
-Date: Tue, 17 Dec 2013 14:15:07 +0100
+	Tue, 10 Dec 2013 10:06:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-CC: Mats Randgaard <matrandg@cisco.com>,
+Cc: Martin Bugge <marbugge@cisco.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 17/15] adv7604: sync polarities from platform data
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl> <785a2a2445d00fa190ea7cea4671c43fb68e2da5.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <785a2a2445d00fa190ea7cea4671c43fb68e2da5.1386681716.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [RFC PATCH 11/22] adv7842: increase wait time.
+Date: Tue, 10 Dec 2013 16:03:57 +0100
+Message-Id: <fc47a91a6a1d9c00cc50ee4fdeaa7090110eae30.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+From: Martin Bugge <marbugge@cisco.com>
+
+Wait 5ms after main reset. The data-sheet doesn't specify the wait
+after i2c-controlled reset, so using same value as after pin-controlled
+reset.
 
 Signed-off-by: Martin Bugge <marbugge@cisco.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 5 +++--
- include/media/adv7604.h     | 4 ++++
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/media/i2c/adv7842.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index a1fa9a0..3f40616 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2126,9 +2126,10 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 					pdata->replicate_av_codes << 1 |
- 					pdata->invert_cbcr << 0);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 4fa2e23..60f2320 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -533,7 +533,7 @@ static void main_reset(struct v4l2_subdev *sd)
  
--	/* TODO from platform data */
- 	cp_write(sd, 0x69, 0x30);   /* Enable CP CSC */
--	io_write(sd, 0x06, 0xa6);   /* positive VS and HS */
-+
-+	/* VS, HS polarities */
-+	io_write(sd, 0x06, 0xa0 | pdata->inv_vs_pol << 2 | pdata->inv_hs_pol << 1);
+ 	adv_smbus_write_byte_no_check(client, 0xff, 0x80);
  
- 	/* Adjust drive strength */
- 	io_write(sd, 0x14, 0x40 | pdata->dr_str << 4 |
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index 0162c31..053b13c 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -107,6 +107,10 @@ struct adv7604_platform_data {
- 	unsigned replicate_av_codes:1;
- 	unsigned invert_cbcr:1;
+-	mdelay(2);
++	mdelay(5);
+ }
  
-+	/* IO register 0x06 */
-+	unsigned inv_vs_pol:1;
-+	unsigned inv_hs_pol:1;
-+
- 	/* IO register 0x14 */
- 	unsigned dr_str:2;
- 	unsigned dr_str_clk:2;
+ /* ----------------------------------------------------------------------- */
 -- 
 1.8.4.rc3
-
 
