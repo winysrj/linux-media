@@ -1,44 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48420 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752410Ab3LTFuM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 00:50:12 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v5 07/12] v4l: add device capability flag for SDR receiver
-Date: Fri, 20 Dec 2013 07:49:49 +0200
-Message-Id: <1387518594-11609-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
-References: <1387518594-11609-1-git-send-email-crope@iki.fi>
+Received: from mail-we0-f177.google.com ([74.125.82.177]:43670 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890Ab3LJPLN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:11:13 -0500
+Received: by mail-we0-f177.google.com with SMTP id u56so5030677wes.22
+        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 07:11:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CANnVQS3RK0VjXOuH34KuPhzD8fHc6T8PwUDWrU8ghMwRg6sc3A@mail.gmail.com>
+References: <c171c58417eb45b816caa1fd8cb0d74ae813dbbf.1382995303.git.lisa@xenapiadmin.com>
+ <3fb66890b3aec35a1e1804189320f6a0acb666d8.1382995303.git.lisa@xenapiadmin.com>
+ <CA+V-a8u6sqQaWY=bV2h0TB+h+==11whjS6cdhQvC65U=uRxNEg@mail.gmail.com>
+ <1624236.2pO0a5UDTk@avalon> <CA+V-a8uRUvtLFU1Ung-QHf=pMAjJ40k=3MxbeqOpOp8MpVk_tQ@mail.gmail.com>
+ <CANnVQS3MU==6jO8VXtp-19wC46=0SzK8K+yUR8gGHojKXejBog@mail.gmail.com>
+ <CA+V-a8utAWPLjVbfNXwW9KMGmZGSqr98wghTTWMKPGsaDx7XMA@mail.gmail.com> <CANnVQS3RK0VjXOuH34KuPhzD8fHc6T8PwUDWrU8ghMwRg6sc3A@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 10 Dec 2013 20:40:51 +0530
+Message-ID: <CA+V-a8tJh3jhcyCb1+RRGCULNwdXw8_QJ+JzrhSJ-F1pKhoDRw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] staging: media: davinci_vpfe: Remove spaces before semicolons
+To: Lisa Nguyen <lisa@xenapiadmin.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
-capability flag to inform given device supports SDR capture.
+Hi Lisa,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- include/uapi/linux/videodev2.h | 2 ++
- 1 file changed, 2 insertions(+)
+On Tue, Dec 10, 2013 at 8:38 PM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+> Hi Prabhakar,
+>
+> On Tue, Dec 10, 2013 at 7:04 AM, Prabhakar Lad
+> <prabhakar.csengg@gmail.com> wrote:
+>> Hi Lisa,
+>>
+>> On Tue, Dec 10, 2013 at 8:27 PM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+>>> Hi everyone,
+>>>
+>>> On Tue, Dec 10, 2013 at 6:34 AM, Prabhakar Lad
+>>> <prabhakar.csengg@gmail.com> wrote:
+>>>> Hi Laurent,
+>>>>
+>>>> On Tue, Dec 10, 2013 at 7:34 PM, Laurent Pinchart
+>>>> <laurent.pinchart@ideasonboard.com> wrote:
+>>>>> Hi Prabhakar,
+>>>>>
+>>>>> On Wednesday 30 October 2013 13:20:25 Prabhakar Lad wrote:
+>>>>>> On Tue, Oct 29, 2013 at 2:53 AM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+>>>>>> > Remove unnecessary spaces before semicolons to meet kernel
+>>>>>> > coding style.
+>>>>>> >
+>>>>>> > Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
+>>>>>>
+>>>>>> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>>>
+>>>>> Do you plan to send a pull request for these two patches ?
+>>>>>
+>>>> I had asked for a change in the first patch but Lisa never turned back :(
+>>>> anyway I'll fix it and issue a pull request today to Mauro.
+>>>
+>>> My apologies. What happened was that I originally had sent these two
+>>> patches to the staging mailing list. Greg KH advised me to send these
+>>> to Mauro and the linux-media mailing list instead. As a result, there
+>>> was a debate about the way the return statement was written in my
+>>> first patch between Greg and a fellow developer, so I wasn't sure who
+>>> to listen to. I was in the midst of changing jobs, so this didn't take
+>>> top priority.
+>>>
+>> Ok, do you plan to post it now ?
+>
+> To be clear, I'd only have to update the first patch, correct?
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c50e449..f596b7b 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -267,6 +267,8 @@ struct v4l2_capability {
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
- #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
- 
-+#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
-+
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
--- 
-1.8.4.2
+Yes!
 
+Regards,
+--Prabhakar Lad
