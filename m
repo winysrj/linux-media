@@ -1,111 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:36110 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752350Ab3LCKeU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 05:34:20 -0500
-Received: by mail-ve0-f179.google.com with SMTP id jw12so9796457veb.24
-        for <linux-media@vger.kernel.org>; Tue, 03 Dec 2013 02:34:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAK7=TuFhuuEHL9gQmAcxphUXbYJ9AgYhC41cty94XVQfusDOzg@mail.gmail.com>
-References: <CAK7=TuFhuuEHL9gQmAcxphUXbYJ9AgYhC41cty94XVQfusDOzg@mail.gmail.com>
-Date: Tue, 3 Dec 2013 11:34:19 +0100
-Message-ID: <CAK7=TuF214D5oWBCu7_VxfivK7R-5F_s-vbnx+_=ZcvvjgVhNQ@mail.gmail.com>
-Subject: Re: TeVii S471 issues with HotBird tp.11411h
-From: Tomasz Bubel <tbubel@gmail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4070 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753481Ab3LJNZT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 08:25:19 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/15] adv7604: return immediately if the new input is equal to what is configured
+Date: Tue, 10 Dec 2013 14:23:15 +0100
+Message-Id: <65c77e70090837cc68f1ddfef74ee48a9504849d.1386681716.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all.
-Strange, yesterday I ran my HTPC from a HD drive with Win7 and tested
-transponder 11411h in ProgDVB and works well. 75% of the signal, SNR
-99%.
+From: Mats Randgaard <matrandg@cisco.com>
 
-I think it is a bug / problem in the Linux driver for TeVii S471.
-Unfortunately, I lack the skills to improve it.
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-2013/11/29 Tomasz Bubel <tbubel@gmail.com>:
-> Hi everyone,
-> In my htpc i have:
-> - 1x TeVii S471
-> - 1x Hauppauge WinTV-Nova-HD-S2.
-> - gentoo linux with 3.12.0 kernel.
-> - drivers from media_tree:
-> "Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-> 258d2fbf874c87830664cb7ef41f9741c1abffac Merge tag 'v3.13-rc1' into patchwork
-> 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae Linux 3.13-rc1
-> 57498f9cb91be1eebea48f1dc833ebf162606ad5 Merge tag
-> 'ecryptfs-3.13-rc1-quiet-checkers' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs"
->
-> I'm using 90cm offset dish antenna with Quad LNB.
->
-> Everything works pretty well except that I can't get picture from
-> HotBird tp.11411h with TeVii S471.
->
-> szap -a 0 -c channelsx.conf -n 986 -H:
-> reading channels from file 'channelsx.conf'
-> zapping to 986 'DOMO+ HD(CYFRA+)':
-> sat 0, frequency = 11411 MHz H, symbolrate 27500000, vpid = 0x00a7,
-> apid = 0x006c sid = 0x379e
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00 | signal  11% | snr  47% | ber 0 | unc 0 |
-> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  47% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  31% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  23% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  87% | ber -1 | unc 0 |
-> status 00 | signal  11% | snr  63% | ber -1 | unc 0 |
->
-> Notice low signal value and changes of snr.
->
-> Same tp. this time hauppauge:
->
-> szap -a 1 -c channelsx.conf -n 986 -H
-> reading channels from file 'channelsx.conf'
-> zapping to 986 'DOMO+ HD(CYFRA+)':
-> sat 0, frequency = 11411 MHz H, symbolrate 27500000, vpid = 0x00a7,
-> apid = 0x006c sid = 0x379e
-> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-> status 1f | signal  80% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  80% | snr 100% | ber 0 | unc 0 | FE_HAS_LOCK
->
-> Also in dmesg i notice  multiple firmware messages, is this normal behaviour?
->
-> [  357.134498] ds3000_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-ds3000.fw)...
-> [  357.135376] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-> [  459.620503] ds3000_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-ds3000.fw)...
-> [  459.620545] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-> [  460.534720] ds3000_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-ds3000.fw)...
-> [  460.534744] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-> [ 2799.910498] ds3000_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-ds3000.fw)...
-> [ 2799.910540] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-> [ 2896.285493] ds3000_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-ds3000.fw)...
->
-> Can any one help? What information I should provide?
->
-> --
-> Pozdrawiam,
-> Tomasz Bubel
-
-
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 7d95a28..fa98229 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1479,7 +1479,11 @@ static int adv7604_s_routing(struct v4l2_subdev *sd,
+ {
+ 	struct adv7604_state *state = to_state(sd);
+ 
+-	v4l2_dbg(2, debug, sd, "%s: input %d", __func__, input);
++	v4l2_dbg(2, debug, sd, "%s: input %d, selected input %d",
++			__func__, input, state->selected_input);
++
++	if (input == state->selected_input)
++		return 0;
+ 
+ 	state->selected_input = input;
+ 
+@@ -1524,6 +1528,8 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	u8 fmt_change, fmt_change_digital, tx_5v;
+ 	u32 input_status;
+ 
++	v4l2_dbg(2, debug, sd, "%s: ", __func__);
++
+ 	/* format change */
+ 	fmt_change = io_read(sd, 0x43) & 0x98;
+ 	if (fmt_change)
+@@ -2124,6 +2130,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 	/* initialize variables */
+ 	state->restart_stdi_once = true;
+ 	state->prev_input_status = ~0;
++	state->selected_input = ~0;
+ 
+ 	/* platform data */
+ 	if (!pdata) {
 -- 
-Pozdrawiam,
-Tomasz Bubel
+1.8.4.rc3
+
