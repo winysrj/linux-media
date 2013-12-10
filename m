@@ -1,70 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16944 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351Ab3LEJgF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 04:36:05 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MXB00F1TUO3Y490@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Dec 2013 09:36:03 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'randy' <lxr1234@hotmail.com>, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, m.chehab@samsung.com,
-	jtp.park@samsung.com
-References: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl>
- <058401cef014$b29674e0$17c35ea0$%debski@samsung.com>
- <BLU0-SMTP1838921C2F758F2B715A141ADD70@phx.gbl>
-In-reply-to: <BLU0-SMTP1838921C2F758F2B715A141ADD70@phx.gbl>
-Subject: RE: Can't open mfc v5 encode but decode can
-Date: Thu, 05 Dec 2013 10:36:01 +0100
-Message-id: <06b801cef19d$69da8090$3d8f81b0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1335 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754126Ab3LJPGH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:06:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 13/22] adv7842: Use defines to select EDID port
+Date: Tue, 10 Dec 2013 16:03:59 +0100
+Message-Id: <9db9dbc7bc6a2077545e0680c6776994eeba8f24.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
+From: Mats Randgaard <matrandg@cisco.com>
 
-> -----Original Message-----
-> From: randy [mailto:lxr1234@hotmail.com]
-> Sent: Thursday, December 05, 2013 1:27 AM
-> To: linux-media@vger.kernel.org
-> Cc: Kamil Debski; m.szyprowski@samsung.com; kyungmin.park@samsung.com;
-> m.chehab@samsung.com; jtp.park@samsung.com
-> Subject: Re: Can't open mfc v5 encode but decode can
-> 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> ? 2013?12?03? 18:44, Kamil Debski ??:
-> > Hi Randy,
-> >
-> > We also experienced this issue. One of the changes in the v4l2 core
-> > affected the MFC driver. A fix for MFC has been prepared by Marek
-> > Szyprowski and should be sent out soon.
-> >
-> When it is sending, may you CC me, I will test it.
-> > Also another tip - in 3.13 a check on bytesused and length fields in
-> > planes array has been implemented. So make sure to set them
-> > appropriately.
-> >
-> > Best wishes,
-> 
-> Could you give me some example code of using samsung mfc v5 encode?
-> I only get some sample from samsung BSP's android-4.2.2, in
-> hardware/samsung_slsi/exynos4/multimedia/ , has
-> codecs/video/exynos4/mfc_v4l2/enc/src/SsbSipMfcEncAPI.c achived this?
-> Thanks
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 77 ++++++++++++++++++++-------------------------
+ include/media/adv7842.h     |  4 +++
+ 2 files changed, 38 insertions(+), 43 deletions(-)
 
-You can find the example applications here:
-http://git.infradead.org/users/kmpark/public-apps
-
-Best wishes, 
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 8e75c3b..77b1696 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -22,8 +22,8 @@
+  * References (c = chapter, p = page):
+  * REF_01 - Analog devices, ADV7842, Register Settings Recommendations,
+  *		Revision 2.5, June 2010
+- * REF_02 - Analog devices, Register map documentation, Documentation of
+- *		the register maps, Software manual, Rev. F, June 2010
++ * REF_02 - Analog devices, Software User Guide, UG-206,
++ *		ADV7842 I2C Register Maps, Rev. 0, November 2010
+  */
+ 
+ 
+@@ -587,10 +587,10 @@ static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
+ 	v4l2_dbg(2, debug, sd, "%s: enable hotplug on ports: 0x%x\n",
+ 			__func__, present);
+ 
+-	if (present & 0x1)
+-		mask |= 0x20; /* port A */
+-	if (present & 0x2)
+-		mask |= 0x10; /* port B */
++	if (present & (0x04 << ADV7842_EDID_PORT_A))
++		mask |= 0x20;
++	if (present & (0x04 << ADV7842_EDID_PORT_B))
++		mask |= 0x10;
+ 	io_write_and_or(sd, 0x20, 0xcf, mask);
+ }
+ 
+@@ -679,14 +679,12 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct adv7842_state *state = to_state(sd);
+ 	const u8 *val = state->hdmi_edid.edid;
+-	u8 cur_mask = rep_read(sd, 0x77) & 0x0c;
+-	u8 mask = port == 0 ? 0x4 : 0x8;
+ 	int spa_loc = edid_spa_location(val);
+ 	int err = 0;
+ 	int i;
+ 
+-	v4l2_dbg(2, debug, sd, "%s: write EDID on port %d (spa at 0x%x)\n",
+-			__func__, port, spa_loc);
++	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c (spa at 0x%x)\n",
++			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B', spa_loc);
+ 
+ 	/* HPA disable on port A and B */
+ 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
+@@ -703,44 +701,32 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
+ 	if (err)
+ 		return err;
+ 
+-	if (spa_loc > 0) {
+-		if (port == 0) {
+-			/* port A SPA */
+-			rep_write(sd, 0x72, val[spa_loc]);
+-			rep_write(sd, 0x73, val[spa_loc + 1]);
+-		} else {
+-			/* port B SPA */
+-			rep_write(sd, 0x74, val[spa_loc]);
+-			rep_write(sd, 0x75, val[spa_loc + 1]);
+-		}
+-		rep_write(sd, 0x76, spa_loc);
++	if (spa_loc < 0)
++		spa_loc = 0xc0; /* Default value [REF_02, p. 199] */
++
++	if (port == ADV7842_EDID_PORT_A) {
++		rep_write(sd, 0x72, val[spa_loc]);
++		rep_write(sd, 0x73, val[spa_loc + 1]);
+ 	} else {
+-		/* Edid values for SPA location */
+-		if (port == 0) {
+-			/* port A */
+-			rep_write(sd, 0x72, val[0xc0]);
+-			rep_write(sd, 0x73, val[0xc1]);
+-		} else {
+-			/* port B */
+-			rep_write(sd, 0x74, val[0xc0]);
+-			rep_write(sd, 0x75, val[0xc1]);
+-		}
+-		rep_write(sd, 0x76, 0xc0);
++		rep_write(sd, 0x74, val[spa_loc]);
++		rep_write(sd, 0x75, val[spa_loc + 1]);
+ 	}
+-	rep_write_and_or(sd, 0x77, 0xbf, 0x00);
++	rep_write(sd, 0x76, spa_loc & 0xff);
++	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
+ 
+ 	/* Calculates the checksums and enables I2C access to internal
+ 	 * EDID ram from HDMI DDC ports
+ 	 */
+-	rep_write_and_or(sd, 0x77, 0xf3, mask | cur_mask);
++	rep_write_and_or(sd, 0x77, 0xf3, state->hdmi_edid.present);
+ 
+ 	for (i = 0; i < 1000; i++) {
+-		if (rep_read(sd, 0x7d) & mask)
++		if (rep_read(sd, 0x7d) & state->hdmi_edid.present)
+ 			break;
+ 		mdelay(1);
+ 	}
+ 	if (i == 1000) {
+-		v4l_err(client, "error enabling edid on port %d\n", port);
++		v4l_err(client, "error enabling edid on port %c\n",
++				(port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
+ 		return -EIO;
+ 	}
+ 
+@@ -1886,7 +1872,7 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
+ 	struct adv7842_state *state = to_state(sd);
+ 	int err = 0;
+ 
+-	if (e->pad > 2)
++	if (e->pad > ADV7842_EDID_PORT_VGA)
+ 		return -EINVAL;
+ 	if (e->start_block != 0)
+ 		return -EINVAL;
+@@ -1899,20 +1885,25 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
+ 	state->aspect_ratio = v4l2_calc_aspect_ratio(e->edid[0x15],
+ 			e->edid[0x16]);
+ 
+-	if (e->pad == 2) {
++	switch (e->pad) {
++	case ADV7842_EDID_PORT_VGA:
+ 		memset(&state->vga_edid.edid, 0, 256);
+ 		state->vga_edid.present = e->blocks ? 0x1 : 0x0;
+ 		memcpy(&state->vga_edid.edid, e->edid, 128 * e->blocks);
+ 		err = edid_write_vga_segment(sd);
+-	} else {
+-		u32 mask = 0x1<<e->pad;
++		break;
++	case ADV7842_EDID_PORT_A:
++	case ADV7842_EDID_PORT_B:
+ 		memset(&state->hdmi_edid.edid, 0, 256);
+ 		if (e->blocks)
+-			state->hdmi_edid.present |= mask;
++			state->hdmi_edid.present |= 0x04 << e->pad;
+ 		else
+-			state->hdmi_edid.present &= ~mask;
+-		memcpy(&state->hdmi_edid.edid, e->edid, 128*e->blocks);
++			state->hdmi_edid.present &= ~(0x04 << e->pad);
++		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
+ 		err = edid_write_hdmi_segment(sd, e->pad);
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 	if (err < 0)
+ 		v4l2_err(sd, "error %d writing edid on port %d\n", err, e->pad);
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index 24fed11..a4851bf 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -225,4 +225,8 @@ struct adv7842_platform_data {
+  * deinterlacer. */
+ #define ADV7842_CMD_RAM_TEST _IO('V', BASE_VIDIOC_PRIVATE)
+ 
++#define ADV7842_EDID_PORT_A   0
++#define ADV7842_EDID_PORT_B   1
++#define ADV7842_EDID_PORT_VGA 2
++
+ #endif
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+1.8.4.rc3
 
