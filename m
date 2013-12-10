@@ -1,266 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:42948 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282Ab3L1PqY (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3847 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082Ab3LJPGG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 10:46:24 -0500
-Received: by mail-ea0-f181.google.com with SMTP id m10so4480661eaj.12
-        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:22 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 07/13] libdvbv5: MGT parser
-Date: Sat, 28 Dec 2013 16:45:55 +0100
-Message-Id: <1388245561-8751-7-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
-References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 10 Dec 2013 10:06:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 07/22] adv7842: Receive CEA formats as RGB on VGA (RGB) input
+Date: Tue, 10 Dec 2013 16:03:53 +0100
+Message-Id: <a8eb38781fe86e8a4fb78c163d522b8bf70b9420.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors/mgt.h  |  82 ++++++++++++++++++++++++++++++
- lib/libdvbv5/Makefile.am       |   1 +
- lib/libdvbv5/descriptors.c     |   1 +
- lib/libdvbv5/descriptors/mgt.c | 113 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 197 insertions(+)
- create mode 100644 lib/include/descriptors/mgt.h
- create mode 100644 lib/libdvbv5/descriptors/mgt.c
+From: Mats Randgaard <matrandg@cisco.com>
 
-diff --git a/lib/include/descriptors/mgt.h b/lib/include/descriptors/mgt.h
-new file mode 100644
-index 0000000..4a68f2c
---- /dev/null
-+++ b/lib/include/descriptors/mgt.h
-@@ -0,0 +1,82 @@
-+/*
-+ * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
+If input is ADV7842_MODE_RGB and RGB quantization range is set to
+V4L2_DV_RGB_RANGE_AUTO, then video with CEA timings will be received
+as RGB. For ADV7842_MODE_COMP, automatic CSC mode will be selected.
+
+See table 48 on page 281 in "ADV7842 Hardware Manual, Rev. 0, January 2011"
+for details.
+
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Reviewed-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 52 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 34 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 828fd23..59e7ef5 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1034,25 +1034,41 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+ 
++	v4l2_dbg(2, debug, sd, "%s: rgb_quantization_range = %d\n",
++		       __func__, state->rgb_quantization_range);
 +
-+#ifndef _MGT_H
-+#define _MGT_H
+ 	switch (state->rgb_quantization_range) {
+ 	case V4L2_DV_RGB_RANGE_AUTO:
+-		/* automatic */
+-		if (is_digital_input(sd) && !(hdmi_read(sd, 0x05) & 0x80)) {
+-			/* receiving DVI-D signal */
+-
+-			/* ADV7842 selects RGB limited range regardless of
+-			   input format (CE/IT) in automatic mode */
+-			if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
+-				/* RGB limited range (16-235) */
+-				io_write_and_or(sd, 0x02, 0x0f, 0x00);
+-
+-			} else {
+-				/* RGB full range (0-255) */
+-				io_write_and_or(sd, 0x02, 0x0f, 0x10);
+-			}
+-		} else {
+-			/* receiving HDMI or analog signal, set automode */
++		if (state->mode == ADV7842_MODE_RGB) {
++			/* Receiving analog RGB signal
++			 * Set RGB full range (0-255) */
++			io_write_and_or(sd, 0x02, 0x0f, 0x10);
++			break;
++		}
 +
-+#include <stdint.h>
-+#include <unistd.h> /* ssize_t */
++		if (state->mode == ADV7842_MODE_COMP) {
++			/* Receiving analog YPbPr signal
++			 * Set automode */
+ 			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
++			break;
++		}
 +
-+#include "descriptors/header.h"
-+#include "descriptors.h"
++		if (hdmi_read(sd, 0x05) & 0x80) {
++			/* Receiving HDMI signal
++			 * Set automode */
++			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
++			break;
++		}
 +
-+#define DVB_TABLE_MGT      0xC7
-+
-+struct dvb_table_mgt_table {
-+	uint16_t type;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t pid:13;
-+			uint16_t one:3;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+        uint8_t type_version:5;
-+        uint8_t one2:3;
-+        uint32_t size;
-+	union {
-+		uint16_t bitfield2;
-+		struct {
-+			uint16_t desc_length:12;
-+			uint16_t one3:4;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+	struct dvb_desc *descriptor;
-+	struct dvb_table_mgt_table *next;
-+} __attribute__((packed));
-+
-+struct dvb_table_mgt {
-+	struct dvb_table_header header;
-+        uint8_t  protocol_version;
-+        uint16_t tables;
-+        struct dvb_table_mgt_table *table;
-+	struct dvb_desc *descriptor;
-+} __attribute__((packed));
-+
-+
-+#define dvb_mgt_transport_foreach( tran, mgt ) \
-+  for( struct dvb_table_mgt_transport *tran = mgt->transport; tran; tran = tran->next ) \
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+void dvb_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+void dvb_table_mgt_free(struct dvb_table_mgt *mgt);
-+void dvb_table_mgt_print(struct dvb_v5_fe_parms *parms, struct dvb_table_mgt *mgt);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 795f30c..9d4b6b9 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -49,6 +49,7 @@ libdvbv5_la_SOURCES = \
-   descriptors/sdt.c  ../include/descriptors/sdt.h \
-   descriptors/vct.c  ../include/descriptors/vct.h \
-   descriptors/vct.c  ../include/descriptors/vct.h \
-+  descriptors/mgt.c  ../include/descriptors/mgt.h \
-   descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h \
-   descriptors/mpeg_ts.c  ../include/descriptors/mpeg_ts.h \
-   descriptors/mpeg_pes.c  ../include/descriptors/mpeg_pes.h \
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 18884b0..bd1bc03 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -36,6 +36,7 @@
- #include "descriptors/sdt.h"
- #include "descriptors/eit.h"
- #include "descriptors/vct.h"
-+#include "descriptors/mgt.h"
- #include "descriptors/desc_language.h"
- #include "descriptors/desc_network_name.h"
- #include "descriptors/desc_cable_delivery.h"
-diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
-new file mode 100644
-index 0000000..272d9d7
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/mgt.c
-@@ -0,0 +1,113 @@
-+/*
-+ * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (c) 2012 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#include "descriptors/mgt.h"
-+#include "dvb-fe.h"
-+
-+void dvb_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
-+{
-+	const uint8_t *p = buf;
-+	struct dvb_table_mgt *mgt = (struct dvb_table_mgt *) table;
-+	struct dvb_desc **head_desc;
-+	struct dvb_table_mgt_table **head;
-+	/*int desc_length;*/
-+
-+	if (*table_length > 0) {
-+		/* find end of curent lists */
-+		head_desc = &mgt->descriptor;
-+		while (*head_desc != NULL)
-+			head_desc = &(*head_desc)->next;
-+		head = &mgt->table;
-+		while (*head != NULL)
-+			head = &(*head)->next;
-+	} else {
-+		memcpy(table, p, sizeof(struct dvb_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table));
-+		*table_length = sizeof(struct dvb_table_mgt);
-+
-+		mgt->descriptor = NULL;
-+		mgt->table = NULL;
-+		head_desc = &mgt->descriptor;
-+		head = &mgt->table;
-+		bswap16(mgt->tables);
-+	}
-+	p += sizeof(struct dvb_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table);
-+
-+	/*dvb_parse_descriptors(parms, p, desc_length, head_desc);*/
-+	/*p += desc_length;*/
-+        int i = 0;
-+	struct dvb_table_mgt_table *last = NULL;
-+	while (i++ < mgt->tables && (uint8_t *) p < buf + buflen - 4) {
-+		struct dvb_table_mgt_table *table = (struct dvb_table_mgt_table *) malloc(sizeof(struct dvb_table_mgt_table));
-+		memcpy(table, p, sizeof(struct dvb_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next));
-+		p += sizeof(struct dvb_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next);
-+
-+		bswap16(table->type);
-+		bswap16(table->bitfield);
-+		bswap16(table->bitfield2);
-+		bswap32(table->size);
-+		table->descriptor = NULL;
-+		table->next = NULL;
-+
-+		if(!*head)
-+			*head = table;
-+		if(last)
-+			last->next = table;
-+
-+		/* get the descriptors for each table */
-+		struct dvb_desc **head_desc = &table->descriptor;
-+		dvb_parse_descriptors(parms, p, table->desc_length, head_desc);
-+
-+		p += table->desc_length;
-+		last = table;
-+	}
-+}
-+
-+void dvb_table_mgt_free(struct dvb_table_mgt *mgt)
-+{
-+	struct dvb_table_mgt_table *table = mgt->table;
-+	dvb_free_descriptors((struct dvb_desc **) &mgt->descriptor);
-+	while(table) {
-+		dvb_free_descriptors((struct dvb_desc **) &table->descriptor);
-+		struct dvb_table_mgt_table *tmp = table;
-+		table = table->next;
-+		free(tmp);
-+	}
-+	free(mgt);
-+}
-+
-+void dvb_table_mgt_print(struct dvb_v5_fe_parms *parms, struct dvb_table_mgt *mgt)
-+{
-+	dvb_log("MGT");
-+	dvb_table_header_print(parms, &mgt->header);
-+	dvb_log("| protocol_version %d", mgt->protocol_version);
-+	dvb_log("| tables           %d", mgt->tables);
-+	/*dvb_print_descriptors(parms, mgt->descriptor);*/
-+	const struct dvb_table_mgt_table *table = mgt->table;
-+	uint16_t tables = 0;
-+	while(table) {
-+                dvb_log("|- type %04x  %d", table->type, table->pid);
-+		dvb_print_descriptors(parms, table->descriptor);
-+		table = table->next;
-+		tables++;
-+	}
-+	dvb_log("|_  %d tables", tables);
-+}
-+
++		/* Receiving DVI-D signal
++		 * ADV7842 selects RGB limited range regardless of
++		 * input format (CE/IT) in automatic mode */
++		if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
++			/* RGB limited range (16-235) */
++			io_write_and_or(sd, 0x02, 0x0f, 0x00);
++		} else {
++			/* RGB full range (0-255) */
++			io_write_and_or(sd, 0x02, 0x0f, 0x10);
+ 		}
+ 		break;
+ 	case V4L2_DV_RGB_RANGE_LIMITED:
+@@ -1309,7 +1325,7 @@ static int adv7842_dv_timings_cap(struct v4l2_subdev *sd,
+ }
+ 
+ /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
+-   if the format is listed in adv7604_timings[] */
++   if the format is listed in adv7842_timings[] */
+ static void adv7842_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+ 		struct v4l2_dv_timings *timings)
+ {
+@@ -2129,7 +2145,7 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
+ 	static const char * const input_color_space_txt[16] = {
+ 		"RGB limited range (16-235)", "RGB full range (0-255)",
+ 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
+-		"XvYCC Bt.601", "XvYCC Bt.709",
++		"xvYCC Bt.601", "xvYCC Bt.709",
+ 		"YCbCr Bt.601 (0-255)", "YCbCr Bt.709 (0-255)",
+ 		"invalid", "invalid", "invalid", "invalid", "invalid",
+ 		"invalid", "invalid", "automatic"
 -- 
-1.8.3.2
+1.8.4.rc3
 
