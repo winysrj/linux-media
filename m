@@ -1,29 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2490 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab3LJMLI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35895 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751905Ab3LJOD0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 07:11:08 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBACB3jr098112
-	for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 13:11:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from cobaltpc1.cisco.com (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 115E72A2224
-	for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 13:10:55 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/6] ad9389b/adv7511 fixes
-Date: Tue, 10 Dec 2013 13:08:48 +0100
-Message-Id: <1386677334-20953-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 10 Dec 2013 09:03:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tom <Bassai_Dai@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: use other formats from ov3640 camera sensor through the isp pipeline
+Date: Tue, 10 Dec 2013 15:03:36 +0100
+Message-ID: <18022571.SKANkXJkvv@avalon>
+In-Reply-To: <loom.20131210T113548-646@post.gmane.org>
+References: <loom.20131210T113548-646@post.gmane.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This small patch series updates the ad9389b and adv7511 drivers with the
-latest fixes from our internal tree.
+Hi Tom,
 
+On Tuesday 10 December 2013 10:42:22 Tom wrote:
+> Hello,
+> 
+> I am using the ov3640 camera sensor along with the isp pipeline and
+> configured it like: sensor->ccdc->memory
+> 
+> My sensor supports more formats like rgb565 and so. Does anyone have an idea
+> how I could manage to set these formats out of the users application? If I
+> understand it right, the isp pipeline will not allow a format the ccdc sink
+> pad does not know.
+
+That's correct. The right way to fix this is to extend the OMAP3 ISP driver to 
+support the formats you need on the CCDC pads.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
