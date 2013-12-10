@@ -1,95 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2809 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753489Ab3LJNZT (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4325 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754126Ab3LJPGM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:19 -0500
+	Tue, 10 Dec 2013 10:06:12 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
+Cc: Martin Bugge <marbugge@cisco.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/15] adv7604: remove debouncing of ADV7604_FMT_CHANGE events
-Date: Tue, 10 Dec 2013 14:23:16 +0100
-Message-Id: <c45feeec3d9d029208672ec398e90c644c2f38ad.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+Subject: [RFC PATCH 22/22] adv7842: Composite sync adjustment
+Date: Tue, 10 Dec 2013 16:04:08 +0100
+Message-Id: <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+From: Martin Bugge <marbugge@cisco.com>
 
-ADV7604_FMT_CHANGE events was debounced in adv7604_isr() to avoid
-that a receiver with a unstable input signal would block the event
-handling for other inputs. This solution was prone to errors.
-
-A better protection agains interrupt blocking is to delay the call
-of the interrupt service routine in the adv7604 driver if too many
-interrupts are received within a given time.
-
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/media/i2c/adv7842.c | 8 ++++++++
+ include/media/adv7842.h     | 4 ++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index fa98229..50f0279 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -78,7 +78,6 @@ struct adv7604_state {
- 	struct workqueue_struct *work_queues;
- 	struct delayed_work delayed_work_enable_hotplug;
- 	bool restart_stdi_once;
--	u32 prev_input_status;
- 
- 	/* i2c clients */
- 	struct i2c_client *i2c_avlink;
-@@ -1524,9 +1523,7 @@ static int adv7604_g_mbus_fmt(struct v4l2_subdev *sd,
- 
- static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
--	struct adv7604_state *state = to_state(sd);
- 	u8 fmt_change, fmt_change_digital, tx_5v;
--	u32 input_status;
- 
- 	v4l2_dbg(2, debug, sd, "%s: ", __func__);
- 
-@@ -1534,22 +1531,17 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	fmt_change = io_read(sd, 0x43) & 0x98;
- 	if (fmt_change)
- 		io_write(sd, 0x44, fmt_change);
-+
- 	fmt_change_digital = is_digital_input(sd) ? (io_read(sd, 0x6b) & 0xc0) : 0;
- 	if (fmt_change_digital)
- 		io_write(sd, 0x6c, fmt_change_digital);
-+
- 	if (fmt_change || fmt_change_digital) {
- 		v4l2_dbg(1, debug, sd,
- 			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
- 			__func__, fmt_change, fmt_change_digital);
- 
--		adv7604_g_input_status(sd, &input_status);
--		if (input_status != state->prev_input_status) {
--			v4l2_dbg(1, debug, sd,
--				"%s: input_status = 0x%x, prev_input_status = 0x%x\n",
--				__func__, input_status, state->prev_input_status);
--			state->prev_input_status = input_status;
--			v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
--		}
-+		v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
- 
- 		if (handled)
- 			*handled = true;
-@@ -2129,7 +2121,6 @@ static int adv7604_probe(struct i2c_client *client,
- 
- 	/* initialize variables */
- 	state->restart_stdi_once = true;
--	state->prev_input_status = ~0;
- 	state->selected_input = ~0;
- 
- 	/* platform data */
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index fac5c4f..bafe3b5 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2437,6 +2437,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
+ 		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
+ 		sdp_io_write(sd, 0x9a, (s->de_end >> 8) & 0xf);
+ 		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
++		sdp_io_write(sd, 0xa8, s->vs_beg_o);
++		sdp_io_write(sd, 0xa9, s->vs_beg_e);
++		sdp_io_write(sd, 0xaa, s->vs_end_o);
++		sdp_io_write(sd, 0xab, s->vs_end_e);
+ 		sdp_io_write(sd, 0xac, s->de_v_beg_o);
+ 		sdp_io_write(sd, 0xad, s->de_v_beg_e);
+ 		sdp_io_write(sd, 0xae, s->de_v_end_o);
+@@ -2451,6 +2455,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
+ 		sdp_io_write(sd, 0x99, 0x00);
+ 		sdp_io_write(sd, 0x9a, 0x00);
+ 		sdp_io_write(sd, 0x9b, 0x00);
++		sdp_io_write(sd, 0xa8, 0x04);
++		sdp_io_write(sd, 0xa9, 0x04);
++		sdp_io_write(sd, 0xaa, 0x04);
++		sdp_io_write(sd, 0xab, 0x04);
+ 		sdp_io_write(sd, 0xac, 0x04);
+ 		sdp_io_write(sd, 0xad, 0x04);
+ 		sdp_io_write(sd, 0xae, 0x04);
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index 4e36496..8b336ab 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -131,6 +131,10 @@ struct adv7842_sdp_io_sync_adjustment {
+ 	uint16_t hs_width;
+ 	uint16_t de_beg;
+ 	uint16_t de_end;
++	uint8_t vs_beg_o;
++	uint8_t vs_beg_e;
++	uint8_t vs_end_o;
++	uint8_t vs_end_e;
+ 	uint8_t de_v_beg_o;
+ 	uint8_t de_v_beg_e;
+ 	uint8_t de_v_end_o;
 -- 
 1.8.4.rc3
 
