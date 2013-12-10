@@ -1,147 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52397 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754065Ab3LUQGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Dec 2013 11:06:35 -0500
-Message-ID: <52B5BC85.4070803@iki.fi>
-Date: Sat, 21 Dec 2013 18:06:29 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Guest <info@are.ma>, linux-media@vger.kernel.org
-CC: Bud R <knightrider@are.ma>, mchehab@redhat.com,
-	hdegoede@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T)
- cards
-References: <1387494851-28215-1-git-send-email-guest@puma.are.ma>
-In-Reply-To: <1387494851-28215-1-git-send-email-guest@puma.are.ma>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1803 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab3LJNZS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 08:25:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 08/15] adv7604: improve EDID handling
+Date: Tue, 10 Dec 2013 14:23:13 +0100
+Message-Id: <b8e4c550a1bf8456a445eda9ae84664a5e1d2504.1386681716.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20.12.2013 01:14, Guest wrote:
-> From: Bud R <knightrider@are.ma>
->
-> *** Is this okay? ***
+From: Mats Randgaard <matrandg@cisco.com>
 
-No, that is huge patch bomb with a lot of things that should be 
-implement differently.
+- split edid_write_block()
+- do not use edid->edid before the validity check
+- Return -EINVAL if edid->pad is invalid
+- Save both registers for SPA port A
+- Set SPA location to default value if it is not found
 
-First of all lets take a look of hardware in a level what chips there is 
-and how those are connected.
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 94 ++++++++++++++++++++++++---------------------
+ 1 file changed, 50 insertions(+), 44 deletions(-)
 
-MaxLinear MxL301RF multimode silicon RF tuner
-Sharp QM1D1C0042 satellite silicon RF tuner
-Toshiba TC90522 ISDB-S/T demodulator
-Altera Cyclone IV FPGA, PCI-bridge
-
-* Cyclone IV is FPGA, runs custom device vendor specific logic.
-* TC90522 can stream multiple TS, ISDB-S and ISDB-T, at same time. I am 
-not sure if that device could do it, but it should be taken into account 
-when implementing demod driver.
-
-
->
-> A DVB driver for Earthsoft PT3 (ISDB-S/T) receiver PCI Express cards, based on
-> 1. PT3 chardev driver
-> 	https://github.com/knight-rider/ptx/tree/master/pt3_drv
-> 	https://github.com/m-tsudo/pt3
-> 2. PT1/PT2 DVB driver
-> 	drivers/media/pci/pt1
->
-> It behaves similarly as PT1 DVB, plus some tuning enhancements:
-> 1. in addition to the real frequency:
-> 	ISDB-S : freq. channel ID
-> 	ISDB-T : freq# (I/O# +128), ch#, ch# +64 for CATV
-> 2. in addition to TSID:
-> 	ISDB-S : slot#
->
-> Feature changes:
-> - dropped DKMS & standalone compile
-> - dropped verbosity (debug levels), use single level -DDEBUG instead
-> - changed SNR (.read_snr) to CNR (.read_signal_strength)
-> - moved FE to drivers/media/dvb-frontends
-> - moved demodulator & tuners to drivers/media/tuners
-
-Those are not moved.
-
-> - translated to standard (?) I2C protocol
-> - dropped unused features
->
-> The full package (buildable as standalone, DKMS or tree embedded module) is available at
-> https://github.com/knight-rider/ptx/tree/master/pt3_dvb
->
-> Signed-off-by: Bud R <knightrider@are.ma>
->
-> ---
->   drivers/media/dvb-frontends/Kconfig      |  10 +-
->   drivers/media/dvb-frontends/Makefile     |   2 +
->   drivers/media/dvb-frontends/mxl301rf.c   | 332 ++++++++++++++
->   drivers/media/dvb-frontends/mxl301rf.h   |  27 ++
-
-drivers/media/tuners/
-
->   drivers/media/dvb-frontends/pt3_common.h |  95 ++++
->   drivers/media/dvb-frontends/qm1d1c0042.c | 413 ++++++++++++++++++
->   drivers/media/dvb-frontends/qm1d1c0042.h |  34 ++
-
-drivers/media/tuners/
-
->   drivers/media/dvb-frontends/tc90522.c    | 724 +++++++++++++++++++++++++++++++
->   drivers/media/dvb-frontends/tc90522.h    |  48 ++
->   drivers/media/pci/Kconfig                |   2 +-
->   drivers/media/pci/Makefile               |   1 +
->   drivers/media/pci/pt3/Kconfig            |  10 +
->   drivers/media/pci/pt3/Makefile           |   6 +
->   drivers/media/pci/pt3/pt3.c              | 543 +++++++++++++++++++++++
->   drivers/media/pci/pt3/pt3.h              |  23 +
->   drivers/media/pci/pt3/pt3_dma.c          | 335 ++++++++++++++
->   drivers/media/pci/pt3/pt3_dma.h          |  48 ++
->   drivers/media/pci/pt3/pt3_i2c.c          | 183 ++++++++
->   drivers/media/pci/pt3/pt3_i2c.h          |  30 ++
-
-
-> +EXPORT_SYMBOL(mxl301rf_set_freq);
-> +EXPORT_SYMBOL(mxl301rf_set_sleep);
-
-You should bind "attach" tuner directly to the DVB frontend.
-
-
-> +EXPORT_SYMBOL(qm1d1c0042_set_freq);
-> +EXPORT_SYMBOL(qm1d1c0042_set_sleep);
-> +EXPORT_SYMBOL(qm1d1c0042_tuner_init);
-
-
-> +EXPORT_SYMBOL(tc90522_attach);
-> +EXPORT_SYMBOL(tc90522_init);
-> +EXPORT_SYMBOL(tc90522_set_powers);
-
-
-First of all that driver should be converted to Kernel DVB driver model. 
-It works something like:
-You have a PCI driver (pt3). Then you call from attach(TC90522) from pt3 
-in order to get frontend. After that you attach tuner to frontend 
-calling attach(MxL301RF) or/and attach(QM1D1C0042).
-
-In that case it is a little bit tricky as you have a *physically* single 
-demod and 2 RF tuners. But what I looked that demod has itself 2 demods 
-integrated to one package which could even operate same time. So, it 
-means you have to register 2 frontends, one for ISDB-S and one for 
-ISDB-T and attach correct tuner per frontend.
-
-I know some developers may prefer to registering 2 multimode frontends 
-"as a newer single frontend model" and then select operating mode using 
-delivery-system command. Anyhow, that makes some extra headache as you 
-should switch RF tuner per selected frontend standard. IMHO better to 
-forgot fuss about single frontend model in that case and switch to older 
-model where is two different standard frontends registered.
-
-
-regards
-Antti
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 5e40a60..4ce3815 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -72,7 +72,7 @@ struct adv7604_state {
+ 		u32 present;
+ 		unsigned blocks;
+ 	} edid;
+-	u16 spa_port_a;
++	u16 spa_port_a[2];
+ 	struct v4l2_fract aspect_ratio;
+ 	u32 rgb_quantization_range;
+ 	struct workqueue_struct *work_queues;
+@@ -510,22 +510,9 @@ static inline int edid_read_block(struct v4l2_subdev *sd, unsigned len, u8 *val)
+ 	return 0;
+ }
+ 
+-static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
+-{
+-	struct delayed_work *dwork = to_delayed_work(work);
+-	struct adv7604_state *state = container_of(dwork, struct adv7604_state,
+-						delayed_work_enable_hotplug);
+-	struct v4l2_subdev *sd = &state->sd;
+-
+-	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
+-
+-	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
+-}
+-
+ static inline int edid_write_block(struct v4l2_subdev *sd,
+ 					unsigned len, const u8 *val)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct adv7604_state *state = to_state(sd);
+ 	int err = 0;
+ 	int i;
+@@ -535,24 +522,19 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
+ 	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
+ 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
+ 				I2C_SMBUS_BLOCK_MAX, val + i);
+-	if (err)
+-		return err;
++	return err;
++}
+ 
+-	/* adv7604 calculates the checksums and enables I2C access to internal
+-	   EDID RAM from DDC port. */
+-	rep_write_and_or(sd, 0x77, 0xf0, state->edid.present);
++static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
++{
++	struct delayed_work *dwork = to_delayed_work(work);
++	struct adv7604_state *state = container_of(dwork, struct adv7604_state,
++						delayed_work_enable_hotplug);
++	struct v4l2_subdev *sd = &state->sd;
+ 
+-	for (i = 0; i < 1000; i++) {
+-		if (rep_read(sd, 0x7d) & state->edid.present)
+-			break;
+-		mdelay(1);
+-	}
+-	if (i == 1000) {
+-		v4l_err(client, "error enabling edid (0x%x)\n", state->edid.present);
+-		return -EIO;
+-	}
++	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
+ 
+-	return 0;
++	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
+ }
+ 
+ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+@@ -1621,7 +1603,7 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 	return 0;
+ }
+ 
+-static int get_edid_spa_location(struct v4l2_subdev *sd, const u8 *edid)
++static int get_edid_spa_location(const u8 *edid)
+ {
+ 	u8 d;
+ 
+@@ -1652,9 +1634,10 @@ static int get_edid_spa_location(struct v4l2_subdev *sd, const u8 *edid)
+ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+-	int spa_loc = get_edid_spa_location(sd, edid->edid);
++	int spa_loc;
+ 	int tmp = 0;
+ 	int err;
++	int i;
+ 
+ 	if (edid->pad > ADV7604_EDID_PORT_D)
+ 		return -EINVAL;
+@@ -1684,35 +1667,43 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 	if (!edid->edid)
+ 		return -EINVAL;
+ 
++	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
++			__func__, edid->pad, state->edid.present);
++
+ 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
+ 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
+ 	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
+ 	rep_write_and_or(sd, 0x77, 0xf0, 0x00);
+ 
+-	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
+-			__func__, edid->pad, state->edid.present);
++	spa_loc = get_edid_spa_location(edid->edid);
++	if (spa_loc < 0)
++		spa_loc = 0xc0; /* Default value [REF_02, p. 116] */
++
+ 	switch (edid->pad) {
+ 	case ADV7604_EDID_PORT_A:
+-		state->spa_port_a = edid->edid[spa_loc];
++		state->spa_port_a[0] = edid->edid[spa_loc];
++		state->spa_port_a[1] = edid->edid[spa_loc + 1];
+ 		break;
+ 	case ADV7604_EDID_PORT_B:
+-		rep_write(sd, 0x70, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
+-		rep_write(sd, 0x71, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
++		rep_write(sd, 0x70, edid->edid[spa_loc]);
++		rep_write(sd, 0x71, edid->edid[spa_loc + 1]);
+ 		break;
+ 	case ADV7604_EDID_PORT_C:
+-		rep_write(sd, 0x72, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
+-		rep_write(sd, 0x73, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
++		rep_write(sd, 0x72, edid->edid[spa_loc]);
++		rep_write(sd, 0x73, edid->edid[spa_loc + 1]);
+ 		break;
+ 	case ADV7604_EDID_PORT_D:
+-		rep_write(sd, 0x74, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
+-		rep_write(sd, 0x75, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
++		rep_write(sd, 0x74, edid->edid[spa_loc]);
++		rep_write(sd, 0x75, edid->edid[spa_loc + 1]);
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+-	rep_write(sd, 0x76, (spa_loc < 0) ? 0x00 : spa_loc);
+-	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc < 0) ? 0x00 : (spa_loc >> 2) & 0x40);
++	rep_write(sd, 0x76, spa_loc & 0xff);
++	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
+ 
+-	if (spa_loc > 0)
+-		edid->edid[spa_loc] = state->spa_port_a;
++	edid->edid[spa_loc] = state->spa_port_a[0];
++	edid->edid[spa_loc + 1] = state->spa_port_a[1];
+ 
+ 	memcpy(state->edid.edid, edid->edid, 128 * edid->blocks);
+ 	state->edid.blocks = edid->blocks;
+@@ -1726,6 +1717,21 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 		return err;
+ 	}
+ 
++	/* adv7604 calculates the checksums and enables I2C access to internal
++	   EDID RAM from DDC port. */
++	rep_write_and_or(sd, 0x77, 0xf0, state->edid.present);
++
++	for (i = 0; i < 1000; i++) {
++		if (rep_read(sd, 0x7d) & state->edid.present)
++			break;
++		mdelay(1);
++	}
++	if (i == 1000) {
++		v4l2_err(sd, "error enabling edid (0x%x)\n", state->edid.present);
++		return -EIO;
++	}
++
++
+ 	/* enable hotplug after 100 ms */
+ 	queue_delayed_work(state->work_queues,
+ 			&state->delayed_work_enable_hotplug, HZ / 10);
 -- 
-http://palosaari.fi/
+1.8.4.rc3
+
