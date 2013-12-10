@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:59848 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754758Ab3L0VTP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Dec 2013 16:19:15 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
-Subject: [PATCH] [media] as102: fix leaks at failure paths in as102_usb_probe()
-Date: Sat, 28 Dec 2013 01:18:39 +0400
-Message-Id: <1388179119-11606-1-git-send-email-khoroshilov@ispras.ru>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3669 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754066Ab3LJPGC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 10:06:02 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/22] adv7842: corrected setting of cp-register 0x91 and 0x8f.
+Date: Tue, 10 Dec 2013 16:03:48 +0100
+Message-Id: <5df50447b5356eb75e85f1c30239d844b8ad182a.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Failure handling is incomplete in as102_usb_probe().
-The patch implements proper resource deallocations.
+From: Martin Bugge <marbugge@cisco.com>
 
-Found by Linux Driver Verification project (linuxtesting.org).
+Bit 6 of register 0x8f was cleared incorrectly (must be 1), and bit 4
+of register 0x91 was set incorrectly (must be 0).
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+These bits are undocumented, so we shouldn't modify them to values different
+from what the datasheet specifies.
+
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/as102/as102_usb_drv.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/media/i2c/adv7842.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
-index 9f275f020150..c1c6152d1ab4 100644
---- a/drivers/staging/media/as102/as102_usb_drv.c
-+++ b/drivers/staging/media/as102/as102_usb_drv.c
-@@ -419,15 +419,22 @@ static int as102_usb_probe(struct usb_interface *intf,
- 	/* request buffer allocation for streaming */
- 	ret = as102_alloc_usb_stream_buffer(as102_dev);
- 	if (ret != 0)
--		goto failed;
-+		goto failed_stream;
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 22fa4ca..6434a93 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -927,7 +927,7 @@ static int configure_predefined_video_timings(struct v4l2_subdev *sd,
+ 	cp_write(sd, 0x27, 0x00);
+ 	cp_write(sd, 0x28, 0x00);
+ 	cp_write(sd, 0x29, 0x00);
+-	cp_write(sd, 0x8f, 0x00);
++	cp_write(sd, 0x8f, 0x40);
+ 	cp_write(sd, 0x90, 0x00);
+ 	cp_write(sd, 0xa5, 0x00);
+ 	cp_write(sd, 0xa6, 0x00);
+@@ -1408,7 +1408,7 @@ static int adv7842_s_dv_timings(struct v4l2_subdev *sd,
  
- 	/* register dvb layer */
- 	ret = as102_dvb_register(as102_dev);
-+	if (ret != 0)
-+		goto failed_dvb;
+ 	state->timings = *timings;
  
- 	LEAVE();
- 	return ret;
+-	cp_write(sd, 0x91, bt->interlaced ? 0x50 : 0x10);
++	cp_write(sd, 0x91, bt->interlaced ? 0x40 : 0x00);
  
-+failed_dvb:
-+	as102_free_usb_stream_buffer(as102_dev);
-+failed_stream:
-+	usb_deregister_dev(intf, &as102_usb_class_driver);
- failed:
-+	usb_put_dev(as102_dev->bus_adap.usb_dev);
- 	usb_set_intfdata(intf, NULL);
- 	kfree(as102_dev);
- 	return ret;
+ 	/* Use prim_mode and vid_std when available */
+ 	err = configure_predefined_video_timings(sd, timings);
 -- 
-1.8.3.2
+1.8.4.rc3
 
