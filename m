@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:35409 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473Ab3LSTMu (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:12335 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159Ab3LJLk6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 14:12:50 -0500
-Received: by mail-qc0-f179.google.com with SMTP id i8so1354528qcq.10
-        for <linux-media@vger.kernel.org>; Thu, 19 Dec 2013 11:12:49 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <52B33D24.1060705@iki.fi>
-References: <1387231688-8647-1-git-send-email-crope@iki.fi>
-	<1387231688-8647-7-git-send-email-crope@iki.fi>
-	<52B2BA92.8080706@xs4all.nl>
-	<52B323F0.2050701@iki.fi>
-	<CAGoCfiz1kWHXPC-b-Exw=AYrNeOzaCgSvr3+zLuf12g5gyYJxA@mail.gmail.com>
-	<52B33D24.1060705@iki.fi>
-Date: Thu, 19 Dec 2013 14:12:49 -0500
-Message-ID: <CAGoCfiyW_T==jST24Jhuw0khJtJ42EL-Gu6-pVFuW_oou=necA@mail.gmail.com>
-Subject: Re: [PATCH RFC v3 6/7] rtl2832_sdr: convert to SDR API
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 10 Dec 2013 06:40:58 -0500
+From: Robert Baldyga <r.baldyga@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH 4/4] remove flooding debugs
+Date: Tue, 10 Dec 2013 12:40:37 +0100
+Message-id: <1386675637-18243-5-git-send-email-r.baldyga@samsung.com>
+In-reply-to: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+References: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I think I could add some lock quite easily. I remember when I implemented
-> cxd2820r DVB-T/T2/C demod driver and at the time it implements 2 frontends,
-> one for DVB-T/T2 and one for DVB-C. I used shared lock to prevent access
-> only for single fe at time. I think same solution works in that case too.
+Those debugs are printed very often killing the efficiency, so they should
+be removed from final code.
 
-Locking between v4l and dvb is more problematic because of known bugs
-related to the dvb_frontend deferring the shutdown of the tuner.  As a
-result there is a race condition if you try to close the DVB device
-and then immediately open the V4L device (which would be a common use
-case if using an application like MythTV when switching from digital
-to analog mode).
+Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+---
+ uvc-gadget.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-You can't simply add a lock because the V4L side will get hit with
--EBUSY because the DVB frontend hasn't completely shutdown yet.
-
-Unfortunately it's one of those cases where it "seems" easy until you
-start scoping out the edge cases and race conditions.
-
-Devin
-
+diff --git a/uvc-gadget.c b/uvc-gadget.c
+index 8f06a1f..4ff0d80 100644
+--- a/uvc-gadget.c
++++ b/uvc-gadget.c
+@@ -451,11 +451,8 @@ v4l2_process_data(struct v4l2_device *dev)
+ 	}
+ 
+ 	ret = ioctl(dev->v4l2_fd, VIDIOC_DQBUF, &vbuf);
+-	if (ret < 0) {
+-		printf("V4L2: Unable to dequeue buffer: %s (%d).\n",
+-			strerror(errno), errno);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	dev->dqbuf_count++;
+ 
+@@ -953,11 +950,8 @@ uvc_video_process(struct uvc_device *dev)
+ 	if (dev->run_standalone) {
+ 		/* UVC stanalone setup. */
+ 		ret = ioctl(dev->uvc_fd, VIDIOC_DQBUF, &ubuf);
+-		if (ret < 0) {
+-			printf("UVC: Unable to dequeue buffer: %s (%d).\n",
+-					strerror(errno), errno);
++		if (ret < 0)
+ 			return ret;
+-		}
+ 
+ 		dev->dqbuf_count++;
+ 
+@@ -999,11 +993,8 @@ uvc_video_process(struct uvc_device *dev)
+ 
+ 		/* Dequeue the spent buffer from UVC domain */
+ 		ret = ioctl(dev->uvc_fd, VIDIOC_DQBUF, &ubuf);
+-		if (ret < 0) {
+-			printf("UVC: Unable to dequeue buffer: %s (%d).\n",
+-					strerror(errno), errno);
++		if (ret < 0)
+ 			return ret;
+-		}
+ 
+ 		if (dev->io == IO_METHOD_USERPTR)
+ 			for (i = 0; i < dev->nbufs; ++i)
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.9.5
+
