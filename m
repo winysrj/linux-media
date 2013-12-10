@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:46503 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751798Ab3LEMWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 07:22:42 -0500
-Date: Thu, 5 Dec 2013 09:22:40 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrea Venturi <a.venturi@avalpa.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: advice on Easycap dongles and VBI interface..
-Message-ID: <20131205122239.GB2345@localhost>
-References: <52A058EF.9000701@avalpa.com>
- <52A0693C.7060704@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <52A0693C.7060704@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:49600 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791Ab3LJLkw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 06:40:52 -0500
+From: Robert Baldyga <r.baldyga@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH 1/4] closing uvc file when init fails
+Date: Tue, 10 Dec 2013 12:40:34 +0100
+Message-id: <1386675637-18243-2-git-send-email-r.baldyga@samsung.com>
+In-reply-to: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+References: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrea and Hans,
+This patch adds uvc device file closing when inits in uvc_open() function fails.
 
-On Thu, Dec 05, 2013 at 12:53:32PM +0100, Hans Verkuil wrote:
-> 
-> > - finally which approach do you suggest for supporting this ancient
-> > feature, if feasibiliy tests are ok: - a libusb quick hack? - an
-> > implementation of the bindings between user level /dev/vbi and
-> > underlying SAA711x routines?
-> 
-> The problem is that I don't believe we have any stk1160 documentation.
+Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+---
+ uvc-gadget.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-I do have the stk1160 chip datasheet. However, it's not publicly
-available and I'm not sure I should disclose it (although syntek never
-advise me against it). In additio, the datasheet is not very verbose
-and the information is scarce and often incomplete.
-
-> And I wonder if the device can support VBI at all.
-> 
-
-Apparently it does: at least there's a flag to "enable" VBI mode.
-
-> You are better off choosing devices that already have VBI support: the
-> em28xx supports it, so do bt8xx, cx18 and ivtv.
-> 
-
-I agree with this. I don't have any VBI source so there's no way I can
-work on this (not to mention it's not something lots of users need).
+diff --git a/uvc-gadget.c b/uvc-gadget.c
+index 0764838..5512e2c 100644
+--- a/uvc-gadget.c
++++ b/uvc-gadget.c
+@@ -880,6 +880,7 @@ uvc_open(struct uvc_device **uvc, char *devname)
+ 	return 0;
+ 
+ err:
++	close(fd);
+ 	return ret;
+ }
+ 
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.7.9.5
+
