@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:28051 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752600Ab3LXL30 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:50859 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921Ab3LJHse (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 06:29:26 -0500
-Message-ID: <52B96FFF.3010708@huawei.com>
-Date: Tue, 24 Dec 2013 19:29:03 +0800
-From: Ding Tianhong <dingtianhong@huawei.com>
+	Tue, 10 Dec 2013 02:48:34 -0500
+Date: Tue, 10 Dec 2013 08:48:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	awalls@md.metrocast.net, kyungmin.park@samsung.com,
+	k.debski@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv4 PATCH 7/8] vb2: return ENODATA in start_streaming in case
+ of too few buffers.
+In-Reply-To: <1386596592-48678-8-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1312100847350.30411@axis700.grange>
+References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
+ <1386596592-48678-8-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Netdev <netdev@vger.kernel.org>
-Subject: [PATCH v2 14/20] media: dvb_core: slight optimization of addr compare
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use possibly more efficient ether_addr_equal
-instead of memcmp.
+On Mon, 9 Dec 2013, Hans Verkuil wrote:
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This works together with the retry_start_streaming mechanism to allow userspace
+> to start streaming even if not all required buffers have been queued.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+
+[snip]
+
+>  drivers/media/platform/soc_camera/mx2_camera.c  | 2 +-
+
+Provided ENOBUFS is used instead of ENODATA:
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb-core/dvb_net.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index f91c80c..3dfc33b 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
- 	eth = eth_hdr(skb);
- 
- 	if (*eth->h_dest & 1) {
--		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
-+		if(ether_addr_equal(eth->h_dest,dev->broadcast))
- 			skb->pkt_type=PACKET_BROADCAST;
- 		else
- 			skb->pkt_type=PACKET_MULTICAST;
-@@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 					if (priv->rx_mode != RX_MODE_PROMISC) {
- 						if (priv->ule_skb->data[0] & 0x01) {
- 							/* multicast or broadcast */
--							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
-+							if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
- 								/* multicast */
- 								if (priv->rx_mode == RX_MODE_MULTI) {
- 									int i;
--									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
-+									for(i = 0; i < priv->multi_num && !ether_addr_equal(priv->ule_skb->data, priv->multi_macs[i]); i++)
- 										;
- 									if (i == priv->multi_num)
- 										drop = 1;
-@@ -688,7 +688,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 							}
- 							/* else: broadcast */
- 						}
--						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
-+						else if (!ether_addr_equal(priv->ule_skb->data, dev->dev_addr))
- 							drop = 1;
- 						/* else: destination address matches the MAC address of our receiver device */
- 					}
--- 
-1.8.0
-
-
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
