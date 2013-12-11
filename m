@@ -1,397 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:53942 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753083Ab3LMPO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 10:14:57 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	<devicetree@vger.kernel.org>
-Subject: [PATCH 02/11] media: rc: img-ir: add base driver
-Date: Fri, 13 Dec 2013 15:12:50 +0000
-Message-ID: <1386947579-26703-3-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44082 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751041Ab3LKQHs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Dec 2013 11:07:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 1/7] v4l: atmel-isi: remove SOF wait in start_streaming()
+Date: Wed, 11 Dec 2013 17:07:39 +0100
+Message-Id: <1386778065-14135-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add base driver for the ImgTec Infrared decoder block. The driver is
-split into separate components for raw (software) decode and hardware
-decoder which are in following commits.
+From: Josh Wu <josh.wu@atmel.com>
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: devicetree@vger.kernel.org
+when a userspace applications calls the VIDIOC_STREAMON ioctl. The
+V4L2 core calls the soc_camera_streamon function, which is responsible
+for starting the video stream. It does so by first starting the atmel-isi
+host by a call to the vb2_streamon function, and then starting the sensor
+by a call to the video.s_stream sensor subdev operation.
+
+That means we wait for a SOF in start_streaming() before call sensor's
+s_stream(). It is possible no VSYNC interrupt arrive as the sensor
+hasn't been started yet.
+
+To avoid such case, this patch remove the code to wait for the VSYNC
+interrupt. And such code is not necessary.
+
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/rc/img-ir/img-ir-core.c | 172 ++++++++++++++++++++++++++++++++++
- drivers/media/rc/img-ir/img-ir.h      | 170 +++++++++++++++++++++++++++++++++
- 2 files changed, 342 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-core.c
- create mode 100644 drivers/media/rc/img-ir/img-ir.h
+ drivers/media/platform/soc_camera/atmel-isi.c | 47 +--------------------------
+ 1 file changed, 1 insertion(+), 46 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
-new file mode 100644
-index 000000000000..a577217aa739
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-core.c
-@@ -0,0 +1,172 @@
-+/*
-+ * ImgTec IR Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2013 Imagination Technologies Ltd.
-+ *
-+ * This contains core img-ir code for setting up the driver. The two interfaces
-+ * (raw and hardware decode) are handled separately.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include "img-ir.h"
-+
-+static irqreturn_t img_ir_isr(int irq, void *dev_id)
-+{
-+	struct img_ir_priv *priv = dev_id;
-+	u32 irq_status;
-+
-+	spin_lock(&priv->lock);
-+	/* we have to clear irqs before reading */
-+	irq_status = img_ir_read(priv, IMG_IR_IRQ_STATUS);
-+	img_ir_write(priv, IMG_IR_IRQ_CLEAR, irq_status);
-+
-+	/* don't handle valid data irqs if we're only interested in matches */
-+	irq_status &= img_ir_read(priv, IMG_IR_IRQ_ENABLE);
-+
-+	/* hand off edge interrupts to raw decode handler */
-+	if (irq_status & IMG_IR_IRQ_EDGE && img_ir_raw_enabled(&priv->raw))
-+		img_ir_isr_raw(priv, irq_status);
-+
-+	/* hand off hardware match interrupts to hardware decode handler */
-+	if (irq_status & (IMG_IR_IRQ_DATA_MATCH |
-+			  IMG_IR_IRQ_DATA_VALID |
-+			  IMG_IR_IRQ_DATA2_VALID) &&
-+	    img_ir_hw_enabled(&priv->hw))
-+		img_ir_isr_hw(priv, irq_status);
-+
-+	spin_unlock(&priv->lock);
-+	return IRQ_HANDLED;
-+}
-+
-+static void img_ir_setup(struct img_ir_priv *priv)
-+{
-+	/* start off with interrupts disabled */
-+	img_ir_write(priv, IMG_IR_IRQ_ENABLE, 0);
-+
-+	img_ir_setup_raw(priv);
-+	img_ir_setup_hw(priv);
-+
-+	if (!IS_ERR(priv->clk))
-+		clk_prepare_enable(priv->clk);
-+}
-+
-+static void img_ir_ident(struct img_ir_priv *priv)
-+{
-+	u32 core_rev = img_ir_read(priv, IMG_IR_CORE_REV);
-+
-+	dev_info(priv->dev,
-+		 "IMG IR Decoder (%d.%d.%d.%d) probed successfully\n",
-+		 (core_rev & IMG_IR_DESIGNER) >> IMG_IR_DESIGNER_SHIFT,
-+		 (core_rev & IMG_IR_MAJOR_REV) >> IMG_IR_MAJOR_REV_SHIFT,
-+		 (core_rev & IMG_IR_MINOR_REV) >> IMG_IR_MINOR_REV_SHIFT,
-+		 (core_rev & IMG_IR_MAINT_REV) >> IMG_IR_MAINT_REV_SHIFT);
-+	dev_info(priv->dev, "Modes:%s%s\n",
-+		 img_ir_hw_enabled(&priv->hw) ? " hardware" : "",
-+		 img_ir_raw_enabled(&priv->raw) ? " raw" : "");
-+}
-+
-+static int img_ir_probe(struct platform_device *pdev)
-+{
-+	struct img_ir_priv *priv;
-+	struct resource *res_regs;
-+	int irq, error, error2;
-+
-+	/* Get resources from platform device */
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
-+		dev_err(&pdev->dev, "cannot find IRQ resource\n");
-+		return irq;
-+	}
-+
-+	/* Private driver data */
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		dev_err(&pdev->dev, "cannot allocate device data\n");
-+		return -ENOMEM;
-+	}
-+	platform_set_drvdata(pdev, priv);
-+	priv->dev = &pdev->dev;
-+	spin_lock_init(&priv->lock);
-+
-+	/* Ioremap the registers */
-+	res_regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	priv->reg_base = devm_ioremap_resource(&pdev->dev, res_regs);
-+	if (IS_ERR(priv->reg_base))
-+		return PTR_ERR(priv->reg_base);
-+
-+	/* Get clock */
-+	priv->clk = devm_clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(priv->clk))
-+		dev_warn(&pdev->dev, "cannot get clock resource\n");
-+
-+	/* Set up raw & hw decoder */
-+	error = img_ir_probe_raw(priv);
-+	error2 = img_ir_probe_hw(priv);
-+	if (error && error2)
-+		return (error == -ENODEV) ? error2 : error;
-+
-+	/* Get the IRQ */
-+	priv->irq = irq;
-+	error = request_irq(priv->irq, img_ir_isr, 0, "img-ir", priv);
-+	if (error) {
-+		dev_err(&pdev->dev, "cannot register IRQ %u\n",
-+			priv->irq);
-+		error = -EIO;
-+		goto err_irq;
-+	}
-+
-+	img_ir_ident(priv);
-+	img_ir_setup(priv);
-+
-+	return 0;
-+
-+err_irq:
-+	img_ir_remove_hw(priv);
-+	img_ir_remove_raw(priv);
-+	return error;
-+}
-+
-+static int img_ir_remove(struct platform_device *pdev)
-+{
-+	struct img_ir_priv *priv = platform_get_drvdata(pdev);
-+
-+	free_irq(priv->irq, img_ir_isr);
-+	img_ir_remove_hw(priv);
-+	img_ir_remove_raw(priv);
-+
-+	if (!IS_ERR(priv->clk))
-+		clk_disable_unprepare(priv->clk);
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(img_ir_pmops, img_ir_suspend, img_ir_resume);
-+
-+static const struct of_device_id img_ir_match[] = {
-+	{ .compatible = "img,ir" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, img_ir_match);
-+
-+static struct platform_driver img_ir_driver = {
-+	.driver = {
-+		.name = "img-ir",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= img_ir_match,
-+		.pm = &img_ir_pmops,
-+	},
-+	.probe = img_ir_probe,
-+	.remove = img_ir_remove,
-+};
-+
-+module_platform_driver(img_ir_driver);
-+
-+MODULE_AUTHOR("Imagination Technologies Ltd.");
-+MODULE_DESCRIPTION("ImgTec IR");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
-new file mode 100644
-index 000000000000..950cf90573c8
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir.h
-@@ -0,0 +1,170 @@
-+/*
-+ * ImgTec IR Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2013 Imagination Technologies Ltd.
-+ */
-+
-+#ifndef _IMG_IR_H_
-+#define _IMG_IR_H_
-+
-+#include <linux/spinlock.h>
-+
-+#include "img-ir-raw.h"
-+#include "img-ir-hw.h"
-+
-+/* registers */
-+
-+/* relative to the start of the IR block of registers */
-+#define IMG_IR_CONTROL		0x00
-+#define IMG_IR_STATUS		0x04
-+#define IMG_IR_DATA_LW		0x08
-+#define IMG_IR_DATA_UP		0x0c
-+#define IMG_IR_LEAD_SYMB_TIMING	0x10
-+#define IMG_IR_S00_SYMB_TIMING	0x14
-+#define IMG_IR_S01_SYMB_TIMING	0x18
-+#define IMG_IR_S10_SYMB_TIMING	0x1c
-+#define IMG_IR_S11_SYMB_TIMING	0x20
-+#define IMG_IR_FREE_SYMB_TIMING	0x24
-+#define IMG_IR_POW_MOD_PARAMS	0x28
-+#define IMG_IR_POW_MOD_ENABLE	0x2c
-+#define IMG_IR_IRQ_MSG_DATA_LW	0x30
-+#define IMG_IR_IRQ_MSG_DATA_UP	0x34
-+#define IMG_IR_IRQ_MSG_MASK_LW	0x38
-+#define IMG_IR_IRQ_MSG_MASK_UP	0x3c
-+#define IMG_IR_IRQ_ENABLE	0x40
-+#define IMG_IR_IRQ_STATUS	0x44
-+#define IMG_IR_IRQ_CLEAR	0x48
-+#define IMG_IR_IRCORE_ID	0xf0
-+#define IMG_IR_CORE_REV		0xf4
-+#define IMG_IR_CORE_DES1	0xf8
-+#define IMG_IR_CORE_DES2	0xfc
-+
-+
-+/* field masks */
-+
-+/* IMG_IR_CONTROL */
-+#define IMG_IR_DECODEN		0x40000000
-+#define IMG_IR_CODETYPE		0x30000000
-+#define IMG_IR_CODETYPE_SHIFT		28
-+#define IMG_IR_HDRTOG		0x08000000
-+#define IMG_IR_LDRDEC		0x04000000
-+#define IMG_IR_DECODINPOL	0x02000000	/* active high */
-+#define IMG_IR_BITORIEN		0x01000000	/* MSB first */
-+#define IMG_IR_D1VALIDSEL	0x00008000
-+#define IMG_IR_BITINV		0x00000040	/* don't invert */
-+#define IMG_IR_DECODEND2	0x00000010
-+#define IMG_IR_BITORIEND2	0x00000002	/* MSB first */
-+#define IMG_IR_BITINVD2		0x00000001	/* don't invert */
-+
-+/* IMG_IR_STATUS */
-+#define IMG_IR_RXDVALD2		0x00001000
-+#define IMG_IR_IRRXD		0x00000400
-+#define IMG_IR_TOGSTATE		0x00000200
-+#define IMG_IR_RXDVAL		0x00000040
-+#define IMG_IR_RXDLEN		0x0000003f
-+#define IMG_IR_RXDLEN_SHIFT		0
-+
-+/* IMG_IR_LEAD_SYMB_TIMING, IMG_IR_Sxx_SYMB_TIMING */
-+#define IMG_IR_PD_MAX		0xff000000
-+#define IMG_IR_PD_MAX_SHIFT		24
-+#define IMG_IR_PD_MIN		0x00ff0000
-+#define IMG_IR_PD_MIN_SHIFT		16
-+#define IMG_IR_W_MAX		0x0000ff00
-+#define IMG_IR_W_MAX_SHIFT		8
-+#define IMG_IR_W_MIN		0x000000ff
-+#define IMG_IR_W_MIN_SHIFT		0
-+
-+/* IMG_IR_FREE_SYMB_TIMING */
-+#define IMG_IR_MAXLEN		0x0007e000
-+#define IMG_IR_MAXLEN_SHIFT		13
-+#define IMG_IR_MINLEN		0x00001f00
-+#define IMG_IR_MINLEN_SHIFT		8
-+#define IMG_IR_FT_MIN		0x000000ff
-+#define IMG_IR_FT_MIN_SHIFT		0
-+
-+/* IMG_IR_POW_MOD_PARAMS */
-+#define IMG_IR_PERIOD_LEN	0x3f000000
-+#define IMG_IR_PERIOD_LEN_SHIFT		24
-+#define IMG_IR_PERIOD_DUTY	0x003f0000
-+#define IMG_IR_PERIOD_DUTY_SHIFT	16
-+#define IMG_IR_STABLE_STOP	0x00003f00
-+#define IMG_IR_STABLE_STOP_SHIFT	8
-+#define IMG_IR_STABLE_START	0x0000003f
-+#define IMG_IR_STABLE_START_SHIFT	0
-+
-+/* IMG_IR_POW_MOD_ENABLE */
-+#define IMG_IR_POWER_OUT_EN	0x00000002
-+#define IMG_IR_POWER_MOD_EN	0x00000001
-+
-+/* IMG_IR_IRQ_ENABLE, IMG_IR_IRQ_STATUS, IMG_IR_IRQ_CLEAR */
-+#define IMG_IR_IRQ_DEC2_ERR	0x00000080
-+#define IMG_IR_IRQ_DEC_ERR	0x00000040
-+#define IMG_IR_IRQ_ACT_LEVEL	0x00000020
-+#define IMG_IR_IRQ_FALL_EDGE	0x00000010
-+#define IMG_IR_IRQ_RISE_EDGE	0x00000008
-+#define IMG_IR_IRQ_DATA_MATCH	0x00000004
-+#define IMG_IR_IRQ_DATA2_VALID	0x00000002
-+#define IMG_IR_IRQ_DATA_VALID	0x00000001
-+#define IMG_IR_IRQ_ALL		0x000000ff
-+#define IMG_IR_IRQ_EDGE		(IMG_IR_IRQ_FALL_EDGE | IMG_IR_IRQ_RISE_EDGE)
-+
-+/* IMG_IR_CORE_ID */
-+#define IMG_IR_CORE_ID		0x00ff0000
-+#define IMG_IR_CORE_ID_SHIFT		16
-+#define IMG_IR_CORE_CONFIG	0x0000ffff
-+#define IMG_IR_CORE_CONFIG_SHIFT	0
-+
-+/* IMG_IR_CORE_REV */
-+#define IMG_IR_DESIGNER		0xff000000
-+#define IMG_IR_DESIGNER_SHIFT		24
-+#define IMG_IR_MAJOR_REV	0x00ff0000
-+#define IMG_IR_MAJOR_REV_SHIFT		16
-+#define IMG_IR_MINOR_REV	0x0000ff00
-+#define IMG_IR_MINOR_REV_SHIFT		8
-+#define IMG_IR_MAINT_REV	0x000000ff
-+#define IMG_IR_MAINT_REV_SHIFT		0
-+
-+struct device;
-+struct clk;
-+
-+/**
-+ * struct img_ir_priv - Private driver data.
-+ * @next:		Next IR device's private driver data (to form a linked
-+ *			list).
-+ * @dev:		Platform device.
-+ * @irq:		IRQ number.
-+ * @clk:		Input clock.
-+ * @reg_base:		Iomem base address of IR register block.
-+ * @lock:		Protects IR registers and variables in this struct.
-+ * @raw:		Driver data for raw decoder.
-+ * @hw:			Driver data for hardware decoder.
-+ */
-+struct img_ir_priv {
-+	/* this priv sits in a global list protected by img_ir_decoders_lock */
-+	struct img_ir_priv	*next;
-+
-+	struct device		*dev;
-+	int			irq;
-+	struct clk		*clk;
-+	void __iomem		*reg_base;
-+	spinlock_t		lock;
-+
-+	struct img_ir_priv_raw	raw;
-+	struct img_ir_priv_hw	hw;
-+};
-+
-+/* Hardware access */
-+
-+static inline void img_ir_write(struct img_ir_priv *priv,
-+				unsigned int reg_offs, unsigned int data)
-+{
-+	iowrite32(data, priv->reg_base + reg_offs);
-+}
-+
-+static inline unsigned int img_ir_read(struct img_ir_priv *priv,
-+				       unsigned int reg_offs)
-+{
-+	return ioread32(priv->reg_base + reg_offs);
-+}
-+
-+#endif /* _IMG_IR_H_ */
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 1044856..b46c0ed 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -34,13 +34,6 @@
+ #define MIN_FRAME_RATE			15
+ #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
+ 
+-/* ISI states */
+-enum {
+-	ISI_STATE_IDLE = 0,
+-	ISI_STATE_READY,
+-	ISI_STATE_WAIT_SOF,
+-};
+-
+ /* Frame buffer descriptor */
+ struct fbd {
+ 	/* Physical address of the frame buffer */
+@@ -75,11 +68,6 @@ struct atmel_isi {
+ 	void __iomem			*regs;
+ 
+ 	int				sequence;
+-	/* State of the ISI module in capturing mode */
+-	int				state;
+-
+-	/* Wait queue for waiting for SOF */
+-	wait_queue_head_t		vsync_wq;
+ 
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 
+@@ -207,12 +195,6 @@ static irqreturn_t isi_interrupt(int irq, void *dev_id)
+ 		isi_writel(isi, ISI_INTDIS, ISI_CTRL_DIS);
+ 		ret = IRQ_HANDLED;
+ 	} else {
+-		if ((pending & ISI_SR_VSYNC) &&
+-				(isi->state == ISI_STATE_IDLE)) {
+-			isi->state = ISI_STATE_READY;
+-			wake_up_interruptible(&isi->vsync_wq);
+-			ret = IRQ_HANDLED;
+-		}
+ 		if (likely(pending & ISI_SR_CXFR_DONE))
+ 			ret = atmel_isi_handle_streaming(isi);
+ 	}
+@@ -407,43 +389,17 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct atmel_isi *isi = ici->priv;
+-
+ 	u32 sr = 0;
+-	int ret;
+ 
+ 	spin_lock_irq(&isi->lock);
+-	isi->state = ISI_STATE_IDLE;
+-	/* Clear any pending SOF interrupt */
++	/* Clear any pending interrupt */
+ 	sr = isi_readl(isi, ISI_STATUS);
+-	/* Enable VSYNC interrupt for SOF */
+-	isi_writel(isi, ISI_INTEN, ISI_SR_VSYNC);
+-	isi_writel(isi, ISI_CTRL, ISI_CTRL_EN);
+-	spin_unlock_irq(&isi->lock);
+-
+-	dev_dbg(icd->parent, "Waiting for SOF\n");
+-	ret = wait_event_interruptible(isi->vsync_wq,
+-				       isi->state != ISI_STATE_IDLE);
+-	if (ret)
+-		goto err;
+-
+-	if (isi->state != ISI_STATE_READY) {
+-		ret = -EIO;
+-		goto err;
+-	}
+ 
+-	spin_lock_irq(&isi->lock);
+-	isi->state = ISI_STATE_WAIT_SOF;
+-	isi_writel(isi, ISI_INTDIS, ISI_SR_VSYNC);
+ 	if (count)
+ 		start_dma(isi, isi->active);
+ 	spin_unlock_irq(&isi->lock);
+ 
+ 	return 0;
+-err:
+-	isi->active = NULL;
+-	isi->sequence = 0;
+-	INIT_LIST_HEAD(&isi->video_buffer_list);
+-	return ret;
+ }
+ 
+ /* abort streaming and wait for last buffer */
+@@ -965,7 +921,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	isi->pdata = pdata;
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+-	init_waitqueue_head(&isi->vsync_wq);
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+ 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ 
 -- 
-1.8.1.2
-
+1.8.3.2
 
