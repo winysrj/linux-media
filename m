@@ -1,85 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33018 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576Ab3LXJzE (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44086 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461Ab3LKQHt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 04:55:04 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYB0059227P2120@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 Dec 2013 09:55:01 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MYB003TH27O6V90@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 Dec 2013 09:55:01 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
+	Wed, 11 Dec 2013 11:07:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v3.14] mem2mem patches
-Date: Tue, 24 Dec 2013 10:55:00 +0100
-Message-id: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 3/7] v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
+Date: Wed, 11 Dec 2013 17:07:41 +0100
+Message-Id: <1386778065-14135-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 7d459937dc09bb8e448d9985ec4623779427d8a5:
+The PCLK and MCK clocks are prepared and unprepared at probe and remove
+time. Clock (un)preparation isn't needed before enabling/disabling the
+clocks, and the enable/disable operation happen in non-atomic context.
+We can thus defer (un)preparation to enable/disable time.
 
-  [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21 07:01:36
--0200)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c | 35 ++++++---------------------
+ 1 file changed, 8 insertions(+), 27 deletions(-)
 
-are available in the git repository at:
-
-  git://linuxtv.org/kdebski/media.git master
-
-for you to fetch changes up to 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
-
-  s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27 +0100)
-
-----------------------------------------------------------------
-Arun Kumar K (1):
-      s5p-mfc: Add QP setting support for vp8 encoder
-
-Kiran AVND (1):
-      s5p-mfc: Add controls to set vp8 enc profile
-
-Marek Szyprowski (1):
-      media: s5p_mfc: remove s5p_mfc_get_node_type() function
-
-Shaik Ameer Basha (4):
-      exynos-scaler: Add new driver for Exynos5 SCALER
-      exynos-scaler: Add core functionality for the SCALER driver
-      exynos-scaler: Add m2m functionality for the SCALER driver
-      exynos-scaler: Add DT bindings for SCALER driver
-
- Documentation/DocBook/media/v4l/controls.xml       |   41 +
- .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos-scaler/Makefile      |    3 +
- drivers/media/platform/exynos-scaler/scaler-m2m.c  |  787 +++++++++++++
- drivers/media/platform/exynos-scaler/scaler-regs.c |  336 ++++++
- drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
- drivers/media/platform/exynos-scaler/scaler.c      | 1238
-++++++++++++++++++++
- drivers/media/platform/exynos-scaler/scaler.h      |  375 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   28 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   14 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   55 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   26 +-
- drivers/media/v4l2-core/v4l2-ctrls.c               |    5 +
- include/uapi/linux/v4l2-controls.h                 |    5 +
- 16 files changed, 3241 insertions(+), 34 deletions(-)
- create mode 100644
-Documentation/devicetree/bindings/media/exynos5-scaler.txt
- create mode 100644 drivers/media/platform/exynos-scaler/Makefile
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index faa7f8d..ea8816c 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -721,13 +721,13 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+-	ret = clk_enable(isi->pclk);
++	ret = clk_prepare_enable(isi->pclk);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = clk_enable(isi->mck);
++	ret = clk_prepare_enable(isi->mck);
+ 	if (ret) {
+-		clk_disable(isi->pclk);
++		clk_disable_unprepare(isi->pclk);
+ 		return ret;
+ 	}
+ 
+@@ -739,8 +739,8 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ {
+ 	struct atmel_isi *isi = ici->priv;
+ 
+-	clk_disable(isi->mck);
+-	clk_disable(isi->pclk);
++	clk_disable_unprepare(isi->mck);
++	clk_disable_unprepare(isi->pclk);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -869,9 +869,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ 
+-	clk_unprepare(isi->mck);
+-	clk_unprepare(isi->pclk);
+-
+ 	return 0;
+ }
+ 
+@@ -902,10 +899,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	ret = clk_prepare(isi->pclk);
+-	if (ret)
+-		return ret;
+-
+ 	isi->pdata = pdata;
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+@@ -916,27 +909,21 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	isi->mck = devm_clk_get(dev, "isi_mck");
+ 	if (IS_ERR(isi->mck)) {
+ 		dev_err(dev, "Failed to get isi_mck\n");
+-		ret = PTR_ERR(isi->mck);
+-		goto err_clk_get_mck;
++		return PTR_ERR(isi->mck);
+ 	}
+ 
+-	ret = clk_prepare(isi->mck);
+-	if (ret)
+-		goto err_clk_prepare_mck;
+-
+ 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+ 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+ 	if (ret < 0)
+-		goto err_set_mck_rate;
++		return ret;
+ 
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 				&isi->fb_descriptors_phys,
+ 				GFP_KERNEL);
+ 	if (!isi->p_fb_descriptors) {
+-		ret = -ENOMEM;
+ 		dev_err(&pdev->dev, "Can't allocate descriptors!\n");
+-		goto err_alloc_descriptors;
++		return -ENOMEM;
+ 	}
+ 
+ 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
+@@ -1002,12 +989,6 @@ err_alloc_ctx:
+ 			sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+-err_alloc_descriptors:
+-err_set_mck_rate:
+-	clk_unprepare(isi->mck);
+-err_clk_prepare_mck:
+-err_clk_get_mck:
+-	clk_unprepare(isi->pclk);
+ 
+ 	return ret;
+ }
+-- 
+1.8.3.2
 
