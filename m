@@ -1,111 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4072 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab3LQDdw (ORCPT
+Received: from mail-we0-f173.google.com ([74.125.82.173]:39388 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996Ab3LKQ5Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 22:33:52 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBH3XnLb084450
-	for <linux-media@vger.kernel.org>; Tue, 17 Dec 2013 04:33:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E67272A2226
-	for <linux-media@vger.kernel.org>; Tue, 17 Dec 2013 04:33:34 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131217033334.E67272A2226@tschai.lan>
-Date: Tue, 17 Dec 2013 04:33:34 +0100 (CET)
+	Wed, 11 Dec 2013 11:57:24 -0500
+Received: by mail-we0-f173.google.com with SMTP id u57so6892565wes.32
+        for <linux-media@vger.kernel.org>; Wed, 11 Dec 2013 08:57:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20131211060921.GA4772@ubuntu>
+References: <20131211060921.GA4772@ubuntu>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 11 Dec 2013 22:27:02 +0530
+Message-ID: <CA+V-a8uAYZxKrG54-mq-obBJEtexrEfs11ScV98wZD4ec16yFQ@mail.gmail.com>
+Subject: Re: [PATCH v3] staging: media: davinci_vpfe: Rewrite return statement
+ in vpfe_video.c
+To: Lisa Nguyen <lisa@xenapiadmin.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Lisa,
 
-Results of the daily build of media_tree:
+Thanks for the patch.
 
-date:		Tue Dec 17 04:00:30 CET 2013
-git branch:	test
-git hash:	675722b0e3917c6c917f1aa5f6d005cd3a0479f5
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+On Wed, Dec 11, 2013 at 11:39 AM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+> Rewrite the return statement in vpfe_video.c. This will prevent
+> the checkpatch.pl script from generating a warning saying
+> to remove () from this particular return statement.
+>
+> Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12-i686: WARNINGS
-linux-3.13-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Detailed results are available here:
+Will be queueing it for 3.14.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Regrads,
+--Prabhakar Lad
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> ---
+> Changes since v3:
+> - Removed () from return statement per Laurent Pinchart's suggestion
+>
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 24d98a6..3b036be 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -346,7 +346,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+>         }
+>         mutex_unlock(&mdev->graph_mutex);
+>
+> -       return (ret == 0) ? ret : -ETIMEDOUT ;
+> +       return ret ? -ETIMEDOUT : 0;
+>  }
+>
+>  /*
+> --
+> 1.7.9.5
+>
