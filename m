@@ -1,39 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52680 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44079 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab3LXMcV (ORCPT
+	with ESMTP id S1750759Ab3LKQHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 07:32:21 -0500
+	Wed, 11 Dec 2013 11:07:48 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 0/3] OMAP3 ISP: Handle CCDC SBL idle failures gracefully
-Date: Tue, 24 Dec 2013 13:32:41 +0100
-Message-Id: <1387888364-21631-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 0/7] Atmel ISI fixes and improvements
+Date: Wed, 11 Dec 2013 17:07:38 +0100
+Message-Id: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-This patch set lets the driver recover from a CCDC SBL idle failure. When such
-a condition is detected all subsequent buffers will be marked as erroneous and
-the ISP will be reset the next time it gets released by userspace. Pipelines
-containing the CCDC will fail to start in the meantime.
+Here's the second version of a set of miscellaneous fixes and improvement
+patches for the atmel-isi driver. Please see individual commit messages for
+more information.
 
-SBL idle failures should not occur during normal operation but have been
-noticed with noisy sensor sync signals.
+Patch 5/7 makes the MCK clock optional. The goal is to remove it completely,
+but we first need to port boards to the new clock handling mechanism. The
+patch in itself will not have any effect until then, but getting it in v3.14
+will help with dependency management for arch/ changes in the next kernel
+versions.
 
-Laurent Pinchart (3):
-  omap3isp: Cancel streaming when a fatal error occurs
-  omap3isp: Refactor modules stop failure handling
-  omap3isp: ccdc: Don't hang when the SBL fails to become idle
+Josh told me he isn't planning to send a pull request for the atmel-isi driver
+for v3.14 so I'll send one with this series in a couple of days.
 
- drivers/media/platform/omap3isp/isp.c      | 53 ++++++++++++++++++++++--------
- drivers/media/platform/omap3isp/isp.h      |  3 ++
- drivers/media/platform/omap3isp/ispccdc.c  |  2 ++
- drivers/media/platform/omap3isp/ispvideo.c | 46 ++++++++++++++++++++++++++
- drivers/media/platform/omap3isp/ispvideo.h |  2 ++
- 5 files changed, 92 insertions(+), 14 deletions(-)
+Changes compared to v1:
+
+- Added patches 6/7 and 7/7
+- Rebased on the latest linuxtv master branch
+
+Josh Wu (2):
+  v4l: atmel-isi: remove SOF wait in start_streaming()
+  v4l: atmel-isi: Should clear bits before set the hardware register
+
+Laurent Pinchart (5):
+  v4l: atmel-isi: Use devm_* managed allocators
+  v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
+  v4l: atmel-isi: Reset the ISI when starting the stream
+  v4l: atmel-isi: Make the MCK clock optional
+  v4l: atmel-isi: Fix color component ordering
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 179 ++++++++------------------
+ include/media/atmel-isi.h                     |   2 +
+ 2 files changed, 55 insertions(+), 126 deletions(-)
 
 -- 
 Regards,
