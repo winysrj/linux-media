@@ -1,107 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq2.gn.mail.iss.as9143.net ([212.54.34.165]:54204 "EHLO
-	smtpq2.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751491Ab3L3KqN (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2516 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750864Ab3LKHaT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 05:46:13 -0500
-Received: from [212.54.34.136] (helo=smtp5.gn.mail.iss.as9143.net)
-	by smtpq2.gn.mail.iss.as9143.net with esmtp (Exim 4.71)
-	(envelope-from <rudy@grumpydevil.homelinux.org>)
-	id 1VxZoK-00056S-KI
-	for linux-media@vger.kernel.org; Mon, 30 Dec 2013 11:11:00 +0100
-Received: from 5ed67808.cm-7-7b.dynamic.ziggo.nl ([94.214.120.8] helo=imail.office.romunt.nl)
-	by smtp5.gn.mail.iss.as9143.net with esmtp (Exim 4.71)
-	(envelope-from <rudy@grumpydevil.homelinux.org>)
-	id 1VxZoK-0002vb-5j
-	for linux-media@vger.kernel.org; Mon, 30 Dec 2013 11:11:00 +0100
-Received: from [192.168.1.15] (cenedra.office.romunt.nl [192.168.1.15])
-	by imail.office.romunt.nl (8.14.4/8.14.4/Debian-4) with ESMTP id rBUAAvU6023878
-	for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 11:10:58 +0100
-Message-ID: <52C146AC.6050208@grumpydevil.homelinux.org>
-Date: Mon, 30 Dec 2013 11:10:52 +0100
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+	Wed, 11 Dec 2013 02:30:19 -0500
+Message-ID: <52A81476.6020207@xs4all.nl>
+Date: Wed, 11 Dec 2013 08:29:58 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Digital Devices Cine S2 V6.5, PCIe, Dual
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Wade Farnsworth <wade_farnsworth@mentor.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l2-dev: Add tracepoints for QBUF and DQBUF
+References: <52614DB9.8090908@mentor.com> <528FB50C.6060909@mentor.com> <529090A9.7030505@xs4all.nl> <5290D826.5080308@gmail.com> <5290DDD8.7070305@xs4all.nl> <20131210185359.49f3f020@samsung.com>
+In-Reply-To: <20131210185359.49f3f020@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear List,
+On 12/10/2013 09:53 PM, Mauro Carvalho Chehab wrote:
+> Em Sat, 23 Nov 2013 17:54:48 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 11/23/2013 05:30 PM, Sylwester Nawrocki wrote:
+>>> Hi,
+>>>
+>>> On 11/23/2013 12:25 PM, Hans Verkuil wrote:
+>>>> Hi Wade,
+>>>>
+>>>> On 11/22/2013 08:48 PM, Wade Farnsworth wrote:
+>>>>> Add tracepoints to the QBUF and DQBUF ioctls to enable rudimentary
+>>>>> performance measurements using standard kernel tracers.
+>>>>>
+>>>>> Signed-off-by: Wade Farnsworth<wade_farnsworth@mentor.com>
+>>>>> ---
+>>>>>
+>>>>> This is the update to the RFC patch I posted a few weeks back.  I've added
+>>>>> several bits of metadata to the tracepoint output per Mauro's suggestion.
+>>>>
+>>>> I don't like this. All v4l2 ioctls can already be traced by doing e.g.
+>>>> echo 1 (or echo 2)>/sys/class/video4linux/video0/debug.
+>>>>
+>>>> So this code basically duplicates that functionality. It would be nice to be able
+>>>> to tie in the existing tracing code (v4l2-ioctl.c) into tracepoints.
+>>>
+>>> I think it would be really nice to have this kind of support for standard
+>>> traces at the v4l2 subsystem. Presumably it could even gradually replace
+>>> the v4l2 custom debug infrastructure.
+>>>
+>>> If I understand things correctly, the current tracing/profiling 
+>>> infrastructure
+>>> is much less invasive than inserting printks all over, which may cause 
+>>> changes
+>>> in control flow. I doubt the system could be reliably profiled by 
+>>> enabling all
+>>> those debug prints.
+>>>
+>>> So my vote would be to add support for standard tracers, like in other
+>>> subsystems in the kernel.
+>>
+>> The reason for the current system is to trace which ioctls are called in
+>> what order by a misbehaving application. It's very useful for that,
+>> especially when trying to debug user problems.
+>>
+>> I don't mind switching to tracepoints as long as this functionality is
+>> kept one way or another.
+> 
+> I agree with Sylwester: we should move to tracepoints, and this is a good
+> start.
 
-I have a DVB card as mentioned in the subject
+As I mentioned, I don't mind switching to tracepoints, but not in the way the
+current patch does it. I certainly don't agree with you merging this patch
+as-is without further discussion.
 
-03:00.0 Multimedia controller [0480]: Device [dd01:0003]
-         Subsystem: Device [dd01:0021]
-         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx+
-         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-         Interrupt: pin A routed to IRQ 17
-         Region 0: Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
-         Capabilities: [50] Power Management version 3
-                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-         Capabilities: [90] Express (v2) Endpoint, MSI 00
-                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
-<64ns, L1 <1us
-                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
-                 DevCtl: Report errors: Correctable- Non-Fatal+ Fatal+ 
-Unsupported+
-                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-                         MaxPayload 128 bytes, MaxReadReq 512 bytes
-                 DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- 
-AuxPwr- TransPend-
-                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s, 
-Latency L0 unlimited, L1 <1us
-                         ClockPM- Surprise- LLActRep- BwNot-
-                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
-CommClk+
-                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
-DLActive- BWMgmt- ABWMgmt-
-                 DevCap2: Completion Timeout: Range A, TimeoutDis+
-                 DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis+
-                 LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- 
-SpeedDis-, Selectable De-emphasis: -6dB
-                          Transmit Margin: Normal Operating Range, 
-EnterModifiedCompliance- ComplianceSOS-
-                          Compliance De-emphasis: -6dB
-                 LnkSta2: Current De-emphasis Level: -6dB
-         Capabilities: [100 v1] Vendor Specific Information: ID=0000 
-Rev=0 Len=00c <?>
-         Kernel driver in use: DDBridge
-         Kernel modules: ddbridge
+To make it official:
 
-Kernel 3.12.3 sees the device, but does not enable it. Only the ddbridge 
-driver is loaded, none of the tuner/demod drivers:
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-root@mythtest:~# lsmod
-Module                  Size  Used by
-ddbridge               17766  0
+If we do tracepoints, then we do it right and for all ioctls, not in this
+half-baked manner.
 
-Nor, judging from dmesg output, is the firmware loaded:
-[    1.624996] Digital Devices PCIE bridge driver, Copyright (C) 2010-11 
-Digital Devices GmbH
-[    1.652565] pci 0000:01:19.0: enabling device (0000 -> 0002)
-[    1.677601] DDBridge driver detected: Digital Devices PCIe bridge
-[    1.683598] HW ffffffff FW ffffffff
-[    2.160410] Adding 2097148k swap on /dev/sda3.  Priority:-1 extents:1 
-across:2097148k
-[    2.190386] Switched to clocksource tsc
+Please revert.
 
+Regards,
 
-What is the best kernel to have this dvb-card working?
-Or, alternatively, the best combination of kernel version and 
-out-of-kernel stack?
-
-
-Thanks,
-
-
-Rudy
-
-
-
+	Hans
