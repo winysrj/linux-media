@@ -1,92 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41887 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753813Ab3LNQQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 11:16:24 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44084 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570Ab3LKQHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Dec 2013 11:07:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v2 5/7] v4l: add stream format for SDR receiver
-Date: Sat, 14 Dec 2013 18:15:27 +0200
-Message-Id: <1387037729-1977-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
-References: <1387037729-1977-1-git-send-email-crope@iki.fi>
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 6/7] v4l: atmel-isi: Fix color component ordering
+Date: Wed, 11 Dec 2013 17:07:44 +0100
+Message-Id: <1386778065-14135-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
-for SDR receiver.
+The ISI_CFG2.YCC_SWAP field controls color component ordering. The
+datasheet lists the following orderings for the memory formats.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+YCC_SWAP	Byte 0	Byte 1	Byte 2	Byte 3
+00: Default	Cb(i)	Y(i)	Cr(i)	Y(i+1)
+01: Mode1	Cr(i)	Y(i)	Cb(i)	Y(i+1)
+10: Mode2	Y(i)	Cb(i)	Y(i+1)	Cr(i)
+11: Mode3	Y(i)	Cr(i)	Y(i+1)	Cb(i)
+
+This is based on a sensor format set to CbYCrY (UYVY). The driver
+hardcodes the output memory format to YUYV, configure the ordering
+accordingly.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 11 +++++++++++
- 3 files changed, 13 insertions(+)
+ drivers/media/platform/soc_camera/atmel-isi.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 6b72bd8..edb0a4c 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -149,6 +149,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
-+	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index ef94eca..b9bb1f2 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -18,6 +18,7 @@
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
- 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
-+		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
- 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
- 
- #define show_field(field)						\
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 619f83f..52c570e 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -139,6 +139,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -1703,6 +1704,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
-+ */
-+struct v4l2_format_sdr {
-+	__u32				pixelformat;
-+	__u8				reserved[28];
-+} __attribute__ ((packed));
-+
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1720,6 +1730,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 3e8d412..9c4cadc 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -112,16 +112,16 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+ 	case V4L2_MBUS_FMT_Y8_1X8:
+ 		cr = ISI_CFG2_GRAYSCALE;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_2X8:
++	case V4L2_MBUS_FMT_VYUY8_2X8:
+ 		cr = ISI_CFG2_YCC_SWAP_MODE_3;
+ 		break;
+-	case V4L2_MBUS_FMT_VYUY8_2X8:
++	case V4L2_MBUS_FMT_UYVY8_2X8:
+ 		cr = ISI_CFG2_YCC_SWAP_MODE_2;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_2X8:
++	case V4L2_MBUS_FMT_YVYU8_2X8:
+ 		cr = ISI_CFG2_YCC_SWAP_MODE_1;
+ 		break;
+-	case V4L2_MBUS_FMT_YVYU8_2X8:
++	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
+ 		break;
+ 	/* RGB, TODO */
 -- 
-1.8.4.2
+1.8.3.2
 
