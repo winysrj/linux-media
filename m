@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:43385 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab3LCRCv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 12:02:51 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MX8008TFQ0QU520@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Dec 2013 12:02:50 -0500 (EST)
-Date: Tue, 03 Dec 2013 15:02:43 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 01/18] v4l: omap4iss: Add support for OMAP4 camera
- interface - Core
-Message-id: <20131203150243.33a00f58.m.chehab@samsung.com>
-In-reply-to: <1383523603-3907-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1383523603-3907-2-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36384 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab3LKDEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Dec 2013 22:04:23 -0500
+Received: by mail-wi0-f177.google.com with SMTP id cc10so234228wib.4
+        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 19:04:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CANnVQS1xg25VpaoU6W=rpC+HgyqaKLwnL4VcQ3FKN0q1r11h-Q@mail.gmail.com>
+References: <20131210160541.GA15282@ubuntu> <2939201.P8qvUzaVN6@avalon> <CANnVQS1xg25VpaoU6W=rpC+HgyqaKLwnL4VcQ3FKN0q1r11h-Q@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 11 Dec 2013 08:34:02 +0530
+Message-ID: <CA+V-a8si3Yetnrok4CuCY3C2opmSz8U6fFXyyg_dR22XMZo-vA@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: media: davinci_vpfe: Rewrite return statement
+ in vpfe_video.c
+To: Lisa Nguyen <lisa@xenapiadmin.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  4 Nov 2013 01:06:26 +0100
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Lisa,
 
-> From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> 
-> This adds a very simplistic driver to utilize the CSI2A interface inside
-> the ISS subsystem in OMAP4, and dump the data to memory.
-> 
-> Check Documentation/video4linux/omap4_camera.txt for details.
-> 
-> This commit adds the driver core, registers definitions and
-> documentation.
-> 
-> Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> 
-> [Port the driver to v3.12-rc3, including the following changes
-> - Don't include plat/ headers
-> - Don't use cpu_is_omap44xx() macro
-> - Don't depend on EXPERIMENTAL
-> - Fix s_crop operation prototype
-> - Update link_notify prototype
-> - Rename media_entity_remote_source to media_entity_remote_pad]
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/video4linux/omap4_camera.txt |   60 ++
->  drivers/staging/media/omap4iss/iss.c       | 1477 ++++++++++++++++++++++++++++
->  drivers/staging/media/omap4iss/iss.h       |  153 +++
->  drivers/staging/media/omap4iss/iss_regs.h  |  883 +++++++++++++++++
->  include/media/omap4iss.h                   |   65 ++
->  5 files changed, 2638 insertions(+)
->  create mode 100644 Documentation/video4linux/omap4_camera.txt
->  create mode 100644 drivers/staging/media/omap4iss/iss.c
->  create mode 100644 drivers/staging/media/omap4iss/iss.h
->  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
->  create mode 100644 include/media/omap4iss.h
-> 
+On Tue, Dec 10, 2013 at 11:27 PM, Lisa Nguyen <lisa@xenapiadmin.com> wrote:
+> Hi Laurent,
+>
+> On Tue, Dec 10, 2013 at 8:50 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Lisa,
+>>
+>> Thank you for the patch.
+>>
+>> On Tuesday 10 December 2013 08:05:42 Lisa Nguyen wrote:
+>>> Rewrite the return statement in vpfe_video.c to eliminate the
+>>> use of a ternary operator. This will prevent the checkpatch.pl
+>>> script from generating a warning saying to remove () from
+>>> this particular return statement.
+>>>
+>>> Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
+>>> ---
+>>> Changes since v2:
+>>> - Aligned -ETIMEDOUT return statement with if condition
+>>>
+>>>  drivers/staging/media/davinci_vpfe/vpfe_video.c |    5 ++++-
+>>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>>> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 24d98a6..22e31d2
+>>> 100644
+>>> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>>> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>>> @@ -346,7 +346,10 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline
+>>> *pipe) }
+>>>       mutex_unlock(&mdev->graph_mutex);
+>>>
+>>> -     return (ret == 0) ? ret : -ETIMEDOUT ;
+>>> +     if (ret == 0)
+>>> +             return ret;
+>>> +
+>>> +     return -ETIMEDOUT;
+>>
+>> I don't want to point the obvious, but what about just
+>>
+>>         return ret ? -ETIMEDOUT : 0;
+>>
+>> or, if this is just about fixing the checkpatch.pl warning,
+>>
+>>         return ret == 0 ? ret : -ETIMEDOUT;
+>>
+>> (I'd prefer the first)
+>
+> I understand your point :) I was making changes based on Prabhakar's
+> feedback he gave me a while back[1].
+>
+Please go ahead as per Laurent's suggestion.
 
-...
-
-> +	/*
-> +	 * atomic_set() doesn't include memory barrier on ARM platform for SMP
-> +	 * scenario. We'll call it here to avoid race conditions.
-> +	 */
-> +	atomic_set(stopping, 1);
-> +	smp_wmb();
-
-Hmm... if atomic_set() is broken on ARM, you should be fixing its
-implementation, and not adding any hacks like the above on all places
-where atomic ops are needed.
-
--- 
-
-Cheers,
-Mauro
+Thanks,
+--Prabhakar Lad
