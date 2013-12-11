@@ -1,303 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:63364 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758294Ab3LFN01 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 08:26:27 -0500
-Received: by mail-ve0-f179.google.com with SMTP id jw12so737470veb.38
-        for <linux-media@vger.kernel.org>; Fri, 06 Dec 2013 05:26:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1386325034-19344-12-git-send-email-hverkuil@xs4all.nl>
-References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
-	<1386325034-19344-12-git-send-email-hverkuil@xs4all.nl>
-Date: Fri, 6 Dec 2013 09:26:26 -0400
-Message-ID: <CAC-25o_qxt+AaDQBQDM6TWzJCFBGu0+gMfCirh4GNB_r81A-NQ@mail.gmail.com>
-Subject: Re: [PATCHv2 11/11] si4713: coding style cleanups
-From: "edubezval@gmail.com" <edubezval@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Dino d <Dinesh.Ram@cern.ch>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:38435 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751030Ab3LKXyY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Dec 2013 18:54:24 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 3/4] v4l: add new tuner types for SDR
+Date: Thu, 12 Dec 2013 01:54:02 +0200
+Message-Id: <1386806043-5331-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1386806043-5331-1-git-send-email-crope@iki.fi>
+References: <1386806043-5331-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 6, 2013 at 6:17 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Fix most checkpatch errors/warnings.
->
-> It's mostly whitespace changes, except for replacing msleep with
-> usleep_range and the jiffies comparison with time_is_after_jiffies().
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_SDR for SDR usage.
 
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+ADC is used for setting sampling rate (sampling frequency) to SDR
+device.
 
-> ---
->  drivers/media/radio/si4713/radio-usb-si4713.c |   4 +-
->  drivers/media/radio/si4713/si4713.c           | 104 +++++++++++++-------------
->  2 files changed, 55 insertions(+), 53 deletions(-)
->
-> diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-> index d978844..691e487 100644
-> --- a/drivers/media/radio/si4713/radio-usb-si4713.c
-> +++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-> @@ -207,7 +207,7 @@ static int si4713_send_startup_command(struct si4713_usb_device *radio)
->                 }
->                 if (time_is_before_jiffies(until_jiffies))
->                         return -EIO;
-> -               msleep(3);
-> +               usleep_range(3000, 5000);
->         }
->
->         return retval;
-> @@ -354,7 +354,7 @@ static int si4713_i2c_read(struct si4713_usb_device *radio, char *data, int len)
->                         data[0] = 0;
->                         return 0;
->                 }
-> -               msleep(3);
-> +               usleep_range(3000, 5000);
->         }
->  }
->
-> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-> index 6f28a2b..451b9c0 100644
-> --- a/drivers/media/radio/si4713/si4713.c
-> +++ b/drivers/media/radio/si4713/si4713.c
-> @@ -50,12 +50,12 @@ MODULE_VERSION("0.0.1");
->  #define DEFAULT_RDS_PS_REPEAT_COUNT    0x0003
->  #define DEFAULT_LIMITER_RTIME          0x1392
->  #define DEFAULT_LIMITER_DEV            0x102CA
-> -#define DEFAULT_PILOT_FREQUENCY        0x4A38
-> +#define DEFAULT_PILOT_FREQUENCY                0x4A38
->  #define DEFAULT_PILOT_DEVIATION                0x1A5E
->  #define DEFAULT_ACOMP_ATIME            0x0000
->  #define DEFAULT_ACOMP_RTIME            0xF4240L
->  #define DEFAULT_ACOMP_GAIN             0x0F
-> -#define DEFAULT_ACOMP_THRESHOLD        (-0x28)
-> +#define DEFAULT_ACOMP_THRESHOLD                (-0x28)
->  #define DEFAULT_MUTE                   0x01
->  #define DEFAULT_POWER_LEVEL            88
->  #define DEFAULT_FREQUENCY              8800
-> @@ -252,8 +252,8 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
->
->                 if (client->irq)
->                         return -EBUSY;
-> -               msleep(1);
-> -       } while (jiffies <= until_jiffies);
-> +               usleep_range(1000, 2000);
-> +       } while (time_is_after_jiffies(until_jiffies));
->
->         return -EBUSY;
->  }
-> @@ -269,9 +269,9 @@ static int si4713_read_property(struct si4713_device *sdev, u16 prop, u32 *pv)
->         int err;
->         u8 val[SI4713_GET_PROP_NRESP];
->         /*
-> -        *      .First byte = 0
-> -        *      .Second byte = property's MSB
-> -        *      .Third byte = property's LSB
-> +        *      .First byte = 0
-> +        *      .Second byte = property's MSB
-> +        *      .Third byte = property's LSB
->          */
->         const u8 args[SI4713_GET_PROP_NARGS] = {
->                 0x00,
-> @@ -306,11 +306,11 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
->         int rval;
->         u8 resp[SI4713_SET_PROP_NRESP];
->         /*
-> -        *      .First byte = 0
-> -        *      .Second byte = property's MSB
-> -        *      .Third byte = property's LSB
-> -        *      .Fourth byte = value's MSB
-> -        *      .Fifth byte = value's LSB
-> +        *      .First byte = 0
-> +        *      .Second byte = property's MSB
-> +        *      .Third byte = property's LSB
-> +        *      .Fourth byte = value's MSB
-> +        *      .Fifth byte = value's LSB
->          */
->         const u8 args[SI4713_SET_PROP_NARGS] = {
->                 0x00,
-> @@ -352,8 +352,8 @@ static int si4713_powerup(struct si4713_device *sdev)
->         int err;
->         u8 resp[SI4713_PWUP_NRESP];
->         /*
-> -        *      .First byte = Enabled interrupts and boot function
-> -        *      .Second byte = Input operation mode
-> +        *      .First byte = Enabled interrupts and boot function
-> +        *      .Second byte = Input operation mode
->          */
->         u8 args[SI4713_PWUP_NARGS] = {
->                 SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-> @@ -505,18 +505,18 @@ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
->                 }
->                 if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
->                         return err < 0 ? err : -EIO;
-> -               /* We sleep here for 3 ms in order to avoid flooding the device
-> +               /* We sleep here for 3-4 ms in order to avoid flooding the device
->                  * with USB requests. The si4713 USB driver was developed
->                  * by reverse engineering the Windows USB driver. The windows
->                  * driver also has a ~2.5 ms delay between responses. */
-> -               msleep(3);
-> +               usleep_range(3000, 4000);
->         }
->  }
->
->  /*
->   * si4713_tx_tune_freq - Sets the state of the RF carrier and sets the tuning
-> - *                     frequency between 76 and 108 MHz in 10 kHz units and
-> - *                     steps of 50 kHz.
-> + *                     frequency between 76 and 108 MHz in 10 kHz units and
-> + *                     steps of 50 kHz.
->   * @sdev: si4713_device structure for the device we are communicating
->   * @frequency: desired frequency (76 - 108 MHz, unit 10 KHz, step 50 kHz)
->   */
-> @@ -525,9 +525,9 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
->         int err;
->         u8 val[SI4713_TXFREQ_NRESP];
->         /*
-> -        *      .First byte = 0
-> -        *      .Second byte = frequency's MSB
-> -        *      .Third byte = frequency's LSB
-> +        *      .First byte = 0
-> +        *      .Second byte = frequency's MSB
-> +        *      .Third byte = frequency's LSB
->          */
->         const u8 args[SI4713_TXFREQ_NARGS] = {
->                 0x00,
-> @@ -555,11 +555,11 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
->
->  /*
->   * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
-> - *                     1 dB units. A value of 0x00 indicates off. The command
-> - *                     also sets the antenna tuning capacitance. A value of 0
-> - *                     indicates autotuning, and a value of 1 - 191 indicates
-> - *                     a manual override, which results in a tuning
-> - *                     capacitance of 0.25 pF x @antcap.
-> + *                     1 dB units. A value of 0x00 indicates off. The command
-> + *                     also sets the antenna tuning capacitance. A value of 0
-> + *                     indicates autotuning, and a value of 1 - 191 indicates
-> + *                     a manual override, which results in a tuning
-> + *                     capacitance of 0.25 pF x @antcap.
->   * @sdev: si4713_device structure for the device we are communicating
->   * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
->   * @antcap: value of antenna tuning capacitor (0 - 191)
-> @@ -570,10 +570,10 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
->         int err;
->         u8 val[SI4713_TXPWR_NRESP];
->         /*
-> -        *      .First byte = 0
-> -        *      .Second byte = 0
-> -        *      .Third byte = power
-> -        *      .Fourth byte = antcap
-> +        *      .First byte = 0
-> +        *      .Second byte = 0
-> +        *      .Third byte = power
-> +        *      .Fourth byte = antcap
->          */
->         u8 args[SI4713_TXPWR_NARGS] = {
->                 0x00,
-> @@ -602,12 +602,12 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
->
->  /*
->   * si4713_tx_tune_measure - Enters receive mode and measures the received noise
-> - *                     level in units of dBuV on the selected frequency.
-> - *                     The Frequency must be between 76 and 108 MHz in 10 kHz
-> - *                     units and steps of 50 kHz. The command also sets the
-> - *                     antenna tuning capacitance. A value of 0 means
-> - *                     autotuning, and a value of 1 to 191 indicates manual
-> - *                     override.
-> + *                     level in units of dBuV on the selected frequency.
-> + *                     The Frequency must be between 76 and 108 MHz in 10 kHz
-> + *                     units and steps of 50 kHz. The command also sets the
-> + *                     antenna tuning capacitance. A value of 0 means
-> + *                     autotuning, and a value of 1 to 191 indicates manual
-> + *                     override.
->   * @sdev: si4713_device structure for the device we are communicating
->   * @frequency: desired frequency (76 - 108 MHz, unit 10 KHz, step 50 kHz)
->   * @antcap: value of antenna tuning capacitor (0 - 191)
-> @@ -618,10 +618,10 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
->         int err;
->         u8 val[SI4713_TXMEA_NRESP];
->         /*
-> -        *      .First byte = 0
-> -        *      .Second byte = frequency's MSB
-> -        *      .Third byte = frequency's LSB
-> -        *      .Fourth byte = antcap
-> +        *      .First byte = 0
-> +        *      .Second byte = frequency's MSB
-> +        *      .Third byte = frequency's LSB
-> +        *      .Fourth byte = antcap
->          */
->         const u8 args[SI4713_TXMEA_NARGS] = {
->                 0x00,
-> @@ -651,11 +651,11 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
->
->  /*
->   * si4713_tx_tune_status- Returns the status of the tx_tune_freq, tx_tune_mea or
-> - *                     tx_tune_power commands. This command return the current
-> - *                     frequency, output voltage in dBuV, the antenna tunning
-> - *                     capacitance value and the received noise level. The
-> - *                     command also clears the stcint interrupt bit when the
-> - *                     first bit of its arguments is high.
-> + *                     tx_tune_power commands. This command return the current
-> + *                     frequency, output voltage in dBuV, the antenna tunning
-> + *                     capacitance value and the received noise level. The
-> + *                     command also clears the stcint interrupt bit when the
-> + *                     first bit of its arguments is high.
->   * @sdev: si4713_device structure for the device we are communicating
->   * @intack: 0x01 to clear the seek/tune complete interrupt status indicator.
->   * @frequency: returned frequency
-> @@ -670,7 +670,7 @@ static int si4713_tx_tune_status(struct si4713_device *sdev, u8 intack,
->         int err;
->         u8 val[SI4713_TXSTATUS_NRESP];
->         /*
-> -        *      .First byte = intack bit
-> +        *      .First byte = intack bit
->          */
->         const u8 args[SI4713_TXSTATUS_NARGS] = {
->                 intack & SI4713_INTACK_MASK,
-> @@ -1364,7 +1364,7 @@ static int si4713_probe(struct i2c_client *client,
->         struct v4l2_ctrl_handler *hdl;
->         int rval, i;
->
-> -       sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
-> +       sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
->         if (!sdev) {
->                 dev_err(&client->dev, "Failed to alloc video device.\n");
->                 rval = -ENOMEM;
-> @@ -1440,8 +1440,8 @@ static int si4713_probe(struct i2c_client *client,
->                         V4L2_CID_AUDIO_COMPRESSION_GAIN, 0, MAX_ACOMP_GAIN, 1,
->                         DEFAULT_ACOMP_GAIN);
->         sdev->compression_threshold = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-> -                       V4L2_CID_AUDIO_COMPRESSION_THRESHOLD, MIN_ACOMP_THRESHOLD,
-> -                       MAX_ACOMP_THRESHOLD, 1,
-> +                       V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-> +                       MIN_ACOMP_THRESHOLD, MAX_ACOMP_THRESHOLD, 1,
->                         DEFAULT_ACOMP_THRESHOLD);
->         sdev->compression_attack_time = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
->                         V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME, 0,
-> @@ -1463,9 +1463,11 @@ static int si4713_probe(struct i2c_client *client,
->                         V4L2_CID_TUNE_PREEMPHASIS,
->                         V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
->         sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-> -                       V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
-> +                       V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER,
-> +                       1, DEFAULT_POWER_LEVEL);
->         sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-> -                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
-> +                       V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP,
-> +                       1, 0);
->
->         if (hdl->error) {
->                 rval = hdl->error;
-> --
-> 1.8.4.rc3
->
+Another tuner type, SDR, is possible RF tuner. Is is used to
+down-convert RF frequency to range ADC could sample. It is optional
+for SDR device.
 
+Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+type is SDR (VFL_TYPE_SDR).
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 38 +++++++++++++++++++++++++-----------
+ include/uapi/linux/videodev2.h       |  2 ++
+ 2 files changed, 29 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index bc10684..ee91a9f 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_frequency *p = arg;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
++			return -EINVAL;
++	} else {
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	}
+ 	return ops->vidioc_g_frequency(file, fh, p);
+ }
+ 
+@@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	if (p->type != type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
++			return -EINVAL;
++		type = p->type;
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	return ops->vidioc_s_frequency(file, fh, p);
+ }
+ 
+@@ -1882,11 +1893,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 	int err;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-
+-	if (type != p->type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
++			return -EINVAL;
++		type = p->type;
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	if (ops->vidioc_enum_freq_bands)
+ 		return ops->vidioc_enum_freq_bands(file, fh, p);
+ 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index b8ee9048..6c6a601 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
++	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_SDR               = 5,
+ };
+ 
+ enum v4l2_memory {
 -- 
-Eduardo Bezerra Valentin
+1.8.4.2
+
