@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:34070 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752888Ab3LBXPF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Dec 2013 18:15:05 -0500
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-References: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
-In-reply-to: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
-Subject: [PATCH 15/39] media: pci: remove DEFINE_PCI_DEVICE_TABLE macro
-Date: Tue, 03 Dec 2013 08:15:04 +0900
-Message-id: <002401ceefb4$55175fb0$ff461f10$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from pequod.mess.org ([80.229.237.210]:46866 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133Ab3LKNRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Dec 2013 08:17:53 -0500
+Date: Wed, 11 Dec 2013 13:17:51 +0000
+From: Sean Young <sean@mess.org>
+To: Martin Kittel <linux@martin-kittel.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Patch mceusb: fix invalid urb interval
+Message-ID: <20131211131751.GA434@pequod.mess.org>
+References: <loom.20131110T113621-661@post.gmane.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <loom.20131110T113621-661@post.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't use DEFINE_PCI_DEVICE_TABLE macro, because this macro
-is not preferred.
+On Sun, Nov 10, 2013 at 10:50:45AM +0000, Martin Kittel wrote:
+> Hi,
+> 
+> I had trouble getting my MCE remote control to work on my new Intel
+> mainboard. It was working fine with older boards but with the new board
+> there would be no reply from the remote just after the setup package was
+> received during the init phase.
+> I traced the problem down to the mceusb_dev_recv function where the received
+> urb is resubmitted again. The problem is that my new board is so blazing
+> fast that the initial urb was processed in less than a single 125
+> microsecond interval, so the urb as it was received had urb->interval set to 0.
+> As the urb is just resubmitted as it came in it now had an invalid interval
+> set and was rejected.
+> The patch just resets urb->interval to its initial value and adds some error
+> diagnostics (which would have saved me a lot of time during my analysis).
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/media/pci/cx25821/cx25821-alsa.c |    2 +-
- drivers/media/pci/cx25821/cx25821-core.c |    2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+What mceusb devices is this? Could you provide lsusb -vvv output please?
 
-diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
-index 6e91e84..b1e08c3 100644
---- a/drivers/media/pci/cx25821/cx25821-alsa.c
-+++ b/drivers/media/pci/cx25821/cx25821-alsa.c
-@@ -618,7 +618,7 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
-  * Only boards with eeprom and byte 1 at eeprom=1 have it
-  */
- 
--static DEFINE_PCI_DEVICE_TABLE(cx25821_audio_pci_tbl) = {
-+static const struct pci_device_id cx25821_audio_pci_tbl[] = {
- 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{0,}
- };
-diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
-index b762c5b..e81173c 100644
---- a/drivers/media/pci/cx25821/cx25821-core.c
-+++ b/drivers/media/pci/cx25821/cx25821-core.c
-@@ -1361,7 +1361,7 @@ static void cx25821_finidev(struct pci_dev *pci_dev)
- 	kfree(dev);
- }
- 
--static DEFINE_PCI_DEVICE_TABLE(cx25821_pci_tbl) = {
-+static const struct pci_device_id cx25821_pci_tbl[] = {
- 	{
- 		/* CX25821 Athena */
- 		.vendor = 0x14f1,
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index 77edc11..e5cfb6c 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -1303,7 +1303,7 @@ static int sta2x11_vip_resume(struct pci_dev *pdev)
- 
- #endif
- 
--static DEFINE_PCI_DEVICE_TABLE(sta2x11_vip_pci_tbl) = {
-+static const struct pci_device_id sta2x11_vip_pci_tbl[] = {
- 	{PCI_DEVICE(PCI_VENDOR_ID_STMICRO, PCI_DEVICE_ID_STMICRO_VIP)},
- 	{0,}
- };
--- 
-1.7.10.4
+Also what usb hub are you using? Another user is reporting problems with an
+xhci hub.
 
 
+Sean
