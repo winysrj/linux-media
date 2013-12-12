@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:35149 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab3LVSBe (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:59118 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750989Ab3LLTjB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 13:01:34 -0500
-Received: by mail-ea0-f179.google.com with SMTP id r15so1963604ead.24
-        for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 10:01:33 -0800 (PST)
-Message-ID: <52B7293C.5010206@googlemail.com>
-Date: Sun, 22 Dec 2013 19:02:36 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx DEADLOCK reported by lock debug
-References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <52B6F883.8060103@iki.fi>
-In-Reply-To: <52B6F883.8060103@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Thu, 12 Dec 2013 14:39:01 -0500
+Received: by mail-wg0-f48.google.com with SMTP id z12so943937wgg.27
+        for <linux-media@vger.kernel.org>; Thu, 12 Dec 2013 11:39:00 -0800 (PST)
+Received: from [192.168.1.101] (92.40.97.112.threembb.co.uk. [92.40.97.112])
+        by mx.google.com with ESMTPSA id dn2sm434850wid.1.2013.12.12.11.38.56
+        for <linux-media@vger.kernel.org>
+        (version=SSLv3 cipher=RC4-SHA bits=128/128);
+        Thu, 12 Dec 2013 11:38:59 -0800 (PST)
+Message-ID: <1386877131.9141.1.camel@canaries64-MCP7A>
+Subject: [PATCH] it913x: Add support for Avermedia H335 id 0x0335
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Thu, 12 Dec 2013 19:38:51 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 22.12.2013 15:34, schrieb Antti Palosaari:
-> On 22.12.2013 15:51, Frank Schäfer wrote:
->> Am 21.12.2013 20:55, schrieb Antti Palosaari:
->>> On 21.12.2013 18:51, Frank Schäfer wrote:
->>>> Hi Antti,
->>>>
->>>> thank you for reporting this issue.
->>>>
->>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
->>>>> That same lock debug deadlock is still there (maybe ~4 times I report
->>>>> it during 2 years). Is that possible to fix easily at all?
->>>>
->>>> Patches are always welcome. ;)
->>>
->>> haha, I cannot simply learn every driver I meet some problems...
->> Hint:
->>
->> If you report a bug ~4 times in 2 years but never get a reply, it
->> usually means
->> a) nobody cares
->> b) nobody has the resources (time, knowledge) to fix it.
->>
->> So you either have to live with this issue or to fix it yourself.
->
-> OK, as you request me to fix it, I will fix that by making DVB USB v2
-> driver for these em28xx devices I have added.
->
-> It should not be very much work as em28xx protocol is still relatively
-> easy.
-How would that help to get those lockdep false warnings fixed ?
-Btw: these warnings should appear for _all_ em28xx extensions (dvb,
-input, audio).
 
-Regards,
-Frank
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: stable@vger.kernel.org # v3.11+
+---
+ drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
+ drivers/media/usb/dvb-usb-v2/it913x.c | 3 +++
+ 2 files changed, 4 insertions(+)
 
-
->
-> regards
-> Antti
->
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 4a53454..8407178 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -239,6 +239,7 @@
+ #define USB_PID_AVERMEDIA_A835B_4835			0x4835
+ #define USB_PID_AVERMEDIA_1867				0x1867
+ #define USB_PID_AVERMEDIA_A867				0xa867
++#define USB_PID_AVERMEDIA_H335				0x0335
+ #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index 1cb6899..fe95a58 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -799,6 +799,9 @@ static const struct usb_device_id it913x_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
+ 		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
+ 			RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
++		&it913x_properties, "Avermedia H335",
++			RC_MAP_IT913X_V2) },
+ 	{}		/* Terminating entry */
+ };
+ 
+-- 
+1.8.3.2
 
