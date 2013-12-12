@@ -1,584 +1,346 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33129 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697Ab3LVPuZ (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:53156 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458Ab3LLIgi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 10:50:25 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [RFC PATCHv2] em28xx: split analog part into a separate module
-Date: Sun, 22 Dec 2013 10:47:07 -0200
-Message-Id: <1387716427-582-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 12 Dec 2013 03:36:38 -0500
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>, <k.debski@samsung.com>,
+	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
+CC: <linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH 5/8] v4l: ti-vpe: create a color space converter block library
+Date: Thu, 12 Dec 2013 14:06:01 +0530
+Message-ID: <1386837364-1264-6-git-send-email-archit@ti.com>
+In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
+References: <1386837364-1264-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that dvb-only devices start to happen, it makes sense
-to split the analog part on a separate module.
+VPE and VIP IPs in DAR7x contain a color space converter(CSC) sub block. Create
+a library which will perform CSC related configurations and hold CSC register
+definitions. The functions provided by this library will be called by the vpe
+and vip drivers using a csc_data handle.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+The vpe_dev holds the csc_data handle. The handle represents an instance of the
+CSC hardware, and the vpe driver uses it to access the CSC register offsets or
+helper functions to configure these registers.
 
--
+The CSC register offsets are now relative to the CSC block itself, so we need
+to use the macro GET_OFFSET_TOP to get the CSC register offset relative to the
+VPE IP in the vpe driver.
 
-This is a respin of https://patchwork.linuxtv.org/patch/17967/
-
-v2: add a dev->has_video to signalize if the device has a video interface, and
-    fix some locks
-
-Compile-tested only.
-
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/usb/em28xx/Kconfig        |   6 +-
- drivers/media/usb/em28xx/Makefile       |   5 +-
- drivers/media/usb/em28xx/em28xx-cards.c |  94 ++--------------------
- drivers/media/usb/em28xx/em28xx-core.c  |  12 +++
- drivers/media/usb/em28xx/em28xx-video.c | 133 ++++++++++++++++++++++++++++----
- drivers/media/usb/em28xx/em28xx.h       |  17 ++--
- 6 files changed, 150 insertions(+), 117 deletions(-)
+ drivers/media/platform/ti-vpe/Makefile   |  2 +-
+ drivers/media/platform/ti-vpe/csc.c      | 76 ++++++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/csc.h      | 65 +++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe.c      | 31 ++++++-------
+ drivers/media/platform/ti-vpe/vpe_regs.h | 38 ----------------
+ 5 files changed, 155 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/media/platform/ti-vpe/csc.c
+ create mode 100644 drivers/media/platform/ti-vpe/csc.h
 
-diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
-index d6ba514d31eb..838fc9dbb747 100644
---- a/drivers/media/usb/em28xx/Kconfig
-+++ b/drivers/media/usb/em28xx/Kconfig
-@@ -1,8 +1,12 @@
- config VIDEO_EM28XX
--	tristate "Empia EM28xx USB video capture support"
-+	tristate "Empia EM28xx USB devices support"
- 	depends on VIDEO_DEV && I2C
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
+diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
+index 54c30b3..be680f8 100644
+--- a/drivers/media/platform/ti-vpe/Makefile
++++ b/drivers/media/platform/ti-vpe/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
+ 
+-ti-vpe-y := vpe.o sc.o vpdma.o
++ti-vpe-y := vpe.o sc.o csc.o vpdma.o
+ 
+ ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+new file mode 100644
+index 0000000..62e2fec
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -0,0 +1,76 @@
++/*
++ * Color space converter library
++ *
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
 +
-+config VIDEO_EM28XX_V4L2
-+	tristate "Empia EM28xx analog TV, video capture and/or webcam support"
-+	depends on VIDEO_EM28XX && I2C
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEO_SAA711X if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_TVP5150 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/usb/em28xx/Makefile b/drivers/media/usb/em28xx/Makefile
-index ad6d48557940..3e2b6b54817d 100644
---- a/drivers/media/usb/em28xx/Makefile
-+++ b/drivers/media/usb/em28xx/Makefile
-@@ -1,10 +1,11 @@
--em28xx-y +=	em28xx-video.o em28xx-i2c.o em28xx-cards.o
--em28xx-y +=	em28xx-core.o  em28xx-vbi.o em28xx-camera.o
-+em28xx-y +=	em28xx-core.o em28xx-i2c.o em28xx-cards.o
- 
-+em28xx-v4l-objs := em28xx-video.o em28xx-vbi.o em28xx-camera.o
- em28xx-alsa-objs := em28xx-audio.o
- em28xx-rc-objs := em28xx-input.o
- 
- obj-$(CONFIG_VIDEO_EM28XX) += em28xx.o
-+obj-$(CONFIG_VIDEO_EM28XX_V4L2) += em28xx-v4l.o
- obj-$(CONFIG_VIDEO_EM28XX_ALSA) += em28xx-alsa.o
- obj-$(CONFIG_VIDEO_EM28XX_DVB) += em28xx-dvb.o
- obj-$(CONFIG_VIDEO_EM28XX_RC) += em28xx-rc.o
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 36853f16bf97..e1ffd9c6e79d 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2106,7 +2106,7 @@ struct em28xx_board em28xx_boards[] = {
- 	},
- 	/* 1b80:e1cc Delock 61959
- 	 * Empia EM2874B + Micronas DRX 3913KA2 + NXP TDA18271HDC2
--         * mostly the same as MaxMedia UB-425-TC but different remote */
-+	 * mostly the same as MaxMedia UB-425-TC but different remote */
- 	[EM2874_BOARD_DELOCK_61959] = {
- 		.name          = "Delock 61959",
- 		.tuner_type    = TUNER_ABSENT,
-@@ -2955,11 +2955,12 @@ static void request_module_async(struct work_struct *work)
- 	em28xx_init_extension(dev);
- 
- #if defined(CONFIG_MODULES) && defined(MODULE)
-+	if (!dev->has_video)
-+		request_module("em28xx-v4l2");
- 	if (dev->has_audio_class)
- 		request_module("snd-usb-audio");
- 	else if (dev->has_alsa_audio)
- 		request_module("em28xx-alsa");
--
- 	if (dev->board.has_dvb)
- 		request_module("em28xx-dvb");
- 	if (dev->board.buttons ||
-@@ -2988,8 +2989,6 @@ void em28xx_release_resources(struct em28xx *dev)
- {
- 	/*FIXME: I2C IR should be disconnected */
- 
--	em28xx_release_analog_resources(dev);
--
- 	if (dev->def_i2c_bus)
- 		em28xx_i2c_unregister(dev, 1);
- 	em28xx_i2c_unregister(dev, 0);
-@@ -3014,7 +3013,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			   struct usb_interface *interface,
- 			   int minor)
- {
--	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
- 	int retval;
- 	static const char *default_chip_name = "em28xx";
- 	const char *chip_name = default_chip_name;
-@@ -3141,15 +3139,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
- 
--	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
--	if (retval < 0) {
--		em28xx_errdev("Call to v4l2_device_register() failed!\n");
--		return retval;
--	}
--
--	v4l2_ctrl_handler_init(hdl, 8);
--	dev->v4l2_dev.ctrl_handler = hdl;
--
- 	rt_mutex_init(&dev->i2c_bus_lock);
- 
- 	/* register i2c bus 0 */
-@@ -3178,75 +3167,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
- 
--	/*
--	 * Default format, used for tvp5150 or saa711x output formats
--	 */
--	dev->vinmode = 0x10;
--	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
--		       EM28XX_VINCTRL_CCIR656_ENABLE;
--
- 	/* Do board specific init and eeprom reading */
- 	em28xx_card_setup(dev);
- 
--	/* Configure audio */
--	retval = em28xx_audio_setup(dev);
--	if (retval < 0) {
--		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
--			__func__, retval);
--		goto fail;
--	}
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
--	} else {
--		/* install the em28xx notify callback */
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
--				em28xx_ctrl_notify, dev);
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
--				em28xx_ctrl_notify, dev);
--	}
--
--	/* wake i2c devices */
--	em28xx_wake_i2c(dev);
--
--	/* init video dma queues */
--	INIT_LIST_HEAD(&dev->vidq.active);
--	INIT_LIST_HEAD(&dev->vbiq.active);
--
--	if (dev->board.has_msp34xx) {
--		/* Send a reset to other chips via gpio */
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(1) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
--		}
--		msleep(3);
--
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(2) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
--		}
--		msleep(3);
--	}
--
--	retval = em28xx_register_analog_devices(dev);
--	if (retval < 0) {
--		goto fail;
--	}
--
--	/* Save some power by putting tuner to sleep */
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
--
- 	return 0;
- 
--fail:
- 	if (dev->def_i2c_bus)
- 		em28xx_i2c_unregister(dev, 1);
- 	em28xx_i2c_unregister(dev, 0);
-@@ -3458,6 +3383,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	dev->alt   = -1;
- 	dev->is_audio_only = has_audio && !(has_video || has_dvb);
- 	dev->has_alsa_audio = has_audio;
-+	dev->has_video = has_video;
- 	dev->audio_ifnum = ifnum;
- 
- 	/* Checks if audio is provided by some interface */
-@@ -3495,15 +3421,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
- 
--	/* initialize videobuf2 stuff */
--	em28xx_vb2_setup(dev);
--
- 	/* allocate device struct */
- 	mutex_init(&dev->lock);
--	mutex_lock(&dev->lock);
- 	retval = em28xx_init_dev(dev, udev, interface, nr);
- 	if (retval) {
--		goto unlock_and_free;
-+		goto err_free;
- 	}
- 
- 	if (usb_xfer_mode < 0) {
-@@ -3546,7 +3468,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 		if (retval) {
- 			printk(DRIVER_NAME
- 			       ": Failed to pre-allocate USB transfer buffers for DVB.\n");
--			goto unlock_and_free;
-+			goto err_free;
- 		}
- 	}
- 
-@@ -3555,13 +3477,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	/* Should be the last thing to do, to avoid newer udev's to
- 	   open the device before fully initializing it
- 	 */
--	mutex_unlock(&dev->lock);
- 
- 	return 0;
- 
--unlock_and_free:
--	mutex_unlock(&dev->lock);
--
- err_free:
- 	kfree(dev->alt_max_pkt_size_isoc);
- 	kfree(dev);
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index f6076a512e8f..0f61532d2612 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -33,6 +33,18 @@
- 
- #include "em28xx.h"
- 
-+#define DRIVER_AUTHOR "Ludovico Cavedon <cavedon@sssup.it>, " \
-+		      "Markus Rechberger <mrechberger@gmail.com>, " \
-+		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
-+		      "Sascha Sommer <saschasommer@freenet.de>"
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
 +
-+#define DRIVER_DESC         "Empia em28xx based USB core driver"
++#include "csc.h"
 +
-+MODULE_AUTHOR(DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(EM28XX_VERSION);
++void csc_dump_regs(struct csc_data *csc)
++{
++	struct device *dev = &csc->pdev->dev;
 +
- /* #define ENABLE_DEBUG_ISOC_FRAMES */
- 
- static unsigned int core_debug;
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index dd19c9ff76e0..b20e4e7116d3 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -51,8 +51,6 @@
- 
- #define DRIVER_DESC         "Empia em28xx based USB video device driver"
- 
--#define EM28XX_VERSION "0.2.0"
--
- #define em28xx_videodbg(fmt, arg...) do {\
- 	if (video_debug) \
- 		printk(KERN_INFO "%s %s :"fmt, \
-@@ -763,7 +761,7 @@ static struct vb2_ops em28xx_video_qops = {
- 	.wait_finish    = vb2_ops_wait_finish,
- };
- 
--int em28xx_vb2_setup(struct em28xx *dev)
-+static int em28xx_vb2_setup(struct em28xx *dev)
- {
- 	int rc;
- 	struct vb2_queue *q;
-@@ -831,7 +829,7 @@ static void video_mux(struct em28xx *dev, int index)
- 	em28xx_audio_analog_set(dev);
- }
- 
--void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
-+static void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
- {
- 	struct em28xx *dev = priv;
- 
-@@ -1615,11 +1613,11 @@ static int em28xx_v4l2_open(struct file *filp)
- }
- 
- /*
-- * em28xx_realease_resources()
-+ * em28xx_v4l2_fini()
-  * unregisters the v4l2,i2c and usb devices
-  * called when the device gets disconected or at module unload
- */
--void em28xx_release_analog_resources(struct em28xx *dev)
-+static int em28xx_v4l2_fini(struct em28xx *dev)
- {
- 
- 	/*FIXME: I2C IR should be disconnected */
-@@ -1649,6 +1647,8 @@ void em28xx_release_analog_resources(struct em28xx *dev)
- 			video_device_release(dev->vdev);
- 		dev->vdev = NULL;
- 	}
-+
-+	return 0;
- }
- 
- /*
-@@ -1790,8 +1790,6 @@ static struct video_device em28xx_radio_template = {
- 
- /******************************** usb interface ******************************/
- 
--
--
- static struct video_device *em28xx_vdev_init(struct em28xx *dev,
- 					const struct video_device *template,
- 					const char *type_name)
-@@ -1817,15 +1815,85 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
- 	return vfd;
- }
- 
--int em28xx_register_analog_devices(struct em28xx *dev)
-+static int em28xx_v4l2_init(struct em28xx *dev)
- {
- 	u8 val;
- 	int ret;
- 	unsigned int maxw;
-+	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
-+
-+	if (!dev->has_video) {
-+		/* This device does not support the v4l2 extension */
-+		return 0;
-+	}
- 
- 	printk(KERN_INFO "%s: v4l2 driver version %s\n",
- 		dev->name, EM28XX_VERSION);
- 
-+	mutex_lock(&dev->lock);
-+
-+	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-+	if (ret < 0) {
-+		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-+		goto err;
++	u32 read_reg(struct csc_data *csc, int offset)
++	{
++		return ioread32(csc->base + offset);
 +	}
 +
-+	v4l2_ctrl_handler_init(hdl, 8);
-+	dev->v4l2_dev.ctrl_handler = hdl;
++#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(csc, CSC_##r))
 +
-+	/*
-+	 * Default format, used for tvp5150 or saa711x output formats
-+	 */
-+	dev->vinmode = 0x10;
-+	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-+		       EM28XX_VINCTRL_CCIR656_ENABLE;
++	DUMPREG(CSC00);
++	DUMPREG(CSC01);
++	DUMPREG(CSC02);
++	DUMPREG(CSC03);
++	DUMPREG(CSC04);
++	DUMPREG(CSC05);
 +
-+	/* Configure audio */
-+	ret = em28xx_audio_setup(dev);
-+	if (ret < 0) {
-+		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-+			__func__, ret);
-+		goto err;
-+	}
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-+	} else {
-+		/* install the em28xx notify callback */
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-+				em28xx_ctrl_notify, dev);
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-+				em28xx_ctrl_notify, dev);
-+	}
++#undef DUMPREG
++}
 +
-+	/* wake i2c devices */
-+	em28xx_wake_i2c(dev);
++void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5)
++{
++	*csc_reg5 |= CSC_BYPASS;
++}
 +
-+	/* init video dma queues */
-+	INIT_LIST_HEAD(&dev->vidq.active);
-+	INIT_LIST_HEAD(&dev->vbiq.active);
++struct csc_data *csc_create(struct platform_device *pdev)
++{
++	struct csc_data *csc;
 +
-+	if (dev->board.has_msp34xx) {
-+		/* Send a reset to other chips via gpio */
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(1) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
++	dev_dbg(&pdev->dev, "csc_create\n");
 +
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(2) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
++	csc = devm_kzalloc(&pdev->dev, sizeof(*csc), GFP_KERNEL);
++	if (!csc) {
++		dev_err(&pdev->dev, "couldn't alloc csc_data\n");
++		return ERR_PTR(-ENOMEM);
 +	}
 +
- 	/* set default norm */
- 	dev->norm = V4L2_STD_PAL;
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-@@ -1888,14 +1956,16 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	/* Reset image controls */
- 	em28xx_colorlevels_set_default(dev);
- 	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
--	if (dev->ctrl_handler.error)
--		return dev->ctrl_handler.error;
-+	ret = dev->ctrl_handler.error;
-+	if (ret)
-+		goto err;
- 
- 	/* allocate and fill video video_device struct */
- 	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
- 	if (!dev->vdev) {
- 		em28xx_errdev("cannot allocate video_device.\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err;
- 	}
- 	dev->vdev->queue = &dev->vb_vidq;
- 	dev->vdev->queue->lock = &dev->vb_queue_lock;
-@@ -1925,7 +1995,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	if (ret) {
- 		em28xx_errdev("unable to register video device (error=%i).\n",
- 			      ret);
--		return ret;
-+		goto err;
- 	}
- 
- 	/* Allocate and fill vbi video_device struct */
-@@ -1954,7 +2024,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 					    vbi_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("unable to register vbi device\n");
--			return ret;
-+			goto err;
- 		}
- 	}
- 
-@@ -1963,13 +2033,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 						  "radio");
- 		if (!dev->radio_dev) {
- 			em28xx_errdev("cannot allocate video_device.\n");
--			return -ENODEV;
-+			ret = -ENODEV;
-+			goto err;
- 		}
- 		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
- 					    radio_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("can't register radio device\n");
--			return ret;
-+			goto err;
- 		}
- 		em28xx_info("Registered radio device as %s\n",
- 			    video_device_node_name(dev->radio_dev));
-@@ -1982,5 +2053,33 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		em28xx_info("V4L2 VBI device registered as %s\n",
- 			    video_device_node_name(dev->vbi_dev));
- 
--	return 0;
-+	/* Save some power by putting tuner to sleep */
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
++	csc->pdev = pdev;
 +
-+	/* initialize videobuf2 stuff */
-+	em28xx_vb2_setup(dev);
++	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++			"vpe_csc");
++	if (csc->res == NULL) {
++		dev_err(&pdev->dev, "missing platform resources data\n");
++		return ERR_PTR(-ENODEV);
++	}
 +
-+err:
-+	mutex_unlock(&dev->lock);
-+	return ret;
- }
++	csc->base = devm_ioremap_resource(&pdev->dev, csc->res);
++	if (!csc->base) {
++		dev_err(&pdev->dev, "failed to ioremap\n");
++		return ERR_PTR(-ENOMEM);
++	}
 +
-+static struct em28xx_ops v4l2_ops = {
-+	.id   = EM28XX_V4L2,
-+	.name = "Em28xx v4l2 Extension",
-+	.init = em28xx_v4l2_init,
-+	.fini = em28xx_v4l2_fini,
++	return csc;
++}
+diff --git a/drivers/media/platform/ti-vpe/csc.h b/drivers/media/platform/ti-vpe/csc.h
+new file mode 100644
+index 0000000..57b5ed6
+--- /dev/null
++++ b/drivers/media/platform/ti-vpe/csc.h
+@@ -0,0 +1,65 @@
++/*
++ * Copyright (c) 2013 Texas Instruments Inc.
++ *
++ * David Griego, <dagriego@biglakesoftware.com>
++ * Dale Farnsworth, <dale@farnsworth.org>
++ * Archit Taneja, <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++#ifndef TI_CSC_H
++#define TI_CSC_H
++
++/* VPE color space converter regs */
++#define CSC_CSC00		0x00
++#define CSC_A0_MASK		0x1fff
++#define CSC_A0_SHIFT		0
++#define CSC_B0_MASK		0x1fff
++#define CSC_B0_SHIFT		16
++
++#define CSC_CSC01		0x04
++#define CSC_C0_MASK		0x1fff
++#define CSC_C0_SHIFT		0
++#define CSC_A1_MASK		0x1fff
++#define CSC_A1_SHIFT		16
++
++#define CSC_CSC02		0x08
++#define CSC_B1_MASK		0x1fff
++#define CSC_B1_SHIFT		0
++#define CSC_C1_MASK		0x1fff
++#define CSC_C1_SHIFT		16
++
++#define CSC_CSC03		0x0c
++#define CSC_A2_MASK		0x1fff
++#define CSC_A2_SHIFT		0
++#define CSC_B2_MASK		0x1fff
++#define CSC_B2_SHIFT		16
++
++#define CSC_CSC04		0x10
++#define CSC_C2_MASK		0x1fff
++#define CSC_C2_SHIFT		0
++#define CSC_D0_MASK		0x0fff
++#define CSC_D0_SHIFT		16
++
++#define CSC_CSC05		0x14
++#define CSC_D1_MASK		0x0fff
++#define CSC_D1_SHIFT		0
++#define CSC_D2_MASK		0x0fff
++#define CSC_D2_SHIFT		16
++
++#define CSC_BYPASS		(1 << 28)
++
++struct csc_data {
++	void __iomem		*base;
++	struct resource		*res;
++
++	struct platform_device	*pdev;
 +};
 +
-+static int __init em28xx_dvb_register(void)
-+{
-+	return em28xx_register_extension(&v4l2_ops);
-+}
++void csc_dump_regs(struct csc_data *csc);
++void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5);
++struct csc_data *csc_create(struct platform_device *pdev);
 +
-+static void __exit em28xx_dvb_unregister(void)
-+{
-+	em28xx_unregister_extension(&v4l2_ops);
-+}
-+
-+module_init(em28xx_dvb_register);
-+module_exit(em28xx_dvb_unregister);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 191ef3593891..bc37d4833dbe 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -26,6 +26,8 @@
- #ifndef _EM28XX_H
- #define _EM28XX_H
++#endif
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index dc2b94c..6c4db57 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -44,6 +44,7 @@
+ #include "vpdma.h"
+ #include "vpe_regs.h"
+ #include "sc.h"
++#include "csc.h"
  
-+#define EM28XX_VERSION "0.2.1"
-+
- #include <linux/workqueue.h>
- #include <linux/i2c.h>
- #include <linux/mutex.h>
-@@ -472,6 +474,7 @@ struct em28xx_eeprom {
- #define EM28XX_AUDIO   0x10
- #define EM28XX_DVB     0x20
- #define EM28XX_RC      0x30
-+#define EM28XX_V4L2    0x40
+ #define VPE_MODULE_NAME "vpe"
  
- /* em28xx resource types (used for res_get/res_lock etc */
- #define EM28XX_RESOURCE_VIDEO 0x01
-@@ -522,9 +525,13 @@ struct em28xx {
- 	int model;		/* index in the device_data struct */
- 	int devno;		/* marks the number of this device */
- 	enum em28xx_chip_id chip_id;
--	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
+@@ -330,6 +331,7 @@ struct vpe_dev {
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct vpdma_data	*vpdma;		/* vpdma data handle */
+ 	struct sc_data		*sc;		/* scaler data handle */
++	struct csc_data		*csc;		/* csc data handle */
+ };
  
-+	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
- 	unsigned char disconnected:1;	/* device has been diconnected */
-+	unsigned int has_video:1;
-+	unsigned int has_audio_class:1;
-+	unsigned int has_alsa_audio:1;
-+	unsigned int is_audio_only:1;
+ /*
+@@ -475,7 +477,8 @@ static void init_adb_hdrs(struct vpe_ctx *ctx)
+ 		GET_OFFSET_TOP(ctx, ctx->dev->sc, CFG_SC8));
+ 	VPE_SET_MMR_ADB_HDR(ctx, sc_hdr17, sc_regs17,
+ 		GET_OFFSET_TOP(ctx, ctx->dev->sc, CFG_SC17));
+-	VPE_SET_MMR_ADB_HDR(ctx, csc_hdr, csc_regs, VPE_CSC_CSC00);
++	VPE_SET_MMR_ADB_HDR(ctx, csc_hdr, csc_regs,
++		GET_OFFSET_TOP(ctx, ctx->dev->csc, CSC_CSC00));
+ };
  
- 	int audio_ifnum;
+ /*
+@@ -758,16 +761,6 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
+ 	ctx->load_mmrs = true;
+ }
  
-@@ -544,10 +551,6 @@ struct em28xx {
- 	/* Vinmode/Vinctl used at the driver */
- 	int vinmode, vinctl;
- 
--	unsigned int has_audio_class:1;
--	unsigned int has_alsa_audio:1;
--	unsigned int is_audio_only:1;
+-static void set_csc_coeff_bypass(struct vpe_ctx *ctx)
+-{
+-	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
+-	u32 *shadow_csc_reg5 = &mmr_adb->csc_regs[5];
 -
- 	/* Controls audio streaming */
- 	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
- 	atomic_t       stream_started;	/* stream should be running if true */
-@@ -748,10 +751,6 @@ void em28xx_init_extension(struct em28xx *dev);
- void em28xx_close_extension(struct em28xx *dev);
+-	*shadow_csc_reg5 |= VPE_CSC_BYPASS;
+-
+-	ctx->load_mmrs = true;
+-}
+-
+ /*
+  * Set the shadow registers whose values are modified when either the
+  * source or destination format is changed.
+@@ -819,7 +812,8 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
  
- /* Provided by em28xx-video.c */
--int em28xx_vb2_setup(struct em28xx *dev);
--int em28xx_register_analog_devices(struct em28xx *dev);
--void em28xx_release_analog_resources(struct em28xx *dev);
--void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv);
- int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
- int em28xx_stop_vbi_streaming(struct vb2_queue *vq);
- extern const struct v4l2_ctrl_ops em28xx_ctrl_ops;
+ 	set_cfg_and_line_modes(ctx);
+ 	set_dei_regs(ctx);
+-	set_csc_coeff_bypass(ctx);
++
++	csc_set_coeff_bypass(ctx->dev->csc, &mmr_adb->csc_regs[5]);
+ 
+ 	sc_set_hs_coeffs(ctx->dev->sc, ctx->sc_coeff_h.addr, src_w, dst_w);
+ 	sc_set_vs_coeffs(ctx->dev->sc, ctx->sc_coeff_v.addr, src_h, dst_h);
+@@ -942,15 +936,10 @@ static void vpe_dump_regs(struct vpe_dev *dev)
+ 	DUMPREG(DEI_FMD_STATUS_R0);
+ 	DUMPREG(DEI_FMD_STATUS_R1);
+ 	DUMPREG(DEI_FMD_STATUS_R2);
+-	DUMPREG(CSC_CSC00);
+-	DUMPREG(CSC_CSC01);
+-	DUMPREG(CSC_CSC02);
+-	DUMPREG(CSC_CSC03);
+-	DUMPREG(CSC_CSC04);
+-	DUMPREG(CSC_CSC05);
+ #undef DUMPREG
+ 
+ 	sc_dump_regs(dev->sc);
++	csc_dump_regs(dev->csc);
+ }
+ 
+ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+@@ -2074,6 +2063,12 @@ static int vpe_probe(struct platform_device *pdev)
+ 		goto runtime_put;
+ 	}
+ 
++	dev->csc = csc_create(pdev);
++	if (IS_ERR(dev->csc)) {
++		ret = PTR_ERR(dev->csc);
++		goto runtime_put;
++	}
++
+ 	dev->vpdma = vpdma_create(pdev);
+ 	if (IS_ERR(dev->vpdma)) {
+ 		ret = PTR_ERR(dev->vpdma);
+diff --git a/drivers/media/platform/ti-vpe/vpe_regs.h b/drivers/media/platform/ti-vpe/vpe_regs.h
+index d8dbdd3..74283d7 100644
+--- a/drivers/media/platform/ti-vpe/vpe_regs.h
++++ b/drivers/media/platform/ti-vpe/vpe_regs.h
+@@ -306,42 +306,4 @@
+ #define VPE_FMD_FRAME_DIFF_MASK		0x000fffff
+ #define VPE_FMD_FRAME_DIFF_SHIFT	0
+ 
+-/* VPE color space converter regs */
+-#define VPE_CSC_CSC00			0x5700
+-#define VPE_CSC_A0_MASK			0x1fff
+-#define VPE_CSC_A0_SHIFT		0
+-#define VPE_CSC_B0_MASK			0x1fff
+-#define VPE_CSC_B0_SHIFT		16
+-
+-#define VPE_CSC_CSC01			0x5704
+-#define VPE_CSC_C0_MASK			0x1fff
+-#define VPE_CSC_C0_SHIFT		0
+-#define VPE_CSC_A1_MASK			0x1fff
+-#define VPE_CSC_A1_SHIFT		16
+-
+-#define VPE_CSC_CSC02			0x5708
+-#define VPE_CSC_B1_MASK			0x1fff
+-#define VPE_CSC_B1_SHIFT		0
+-#define VPE_CSC_C1_MASK			0x1fff
+-#define VPE_CSC_C1_SHIFT		16
+-
+-#define VPE_CSC_CSC03			0x570c
+-#define VPE_CSC_A2_MASK			0x1fff
+-#define VPE_CSC_A2_SHIFT		0
+-#define VPE_CSC_B2_MASK			0x1fff
+-#define VPE_CSC_B2_SHIFT		16
+-
+-#define VPE_CSC_CSC04			0x5710
+-#define VPE_CSC_C2_MASK			0x1fff
+-#define VPE_CSC_C2_SHIFT		0
+-#define VPE_CSC_D0_MASK			0x0fff
+-#define VPE_CSC_D0_SHIFT		16
+-
+-#define VPE_CSC_CSC05			0x5714
+-#define VPE_CSC_D1_MASK			0x0fff
+-#define VPE_CSC_D1_SHIFT		0
+-#define VPE_CSC_D2_MASK			0x0fff
+-#define VPE_CSC_D2_SHIFT		16
+-#define VPE_CSC_BYPASS			(1 << 28)
+-
+ #endif
 -- 
-1.8.3.1
+1.8.3.2
 
