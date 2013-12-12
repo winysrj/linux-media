@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42828 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753801Ab3LNQpX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 11:45:23 -0500
-Message-ID: <52AC8B20.906@iki.fi>
-Date: Sat, 14 Dec 2013 18:45:20 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46869 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013Ab3LLBYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Dec 2013 20:24:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Robert Baldyga <r.baldyga@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Bhupesh SHARMA <bhupesh.sharma@st.com>
+Subject: Re: [PATCH 0/4] Bugfixes for UVC gadget test application
+Date: Thu, 12 Dec 2013 02:24:33 +0100
+Message-ID: <6701425.xIhpkQYXWr@avalon>
+In-Reply-To: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
+References: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH RFC v2 0/7] V4L2 SDR API
-References: <1387037729-1977-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-One possible problem I noticed is device node name.
+Hi Robert,
 
-Documentation/devices.txt
+On Tuesday 10 December 2013 12:40:33 Robert Baldyga wrote:
+> Hello,
+> 
+> This patchset fixes UVC gadget test application, created by Laurent Pinchart
+> (git tree available here: git://git.ideasonboard.org/uvc-gadget.git), with
+> applied patches created by Bhupesh Sharma (which can be found here:
+> http://www.spinics.net/lists/linux-usb/msg84376.html).
+> 
+> It improves video-capture device handling, and adds few other fixes.
+> More details can be found in commit messages.
 
-  65 block	SCSI disk devices (16-31)
-		  0 = /dev/sdq		17th SCSI disk whole disk
-		 16 = /dev/sdr		18th SCSI disk whole disk
-		 32 = /dev/sds		19th SCSI disk whole disk
-		    ...
-		240 = /dev/sdaf		32nd SCSI disk whole disk
+Thank you for the patches. This is a nice reminder that I still haven't 
+reviewed Bhupesh's patches. I've tried to get back to them, but the size of 
+the first patch makes it too complex to review for the limited time I have 
+now. Unless the "UVC gadget: Add support for integration with a video-capture 
+device and other fixes" patch gets split in smaller chunks I won't have time 
+to handle it before February at the earliest.
 
-		Partitions are handled in the same way as for IDE
-		disks (see major number 3) except that the limit on
-		partitions is 15.
-
-
-  81 char	video4linux
-		  0 = /dev/video0	Video capture/overlay device
-		    ...
-		 63 = /dev/video63	Video capture/overlay device
-		 64 = /dev/radio0	Radio device
-		    ...
-		127 = /dev/radio63	Radio device
-		224 = /dev/vbi0		Vertical blank interrupt
-		    ...
-		255 = /dev/vbi31	Vertical blank interrupt
-
-
-What I understand, /dev/sdr is not suitable node name as it conflicts 
-with existing node name. Any ideas?
-
-regards
-Antti
+> Best regards
+> Robert Baldyga
+> Samsung R&D Institute Poland
+> 
+> Robert Baldyga (4):
+>   closing uvc file when init fails
+>   remove set_format from uvc_events_process_data
+>   fix v4l2 stream handling
+>   remove flooding debugs
+> 
+>  uvc-gadget.c |   68  +++++++++---------------------------------------------
+>  1 file changed, 10 insertions(+), 58 deletions(-)
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
