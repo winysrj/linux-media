@@ -1,48 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2541 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754119Ab3LJPGH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:51844 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751676Ab3LLQ5o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Dec 2013 11:57:44 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/22] adv7842: increase wait time.
-Date: Tue, 10 Dec 2013 16:03:57 +0100
-Message-Id: <fc47a91a6a1d9c00cc50ee4fdeaa7090110eae30.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 0/2] V4L2 SDR stream format
+Date: Thu, 12 Dec 2013 18:57:25 +0200
+Message-Id: <1386867447-1018-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+I think that needs device capability flag too (struct v4l2_capability)
+but bits on that struct are quite short. Add it after V4L2_CAP_MODULATOR ?
 
-Wait 5ms after main reset. The data-sheet doesn't specify the wait
-after i2c-controlled reset, so using same value as after pin-controlled
-reset.
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+OK, now all the API pieces seems to be there, so I am converting my existing
+SDR drivers to that API and make some tests.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 4fa2e23..60f2320 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -533,7 +533,7 @@ static void main_reset(struct v4l2_subdev *sd)
- 
- 	adv_smbus_write_byte_no_check(client, 0xff, 0x80);
- 
--	mdelay(2);
-+	mdelay(5);
- }
- 
- /* ----------------------------------------------------------------------- */
+Antti Palosaari (2):
+  v4l2: add stream format for SDR receiver
+  v4l2: enable FMT IOCTLs for SDR
+
+ drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
+ include/trace/events/v4l2.h          |  1 +
+ include/uapi/linux/videodev2.h       | 11 +++++++++++
+ 4 files changed, 51 insertions(+)
+
 -- 
-1.8.4.rc3
+1.8.4.2
 
