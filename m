@@ -1,111 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2887 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442Ab3LKDWS (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2598 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290Ab3LLHur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 22:22:18 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBB3MFYL025799
-	for <linux-media@vger.kernel.org>; Wed, 11 Dec 2013 04:22:17 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 3B7712A2224
-	for <linux-media@vger.kernel.org>; Wed, 11 Dec 2013 04:22:09 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131211032209.3B7712A2224@tschai.lan>
-Date: Wed, 11 Dec 2013 04:22:09 +0100 (CET)
+	Thu, 12 Dec 2013 02:50:47 -0500
+Message-ID: <52A96ABF.50905@xs4all.nl>
+Date: Thu, 12 Dec 2013 08:50:23 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 3/4] v4l: add new tuner types for SDR
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1386806043-5331-4-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_SDR for SDR usage.
+> 
+> ADC is used for setting sampling rate (sampling frequency) to SDR
+> device.
+> 
+> Another tuner type, SDR, is possible RF tuner. Is is used to
+> down-convert RF frequency to range ADC could sample. It is optional
+> for SDR device.
+> 
+> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+> type is SDR (VFL_TYPE_SDR).
 
-Results of the daily build of media_tree:
+Shouldn't you also adapt s_hw_freq_seek?
 
-date:		Wed Dec 11 04:00:23 CET 2013
-git branch:	test
-git hash:	8a38db133358f9370e6bb453371e630495c59070
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 38 +++++++++++++++++++++++++-----------
+>  include/uapi/linux/videodev2.h       |  2 ++
+>  2 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index bc10684..ee91a9f 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>  	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_frequency *p = arg;
+>  
+> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+> +			return -EINVAL;
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+This isn't right. p->type is returned by the driver, not set by the user.
+In the case of TYPE_SDR I would just set it to TUNER_SDR and let the driver
+update it for ADC tuners. You can also just leave it alone. This does make
+the assumption that SDR and ADC tuners are always separate tuners. I.e., not
+like radio and TV tuners that can be one physical tuner with two mutually
+exclusive modes. It's my understanding that that is by definition true for
+SDR.
 
-Detailed results are available here:
+> +	} else {
+> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +	}
+>  	return ops->vidioc_g_frequency(file, fh, p);
+>  }
+>  
+> @@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+>  	const struct v4l2_frequency *p = arg;
+>  	enum v4l2_tuner_type type;
+>  
+> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> -	if (p->type != type)
+> -		return -EINVAL;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+> +			return -EINVAL;
+> +		type = p->type;
+> +	} else {
+> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +		if (type != p->type)
+> +			return -EINVAL;
+> +	}
+>  	return ops->vidioc_s_frequency(file, fh, p);
+>  }
+>  
+> @@ -1882,11 +1893,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+>  	enum v4l2_tuner_type type;
+>  	int err;
+>  
+> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> -
+> -	if (type != p->type)
+> -		return -EINVAL;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+> +			return -EINVAL;
+> +		type = p->type;
+> +	} else {
+> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +		if (type != p->type)
+> +			return -EINVAL;
+> +	}
+>  	if (ops->vidioc_enum_freq_bands)
+>  		return ops->vidioc_enum_freq_bands(file, fh, p);
+>  	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index b8ee9048..6c6a601 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+>  	V4L2_TUNER_RADIO	     = 1,
+>  	V4L2_TUNER_ANALOG_TV	     = 2,
+>  	V4L2_TUNER_DIGITAL_TV	     = 3,
+> +	V4L2_TUNER_ADC               = 4,
+> +	V4L2_TUNER_SDR               = 5,
+>  };
+>  
+>  enum v4l2_memory {
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
