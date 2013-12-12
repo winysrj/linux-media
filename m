@@ -1,180 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:30643 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021Ab3LROuC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 09:50:02 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY000BEEBVDN570@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Dec 2013 23:50:01 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v3 4/8] s5p-jpeg: Ensure correct capture format for Exynos4x12
-Date: Wed, 18 Dec 2013 15:49:31 +0100
-Message-id: <1387378175-23399-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
-References: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54416 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751561Ab3LLRM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Dec 2013 12:12:57 -0500
+Message-ID: <52A9EE96.4050306@iki.fi>
+Date: Thu, 12 Dec 2013 19:12:54 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 3/4] v4l: add new tuner types for SDR
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-4-git-send-email-crope@iki.fi> <52A96ABF.50905@xs4all.nl>
+In-Reply-To: <52A96ABF.50905@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adjust capture format to the Exynos4x12 device limitations,
-according to the subsampling value parsed from the source
-JPEG image header. If the capture format was set to YUV with
-subsampling lower than the one of the source JPEG image
-the decoding process would not succeed.
+On 12.12.2013 09:50, Hans Verkuil wrote:
+> On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+>> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_SDR for SDR usage.
+>>
+>> ADC is used for setting sampling rate (sampling frequency) to SDR
+>> device.
+>>
+>> Another tuner type, SDR, is possible RF tuner. Is is used to
+>> down-convert RF frequency to range ADC could sample. It is optional
+>> for SDR device.
+>>
+>> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+>> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+>> type is SDR (VFL_TYPE_SDR).
+>
+> Shouldn't you also adapt s_hw_freq_seek?
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |  116 +++++++++++++++++++++++++++
- 1 file changed, 116 insertions(+)
+nope! I don't see how SDR could do hardware seek as demodulator is 
+needed to make decision if radio channel is valid or not. On SDR 
+receiver that demodulator is implemented by application software, DSP, 
+thus name software defined radio.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index ffae566..377dd31 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -358,6 +358,99 @@ static const unsigned char hactblg0[162] = {
- 	0xf9, 0xfa
- };
- 
-+/*
-+ * Fourcc downgrade schema lookup tables for 422 and 420
-+ * chroma subsampling - fourcc on each position maps on the
-+ * fourcc from the table fourcc_to_dwngrd_schema_id which allows
-+ * to get the most suitable fourcc counterpart for the given
-+ * downgraded subsampling property.
-+ */
-+static const u32 subs422_fourcc_dwngrd_schema[] = {
-+	V4L2_PIX_FMT_NV16,
-+	V4L2_PIX_FMT_NV61,
-+};
-+
-+static const u32 subs420_fourcc_dwngrd_schema[] = {
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+	V4L2_PIX_FMT_GREY,
-+};
-+
-+/*
-+ * Lookup table for translation of a fourcc to the position
-+ * of its downgraded counterpart in the *fourcc_dwngrd_schema
-+ * tables.
-+ */
-+static const u32 fourcc_to_dwngrd_schema_id[] = {
-+	V4L2_PIX_FMT_NV24,
-+	V4L2_PIX_FMT_NV42,
-+	V4L2_PIX_FMT_NV16,
-+	V4L2_PIX_FMT_NV61,
-+	V4L2_PIX_FMT_YUYV,
-+	V4L2_PIX_FMT_YVYU,
-+	V4L2_PIX_FMT_NV12,
-+	V4L2_PIX_FMT_NV21,
-+	V4L2_PIX_FMT_YUV420,
-+	V4L2_PIX_FMT_GREY,
-+};
-+
-+static int s5p_jpeg_get_dwngrd_sch_id_by_fourcc(u32 fourcc)
-+{
-+	int i;
-+	for (i = 0; i < ARRAY_SIZE(fourcc_to_dwngrd_schema_id); ++i) {
-+		if (fourcc_to_dwngrd_schema_id[i] == fourcc)
-+			return i;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int s5p_jpeg_adjust_fourcc_to_subsampling(
-+					enum v4l2_jpeg_chroma_subsampling subs,
-+					u32 in_fourcc,
-+					u32 *out_fourcc,
-+					struct s5p_jpeg_ctx *ctx)
-+{
-+	int dwngrd_sch_id;
-+
-+	if (ctx->subsampling != V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
-+		dwngrd_sch_id =
-+			s5p_jpeg_get_dwngrd_sch_id_by_fourcc(in_fourcc);
-+		if (dwngrd_sch_id < 0)
-+			return -EINVAL;
-+	}
-+
-+	switch (ctx->subsampling) {
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY:
-+		*out_fourcc = V4L2_PIX_FMT_GREY;
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
-+		if (dwngrd_sch_id >
-+				ARRAY_SIZE(subs420_fourcc_dwngrd_schema) - 1)
-+			return -EINVAL;
-+		*out_fourcc = subs420_fourcc_dwngrd_schema[dwngrd_sch_id];
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
-+		if (dwngrd_sch_id >
-+				ARRAY_SIZE(subs422_fourcc_dwngrd_schema) - 1)
-+			return -EINVAL;
-+		*out_fourcc = subs422_fourcc_dwngrd_schema[dwngrd_sch_id];
-+		break;
-+	default:
-+		*out_fourcc = V4L2_PIX_FMT_GREY;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
- {
- 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
-@@ -941,7 +1034,9 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct s5p_jpeg_fmt *fmt;
-+	int ret;
- 
- 	fmt = s5p_jpeg_find_format(ctx, f->fmt.pix.pixelformat,
- 						FMT_TYPE_CAPTURE);
-@@ -952,6 +1047,27 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * The exynos4x12 device requires resulting YUV image
-+	 * subsampling not to be lower than the input jpeg subsampling.
-+	 * If this requirement is not met then downgrade the requested
-+	 * capture format to the one with subsampling equal to the input jpeg.
-+	 */
-+	if ((ctx->jpeg->variant->version != SJPEG_S5P) &&
-+	    (ctx->mode == S5P_JPEG_DECODE) &&
-+	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
-+	    (fmt->subsampling < ctx->subsampling)) {
-+		ret = s5p_jpeg_adjust_fourcc_to_subsampling(ctx->subsampling,
-+							    fmt->fourcc,
-+							    &pix->pixelformat,
-+							    ctx);
-+		if (ret < 0)
-+			pix->pixelformat = V4L2_PIX_FMT_GREY;
-+
-+		fmt = s5p_jpeg_find_format(ctx, pix->pixelformat,
-+							FMT_TYPE_CAPTURE);
-+	}
-+
- 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_CAPTURE);
- }
- 
+Maybe it could be mapped to signal strength measurement, but it is 
+another story to think.
+
+
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/v4l2-core/v4l2-ioctl.c | 38 +++++++++++++++++++++++++-----------
+>>   include/uapi/linux/videodev2.h       |  2 ++
+>>   2 files changed, 29 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index bc10684..ee91a9f 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>>   	struct video_device *vfd = video_devdata(file);
+>>   	struct v4l2_frequency *p = arg;
+>>
+>> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+>> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+>> +			return -EINVAL;
+>
+> This isn't right. p->type is returned by the driver, not set by the user.
+> In the case of TYPE_SDR I would just set it to TUNER_SDR and let the driver
+> update it for ADC tuners. You can also just leave it alone. This does make
+> the assumption that SDR and ADC tuners are always separate tuners. I.e., not
+> like radio and TV tuners that can be one physical tuner with two mutually
+> exclusive modes. It's my understanding that that is by definition true for
+> SDR.
+
+Aaah, so it is possible to use same tuner and that type is aimed for 
+selecting tuner operation mode. Makes sense.
+
+So if I now understand V4L2 driver model correctly, there should be one 
+tuner that implements different functionality by using tuner type field.
+
+I could change it easily, no problem.
+
+
+>> +	} else {
+>> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> +	}
+>>   	return ops->vidioc_g_frequency(file, fh, p);
+>>   }
+>>
+>> @@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+>>   	const struct v4l2_frequency *p = arg;
+>>   	enum v4l2_tuner_type type;
+>>
+>> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> -	if (p->type != type)
+>> -		return -EINVAL;
+>> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+>> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+>> +			return -EINVAL;
+>> +		type = p->type;
+>> +	} else {
+>> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> +		if (type != p->type)
+>> +			return -EINVAL;
+>> +	}
+>>   	return ops->vidioc_s_frequency(file, fh, p);
+>>   }
+>>
+>> @@ -1882,11 +1893,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+>>   	enum v4l2_tuner_type type;
+>>   	int err;
+>>
+>> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> -
+>> -	if (type != p->type)
+>> -		return -EINVAL;
+>> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+>> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+>> +			return -EINVAL;
+>> +		type = p->type;
+>> +	} else {
+>> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>> +		if (type != p->type)
+>> +			return -EINVAL;
+>> +	}
+>>   	if (ops->vidioc_enum_freq_bands)
+>>   		return ops->vidioc_enum_freq_bands(file, fh, p);
+>>   	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index b8ee9048..6c6a601 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+>>   	V4L2_TUNER_RADIO	     = 1,
+>>   	V4L2_TUNER_ANALOG_TV	     = 2,
+>>   	V4L2_TUNER_DIGITAL_TV	     = 3,
+>> +	V4L2_TUNER_ADC               = 4,
+>> +	V4L2_TUNER_SDR               = 5,
+>>   };
+>>
+>>   enum v4l2_memory {
+>>
+>
+> Regards,
+>
+> 	Hans
+>
+
+regards
+Antti
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
