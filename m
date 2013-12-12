@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44099 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755818Ab3LDA4a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:30 -0500
-Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 34B3F363F9
-	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:39 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 08/25] v4l: omap4iss: Don't make IRQ debugging functions inline
-Date: Wed,  4 Dec 2013 01:56:08 +0100
-Message-Id: <1386118585-12449-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57926 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592Ab3LLRWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Dec 2013 12:22:18 -0500
+Message-ID: <52A9F0C7.2050602@iki.fi>
+Date: Thu, 12 Dec 2013 19:22:15 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 4/4] v4l: 1 Hz resolution flag for tuners
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-5-git-send-email-crope@iki.fi> <52A96C00.8060607@xs4all.nl>
+In-Reply-To: <52A96C00.8060607@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let the compiler decide.
+Hi Hans!
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 12.12.2013 09:55, Hans Verkuil wrote:
+> On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+>> Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   include/uapi/linux/videodev2.h | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 6c6a601..1bac6c4 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1349,6 +1349,7 @@ struct v4l2_modulator {
+>>   #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+>>   #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+>>   #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
+>> +#define V4L2_TUNER_CAP_1HZ		0x1000
+>>
+>>   /*  Flags for the 'rxsubchans' field */
+>>   #define V4L2_TUNER_SUB_MONO		0x0001
+>>
+>
+> I was wondering, do the band modulation systems (V4L2_BAND_MODULATION_VSB etc.) cover SDR?
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 65a1680..e6528fa 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -198,7 +198,7 @@ void omap4iss_configure_bridge(struct iss_device *iss,
- }
- 
- #if defined(DEBUG) && defined(ISS_ISR_DEBUG)
--static inline void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
-+static void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
- {
- 	static const char * const name[] = {
- 		"ISP_0",
-@@ -245,7 +245,7 @@ static inline void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
- 	pr_cont("\n");
- }
- 
--static inline void iss_isp_isr_dbg(struct iss_device *iss, u32 irqstatus)
-+static void iss_isp_isr_dbg(struct iss_device *iss, u32 irqstatus)
- {
- 	static const char * const name[] = {
- 		"ISIF_0",
+There is no such modulations defined for SDR hardware level. SDR 
+demodulation is done by software called DSP (digital signal processing) 
+in host computer.
+
+In ideal case, SDR receiver has only 1 property: ADC (analog to digital 
+converter) sampling rate.
+
+But as digital signal processing is very CPU intensive when sampling 
+rates are increased, there is very often RF tuner used to down-convert 
+actual radio frequency to low-IF / BB. Then ADC is used to sample that 
+baseband / low-IF signal and only small sampling rate is needed => 
+stream is smaller => DSP does not need so much CPU.
+
+> Anyway, I'm happy with this patch series. As far as I am concerned, the next step would
+> be to add documention and I would also recommend updating v4l2-compliance. Writing docs
+> and adding compliance tests has proven useful in the past to discover ambiguous API specs.
+
+I will do these at finally when I drivers and applications are tested to 
+be working.
+
+regards
+Antti
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
