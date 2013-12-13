@@ -1,161 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48635 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932629Ab3LDP2f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 10:28:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/5] v4l: atmel-isi: Use devm_* managed allocators
-Date: Wed,  4 Dec 2013 16:28:33 +0100
-Message-Id: <1386170916-13723-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4527 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751856Ab3LMN0t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 08:26:49 -0500
+Message-ID: <52AB0B00.5090202@xs4all.nl>
+Date: Fri, 13 Dec 2013 14:26:24 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Dinesh.Ram@cern.ch,
+	edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 06/11] si4713: Added the USB driver for Si4713
+References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl> <1386325034-19344-7-git-send-email-hverkuil@xs4all.nl> <20131209134737.1a2f19c4@samsung.com>
+In-Reply-To: <20131209134737.1a2f19c4@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This simplifies error and cleanup code paths.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 56 +++++++++------------------
- 1 file changed, 19 insertions(+), 37 deletions(-)
+On 12/09/2013 04:47 PM, Mauro Carvalho Chehab wrote:
+> Em Fri,  6 Dec 2013 11:17:09 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Dinesh Ram <Dinesh.Ram@cern.ch>
+>>
+>> This is the USB driver for the Silicon Labs development board.
+>> It contains the Si4713 FM transmitter chip.
+>>
+>> Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Tested-by: Eduardo Valentin <edubezval@gmail.com>
+>> Acked-by: Eduardo Valentin <edubezval@gmail.com>
+>> ---
+>>  drivers/media/radio/si4713/Kconfig            |  15 +
+>>  drivers/media/radio/si4713/Makefile           |   1 +
+>>  drivers/media/radio/si4713/radio-usb-si4713.c | 540 ++++++++++++++++++++++++++
+>>  3 files changed, 556 insertions(+)
+>>  create mode 100644 drivers/media/radio/si4713/radio-usb-si4713.c
+>>
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index b46c0ed..faa7f8d 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -862,7 +862,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 	struct atmel_isi *isi = container_of(soc_host,
- 					struct atmel_isi, soc_host);
- 
--	free_irq(isi->irq, isi);
- 	soc_camera_host_unregister(soc_host);
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
- 	dma_free_coherent(&pdev->dev,
-@@ -870,12 +869,8 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- 
--	iounmap(isi->regs);
- 	clk_unprepare(isi->mck);
--	clk_put(isi->mck);
- 	clk_unprepare(isi->pclk);
--	clk_put(isi->pclk);
--	kfree(isi);
- 
- 	return 0;
- }
-@@ -884,7 +879,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- {
- 	unsigned int irq;
- 	struct atmel_isi *isi;
--	struct clk *pclk;
- 	struct resource *regs;
- 	int ret, i;
- 	struct device *dev = &pdev->dev;
-@@ -898,26 +892,20 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!regs)
--		return -ENXIO;
--
--	pclk = clk_get(&pdev->dev, "isi_clk");
--	if (IS_ERR(pclk))
--		return PTR_ERR(pclk);
--
--	ret = clk_prepare(pclk);
--	if (ret)
--		goto err_clk_prepare_pclk;
--
--	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
-+	isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi), GFP_KERNEL);
- 	if (!isi) {
--		ret = -ENOMEM;
- 		dev_err(&pdev->dev, "Can't allocate interface!\n");
--		goto err_alloc_isi;
-+		return -ENOMEM;
- 	}
- 
--	isi->pclk = pclk;
-+	isi->pclk = devm_clk_get(&pdev->dev, "isi_clk");
-+	if (IS_ERR(isi->pclk))
-+		return PTR_ERR(isi->pclk);
-+
-+	ret = clk_prepare(isi->pclk);
-+	if (ret)
-+		return ret;
-+
- 	isi->pdata = pdata;
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
-@@ -925,11 +913,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
- 	/* Get ISI_MCK, provided by programmable clock or external clock */
--	isi->mck = clk_get(dev, "isi_mck");
-+	isi->mck = devm_clk_get(dev, "isi_mck");
- 	if (IS_ERR(isi->mck)) {
- 		dev_err(dev, "Failed to get isi_mck\n");
- 		ret = PTR_ERR(isi->mck);
--		goto err_clk_get;
-+		goto err_clk_get_mck;
- 	}
- 
- 	ret = clk_prepare(isi->mck);
-@@ -964,9 +952,10 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		goto err_alloc_ctx;
- 	}
- 
--	isi->regs = ioremap(regs->start, resource_size(regs));
--	if (!isi->regs) {
--		ret = -ENOMEM;
-+	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	isi->regs = devm_ioremap_resource(&pdev->dev, regs);
-+	if (IS_ERR(isi->regs)) {
-+		ret = PTR_ERR(isi->regs);
- 		goto err_ioremap;
- 	}
- 
-@@ -983,7 +972,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		goto err_req_irq;
- 	}
- 
--	ret = request_irq(irq, isi_interrupt, 0, "isi", isi);
-+	ret = devm_request_irq(&pdev->dev, irq, isi_interrupt, 0, "isi", isi);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Unable to request irq %d\n", irq);
- 		goto err_req_irq;
-@@ -1005,9 +994,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_register_soc_camera_host:
--	free_irq(isi->irq, isi);
- err_req_irq:
--	iounmap(isi->regs);
- err_ioremap:
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
- err_alloc_ctx:
-@@ -1019,13 +1006,8 @@ err_alloc_descriptors:
- err_set_mck_rate:
- 	clk_unprepare(isi->mck);
- err_clk_prepare_mck:
--	clk_put(isi->mck);
--err_clk_get:
--	kfree(isi);
--err_alloc_isi:
--	clk_unprepare(pclk);
--err_clk_prepare_pclk:
--	clk_put(pclk);
-+err_clk_get_mck:
-+	clk_unprepare(isi->pclk);
- 
- 	return ret;
- }
--- 
-1.8.3.2
+<snip>
+
+>> diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
+>> new file mode 100644
+>> index 0000000..d978844
+>> --- /dev/null
+>> +++ b/drivers/media/radio/si4713/radio-usb-si4713.c
+
+<snip>
+
+>> +		if (time_is_before_jiffies(until_jiffies))
+>> +			return -EIO;
+> 
+> According with include/linux/jiffies.h:
+> 
+> 	time_is_before_jiffies(a) return true if a is before jiffies.
+> 
+> I suspect that you want to do just the opposite here: to return -EIO if
+> you passed the timeout given by until_jiffies.
+
+Don't confuse me :-)
+
+Using before_jiffies is correct. If 'until_jiffies < jiffies', then we give up
+and return -EIO. So until_jiffies is before jiffies. Or in other words:
+jiffies is after until_jiffies.
+
+I think that a macro like "jiffies_is_after_time(a)" would be easier to
+understand.
+
+<snip>
+
+>> +static int si4713_i2c_read(struct si4713_usb_device *radio, char *data, int len)
+>> +{
+>> +	unsigned long until_jiffies = jiffies + usecs_to_jiffies(USB_RESP_TIMEOUT) + 1;
+>> +	int retval;
+>> +
+>> +	/* receive the response */
+>> +	for (;;) {
+>> +		retval = usb_control_msg(radio->usbdev,
+>> +					usb_rcvctrlpipe(radio->usbdev, 0),
+>> +					0x01, 0xa1, 0x033f, 0, radio->buffer,
+>> +					BUFFER_LENGTH, USB_TIMEOUT);
+>> +		if (retval < 0)
+>> +			return retval;
+>> +
+>> +		/*
+>> +		 * Check that we get a valid reply back (buffer[1] == 0) and
+>> +		 * that CTS is set before returning, otherwise we wait and try
+>> +		 * again. The i2c driver also does the CTS check, but the timeouts
+>> +		 * used there are much too small for this USB driver, so we wait
+>> +		 * for it here.
+>> +		 */
+>> +		if (radio->buffer[1] == 0 && (radio->buffer[2] & SI4713_CTS)) {
+>> +			memcpy(data, radio->buffer + 2, len);
+>> +			return 0;
+>> +		}
+>> +		if (time_is_before_jiffies(until_jiffies)) {
+>> +			/* Zero the status value, ensuring CTS isn't set */
+>> +			data[0] = 0;
+>> +			return 0;
+>> +		}
+> 
+> Again, I think that the timeout condition is wrong here.
+
+Ditto, the code is correct.
+
+> 
+>> +		msleep(3);
+>> +	}
+>> +}
+
+Regards,
+
+	Hans
 
