@@ -1,206 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46504 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752622Ab3LTFuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 00:50:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v5 11/12] DocBook: Software Defined Radio Interface
-Date: Fri, 20 Dec 2013 07:49:53 +0200
-Message-Id: <1387518594-11609-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
-References: <1387518594-11609-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52849 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751846Ab3LMMI3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 07:08:29 -0500
+Date: Fri, 13 Dec 2013 14:08:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	David Cohen <dacohen@gmail.com>
+Subject: Re: [RFCv2 PATCH 2/2] omap24xx/tcm825x: move to staging for future
+ removal.
+Message-ID: <20131213120825.GV30652@valkosipuli.retiisi.org.uk>
+References: <1386851193-3845-1-git-send-email-hverkuil@xs4all.nl>
+ <1386851193-3845-3-git-send-email-hverkuil@xs4all.nl>
+ <20131213112930.GU30652@valkosipuli.retiisi.org.uk>
+ <52AAF759.9010107@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52AAF759.9010107@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2 SDR interface.
+Hi Hans,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml       | 10 +++
- Documentation/DocBook/media/v4l/dev-sdr.xml      | 99 ++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/io.xml           |  6 ++
- Documentation/DocBook/media/v4l/v4l2.xml         |  1 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml |  6 ++
- 5 files changed, 122 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+On Fri, Dec 13, 2013 at 01:02:33PM +0100, Hans Verkuil wrote:
+> On 12/13/2013 12:29 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Thu, Dec 12, 2013 at 01:26:33PM +0100, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> The omap24xx driver and the tcm825x sensor driver are the only two
+> >> remaining drivers to still use the old deprecated v4l2-int-device API.
+> >>
+> >> Nobody maintains these drivers anymore. But unfortunately the v4l2-int-device
+> >> API is used by out-of-tree drivers (MXC platform). This is a very bad situation
+> >> since as long as this deprecated API stays in the kernel there is no reason for
+> >> those out-of-tree drivers to convert.
+> >>
+> >> This patch moves v4l2-int-device and the two drivers that depend on it to
+> >> staging in preparation for their removal.
+> > 
+> > Do you think we should move these to staging instead of removing them right
+> > away? These drivers have never been in a usable state in the mainline
+> > kernel due to missing platform data. Currently they suffer from other
+> > problems, too. I'd be surprised if they compile.
+> 
+> They do compile, they are part of my daily build.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 0c7195e..85fb864 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2523,6 +2523,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.14</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added Software Defined Radio (SDR) Interface.
-+	  </para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-new file mode 100644
-index 0000000..3caf44d
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -0,0 +1,99 @@
-+  <title>Software Defined Radio Interface (SDR)</title>
-+
-+  <para>
-+SDR is an abbreviation of Software Defined Radio, the radio device
-+which uses application software for modulation or demodulation. That interface
-+is intended for controlling and data streaming of such devices.
-+  </para>
-+
-+  <para>
-+SDR devices are accessed through character device special files named
-+<filename>/dev/swradio0</filename> to <filename>/dev/swradio255</filename>
-+with major number 81 and dynamically allocated minor numbers 0 to 255.
-+  </para>
-+
-+  <section>
-+    <title>Querying Capabilities</title>
-+
-+    <para>
-+Devices supporting the SDR receiver interface set the
-+<constant>V4L2_CAP_SDR_CAPTURE</constant> and
-+<constant>V4L2_CAP_TUNER</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability;
-+returned by the &VIDIOC-QUERYCAP; ioctl. That flag means device has
-+Analog to Digital Converter (ADC), which is mandatory element for SDR receiver.
-+At least one of the read/write, streaming or asynchronous I/O methods must
-+be supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Supplemental Functions</title>
-+
-+    <para>
-+SDR devices can support <link linkend="control">controls</link>, and must
-+support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
-+for setting ADC sampling rate (sampling frequency) and possible RF tuner
-+frequency.
-+    </para>
-+
-+    <para>
-+<constant>V4L2_TUNER_ADC</constant> is used as a tuner type when ADC is in
-+question and <constant>V4L2_TUNER_RF</constant> is used as a tuner type when
-+RF tuner is in question. Possible RF tuner index number is always next one
-+from the ADC index number. Normally ADC tuner is #0 and RF tuner is #1.
-+    </para>
-+
-+    <para>
-+<constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl is not supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Data Format Negotiation</title>
-+
-+    <para>
-+SDR capture device uses <link linkend="format">format</link> ioctls to select
-+capture format. Both sampling resolution and data streaming format are bind
-+to that selectable format. In addition to basic
-+<link linkend="format">format</link> ioctls, the
-+<constant>VIDIOC_ENUM_FMT</constant> ioctl must be supported too.
-+    </para>
-+
-+    <para>
-+To use <link linkend="format">format</link> ioctls applications set the
-+<structfield>type</structfield> field of a &v4l2-format; to
-+<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
-+<structfield>sdr</structfield> member of the <structfield>fmt</structfield>
-+union as needed per desired operation.
-+Currently there is only <structfield>pixelformat</structfield> field of
-+&v4l2-format-sdr; used. Content of that field is data format V4L2 fourcc code.
-+    </para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-format-sdr">
-+      <title>struct <structname>v4l2_format_sdr</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+        <tbody valign="top">
-+          <row>
-+            <entry>__u32</entry>
-+            <entry><structfield>pixelformat</structfield></entry>
-+            <entry>little endian four character code (fourcc)</entry>
-+          </row>
-+          <row>
-+            <entry>__u8</entry>
-+            <entry><structfield>reserved[28]</structfield></entry>
-+            <entry>This array is reserved for future extensions.
-+Drivers and applications must set it to zero.</entry>
-+          </row>
-+        </tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>
-+A SDR device may support <link linkend="rw">read/write</link>
-+and/or streaming (<link linkend="mmap">memory mapping</link>
-+or <link linkend="userp">user pointer</link>) I/O.
-+    </para>
-+
-+  </section>
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4c068..1fb11e8 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1005,6 +1005,12 @@ should set this to 0.</entry>
- 	    <entry>Buffer for video output overlay (OSD), see <xref
- 		linkend="osd" />.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
-+	    <entry>11</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR), see <xref
-+		linkend="sdr" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 8469fe1..a27fcae 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -529,6 +529,7 @@ and discussions on the V4L mailing list.</revremark>
-     <section id="ttx"> &sub-dev-teletext; </section>
-     <section id="radio"> &sub-dev-radio; </section>
-     <section id="rds"> &sub-dev-rds; </section>
-+    <section id="sdr"> &sub-dev-sdr; </section>
-     <section id="event"> &sub-dev-event; </section>
-     <section id="subdev"> &sub-dev-subdev; </section>
-   </chapter>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-index ee8f56e..60bf9b2 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-@@ -172,6 +172,12 @@ capture and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-format-sdr;</entry>
-+	    <entry><structfield>sdr</structfield></entry>
-+	    <entry>Definition of an SDR format.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>raw_data</structfield>[200]</entry>
- 	    <entry>Place holder for future extensions.</entry>
+If they compile they certainly do not function. :-)
+
+> > If I wanted to get them working again I'd start with this since it's not
+> > very far from the state where they used to work:
+> > 
+> > <URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux-omap/.git;a=summary>
+> > 
+> > The branch is n800-cam . Porting to up-to-date APIs can then be done, and I
+> > think David did some work to that end.
+> > 
+> 
+> I think I prefer to keep them in staging for at least one kernel release (3.14)
+> and drop them in 3.15.
+> 
+> Although if the consensus is to just drop them, then I won't object :-)
+
+Objections, anyone? :-)
+
+I don't object to moving them to staging either but it'll be less hassle to
+just remove them.
+
 -- 
-1.8.4.2
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
