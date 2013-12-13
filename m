@@ -1,72 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f196.google.com ([209.85.217.196]:57546 "EHLO
-	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049Ab3LYA0c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 19:26:32 -0500
-Received: by mail-lb0-f196.google.com with SMTP id l4so956205lbv.3
-        for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 16:26:30 -0800 (PST)
+Received: from multi.imgtec.com ([194.200.65.239]:53939 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753410Ab3LMPPA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:15:00 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH 09/11] media: rc: add Sharp infrared protocol
+Date: Fri, 13 Dec 2013 15:12:57 +0000
+Message-ID: <1386947579-26703-10-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-Date: Wed, 25 Dec 2013 02:26:30 +0200
-Message-ID: <CADBDwkdUWD8ixPMxVHb4Oho6BcfnhX72JOUk_N1io2uMTgcYBA@mail.gmail.com>
-Subject: DS3000/TS2020 diseqc problem
-From: Olcay Korkmaz <olcay.mz@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add Sharp infrared protocol constants RC_TYPE_SHARP and RC_BIT_SHARP.
 
-I have a geniatech hdstar device with ubuntu gnome 13.10x64 kernel 3.11
-My setup is two sats on disecq switch
-turksat s42e : lnb1
-hellassat s39e : lnb2
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/rc-main.c | 1 +
+ include/media/rc-map.h     | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-I can't scan channels with scan-s2,dvbscan,w_scan,dvbv5-scan
-sometimes device can lock on transporder but can't get channel information
-
-only kaffeine can scan both satellites and can tune channels
-
-if I try to scan with scaning tools after that device will be
-unavailable for tuning
-need to re-connect
-
-I tried three different firmware and tried lastest linux-media source
-but no lock
-
-here is some debug log
-
-working log
-
-[  741.740143] ds3000_readreg: read reg 0xd1, value 0x0f
-[  741.740361] ds3000_read_status: status = 0x0f
-[  714.654175] ds3000_writereg: write reg 0xc4, value 0x05
-[  714.654606] ds3000_writereg: write reg 0xc7, value 0x24
-
-not working log
-
-[ 1460.754905] ds3000_readreg: read reg 0xd1, value 0x00
-[ 1460.755156] ds3000_read_status: status = 0x00
-[ 1460.905801] ds3000_readreg: read reg 0xd1, value 0x00
-[ 1460.906047] ds3000_read_status: status = 0x00
-[ 1460.954073] ds3000_readreg: read reg 0xd1, value 0x00
-[ 1460.954287] ds3000_read_status: status = 0x00
-
-[ 1484.681581] ds3000_writereg: write reg 0x03, value 0x12
-[ 1484.682452] ds3000_writereg: write reg 0x03, value 0x02
-[ 1484.682658] ds3000_writereg: write reg 0x03, value 0x12
-[ 1484.683563] ds3000_writereg: write reg 0x03, value 0x02
-
-
-[ 1802.083839] ds3000_readreg: read reg 0xa2, value 0x86
-[ 1802.083839] ds3000_writereg: write reg 0xa2, value 0x84
-[ 1802.099360] ds3000_send_diseqc_msg(0xe0, 0x10, 0x38,
-0xf2ds3000_readreg: read reg 0xa2, value 0x84
-[ 1802.099937] ds3000_writereg: write reg 0xa2, value 0x04
-[ 1802.100375] ds3000_writereg: write reg 0xa3, value 0xe0
-
-
-thanks
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 46da365c9c84..a1b90ef45910 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -786,6 +786,7 @@ static struct {
+ 	  RC_BIT_SONY20,	"sony"		},
+ 	{ RC_BIT_RC5_SZ,	"rc-5-sz"	},
+ 	{ RC_BIT_SANYO,		"sanyo"		},
++	{ RC_BIT_SHARP,		"sharp"		},
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
+ 	{ RC_BIT_LIRC,		"lirc"		},
+ };
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index a20ed97d7d8a..b3224edf1b46 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -30,6 +30,7 @@ enum rc_type {
+ 	RC_TYPE_RC6_6A_24	= 15,	/* Philips RC6-6A-24 protocol */
+ 	RC_TYPE_RC6_6A_32	= 16,	/* Philips RC6-6A-32 protocol */
+ 	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype) protocol */
++	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
+ };
+ 
+ #define RC_BIT_NONE		0
+@@ -51,6 +52,7 @@ enum rc_type {
+ #define RC_BIT_RC6_6A_24	(1 << RC_TYPE_RC6_6A_24)
+ #define RC_BIT_RC6_6A_32	(1 << RC_TYPE_RC6_6A_32)
+ #define RC_BIT_RC6_MCE		(1 << RC_TYPE_RC6_MCE)
++#define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
+ 
+ #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+@@ -58,7 +60,7 @@ enum rc_type {
+ 			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
+ 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+-			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE)
++			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP)
+ 
+ struct rc_map_table {
+ 	u32	scancode;
 -- 
-Olcay K.
+1.8.1.2
+
+
