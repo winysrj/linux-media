@@ -1,242 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47137 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751458Ab3LLIgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 03:36:49 -0500
-From: Archit Taneja <archit@ti.com>
-To: <linux-media@vger.kernel.org>, <k.debski@samsung.com>,
-	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
-CC: <linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH 8/8] v4l: ti-vpe: Add a type specifier to describe vpdma data format type
-Date: Thu, 12 Dec 2013 14:06:04 +0530
-Message-ID: <1386837364-1264-9-git-send-email-archit@ti.com>
-In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
-References: <1386837364-1264-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:45686 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474Ab3LMFM4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 00:12:56 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: s.nawrocki@samsung.com, mark.rutland@arm.com,
+	shaik.ameer@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v10 1/2] [media] exynos5-is: Adds DT binding documentation
+Date: Fri, 13 Dec 2013 10:42:42 +0530
+Message-Id: <1386911563-26236-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1386911563-26236-1-git-send-email-arun.kk@samsung.com>
+References: <1386911563-26236-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct vpdma_data_format holds the color format depth and the data_type
-value needed to be programmed in the data descriptors. However, it doesn't
-tell what type of color format is it, i.e, whether it is RGB, YUV or Misc.
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
 
-This information is needed when by vpdma library when forming descriptors. We
-modify the depth parameter for the chroma portion of the NV12 format. For this,
-we check if the data_type value is C420. This isn't sufficient as there are
-many YUV and RGB vpdma formats which have the same data_type value. Hence, we
-need to hold the type of the color format for the above case, and possibly more
-cases in the future.
+The patch adds the DT binding doc for exynos5 SoC camera
+subsystem.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 36 +++++++++++++++++++++++++++++++++--
- drivers/media/platform/ti-vpe/vpdma.h |  7 +++++++
- 2 files changed, 41 insertions(+), 2 deletions(-)
+ .../bindings/media/exynos5250-camera.txt           |  136 ++++++++++++++++++++
+ 1 file changed, 136 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index f97253f..a268f68 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -30,38 +30,47 @@
- 
- const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 	[VPDMA_DATA_FMT_Y444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y444,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_Y422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y422,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_Y420] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y420,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C444,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C422,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C420] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C420,
- 		.depth		= 4,
- 	},
- 	[VPDMA_DATA_FMT_YC422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_YC422,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_YC444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_YC444,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_CY422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_CY422,
- 		.depth		= 16,
- 	},
-@@ -69,82 +78,102 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 
- const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 	[VPDMA_DATA_FMT_RGB565] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGB16_565,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB16_1555] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB_1555,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_RGBA16_5551] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA_5551,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_RGBA16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_RGB24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGB24_888,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_ARGB32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_RGBA24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_RGBA32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_BGR565] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGR16_565,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR16_1555] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR_1555,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_BGRA16_5551] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA_5551,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_BGRA16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_BGR24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGR24_888,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_ABGR32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_BGRA24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_BGRA32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA32_8888,
- 		.depth		= 32,
- 	},
-@@ -152,6 +181,7 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 
- const struct vpdma_data_format vpdma_misc_fmts[] = {
- 	[VPDMA_DATA_FMT_MV] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_MISC,
- 		.data_type	= DATA_TYPE_MV,
- 		.depth		= 4,
- 	},
-@@ -599,7 +629,8 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 
- 	channel = next_chan = chan_info[chan].num;
- 
--	if (fmt->data_type == DATA_TYPE_C420)
-+	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
-+			fmt->data_type == DATA_TYPE_C420)
- 		depth = 8;
- 
- 	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
-@@ -649,7 +680,8 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
- 
- 	channel = next_chan = chan_info[chan].num;
- 
--	if (fmt->data_type == DATA_TYPE_C420) {
-+	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
-+			fmt->data_type == DATA_TYPE_C420) {
- 		height >>= 1;
- 		frame_height >>= 1;
- 		depth = 8;
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 62dd143..cf40f11 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -39,7 +39,14 @@ struct vpdma_data {
- 	bool ready;
- };
- 
-+enum vpdma_data_format_type {
-+	VPDMA_DATA_FMT_TYPE_YUV,
-+	VPDMA_DATA_FMT_TYPE_RGB,
-+	VPDMA_DATA_FMT_TYPE_MISC,
-+};
+diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+new file mode 100644
+index 0000000..0c36bc4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+@@ -0,0 +1,136 @@
++Samsung EXYNOS5 SoC Camera Subsystem
++------------------------------------
 +
- struct vpdma_data_format {
-+	enum vpdma_data_format_type type;
- 	int data_type;
- 	u8 depth;
- };
++The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
++represented by separate device tree nodes. Currently this includes: FIMC-LITE,
++MIPI CSIS and FIMC-IS.
++
++The sub-device nodes are referenced using phandles in the common 'camera' node
++which also includes common properties of the whole subsystem not really
++specific to any single sub-device, like common camera port pins or the common
++camera bus clocks.
++
++Common 'camera' node
++--------------------
++
++Required properties:
++
++- compatible		: must be "samsung,exynos5250-fimc"
++- clocks		: list of phandles and clock specifiers, corresponding
++			  to entries in the clock-names property
++- clock-names		: must contain "sclk_bayer" entry
++- samsung,csis		: list of phandles to the mipi-csis device nodes
++- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
++- samsung,fimc-is	: phandle to the fimc-is device node
++
++The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
++to define a required pinctrl state named "default".
++
++'parallel-ports' node
++---------------------
++
++This node should contain child 'port' nodes specifying active parallel video
++input ports. It includes camera A, camera B and RGB bay inputs.
++'reg' property in the port nodes specifies the input type:
++ 1 - parallel camport A
++ 2 - parallel camport B
++ 5 - RGB camera bay
++
++3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
++
++Required properties:
++
++For describing the input type in the child nodes, the following properties
++have to be present in the parallel-ports node:
++- #address-cells: Must be 1
++- #size-cells: Must be 0
++
++Image sensor nodes
++------------------
++
++The sensor device nodes should be added to their control bus controller (e.g.
++I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
++using the common video interfaces bindings, defined in video-interfaces.txt.
++
++Example:
++
++	aliases {
++		fimc-lite0 = &fimc_lite_0
++	};
++
++	/* Parallel bus IF sensor */
++	i2c_0: i2c@13860000 {
++		s5k6aa: sensor@3c {
++			compatible = "samsung,s5k6aafx";
++			reg = <0x3c>;
++			vddio-supply = <...>;
++
++			clock-frequency = <24000000>;
++			clocks = <...>;
++			clock-names = "mclk";
++
++			port {
++				s5k6aa_ep: endpoint {
++					remote-endpoint = <&fimc0_ep>;
++					bus-width = <8>;
++					hsync-active = <0>;
++					vsync-active = <1>;
++					pclk-sample = <1>;
++				};
++			};
++		};
++	};
++
++	/* MIPI CSI-2 bus IF sensor */
++	s5c73m3: sensor@1a {
++		compatible = "samsung,s5c73m3";
++		reg = <0x1a>;
++		vddio-supply = <...>;
++
++		clock-frequency = <24000000>;
++		clocks = <...>;
++		clock-names = "mclk";
++
++		port {
++			s5c73m3_1: endpoint {
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&csis0_ep>;
++			};
++		};
++	};
++
++	camera {
++		compatible = "samsung,exynos5250-fimc";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		status = "okay";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++
++		samsung,csis = <&csis_0>, <&csis_1>;
++		samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
++		samsung,fimc-is = <&fimc_is>;
++
++		/* parallel camera ports */
++		parallel-ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* camera A input */
++			port@1 {
++				reg = <1>;
++				camport_a_ep: endpoint {
++					remote-endpoint = <&s5k6aa_ep>;
++					bus-width = <8>;
++					hsync-active = <0>;
++					vsync-active = <1>;
++					pclk-sample = <1>;
++				};
++			};
++		};
++	};
++
++MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
++device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
++is defined in exynos5-fimc-is.txt.
 -- 
-1.8.3.2
+1.7.9.5
 
