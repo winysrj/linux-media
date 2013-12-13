@@ -1,64 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55597 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753976Ab3LCQoX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Dec 2013 11:44:23 -0500
-Received: from 85-23-164-13.bb.dnainternet.fi ([85.23.164.13] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Vnt5C-0006IP-CJ
-	for linux-media@vger.kernel.org; Tue, 03 Dec 2013 18:44:22 +0200
-Message-ID: <529E0A65.1020302@iki.fi>
-Date: Tue, 03 Dec 2013 18:44:21 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3202 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751946Ab3LMP3m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:29:42 -0500
+Message-ID: <52AB27CC.6030806@xs4all.nl>
+Date: Fri, 13 Dec 2013 16:29:16 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.13 v2] AF9035/AF9033 stack alloc regression fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 2/2] v4l2: enable FMT IOCTLs for SDR
+References: <1386867447-1018-1-git-send-email-crope@iki.fi> <1386867447-1018-3-git-send-email-crope@iki.fi> <52AB1D71.6060000@xs4all.nl> <52AB21FF.5060903@iki.fi>
+In-Reply-To: <52AB21FF.5060903@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And as these stack alloc patches seems to requested for stable too, 
-these 3 fixes should go stable also!
+On 12/13/2013 04:04 PM, Antti Palosaari wrote:
+> On 13.12.2013 16:45, Hans Verkuil wrote:
+>> On 12/12/2013 05:57 PM, Antti Palosaari wrote:
+>>> Enable format IOCTLs for SDR use. There are used for negotiate used
+>>> data stream format.
+>>>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
+>>>   drivers/media/v4l2-core/v4l2-ioctl.c | 26 ++++++++++++++++++++++++++
+>>>   2 files changed, 38 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>>> index c9cf54c..d67286ba 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>>> @@ -563,6 +563,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>>>   	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+>>>   	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
+>>>   	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+>>> +	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+>>>   	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+>>>   	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+>>>
+>>> @@ -612,6 +613,17 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>>>   	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+>>>   		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+>>>
+>>> +	if (is_sdr && is_rx) {
+>>
+>> I would drop the is_rx part. If there even is something like a SDR transmitter,
+>> then I would still expect that the same ioctls are needed.
+> 
+> There is TX devices too, I am looking it later, maybe on March at earliest.
+> 
+>>> +		/* SDR specific ioctls */
+>>> +		if (ops->vidioc_enum_fmt_vid_cap)
+>>> +			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+>>> +		if (ops->vidioc_g_fmt_vid_cap)
+>>> +			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+>>> +		if (ops->vidioc_s_fmt_vid_cap)
+>>> +			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+>>> +		if (ops->vidioc_try_fmt_vid_cap)
+>>> +			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+>>
+>> We need sdr-specific ops: vidioc_enum/g/s/try_sdr_cap.
+> 
+> Yes. But it could be done very easily later as it does not have effect 
+> to V4L2 API.
 
-I am not very happy to situation that stack alloc patch set was 
-requested to stable, with almost none testing. These patches appeared to 
-media master *only* around one week ago. I tested tens of DVB devices 
-during weekend and didn't any other non-working than AF9035. But I don't 
-have all the devices to test...
+It's much easier to do it right the first time, then to add it in later :-)
 
-regards
-Antti
+Spoken from personal experience...
 
-The following changes since commit fa507e4d32bf6c35eb5fe7dbc0593ae3723c9575:
+Anyway, this really should be implemented like that. Things can get very
+confusing otherwise.
 
-   [media] media: marvell-ccic: use devm to release clk (2013-11-29 
-14:46:47 -0200)
+Regards,
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git fixes3.13_v2
-
-for you to fetch changes up to 413f354edd6adbc52492d398b6f9f36dde9a9f48:
-
-   af9035: unlock on error in af9035_i2c_master_xfer() (2013-12-03 
-18:31:25 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-       af9033: fix broken I2C
-       af9035: fix broken I2C and USB I/O
-
-Dan Carpenter (1):
-       af9035: unlock on error in af9035_i2c_master_xfer()
-
-  drivers/media/dvb-frontends/af9033.c  | 12 ++++++------
-  drivers/media/usb/dvb-usb-v2/af9035.c | 15 +++++++++------
-  2 files changed, 15 insertions(+), 12 deletions(-)
-
-
-
--- 
-http://palosaari.fi/
+	Hans
