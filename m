@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52893 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751594Ab3L1SNw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 13:13:52 -0500
-Message-ID: <1388254550.2129.83.camel@palomino.walls.org>
-Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Andy <dssnosher@gmail.com>
-Cc: linux-media@vger.kernel.org
-Date: Sat, 28 Dec 2013 13:15:50 -0500
-In-Reply-To: <CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
-References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
-	 <CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
-	 <CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:44536 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751496Ab3LMMBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 07:01:22 -0500
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id ED7FA202A2
+	for <linux-media@vger.kernel.org>; Fri, 13 Dec 2013 14:01:18 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC 2/2] media: v4l: Only get module if it's different than the driver for v4l2_dev
+Date: Fri, 13 Dec 2013 14:03:36 +0200
+Message-Id: <1386936216-32296-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1386936216-32296-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1386936216-32296-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2013-12-27 at 00:37 -0500, Andy wrote:
-> I am trying to capture input from /dev/video0 which is Hauppauge Win
-> 150 MCE PCI card but I get the following error which has no record on
-> google
-> 
-> [video4linux2,v4l2 @ 0xb080d60] The device does not support the
-> streaming I/O method.
-> /dev/video0: Function not implemented
+When the sub-device is registered, increment the use count of the sub-device
+owner only if it's different from the owner of the driver for the media
+device. This avoids increasing the use count by the module itself and thus
+making it possible to unload it when it's not in use.
 
-The ivtv driver does not support the V4L2 Streaming I/O ioctl()'s for
-transferring video data buffers.  It only supports the read()/write()
-calls.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-device.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-I'm not sure about ffmpeg, but mplayer is happy to read() the mpeg
-stream from standard input or the device node:
-
-# cat /dev/video0 | mplayer
-or
-# mplayer /dev/video0 
-
-Regards,
-Andy
-
-> Here is the ffmpeg command
-> ffmpeg -y -f:v video4linux2 -i /dev/video0 -f:a alsa -ac 1 -i hw:1,0
-> -threads 2 -override_ffserver -flags +global_header -vcodec libx264 -s
-> 320x240 -preset superfast -r 7.5 -acodec aac -ar 44100
-> ipgoeshere:port/dvbstest.ffm
-> 
-> Disregard the DVB syntax, not relevant
-> 
-> Any idea what is causing the error?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 02d1b63..9f6d1ec 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -158,7 +158,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	/* Warn if we apparently re-register a subdev */
+ 	WARN_ON(sd->v4l2_dev != NULL);
+ 
+-	if (!try_module_get(sd->owner))
++	if (sd->owner != v4l2_dev->dev->driver->owner &&
++	    !try_module_get(sd->owner))
+ 		return -ENODEV;
+ 
+ 	sd->v4l2_dev = v4l2_dev;
+@@ -192,7 +193,8 @@ error_unregister:
+ 	if (sd->internal_ops && sd->internal_ops->unregistered)
+ 		sd->internal_ops->unregistered(sd);
+ error_module:
+-	module_put(sd->owner);
++	if (sd->owner != v4l2_dev->dev->driver->owner)
++		module_put(sd->owner);
+ 	sd->v4l2_dev = NULL;
+ 	return err;
+ }
+@@ -280,6 +282,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	}
+ #endif
+ 	video_unregister_device(sd->devnode);
+-	module_put(sd->owner);
++	if (sd->owner != v4l2_dev->dev->driver->owner)
++		module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+-- 
+1.8.3.2
 
