@@ -1,42 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:63373 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089Ab3LTNCh (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2428 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752839Ab3LMQOG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 08:02:37 -0500
-MIME-Version: 1.0
-In-Reply-To: <52B43DB0.8020107@xs4all.nl>
-References: <1387293923-27236-1-git-send-email-prabhakar.csengg@gmail.com>
- <CA+V-a8sdCuO1U3Egn62g_QivmVUEXzF4RgKbi-Ksm7JZEY-KKA@mail.gmail.com> <52B43DB0.8020107@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 20 Dec 2013 18:32:16 +0530
-Message-ID: <CA+V-a8tzXtPS5pjGqpno74-9s3gruJhBJ+WD23n1w2jsR7uZGA@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci_vpfe: fix build error
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, devel@driverdev.osuosl.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 13 Dec 2013 11:14:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 8/9] vb2: Improve file I/O emulation to handle buffers in any order
+Date: Fri, 13 Dec 2013 17:13:45 +0100
+Message-Id: <1386951226-27655-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386951226-27655-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386951226-27655-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, Dec 20, 2013 at 6:23 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> I just made a patch myself that I added to the pull request I just posted.
->
-> You didn't CC me or CC the linux-media list when you posted your patch, so I
-> never saw it.
->
-I dont know why this patch didnt make up in linux-media but its
-present DLOS [1].
-I posted it the same day when you pinged me about this issue. Anyway your patch
-too didnt reach me and I also cannot find it in the ML. May be you
-directly issued the pull ?
+videobuf2 file I/O emulation assumed that buffers dequeued from the
+driver would return in the order they were enqueued in the driver.
 
-[1] https://patchwork.kernel.org/patch/3362211/
+Improve the file I/O emulator's book-keeping to remove this assumption.
 
-Regards,
---Prabhakar Lad
+Also set the buf->size properly if a write() dequeues a buffer and the
+VB2_FILEIO_WRITE_IMMEDIATELY flag is set.
+
+Based on an initial patch by Andy Walls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8d61e6d..08c4a87 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2354,6 +2354,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+ 		}
++		fileio->index = q->num_buffers;
+ 	}
+ 
+ 	/*
+@@ -2429,15 +2430,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	}
+ 	fileio = q->fileio;
+ 
+-	index = fileio->index;
+-	buf = &fileio->bufs[index];
+-
+ 	/*
+ 	 * Check if we need to dequeue the buffer.
+ 	 */
+-	if (buf->queued) {
+-		struct vb2_buffer *vb;
+-
++	index = fileio->index;
++	if (index >= q->num_buffers) {
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+@@ -2450,12 +2447,18 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			return ret;
+ 		fileio->dq_count += 1;
+ 
++		index = fileio->b.index;
++		buf = &fileio->bufs[index];
++
+ 		/*
+ 		 * Get number of bytes filled by the driver
+ 		 */
+-		vb = q->bufs[index];
+-		buf->size = vb2_get_plane_payload(vb, 0);
++		buf->pos = 0;
+ 		buf->queued = 0;
++		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
++				 : vb2_plane_size(q->bufs[index], 0);
++	} else {
++		buf = &fileio->bufs[index];
+ 	}
+ 
+ 	/*
+@@ -2518,13 +2521,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		 */
+ 		buf->pos = 0;
+ 		buf->queued = 1;
+-		buf->size = q->bufs[0]->v4l2_planes[0].length;
++		buf->size = vb2_plane_size(q->bufs[index], 0);
+ 		fileio->q_count += 1;
+-
+-		/*
+-		 * Switch to the next buffer
+-		 */
+-		fileio->index = (index + 1) % q->num_buffers;
++		if (fileio->index < q->num_buffers)
++			fileio->index++;
+ 	}
+ 
+ 	/*
+-- 
+1.8.4.3
+
