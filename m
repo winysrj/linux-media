@@ -1,58 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:31082 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab3L2D0G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 22:26:06 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYJ00AWNTJH3S50@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:26:05 -0500 (EST)
-Date: Sun, 29 Dec 2013 01:25:58 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/13] libdvbv5: fix deadlock on missing table sections
-Message-id: <20131229012558.4e5687d0.m.chehab@samsung.com>
-In-reply-to: <1388245561-8751-4-git-send-email-neolynx@gmail.com>
-References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
- <1388245561-8751-4-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:43848 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751946Ab3LMPEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:04:34 -0500
+Message-ID: <52AB21FF.5060903@iki.fi>
+Date: Fri, 13 Dec 2013 17:04:31 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 2/2] v4l2: enable FMT IOCTLs for SDR
+References: <1386867447-1018-1-git-send-email-crope@iki.fi> <1386867447-1018-3-git-send-email-crope@iki.fi> <52AB1D71.6060000@xs4all.nl>
+In-Reply-To: <52AB1D71.6060000@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Dec 2013 16:45:52 +0100
-André Roth <neolynx@gmail.com> escreveu:
+On 13.12.2013 16:45, Hans Verkuil wrote:
+> On 12/12/2013 05:57 PM, Antti Palosaari wrote:
+>> Enable format IOCTLs for SDR use. There are used for negotiate used
+>> data stream format.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
+>>   drivers/media/v4l2-core/v4l2-ioctl.c | 26 ++++++++++++++++++++++++++
+>>   2 files changed, 38 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>> index c9cf54c..d67286ba 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>> @@ -563,6 +563,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>>   	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+>>   	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
+>>   	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+>> +	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+>>   	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+>>   	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+>>
+>> @@ -612,6 +613,17 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>>   	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+>>   		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+>>
+>> +	if (is_sdr && is_rx) {
+>
+> I would drop the is_rx part. If there even is something like a SDR transmitter,
+> then I would still expect that the same ioctls are needed.
 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/dvb-scan.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-> index 76712d4..9751f9d 100644
-> --- a/lib/libdvbv5/dvb-scan.c
-> +++ b/lib/libdvbv5/dvb-scan.c
-> @@ -96,6 +96,10 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
->  	uint8_t *buf = NULL;
->  	uint8_t *tbl = NULL;
->  	ssize_t table_length = 0;
-> +
-> +	// handle sections
-> +	int start_id = -1;
-> +	int start_section = -1;
+There is TX devices too, I am looking it later, maybe on March at earliest.
 
-Again, this seems to be part of patch 1.
+>> +		/* SDR specific ioctls */
+>> +		if (ops->vidioc_enum_fmt_vid_cap)
+>> +			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+>> +		if (ops->vidioc_g_fmt_vid_cap)
+>> +			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+>> +		if (ops->vidioc_s_fmt_vid_cap)
+>> +			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+>> +		if (ops->vidioc_try_fmt_vid_cap)
+>> +			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+>
+> We need sdr-specific ops: vidioc_enum/g/s/try_sdr_cap.
 
->  	int first_section = -1;
->  	int last_section = -1;
->  	int table_id = -1;
+Yes. But it could be done very easily later as it does not have effect 
+to V4L2 API.
+
+>
+>> +	}
+>>   	if (is_vid) {
+>>   		/* video specific ioctls */
+>>   		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
+>
+> You also need to split up the large 'if (!is_radio)' part:
+>
+>          if (!is_radio) {
+>                  /* ioctls valid for video, vbi or sdr */
+>                  SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+>                  SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+>                  SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
+>                  SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
+>                  SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+>                  SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
+>                  SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
+> 	}
+> 	if (!is_radio && !is_sdr) {
+
+I will change it to limit only to those relevant VB2 IOCTLs.
+
+regards
+Antti
+
+>
+> Regards,
+>
+> 	Hans
+>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index 5b6e0e8..2471179 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -879,6 +879,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+>>   	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+>>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+>>   	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
+>> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+>>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+>>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+>>
+>> @@ -928,6 +929,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+>>   		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
+>>   			return 0;
+>>   		break;
+>> +	case V4L2_BUF_TYPE_SDR_RX:
+>> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
+>> +			return 0;
+>> +		break;
+>>   	default:
+>>   		break;
+>>   	}
+>> @@ -1047,6 +1052,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+>>   		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
+>>   			break;
+>>   		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
+>> +	case V4L2_BUF_TYPE_SDR_RX:
+>> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
+>> +			break;
+>> +		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
+>>   	}
+>>   	return -EINVAL;
+>>   }
+>> @@ -1057,6 +1066,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+>>   	struct v4l2_format *p = arg;
+>>   	struct video_device *vfd = video_devdata(file);
+>>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+>> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+>>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+>>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+>>
+>> @@ -1101,6 +1111,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+>>   		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
+>>   			break;
+>>   		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
+>> +	case V4L2_BUF_TYPE_SDR_RX:
+>> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
+>> +			break;
+>> +		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+>>   	}
+>>   	return -EINVAL;
+>>   }
+>> @@ -1111,6 +1125,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>>   	struct v4l2_format *p = arg;
+>>   	struct video_device *vfd = video_devdata(file);
+>>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+>> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+>>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+>>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+>>
+>> @@ -1165,6 +1180,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>>   			break;
+>>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>>   		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
+>> +	case V4L2_BUF_TYPE_SDR_RX:
+>> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
+>> +			break;
+>> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
+>> +		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
+>>   	}
+>>   	return -EINVAL;
+>>   }
+>> @@ -1175,6 +1195,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>>   	struct v4l2_format *p = arg;
+>>   	struct video_device *vfd = video_devdata(file);
+>>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+>> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+>>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+>>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+>>
+>> @@ -1229,6 +1250,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>>   			break;
+>>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>>   		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
+>> +	case V4L2_BUF_TYPE_SDR_RX:
+>> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
+>> +			break;
+>> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
+>> +		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
+>>   	}
+>>   	return -EINVAL;
+>>   }
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
 -- 
-
-Cheers,
-Mauro
+http://palosaari.fi/
