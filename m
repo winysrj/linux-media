@@ -1,43 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outrelay01.libero.it ([212.52.84.101]:44404 "EHLO
-	outrelay01.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756461Ab3LTAB0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 19:01:26 -0500
-Message-ID: <11263904.4519411387497676102.JavaMail.defaultUser@defaultHost>
-Date: Fri, 20 Dec 2013 01:01:16 +0100 (CET)
-From: benitajohnson313 <benitajohnson313@libero.it>
-Reply-To: benitajohnson112@outlook.com
-Subject: Ciao
+Received: from mail.kapsi.fi ([217.30.184.167]:43107 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751584Ab3LMPnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:43:01 -0500
+Message-ID: <52AB2B02.3090300@iki.fi>
+Date: Fri, 13 Dec 2013 17:42:58 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 4/4] v4l: 1 Hz resolution flag for tuners
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-5-git-send-email-crope@iki.fi> <52A96C00.8060607@xs4all.nl> <52A9F0C7.2050602@iki.fi> <52AB1447.9090601@xs4all.nl>
+In-Reply-To: <52AB1447.9090601@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ciao
-Il mio nome è BenitaJohnson
-ho visto il tuo profilo toda (forum.ubuntu-it.org/viewtopic.php) e si è 
-interessata in voi, mi piacerebbe anche sapere che il più, e voglio che tu 
-inviare una mail al mio indirizzo mail così posso darvi la mia immagine per voi 
-sa che io am.Here è il mio indirizzo email (benitajohnson112@outlook.com)
-Io credo che possiamo passare da qui! Sono in attesa di tua mail al mio 
-indirizzo di posta elettronica di cui sopra.
-Benita
-(Ricordate la distanza o il colore non importa, ma amore questioni molto nella 
-vita)
-vi prego di contattarmi qui (benitajohnson112@outlook.com)
+On 13.12.2013 16:05, Hans Verkuil wrote:
+> On 12/12/2013 06:22 PM, Antti Palosaari wrote:
+>> Hi Hans!
+>>
+>> On 12.12.2013 09:55, Hans Verkuil wrote:
+>>> On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+>>>> Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
+>>>>
+>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>> ---
+>>>>    include/uapi/linux/videodev2.h | 1 +
+>>>>    1 file changed, 1 insertion(+)
+>>>>
+>>>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>>>> index 6c6a601..1bac6c4 100644
+>>>> --- a/include/uapi/linux/videodev2.h
+>>>> +++ b/include/uapi/linux/videodev2.h
+>>>> @@ -1349,6 +1349,7 @@ struct v4l2_modulator {
+>>>>    #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+>>>>    #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+>>>>    #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
+>>>> +#define V4L2_TUNER_CAP_1HZ		0x1000
+>>>>
+>>>>    /*  Flags for the 'rxsubchans' field */
+>>>>    #define V4L2_TUNER_SUB_MONO		0x0001
+>>>>
+>>>
+>>> I was wondering, do the band modulation systems (V4L2_BAND_MODULATION_VSB etc.) cover SDR?
+>>
+>> There is no such modulations defined for SDR hardware level. SDR
+>> demodulation is done by software called DSP (digital signal processing)
+>> in host computer.
+>>
+>> In ideal case, SDR receiver has only 1 property: ADC (analog to digital
+>> converter) sampling rate.
+>
+> So in that case the band modulation would be 0, right?
+
+Yes. If you split that radio receiver to some logic blocs, from antenna 
+to host computer:
+1. Antenna is here
+2. RF tuner (RF frontend): tuner "band" belongs here
+3. ADC: sampling rate
+4. demodulator (modulation lives here)
+
+In a case of traditional hw based demodulator PC/host computer is 
+located as a number 5. In a case of a software defined radio receiver 
+host computer is next to ADC, between 3-4. Demodulator itself is DSP 
+software running on host computer.
 
 
-Hello
-My name is BenitaJohnson
-i saw your profile toda(forum.ubuntu-it.org/viewtopic.php) and became 
-interested in you,i will also like to know you the more,and i want you to send 
-an email to my email address so i can give you my picture for you to know whom 
-i am.Here is my email address    (benitajohnson112@outlook.com)
-I believe we can move from here!I am waiting for your mail to my email address 
-above.
-Benita
-(Remeber the distance or colour does not matter but love matters alot in life)
-please contact me here (benitajohnson112@outlook.com)
+>> But as digital signal processing is very CPU intensive when sampling
+>> rates are increased, there is very often RF tuner used to down-convert
+>> actual radio frequency to low-IF / BB. Then ADC is used to sample that
+>> baseband / low-IF signal and only small sampling rate is needed =>
+>> stream is smaller => DSP does not need so much CPU.
+>
+> How does the application know that there is an RF tuner? I assume that
+> the app needs to know this?
+
+Yes, that indeed needs to be know. It is one key issue to resolve. 
+Something like a capability flag works or application could test it 
+when. Like if tuner type is "ADC" then enumerate if there is tuner type 
+"SDR" also. Or expect there is always RF tuner and frequency is 
+programmed as a 0 Hz when it is not really there. Enumeration of RF 
+tuner returns only supported frequency as a 0Hz to tell there is only ADC.
+
+
+> As you can probably tell, I basically know nothing about SDR, so forgive
+> me if I am asking stupid questions. I just want to make sure all bases
+> are covered when it comes to the V4L2 API.
+
+I really appreciate that as simply has no enough knowledge from V4L2 API 
+and API changes are needed. I will try to list here shortly some SDR 
+devices in general level enough.
+
+ant = antenna
+host = host computer, PC (SW modulator/demodulator)
+ADC = analog to digital converter
+DAC = digital to analog converter
+amp = amplifier
+mixer = "TX tuner"
+
+receiver:
+ant <> RF tuner <> ADC <> bridge <> host
+ant <>ADC <> bridge <> host
+ant <> up-converter <> RF tuner <> ADC <> bridge <> host
+
+transmitter:
+ant <> amp <> mixer <> DAC <> bridge <> host
+ant <> mixer <> DAC <> bridge <> host
+ant <> DAC <> bridge <> host
+
+Those are the used building blocks in some general view. ADC (DAC) is 
+most important hardware block, but RF tuner is also critical in practice.
+
+So what I understood, V4L2 API "tuner" is kinda logical entity that 
+represent single radio device, containing RF tuner, demodulator and so. 
+That same logical entity in DVB API side is frontend, which is mostly 
+implemented by demodulator with a help of RF tuner.
+
+So what is needed is to make V4L2 API entity (tuner I guess) that could 
+represent both ADC and RF tuner.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
