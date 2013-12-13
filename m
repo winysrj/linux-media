@@ -1,262 +1,397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:45019 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752440Ab3LCKoz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 05:44:55 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MX800E5W8ITIV70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Dec 2013 10:44:53 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'randy' <lxr1234@hotmail.com>, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.chehab@samsung.com,
-	jtp.park@samsung.com, Marek Szyprowski <m.szyprowski@samsung.com>
-References: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl>
-In-reply-to: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl>
-Subject: RE: Can't open mfc v5 encode but decode can
-Date: Tue, 03 Dec 2013 11:44:51 +0100
-Message-id: <058401cef014$b29674e0$17c35ea0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from multi.imgtec.com ([194.200.65.239]:53942 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753083Ab3LMPO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:14:57 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH 02/11] media: rc: img-ir: add base driver
+Date: Fri, 13 Dec 2013 15:12:50 +0000
+Message-ID: <1386947579-26703-3-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
+Add base driver for the ImgTec Infrared decoder block. The driver is
+split into separate components for raw (software) decode and hardware
+decoder which are in following commits.
 
-We also experienced this issue. One of the changes in the v4l2 core
-affected the MFC driver. A fix for MFC has been prepared by Marek
-Szyprowski and should be sent out soon.
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: devicetree@vger.kernel.org
+---
+ drivers/media/rc/img-ir/img-ir-core.c | 172 ++++++++++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/img-ir.h      | 170 +++++++++++++++++++++++++++++++++
+ 2 files changed, 342 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-core.c
+ create mode 100644 drivers/media/rc/img-ir/img-ir.h
 
-Also another tip - in 3.13 a check on bytesused and length fields
-in planes array has been implemented. So make sure to set them
-appropriately.
-
-Best wishes,
+diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
+new file mode 100644
+index 000000000000..a577217aa739
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-core.c
+@@ -0,0 +1,172 @@
++/*
++ * ImgTec IR Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2013 Imagination Technologies Ltd.
++ *
++ * This contains core img-ir code for setting up the driver. The two interfaces
++ * (raw and hardware decode) are handled separately.
++ */
++
++#include <linux/clk.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include "img-ir.h"
++
++static irqreturn_t img_ir_isr(int irq, void *dev_id)
++{
++	struct img_ir_priv *priv = dev_id;
++	u32 irq_status;
++
++	spin_lock(&priv->lock);
++	/* we have to clear irqs before reading */
++	irq_status = img_ir_read(priv, IMG_IR_IRQ_STATUS);
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, irq_status);
++
++	/* don't handle valid data irqs if we're only interested in matches */
++	irq_status &= img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++
++	/* hand off edge interrupts to raw decode handler */
++	if (irq_status & IMG_IR_IRQ_EDGE && img_ir_raw_enabled(&priv->raw))
++		img_ir_isr_raw(priv, irq_status);
++
++	/* hand off hardware match interrupts to hardware decode handler */
++	if (irq_status & (IMG_IR_IRQ_DATA_MATCH |
++			  IMG_IR_IRQ_DATA_VALID |
++			  IMG_IR_IRQ_DATA2_VALID) &&
++	    img_ir_hw_enabled(&priv->hw))
++		img_ir_isr_hw(priv, irq_status);
++
++	spin_unlock(&priv->lock);
++	return IRQ_HANDLED;
++}
++
++static void img_ir_setup(struct img_ir_priv *priv)
++{
++	/* start off with interrupts disabled */
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, 0);
++
++	img_ir_setup_raw(priv);
++	img_ir_setup_hw(priv);
++
++	if (!IS_ERR(priv->clk))
++		clk_prepare_enable(priv->clk);
++}
++
++static void img_ir_ident(struct img_ir_priv *priv)
++{
++	u32 core_rev = img_ir_read(priv, IMG_IR_CORE_REV);
++
++	dev_info(priv->dev,
++		 "IMG IR Decoder (%d.%d.%d.%d) probed successfully\n",
++		 (core_rev & IMG_IR_DESIGNER) >> IMG_IR_DESIGNER_SHIFT,
++		 (core_rev & IMG_IR_MAJOR_REV) >> IMG_IR_MAJOR_REV_SHIFT,
++		 (core_rev & IMG_IR_MINOR_REV) >> IMG_IR_MINOR_REV_SHIFT,
++		 (core_rev & IMG_IR_MAINT_REV) >> IMG_IR_MAINT_REV_SHIFT);
++	dev_info(priv->dev, "Modes:%s%s\n",
++		 img_ir_hw_enabled(&priv->hw) ? " hardware" : "",
++		 img_ir_raw_enabled(&priv->raw) ? " raw" : "");
++}
++
++static int img_ir_probe(struct platform_device *pdev)
++{
++	struct img_ir_priv *priv;
++	struct resource *res_regs;
++	int irq, error, error2;
++
++	/* Get resources from platform device */
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "cannot find IRQ resource\n");
++		return irq;
++	}
++
++	/* Private driver data */
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		dev_err(&pdev->dev, "cannot allocate device data\n");
++		return -ENOMEM;
++	}
++	platform_set_drvdata(pdev, priv);
++	priv->dev = &pdev->dev;
++	spin_lock_init(&priv->lock);
++
++	/* Ioremap the registers */
++	res_regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	priv->reg_base = devm_ioremap_resource(&pdev->dev, res_regs);
++	if (IS_ERR(priv->reg_base))
++		return PTR_ERR(priv->reg_base);
++
++	/* Get clock */
++	priv->clk = devm_clk_get(&pdev->dev, NULL);
++	if (IS_ERR(priv->clk))
++		dev_warn(&pdev->dev, "cannot get clock resource\n");
++
++	/* Set up raw & hw decoder */
++	error = img_ir_probe_raw(priv);
++	error2 = img_ir_probe_hw(priv);
++	if (error && error2)
++		return (error == -ENODEV) ? error2 : error;
++
++	/* Get the IRQ */
++	priv->irq = irq;
++	error = request_irq(priv->irq, img_ir_isr, 0, "img-ir", priv);
++	if (error) {
++		dev_err(&pdev->dev, "cannot register IRQ %u\n",
++			priv->irq);
++		error = -EIO;
++		goto err_irq;
++	}
++
++	img_ir_ident(priv);
++	img_ir_setup(priv);
++
++	return 0;
++
++err_irq:
++	img_ir_remove_hw(priv);
++	img_ir_remove_raw(priv);
++	return error;
++}
++
++static int img_ir_remove(struct platform_device *pdev)
++{
++	struct img_ir_priv *priv = platform_get_drvdata(pdev);
++
++	free_irq(priv->irq, img_ir_isr);
++	img_ir_remove_hw(priv);
++	img_ir_remove_raw(priv);
++
++	if (!IS_ERR(priv->clk))
++		clk_disable_unprepare(priv->clk);
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(img_ir_pmops, img_ir_suspend, img_ir_resume);
++
++static const struct of_device_id img_ir_match[] = {
++	{ .compatible = "img,ir" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, img_ir_match);
++
++static struct platform_driver img_ir_driver = {
++	.driver = {
++		.name = "img-ir",
++		.owner	= THIS_MODULE,
++		.of_match_table	= img_ir_match,
++		.pm = &img_ir_pmops,
++	},
++	.probe = img_ir_probe,
++	.remove = img_ir_remove,
++};
++
++module_platform_driver(img_ir_driver);
++
++MODULE_AUTHOR("Imagination Technologies Ltd.");
++MODULE_DESCRIPTION("ImgTec IR");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
+new file mode 100644
+index 000000000000..950cf90573c8
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir.h
+@@ -0,0 +1,170 @@
++/*
++ * ImgTec IR Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2013 Imagination Technologies Ltd.
++ */
++
++#ifndef _IMG_IR_H_
++#define _IMG_IR_H_
++
++#include <linux/spinlock.h>
++
++#include "img-ir-raw.h"
++#include "img-ir-hw.h"
++
++/* registers */
++
++/* relative to the start of the IR block of registers */
++#define IMG_IR_CONTROL		0x00
++#define IMG_IR_STATUS		0x04
++#define IMG_IR_DATA_LW		0x08
++#define IMG_IR_DATA_UP		0x0c
++#define IMG_IR_LEAD_SYMB_TIMING	0x10
++#define IMG_IR_S00_SYMB_TIMING	0x14
++#define IMG_IR_S01_SYMB_TIMING	0x18
++#define IMG_IR_S10_SYMB_TIMING	0x1c
++#define IMG_IR_S11_SYMB_TIMING	0x20
++#define IMG_IR_FREE_SYMB_TIMING	0x24
++#define IMG_IR_POW_MOD_PARAMS	0x28
++#define IMG_IR_POW_MOD_ENABLE	0x2c
++#define IMG_IR_IRQ_MSG_DATA_LW	0x30
++#define IMG_IR_IRQ_MSG_DATA_UP	0x34
++#define IMG_IR_IRQ_MSG_MASK_LW	0x38
++#define IMG_IR_IRQ_MSG_MASK_UP	0x3c
++#define IMG_IR_IRQ_ENABLE	0x40
++#define IMG_IR_IRQ_STATUS	0x44
++#define IMG_IR_IRQ_CLEAR	0x48
++#define IMG_IR_IRCORE_ID	0xf0
++#define IMG_IR_CORE_REV		0xf4
++#define IMG_IR_CORE_DES1	0xf8
++#define IMG_IR_CORE_DES2	0xfc
++
++
++/* field masks */
++
++/* IMG_IR_CONTROL */
++#define IMG_IR_DECODEN		0x40000000
++#define IMG_IR_CODETYPE		0x30000000
++#define IMG_IR_CODETYPE_SHIFT		28
++#define IMG_IR_HDRTOG		0x08000000
++#define IMG_IR_LDRDEC		0x04000000
++#define IMG_IR_DECODINPOL	0x02000000	/* active high */
++#define IMG_IR_BITORIEN		0x01000000	/* MSB first */
++#define IMG_IR_D1VALIDSEL	0x00008000
++#define IMG_IR_BITINV		0x00000040	/* don't invert */
++#define IMG_IR_DECODEND2	0x00000010
++#define IMG_IR_BITORIEND2	0x00000002	/* MSB first */
++#define IMG_IR_BITINVD2		0x00000001	/* don't invert */
++
++/* IMG_IR_STATUS */
++#define IMG_IR_RXDVALD2		0x00001000
++#define IMG_IR_IRRXD		0x00000400
++#define IMG_IR_TOGSTATE		0x00000200
++#define IMG_IR_RXDVAL		0x00000040
++#define IMG_IR_RXDLEN		0x0000003f
++#define IMG_IR_RXDLEN_SHIFT		0
++
++/* IMG_IR_LEAD_SYMB_TIMING, IMG_IR_Sxx_SYMB_TIMING */
++#define IMG_IR_PD_MAX		0xff000000
++#define IMG_IR_PD_MAX_SHIFT		24
++#define IMG_IR_PD_MIN		0x00ff0000
++#define IMG_IR_PD_MIN_SHIFT		16
++#define IMG_IR_W_MAX		0x0000ff00
++#define IMG_IR_W_MAX_SHIFT		8
++#define IMG_IR_W_MIN		0x000000ff
++#define IMG_IR_W_MIN_SHIFT		0
++
++/* IMG_IR_FREE_SYMB_TIMING */
++#define IMG_IR_MAXLEN		0x0007e000
++#define IMG_IR_MAXLEN_SHIFT		13
++#define IMG_IR_MINLEN		0x00001f00
++#define IMG_IR_MINLEN_SHIFT		8
++#define IMG_IR_FT_MIN		0x000000ff
++#define IMG_IR_FT_MIN_SHIFT		0
++
++/* IMG_IR_POW_MOD_PARAMS */
++#define IMG_IR_PERIOD_LEN	0x3f000000
++#define IMG_IR_PERIOD_LEN_SHIFT		24
++#define IMG_IR_PERIOD_DUTY	0x003f0000
++#define IMG_IR_PERIOD_DUTY_SHIFT	16
++#define IMG_IR_STABLE_STOP	0x00003f00
++#define IMG_IR_STABLE_STOP_SHIFT	8
++#define IMG_IR_STABLE_START	0x0000003f
++#define IMG_IR_STABLE_START_SHIFT	0
++
++/* IMG_IR_POW_MOD_ENABLE */
++#define IMG_IR_POWER_OUT_EN	0x00000002
++#define IMG_IR_POWER_MOD_EN	0x00000001
++
++/* IMG_IR_IRQ_ENABLE, IMG_IR_IRQ_STATUS, IMG_IR_IRQ_CLEAR */
++#define IMG_IR_IRQ_DEC2_ERR	0x00000080
++#define IMG_IR_IRQ_DEC_ERR	0x00000040
++#define IMG_IR_IRQ_ACT_LEVEL	0x00000020
++#define IMG_IR_IRQ_FALL_EDGE	0x00000010
++#define IMG_IR_IRQ_RISE_EDGE	0x00000008
++#define IMG_IR_IRQ_DATA_MATCH	0x00000004
++#define IMG_IR_IRQ_DATA2_VALID	0x00000002
++#define IMG_IR_IRQ_DATA_VALID	0x00000001
++#define IMG_IR_IRQ_ALL		0x000000ff
++#define IMG_IR_IRQ_EDGE		(IMG_IR_IRQ_FALL_EDGE | IMG_IR_IRQ_RISE_EDGE)
++
++/* IMG_IR_CORE_ID */
++#define IMG_IR_CORE_ID		0x00ff0000
++#define IMG_IR_CORE_ID_SHIFT		16
++#define IMG_IR_CORE_CONFIG	0x0000ffff
++#define IMG_IR_CORE_CONFIG_SHIFT	0
++
++/* IMG_IR_CORE_REV */
++#define IMG_IR_DESIGNER		0xff000000
++#define IMG_IR_DESIGNER_SHIFT		24
++#define IMG_IR_MAJOR_REV	0x00ff0000
++#define IMG_IR_MAJOR_REV_SHIFT		16
++#define IMG_IR_MINOR_REV	0x0000ff00
++#define IMG_IR_MINOR_REV_SHIFT		8
++#define IMG_IR_MAINT_REV	0x000000ff
++#define IMG_IR_MAINT_REV_SHIFT		0
++
++struct device;
++struct clk;
++
++/**
++ * struct img_ir_priv - Private driver data.
++ * @next:		Next IR device's private driver data (to form a linked
++ *			list).
++ * @dev:		Platform device.
++ * @irq:		IRQ number.
++ * @clk:		Input clock.
++ * @reg_base:		Iomem base address of IR register block.
++ * @lock:		Protects IR registers and variables in this struct.
++ * @raw:		Driver data for raw decoder.
++ * @hw:			Driver data for hardware decoder.
++ */
++struct img_ir_priv {
++	/* this priv sits in a global list protected by img_ir_decoders_lock */
++	struct img_ir_priv	*next;
++
++	struct device		*dev;
++	int			irq;
++	struct clk		*clk;
++	void __iomem		*reg_base;
++	spinlock_t		lock;
++
++	struct img_ir_priv_raw	raw;
++	struct img_ir_priv_hw	hw;
++};
++
++/* Hardware access */
++
++static inline void img_ir_write(struct img_ir_priv *priv,
++				unsigned int reg_offs, unsigned int data)
++{
++	iowrite32(data, priv->reg_base + reg_offs);
++}
++
++static inline unsigned int img_ir_read(struct img_ir_priv *priv,
++				       unsigned int reg_offs)
++{
++	return ioread32(priv->reg_base + reg_offs);
++}
++
++#endif /* _IMG_IR_H_ */
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+1.8.1.2
 
-
-> -----Original Message-----
-> From: randy [mailto:lxr1234@hotmail.com]
-> Sent: Tuesday, December 03, 2013 11:15 AM
-> To: linux-media@vger.kernel.org
-> Cc: kyungmin.park@samsung.com; k.debski@samsung.com;
-> m.chehab@samsung.com; jtp.park@samsung.com
-> Subject: Can't open mfc v5 encode but decode can
-> 
-> The kernel is 3.13-rc2, the mfc has been configured by dts, the dts is
-> attached below. I have placed s5p-mfc.fw in /lib/firmware/ .
-> I can use v4l2-ctl(from v4l2-utils) the encoder in the manufacturer
-> kernel, but I can't in here. What is the problem?
-> Thank you
-> ==================================log==================================
-> 
-> root@mifu:~# dmesg|grep mfc
-> [    3.165000] s5p-mfc 13400000.codec: decoder registered as
-> /dev/video0
-> [    3.170000] s5p-mfc 13400000.codec: encoder registered as
-> /dev/video1
-> root@mifu:~# v4l2-ctl -d /dev/video0 --all Driver Info (not using
-> libv4l2):
->         Driver name   : 13400000.codec[  153.415000] vidioc_g_crop:777:
-> Cannont set crop
-> 
->         Card type     : 13400000.codec
->         Bus info      :
->         Driver version: 1.0.0
->         Capabilities  : 0x04007000
->                 Video Capture Multiplanar
->                 Video Output Multiplanar
->                 Streaming
-> root@mifu:~# v4l2-ctl -d /dev/video1 --all Failed to open /dev/video1:
-> No such file or directory
-> =============================dts=====================
-> diff --git a/arch/arm/boot/dts/exynos4412-tiny4412.dts
-> b/arch/arm/boot/dts/exynos4412-tiny4412.dts
-> new file mode 100644
-> index 0000000..fedd9cc
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/exynos4412-tiny4412.dts
-> @@ -0,0 +1,173 @@
-> +/*
-> + * Hardkernel's Exynos4412 based tiny4412 1306 board device tree
-> source
-> + *
-> + * Copyright (c) 2013 Tomoya Gitsufuki <ayaka@mail.soulik.info>
-> + *
-> + * Device tree source file for Friendyarm tiny4412 1306 board which
-> is based on
-> + * Samsung's Exynos4412 SoC.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> +*/
-> +
-> +/dts-v1/;
-> +#include "exynos4412.dtsi"
-> +
-> +/ {
-> +	model = "Friendly Arm Tiny4412 1306 board based on Exynos4412";
-> +	compatible = "friendlyarm,tiny4412-1306", "samsung,exynos4412";
-> +
-> +	memory {
-> +		reg = <0x40000000 0x40000000>;
-> +	};
-> +
-> +	chosen {
-> +		bootargs ="root=/dev/mmcblk0p1 rootfstype=ext4 rw
-> console=ttySAC0,115200 init=/sbin/init";
-> +	};
-> +
-> +	leds {
-> +		compatible = "gpio-leds";
-> +		led1 {
-> +			label = "led1:heart";
-> +			gpios = <&gpm4 0 1>;
-> +			default-state = "on";
-> +			linux,default-trigger = "heartbeat";
-> +		};
-> +		led2 {
-> +			label = "led2:mmc0";
-> +			gpios = <&gpm4 1 1>;
-> +			default-state = "on";
-> +			linux,default-trigger = "mmc0";
-> +		};
-> +
-> +	};
-> +
-> +	regulators {
-> +		compatible = "simple-bus";
-> +		#address-cells = <1>;
-> +
-> +		vemmc_reg: regulator-0 {
-> +			compatible = "regulator-fixed";
-> +			regulator-name = "VMEM_VDD_2.8V";
-> +			regulator-min-microvolt = <2800000>;
-> +			regulator-max-microvolt = <2800000>;
-> +			gpio = <&gpk0 2 0>;
-> +			enable-active-high;
-> +		};
-> +
-> +	};
-> +
-> +	/*
-> +	mshc@12550000 {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		pinctrl-0 = <&sd4_clk &sd4_cmd &sd4_bus4 &sd4_bus8>;
-> +		pinctrl-names = "default";
-> +		status = "okay";
-> +
-> +		vmmc-supply = <&vemmc_reg>;
-> +		clocks = <&clock 301>, <&clock 149>;
-> +		clocks-name = "biu", "ciu";
-> +
-> +		num-slots = <1>;
-> +		supports-highspeed;
-> +		broken-cd;
-> +		fifo-depth = <0x80>;
-> +		card-detect-delay = <200>;
-> +		samsung,dw-mshc-ciu-div = <3>;
-> +		samsung,dw-mshc-sdr-timing = <2 3>;
-> +		samsung,dw-mshc-ddr-timing = <1 2>;
-> +
-> +		slot@0 {
-> +			reg = <0>;
-> +			bus-width = <8>;
-> +
-> +		};
-> +	};
-> +	*/
-> +
-> +	rtc@10070000 {
-> +		status = "okay";
-> +	};
-> +
-> +	sdhci@12530000 {
-> +		bus-width = <4>;
-> +		pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_bus4 &sd2_cd>;
-> +		pinctrl-names = "default";
-> +		status = "okay";
-> +	};
-> +	sdhci@1254000 {
-> +		bus-width = <4>;
-> +		pinctrl-0 = <&sd3_clk &sd3_cmd &sd3_bus4 &sd3_cd>;
-> +		pinctrl-names = "default";
-> +		status = "okay";
-> +	};
-> +
-> +	usb_phy: usbphy@125B0000 {
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		compatible = "samsung,exynos4210-usb2phy";
-> +		reg = <0x125B0000 0x100>;
-> +		ranges;
-> +		status = "okay";
-> +
-> +		clocks = <&clock 2>, <&clock 305>;
-> +		clock-names = "xusbxti", "otg";
-> +		usbphy-sys {
-> +			/* USB device and host PHY_CONTROL registers */
-> +			/*reg = <0x10020704 0xc 0x1001021c 0x4>;*/
-> +			reg = <0x10020704 0x8>;
-> +		};
-> +	};
-> +
-> +	ehci@12580000 {
-> +		usb-phy = <&usb_phy>;
-> +		status = "okay";
-> +	};
-> +
-> +	codec@13400000 {
-> +		samsung,mfc-r = <0x43000000 0x800000>;
-> +		samsung,mfc-l = <0x51000000 0x800000>;
-> +		status = "okay";
-> +	};
-> +
-> +	serial@13800000 {
-> +		status = "okay";
-> +	};
-> +
-> +	serial@13810000 {
-> +		status = "okay";
-> +	};
-> +
-> +	serial@13820000 {
-> +		status = "okay";
-> +	};
-> +
-> +	serial@13830000 {
-> +		status = "okay";
-> +	};
-> +
-> +	fixed-rate-clocks {
-> +		xxti {
-> +			compatible = "samsung,clock-xxti";
-> +			clock-frequency = <0>;
-> +		};
-> +
-> +		xusbxti {
-> +			compatible = "samsung,clock-xusbxti";
-> +			clock-frequency = <24000000>;
-> +		};
-> +	};
-> +
-> +	i2c@13860000 {
-> +		status = "okay";
-> +		samsung,i2c-sda-delay = <100>;
-> +		samsung,i2c-max-bus-freq = <200000>;
-> +
-> +		wm8960@10 {
-> +			compatible = "wlf,wm8960";
-> +			reg = <0x10>;
-> +		};
-> +	};
-> +};
 
