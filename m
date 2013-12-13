@@ -1,78 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:60583 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161801Ab3LFNIo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 08:08:44 -0500
-Date: Fri, 6 Dec 2013 14:07:40 +0100
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Denis Carikli <denis@eukrea.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Marek Vasut <marex@denx.de>, devel@driverdev.osuosl.org,
-	driverdev-devel@linuxdriverproject.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Eric =?utf-8?Q?B=C3=A9nard?= <eric@eukrea.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	David Airlie <airlied@linux.ie>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Shawn Guo <shawn.guo@linaro.org>, devicetree@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Mark Rutland <mark.rutland@arm.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCHv5][ 3/8] staging: imx-drm: Correct BGR666 and the board's
- dts that use them.
-Message-ID: <20131206130739.GD30625@ulmo.nvidia.com>
-References: <1386268092-21719-1-git-send-email-denis@eukrea.com>
- <1386268092-21719-3-git-send-email-denis@eukrea.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3582 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752301Ab3LMObu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 09:31:50 -0500
+Message-ID: <52AB1A3B.2050003@xs4all.nl>
+Date: Fri, 13 Dec 2013 15:31:23 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4zI0WCX1RcnW9Hbu"
-Content-Disposition: inline
-In-Reply-To: <1386268092-21719-3-git-send-email-denis@eukrea.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 3/4] v4l: add new tuner types for SDR
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-4-git-send-email-crope@iki.fi> <52A96ABF.50905@xs4all.nl> <52A9EE96.4050306@iki.fi> <52AA0AF9.1000109@iki.fi>
+In-Reply-To: <52AA0AF9.1000109@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 12/12/2013 08:14 PM, Antti Palosaari wrote:
+> On 12.12.2013 19:12, Antti Palosaari wrote:
+>> On 12.12.2013 09:50, Hans Verkuil wrote:
+>>> On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+> 
+>>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+>>>> b/drivers/media/v4l2-core/v4l2-ioctl.c
+>>>> index bc10684..ee91a9f 100644
+>>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>>>> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct
+>>>> v4l2_ioctl_ops *ops,
+>>>>       struct video_device *vfd = video_devdata(file);
+>>>>       struct v4l2_frequency *p = arg;
+>>>>
+>>>> -    p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>>>> -            V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>>>> +    if (vfd->vfl_type == VFL_TYPE_SDR) {
+>>>> +        if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
+>>>> +            return -EINVAL;
+>>>
+>>> This isn't right. p->type is returned by the driver, not set by the user.
+>>> In the case of TYPE_SDR I would just set it to TUNER_SDR and let the
+>>> driver
+>>> update it for ADC tuners. You can also just leave it alone. This does
+>>> make
+>>> the assumption that SDR and ADC tuners are always separate tuners.
+>>> I.e., not
+>>> like radio and TV tuners that can be one physical tuner with two mutually
+>>> exclusive modes. It's my understanding that that is by definition true
+>>> for
+>>> SDR.
+>>
+>> Aaah, so it is possible to use same tuner and that type is aimed for
+>> selecting tuner operation mode. Makes sense.
+>>
+>> So if I now understand V4L2 driver model correctly, there should be one
+>> tuner that implements different functionality by using tuner type field.
+>>
+>> I could change it easily, no problem.
+> 
+> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-g-frequency
+> I still don't understand that. Why both index and type should be defined 
+> for VIDIOC_S_FREQUENCY, but the opposite command VIDIOC_G_FREQUENCY 
+> requires only index and returns type too? It does not sound correct 
+> behavior.
+> If S_FREQUENCY/G_FREQUENCY should be able to handle multiple tuner types 
+> for same tuner index, then type must be also given that driver could 
+> detect required mode.
+> 
+> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-g-tuner
+> How I can enumerate tuners. There is G_TUNER/S_TUNER for enumerating, 
+> but documentation of these IOCTLs looks like only one tuner type per 
+> tuner index is supported. That offers enumeration per tuner index.
 
---4zI0WCX1RcnW9Hbu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I can imagine it is confusing. According to the spec the ENUM_FREQ_BANDS,
+S_HW_FREQ_SEEK and S_FREQUENCY ioctls all require the type field to be set
+by the user before calling, but G_FREQUENCY and G/S_TUNER do not. And the
+G/S_MODULATOR ioctls do not use a type field at all.
 
-On Thu, Dec 05, 2013 at 07:28:07PM +0100, Denis Carikli wrote:
-[...]
-> diff --git a/arch/arm/boot/dts/imx51-apf51dev.dts b/arch/arm/boot/dts/imx51-apf51dev.dts
-> index f36a3aa..3b6de6a 100644
-> --- a/arch/arm/boot/dts/imx51-apf51dev.dts
-> +++ b/arch/arm/boot/dts/imx51-apf51dev.dts
-> @@ -19,7 +19,7 @@
->  	display@di1 {
-               ^^^^
+Frankly, I consider this a bug in the API. All of these ioctls should have
+required that userspace sets the type field.
 
-I know this isn't introduced by your patch, but WTF???
+The idea behind the original API design was that a tuner can be in either
+radio or TV mode, and that's determined by the type. The only ioctl that
+can change the tuner mode is S_FREQUENCY where the type tells the tuner
+whether to select radio or TV mode. Note that originally it didn't matter
+whether S_FREQ was called on a radio or a video node, it was the type field
+that determined the tuner mode, not the node it was called on. At least,
+that was the theory.
 
-Thierry
+In practice drivers often didn't check the type field and instead depended
+on whether the ioctl came from a radio or a video node. Applications certainly
+never mixed radio and video nodes. Also, calling e.g. S_STD would also switch
+the tuner mode back to the TV mode, requiring drivers to keep track of the
+last used radio and TV frequencies, to be restored when switching back and
+forth between radio and TV mode. Frankly, the tuner type handling was a
+major nightmare and few drivers handled it correctly.
 
---4zI0WCX1RcnW9Hbu
-Content-Type: application/pgp-signature
+The practical result of all this was that, even though an internal tuner
+could operate in either TV or radio mode, from the outside world it would
+look as two separate tuners. So calling G_FREQ from a radio node gives
+back the last set radio frequency and from a video node the last set TV
+frequency, regardless of the actual tuner mode. Ditto for G/S_TUNER: if
+the tuner is in the wrong mode, the tuner data is just faked.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+So the tuner type now depends on the device node that is used: it does
+not have to be set by userspace (except for those ioctls where the spec
+explicitly requires it) but it is filled in by the core based on the
+device node used.
 
-iQIcBAEBAgAGBQJSocwbAAoJEN0jrNd/PrOhP94P/0mBACQRMAUOTMWDoLqUY2jk
-69YIl1VTy33ezV1Rmhd3TBd8vEBQzJGQvIeR219KrDmKr6tPyvHwV7TSgPvARAju
-RcZ5JN91h/NsjkYAQCHIDKNwyGe5uq4uwSNZoGDOAi+a5zmS2MpjfXNPm9BbyJSf
-6vm4dGA6KPIlprBZLEbMvi4/AVnJDriBA6giuC09iEVSJhH4uI+e/DE8UsW6fCrm
-B5gZrbfcEqecrmh4kDgewmIgkBRdholuK3A1XMBWEnsbkPRHi0w8GCLMR1bwH8GP
-W+2GrQ8pmH/yjIS9Deq/aKVrM9BzbQjb4r0uKMpe2CCOI2Yx01BsIWoo3Tr83GlP
-E2AoStk1vjnHC5oY0HIvMyCD4a0l5dlUTxsN/6DrVQepYDNm4a4I9PELyX1xCQ+g
-02kMV4yuIuKewbtPxPsvSBZY3VV1XY2+F/PNrrqSd+rUIoF12bXNUQXOpClJ1R7Y
-qZem14g4JFZwhLYg7oI1F8tBVUlVGaBR0C4P6mjoyEvlWJtQdPqe/spm3xo8Lisa
-Tc2cKRXhycSo7SB/BYsMS/rt0Z5+dg8KLvNohJQ9qEVHEO1jpFimIi6r78ZrNOty
-6YfzHoT+kOZd21M3WJrOltpTx2uSkhxgOqL1uWRStiUL5kgssIXgUduN3g66oZXb
-XkD06/r1ieeI45TlOULZ
-=UUqC
------END PGP SIGNATURE-----
+This scheme works fine as long as each tuner has either only one mode
+or the mode can be deduced from the device node used to access it.
 
---4zI0WCX1RcnW9Hbu--
+If we ever get tuners with multiple modes that can all be used from the
+same device node, then we have a problem.
+
+My understanding from your SDR proposal is that this doesn't happen:
+you have only one or two tuners, and each tuner has only one mode.
+
+I hope this helps instead of confusing you even more :-)
+
+Regards,
+
+	Hans
