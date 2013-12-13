@@ -1,71 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1560 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755763Ab3LTJjn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:39:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 46/50] adv7842: Composite sync adjustment
-Date: Fri, 20 Dec 2013 10:31:39 +0100
-Message-Id: <1387531903-20496-47-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+Received: from multi.imgtec.com ([194.200.65.239]:53942 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753411Ab3LMPO7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 10:14:59 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH 11/11] media: rc: img-ir: add Sanyo decoder module
+Date: Fri, 13 Dec 2013 15:12:59 +0000
+Message-ID: <1386947579-26703-12-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Add an img-ir module for decoding the Sanyo infrared protocol.
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/i2c/adv7842.c | 8 ++++++++
- include/media/adv7842.h     | 4 ++++
- 2 files changed, 12 insertions(+)
+ drivers/media/rc/img-ir/Kconfig        |   7 ++
+ drivers/media/rc/img-ir/Makefile       |   1 +
+ drivers/media/rc/img-ir/img-ir-sanyo.c | 139 +++++++++++++++++++++++++++++++++
+ 3 files changed, 147 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-sanyo.c
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 518f1e2..ba74863 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2439,6 +2439,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
- 		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
- 		sdp_io_write(sd, 0x9a, (s->de_end >> 8) & 0xf);
- 		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
-+		sdp_io_write(sd, 0xa8, s->vs_beg_o);
-+		sdp_io_write(sd, 0xa9, s->vs_beg_e);
-+		sdp_io_write(sd, 0xaa, s->vs_end_o);
-+		sdp_io_write(sd, 0xab, s->vs_end_e);
- 		sdp_io_write(sd, 0xac, s->de_v_beg_o);
- 		sdp_io_write(sd, 0xad, s->de_v_beg_e);
- 		sdp_io_write(sd, 0xae, s->de_v_end_o);
-@@ -2453,6 +2457,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
- 		sdp_io_write(sd, 0x99, 0x00);
- 		sdp_io_write(sd, 0x9a, 0x00);
- 		sdp_io_write(sd, 0x9b, 0x00);
-+		sdp_io_write(sd, 0xa8, 0x04);
-+		sdp_io_write(sd, 0xa9, 0x04);
-+		sdp_io_write(sd, 0xaa, 0x04);
-+		sdp_io_write(sd, 0xab, 0x04);
- 		sdp_io_write(sd, 0xac, 0x04);
- 		sdp_io_write(sd, 0xad, 0x04);
- 		sdp_io_write(sd, 0xae, 0x04);
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index 772cdec..5a7eb50 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -131,6 +131,10 @@ struct adv7842_sdp_io_sync_adjustment {
- 	uint16_t hs_width;
- 	uint16_t de_beg;
- 	uint16_t de_end;
-+	uint8_t vs_beg_o;
-+	uint8_t vs_beg_e;
-+	uint8_t vs_end_o;
-+	uint8_t vs_end_e;
- 	uint8_t de_v_beg_o;
- 	uint8_t de_v_beg_e;
- 	uint8_t de_v_end_o;
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+index 24e0966a3220..8c035b7c34e8 100644
+--- a/drivers/media/rc/img-ir/Kconfig
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -52,3 +52,10 @@ config IR_IMG_SHARP
+ 	help
+ 	   Say Y or M here to enable support for the Sharp protocol in the
+ 	   ImgTec infrared decoder block.
++
++config IR_IMG_SANYO
++	tristate "Sanyo protocol support"
++	depends on IR_IMG && IR_IMG_HW
++	help
++	   Say Y or M here to enable support for the Sanyo protocol (used by
++	   Sanyo, Aiwa, Chinon remotes) in the ImgTec infrared decoder block.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+index 3c3ab4f1a9f1..4f1e4305870d 100644
+--- a/drivers/media/rc/img-ir/Makefile
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -8,3 +8,4 @@ obj-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
+ obj-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
+ obj-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
+ obj-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
++obj-$(CONFIG_IR_IMG_SANYO)	+= img-ir-sanyo.o
+diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
+new file mode 100644
+index 000000000000..bfd44b4fd468
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
+@@ -0,0 +1,139 @@
++/*
++ * ImgTec IR Decoder setup for Sanyo protocol.
++ *
++ * Copyright 2012-2013 Imagination Technologies Ltd.
++ *
++ * From ir-sanyo-decoder.c:
++ *
++ * This protocol uses the NEC protocol timings. However, data is formatted as:
++ *	13 bits Custom Code
++ *	13 bits NOT(Custom Code)
++ *	8 bits Key data
++ *	8 bits NOT(Key data)
++ *
++ * According with LIRC, this protocol is used on Sanyo, Aiwa and Chinon
++ * Information for this protocol is available at the Sanyo LC7461 datasheet.
++ */
++
++#include <linux/module.h>
++
++#include "img-ir-hw.h"
++
++/* Convert Sanyo data to a scancode */
++static int img_ir_sanyo_scancode(int len, u64 raw, u64 protocols)
++{
++	unsigned int addr, addr_inv, data, data_inv;
++	/* a repeat code has no data */
++	if (!len)
++		return IMG_IR_REPEATCODE;
++	if (len != 42)
++		return IMG_IR_ERR_INVALID;
++	addr     = (raw >>  0) & 0x1fff;
++	addr_inv = (raw >> 13) & 0x1fff;
++	data     = (raw >> 26) & 0xff;
++	data_inv = (raw >> 34) & 0xff;
++	/* Validate data */
++	if ((data_inv ^ data) != 0xff)
++		return IMG_IR_ERR_INVALID;
++	/* Validate address */
++	if ((addr_inv ^ addr) != 0x1fff)
++		return IMG_IR_ERR_INVALID;
++
++	/* Normal Sanyo */
++	return addr << 8 | data;
++}
++
++/* Convert Sanyo scancode to Sanyo data filter */
++static int img_ir_sanyo_filter(const struct img_ir_sc_filter *in,
++			       struct img_ir_filter *out, u64 protocols)
++{
++	unsigned int addr, addr_inv, data, data_inv;
++	unsigned int addr_m, data_m;
++
++	data = in->data & 0xff;
++	data_m = in->mask & 0xff;
++	data_inv = data ^ 0xff;
++
++	if (in->data & 0xff700000)
++		return -EINVAL;
++
++	addr       = (in->data >> 8) & 0x1fff;
++	addr_m     = (in->mask >> 8) & 0x1fff;
++	addr_inv   = addr ^ 0x1fff;
++
++	out->data = (u64)data_inv << 34 |
++		    (u64)data     << 26 |
++			 addr_inv << 13 |
++			 addr;
++	out->mask = (u64)data_m << 34 |
++		    (u64)data_m << 26 |
++			 addr_m << 13 |
++			 addr_m;
++	return 0;
++}
++
++/* Sanyo decoder */
++static struct img_ir_decoder img_ir_sanyo = {
++	.type = RC_BIT_SANYO,
++	.control = {
++		.decoden = 1,
++		.code_type = IMG_IR_CODETYPE_PULSEDIST,
++	},
++	/* main timings */
++	.unit = 562500, /* 562.5 us */
++	.timings = {
++		/* leader symbol */
++		.ldr = {
++			.pulse = { 16	/* 9ms */ },
++			.space = { 8	/* 4.5ms */ },
++		},
++		/* 0 symbol */
++		.s00 = {
++			.pulse = { 1	/* 562.5 us */ },
++			.space = { 1	/* 562.5 us */ },
++		},
++		/* 1 symbol */
++		.s01 = {
++			.pulse = { 1	/* 562.5 us */ },
++			.space = { 3	/* 1687.5 us */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 42,
++			.maxlen = 42,
++			.ft_min = 10,	/* 5.625 ms */
++		},
++	},
++	/* repeat codes */
++	.repeat = 108,			/* 108 ms */
++	.rtimings = {
++		/* leader symbol */
++		.ldr = {
++			.space = { 4	/* 2.25 ms */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 0,	/* repeat code has no data */
++			.maxlen = 0,
++		},
++	},
++	/* scancode logic */
++	.scancode = img_ir_sanyo_scancode,
++	.filter = img_ir_sanyo_filter,
++};
++
++static int __init img_ir_sanyo_init(void)
++{
++	return img_ir_register_decoder(&img_ir_sanyo);
++}
++module_init(img_ir_sanyo_init);
++
++static void __exit img_ir_sanyo_exit(void)
++{
++	img_ir_unregister_decoder(&img_ir_sanyo);
++}
++module_exit(img_ir_sanyo_exit);
++
++MODULE_AUTHOR("Imagination Technologies Ltd.");
++MODULE_DESCRIPTION("ImgTec IR Sanyo protocol support");
++MODULE_LICENSE("GPL");
 -- 
-1.8.4.4
+1.8.1.2
+
 
