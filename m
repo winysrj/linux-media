@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3263 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754128Ab3LJPGH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/22] adv7842: set defaults spa-location.
-Date: Tue, 10 Dec 2013 16:03:54 +0100
-Message-Id: <6e7fe629da13cf8425ddde4f6ad46c05d7a0069d.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46036 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751602Ab3LMT1Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 14:27:24 -0500
+Message-ID: <52AB5F99.7070405@iki.fi>
+Date: Fri, 13 Dec 2013 21:27:21 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC 4/4] v4l: 1 Hz resolution flag for tuners
+References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-5-git-send-email-crope@iki.fi> <52A96C00.8060607@xs4all.nl> <52A9F0C7.2050602@iki.fi> <52AB1447.9090601@xs4all.nl> <52AB2B02.3090300@iki.fi> <52AB30E9.40209@xs4all.nl>
+In-Reply-To: <52AB30E9.40209@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+On 13.12.2013 18:08, Hans Verkuil wrote:
+> On 12/13/2013 04:42 PM, Antti Palosaari wrote:
+>> On 13.12.2013 16:05, Hans Verkuil wrote:
+>>> On 12/12/2013 06:22 PM, Antti Palosaari wrote:
 
-For edid with no Source Physical Address (spa), set
-spa-location to default and use correct values from edid.
+>> I really appreciate that as simply has no enough knowledge from V4L2 API
+>> and API changes are needed. I will try to list here shortly some SDR
+>> devices in general level enough.
+>>
+>> ant = antenna
+>> host = host computer, PC (SW modulator/demodulator)
+>> ADC = analog to digital converter
+>> DAC = digital to analog converter
+>> amp = amplifier
+>> mixer = "TX tuner"
+>>
+>> receiver:
+>> ant <> RF tuner <> ADC <> bridge <> host
+>> ant <>ADC <> bridge <> host
+>> ant <> up-converter <> RF tuner <> ADC <> bridge <> host
+>>
+>> transmitter:
+>> ant <> amp <> mixer <> DAC <> bridge <> host
+>> ant <> mixer <> DAC <> bridge <> host
+>> ant <> DAC <> bridge <> host
+>>
+>> Those are the used building blocks in some general view. ADC (DAC) is
+>> most important hardware block, but RF tuner is also critical in practice.
+>>
+>> So what I understood, V4L2 API "tuner" is kinda logical entity that
+>> represent single radio device, containing RF tuner, demodulator and so.
+>> That same logical entity in DVB API side is frontend, which is mostly
+>> implemented by demodulator with a help of RF tuner.
+>>
+>> So what is needed is to make V4L2 API entity (tuner I guess) that could
+>> represent both ADC and RF tuner.
+>
+> Well, a V4L2 tuner represents the hardware that requires a frequency.
+> Which for typical radio and TV devices means the RF tuner + demodulator
+> combo. So externally you see only one tuner, but internally there are
+> often two devices (tuner and modulator) that have to be controlled.
+>
+> For SDR you have an RF Tuner with a frequency and an ADC with a frequency,
+> and the two frequencies can be set independently. So representing that
+> as two tuners seems like a sensible mapping to me.
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Cc: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Correct. Both RF tuner and ADC are independent each others and both must 
+be possible to adjust runtime.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 59e7ef5..6335d9f 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -716,15 +716,15 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 		}
- 		rep_write(sd, 0x76, spa_loc);
- 	} else {
--		/* default register values for SPA */
-+		/* Edid values for SPA location */
- 		if (port == 0) {
--			/* port A SPA */
--			rep_write(sd, 0x72, 0);
--			rep_write(sd, 0x73, 0);
-+			/* port A */
-+			rep_write(sd, 0x72, val[0xc0]);
-+			rep_write(sd, 0x73, val[0xc1]);
- 		} else {
--			/* port B SPA */
--			rep_write(sd, 0x74, 0);
--			rep_write(sd, 0x75, 0);
-+			/* port B */
-+			rep_write(sd, 0x74, val[0xc0]);
-+			rep_write(sd, 0x75, val[0xc1]);
- 		}
- 		rep_write(sd, 0x76, 0xc0);
- 	}
+Shortly, all-in-all, I will implement those as a tuner#0 is ADC and 
+tuner#1 is RF tuner. Patches with corrections follow soon.
+
+regards
+Antti
+
 -- 
-1.8.4.rc3
-
+http://palosaari.fi/
