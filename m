@@ -1,203 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43848 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751946Ab3LMPEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 10:04:34 -0500
-Message-ID: <52AB21FF.5060903@iki.fi>
-Date: Fri, 13 Dec 2013 17:04:31 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC 2/2] v4l2: enable FMT IOCTLs for SDR
-References: <1386867447-1018-1-git-send-email-crope@iki.fi> <1386867447-1018-3-git-send-email-crope@iki.fi> <52AB1D71.6060000@xs4all.nl>
-In-Reply-To: <52AB1D71.6060000@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4845 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727Ab3LMQOF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Dec 2013 11:14:05 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 1/9] vb2: push the mmap semaphore down to __buf_prepare()
+Date: Fri, 13 Dec 2013 17:13:38 +0100
+Message-Id: <1386951226-27655-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1386951226-27655-1-git-send-email-hverkuil@xs4all.nl>
+References: <1386951226-27655-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.12.2013 16:45, Hans Verkuil wrote:
-> On 12/12/2013 05:57 PM, Antti Palosaari wrote:
->> Enable format IOCTLs for SDR use. There are used for negotiate used
->> data stream format.
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
->>   drivers/media/v4l2-core/v4l2-ioctl.c | 26 ++++++++++++++++++++++++++
->>   2 files changed, 38 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
->> index c9cf54c..d67286ba 100644
->> --- a/drivers/media/v4l2-core/v4l2-dev.c
->> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->> @@ -563,6 +563,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
->>   	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
->>   	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
->>   	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
->> +	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
->>   	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
->>   	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
->>
->> @@ -612,6 +613,17 @@ static void determine_valid_ioctls(struct video_device *vdev)
->>   	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
->>   		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
->>
->> +	if (is_sdr && is_rx) {
->
-> I would drop the is_rx part. If there even is something like a SDR transmitter,
-> then I would still expect that the same ioctls are needed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There is TX devices too, I am looking it later, maybe on March at earliest.
+Rather than taking the mmap semaphore at a relatively high-level function,
+push it down to the place where it is really needed.
 
->> +		/* SDR specific ioctls */
->> +		if (ops->vidioc_enum_fmt_vid_cap)
->> +			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
->> +		if (ops->vidioc_g_fmt_vid_cap)
->> +			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
->> +		if (ops->vidioc_s_fmt_vid_cap)
->> +			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
->> +		if (ops->vidioc_try_fmt_vid_cap)
->> +			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
->
-> We need sdr-specific ops: vidioc_enum/g/s/try_sdr_cap.
+It was placed in vb2_queue_or_prepare_buf() to prevent racing with other
+vb2 calls. The only way I can see that a race can happen is when two
+threads queue the same buffer. The solution for that it to introduce
+a PREPARING state.
 
-Yes. But it could be done very easily later as it does not have effect 
-to V4L2 API.
+Moving it down offers opportunities to simplify the code.
 
->
->> +	}
->>   	if (is_vid) {
->>   		/* video specific ioctls */
->>   		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
->
-> You also need to split up the large 'if (!is_radio)' part:
->
->          if (!is_radio) {
->                  /* ioctls valid for video, vbi or sdr */
->                  SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
->                  SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
->                  SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
->                  SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
->                  SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
->                  SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
->                  SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
-> 	}
-> 	if (!is_radio && !is_sdr) {
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 82 ++++++++++++++------------------
+ include/media/videobuf2-core.h           |  2 +
+ 2 files changed, 38 insertions(+), 46 deletions(-)
 
-I will change it to limit only to those relevant VB2 IOCTLs.
-
-regards
-Antti
-
->
-> Regards,
->
-> 	Hans
->
->> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->> index 5b6e0e8..2471179 100644
->> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->> @@ -879,6 +879,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->>   	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
->>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
->>   	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
->> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->>
->> @@ -928,6 +929,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->>   		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
->>   			return 0;
->>   		break;
->> +	case V4L2_BUF_TYPE_SDR_RX:
->> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
->> +			return 0;
->> +		break;
->>   	default:
->>   		break;
->>   	}
->> @@ -1047,6 +1052,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
->>   		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
->>   			break;
->>   		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
->> +	case V4L2_BUF_TYPE_SDR_RX:
->> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
->> +			break;
->> +		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
->>   	}
->>   	return -EINVAL;
->>   }
->> @@ -1057,6 +1066,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->>   	struct v4l2_format *p = arg;
->>   	struct video_device *vfd = video_devdata(file);
->>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
->> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->>
->> @@ -1101,6 +1111,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->>   		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
->>   			break;
->>   		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
->> +	case V4L2_BUF_TYPE_SDR_RX:
->> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
->> +			break;
->> +		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
->>   	}
->>   	return -EINVAL;
->>   }
->> @@ -1111,6 +1125,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->>   	struct v4l2_format *p = arg;
->>   	struct video_device *vfd = video_devdata(file);
->>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
->> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->>
->> @@ -1165,6 +1180,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->>   			break;
->>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
->>   		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
->> +	case V4L2_BUF_TYPE_SDR_RX:
->> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
->> +			break;
->> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
->> +		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
->>   	}
->>   	return -EINVAL;
->>   }
->> @@ -1175,6 +1195,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->>   	struct v4l2_format *p = arg;
->>   	struct video_device *vfd = video_devdata(file);
->>   	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
->> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->>   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->>   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->>
->> @@ -1229,6 +1250,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->>   			break;
->>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
->>   		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
->> +	case V4L2_BUF_TYPE_SDR_RX:
->> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
->> +			break;
->> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
->> +		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
->>   	}
->>   	return -EINVAL;
->>   }
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 12df9fd..d3f7e8a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -481,6 +481,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	case VB2_BUF_STATE_PREPARED:
+ 		b->flags |= V4L2_BUF_FLAG_PREPARED;
+ 		break;
++	case VB2_BUF_STATE_PREPARING:
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 		/* nothing */
+ 		break;
+@@ -1228,6 +1229,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	struct rw_semaphore *mmap_sem;
+ 	int ret;
+ 
+ 	ret = __verify_length(vb, b);
+@@ -1237,12 +1239,31 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		return ret;
+ 	}
+ 
++	vb->state = VB2_BUF_STATE_PREPARING;
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
++		/*
++		 * In case of user pointer buffers vb2 allocators need to get direct
++		 * access to userspace pages. This requires getting the mmap semaphore
++		 * for read access in the current process structure. The same semaphore
++		 * is taken before calling mmap operation, while both qbuf/prepare_buf
++		 * and mmap are called by the driver or v4l2 core with the driver's lock
++		 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
++		 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
++		 * core releases the driver's lock, takes mmap_sem and then takes the
++		 * driver's lock again.
++		 */
++		mmap_sem = &current->mm->mmap_sem;
++		call_qop(q, wait_prepare, q);
++		down_read(mmap_sem);
++		call_qop(q, wait_finish, q);
++
+ 		ret = __qbuf_userptr(vb, b);
++
++		up_read(mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+@@ -1256,8 +1277,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = call_qop(q, buf_prepare, vb);
+ 	if (ret)
+ 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
+-	else
+-		vb->state = VB2_BUF_STATE_PREPARED;
++	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
+ 
+ 	return ret;
+ }
+@@ -1268,80 +1288,47 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 						   struct v4l2_buffer *,
+ 						   struct vb2_buffer *))
+ {
+-	struct rw_semaphore *mmap_sem = NULL;
+ 	struct vb2_buffer *vb;
+ 	int ret;
+ 
+-	/*
+-	 * In case of user pointer buffers vb2 allocators need to get direct
+-	 * access to userspace pages. This requires getting the mmap semaphore
+-	 * for read access in the current process structure. The same semaphore
+-	 * is taken before calling mmap operation, while both qbuf/prepare_buf
+-	 * and mmap are called by the driver or v4l2 core with the driver's lock
+-	 * held. To avoid an AB-BA deadlock (mmap_sem then driver's lock in mmap
+-	 * and driver's lock then mmap_sem in qbuf/prepare_buf) the videobuf2
+-	 * core releases the driver's lock, takes mmap_sem and then takes the
+-	 * driver's lock again.
+-	 *
+-	 * To avoid racing with other vb2 calls, which might be called after
+-	 * releasing the driver's lock, this operation is performed at the
+-	 * beginning of qbuf/prepare_buf processing. This way the queue status
+-	 * is consistent after getting the driver's lock back.
+-	 */
+-	if (q->memory == V4L2_MEMORY_USERPTR) {
+-		mmap_sem = &current->mm->mmap_sem;
+-		call_qop(q, wait_prepare, q);
+-		down_read(mmap_sem);
+-		call_qop(q, wait_finish, q);
+-	}
+-
+ 	if (q->fileio) {
+ 		dprintk(1, "%s(): file io in progress\n", opname);
+-		ret = -EBUSY;
+-		goto unlock;
++		return -EBUSY;
+ 	}
+ 
+ 	if (b->type != q->type) {
+ 		dprintk(1, "%s(): invalid buffer type\n", opname);
+-		ret = -EINVAL;
+-		goto unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	if (b->index >= q->num_buffers) {
+ 		dprintk(1, "%s(): buffer index out of range\n", opname);
+-		ret = -EINVAL;
+-		goto unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	vb = q->bufs[b->index];
+ 	if (NULL == vb) {
+ 		/* Should never happen */
+ 		dprintk(1, "%s(): buffer is NULL\n", opname);
+-		ret = -EINVAL;
+-		goto unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	if (b->memory != q->memory) {
+ 		dprintk(1, "%s(): invalid memory type\n", opname);
+-		ret = -EINVAL;
+-		goto unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	ret = __verify_planes_array(vb, b);
+ 	if (ret)
+-		goto unlock;
++		return ret;
+ 
+ 	ret = handler(q, b, vb);
+-	if (ret)
+-		goto unlock;
+-
+-	/* Fill buffer information for the userspace */
+-	__fill_v4l2_buffer(vb, b);
++	if (!ret) {
++		/* Fill buffer information for the userspace */
++		__fill_v4l2_buffer(vb, b);
+ 
+-	dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
+-unlock:
+-	if (mmap_sem)
+-		up_read(mmap_sem);
++		dprintk(1, "%s() of buffer %d succeeded\n", opname, vb->v4l2_buf.index);
++	}
+ 	return ret;
+ }
+ 
+@@ -1390,6 +1377,9 @@ static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 			return ret;
+ 	case VB2_BUF_STATE_PREPARED:
+ 		break;
++	case VB2_BUF_STATE_PREPARING:
++		dprintk(1, "qbuf: buffer still being prepared\n");
++		return -EINVAL;
+ 	default:
+ 		dprintk(1, "qbuf: buffer already in use\n");
+ 		return -EINVAL;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 0ae974e..ea76652 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -142,6 +142,7 @@ enum vb2_fileio_flags {
+ /**
+  * enum vb2_buffer_state - current video buffer state
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
++ * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+  * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
+  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+@@ -154,6 +155,7 @@ enum vb2_fileio_flags {
+  */
+ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_DEQUEUED,
++	VB2_BUF_STATE_PREPARING,
+ 	VB2_BUF_STATE_PREPARED,
+ 	VB2_BUF_STATE_QUEUED,
+ 	VB2_BUF_STATE_ACTIVE,
 -- 
-http://palosaari.fi/
+1.8.4.3
+
