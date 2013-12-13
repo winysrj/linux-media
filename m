@@ -1,87 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56908 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab3LSQu6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 11:50:58 -0500
-Message-ID: <52B323F0.2050701@iki.fi>
-Date: Thu, 19 Dec 2013 18:50:56 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:47531 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751784Ab3LMDI2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Dec 2013 22:08:28 -0500
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v3 6/7] rtl2832_sdr: convert to SDR API
-References: <1387231688-8647-1-git-send-email-crope@iki.fi> <1387231688-8647-7-git-send-email-crope@iki.fi> <52B2BA92.8080706@xs4all.nl>
-In-Reply-To: <52B2BA92.8080706@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <52A9D6FE.30302@samsung.com>
+References: <1383650355-28838-1-git-send-email-arun.kk@samsung.com>
+	<52A9D6FE.30302@samsung.com>
+Date: Fri, 13 Dec 2013 08:38:27 +0530
+Message-ID: <CALt3h7982XtWv_EesvVD+hOPG-7BitKS5niYwC4H+nqGUEm01A@mail.gmail.com>
+Subject: Re: [PATCH v11 1/2] [media] exynos5-is: Adds DT binding documentation
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	Mark Rutland <Mark.Rutland@arm.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans!
+Hi Sylwester,
 
-On 19.12.2013 11:21, Hans Verkuil wrote:
-> On 12/16/2013 11:08 PM, Antti Palosaari wrote:
->> It was abusing video device API. Use SDR API instead.
+On Thu, Dec 12, 2013 at 9:02 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi Arun,
+>
+> (Adding Mark and Mauro to Cc)
+>
+> On 05/11/13 12:19, Arun Kumar K wrote:
+>> From: Shaik Ameer Basha <shaik.ameer@samsung.com>
 >>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> The patch adds the DT binding doc for exynos5 SoC camera
+>> subsystem.
+>>
+>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 >> ---
->>   drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 291 ++++++++++++++++++-----
->>   1 file changed, 227 insertions(+), 64 deletions(-)
+>>  .../bindings/media/exynos5250-camera.txt           |  126 ++++++++++++++++++++
+>>  1 file changed, 126 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
 >>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+>> new file mode 100644
+>> index 0000000..09420ba
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+>> @@ -0,0 +1,126 @@
+>> +Samsung EXYNOS5 SoC Camera Subsystem
+>> +------------------------------------
+>> +
+>> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
+>> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
+>> +MIPI CSIS and FIMC-IS.
+>> +
+>> +The sub-device nodes are referenced using phandles in the common 'camera' node
+>> +which also includes common properties of the whole subsystem not really
+>> +specific to any single sub-device, like common camera port pins or the common
+>> +camera bus clocks.
+>> +
+>> +Common 'camera' node
+>> +--------------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible         : must be "samsung,exynos5250-fimc"
+>> +- clocks             : list of clock specifiers, corresponding to entries in
+>> +                          the clock-names property
+>> +- clock-names                : must contain "sclk_bayer" entry
+>> +- samsung,csis               : list of phandles to the mipi-csis device nodes
+>> +- samsung,fimc-lite  : list of phandles to the fimc-lite device nodes
+>> +- samsung,fimc-is    : phandle to the fimc-is device node
+>> +
+>> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+>> +to define a required pinctrl state named "default".
+>> +
+>> +'parallel-ports' node
+>> +---------------------
+>> +
+>> +This node should contain child 'port' nodes specifying active parallel video
+>> +input ports. It includes camera A, camera B and RGB bay inputs.
+>> +'reg' property in the port nodes specifies the input type:
+>> + 1 - parallel camport A
+>> + 2 - parallel camport B
+>> + 5 - RGB camera bay
+>> +
+>> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
 >
-> A question: does this driver only do SDR, or does it also
-> do 'regular' video and/or radio?
+> Was there posted a version of this patch with Mark's comments addressed:
+> http://www.spinics.net/lists/devicetree/msg11550.html ? I couldn't find it.
 >
-> If it does, then how does it switch from one tuner mode to another?
->
-> E.g. from ANALOG_TV to RADIO to SDR?
->
-> During the Barcelona summit in 2012 we discussed this. See the last two
-> slides of my presentation:
->
-> http://linuxtv.org/downloads/presentations/media_ws_2012_EU/ambiguities2.odp
->
-> Basically this proposal was accepted provided that the code to handle tuner
-> ownership should be shared between DVB and V4L2.
->
-> I made an initial attempt for this here:
->
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/tuner
->
-> I never had the time to continue with it, but it might be useful for rtl2832.
 
-Yes, that driver sits on both DVB and V4L2 API. It is USB DVB-T stick, 
-which could be abused as a SDR.
 
-There is following software blocks:
-1) dvb_usb + dvb_usb_rtl28xxu modules to provide USB interface
-2) rtl2832 module to provide DVB-T demodulator (implements DVB frontend, 
-which logical entity representing DVB hardware)
-3) various silicon RF tuners, eg. e4000, r820t, fc0013... These tuners 
-are provided via DVB API, frontend tuners.
-4) rtl2832_sdr module, which is attached to DVB frontend using "sec". 
-Term sec stays satellite equipment controller (provides typically LNB 
-voltage)
+I think it is missed as I also couldn't find it. I can quickly send an
+updated patch
+with these reviews addressed.
 
-It should be also noted that DVB-T demodulator and SDR functionality is 
-provided "physically" by same RTL2832 demod - whilst I decided to split 
-those own drivers. And make situation looks even more complex, I can say 
-RTL2832 demod is integrated physically to same silicon than USB-bridge 
-(but logically those seems to be totally different chip sill).
-
-Hope those explanations could give some light what kind of connections 
-and blocks there is involved.
-
-So indeed there is that same hybrid tuner problem to resolve. And not 
-only that hybrid problem, but you will need to expose much more 
-properties from RF tuner than DVB API or V4L2 API tuner model does 
-currently. I haven't looked situation more carefully yet, but one thing 
-that must be done at the very first is to add some lock to prevent only 
-DVB or V4L2 API could access the hardware at time.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Regards
+Arun
