@@ -1,103 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:53939 "EHLO multi.imgtec.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:32964 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753035Ab3LMPO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 10:14:57 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH 05/11] media: rc: img-ir: add to build
-Date: Fri, 13 Dec 2013 15:12:53 +0000
-Message-ID: <1386947579-26703-6-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
+	id S1753810Ab3LNQYl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 11:24:41 -0500
+Message-ID: <52AC8645.2010707@iki.fi>
+Date: Sat, 14 Dec 2013 18:24:37 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
+References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-8-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ImgTec IR decoder driver to the build system.
+Hello, Mauro, Hans,
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/rc/Kconfig         |  2 ++
- drivers/media/rc/Makefile        |  1 +
- drivers/media/rc/img-ir/Kconfig  | 26 ++++++++++++++++++++++++++
- drivers/media/rc/img-ir/Makefile |  6 ++++++
- 4 files changed, 35 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/Kconfig
- create mode 100644 drivers/media/rc/img-ir/Makefile
+On 14.12.2013 18:15, Antti Palosaari wrote:
+> Use own format ops for SDR data:
+> vidioc_enum_fmt_sdr_cap
+> vidioc_g_fmt_sdr_cap
+> vidioc_s_fmt_sdr_cap
+> vidioc_try_fmt_sdr_cap
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 904f11367c29..43b71813862e 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -300,6 +300,8 @@ config IR_RX51
- 	   The driver uses omap DM timers for generating the carrier
- 	   wave and pulses.
- 
-+source "drivers/media/rc/img-ir/Kconfig"
-+
- config RC_LOOPBACK
- 	tristate "Remote Control Loopback Driver"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index f4eb32c0a455..cbe3d44f7fab 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -31,3 +31,4 @@ obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
- obj-$(CONFIG_IR_IGUANA) += iguanair.o
- obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
- obj-$(CONFIG_RC_ST) += st_rc.o
-+obj-$(CONFIG_IR_IMG) += img-ir/
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-new file mode 100644
-index 000000000000..60eaba6a0843
---- /dev/null
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -0,0 +1,26 @@
-+config IR_IMG
-+	tristate "ImgTec IR Decoder"
-+	depends on RC_CORE
-+	select IR_IMG_HW if !IR_IMG_RAW
-+	help
-+	   Say Y or M here if you want to use the ImgTec infrared decoder
-+	   functionality found in SoCs such as TZ1090.
-+
-+config IR_IMG_RAW
-+	bool "Raw decoder"
-+	depends on IR_IMG
-+	help
-+	   Say Y here to enable the raw mode driver which passes raw IR signal
-+	   changes to the IR raw decoders for software decoding. This is much
-+	   less reliable (due to lack of timestamps) and consumes more
-+	   processing power than using hardware decode, but can be useful for
-+	   testing, debug, and to make more protocols available.
-+
-+config IR_IMG_HW
-+	bool "Hardware decoder"
-+	depends on IR_IMG
-+	help
-+	   Say Y here to enable the hardware decode driver which decodes the IR
-+	   signals in hardware. This is more reliable, consumes less processing
-+	   power since only a single interrupt is received for each scancode,
-+	   and allows an IR scancode to be used as a wake event.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-new file mode 100644
-index 000000000000..4ef86edec873
---- /dev/null
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -0,0 +1,6 @@
-+img-ir-y			:= img-ir-core.o
-+img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
-+img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
-+img-ir-objs			:= $(img-ir-y)
-+
-+obj-$(CONFIG_IR_IMG)		+= img-ir.o
+To be honest, I am a little bit against that patch. Is there any good 
+reason we duplicate these FMT ops every-time when new stream format is 
+added? For my eyes that is mostly just bloating the code without good 
+reason.
+
+regards
+Antti
+
+
+>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/v4l2-core/v4l2-dev.c   |  8 ++++----
+>   drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++---------
+>   include/media/v4l2-ioctl.h           |  8 ++++++++
+>   3 files changed, 21 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 9f15e25..a84f4ea 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -673,13 +673,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>   		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+>   	} else if (is_sdr) {
+>   		/* SDR specific ioctls */
+> -		if (ops->vidioc_enum_fmt_vid_cap)
+> +		if (ops->vidioc_enum_fmt_sdr_cap)
+>   			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+> -		if (ops->vidioc_g_fmt_vid_cap)
+> +		if (ops->vidioc_g_fmt_sdr_cap)
+>   			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+> -		if (ops->vidioc_s_fmt_vid_cap)
+> +		if (ops->vidioc_s_fmt_sdr_cap)
+>   			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+> -		if (ops->vidioc_try_fmt_vid_cap)
+> +		if (ops->vidioc_try_fmt_sdr_cap)
+>   			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+>
+>   		if (is_rx) {
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index a7e6b52..18aa36a 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -939,7 +939,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+>   			return 0;
+>   		break;
+>   	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
+> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
+>   			return 0;
+>   		break;
+>   	default:
+> @@ -1062,9 +1062,9 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+>   			break;
+>   		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
+>   	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
+>   			break;
+> -		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
+>   	}
+>   	return -EINVAL;
+>   }
+> @@ -1121,9 +1121,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+>   			break;
+>   		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
+>   	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
+>   			break;
+> -		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
+>   	}
+>   	return -EINVAL;
+>   }
+> @@ -1190,10 +1190,10 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>   		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
+>   	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
+>   			break;
+>   		CLEAR_AFTER_FIELD(p, fmt.sdr);
+> -		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
+>   	}
+>   	return -EINVAL;
+>   }
+> @@ -1260,10 +1260,10 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>   		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>   		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
+>   	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
+>   			break;
+>   		CLEAR_AFTER_FIELD(p, fmt.sdr);
+> -		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
+>   	}
+>   	return -EINVAL;
+>   }
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index e0b74a4..8be32f5 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
+>   					      struct v4l2_fmtdesc *f);
+>   	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
+>   					      struct v4l2_fmtdesc *f);
+> +	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
+> +					    struct v4l2_fmtdesc *f);
+>
+>   	/* VIDIOC_G_FMT handlers */
+>   	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
+>   					   struct v4l2_format *f);
+>   	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
+>   					   struct v4l2_format *f);
+> +	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					struct v4l2_format *f);
+>
+>   	/* VIDIOC_S_FMT handlers */
+>   	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
+>   					   struct v4l2_format *f);
+>   	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
+>   					   struct v4l2_format *f);
+> +	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					struct v4l2_format *f);
+>
+>   	/* VIDIOC_TRY_FMT handlers */
+>   	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
+>   					     struct v4l2_format *f);
+>   	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
+>   					     struct v4l2_format *f);
+> +	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					  struct v4l2_format *f);
+>
+>   	/* Buffer handlers */
+>   	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+>
+
+
 -- 
-1.8.1.2
-
-
+http://palosaari.fi/
