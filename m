@@ -1,89 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2863 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755860Ab3LSNiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 08:38:08 -0500
-Message-ID: <52B2F69A.6010907@xs4all.nl>
-Date: Thu, 19 Dec 2013 14:37:30 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC v3] [RFC] v4l2: Support for multiple selections
-References: <1380623614-26265-1-git-send-email-ricardo.ribalda@gmail.com> <5268F714.3090004@samsung.com> <CAPybu_2p4AYxze-QMOZhMq+EYCEXN1KazZdQckWKub9kpAESfg@mail.gmail.com> <5282411E.9060309@samsung.com> <CAPybu_3G335UteUzyYUg4JfLBYQb7Pj4FYZmNjL9oDHk=vbuzA@mail.gmail.com> <52B2D3EA.8010307@samsung.com> <52B2DC76.9040802@xs4all.nl> <52B2F50C.1090705@samsung.com>
-In-Reply-To: <52B2F50C.1090705@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:48032 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753826Ab3LNQQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 11:16:24 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v2 6/7] v4l: enable some IOCTLs for SDR receiver
+Date: Sat, 14 Dec 2013 18:15:28 +0200
+Message-Id: <1387037729-1977-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
+References: <1387037729-1977-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/19/2013 02:30 PM, Tomasz Stanislawski wrote:
-> Hi Hans,
-> We've misunderstood. When I was saying 'overengineered'
-> I did not mean your RFC.
-> I was taking about this:
-> 
-> #define V4L2_SEL_TGT_CROP_COMPOSE    0x0200
-> 
-> struct v4l2_selection {
->         __u32                   type;
->         __u32                   target;
->         __u32                   flags;
-> 	union {
-> 	        struct v4l2_rect        r;
-> 		struct v4l2_ext_rect    *pr;
-> 	};
->         __u32                   flags2;
-> 	union {
-> 	        struct v4l2_rect        r2;
-> 		struct v4l2_ext_rect    *pr2;
-> 	};
-> 	__u32			rectangles;
->         __u32                   reserved[3];
-> };
-> 
-> This structure looks scary to me :).
+Enable stream format (FMT) IOCTLs for SDR use. These are used for negotiate
+used data stream format.
 
-Ah, yes. Implementing this as properties works much better.
+Enable input IOCTLs, VIDIOC_ENUMINPUT, VIDIOC_G_INPUT, VIDIOC_S_INPUT.
+These are used to select possible antenna connector.
 
-And multi-selection can be done simply by making an array of crop and
-compose rectangles.
+Reorganise some some IOCTL selection logic.
 
-Regards,
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   | 27 ++++++++++++++++++++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+), 3 deletions(-)
 
-	Hans
-
-> 
->>
->> I disagree. I implemented it in vivi and it turned out to be quite easy.
->>
->> For the record: I'm talking about this RFC:
->>
->> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
->>
->>> I still does not solve problems with flipping and rotations, which may
->>> have a huge impact on mulitrect cropping/composing limitations.
->>
->> My proposal will make that much easier as well since flipping, rotating,
->> cropping and composing are all controls/properties that can be set
->> atomically (a control cluster). So drivers can create a single function
->> that can handle all the relationships in one place, and applications can
->> set all of these with one VIDIOC_S_EXT_CTRLS call.
->>
-> 
-> I think that your idea is quite good. Solve atomic configuration
-> in a different part of API (control cluster), not by making
-> properties larger.
-> 
-> As I said, there are multiple way to handle atomic configuration.
-> Using control API is one of them. Quite nice BTW :)
-> 
-> Regards,
-> Tomasz Stanislawski
-> 
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c9cf54c..9f15e25 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -562,7 +562,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
+-	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
++	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+ 
+@@ -671,9 +671,26 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			       ops->vidioc_try_fmt_sliced_vbi_out)))
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
++	} else if (is_sdr) {
++		/* SDR specific ioctls */
++		if (ops->vidioc_enum_fmt_vid_cap)
++			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
++		if (ops->vidioc_g_fmt_vid_cap)
++			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
++		if (ops->vidioc_s_fmt_vid_cap)
++			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
++		if (ops->vidioc_try_fmt_vid_cap)
++			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
++
++		if (is_rx) {
++			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
++			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
++			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
++		}
+ 	}
+-	if (!is_radio) {
+-		/* ioctls valid for video or vbi */
++
++	if (is_vid || is_vbi || is_sdr) {
++		/* ioctls valid for video, vbi or sdr */
+ 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
+@@ -681,6 +698,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
++	}
++
++	if (is_vid || is_vbi) {
++		/* ioctls valid for video or vbi */
+ 		if (ops->vidioc_s_std)
+ 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index edb0a4c..a7e6b52 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -243,6 +243,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 	const struct v4l2_vbi_format *vbi;
+ 	const struct v4l2_sliced_vbi_format *sliced;
+ 	const struct v4l2_window *win;
++	const struct v4l2_format_sdr *sdr;
+ 	unsigned i;
+ 
+ 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
+@@ -316,6 +317,14 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 				sliced->service_lines[0][i],
+ 				sliced->service_lines[1][i]);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		sdr = &p->fmt.sdr;
++		pr_cont(", pixelformat=%c%c%c%c\n",
++			(sdr->pixelformat >>  0) & 0xff,
++			(sdr->pixelformat >>  8) & 0xff,
++			(sdr->pixelformat >> 16) & 0xff,
++			(sdr->pixelformat >> 24) & 0xff);
++		break;
+ 	}
+ }
+ 
+@@ -879,6 +888,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -928,6 +938,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
+ 			return 0;
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
++			return 0;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -1047,6 +1061,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
+ 			break;
+ 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
++			break;
++		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1057,6 +1075,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -1101,6 +1120,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
+ 			break;
+ 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
++			break;
++		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1111,6 +1134,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -1165,6 +1189,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1175,6 +1204,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -1229,6 +1259,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+-- 
+1.8.4.2
 
