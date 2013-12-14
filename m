@@ -1,235 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41987 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756277Ab3LQSdr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 13:33:47 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39862 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753830Ab3LNQQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 11:16:25 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/6] [media] dib8000: add DVBv5 stats
-Date: Tue, 17 Dec 2013 13:30:41 -0200
-Message-Id: <1387294246-10155-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
-References: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
+Date: Sat, 14 Dec 2013 18:15:29 +0200
+Message-Id: <1387037729-1977-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
+References: <1387037729-1977-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The advantage of DVBv5 stats is that it allows adding proper
-scales to all measures. use it for this frontend.
+Use own format ops for SDR data:
+vidioc_enum_fmt_sdr_cap
+vidioc_g_fmt_sdr_cap
+vidioc_s_fmt_sdr_cap
+vidioc_try_fmt_sdr_cap
 
-This patch adds a basic set of stats, basically cloning what's already
-provided by DVBv3 API. Latter patches will improve it.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/dib8000.c | 142 +++++++++++++++++++++++++++++++++-
- 1 file changed, 141 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-dev.c   |  8 ++++----
+ drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++---------
+ include/media/v4l2-ioctl.h           |  8 ++++++++
+ 3 files changed, 21 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 13fdc3d5f762..2dbf89365a97 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -124,6 +124,8 @@ struct dib8000_state {
- 	u16 agc2_max;
- 	u16 agc2_min;
- #endif
-+
-+	unsigned long get_stats_time;
- };
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 9f15e25..a84f4ea 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -673,13 +673,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+ 	} else if (is_sdr) {
+ 		/* SDR specific ioctls */
+-		if (ops->vidioc_enum_fmt_vid_cap)
++		if (ops->vidioc_enum_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+-		if (ops->vidioc_g_fmt_vid_cap)
++		if (ops->vidioc_g_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+-		if (ops->vidioc_s_fmt_vid_cap)
++		if (ops->vidioc_s_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+-		if (ops->vidioc_try_fmt_vid_cap)
++		if (ops->vidioc_try_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
  
- enum dib8000_power_mode {
-@@ -804,7 +806,7 @@ int dib8000_update_pll(struct dvb_frontend *fe,
- 			dprintk("PLL: Update ratio (prediv: %d, ratio: %d)", state->cfg.pll->pll_prediv, ratio);
- 			dib8000_write_word(state, 901, (state->cfg.pll->pll_prediv << 8) | (ratio << 0)); /* only the PLL ratio is updated. */
- 		}
--}
-+	}
- 
- 	return 0;
- }
-@@ -983,6 +985,32 @@ static u16 dib8000_identify(struct i2c_device *client)
- 	return value;
- }
- 
-+static void dib8000_reset_stats(struct dvb_frontend *fe)
-+{
-+	struct dib8000_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
-+
-+	memset(&c->strength, 0, sizeof(c->strength));
-+	memset(&c->cnr, 0, sizeof(c->cnr));
-+	memset(&c->post_bit_error, 0, sizeof(c->post_bit_error));
-+	memset(&c->post_bit_count, 0, sizeof(c->post_bit_count));
-+	memset(&c->block_error, 0, sizeof(c->block_error));
-+
-+	c->strength.len = 1;
-+	c->cnr.len = 1;
-+	c->block_error.len = 1;
-+	c->post_bit_error.len = 1;
-+	c->post_bit_count.len = 1;
-+
-+	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+	c->strength.stat[0].uvalue = 0;
-+
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+}
-+
- static int dib8000_reset(struct dvb_frontend *fe)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
-@@ -1088,6 +1116,8 @@ static int dib8000_reset(struct dvb_frontend *fe)
- 
- 	dib8000_set_power_mode(state, DIB8000_POWER_INTERFACE_ONLY);
- 
-+	dib8000_reset_stats(fe);
-+
- 	return 0;
- }
- 
-@@ -2983,6 +3013,8 @@ static int dib8000_tune(struct dvb_frontend *fe)
- 
- 	switch (*tune_state) {
- 	case CT_DEMOD_START: /* 30 */
-+			dib8000_reset_stats(fe);
-+
- 			if (state->revision == 0x8090)
- 				dib8090p_init_sdram(state);
- 			state->status = FE_STATUS_TUNE_PENDING;
-@@ -3654,6 +3686,8 @@ static int dib8000_set_frontend(struct dvb_frontend *fe)
- 	return 0;
- }
- 
-+static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat);
-+
- static int dib8000_read_status(struct dvb_frontend *fe, fe_status_t * stat)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
-@@ -3691,6 +3725,7 @@ static int dib8000_read_status(struct dvb_frontend *fe, fe_status_t * stat)
- 		if (lock & 0x01)
- 			*stat |= FE_HAS_VITERBI;
+ 		if (is_rx) {
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a7e6b52..18aa36a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -939,7 +939,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 			return 0;
+ 		break;
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+-		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
++		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
+ 			return 0;
+ 		break;
+ 	default:
+@@ -1062,9 +1062,9 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+-		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
++		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
++		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
  	}
-+	dib8000_get_stats(fe, *stat);
- 
- 	return 0;
+ 	return -EINVAL;
  }
-@@ -3797,6 +3832,111 @@ static int dib8000_read_snr(struct dvb_frontend *fe, u16 * snr)
- 	return 0;
+@@ -1121,9 +1121,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+-		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
+ 			break;
+-		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
++		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
  }
+@@ -1190,10 +1190,10 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+-		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sdr);
+-		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
++		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1260,10 +1260,10 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+-		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sdr);
+-		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
++		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e0b74a4..8be32f5 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
+ 					      struct v4l2_fmtdesc *f);
+ 	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					      struct v4l2_fmtdesc *f);
++	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
++					    struct v4l2_fmtdesc *f);
  
-+struct per_layer_regs {
-+	u16 lock, ber, per;
-+};
-+
-+static const struct per_layer_regs per_layer_regs[] = {
-+	{ 554, 560, 562 },
-+	{ 555, 576, 578 },
-+	{ 556, 581, 583 },
-+};
-+
-+static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
-+{
-+	struct dib8000_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
-+	int i, lock;
-+	u32 snr, val;
-+	u16 strength;
-+
-+	/* Get Signal strength */
-+	dib8000_read_signal_strength(fe, &strength);
-+	c->strength.stat[0].uvalue = strength;
-+
-+	/* Check if 1 second was elapsed */
-+	if (!time_after(jiffies, state->get_stats_time))
-+		return 0;
-+	state->get_stats_time = jiffies + msecs_to_jiffies(1000);
-+
-+	/* Get SNR */
-+	snr = dib8000_get_snr(fe);
-+	for (i = 1; i < MAX_NUMBER_OF_FRONTENDS; i++) {
-+		if (state->fe[i])
-+			snr += dib8000_get_snr(state->fe[i]);
-+	}
-+	snr = snr >> 16;
-+
-+	if (snr) {
-+		snr = 10 * intlog10(snr);
-+		snr = (1000L * snr) >> 24;
-+	} else {
-+		snr = 0;
-+	}
-+	c->cnr.stat[0].svalue = snr;
-+	c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+
-+	/* UCB/BER measures require lock */
-+	if (!(stat & FE_HAS_LOCK)) {
-+		c->block_error.len = 1;
-+		c->post_bit_error.len = 1;
-+		c->post_bit_count.len = 1;
-+		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return 0;
-+	}
-+
-+	/* Get UCB and post-BER measures */
-+
-+	/* FIXME: need to check if 1.25e6 bits already passed */
-+	dib8000_read_ber(fe, &val);
-+	c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+	c->post_bit_error.stat[0].uvalue += val;
-+
-+	c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+	c->post_bit_count.stat[0].uvalue += 100000000;
-+
-+	/*
-+	 * FIXME: this is refreshed on every second, but a time
-+	 * drift between dib8000 and PC clock may cause troubles
-+	 */
-+	dib8000_read_unc_blocks(fe, &val);
-+
-+	c->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+	c->block_error.stat[0].uvalue += val;
-+
-+	if (state->revision < 0x8002)
-+		return 0;
-+
-+	c->block_error.len = 4;
-+	c->post_bit_error.len = 4;
-+	c->post_bit_count.len = 4;
-+
-+	for (i = 0; i < 3; i++) {
-+		lock = dib8000_read_word(state, per_layer_regs[i].lock);
-+		if (lock & 0x01) {
-+			/* FIXME: need to check if 1.25e6 bits already passed */
-+			val = dib8000_read_word(state, per_layer_regs[i].ber);
-+			c->post_bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
-+			c->post_bit_error.stat[1 + i].uvalue += val;
-+
-+			c->post_bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
-+			c->post_bit_count.stat[1 + i].uvalue += 100000000;
-+
-+			/*
-+			 * FIXME: this is refreshed on every second, but a time
-+			 * drift between dib8000 and PC clock may cause troubles
-+			 */
-+			val = dib8000_read_word(state, per_layer_regs[i].per);
-+
-+			c->block_error.stat[1 + i].scale = FE_SCALE_COUNTER;
-+			c->block_error.stat[1 + i].uvalue += val;
-+		}
-+	}
-+	return 0;
-+}
-+
- int dib8000_set_slave_frontend(struct dvb_frontend *fe, struct dvb_frontend *fe_slave)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
+ 	/* VIDIOC_G_FMT handlers */
+ 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					   struct v4l2_format *f);
++	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
++					struct v4l2_format *f);
+ 
+ 	/* VIDIOC_S_FMT handlers */
+ 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					   struct v4l2_format *f);
++	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
++					struct v4l2_format *f);
+ 
+ 	/* VIDIOC_TRY_FMT handlers */
+ 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
+ 					     struct v4l2_format *f);
+ 	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					     struct v4l2_format *f);
++	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
++					  struct v4l2_format *f);
+ 
+ 	/* Buffer handlers */
+ 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
 -- 
-1.8.3.1
+1.8.4.2
 
