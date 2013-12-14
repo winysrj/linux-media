@@ -1,172 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52682 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab3LXMcW (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1597 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284Ab3LNDeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 07:32:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 13 Dec 2013 22:34:05 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBE3Y1Rv063318
+	for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 04:34:03 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 723FF2A2224
+	for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 04:33:50 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 1/3] omap3isp: Cancel streaming when a fatal error occurs
-Date: Tue, 24 Dec 2013 13:32:42 +0100
-Message-Id: <1387888364-21631-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1387888364-21631-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1387888364-21631-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131214033350.723FF2A2224@tschai.lan>
+Date: Sat, 14 Dec 2013 04:33:50 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When a fatal error that prevents any further video streaming occurs in a
-pipeline, all queued buffers must be marked as erroneous and new buffers
-must be prevented from being queued. Implement this behaviour with a new
-omap3isp_pipeline_cancel_stream() function that can be used by
-submodules to cancel streaming.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c      | 17 +++++++++++
- drivers/media/platform/omap3isp/isp.h      |  1 +
- drivers/media/platform/omap3isp/ispvideo.c | 46 ++++++++++++++++++++++++++++++
- drivers/media/platform/omap3isp/ispvideo.h |  2 ++
- 4 files changed, 66 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index bb4e0a7..7e09c1d 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1057,6 +1057,23 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- }
- 
- /*
-+ * omap3isp_pipeline_cancel_stream - Cancel stream on a pipeline
-+ * @pipe: ISP pipeline
-+ *
-+ * Cancelling a stream mark all buffers on all video nodes in the pipeline as
-+ * erroneous and makes sure no new buffer can be queued. This function is called
-+ * when a fatal error that prevents any further operation on the pipeline
-+ * occurs.
-+ */
-+void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe)
-+{
-+	if (pipe->input)
-+		omap3isp_video_cancel_stream(pipe->input);
-+	if (pipe->output)
-+		omap3isp_video_cancel_stream(pipe->output);
-+}
-+
-+/*
-  * isp_pipeline_resume - Resume streaming on a pipeline
-  * @pipe: ISP pipeline
-  *
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 72685ad..5b91f86 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -236,6 +236,7 @@ int omap3isp_module_sync_is_stopping(wait_queue_head_t *wait,
- 
- int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- 				 enum isp_pipeline_stream_state state);
-+void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe);
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
- 			       const struct isp_parallel_platform_data *pdata,
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 3953aec..856fdf5 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -411,6 +411,15 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 	struct isp_video *video = vfh->video;
- 	unsigned long addr;
- 
-+	/* Refuse to prepare the buffer is the video node has registered an
-+	 * error. We don't need to take any lock here as the operation is
-+	 * inherently racy. The authoritative check will be performed in the
-+	 * queue handler, which can't return an error, this check is just a best
-+	 * effort to notify userspace as early as possible.
-+	 */
-+	if (unlikely(video->error))
-+		return -EIO;
-+
- 	addr = ispmmu_vmap(video->isp, buf->sglist, buf->sglen);
- 	if (IS_ERR_VALUE(addr))
- 		return -EIO;
-@@ -447,6 +456,12 @@ static void isp_video_buffer_queue(struct isp_video_buffer *buf)
- 	unsigned int empty;
- 	unsigned int start;
- 
-+	if (unlikely(video->error)) {
-+		buf->state = ISP_BUF_STATE_ERROR;
-+		wake_up(&buf->wait);
-+		return;
-+	}
-+
- 	empty = list_empty(&video->dmaqueue);
- 	list_add_tail(&buffer->buffer.irqlist, &video->dmaqueue);
- 
-@@ -569,6 +584,36 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- }
- 
- /*
-+ * omap3isp_video_cancel_stream - Cancel stream on a video node
-+ * @video: ISP video object
-+ *
-+ * Cancelling a stream mark all buffers on the video node as erroneous and makes
-+ * sure no new buffer can be queued.
-+ */
-+void omap3isp_video_cancel_stream(struct isp_video *video)
-+{
-+	struct isp_video_queue *queue = video->queue;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&queue->irqlock, flags);
-+
-+	while (!list_empty(&video->dmaqueue)) {
-+		struct isp_video_buffer *buf;
-+
-+		buf = list_first_entry(&video->dmaqueue,
-+				       struct isp_video_buffer, irqlist);
-+		list_del(&buf->irqlist);
-+
-+		buf->state = ISP_BUF_STATE_ERROR;
-+		wake_up(&buf->wait);
-+	}
-+
-+	video->error = true;
-+
-+	spin_unlock_irqrestore(&queue->irqlock, flags);
-+}
-+
-+/*
-  * omap3isp_video_resume - Perform resume operation on the buffers
-  * @video: ISP video object
-  * @continuous: Pipeline is in single shot mode if 0 or continuous mode otherwise
-@@ -1105,6 +1150,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- 	omap3isp_video_queue_streamoff(&vfh->queue);
- 	video->queue = NULL;
- 	video->streaming = 0;
-+	video->error = false;
- 
- 	if (video->isp->pdata->set_constraints)
- 		video->isp->pdata->set_constraints(video->isp, false);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 1ad470ec..4e19407 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -178,6 +178,7 @@ struct isp_video {
- 	/* Pipeline state */
- 	struct isp_pipeline pipe;
- 	struct mutex stream_lock;	/* pipeline and stream states */
-+	bool error;
- 
- 	/* Video buffers queue */
- 	struct isp_video_queue *queue;
-@@ -207,6 +208,7 @@ int omap3isp_video_register(struct isp_video *video,
- 			    struct v4l2_device *vdev);
- void omap3isp_video_unregister(struct isp_video *video);
- struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video);
-+void omap3isp_video_cancel_stream(struct isp_video *video);
- void omap3isp_video_resume(struct isp_video *video, int continuous);
- struct media_pad *omap3isp_video_remote_pad(struct isp_video *video);
- 
--- 
-1.8.3.2
+date:		Sat Dec 14 04:00:32 CET 2013
+git branch:	test
+git hash:	675722b0e3917c6c917f1aa5f6d005cd3a0479f5
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
