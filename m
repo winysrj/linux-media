@@ -1,82 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:12323 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752159Ab3LJLky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 06:40:54 -0500
-From: Robert Baldyga <r.baldyga@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 2/4] remove set_format from uvc_events_process_data
-Date: Tue, 10 Dec 2013 12:40:35 +0100
-Message-id: <1386675637-18243-3-git-send-email-r.baldyga@samsung.com>
-In-reply-to: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
-References: <1386675637-18243-1-git-send-email-r.baldyga@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:51410 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753810Ab3LNQQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 11:16:24 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v2 4/7] v4l: 1 Hz resolution flag for tuners
+Date: Sat, 14 Dec 2013 18:15:26 +0200
+Message-Id: <1387037729-1977-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
+References: <1387037729-1977-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format is based on application parameters, and it stay unchanged, so we
-don't need to do uvc_video_set_format() and v4l2_set_format()  in
-uvc_events_process_data() function. In addition it allow us to do
-VIDIOC_REQBUFS ioctl once at the beginning, and skip it in STREAMON and
-STREAMOFF events.
+Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
 
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- uvc-gadget.c |   38 --------------------------------------
- 1 file changed, 38 deletions(-)
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/uvc-gadget.c b/uvc-gadget.c
-index 5512e2c..c964f37 100644
---- a/uvc-gadget.c
-+++ b/uvc-gadget.c
-@@ -1949,44 +1949,6 @@ uvc_events_process_data(struct uvc_device *dev, struct uvc_request_data *data)
- 		dev->width = frame->width;
- 		dev->height = frame->height;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c3e7780..619f83f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1349,6 +1349,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+ #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
++#define V4L2_TUNER_CAP_1HZ		0x1000
  
--		/*
--		 * Try to set the default format at the V4L2 video capture
--		 * device as requested by the user.
--		 */
--		CLEAR(fmt);
--
--		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		fmt.fmt.pix.field = V4L2_FIELD_ANY;
--		fmt.fmt.pix.width = frame->width;
--		fmt.fmt.pix.height = frame->height;
--		fmt.fmt.pix.pixelformat = format->fcc;
--
--		switch (format->fcc) {
--		case V4L2_PIX_FMT_YUYV:
--			fmt.fmt.pix.sizeimage =
--				(fmt.fmt.pix.width * fmt.fmt.pix.height * 2);
--			break;
--		case V4L2_PIX_FMT_MJPEG:
--			fmt.fmt.pix.sizeimage = dev->imgsize;
--			break;
--		}
--
--		/*
--		 * As per the new commit command received from the UVC host
--		 * change the current format selection at both UVC and V4L2
--		 * sides.
--		 */
--		ret = uvc_video_set_format(dev);
--		if (ret < 0)
--			goto err;
--
--		if (!dev->run_standalone) {
--			/* UVC - V4L2 integrated path. */
--			ret = v4l2_set_format(dev->vdev, &fmt);
--			if (ret < 0)
--				goto err;
--		}
--
- 		if (dev->bulk) {
- 			ret = uvc_handle_streamon_event(dev);
- 			if (ret < 0)
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
 -- 
-1.7.9.5
+1.8.4.2
 
