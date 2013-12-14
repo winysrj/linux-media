@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4806 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753514Ab3LNL3A (ORCPT
+Received: from mail-vb0-f49.google.com ([209.85.212.49]:65328 "EHLO
+	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753312Ab3LNNiS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 06:29:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 14 Dec 2013 08:38:18 -0500
+Received: by mail-vb0-f49.google.com with SMTP id x11so2016435vbb.8
+        for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 05:38:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20131214092443.622b069d@samsung.com>
+References: <1386969579.3914.13.camel@piranha.localdomain>
+	<20131214092443.622b069d@samsung.com>
+Date: Sat, 14 Dec 2013 13:38:17 +0000
+Message-ID: <CAOBYczoSgS-0HW32BvAb0NsEDqiU9o+DosEjRvyb66XB=fU=_g@mail.gmail.com>
+Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR:
+ i2c_transfer returned: -19
+From: Robin Becker <robin@reportlab.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 13/15] saa6588: remove unused CMD_OPEN.
-Date: Sat, 14 Dec 2013 12:28:35 +0100
-Message-Id: <1387020517-26242-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Well, for board EM28174_BOARD_PCTV_290E, it first attaches cxd2820r
+> and then the tuner tda18271.
+>
+> I suspect that the issue is at cxd2820r. Could you please apply this
+> patch:
+>         http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=0db3fa2741ad8371c21b3a6785416a4afc0cc1d4
+> and see if it solves the issue?
+>
+> Thanks!
+> Mauro
+>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/saa6588.c | 4 ----
- include/media/saa6588.h     | 1 -
- 2 files changed, 5 deletions(-)
-
-diff --git a/drivers/media/i2c/saa6588.c b/drivers/media/i2c/saa6588.c
-index 54dd7a0..21cf940 100644
---- a/drivers/media/i2c/saa6588.c
-+++ b/drivers/media/i2c/saa6588.c
-@@ -394,10 +394,6 @@ static long saa6588_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 	struct saa6588_command *a = arg;
- 
- 	switch (cmd) {
--		/* --- open() for /dev/radio --- */
--	case SAA6588_CMD_OPEN:
--		a->result = 0;	/* return error if chip doesn't work ??? */
--		break;
- 		/* --- close() for /dev/radio --- */
- 	case SAA6588_CMD_CLOSE:
- 		s->data_available_for_read = 1;
-diff --git a/include/media/saa6588.h b/include/media/saa6588.h
-index 2c3c442..1489a52 100644
---- a/include/media/saa6588.h
-+++ b/include/media/saa6588.h
-@@ -34,7 +34,6 @@ struct saa6588_command {
- };
- 
- /* These ioctls are internal to the kernel */
--#define SAA6588_CMD_OPEN	_IOW('R', 1, int)
- #define SAA6588_CMD_CLOSE	_IOW('R', 2, int)
- #define SAA6588_CMD_READ	_IOR('R', 3, int)
- #define SAA6588_CMD_POLL	_IOR('R', 4, int)
+I applied that patch to the latest 3.12.4 Arch linux kernel and it
+solves the problem for me. The error is gone and my pctv 290e devices
+work again. Thanks for the quick analysis.
 -- 
-1.8.4.3
-
+Robin Becker
