@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:36517 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452Ab3LLGt4 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4038 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753068Ab3LNL2x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 01:49:56 -0500
-Received: by mail-bk0-f50.google.com with SMTP id e11so709174bkh.37
-        for <linux-media@vger.kernel.org>; Wed, 11 Dec 2013 22:49:54 -0800 (PST)
-MIME-Version: 1.0
-Date: Thu, 12 Dec 2013 14:49:54 +0800
-Message-ID: <CAPgLHd9pONVzbkdSkh-iZag+NEqHu6JPRgPtayUUGz85=TAdHw@mail.gmail.com>
-Subject: [PATCH -next] [media] radio-bcm2048: fix missing unlock on error in bcm2048_rds_fifo_receive()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	ext-eero.nurkkala@nokia.com, pali.rohar@gmail.com,
-	hans.verkuil@cisco.com, joni.lapilainen@gmail.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 14 Dec 2013 06:28:53 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBEBSo68029199
+	for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 12:28:52 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.192.168.1.1 (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 52F072A2224
+	for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 12:28:39 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [REVIEW PATCH 00/15] saa7134: cleanup
+Date: Sat, 14 Dec 2013 12:28:22 +0100
+Message-Id: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+This is the update version of an earlier cleanup patch series:
 
-Add the missing unlock before return from function bcm2048_rds_fifo_receive()
-in the error handling case.
+http://www.spinics.net/lists/linux-media/msg64974.html
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 1 +
- 1 file changed, 1 insertion(+)
+I clearly completely forgot about this patch series, as the RFCv2 is from
+June.
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 494ec39..37ff899 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1767,6 +1767,7 @@ static void bcm2048_rds_fifo_receive(struct bcm2048_device *bdev)
- 				bdev->rds_info.radio_text, bdev->fifo_size);
- 	if (err != 2) {
- 		dev_err(&bdev->client->dev, "RDS Read problem\n");
-+		mutex_unlock(&bdev->mutex);
- 		return;
- 	}
- 
+This version is rebased to the latest master, but otherwise unchanged.
+
+I want to start converting saa7134 to vb2, and this patch series is a good
+base for that.
+
+If there are no comments, then I plan on making a pull request on Friday.
+
+Regards,
+
+	Hans
 
