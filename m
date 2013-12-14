@@ -1,208 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1803 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240Ab3LJNZS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:50964 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753801Ab3LNQQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 11:16:24 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/15] adv7604: improve EDID handling
-Date: Tue, 10 Dec 2013 14:23:13 +0100
-Message-Id: <b8e4c550a1bf8456a445eda9ae84664a5e1d2504.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v2 2/7] v4l: add device type for Software Defined Radio
+Date: Sat, 14 Dec 2013 18:15:24 +0200
+Message-Id: <1387037729-1977-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
+References: <1387037729-1977-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
+It is registered as /dev/sdr0
 
-- split edid_write_block()
-- do not use edid->edid before the validity check
-- Return -EINVAL if edid->pad is invalid
-- Save both registers for SPA port A
-- Set SPA location to default value if it is not found
-
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/adv7604.c | 94 ++++++++++++++++++++++++---------------------
- 1 file changed, 50 insertions(+), 44 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c | 5 +++++
+ include/media/v4l2-dev.h           | 3 ++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5e40a60..4ce3815 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -72,7 +72,7 @@ struct adv7604_state {
- 		u32 present;
- 		unsigned blocks;
- 	} edid;
--	u16 spa_port_a;
-+	u16 spa_port_a[2];
- 	struct v4l2_fract aspect_ratio;
- 	u32 rgb_quantization_range;
- 	struct workqueue_struct *work_queues;
-@@ -510,22 +510,9 @@ static inline int edid_read_block(struct v4l2_subdev *sd, unsigned len, u8 *val)
- 	return 0;
- }
- 
--static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
--{
--	struct delayed_work *dwork = to_delayed_work(work);
--	struct adv7604_state *state = container_of(dwork, struct adv7604_state,
--						delayed_work_enable_hotplug);
--	struct v4l2_subdev *sd = &state->sd;
--
--	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
--
--	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
--}
--
- static inline int edid_write_block(struct v4l2_subdev *sd,
- 					unsigned len, const u8 *val)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct adv7604_state *state = to_state(sd);
- 	int err = 0;
- 	int i;
-@@ -535,24 +522,19 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
- 	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
- 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
- 				I2C_SMBUS_BLOCK_MAX, val + i);
--	if (err)
--		return err;
-+	return err;
-+}
- 
--	/* adv7604 calculates the checksums and enables I2C access to internal
--	   EDID RAM from DDC port. */
--	rep_write_and_or(sd, 0x77, 0xf0, state->edid.present);
-+static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
-+{
-+	struct delayed_work *dwork = to_delayed_work(work);
-+	struct adv7604_state *state = container_of(dwork, struct adv7604_state,
-+						delayed_work_enable_hotplug);
-+	struct v4l2_subdev *sd = &state->sd;
- 
--	for (i = 0; i < 1000; i++) {
--		if (rep_read(sd, 0x7d) & state->edid.present)
--			break;
--		mdelay(1);
--	}
--	if (i == 1000) {
--		v4l_err(client, "error enabling edid (0x%x)\n", state->edid.present);
--		return -EIO;
--	}
-+	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
- 
--	return 0;
-+	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
- }
- 
- static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
-@@ -1621,7 +1603,7 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	return 0;
- }
- 
--static int get_edid_spa_location(struct v4l2_subdev *sd, const u8 *edid)
-+static int get_edid_spa_location(const u8 *edid)
- {
- 	u8 d;
- 
-@@ -1652,9 +1634,10 @@ static int get_edid_spa_location(struct v4l2_subdev *sd, const u8 *edid)
- static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
- {
- 	struct adv7604_state *state = to_state(sd);
--	int spa_loc = get_edid_spa_location(sd, edid->edid);
-+	int spa_loc;
- 	int tmp = 0;
- 	int err;
-+	int i;
- 
- 	if (edid->pad > ADV7604_EDID_PORT_D)
- 		return -EINVAL;
-@@ -1684,35 +1667,43 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	if (!edid->edid)
- 		return -EINVAL;
- 
-+	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
-+			__func__, edid->pad, state->edid.present);
-+
- 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
- 	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
- 	rep_write_and_or(sd, 0x77, 0xf0, 0x00);
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
--			__func__, edid->pad, state->edid.present);
-+	spa_loc = get_edid_spa_location(edid->edid);
-+	if (spa_loc < 0)
-+		spa_loc = 0xc0; /* Default value [REF_02, p. 116] */
-+
- 	switch (edid->pad) {
- 	case ADV7604_EDID_PORT_A:
--		state->spa_port_a = edid->edid[spa_loc];
-+		state->spa_port_a[0] = edid->edid[spa_loc];
-+		state->spa_port_a[1] = edid->edid[spa_loc + 1];
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1cc1749..c9cf54c 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+  *	%VFL_TYPE_RADIO - A radio card
+  *
+  *	%VFL_TYPE_SUBDEV - A subdevice
++ *
++ *	%VFL_TYPE_SDR - Software Defined Radio
+  */
+ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		int warn_if_nr_in_use, struct module *owner)
+@@ -806,6 +808,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	case VFL_TYPE_SUBDEV:
+ 		name_base = "v4l-subdev";
  		break;
- 	case ADV7604_EDID_PORT_B:
--		rep_write(sd, 0x70, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
--		rep_write(sd, 0x71, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		rep_write(sd, 0x70, edid->edid[spa_loc]);
-+		rep_write(sd, 0x71, edid->edid[spa_loc + 1]);
- 		break;
- 	case ADV7604_EDID_PORT_C:
--		rep_write(sd, 0x72, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
--		rep_write(sd, 0x73, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		rep_write(sd, 0x72, edid->edid[spa_loc]);
-+		rep_write(sd, 0x73, edid->edid[spa_loc + 1]);
- 		break;
- 	case ADV7604_EDID_PORT_D:
--		rep_write(sd, 0x74, (spa_loc < 0) ? 0 : edid->edid[spa_loc]);
--		rep_write(sd, 0x75, (spa_loc < 0) ? 0 : edid->edid[spa_loc + 1]);
-+		rep_write(sd, 0x74, edid->edid[spa_loc]);
-+		rep_write(sd, 0x75, edid->edid[spa_loc + 1]);
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
--	rep_write(sd, 0x76, (spa_loc < 0) ? 0x00 : spa_loc);
--	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc < 0) ? 0x00 : (spa_loc >> 2) & 0x40);
-+	rep_write(sd, 0x76, spa_loc & 0xff);
-+	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
++	case VFL_TYPE_SDR:
++		name_base = "sdr";
++		break;
+ 	default:
+ 		printk(KERN_ERR "%s called with unknown type: %d\n",
+ 		       __func__, type);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index c768c9f..eec6e46 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -24,7 +24,8 @@
+ #define VFL_TYPE_VBI		1
+ #define VFL_TYPE_RADIO		2
+ #define VFL_TYPE_SUBDEV		3
+-#define VFL_TYPE_MAX		4
++#define VFL_TYPE_SDR		4
++#define VFL_TYPE_MAX		5
  
--	if (spa_loc > 0)
--		edid->edid[spa_loc] = state->spa_port_a;
-+	edid->edid[spa_loc] = state->spa_port_a[0];
-+	edid->edid[spa_loc + 1] = state->spa_port_a[1];
- 
- 	memcpy(state->edid.edid, edid->edid, 128 * edid->blocks);
- 	state->edid.blocks = edid->blocks;
-@@ -1726,6 +1717,21 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 		return err;
- 	}
- 
-+	/* adv7604 calculates the checksums and enables I2C access to internal
-+	   EDID RAM from DDC port. */
-+	rep_write_and_or(sd, 0x77, 0xf0, state->edid.present);
-+
-+	for (i = 0; i < 1000; i++) {
-+		if (rep_read(sd, 0x7d) & state->edid.present)
-+			break;
-+		mdelay(1);
-+	}
-+	if (i == 1000) {
-+		v4l2_err(sd, "error enabling edid (0x%x)\n", state->edid.present);
-+		return -EIO;
-+	}
-+
-+
- 	/* enable hotplug after 100 ms */
- 	queue_delayed_work(state->work_queues,
- 			&state->delayed_work_enable_hotplug, HZ / 10);
+ /* Is this a receiver, transmitter or mem-to-mem? */
+ /* Ignored for VFL_TYPE_SUBDEV. */
 -- 
-1.8.4.rc3
+1.8.4.2
 
