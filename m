@@ -1,84 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:58671 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754548Ab3LVSum (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1482 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753530Ab3LNL26 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 13:50:42 -0500
-Received: by mail-ee0-f54.google.com with SMTP id e51so1704634eek.27
-        for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 10:50:41 -0800 (PST)
-Message-ID: <52B734C0.6010409@googlemail.com>
-Date: Sun, 22 Dec 2013 19:51:44 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx DEADLOCK reported by lock debug
-References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <52B6F883.8060103@iki.fi> <52B7293C.5010206@googlemail.com> <52B72BEB.4010902@iki.fi>
-In-Reply-To: <52B72BEB.4010902@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Sat, 14 Dec 2013 06:28:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/15] saa7134: drop log_status for radio.
+Date: Sat, 14 Dec 2013 12:28:33 +0100
+Message-Id: <1387020517-26242-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 22.12.2013 19:14, schrieb Antti Palosaari:
-> On 22.12.2013 20:02, Frank Schäfer wrote:
->> Am 22.12.2013 15:34, schrieb Antti Palosaari:
->>> On 22.12.2013 15:51, Frank Schäfer wrote:
->>>> Am 21.12.2013 20:55, schrieb Antti Palosaari:
->>>>> On 21.12.2013 18:51, Frank Schäfer wrote:
->>>>>> Hi Antti,
->>>>>>
->>>>>> thank you for reporting this issue.
->>>>>>
->>>>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
->>>>>>> That same lock debug deadlock is still there (maybe ~4 times I
->>>>>>> report
->>>>>>> it during 2 years). Is that possible to fix easily at all?
->>>>>>
->>>>>> Patches are always welcome. ;)
->>>>>
->>>>> haha, I cannot simply learn every driver I meet some problems...
->>>> Hint:
->>>>
->>>> If you report a bug ~4 times in 2 years but never get a reply, it
->>>> usually means
->>>> a) nobody cares
->>>> b) nobody has the resources (time, knowledge) to fix it.
->>>>
->>>> So you either have to live with this issue or to fix it yourself.
->>>
->>> OK, as you request me to fix it, I will fix that by making DVB USB v2
->>> driver for these em28xx devices I have added.
->>>
->>> It should not be very much work as em28xx protocol is still relatively
->>> easy.
->> How would that help to get those lockdep false warnings fixed ?
->> Btw: these warnings should appear for _all_ em28xx extensions (dvb,
->> input, audio).
->
-> I am already looking to silence that v4l2 lockdep report. It is hard
-> to say how much it is work as I simply don't know even reasons.
->
-> I suspect that if I start learning and fixing em28xx driver it will
-> take week or two as a workload. Writing new dvb-usb driver is only max
-> 2 days of work and as a bonus you will get some missing features for
-> free:
-> 1) power-management
-> 2) suspend/resume
-> 3) PID filters
-Sure, but we already have a driver for these devices.
-I agree with you that em28xx is a big mess, but at least in this case it
-doesn't do anything wrong.
-Does this false warning really make you so nervous that you're willing
-to spent 2 days for it ?
-I appreciate that, but I suggest to spend these 2 days for fixing the
-issue instead of just avoiding it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Regards,
-Frank
+There are no controls for the radio node, so just drop support for this ioctl.
 
->
-> regards
-> Antti
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-video.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 2334bf9..88e6405 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2125,7 +2125,6 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_tuner		= radio_s_tuner,
+ 	.vidioc_g_frequency	= saa7134_g_frequency,
+ 	.vidioc_s_frequency	= saa7134_s_frequency,
+-	.vidioc_log_status	= v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+-- 
+1.8.4.3
 
